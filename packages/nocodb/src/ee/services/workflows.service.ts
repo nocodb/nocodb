@@ -1,5 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType, generateUniqueCopyName } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  GeneralNodeID,
+  generateUniqueCopyName,
+  hasWorkflowDraftChanges,
+} from 'nocodb-sdk';
 import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { extractWorkflowDependencies } from '~/services/workflows/extractDependency';
@@ -115,20 +121,6 @@ export class WorkflowsService {
       ...workflowBody,
       updated_by: req.user.id,
     });
-
-    try {
-      const dependencies = extractWorkflowDependencies(
-        updatedWorkflow.nodes || [],
-      );
-      await DependencyTracker.trackDependencies(
-        context,
-        DependencyTableType.Workflow,
-        updatedWorkflow.id,
-        dependencies,
-      );
-    } catch (error) {
-      console.error('Failed to track workflow dependencies:', error);
-    }
 
     this.appHooksService.emit(AppEvents.WORKFLOW_UPDATE, {
       workflow: updatedWorkflow,
@@ -343,6 +335,7 @@ export class WorkflowsService {
       workflowId?: string;
       limit?: number;
       offset?: number;
+      cursorId?: string;
     },
   ) {
     const { workflowId } = params;
@@ -358,5 +351,107 @@ export class WorkflowsService {
     }
 
     return await WorkflowExecution.list(context, params);
+  }
+
+  async publishWorkflow(
+    context: NcContext,
+    workflowId: string,
+    req: NcRequest,
+  ) {
+    const workflow = await Workflow.get(context, workflowId);
+
+    if (!workflow) {
+      NcError.get(context).workflowNotFound(workflowId);
+    }
+
+    if (!workflow.draft || !workflow.draft.nodes?.length) {
+      NcError.get(context).badRequest('You cannot publish empty nodes');
+    }
+
+    if (!hasWorkflowDraftChanges(workflow)) {
+      NcError.get(context).badRequest(
+        'No draft changes to publish. Please make changes first.',
+      );
+    }
+
+    const draftNodes = workflow.draft.nodes || [];
+    const untested = [];
+    const failed = [];
+
+    for (const node of draftNodes) {
+      if (
+        [GeneralNodeID.TRIGGER, GeneralNodeID.PLUS].includes(node.type as any)
+      ) {
+        continue;
+      }
+
+      const testResult = node.data?.testResult;
+
+      if (!testResult) {
+        untested.push(node.data?.title || node.id);
+      } else if (testResult.status !== 'success' || testResult?.isStale) {
+        failed.push(node.data?.title || node.id);
+      }
+    }
+
+    if (untested.length > 0) {
+      NcError.get(context).badRequest(
+        `The following nodes must be tested before publishing: ${untested.join(
+          ', ',
+        )}`,
+      );
+    }
+
+    if (failed.length > 0) {
+      NcError.get(context).badRequest(
+        `The following nodes have failed tests: ${failed.join(
+          ', ',
+        )}. Please fix them before publishing.`,
+      );
+    }
+
+    const updatedWorkflow = await Workflow.update(context, workflowId, {
+      nodes: workflow.draft.nodes,
+      edges: workflow.draft.edges,
+      draft: null,
+      updated_by: req.user.id,
+    });
+
+    try {
+      const dependencies = extractWorkflowDependencies(
+        updatedWorkflow.nodes || [],
+      );
+      await DependencyTracker.trackDependencies(
+        context,
+        DependencyTableType.Workflow,
+        updatedWorkflow.id,
+        dependencies,
+      );
+    } catch (error) {
+      console.error('Failed to track workflow dependencies:', error);
+    }
+
+    this.appHooksService.emit(AppEvents.WORKFLOW_UPDATE, {
+      workflow: updatedWorkflow,
+      oldWorkflow: workflow,
+      context,
+      user: req.user,
+      req,
+    });
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.WORKFLOW_EVENT,
+        payload: {
+          id: workflowId,
+          action: 'update',
+          payload: updatedWorkflow,
+        },
+      },
+      context.socket_id,
+    );
+
+    return updatedWorkflow;
   }
 }

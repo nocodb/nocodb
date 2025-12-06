@@ -52,7 +52,7 @@ export interface WorkflowNodeResult {
 
   logs?: WorkflowNodeLog[];
 
-  status?: 'success' | 'partial' | 'skipped' | 'error';
+  status?: 'success' | 'pending' | 'skipped' | 'error' | 'running';
 
   error?: { message: string; code?: string; data?: any };
 }

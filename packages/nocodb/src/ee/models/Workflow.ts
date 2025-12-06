@@ -29,6 +29,10 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
   fk_workspace_id?: string;
   base_id?: string;
   meta?: any;
+  draft?: {
+    nodes?: WorkflowGeneralNode[];
+    edges?: WorkflowGeneralEdge[];
+  };
 
   nodes?: WorkflowGeneralNode[];
   edges?: WorkflowGeneralEdge[];
@@ -70,7 +74,12 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       );
 
       if (workflow) {
-        workflow = prepareForResponse(workflow, ['nodes', 'edges', 'meta']);
+        workflow = prepareForResponse(workflow, [
+          'nodes',
+          'edges',
+          'meta',
+          'draft',
+        ]);
 
         await NocoCache.set(
           context,
@@ -111,7 +120,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       );
 
       workflowList = workflowList.map((workflow) =>
-        prepareForResponse(workflow, ['nodes', 'edges', 'meta']),
+        prepareForResponse(workflow, ['nodes', 'edges', 'meta', 'draft']),
       );
 
       await NocoCache.setList(
@@ -141,6 +150,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       'nodes',
       'edges',
       'meta',
+      'draft',
       'order',
       'created_by',
     ]);
@@ -190,6 +200,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       'nodes',
       'edges',
       'meta',
+      'draft',
       'order',
       'updated_by',
     ]);
@@ -198,14 +209,14 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       context.workspace_id,
       context.base_id,
       MetaTable.WORKFLOWS,
-      prepareForDb(updateObj, ['nodes', 'edges', 'meta']),
+      prepareForDb(updateObj, ['nodes', 'edges', 'meta', 'draft']),
       workflowId,
     );
 
     await NocoCache.update(
       context,
       `${CacheScope.WORKFLOW}:${workflowId}`,
-      prepareForResponse(updateObj, ['nodes', 'edges', 'meta']),
+      prepareForResponse(updateObj, ['nodes', 'edges', 'meta', 'draft']),
     );
 
     return this.get(context, workflowId, ncMeta);

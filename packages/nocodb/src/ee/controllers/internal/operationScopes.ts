@@ -83,6 +83,7 @@ export const OPERATION_SCOPES = {
   workflowNodeIntegrationFetchOptions: 'workspace',
   workflowExecute: 'base',
   workflowTestNode: 'base',
+  workflowPublish: 'base',
   workflowNodes: 'base',
 
   workflowExecutionList: 'base',

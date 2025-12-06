@@ -613,9 +613,9 @@ export async function getAffectedColumns(
   if (affectedCols.length) {
     affectedCols = [...new Set(affectedCols)];
     const columns = await model.getColumns(context);
-    return affectedCols.map(
-      (title) => columns.find((col) => col.title === title).id,
-    );
+    return affectedCols
+      .map((title) => columns.find((col) => col.title === title)?.id)
+      .filter(Boolean);
   } else {
     return undefined;
   }

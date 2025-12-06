@@ -7,7 +7,11 @@ const { updateWorkflow } = workflowStore
 
 const { activeWorkflow } = storeToRefs(workflowStore)
 
+const { hasDraftChanges, canPublish, publishWorkflow, revertToPublished } = useWorkflowOrThrow()
+
 const { $e } = useNuxtApp()
+
+const isPublishing = ref(false)
 
 const toggleWorkflow = async () => {
   if (!activeWorkflow.value || !activeWorkflow.value.base_id || !activeWorkflow.value.id) {
@@ -24,6 +28,17 @@ const toggleWorkflow = async () => {
     workflow_id: activeWorkflow.value.id,
   })
 }
+
+const handlePublish = async () => {
+  if (!canPublish.value) return
+
+  isPublishing.value = true
+  try {
+    await publishWorkflow()
+  } finally {
+    isPublishing.value = false
+  }
+}
 </script>
 
 <template>
@@ -33,6 +48,43 @@ const toggleWorkflow = async () => {
     </div>
 
     <div class="flex items-center gap-2 mr-4">
+      <NcTooltip v-if="hasDraftChanges">
+        <div
+          class="rounded-md flex items-center gap-1 px-2 py-0.5 bg-orange-50 text-orange-600 text-caption border border-orange-200"
+        >
+          <GeneralIcon icon="edit" class="w-3 h-3" />
+          Draft
+        </div>
+        <template #title> You have unsaved changes </template>
+      </NcTooltip>
+
+      <NcTooltip v-if="hasDraftChanges">
+        <NcButton size="small" type="secondary" :disabled="isPublishing" @click="revertToPublished">
+          <template #icon>
+            <GeneralIcon icon="reload" />
+          </template>
+          Discard
+        </NcButton>
+        <template #title> Revert to published version </template>
+      </NcTooltip>
+
+      <NcTooltip :disabled="canPublish">
+        <NcButton
+          v-if="hasDraftChanges"
+          size="small"
+          type="primary"
+          :disabled="!canPublish || isPublishing"
+          :loading="isPublishing"
+          @click="handlePublish"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncUploadCloud" />
+          </template>
+          Publish
+        </NcButton>
+        <template #title> Please test all nodes before publishing </template>
+      </NcTooltip>
+
       <div
         class="rounded-md flex items-center gap-1 px-2 py-0.5"
         :class="{

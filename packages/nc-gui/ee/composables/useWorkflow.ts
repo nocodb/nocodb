@@ -1,5 +1,5 @@
-import type { WorkflowNodeCategoryType, WorkflowType } from 'nocodb-sdk'
-import { GENERAL_DEFAULT_NODES, GeneralNodeID, INIT_WORKFLOW_NODES } from 'nocodb-sdk'
+import type { WorkflowGeneralNode, WorkflowNodeCategoryType, WorkflowType } from 'nocodb-sdk'
+import { GENERAL_DEFAULT_NODES, GeneralNodeID, INIT_WORKFLOW_NODES, hasWorkflowDraftChanges } from 'nocodb-sdk'
 import type { Edge, Node } from '@vue-flow/core'
 import rfdc from 'rfdc'
 import { findAllParentNodes, transformNode } from '~/utils/workflowUtils'
@@ -21,7 +21,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   const { activeProjectId } = storeToRefs(baseStore)
 
-  const { updateWorkflow } = workflowStore
+  const { updateWorkflow, publishWorkflow: publishWorkflowStore } = workflowStore
 
   const selectedNodeId = ref<string | null>(null)
 
@@ -35,12 +35,37 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     return [...GENERAL_DEFAULT_NODES, ...activeBaseNodeSchemas.value.map(transformNode)]
   })
 
-  const nodes = ref<Array<Node>>((workflow.value?.nodes || INIT_WORKFLOW_NODES) as Array<Node>)
+  const nodes = ref<Array<Node>>((workflow.value?.draft?.nodes || workflow.value?.nodes || INIT_WORKFLOW_NODES) as Array<Node>)
 
-  const edges = ref<Array<Edge>>((workflow.value?.edges as Array<Edge>) || [])
+  const edges = ref<Array<Edge>>((workflow.value?.draft?.edges || workflow.value?.edges || []) as Array<Edge>)
 
   const hasManualTrigger = computed(() => {
     return nodes.value.some((node) => node.type === 'core.trigger.manual')
+  })
+
+  const hasDraftChanges = computed(() => {
+    if (!workflow.value) return false
+    return hasWorkflowDraftChanges(workflow.value)
+  })
+
+  const canPublish = computed(() => {
+    if (!hasDraftChanges.value) return false
+
+    const draftNodes = (workflow.value?.draft?.nodes || []) as Array<WorkflowGeneralNode>
+
+    for (const node of draftNodes) {
+      if ([GeneralNodeID.TRIGGER, GeneralNodeID.PLUS].includes(node.type as any)) {
+        continue
+      }
+
+      const testResult = node.data?.testResult
+
+      if (!testResult || testResult?.status !== 'success' || testResult?.isStale === true) {
+        return false
+      }
+    }
+
+    return true
   })
 
   const selectedNode = computed(() => {
@@ -61,19 +86,22 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     if (isUIAllowed('workflowCreateOrEdit')) {
       isSaving.value = true
       try {
-        await updateWorkflow(
-          activeProjectId.value,
-          workflow.value.id,
-          {
-            ...(title ? { title } : {}),
-            ...(description ? { description } : {}),
-            ...(nodes ? { nodes } : {}),
-            ...(edges ? { edges } : {}),
-          },
-          {
-            skipNetworkCall,
-          },
-        )
+        const updatePayload: any = {
+          ...(title ? { title } : {}),
+          ...(description ? { description } : {}),
+        }
+
+        // If nodes or edges are being updated, wrap them in draft
+        if (nodes || edges) {
+          updatePayload.draft = {
+            nodes: nodes || workflow.value.draft?.nodes || workflow.value.nodes,
+            edges: edges || workflow.value.draft?.edges || workflow.value.edges,
+          }
+        }
+
+        await updateWorkflow(activeProjectId.value, workflow.value.id, updatePayload, {
+          skipNetworkCall,
+        })
       } finally {
         isSaving.value = false
       }
@@ -382,6 +410,49 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     }
   }
 
+  const publishWorkflow = async () => {
+    if (!activeProjectId.value || !workflow.value?.id) return
+    if (!canPublish.value) {
+      message.warning('Please test all nodes before publishing')
+      return
+    }
+
+    try {
+      const published = await publishWorkflowStore(activeProjectId.value, workflow.value.id)
+      if (published) {
+        nodes.value = (published.nodes || INIT_WORKFLOW_NODES) as Array<Node>
+        edges.value = (published.edges as Array<Edge>) || []
+      }
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+      console.error('[Workflow] Publish error:', e)
+    }
+  }
+
+  const revertToPublished = async () => {
+    if (!activeProjectId.value || !workflow.value?.id) return
+    if (!hasDraftChanges.value) return
+
+    try {
+      await updateWorkflow(
+        activeProjectId.value,
+        workflow.value.id,
+        {
+          draft: null,
+        },
+        {
+          skipNetworkCall: false,
+        },
+      )
+
+      nodes.value = (workflow.value.nodes || INIT_WORKFLOW_NODES) as Array<Node>
+      edges.value = (workflow.value.edges as Array<Edge>) || []
+    } catch (e) {
+      message.error(await extractSdkResponseErrorMsgv2(e))
+      console.error('[Workflow] Revert error:', e)
+    }
+  }
+
   const fetchNodeIntegrationOptions = async (formState: any, key: string) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return
     try {
@@ -568,9 +639,9 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
         })
       }
     } else {
-      // Restore current workflow when execution is cleared
-      nodes.value = (workflow.value?.nodes || INIT_WORKFLOW_NODES) as Array<Node>
-      edges.value = (workflow.value?.edges as Array<Edge>) || []
+      // Restore current workflow when execution is cleared - use draft if available
+      nodes.value = (workflow.value?.draft?.nodes || workflow.value?.nodes || INIT_WORKFLOW_NODES) as Array<Node>
+      edges.value = (workflow.value?.draft?.edges || workflow.value?.edges || []) as Array<Edge>
       nextTick(() => {
         triggerLayout()
       })
@@ -586,6 +657,24 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     }
   })
 
+  // Watch for realtime workflow updates (_dirty flag)
+  watch(
+    () => (workflow.value as any)?._dirty,
+    (newVal) => {
+      if (!newVal) return
+
+      const updatedNodes = workflow.value?.draft?.nodes || workflow.value?.nodes || INIT_WORKFLOW_NODES
+      const updatedEdges = workflow.value?.draft?.edges || workflow.value?.edges || []
+
+      nodes.value = updatedNodes as Array<Node>
+      edges.value = updatedEdges as Array<Edge>
+
+      nextTick(() => {
+        triggerLayout()
+      })
+    },
+  )
+
   return {
     // State
     workflow,
@@ -596,8 +685,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     selectedNodeId,
     selectedNode,
     hasManualTrigger,
+    hasDraftChanges,
+    canPublish,
     activeTab,
-    viewingExecution: readonly(viewingExecution),
+    viewingExecution,
     selectedNodeExecutionResult,
 
     // Methods
@@ -607,6 +698,8 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     triggerLayout,
     updateSelectedNode,
     executeWorkflow,
+    publishWorkflow,
+    revertToPublished,
     viewExecution,
     exitExecutionView,
 

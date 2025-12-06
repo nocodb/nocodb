@@ -243,7 +243,7 @@ export class WorkflowExecutionService {
 
       const nodeResult: WorkflowNodeResult = await nodeWrapper.run(runContext);
 
-      result.status = nodeResult.status === 'error' ? 'error' : 'success';
+      result.status = nodeResult.status || 'success';
       // Exclude testResult from stored input to prevent nested testResults
       const { testResult: _testResult, ...inputWithoutTestResult } =
         interpolatedData || {};
@@ -388,7 +388,6 @@ export class WorkflowExecutionService {
           triggerData,
           expressionContext,
         );
-
         executionState.nodeResults.push(result);
 
         if (result.status === 'error') {
@@ -398,6 +397,13 @@ export class WorkflowExecutionService {
             result.nodeTitle,
             result.error,
           );
+        }
+
+        // Stop execution if trigger node is skipped (e.g., filtered out)
+        if (result.status === 'skipped') {
+          executionState.status = 'skipped';
+          executionState.endTime = Date.now();
+          break;
         }
 
         // Determine next node based on result
@@ -419,14 +425,13 @@ export class WorkflowExecutionService {
         NcError.get(context).workflowMaxIterationsExceeded();
       }
 
+      if (executionState.status === 'skipped') {
+        return executionState;
+      }
+
       // Mark execution as completed
       executionState.status = 'completed';
       executionState.endTime = Date.now();
-
-      const duration = executionState.endTime - executionState.startTime;
-      this.logger.log(
-        `Workflow completed successfully in ${duration}ms (${executedNodes.size} nodes executed)`,
-      );
 
       return executionState;
     } catch (error) {
@@ -519,7 +524,7 @@ export class WorkflowExecutionService {
           const result: NodeExecutionResult = {
             nodeId: node.id,
             nodeTitle: node.data?.title || 'Trigger',
-            status: nodeResult.status === 'error' ? 'error' : 'success',
+            status: nodeResult.status || 'success',
             input: triggerData || {},
             output: nodeResult.outputs || {},
             startTime,
@@ -599,8 +604,13 @@ export class WorkflowExecutionService {
     targetNodeId: string,
     testTriggerData?: any,
   ): Promise<NodeExecutionResult> {
-    const nodes = (workflow.nodes || []) as WorkflowGeneralNode[];
-    const edges = (workflow.edges || []) as WorkflowGeneralEdge[];
+    // ALWAYS PRIORITIZE DRAFT NODES WHEN TESTING
+    const nodes = ((workflow as any).draft?.nodes ||
+      workflow.nodes ||
+      []) as WorkflowGeneralNode[];
+    const edges = ((workflow as any).draft?.edges ||
+      workflow.edges ||
+      []) as WorkflowGeneralEdge[];
 
     const nodeMap = new Map<string, WorkflowGeneralNode>(
       nodes.map((n) => [n.id, n]),
@@ -691,10 +701,6 @@ export class WorkflowExecutionService {
         }
       }
 
-      this.logger.log(
-        `Test executed trigger node "${result.nodeTitle}" successfully`,
-      );
-
       return {
         ...result,
         inputVariables,
@@ -773,9 +779,6 @@ export class WorkflowExecutionService {
         );
       }
     }
-
-    this.logger.log(`Test executed node "${result.nodeTitle}" successfully`);
-
     return {
       ...result,
       inputVariables,

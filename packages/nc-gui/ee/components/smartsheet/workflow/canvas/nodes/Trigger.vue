@@ -4,6 +4,7 @@ import { Handle, Position } from '@vue-flow/core'
 import type { WorkflowNodeDefinition } from 'nocodb-sdk'
 import { GeneralNodeID, WorkflowNodeCategory } from 'nocodb-sdk'
 import Dropdown from './Dropdown.vue'
+import WorkflowNodeStatusIcon from './WorkflowNodeStatusIcon.vue'
 
 const props = defineProps<NodeProps>()
 
@@ -27,9 +28,7 @@ const disableDropdown = computed(() => {
 const selectTriggerType = async (option: WorkflowNodeDefinition) => {
   await updateNode(props.id, {
     type: option.id,
-    data: {
-      ...props.data,
-    },
+    data: {},
   })
 
   updateSelectedNode(props.id)
@@ -60,14 +59,6 @@ const handleTriggerClick = () => {
   }
 }
 
-const hasTestResult = computed(() => {
-  return props.data?.testResult?.status === 'success'
-})
-
-const hasTestError = computed(() => {
-  return props.data?.testResult?.status === 'error'
-})
-
 onClickOutside(
   wrappperRef,
   () => {
@@ -94,9 +85,9 @@ onClickOutside(
         <div
           v-if="!selectedNode"
           :class="{
-            'ring ring-nc-brand-500 ring-offset-2': showDropdown,
+            'ring ring-nc-brand-500 ring-offset-2 !border-nc-border-gray-dark': showDropdown,
           }"
-          class="flex border-1 rounded-lg w-77 justify-center border-dashed cursor-pointer border-nc-border-gray-dark px-2 py-4 !bg-nc-bg-gray-extralight"
+          class="flex border-1 rounded-lg w-77 bg-nc-bg-default justify-center border-dashed cursor-pointer border-nc-border-brand px-2 py-4"
           @click="openDropdown"
         >
           <div class="flex text-nc-content-brand items-center gap-2">
@@ -114,20 +105,7 @@ onClickOutside(
           }"
           @click.stop="handleTriggerClick"
         >
-          <div
-            v-if="hasTestResult"
-            class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-nc-green-600 dark:bg-nc-green-500 flex items-center justify-center"
-            title="Tested successfully"
-          >
-            <GeneralIcon icon="ncCheckCircle" class="text-base-white !w-3 !h-3" />
-          </div>
-          <div
-            v-else-if="hasTestError"
-            class="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-nc-red-500 dark:bg-nc-red-500 flex items-center justify-center"
-            title="Test failed"
-          >
-            <GeneralIcon icon="ncX" class="text-base-white !w-3 !h-3" />
-          </div>
+          <WorkflowNodeStatusIcon :node-id="props.id" />
 
           <div class="flex gap-2.5 w-full items-center">
             <div

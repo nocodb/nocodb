@@ -1,13 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ExtractIdsMiddleware as ExtractIdsMiddlewareEE } from 'src/ee/middlewares/extract-ids/extract-ids.middleware';
+import NocoLicense from '../../NocoLicense';
 import type {
   CanActivate,
   ExecutionContext,
   NestMiddleware,
 } from '@nestjs/common';
 import { NcError } from '~/helpers/catchError';
-
-import { LicenseService } from '~/services/license/license.service';
 import { Workspace } from '~/models';
 
 // todo: refactor name since we are using it as auth guard
@@ -18,7 +17,7 @@ export class ExtractIdsMiddleware
 {
   private cachedWorkspaceId: string = null;
 
-  constructor(private licenseService: LicenseService) {
+  constructor() {
     super();
   }
 
@@ -37,7 +36,7 @@ export class ExtractIdsMiddleware
     req: any;
   }) {
     // check if oneWorkspace enabled and if enabled then allow only one workspace which is first in the list
-    if (!this.licenseService.getOneWorkspace()) {
+    if (!NocoLicense.getOneWorkspace()) {
       return super.additionalValidation(param);
     }
 

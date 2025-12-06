@@ -1,21 +1,19 @@
-import Noco from '~/Noco';
-import { LicenseService } from '~/services/license/license.service';
+import NocoLicense from '~/NocoLicense';
 import { EnterprisePlan, EnterpriseStarterPlan, FreePlan } from '~/models/Plan';
+import Noco from '~/Noco';
 
 export * from 'src/ee/helpers/paymentHelpers';
 
 export const getOnPremPlan = () => {
-  const licenseSevice = Noco.nestApp.get(LicenseService);
+  try {
+    if (NocoLicense.getWorkspaceLimit() === 1) {
+      return EnterpriseStarterPlan;
+    }
 
-  if (!licenseSevice) {
+    return EnterprisePlan;
+  } catch {
     return FreePlan;
   }
-
-  if (licenseSevice.getMaxWorkspaces() === 1) {
-    return EnterpriseStarterPlan;
-  }
-
-  return EnterprisePlan;
 };
 
 export async function getActivePlanAndSubscription(

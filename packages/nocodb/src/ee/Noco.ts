@@ -5,7 +5,6 @@ import { NcLogger } from '~/utils/logger/NcLogger';
 import { AuditService } from '~/meta/audit.service';
 import { NcConfig } from '~/utils/nc-config';
 import { MetaTable } from '~/utils/globals';
-
 export default class Noco extends NocoCE {
   protected static initCustomLogger(nestApp: INestApplication) {
     this.ee = true;

@@ -1,12 +1,18 @@
 import { nocoModuleEeMetadata } from 'src/ee/modules/noco.module';
-import { Module } from '@nestjs/common';
-import { LicenseService } from '../services/license/license.service';
+import { type MiddlewareConsumer, Module } from '@nestjs/common';
+import { PaymentModule } from '~/modules/payment/payment.module';
+import { LicenseCheckMiddleware } from '~/middlewares/license-check/license-check.middleware';
 
 @Module({
   ...nocoModuleEeMetadata,
-  imports: [...nocoModuleEeMetadata.imports],
-  providers: [...nocoModuleEeMetadata.providers, LicenseService],
+  imports: [PaymentModule, ...nocoModuleEeMetadata.imports],
+  providers: [LicenseCheckMiddleware, ...nocoModuleEeMetadata.providers],
   controllers: [...nocoModuleEeMetadata.controllers],
-  exports: [...nocoModuleEeMetadata.exports, LicenseService],
+  exports: [PaymentModule, ...nocoModuleEeMetadata.exports],
 })
-export class NocoModule {}
+export class NocoModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Apply license check middleware to all routes
+    consumer.apply(LicenseCheckMiddleware).forRoutes('*');
+  }
+}

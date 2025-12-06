@@ -68,9 +68,8 @@ const handlePublish = async () => {
         <template #title> Revert to published version </template>
       </NcTooltip>
 
-      <NcTooltip :disabled="canPublish">
+      <NcTooltip v-if="hasDraftChanges" :disabled="canPublish">
         <NcButton
-          v-if="hasDraftChanges"
           size="small"
           type="primary"
           :disabled="!canPublish || isPublishing"

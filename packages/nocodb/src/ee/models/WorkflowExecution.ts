@@ -90,6 +90,7 @@ export default class WorkflowExecution {
         condition,
         xcCondition,
         orderBy: {
+          id: 'desc',
           created_at: 'desc',
         },
         limit,

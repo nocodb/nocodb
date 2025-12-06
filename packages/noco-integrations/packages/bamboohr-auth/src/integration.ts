@@ -20,7 +20,7 @@ export class BambooHRAuthIntegration extends AuthIntegration<
   protected getRateLimitConfig(): RateLimitOptions | null {
     return {
       global: {
-        maxRequests: 25, // ~1500 requests/hour
+        maxRequests: 600, // ~36000 requests/hour
         perMilliseconds: 60 * 1000, // 1 minute window
       },
       maxQueueSize: 50,

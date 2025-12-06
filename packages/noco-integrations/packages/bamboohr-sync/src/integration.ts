@@ -73,10 +73,6 @@ export default class BambooHRSyncIntegration extends SyncIntegration<BambooHRSyn
     return this.config.title;
   }
 
-  get batchSize(): number {
-    return 25;
-  }
-
   public async getDestinationSchema(_auth: BambooHRAuthIntegration) {
     return SCHEMA_HRIS;
   }

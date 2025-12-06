@@ -6919,7 +6919,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const ast = await getAst(this.context, {
       model: this.model,
     });
-
     const list = await this.chunkList({
       pks: ids,
       chunkSize: 100,

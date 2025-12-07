@@ -1,9 +1,4 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
-import Kanban from './Kanban.vue'
-import KanbanOptimized from './KanbanOptimized.vue'
-import { useBetaFeatureToggle } from '#imports'
-
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 // Check if optimized kanban is enabled via feature flag
@@ -12,6 +7,6 @@ const isOptimizedKanbanEnabled = computed(() => isFeatureEnabled('kanban_opt'))
 
 <template>
   <!-- Switch between legacy and optimized kanban based on feature flag -->
-  <Kanban v-if="!isOptimizedKanbanEnabled" />
-  <KanbanOptimized v-else />
+  <LazySmartsheetKanban v-if="!isOptimizedKanbanEnabled" />
+  <LazySmartsheetKanbanOptimized v-else />
 </template>

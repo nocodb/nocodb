@@ -28,7 +28,6 @@ export class CacheWarmingJob {
       base_id: "po8bajgqamssw6f",
       workspace_id: RootScopes.ROOT,
     }
-
     const baseId = "po8bajgqamssw6f"
     const modelId = "myr7f4mjpjvrcdm"
 

@@ -122,7 +122,10 @@ const getAvailableAggregations = (type: string, parsed_tree?): string[] => {
       break;
     case UITypes.Button:
     case UITypes.Attachment:
-      return [CommonAggregations.None, AttachmentAggregations.AttachmentSize];
+      return [
+        ...Object.values(CommonAggregations),
+        AttachmentAggregations.AttachmentSize,
+      ];
   }
 
   if (!returnAggregations.length) {

@@ -4,7 +4,7 @@ import {
   SyncIntegration,
 } from '@noco-integrations/core';
 import { BoxFormatter } from './formatter';
-import type { BoxItemsResponse, BoxFolder } from './types';
+import type { EventStreamResponse } from './types';
 import type { BoxAuthIntegration } from '@noco-integrations/box-auth';
 import type {
   SyncLinkValue,
@@ -31,71 +31,17 @@ export default class BoxSyncIntegration extends SyncIntegration<BoxSyncPayload> 
     return SCHEMA_FILE_STORAGE;
   }
 
-  /**
-   * Fetches all items from a Box folder with pagination
-   * @param auth - Box authentication integration
-   * @param folderId - The folder ID to fetch items from (use "0" for root)
-   * @param allEntries - Accumulator for all entries
-   * @returns Promise with all entries from this folder
-   */
-  private async fetchFolderItems(
+  async getEvents(
     auth: BoxAuthIntegration,
-    folderId: string,
-    allEntries: (BoxItemsResponse['entries'][number])[] = [],
-  ): Promise<BoxItemsResponse['entries']> {
-    let marker: string | undefined;
-    let hasMore = true;
+    { streamPosition }: { streamPosition?: string },
+  ) {
+    const { data } = (await auth.use(async (client) => {
+      return await client.get(`/events`, {
+        params: { stream_position: streamPosition },
+      });
+    })) as { data: EventStreamResponse };
 
-    while (hasMore) {
-      const params: Record<string, string> = {
-        limit: '1000',
-        usemarker: 'true',
-        fields: 'id,type,name,size,created_at,modified_at,description,parent,shared_link,sha1,extension,item_status',
-      };
-
-      if (marker) {
-        params.marker = marker;
-      }
-
-      const { data: itemsResponse } = (await auth.use(async (client) => {
-        return await client.get(`/folders/${folderId}/items`, { params });
-      })) as { data: BoxItemsResponse };
-
-      allEntries.push(...itemsResponse.entries);
-
-      marker = itemsResponse.next_marker;
-      hasMore = !!marker;
-    }
-
-    return allEntries;
-  }
-
-  /**
-   * Recursively fetches all items from a Box folder and its subfolders
-   * @param auth - Box authentication integration
-   * @param folderId - The folder ID to fetch items from (use "0" for root)
-   * @param allEntries - Accumulator for all entries
-   * @returns Promise with all entries from this folder and subfolders
-   */
-  private async fetchFolderItemsRecursive(
-    auth: BoxAuthIntegration,
-    folderId: string,
-    allEntries: (BoxItemsResponse['entries'][number])[] = [],
-  ): Promise<BoxItemsResponse['entries']> {
-    // Fetch all items from current folder
-    const folderEntries = await this.fetchFolderItems(auth, folderId, []);
-    allEntries.push(...folderEntries);
-
-    // Recursively fetch items from subfolders
-    const folders = folderEntries.filter(
-      (item) => item.type === 'folder' && item.item_status !== 'trashed' && item.item_status !== 'deleted',
-    ) as BoxFolder[];
-
-    for (const folder of folders) {
-      await this.fetchFolderItemsRecursive(auth, folder.id, allEntries);
-    }
-
-    return allEntries;
+    return data;
   }
 
   public async fetchData(
@@ -107,21 +53,27 @@ export default class BoxSyncIntegration extends SyncIntegration<BoxSyncPayload> 
   ): Promise<DataObjectStream<SyncRecord>> {
     const stream = new DataObjectStream<SyncRecord>();
 
+    let streamPosition = this.getVars()?.stream_position;
+    let hasMore = true;
+
     void (async () => {
       try {
-        const rootFolderId = '0'; // Box root folder ID
-
-        // Fetch all items recursively starting from root
-        const entries: BoxItemsResponse['entries'] = [];
-        await this.fetchFolderItemsRecursive(auth, rootFolderId, entries);
-
-        // Format and push all entries
-        if (entries && entries.length > 0) {
-          for (const each of this.formatter.formatEntries({ entries })) {
-            stream.push(each);
+        while (hasMore) {
+          const result = await this.getEvents(auth, { streamPosition });
+          const entries = result.entries;
+          // Format and push all entries
+          if (entries && entries.length > 0) {
+            for (const each of this.formatter.formatEntries({ entries })) {
+              stream.push(each);
+            }
           }
+          hasMore = entries.length > 0;
+          streamPosition = result.next_stream_position;
         }
 
+        await this.saveVars({
+          stream_position: streamPosition,
+        });
         stream.push(null);
       } catch (error) {
         console.error('[Box Sync] Error fetching data:', error);

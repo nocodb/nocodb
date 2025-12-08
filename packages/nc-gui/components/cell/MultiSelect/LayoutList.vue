@@ -72,10 +72,10 @@ const handleUpdateSelectedOptions = (val: string[]) => {
             },
           ]"
         >
-          <a-tag class="rounded-tag max-w-full" :color="op.color">
+          <a-tag class="rounded-tag max-w-full" :color="op.bgColor">
             <span
               :style="{
-                color: getSelectTypeOptionTextColor(op.color, getColor, true),
+                color: op.textColor,
               }"
               class="text-small"
             >

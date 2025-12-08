@@ -540,7 +540,7 @@ useResizeObserver(inputWrapperRef, () => {
           ref="textAreaRef"
           v-model="vModel"
           :rows="isForm ? 5 : 4"
-          class="h-full w-full !outline-none nc-scrollbar-thin disabled:!bg-transparent"
+          class="nc-inline-textarea h-full w-full !outline-none nc-scrollbar-thin"
           :class="{
             'p-2': editEnabled || isUnderFormula,
             'py-1 h-full': isForm,
@@ -864,6 +864,12 @@ useResizeObserver(inputWrapperRef, () => {
 </template>
 
 <style lang="scss" scoped>
+.nc-inline-textarea {
+  &:disabled {
+    @apply !bg-transparent;
+  }
+}
+
 textarea:focus {
   box-shadow: none;
 }

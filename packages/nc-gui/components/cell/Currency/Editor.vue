@@ -183,6 +183,6 @@ input[type='number'] {
 }
 
 input:disabled {
-  @apply bg-transparent;
+  @apply !bg-transparent;
 }
 </style>

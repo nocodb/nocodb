@@ -1,82 +1,95 @@
 import { isLinksOrLTAR, UITypes } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
-import { Column, Model, type LookupColumn } from '~/models';
+import {
+  type Column,
+  type LinkToAnotherRecordColumn,
+  type LookupColumn,
+  Model,
+} from '~/models';
 
-async function traverseLookupChain(
-  column: Column,
+async function processColumn(
   context: NcContext,
+  column: Column,
   relatedModels: Map<string, Model>,
-  visitedColumns: Set<string> = new Set(),
-): Promise<void> {
-  if (column.uidt !== UITypes.Lookup) {
-    return;
-  }
-
-  // Prevent circular lookups by tracking visited columns
+  visitedColumns = new Set<string>(),
+) {
+  // Prevent circular references
   if (visitedColumns.has(column.id)) {
     return;
   }
   visitedColumns.add(column.id);
 
-  const colOptions = await column.getColOptions<LookupColumn>(context);
+  if (!relatedModels.has(column.fk_model_id)) {
+    const model = await Model.get(context, column.fk_model_id);
+    await model.getColumns(context);
+    relatedModels.set(column.fk_model_id, model);
+  }
 
-  // Get the relation column (Link/LTAR column)
-  const relationColumn = await colOptions.getRelationColumn(context);
-
-  if (relationColumn && isLinksOrLTAR(relationColumn)) {
-    const relationColOptions = await relationColumn.getColOptions(context);
-
-    if (!relationColOptions) {
-      return;
-    }
-
-    // Add the related model from the link
-    if (!relatedModels.has(relationColOptions.fk_related_model_id)) {
+  // Handle Link/LTAR columns
+  if (column.colOptions && isLinksOrLTAR(column)) {
+    // related model
+    if (!relatedModels.has(column.colOptions.fk_related_model_id)) {
       const targetContext = {
         ...context,
-        base_id: relationColOptions.fk_related_base_id || context.base_id,
+        base_id: column.colOptions.fk_related_base_id || context.base_id,
       };
       const relatedModel = await Model.get(
         targetContext,
-        relationColOptions.fk_related_model_id,
+        column.colOptions.fk_related_model_id,
       );
       await relatedModel.getColumns(targetContext);
-      relatedModels.set(relationColOptions.fk_related_model_id, relatedModel);
+      relatedModels.set(column.colOptions.fk_related_model_id, relatedModel);
     }
 
-    // Add junction model for many-to-many
+    // junction model for many-to-many
     if (
-      relationColOptions.fk_mm_model_id &&
-      !relatedModels.has(relationColOptions.fk_mm_model_id)
+      column.colOptions.fk_mm_model_id &&
+      !relatedModels.has(column.colOptions.fk_mm_model_id)
     ) {
       const targetContext = {
         ...context,
-        base_id: relationColOptions.fk_mm_base_id || context.base_id,
+        base_id: column.colOptions.fk_mm_base_id || context.base_id,
       };
-      const mmModel = await Model.get(
+      const relatedModel = await Model.get(
         targetContext,
-        relationColOptions.fk_mm_model_id,
+        column.colOptions.fk_mm_model_id,
       );
-      await mmModel.getColumns(targetContext);
-      relatedModels.set(relationColOptions.fk_mm_model_id, mmModel);
+      await relatedModel.getColumns(targetContext);
+      relatedModels.set(column.colOptions.fk_mm_model_id, relatedModel);
+    }
+  }
+  // Handle Lookup columns - traverse the entire lookup chain
+  else if (column.uidt === UITypes.Lookup) {
+    const colOptions = await column.getColOptions<LookupColumn>(context);
+    const relationColOpt = await colOptions
+      .getRelationColumn(context)
+      .then((col) => {
+        return (
+          col?.colOptions ??
+          col?.getColOptions<LinkToAnotherRecordColumn>(context)
+        );
+      });
+
+    // related model
+    if (!relatedModels.has(relationColOpt.fk_related_model_id)) {
+      const targetContext = {
+        ...context,
+        base_id: relationColOpt.fk_related_base_id || context.base_id,
+      };
+      const relatedModel = await Model.get(
+        targetContext,
+        relationColOpt.fk_related_model_id,
+      );
+      await relatedModel.getColumns(targetContext);
+      relatedModels.set(relationColOpt.fk_related_model_id, relatedModel);
     }
 
-    // Get the lookup column from the related model
-    const refContext = {
-      ...context,
-      base_id: relationColOptions.fk_related_base_id || context.base_id,
-    };
-    const lookupColumn = await colOptions.getLookupColumn(refContext);
-
-    // Recursively traverse if the lookup column is itself a lookup
-    if (lookupColumn && lookupColumn.uidt === UITypes.Lookup) {
-      await traverseLookupChain(
-        lookupColumn,
-        refContext,
-        relatedModels,
-        visitedColumns,
-      );
-    }
+    const { refContext } = relationColOpt.getRelContext(context);
+    await processColumn(
+      refContext,
+      await colOptions?.getLookupColumn(refContext),
+      relatedModels,
+    );
   }
 }
 
@@ -91,49 +104,7 @@ export async function getRelatedModelMap(
   relatedModels.set(table.id, table);
 
   for (const col of table.columns) {
-    if (!relatedModels.has(col.fk_model_id)) {
-      const model = await Model.get(context, col.fk_model_id);
-      await model.getColumns(context);
-      relatedModels.set(col.fk_model_id, model);
-    }
-
-    // Handle Link/LTAR columns
-    if (col.colOptions && isLinksOrLTAR(col)) {
-      // related model
-      if (!relatedModels.has(col.colOptions.fk_related_model_id)) {
-        const targetContext = {
-          ...context,
-          base_id: col.colOptions.fk_related_base_id || context.base_id,
-        };
-        const relatedModel = await Model.get(
-          targetContext,
-          col.colOptions.fk_related_model_id,
-        );
-        await relatedModel.getColumns(targetContext);
-        relatedModels.set(col.colOptions.fk_related_model_id, relatedModel);
-      }
-
-      // junction model for many-to-many
-      if (
-        col.colOptions.fk_mm_model_id &&
-        !relatedModels.has(col.colOptions.fk_mm_model_id)
-      ) {
-        const targetContext = {
-          ...context,
-          base_id: col.colOptions.fk_mm_base_id || context.base_id,
-        };
-        const relatedModel = await Model.get(
-          targetContext,
-          col.colOptions.fk_mm_model_id,
-        );
-        await relatedModel.getColumns(targetContext);
-        relatedModels.set(col.colOptions.fk_mm_model_id, relatedModel);
-      }
-    }
-    // Handle Lookup columns - traverse the entire lookup chain
-    else if (col.uidt === UITypes.Lookup) {
-      await traverseLookupChain(col, context, relatedModels);
-    }
+    await processColumn(context, col, relatedModels);
   }
 
   return relatedModels;

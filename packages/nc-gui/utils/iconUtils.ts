@@ -302,6 +302,7 @@ import NcPosthog from '~icons/nc-icons/posthog'
 import NcNocodbPg from '~icons/nc-icons/nocodb-pg'
 import NcStopCircle from '~icons/nc-icons/stop-circle'
 import NcEnter from '~icons/nc-icons/enter'
+import NcAmazonAws from '~icons/nc-icons/amazon_aws'
 
 // Buttons Icons V2
 
@@ -1625,6 +1626,7 @@ export const iconMap = {
   'ncScript': NcScript,
   'youtube': NcYoutube2Icon,
   'ncEnter': NcEnter,
+  'NcAmazonAws': h(NcAmazonAws, { stroke: 'transparent' }),
   'ncAutoAwesome': h(NcAutoAwesome, { stroke: 'transparent' }),
   'ncPlusAi': h(NcPlusAi, { stroke: 'transparent' }),
   'ncPlusMultiple': NcPlusMultiple,

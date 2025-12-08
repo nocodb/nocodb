@@ -727,7 +727,7 @@ export class WorkspaceUsersService {
       // invite users
       for (const email of emails) {
         const { postOperations: eachPostOperations } =
-          await this.unhandledUserInviteByEmail(
+          (await this.unhandledUserInviteByEmail(
             {
               workspace,
               email,
@@ -740,7 +740,7 @@ export class WorkspaceUsersService {
               skipEmailInvite: param.skipEmailInvite,
             },
             transaction,
-          );
+          )) ?? { postOperations: [] };
         postOperations.push(...eachPostOperations);
       }
 
@@ -773,7 +773,7 @@ export class WorkspaceUsersService {
       await postOperation();
     }
 
-      return { invite_token, emails, error, registeredEmails };
+    return { invite_token, emails, error, registeredEmails };
   }
 
   async prepareUserInviteByEmail(

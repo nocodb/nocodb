@@ -74,8 +74,8 @@ export function useColumnFilteredOrSorted() {
       'toolbarBgClass': '!bg-nc-bg-green-light !hover:bg-nc-bg-green-dark',
       'toolbarChipBgClass': 'bg-nc-bg-green-dark group-hover:bg-nc-green-200',
       'toolbarTextClass': 'text-nc-green-700',
-      'headerBgColor': '#27D6650A',
-      'headerBgClass': "relative !bg-[#ffffff] after:(content-[''] absolute block inset-0 !bg-[#27D6650A] pointer-events-none)",
+      'headerBgColor': '#27D66510',
+      'headerBgClass': "relative !bg-[#ffffff] after:(content-[''] absolute block inset-0 !bg-[#27D66510] pointer-events-none)",
       'canvas': {
         'cellBgColor': themeV4Colors.green['50'],
         'cellBgColor.hovered': themeV4Colors.green['100'],
@@ -83,7 +83,7 @@ export function useColumnFilteredOrSorted() {
         'cellBorderColor': themeV4Colors.gray['200'],
         'cellBorderColor.hovered': themeV4Colors.gray['200'],
         'cellBorderColor.selected': themeV4Colors.gray['200'],
-        'headerBgColor': '#27D6650A',
+        'headerBgColor': '#27D66510',
       },
     },
     SORTED: {
@@ -97,8 +97,8 @@ export function useColumnFilteredOrSorted() {
       'toolbarBgClass': '!bg-nc-bg-orange-light !hover:bg-nc-bg-orange-dark',
       'toolbarChipBgClass': 'bg-nc-bg-orange-dark group-hover:bg-nc-orange-200',
       'toolbarTextClass': 'text-nc-orange-700',
-      'headerBgColor': '#FA82310A',
-      'headerBgClass': "relative !bg-[#ffffff] after:(content-[''] absolute block inset-0 !bg-[#FA82310A] pointer-events-none)",
+      'headerBgColor': '#FA823110',
+      'headerBgClass': "relative !bg-[#ffffff] after:(content-[''] absolute block inset-0 !bg-[#FA823110] pointer-events-none)",
       'canvas': {
         'cellBgColor': themeV4Colors.orange['50'],
         'cellBgColor.hovered': themeV4Colors.orange['100'],
@@ -106,7 +106,7 @@ export function useColumnFilteredOrSorted() {
         'cellBorderColor': themeV4Colors.gray['200'],
         'cellBorderColor.hovered': themeV4Colors.gray['200'],
         'cellBorderColor.selected': themeV4Colors.gray['200'],
-        'headerBgColor': '#FA82310A',
+        'headerBgColor': '#FA823110',
       },
     },
   }

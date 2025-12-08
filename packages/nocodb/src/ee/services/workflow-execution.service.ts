@@ -58,9 +58,14 @@ export class WorkflowExecutionService {
   ) {}
 
   public async getWorkflowNodes(context: NcContext) {
-    const workflowNodeIntegrations = Integration.availableIntegrations.filter(
-      (i) => i && i.type === IntegrationsType.WorkflowNode,
-    );
+    const workflowNodeIntegrations = Integration.availableIntegrations
+      .filter((i) => i && i.type === IntegrationsType.WorkflowNode)
+      .sort((a, b) => {
+        if (a.manifest.order && b.manifest.order) {
+          return a.manifest.order - b.manifest.order;
+        }
+        return 0;
+      });
 
     const nodes = [];
     for (const integration of workflowNodeIntegrations) {

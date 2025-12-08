@@ -42,6 +42,7 @@ export default class Integration implements IntegrationType {
       icon?: string;
       description?: string;
       expose?: string[];
+      order?: number;
     };
   }[] = Integrations;
 

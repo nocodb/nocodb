@@ -21,6 +21,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - Record Created Trigger',
+      order: 1,
     },
   },
   {
@@ -31,6 +32,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - Record Updated Trigger',
+      order: 2,
     },
   },
   {
@@ -41,6 +43,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - Record Deleted Trigger',
+      order: 3,
     },
   },
   {
@@ -51,6 +54,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - Create Record',
+      order: 6,
     },
   },
   {
@@ -61,6 +65,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - Update Record',
+      order: 7,
     },
   },
   {
@@ -71,6 +76,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - Find Record',
+      order: 8,
     },
   },
   {
@@ -81,6 +87,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - List Records',
+      order: 9,
     },
   },
   {
@@ -91,6 +98,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - Delete Record',
+      order: 10,
     },
   },
 ];

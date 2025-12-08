@@ -1,4 +1,4 @@
-import { PlanLimitTypes } from 'nocodb-sdk';
+import { DependencyTableType, PlanLimitTypes } from 'nocodb-sdk';
 import { default as WorkflowCE } from 'src/models/Workflow';
 import type {
   WorkflowGeneralEdge,
@@ -17,9 +17,7 @@ import {
   CacheScope,
   MetaTable,
 } from '~/utils/globals';
-import DependencyTracker, {
-  DependencyTableType,
-} from '~/models/DependencyTracker';
+import DependencyTracker from '~/models/DependencyTracker';
 import { processConcurrently } from '~/utils';
 
 export default class Workflow extends WorkflowCE implements WorkflowType {

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import type { DashboardType, WorkflowType } from 'nocodb-sdk'
-import type { DependencyTableType } from '~/lib/enums'
+import { DependencyTableType } from 'nocodb-sdk'
 
 interface Props {
   status?: 'loading' | 'error' | 'done'
   hasBreakingChanges?: boolean
-  workflows?: WorkflowType[]
-  dashboards?: DashboardType[]
+  entities?: Array<{
+    type: DependencyTableType
+    entity: DashboardType | WorkflowType
+  }>
   action?: 'delete' | 'update' | 'rename' | string
   entityType?: DependencyTableType | string
 }
@@ -14,16 +16,23 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   status: 'done',
   hasBreakingChanges: false,
-  workflows: () => [],
-  dashboards: () => [],
+  entities: () => [],
   action: 'delete',
   entityType: 'view',
 })
 
 const { t } = useI18n()
 
+const workflows = computed(() => {
+  return props.entities?.filter((e) => e.type === DependencyTableType.Workflow).map((e) => e.entity as WorkflowType) || []
+})
+
+const dashboards = computed(() => {
+  return props.entities?.filter((e) => e.type === DependencyTableType.Widget).map((e) => e.entity as DashboardType) || []
+})
+
 const totalCount = computed(() => {
-  return (props.workflows?.length || 0) + (props.dashboards?.length || 0)
+  return props.entities?.length || 0
 })
 
 const dependencyMessage = computed(() => {

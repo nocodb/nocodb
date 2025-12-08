@@ -3,15 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import {
   AppEvents,
   calculateNextPosition,
+  DependencyTableType,
   EventType,
   generateUniqueCopyName,
   ncIsNull,
   ncIsUndefined,
   PlanLimitTypes,
-  type WidgetType,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import type { DashboardType } from 'nocodb-sdk';
+import type { DashboardType, WidgetType } from 'nocodb-sdk';
 import type { AppConfig, NcContext, NcRequest } from '~/interface/config';
 import { CustomUrl, Dashboard, DependencyTracker, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
@@ -20,8 +20,6 @@ import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 import config from '~/app.config';
 import NocoSocket from '~/socket/NocoSocket';
 import { checkLimit } from '~/helpers/paymentHelpers';
-import { DependencyTableType } from '~/models/DependencyTracker';
-
 @Injectable()
 export class DashboardsService {
   constructor(

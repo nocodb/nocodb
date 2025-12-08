@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
   AppEvents,
+  DependencyTableType,
   EventType,
   GeneralNodeID,
   generateUniqueCopyName,
@@ -20,7 +21,6 @@ import {
 } from '~/models';
 import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import NocoSocket from '~/socket/NocoSocket';
-import { DependencyTableType } from '~/models/DependencyTracker';
 
 @Injectable()
 export class WorkflowsService {

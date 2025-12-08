@@ -1,7 +1,8 @@
-import type { NcContext, NcRequest } from 'nocodb-sdk';
+import type { DependencyTableType, NcContext, NcRequest } from 'nocodb-sdk';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { MCPToken, OAuthClient } from '~/models';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
+import type { Dashboard, Workflow } from '~/models';
 
 export type InternalGETResponseType = Promise<
   | void
@@ -13,7 +14,19 @@ export type InternalGETResponseType = Promise<
 >;
 
 export type InternalPOSTResponseType = Promise<
-  void | boolean | MCPToken | OAuthClient | OAuthClient[] | { msg: string }
+  | void
+  | boolean
+  | MCPToken
+  | OAuthClient
+  | OAuthClient[]
+  | { msg: string }
+  | {
+      hasBreakingChanges: boolean;
+      entities: {
+        type: DependencyTableType;
+        entity: Dashboard | Workflow;
+      }[];
+    }
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

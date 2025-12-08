@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { DependencyTableType } from 'nocodb-sdk'
 interface Props {
   modelValue: boolean
   view?: Record<string, any>
@@ -66,8 +67,7 @@ async function onDelete() {
         <NcDependencyList
           :status="status"
           :has-breaking-changes="dependency.hasBreakingChanges"
-          :workflows="dependency.workflows"
-          :dashboards="dependency.dashboards"
+          :entities="dependency.entities"
           action="delete"
           entity-type="view"
         />

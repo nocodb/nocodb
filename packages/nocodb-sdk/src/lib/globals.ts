@@ -348,3 +348,11 @@ export const RowHeightMap = {
   [RowHeight.TALL]: 'tall',
   [RowHeight.EXTRA]: 'extra',
 };
+
+export enum DependencyTableType {
+  Column = 'column',
+  Model = 'table',
+  View = 'view',
+  Widget = 'widget',
+  Workflow = 'workflow',
+}

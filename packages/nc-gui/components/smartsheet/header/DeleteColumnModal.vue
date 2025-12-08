@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
+import { DependencyTableType, RelationTypes, isLinksOrLTAR } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -137,8 +137,7 @@ const onDelete = async () => {
         <NcDependencyList
           :status="status"
           :has-breaking-changes="dependency.hasBreakingChanges"
-          :workflows="dependency.workflows"
-          :dashboards="dependency.dashboards"
+          :entities="dependency.entities"
           action="delete"
           entity-type="column"
         />

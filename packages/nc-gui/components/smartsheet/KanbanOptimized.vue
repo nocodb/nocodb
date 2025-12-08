@@ -1823,7 +1823,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                               <div
                                 v-else
                                 :style="{
-                                  height: `${cardHeight.value + 8}px`,
+                                  height: `${cardHeight + 8}px`,
                                   pointerEvents: 'none',
                                   flexShrink: 0,
                                 }"

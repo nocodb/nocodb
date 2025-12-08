@@ -685,7 +685,8 @@ const calculateCardSlice = (stackTitle: string | null, scrollTop: number, contai
   const endIndex = Math.min(startIndex + visibleCount, stack.length)
 
   // Add buffer rows for smooth scrolling (render items above and below viewport)
-  const BUFFER_ROWS = 3
+  // Increase buffer for fast scrolling to ensure elements are always rendered
+  const BUFFER_ROWS = 5
   let newStart = Math.max(0, startIndex - BUFFER_ROWS)
   let newEnd = Math.min(stack.length, endIndex + BUFFER_ROWS)
 
@@ -847,7 +848,7 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
   return (kanbanListElement) => {
     if (kanbanListElement) {
       const element = kanbanListElement as HTMLElement
-      
+
       // Guard: Only initialize once per element to prevent infinite loops
       // Check if this exact element is already set up
       const existingElement = kanbanListRefs.value.get(stackTitle)
@@ -855,7 +856,7 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
         // Same element already initialized, skip
         return
       }
-      
+
       kanbanListRefs.value.set(stackTitle, element)
 
       // Remove old scroll handler if exists (use the stored handler from map)
@@ -893,18 +894,42 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
       let existingRaf: number | undefined
 
       let lastScrollTime = 0
-      const SCROLL_THROTTLE_MS = 100 // Increased throttle to reduce memory churn and improve performance
+      const SCROLL_THROTTLE_MS = 16 // Reduced throttle to ensure fast scrolling is handled (one frame)
 
       const scrollHandler = (e: Event) => {
         // Only call kanbanListScrollHandler if we're near the bottom (for infinite scroll)
         // This prevents it from being called on every scroll event
-        if (e.target && (e.target as HTMLElement).scrollTop + (e.target as HTMLElement).clientHeight + INFINITY_SCROLL_THRESHOLD >= (e.target as HTMLElement).scrollHeight) {
+        if (
+          e.target &&
+          (e.target as HTMLElement).scrollTop + (e.target as HTMLElement).clientHeight + INFINITY_SCROLL_THRESHOLD >=
+            (e.target as HTMLElement).scrollHeight
+        ) {
           kanbanListScrollHandler(e)
         }
         const now = Date.now()
 
-        // Throttle scroll position updates to reduce memory churn
+        // Light throttling to reduce memory churn but allow fast scrolling
         if (now - lastScrollTime < SCROLL_THROTTLE_MS) {
+          // Still update slice even if throttled to ensure fast scrolling works
+          // Cancel previous RAF and schedule new one immediately
+          if (existingRaf) {
+            cancelAnimationFrame(existingRaf)
+          }
+          const scrollTop = element.scrollTop
+          const containerHeight = element.clientHeight
+          existingRaf = requestAnimationFrame(() => {
+            if (!scrollRaf) {
+              scrollRaf = true
+              try {
+                calculateCardSlice(stackTitle, scrollTop, containerHeight, false)
+              } catch (e) {
+                scrollRaf = false
+              }
+              scrollRaf = false
+            }
+            existingRaf = undefined
+          })
+          cardSliceCalculationRafs.set(stackTitle, existingRaf)
           return
         }
         lastScrollTime = now
@@ -924,9 +949,21 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
 
         // Use requestAnimationFrame to batch the calculation for smooth scrolling (like Gallery.vue)
         existingRaf = requestAnimationFrame(() => {
-          // Simple guard like Gallery.vue - skip if already processing
+          // Don't skip if scrollRaf is true - we need to process fast scrolling
+          // Just ensure we don't have nested calls
           if (scrollRaf) {
-            existingRaf = undefined
+            // If already processing, schedule another update immediately
+            existingRaf = requestAnimationFrame(() => {
+              scrollRaf = true
+              try {
+                calculateCardSlice(stackTitle, scrollTop, containerHeight, false)
+              } catch (e) {
+                scrollRaf = false
+              }
+              scrollRaf = false
+              existingRaf = undefined
+            })
+            cardSliceCalculationRafs.set(stackTitle, existingRaf)
             return
           }
 
@@ -940,12 +977,9 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
             scrollRaf = false
           }
 
-          // Reset flag after a short delay to allow updates to complete
-          // This prevents the watch from triggering during rapid scrolling
-          setTimeout(() => {
-            scrollRaf = false
-          }, 100) // Increased delay to prevent rapid re-triggering
-
+          // Reset flag immediately after calculation (like Gallery.vue)
+          // This ensures fast scrolling can still process updates
+          scrollRaf = false
           existingRaf = undefined
         })
         cardSliceCalculationRafs.set(stackTitle, existingRaf)
@@ -953,7 +987,7 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
       element.addEventListener('scroll', scrollHandler)
       // Store handler for cleanup
       scrollHandlers.set(stackTitle, scrollHandler)
-      
+
       // Mark as initialized
       initializedStacks.add(stackTitle)
 
@@ -963,7 +997,7 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
         if (kanbanListRefs.value.get(stackTitle) !== element) {
           return
         }
-        
+
         const stack = formattedData.value.get(stackTitle)
 
         // Ensure initial slice is set if not already set

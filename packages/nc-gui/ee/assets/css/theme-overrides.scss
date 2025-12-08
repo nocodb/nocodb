@@ -1,4 +1,5 @@
 @use './ant-design-components/ant-radio.scss' as *;
+@use './ant-design-components/ant-alert.scss' as *;
 
 /* Disable ALL transitions & animations while theme switching */
 html.theme-transition-off *,

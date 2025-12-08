@@ -4771,7 +4771,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       groupColumnId: string;
       ignoreViewFilterAndSort?: boolean;
       options?: (string | number | null | boolean)[];
-      useOptimised?: boolean;
     } & Partial<XcFilter>,
   ): Promise<
     {

@@ -13,7 +13,9 @@ const vModel = useVModel(props, 'value', (_, val) => {
 </script>
 
 <template>
-  <div class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 w-[fit-content] text-nc-content-gray-subtle2 font-weight-500">
+  <div
+    class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 w-[fit-content] text-nc-content-gray-subtle2 font-weight-500"
+  >
     <div
       class="tab"
       :class="{

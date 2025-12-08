@@ -91,7 +91,9 @@ function handleAutoScroll(scroll: boolean, className: string) {
           <div class="w-1/2">
             <div class="h-1/2 border-b border-nc-border-gray-medium flex items-center gap-2 px-4 py-3">
               <div class="cell-header">{{ $t('general.ipAddress') }}</div>
-              <div class="text-small leading-[18px] text-nc-content-gray-subtle2">{{ selectedAudit?.ip === '::1' ? 'localhost' : '' }}</div>
+              <div class="text-small leading-[18px] text-nc-content-gray-subtle2">
+                {{ selectedAudit?.ip === '::1' ? 'localhost' : '' }}
+              </div>
             </div>
             <div class="h-1/2 flex items-center gap-2 px-4 py-3">
               <div class="cell-header whitespace-nowrap">{{ $t('labels.osBrowser') }}</div>
@@ -117,7 +119,9 @@ function handleAutoScroll(scroll: boolean, className: string) {
                 />
               </div>
               <div>
-                <div class="text-sm font-weight-500 text-nc-content-gray-emphasis">{{ bases.get(selectedAudit?.base_id)?.title }}</div>
+                <div class="text-sm font-weight-500 text-nc-content-gray-emphasis">
+                  {{ bases.get(selectedAudit?.base_id)?.title }}
+                </div>
                 <div class="text-small leading-[18px] text-nc-content-gray-subtle2">{{ selectedAudit?.base_id }}</div>
               </div>
             </div>
@@ -132,7 +136,10 @@ function handleAutoScroll(scroll: boolean, className: string) {
                 {{ auditV1OperationTypesAlias[selectedAudit?.op_type] }}
               </div>
             </div>
-            <div v-if="isDataEventType(selectedAudit)" class="h-1/2 flex items-center gap-2 px-4 py-3 border-t border-nc-border-gray-medium">
+            <div
+              v-if="isDataEventType(selectedAudit)"
+              class="h-1/2 flex items-center gap-2 px-4 py-3 border-t border-nc-border-gray-medium"
+            >
               <div class="cell-header">{{ $t('labels.rowId') }}</div>
               <div class="text-small leading-[18px] text-nc-content-gray-subtle2">
                 {{ selectedAudit?.row_id }}

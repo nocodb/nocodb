@@ -390,7 +390,9 @@ onMounted(async () => {
                 <div
                   class="w-4 h-4 rounded-full border-2 transition-all"
                   :class="
-                    currentCreatedAtColumn === record.title ? 'border-nc-border-brand bg-nc-bg-default relative' : 'border-nc-border-gray-dark bg-nc-bg-default'
+                    currentCreatedAtColumn === record.title
+                      ? 'border-nc-border-brand bg-nc-bg-default relative'
+                      : 'border-nc-border-gray-dark bg-nc-bg-default'
                   "
                 >
                   <div
@@ -413,7 +415,9 @@ onMounted(async () => {
                 <div
                   class="w-4 h-4 rounded-full border-2 transition-all"
                   :class="
-                    currentUpdatedAtColumn === record.title ? 'border-nc-border-brand bg-nc-bg-default relative' : 'border-nc-border-gray-dark bg-nc-bg-default'
+                    currentUpdatedAtColumn === record.title
+                      ? 'border-nc-border-brand bg-nc-bg-default relative'
+                      : 'border-nc-border-gray-dark bg-nc-bg-default'
                   "
                 >
                   <div

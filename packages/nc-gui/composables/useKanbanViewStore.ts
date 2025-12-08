@@ -266,7 +266,7 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
           meta.value!.id!,
           viewMeta.value!.id!,
           groupingFieldColumn!.value!.id!,
-          { where: xWhere.value, include_row_color: true, opt: isOptimizedKanbanEnabled.value },
+          { where: xWhere.value, include_row_color: true },
           {},
         )
       }

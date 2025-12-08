@@ -161,7 +161,9 @@ onMounted(async () => {
           <div class="flex font-bold text-base" data-rec="true">{{ $t('labels.generalSettings') }}</div>
           <div class="">
             <h1 class="text-md text-nc-content-gray">SignIn URL</h1>
-            <div class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg">
+            <div
+              class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg"
+            >
               <span class="text-nc-content-gray"> {{ signInUrl }} </span>
               <NcButton size="xsmall" type="text" @click="copySigninUrl">
                 <MdiCheck v-if="isCopied.signIn" class="h-3.5" />
@@ -183,7 +185,12 @@ onMounted(async () => {
               size="small"
               @change="updateProviderStatus(googleProvider)"
             />
-            <span class="text-base font-bold ml-2 group-hover:text-nc-content-gray-extreme capitalize" data-test-id="nc-saml-title"> Google </span>
+            <span
+              class="text-base font-bold ml-2 group-hover:text-nc-content-gray-extreme capitalize"
+              data-test-id="nc-saml-title"
+            >
+              Google
+            </span>
           </div>
 
           <NcDropdown :trigger="['click']" placement="bottomRight" @click.stop>

@@ -194,8 +194,8 @@ const FEATURES = [
     id: 'kanban_opt',
     title: 'Optimized Kanban View',
     description: 'Optimized Kanban view with optimised API for better performance.',
-    enabled: true,
-    version: 2,
+    enabled: false,
+    version: 3,
     isEE: true,
   },
 ] as const

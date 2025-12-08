@@ -170,7 +170,9 @@ onMounted(async () => {
             <div class="flex font-bold text-base" data-rec="true">{{ $t('labels.generalSettings') }}</div>
             <div class="">
               <h1 class="text-md text-nc-content-gray">SignIn URL</h1>
-              <div class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg">
+              <div
+                class="flex border-nc-border-gray-medium border-1 bg-nc-bg-gray-extralight items-center justify-between py-2 px-4 rounded-lg"
+              >
                 <span class="text-nc-content-gray"> {{ signInUrl }} </span>
                 <NcButton size="xsmall" type="text" @click="copyRedirectUrl">
                   <MdiCheck v-if="isCopied.signIn" class="h-3.5" />
@@ -192,7 +194,10 @@ onMounted(async () => {
                 size="small"
                 @change="updateProviderStatus(googleProvider)"
               />
-              <span class="text-base font-bold ml-2 group-hover:text-nc-content-gray-extreme capitalize" data-test-id="nc-saml-title">
+              <span
+                class="text-base font-bold ml-2 group-hover:text-nc-content-gray-extreme capitalize"
+                data-test-id="nc-saml-title"
+              >
                 Google
               </span>
             </div>
@@ -252,7 +257,10 @@ onMounted(async () => {
                   <span @click.stop>
                     <NcSwitch :checked="!!sam.enabled" class="min-w-4" size="small" @change="updateProviderStatus(sam)" />
                   </span>
-                  <span class="text-inherit ml-2 group-hover:text-nc-content-gray-extreme capitalize" data-test-id="nc-saml-title">
+                  <span
+                    class="text-inherit ml-2 group-hover:text-nc-content-gray-extreme capitalize"
+                    data-test-id="nc-saml-title"
+                  >
                     {{ sam?.title }}
                   </span>
                 </div>
@@ -317,7 +325,10 @@ onMounted(async () => {
                   <span @click.stop>
                     <NcSwitch :checked="!!oid.enabled" class="min-w-4" size="small" @change="updateProviderStatus(oid)" />
                   </span>
-                  <span class="text-inherit ml-2 group-hover:text-nc-content-gray-extreme capitalize" data-test-id="nc-oidc-title">
+                  <span
+                    class="text-inherit ml-2 group-hover:text-nc-content-gray-extreme capitalize"
+                    data-test-id="nc-oidc-title"
+                  >
                     {{ oid?.title }}
                   </span>
                 </div>

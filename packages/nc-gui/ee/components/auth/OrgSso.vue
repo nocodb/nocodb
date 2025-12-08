@@ -156,7 +156,10 @@ onMounted(() => {
       </div>
 
       <Transition name="layout">
-        <div v-if="error" class="self-center mb-4 bg-red-500 text-nc-content-inverted-primary rounded-lg w-3/4 mx-auto p-1 max-w-150 mt-5">
+        <div
+          v-if="error"
+          class="self-center mb-4 bg-red-500 text-nc-content-inverted-primary rounded-lg w-3/4 mx-auto p-1 max-w-150 mt-5"
+        >
           <div class="flex items-center gap-2 justify-center">
             <MaterialSymbolsWarning />
             <div class="break-words">{{ error }}</div>

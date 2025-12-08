@@ -55,11 +55,15 @@ onMounted(async () => {
             </div>
             <div class="w-1/3 px-4 border-r-1 py-3">
               <div class="text-[40px] font-semibold">{{ members.length }}</div>
-              <div class="text-nc-content-gray-subtle2 mt-2">Total {{ members.length > 1 ? $t('labels.members') : $t('objects.member') }}</div>
+              <div class="text-nc-content-gray-subtle2 mt-2">
+                Total {{ members.length > 1 ? $t('labels.members') : $t('objects.member') }}
+              </div>
             </div>
             <div class="w-1/3 px-4 py-3">
               <div class="text-[40px] font-semibold">{{ bases.length }}</div>
-              <div class="text-nc-content-gray-subtle2 mt-2">Total {{ bases.length > 1 ? $t('objects.projects') : $t('labels.project') }}</div>
+              <div class="text-nc-content-gray-subtle2 mt-2">
+                Total {{ bases.length > 1 ? $t('objects.projects') : $t('labels.project') }}
+              </div>
             </div>
           </div>
           <!--

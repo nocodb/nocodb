@@ -1903,7 +1903,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           class="text-small leading-[18px]"
                           :class="{
                             '!bg-nc-bg-purple-light text-nc-content-purple-dark !border-nc-purple-100': field?.is_ai_field,
-                            'bg-nc-bg-green-light dark:bg-nc-green-50 text-nc-content-green-dark': !field?.is_ai_field,
+                            'bg-nc-bg-green-light dark:bg-nc-green-20 text-nc-content-green-dark': !field?.is_ai_field,
                           }"
                           data-testid="nc-field-status-new-field"
                         >
@@ -1915,7 +1915,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           v-else-if="fieldStatus(field) === 'update'"
                           color="orange"
                           :border="false"
-                          class="bg-nc-bg-orange-light text-nc-content-orange-dark text-small leading-[18px]"
+                          class="bg-nc-bg-orange-light dark:bg-nc-orange-20 text-nc-content-orange-dark text-small leading-[18px]"
                           data-testid="nc-field-status-updated-field"
                         >
                           {{ $t('labels.multiField.updatedField') }}
@@ -1924,7 +1924,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           v-if="!isColumnValid(field)"
                           color="yellow"
                           :border="false"
-                          class="ml-1 bg-nc-bg-yellow-light text-nc-content-yellow-dark text-small leading-[18px]"
+                          class="ml-1 bg-nc-bg-yellow-light dark:bg-nc-yellow-20 text-nc-content-yellow-dark text-small leading-[18px]"
                           data-testid="nc-field-status-incomplete-configuration"
                         >
                           {{ $t('labels.multiField.incompleteConfiguration') }}
@@ -1937,7 +1937,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           <NcBadge
                             color="red"
                             :border="false"
-                            class="ml-1 bg-nc-bg-red-light text-nc-content-red-dark text-small leading-[18px]"
+                            class="ml-1 bg-nc-bg-red-light dark:bg-nc-red-20 text-nc-content-red-dark text-small leading-[18px]"
                             data-testid="nc-field-status-error-configuration"
                           >
                             <GeneralIcon icon="info" class="!text-current" />

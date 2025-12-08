@@ -82,6 +82,12 @@ export interface NcAlertProps extends Pick<AlertProps, 'showIcon' | 'message' | 
    * @default true
    */
   showDuration?: boolean
+
+  /**
+   * Show background color
+   * @default false
+   */
+  background?: boolean
 }
 
 const props = withDefaults(defineProps<NcAlertProps>(), {
@@ -93,6 +99,7 @@ const props = withDefaults(defineProps<NcAlertProps>(), {
   descriptionClass: '',
   isNotification: false,
   showDuration: true,
+  background: false,
 })
 
 /**
@@ -258,6 +265,7 @@ onUnmounted(() => {
         'items-start': align === 'top',
         'no-border': !bordered,
         'nc-alert-notification': isNotification,
+        'nc-show-background': background,
       },
     ]"
   >
@@ -400,17 +408,29 @@ onUnmounted(() => {
     .nc-alert-icon-wrapper {
       @apply text-green-700;
     }
+
+    &.nc-show-background {
+      @apply bg-nc-bg-green-light dark:bg-nc-green-20;
+    }
   }
 
   &.nc-alert-type-error {
     .nc-alert-icon-wrapper {
       @apply text-red-700;
     }
+
+    &.nc-show-background {
+      @apply bg-nc-bg-red-light dark:bg-nc-red-20;
+    }
   }
 
   &.nc-alert-type-warning {
     .nc-alert-icon-wrapper {
       @apply text-orange-700;
+    }
+
+    &.nc-show-background {
+      @apply bg-nc-bg-orange-light dark:bg-nc-orange-20;
     }
   }
 

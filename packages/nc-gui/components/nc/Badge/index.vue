@@ -16,12 +16,12 @@ const props = withDefaults(defineProps<NcBadgeProps>(), {
 <template>
   <div
     :class="{
-      'border-nc-purple-500 bg-nc-bg-purple-dark': props.color === 'purple',
+      'border-nc-purple-500 bg-nc-bg-purple-dark dark:bg-nc-bg-purple-light': props.color === 'purple',
       'border-nc-blue-500 bg-nc-bg-blue-dark': props.color === 'blue',
-      'border-nc-green-500 bg-nc-bg-green-dark': props.color === 'green',
-      'border-nc-orange-500 bg-nc-bg-orange-dark dark:bg-nc-orange-50': props.color === 'orange',
-      'border-nc-yellow-500 bg-nc-bg-yellow-dark': props.color === 'yellow',
-      'border-nc-red-500 bg-nc-bg-red-dark': props.color === 'red',
+      'border-nc-green-500 bg-nc-bg-green-dark dark:bg-nc-green-20': props.color === 'green',
+      'border-nc-orange-500 bg-nc-bg-orange-dark dark:bg-nc-orange-20': props.color === 'orange',
+      'border-nc-yellow-500 bg-nc-bg-yellow-dark dark:bg-nc-yellow-20': props.color === 'yellow',
+      'border-nc-red-500 bg-nc-bg-red-dark dark:bg-nc-red-20': props.color === 'red',
       'border-nc-maroon-500 bg-nc-bg-marooon': props.color === 'maroon',
       'border-nc-gray-500 bg-nc-bg-gray-extralight': props.color === 'gray',
       'bg-nc-bg-brand text-nc-content-brand': props.color === 'brand',

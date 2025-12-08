@@ -80,6 +80,9 @@
   --rgb-color-brand-900: 10, 20, 51;
 
   /* 🎨 Gray */
+  --color-gray-20: #fdfdfd;
+  --rgb-color-gray-20: 253, 253, 253;
+
   --color-gray-50: #f9f9fa;
   --rgb-color-gray-50: 249, 249, 250;
 
@@ -111,6 +114,9 @@
   --rgb-color-gray-900: 16, 16, 21;
 
   /* 🎨 Green */
+  --color-green-20: #f4fff8;
+  --rgb-color-green-20: 244, 255, 248;
+
   --color-green-50: #ecfff2;
   --rgb-color-green-50: 236, 255, 242;
 
@@ -142,6 +148,9 @@
   --rgb-color-green-900: 8, 43, 20;
 
   /* 🎨 Red */
+  --color-red-20: #fff7f6;
+  --rgb-color-red-20: 255, 247, 246;
+
   --color-red-50: #fff2f1;
   --rgb-color-red-50: 255, 242, 241;
 
@@ -173,6 +182,9 @@
   --rgb-color-red-900: 125, 39, 33;
 
   /* 🎨 Maroon */
+  --color-maroon-20: #fff6fb;
+  --rgb-color-maroon-20: 255, 246, 251;
+
   --color-maroon-50: #fff0f7;
   --rgb-color-maroon-50: 255, 240, 247;
 
@@ -204,6 +216,9 @@
   --rgb-color-maroon-900: 66, 0, 31;
 
   /* 🎨 Blue */
+  --color-blue-20: #f6fbff;
+  --rgb-color-blue-20: 246, 251, 255;
+
   --color-blue-50: #edf9ff;
   --rgb-color-blue-50: 237, 249, 255;
 
@@ -235,6 +250,9 @@
   --rgb-color-blue-900: 11, 38, 51;
 
   /* 🎨 Orange */
+  --color-orange-20: #fff9f4;
+  --rgb-color-orange-20: 255, 249, 244;
+
   --color-orange-50: #fff5ef;
   --rgb-color-orange-50: 255, 245, 239;
 
@@ -266,6 +284,9 @@
   --rgb-color-orange-900: 75, 39, 15;
 
   /* 🎨 Pink */
+  --color-pink-20: #fff6fd;
+  --rgb-color-pink-20: 255, 246, 253;
+
   --color-pink-50: #ffeefb;
   --rgb-color-pink-50: 255, 238, 251;
 
@@ -297,6 +318,9 @@
   --rgb-color-pink-900: 50, 12, 40;
 
   /* 🎨 Purple */
+  --color-purple-20: #f9f6fd;
+  --rgb-color-purple-20: 249, 246, 253;
+
   --color-purple-50: #f3ecfa;
   --rgb-color-purple-50: 243, 236, 250;
 
@@ -328,6 +352,9 @@
   --rgb-color-purple-900: 25, 8, 41;
 
   /* 🎨 Yellow */
+  --color-yellow-20: #fffcf7;
+  --rgb-color-yellow-20: 255, 252, 247;
+
   --color-yellow-50: #fffbf2;
   --rgb-color-yellow-50: 255, 251, 242;
 
@@ -423,8 +450,8 @@
   --color-base-none: #ffffff00;
 
   /* 🎨 Brand */
-  --color-brand-20: #0e1022;
-  --rgb-color-brand-20: 14, 16, 34;
+  --color-brand-20: #0f1230;
+  --rgb-color-brand-20: 15, 18, 48;
 
   --color-brand-50: #141a3a;
   --rgb-color-brand-50: 20, 26, 58;
@@ -460,6 +487,9 @@
   --rgb-color-brand-900: 238, 244, 255;
 
   /* 🎨 Gray */
+  --color-gray-20: #0b0b0e;
+  --rgb-color-gray-20: 11, 11, 14;
+
   --color-gray-50: #1d1d1f;
   --rgb-color-gray-50: 29, 29, 31;
 
@@ -491,6 +521,9 @@
   --rgb-color-gray-900: 233, 240, 253;
 
   /* 🎨 Green */
+  --color-green-20: #162312;
+  --rgb-color-green-20: 22, 35, 18;
+
   --color-green-50: #052e15;
   --rgb-color-green-50: 5, 46, 21;
 
@@ -522,6 +555,9 @@
   --rgb-color-green-900: 188, 246, 207;
 
   /* 🎨 Red */
+  --color-red-20: #2a1215;
+  --rgb-color-red-20: 42, 18, 21;
+
   --color-red-50: #4b0804;
   --rgb-color-red-50: 75, 8, 4;
 
@@ -553,6 +589,9 @@
   --rgb-color-red-900: 255, 242, 241;
 
   /* 🎨 Maroon */
+  --color-maroon-20: #2b121e;
+  --rgb-color-maroon-20: 43, 18, 30;
+
   --color-maroon-50: #441329;
   --rgb-color-maroon-50: 68, 19, 41;
 
@@ -584,6 +623,9 @@
   --rgb-color-maroon-900: 251, 244, 248;
 
   /* 🎨 Blue */
+  --color-blue-20: #111b26;
+  --rgb-color-blue-20: 17, 27, 38;
+
   --color-blue-50: #062e4b;
   --rgb-color-blue-50: 6, 46, 75;
 
@@ -615,6 +657,9 @@
   --rgb-color-blue-900: 239, 249, 255;
 
   /* 🎨 Orange */
+  --color-orange-20: #2b1d12;
+  --rgb-color-orange-20: 43, 29, 18;
+
   --color-orange-50: #431107;
   --rgb-color-orange-50: 67, 17, 7;
 
@@ -646,6 +691,9 @@
   --rgb-color-orange-900: 255, 246, 237;
 
   /* 🎨 Pink */
+  --color-pink-20: #26121f;
+  --rgb-color-pink-20: 38, 18, 31;
+
   --color-pink-50: #570037;
   --rgb-color-pink-50: 87, 0, 55;
 
@@ -677,9 +725,8 @@
   --rgb-color-pink-900: 254, 241, 251;
 
   /* 🎨 Purple */
-
-  --color-purple-20: #120b1a;
-  --rgb-color-purple-20: 18, 11, 26;
+  --color-purple-20: #12061f;
+  --rgb-color-purple-20: 18, 6, 31;
 
   --color-purple-50: #2a1938;
   --rgb-color-purple-50: 42, 25, 56;
@@ -715,6 +762,9 @@
   --rgb-color-purple-900: 250, 245, 255;
 
   /* 🎨 Yellow */
+  --color-yellow-20: #2b2111;
+  --rgb-color-yellow-20: 43, 33, 17;
+
   --color-yellow-50: #451403;
   --rgb-color-yellow-50: 69, 20, 3;
 

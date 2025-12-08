@@ -138,6 +138,8 @@ export class BaseUsersService extends BaseUsersServiceCE {
       baseUser: ProjectUserReqType;
       req: NcRequest;
       workspaceInvited?: boolean;
+      registeredEmails?: string[];
+      invite_token?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<any> {
@@ -146,7 +148,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       param,
       ncMeta,
     );
-    const invite_token = uuidv4();
+    const invite_token = param.invite_token || uuidv4();
     const error = [];
     const emailUserMap = new Map<string, User>();
     const postOperations = [];
@@ -166,6 +168,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
               emailUserMap,
               invite_token,
               workspaceInvited: param.workspaceInvited,
+              registeredEmails: param.registeredEmails,
             },
             transaction,
           );
@@ -315,6 +318,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       invite_token?: string;
       // to keep refactor at minimum, we pass emailUserMap
       emailUserMap?: Map<string, User>;
+      registeredEmails?: string[];
     },
     ncMeta = Noco.ncMeta,
   ) {
@@ -446,7 +450,9 @@ export class BaseUsersService extends BaseUsersServiceCE {
                   user: user,
                   base: base,
                   role: (roles || 'editor') as ProjectRoles,
-                  token: invite_token,
+                  token: param.registeredEmails?.includes(user.email)
+                    ? invite_token
+                    : null,
                 },
               })
               .catch(() => {}),

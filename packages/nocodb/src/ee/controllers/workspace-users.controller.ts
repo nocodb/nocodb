@@ -93,13 +93,21 @@ export class WorkspaceUsersController {
     @Body() body: any,
     @Req() req: NcRequest,
   ) {
-    return await this.workspaceUsersService.invite({
+    const res = await this.workspaceUsersService.invite({
       workspaceId,
       body,
       invitedBy: req.user,
       siteUrl: req.ncSiteUrl,
       req,
     });
+
+    if (res.emails.length === 1) {
+      return {
+        msg: 'success',
+      };
+    } else {
+      return res;
+    }
   }
 
   @Post('/api/v1/workspaces/:workspaceId/invitations/:invitationToken/accept')

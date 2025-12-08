@@ -6,10 +6,17 @@ async function traverseLookupChain(
   column: Column,
   context: NcContext,
   relatedModels: Map<string, Model>,
+  visitedColumns: Set<string> = new Set(),
 ): Promise<void> {
   if (column.uidt !== UITypes.Lookup) {
     return;
   }
+
+  // Prevent circular lookups by tracking visited columns
+  if (visitedColumns.has(column.id)) {
+    return;
+  }
+  visitedColumns.add(column.id);
 
   const colOptions = await column.getColOptions<LookupColumn>(context);
 
@@ -63,7 +70,12 @@ async function traverseLookupChain(
 
     // Recursively traverse if the lookup column is itself a lookup
     if (lookupColumn && lookupColumn.uidt === UITypes.Lookup) {
-      await traverseLookupChain(lookupColumn, refContext, relatedModels);
+      await traverseLookupChain(
+        lookupColumn,
+        refContext,
+        relatedModels,
+        visitedColumns,
+      );
     }
   }
 }

@@ -9,4 +9,5 @@ export const manifest: IntegrationManifest = {
   author: 'NocoDB',
   website: 'https://www.google.com/drive',
   order: 5,
+  hidden: true,
 };

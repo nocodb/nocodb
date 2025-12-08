@@ -14,7 +14,7 @@ import type { TestConnectionResponse } from '@noco-integrations/core';
  * Google Drive Authentication Integration
  *
  * Implements authentication for Google Drive API.
- * Supports both API Key (access token) and OAuth 2.0 authentication.
+ * Supports OAuth 2.0 authentication.
  *
  * @see https://developers.google.com/drive/api/guides/about-auth
  */

@@ -38,7 +38,7 @@ Authentication integration for Google Drive API in NocoDB. The package extends t
 
 ### Required Google Drive Permissions
 
-Grant the OAuth token or API key the ability to:
+Grant the OAuth token the ability to:
 
 - `https://www.googleapis.com/auth/drive.readonly` – read-only access to files and metadata
 

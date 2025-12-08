@@ -11,6 +11,7 @@ const manifest: IntegrationManifest = {
   description: 'Sync ' + APP_LABEL + ' files',
   sync_category: SyncCategory.FILE_STORAGE,
   order: 4, // order in the sync integration list
+  hidden: true,
 };
 
 export default manifest;

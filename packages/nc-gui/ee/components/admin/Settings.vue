@@ -255,7 +255,7 @@ const onCancel = () => {
         <span class="text-nc-content-gray-subtle2 mt-2">
           {{ $t('msg.addCompanyDomains') }}
         </span>
-        <a-divider class="text-gray-200" />
+        <a-divider class="text-nc-border-gray-medium" />
         <span class="text-nc-content-gray mb-3 font-bold">
           {{ $t('labels.activeDomains') }}
         </span>
@@ -278,7 +278,7 @@ const onCancel = () => {
         <div class="font-bold text-base" data-rec="true">
           {{ $t('labels.shareSettings') }}
         </div>
-        <a-divider class="text-gray-200" />
+        <a-divider class="text-nc-border-gray-medium" />
         <div class="flex flex-col px-2 py-3 gap-2 border-1 rounded-lg border-nc-border-gray-medium">
           <div class="flex items-center justify-between">
             <span class="text-nc-content-gray font-bold text-base">
@@ -297,7 +297,7 @@ const onCancel = () => {
         <div class="flex font-bold justify-between text-nc-content-gray-emphasis text-base" data-rec="true">
           {{ $t('labels.userOptions') }}
         </div>
-        <a-divider class="text-gray-200" />
+        <a-divider class="text-nc-border-gray-medium" />
         <div class="flex gap-2 flex-col">
           <div class="flex justify-between">
             <span class="text-nc-content-gray font-bold"> {{ $t('labels.deleteUserAndData') }} </span>
@@ -313,7 +313,7 @@ const onCancel = () => {
         <div class="flex font-bold justify-between text-nc-content-red-medium text-base" data-rec="true">
           {{ $t('labels.dangerZone') }}
         </div>
-        <a-divider class="text-gray-200" />
+        <a-divider class="text-nc-border-gray-medium" />
         <div class="flex gap-2 flex-col">
           <div class="flex justify-between">
             <span class="text-nc-content-gray font-bold"> {{ $t('labels.deleteThisOrganization') }} </span>

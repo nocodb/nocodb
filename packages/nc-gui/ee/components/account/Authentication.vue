@@ -243,7 +243,7 @@ onMounted(async () => {
                 <span> {{ $t('labels.newProvider') }} </span>
               </NcButton>
             </div>
-            <a-divider class="text-gray-200" />
+            <a-divider class="text-nc-border-gray-medium" />
             <div class="flex flex-col">
               <span v-if="!samlProviders.length" class="text-nc-content-gray-muted"> {{ $t('msg.info.noSaml') }} </span>
               <div
@@ -311,7 +311,7 @@ onMounted(async () => {
                 <span> {{ $t('labels.newProvider') }} </span>
               </NcButton>
             </div>
-            <a-divider class="text-gray-200" />
+            <a-divider class="text-nc-border-gray-medium" />
             <div class="flex flex-col">
               <span v-if="!oidcProviders.length" class="text-nc-content-gray-muted"> {{ $t('msg.info.noSaml') }} </span>
               <div

@@ -85,7 +85,7 @@ onClickOutside(
         <div
           v-if="!selectedNode"
           :class="{
-            'ring ring-nc-brand-500 ring-offset-2 !border-nc-border-gray-dark': showDropdown,
+            'ring ring-nc-brand-500 ring-offset-2.5 ring-1.5 !border-nc-border-gray-dark': showDropdown,
           }"
           class="flex border-1 rounded-lg w-77 bg-nc-bg-default justify-center border-dashed cursor-pointer border-nc-border-brand px-2 py-4"
           @click="openDropdown"
@@ -101,7 +101,7 @@ onClickOutside(
           v-else
           class="flex flex-col border-1 w-77 rounded-lg cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default relative"
           :class="{
-            'ring ring-nc-brand-500 ring-offset-2': selectedNodeId === props.id || showDropdown,
+            'ring ring-nc-brand-500 ring-offset-2.5 ring-1.5': selectedNodeId === props.id || showDropdown,
           }"
           @click.stop="handleTriggerClick"
         >

@@ -35,7 +35,7 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
 
     return {
       id: 'core.flow.if',
-      title: 'If/Else',
+      title: 'If / Else',
       icon: 'ncIfElse',
       description: 'Route execution based on conditions',
       category: WorkflowNodeCategory.FLOW,

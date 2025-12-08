@@ -7,7 +7,16 @@ import {
 } from './interface';
 import { RelationTypes } from '../globals';
 import { ColumnType } from '~/lib';
-import { LinkToAnotherRecordType } from '~/lib/Api';
+import { LinkToAnotherRecordType, LookupType } from '~/lib/Api';
+import { FormulaDataTypes } from '../formula/enums';
+
+/**
+ * Context interface for async operations
+ */
+export interface VariableGeneratorContext {
+  getColumn?: (columnId: string) => Promise<ColumnType> | ColumnType;
+  getTableColumns?: (tableId: string) => Promise<ColumnType[]> | ColumnType[];
+}
 
 /**
  * Map UIType to icon name (matching NocoDB's iconMap)
@@ -56,6 +65,7 @@ export function uiTypeToIcon(column: ColumnType): string {
     case UITypes.MultiSelect:
       return 'cellMultiSelect';
     case UITypes.Collaborator:
+    case UITypes.User:
       return 'cellUser';
     case UITypes.CreatedBy:
     case UITypes.LastModifiedBy:
@@ -106,13 +116,52 @@ export function uiTypeToIcon(column: ColumnType): string {
 }
 
 /**
+ * Map Formula data types to VariableType
+ */
+function formulaDataTypeToVariableType(
+  formulaDataType: FormulaDataTypes
+): VariableType {
+  switch (formulaDataType) {
+    case FormulaDataTypes.NUMERIC:
+      return VariableType.Number;
+    case FormulaDataTypes.STRING:
+      return VariableType.String;
+    case FormulaDataTypes.DATE:
+      return VariableType.DateTime;
+    case FormulaDataTypes.BOOLEAN:
+    case FormulaDataTypes.LOGICAL:
+      return VariableType.Boolean;
+    case FormulaDataTypes.COND_EXP:
+      return VariableType.String;
+    case FormulaDataTypes.NULL:
+    case FormulaDataTypes.UNKNOWN:
+      return VariableType.String;
+    default:
+      return VariableType.Object; // Fallback for unknown types
+  }
+}
+
+/**
  * Convert NocoDB UIType to VariableType
+ * Note: For Lookup fields, this returns a generic Object type.
+ * Use resolveLookupType() for accurate type resolution.
  */
 export function uiTypeToVariableType(
   uiType: UITypes,
   columnMeta?: any
 ): { type: VariableType; isArray: boolean } {
   switch (uiType) {
+    // Formula - resolve actual type from parsed tree
+    case UITypes.Formula: {
+      const parsedTree = columnMeta?.parsed_tree;
+      if (parsedTree?.dataType) {
+        const formulaType = formulaDataTypeToVariableType(parsedTree.dataType);
+        return { type: formulaType, isArray: false };
+      }
+      // Fallback if no parsed tree available
+      return { type: VariableType.String, isArray: false };
+    }
+
     // Number types
     case UITypes.Number:
     case UITypes.Decimal:
@@ -156,7 +205,7 @@ export function uiTypeToVariableType(
         columnMeta?.type === RelationTypes.MANY_TO_MANY;
       return { type: VariableType.Object, isArray: isMultiple };
     }
-
+    case UITypes.User:
     case UITypes.Collaborator: {
       // Check if multi-user
       const isMultiUser = parseProp(columnMeta?.meta)?.is_multi;
@@ -169,6 +218,10 @@ export function uiTypeToVariableType(
 
     case UITypes.JSON:
       return { type: VariableType.Object, isArray: false };
+
+    case UITypes.Lookup: {
+      return { type: VariableType.Object, isArray: false };
+    }
 
     // String types (default)
     case UITypes.SingleLineText:
@@ -192,6 +245,84 @@ export function uiTypeToVariableType(
 }
 
 /**
+ * Recursively resolve the actual type of a Lookup field
+ * This follows the same logic as the Swagger V3 generator
+ */
+async function resolveLookupType(
+  column: ColumnType,
+  context?: VariableGeneratorContext,
+  visitedColumnIds: Set<string> = new Set()
+): Promise<{ type: VariableType; isArray: boolean }> {
+  // Prevent infinite recursion
+  if (visitedColumnIds.has(column.id)) {
+    return { type: VariableType.Object, isArray: false };
+  }
+  visitedColumnIds.add(column.id);
+
+  const lookupOptions = column.colOptions as LookupType;
+  if (!lookupOptions) {
+    return { type: VariableType.Object, isArray: false };
+  }
+
+  try {
+    // Get the relation column to determine if it's an array
+    const relationColumnId = lookupOptions.fk_relation_column_id;
+    const lookupColumnId = lookupOptions.fk_lookup_column_id;
+
+    if (!relationColumnId || !lookupColumnId || !context?.getColumn) {
+      // Fallback if we can't resolve
+      return { type: VariableType.Object, isArray: false };
+    }
+
+    // Get the relation column
+    const relationColumn = await context.getColumn(relationColumnId);
+    const relationOptions =
+      relationColumn?.colOptions as LinkToAnotherRecordType;
+
+    // Determine if this is an array lookup based on relation type
+    const isArrayRelation =
+      relationOptions?.type === RelationTypes.HAS_MANY ||
+      relationOptions?.type === RelationTypes.MANY_TO_MANY;
+
+    // Get the lookup target column
+    const lookupColumn = await context.getColumn(lookupColumnId);
+    if (!lookupColumn) {
+      return { type: VariableType.Object, isArray: isArrayRelation };
+    }
+
+    // Recursively resolve the type of the lookup target
+    let targetType: { type: VariableType; isArray: boolean };
+
+    if (lookupColumn.uidt === UITypes.Lookup) {
+      // Nested lookup - recurse
+      targetType = await resolveLookupType(
+        lookupColumn,
+        context,
+        visitedColumnIds
+      );
+    } else {
+      // Base case - get the type of the target column
+      targetType = uiTypeToVariableType(
+        lookupColumn.uidt as UITypes,
+        lookupColumn.colOptions
+      );
+    }
+
+    // If the relation is an array, the lookup result is also an array
+    // (even if the target column itself is not an array)
+    if (isArrayRelation) {
+      return { type: targetType.type, isArray: true };
+    }
+
+    // Otherwise, return the target type as-is
+    return targetType;
+  } catch (error) {
+    // Fallback on error
+    return { type: VariableType.Object, isArray: false };
+  }
+}
+
+/**
  * Helper to safely build a property accessor (dot notation or bracket notation)
  * Uses bracket notation if the property name contains spaces or special characters
  */
@@ -211,14 +342,28 @@ function buildPropertyKey(prefix: string, propertyName: string): string {
 /**
  * Generate variable definition from NocoDB column
  */
-export function getFieldVariable(
+export async function getFieldVariable(
   column: ColumnType,
-  prefix: string = 'fields'
-): VariableDefinition {
-  const { type, isArray } = uiTypeToVariableType(
-    column.uidt as UITypes,
-    column.colOptions
-  );
+  prefix: string = 'fields',
+  context?: VariableGeneratorContext
+): Promise<VariableDefinition> {
+  let type: VariableType;
+  let isArray: boolean;
+
+  if (column.uidt === UITypes.Lookup && context) {
+    // For Lookup fields, resolve the actual type
+    const resolvedType = await resolveLookupType(column, context);
+    type = resolvedType.type;
+    isArray = resolvedType.isArray;
+  } else {
+    // For other fields, use the standard type mapping
+    const typeInfo = uiTypeToVariableType(
+      column.uidt as UITypes,
+      column.colOptions
+    );
+    type = typeInfo.type;
+    isArray = typeInfo.isArray;
+  }
 
   const variable: VariableDefinition = {
     key: buildPropertyKey(prefix, column.title),
@@ -234,6 +379,75 @@ export function getFieldVariable(
     },
   };
 
+  // Handle LTAR fields - add structure for id and fields properties
+  if (column.uidt === UITypes.LinkToAnotherRecord) {
+    const ltarOptions = column.colOptions as LinkToAnotherRecordType;
+    const relatedTableId = ltarOptions?.fk_related_model_id;
+
+    // Try to get related table's primary value column if context provides it
+    let pvFieldVariable: VariableDefinition | undefined;
+    if (relatedTableId && context?.getTableColumns) {
+      try {
+        const relatedColumns = await context.getTableColumns(relatedTableId);
+
+        // Find the primary value (display) column
+        const pvColumn =
+          relatedColumns.find((col) => col.pv) ||
+          relatedColumns.find((col) => col.pk);
+
+        if (pvColumn) {
+          // Generate field variable for the PV column only
+          pvFieldVariable = await getFieldVariable(pvColumn, 'fields', context);
+        }
+      } catch (error) {
+        // If we can't get related columns, continue without PV field
+        pvFieldVariable = undefined;
+      }
+    }
+
+    const recordStructure: VariableDefinition[] = [
+      {
+        key: 'id',
+        name: 'ID',
+        type: VariableType.String,
+        groupKey: VariableGroupKey.Fields,
+        extra: {
+          icon: 'cellSystemKey',
+        },
+      },
+      {
+        key: 'fields',
+        name: 'Fields',
+        type: VariableType.Object,
+        groupKey: VariableGroupKey.Fields,
+        extra: {
+          icon: 'cellJson',
+        },
+        children: pvFieldVariable ? [pvFieldVariable] : undefined,
+      },
+    ];
+
+    if (isArray) {
+      // For array LTAR, add itemSchema showing each item has id and fields
+      variable.extra = {
+        ...variable.extra,
+        itemSchema: recordStructure,
+      };
+    } else {
+      // For single LTAR, add id and fields as children
+      variable.children = recordStructure.map((child) => ({
+        ...child,
+        key: `${variable.key}.${child.key}`,
+        children: child.children
+          ? child.children.map((nestedChild) => ({
+              ...nestedChild,
+              key: `${variable.key}.${child.key}.${nestedChild.key}`,
+            }))
+          : undefined,
+      }));
+    }
+  }
+
   if (column.uidt === UITypes.Attachment && isArray) {
     // Define the structure of each attachment item
     variable.extra = {
@@ -246,7 +460,7 @@ export function getFieldVariable(
           groupKey: VariableGroupKey.Fields,
           extra: {
             icon: 'cellUrl',
-            description: 'URL of the attachment',
+            description: 'URL',
           },
         },
         {
@@ -256,7 +470,7 @@ export function getFieldVariable(
           groupKey: VariableGroupKey.Fields,
           extra: {
             icon: 'cellUrl',
-            description: 'Signed URL of the attachment',
+            description: 'Signed URL',
           },
         },
         {
@@ -266,7 +480,7 @@ export function getFieldVariable(
           groupKey: VariableGroupKey.Fields,
           extra: {
             icon: 'cellText',
-            description: 'Title of the attachment',
+            description: 'Title',
           },
         },
         {
@@ -276,7 +490,7 @@ export function getFieldVariable(
           groupKey: VariableGroupKey.Fields,
           extra: {
             icon: 'cellText',
-            description: 'MIME type of the attachment',
+            description: 'MIME type',
           },
         },
         {
@@ -286,7 +500,7 @@ export function getFieldVariable(
           groupKey: VariableGroupKey.Fields,
           extra: {
             icon: 'cellNumber',
-            description: 'Size of the attachment in bytes',
+            description: 'Size',
           },
         },
       ],
@@ -300,7 +514,7 @@ export function getFieldVariable(
         type: VariableType.Number,
         groupKey: VariableGroupKey.Meta,
         extra: {
-          description: 'Number of attachments',
+          description: 'Length',
           icon: 'cellNumber',
         },
       },
@@ -311,7 +525,7 @@ export function getFieldVariable(
         groupKey: VariableGroupKey.Fields,
         extra: {
           icon: 'cellUrl',
-          description: 'Comma-separated URLs of all attachments',
+          description: 'URLs',
         },
       },
       {
@@ -321,7 +535,7 @@ export function getFieldVariable(
         groupKey: VariableGroupKey.Fields,
         extra: {
           icon: 'cellUrl',
-          description: 'Comma-separated signed URLs of all attachments',
+          description: 'Signed URLs',
         },
       },
       {
@@ -331,7 +545,7 @@ export function getFieldVariable(
         groupKey: VariableGroupKey.Fields,
         extra: {
           icon: 'cellText',
-          description: 'Comma-separated titles of all attachments',
+          description: 'Titles',
         },
       },
       {
@@ -341,7 +555,7 @@ export function getFieldVariable(
         groupKey: VariableGroupKey.Fields,
         extra: {
           icon: 'cellText',
-          description: 'Comma-separated mimetypes of all attachments',
+          description: 'MimeTypes',
         },
       },
       {
@@ -351,111 +565,110 @@ export function getFieldVariable(
         groupKey: VariableGroupKey.Fields,
         extra: {
           icon: 'cellNumber',
-          description: 'Comma-separated sizes of all attachments',
+          description: 'Sizes',
         },
       },
     ];
-  } else if (column.uidt === UITypes.Collaborator) {
+  } else if (column.uidt === UITypes.User) {
     const isMulti = parseProp(column.meta)?.is_multi;
 
-    variable.extra = isMulti
-      ? {
-          ...variable.extra,
-          itemSchema: [
-            {
-              key: 'id',
-              name: 'id',
-              type: VariableType.String,
-              groupKey: VariableGroupKey.Fields,
-              extra: {
-                icon: 'cellSystemKey',
-                description: 'User ID',
-              },
+    if (isMulti) {
+      variable.extra = {
+        ...variable.extra,
+        itemSchema: [
+          {
+            key: 'id',
+            name: 'ID',
+            type: VariableType.String,
+            groupKey: VariableGroupKey.Fields,
+            extra: {
+              icon: 'cellSystemKey',
+              description: 'User ID',
             },
-            {
-              key: 'email',
-              name: 'email',
-              type: VariableType.String,
-              groupKey: VariableGroupKey.Fields,
-              extra: {
-                icon: 'cellEmail',
-                description: 'User email',
-              },
+          },
+          {
+            key: 'email',
+            name: 'Email',
+            type: VariableType.String,
+            groupKey: VariableGroupKey.Fields,
+            extra: {
+              icon: 'cellEmail',
+              description: 'User email',
             },
-            {
-              key: 'display_name',
-              name: 'display_name',
-              type: VariableType.String,
-              groupKey: VariableGroupKey.Fields,
-              extra: {
-                icon: 'cellText',
-                description: 'User display name',
-              },
+          },
+          {
+            key: 'display_name',
+            name: 'Display Name',
+            type: VariableType.String,
+            groupKey: VariableGroupKey.Fields,
+            extra: {
+              icon: 'cellText',
+              description: 'User display name',
             },
-          ],
-        }
-      : {};
+          },
+        ],
+      };
+    }
 
-    // Array-level properties
     variable.children = [
       {
-        key: isMulti
-          ? `${variable.key}.map(item => item.id).join(', ')`
-          : `${variable.key}.id`,
-        name: 'User IDs of all collaborators',
+        key: isMulti ? `${variable.key}.map(item => item.id).join(', ')` : `id`,
+        name: isMulti ? 'User IDs' : 'User ID',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
           icon: 'cellSystemKey',
-          description: isMulti ? 'Comma-separated user IDs' : 'User ID',
+          description: isMulti ? 'User IDs' : 'User ID',
         },
       },
       {
         key: isMulti
           ? `${variable.key}.map(item => item.email).join(', ')`
-          : `${variable.key}.email`,
-        name: 'Emails of all collaborators',
+          : `email`,
+        name: isMulti ? 'Emails' : 'Email',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
           icon: 'cellEmail',
-          description: isMulti ? 'Comma-separated emails' : 'User email',
+          description: isMulti ? 'Emails' : 'Email',
         },
       },
       {
         key: isMulti
           ? `${variable.key}.map(item => item.display_name || '').join(', ')`
-          : `${variable.key}.display_name`,
-        name: 'Display names of all collaborators',
+          : `display_name`,
+        name: isMulti ? 'Display names' : 'Display name',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
           icon: 'cellText',
-          description: isMulti
-            ? 'Comma-separated display names'
-            : 'User display name',
+          description: isMulti ? 'Display names' : 'Display name',
         },
       },
-      {
-        key: `${variable.key}.length`,
-        name: 'Number of collaborators',
-        type: VariableType.Number,
-        groupKey: VariableGroupKey.Meta,
-        extra: {
-          description: 'Number of collaborators',
-          icon: 'cellNumber',
-        },
-      },
+      ...(isMulti
+        ? [
+            {
+              key: `${variable.key}.length`,
+              name: 'Length',
+              type: VariableType.Number,
+              groupKey: VariableGroupKey.Meta,
+              extra: {
+                description: 'Length',
+                icon: 'cellNumber',
+              },
+            },
+          ]
+        : []),
     ];
   } else if (column.uidt === UITypes.LinkToAnotherRecord && isArray) {
     variable.children = [
       {
         key: `${variable.key}.length`,
-        name: 'Number of linked records',
+        name: 'Length',
         type: VariableType.Number,
         groupKey: VariableGroupKey.Meta,
         extra: {
-          description: 'Number of linked records',
+          description: 'Length',
           icon: 'cellNumber',
         },
       },
@@ -481,11 +694,11 @@ export function getFieldVariable(
     variable.children = [
       {
         key: `${variable.key}.length`,
-        name: 'Number of selected options',
+        name: 'Length',
         type: VariableType.Number,
         groupKey: VariableGroupKey.Meta,
         extra: {
-          description: 'Number of selected options',
+          description: 'Length',
           icon: 'cellNumber',
         },
       },
@@ -521,21 +734,23 @@ export function getMetaVariables(prefix: string = ''): VariableDefinition[] {
  * @param columns - Array of column definitions
  * @param isArray - Whether this represents an array of records
  * @param outputKey - The key under which the record(s) are stored in the output (e.g., 'record', 'deleted', 'records')
+ * @param context - Optional context for async column resolution
  */
-export function genRecordVariables(
+export async function genRecordVariables(
   columns: Array<ColumnType>,
   isArray: boolean = false,
-  outputKey?: string
-): VariableDefinition[] {
+  outputKey?: string,
+  context?: VariableGeneratorContext
+): Promise<VariableDefinition[]> {
   const filteredColumns = columns.filter((col) => !isSystemColumn(col));
   const recordKey = outputKey || (isArray ? 'records' : 'record');
   const recordName = recordKey.charAt(0).toUpperCase() + recordKey.slice(1);
 
   if (isArray) {
     // Generate field variables (without array prefix for itemSchema)
-    const fieldVariables = filteredColumns.map((col) => {
-      return getFieldVariable(col, 'fields');
-    });
+    const fieldVariables = await Promise.all(
+      filteredColumns.map((col) => getFieldVariable(col, 'fields', context))
+    );
 
     return [
       {
@@ -575,11 +790,11 @@ export function genRecordVariables(
         children: [
           {
             key: `${recordKey}.length`,
-            name: 'Number of records',
+            name: 'Length',
             type: VariableType.Number,
             groupKey: VariableGroupKey.Meta,
             extra: {
-              description: 'Number of records',
+              description: 'Length',
               icon: 'cellNumber',
             },
           },
@@ -588,10 +803,12 @@ export function genRecordVariables(
     ];
   } else {
     // Generate field variables with record prefix
-    const fieldVariables = filteredColumns.map((col) => {
-      const fieldVar = getFieldVariable(col, 'fields');
-      return prefixVariableKeys(fieldVar, recordKey);
-    });
+    const fieldVariables = await Promise.all(
+      filteredColumns.map(async (col) => {
+        const fieldVar = await getFieldVariable(col, 'fields', context);
+        return prefixVariableKeys(fieldVar, recordKey);
+      })
+    );
 
     return [
       {
@@ -704,7 +921,7 @@ export function genGeneralVariables(
           children: [
             {
               key: `${prefix}.length`,
-              name: 'length',
+              name: 'Length',
               type: VariableType.Number,
               groupKey: VariableGroupKey.Meta,
               extra: {
@@ -780,7 +997,7 @@ export function genGeneralVariables(
           itemDef.children = [
             {
               key: `${itemKey}.length`,
-              name: 'length',
+              name: 'Length',
               type: VariableType.Number,
               groupKey: VariableGroupKey.Meta,
               extra: {
@@ -823,7 +1040,7 @@ export function genGeneralVariables(
         children: [
           {
             key: `${prefix}.length`,
-            name: 'length',
+            name: 'Length',
             type: VariableType.Number,
             groupKey: VariableGroupKey.Meta,
             extra: {
@@ -898,7 +1115,7 @@ export function genGeneralVariables(
       varDef.children = [
         {
           key: `${fullKey}.length`,
-          name: 'length',
+          name: 'Length',
           type: VariableType.Number,
           groupKey: VariableGroupKey.Meta,
           extra: {

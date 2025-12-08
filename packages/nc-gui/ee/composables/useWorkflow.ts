@@ -2,7 +2,7 @@ import type { WorkflowGeneralNode, WorkflowNodeCategoryType, WorkflowType } from
 import { GENERAL_DEFAULT_NODES, GeneralNodeID, INIT_WORKFLOW_NODES, hasWorkflowDraftChanges } from 'nocodb-sdk'
 import type { Edge, Node } from '@vue-flow/core'
 import rfdc from 'rfdc'
-import { findAllParentNodes, transformNode } from '~/utils/workflowUtils'
+import { findAllParentNodes, generateUniqueNodeId, transformNode } from '~/utils/workflowUtils'
 
 const clone = rfdc()
 
@@ -229,7 +229,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       source: sourceNodeId,
       target: plusNode.id,
       animated: false,
-      type: edgeLabel ? 'smoothstep' : undefined, // Use smoothstep for conditional edges
+      type: 'smoothstep',
     }
 
     // Add label for conditional branches
@@ -334,12 +334,9 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
             source: inEdge.source,
             target: outEdge.target,
             animated: false, // Never animate edges
-            type: inEdge.label && outEdge.label ? 'smoothstep' : undefined, // Keep smoothstep for conditional edges
+            type: 'smoothstep'
           }
-          // Only preserve edge label if BOTH incoming and outgoing edges have labels
-          // This means we're bridging within a branch context (e.g., deleting a node in the middle of a branch)
-          // If only incoming has label (deleting the branch node itself), don't preserve it
-          if (inEdge.label && outEdge.label) {
+          if (inEdge.label) {
             newEdge.label = inEdge.label
             newEdge.labelStyle = inEdge.labelStyle
             newEdge.labelBgStyle = inEdge.labelBgStyle
@@ -511,8 +508,8 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       }
       return result
     } catch (e: any) {
-      throw e;
       console.error('[Workflow] Test execution error:', e)
+      throw e
     }
   }
 

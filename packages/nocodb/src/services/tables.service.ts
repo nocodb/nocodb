@@ -7,11 +7,13 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isOrderCol,
+  isServiceUser,
   isVirtualCol,
   ModelTypes,
   NcBaseError,
   ProjectRoles,
   RelationTypes,
+  ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
@@ -482,18 +484,20 @@ export class TablesService {
     if (!table) {
       NcError.tableNotFound(param.tableId);
     }
-
-    // todo: optimise
-    const viewList = <View[]>(
-      await this.xcVisibilityMetaGet(context, table.base_id, [table])
-    );
-
-    //await View.list(param.tableId)
-    table.views = viewList.filter((view: any) => {
-      return Object.keys(param.user?.roles || {}).some(
-        (role) => param.user?.roles[role] && !view.disabled[role],
+    if (isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
+      await table.getViews(context);
+    } else {
+      // todo: optimise
+      const viewList = <View[]>(
+        await this.xcVisibilityMetaGet(context, table.base_id, [table])
       );
-    });
+      //await View.list(param.tableId)
+      table.views = viewList.filter((view: any) => {
+        return Object.keys(param.user?.roles || {}).some(
+          (role) => param.user?.roles[role] && !view.disabled[role],
+        );
+      });
+    }
 
     return table;
   }

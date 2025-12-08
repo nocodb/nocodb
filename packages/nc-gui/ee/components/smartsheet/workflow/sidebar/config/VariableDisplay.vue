@@ -232,10 +232,14 @@ const formatValue = (value: any): string => {
       >
         <div class="flex items-center flex-1 gap-2 pr-2">
           <GeneralIcon :icon="getVariableIcon(variable) as any" class="w-4 h-4 text-nc-content-gray-subtle stroke-transparent" />
-          <div class="text-body text-nc-content-gray-emphasis">{{ variable.name }}</div>
+          <div class="text-body text-nc-content-gray-emphasis line-clamp-1 truncate">{{ variable.name }}</div>
         </div>
-
-        <div class="text-bodyDefaultSm text-nc-content-gray-subtle truncate">{{ getVariableValue(variable) }}</div>
+        <NcTooltip class="text-bodyDefaultSm truncate text-nc-content-gray-subtle" show-on-truncate-only>
+          <template #title>
+            {{ getVariableValue(variable) }}
+          </template>
+          {{ getVariableValue(variable) }}
+        </NcTooltip>
       </div>
       <div v-else>
         <div
@@ -243,12 +247,12 @@ const formatValue = (value: any): string => {
           :style="{ paddingLeft: `${depth * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
           @click="expandedItems.has(variable.key) ? expandedItems.delete(variable.key) : expandedItems.add(variable.key)"
         >
-          <div class="flex items-center flex-1 gap-2">
+          <div class="flex items-center flex-1 gap-2 overflow-y-auto">
             <GeneralIcon
               :icon="getVariableIcon(variable) as any"
               class="w-4 h-4 text-nc-content-gray-subtle stroke-transparent"
             />
-            <div class="text-body text-nc-content-gray-emphasis">{{ variable.name }}</div>
+            <div class="text-body text-nc-content-gray-emphasis line-clamp-1 truncate">{{ variable.name }}</div>
           </div>
           <NcButton type="text" size="xxsmall">
             <GeneralIcon
@@ -265,26 +269,31 @@ const formatValue = (value: any): string => {
             <template v-for="item in getArrayItems(variable)" :key="item.key">
               <div
                 v-if="item.isPrimitive"
-                class="flex items-center py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
+                class="flex items-center gap-4 overflow-y-auto py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
                 :style="{ paddingLeft: `${(depth + 1) * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
               >
-                <div class="flex items-center flex-1 gap-2">
+                <div class="flex items-center flex-1 gap-2 overflow-y-auto">
                   <GeneralIcon icon="cellText" class="w-4 h-4 text-nc-content-gray-subtle" />
-                  <div class="text-body text-nc-content-gray-emphasis">{{ item.name }}</div>
+                  <div class="text-body text-nc-content-gray-emphasis line-clamp-1 truncate">{{ item.name }}</div>
                 </div>
-                <div class="text-bodyDefaultSm truncate text-nc-content-gray-subtle">{{ formatValue(item.value) }}</div>
+                <NcTooltip class="text-bodyDefaultSm truncate text-nc-content-gray-subtle" show-on-truncate-only>
+                  <template #title>
+                    {{ formatValue(item.value) }}
+                  </template>
+                  {{ formatValue(item.value) }}
+                </NcTooltip>
               </div>
 
               <!-- Object array  - expandable with children -->
               <div v-else>
                 <div
-                  class="flex items-center justify-between py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium cursor-pointer"
+                  class="flex items-center gap-4 overflow-y-auto justify-between py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium cursor-pointer"
                   :style="{ paddingLeft: `${(depth + 1) * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
                   @click="expandedItems.has(item.key) ? expandedItems.delete(item.key) : expandedItems.add(item.key)"
                 >
                   <div class="flex items-center flex-1 gap-2">
                     <GeneralIcon icon="cellJson" class="w-4 h-4 text-nc-content-gray-subtle stroke-transparent" />
-                    <div class="text-body text-nc-content-gray-emphasis">{{ item.name }}</div>
+                    <div class="text-body text-nc-content-gray-emphasis line-clamp-1 truncate">{{ item.name }}</div>
                   </div>
                   <NcButton type="text" size="xxsmall">
                     <GeneralIcon
@@ -315,14 +324,19 @@ const formatValue = (value: any): string => {
             <div
               v-for="prop in getObjectProperties(variable)"
               :key="prop.key"
-              class="flex items-center py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
+              class="flex items-center gap-4 overflow-y-auto py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
               :style="{ paddingLeft: `${(depth + 1) * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
             >
               <div class="flex items-center flex-1 gap-2">
                 <GeneralIcon icon="cellText" class="w-4 h-4 text-nc-content-gray-subtle" />
-                <div class="text-body text-nc-content-gray-emphasis">{{ prop.name }}</div>
+                <div class="text-body text-nc-content-gray-emphasis line-clamp-1 truncate">{{ prop.name }}</div>
               </div>
-              <div class="text-bodyDefaultSm truncate text-nc-content-gray-subtle">{{ formatValue(prop.value) }}</div>
+              <NcTooltip class="text-bodyDefaultSm truncate text-nc-content-gray-subtle" show-on-truncate-only>
+                <template #title>
+                  {{ formatValue(prop.value) }}
+                </template>
+                {{ formatValue(prop.value) }}
+              </NcTooltip>
             </div>
           </template>
           <template v-else-if="variable.children?.length">

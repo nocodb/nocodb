@@ -46,7 +46,7 @@ const dependencyMessage = computed(() => {
   const actionText = t(`general.${gerundAction}`)
   const entityText = t(`objects.${props.entityType}`)
   return t('labels.changingEntityWillImpact', {
-    action: actionText,
+    action: actionText.toLowerCase(),
     entity: entityText,
     count: totalCount.value,
   })

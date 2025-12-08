@@ -419,9 +419,9 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
     }
   }
 
-  public async generateOutputVariables(): Promise<
-    NocoSDK.VariableDefinition[]
-  > {
+  public async generateOutputVariables(
+    context: NocoSDK.VariableGeneratorContext,
+  ): Promise<NocoSDK.VariableDefinition[]> {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -437,15 +437,17 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
 
       if (!table) return [];
 
-      const recordVariables = NocoSDK.genRecordVariables(
+      const recordVariables = await NocoSDK.genRecordVariables(
         table.columns,
         false,
         'record',
+        context,
       );
-      const previousRecordVariables = NocoSDK.genRecordVariables(
+      const previousRecordVariables = await NocoSDK.genRecordVariables(
         table.columns,
         false,
         'previousRecord',
+        context,
       );
 
       const additionalVariables: NocoSDK.VariableDefinition[] = [

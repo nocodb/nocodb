@@ -64,7 +64,7 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
       <template #default="{ openDropdown, showDropdown }">
         <div
           :class="{
-            'ring ring-nc-brand-500 ring-offset-2': showDropdown,
+            'ring ring-nc-brand-500 ring-offset-2.5 ring-1.5': showDropdown,
           }"
           class="flex border-1 rounded-lg w-77 bg-nc-bg-default justify-center border-dashed cursor-pointer border-nc-border-gray-dark px-2 py-4"
           @click="openDropdown"

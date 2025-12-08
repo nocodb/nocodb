@@ -126,7 +126,7 @@ onClickOutside(
         <div
           v-if="selectedNode"
           :class="{
-            'ring ring-nc-brand-500 ring-offset-2': selectedNodeId === id || showDropdown,
+            'ring ring-nc-brand-500 ring-offset-2.5 ring-1.5': selectedNodeId === id || showDropdown,
           }"
           class="flex flex-col border-1 rounded-lg w-77 justify-center cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default relative"
           @click.stop="handleNodeClick"

@@ -57,17 +57,19 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         ],
       },
       {
-        type: FormBuilderInputType.Input,
+        type: FormBuilderInputType.Number,
         label: 'Limit',
         span: 12,
         model: 'config.limit',
+        defaultValue: 25,
         placeholder: '25',
       },
       {
-        type: FormBuilderInputType.Input,
+        type: FormBuilderInputType.Number,
         label: 'Offset',
         span: 12,
         model: 'config.offset',
+        defaultValue: 0,
         placeholder: '0',
       },
       {
@@ -302,7 +304,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
 
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
     const variables: NocoSDK.VariableDefinition[] = [];
-    const { modelId, viewId } = this.config;
+    const { modelId, viewId, filterJson, sortJson } = this.config;
 
     if (!modelId) return [];
 
@@ -382,27 +384,31 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         },
       });
 
-      variables.push({
-        key: 'config.filterJson',
-        name: 'Filter JSON',
-        type: NocoSDK.VariableType.String,
-        groupKey: NocoSDK.VariableGroupKey.Fields,
-        extra: {
-          icon: 'cellJson',
-          description: 'JSON filter criteria',
-        },
-      });
+      if (filterJson) {
+        variables.push({
+          key: 'config.filterJson',
+          name: 'Filter JSON',
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellJson',
+            description: 'JSON filter criteria',
+          },
+        });
+      }
 
-      variables.push({
-        key: 'config.sortJson',
-        name: 'Sort JSON',
-        type: NocoSDK.VariableType.String,
-        groupKey: NocoSDK.VariableGroupKey.Fields,
-        extra: {
-          icon: 'cellJson',
-          description: 'JSON sort criteria',
-        },
-      });
+      if (sortJson) {
+        variables.push({
+          key: 'config.sortJson',
+          name: 'Sort JSON',
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellJson',
+            description: 'JSON sort criteria',
+          },
+        });
+      }
 
       return variables;
     } catch {
@@ -410,9 +416,9 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
     }
   }
 
-  public async generateOutputVariables(): Promise<
-    NocoSDK.VariableDefinition[]
-  > {
+  public async generateOutputVariables(
+    context: NocoSDK.VariableGeneratorContext,
+  ): Promise<NocoSDK.VariableDefinition[]> {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -428,10 +434,11 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
 
       if (!table) return [];
 
-      const recordVariables = NocoSDK.genRecordVariables(
+      const recordVariables = await NocoSDK.genRecordVariables(
         table.columns,
         true,
         'records',
+        context,
       );
 
       const paginationVariable: NocoSDK.VariableDefinition = {

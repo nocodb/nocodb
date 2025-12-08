@@ -4,6 +4,7 @@ export enum FormBuilderInputType {
   Switch = 'switch',
   Space = 'space',
   Password = 'password',
+  Number = 'number',
   SelectIntegration = 'integration',
   SelectBase = 'select-base',
   SelectTable = 'select-table',
@@ -158,6 +159,14 @@ export interface FormBuilderPasswordElement extends FormBuilderElementBase {
 }
 
 /**
+ * Number element (number input)
+ */
+export interface FormBuilderNumberInputElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.Number;
+  defaultValue?: number | null;
+}
+
+/**
  * Select element (dropdown)
  */
 export interface FormBuilderSelectElement extends FormBuilderElementBase {
@@ -307,6 +316,7 @@ export type FormBuilderElement =
   | FormBuilderSelectFieldElement
   | FormBuilderOAuthElement
   | FormBuilderWorkflowInputElement
+  | FormBuilderNumberInputElement
   | FormBuilderFieldMappingElement;
 
 /**

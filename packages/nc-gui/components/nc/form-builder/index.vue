@@ -229,6 +229,16 @@ watch(
                     @update:value="setFormStateWithEmit(field.model, $event)"
                   />
                 </template>
+                <template v-else-if="field.type === FormBuilderInputType.Number">
+                  <a-input-number
+                    autocomplete="off"
+                    class="!w-full !rounded-lg"
+                    :controls="false"
+                    :value="deepReference(field.model)"
+                    :placeholder="field.placeholder"
+                    @update:value="setFormStateWithEmit(field.model, $event)"
+                  />
+                </template>
                 <template v-else-if="field.type === FormBuilderInputType.Password">
                   <a-input-password
                     readonly

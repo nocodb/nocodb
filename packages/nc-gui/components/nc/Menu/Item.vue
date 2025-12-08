@@ -56,7 +56,7 @@ defineOptions({
 
 .nc-menu-item.nc-menu-item-danger {
   &:not(.ant-dropdown-menu-item-disabled) {
-    @apply !text-nc-content-red-medium !hover:bg-nc-bg-red-light dark:!hover:bg-nc-bg-red-light/30;
+    @apply !text-nc-content-red-medium !hover:bg-nc-bg-red-light dark:!hover:bg-nc-bg-red-light/20;
   }
 }
 

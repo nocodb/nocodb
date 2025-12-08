@@ -423,11 +423,11 @@
   --color-base-none: #ffffff00;
 
   /* 🎨 Brand */
-  --color-brand-20: #11131c;
-  --rgb-color-brand-20: 17, 19, 28;
+  --color-brand-20: #0e1022;
+  --rgb-color-brand-20: 14, 16, 34;
 
-  --color-brand-50: #1b2033;
-  --rgb-color-brand-50: 27, 32, 51;
+  --color-brand-50: #141a3a;
+  --rgb-color-brand-50: 20, 26, 58;
 
   /* --color-brand-50: #141a57;
   --rgb-color-brand-50: 20, 26, 87; */
@@ -677,8 +677,15 @@
   --rgb-color-pink-900: 254, 241, 251;
 
   /* 🎨 Purple */
+
+  --color-purple-20: #120b1a;
+  --rgb-color-purple-20: 18, 11, 26;
+
+  --color-purple-50: #1e1330;
+  --rgb-color-purple-50: 30, 19, 48;
+  /* 
   --color-purple-50: #3a0962;
-  --rgb-color-purple-50: 58, 9, 98;
+  --rgb-color-purple-50: 58, 9, 98; */
 
   --color-purple-100: #571e85;
   --rgb-color-purple-100: 87, 30, 133;

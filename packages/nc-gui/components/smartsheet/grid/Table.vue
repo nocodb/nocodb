@@ -3349,6 +3349,6 @@ onKeyStroke('ArrowDown', onDown)
   background: var(--nc-bg-coloured-green, #ecfff2) !important;
 }
 .col-sorted {
-  background: var(--nc-bg-coloured-marooon, #fff0f7) !important;
+  background: var(--nc-bg-coloured-maroon, #fff0f7) !important;
 }
 </style>

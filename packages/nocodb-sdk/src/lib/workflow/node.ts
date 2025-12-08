@@ -1,4 +1,5 @@
 import { FormDefinition } from '~/lib/formBuilder';
+import type { TriggerActivationType } from './constants';
 
 /**
  * Workflow Categories
@@ -40,4 +41,12 @@ export interface WorkflowNodeDefinition {
   keywords?: string[];
 
   hidden?: boolean;
+
+  /**
+   * Trigger activation type (only for trigger nodes)
+   * - NONE: No activation needed (e.g., manual triggers, internal NocoDB triggers)
+   * - WEBHOOK: Requires external webhook registration (e.g., GitHub, GitLab)
+   * - CRON: Requires scheduling (e.g., cron triggers)
+   */
+  activationType?: TriggerActivationType;
 }

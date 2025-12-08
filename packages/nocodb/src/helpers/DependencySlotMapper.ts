@@ -7,12 +7,14 @@ export enum DependencySlotTypes {
   BOOLEAN = 'boolean',
   ARRAY = 'array',
   OBJECT = 'object',
+  TIMESTAMP = 'timestamp',
 }
 
 enum DependencyFields {
   // Queryable fields (indexed)
   QUERYABLE_FIELD_0 = 'queryable_field_0',
   QUERYABLE_FIELD_1 = 'queryable_field_1',
+  QUERYABLE_FIELD_2 = 'queryable_field_2', // timestamptz for cron triggers
 
   // Meta field (JSON, not indexed)
   META = 'meta',
@@ -51,8 +53,18 @@ export class DependencySlotMapper {
       },
       [DependencyTableType.Workflow]: {
         nodeType: {
-          id: DependencyFields.QUERYABLE_FIELD_0, // Indexed - queried for triggers
+          id: DependencyFields.QUERYABLE_FIELD_0, // Indexed - node type (e.g., "core.trigger.cron")
           type: DependencySlotTypes.STRING,
+          required: false,
+        },
+        triggerId: {
+          id: DependencyFields.QUERYABLE_FIELD_1, // Indexed - for webhook routing (e.g., "trg_abc123")
+          type: DependencySlotTypes.STRING,
+          required: false,
+        },
+        nextSyncAt: {
+          id: DependencyFields.QUERYABLE_FIELD_2, // Indexed - for cron trigger scheduling
+          type: DependencySlotTypes.TIMESTAMP,
           required: false,
         },
         path: {
@@ -63,6 +75,12 @@ export class DependencySlotMapper {
         nodeId: {
           id: DependencyFields.META,
           type: DependencySlotTypes.STRING,
+          required: false,
+        },
+        // External trigger state (returned from onActivateHook, needed for cleanup)
+        activationState: {
+          id: DependencyFields.META,
+          type: DependencySlotTypes.OBJECT,
           required: false,
         },
       },
@@ -78,7 +96,8 @@ export class DependencySlotMapper {
   private isQueryableField(fieldId: string): boolean {
     return (
       fieldId === DependencyFields.QUERYABLE_FIELD_0 ||
-      fieldId === DependencyFields.QUERYABLE_FIELD_1
+      fieldId === DependencyFields.QUERYABLE_FIELD_1 ||
+      fieldId === DependencyFields.QUERYABLE_FIELD_2
     );
   }
 
@@ -256,6 +275,21 @@ export class DependencySlotMapper {
         if (typeof value !== 'string') {
           NcError.badRequest(`Invalid type for field: ${fieldName}`);
         }
+        return value;
+
+      case DependencySlotTypes.TIMESTAMP:
+        // Accept Date objects or ISO strings
+        if (value instanceof Date) {
+          return value;
+        }
+        if (typeof value === 'string') {
+          const date = new Date(value);
+          if (isNaN(date.getTime())) {
+            NcError.badRequest(`Invalid timestamp for field: ${fieldName}`);
+          }
+          return date;
+        }
+        NcError.badRequest(`Invalid type for field: ${fieldName}`);
         return value;
 
       default:

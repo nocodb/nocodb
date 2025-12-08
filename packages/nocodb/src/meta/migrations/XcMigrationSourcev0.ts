@@ -6,6 +6,7 @@ import * as nc_005_add_user_specific_and_meta_column_in_sync_configs from './v0/
 import * as nc_006_dependency_slots from './v0/nc_006_dependency_slots';
 import * as nc_007_workflow_draft from './v0/nc_007_workflow_draft';
 import * as nc_008_license_server from './v0/nc_008_license_server';
+import * as nc_009_dependency_tracker_timestamp from './v0/nc_009_dependency_tracker_timestamp';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -23,6 +24,7 @@ export default class XcMigrationSourcev0 {
       'nc_006_dependency_slots',
       'nc_007_workflow_draft',
       'nc_008_license_server',
+      'nc_009_dependency_tracker_timestamp',
     ]);
   }
 
@@ -48,6 +50,8 @@ export default class XcMigrationSourcev0 {
         return nc_007_workflow_draft;
       case 'nc_008_license_server':
         return nc_008_license_server;
+      case 'nc_009_dependency_tracker_timestamp':
+        return nc_009_dependency_tracker_timestamp;
     }
   }
 }

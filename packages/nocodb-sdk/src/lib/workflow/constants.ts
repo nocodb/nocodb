@@ -5,6 +5,32 @@ export const GeneralNodeID = {
   PLUS: 'core.plus',
 } as const;
 
+/**
+ * Trigger activation types determine how triggers are managed when workflow is published/unpublished
+ */
+export enum TriggerActivationType {
+  NONE = 'none', // Manual triggers - no activation needed
+  WEBHOOK = 'webhook', // External webhooks (GitHub, GitLab, etc.)
+  CRON = 'cron', // Scheduled/cron-based
+}
+
+/**
+ * Check if a node is a trigger node
+ * Trigger nodes include:
+ * - core.trigger (generic trigger placeholder)
+ * - nocodb.trigger.* (NocoDB-specific triggers)
+ * - *.trigger (external service triggers like github.trigger, gitlab.trigger)
+ */
+export function isTriggerNode(nodeType: string | undefined): boolean {
+  if (!nodeType) return false;
+
+  return (
+    nodeType === GeneralNodeID.TRIGGER ||
+    nodeType.startsWith('nocodb.trigger.') ||
+    nodeType.includes('.trigger')
+  );
+}
+
 export const GENERAL_DEFAULT_NODES: WorkflowNodeDefinition[] = [
   {
     id: GeneralNodeID.PLUS,

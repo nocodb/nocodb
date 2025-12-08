@@ -21,6 +21,7 @@ import FreshdeskAuth from '@noco-local-integrations/freshdesk-auth';
 import FreshdeskSync from '@noco-local-integrations/freshdesk-sync';
 import GithubAuth from '@noco-local-integrations/github-auth';
 import GithubSync from '@noco-local-integrations/github-sync';
+import GithubTrigger from '@noco-local-integrations/github-trigger';
 import GitlabAuth from '@noco-local-integrations/gitlab-auth';
 import GitlabSync from '@noco-local-integrations/gitlab-sync';
 import GoogleAi from '@noco-local-integrations/google-ai';
@@ -64,6 +65,7 @@ export default [
   ...(Array.isArray(FreshdeskSync) ? FreshdeskSync : [FreshdeskSync]),
   ...(Array.isArray(GithubAuth) ? GithubAuth : [GithubAuth]),
   ...(Array.isArray(GithubSync) ? GithubSync : [GithubSync]),
+  ...(Array.isArray(GithubTrigger) ? GithubTrigger : [GithubTrigger]),
   ...(Array.isArray(GitlabAuth) ? GitlabAuth : [GitlabAuth]),
   ...(Array.isArray(GitlabSync) ? GitlabSync : [GitlabSync]),
   ...(Array.isArray(GoogleAi) ? GoogleAi : [GoogleAi]),

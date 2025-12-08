@@ -3,6 +3,7 @@ import {
   GeneralNodeID,
   genGeneralVariables,
   IntegrationsType,
+  isTriggerNode,
   NcBaseError,
   NOCO_SERVICE_USERS,
   ServiceUserType,
@@ -506,10 +507,7 @@ export class WorkflowExecutionService {
     const startTime = Date.now();
 
     // Handle trigger nodes
-    if (
-      node.type === GeneralNodeID.TRIGGER ||
-      node.type?.startsWith('nocodb.trigger.')
-    ) {
+    if (isTriggerNode(node.type)) {
       return this.executeTriggerNode(context, node, triggerData, startTime);
     }
 
@@ -524,10 +522,7 @@ export class WorkflowExecutionService {
     startTime: number,
     testMode?: boolean,
   ): Promise<NodeExecutionResult> {
-    if (
-      node.type?.startsWith('nocodb.trigger.') ||
-      node.type?.startsWith('core.trigger.')
-    ) {
+    if (isTriggerNode(node.type)) {
       const nodeWrapper = this.getNodeWrapper(
         context,
         node.type,

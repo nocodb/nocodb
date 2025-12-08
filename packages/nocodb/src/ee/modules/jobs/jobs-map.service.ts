@@ -26,6 +26,7 @@ import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.pr
 import { ActionExecutionProcessor } from '~/modules/jobs/jobs/action-execution.processor';
 import { ReseatSubscriptionProcessor } from '~/modules/jobs/jobs/reseat-subscription.processor';
 import { ExecuteWorkflowProcessor } from '~/modules/jobs/jobs/execute-workflow/execute-workflow.processor';
+import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow-schedule.processor';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {
@@ -56,6 +57,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly actionExecutionProcessor: ActionExecutionProcessor,
     protected readonly reseatSubscriptionProcessor: ReseatSubscriptionProcessor,
     protected readonly executeWorkflowProcessor: ExecuteWorkflowProcessor,
+    protected readonly workflowScheduleProcessor: WorkflowScheduleProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -137,6 +139,9 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.ExecuteWorkflow]: {
         this: this.executeWorkflowProcessor,
+      },
+      [JobTypes.WorkflowCronSchedule]: {
+        this: this.workflowScheduleProcessor,
       },
     };
   }

@@ -16,6 +16,44 @@ export interface DependencyTrackerType {
   updated_at?: string;
 }
 
+/**
+ * Hydrated fields for each DependencyTableType
+ * These match the mappings defined in DependencySlotMapper
+ */
+export interface WorkflowDependencyFields {
+  nodeType?: string;
+  triggerId?: string;
+  nextSyncAt?: Date | string;
+  path?: string;
+  nodeId?: string;
+  activationState?: Record<string, any>;
+}
+
+export interface WidgetDependencyFields {
+  path?: string;
+}
+
+export interface GeneralDependencyFields {}
+
+/**
+ * Map DependencyTableType to its hydrated fields
+ */
+export type DependencyFieldsMap = {
+  [DependencyTableType.Workflow]: WorkflowDependencyFields;
+  [DependencyTableType.Widget]: WidgetDependencyFields;
+  [DependencyTableType.Column]: GeneralDependencyFields;
+  [DependencyTableType.Model]: GeneralDependencyFields;
+  [DependencyTableType.View]: GeneralDependencyFields;
+};
+
+/**
+ * Generic hydrated dependency type with type parameter
+ * T specifies which DependencyTableType to use for hydrated fields
+ */
+export type HydratedDependencyTrackerType<
+  T extends DependencyTableType = DependencyTableType,
+> = DependencyTrackerType & DependencyFieldsMap[T];
+
 export interface DependencyInfo {
   id: string;
   path?: string;
@@ -24,6 +62,9 @@ export interface DependencyInfo {
 export interface WorkflowDependencyInfo extends DependencyInfo {
   nodeType?: string;
   nodeId?: string;
+  triggerId?: string;
+  nextSyncAt?: Date | string;
+  activationState?: Record<string, any>;
 }
 
 export interface Dependencies {
@@ -38,6 +79,7 @@ export interface WorkflowDependencies {
   columns?: WorkflowDependencyInfo[];
   models?: WorkflowDependencyInfo[];
   views?: WorkflowDependencyInfo[];
+  workflows?: WorkflowDependencyInfo[];
 }
 
 export default class DependencyTracker implements DependencyTrackerType {
@@ -86,7 +128,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     const deps: any[] = [];
 
     const sourceTypes: Array<{
-      key: 'columns' | 'models' | 'views';
+      key: 'columns' | 'models' | 'views' | 'workflows';
       type: DependencyTableType;
     }> = [
       { key: 'columns', type: DependencyTableType.Column },
@@ -95,6 +137,7 @@ export default class DependencyTracker implements DependencyTrackerType {
         type: DependencyTableType.Model,
       },
       { key: 'views', type: DependencyTableType.View },
+      { key: 'workflows', type: DependencyTableType.Workflow },
     ];
 
     for (const { key, type } of sourceTypes) {
@@ -152,27 +195,29 @@ export default class DependencyTracker implements DependencyTrackerType {
   /**
    * Get dependencies with filters based on dependent type - type-safe overloads
    */
-  public static async getDependentsBySource(
+  public static async getDependentsBySource<T extends DependencyTableType>(
     context: NcContext,
-    sourceType: DependencyTableType,
+    sourceType: T,
     sourceId: string,
     options: {
       dependentType: DependencyTableType.Workflow;
+      dependentId?: string;
       nodeType?: string;
     },
     ncMeta?: any,
-  ): Promise<DependencyTrackerType[]>;
+  ): Promise<HydratedDependencyTrackerType<T>[]>;
 
-  public static async getDependentsBySource(
+  public static async getDependentsBySource<T extends DependencyTableType>(
     context: NcContext,
-    sourceType: DependencyTableType,
+    sourceType: T,
     sourceId: string,
     options?: {
       dependentType?: DependencyTableType;
+      dependentId?: string;
       nodeType?: string;
     },
     ncMeta = Noco.ncMeta,
-  ): Promise<DependencyTrackerType[]> {
+  ): Promise<HydratedDependencyTrackerType<T>[]> {
     const condition: any = {
       source_type: sourceType,
       source_id: sourceId,
@@ -182,6 +227,10 @@ export default class DependencyTracker implements DependencyTrackerType {
       condition.dependent_type = options.dependentType;
 
       if (options.dependentType === DependencyTableType.Workflow) {
+        if (options.dependentId) {
+          condition.dependent_id = options.dependentId;
+        }
+
         if (options.nodeType) {
           const slotId = dependencySlotMapper.getSlotId(
             options.dependentType,
@@ -233,7 +282,7 @@ export default class DependencyTracker implements DependencyTrackerType {
   ): Promise<{
     hasBreakingChanges: boolean;
     affected: Array<{ type: DependencyTableType; id: string }>;
-    dependents: DependencyTrackerType[];
+    dependents: HydratedDependencyTrackerType[];
   }> {
     const dependents = await this.getDependentsBySource(
       context,
@@ -270,7 +319,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     ncMeta = Noco.ncMeta,
   ): Promise<
     Array<
-      DependencyTrackerType & {
+      HydratedDependencyTrackerType & {
         depth: number;
         dependencyPath: string[];
       }
@@ -278,7 +327,10 @@ export default class DependencyTracker implements DependencyTrackerType {
   > {
     const visited = new Set<string>();
     const result: Array<
-      DependencyTrackerType & { depth: number; dependencyPath: string[] }
+      HydratedDependencyTrackerType & {
+        depth: number;
+        dependencyPath: string[];
+      }
     > = [];
 
     // FIXME:recursive CTE for optimization

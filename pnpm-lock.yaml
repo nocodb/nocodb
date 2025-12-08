@@ -910,6 +910,9 @@ importers:
       '@octokit/plugin-throttling':
         specifier: ^11.0.3
         version: 11.0.3(@octokit/core@5.2.0)
+      '@octokit/rest':
+        specifier: ^20.0.0
+        version: 20.1.2
       '@react-email/components':
         specifier: 0.0.41
         version: 0.0.41(react-dom@19.0.0(react@19.0.0))(react@19.0.0)

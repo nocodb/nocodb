@@ -347,6 +347,33 @@ body {
         fill: #1f1f1f !important;
       }
     }
+
+    .ant-empty-img-default {
+      .ant-empty-img-default-ellipse {
+        fill: #fff;
+        fill-opacity: 0.08;
+      }
+
+      .ant-empty-img-default-path-1 {
+        fill: #262626;
+      }
+
+      .ant-empty-img-default-path-3 {
+        fill: #595959;
+      }
+
+      .ant-empty-img-default-path-4 {
+        fill: #434343;
+      }
+
+      .ant-empty-img-default-path-5 {
+        fill: #595959;
+      }
+
+      .ant-empty-img-default-g {
+        fill: #434343;
+      }
+    }
   }
 
   // Dropdown Menu

@@ -414,7 +414,7 @@
   --business-plan-chart-fill-color: var(--color-pink-700, #972377);
 
   /* Enterprise Plan  */
-  --enterprise-plan-color: var(--color-orange-50, #0d1117);
+  --enterprise-plan-color: var(--color-orange-50, #fff5ef);
   --enterprise-plan-accent: var(--color-orange-200, #663b1f);
   --enterprise-plan-primary: var(--color-orange-700, #c86827);
   --enterprise-plan-bg-light: var(--color-orange-50, #fff5ef);

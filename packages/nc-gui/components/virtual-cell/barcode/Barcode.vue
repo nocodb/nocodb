@@ -106,6 +106,7 @@ onMounted(() => {
       :barcode-value="barcodeValue"
       :barcode-format="barcodeMeta.barcodeFormat"
       show-download
+      is-modal
     />
   </a-modal>
   <div

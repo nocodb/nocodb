@@ -172,7 +172,7 @@ const selectedBelowMinimumRoleUsers = computed(() => {
         :disabled-users="selectedBelowMinimumRoleUsers"
       >
       </PermissionsUserSelectorList>
-      <div v-if="hint" class="my-2 mx-1 text-xs text-gray-400">
+      <div v-if="hint" class="my-2 mx-1 text-xs text-nc-content-gray-disabled">
         {{ hint }}
       </div>
 

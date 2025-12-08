@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { type PermissionKey, PermissionMeta, PermissionRoleMap, PermissionRolePower } from 'nocodb-sdk'
-import tinycolor from 'tinycolor2'
 
 const props = defineProps<{
   selectedUsers: Set<string>
@@ -17,6 +16,8 @@ const emits = defineEmits(['update:selectedUsers', 'save'])
 const selectedUsers = useVModel(props, 'selectedUsers', emits)
 
 const { $e } = useNuxtApp()
+
+const { getColor } = useTheme()
 
 const { isTeamsEnabled } = storeToRefs(useWorkspace())
 
@@ -180,7 +181,7 @@ watch(selectedUsersList, () => {
     <NcListDropdown v-model:visible="isDropdownOpen" default-slot-wrapper-class="flex-1">
       <div class="flex items-center gap-1.5 w-full">
         <!-- Selected user tags -->
-        <div v-if="selectedUsers.size === 0" class="font-medium flex-1 text-gray-500 truncate">
+        <div v-if="selectedUsers.size === 0" class="font-medium flex-1 text-nc-content-gray-muted truncate">
           -no users selected- (Nobody {{ permissionDescription }})
         </div>
         <div v-else ref="containerRef" class="flex items-center flex-1 overflow-hidden">
@@ -189,16 +190,14 @@ watch(selectedUsersList, () => {
             v-for="user of visibleUsers"
             :key="user?.id"
             class="rounded-tag !pl-0"
-            color="'#ccc'"
+            color="var(--nc-bg-gray-medium)"
             :class="{
               'max-w-1/2': visibleUsers.length >= 1,
             }"
           >
             <span
               :style="{
-                color: tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                  ? '#fff'
-                  : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                color: getOppositeColorOfBackground(getColor('var(--nc-bg-gray-medium)')),
               }"
               class="flex items-stretch gap-2 text-small"
             >
@@ -262,7 +261,7 @@ watch(selectedUsersList, () => {
         </PermissionsUserSelectorList>
       </template>
     </NcListDropdown>
-    <div v-if="hint" class="absolute top-full mt-1 ml-1 text-xs text-gray-400">
+    <div v-if="hint" class="absolute top-full mt-1 ml-1 text-xs text-nc-content-gray-disabled">
       {{ hint }}
     </div>
   </div>

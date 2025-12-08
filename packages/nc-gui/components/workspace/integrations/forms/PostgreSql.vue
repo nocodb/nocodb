@@ -50,7 +50,10 @@ const onInputFocus = () => {
         >
           <GeneralIcon icon="info" class="text-primary" />
           Whitelist our ip: 52.15.226.51 to allow database access
-          <GeneralIcon icon="duplicate" class="text-nc-content-gray w-5 h-5 p-1 border-1 rounded-md border-nc-border-gray-medium" />
+          <GeneralIcon
+            icon="duplicate"
+            class="text-nc-content-gray w-5 h-5 p-1 border-1 rounded-md border-nc-border-gray-medium"
+          />
         </div>
       </template>
       <div>

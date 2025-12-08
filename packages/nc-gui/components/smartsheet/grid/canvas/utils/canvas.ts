@@ -42,6 +42,14 @@ export const aggregationCache: LRUCache<string, any> = new LRUCache({
   max: 1000,
 })
 
+export const selectOptionBgColorCache: LRUCache<string, string> = new LRUCache({
+  max: 1000,
+})
+
+export const selectOptionTextColorCache: LRUCache<string, string> = new LRUCache({
+  max: 1000,
+})
+
 /**
  * It is required to remove cache on row height change or even we can clear cache on unmount table component
  */

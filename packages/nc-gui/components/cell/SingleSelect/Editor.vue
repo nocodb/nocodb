@@ -15,7 +15,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMobileMode } = useGlobal()
 
-const { getColor } = useTheme()
+const { getColor, isDark } = useTheme()
 
 const column = inject(ColumnInj)!
 
@@ -63,7 +63,7 @@ const isNewOptionCreateEnabled = computed(
 )
 
 const options = computed(() => {
-  return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value)
+  return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value, isDark.value, getColor)
 })
 
 const optionsMap = computed(() => {
@@ -337,14 +337,14 @@ onMounted(() => {
       >
         <a-tag
           class="rounded-tag max-w-full"
-          :color="op.color"
+          :color="op.bgColor"
           :class="{
             '!h-[22px]': isGrid && !isExpandedForm,
           }"
         >
           <span
             :style="{
-              color: getSelectTypeOptionTextColor(op.color, getColor, true),
+              color: op.textColor,
             }"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >
@@ -367,7 +367,7 @@ onMounted(() => {
         </a-tag>
       </a-select-option>
       <a-select-option v-if="searchVal && isOptionMissing && isNewOptionCreateEnabled" :key="searchVal" :value="searchVal">
-        <div class="flex gap-2 text-nc-content-gray-muted items-center h-full">
+        <div class="flex gap-2 text-nc-content-gray-muted dark:text-nc-content-gray-subtle2 items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
             {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>

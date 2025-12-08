@@ -18,7 +18,7 @@ watch(
   { immediate: true },
 )
 
-const { isDark, getColor } = useTheme()
+const { getColor } = useTheme()
 
 const draggable = computed(() => !props.disabled)
 const throttleDrag = 1

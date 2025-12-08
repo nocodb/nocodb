@@ -117,6 +117,24 @@ export const getSelectTypeOptionTextColor = (
         .toHex8String()
 }
 
+export const getSelectTypeFieldOptionBgColor = ({ color, isDark }: { color?: string; isDark: boolean }) => {
+  return !isDark ? color : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: -6 })
+}
+
+export const getSelectTypeFieldOptionTextColor = ({
+  color,
+  isDark,
+  getColor,
+}: {
+  color?: string
+  isDark: boolean
+  getColor: GetColorType
+}) => {
+  return !isDark
+    ? getSelectTypeOptionTextColor(color, getColor, true)
+    : getOppositeColorOfBackground(getSelectTypeFieldOptionBgColor({ color, isDark }), color)
+}
+
 export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmode'] => {
   if ([UITypes.Number, UITypes.Year, UITypes.Rating].includes(uidt)) {
     return 'numeric'

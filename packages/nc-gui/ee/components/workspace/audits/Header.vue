@@ -290,7 +290,9 @@ const showWorkspaceSelector = ref(false)
             </template>
             <template #listHeader>
               <div class="px-2" @click="handleUpdateWorkspaceQuery()">
-                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer">
+                <div
+                  class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer"
+                >
                   <span class="flex-1 text-nc-content-gray"> All Workspaces </span>
                   <GeneralIcon v-if="!auditLogsQuery.workspaceId" icon="check" class="flex-none text-primary w-4 h-4" />
                 </div>
@@ -358,7 +360,9 @@ const showWorkspaceSelector = ref(false)
             </template>
             <template #listHeader>
               <div class="px-2" @click="handleUpdateUserQuery()">
-                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer">
+                <div
+                  class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer"
+                >
                   <span class="flex-1 text-nc-content-gray"> All Users </span>
                   <GeneralIcon v-if="!auditLogsQuery.user" icon="check" class="flex-none text-primary w-4 h-4" />
                 </div>
@@ -383,7 +387,11 @@ const showWorkspaceSelector = ref(false)
           <div class="!w-[106px] flex items-center justify-between gap-2">
             <div class="max-w-full truncate text-sm !leading-5 flex items-center gap-1">
               {{ $t('objects.project') }}:
-              <NcTooltip class="truncate !leading-5" :class="{ 'text-nc-content-brand': auditLogsQuery.baseId }" show-on-truncate-only>
+              <NcTooltip
+                class="truncate !leading-5"
+                :class="{ 'text-nc-content-brand': auditLogsQuery.baseId }"
+                show-on-truncate-only
+              >
                 <template #title>
                   <span class="capitalize">
                     {{ selectedBase }}
@@ -428,7 +436,9 @@ const showWorkspaceSelector = ref(false)
                 }"
                 @click="handleUpdateBaseQuery()"
               >
-                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer">
+                <div
+                  class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer"
+                >
                   <span class="flex-1 text-nc-content-gray"> All Bases </span>
                   <GeneralIcon v-if="!auditLogsQuery.baseId" icon="check" class="flex-none text-primary w-4 h-4" />
                 </div>
@@ -488,14 +498,20 @@ const showWorkspaceSelector = ref(false)
             @update:value="handleUpdateEventQuery($event)"
           >
             <template #listItemContent="{ option }">
-              <NcTooltip class="flex-1 max-w-[calc(100%_-_24px)] truncate text-nc-content-gray" placement="top" show-on-truncate-only>
+              <NcTooltip
+                class="flex-1 max-w-[calc(100%_-_24px)] truncate text-nc-content-gray"
+                placement="top"
+                show-on-truncate-only
+              >
                 <template #title> {{ $t(option.label) }}</template>
                 {{ $t(option.label) }}
               </NcTooltip>
             </template>
             <template #listHeader>
               <div class="px-2" @click="handleUpdateEventQuery()">
-                <div class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer">
+                <div
+                  class="p-2 rounded-md w-full flex items-center justify-between gap-3 hover:bg-nc-bg-gray-light cursor-pointer"
+                >
                   <span class="flex-1 text-nc-content-gray"> All Events </span>
                   <GeneralIcon
                     v-if="!ncIsArray(auditLogsQuery.type) || !auditLogsQuery.type?.length"

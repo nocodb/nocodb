@@ -1,3 +1,5 @@
+@use './ant-design-components/ant-radio.scss' as *;
+
 /* Disable ALL transitions & animations while theme switching */
 html.theme-transition-off *,
 html.theme-transition-off *::before,
@@ -84,6 +86,12 @@ body {
 
 .ant-select-clear {
   @apply rounded-full flex children:flex-none;
+  color: rgba(var(--rgb-base), 0.25);
+  background: var(--nc-bg-default);
+}
+
+.ant-select-clear:hover {
+  color: rgba(var(--rgb-base), 0.45);
 }
 
 .ant-select:not(.ant-select-customize-input) .ant-select-selector {

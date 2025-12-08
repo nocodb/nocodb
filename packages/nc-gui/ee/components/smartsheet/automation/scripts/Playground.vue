@@ -261,7 +261,10 @@ const resolve = (item: ScriptPlaygroundItem, data: any) => {
         <template v-else-if="item.type === 'text'">
           <div
             class="leading-5 whitespace-pre-wrap"
-            :class="{ 'text-nc-content-red-medium': item.style === 'error', 'text-nc-content-orange-medium': item.style === 'warning' }"
+            :class="{
+              'text-nc-content-red-medium': item.style === 'error',
+              'text-nc-content-orange-medium': item.style === 'warning',
+            }"
             data-testid="nc-playground-text-output"
           >
             {{ item.content }}

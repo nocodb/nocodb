@@ -8,4 +8,8 @@ export const manifest: IntegrationManifest = {
   author: 'NocoDB',
   website: 'https://www.chatwoot.com',
   order: 10,
+  iconStyle: {
+    width: '32px',
+    height: '32px',
+  },
 };

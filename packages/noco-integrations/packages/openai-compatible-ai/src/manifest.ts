@@ -7,4 +7,8 @@ export const manifest = createManifest(IntegrationType.Ai, {
   version: '0.1.0',
   author: 'NocoDB',
   order: 8,
+  iconStyle: {
+    width: '32px',
+    height: '32px',
+  },
 });

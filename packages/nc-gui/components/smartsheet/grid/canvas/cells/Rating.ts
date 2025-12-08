@@ -81,8 +81,6 @@ function getIconsData({
   }
 }
 
-const inactiveColor = '#d9d9d9'
-
 export const RatingCellRenderer: CellRenderer = {
   render(ctx: CanvasRenderingContext2D, props: CellRendererOptions) {
     const {
@@ -101,6 +99,8 @@ export const RatingCellRenderer: CellRenderer = {
       cellRenderStore,
       selected,
       isRowHovered,
+      getColor,
+      isDark,
     } = props
 
     const {
@@ -108,11 +108,13 @@ export const RatingCellRenderer: CellRenderer = {
       tagPaddingX = 6,
       tagHeight = 20,
       tagRadius = 6,
-      tagBgColor = '#f4f4f0',
+      tagBgColor = getColor('#f4f4f0', themeV4Colors.base.white),
       tagSpacing = 4,
       tagBorderColor,
       tagBorderWidth,
     } = tag
+
+    const inactiveColor = getColor('#d9d9d9', 'var(--nc-content-gray-muted)')
 
     const iconsData = getIconsData({ height, width, x, y, column, padding, selected, isRowHovered, value, readonly })!
     if (!iconsData) return
@@ -188,14 +190,21 @@ export const RatingCellRenderer: CellRenderer = {
       let iconColor
 
       if (isHovered) {
-        iconColor = ratingMeta.color
+        iconColor = isDark
+          ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), ratingMeta.color, ['#4a5268', '#f4f4f5'])
+          : ratingMeta.color
         if (!readonly) {
           setCursor('pointer')
         }
       } else {
         iconColor = inactiveColor
       }
-      if (hoveredIconIndex === -1) iconColor = isActive ? ratingMeta.color : inactiveColor
+      if (hoveredIconIndex === -1)
+        iconColor = isActive
+          ? isDark
+            ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), ratingMeta.color, ['#4a5268', '#f4f4f5'])
+            : ratingMeta.color
+          : inactiveColor
 
       if (row < maxRows) {
         const x = startX + col * iconWidthWithSpacing
@@ -216,7 +225,7 @@ export const RatingCellRenderer: CellRenderer = {
       const lastColInRow = (iconsToShow - 1) % iconsPerRow
 
       ctx.font = '500 13px Inter'
-      ctx.fillStyle = '#4a5268'
+      ctx.fillStyle = getColor(themeV4Colors.gray['600'])
       ctx.textBaseline = 'middle'
       ctx.fillText(
         '...',

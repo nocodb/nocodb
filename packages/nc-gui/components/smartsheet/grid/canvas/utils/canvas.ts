@@ -1222,13 +1222,25 @@ export const renderTagLabel = (
   ctx: CanvasRenderingContext2D,
   props: CellRendererOptions & { text: string; renderAsMarkdown?: boolean },
 ) => {
-  const { x, y, height, width, padding, textColor = '#4a5268', mousePosition, spriteLoader, text, renderAsMarkdown } = props
+  const {
+    x,
+    y,
+    height,
+    width,
+    padding,
+    textColor = props.getColor ? props.getColor(themeV4Colors.gray['600']) : '#4a5268',
+    mousePosition,
+    spriteLoader,
+    text,
+    renderAsMarkdown,
+    getColor = (color) => color,
+  } = props
   const {
     tagPaddingX = 8,
     tagPaddingY = 0,
     tagHeight = 20,
     tagRadius = 6,
-    tagBgColor = '#f4f4f0',
+    tagBgColor = getColor('#f4f4f0', themeV4Colors.base.white),
     tagSpacing = 4,
     tagFontFamily = '500 13px Inter',
     tagBorderColor,

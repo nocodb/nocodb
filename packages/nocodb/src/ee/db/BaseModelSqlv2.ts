@@ -3530,7 +3530,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       groupColumnId: string;
       ignoreViewFilterAndSort?: boolean;
       options?: (string | number | null | boolean)[];
-      useOptimised?: boolean;
     } & Partial<XcFilter>,
   ): Promise<
     {
@@ -3539,7 +3538,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }[]
   > {
     // Use optimized version for PostgreSQL, fallback to base implementation for other databases
-    if (!this.isPg || !args.useOptimised) {
+    if (!this.isPg) {
       return super.groupedList(args);
     }
 

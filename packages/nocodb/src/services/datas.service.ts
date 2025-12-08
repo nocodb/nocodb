@@ -519,7 +519,6 @@ export class DatasService {
         await baseModel.groupedList({
           ...listArgs,
           groupColumnId: param.columnId,
-          useOptimised: param.query?.opt === 'true',
         }),
         baseModel.groupedListCount({
           ...listArgs,

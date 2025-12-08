@@ -2032,7 +2032,6 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 :style="{
                   width: stack.collapsed ? '44px' : `${STACK_WIDTH}px`,
                   flexShrink: 0,
-                  pointerEvents: 'none',
                   height: '100%',
                   minWidth: stack.collapsed ? '44px' : `${STACK_WIDTH}px`,
                   maxWidth: stack.collapsed ? '44px' : `${STACK_WIDTH}px`,

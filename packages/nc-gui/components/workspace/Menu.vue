@@ -16,7 +16,6 @@ const { appInfo } = useGlobal()
               id: 'nc',
               meta: {},
             }"
-            icon-bg-color="#F4F4F5"
             show-nocodb-icon
             class="flex-none border-1 border-nc-border-gray-medium"
             size="mini-sidebar"

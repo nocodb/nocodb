@@ -159,7 +159,8 @@ watch(
                   closable
                   type="success"
                   show-icon
-                  class="!rounded-xl bg-nc-bg-green-light"
+                  class="!rounded-xl"
+                  background
                   :message="$t('msg.success.paymentSuccessful')"
                   :description="$t('msg.success.paymentSuccessfulSubtitle')"
                   @close="onClosePaymentBanner"
@@ -181,7 +182,8 @@ watch(
                   closable
                   type="error"
                   show-icon
-                  class="!rounded-xl bg-nc-bg-red-light"
+                  class="!rounded-xl"
+                  background
                   :message="$t('msg.error.paymentFailed')"
                   :description="$t('msg.error.paymentFailedSubtitle')"
                   @close="onClosePaymentBanner"
@@ -193,7 +195,8 @@ watch(
                 closable
                 type="success"
                 show-icon
-                class="!rounded-xl bg-nc-bg-green-light"
+                class="!rounded-xl"
+                background
                 :message="$t('msg.success.upgradeSuccessful')"
                 :description="$t('msg.success.upgradeSuccessfulSubtitle')"
                 @close="onClosePaymentBanner"

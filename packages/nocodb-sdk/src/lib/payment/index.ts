@@ -121,7 +121,7 @@ export const PlanMeta = {
   },
   [PlanTitles.PLUS]: {
     title: PlanTitles.PLUS,
-    color: 'var(--plus-plan-color, #062e4b)',
+    color: 'var(--plus-plan-color, #EDF9FF)',
     accent: 'var(--plus-plan-accent, #AFE5FF)',
     primary: 'var(--plus-plan-primary, #207399)',
     bgLight: 'var(--plus-plan-bg-light, #EDF9FF)',
@@ -141,7 +141,7 @@ export const PlanMeta = {
   },
   [PlanTitles.ENTERPRISE]: {
     title: PlanTitles.ENTERPRISE,
-    color: 'var(--enterprise-plan-color, #0D1117)',
+    color: 'var(--enterprise-plan-color, #FFF5EF)',
     accent: 'var(--enterprise-plan-accent, #663B1F)',
     primary: 'var(--enterprise-plan-primary, #C86827)',
     bgLight: 'var(--enterprise-plan-bg-light, #FFF5EF)',

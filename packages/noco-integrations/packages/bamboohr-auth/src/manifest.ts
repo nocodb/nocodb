@@ -9,4 +9,8 @@ export const manifest: IntegrationManifest = {
   author: 'NocoDB',
   website: 'https://www.bamboohr.com',
   order: 5,
+  iconStyle: {
+    width: '32px',
+    height: '32px',
+  },
 };

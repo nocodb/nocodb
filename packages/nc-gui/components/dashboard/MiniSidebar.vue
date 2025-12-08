@@ -5,7 +5,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { appInfo, navigateToProject, isMobileMode } = useGlobal()
+const { navigateToProject, isMobileMode } = useGlobal()
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -347,10 +347,10 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
 
     &.nc-small-shadow .nc-workspace-avatar {
-      box-shadow: 0px 5px 0px -2px rgba(0, 0, 0, 0.4);
+      box-shadow: 0px 5px 0px -2px rgba(var(--rgb-base), 0.4);
     }
     &.nc-medium-shadow .nc-workspace-avatar {
-      box-shadow: 0px 4px 0px -2px rgba(0, 0, 0, 0.4), 0px 7px 0px -3px rgba(0, 0, 0, 0.2);
+      box-shadow: 0px 4px 0px -2px rgba(var(--rgb-base), 0.4), 0px 7px 0px -3px rgba(var(--rgb-base), 0.2);
     }
   }
 

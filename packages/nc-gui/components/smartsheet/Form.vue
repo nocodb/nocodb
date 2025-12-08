@@ -1067,7 +1067,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                     <NcAlert
                       type="warning"
                       show-icon
-                      class="mt-6 bg-nc-bg-orange-light max-w-[max(33%,688px)] mx-auto"
+                      background
+                      class="mt-6 max-w-[max(33%,688px)] mx-auto"
                       :message="$t('objects.permissions.formCannotAcceptSubmissions')"
                       :description="$t('objects.permissions.formCannotAcceptSubmissionsDescription')"
                     />
@@ -1154,7 +1155,8 @@ const { message: templatedMessage } = useTemplatedMessage(
                     v-if="blockAddNewRecord"
                     type="warning"
                     show-icon
-                    class="mt-6 bg-nc-bg-orange-light max-w-[max(33%,688px)] mx-auto"
+                    background
+                    class="mt-6 max-w-[max(33%,688px)] mx-auto"
                     :message="$t('upgrade.updateToAddRecordFormView')"
                     :description="
                       $t('upgrade.updateToAddRecordFormViewSubtitle', {

@@ -442,6 +442,7 @@ export const themeV4Colors = {
   },
   gray: {
     10: '#FCFCFC',
+    20: '--rgb-color-gray-20',
     50: '--rgb-color-gray-50',
     100: '--rgb-color-gray-100',
     200: '--rgb-color-gray-200',
@@ -454,6 +455,7 @@ export const themeV4Colors = {
     900: '--rgb-color-gray-900',
   },
   red: {
+    20: '--rgb-color-red-20',
     50: '--rgb-color-red-50',
     100: '--rgb-color-red-100',
     200: '--rgb-color-red-200',
@@ -466,6 +468,7 @@ export const themeV4Colors = {
     900: '--rgb-color-red-900',
   },
   pink: {
+    20: '--rgb-color-pink-20',
     50: '--rgb-color-pink-50',
     100: '--rgb-color-pink-100',
     200: '--rgb-color-pink-200',
@@ -478,6 +481,7 @@ export const themeV4Colors = {
     900: '--rgb-color-pink-900',
   },
   orange: {
+    20: '--rgb-color-orange-20',
     50: '--rgb-color-orange-50',
     100: '--rgb-color-orange-100',
     200: '--rgb-color-orange-200',
@@ -490,6 +494,7 @@ export const themeV4Colors = {
     900: '--rgb-color-orange-900',
   },
   purple: {
+    20: '--rgb-color-purple-20',
     50: '--rgb-color-purple-50',
     100: '--rgb-color-purple-100',
     200: '--rgb-color-purple-200',
@@ -502,6 +507,7 @@ export const themeV4Colors = {
     900: '--rgb-color-purple-900',
   },
   blue: {
+    20: '--rgb-color-blue-20',
     50: '--rgb-color-blue-50',
     100: '--rgb-color-blue-100',
     200: '--rgb-color-blue-200',
@@ -514,6 +520,7 @@ export const themeV4Colors = {
     900: '--rgb-color-blue-900',
   },
   yellow: {
+    20: '--rgb-color-yellow-20',
     50: '--rgb-color-yellow-50',
     100: '--rgb-color-yellow-100',
     200: '--rgb-color-yellow-200',
@@ -526,6 +533,7 @@ export const themeV4Colors = {
     900: '--rgb-color-yellow-900',
   },
   maroon: {
+    20: '--rgb-color-maroon-20',
     50: '--rgb-color-maroon-50',
     100: '--rgb-color-maroon-100',
     200: '--rgb-color-maroon-200',
@@ -538,6 +546,7 @@ export const themeV4Colors = {
     900: '--rgb-color-maroon-900',
   },
   green: {
+    20: '--rgb-color-green-20',
     50: '--rgb-color-green-50',
     100: '--rgb-color-green-100',
     200: '--rgb-color-green-200',
@@ -854,7 +863,7 @@ export const getAdaptiveTint = (
 ) => {
   const { isDarkMode, shade = 0, tint = 0 } = opts || {}
 
-  let { saturationMod = 0, brightnessMod = 0 } = opts || {}
+  const { saturationMod = 0, brightnessMod = 0 } = opts || {}
 
   const base = tinycolor(color)
   const hsv = base.toHsv()
@@ -873,27 +882,22 @@ export const getAdaptiveTint = (
     s = safeS
     v = safeV
   } else {
-    saturationMod = -saturationMod
-    brightnessMod = -brightnessMod
-
-    // DARK MODE — keep your original dark tuning
-    const darkS = isGray ? 0 : Math.min(100, hsv.s * 0.7 + saturationMod)
-    const darkV = Math.max(15, Math.min(60, hsv.v * 0.6 + brightnessMod))
-    s = darkS
-    v = darkV
-
     //
-    // --- STEP 2: Controlled hover / border adjustments ---
+    // 🌙 DARK MODE — softer, not too dark
     //
-    if (shade !== 0) {
-      // shade = *darken* → reduce brightness
-      v = Math.max(0, v - shade)
-    }
 
-    if (tint !== 0) {
-      // tint = *lighten* → increase brightness
-      v = Math.min(100, v + tint)
-    }
+    // Reduce saturation (avoid neon). Target ~40–55%
+    s = isGray ? 0 : hsv.s * 0.45
+
+    // Deep darkness curve — compress v to ~0.08–0.14
+    v = hsv.v * 0.25 + 0.06 + brightnessMod * 0.005
+
+    // Hard clamp for reliable ultra-dark look
+    v = Math.max(0.08, Math.min(0.14, v))
+
+    // gentle shade/tint
+    if (shade) v = Math.max(0.06, v - shade * 0.004)
+    if (tint) v = Math.min(0.16, v + tint * 0.004)
   }
 
   return tinycolor({ h: hsv.h, s, v }).toHexString()

@@ -3291,6 +3291,7 @@ export function useCanvasRender({
             tagSpacing: 0,
             tagFontFamily: '700 13px Inter',
           },
+          getColor,
         } as any)
 
         ctx.restore()

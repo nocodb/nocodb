@@ -101,7 +101,7 @@ onMounted(async () => {
           {{ $t('labels.members') }}
         </div>
         <span class="text-nc-content-gray-subtle2 mt-2"> 23 new members have been added to the organisation since your last invoice. </span>
-        <a-divider class="text-gray-200" />
+        <a-divider class="text-nc-border-gray-medium" />
 
         <div class="flex justify-end">
           <NcButton size="small" type="secondary" @click="navigateTo(`/admin/${$route.params.orgId}/members`)">

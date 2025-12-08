@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<TeamIconProps>(), {
   user: () => ({}),
   size: 'medium',
   disabled: false,
-  iconBgColor: '#F4F4F5',
+  iconBgColor: 'var(--nc-bg-gray-light)',
   showPlaceholderIcon: false,
   isDeleted: false,
   initialsLength: 2,
@@ -29,6 +29,8 @@ const props = withDefaults(defineProps<TeamIconProps>(), {
 })
 
 const { size } = toRefs(props)
+
+const { getColor } = useTheme()
 
 const team = computed(() => {
   return {
@@ -140,8 +142,8 @@ const teamInitials = computed(() => {
       class="flex items-center justify-center align-middle"
       :class="{
         'text-inherit': size === 'auto',
-        'text-white': isColorDark(backgroundColor),
-        'text-black opacity-80': !isColorDark(backgroundColor),
+        'text-white': isColorDark(getColor(backgroundColor)),
+        'text-black opacity-80': !isColorDark(getColor(backgroundColor)),
         'text-tiny': size === 'small',
         'text-base': size === 'medium',
         'text-lg': size === 'base',
@@ -174,8 +176,8 @@ const teamInitials = computed(() => {
       class="flex-none"
       :class="{
         'w-[75%] h-[75%]': size === 'auto',
-        'text-white': isColorDark(backgroundColor),
-        'text-black opacity-80': !isColorDark(backgroundColor),
+        'text-white': isColorDark(getColor(backgroundColor)),
+        'text-black opacity-80': !isColorDark(getColor(backgroundColor)),
         'w-3 h-3': size === 'small',
         'w-4 h-4': size === 'medium',
         'w-5 h-5': size === 'base',
@@ -191,8 +193,8 @@ const teamInitials = computed(() => {
         '!text-md': size === 'base',
         '!text-3xl': size === 'large',
         '!text-4xl': size === 'xlarge',
-        'text-white': isColorDark(backgroundColor),
-        'text-black': !isColorDark(backgroundColor),
+        'text-white': isColorDark(getColor(backgroundColor)),
+        'text-black': !isColorDark(getColor(backgroundColor)),
       }"
     >
       {{ teamInitials }}

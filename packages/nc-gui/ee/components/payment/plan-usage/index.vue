@@ -329,10 +329,11 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
         message="Plan Limit Reached"
         description="Please upgrade to continue using the service without interruptions."
         align="center"
-        class="nc-plan-usage-plan-limit-reached-banner bg-nc-bg-orange-light !rounded-xl"
+        class="nc-plan-usage-plan-limit-reached-banner !rounded-xl"
         :class="{
           'nc-loyalty-workspace': isLoyaltyDiscountAvailable,
         }"
+        background
       >
         <template #icon>
           <GeneralIcon icon="alertTriangleSolid" class="flex-none h-6 w-6 text-nc-content-orange-medium"></GeneralIcon>

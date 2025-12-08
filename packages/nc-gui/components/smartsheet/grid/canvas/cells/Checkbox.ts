@@ -17,6 +17,8 @@ export const CheckboxCellRenderer: CellRenderer = {
       isUnderLookup,
       selected,
       isRowHovered,
+      getColor,
+      isDark,
     },
   ) => {
     const isCellHovered = isBoxHovered({ x, y, width, height }, mousePosition)
@@ -28,7 +30,7 @@ export const CheckboxCellRenderer: CellRenderer = {
       tagPaddingX = 6,
       tagHeight = 20,
       tagRadius = 6,
-      tagBgColor = '#f4f4f0',
+      tagBgColor = getColor('#f4f4f0', themeV4Colors.base.white),
       tagSpacing = 4,
       tagBorderColor,
       tagBorderWidth,
@@ -66,7 +68,9 @@ export const CheckboxCellRenderer: CellRenderer = {
           size: 14,
           x: x + tagWidth / 2 - 4,
           y: initialY + 3,
-          color: columnMeta.color,
+          color: isDark
+            ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), columnMeta.color, ['#4a5268', '#d5dce8'])
+            : columnMeta.color,
         })
 
       return {
@@ -85,7 +89,9 @@ export const CheckboxCellRenderer: CellRenderer = {
         size: 14,
         x: x + width / 2 - 7,
         y: y + height / 2 - 7,
-        color: columnMeta.color,
+        color: isDark
+          ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), columnMeta.color, ['#4a5268', '#d5dce8'])
+          : columnMeta.color,
         alpha: checked ? 1 : isHover ? 0.7 : 0.3,
       })
     }

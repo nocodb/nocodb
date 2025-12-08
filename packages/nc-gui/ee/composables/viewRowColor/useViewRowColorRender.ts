@@ -39,7 +39,7 @@ export function useViewRowColorRender() {
       const rawColor: string | null | undefined = selectRowColorInfo.options.find((k) => k.title === value)?.color
       const color = rawColor ? getAdaptiveTint(rawColor, { isDarkMode: isDark.value }) : null
       const hoverColor = rawColor
-        ? getAdaptiveTint(rawColor, { brightnessMod: -3, isDarkMode: isDark.value, shade: isDark.value ? -3 : 0 })
+        ? getAdaptiveTint(rawColor, { brightnessMod: -3, isDarkMode: isDark.value, shade: isDark.value ? -6 : 0 })
         : null
       const borderColor = rawColor
         ? getAdaptiveTint(rawColor, { brightnessMod: -10, isDarkMode: isDark.value, shade: isDark.value ? -6 : 0 })
@@ -84,7 +84,7 @@ export function useViewRowColorRender() {
           const hoverColor = getAdaptiveTint(eachCondition.color, {
             brightnessMod: -3,
             isDarkMode: isDark.value,
-            shade: isDark.value ? -3 : 0,
+            shade: isDark.value ? -6 : 0,
           })
 
           const borderColor = getAdaptiveTint(eachCondition.color, {

@@ -63,7 +63,7 @@ export const MultiSelectCellRenderer: CellRenderer = {
       }
 
       const opColor = optionsMap[text]?.color ?? defaultColor
-      const opBgColor = !isDark ? opColor : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -6 })
+      const opBgColor = !isDark ? opColor : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -10 })
 
       renderTag(ctx, {
         x,

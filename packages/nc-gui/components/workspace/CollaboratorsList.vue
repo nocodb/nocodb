@@ -757,7 +757,7 @@ watch(inviteDlg, (newVal) => {
             <NcAlert
               type="info"
               :show-icon="false"
-              class="!p-3 bg-nc-bg-yellow-light !border-nc-fill-yellow-light"
+              class="!p-3 bg-nc-bg-yellow-light dark:bg-nc-yellow-20 !border-nc-fill-yellow-light"
               description-class="!line-clamp-none"
             >
               <template #description>

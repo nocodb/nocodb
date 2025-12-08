@@ -346,7 +346,7 @@ const supportedDocs = [
     }
 
     &.active-menu {
-      @apply bg-nc-bg-brand;
+      @apply bg-nc-bg-brand-inverted;
       .nc-menu-item-inner {
         @apply text-nc-content-brand-disabled font-semibold;
       }

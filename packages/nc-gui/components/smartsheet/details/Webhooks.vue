@@ -295,7 +295,7 @@ const getHookTypeText = (hook: HookType) => {
           type="warning"
           :message="$t('msg.webhookV2DeprecationAlertTitle')"
           :description="$t('msg.webhookV2DeprecationAlertDesc')"
-          class="bg-nc-bg-orange-light"
+          background
         >
           <template #action>
             <NcButton

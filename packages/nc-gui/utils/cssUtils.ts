@@ -104,3 +104,7 @@ export const extensionClassNames = {
   pageDesignerRemovable:
     'absolute w-5 h-5 px-2 bg-nc-bg-default rounded-md hover:bg-nc-bg-gray-light border-1 cursor-pointer border-nc-border-gray-medium justify-center items-center gap-2 inline-flex',
 }
+
+export const erdNodeClassNames = {
+  node: 'rounded-lg border-1 border-nc-border-gray-medium shadow-lg',
+}

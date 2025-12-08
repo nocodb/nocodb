@@ -4,6 +4,8 @@ import { AmplifyButton, Authenticator, FederatedSignIn, useAuthenticator } from 
 import isEmail from 'validator/es/lib/isEmail'
 import { Auth } from 'aws-amplify'
 
+const { isDark } = useTheme()
+
 const initialState = isFirstTimeUser() ? 'signUp' : 'signIn'
 const { lastUsedAuthMethod } = useGlobal()
 const facade = useAuthenticator() as any
@@ -137,7 +139,8 @@ const onForgotPasswordClicked = (): void => {
     >
       <template #header>
         <div style="padding: var(--amplify-space-large); text-align: center">
-          <img class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />
+          <img v-if="isDark" class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/text.png" />
+          <img v-else class="amplify-image" alt="NocoDB Logo" src="~assets/img/brand/nocodb.png" />
         </div>
       </template>
       <template #sign-in-footer>

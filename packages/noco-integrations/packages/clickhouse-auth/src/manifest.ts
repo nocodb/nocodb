@@ -6,4 +6,8 @@ export const manifest: IntegrationManifest = {
   version: '0.1.0',
   description: 'Connect to Clickhouse database',
   author: 'NocoDB',
+  iconStyle: {
+    width: '32px',
+    height: '32px',
+  },
 };

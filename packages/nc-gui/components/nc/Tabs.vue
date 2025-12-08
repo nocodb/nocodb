@@ -60,10 +60,10 @@ const props = defineProps<{
 
   &.theme-ai {
     .ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
-      @apply text-nc-purple-600;
+      @apply text-nc-purple-600 dark:text-nc-content-purple-medium;
     }
     .ant-tabs-tab.ant-tabs-tab-active:hover .ant-tabs-tab-btn {
-      @apply text-nc-content-purple-dark;
+      @apply text-nc-content-purple-dark dark:text-nc-content-purple-medium;
     }
     .ant-tabs-ink-bar {
       @apply bg-nc-fill-purple-medium;

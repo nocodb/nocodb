@@ -1414,7 +1414,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                       <GeneralIcon icon="info" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
                     </NcTooltip>
                   </div>
-              </NcSwitch>
+                </NcSwitch>
               </NcTooltip>
             </div>
           </div>

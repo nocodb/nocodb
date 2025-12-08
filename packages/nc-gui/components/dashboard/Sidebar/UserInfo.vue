@@ -365,8 +365,12 @@ const copyEmail = () => {
 
 <style lang="scss">
 .nc-lang-menu-overlay {
+  .ant-popover-arrow-content {
+    @apply dark:(border-1 border-nc-border-gray-medium);
+  }
+
   .ant-popover-inner {
-    @apply !rounded-lg;
+    @apply dark:(border-1 border-nc-border-gray-medium) !rounded-lg;
   }
 
   .ant-popover-inner-content {

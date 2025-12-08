@@ -44,12 +44,12 @@ const onChange = (e: Event) => {
     .ant-checkbox-input:focus + .ant-checkbox-inner,
     &.ant-checkbox-wrapper:hover .ant-checkbox-inner,
     .ant-checkbox:hover .ant-checkbox-inner {
-      @apply border-nc-border-purple;
+      @apply border-purple-400;
     }
 
     & > .ant-checkbox-checked {
       &:not(.ant-checkbox-disabled) > .ant-checkbox-inner {
-        @apply bg-purple-500 border-nc-border-purple;
+        @apply bg-purple-500 border-purple-500;
       }
     }
   }

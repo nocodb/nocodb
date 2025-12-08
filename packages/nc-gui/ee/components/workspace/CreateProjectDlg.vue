@@ -359,6 +359,7 @@ if (props.isCreateNewActionMenu) {
 
 <style lang="scss">
 .nc-modal-ai-base-create .ant-modal-content {
+  @apply dark:(border-nc-border-purple-medium);
   .nc-modal {
     @apply !p-0;
 

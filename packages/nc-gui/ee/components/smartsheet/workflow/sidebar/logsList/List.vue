@@ -28,11 +28,11 @@ const { isLoading: isLoadingMore } = useInfiniteScroll(
 
 const getStatusIcon = (status: string) => {
   switch (status) {
-    case 'success':
+    case 'completed':
       return 'ncCheckCircle'
     case 'error':
       return 'ncX'
-    case 'in_progress':
+    case 'running':
       return 'refresh'
     case 'skipped':
       return 'ncMinus'
@@ -56,10 +56,10 @@ const getStatusIcon = (status: string) => {
       >
         <div
           :class="{
-            'bg-nc-green-600 dark:bg-nc-green-500': execution.status === 'success',
+            'bg-nc-green-600 dark:bg-nc-green-500': execution.status === 'completed',
             'bg-nc-red-500 dark:bg-nc-red-500': execution.status === 'error',
-            'bg-nc-brand-500 dark:bg-nc-brand-500': execution.status === 'in_progress',
-            'bg-nc-gray-400 dark:bg-nc-gray-500': execution.status === 'skipped' || execution.status === 'pending',
+            'bg-nc-brand-500 dark:bg-nc-brand-500': execution.status === 'running',
+            'bg-nc-gray-400 dark:bg-nc-gray-500': execution.status === 'skipped',
           }"
           class="w-5 h-5 rounded-full flex items-center justify-center"
         >

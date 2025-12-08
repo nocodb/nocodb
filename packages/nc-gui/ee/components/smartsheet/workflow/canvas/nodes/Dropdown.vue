@@ -15,7 +15,7 @@ const emit = defineEmits<{
   select: [option: WorkflowNodeDefinition]
 }>()
 
-const { getNodeTypesByCategory } = useWorkflowOrThrow()
+const { nodeTypes } = useWorkflowOrThrow()
 
 const showDropdown = ref(false)
 
@@ -28,7 +28,7 @@ const selectNodeOption = (option: WorkflowNodeDefinition) => {
 
 const nodeByCategory = computed(() => {
   return props.category.reduce((acc, cate) => {
-    const nodes = getNodeTypesByCategory(cate)
+    const nodes = nodeTypes.value.filter((node) => node.category === cate && !node.hidden)
     if (nodes.length > 0) {
       acc[cate] = nodes
     }

@@ -7,11 +7,70 @@ const {
   updateNode,
   getNodeMetaById,
   selectedNode,
+  nodes,
+  edges,
   fetchNodeIntegrationOptions,
   clearChildNodesTestResults,
-  getAvailableVariables,
-  getAvailableVariablesFlat,
 } = useWorkflowOrThrow()
+
+/**
+ * Get available variables from all upstream nodes for a given node
+ * These are the output variables from nodes that have been tested and come before this node
+ * @param nodeId - The node ID to get available variables for
+ * @returns Array of variable definitions with node context
+ */
+const getAvailableVariables = (nodeId: string) => {
+  const parentNodeIds = findAllParentNodes(nodeId, edges.value)
+  const variables: Array<{
+    nodeId: string
+    nodeTitle: string
+    nodeIcon?: string
+    variables: any[]
+  }> = []
+
+  for (const parentId of parentNodeIds) {
+    const parentNode = nodes.value.find((n) => n.id === parentId)
+    if (!parentNode) continue
+
+    // Skip nodes without test results or output variables
+    const testResult = parentNode.data?.testResult
+    if (!testResult?.outputVariables || testResult.outputVariables.length === 0) continue
+
+    // Get node definition to access the icon
+    const nodeMeta = getNodeMetaById(parentNode.type)
+    const nodeIcon = nodeMeta?.icon
+
+    const nodePrefix = `$('${parentNode.data?.title || parentId}')`
+
+    // Add the node's variables with node context, recursively prefixing all keys
+    variables.push({
+      nodeId: parentId,
+      nodeTitle: parentNode.data?.title || parentId,
+      nodeIcon,
+      variables: testResult.outputVariables.map((v: any) => ({
+        ...prefixVariableKeysRecursive(v, nodePrefix),
+        extra: {
+          ...v.extra,
+          sourceNodeId: parentId,
+          sourceNodeTitle: parentNode.data?.title || parentId,
+          nodeIcon,
+        },
+      })),
+    })
+  }
+
+  return variables
+}
+
+/**
+ * Get a flat list of all available variables for a node
+ * @param nodeId - The node ID to get available variables for
+ * @returns Flat array of variable definitions
+ */
+const getAvailableVariablesFlat = (nodeId: string) => {
+  const groupedVariables = getAvailableVariables(nodeId)
+  return groupedVariables.flatMap((group) => group.variables)
+}
 
 provide(WorkflowVariableInj, {
   selectedNodeId,

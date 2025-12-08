@@ -97,6 +97,35 @@ interface WorkflowExecutionState {
   triggerNodeTitle?: string; // Optional: which trigger node to start from
 }
 
+interface IWorkflowExecution {
+  id: string;
+
+  fk_workspace_id: string;
+  base_id: string;
+
+  fk_workflow_id: string;
+
+  workflow_data?:
+    | {
+        id: string;
+        title: string;
+        nodes: WorkflowGeneralNode[];
+        edges: WorkflowGeneralEdge[];
+      }
+    | Record<string, any>;
+
+  execution_data?: WorkflowExecutionState;
+
+  created_at?: string;
+  updated_at?: string;
+
+  finished_at?: string;
+  started_at?: string;
+  finished?: boolean;
+
+  status: 'running' | 'completed' | 'error' | 'cancelled' | 'skipped';
+}
+
 interface NodeConfig {
   [key: string]: any;
 }
@@ -136,4 +165,5 @@ export {
   WorkflowGeneralNode,
   NodeExecutionResult,
   WorkflowExecutionState,
+  IWorkflowExecution,
 };

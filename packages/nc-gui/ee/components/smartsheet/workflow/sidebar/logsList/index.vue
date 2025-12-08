@@ -12,7 +12,7 @@ const { activeWorkflowId } = storeToRefs(workflowStore)
 
 const { loadWorkflowExecutions } = workflowStore
 
-const { viewExecution, exitExecutionView, viewingExecution } = useWorkflowOrThrow()
+const { viewingExecution, selectedNodeId } = useWorkflowOrThrow()
 
 const { base } = storeToRefs(useBase())
 
@@ -41,13 +41,15 @@ const activeItem = computed<any>({
     _activeItem.value = val
     // When an execution is selected, view it
     if (val) {
-      viewExecution(val)
+      viewingExecution.value = val
+      selectedNodeId.value = null
     }
   },
 })
 
 const handleBackClick = () => {
-  exitExecutionView()
+  viewingExecution.value = null
+  selectedNodeId.value = null
   _activeItem.value = null
 }
 
@@ -170,7 +172,7 @@ onBeforeMount(async () => {
         <div class="flex items-center gap-2">
           <div class="text-bodySm text-nc-content-gray-muted w-24">Status:</div>
           <div class="flex items-center gap-1.5">
-            <div v-if="viewingExecution.status === 'success'" class="w-2 h-2 rounded-full bg-green-500" />
+            <div v-if="viewingExecution.status === 'completed'" class="w-2 h-2 rounded-full bg-green-500" />
             <div v-else-if="viewingExecution.status === 'error'" class="w-2 h-2 rounded-full bg-red-500" />
             <div v-else class="w-2 h-2 rounded-full bg-nc-bg-gray-extradark" />
             <span class="text-bodySm text-nc-content-gray capitalize">

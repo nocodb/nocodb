@@ -18,7 +18,6 @@ const {
   deleteNode,
   selectedNodeId,
   edges,
-  updateSelectedNode,
   viewingExecution,
 } = useWorkflowOrThrow()
 
@@ -44,7 +43,7 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
     data: {},
   })
 
-  updateSelectedNode(props.id)
+  selectedNodeId.value = props.id
 
   const selectedNodeMeta = getNodeMetaById(option.id)
 

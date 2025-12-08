@@ -2,14 +2,20 @@
 import dayjs from 'dayjs'
 import VariableDisplay from './VariableDisplay.vue'
 
-const { selectedNodeExecutionResult, getNodeMetaById } = useWorkflowOrThrow()
+const { viewingExecution, getNodeMetaById, selectedNode } = useWorkflowOrThrow()
 
 const isInputExpanded = ref(true)
 
 const isOutputExpanded = ref(true)
 
 const executionResult = computed(() => {
-  return selectedNodeExecutionResult.value
+  if (!viewingExecution.value || !selectedNode.value) return null
+
+  const executionData = viewingExecution.value.execution_data
+  if (!executionData || !executionData.nodeResults) return null
+
+  // Find the node result by nodeId
+  return (executionData.nodeResults || []).find((result: any) => result.nodeId === selectedNode.value?.id) || null
 })
 
 const nodeMeta = computed(() => {

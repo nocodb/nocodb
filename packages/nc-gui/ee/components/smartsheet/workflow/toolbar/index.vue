@@ -1,17 +1,42 @@
 <script setup lang="ts">
+import type { WorkflowGeneralNode } from 'nocodb-sdk'
+import { GeneralNodeID, hasWorkflowDraftChanges } from 'nocodb-sdk'
 import Tab from './Tab.vue'
 
 const workflowStore = useWorkflowStore()
 
-const { updateWorkflow } = workflowStore
+const { updateWorkflow, publishWorkflow } = workflowStore
 
 const { activeWorkflow } = storeToRefs(workflowStore)
-
-const { hasDraftChanges, canPublish, publishWorkflow, revertToPublished } = useWorkflowOrThrow()
 
 const { $e } = useNuxtApp()
 
 const isPublishing = ref(false)
+
+const hasDraftChanges = computed(() => {
+  if (!activeWorkflow.value) return false
+  return hasWorkflowDraftChanges(activeWorkflow.value)
+})
+
+const canPublish = computed(() => {
+  if (!hasDraftChanges.value) return false
+
+  const draftNodes = (activeWorkflow.value?.draft?.nodes || []) as Array<WorkflowGeneralNode>
+
+  for (const node of draftNodes) {
+    if ([GeneralNodeID.TRIGGER, GeneralNodeID.PLUS].includes(node.type as any)) {
+      continue
+    }
+
+    const testResult = node.data?.testResult
+
+    if (!testResult || testResult?.status !== 'success' || testResult?.isStale === true) {
+      return false
+    }
+  }
+
+  return true
+})
 
 const toggleWorkflow = async () => {
   if (!activeWorkflow.value || !activeWorkflow.value.base_id || !activeWorkflow.value.id) {
@@ -30,14 +55,28 @@ const toggleWorkflow = async () => {
 }
 
 const handlePublish = async () => {
-  if (!canPublish.value) return
+  if (!canPublish.value || !activeWorkflow.value?.id) return
 
   isPublishing.value = true
   try {
-    await publishWorkflow()
+    await publishWorkflow(activeWorkflow.value?.id)
   } finally {
     isPublishing.value = false
   }
+}
+
+const revertToPublished = async () => {
+  if (!activeWorkflow.value?.id || !activeWorkflow.value?.base_id) return
+  await updateWorkflow(
+    activeWorkflow.value?.base_id,
+    activeWorkflow.value?.id,
+    {
+      draft: null,
+    },
+    {
+      bumpDirty: true,
+    },
+  )
 }
 </script>
 

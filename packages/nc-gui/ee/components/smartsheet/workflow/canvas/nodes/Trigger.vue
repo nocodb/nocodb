@@ -10,7 +10,7 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, updateSelectedNode, viewingExecution } =
+const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, viewingExecution } =
   useWorkflowOrThrow()
 
 const wrappperRef = ref()
@@ -31,7 +31,7 @@ const selectTriggerType = async (option: WorkflowNodeDefinition) => {
     data: {},
   })
 
-  updateSelectedNode(props.id)
+  selectedNodeId.value = props.id
 
   $e('a:workflow:trigger:select', {
     trigger_type: option.id,

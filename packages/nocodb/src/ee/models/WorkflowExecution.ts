@@ -1,22 +1,23 @@
+import type { IWorkflowExecution, WorkflowExecutionState } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
-export default class WorkflowExecution {
-  id?: string;
-  fk_workspace_id?: string;
-  base_id?: string;
-  fk_workflow_id?: string;
+export default class WorkflowExecution implements IWorkflowExecution {
+  id: string;
+  fk_workspace_id: string;
+  base_id: string;
+  fk_workflow_id: string;
 
   workflow_data?: Record<string, any>;
-  execution_data?: Record<string, any>;
+  execution_data?: WorkflowExecutionState;
 
-  finished?: boolean;
-  started_at?: Date | string;
-  finished_at?: Date | string;
-  status?: string; // 'success', 'error', 'in_progress', 'skipped', 'pending'
+  finished: boolean;
+  started_at: string;
+  finished_at: string;
+  status: IWorkflowExecution['status']; // 'success', 'error', 'in_progress', 'skipped', 'pending'
 
   created_at?: string;
   updated_at?: string;

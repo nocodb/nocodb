@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { useWorkflowOrThrow } from '~/composables/useWorkflow'
 
-const { hasManualTrigger, executeWorkflow: _executeWorkflow } = useWorkflowOrThrow()
+const { nodes, executeWorkflow: _executeWorkflow } = useWorkflowOrThrow()
 
 const isLoading = ref(false)
+
+const hasManualTrigger = computed(() => {
+  return nodes.value.some((node) => node.type === 'core.trigger.manual')
+})
 
 const executeWorkflow = async () => {
   isLoading.value = true

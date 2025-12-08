@@ -9,7 +9,7 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const { getNodeMetaById, updateNode, addPlusNode, triggerLayout, edges, updateSelectedNode } = useWorkflowOrThrow()
+const { getNodeMetaById, updateNode, addPlusNode, triggerLayout, edges, selectedNodeId } = useWorkflowOrThrow()
 
 const selectNodeType = async (option: WorkflowNodeDefinition) => {
   updateNode(props.id, {
@@ -48,7 +48,7 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
       triggerLayout()
     }, 50)
 
-    updateSelectedNode(props.id)
+    selectedNodeId.value = props.id
   }
 }
 </script>

@@ -1467,13 +1467,16 @@ onBeforeRouteUpdate((_to, from, next) => {
                     </NcButton>
                     <template #overlay>
                       <NcMenu variant="medium">
-                        <NcMenuItem class="!children:w-full !text-nc-content-purple-dark" @click="toggleAiMode()">
+                        <NcMenuItem
+                          class="!children:w-full !text-nc-content-purple-dark dark:!text-nc-content-purple-medium"
+                          @click="toggleAiMode()"
+                        >
                           <component :is="getUIDTIcon(UITypes.SingleLineText)" class="flex-none w-3.5 h-3.5" />
                           {{ $t('labels.autoSuggestFields') }}
                         </NcMenuItem>
                         <NcMenuItem
                           v-show="!isForm"
-                          class="!children:w-full !text-nc-content-purple-dark"
+                          class="!children:w-full !text-nc-content-purple-dark dark:!text-nc-content-purple-medium"
                           @click="toggleAiMode('formula')"
                         >
                           <component :is="getUIDTIcon(UITypes.Formula)" class="flex-none w-3.5 h-3.5" />
@@ -1481,7 +1484,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                         </NcMenuItem>
                         <NcMenuItem
                           v-show="!isForm && isAiBetaFeaturesEnabled"
-                          class="!children:w-full !text-nc-content-purple-dark"
+                          class="!children:w-full !text-nc-content-purple-dark dark:!text-nc-content-purple-medium"
                           @click="toggleAiMode('button')"
                         >
                           <component :is="getUIDTIcon(UITypes.Button)" class="flex-none w-3.5 h-3.5" />
@@ -1900,7 +1903,7 @@ onBeforeRouteUpdate((_to, from, next) => {
                           class="text-small leading-[18px]"
                           :class="{
                             '!bg-nc-bg-purple-light text-nc-content-purple-dark !border-nc-purple-100': field?.is_ai_field,
-                            'bg-nc-bg-green-light text-nc-content-green-dark': !field?.is_ai_field,
+                            'bg-nc-bg-green-light dark:bg-nc-green-50 text-nc-content-green-dark': !field?.is_ai_field,
                           }"
                           data-testid="nc-field-status-new-field"
                         >
@@ -2275,7 +2278,7 @@ onBeforeRouteUpdate((_to, from, next) => {
     @apply rounded-l-none -ml-[1px];
 
     &.nc-ai-mode {
-      @apply bg-nc-purple-600 hover:bg-nc-purple-500;
+      @apply bg-purple-600 hover:bg-purple-500;
     }
     &:not(.nc-ai-mode) {
       @apply !border-nc-purple-100;

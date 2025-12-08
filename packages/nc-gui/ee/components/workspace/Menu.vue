@@ -150,7 +150,6 @@ const onWorkspaceCreateClick = () => {
         >
           <GeneralWorkspaceIcon
             :workspace="activeWorkspace"
-            icon-bg-color="#F4F4F5"
             show-nocodb-icon
             class="flex-none border-1 border-nc-border-gray-medium"
             :size="isMiniSidebar ? 'mini-sidebar' : 'medium'"
@@ -311,8 +310,5 @@ const onWorkspaceCreateClick = () => {
 
 :deep(.ant-dropdown-menu-item-group-title) {
   @apply hidden;
-}
-
-:deep(.nc-workspace-avatar) {
 }
 </style>

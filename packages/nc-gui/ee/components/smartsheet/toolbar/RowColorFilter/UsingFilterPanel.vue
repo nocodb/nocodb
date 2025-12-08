@@ -175,7 +175,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
         <template #item="{ element: rowColorConfig, index: i }">
           <div
             :key="i"
-            class="nc-row-color-filter-group px-2 border-b-1 border-nc-border-gray-medium last-of-type:border-b-0 bg-nc-gray-100"
+            class="nc-row-color-filter-group px-2 border-b-1 border-nc-border-gray-medium last-of-type:border-b-0 bg-nc-bg-gray-light"
           >
             <!-- index here is 0, since we evaluate the logic op individually per color -->
             <SmartsheetToolbarFilterGroup

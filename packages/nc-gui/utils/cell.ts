@@ -118,7 +118,7 @@ export const getSelectTypeOptionTextColor = (
 }
 
 export const getSelectTypeFieldOptionBgColor = ({ color, isDark }: { color?: string; isDark: boolean }) => {
-  return !isDark ? color : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: -6 })
+  return !isDark ? color : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: -10 })
 }
 
 export const getSelectTypeFieldOptionTextColor = ({

@@ -873,27 +873,22 @@ export const getAdaptiveTint = (
     s = safeS
     v = safeV
   } else {
-    saturationMod = -saturationMod
-    brightnessMod = -brightnessMod
-
-    // DARK MODE — keep your original dark tuning
-    const darkS = isGray ? 0 : Math.min(100, hsv.s * 0.7 + saturationMod)
-    const darkV = Math.max(15, Math.min(60, hsv.v * 0.6 + brightnessMod))
-    s = darkS
-    v = darkV
-
     //
-    // --- STEP 2: Controlled hover / border adjustments ---
+    // 🌙 DARK MODE — softer, not too dark
     //
-    if (shade !== 0) {
-      // shade = *darken* → reduce brightness
-      v = Math.max(0, v - shade)
-    }
 
-    if (tint !== 0) {
-      // tint = *lighten* → increase brightness
-      v = Math.min(100, v + tint)
-    }
+    // Reduce saturation (avoid neon). Target ~40–55%
+    s = isGray ? 0 : hsv.s * 0.45
+
+    // Deep darkness curve — compress v to ~0.08–0.14
+    v = hsv.v * 0.25 + 0.06 + brightnessMod * 0.005
+
+    // Hard clamp for reliable ultra-dark look
+    v = Math.max(0.08, Math.min(0.14, v))
+
+    // gentle shade/tint
+    if (shade) v = Math.max(0.06, v - shade * 0.004)
+    if (tint) v = Math.min(0.16, v + tint * 0.004)
   }
 
   return tinycolor({ h: hsv.h, s, v }).toHexString()

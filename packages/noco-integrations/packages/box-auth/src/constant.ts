@@ -1,1 +1,1 @@
-export const APP_LABEL = 'Google Drive';
+export const APP_LABEL = 'Box';

@@ -89,7 +89,7 @@ export const form: FormDefinition = [
             value: AuthType.OAuth,
           },
           oauthMeta: {
-            provider: 'Google Drive',
+            provider: 'Box',
             authUri,
             redirectUri,
             clientId,

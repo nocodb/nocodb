@@ -1,6 +1,6 @@
 import type { AuthType } from '@noco-integrations/core';
 
-export interface GoogleDriveAuthConfig {
+export interface BoxAuthConfig {
   type: AuthType;
   token?: string;
   oauth_token?: string;

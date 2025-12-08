@@ -7,30 +7,30 @@ import {
 import { clientId, clientSecret, redirectUri, tokenUri } from './config';
 import { APP_LABEL } from './constant';
 import type { RateLimitOptions } from '@noco-integrations/core';
-import type { GoogleDriveAuthConfig } from './types';
+import type { BoxAuthConfig } from './types';
 import type { TestConnectionResponse } from '@noco-integrations/core';
 
 /**
- * Google Drive Authentication Integration
+ * Box Authentication Integration
  *
- * Implements authentication for Google Drive API.
+ * Implements authentication for Box API v2.
  * Supports both API Key (access token) and OAuth 2.0 authentication.
  *
- * @see https://developers.google.com/drive/api/guides/about-auth
+ * @see https://developer.box.com/guides/authentication/
  */
-export class GoogleDriveAuthIntegration extends AuthIntegration<
-  GoogleDriveAuthConfig,
+export class BoxAuthIntegration extends AuthIntegration<
+  BoxAuthConfig,
   AxiosInstance
 > {
   public client: AxiosInstance | null = null;
 
-  // Rate limit configuration for Google Drive API
-  // Google Drive allows 1000 requests per 100 seconds per user
+  // Rate limit configuration for Box API
+  // Box allows 200 requests per minute per user
   protected getRateLimitConfig(): RateLimitOptions | null {
     return {
       global: {
-        maxRequests: 1000,
-        perMilliseconds: 100 * 1000, // 100 second window
+        maxRequests: 200,
+        perMilliseconds: 60 * 1000, // 1 minute window
       },
       maxQueueSize: 100,
     };
@@ -59,7 +59,7 @@ export class GoogleDriveAuthIntegration extends AuthIntegration<
 
     this.client = createAxiosInstance(
       {
-        baseURL: 'https://www.googleapis.com/drive/v3',
+        baseURL: 'https://api.box.com/2.0',
         headers: {
           Authorization: `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
@@ -74,12 +74,8 @@ export class GoogleDriveAuthIntegration extends AuthIntegration<
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
       return await this.use(async (client) => {
-        // Test connection by getting about information (user info)
-        await client.get('/about', {
-          params: {
-            fields: 'user',
-          },
-        });
+        // Test connection by getting current user information
+        await client.get('/users/me');
         return {
           success: true,
         };
@@ -94,7 +90,7 @@ export class GoogleDriveAuthIntegration extends AuthIntegration<
 
   /**
    * Exchange authorization code for access token
-   * @see https://developers.google.com/identity/protocols/oauth2/web-server#exchange-authorization-code
+   * @see https://developer.box.com/guides/authentication/oauth2/oauth2-setup/
    */
   public async exchangeToken(payload: {
     code: string;
@@ -133,7 +129,7 @@ export class GoogleDriveAuthIntegration extends AuthIntegration<
 
   /**
    * Refresh access token using refresh token
-   * @see https://developers.google.com/identity/protocols/oauth2/web-server#offline
+   * @see https://developer.box.com/guides/authentication/oauth2/oauth2-setup/
    */
   public async refreshToken(payload: { refresh_token: string }): Promise<{
     oauth_token: string;

@@ -331,6 +331,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
         ],
       },
       ncMeta,
+      true,
     );
   }
 }

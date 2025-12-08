@@ -1,9 +1,12 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { CronExpressionParser } from 'cron-parser';
-import { NOCO_SERVICE_USERS, ServiceUserType } from 'nocodb-sdk';
+import {
+  DependencyTableType,
+  NOCO_SERVICE_USERS,
+  ServiceUserType,
+} from 'nocodb-sdk';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { DependencyTableType } from '~/models/DependencyTracker';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { Base } from '~/models';

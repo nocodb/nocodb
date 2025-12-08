@@ -106,6 +106,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     dependentId: string,
     dependencies: WidgetDependencies,
     ncMeta?: any,
+    ignoreClear?: boolean,
   ): Promise<void>;
 
   public static async trackDependencies(
@@ -114,6 +115,7 @@ export default class DependencyTracker implements DependencyTrackerType {
     dependentId: string,
     dependencies: WorkflowDependencies,
     ncMeta?: any,
+    ignoreClear?: boolean,
   ): Promise<void>;
 
   public static async trackDependencies(
@@ -122,8 +124,11 @@ export default class DependencyTracker implements DependencyTrackerType {
     dependentId: string,
     dependencies: Dependencies | WidgetDependencies | WorkflowDependencies,
     ncMeta = Noco.ncMeta,
+    ignoreClear?: boolean,
   ): Promise<void> {
-    await this.clearDependencies(context, dependentType, dependentId, ncMeta);
+    if (!ignoreClear) {
+      await this.clearDependencies(context, dependentType, dependentId, ncMeta);
+    }
 
     const deps: any[] = [];
 

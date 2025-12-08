@@ -114,7 +114,7 @@ export const RatingCellRenderer: CellRenderer = {
       tagBorderWidth,
     } = tag
 
-    const inactiveColor = getColor('#d9d9d9', 'var(--nc-content-gray-muted)')
+    const inactiveColor = getColor('#d9d9d9', 'var(--nc-bg-gray-medium)')
 
     const iconsData = getIconsData({ height, width, x, y, column, padding, selected, isRowHovered, value, readonly })!
     if (!iconsData) return
@@ -191,7 +191,7 @@ export const RatingCellRenderer: CellRenderer = {
 
       if (isHovered) {
         iconColor = isDark
-          ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), ratingMeta.color, ['#4a5268', '#f4f4f5'])
+          ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), ratingMeta.color, ['#4a5268', '#d5dce8'])
           : ratingMeta.color
         if (!readonly) {
           setCursor('pointer')
@@ -202,7 +202,7 @@ export const RatingCellRenderer: CellRenderer = {
       if (hoveredIconIndex === -1)
         iconColor = isActive
           ? isDark
-            ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), ratingMeta.color, ['#4a5268', '#f4f4f5'])
+            ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), ratingMeta.color, ['#4a5268', '#d5dce8'])
             : ratingMeta.color
           : inactiveColor
 

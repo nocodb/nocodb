@@ -1612,8 +1612,12 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                     >
                       <div
                         :ref="createKanbanListRef(stack.title)"
-                        class="nc-kanban-list px-2 nc-scrollbar-thin overflow-y-auto"
+                        class="nc-kanban-list px-2 nc-scrollbar-thin"
                         :data-stack-title="stack.title"
+                        :class="{
+                          'relative overflow-hidden': !formattedData.get(stack.title)?.length,
+                          'overflow-y-auto': formattedData.get(stack.title)?.length,
+                        }"
                         :style="{
                           height: '100%',
                         }"
@@ -1629,6 +1633,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           class="flex flex-col"
                           :style="{
                             minHeight: formattedData.get(stack.title)?.length ? `${getTotalScrollHeight(stack.title)}px` : '100%',
+                            height: formattedData.get(stack.title)?.length ? 'auto' : '100%',
                           }"
                           :disabled="isMobileMode"
                           :filter="draggableCardFilter"
@@ -1869,7 +1874,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         <!-- Empty state -->
                         <div
                           v-if="!formattedData.get(stack.title)?.length"
-                          class="h-full w-full flex flex-col gap-4 items-center justify-center"
+                          class="w-full flex flex-col gap-4 items-center justify-center absolute inset-0"
+                          :style="{
+                            minHeight: '100%',
+                            height: '100%',
+                          }"
                         >
                           <div class="flex flex-col items-center gap-2 text-nc-content-gray-subtle2 text-center">
                             <span class="text-sm font-semibold">

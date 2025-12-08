@@ -68,7 +68,7 @@ export class BoxFormatter {
       const folderData: SyncRecord &
         Record<string, SyncValue<string | number | boolean | null>> = {
         Name: folder.name,
-        'Folder URL': this.getFolderPath(folder),
+        'Folder URL': `https://app.box.com/folder/${folderRecordId}`,
         Size: null,
         Description: folder.description || null,
         RemoteRaw: JSON.stringify(folder),
@@ -103,7 +103,7 @@ export class BoxFormatter {
       const fileData: SyncRecord &
         Record<string, SyncValue<string | number | boolean | null>> = {
         Name: file.name,
-        'File URL': null,
+        'File URL': `https://app.box.com/file/${fileRecordId}`,
         'File Thumbnail URL': null,
         Size: file.size || null,
         'Mime Type': mimeType,

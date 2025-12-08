@@ -1078,7 +1078,7 @@ svg.nc-virtual-cell-icon {
 }
 
 .nc-edit-or-add-provider-wrapper {
-  @apply overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-2xl shadow-lg shadow-gray-300 dark:shadow-[#161b22];
+  @apply overflow-auto max-h-[max(80vh,500px)] min-w-[384px] rounded-2xl shadow-lg shadow-gray-300 dark:shadow-black/40;
 }
 
 .nc-breadcrumb {

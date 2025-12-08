@@ -738,7 +738,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
       '!w-[600px]': isLinksOrLTAR(formState.uidt),
       '!min-w-[560px]': lookupRollupFilterEnabled,
       'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
-      'shadow-lg shadow-gray-300 border-1 border-nc-border-gray-medium rounded-2xl p-5': !embedMode,
+      'shadow-lg shadow-gray-300 dark:shadow-black/40 border-1 border-nc-border-gray-medium rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
       'h-full': props.fromTableExplorer,
       '!bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt && !props.fromTableExplorer,

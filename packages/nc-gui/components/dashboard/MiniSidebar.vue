@@ -5,7 +5,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { appInfo, navigateToProject, isMobileMode } = useGlobal()
+const { navigateToProject, isMobileMode } = useGlobal()
 
 const { meta: metaKey, control } = useMagicKeys()
 

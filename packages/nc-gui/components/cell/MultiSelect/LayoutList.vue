@@ -15,8 +15,6 @@ const emits = defineEmits(['update:selectedOptions'])
 
 const { selectedOptions, disabled, options } = toRefs(props)
 
-const { getColor } = useTheme()
-
 const column = inject(ColumnInj)!
 
 const searchVal = ref('')

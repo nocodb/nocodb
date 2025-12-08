@@ -376,7 +376,9 @@ onMounted(() => {
       >
         <!-- create base config panel -->
         <div class="flex-1 p-6 flex flex-col gap-6">
-          <div class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">Tell us more about your usecase</div>
+          <div class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">
+            Tell us more about your usecase
+          </div>
           <div class="flex flex-wrap gap-3 max-h-[188px] nc-scrollbar-thin pt-1">
             <!-- Predefined tags -->
 
@@ -544,10 +546,15 @@ onMounted(() => {
         <!-- create base preview panel -->
 
         <template v-if="aiStep === AI_STEP.LOADING || aiStep === AI_STEP.PROMPT">
-          <div v-if="aiStep === AI_STEP.LOADING" class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">
+          <div
+            v-if="aiStep === AI_STEP.LOADING"
+            class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium"
+          >
             {{ $t('title.generatingBaseTailoredToYourRequirement') }}
           </div>
-          <div v-else class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">{{ $t('labels.preview') }}</div>
+          <div v-else class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">
+            {{ $t('labels.preview') }}
+          </div>
 
           <template v-if="aiStep === AI_STEP.LOADING">
             <div
@@ -590,7 +597,9 @@ onMounted(() => {
           </div>
         </template>
         <template v-if="aiStep === AI_STEP.MODIFY">
-          <div class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">{{ $t('title.hereYourCrmBase') }}</div>
+          <div class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">
+            {{ $t('title.hereYourCrmBase') }}
+          </div>
 
           <template v-if="predictedSchema?.tables">
             <AiWizardCard
@@ -614,7 +623,9 @@ onMounted(() => {
                         class="w-full flex items-center px-4 py-2"
                         @click="handleUpdatePreviewExpansionPanel(table.title, !viewsGrouped[table.title]?.length)"
                       >
-                        <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark dark:text-nc-content-purple-medium">
+                        <div
+                          class="flex-1 flex items-center gap-3 text-nc-content-purple-dark dark:text-nc-content-purple-medium"
+                        >
                           <NcCheckbox :checked="!table.excluded" theme="ai" @click.stop="onExcludeTable(table)" />
 
                           <GeneralIcon icon="table" class="flex-none !h-4 opacity-85" />

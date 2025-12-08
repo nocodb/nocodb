@@ -854,7 +854,7 @@ export const getAdaptiveTint = (
 ) => {
   const { isDarkMode, shade = 0, tint = 0 } = opts || {}
 
-  let { saturationMod = 0, brightnessMod = 0 } = opts || {}
+  const { saturationMod = 0, brightnessMod = 0 } = opts || {}
 
   const base = tinycolor(color)
   const hsv = base.toHsv()

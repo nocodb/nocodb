@@ -14,8 +14,6 @@ const vModel = useVModel(props, 'modelValue')
 
 const { disabled, options } = toRefs(props)
 
-const { getColor } = useTheme()
-
 const column = inject(ColumnInj)!
 
 const searchVal = ref('')

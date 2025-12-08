@@ -92,7 +92,7 @@ const saveGoogleProvider = async () => {
           <div class="flex flex-col gap-2 mb-4">
             <div class="flex flex-row items-center">
               <span class="text-nc-content-gray">{{ $t('labels.redirectUrl') }}</span>
-              <NcTooltip class="flex"> 
+              <NcTooltip class="flex">
                 <template #title>
                   This is the URL where authentication responses will be sent after successful login. Also referred to as
                   'Callback URL' or 'Reply URL'.

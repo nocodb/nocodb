@@ -66,7 +66,11 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
                     <div class="!w-80">
                       <div class="w-full flex items-center justify-between">
                         <span class="text-captionDropdownDefault">{{ option.label }}</span>
-                        <GeneralIcon v-if="option.value === formModel.sync_type" icon="check" class="text-nc-content-brand h-4 w-4" />
+                        <GeneralIcon
+                          v-if="option.value === formModel.sync_type"
+                          icon="check"
+                          class="text-nc-content-brand h-4 w-4"
+                        />
                       </div>
                       <div class="text-bodySm text-nc-content-gray-muted">{{ option.description }}</div>
                     </div>
@@ -153,7 +157,11 @@ const currentSyncTrigger = computed(() => syncTriggerOptions.find((opt) => opt.v
                     <div class="!w-80">
                       <div class="w-full flex items-center justify-between">
                         <span class="text-captionDropdownDefault">{{ option.label }}</span>
-                        <GeneralIcon v-if="option.value === formModel.sync_trigger" icon="check" class="text-nc-content-brand h-4 w-4" />
+                        <GeneralIcon
+                          v-if="option.value === formModel.sync_trigger"
+                          icon="check"
+                          class="text-nc-content-brand h-4 w-4"
+                        />
                       </div>
                       <div class="text-bodySm text-nc-content-gray-muted">{{ option.description }}</div>
                     </div>

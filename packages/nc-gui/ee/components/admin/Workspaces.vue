@@ -171,7 +171,10 @@ onMounted(() => {
             class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
           >
             <template #prefix>
-              <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme" />
+              <GeneralIcon
+                icon="search"
+                class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
+              />
             </template>
           </a-input>
           <NcButton type="secondary" size="small" @click="newWorkspaceDlg = true">

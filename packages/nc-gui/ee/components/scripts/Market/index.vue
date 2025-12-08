@@ -139,7 +139,10 @@ onMounted(() => {
               allow-clear
             >
               <template #prefix>
-                <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-conten-gray-muted group-hover:text-nc-content-gray-extreme" />
+                <GeneralIcon
+                  icon="search"
+                  class="mr-2 h-4 w-4 text-nc-conten-gray-muted group-hover:text-nc-content-gray-extreme"
+                />
               </template>
             </a-input>
           </div>

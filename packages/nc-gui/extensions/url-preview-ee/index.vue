@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { getEmbedURL } from './utils'
-import EmptyStateBanner from './assets/empty-state-banner.svg'
 
 const { showExtensionDetails } = useExtensions()
 

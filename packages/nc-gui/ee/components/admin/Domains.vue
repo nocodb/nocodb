@@ -75,7 +75,12 @@ onMounted(async () => {
             </span>
           </div>
           <NcDropdown :trigger="['click']" placement="bottomRight" @click.stop>
-            <NcButton class="!text-nc-content-gray-muted !hover:text-nc-content-gray" data-test-id="nc-domain-more-option" size="xsmall" type="text">
+            <NcButton
+              class="!text-nc-content-gray-muted !hover:text-nc-content-gray"
+              data-test-id="nc-domain-more-option"
+              size="xsmall"
+              type="text"
+            >
               <GeneralIcon class="text-inherit" icon="threeDotVertical" />
             </NcButton>
             <template #overlay>

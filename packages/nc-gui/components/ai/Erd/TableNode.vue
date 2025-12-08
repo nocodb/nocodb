@@ -151,6 +151,6 @@ watch(
 
 <style lang="scss" scoped>
 .nc-erd-table-node-column {
-  @apply py-0.5 px-2 text-gray-700;
+  @apply py-0.5 px-2 text-nc-content-gray-subtle;
 }
 </style>

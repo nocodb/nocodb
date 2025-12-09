@@ -5,7 +5,6 @@ import { type ColumnType, UITypes } from 'nocodb-sdk'
  */
 export const UNIQUE_CONSTRAINT_SUPPORTED_TYPES = [
   UITypes.SingleLineText,
-  UITypes.LongText,
   UITypes.Email,
   UITypes.PhoneNumber,
   UITypes.URL,

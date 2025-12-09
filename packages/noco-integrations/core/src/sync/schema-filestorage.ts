@@ -12,7 +12,6 @@ export const SCHEMA_FILE_STORAGE: SyncSchema = {
       { title: 'Mime Type', uidt: UITypes.SingleLineText },
       { title: 'Description', uidt: UITypes.SingleLineText },
       { title: 'Checksum', uidt: UITypes.SingleLineText },
-      { title: 'Permissions', uidt: UITypes.JSON },
     ],
     relations: [],
   },
@@ -23,7 +22,6 @@ export const SCHEMA_FILE_STORAGE: SyncSchema = {
       { title: 'Folder URL', uidt: UITypes.SingleLineText },
       { title: 'Size', uidt: UITypes.Number },
       { title: 'Description', uidt: UITypes.SingleLineText },
-      { title: 'Permissions', uidt: UITypes.JSON },
     ],
     relations: [
       {

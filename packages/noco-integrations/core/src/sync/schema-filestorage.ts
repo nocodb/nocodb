@@ -6,8 +6,8 @@ export const SCHEMA_FILE_STORAGE: SyncSchema = {
     title: TARGET_TABLES_META.fs_file.label,
     columns: [
       { title: 'Name', uidt: UITypes.SingleLineText },
-      { title: 'File URL', uidt: UITypes.SingleLineText },
-      { title: 'File Thumbnail URL', uidt: UITypes.SingleLineText },
+      { title: 'File URL', uidt: UITypes.URL },
+      { title: 'File Thumbnail URL', uidt: UITypes.URL },
       { title: 'Size', uidt: UITypes.Number },
       { title: 'Mime Type', uidt: UITypes.SingleLineText },
       { title: 'Description', uidt: UITypes.SingleLineText },
@@ -19,7 +19,7 @@ export const SCHEMA_FILE_STORAGE: SyncSchema = {
     title: TARGET_TABLES_META.fs_folder.label,
     columns: [
       { title: 'Name', uidt: UITypes.SingleLineText },
-      { title: 'Folder URL', uidt: UITypes.SingleLineText },
+      { title: 'Folder URL', uidt: UITypes.URL },
       { title: 'Size', uidt: UITypes.Number },
       { title: 'Description', uidt: UITypes.SingleLineText },
     ],

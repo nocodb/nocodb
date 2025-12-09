@@ -2487,6 +2487,60 @@ class PGClient extends KnexClient {
           oldColumn.tn = args.table;
         }
 
+        // If dropping unique constraint and constraint name is missing, query database
+        if (
+          oldColumn &&
+          (args.columns[i].altered & 2 || args.columns[i].altered & 8)
+        ) {
+          const nIsUnique = !!args.columns[i].unique;
+          const oIsUnique = !!oldColumn.unique;
+
+          // Dropping unique constraint (was unique, now not unique)
+          if (oIsUnique && !nIsUnique) {
+            // Check if constraint name exists in internal_meta
+            let constraintName: string | null = null;
+            if (oldColumn.internal_meta) {
+              let internalMeta = oldColumn.internal_meta;
+              if (typeof internalMeta === 'string') {
+                try {
+                  internalMeta = JSON.parse(internalMeta);
+                } catch {
+                  internalMeta = {};
+                }
+              }
+              constraintName = internalMeta?.unique_constraint_name || null;
+            }
+
+            // If constraint name is missing, query database
+            if (!constraintName) {
+              const columnName = oldColumn.cn || oldColumn.cno;
+              if (columnName) {
+                const queriedName = await this.queryUniqueConstraintName(
+                  args.table,
+                  columnName,
+                  args.schema,
+                );
+                if (queriedName) {
+                  // Store in oldColumn.internal_meta for use in alterTableColumn
+                  if (!oldColumn.internal_meta) {
+                    oldColumn.internal_meta = {};
+                  }
+                  if (typeof oldColumn.internal_meta === 'string') {
+                    try {
+                      oldColumn.internal_meta = JSON.parse(
+                        oldColumn.internal_meta,
+                      );
+                    } catch {
+                      oldColumn.internal_meta = {};
+                    }
+                  }
+                  oldColumn.internal_meta.unique_constraint_name = queriedName;
+                }
+              }
+            }
+          }
+        }
+
         if (args.columns[i].altered & 4) {
           // col remove
           upQuery += this.alterTableRemoveColumn(
@@ -3168,6 +3222,53 @@ class PGClient extends KnexClient {
       }
     }
     return query;
+  }
+
+  /**
+   * Queries PostgreSQL to find unique constraint name by table and column name
+   * @param tableName - Table name
+   * @param columnName - Column name
+   * @param schema - Schema name (optional)
+   * @returns Constraint name or null if not found
+   */
+  private async queryUniqueConstraintName(
+    tableName: string,
+    columnName: string,
+    schema?: string,
+  ): Promise<string | null> {
+    try {
+      const schemaName = schema || this.schema;
+      // Extract table name without schema prefix if present
+      const tableOnly = tableName.includes('.')
+        ? tableName.split('.').pop()
+        : tableName;
+
+      const result = await this.sqlClient.raw(
+        `
+        SELECT conname as constraint_name
+        FROM pg_constraint pc
+        JOIN pg_namespace n ON n.oid = pc.connamespace
+        JOIN pg_class rel ON rel.oid = pc.conrelid
+        JOIN pg_attribute attr ON attr.attrelid = pc.conrelid
+        WHERE pc.contype = 'u'
+          AND n.nspname = ?
+          AND rel.relname = ?
+          AND attr.attname = ?
+          AND array_length(pc.conkey, 1) = 1
+          AND pc.conkey[1] = attr.attnum
+        LIMIT 1
+        `,
+        [schemaName, tableOnly, columnName],
+      );
+
+      if (result.rows && result.rows.length > 0) {
+        return result.rows[0].constraint_name;
+      }
+      return null;
+    } catch (e) {
+      log.api('Error querying unique constraint name:', e);
+      return null;
+    }
   }
 
   /**

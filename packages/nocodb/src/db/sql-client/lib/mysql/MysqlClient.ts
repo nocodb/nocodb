@@ -2107,6 +2107,60 @@ class MysqlClient extends KnexClient {
           cn: args.columns[i].cno,
         });
 
+        // If dropping unique constraint and constraint name is missing, query database
+        if (
+          oldColumn &&
+          (args.columns[i].altered & 2 || args.columns[i].altered & 8)
+        ) {
+          const nIsUnique = !!args.columns[i].unique;
+          const oIsUnique = !!oldColumn.unique;
+
+          // Dropping unique constraint (was unique, now not unique)
+          if (oIsUnique && !nIsUnique) {
+            // Check if constraint name exists in internal_meta
+            let constraintName: string | null = null;
+            if (oldColumn.internal_meta) {
+              let internalMeta = oldColumn.internal_meta;
+              if (typeof internalMeta === 'string') {
+                try {
+                  internalMeta = JSON.parse(internalMeta);
+                } catch {
+                  internalMeta = {};
+                }
+              }
+              constraintName = internalMeta?.unique_constraint_name || null;
+            }
+
+            // If constraint name is missing, query database
+            if (!constraintName) {
+              const columnName = oldColumn.cn || oldColumn.cno;
+              if (columnName) {
+                const queriedName = await this.queryUniqueConstraintName(
+                  args.table,
+                  columnName,
+                  this.connectionConfig?.database,
+                );
+                if (queriedName) {
+                  // Store in oldColumn.internal_meta for use in alterTableColumn
+                  if (!oldColumn.internal_meta) {
+                    oldColumn.internal_meta = {};
+                  }
+                  if (typeof oldColumn.internal_meta === 'string') {
+                    try {
+                      oldColumn.internal_meta = JSON.parse(
+                        oldColumn.internal_meta,
+                      );
+                    } catch {
+                      oldColumn.internal_meta = {};
+                    }
+                  }
+                  oldColumn.internal_meta.unique_constraint_name = queriedName;
+                }
+              }
+            }
+          }
+        }
+
         if (args.columns[i].altered & 4) {
           // col remove
           upQuery += this.alterTableRemoveColumn(
@@ -2464,6 +2518,47 @@ class MysqlClient extends KnexClient {
     ]);
 
     return query;
+  }
+
+  /**
+   * Queries MySQL to find unique index name by table and column name
+   * @param tableName - Table name
+   * @param columnName - Column name
+   * @param databaseName - Database name (optional, will use connection config if not provided)
+   * @returns Index/constraint name or null if not found
+   */
+  private async queryUniqueConstraintName(
+    tableName: string,
+    columnName: string,
+    databaseName?: string,
+  ): Promise<string | null> {
+    try {
+      const dbName = databaseName || this.connectionConfig?.database;
+      if (!dbName) {
+        return null;
+      }
+
+      const result = await this.sqlClient.raw(
+        `
+        SELECT INDEX_NAME
+        FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE TABLE_SCHEMA = ?
+          AND TABLE_NAME = ?
+          AND COLUMN_NAME = ?
+          AND NON_UNIQUE = 0
+        LIMIT 1
+        `,
+        [dbName, tableName, columnName],
+      );
+
+      if (result && result[0] && result[0].length > 0) {
+        return result[0][0].INDEX_NAME;
+      }
+      return null;
+    } catch (e) {
+      log.api('Error querying unique constraint name:', e);
+      return null;
+    }
   }
 
   /**

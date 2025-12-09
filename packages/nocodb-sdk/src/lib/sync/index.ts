@@ -129,7 +129,6 @@ export const SyncCategoryMeta = {
     label: 'File Storage',
     description: 'Sync files, folders, and metadata.',
     icon: 'ncFolder',
-    comingSoon: true,
   },
   [SyncCategory.CUSTOM]: {
     value: SyncCategory.CUSTOM,
@@ -163,6 +162,9 @@ export enum TARGET_TABLES {
 
   // some not prioritized HRIS tables are commented
   // HRIS_EMPLOYER_BENEFIT = 'hris_employer_benefit',
+
+  FILE_STORAGE_FILE = 'fs_file',
+  FILE_STORAGE_FOLDER = 'fs_folder',
 }
 
 export const TARGET_TABLES_META = {
@@ -205,6 +207,22 @@ export const TARGET_TABLES_META = {
     label: 'HR_Employee',
     description: 'Represents human resources employee data.',
     required: true,
+  },
+  [TARGET_TABLES.FILE_STORAGE_FILE]: {
+    category: SyncCategory.FILE_STORAGE,
+    value: TARGET_TABLES.FILE_STORAGE_FILE,
+    icon: 'file',
+    label: 'FS_File',
+    description: 'Represents file storage file metadata.',
+    required: false,
+  },
+  [TARGET_TABLES.FILE_STORAGE_FOLDER]: {
+    category: SyncCategory.FILE_STORAGE,
+    value: TARGET_TABLES.FILE_STORAGE_FOLDER,
+    icon: 'ncFolder',
+    label: 'FS_Folder',
+    description: 'Represents file storage folder metadata.',
+    required: false,
   },
   // [TARGET_TABLES.HRIS_BANK_INFO]: {
   //   category: SyncCategory.HRIS,

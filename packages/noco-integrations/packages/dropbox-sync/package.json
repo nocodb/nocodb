@@ -1,0 +1,20 @@
+{
+  "name": "@noco-integrations/dropbox-sync",
+  "version": "0.1.0",
+  "description": "Dropbox sync integration for NocoDB",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w"
+  },
+  "dependencies": {
+    "@noco-integrations/core": "workspace:*",
+    "axios": "^1.9.0",
+    "mime": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.46",
+    "typescript": "^5.8.3"
+  }
+}

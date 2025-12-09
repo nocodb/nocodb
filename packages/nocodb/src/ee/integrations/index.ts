@@ -15,6 +15,8 @@ import ClaudeAi from '@noco-local-integrations/claude-ai';
 import ClickhouseAuth from '@noco-local-integrations/clickhouse-auth';
 import CoreWorkflowNode from '@noco-local-integrations/core-workflow-node';
 import DeepseekAi from '@noco-local-integrations/deepseek-ai';
+import DropboxAuth from '@noco-local-integrations/dropbox-auth';
+import DropboxSync from '@noco-local-integrations/dropbox-sync';
 import FreshdeskAuth from '@noco-local-integrations/freshdesk-auth';
 import FreshdeskSync from '@noco-local-integrations/freshdesk-sync';
 import GithubAuth from '@noco-local-integrations/github-auth';
@@ -22,6 +24,8 @@ import GithubSync from '@noco-local-integrations/github-sync';
 import GitlabAuth from '@noco-local-integrations/gitlab-auth';
 import GitlabSync from '@noco-local-integrations/gitlab-sync';
 import GoogleAi from '@noco-local-integrations/google-ai';
+import GoogleDriveAuth from '@noco-local-integrations/google-drive-auth';
+import GoogleDriveSync from '@noco-local-integrations/google-drive-sync';
 import GroqAi from '@noco-local-integrations/groq-ai';
 import LinearAuth from '@noco-local-integrations/linear-auth';
 import LinearSync from '@noco-local-integrations/linear-sync';
@@ -54,6 +58,8 @@ export default [
   ...(Array.isArray(ClickhouseAuth) ? ClickhouseAuth : [ClickhouseAuth]),
   ...(Array.isArray(CoreWorkflowNode) ? CoreWorkflowNode : [CoreWorkflowNode]),
   ...(Array.isArray(DeepseekAi) ? DeepseekAi : [DeepseekAi]),
+  ...(Array.isArray(DropboxAuth) ? DropboxAuth : [DropboxAuth]),
+  ...(Array.isArray(DropboxSync) ? DropboxSync : [DropboxSync]),
   ...(Array.isArray(FreshdeskAuth) ? FreshdeskAuth : [FreshdeskAuth]),
   ...(Array.isArray(FreshdeskSync) ? FreshdeskSync : [FreshdeskSync]),
   ...(Array.isArray(GithubAuth) ? GithubAuth : [GithubAuth]),
@@ -61,6 +67,8 @@ export default [
   ...(Array.isArray(GitlabAuth) ? GitlabAuth : [GitlabAuth]),
   ...(Array.isArray(GitlabSync) ? GitlabSync : [GitlabSync]),
   ...(Array.isArray(GoogleAi) ? GoogleAi : [GoogleAi]),
+  ...(Array.isArray(GoogleDriveAuth) ? GoogleDriveAuth : [GoogleDriveAuth]),
+  ...(Array.isArray(GoogleDriveSync) ? GoogleDriveSync : [GoogleDriveSync]),
   ...(Array.isArray(GroqAi) ? GroqAi : [GroqAi]),
   ...(Array.isArray(LinearAuth) ? LinearAuth : [LinearAuth]),
   ...(Array.isArray(LinearSync) ? LinearSync : [LinearSync]),

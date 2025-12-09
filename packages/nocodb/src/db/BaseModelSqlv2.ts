@@ -2016,16 +2016,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.execAndParse(query, null, { raw: true });
       } catch (e: any) {
         // Handle unique constraint violations (throws if it's a unique constraint error)
-        const columns = await this.model.getColumns(this.context);
-        await handleUniqueConstraintError(
-          e,
-          this.context,
-          columns,
-          this.dbDriver.clientType(),
-          updateObj, // Pass update data to help identify which column caused the violation
-          this.dbDriver, // Pass dbDriver for querying duplicates
-          this.tnPath, // Pass table name for querying duplicates
-        );
+        await handleUniqueConstraintError({
+          error: e,
+          baseModel: this,
+          insertData: updateObj,
+        });
         // If not a unique constraint error, re-throw the original error
         throw e;
       }
@@ -2058,7 +2053,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       }
       return newData;
-    } catch (e) {
+    } catch (e: any) {
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+        insertData: updateObj,
+      });
       await this.errorUpdate(e, data, trx, cookie);
       throw e;
     }
@@ -2334,7 +2335,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       });
 
       return response;
-    } catch (e) {
+    } catch (e: any) {
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+        insertData: data,
+      });
       throw e;
     }
   }
@@ -2494,15 +2501,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             await trx(this.tnPath).update(data).where(wherePk);
           } catch (e: any) {
             // Handle unique constraint violations (throws if it's a unique constraint error)
-            await handleUniqueConstraintError(
-              e,
-              this.context,
-              columns,
-              this.dbDriver.clientType(),
-              data, // Pass update data to help identify which column caused the violation
-              trx, // Pass transaction as dbDriver for querying duplicates
-              this.tnPath, // Pass table name for querying duplicates
-            );
+            await handleUniqueConstraintError({
+              error: e,
+              baseModel: this,
+              insertData: data,
+            });
             // If not a unique constraint error, re-throw the original error
             throw e;
           }
@@ -2625,8 +2628,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       return [...updatedDataList, ...insertedDataList];
-    } catch (e) {
+    } catch (e: any) {
       await trx?.rollback();
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+      });
       throw e;
     }
   }
@@ -2985,17 +2993,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             );
           } catch (e: any) {
             // Handle unique constraint violations (throws if it's a unique constraint error)
-            const columns = await this.model.getColumns(this.context);
             // For bulk update, we can't determine which specific row/column, so pass undefined
-            await handleUniqueConstraintError(
-              e,
-              this.context,
-              columns,
-              this.dbDriver.clientType(),
-              undefined, // Bulk update - can't determine specific row data
-              transaction, // Pass transaction as dbDriver for querying duplicates
-              this.tnPath, // Pass table name for querying duplicates
-            );
+            await handleUniqueConstraintError({
+              error: e,
+              baseModel: this,
+            });
             // If not a unique constraint error, re-throw the original error
             throw e;
           }
@@ -3005,16 +3007,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               await transaction(this.tnPath).update(o.d).where(o.wherePk);
             } catch (e: any) {
               // Handle unique constraint violations (throws if it's a unique constraint error)
-              const columns = await this.model.getColumns(this.context);
-              await handleUniqueConstraintError(
-                e,
-                this.context,
-                columns,
-                this.dbDriver.clientType(),
-                o.d, // Pass update data to help identify which column caused the violation
-                transaction, // Pass transaction as dbDriver for querying duplicates
-                this.tnPath, // Pass table name for querying duplicates
-              );
+              await handleUniqueConstraintError({
+                error: e,
+                baseModel: this,
+                insertData: o.d,
+              });
               // If not a unique constraint error, re-throw the original error
               throw e;
             }
@@ -3077,8 +3074,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
       profiler.end();
       return newData;
-    } catch (e) {
+    } catch (e: any) {
       if (transaction) await transaction.rollback();
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+      });
       throw e;
     }
   }
@@ -3199,7 +3201,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
 
       return count;
-    } catch (e) {
+    } catch (e: any) {
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+        insertData: updateData,
+      });
       throw e;
     }
   }

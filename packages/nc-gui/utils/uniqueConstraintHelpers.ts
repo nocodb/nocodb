@@ -4,33 +4,6 @@ import { type ColumnType, UITypes, UNIQUE_CONSTRAINT_SUPPORTED_TYPES, isUniqueCo
 export { isUniqueConstraintSupportedType, UNIQUE_CONSTRAINT_SUPPORTED_TYPES }
 
 /**
- * Field types that are explicitly not supported
- */
-export const UNIQUE_CONSTRAINT_UNSUPPORTED_TYPES = [
-  UITypes.Lookup,
-  UITypes.Rollup,
-  UITypes.Count,
-  UITypes.MultiSelect,
-  UITypes.Attachment,
-  UITypes.Checkbox,
-  UITypes.Button,
-  UITypes.JSON,
-  UITypes.Geometry,
-  UITypes.QrCode,
-  UITypes.Barcode,
-  UITypes.Collaborator,
-  UITypes.CreatedBy,
-  UITypes.LastModifiedBy,
-  UITypes.CreatedTime,
-  UITypes.LastModifiedTime,
-  UITypes.Formula,
-  UITypes.Rating,
-  UITypes.SingleSelect,
-  UITypes.LinkToAnotherRecord,
-  UITypes.Links,
-]
-
-/**
  * Checks if unique constraint can be enabled for a column
  * @param column - Column to check
  * @param isXcdbBase - Whether the source is NC-DB

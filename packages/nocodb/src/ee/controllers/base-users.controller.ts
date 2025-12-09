@@ -7,7 +7,6 @@ import {
 } from 'nocodb-sdk';
 import { BaseUsersController as BaseUsersControllerCE } from 'src/controllers/base-users.controller';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
-import { User, WorkspaceUser } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { WorkspaceUsersService } from '~/services/workspace-users.service';

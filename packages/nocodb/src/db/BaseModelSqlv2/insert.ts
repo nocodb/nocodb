@@ -63,15 +63,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           response = await baseModel.execAndParse(query, null, { raw: true });
         } catch (e: any) {
           // Handle unique constraint violations (throws if it's a unique constraint error)
-          await handleUniqueConstraintError(
-            e,
-            baseModel.context,
-            columns,
-            baseModel.dbDriver.clientType(),
-            insertObj, // Pass insert data to help identify which column caused the violation
-            baseModel.dbDriver, // Pass dbDriver for querying duplicates
-            baseModel.tnPath, // Pass table name for querying duplicates
-          );
+          await handleUniqueConstraintError({
+            error: e,
+            baseModel: baseModel,
+            insertData: insertObj,
+          });
           // If not a unique constraint error, re-throw the original error
           throw e;
         }
@@ -80,15 +76,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           await baseModel.execAndParse(query, null, { raw: true });
         } catch (e: any) {
           // Handle unique constraint violations (throws if it's a unique constraint error)
-          await handleUniqueConstraintError(
-            e,
-            baseModel.context,
-            columns,
-            baseModel.dbDriver.clientType(),
-            insertObj, // Pass insert data to help identify which column caused the violation
-            baseModel.dbDriver, // Pass dbDriver for querying duplicates
-            baseModel.tnPath, // Pass table name for querying duplicates
-          );
+          await handleUniqueConstraintError({
+            error: e,
+            baseModel: baseModel,
+            insertData: insertObj,
+          });
           // If not a unique constraint error, re-throw the original error
           throw e;
         }
@@ -106,15 +98,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             await baseModel.execAndParse(query);
           } catch (e: any) {
             // Handle unique constraint violations
-            await handleUniqueConstraintError(
-              e,
-              baseModel.context,
-              columns,
-              baseModel.dbDriver.clientType(),
-              insertObj, // Pass insert data to help identify which column caused the violation
-              baseModel.dbDriver, // Pass dbDriver for querying duplicates
-              baseModel.tnPath, // Pass table name for querying duplicates
-            );
+            await handleUniqueConstraintError({
+              error: e,
+              baseModel: baseModel,
+              insertData: insertObj,
+            });
             throw e; // Re-throw if not a unique constraint error
           }
         }
@@ -201,21 +189,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
 
       return Array.isArray(response) ? response[0] : response;
     } catch (e: any) {
-      // Handle unique constraint violations (throws if it's a unique constraint error)
-      // This catches errors from the single insert operation that weren't caught in inner try-catch blocks
-      // Note: insertObj might not exist if error occurred before it was created, but that's okay
-      // as the handler will query the database if needed
-      const columns = await baseModel.model.getColumns(baseModel.context);
-      // Use insertObj if available (from try block), otherwise fall back to data
-      await handleUniqueConstraintError(
-        e,
-        baseModel.context,
-        columns,
-        baseModel.dbDriver.clientType(),
-        insertObj || data, // Pass insert data if available, otherwise use original data
-        baseModel.dbDriver, // Pass dbDriver for querying duplicates
-        baseModel.tnPath, // Pass table name for querying duplicates
-      );
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: baseModel,
+        insertData: insertObj || data,
+      });
       await baseModel.errorInsert(e, data, trx, request);
       throw e;
     }
@@ -382,15 +360,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             id = (await query)[0];
           } catch (e: any) {
             // Handle unique constraint violations (throws if it's a unique constraint error)
-            await handleUniqueConstraintError(
-              e,
-              baseModel.context,
-              columns,
-              baseModel.dbDriver.clientType(),
-              insertData, // Pass insert data to help identify which column caused the violation
-              trx, // Pass transaction as dbDriver for querying duplicates
-              baseModel.tnPath, // Pass table name for querying duplicates
-            );
+            await handleUniqueConstraintError({
+              error: e,
+              baseModel: baseModel,
+              insertData: insertData,
+            });
             // If not a unique constraint error, re-throw the original error
             throw e;
           }
@@ -427,15 +401,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
               : await trx.batchInsert(baseModel.tnPath, insertDatas, chunkSize);
         } catch (e: any) {
           // Handle unique constraint violations (throws if it's a unique constraint error)
-          await handleUniqueConstraintError(
-            e,
-            baseModel.context,
-            columns,
-            baseModel.dbDriver.clientType(),
-            insertDatas[0], // Pass first item of bulk insert data
-            trx, // Pass transaction as dbDriver for querying duplicates
-            baseModel.tnPath, // Pass table name for querying duplicates
-          );
+          await handleUniqueConstraintError({
+            error: e,
+            baseModel: baseModel,
+            insertData: insertDatas[0],
+          });
           // If not a unique constraint error, re-throw the original error
           throw e;
         }
@@ -505,16 +475,11 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
       await trx?.rollback();
       // Handle unique constraint violations (throws if it's a unique constraint error)
       // This catches errors from transaction operations that weren't caught in inner try-catch blocks
-      const columns = await baseModel.model.getColumns(baseModel.context);
-      await handleUniqueConstraintError(
-        e,
-        baseModel.context,
-        columns,
-        baseModel.dbDriver.clientType(),
-        datas?.[0], // Pass first item of bulk insert data if available
-        trx || baseModel.dbDriver, // Pass transaction or dbDriver for querying duplicates
-        baseModel.tnPath, // Pass table name for querying duplicates
-      );
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: baseModel,
+        insertData: datas?.[0],
+      });
       // await baseModel.errorInsertb(e, data, null);
       throw e;
     }

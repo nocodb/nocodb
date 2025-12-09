@@ -78,20 +78,3 @@ export function normalizeValueForUniqueCheck(value: any, uidt: UITypes): any {
 
   return value;
 }
-
-/**
- * Generates unique index name for a column
- * @param tableName - Table name
- * @param columnName - Column name
- * @returns unique index name
- */
-export function generateUniqueIndexName(
-  tableName: string,
-  columnName: string,
-): string {
-  const sanitizedTable = tableName.replace(/\W+/g, '_').slice(0, 20);
-  const sanitizedColumn = columnName.replace(/\W+/g, '_').slice(0, 20);
-  const timestamp = Date.now().toString().slice(-8);
-
-  return `uk_${sanitizedTable}_${sanitizedColumn}_${timestamp}`;
-}

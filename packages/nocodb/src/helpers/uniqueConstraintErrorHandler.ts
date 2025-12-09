@@ -1,7 +1,10 @@
 import { UniqueConstraintViolationError } from 'nocodb-sdk';
+import { ViewTypes } from 'nocodb-sdk';
 import type { Column } from '~/models';
-import type { NcContext } from '~/interface/config';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { XKnex } from '~/db/CustomKnex';
+import View from '~/models/View';
+import FormViewColumn from '~/models/FormViewColumn';
 
 /**
  * Extracts column name from database error message
@@ -135,25 +138,33 @@ async function findDuplicateColumnByQuery(
 }
 
 /**
+ * Parameters for handleUniqueConstraintError
+ */
+export interface HandleUniqueConstraintErrorParams {
+  /** Database error */
+  error: any;
+  /** BaseModel instance to extract context, columns, dbDriver, tableName, viewId from */
+  baseModel: IBaseModelSqlV2;
+  /** Optional insert/update data to help identify which column caused the violation */
+  insertData?: Record<string, any>;
+}
+
+/**
  * Converts database unique constraint violation error to UniqueConstraintViolationError
  * Throws UniqueConstraintViolationError if it's a unique constraint violation, otherwise does nothing
- * @param error - Database error
- * @param context - NocoDB context
- * @param modelColumns - Model columns to find column by name
- * @param clientType - Database client type
- * @param insertData - Optional insert/update data to help identify which column caused the violation
- * @param dbDriver - Optional database driver for querying duplicates
- * @param tableName - Optional table name for querying duplicates
  */
-export async function handleUniqueConstraintError(
-  error: any,
-  context: NcContext,
-  modelColumns: Column[],
-  clientType?: string,
-  insertData?: Record<string, any>,
-  dbDriver?: XKnex,
-  tableName?: string | any,
-): Promise<void> {
+export async function handleUniqueConstraintError({
+  error,
+  baseModel,
+  insertData,
+}: HandleUniqueConstraintErrorParams): Promise<void> {
+  // Extract data from baseModel
+  const context = baseModel.context;
+  const modelColumns = await baseModel.model.getColumns(context);
+  const clientType = baseModel.dbDriver.clientType();
+  const dbDriver = baseModel.dbDriver;
+  const tableName = baseModel.tnPath;
+  const viewId = baseModel.viewId;
   // ULTRA-EARLY CHECK: If we see error code 23505 ANYWHERE, handle it immediately
   // This check happens before any other logic to ensure we never miss it
   // Check ALL possible locations and formats - be extremely thorough
@@ -308,9 +319,40 @@ export async function handleUniqueConstraintError(
     // ALWAYS throw - this is critical
     // If we reach here and don't throw, the original error will be re-thrown
     // and processed by extractDBError, resulting in the generic message
+
+    // Get field name: use form view custom label if available, otherwise use column title
+    let fieldName = column?.title || column?.column_name || 'unknown';
+
+    // If viewId is provided and it's a form view, check for custom label
+    if (viewId && column) {
+      try {
+        const view = await View.get(context, viewId);
+        if (view && view.type === ViewTypes.FORM) {
+          // Get form view columns list and find the one matching this column
+          // We need to use list() because View.getColumn expects formViewColumnId,
+          // not column.id. For shared forms, we need to find by fk_column_id.
+          const formViewColumns = await FormViewColumn.list(context, viewId);
+          const formViewColumn = formViewColumns.find(
+            (fvc) => fvc.fk_column_id === column.id,
+          );
+          if (
+            formViewColumn &&
+            'label' in formViewColumn &&
+            formViewColumn.label
+          ) {
+            // Use custom label from form view
+            fieldName = formViewColumn.label;
+          }
+        }
+      } catch (e) {
+        // If we can't get view or form column, fall back to column title
+        // This is a non-critical error, so we continue with the default fieldName
+      }
+    }
+
     throw new UniqueConstraintViolationError({
       value: value,
-      fieldName: column?.title || column?.column_name || 'unknown',
+      fieldName: fieldName,
     });
   }
 
@@ -537,10 +579,41 @@ export async function handleUniqueConstraintError(
       column = uniqueColumns[0];
     }
 
+    // Get field name: use form view custom label if available, otherwise use column title
+    // Ensure we use title, not column_name
+    let fieldName = column?.title || column?.column_name || 'unknown';
+
+    // If viewId is provided and it's a form view, check for custom label
+    if (viewId && column) {
+      try {
+        const view = await View.get(context, viewId);
+        if (view && view.type === ViewTypes.FORM) {
+          // Get form view columns list and find the one matching this column
+          // We need to use list() because View.getColumn expects formViewColumnId,
+          // not column.id. For shared forms, we need to find by fk_column_id.
+          const formViewColumns = await FormViewColumn.list(context, viewId);
+          const formViewColumn = formViewColumns.find(
+            (fvc) => fvc.fk_column_id === column.id,
+          );
+          if (
+            formViewColumn &&
+            'label' in formViewColumn &&
+            formViewColumn.label
+          ) {
+            // Use custom label from form view
+            fieldName = formViewColumn.label;
+          }
+        }
+      } catch (e) {
+        // If we can't get view or form column, fall back to column title
+        // This is a non-critical error, so we continue with the default fieldName
+      }
+    }
+
     // Throw immediately - don't continue with complex logic
     throw new UniqueConstraintViolationError({
       value: value,
-      fieldName: column?.title || column?.column_name || 'unknown',
+      fieldName: fieldName,
     });
   }
 
@@ -731,7 +804,18 @@ export async function handleUniqueConstraintError(
   // Final fallback: use the first unique column
   if (!finalColumn) {
     finalColumn = uniqueColumns[0];
-    finalColumnName = finalColumn.column_name;
+    if (finalColumn) {
+      finalColumnName = finalColumn.column_name;
+    }
+  }
+
+  // Ensure we have a column object - if we only have finalColumnName, find the column from modelColumns
+  if (!finalColumn && finalColumnName) {
+    finalColumn = modelColumns.find(
+      (c) =>
+        c.column_name === finalColumnName ||
+        c.column_name?.toLowerCase() === finalColumnName.toLowerCase(),
+    );
   }
 
   // Extract value from insert data if not found in error message
@@ -798,9 +882,69 @@ export async function handleUniqueConstraintError(
   // This ensures the error is properly handled by the global exception filter
   // CRITICAL: We must throw here - if we don't, the original error will be re-thrown
   // and processed by extractDBError in the global filter, resulting in a generic message
+
+  // Get field name: use form view custom label if available, otherwise use column title
+  // If finalColumn is null, try to find it from modelColumns using finalColumnName
+  let columnForFieldName = finalColumn;
+  if (!columnForFieldName && finalColumnName) {
+    columnForFieldName = modelColumns.find(
+      (c) =>
+        c.column_name === finalColumnName ||
+        c.column_name?.toLowerCase() === finalColumnName.toLowerCase(),
+    );
+  }
+
+  // Always use title, never fall back to column_name
+  // If title is empty or same as column_name, use title (it might be intentionally set that way)
+  // Only use 'unknown' if we truly can't find the column
+  let fieldName = 'unknown';
+  if (columnForFieldName) {
+    // Use title if available, otherwise it means title is empty/null which is unusual but possible
+    fieldName =
+      columnForFieldName.title || columnForFieldName.column_name || 'unknown';
+  } else if (finalColumnName) {
+    // Last resort: if we have column_name but no column object, try one more lookup
+    const foundColumn = modelColumns.find(
+      (c) =>
+        c.column_name === finalColumnName ||
+        c.column_name?.toLowerCase() === finalColumnName.toLowerCase(),
+    );
+    if (foundColumn) {
+      fieldName = foundColumn.title || foundColumn.column_name || 'unknown';
+      columnForFieldName = foundColumn; // Set it for form view label check below
+    }
+  }
+
+  // If viewId is provided and it's a form view, check for custom label
+  if (viewId && columnForFieldName) {
+    try {
+      const view = await View.get(context, viewId);
+      if (view && view.type === ViewTypes.FORM) {
+        // Get form view columns list and find the one matching this column
+        // We need to use list() because View.getColumn expects formViewColumnId,
+        // not column.id. For shared forms, we need to find by fk_column_id.
+        const formViewColumns = await FormViewColumn.list(context, viewId);
+        const formViewColumn = formViewColumns.find(
+          (fvc) => fvc.fk_column_id === columnForFieldName.id,
+        );
+        if (
+          formViewColumn &&
+          'label' in formViewColumn &&
+          formViewColumn.label
+        ) {
+          // Use custom label from form view
+          fieldName = formViewColumn.label;
+        }
+      }
+    } catch (e) {
+      // If we can't get view or form column, fall back to column title
+      // This is a non-critical error, so we continue with the default fieldName
+    }
+  }
+
   const errorToThrow = new UniqueConstraintViolationError({
     value: value || 'unknown',
-    fieldName: finalColumn?.title || finalColumnName || 'unknown',
+    fieldName: fieldName,
   });
 
   // Ensure we always throw - this is critical for proper error handling

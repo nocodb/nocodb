@@ -64,7 +64,6 @@ export class DuplicateDetectionService {
       .select(columnName)
       .count('* as count')
       .whereNotNull(columnName)
-      .where(columnName, '!=', '')
       .groupBy(columnName)
       .havingRaw('COUNT(*) > 1')
       .limit(1); // Limit to 1 to avoid fetching all duplicates
@@ -75,7 +74,6 @@ export class DuplicateDetectionService {
         .select(columnName)
         .count('* as count')
         .whereNotNull(columnName)
-        .where(columnName, '!=', '')
         .where(primaryKey.column_name, '!=', excludeRowId)
         .groupBy(columnName)
         .havingRaw('COUNT(*) > 1')

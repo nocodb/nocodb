@@ -1,5 +1,5 @@
 import { SilentTypeConversionError } from '~/lib/error';
-import { parsePercentValue, serializeDecimalValue } from '..';
+import { parsePercentValue, serializeDecimalValue, precisionFormats } from '..';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
@@ -9,6 +9,7 @@ import { ncIsNaN } from '~/lib/is';
 
 export class PercentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
+    precision: precisionFormats[0],
     is_progress: false,
   };
 
@@ -29,8 +30,11 @@ export class PercentHelper extends AbstractColumnHelper {
     return value;
   }
 
-  parseValue(value: any): string | number | null {
-    return parsePercentValue(value);
+  parseValue(
+    value: any,
+    params: SerializerOrParserFnProps['params']
+  ): string | number | null {
+    return parsePercentValue(value, params.col);
   }
 
   parsePlainCellValue(
@@ -41,7 +45,7 @@ export class PercentHelper extends AbstractColumnHelper {
       value = 0;
     }
 
-    return `${parsePercentValue(value) ?? ''}`;
+    return `${parsePercentValue(value, params.col) ?? ''}`;
   }
 
   // using string number fill handler

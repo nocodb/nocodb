@@ -69,12 +69,19 @@ export const parseDecimalValue = (
   return roundUpToPrecision(Number(value), columnMeta.precision ?? 1);
 };
 
-export const parsePercentValue = (value: string | null) => {
+export const parsePercentValue = (value: string | null, col: ColumnType) => {
   if (ncIsNaN(value)) {
     return null;
   }
 
-  return `${Number(value)}%`;
+  const columnMeta = parseProp(col.meta);
+
+  const perventValue = roundUpToPrecision(
+    Number(value),
+    columnMeta.precision ?? 0 // keep precision fallback to 0 for backward compatibility
+  );
+
+  return `${perventValue}%`;
 };
 
 export const parseDurationValue = (value: string | null, col: ColumnType) => {

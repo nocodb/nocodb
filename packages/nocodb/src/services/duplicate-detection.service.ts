@@ -90,14 +90,12 @@ export class DuplicateDetectionService {
       // Count total non-null, non-empty rows
       const totalQuery = knex(tableName)
         .count('* as total')
-        .whereNotNull(columnName)
-        .where(columnName, '!=', '');
+        .whereNotNull(columnName);
 
       // Count distinct non-null, non-empty values
       const distinctQuery = knex(tableName)
         .select(knex.raw(`COUNT(DISTINCT ??) as distinct_count`, [columnName]))
-        .whereNotNull(columnName)
-        .where(columnName, '!=', '');
+        .whereNotNull(columnName);
 
       // Apply excludeRowId if provided
       if (excludeRowId && primaryKey) {
@@ -259,7 +257,6 @@ export class DuplicateDetectionService {
       .select(columnName)
       .count('* as count')
       .whereNotNull(columnName)
-      .where(columnName, '!=', '')
       .groupBy(columnName)
       .having('count', '>', 1)
       .orderBy('count', 'desc')

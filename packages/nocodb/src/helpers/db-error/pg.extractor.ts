@@ -33,14 +33,57 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
           : 'Date/time field value out of range';
         break;
       }
-      case '23505':
+      case '23505': {
         message = 'This record already exists.';
         _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
+        
+        // Extract column name and duplicate value from error detail
+        // PostgreSQL error detail format: "Key ("Text_7")=(a) already exists."
+        const errorDetail = error?.detail || '';
+        let columnName: string | undefined;
+        let duplicateValue: string | undefined;
+        
+        if (errorDetail) {
+          // Extract column name from pattern: Key ("column_name")= or Key (column_name)=
+          const columnNameMatch = errorDetail.match(/Key\s*\(([^)]+)\)\s*=/);
+          if (columnNameMatch) {
+            // Remove surrounding quotes if present and get first column if composite
+            columnName = columnNameMatch[1]
+              .split(',')[0]
+              .trim()
+              .replace(/^["']|["']$/g, '');
+          }
+          
+          // Extract duplicate value from pattern: Key (...)=(value)
+          const valueMatch = errorDetail.match(/Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/);
+          if (valueMatch) {
+            // Remove surrounding quotes if present
+            duplicateValue = valueMatch[1].trim().replace(/^["']|["']$/g, '');
+          }
+        }
+        
+        // Include extracted information in _extra if available
+        if (columnName || duplicateValue) {
+          _extra = {};
+          if (columnName) {
+            _extra.column = columnName;
+          }
+          if (duplicateValue !== undefined) {
+            _extra.value = duplicateValue;
+          }
+          
+          // Update message to be more descriptive if we have column info
+          if (columnName) {
+            message = `Duplicate value${duplicateValue ? ` '${duplicateValue}'` : ''} already exists for column '${columnName}'.`;
+          }
+        }
+        
         // Note: This is a fallback message. If handleUniqueConstraintError is called
         // before this extractor, it will throw UniqueConstraintViolationError with
         // proper field name. This extractor only processes errors that weren't
         // handled by handleUniqueConstraintError.
         break;
+      }
       case '42601':
         message = 'There was a syntax error in your SQL query.';
         break;
@@ -214,6 +257,7 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
       message,
       code: error.code,
       httpStatus,
+      ...(_extra && { details: _extra }),
     };
   }
 }

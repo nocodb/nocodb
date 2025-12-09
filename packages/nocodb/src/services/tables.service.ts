@@ -869,7 +869,7 @@ export class TablesService {
             is_meta: !!source.is_meta,
             is_local: !!source.is_local,
           },
-          cdfValue,
+          cdfValue as unknown as string,
         );
       }
     }

@@ -511,7 +511,7 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         baseModel.context,
         columns,
         baseModel.dbDriver.clientType(),
-        datas?.[0] || insertDatas?.[0], // Pass first item of bulk insert data if available
+        datas?.[0], // Pass first item of bulk insert data if available
         trx || baseModel.dbDriver, // Pass transaction or dbDriver for querying duplicates
         baseModel.tnPath, // Pass table name for querying duplicates
       );

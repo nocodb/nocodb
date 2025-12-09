@@ -1,5 +1,6 @@
 import { UITypes } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
 // Field types that support unique constraints
@@ -44,7 +45,7 @@ export function validateUniqueConstraint(
   uidt: UITypes,
   meta?: any,
   unique?: boolean,
-  source?: { is_meta?: boolean; is_local?: boolean },
+  source?: Pick<Source, 'is_local' | 'is_meta'>,
   cdf?: string,
 ): void {
   if (!unique) return; // No validation needed if not setting unique

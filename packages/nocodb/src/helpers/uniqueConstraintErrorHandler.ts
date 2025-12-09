@@ -26,10 +26,14 @@ function extractColumnNameFromError(
   // 1. "duplicate key value violates unique constraint ... Key (column_name)=(value) already exists."
   // 2. "duplicate key value violates unique constraint \"constraint_name\" Detail: Key (column_name)=(value) already exists."
   // 3. "duplicate key value violates unique constraint \"table_column_name_key\" Detail: Key (column_name)=(value) already exists."
+  // 4. "Key ("Text_7")=(a) already exists." (with quoted column names)
   // Try to extract from Key (column_name) pattern first
   const pgMatch = errorMessage.match(/Key \(([^)]+)\)=/);
   if (pgMatch) {
-    return pgMatch[1].split(',')[0].trim(); // Get first column if composite
+    // Extract column name and strip surrounding quotes if present
+    const columnName = pgMatch[1].split(',')[0].trim();
+    // Remove surrounding double or single quotes
+    return columnName.replace(/^["']|["']$/g, '');
   }
 
   // Try to extract from constraint name pattern: "table_column_name_key" or "table_column_name_unique"
@@ -207,12 +211,44 @@ export async function handleUniqueConstraintError(
       });
     }
 
-    // Try to identify the column from payload
+    // Try to identify the column and value from error detail first
     let column = null;
     let value = 'unknown';
 
-    // First, try to find column from payload
-    if (insertData) {
+    // First, try to extract column name and value from error detail
+    // PostgreSQL error detail format: "Key ("Text_7")=(a) already exists."
+    const errorDetail =
+      error?.detail ||
+      error?.original?.detail ||
+      error?.nativeError?.detail ||
+      '';
+    
+    if (errorDetail) {
+      // Extract column name from error detail
+      const columnNameMatch = errorDetail.match(/Key\s*\(([^)]+)\)\s*=/);
+      if (columnNameMatch) {
+        const extractedColumnName = columnNameMatch[1]
+          .split(',')[0]
+          .trim()
+          .replace(/^["']|["']$/g, ''); // Remove surrounding quotes
+        
+        // Find column by name
+        column = modelColumns.find(
+          (c) =>
+            c.column_name === extractedColumnName ||
+            c.column_name?.toLowerCase() === extractedColumnName.toLowerCase(),
+        );
+        
+        // Extract value from error detail
+        const valueMatch = errorDetail.match(/Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/);
+        if (valueMatch) {
+          value = valueMatch[1].trim().replace(/^["']|["']$/g, '');
+        }
+      }
+    }
+
+    // If we couldn't extract from error detail, try to find column from payload
+    if (!column && insertData) {
       const columnsWithData = uniqueColumns.filter((c) => {
         const valueByName = insertData[c.column_name];
         const valueByTitle = insertData[c.title];
@@ -258,7 +294,7 @@ export async function handleUniqueConstraintError(
     // Final fallback: use first unique column
     if (!column) {
       column = uniqueColumns[0];
-      if (insertData) {
+      if (insertData && value === 'unknown') {
         value = String(
           insertData[column.column_name] ||
             insertData[column.title] ||
@@ -421,11 +457,44 @@ export async function handleUniqueConstraintError(
       });
     }
 
-    // Try to identify the column from payload
+    // Try to identify the column and value from error detail first
     let column = null;
     let value = 'unknown';
 
-    if (insertData) {
+    // First, try to extract column name and value from error detail
+    // PostgreSQL error detail format: "Key ("Text_7")=(a) already exists."
+    const errorDetail =
+      error?.detail ||
+      error?.original?.detail ||
+      error?.nativeError?.detail ||
+      '';
+    
+    if (errorDetail) {
+      // Extract column name from error detail
+      const columnNameMatch = errorDetail.match(/Key\s*\(([^)]+)\)\s*=/);
+      if (columnNameMatch) {
+        const extractedColumnName = columnNameMatch[1]
+          .split(',')[0]
+          .trim()
+          .replace(/^["']|["']$/g, ''); // Remove surrounding quotes
+        
+        // Find column by name
+        column = modelColumns.find(
+          (c) =>
+            c.column_name === extractedColumnName ||
+            c.column_name?.toLowerCase() === extractedColumnName.toLowerCase(),
+        );
+        
+        // Extract value from error detail
+        const valueMatch = errorDetail.match(/Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/);
+        if (valueMatch) {
+          value = valueMatch[1].trim().replace(/^["']|["']$/g, '');
+        }
+      }
+    }
+
+    // If we couldn't extract from error detail, try to find column from payload
+    if (!column && insertData) {
       const columnsWithData = uniqueColumns.filter((c) => {
         const valueByName = insertData[c.column_name];
         const valueByTitle = insertData[c.title];
@@ -441,18 +510,24 @@ export async function handleUniqueConstraintError(
 
       if (columnsWithData.length > 0) {
         column = columnsWithData[0];
-        value = String(
-          insertData[column.column_name] ||
-            insertData[column.title] ||
-            'unknown',
-        );
+        // Only set value from insertData if we didn't extract it from error detail
+        if (value === 'unknown') {
+          value = String(
+            insertData[column.column_name] ||
+              insertData[column.title] ||
+              'unknown',
+          );
+        }
       } else {
         column = uniqueColumns[0];
-        value = String(
-          insertData?.[column.column_name] ||
-            insertData?.[column.title] ||
-            'unknown',
-        );
+        // Only set value from insertData if we didn't extract it from error detail
+        if (value === 'unknown') {
+          value = String(
+            insertData?.[column.column_name] ||
+              insertData?.[column.title] ||
+              'unknown',
+          );
+        }
       }
     } else {
       column = uniqueColumns[0];
@@ -582,14 +657,18 @@ export async function handleUniqueConstraintError(
 
   // PostgreSQL: Extract from "Key (column)=(value)" or from detail field
   // PostgreSQL error detail often contains: "Key (column_name)=(value) already exists."
+  // Also handles: "Key ("Text_7")=(a) already exists." (with quoted column names)
   const detailMessage =
     normalizedError.detail ||
     originalError?.detail ||
     error?.detail ||
     errorMessage;
-  const pgValueMatch = detailMessage.match(/\([^)]*\)=\(([^)]+)\)/);
+  // Match pattern: Key (column_part)=(value_part) where value_part is captured
+  // This handles both quoted and unquoted column names: Key ("Text_7")=(a) or Key (Text_7)=(a)
+  const pgValueMatch = detailMessage.match(/Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/);
   if (pgValueMatch) {
-    value = pgValueMatch[1].trim().replace(/^'|'$/g, ''); // Remove surrounding quotes
+    // Extract value and remove surrounding single or double quotes
+    value = pgValueMatch[1].trim().replace(/^["']|["']$/g, '');
   }
 
   // MySQL: Extract from "Duplicate entry 'value' for key"

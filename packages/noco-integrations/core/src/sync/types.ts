@@ -86,12 +86,10 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
   async fetchOptions(
     _auth: AuthResponse<any>,
     _key: string,
-  ): Promise<
-    {
-      label: string;
-      value: string;
-    }[]
-  > {
+  ): Promise<{
+    label: string;
+    value: string;
+  }[] > {
     return [];
   }
 }

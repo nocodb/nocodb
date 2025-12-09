@@ -606,7 +606,7 @@ export default class Integration implements IntegrationType {
       throw new Error('Integration not found');
     }
 
-    return new integrationWrapper.wrapper(config.config) as T;
+    return new integrationWrapper.wrapper(config.config, {}) as T;
   }
 
   public wrapper: IntegrationWrapper;
@@ -621,7 +621,39 @@ export default class Integration implements IntegrationType {
         throw new Error('Integration not found');
       }
 
-      this.wrapper = new integrationWrapper.wrapper(this.getConfig(), logger);
+      this.wrapper = new integrationWrapper.wrapper(this.getConfig(), {
+        saveConfig: async (config: any) => {
+          await Integration.updateIntegration(
+            {
+              workspace_id: this.fk_workspace_id,
+            },
+            this.id,
+            { config },
+          );
+        },
+        logger: pLogger,
+      });
+
+      if (
+        this.type === IntegrationsType.Auth &&
+        this.wrapper &&
+        typeof (this.wrapper as any).setTokenRefreshCallback === 'function'
+      ) {
+        (this.wrapper as any).setTokenRefreshCallback(
+          async (tokens: { oauth_token: string; refresh_token?: string }) => {
+            await Integration.updateIntegration(
+              { workspace_id: this.fk_workspace_id },
+              this.id,
+              {
+                config: {
+                  ...this.getConfig(),
+                  ...tokens,
+                },
+              },
+            );
+          },
+        );
+      }
     }
 
     return this.wrapper as T;

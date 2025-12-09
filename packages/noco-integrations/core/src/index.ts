@@ -6,6 +6,8 @@ export * from './sync';
 export * from './auth';
 export * from './ai';
 export { SCHEMA_TICKETING } from './sync/schema-ticketing';
+export { SCHEMA_HRIS } from './sync/schema-hris';
+export { SCHEMA_FILE_STORAGE } from './sync/schema-filestorage';
 export type {
   TicketingTicketRecord,
   TicketingUserRecord,

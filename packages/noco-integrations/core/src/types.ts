@@ -25,7 +25,10 @@ export interface IntegrationManifest {
 export interface IntegrationEntry {
   type: IntegrationType;
   sub_type: string;
-  wrapper:  new (config: any) => IntegrationWrapper<any>;
+  wrapper: new (config: T, option: {
+    saveConfig?(config: any): Promise<void>;
+    logger?: (message: string) => void;
+  }) => IntegrationWrapper<T>;
   form: FormDefinition;
   manifest: IntegrationManifest;
 }

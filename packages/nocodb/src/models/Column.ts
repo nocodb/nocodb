@@ -10,6 +10,7 @@ import {
 import { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type { ColumnReqType, ColumnType, LookupType } from 'nocodb-sdk';
+import type { ColumnInternalMeta } from '~/types/column-internal-meta';
 import { NcContext } from '~/interface/config';
 import FormulaColumn from '~/models/FormulaColumn';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
@@ -116,7 +117,7 @@ export default class Column<T = any> implements ColumnType {
 
   public validate: any;
   public meta: any;
-  public internal_meta?: import('~/types/column-internal-meta').ColumnInternalMeta;
+  public internal_meta?: ColumnInternalMeta;
 
   public asId?: string;
 

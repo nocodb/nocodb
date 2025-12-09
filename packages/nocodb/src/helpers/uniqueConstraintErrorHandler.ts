@@ -222,7 +222,7 @@ export async function handleUniqueConstraintError(
       error?.original?.detail ||
       error?.nativeError?.detail ||
       '';
-    
+
     if (errorDetail) {
       // Extract column name from error detail
       const columnNameMatch = errorDetail.match(/Key\s*\(([^)]+)\)\s*=/);
@@ -231,16 +231,18 @@ export async function handleUniqueConstraintError(
           .split(',')[0]
           .trim()
           .replace(/^["']|["']$/g, ''); // Remove surrounding quotes
-        
+
         // Find column by name
         column = modelColumns.find(
           (c) =>
             c.column_name === extractedColumnName ||
             c.column_name?.toLowerCase() === extractedColumnName.toLowerCase(),
         );
-        
+
         // Extract value from error detail
-        const valueMatch = errorDetail.match(/Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/);
+        const valueMatch = errorDetail.match(
+          /Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/,
+        );
         if (valueMatch) {
           value = valueMatch[1].trim().replace(/^["']|["']$/g, '');
         }
@@ -468,7 +470,7 @@ export async function handleUniqueConstraintError(
       error?.original?.detail ||
       error?.nativeError?.detail ||
       '';
-    
+
     if (errorDetail) {
       // Extract column name from error detail
       const columnNameMatch = errorDetail.match(/Key\s*\(([^)]+)\)\s*=/);
@@ -477,16 +479,18 @@ export async function handleUniqueConstraintError(
           .split(',')[0]
           .trim()
           .replace(/^["']|["']$/g, ''); // Remove surrounding quotes
-        
+
         // Find column by name
         column = modelColumns.find(
           (c) =>
             c.column_name === extractedColumnName ||
             c.column_name?.toLowerCase() === extractedColumnName.toLowerCase(),
         );
-        
+
         // Extract value from error detail
-        const valueMatch = errorDetail.match(/Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/);
+        const valueMatch = errorDetail.match(
+          /Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/,
+        );
         if (valueMatch) {
           value = valueMatch[1].trim().replace(/^["']|["']$/g, '');
         }

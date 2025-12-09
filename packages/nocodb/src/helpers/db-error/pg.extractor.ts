@@ -36,13 +36,13 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
       case '23505': {
         message = 'This record already exists.';
         _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
-        
+
         // Extract column name and duplicate value from error detail
         // PostgreSQL error detail format: "Key ("Text_7")=(a) already exists."
         const errorDetail = error?.detail || '';
         let columnName: string | undefined;
         let duplicateValue: string | undefined;
-        
+
         if (errorDetail) {
           // Extract column name from pattern: Key ("column_name")= or Key (column_name)=
           const columnNameMatch = errorDetail.match(/Key\s*\(([^)]+)\)\s*=/);
@@ -53,15 +53,17 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
               .trim()
               .replace(/^["']|["']$/g, '');
           }
-          
+
           // Extract duplicate value from pattern: Key (...)=(value)
-          const valueMatch = errorDetail.match(/Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/);
+          const valueMatch = errorDetail.match(
+            /Key\s*\([^)]*\)\s*=\s*\(([^)]+)\)/,
+          );
           if (valueMatch) {
             // Remove surrounding quotes if present
             duplicateValue = valueMatch[1].trim().replace(/^["']|["']$/g, '');
           }
         }
-        
+
         // Include extracted information in _extra if available
         if (columnName || duplicateValue) {
           _extra = {};
@@ -71,13 +73,15 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
           if (duplicateValue !== undefined) {
             _extra.value = duplicateValue;
           }
-          
+
           // Update message to be more descriptive if we have column info
           if (columnName) {
-            message = `Duplicate value${duplicateValue ? ` '${duplicateValue}'` : ''} already exists for column '${columnName}'.`;
+            message = `Duplicate value${
+              duplicateValue ? ` '${duplicateValue}'` : ''
+            } already exists for column '${columnName}'.`;
           }
         }
-        
+
         // Note: This is a fallback message. If handleUniqueConstraintError is called
         // before this extractor, it will throw UniqueConstraintViolationError with
         // proper field name. This extractor only processes errors that weren't

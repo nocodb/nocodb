@@ -108,6 +108,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
+import {validateColumnInternalMeta} from "~/types/column-internal-meta";
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -693,9 +694,6 @@ export class ColumnsService implements IColumnsService {
       }
 
       // Validate internal_meta structure
-      const { validateColumnInternalMeta } = await import(
-        '~/types/column-internal-meta'
-      );
       validateColumnInternalMeta(internalMeta);
 
       // Store constraint name in internal_meta field

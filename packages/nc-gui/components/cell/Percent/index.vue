@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: number | string | null
@@ -38,6 +39,14 @@ const cellFocused = ref(false)
 
 const expandedEditEnabled = ref(false)
 
+const percentMeta = computed(() => {
+  return {
+    ...ColumnHelper.getColumnDefaultMeta(UITypes.Percent),
+    ...parseProp(column?.value?.meta),
+    is_progress: isUnderLookup.value ? false : parseProp(column.value?.meta).is_progress ?? false,
+  }
+})
+
 const vModel = computed({
   get: () => {
     return isForm.value && !isEditColumn.value && _vModel.value && !cellFocused.value && !isNaN(Number(_vModel.value))
@@ -53,13 +62,6 @@ const vModel = computed({
       _vModel.value = value
     }
   },
-})
-
-const percentMeta = computed(() => {
-  return {
-    ...parseProp(column.value?.meta),
-    is_progress: isUnderLookup ? false : parseProp(column.value?.meta).is_progress ?? false,
-  }
 })
 
 const inputType = computed(() => (isForm.value && !isEditColumn.value && props.location !== 'filter' ? 'text' : 'number'))

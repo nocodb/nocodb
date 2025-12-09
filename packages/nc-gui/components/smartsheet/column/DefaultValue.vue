@@ -125,6 +125,7 @@ const handleShowInput = () => {
         class="nc-default-value-wrapper border-1 flex items-center w-full px-3 border-nc-border-gray-dark rounded-lg sm:min-h-[32px] xs:min-h-13 focus-within:(border-nc-border-brand shadow-selected ring-0) transition-all duration-0.3s"
         :class="{
           'bg-nc-bg-default': isAiModeFieldModal,
+          'bg-nc-bg-gray-light opacity-60': vModel.unique,
         }"
       >
         <div ref="defaultValueWrapperRef" class="relative flex-grow max-w-full">
@@ -137,13 +138,16 @@ const handleShowInput = () => {
             </div>
           </div>
           <LazySmartsheetCell
-            :edit-enabled="true"
+            :edit-enabled="!vModel.unique"
             :model-value="cdfValue"
             :column="vModel"
             class="!border-none h-auto my-auto"
+            :class="{
+              'pointer-events-none': vModel.unique,
+            }"
             @update:cdf="updateCdfValue"
             @update:edit-enabled="editEnabled = $event"
-            @click="editEnabled = true"
+            @click="editEnabled = !vModel.unique"
           />
         </div>
         <NcTooltip :title="$t('general.clear')" class="flex">
@@ -154,8 +158,11 @@ const handleShowInput = () => {
                 vModel.uidt,
               ) || isCurrentDate
             "
-            class="w-4 h-4 cursor-pointer rounded-full z-3 text-nc-content-gray-muted hover:bg-nc-bg-gray-extralight dark:hover:bg-nc-bg-gray-medium default-value-clear"
-            @click.stop="updateCdfValue(null)"
+            :class="{
+              'w-4 h-4 cursor-pointer rounded-full z-3 text-nc-content-gray-muted hover:bg-nc-bg-gray-extralight dark:hover:bg-nc-bg-gray-medium default-value-clear': !vModel.unique,
+              'w-4 h-4 rounded-full z-3 text-nc-content-gray-muted opacity-50 pointer-events-none': vModel.unique,
+            }"
+            @click.stop="!vModel.unique && updateCdfValue(null)"
           />
         </NcTooltip>
       </div>

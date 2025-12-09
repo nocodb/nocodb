@@ -510,10 +510,13 @@ onMounted(() => {
     watch(
       () => formState.value.unique,
       (newUnique) => {
-        if (newUnique && formState.value.cdf) {
+        if (newUnique) {
           // If enabling unique constraint, clear default value
-          formState.value.cdf = null
-          isVisibleDefaultValueInput.value = false
+          if (formState.value.cdf) {
+            formState.value.cdf = null
+          }
+          // Show the input box in disabled state
+          isVisibleDefaultValueInput.value = true
         }
       },
     )
@@ -1361,18 +1364,52 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
           <div class="nc-column-options-wrapper flex flex-col gap-4">
             <!--
             Default Value for JSON & LongText is not supported in MySQL  -->
+            <NcTooltip
+              v-if="
+                isTextArea(formState) &&
+                formState.meta?.richMode &&
+                formState.unique
+              "
+              title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
+              placement="right"
+            >
+              <div class="pointer-events-none opacity-60">
+                <LazySmartsheetColumnRichLongTextDefaultValue
+                  v-model:value="formState"
+                  v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
+                />
+              </div>
+            </NcTooltip>
             <LazySmartsheetColumnRichLongTextDefaultValue
-              v-if="isTextArea(formState) && formState.meta?.richMode"
+              v-else-if="isTextArea(formState) && formState.meta?.richMode"
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
             />
+            <NcTooltip
+              v-if="
+                !isVirtualCol(formState) &&
+                !isAttachment(formState) &&
+                !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
+                !isDatabricks(meta!.source_id) &&
+                formState.unique &&
+                !isAI(formState)
+              "
+              title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
+              placement="right"
+            >
+              <div class="pointer-events-none opacity-60">
+                <LazySmartsheetColumnDefaultValue
+                  v-model:value="formState"
+                  v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
+                />
+              </div>
+            </NcTooltip>
             <LazySmartsheetColumnDefaultValue
               v-else-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
           !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
           !isDatabricks(meta!.source_id) &&
-          !formState.unique &&
           !isAI(formState)
           "
               v-model:value="formState"

@@ -74,6 +74,14 @@ export const parsePercentValue = (value: string | null, col: ColumnType) => {
     return null;
   }
 
+  /**
+   * We have to keep cell display and parse value (copy) consistent
+   * ref: check `formatPercentage` function in `~/utils/cell.ts`
+   */
+  if (Number(value) % 1 === 0) {
+    return `${Number(value)}%`;
+  }
+
   const columnMeta = parseProp(col.meta);
 
   const perventValue = roundUpToPrecision(

@@ -181,8 +181,8 @@ const onTabPress = (e: KeyboardEvent) => {
         :percent="Number(parseFloat(vModel.toString()).toFixed(2))"
         size="small"
         status="normal"
-        stroke-color="#3366FF"
-        trail-color="#E5E5E5"
+        stroke-color="var(--nc-content-brand)"
+        trail-color="var(--nc-bg-brand-inverted)"
         :show-info="false"
       />
     </div>

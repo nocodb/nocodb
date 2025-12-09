@@ -1,5 +1,9 @@
 @use './ant-design-components/ant-radio.scss' as *;
 @use './ant-design-components/ant-alert.scss' as *;
+@use './ant-design-components/ant-input-number.scss' as *;
+@use './ant-design-components/ant-input-text.scss' as *;
+@use './ant-design-components/ant-select.scss' as *;
+@use './ant-design-components/ant-form.scss' as *;
 
 /* Disable ALL transitions & animations while theme switching */
 html.theme-transition-off *,
@@ -282,14 +286,16 @@ body {
   textarea,
   .ant-input-affix-wrapper,
   .ant-input-number {
-    @apply placeholder-nc-content-gray-disabled;
+    &:not(.ant-select-selection-search-input) {
+      @apply placeholder-nc-content-gray-disabled;
 
-    &:not(:disabled):not(:-webkit-autofill) {
-      @apply !bg-transparent text-nc-content-gray;
-    }
+      &:not(:disabled):not(:-webkit-autofill) {
+        @apply !bg-transparent text-nc-content-gray;
+      }
 
-    &:disabled {
-      @apply bg-nc-bg-gray-light border-nc-border-gray-medium hover:border-nc-border-gray-medium focus:(border-nc-border-gray-medium) text-nc-content-gray-muted;
+      // &:disabled {
+      //   @apply bg-nc-bg-gray-light border-nc-border-gray-medium hover:border-nc-border-gray-medium focus:(border-nc-border-gray-medium) text-nc-content-gray-muted;
+      // }
     }
   }
 

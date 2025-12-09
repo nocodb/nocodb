@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { roundUpToPrecision } from 'nocodb-sdk'
+import { roundUpToPrecision, ColumnHelper, UITypes } from 'nocodb-sdk'
 
 interface Props {
   modelValue: number | null | undefined
@@ -11,9 +11,7 @@ const column = inject(ColumnInj)!
 
 const currencyMeta = computed(() => {
   return {
-    currency_locale: 'en-US',
-    currency_code: 'USD',
-    precision: 2,
+    ...ColumnHelper.getColumnDefaultMeta(UITypes.Currency),
     ...parseProp(column?.value?.meta),
   }
 })

@@ -582,7 +582,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       await handleUniqueConstraintError({
         error: e,
         baseModel: this,
-        insertData: insertObj,
+        insertData: data,
       });
       await this.errorInsert(e, data, trx, cookie);
       throw e;

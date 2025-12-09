@@ -365,7 +365,10 @@ function extractFromInputVariables(
     }
 
     // Check for entityReferences in extra (for arrays with entity dependencies)
-    if (variable.extra?.entityReferences && Array.isArray(variable.extra.entityReferences)) {
+    if (
+      variable.extra?.entityReferences &&
+      Array.isArray(variable.extra.entityReferences)
+    ) {
       variable.extra.entityReferences.forEach((ref: any) => {
         if (ref.entity_id && ref.entity && ncIsString(ref.entity_id)) {
           const fieldPath = ref.field ? `.${ref.field}` : '';

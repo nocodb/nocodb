@@ -2058,7 +2058,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await handleUniqueConstraintError({
         error: e,
         baseModel: this,
-        insertData: updateObj,
+        insertData: data,
       });
       await this.errorUpdate(e, data, trx, cookie);
       throw e;
@@ -3206,7 +3206,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await handleUniqueConstraintError({
         error: e,
         baseModel: this,
-        insertData: updateData,
+        insertData: data,
       });
       throw e;
     }

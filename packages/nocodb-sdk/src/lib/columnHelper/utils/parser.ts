@@ -84,12 +84,12 @@ export const parsePercentValue = (value: string | null, col: ColumnType) => {
 
   const columnMeta = parseProp(col.meta);
 
-  const perventValue = roundUpToPrecision(
+  const percentValue = roundUpToPrecision(
     Number(value),
     columnMeta.precision ?? 2
   );
 
-  return `${perventValue}%`;
+  return `${percentValue}%`;
 };
 
 export const parseDurationValue = (value: string | null, col: ColumnType) => {

@@ -104,6 +104,7 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         type: FormBuilderInputType.WorkflowInput,
         label: 'Message',
         model: 'config.message',
+        plugins: ['multiline'],
         placeholder: 'Enter your message',
         validators: [
           {

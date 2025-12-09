@@ -285,6 +285,7 @@ export interface FormBuilderOAuthElement extends FormBuilderElementBase {
 export interface FormBuilderWorkflowInputElement
   extends FormBuilderElementBase {
   type: FormBuilderInputType.WorkflowInput;
+  plugins?: Array<'multiline'>;
   defaultValue?: string | null;
 }
 

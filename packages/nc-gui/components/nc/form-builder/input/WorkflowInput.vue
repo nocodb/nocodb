@@ -18,6 +18,7 @@ interface Props {
   variables?: VariableDefinition[]
   groupedVariables?: NodeGroup[]
   readOnly?: boolean
+  plugins?: Array<'multiline'>
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -111,12 +112,14 @@ const createSuggestionRender = () => ({
   },
 })
 
+const isMultiline = computed(() => props.plugins?.includes('multiline'))
+
 const editor = useEditor({
   content: '',
   extensions: [
     StarterKit.configure({
       heading: false,
-      hardBreak: false,
+      hardBreak: isMultiline.value,
       blockquote: false,
       bulletList: false,
       orderedList: false,
@@ -158,7 +161,7 @@ const editor = useEditor({
       class: 'nc-workflow-input-editor',
     },
     handleKeyDown(_view, event) {
-      if (event.key === 'Enter') {
+      if (event.key === 'Enter' && !isMultiline.value) {
         event.preventDefault()
         return true
       }
@@ -230,7 +233,7 @@ watch(readOnly, (newValue) => {
 
 <template>
   <div class="nc-workflow-input relative">
-    <EditorContent :editor="editor" class="nc-workflow-input-editor" />
+    <EditorContent :editor="editor" class="nc-workflow-input-editor" :class="[{ multiline: isMultiline }]" />
 
     <NcTooltip v-if="!readOnly" class="absolute top-1 right-1" hide-on-click title="Insert variable">
       <NcButton size="xs" type="text" class="nc-workflow-input-insert-btn !px-1.5" @click.stop="insertExpression">
@@ -254,8 +257,18 @@ watch(readOnly, (newValue) => {
   .ProseMirror {
     @apply w-full px-3 py-2 outline-none border-1 border-nc-border-gray-medium rounded-lg;
     @apply focus:border-nc-border-brand transition-colors;
-    @apply min-h-[38px] overflow-hidden;
-    white-space: nowrap;
+    @apply min-h-[38px];
+
+    &:not(.multiline) {
+      @apply overflow-hidden;
+      white-space: nowrap;
+    }
+
+    &.multiline {
+      @apply overflow-auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
 
     &:focus {
       @apply ring-0 outline-none;

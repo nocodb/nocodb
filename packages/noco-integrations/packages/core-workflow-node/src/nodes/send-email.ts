@@ -76,6 +76,7 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
           label: 'Body',
           model: 'config.body',
           placeholder: 'Email body content',
+          plugins: ['multiline'],
           span: 24,
           validators: [
             {

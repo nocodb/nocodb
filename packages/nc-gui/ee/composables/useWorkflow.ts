@@ -353,16 +353,60 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
         await triggerLayout()
       }
     } else {
-      nodes.value = (workflow.value?.draft?.nodes || workflow.value?.nodes || INIT_WORKFLOW_NODES) as Array<Node>
-      edges.value = (workflow.value?.draft?.edges || workflow.value?.edges || []) as Array<Edge>
+      const sourceNodes = workflow.value?.draft?.nodes || workflow.value?.nodes || INIT_WORKFLOW_NODES
+      const sourceEdges = workflow.value?.draft?.edges || workflow.value?.edges || []
+
+      if (activeTab.value === 'logs') {
+        nodes.value = (sourceNodes as Array<Node>).filter(
+          (node: Node) => !Object.values(GeneralNodeID).includes(node.type as any),
+        )
+
+        const removedNodeIds = new Set(
+          (sourceNodes as Array<Node>)
+            .filter((node: Node) => Object.values(GeneralNodeID).includes(node.type as any))
+            .map((node: Node) => node.id),
+        )
+
+        edges.value = (sourceEdges as Array<Edge>).filter(
+          (edge: Edge) => !removedNodeIds.has(edge.source) && !removedNodeIds.has(edge.target),
+        )
+      } else {
+        nodes.value = sourceNodes as Array<Node>
+        edges.value = sourceEdges as Array<Edge>
+      }
       await triggerLayout()
     }
   })
 
-  watch(activeTab, (tab) => {
+  watch(activeTab, async (tab) => {
     if (tab === 'editor' && viewingExecution.value) {
       viewingExecution.value = null
       selectedNodeId.value = null
+    }
+
+    if (!viewingExecution.value) {
+      const sourceNodes = workflow.value?.draft?.nodes || workflow.value?.nodes || INIT_WORKFLOW_NODES
+      const sourceEdges = workflow.value?.draft?.edges || workflow.value?.edges || []
+
+      if (tab === 'logs') {
+        nodes.value = (sourceNodes as Array<Node>).filter(
+          (node: Node) => !Object.values(GeneralNodeID).includes(node.type as any),
+        )
+
+        const removedNodeIds = new Set(
+          (sourceNodes as Array<Node>)
+            .filter((node: Node) => Object.values(GeneralNodeID).includes(node.type as any))
+            .map((node: Node) => node.id),
+        )
+
+        edges.value = (sourceEdges as Array<Edge>).filter(
+          (edge: Edge) => !removedNodeIds.has(edge.source) && !removedNodeIds.has(edge.target),
+        )
+      } else {
+        nodes.value = sourceNodes as Array<Node>
+        edges.value = sourceEdges as Array<Edge>
+      }
+      await triggerLayout()
     }
   })
 
@@ -374,8 +418,24 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       const updatedNodes = workflow.value?.draft?.nodes || workflow.value?.nodes || INIT_WORKFLOW_NODES
       const updatedEdges = workflow.value?.draft?.edges || workflow.value?.edges || []
 
-      nodes.value = updatedNodes as Array<Node>
-      edges.value = updatedEdges as Array<Edge>
+      if (activeTab.value === 'logs') {
+        nodes.value = (updatedNodes as Array<Node>).filter(
+          (node: Node) => !Object.values(GeneralNodeID).includes(node.type as any),
+        )
+
+        const removedNodeIds = new Set(
+          (updatedNodes as Array<Node>)
+            .filter((node: Node) => Object.values(GeneralNodeID).includes(node.type as any))
+            .map((node: Node) => node.id),
+        )
+
+        edges.value = (updatedEdges as Array<Edge>).filter(
+          (edge: Edge) => !removedNodeIds.has(edge.source) && !removedNodeIds.has(edge.target),
+        )
+      } else {
+        nodes.value = updatedNodes as Array<Node>
+        edges.value = updatedEdges as Array<Edge>
+      }
 
       await triggerLayout()
     },

@@ -403,6 +403,7 @@ watch(
                     :model-value="deepReference(field.model)"
                     :placeholder="field.placeholder"
                     :variables="workflowVariables"
+                    :plugins="field.plugins"
                     :grouped-variables="workflowVariablesGrouped"
                     @update:model-value="setFormStateWithEmit(field.model, $event)"
                   />

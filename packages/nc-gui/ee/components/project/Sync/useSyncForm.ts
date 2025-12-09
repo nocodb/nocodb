@@ -59,13 +59,15 @@ const [useProvideSyncForm, useSyncForm] = useInjectionState(
       integrationsRefreshKey.value
 
       return allIntegrations.filter((i) => {
-        return i.type === IntegrationCategoryType.SYNC && i.sync_category === syncConfigForm.value.sync_category
+        return i.type === IntegrationCategoryType.SYNC && i.sync_category === syncConfigForm.value.sync_category && !i.hidden
       })
     })
 
     const syncCategoryIntegrationMap = computed(() => {
       return Object.values(SyncCategory).reduce((acc, category) => {
-        acc[category] = allIntegrations.filter((i) => i.type === IntegrationCategoryType.SYNC && i.sync_category === category)
+        acc[category] = allIntegrations.filter(
+          (i) => i.type === IntegrationCategoryType.SYNC && i.sync_category === category && !i.hidden,
+        )
         return acc
       }, {} as Record<SyncCategory, IntegrationItemType[]>)
     })

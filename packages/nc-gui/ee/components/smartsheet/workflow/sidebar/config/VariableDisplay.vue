@@ -140,6 +140,7 @@ const getArrayItems = (variable: VariableDefinition) => {
   if (!Array.isArray(value)) return []
 
   const itemSchema = variable.extra?.itemSchema
+  const entityReferences = variable.extra?.entityReferences
 
   return value.map((item, index) => {
     // If we have itemSchema, use it to generate proper variable definitions
@@ -158,7 +159,17 @@ const getArrayItems = (variable: VariableDefinition) => {
       } else {
         // Array of objects - generate children based on itemSchema
         const children: VariableDefinition[] = itemSchema.map((schemaDef) => {
-          const itemValue = item?.[schemaDef.key]
+          let itemValue = item?.[schemaDef.key]
+
+          // Check if this field has a corresponding entityReference
+          // If so, use the human-readable name instead of the raw ID
+          if (entityReferences && Array.isArray(entityReferences)) {
+            const entityRef = entityReferences.find((ref: any) => ref.field === schemaDef.key && ref.entity_id === itemValue)
+            if (entityRef?.title) {
+              itemValue = entityRef.title
+            }
+          }
+
           return {
             key: `${variable.key}[${index}].${schemaDef.key}`,
             name: schemaDef.name,
@@ -219,22 +230,31 @@ const formatValue = (value: any): string => {
 <template>
   <div class="nc-variable-display w-full">
     <template v-for="variable in variables" :key="variable.key">
-      <div
-        v-if="!isVariableExpandable(variable)"
-        class="flex items-center overflow-x-hidden py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
-        :style="{ paddingLeft: `${depth * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
-      >
-        <div class="flex items-center flex-1 gap-2 pr-2">
-          <GeneralIcon :icon="getVariableIcon(variable) as any" class="w-4 h-4 text-nc-content-gray-subtle stroke-transparent" />
-          <div class="text-body text-nc-content-gray-emphasis line-clamp-1 truncate">{{ variable.name }}</div>
-        </div>
-        <NcTooltip class="text-bodyDefaultSm truncate min-w-8 text-right pr-1 text-nc-content-gray-subtle" show-on-truncate-only>
-          <template #title>
+      <template v-if="!isVariableExpandable(variable)">
+        <div
+          v-if="getVariableValue(variable) !== undefined"
+          class="flex items-center overflow-x-hidden py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
+          :style="{ paddingLeft: `${depth * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
+        >
+          <div class="flex items-center flex-1 gap-2 pr-2">
+            <GeneralIcon
+              :icon="getVariableIcon(variable) as any"
+              class="w-4 h-4 text-nc-content-gray-subtle stroke-transparent"
+            />
+            <div class="text-body text-nc-content-gray-emphasis line-clamp-1 truncate">{{ variable.name }}</div>
+          </div>
+          <NcTooltip
+            class="text-bodyDefaultSm truncate min-w-8 text-right pr-1 text-nc-content-gray-subtle"
+            show-on-truncate-only
+          >
+            <template #title>
+              {{ getVariableValue(variable) }}
+            </template>
             {{ getVariableValue(variable) }}
-          </template>
-          {{ getVariableValue(variable) }}
-        </NcTooltip>
-      </div>
+          </NcTooltip>
+        </div>
+      </template>
+
       <div v-else>
         <div
           class="flex items-center justify-between overflow-x-hidden py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium cursor-pointer"

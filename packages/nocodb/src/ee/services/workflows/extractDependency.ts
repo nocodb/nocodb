@@ -364,6 +364,32 @@ function extractFromInputVariables(
       }
     }
 
+    // Check for entityReferences in extra (for arrays with entity dependencies)
+    if (variable.extra?.entityReferences && Array.isArray(variable.extra.entityReferences)) {
+      variable.extra.entityReferences.forEach((ref: any) => {
+        if (ref.entity_id && ref.entity && ncIsString(ref.entity_id)) {
+          const fieldPath = ref.field ? `.${ref.field}` : '';
+          const expressionPath = toExpressionPath(variable.key);
+          const fullPath = `$('${nodeMetadata.nodeName}').${expressionPath}${fieldPath}`;
+
+          const depInfo: DependencyInfo = {
+            id: ref.entity_id,
+            path: fullPath,
+            nodeId: nodeMetadata.nodeId,
+            nodeType: nodeMetadata.nodeType,
+          };
+
+          if (ref.entity === 'column') {
+            dependencies.columns.push(depInfo);
+          } else if (ref.entity === 'table') {
+            dependencies.models.push(depInfo);
+          } else if (ref.entity === 'view') {
+            dependencies.views.push(depInfo);
+          }
+        }
+      });
+    }
+
     if (variable.children?.length) {
       variable.children.forEach((child: any) =>
         processVariable(child, variable),

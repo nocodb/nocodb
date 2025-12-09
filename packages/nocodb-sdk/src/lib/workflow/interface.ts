@@ -57,6 +57,15 @@ interface VariableDefinition {
     // Item schema for array variables - defines the structure of each array item
     // Used to generate "Record 1", "Record 2", etc. when displaying actual data
     itemSchema?: VariableDefinition[];
+
+    // Entity references for dependency tracking
+    // When a variable is an array of objects, this property is used to track the entities that are referenced by the objects
+    entityReferences?: {
+      entity_id: string;
+      entity: 'column' | 'table' | 'view';
+      title: string;
+      field: string;
+    }[];
   };
 
   // Nested variables for objects/arrays

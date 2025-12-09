@@ -10,16 +10,8 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const {
-  getNodeMetaById,
-  updateNode,
-  addPlusNode,
-  triggerLayout,
-  deleteNode,
-  selectedNodeId,
-  edges,
-  viewingExecution,
-} = useWorkflowOrThrow()
+const { getNodeMetaById, updateNode, addPlusNode, triggerLayout, deleteNode, selectedNodeId, edges, viewingExecution } =
+  useWorkflowOrThrow()
 
 const nodeMeta = computed(() => {
   return getNodeMetaById(props.type)
@@ -139,7 +131,7 @@ onClickOutside(
                   WorkflowNodeCategory.TRIGGER,
                   WorkflowNodeCategory.ACTION,
                 ].includes(selectedNode.category),
-                'bg-nc-bg-maroon ': selectedNode.category === WorkflowNodeCategory.FLOW,
+                'bg-nc-bg-maroon-dark text-nc-content-maroon-dark': selectedNode.category === WorkflowNodeCategory.FLOW,
               }"
               class="w-6 h-6 flex items-center justify-center rounded-md p-1"
             >

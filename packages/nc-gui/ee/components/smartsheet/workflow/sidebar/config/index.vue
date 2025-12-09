@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { IntegrationsType } from 'nocodb-sdk'
-import IfNodeConfig from '~/components/smartsheet/workflow/sidebar/config/if/index.vue'
+import IfNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/if/index.vue'
+import ListRecordsNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/list-records.vue'
 
 const {
   selectedNodeId,
@@ -80,6 +81,11 @@ provide(WorkflowVariableInj, {
 
 const isIfNode = computed(() => selectedNode.value?.type === 'core.flow.if')
 
+const FormNodeMap = {
+  'core.flow.if': IfNodeConfig,
+  'nocodb.list_records': ListRecordsNodeConfig,
+}
+
 const formSchema = computed(() => {
   if (!selectedNode.value || !selectedNode.value.type) return []
   const nodeMeta = getNodeMetaById(selectedNode.value.type)
@@ -118,8 +124,8 @@ const { formState } = useProvideFormBuilderHelper({
 </script>
 
 <template>
-  <NcGroupedSettings v-if="formSchema.length > 0 || isIfNode" title="Inputs">
-    <IfNodeConfig v-if="isIfNode" />
+  <NcGroupedSettings v-if="selectedNode && (formSchema.length > 0 || selectedNode.type in FormNodeMap)" title="Inputs">
+    <component :is="FormNodeMap[selectedNode.type]" v-if="selectedNode.type in FormNodeMap" />
     <NcFormBuilder v-else-if="formSchema.length > 0" />
   </NcGroupedSettings>
 </template>

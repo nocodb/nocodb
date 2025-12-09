@@ -22,6 +22,7 @@ interface Props {
   link?: boolean
   showDynamicCondition?: boolean
   widget?: boolean
+  workflow?: boolean
   draftFilter?: Partial<FilterType>
   isOpen?: boolean
   rootMeta?: any
@@ -49,6 +50,7 @@ const props = withDefaults(defineProps<Props>(), {
   widget: false,
   webHook: false,
   link: false,
+  workflow: false,
   showDynamicCondition: true,
   linkColId: undefined,
   parentColId: undefined,
@@ -93,6 +95,7 @@ const {
   link,
   widget,
   linkColId,
+  workflow,
   parentColId,
   visibilityError,
   disableAddNewFilter,
@@ -124,21 +127,22 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
-const { nestedFilters, isForm, eventBus } = widget.value
-  ? {
-      nestedFilters: ref([]),
-      isForm: ref(false),
-      eventBus: null,
-    }
-  : useSmartsheetStoreOrThrow()
+const { nestedFilters, isForm, eventBus } =
+  widget.value || workflow.value
+    ? {
+        nestedFilters: ref([]),
+        isForm: ref(false),
+        eventBus: null,
+      }
+    : useSmartsheetStoreOrThrow()
 
-const currentFilters = modelValue.value || (!link.value && !webHook.value && nestedFilters.value) || []
+const currentFilters = modelValue.value || (!link.value && !webHook.value && !workflow.value && nestedFilters.value) || []
 
 const columns = computed(() => meta.value?.columns)
 
 const fieldsToFilter = computed(() =>
   (columns.value || []).filter((c) => {
-    if (link.value && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
+    if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
 
     const customFilter = props.filterOption ? props.filterOption(c) : true
 
@@ -178,6 +182,7 @@ const {
   props.nestedLevel > 0,
   webHook.value,
   link.value,
+  workflow.value,
   widget.value,
   widgetId,
   linkColId,
@@ -283,6 +288,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     comparison: filter.comparison_op,
     comparison_sub_op: filter.comparison_sub_op,
     link: !!link.value,
+    workflow: !!workflow.value,
     webHook: !!webHook.value,
   })
 }
@@ -858,6 +864,7 @@ defineExpose({
                   :root-meta="rootMeta"
                   :link-col-id="linkColId"
                   :widget-id="widgetId"
+                  :workflow="workflow"
                   :widget="widget"
                   :parent-col-id="parentColId"
                   :filter-option="filterOption"
@@ -986,7 +993,7 @@ defineExpose({
                 }"
                 class="nc-filter-field-select min-w-32 max-h-8"
                 :columns="fieldsToFilter"
-                :disable-smartsheet="!!widget"
+                :disable-smartsheet="!!widget || !!workflow"
                 :disabled="filter.readOnly || isLockedView || readOnly"
                 :meta="meta"
                 @click.stop

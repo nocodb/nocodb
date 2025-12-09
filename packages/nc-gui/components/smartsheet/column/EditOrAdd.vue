@@ -1384,8 +1384,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
               v-if="
                 isXcdbBase(meta!.source_id) &&
                 !isVirtualCol(formState) &&
-                isUniqueConstraintSupportedType(formState.uidt, formState.meta)
-              "
+                isUniqueConstraintSupportedType(formState.uidt, formState.meta) && isEeUI"
               class="flex gap-1"
             >
               <NcTooltip

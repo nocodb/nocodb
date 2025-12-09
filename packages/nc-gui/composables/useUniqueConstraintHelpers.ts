@@ -1,4 +1,4 @@
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { type ColumnType } from 'nocodb-sdk'
 import {
   canEnableUniqueConstraint as checkCanEnableUniqueConstraint,
   isUniqueConstraintSupportedType,

@@ -2466,6 +2466,103 @@ class MysqlClient extends KnexClient {
     return query;
   }
 
+  /**
+   * Generates a unique constraint name from column metadata or generates a random one
+   * @param n - Column object
+   * @param tableName - Optional table name (can be extracted from n.tn)
+   * @returns Constraint name
+   */
+  private getUniqueConstraintName(n: any, tableName?: string): string {
+    // Try to get constraint name from internal_meta first
+    if (n.internal_meta) {
+      let internalMeta = n.internal_meta;
+      if (typeof internalMeta === 'string') {
+        try {
+          internalMeta = JSON.parse(internalMeta);
+        } catch {
+          internalMeta = {};
+        }
+      }
+      if (internalMeta?.unique_constraint_name) {
+        return internalMeta.unique_constraint_name;
+      }
+    }
+
+    // Generate constraint name using IDs if available
+    if (n.base_id && n.fk_model_id && n.id) {
+      return `uk_${n.base_id}_${n.fk_model_id}_${n.id}`;
+    }
+
+    // Fallback: use table and column name, or generate random name
+    const columnName = n.cn || n.cno || 'col';
+    const tName = tableName || n.tn || 'table';
+    const baseName = `uk_${tName}_${columnName}`
+      .replace(/[^a-zA-Z0-9_]/g, '_')
+      .slice(0, 50); // Leave room for random suffix
+
+    // Generate random suffix to ensure uniqueness
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    return `${baseName}_${randomSuffix}`.slice(0, 64); // MySQL index name limit is 64 characters
+  }
+
+  /**
+   * Stores constraint name in column's internal_meta
+   * @param n - Column object
+   * @param constraintName - Constraint name to store
+   */
+  private storeUniqueConstraintName(n: any, constraintName: string): void {
+    if (!n.internal_meta || !n.internal_meta.unique_constraint_name) {
+      if (!n.internal_meta) n.internal_meta = {};
+      if (typeof n.internal_meta === 'string') {
+        try {
+          n.internal_meta = JSON.parse(n.internal_meta);
+        } catch {
+          n.internal_meta = {};
+        }
+      }
+      n.internal_meta.unique_constraint_name = constraintName;
+    }
+  }
+
+  /**
+   * Adds unique constraint SQL to the query
+   * @param n - Column object
+   * @param tableName - Optional table name
+   * @param query - Existing query string
+   * @returns Updated query string
+   */
+  private addUniqueConstraintToQuery(
+    n: any,
+    tableName?: string,
+    query: string = '',
+  ): string {
+    // Check n.unique for unique constraint
+    if (!n.unique) {
+      return query;
+    }
+
+    const columnName = n.cn || n.cno;
+    if (!columnName) {
+      throw new Error('Column name is required to add unique constraint');
+    }
+
+    // Generate or get constraint name
+    const constraintName = this.getUniqueConstraintName(n, tableName);
+
+    // Store constraint name in internal_meta
+    this.storeUniqueConstraintName(n, constraintName);
+
+    // Add DROP INDEX and ADD CONSTRAINT to query
+    // Note: MySQL uses DROP INDEX for unique constraints
+    query += this.genQuery(`, DROP INDEX ??`, [constraintName]);
+    query += this.genQuery(`, ADD CONSTRAINT ?? UNIQUE (??)`, [
+      constraintName,
+      columnName,
+    ]);
+
+    return query;
+  }
+
   alterTableColumn(n, o, existingQuery, change = 2) {
     let query = existingQuery ? ',' : '';
 
@@ -2495,12 +2592,54 @@ class MysqlClient extends KnexClient {
     query += n.un ? ' UNSIGNED' : '';
     query += n.rqd ? ' NOT NULL' : ' NULL';
     query += n.ai ? ' auto_increment' : '';
-    query += n.unique ? ` UNIQUE` : '';
+
+    // For change === 0 (CREATE TABLE), add UNIQUE inline
+    if (change === 0) {
+      if (n.unique) {
+        query += ` UNIQUE`;
+      }
+    }
+
     const defaultValue = this.sanitiseDefaultValue(n.cdf);
     query += defaultValue
       ? `
     DEFAULT ${defaultValue}`
       : '';
+
+    // For change === 1 (ADD COLUMN), handle unique constraint separately
+    if (change === 1) {
+      const tableName = n.tn || o?.tn;
+      query = this.addUniqueConstraintToQuery(n, tableName, query);
+    }
+
+    // For change === 2 (CHANGE COLUMN), handle unique constraint changes
+    if (change === 2) {
+      const nIsUnique = !!n.unique;
+      const oIsUnique = !!o.unique;
+      if (nIsUnique !== oIsUnique) {
+        if (nIsUnique) {
+          // Adding unique constraint
+          const columnName = n.cn || o.cn || n.cno || o.cno;
+          if (!columnName) {
+            throw new Error('Column name is required to add unique constraint');
+          }
+          if (!n.cn) {
+            n.cn = columnName;
+          }
+
+          const tableName = n.tn || o?.tn;
+          query = this.addUniqueConstraintToQuery(n, tableName, query);
+        } else {
+          // Dropping unique constraint
+          const tableName = n.tn || o?.tn;
+          const constraintName = this.getUniqueConstraintName(o, tableName);
+
+          // Use DROP INDEX to drop the unique constraint
+          // MySQL stores unique constraints as indexes
+          query += this.genQuery(`, DROP INDEX ??`, [constraintName]);
+        }
+      }
+    }
 
     return query;
   }

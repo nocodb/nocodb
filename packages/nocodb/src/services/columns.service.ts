@@ -108,7 +108,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
-import {validateColumnInternalMeta} from "~/types/column-internal-meta";
+import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -263,6 +263,50 @@ export class ColumnsService implements IColumnsService {
     protected readonly duplicateDetectionService: DuplicateDetectionService,
   ) {}
 
+  /**
+   * Stores unique constraint name in internal_meta field when enabling unique constraint.
+   * This ensures we can drop the constraint even if table/column name changes later.
+   * internal_meta is an internal field (not exposed via API)
+   *
+   * @param context - NcContext
+   * @param baseId - Base ID
+   * @param tableId - Table/Model ID
+   * @param columnId - Column ID (or temporary identifier like column name for new columns)
+   * @param existingInternalMeta - Existing internal_meta value (can be string, object, or null/undefined)
+   * @returns Updated internal_meta object with unique_constraint_name set
+   */
+  private storeUniqueConstraintNameInInternalMeta(
+    context: NcContext,
+    baseId: string,
+    tableId: string,
+    columnId: string,
+    existingInternalMeta?: any,
+  ): any {
+    // Generate constraint name using base_id + '_' + table_id + '_' + column_id for fixed-length, unique constraint name
+    // For new columns, columnId might be a temporary identifier (like column name) that will be updated after insertion
+    const constraintName = `uk_${baseId}_${tableId}_${columnId}`;
+
+    // Parse existing internal_meta or create new object
+    let internalMeta = existingInternalMeta;
+    if (typeof internalMeta === 'string') {
+      try {
+        internalMeta = JSON.parse(internalMeta);
+      } catch {
+        internalMeta = {};
+      }
+    } else if (!internalMeta) {
+      internalMeta = {};
+    }
+
+    // Validate internal_meta structure
+    validateColumnInternalMeta(internalMeta);
+
+    // Store constraint name in internal_meta field
+    internalMeta.unique_constraint_name = constraintName;
+
+    return internalMeta;
+  }
+
   async updateFormulas(
     context: NcContext,
     args: { oldColumn: any; colBody: any },
@@ -326,7 +370,7 @@ export class ColumnsService implements IColumnsService {
                 ? column.unique
                 : (c as any).unique !== undefined
                 ? (c as any).unique
-                : (c as any).ck === 1 || (c as any).ck === '1';
+                : false;
 
             const res = {
               ...c,
@@ -343,9 +387,7 @@ export class ColumnsService implements IColumnsService {
               // cno should always be the original column name (before any potential rename)
               cno: c.column_name,
               altered: Altered.UPDATE_COLUMN,
-              // Set both unique and ck (column_key) for database operations
               unique: uniqueValue,
-              ck: uniqueValue ? 1 : 0,
             };
 
             // Ensure cn and cno are set correctly - if not renaming, they should be the same
@@ -674,30 +716,13 @@ export class ColumnsService implements IColumnsService {
     // internal_meta is an internal field (not exposed via API)
     if ((param.column as any).unique && !column.unique) {
       // Enabling unique constraint - generate and store constraint name
-      // Use base_id + '_' + table_id + '_' + column_id for fixed-length, unique constraint name
-      const baseId = context.base_id;
-      // Get tableId from column's fk_model_id (table/model id)
-      const tableId = column.fk_model_id;
-      const columnId = column.id;
-      const constraintName = `uk_${baseId}_${tableId}_${columnId}`;
-
-      // Parse existing internal_meta or create new object
-      let internalMeta = column.internal_meta;
-      if (typeof internalMeta === 'string') {
-        try {
-          internalMeta = JSON.parse(internalMeta);
-        } catch {
-          internalMeta = {};
-        }
-      } else if (!internalMeta) {
-        internalMeta = {};
-      }
-
-      // Validate internal_meta structure
-      validateColumnInternalMeta(internalMeta);
-
-      // Store constraint name in internal_meta field
-      internalMeta.unique_constraint_name = constraintName;
+      const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
+        context,
+        context.base_id,
+        column.fk_model_id,
+        column.id,
+        column.internal_meta,
+      );
 
       // Store in colBody (will be saved to database)
       (colBody as any).internal_meta = internalMeta;
@@ -2534,11 +2559,6 @@ export class ColumnsService implements IColumnsService {
       );
     }
 
-    // Map unique to ck (column_key) for database operations
-    if (originalUnique !== undefined) {
-      colBody.ck = originalUnique ? 1 : 0;
-    }
-
     const colExtra = {
       view_id: colBody.view_id,
       column_order: colBody.column_order,
@@ -3072,6 +3092,31 @@ export class ColumnsService implements IColumnsService {
             colBody.prompt = prompt;
           }
 
+          // For columns with unique constraint, generate column ID upfront
+          // Then use the column ID to generate the constraint name before SQL operation
+          let columnId: string | null = null;
+          if (originalUnique && !isVirtualCol(param.column)) {
+            // Generate column ID upfront
+            columnId = await ncMeta.genNanoid(MetaTable.COLUMNS);
+
+            // Use helper function with the generated column ID to set up internal_meta
+            const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
+              context,
+              context.base_id,
+              table.id,
+              columnId,
+              colBody.internal_meta,
+            );
+
+            // Set base_id and fk_model_id in colBody so SQL client can use them
+            (colBody as any).base_id = context.base_id;
+            (colBody as any).fk_model_id = table.id;
+            (colBody as any).id = columnId;
+
+            // Store in colBody (will be passed to SQL client and Column.insert)
+            colBody.internal_meta = internalMeta;
+          }
+
           const tableUpdateBody = {
             ...table,
             tn: table.table_name,
@@ -3116,9 +3161,11 @@ export class ColumnsService implements IColumnsService {
             Object.assign(colBody, insertedColumnMeta);
           }
 
+          // Insert column with pre-generated ID if available (for unique constraint)
           savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
+            ...(columnId ? { id: columnId } : {}),
           });
         }
         break;

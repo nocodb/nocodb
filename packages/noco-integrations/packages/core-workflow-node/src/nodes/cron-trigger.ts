@@ -58,7 +58,7 @@ export class CronTriggerNode extends WorkflowNodeIntegration<CronTriggerConfig> 
 
     return {
       id: 'core.trigger.cron',
-      title: 'Schedule / Cron',
+      title: 'At scheduled time',
       description: 'Trigger workflow on a schedule',
       icon: 'ncClock',
       category: WorkflowNodeCategory.TRIGGER,

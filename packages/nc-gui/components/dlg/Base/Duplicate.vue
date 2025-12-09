@@ -17,6 +17,8 @@ const { refreshCommandPalette } = useCommandPalette()
 
 const { isDashboardEnabled } = storeToRefs(useDashboardStore())
 
+const { isWorkflowsEnabled } = storeToRefs(useWorkflowStore())
+
 const { api } = useApi()
 
 const { $e, $poller } = useNuxtApp()
@@ -34,6 +36,7 @@ const options = ref({
   includeComments: true,
   includeScripts: true,
   includeDashboards: isDashboardEnabled.value,
+  includeWorkflows: isWorkflowsEnabled.value,
 })
 const targetWorkspace = ref(activeWorkspace)
 
@@ -49,13 +52,14 @@ const isEaster = ref(false)
 const dropdownOpen = ref(false)
 
 const optionsToExclude = computed(() => {
-  const { includeData, includeViews, includeHooks, includeComments, includeScripts } = options.value
+  const { includeData, includeViews, includeHooks, includeComments, includeScripts, includeWorkflows } = options.value
   return {
     excludeData: !includeData,
     excludeViews: !includeViews,
     excludeHooks: !includeHooks,
     excludeComments: !includeComments,
     excludeScripts: !includeScripts,
+    excludeWorkflows: !includeWorkflows,
   }
 })
 
@@ -265,6 +269,15 @@ onKeyStroke('Enter', () => {
           >
             <NcSwitch :checked="options.includeDashboards" />
             {{ $t('labels.includeDashboards') }}
+          </div>
+
+          <div
+            v-if="isWorkflowsEnabled && isEeUI"
+            class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
+            @click="options.includeWorkflows = !options.includeWorkflows"
+          >
+            <NcSwitch :checked="options.includeWorkflows" />
+            {{ $t('labels.includeWorkflows') }}
           </div>
         </div>
 

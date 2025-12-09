@@ -26,6 +26,9 @@ import { DashboardsService } from '~/services/dashboards.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
 import { getWidgetHandler } from '~/db/widgets';
 import { PermissionsService } from '~/services/permissions.service';
+import { WorkflowsService } from '~/services/workflows.service';
+import { extractWorkflowDependencies } from '~/services/workflows/extractDependency';
+import { deepReplaceStrings } from '~/helpers/stringHelpers';
 
 @Injectable()
 export class ImportService extends ImportServiceCE {
@@ -50,6 +53,7 @@ export class ImportService extends ImportServiceCE {
     protected scriptsService: ScriptsService,
     protected dashboardService: DashboardsService,
     protected permissionsService: PermissionsService,
+    protected workflowService: WorkflowsService,
   ) {
     super(
       tablesService,
@@ -145,6 +149,94 @@ export class ImportService extends ImportServiceCE {
           });
           idMap.set(filter.id, fg.id);
         }
+      }
+    }
+
+    return idMap;
+  }
+
+  async importWorkflows(
+    context: NcContext,
+    param: {
+      user: User;
+      baseId: string;
+      data: Array<any>;
+      req: NcRequest;
+      idMap: Map<string, string>;
+    },
+  ) {
+    const { data, idMap } = param;
+
+    const buildDepsMap = (nodes: any): Map<string, string> => {
+      if (!nodes) return new Map();
+
+      const deps = extractWorkflowDependencies(nodes);
+      const flat = [
+        ...(deps.columns || []),
+        ...(deps.models || []),
+        ...(deps.views || []),
+      ];
+
+      const map = new Map<string, string>();
+      for (const dep of flat) {
+        const newId = idMap.get(dep.id);
+        if (newId) map.set(dep.id, newId);
+      }
+      return map;
+    };
+
+    const cleanNodes = (nodes: any[]) => {
+      if (!Array.isArray(nodes)) return nodes;
+
+      return nodes.map((node) => {
+        const { testResult, data, ...rest } = node;
+
+        const cleanData =
+          data && typeof data === 'object'
+            ? (() => {
+                const { testResult: _tr, ...dataRest } = data;
+                return dataRest;
+              })()
+            : data;
+
+        return { ...rest, data: cleanData };
+      });
+    };
+
+    for (const workflowData of data) {
+      try {
+        const mapDefault = buildDepsMap(workflowData.nodes);
+        const mapDraft = buildDepsMap(workflowData.draft?.nodes);
+
+        const cleanedNodes = cleanNodes(workflowData.nodes);
+        const cleanedDraftNodes = cleanNodes(workflowData.draft?.nodes);
+
+        const updatedNodes = deepReplaceStrings(cleanedNodes, mapDefault);
+        const updatedEdges = deepReplaceStrings(workflowData.edges, mapDefault);
+
+        const updatedDraft = workflowData.draft
+          ? {
+              ...workflowData.draft,
+              nodes: deepReplaceStrings(cleanedDraftNodes, mapDraft),
+            }
+          : undefined;
+
+        const updatedWorkflow = {
+          ...workflowData,
+          nodes: updatedNodes,
+          edges: updatedEdges,
+          draft: updatedDraft,
+        };
+
+        await this.workflowService.createWorkflow(
+          context,
+          withoutId(updatedWorkflow),
+          param.req,
+        );
+      } catch (error: any) {
+        this.logger.error(
+          `Failed to import workflow "${workflowData.title}": ${error.message}`,
+        );
       }
     }
 

@@ -666,8 +666,6 @@ export class WorkflowsService implements OnModuleInit {
       webhookUrl,
       workflowId: workflow.id,
       nodeId: triggerNode.id,
-      workspace_id: context.workspace_id,
-      base_id: context.base_id,
     });
 
     if (!activationState) return;
@@ -694,8 +692,6 @@ export class WorkflowsService implements OnModuleInit {
     const activationState = await wrapper.onActivateHook({
       workflowId: workflow.id,
       nodeId: triggerNode.id,
-      workspace_id: context.workspace_id,
-      base_id: context.base_id,
     });
 
     if (!activationState?.cronExpression) return;

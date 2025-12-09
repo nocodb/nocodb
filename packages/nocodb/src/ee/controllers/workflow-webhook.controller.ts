@@ -19,10 +19,6 @@ export class WorkflowWebhookController {
     @Body() body: any,
     @Req() req: NcRequest,
   ) {
-    if (!triggerId) {
-      NcError.badRequest('Trigger ID is required');
-    }
-
     // Validate triggerId format (should be trg_<nanoid>)
     if (!triggerId.startsWith('trg_')) {
       NcError.badRequest('Invalid trigger ID format');

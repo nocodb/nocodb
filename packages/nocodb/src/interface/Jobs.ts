@@ -159,6 +159,7 @@ export interface DuplicateBaseJobData extends JobData {
     excludeUsers?: boolean;
     excludeScripts?: boolean;
     excludeDashboards?: boolean;
+    excludeWorkflows?: boolean;
   };
 }
 

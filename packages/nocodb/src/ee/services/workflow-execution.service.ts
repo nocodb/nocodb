@@ -60,7 +60,10 @@ export class WorkflowExecutionService {
 
   public async getWorkflowNodes(context: NcContext) {
     const workflowNodeIntegrations = Integration.availableIntegrations
-      .filter((i) => i && i.type === IntegrationsType.WorkflowNode)
+      .filter(
+        (i) =>
+          i && i.type === IntegrationsType.WorkflowNode && !i.manifest.hidden,
+      )
       .sort((a, b) => {
         if (a.manifest.order && b.manifest.order) {
           return a.manifest.order - b.manifest.order;

@@ -28,7 +28,7 @@ export const entries: IntegrationEntry[] = [
     form: [],
     manifest: {
       ...manifest,
-      title: 'Schedule / Cron',
+      title: 'At scheduled time',
       icon: 'ncClock',
     },
   },

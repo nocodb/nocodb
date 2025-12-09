@@ -88,6 +88,7 @@ export class GitHubTriggerNode extends WorkflowNodeIntegration<GitHubTriggerConf
       title: 'GitHub Webhook',
       description: 'Triggers when a GitHub event occurs in a repository',
       icon: 'ncGithub',
+      hidden: true,
       category: WorkflowNodeCategory.TRIGGER,
       activationType: TriggerActivationType.WEBHOOK,
       ports: [{ id: 'output', direction: 'output', order: 0 }],

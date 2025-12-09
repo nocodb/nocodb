@@ -14,7 +14,7 @@ import type { TestConnectionResponse } from '@noco-integrations/core';
  * Box Authentication Integration
  *
  * Implements authentication for Box API v2.
- * Supports both API Key (access token) and OAuth 2.0 authentication.
+ * Supports OAuth 2.0 authentication.
  *
  * @see https://developer.box.com/guides/authentication/
  */

@@ -4,7 +4,6 @@ Authentication integration for Box API in NocoDB. The package extends the `AuthI
 
 ## Features
 
-- **Access Token Authentication**: Simple access token based authentication
 - **OAuth2 Authentication**: Full OAuth2 support with authorization code flow and token refresh
 - **API Client**: Built-in HTTP client for Box API v2 (using `axios` under the hood)
 - **Rate Limiting**: Built-in rate limit handling (200 requests per minute per user)
@@ -13,48 +12,37 @@ Authentication integration for Box API in NocoDB. The package extends the `AuthI
 
 ## How It Works
 
-1. Supports two authentication methods: API Key (access token) and OAuth2
-2. For API Key: Uses the provided access token directly to authenticate requests
-3. For OAuth2: Implements the authorization code flow with offline access for refresh tokens
-4. Returns a pre-configured `AxiosInstance` with base URL `https://api.box.com/2.0` and Bearer token authentication
-5. All requests are rate-limited to 200 requests per minute per user
-6. The authenticated client can be used by other integrations (e.g., Box Sync) to make API calls
+1. Uses OAuth2 authorization code flow for authentication
+2. Implements refresh token support for long-lived access
+3. Returns a pre-configured `AxiosInstance` with base URL `https://api.box.com/2.0` and Bearer token authentication
+4. All requests are rate-limited to 200 requests per minute per user
+5. The authenticated client can be used by other integrations (e.g., Box Sync) to make API calls
+6. OAuth tokens are automatically refreshed when expired using the stored refresh token
 
 ## Configuration
 
 ### Prerequisites
 
 - NocoDB instance with the integrations framework enabled
-- For OAuth2: Box Developer Console app with OAuth credentials configured (see SETUP.md)
+- Box Developer Console app with OAuth credentials configured (see SETUP.md)
 
 ### Auth Form Fields
 
 | Field | Description |
 | --- | --- |
 | `title` | Display name for this auth connection |
-| `config.type` | Authentication type: `ApiKey` (access token) or `OAuth` |
-| `config.token` | Box access token (required for ApiKey type) |
-| `config.oauth` | OAuth configuration (required for OAuth type) |
+| `config.type` | Authentication type: `OAuth` |
+| `config.oauth` | OAuth configuration field (required). After OAuth flow completion, the framework stores tokens in `config.oauth_token`, `config.refresh_token`, and `config.expires_in` |
 
 ### Required Box Permissions
 
-Grant the OAuth token or API key the ability to:
+Grant the OAuth token the ability to:
 
 - `root_readonly` – read-only access to files and folders
 
-## Authentication Methods
+For OAuth setup instructions, see [SETUP.md](./SETUP.md).
 
-### Access Token
-
-To authenticate using a Box access token:
-
-1. Log in to your Box account
-2. Navigate to [Box Developer Console](https://developer.box.com/)
-3. Create a new app or use an existing one
-4. Generate an access token from your app
-5. Copy the generated token and use it in the NocoDB Box Auth integration configuration
-
-### OAuth2 Authentication
+## Authentication
 
 To authenticate using Box OAuth2:
 
@@ -77,11 +65,12 @@ To authenticate using Box OAuth2:
 
 ## Error Handling & Limits
 
-- Invalid or missing access token throws an error with a clear message
-- Expired OAuth tokens can be refreshed using the `refreshToken()` method
+- Missing or invalid OAuth token throws an error with a clear message
+- Expired OAuth tokens are automatically refreshed using the stored refresh token via the `refreshToken()` method
+- Token expiration is tracked via the `expires_in` field (in seconds) stored in the configuration
 - Permission errors for specific API endpoints surface the original Box API error
 - Network or API request failures are propagated with error details
-- Connection test validates authentication by calling `/users/me` endpoint
+- Connection test validates authentication by calling `/users/me` endpoint and returns success/failure status
 
 ## Usage Example
 
@@ -118,7 +107,7 @@ const { data: file } = await boxAuth.get(`/files/${fileId}`, {
 
 ## Security
 
-- Access tokens are never exposed to the frontend
+- OAuth tokens are never exposed to the frontend
 - Credentials are stored and managed by NocoDB's secure integrations framework
 - All requests to Box are made over HTTPS
 - OAuth tokens support refresh token rotation for enhanced security

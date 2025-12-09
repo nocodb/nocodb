@@ -19,7 +19,7 @@ To enable OAuth2 authentication with Box, configure the following environment va
 1. Log in to your Box account
 2. Navigate to [Box Developer Console](https://developer.box.com/)
 3. Click "My Apps" → "Create New App"
-4. Choose "Custom App" → "OAuth 2.0 with JWT (Server Authentication)" or "OAuth 2.0 with User Authentication"
+4. Choose "Custom App" → **"OAuth 2.0 with User Authentication"** (required for this integration)
 5. Fill out the form:
    - **App Name**: Your app name (e.g., "NocoDB")
    - **Description**: (Optional) Description of your app
@@ -34,6 +34,7 @@ To enable OAuth2 authentication with Box, configure the following environment va
 3. Under "Redirect URIs", add your callback URL:
    - Example: `https://your-nocodb-instance.com/api/v2/integrations/oauth/callback`
    - **Important**: This must match exactly with the `INTEGRATION_AUTH_BOX_REDIRECT_URI` environment variable
+   - The exact callback path may vary by NocoDB deployment - check your NocoDB instance's integration callback endpoint
 4. Click "Save Changes"
 
 ---
@@ -71,7 +72,9 @@ Where:
 | `INTEGRATION_AUTH_BOX_CLIENT_SECRET` | Box OAuth Client Secret | Yes (for OAuth) |
 | `INTEGRATION_AUTH_BOX_REDIRECT_URI` | OAuth callback URL | Yes (for OAuth) |
 
-**Note**: If these environment variables are not set, only API Key (access token) authentication will be available in the integration form.
+**Note**: 
+- All three variables (`CLIENT_ID`, `CLIENT_SECRET`, and `REDIRECT_URI`) must be set together for OAuth to work - partial configuration will not enable OAuth
+- If these environment variables are not set, the Box Auth integration will not be available
 
 ---
 
@@ -83,6 +86,8 @@ The integration requests these Box scopes during OAuth authorization:
 
 This permission allows NocoDB to read files, access file metadata, and retrieve account information as needed for sync operations.
 
+**Note**: If you plan to extend functionality to include write operations (e.g., creating or updating files), you may need to request additional scopes. Currently, only `root_readonly` is required for read-only sync operations.
+
 ---
 
 ## Verification
@@ -92,8 +97,8 @@ After configuring the environment variables:
 1. Restart your NocoDB instance to load the new environment variables
 2. Navigate to the integrations page in NocoDB
 3. Create a new Box Auth integration
-4. Verify that both "Access token" and "OAuth2" options are available in the auth type dropdown
-5. Test the OAuth flow by selecting OAuth2 and clicking "Connect to Box"
+4. Verify that "OAuth2" option is available in the auth type dropdown
+5. Test the OAuth flow by clicking "Connect to Box"
 
 ---
 
@@ -101,9 +106,11 @@ After configuring the environment variables:
 
 ### OAuth Option Not Available
 
-- Verify all three environment variables are set correctly
+- Verify all three environment variables (`CLIENT_ID`, `CLIENT_SECRET`, `REDIRECT_URI`) are set correctly
+- Ensure no environment variables are empty or have trailing whitespace
 - Restart NocoDB after setting environment variables
-- Check that the redirect URI in Box Developer Console matches `INTEGRATION_AUTH_BOX_REDIRECT_URI`
+- Check that the redirect URI in Box Developer Console matches `INTEGRATION_AUTH_BOX_REDIRECT_URI` exactly
+- Verify you selected "OAuth 2.0 with User Authentication" (not JWT/Server Authentication) when creating the Box app
 
 ### OAuth Flow Fails
 
@@ -112,14 +119,6 @@ After configuring the environment variables:
 - Ensure the redirect URI uses HTTPS (required by Box)
 - Verify that the `root_readonly` scope is enabled in your Box app
 - Check that the OAuth settings are properly configured
-
-### Access Token Authentication
-
-If you prefer to use access token authentication instead of OAuth:
-
-1. Generate an access token using Box Developer Console or your own OAuth flow
-2. Use the "Access token" auth type in the integration form
-3. No environment variables are required for access token authentication
 
 ---
 

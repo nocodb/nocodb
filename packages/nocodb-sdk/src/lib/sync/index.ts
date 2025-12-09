@@ -204,7 +204,7 @@ export const TARGET_TABLES_META = {
     icon: 'ncUsers',
     label: 'HR_Employee',
     description: 'Represents human resources employee data.',
-    required: false,
+    required: true,
   },
   // [TARGET_TABLES.HRIS_BANK_INFO]: {
   //   category: SyncCategory.HRIS,

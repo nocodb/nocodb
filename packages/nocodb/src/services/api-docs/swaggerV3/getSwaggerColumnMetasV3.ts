@@ -1,4 +1,4 @@
-import { parseProp, RelationTypes, UITypes } from 'nocodb-sdk';
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { FormulaDataTypes } from 'nocodb-sdk';
 import type { Column, LinkToAnotherRecordColumn, RollupColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
@@ -237,16 +237,11 @@ async function processColumnToSwaggerField(
         email: { type: 'string' },
         display_name: { type: ['string', 'null'] },
       };
-      if (parseProp(column.meta).is_multi) {
-        field.type = ['array', 'null'];
-        field.items = {
-          type: 'object',
-          properties: userProperties,
-        };
-      } else {
-        field.type = ['object', 'null'];
-        field.properties = userProperties;
-      }
+      field.type = ['array', 'null'];
+      field.items = {
+        type: 'object',
+        properties: userProperties,
+      };
       field.virtual = false;
       break;
     }

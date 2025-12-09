@@ -20,8 +20,8 @@
 
   .ant-input-affix-wrapper:focus,
   .ant-input-affix-wrapper-focused {
-    border-color: #177ddc;
-    box-shadow: 0 0 0 2px #177ddc33;
+    border-color: rgba(var(--rgb-color-brand-500), 1);
+    box-shadow: 0 0 0 2px rgba(var(--rgb-color-brand-500), 0.2);
     border-right-width: 1px !important;
     outline: 0;
   }
@@ -106,8 +106,8 @@
 
   .ant-input:focus,
   .ant-input-focused {
-    border-color: #177ddc;
-    box-shadow: 0 0 0 2px #177ddc33;
+    border-color: rgba(var(--rgb-color-brand-500), 1);
+    box-shadow: 0 0 0 2px rgba(var(--rgb-color-brand-500), 0.2);
     border-right-width: 1px !important;
     outline: 0;
   }
@@ -167,7 +167,7 @@
 
   .ant-input-group-addon .ant-select-open .ant-select-selector,
   .ant-input-group-addon .ant-select-focused .ant-select-selector {
-    color: #177ddc;
+    color: rgba(var(--rgb-color-brand-500), 1);
   }
 
   .ant-input-group-addon .ant-cascader-picker {

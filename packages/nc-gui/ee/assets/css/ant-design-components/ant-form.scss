@@ -296,8 +296,8 @@
   }
 
   .ant-form-item-has-error .ant-transfer-list-search:not([disabled]):focus {
-    border-color: #177ddc;
-    box-shadow: 0 0 0 2px #177ddc33;
+    border-color: rgba(var(--rgb-color-brand-500), 1);
+    box-shadow: 0 0 0 2px rgba(var(--rgb-color-brand-500), 0.2);
     border-right-width: 1px !important;
     outline: 0;
   }
@@ -323,7 +323,7 @@
   }
 
   .ant-form-item-is-validating.ant-form-item-has-feedback .ant-form-item-children-icon {
-    color: #177ddc;
+    color: rgba(var(--rgb-color-brand-500), 1);
   }
 
   .ant-form {

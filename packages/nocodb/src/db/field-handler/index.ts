@@ -151,8 +151,8 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.Percent]: {
     [CLIENT_DEFAULT]: PercentGeneralHandler,
-    [ClientType.PG]: PercentMysqlHandler,
-    [ClientType.MYSQL]: PercentPgHandler,
+    [ClientType.PG]: PercentPgHandler,
+    [ClientType.MYSQL]: PercentMysqlHandler,
     [ClientType.SQLITE]: PercentSqliteHandler,
   },
   [UITypes.Duration]: {
@@ -160,8 +160,8 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.Rating]: {
     [CLIENT_DEFAULT]: RatingGeneralHandler,
-    [ClientType.PG]: RatingMysqlHandler,
-    [ClientType.MYSQL]: RatingPgHandler,
+    [ClientType.PG]: RatingPgHandler,
+    [ClientType.MYSQL]: RatingMysqlHandler,
     [ClientType.SQLITE]: RatingSqliteHandler,
   },
   [UITypes.Formula]: {

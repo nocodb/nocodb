@@ -20,7 +20,7 @@ export const PercentCellRenderer: CellRenderer = {
       const { width: labelWidth } = renderSingleLineText(ctx, {
         x: x + width - padding,
         y,
-        text: !ncIsNaN(value) ? formatPercentage(value, meta.precision) : '',
+        text: !ncIsNaN(value) ? formatPercentage(value, Math.min(meta.precision, 2)) : '',
         textAlign: 'right',
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
@@ -44,7 +44,7 @@ export const PercentCellRenderer: CellRenderer = {
       renderSingleLineText(ctx, {
         x: x + width - padding,
         y,
-        text: !ncIsNaN(value) ? formatPercentage(value, meta.precision) : '',
+        text: !ncIsNaN(value) ? formatPercentage(value, Math.min(meta.precision, 2)) : '',
         textAlign: 'right',
         maxWidth: labelWidth,
         fontFamily: `${pv ? 600 : 500} 12px Inter`,

@@ -1,0 +1,119 @@
+[theme='dark'] {
+  .ant-select-single.ant-select-open .ant-select-selection-item {
+    color: #ffffff4d;
+  }
+
+  .ant-select-disabled.ant-select-multiple .ant-select-selector {
+    background: #141414;
+  }
+
+  .ant-select-multiple .ant-select-selection-item {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid #303030;
+  }
+
+  .ant-select-disabled.ant-select-multiple .ant-select-selection-item {
+    color: #595959;
+    border-color: #1f1f1f;
+  }
+
+  .ant-select-multiple .ant-select-selection-item-remove {
+    color: inherit;
+    color: #ffffff73;
+  }
+
+  .ant-select-multiple .ant-select-selection-item-remove:hover {
+    color: #ffffffbf;
+  }
+
+  .ant-select {
+    color: #ffffffa6;
+  }
+
+  .ant-select:not(.ant-select-customize-input) .ant-select-selector {
+    background-color: transparent;
+    border: 1px solid #434343;
+  }
+
+  .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input) .ant-select-selector {
+    border-color: #177ddc;
+    box-shadow: 0 0 0 2px #177ddc33;
+    border-right-width: 1px !important;
+    outline: 0;
+  }
+
+  .ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+    color: #ffffff4d;
+    background: #555;
+  }
+
+  .ant-select-multiple.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector {
+    background: #141414;
+  }
+
+  .ant-select:not(.ant-select-disabled):hover .ant-select-selector {
+    border-color: #165996;
+    border-right-width: 1px !important;
+  }
+
+  .ant-select-selection-placeholder {
+    color: #ffffff4d;
+  }
+
+  .ant-select-arrow {
+    color: #ffffff4d;
+  }
+
+  .ant-select-clear {
+    color: #ffffff4d;
+    background: #141414;
+  }
+
+  .ant-select-clear:hover {
+    color: #ffffff73;
+  }
+
+  .ant-select-dropdown {
+    color: #ffffffa6;
+    background-color: #1f1f1f;
+    box-shadow: 0 3px 6px -4px #0000007a, 0 6px 16px #00000052, 0 9px 28px 8px #0003;
+  }
+
+  .ant-select-dropdown-empty {
+    color: #ffffff4d;
+  }
+
+  .ant-select-item-empty {
+    color: #ffffffa6;
+    color: #ffffff4d;
+  }
+
+  .ant-select-item {
+    color: #ffffffa6;
+  }
+
+  .ant-select-item-group {
+    color: #ffffff73;
+  }
+
+  .ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+    background-color: #ffffff14;
+  }
+
+  .ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+    color: #ffffffa6;
+    background-color: #111b26;
+  }
+
+  .ant-select-item-option-selected:not(.ant-select-item-option-disabled) .ant-select-item-option-state {
+    color: #177ddc;
+  }
+
+  .ant-select-item-option-disabled {
+    color: #ffffff4d;
+  }
+
+  .ant-select-item-option-disabled.ant-select-item-option-selected {
+    background-color: #141414;
+  }
+}

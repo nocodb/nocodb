@@ -207,9 +207,7 @@ export function uiTypeToVariableType(
     }
     case UITypes.User:
     case UITypes.Collaborator: {
-      // Check if multi-user
-      const isMultiUser = parseProp(columnMeta?.meta)?.is_multi;
-      return { type: VariableType.Object, isArray: isMultiUser };
+      return { type: VariableType.Object, isArray: true };
     }
 
     case UITypes.LastModifiedBy:
@@ -595,95 +593,83 @@ export async function getFieldVariable(
       },
     ];
   } else if (column.uidt === UITypes.User) {
-    const isMulti = parseProp(column.meta)?.is_multi;
-
-    if (isMulti) {
-      variable.extra = {
-        ...variable.extra,
-        itemSchema: [
-          {
-            key: 'id',
-            name: 'ID',
-            type: VariableType.String,
-            groupKey: VariableGroupKey.Fields,
-            extra: {
-              icon: 'cellSystemKey',
-              description: 'User ID',
-            },
+    variable.extra = {
+      ...variable.extra,
+      itemSchema: [
+        {
+          key: 'id',
+          name: 'ID',
+          type: VariableType.String,
+          groupKey: VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellSystemKey',
+            description: 'User ID',
           },
-          {
-            key: 'email',
-            name: 'Email',
-            type: VariableType.String,
-            groupKey: VariableGroupKey.Fields,
-            extra: {
-              icon: 'cellEmail',
-              description: 'User email',
-            },
+        },
+        {
+          key: 'email',
+          name: 'Email',
+          type: VariableType.String,
+          groupKey: VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellEmail',
+            description: 'User email',
           },
-          {
-            key: 'display_name',
-            name: 'Display Name',
-            type: VariableType.String,
-            groupKey: VariableGroupKey.Fields,
-            extra: {
-              icon: 'cellText',
-              description: 'User display name',
-            },
+        },
+        {
+          key: 'display_name',
+          name: 'Display Name',
+          type: VariableType.String,
+          groupKey: VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellText',
+            description: 'User display name',
           },
-        ],
-      };
-    }
+        },
+      ],
+    };
 
     variable.children = [
       {
-        key: isMulti ? `${variable.key}.map(item => item.id).join(', ')` : `id`,
-        name: isMulti ? 'User IDs' : 'User ID',
+        key: `${variable.key}.map(item => item.id).join(', ')`,
+        name: 'User IDs',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
           icon: 'cellSystemKey',
-          description: isMulti ? 'User IDs' : 'User ID',
+          description: 'User IDs',
         },
       },
       {
-        key: isMulti
-          ? `${variable.key}.map(item => item.email).join(', ')`
-          : `email`,
-        name: isMulti ? 'Emails' : 'Email',
+        key: `${variable.key}.map(item => item.email).join(', ')`,
+        name: 'Emails',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
           icon: 'cellEmail',
-          description: isMulti ? 'Emails' : 'Email',
+          description: 'Emails',
         },
       },
       {
-        key: isMulti
-          ? `${variable.key}.map(item => item.display_name || '').join(', ')`
-          : `display_name`,
-        name: isMulti ? 'Display names' : 'Display name',
+        key: `${variable.key}.map(item => item.display_name || '').join(', ')`,
+        name: 'Display names',
         type: VariableType.String,
         groupKey: VariableGroupKey.Fields,
         extra: {
           icon: 'cellText',
-          description: isMulti ? 'Display names' : 'Display name',
+          description: 'Display names',
         },
       },
-      ...(isMulti
-        ? [
-            {
-              key: `${variable.key}.length`,
-              name: 'Length',
-              type: VariableType.Number,
-              groupKey: VariableGroupKey.Meta,
-              extra: {
-                description: 'Length',
-                icon: 'cellNumber',
-              },
-            },
-          ]
-        : []),
+      {
+        key: `${variable.key}.length`,
+        name: 'Length',
+        type: VariableType.Number,
+        groupKey: VariableGroupKey.Meta,
+        extra: {
+          description: 'Length',
+          icon: 'cellNumber',
+        },
+      },
     ];
   } else if (column.uidt === UITypes.LinkToAnotherRecord && isArray) {
     variable.children = [

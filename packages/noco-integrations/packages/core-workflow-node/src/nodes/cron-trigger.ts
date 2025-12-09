@@ -1,13 +1,10 @@
 import {
-  FormBuilderInputType,
-  FormBuilderValidatorType,
   NocoSDK,
   TriggerActivationType,
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
 import type {
-  FormDefinition,
   WorkflowActivationContext,
   WorkflowActivationState,
   WorkflowNodeConfig,
@@ -24,38 +21,6 @@ interface CronTriggerConfig extends WorkflowNodeConfig {
 
 export class CronTriggerNode extends WorkflowNodeIntegration<CronTriggerConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
-    const form: FormDefinition = [
-      {
-        type: FormBuilderInputType.Input,
-        label: 'Cron Expression',
-        span: 24,
-        model: 'config.cronExpression',
-        placeholder: '*/5 * * * * (every 5 minutes)',
-        helpText: 'Use cron syntax: minute hour day month weekday',
-        validators: [
-          {
-            type: FormBuilderValidatorType.Required,
-            message: 'Cron expression is required',
-          },
-        ],
-      },
-      {
-        type: FormBuilderInputType.Select,
-        label: 'Timezone',
-        span: 24,
-        model: 'config.timezone',
-        placeholder: 'Select timezone (optional)',
-        options: [
-          { label: 'UTC', value: 'UTC' },
-          { label: 'America/New_York', value: 'America/New_York' },
-          { label: 'America/Los_Angeles', value: 'America/Los_Angeles' },
-          { label: 'Europe/London', value: 'Europe/London' },
-          { label: 'Asia/Tokyo', value: 'Asia/Tokyo' },
-        ],
-        validators: [],
-      },
-    ];
-
     return {
       id: 'core.trigger.cron',
       title: 'At scheduled time',
@@ -64,7 +29,7 @@ export class CronTriggerNode extends WorkflowNodeIntegration<CronTriggerConfig> 
       category: WorkflowNodeCategory.TRIGGER,
       activationType: TriggerActivationType.CRON,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
-      form,
+      form: [],
       keywords: [
         'cron',
         'schedule',
@@ -85,8 +50,6 @@ export class CronTriggerNode extends WorkflowNodeIntegration<CronTriggerConfig> 
         message: 'Cron expression is required',
       });
     }
-
-    // TODO: Add cron expression validation using a library like cron-parser
 
     return { valid: errors.length === 0, errors };
   }
@@ -110,7 +73,6 @@ export class CronTriggerNode extends WorkflowNodeIntegration<CronTriggerConfig> 
    */
   public async onDeactivateHook(): Promise<void> {
     // No external cleanup needed for cron triggers
-    // The dependency tracker entry will be deleted automatically
   }
 
   public async run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult> {

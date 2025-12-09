@@ -9,7 +9,7 @@ import { ncIsNaN } from '~/lib/is';
 
 export class PercentHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
-    precision: precisionFormats[0],
+    precision: precisionFormats[2],
     is_progress: false,
   };
 

@@ -78,7 +78,7 @@ export const parsePercentValue = (value: string | null, col: ColumnType) => {
 
   const perventValue = roundUpToPrecision(
     Number(value),
-    columnMeta.precision ?? 0 // keep precision fallback to 0 for backward compatibility
+    columnMeta.precision ?? 2
   );
 
   return `${perventValue}%`;

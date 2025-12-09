@@ -10,8 +10,10 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, viewingExecution } =
+const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, viewingExecution, activeTab } =
   useWorkflowOrThrow()
+
+const enableEditableMenu = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
 
 const wrappperRef = ref()
 
@@ -125,7 +127,7 @@ onClickOutside(
               {{ selectedNode.title }}
             </div>
 
-            <NcDropdown v-if="!viewingExecution" v-model:visible="showSubMenuDropdown">
+            <NcDropdown v-if="enableEditableMenu" v-model:visible="showSubMenuDropdown">
               <NcButton type="text" size="xxsmall" @click.stop>
                 <GeneralIcon icon="threeDotHorizontal" />
               </NcButton>

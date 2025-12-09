@@ -32,6 +32,8 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
 
+const isLinkRecordDropdown = inject(IsLinkRecordDropdownInj, ref(false))
+
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
@@ -43,13 +45,18 @@ const percentMeta = computed(() => {
   return {
     ...ColumnHelper.getColumnDefaultMeta(UITypes.Percent),
     ...parseProp(column?.value?.meta),
-    is_progress: isUnderLookup.value ? false : parseProp(column.value?.meta).is_progress ?? false,
+    is_progress: isUnderLookup.value && !isLinkRecordDropdown.value ? false : parseProp(column.value?.meta).is_progress ?? false,
   }
 })
 
 const vModel = computed({
   get: () => {
-    return isForm.value && !isEditColumn.value && _vModel.value && !cellFocused.value && !isNaN(Number(_vModel.value))
+    return isForm.value &&
+      !isEditColumn.value &&
+      _vModel.value &&
+      !cellFocused.value &&
+      !isNaN(Number(_vModel.value)) &&
+      props.location !== 'filter'
       ? `${_vModel.value}%`
       : _vModel.value
   },
@@ -76,13 +83,17 @@ const onBlur = () => {
 
 const onFocus = () => {
   cellFocused.value = true
-  editEnabled.value = true
+  if (!isReadonly(editEnabled)) {
+    editEnabled.value = true
+  }
   expandedEditEnabled.value = true
 }
 
 const onWrapperFocus = () => {
   cellFocused.value = true
-  editEnabled.value = true
+  if (!isReadonly(editEnabled)) {
+    editEnabled.value = true
+  }
   expandedEditEnabled.value = true
 
   nextTick(() => {

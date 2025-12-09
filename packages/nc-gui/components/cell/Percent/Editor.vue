@@ -64,7 +64,7 @@ const focus: VNodeRef = (el) => {
 
 const vModel = computed({
   get: () => {
-    return isForm.value && !isEditColumn.value && !cellFocused.value && !ncIsNaN(_vModel.value)
+    return isForm.value && !isEditColumn.value && !cellFocused.value && !ncIsNaN(_vModel.value) && props.location !== 'filter'
       ? `${roundUpToPrecision(Number(_vModel.value), percentMeta.value.precision ?? 2)}%`
       : _vModel.value
   },

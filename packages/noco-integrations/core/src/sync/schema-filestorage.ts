@@ -13,7 +13,6 @@ export const SCHEMA_FILE_STORAGE: SyncSchema = {
       { title: 'Description', uidt: UITypes.SingleLineText },
       { title: 'Checksum', uidt: UITypes.SingleLineText },
       { title: 'Permissions', uidt: UITypes.JSON },
-      { title: 'Drive', uidt: UITypes.LinkToAnotherRecord },
     ],
     relations: [],
   },
@@ -24,7 +23,6 @@ export const SCHEMA_FILE_STORAGE: SyncSchema = {
       { title: 'Folder URL', uidt: UITypes.SingleLineText },
       { title: 'Size', uidt: UITypes.Number },
       { title: 'Description', uidt: UITypes.SingleLineText },
-      // { title: 'Drive', uidt: UITypes.LinkToAnotherRecord },
       { title: 'Permissions', uidt: UITypes.JSON },
     ],
     relations: [
@@ -35,7 +33,7 @@ export const SCHEMA_FILE_STORAGE: SyncSchema = {
       },
       {
         columnTitle: 'Parent Folder',
-        relatedTable: TARGET_TABLES.FILE_STORAGE_FILE,
+        relatedTable: TARGET_TABLES.FILE_STORAGE_FOLDER,
         relatedTableColumnTitle: 'Folders',
       },
     ],

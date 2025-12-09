@@ -389,7 +389,7 @@ const handleScrollIntoView = () => {
         v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
         v-model:value="vModel.meta.precision"
         :disabled="isMetaReadOnly"
-        dropdown-class-name="nc-dropdown-decimal-format"
+        dropdown-class-name="nc-dropdown-rollup-precision-format"
         @change="onPrecisionChange"
       >
         <template #suffixIcon>

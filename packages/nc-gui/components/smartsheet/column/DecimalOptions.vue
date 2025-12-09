@@ -34,8 +34,8 @@ const { isMetaReadOnly } = useRoles()
     <a-select
       v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
       v-model:value="vModel.meta.precision"
-      :disabled="isMetaReadOnly"
-      dropdown-class-name="nc-dropdown-decimal-format"
+      :disabled="Boolean(isMetaReadOnly)"
+      dropdown-class-name="nc-dropdown-decimal-precision-format"
       @change="onPrecisionChange"
     >
       <template #suffixIcon>

@@ -124,7 +124,7 @@ const revertToPublished = async () => {
       </NcTooltip>
 
       <div
-        class="rounded-md flex items-center gap-1 px-2 py-0.5"
+        class="rounded-md flex items-center gap-2 px-2 py-0.5"
         :class="{
           'bg-nc-bg-green-dark text-nc-content-green-dark text-captionBold': activeWorkflow?.enabled,
           'bg-nc-bg-gray-light text-nc-content-gray-muted text-caption': !activeWorkflow?.enabled,

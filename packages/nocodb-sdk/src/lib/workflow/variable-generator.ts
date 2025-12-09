@@ -349,12 +349,19 @@ export async function getFieldVariable(
 ): Promise<VariableDefinition> {
   let type: VariableType;
   let isArray: boolean;
+  let itemType: VariableType | undefined;
 
   if (column.uidt === UITypes.Lookup && context) {
     // For Lookup fields, resolve the actual type
     const resolvedType = await resolveLookupType(column, context);
-    type = resolvedType.type;
-    isArray = resolvedType.isArray;
+    if (resolvedType.isArray) {
+      type = VariableType.Array;
+      isArray = true;
+      itemType = resolvedType.type;
+    } else {
+      type = resolvedType.type;
+      isArray = false;
+    }
   } else {
     // For other fields, use the standard type mapping
     const typeInfo = uiTypeToVariableType(
@@ -378,6 +385,24 @@ export async function getFieldVariable(
       icon: uiTypeToIcon(column),
     },
   };
+
+  // For array Lookup fields, add itemSchema with the item type
+  if (column.uidt === UITypes.Lookup && isArray && itemType) {
+    variable.extra = {
+      ...variable.extra,
+      itemSchema: [
+        {
+          key: '',
+          name: 'Item',
+          type: itemType,
+          groupKey: VariableGroupKey.Fields,
+          extra: {
+            icon: uiTypeToIcon(column),
+          },
+        },
+      ],
+    };
+  }
 
   // Handle LTAR fields - add structure for id and fields properties
   if (column.uidt === UITypes.LinkToAnotherRecord) {

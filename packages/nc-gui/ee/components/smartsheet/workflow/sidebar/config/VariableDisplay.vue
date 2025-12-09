@@ -42,6 +42,8 @@ const getVariableIcon = (variable: VariableDefinition) => {
   }
 }
 
+const parser = new WorkflowExpressionParser()
+
 const getVariableValue = (variable: VariableDefinition) => {
   // Check if we have a stored value in extra (for dynamically generated children)
   if (variable.extra?.value !== undefined) {
@@ -58,26 +60,19 @@ const getVariableValue = (variable: VariableDefinition) => {
 
   if (!props.data) return undefined
 
-  const key = variable.key
-  const parts = key.split('.')
-  let value = props.data
+  try {
+    // Convert the variable key to an expression
+    // e.g., "record.fields['First Name']" → "$json.record.fields['First Name']"
+    const expression = variable.key.startsWith('$json') ? variable.key : `$json.${variable.key}`
 
-  for (const part of parts) {
-    if (value === undefined || value === null) return undefined
-
-    if (part.includes('[i]')) {
-      const arrayKey = part.replace('[i]', '')
-      value = value[arrayKey]
-      if (Array.isArray(value)) {
-        return value
-      }
-      return undefined
-    }
-
-    value = value[part]
+    // Set the data and evaluate
+    const rawData = toRaw(props.data)
+    parser.setCurrentNodeData(rawData)
+    return parser.evaluate(expression)
+  } catch (error) {
+    console.warn(`Failed to evaluate variable key "${variable.key}":`, error)
+    return undefined
   }
-
-  return value
 }
 
 const isVariableExpandable = (variable: VariableDefinition) => {
@@ -151,7 +146,6 @@ const getArrayItems = (variable: VariableDefinition) => {
     if (itemSchema && itemSchema.length > 0) {
       // Check if it's a primitive array (empty key means the item itself)
       const isPrimitiveArray = itemSchema.length === 1 && itemSchema[0].key === ''
-
       if (isPrimitiveArray) {
         // Array of primitives - display the value directly
         return {
@@ -227,14 +221,14 @@ const formatValue = (value: any): string => {
     <template v-for="variable in variables" :key="variable.key">
       <div
         v-if="!isVariableExpandable(variable)"
-        class="flex items-center py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
+        class="flex items-center overflow-x-hidden py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
         :style="{ paddingLeft: `${depth * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
       >
         <div class="flex items-center flex-1 gap-2 pr-2">
           <GeneralIcon :icon="getVariableIcon(variable) as any" class="w-4 h-4 text-nc-content-gray-subtle stroke-transparent" />
           <div class="text-body text-nc-content-gray-emphasis line-clamp-1 truncate">{{ variable.name }}</div>
         </div>
-        <NcTooltip class="text-bodyDefaultSm truncate text-nc-content-gray-subtle" show-on-truncate-only>
+        <NcTooltip class="text-bodyDefaultSm truncate min-w-8 text-right pr-1 text-nc-content-gray-subtle" show-on-truncate-only>
           <template #title>
             {{ getVariableValue(variable) }}
           </template>
@@ -243,11 +237,11 @@ const formatValue = (value: any): string => {
       </div>
       <div v-else>
         <div
-          class="flex items-center justify-between py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium cursor-pointer"
+          class="flex items-center justify-between overflow-x-hidden py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium cursor-pointer"
           :style="{ paddingLeft: `${depth * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
           @click="expandedItems.has(variable.key) ? expandedItems.delete(variable.key) : expandedItems.add(variable.key)"
         >
-          <div class="flex items-center flex-1 gap-2 overflow-y-auto">
+          <div class="flex items-center flex-1 gap-2 overflow-x-hidden">
             <GeneralIcon
               :icon="getVariableIcon(variable) as any"
               class="w-4 h-4 text-nc-content-gray-subtle stroke-transparent"
@@ -269,10 +263,10 @@ const formatValue = (value: any): string => {
             <template v-for="item in getArrayItems(variable)" :key="item.key">
               <div
                 v-if="item.isPrimitive"
-                class="flex items-center gap-4 overflow-y-auto py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
+                class="flex items-center gap-4 overflow-x-hidden py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
                 :style="{ paddingLeft: `${(depth + 1) * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
               >
-                <div class="flex items-center flex-1 gap-2 overflow-y-auto">
+                <div class="flex items-center flex-1 gap-2 overflow-x-hidden">
                   <GeneralIcon icon="cellText" class="w-4 h-4 text-nc-content-gray-subtle" />
                   <div class="text-body text-nc-content-gray-emphasis line-clamp-1 truncate">{{ item.name }}</div>
                 </div>
@@ -287,7 +281,7 @@ const formatValue = (value: any): string => {
               <!-- Object array  - expandable with children -->
               <div v-else>
                 <div
-                  class="flex items-center gap-4 overflow-y-auto justify-between py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium cursor-pointer"
+                  class="flex items-center gap-4 overflow-x-hidden justify-between py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium cursor-pointer"
                   :style="{ paddingLeft: `${(depth + 1) * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
                   @click="expandedItems.has(item.key) ? expandedItems.delete(item.key) : expandedItems.add(item.key)"
                 >
@@ -324,7 +318,7 @@ const formatValue = (value: any): string => {
             <div
               v-for="prop in getObjectProperties(variable)"
               :key="prop.key"
-              class="flex items-center gap-4 overflow-y-auto py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
+              class="flex items-center gap-4 overflow-x-hidden py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium"
               :style="{ paddingLeft: `${(depth + 1) * 1 + 0.75}rem`, paddingRight: '0.75rem' }"
             >
               <div class="flex items-center flex-1 gap-2">

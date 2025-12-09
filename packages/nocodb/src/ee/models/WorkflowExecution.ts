@@ -91,8 +91,8 @@ export default class WorkflowExecution implements IWorkflowExecution {
         condition,
         xcCondition,
         orderBy: {
-          id: 'desc',
           created_at: 'desc',
+          id: 'asc',
         },
         limit,
         offset: cursorId ? 0 : offset,

@@ -49,6 +49,18 @@ const meta = computed(() => {
 
 provide(MetaInj, meta)
 
+const workflowContext = inject(WorkflowVariableInj, null)
+
+const groupedVariables = computed(() => {
+  if (!selectedNodeId.value || !workflowContext?.getAvailableVariables) return []
+  return workflowContext.getAvailableVariables(selectedNodeId.value)
+})
+
+const flatVariables = computed(() => {
+  if (!selectedNodeId.value || !workflowContext?.getAvailableVariablesFlat) return []
+  return workflowContext.getAvailableVariablesFlat(selectedNodeId.value)
+})
+
 const sortSupportedColumns = computed(() => {
   return columns.value.filter((c) => {
     // Exclude system columns
@@ -292,7 +304,18 @@ onMounted(() => {
               :workflow="true"
               :link="false"
               @update:filters-length="isFilterDropdownOpen = $event > 0"
-            />
+            >
+              <template #dynamic-filter="{ filter, onUpdateFilterValue }">
+                <NcFormBuilderInputWorkflowInput
+                  class="h-8"
+                  :model-value="filter.value"
+                  :grouped-variables="groupedVariables"
+                  :variables="flatVariables"
+                  placeholder="Enter value"
+                  @update:model-value="(value) => onUpdateFilterValue(value)"
+                />
+              </template>
+            </SmartsheetToolbarColumnFilter>
           </div>
         </template>
       </NcDropdown>
@@ -396,7 +419,7 @@ onMounted(() => {
 <style lang="scss">
 .nc-list-records-filter-dropdown,
 .nc-list-records-sort-dropdown {
-  @apply !min-w-[500px] !max-w-[550px];
+  @apply !min-w-[500px] !max-w-[600px];
 
   .ant-dropdown-menu {
     @apply !p-0;
@@ -412,6 +435,16 @@ onMounted(() => {
 
   :deep(.ant-input-number) {
     @apply w-full;
+  }
+}
+
+:deep(.nc-workflow-input) {
+  .ProseMirror {
+    @apply !h-8 !min-h-8 border-none w-40 !py-1;
+  }
+
+  .nc-workflow-input-insert-btn {
+    @apply !-top-0.5;
   }
 }
 

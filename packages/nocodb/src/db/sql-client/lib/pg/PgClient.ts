@@ -3021,8 +3021,9 @@ class PGClient extends KnexClient {
         );
         query += n.rqd ? ' NOT NULL' : ' NULL';
         query += defaultValue ? ` DEFAULT ${defaultValue}` : '';
-        query += n.unique ? ` UNIQUE` : '';
       }
+
+      query = this.addUniqueConstraint(n, change, t, query, shouldSanitize);
     } else if (change === 1) {
       // Add column first (without UNIQUE constraint)
       query += this.genQuery(
@@ -3037,96 +3038,7 @@ class PGClient extends KnexClient {
         [t, this.sqlClient.raw(query)],
         shouldSanitize,
       );
-
-      // If unique constraint is needed, add it as a separate named constraint
-      // This allows us to store the constraint name for later retrieval
-      // Check both n.unique and n.ck (column_key) for unique constraint
-      // Normalize unique to boolean and check ck as number or string
-      const uniqueBool = !!n.unique;
-      const ckIsUnique = n.ck === 1 || n.ck === '1' || n.ck === true;
-      const isUnique = uniqueBool || ckIsUnique;
-
-      // Debug logging to verify unique constraint detection
-      if (n.unique !== undefined || n.ck !== undefined) {
-        log.api(
-          `alterTableColumn (change=${change}): unique=${n.unique}, ck=${n.ck}, isUnique=${isUnique}, column=${n.cn}`,
-        );
-      }
-
-      if (isUnique) {
-        // Ensure column name is set - use n.cn if available, otherwise fall back to n.cno
-        // Also ensure n.cn is set for subsequent operations
-        const columnName = n.cn || n.cno;
-        if (!columnName) {
-          throw new Error('Column name is required to add unique constraint');
-        }
-        // Set n.cn to ensure subsequent operations work correctly
-        if (!n.cn) {
-          n.cn = columnName;
-        }
-
-        // Add unique constraint - PostgreSQL will create the index automatically
-        // Use constraint name from internal_meta if available (set by columns.service.ts)
-        // Otherwise fall back to generated name (shouldn't happen in normal flow)
-        let constraintName = null;
-
-        // Try to get constraint name from internal_meta first
-        if (n.internal_meta) {
-          let internalMeta = n.internal_meta;
-          if (typeof internalMeta === 'string') {
-            try {
-              internalMeta = JSON.parse(internalMeta);
-            } catch {
-              internalMeta = {};
-            }
-          }
-          constraintName = internalMeta?.unique_constraint_name;
-        }
-
-        // Fallback: generate constraint name if not in internal_meta
-        // This should only happen if internal_meta wasn't set properly
-        if (!constraintName) {
-          // Try to use base_id, table_id, column_id if available in column object
-          if (n.base_id && n.fk_model_id && n.id) {
-            constraintName = `uk_${n.base_id}_${n.fk_model_id}_${n.id}`;
-          } else {
-            // Last resort: use table and column name (old method)
-            constraintName = `uk_${t}_${columnName}`
-              .replace(/[^a-zA-Z0-9_]/g, '_')
-              .slice(0, 63);
-          }
-        }
-
-        // Store constraint name in column internal_meta field for later retrieval
-        // This ensures we can drop the constraint even if table/column name changes
-        // The internal_meta field will be persisted when the column is updated
-        // Note: internal_meta is an internal field, not exposed via API
-        // Only store if not already set (columns.service.ts should have set it already)
-        if (!n.internal_meta || !n.internal_meta.unique_constraint_name) {
-          if (!n.internal_meta) n.internal_meta = {};
-          if (typeof n.internal_meta === 'string') {
-            try {
-              n.internal_meta = JSON.parse(n.internal_meta);
-            } catch {
-              n.internal_meta = {};
-            }
-          }
-          n.internal_meta.unique_constraint_name = constraintName;
-        }
-
-        // Drop constraint if it already exists (in case of retry or previous failed operation)
-        // Then add the constraint
-        query += this.genQuery(
-          `\nALTER TABLE ?? DROP CONSTRAINT IF EXISTS ??;\n`,
-          [t, constraintName],
-          shouldSanitize,
-        );
-        query += this.genQuery(
-          `\nALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??);\n`,
-          [t, constraintName, columnName],
-          shouldSanitize,
-        );
-      }
+      query = this.addUniqueConstraint(n, change, t, query, shouldSanitize);
     } else {
       // Ensure column name is set - use n.cn if available, otherwise fall back to o.cn or o.cno
       // This ensures all subsequent operations have a valid column name
@@ -3335,6 +3247,105 @@ class PGClient extends KnexClient {
           );
         }
       }
+    }
+    return query;
+  }
+
+  private addUniqueConstraint(
+    n,
+    change: number,
+    t,
+    query: string,
+    shouldSanitize: boolean,
+  ) {
+    // If unique constraint is needed, add it as a separate named constraint
+    // This allows us to store the constraint name for later retrieval
+    // Check both n.unique and n.ck (column_key) for unique constraint
+    // Normalize unique to boolean and check ck as number or string
+    const uniqueBool = !!n.unique;
+    const ckIsUnique = n.ck === 1 || n.ck === '1' || n.ck === true;
+    const isUnique = uniqueBool || ckIsUnique;
+
+    // Debug logging to verify unique constraint detection
+    if (n.unique !== undefined || n.ck !== undefined) {
+      log.api(
+        `alterTableColumn (change=${change}): unique=${n.unique}, ck=${n.ck}, isUnique=${isUnique}, column=${n.cn}`,
+      );
+    }
+
+    if (isUnique) {
+      // Ensure column name is set - use n.cn if available, otherwise fall back to n.cno
+      // Also ensure n.cn is set for subsequent operations
+      const columnName = n.cn || n.cno;
+      if (!columnName) {
+        throw new Error('Column name is required to add unique constraint');
+      }
+      // Set n.cn to ensure subsequent operations work correctly
+      if (!n.cn) {
+        n.cn = columnName;
+      }
+
+      // Add unique constraint - PostgreSQL will create the index automatically
+      // Use constraint name from internal_meta if available (set by columns.service.ts)
+      // Otherwise fall back to generated name (shouldn't happen in normal flow)
+      let constraintName = null;
+
+      // Try to get constraint name from internal_meta first
+      if (n.internal_meta) {
+        let internalMeta = n.internal_meta;
+        if (typeof internalMeta === 'string') {
+          try {
+            internalMeta = JSON.parse(internalMeta);
+          } catch {
+            internalMeta = {};
+          }
+        }
+        constraintName = internalMeta?.unique_constraint_name;
+      }
+
+      // Fallback: generate constraint name if not in internal_meta
+      // This should only happen if internal_meta wasn't set properly
+      if (!constraintName) {
+        // Try to use base_id, table_id, column_id if available in column object
+        if (n.base_id && n.fk_model_id && n.id) {
+          constraintName = `uk_${n.base_id}_${n.fk_model_id}_${n.id}`;
+        } else {
+          // Last resort: use table and column name (old method)
+          constraintName = `uk_${t}_${columnName}`
+            .replace(/[^a-zA-Z0-9_]/g, '_')
+            .slice(0, 63);
+        }
+      }
+
+      // Store constraint name in column internal_meta field for later retrieval
+      // This ensures we can drop the constraint even if table/column name changes
+      // The internal_meta field will be persisted when the column is updated
+      // Note: internal_meta is an internal field, not exposed via API
+      // Only store if not already set (columns.service.ts should have set it already)
+      if (!n.internal_meta || !n.internal_meta.unique_constraint_name) {
+        if (!n.internal_meta) n.internal_meta = {};
+        if (typeof n.internal_meta === 'string') {
+          try {
+            n.internal_meta = JSON.parse(n.internal_meta);
+          } catch {
+            n.internal_meta = {};
+          }
+        }
+        n.internal_meta.unique_constraint_name = constraintName;
+      }
+
+      // Drop constraint if it already exists (in case of retry or previous failed operation)
+      // Then add the constraint
+      query += this.genQuery(
+        `\nALTER TABLE ?? DROP CONSTRAINT IF EXISTS ??;\n`,
+        [t, constraintName],
+        shouldSanitize,
+      );
+      query += this.genQuery(
+        `\nALTER TABLE ?? ADD CONSTRAINT ?? UNIQUE (??);\n`,
+        [t, constraintName, columnName],
+        shouldSanitize,
+      );
     }
     return query;
   }

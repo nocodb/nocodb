@@ -1403,7 +1403,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                   class="nc-switch"
                   :disabled="!canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
                 >
-                  <div class="text-sm text-nc-content-gray flex items-center gap-1">
+                  <div class="text-sm text-nc-content-gray inline-flex items-center gap-1">
                     <span>{{ $t('labels.uniqueValuesOnly') }}</span>
                     <NcTooltip placement="right">
                       <template #title>

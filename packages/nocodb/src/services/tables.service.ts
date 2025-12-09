@@ -862,9 +862,9 @@ export class TablesService {
         const cdfValue = column.cdf;
         validateUniqueConstraint(
           context,
-          column.uidt,
+          column.uidt as UITypes,
           column.meta,
-          column.unique,
+          !!column.unique, // Convert to boolean (might be number or boolean)
           {
             is_meta: !!source.is_meta,
             is_local: !!source.is_local,

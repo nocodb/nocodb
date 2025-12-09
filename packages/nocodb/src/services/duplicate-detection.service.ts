@@ -112,9 +112,9 @@ export class DuplicateDetectionService {
         distinctQuery.first(),
       ]);
 
-      const total = parseInt(String(totalResult?.total || '0'), 10);
+      const total = parseInt(String((totalResult as any)?.total || '0'), 10);
       const distinct = parseInt(
-        String(distinctResult?.distinct_count || '0'),
+        String((distinctResult as any)?.distinct_count || '0'),
         10,
       );
 

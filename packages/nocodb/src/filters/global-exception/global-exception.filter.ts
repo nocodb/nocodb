@@ -196,13 +196,32 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         )}" provided for column "${exception.columnTitle}"`,
         error: 'ERR_INVALID_VALUE_FOR_FIELD',
       });
-    } else if (exception instanceof UniqueConstraintViolationError) {
+    } else if (
+      UniqueConstraintViolationError &&
+      typeof UniqueConstraintViolationError === 'function' &&
+      exception instanceof UniqueConstraintViolationError
+    ) {
       const httpStatus = apiVersion === NcApiVersion.V3 ? 409 : 400;
       return response.status(httpStatus).json({
         error: 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
         message: exception.message,
         fieldName: exception.fieldName,
         value: exception.value,
+      });
+    } else if (
+      exception &&
+      typeof exception === 'object' &&
+      'fieldName' in exception &&
+      'value' in exception &&
+      exception.constructor?.name === 'UniqueConstraintViolationError'
+    ) {
+      // Fallback check in case the class is not properly imported
+      const httpStatus = apiVersion === NcApiVersion.V3 ? 409 : 400;
+      return response.status(httpStatus).json({
+        error: 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
+        message: exception.message,
+        fieldName: (exception as any).fieldName,
+        value: (exception as any).value,
       });
     } else if (
       exception instanceof BadRequest ||

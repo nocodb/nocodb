@@ -359,7 +359,7 @@ useEventListener('afterprint', () => {
   .ant-input,
   .ant-input-affix-wrapper {
     @apply !rounded-lg !border-nc-border-gray-medium;
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08) !important;
     &:focus,
     &:focus-within {
       @apply !border-nc-border-brand;

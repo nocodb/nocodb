@@ -1405,7 +1405,9 @@ const webhookV2AndV3Diff = computed(() => {
 
                     <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
                       <div
-                        style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                        style="
+                          box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08), 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
+                        "
                         class="my-3 mx-1 rounded-lg overflow-hidden"
                       >
                         <Suspense>
@@ -1600,7 +1602,9 @@ const webhookV2AndV3Diff = computed(() => {
                         }"
                         :monaco-custom-theme="isDark ? jsonThemeDark : jsonThemeLight"
                         class="transition-all border-1 rounded-lg"
-                        style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                        style="
+                          box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08), 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
+                        "
                         :class="{
                           'w-0 min-w-0': !isVisible,
                           'min-h-60 max-h-80': isVisible,
@@ -1703,11 +1707,11 @@ const webhookV2AndV3Diff = computed(() => {
   }
 
   &:not(.ant-radio-wrapper-disabled):not(:hover):not(:focus-within):not(.shadow-selected) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
   }
 
   &:hover:not(:focus-within):not(.ant-radio-wrapper-disabled) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
   }
 }
 
@@ -1727,12 +1731,12 @@ const webhookV2AndV3Diff = computed(() => {
 
     &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
     &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
-      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+      box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
     }
 
     &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
       @apply border-nc-border-gray-dark;
-      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+      box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
     }
 
     &.ant-select-disabled .ant-select-selector {

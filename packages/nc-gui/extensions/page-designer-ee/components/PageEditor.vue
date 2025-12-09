@@ -214,7 +214,7 @@ const zoomLevel = computed(() => {
   @apply bg-nc-bg-gray-extralight;
   .page {
     @apply bg-nc-bg-default m-[40px];
-    box-shadow: 0px 0px 12px 2px rgba(0, 0, 0, 0.08);
+    box-shadow: 0px 0px 12px 2px rgba(var(--rgb-base), 0.08);
     .grid-lines {
       @apply opacity-0 transition-opacity duration-[0.5s] ease-in-out;
       > div {

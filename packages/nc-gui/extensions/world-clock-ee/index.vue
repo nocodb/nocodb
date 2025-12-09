@@ -201,7 +201,7 @@ watch(
               v-if="['Both', 'Analog'].includes(selectedClockMode)"
               class="flex justify-between w-full border-1 rounded-lg p-1 px-2 items-center h-8"
               :class="`${selectedClockMode === 'Both' ? 'w-2/3' : 'w-full'}`"
-              style="box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.08)"
+              style="box-shadow: 0 0 4px 0 rgba(var(--rgb-base), 0.08)"
             >
               <span class="text-[14px] font-600">Show numbers</span>
               <NcSwitch v-model:checked="showNumbers" />

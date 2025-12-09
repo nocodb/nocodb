@@ -913,12 +913,12 @@ onBeforeUnmount(() => {
 
 .nc-prompt-input-wrapper {
   @apply border-1 border-nc-border-gray-medium;
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
 }
 
 .nc-ai-button-options-preview {
   @apply rounded-lg border-1 border-nc-border-gray-medium;
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
 }
 
 .nc-ai-button-config-left-section {

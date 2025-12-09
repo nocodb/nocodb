@@ -587,7 +587,7 @@ watch(activeViewTab, (value) => {
     @apply cursor-pointer hover:bg-nc-bg-gray-extralight;
 
     &:hover {
-      box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
+      box-shadow: 0px 4px 8px -2px rgba(var(--rgb-base), 0.08), 0px 2px 4px -2px rgba(var(--rgb-base), 0.04);
     }
   }
 
@@ -636,7 +636,7 @@ watch(activeViewTab, (value) => {
           &:hover {
             @apply bg-nc-bg-gray-extralight;
 
-            box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
+            box-shadow: 0px 4px 8px -2px rgba(var(--rgb-base), 0.08), 0px 2px 4px -2px rgba(var(--rgb-base), 0.04);
 
             .action-btn {
               @apply inline-block;

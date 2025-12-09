@@ -132,3 +132,11 @@ const onAddExtension = (ext: any) => {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-market-extension-item {
+  &:hover {
+    box-shadow: 0px 4px 8px -2px rgba(var(--rgb-base), 0.08), 0px 2px 4px -2px rgba(var(--rgb-base), 0.04);
+  }
+}
+</style>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnHelper, roundUpToPrecision, ncIsNaN, UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, ncIsNaN, roundUpToPrecision } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: number | string | null

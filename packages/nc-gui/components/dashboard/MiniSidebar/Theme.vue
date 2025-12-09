@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { toggleTheme, isDark, isThemeEnabled, selectedTheme } = useTheme()
+const { toggleTheme, isThemeEnabled, selectedTheme } = useTheme()
 
 const themeIcon = computed(
   () =>

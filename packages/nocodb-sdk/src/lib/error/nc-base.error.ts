@@ -65,7 +65,7 @@ export class OptionsNotExistsError extends BadRequestV2 {
 export class UniqueConstraintViolationError extends BadRequestV2 {
   constructor({ value, fieldName }: { value: string; fieldName: string }) {
     super(
-      `The value '${value}' already exists in the field '${fieldName}'. Each value in this field must be unique.`
+      `Unique constraint violation: The value '${value}' already exists for the ${fieldName} field.`
     );
     this.value = value;
     this.fieldName = fieldName;

@@ -184,6 +184,20 @@ async function processColumnToSwaggerField(
       field.format = 'uri';
       field.virtual = false;
       break;
+    case UITypes.User: {
+      const userProperties = {
+        id: { type: 'string' },
+        email: { type: 'string' },
+        display_name: { type: ['string', 'null'] },
+      };
+      field.type = ['array', 'null'];
+      field.items = {
+        type: 'object',
+        properties: userProperties,
+      };
+      field.virtual = false;
+      break;
+    }
     case UITypes.LastModifiedTime:
       field.type = ['string', 'null'];
       field.format = 'date-time';

@@ -53,7 +53,7 @@ export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeCo
 
     return {
       id: 'nocodb.delete_record',
-      title: 'Delete Record',
+      title: 'Delete record',
       description: 'Delete a record from a NocoDB table',
       icon: 'ncRecordDelete',
       category: WorkflowNodeCategory.ACTION,

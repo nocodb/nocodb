@@ -137,7 +137,7 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
 
     return {
       id: 'slack.send_message',
-      title: 'Send Message',
+      title: 'Send message',
       description: 'Send a message to a Slack channel or user',
       icon: 'slack',
       category: WorkflowNodeCategory.ACTION,

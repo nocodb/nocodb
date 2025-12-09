@@ -70,7 +70,7 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
 
     return {
       id: 'nocodb.find_record',
-      title: 'Find Record',
+      title: 'Find record',
       description: 'Find a specific record by ID in a NocoDB table',
       icon: 'ncRecordFind',
       category: WorkflowNodeCategory.ACTION,

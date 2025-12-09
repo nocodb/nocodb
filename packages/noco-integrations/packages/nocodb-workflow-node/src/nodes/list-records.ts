@@ -33,7 +33,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
   public async definition(): Promise<WorkflowNodeDefinition> {
     return {
       id: 'nocodb.list_records',
-      title: 'List Records',
+      title: 'List records',
       description:
         'List records from a NocoDB table with optional filtering and sorting',
       icon: 'ncRecordFind',

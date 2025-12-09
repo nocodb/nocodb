@@ -58,7 +58,7 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
 
     return {
       id: 'nocodb.create_record',
-      title: 'Create Record',
+      title: 'Create record',
       description: 'Create a new record in a NocoDB table',
       icon: 'ncRecordCreate',
       category: WorkflowNodeCategory.ACTION,

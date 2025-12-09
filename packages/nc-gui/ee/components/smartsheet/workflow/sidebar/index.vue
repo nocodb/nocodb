@@ -23,11 +23,6 @@ const { selectedNode, selectedNodeId, activeTab, viewingExecution } = useWorkflo
     </template>
     <template v-else-if="activeTab === 'logs'">
       <template v-if="viewingExecution && selectedNode">
-        <div class="border-b-1 border-nc-border-gray-medium py-2 px-1" @click="selectedNodeId = null">
-          <NcButton type="text" size="small">
-            <GeneralIcon icon="ncChevronLeft" />
-          </NcButton>
-        </div>
         <NodeDetails read-only />
         <ExecutionResult />
       </template>

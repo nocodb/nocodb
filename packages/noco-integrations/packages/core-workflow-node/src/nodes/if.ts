@@ -35,7 +35,7 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
 
     return {
       id: 'core.flow.if',
-      title: 'If/Else',
+      title: 'If / Else',
       icon: 'ncIfElse',
       description: 'Route execution based on conditions',
       category: WorkflowNodeCategory.FLOW,
@@ -679,5 +679,148 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
       date1.getMonth() === date2.getMonth() &&
       date1.getDate() === date2.getDate()
     );
+  }
+
+  public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+    const variables: NocoSDK.VariableDefinition[] = [];
+    const { conditions } = this.config;
+
+    if (!conditions || conditions.length === 0) return [];
+
+    // Calculate max depth of nested conditions
+    const getMaxDepth = (
+      items: NocoSDK.WorkflowNodeConditionItem[],
+      depth = 0,
+    ): number => {
+      let maxDepth = depth;
+      items.forEach((item) => {
+        if (
+          'is_group' in item &&
+          item.is_group &&
+          item.children &&
+          item.children.length > 0
+        ) {
+          const childDepth = getMaxDepth(item.children, depth + 1);
+          maxDepth = Math.max(maxDepth, childDepth);
+        }
+      });
+      return maxDepth;
+    };
+
+    const maxDepth = getMaxDepth(conditions);
+
+    // Build condition item schema with limited recursion depth
+    const buildConditionItemSchema = (currentDepth: number): any[] => {
+      const schema: any[] = [
+        {
+          key: 'field',
+          name: 'Variable',
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellText',
+            description: 'Variable to evaluate',
+          },
+        },
+        {
+          key: 'dataType',
+          name: 'Data Type',
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellText',
+            description: 'Data type (text, number, date, etc.)',
+          },
+        },
+        {
+          key: 'comparison_op',
+          name: 'Comparison Operator',
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellText',
+            description: 'Comparison operator (eq, neq, gt, lt, etc.)',
+          },
+        },
+        {
+          key: 'comparison_sub_op',
+          name: 'Comparison Sub Operator',
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellText',
+            description: 'Sub operator for date comparisons',
+          },
+        },
+        {
+          key: 'value',
+          name: 'Value',
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellText',
+            description: 'Comparison value',
+          },
+        },
+        {
+          key: 'logical_op',
+          name: 'Logical Operator',
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'cellText',
+            description: 'Logical operator (and/or)',
+          },
+        },
+      ];
+
+      // Only add children field if we haven't reached max depth
+      if (currentDepth < maxDepth) {
+        schema.push({
+          key: 'children',
+          name: 'Children',
+          type: NocoSDK.VariableType.Array,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'ncIfElse',
+            description: 'Nested condition group children',
+            itemSchema: buildConditionItemSchema(currentDepth + 1),
+          },
+        });
+      }
+
+      return schema;
+    };
+
+    variables.push({
+      key: 'config.conditions',
+      name: 'Conditions',
+      type: NocoSDK.VariableType.Array,
+      groupKey: NocoSDK.VariableGroupKey.Fields,
+      extra: {
+        icon: 'ncIfElse',
+        description: 'Condition items for evaluation',
+        itemSchema: buildConditionItemSchema(0),
+      },
+    });
+
+    return variables;
+  }
+
+  public async generateOutputVariables(): Promise<
+    NocoSDK.VariableDefinition[]
+  > {
+    return [
+      {
+        key: 'result',
+        name: 'Result',
+        type: NocoSDK.VariableType.Boolean,
+        groupKey: NocoSDK.VariableGroupKey.Meta,
+        extra: {
+          icon: 'cellCheckbox',
+          description: 'Condition evaluation result (true/false)',
+        },
+      },
+    ];
   }
 }

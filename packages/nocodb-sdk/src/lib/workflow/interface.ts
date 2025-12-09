@@ -50,6 +50,22 @@ interface VariableDefinition {
 
     // Description for tooltips
     description?: string;
+
+    // Value for dynamically generated variables (used in data display)
+    value?: any;
+
+    // Item schema for array variables - defines the structure of each array item
+    // Used to generate "Record 1", "Record 2", etc. when displaying actual data
+    itemSchema?: VariableDefinition[];
+
+    // Entity references for dependency tracking
+    // When a variable is an array of objects, this property is used to track the entities that are referenced by the objects
+    entityReferences?: {
+      entity_id: string;
+      entity: 'column' | 'table' | 'view';
+      title: string;
+      field: string;
+    }[];
   };
 
   // Nested variables for objects/arrays
@@ -88,6 +104,35 @@ interface WorkflowExecutionState {
   currentNodeId?: string;
   triggerData?: any;
   triggerNodeTitle?: string; // Optional: which trigger node to start from
+}
+
+interface IWorkflowExecution {
+  id: string;
+
+  fk_workspace_id: string;
+  base_id: string;
+
+  fk_workflow_id: string;
+
+  workflow_data?:
+    | {
+        id: string;
+        title: string;
+        nodes: WorkflowGeneralNode[];
+        edges: WorkflowGeneralEdge[];
+      }
+    | Record<string, any>;
+
+  execution_data?: WorkflowExecutionState;
+
+  created_at?: string;
+  updated_at?: string;
+
+  finished_at?: string;
+  started_at?: string;
+  finished?: boolean;
+
+  status: 'running' | 'completed' | 'error' | 'cancelled' | 'skipped';
 }
 
 interface NodeConfig {
@@ -129,4 +174,5 @@ export {
   WorkflowGeneralNode,
   NodeExecutionResult,
   WorkflowExecutionState,
+  IWorkflowExecution,
 };

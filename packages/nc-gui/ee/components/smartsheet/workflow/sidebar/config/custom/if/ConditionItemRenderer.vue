@@ -11,7 +11,7 @@ import {
   WorkflowNodeFilterDataType,
   extractDataTypeFromWorkflowNodeExpression,
 } from 'nocodb-sdk'
-import ConditionItemRenderer from '~/components/smartsheet/workflow/sidebar/config/if/ConditionItemRenderer.vue'
+import ConditionItemRenderer from '~/components/smartsheet/workflow/sidebar/config/custom/if/ConditionItemRenderer.vue'
 
 interface Props {
   item: WorkflowNodeConditionItem
@@ -38,7 +38,7 @@ const isFirstInGroup = computed(() => {
 })
 
 const isSecondInGroup = computed(() => {
-  return props.path[props.path.length - 2] === 0
+  return props.path[props.path.length - 1] === 1
 })
 
 const updateItem = (updates: Partial<WorkflowNodeFilterCondition | WorkflowNodeConditionGroup>) => {
@@ -262,7 +262,7 @@ const logicalOps = [
             </div>
             <NcSelect
               v-else
-              :disabled="isSecondInGroup"
+              :disabled="!isSecondInGroup"
               :value="(item as WorkflowNodeConditionGroup).logical_op"
               class="!min-w-18 !max-w-18 capitalize nc-select-shadow"
               dropdown-class-name="nc-dropdown-filter-logical-op-group"

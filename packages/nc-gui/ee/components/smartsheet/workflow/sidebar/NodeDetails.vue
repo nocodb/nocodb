@@ -47,7 +47,7 @@ function handleDescriptionBlur() {
 
 <template>
   <div class="px-4 py-5 relative">
-    <div class="flex gap-3 items-center">
+    <div v-if="nodeMeta" class="flex gap-3 items-center">
       <div
         class="flex items-center justify-center rounded-lg p-3 border-1 border-nc-brand-100 bg-nc-bg-brand text-nc-content-brand"
       >
@@ -70,7 +70,11 @@ function handleDescriptionBlur() {
     </div>
 
     <div class="mt-4">
-      <div v-if="!isDescriptionInEditMode || props.readOnly" class="text-body px-1" @click="enableDescriptionEditMode">
+      <div
+        v-if="!isDescriptionInEditMode || props.readOnly"
+        class="text-body line-clamp-3 w-85 px-1"
+        @click="enableDescriptionEditMode"
+      >
         <span v-if="!nodeDescription && !props.readOnly" class="text-nc-content-gray-muted">
           {{ $t('labels.addDescription') }}
         </span>

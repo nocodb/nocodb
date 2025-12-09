@@ -59,7 +59,7 @@ const handleValueUpdate = (value: any) => {
 
 <template>
   <NcListDropdown v-model:is-open="isOpenTableSelectDropdown" :has-error="!!selectedTable?.ncItemDisabled">
-    <div class="flex-1 flex items-center gap-2 min-w-0">
+    <div class="flex-1 flex items-center group gap-2 min-w-0">
       <div v-if="selectedTable && !Array.isArray(selectedTable)" class="min-w-5 flex items-center justify-center">
         <NcIconTable :table="selectedTable.table as TableType" class="text-nc-content-muted" />
       </div>
@@ -77,6 +77,12 @@ const handleValueUpdate = (value: any) => {
           {{ selectedTableLabel }}
         </template>
       </NcTooltip>
+      <GeneralIcon
+        v-if="selectedTable"
+        class="!hidden text-nc-content-gray-muted transition group-hover:!block h-4 w-4 cursor-pointer"
+        icon="ncXCircle"
+        @click.stop="handleValueUpdate(null)"
+      />
 
       <GeneralIcon
         icon="ncChevronDown"

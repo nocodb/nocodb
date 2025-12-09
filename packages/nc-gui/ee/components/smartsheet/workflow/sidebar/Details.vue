@@ -111,13 +111,15 @@ function handleDescriptionBlur() {
       <div class="mt-2">
         <div
           v-if="!isDescriptionInEditMode"
-          class="text-body text-nc-content-gray-subtle px-1"
+          class="text-body text-nc-content-gray-subtle line-clamp-3 w-85 px-1"
           @click="enableDescriptionEditMode"
         >
           <span v-if="!workflowDescription" class="text-nc-content-gray-muted">
             {{ $t('labels.addDescription') }}
           </span>
-          {{ workflowDescription }}
+          <template v-else>
+            {{ workflowDescription }}
+          </template>
         </div>
         <div v-else>
           <a-textarea

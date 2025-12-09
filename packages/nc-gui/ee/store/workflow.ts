@@ -189,6 +189,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     workflowId: string,
     updates: Partial<WorkflowType>,
     options?: {
+      bumpDirty?: boolean
       skipNetworkCall?: boolean
     },
   ) => {
@@ -211,6 +212,10 @@ export const useWorkflowStore = defineStore('workflow', () => {
               workflowId,
             },
           )
+
+      if (options?.bumpDirty) {
+        updated._dirty = workflow?._dirty ? +workflow?._dirty + 1 : 1
+      }
 
       const baseWorkflows = workflows.value.get(baseId) || []
       const index = baseWorkflows.findIndex((a) => a.id === workflowId)
@@ -286,36 +291,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
-  const openWorkflow = async (workflow: WorkflowType) => {
-    if (!workflow.base_id || !workflow.id) return
-
-    let base = bases.value.get(workflow.base_id)
-    if (!base) {
-      await loadProject(workflow.base_id)
-      base = bases.value.get(workflow.base_id)
-      if (!base) throw new Error('Base not found')
-    }
-
-    let workspaceIdOrType = activeWorkspaceId.value
-    if (['nc', 'base'].includes(route.params.typeOrId as string)) {
-      workspaceIdOrType = route.params.typeOrId as string
-    }
-
-    let baseIdOrBaseId = base.id
-    if (['base'].includes(route.params.typeOrId as string)) {
-      baseIdOrBaseId = route.params.baseId as string
-    }
-
-    $e('c:workflow:open')
-
-    ncNavigateTo({
-      workspaceId: workspaceIdOrType,
-      baseId: baseIdOrBaseId,
-      workflowId: workflow.id,
-      workflowTitle: workflow.title,
-    })
-  }
-
   const duplicateWorkflow = async (baseId: string, workflowId: string) => {
     if (!activeWorkspaceId.value) return null
 
@@ -358,12 +333,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
-  const publishWorkflow = async (baseId: string, workflowId: string) => {
-    if (!activeWorkspaceId.value) return null
+  const publishWorkflow = async (workflowId: string) => {
+    if (!activeWorkspaceId.value || !activeProjectId.value) return null
     try {
       const published = await $api.internal.postOperation(
         activeWorkspaceId.value,
-        baseId,
+        activeProjectId.value,
         {
           operation: 'workflowPublish',
         },
@@ -372,8 +347,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
         },
       )
 
-      // Update local state
-      const baseWorkflows = workflows.value.get(baseId) || []
+      const baseWorkflows = workflows.value.get(activeProjectId.value) || []
       const index = baseWorkflows.findIndex((a) => a.id === workflowId)
 
       if (index !== -1) {
@@ -382,7 +356,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
           ...published,
           _dirty: published._dirty ? published._dirty + 1 : 1,
         } as WorkflowType
-        workflows.value.set(baseId, updatedWorkflows)
+        workflows.value.set(activeProjectId.value, updatedWorkflows)
       }
 
       $e('a:workflow:publish')
@@ -427,6 +401,68 @@ export const useWorkflowStore = defineStore('workflow', () => {
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return []
     }
+  }
+
+  const executeWorkflow = async (workflowId: string) => {
+    if (!activeWorkspaceId.value || !activeProjectId.value) return
+    try {
+      const executionState = await $api.internal.postOperation(
+        activeWorkspaceId.value,
+        activeProjectId.value,
+        {
+          operation: 'workflowExecute',
+        },
+        {
+          workflowId,
+          triggerData: {
+            timestamp: Date.now(),
+          },
+        },
+      )
+      if (executionState.status === 'completed') {
+        const duration = ((executionState.endTime - executionState.startTime) / 1000).toFixed(2)
+        const nodesCount = executionState?.nodeResults?.length
+        message.success(`Workflow executed successfully in ${duration}s (${nodesCount} nodes executed)`)
+      } else if (executionState.status === 'error') {
+        const errorNode = executionState?.nodeResults?.find((r: any) => r.status === 'error')
+        const errorMessage = errorNode ? `Node "${errorNode.nodeTitle}" failed: ${errorNode.error}` : 'Workflow execution failed'
+        message.error(errorMessage)
+        console.error('[Workflow] Execution error:', executionState)
+      }
+    } catch (e) {
+      console.error(e)
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+    }
+  }
+
+  const openWorkflow = async (workflow: WorkflowType) => {
+    if (!workflow.base_id || !workflow.id) return
+
+    let base = bases.value.get(workflow.base_id)
+    if (!base) {
+      await loadProject(workflow.base_id)
+      base = bases.value.get(workflow.base_id)
+      if (!base) throw new Error('Base not found')
+    }
+
+    let workspaceIdOrType = activeWorkspaceId.value
+    if (['nc', 'base'].includes(route.params.typeOrId as string)) {
+      workspaceIdOrType = route.params.typeOrId as string
+    }
+
+    let baseIdOrBaseId = base.id
+    if (['base'].includes(route.params.typeOrId as string)) {
+      baseIdOrBaseId = route.params.baseId as string
+    }
+
+    $e('c:workflow:open')
+
+    ncNavigateTo({
+      workspaceId: workspaceIdOrType,
+      baseId: baseIdOrBaseId,
+      workflowId: workflow.id,
+      workflowTitle: workflow.title,
+    })
   }
 
   async function openNewWorkflowModal({
@@ -552,6 +588,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     duplicateWorkflow,
     publishWorkflow,
     openNewWorkflowModal,
+    executeWorkflow,
     // Execution Logs
     loadWorkflowExecutions,
   }

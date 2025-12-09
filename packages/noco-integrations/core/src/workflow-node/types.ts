@@ -152,12 +152,16 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
    * Called when config changes (e.g., table selected)
    * Optional - implement if node has configurable inputs
    */
-  public async generateInputVariables?(): Promise<VariableDefinition[]>;
+  public async generateInputVariables?(
+    context: NocoSDK.VariableGeneratorContext,
+  ): Promise<VariableDefinition[]>;
 
   /**
    * Generate output variables from node definition
    * Called after node definition or test execution
    * Optional - implement if node produces structured output
    */
-  public async generateOutputVariables?(): Promise<VariableDefinition[]>;
+  public async generateOutputVariables?(
+    context: NocoSDK.VariableGeneratorContext,
+  ): Promise<VariableDefinition[]>;
 }

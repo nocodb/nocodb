@@ -32,6 +32,7 @@ export function useViewFilters(
   isNestedRoot?: boolean,
   isWebhook?: boolean,
   isLink?: boolean,
+  isWorkflow?: boolean,
   isWidget?: boolean,
   widgetId?: Ref<string | null>,
   linkColId?: Ref<string>,
@@ -48,13 +49,14 @@ export function useViewFilters(
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
-  const { nestedFilters, isForm, allFilters } = isWidget
-    ? {
-        nestedFilters: ref([]),
-        isForm: ref(false),
-        allFilters: ref([]),
-      }
-    : useSmartsheetStoreOrThrow()
+  const { nestedFilters, isForm, allFilters } =
+    isWidget || isWorkflow
+      ? {
+          nestedFilters: ref([]),
+          isForm: ref(false),
+          allFilters: ref([]),
+        }
+      : useSmartsheetStoreOrThrow()
 
   const { baseMeta } = storeToRefs(useBase())
 
@@ -74,7 +76,7 @@ export function useViewFilters(
 
   const filters = computed<ColumnFilterType[]>({
     get: () => {
-      return (nestedMode.value && !isLink && !isWebhook && !isWidget) || (isForm.value && !isWebhook)
+      return (nestedMode.value && !isLink && !isWebhook && !isWidget && !isWorkflow) || (isForm.value && !isWebhook)
         ? currentFilters.value!
         : _filters.value
     },
@@ -82,15 +84,15 @@ export function useViewFilters(
       if (isForm.value && !isWebhook) {
         currentFilters.value = value
         return
-      } else if (nestedMode.value) {
+      } else if (nestedMode.value || isWorkflow) {
         currentFilters.value = value
-        if (!isLink && !isWebhook && !isWidget) {
+        if (!isLink && !isWebhook && !isWidget && !isWorkflow) {
           if (!isNestedRoot) {
             nestedFilters.value = value
           }
           nestedFilters.value = [...nestedFilters.value]
         }
-        reloadHook?.trigger()
+        if (!isWorkflow) reloadHook?.trigger()
         return
       }
 
@@ -116,7 +118,7 @@ export function useViewFilters(
 
   const activeView = inject(ActiveViewInj, ref())
 
-  const { showSystemFields } = widgetId?.value ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
+  const { showSystemFields } = widgetId?.value || isWorkflow ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
 
   const options = computed<SelectProps['options']>(() =>
     meta.value?.columns?.filter((c: ColumnType) => {
@@ -317,7 +319,7 @@ export function useViewFilters(
     loadAllFilters?: boolean
     isLink?: boolean
   } = {}) => {
-    if (nestedMode.value || (isForm.value && !isWebhook)) {
+    if (nestedMode.value || (isForm.value && !isWebhook) || isWorkflow) {
       // ignore restoring if not root filter group
       return
     }
@@ -507,7 +509,7 @@ export function useViewFilters(
       }
     }
     try {
-      if (nestedMode.value) {
+      if (nestedMode.value || isWorkflow) {
         filters.value[i] = { ...filter }
         filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
       } else if (!autoApply?.value && !force) {
@@ -524,6 +526,7 @@ export function useViewFilters(
           link: !!isLink,
           widget: !!isWidget,
           webHook: !!isWebhook,
+          workflow: !!isWorkflow,
         })
 
         if (undo) {
@@ -626,10 +629,10 @@ export function useViewFilters(
       })
     }
     // if shared or sync permission not allowed simply remove it from array
-    if (nestedMode.value) {
+    if (nestedMode.value || isWorkflow) {
       filters.value.splice(i, 1)
       filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
-      if (!isWebhook && !isLink && !isWidget) reloadData?.()
+      if (!isWebhook && !isLink && !isWidget && !isWorkflow) reloadData?.()
     } else {
       if (filter.id) {
         // if auto-apply disabled mark it as disabled
@@ -654,7 +657,13 @@ export function useViewFilters(
       } else {
         filters.value.splice(i, 1)
       }
-      $e('a:filter:delete', { length: nonDeletedFilters.value.length, link: !!isLink, webHook: !!isWebhook, widget: !!isWidget })
+      $e('a:filter:delete', {
+        length: nonDeletedFilters.value.length,
+        link: !!isLink,
+        webHook: !!isWebhook,
+        widget: !!isWidget,
+        workflow: !!isWorkflow,
+      })
     }
 
     if (filter.is_group) {
@@ -690,7 +699,13 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    $e('a:filter:add', { length: filters.value.length, link: !!isLink, webHook: !!isWebhook, widget: !!isWidget })
+    $e('a:filter:add', {
+      length: filters.value.length,
+      link: !!isLink,
+      webHook: !!isWebhook,
+      widget: !!isWidget,
+      workflow: !!isWorkflow,
+    })
   }
 
   const addFilterGroup = async () => {
@@ -699,7 +714,7 @@ export function useViewFilters(
 
     const placeHolderGroupFilter: ColumnFilterType = placeholderGroupFilter()
 
-    if (nestedMode.value) placeHolderGroupFilter.children = [child]
+    if (nestedMode.value || isWorkflow) placeHolderGroupFilter.children = [child]
 
     filters.value.push(placeHolderGroupFilter)
 
@@ -709,7 +724,14 @@ export function useViewFilters(
 
     lastFilters.value = clone(filters.value)
 
-    $e('a:filter:add', { length: filters.value.length, group: true, link: !!isLink, webHook: !!isWebhook, widget: !!isWidget })
+    $e('a:filter:add', {
+      length: filters.value.length,
+      group: true,
+      link: !!isLink,
+      webHook: !!isWebhook,
+      widget: !!isWidget,
+      workflow: !!isWorkflow,
+    })
   }
 
   /** on column delete reload filters, identify by checking columns count */

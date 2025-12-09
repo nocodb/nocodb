@@ -44,8 +44,8 @@ export class ExecuteWorkflowProcessor {
           edges: workflow.edges,
         },
         finished: false,
-        started_at: new Date(),
-        status: 'in_progress',
+        started_at: new Date().toISOString(),
+        status: 'running',
       });
 
       NocoSocket.broadcastEvent(context, {
@@ -73,8 +73,8 @@ export class ExecuteWorkflowProcessor {
         {
           execution_data: result,
           finished: true,
-          finished_at: new Date(),
-          status: result.status === 'completed' ? 'success' : result.status,
+          finished_at: new Date().toISOString(),
+          status: result.status,
         },
       );
 
@@ -98,7 +98,7 @@ export class ExecuteWorkflowProcessor {
             executionRecord.id,
             {
               finished: true,
-              finished_at: new Date(),
+              finished_at: new Date().toISOString(),
               status: 'error',
               execution_data: null,
             },

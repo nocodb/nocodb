@@ -17,7 +17,9 @@ interface FieldRow {
   value: string
 }
 
+const isInternalUpdate = ref(false)
 const { getFieldOptions } = useFormBuilderHelperOrThrow()
+
 const workflowContext = inject(WorkflowVariableInj, null)
 
 const fieldOptions = computed<FormBuilderSelectOption[]>(() => {
@@ -64,7 +66,11 @@ watch(
         newValue[row.fieldId] = row.value
       }
     })
+    isInternalUpdate.value = true
     vModel.value = Object.keys(newValue).length > 0 ? newValue : null
+    nextTick(() => {
+      isInternalUpdate.value = false
+    })
   },
   { deep: true },
 )
@@ -98,6 +104,33 @@ function getAvailableOptions(currentRowId: string) {
 
   return fieldOptions.value.filter((option) => !selectedFieldIds.has(option.value))
 }
+
+// Watch modelValue for external changes (e.g., when form builder resets the field)
+watch(
+  () => props.modelValue,
+  (newValue) => {
+    // Skip if this update originated from within the component
+    if (isInternalUpdate.value) return
+
+    if (!newValue || (typeof newValue === 'object' && Object.keys(newValue).length === 0)) {
+      // Reset to single empty row when cleared externally
+      fieldRows.value = [
+        {
+          id: crypto.randomUUID(),
+          fieldId: '',
+          value: '',
+        },
+      ]
+    } else if (typeof newValue === 'object') {
+      // Update fieldRows when modelValue changes externally
+      fieldRows.value = Object.entries(newValue).map(([fieldId, value]) => ({
+        id: crypto.randomUUID(),
+        fieldId,
+        value: value || '',
+      }))
+    }
+  },
+)
 </script>
 
 <template>

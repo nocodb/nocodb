@@ -343,9 +343,9 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
     }
   }
 
-  public async generateOutputVariables(): Promise<
-    NocoSDK.VariableDefinition[]
-  > {
+  public async generateOutputVariables(
+    context: NocoSDK.VariableGeneratorContext,
+  ): Promise<NocoSDK.VariableDefinition[]> {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -361,7 +361,12 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
 
       if (!table) return [];
 
-      return NocoSDK.genRecordVariables(table.columns, false, 'record');
+      return await NocoSDK.genRecordVariables(
+        table.columns,
+        false,
+        'record',
+        context,
+      );
     } catch {
       return [];
     }

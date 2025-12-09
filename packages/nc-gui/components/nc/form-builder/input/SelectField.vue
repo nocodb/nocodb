@@ -77,6 +77,13 @@ const handleValueUpdate = (value: any) => {
       </NcTooltip>
 
       <GeneralIcon
+        v-if="selectedColumn"
+        class="hidden text-nc-content-gray-muted transition group-hover:!block h-4 w-4 cursor-pointer"
+        icon="ncXCircle"
+        @click.stop="handleValueUpdate(null)"
+      />
+
+      <GeneralIcon
         icon="ncChevronDown"
         class="flex-none h-4 w-4 transition-transform opacity-70"
         :class="{ 'transform rotate-180': isOpenColumnSelectDropdown }"

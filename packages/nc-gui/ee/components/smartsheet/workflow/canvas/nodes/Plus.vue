@@ -9,7 +9,7 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const { getNodeMetaById, updateNode, addPlusNode, triggerLayout, edges, updateSelectedNode } = useWorkflowOrThrow()
+const { getNodeMetaById, updateNode, addPlusNode, triggerLayout, edges, selectedNodeId } = useWorkflowOrThrow()
 
 const selectNodeType = async (option: WorkflowNodeDefinition) => {
   updateNode(props.id, {
@@ -48,7 +48,7 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
       triggerLayout()
     }, 50)
 
-    updateSelectedNode(props.id)
+    selectedNodeId.value = props.id
   }
 }
 </script>
@@ -64,7 +64,7 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
       <template #default="{ openDropdown, showDropdown }">
         <div
           :class="{
-            'ring ring-nc-brand-500 ring-offset-2': showDropdown,
+            'ring ring-nc-brand-500 ring-offset-2.5 ring-1.5': showDropdown,
           }"
           class="flex border-1 rounded-lg w-77 bg-nc-bg-default justify-center border-dashed cursor-pointer border-nc-border-gray-dark px-2 py-4"
           @click="openDropdown"

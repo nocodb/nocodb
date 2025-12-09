@@ -3,6 +3,7 @@ import {
   GeneralNodeID,
   genGeneralVariables,
   IntegrationsType,
+  NcBaseError,
   NOCO_SERVICE_USERS,
   ServiceUserType,
   WorkflowExpressionParser,
@@ -10,6 +11,7 @@ import {
 import type {
   NodeExecutionResult,
   VariableDefinition,
+  VariableGeneratorContext,
   WorkflowExecutionState,
   WorkflowGeneralEdge,
   WorkflowGeneralNode,
@@ -21,7 +23,7 @@ import type {
   WorkflowNodeResult,
   WorkflowNodeRunContext,
 } from '@noco-local-integrations/core';
-import { Integration } from '~/models';
+import { Column, Integration } from '~/models';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { TablesService } from '~/services/tables.service';
 import { NcError } from '~/helpers/ncError';
@@ -39,6 +41,16 @@ export class WorkflowExecutionService {
   private readonly logger = new Logger(WorkflowExecutionService.name);
   private readonly expressionParser = new WorkflowExpressionParser();
 
+  private getVariableGeneratorContext(
+    context: NcContext,
+  ): VariableGeneratorContext {
+    return {
+      getColumn: (columnId: string) => Column.get(context, { colId: columnId }),
+      getTableColumns: (tableId: string) =>
+        Column.list(context, { fk_model_id: tableId }),
+    };
+  }
+
   constructor(
     private readonly dataV3Service: DataV3Service,
     private readonly tablesService: TablesService,
@@ -46,9 +58,14 @@ export class WorkflowExecutionService {
   ) {}
 
   public async getWorkflowNodes(context: NcContext) {
-    const workflowNodeIntegrations = Integration.availableIntegrations.filter(
-      (i) => i && i.type === IntegrationsType.WorkflowNode,
-    );
+    const workflowNodeIntegrations = Integration.availableIntegrations
+      .filter((i) => i && i.type === IntegrationsType.WorkflowNode)
+      .sort((a, b) => {
+        if (a.manifest.order && b.manifest.order) {
+          return a.manifest.order - b.manifest.order;
+        }
+        return 0;
+      });
 
     const nodes = [];
     for (const integration of workflowNodeIntegrations) {
@@ -262,7 +279,9 @@ export class WorkflowExecutionService {
         typeof nodeWrapper.generateInputVariables === 'function'
       ) {
         try {
-          result.inputVariables = await nodeWrapper.generateInputVariables();
+          result.inputVariables = await nodeWrapper.generateInputVariables(
+            this.getVariableGeneratorContext(context),
+          );
         } catch (error) {
           this.logger.warn(
             `Failed to generate input variables for ${node.id}:`,
@@ -276,7 +295,9 @@ export class WorkflowExecutionService {
         typeof nodeWrapper.generateOutputVariables === 'function'
       ) {
         try {
-          result.outputVariables = await nodeWrapper.generateOutputVariables();
+          result.outputVariables = await nodeWrapper.generateOutputVariables(
+            this.getVariableGeneratorContext(context),
+          );
         } catch (error) {
           this.logger.warn(
             `Failed to generate output variables for ${node.id}:`,
@@ -538,8 +559,9 @@ export class WorkflowExecutionService {
 
           if (typeof nodeWrapper.generateInputVariables === 'function') {
             try {
-              result.inputVariables =
-                await nodeWrapper.generateInputVariables();
+              result.inputVariables = await nodeWrapper.generateInputVariables(
+                this.getVariableGeneratorContext(context),
+              );
             } catch (error) {
               this.logger.warn(
                 `Failed to generate input variables for trigger ${node.id}:`,
@@ -551,7 +573,9 @@ export class WorkflowExecutionService {
           if (typeof nodeWrapper.generateOutputVariables === 'function') {
             try {
               result.outputVariables =
-                await nodeWrapper.generateOutputVariables();
+                await nodeWrapper.generateOutputVariables(
+                  this.getVariableGeneratorContext(context),
+                );
             } catch (error) {
               this.logger.warn(
                 `Failed to generate output variables for trigger ${node.id}:`,
@@ -645,6 +669,8 @@ export class WorkflowExecutionService {
         }
       } catch (error) {
         this.logger.error(`Node validation error: ${targetNode.id}`, error);
+        if (error instanceof NcError || error instanceof NcBaseError)
+          throw error;
         NcError.get(context).badRequest(
           `Node validation failed: ${error.message}`,
         );
@@ -674,7 +700,9 @@ export class WorkflowExecutionService {
       if (nodeWrapper) {
         if (typeof nodeWrapper.generateInputVariables === 'function') {
           try {
-            inputVariables = await nodeWrapper.generateInputVariables();
+            inputVariables = await nodeWrapper.generateInputVariables(
+              this.getVariableGeneratorContext(context),
+            );
           } catch (error) {
             this.logger.warn(
               `Failed to generate input variables for trigger ${targetNodeId}:`,
@@ -685,7 +713,9 @@ export class WorkflowExecutionService {
 
         if (typeof nodeWrapper.generateOutputVariables === 'function') {
           try {
-            outputVariables = await nodeWrapper.generateOutputVariables();
+            outputVariables = await nodeWrapper.generateOutputVariables(
+              this.getVariableGeneratorContext(context),
+            );
           } catch (error) {
             this.logger.warn(
               `Failed to generate output variables for trigger ${targetNodeId}:`,
@@ -750,7 +780,9 @@ export class WorkflowExecutionService {
       typeof nodeWrapper.generateInputVariables === 'function'
     ) {
       try {
-        inputVariables = await nodeWrapper.generateInputVariables();
+        inputVariables = await nodeWrapper.generateInputVariables(
+          this.getVariableGeneratorContext(context),
+        );
       } catch (error) {
         this.logger.warn(
           `Failed to generate input variables for ${targetNodeId}:`,
@@ -765,7 +797,9 @@ export class WorkflowExecutionService {
       typeof nodeWrapper.generateOutputVariables === 'function'
     ) {
       try {
-        outputVariables = await nodeWrapper.generateOutputVariables();
+        outputVariables = await nodeWrapper.generateOutputVariables(
+          this.getVariableGeneratorContext(context),
+        );
       } catch (error) {
         this.logger.warn(
           `Failed to generate output variables for ${targetNodeId}:`,

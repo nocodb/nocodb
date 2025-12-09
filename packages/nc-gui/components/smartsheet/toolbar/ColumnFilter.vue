@@ -22,6 +22,7 @@ interface Props {
   link?: boolean
   showDynamicCondition?: boolean
   widget?: boolean
+  workflow?: boolean
   draftFilter?: Partial<FilterType>
   isOpen?: boolean
   rootMeta?: any
@@ -49,6 +50,7 @@ const props = withDefaults(defineProps<Props>(), {
   widget: false,
   webHook: false,
   link: false,
+  workflow: false,
   showDynamicCondition: true,
   linkColId: undefined,
   parentColId: undefined,
@@ -93,6 +95,7 @@ const {
   link,
   widget,
   linkColId,
+  workflow,
   parentColId,
   visibilityError,
   disableAddNewFilter,
@@ -124,21 +127,22 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
-const { nestedFilters, isForm, eventBus } = widget.value
-  ? {
-      nestedFilters: ref([]),
-      isForm: ref(false),
-      eventBus: null,
-    }
-  : useSmartsheetStoreOrThrow()
+const { nestedFilters, isForm, eventBus } =
+  widget.value || workflow.value
+    ? {
+        nestedFilters: ref([]),
+        isForm: ref(false),
+        eventBus: null,
+      }
+    : useSmartsheetStoreOrThrow()
 
-const currentFilters = modelValue.value || (!link.value && !webHook.value && nestedFilters.value) || []
+const currentFilters = modelValue.value || (!link.value && !webHook.value && !workflow.value && nestedFilters.value) || []
 
 const columns = computed(() => meta.value?.columns)
 
 const fieldsToFilter = computed(() =>
   (columns.value || []).filter((c) => {
-    if (link.value && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
+    if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
 
     const customFilter = props.filterOption ? props.filterOption(c) : true
 
@@ -178,6 +182,7 @@ const {
   props.nestedLevel > 0,
   webHook.value,
   link.value,
+  workflow.value,
   widget.value,
   widgetId,
   linkColId,
@@ -283,6 +288,7 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
     comparison: filter.comparison_op,
     comparison_sub_op: filter.comparison_sub_op,
     link: !!link.value,
+    workflow: !!workflow.value,
     webHook: !!webHook.value,
   })
 }
@@ -858,6 +864,7 @@ defineExpose({
                   :root-meta="rootMeta"
                   :link-col-id="linkColId"
                   :widget-id="widgetId"
+                  :workflow="workflow"
                   :widget="widget"
                   :parent-col-id="parentColId"
                   :filter-option="filterOption"
@@ -986,7 +993,7 @@ defineExpose({
                 }"
                 class="nc-filter-field-select min-w-32 max-h-8"
                 :columns="fieldsToFilter"
-                :disable-smartsheet="!!widget"
+                :disable-smartsheet="!!widget || !!workflow"
                 :disabled="filter.readOnly || isLockedView || readOnly"
                 :meta="meta"
                 @click.stop
@@ -1079,6 +1086,13 @@ defineExpose({
                     @change="saveOrUpdate(filter, i)"
                   />
                 </div>
+                <template v-if="workflow && filter.dynamic">
+                  <slot
+                    name="dynamic-filter"
+                    :filter="filter"
+                    @update-filter-value="(value) => updateFilterValue(value, filter, i)"
+                  />
+                </template>
 
                 <template v-else>
                   <a-checkbox
@@ -1103,6 +1117,56 @@ defineExpose({
                   />
 
                   <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
+                </template>
+                <template v-if="workflow">
+                  <NcDropdown
+                    class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
+                    :trigger="['click']"
+                    placement="left"
+                  >
+                    <NcButton type="text" size="small">
+                      <GeneralIcon icon="settings" />
+                    </NcButton>
+
+                    <template #overlay>
+                      <div class="relative overflow-visible min-h-17 w-10">
+                        <div
+                          class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
+                          style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
+                        >
+                          <div
+                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
+                            @click="resetDynamicField(filter, i)"
+                          >
+                            <div class="flex flex-row items-center justify-between w-full">
+                              <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                              <GeneralIcon
+                                v-if="!filter.dynamic && !filter.fk_value_col_id"
+                                icon="check"
+                                class="w-4 h-4 text-primary"
+                              />
+                            </div>
+                            <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                          </div>
+                          <div
+                            v-e="['c:filter:dynamic-filter']"
+                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
+                            @click="changeToDynamic(filter, i)"
+                          >
+                            <div class="flex flex-row items-center justify-between w-full">
+                              <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                              <GeneralIcon
+                                v-if="filter.dynamic || filter.fk_value_col_id"
+                                icon="check"
+                                class="w-4 h-4 text-primary"
+                              />
+                            </div>
+                            <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </NcDropdown>
                 </template>
                 <template v-if="link && showDynamicCondition">
                   <NcDropdown

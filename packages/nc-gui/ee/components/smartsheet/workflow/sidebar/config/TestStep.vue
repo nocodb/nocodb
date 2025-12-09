@@ -5,7 +5,16 @@ const { getNodeMetaById, selectedNode, selectedNodeId, edges, nodes, testExecute
 
 const { $e } = useNuxtApp()
 
-const isTestingNode = ref()
+const localTestState = ref<'idle' | 'testing' | 'success' | 'error'>('idle')
+
+const testState = computed(() => {
+  if (selectedNode.value?.data?.testResult && selectedNode.value.data.testResult?.isStale !== true) {
+    return selectedNode.value.data.testResult.status === 'success' ? 'success' : 'error'
+  }
+  return localTestState.value
+})
+
+const errorMessage = ref('')
 
 const findAllAncestors = (nodeId: string): Set<string> => {
   const ancestors = new Set<string>()
@@ -44,6 +53,11 @@ const isTriggerNode = computed(() => {
   return nodeMeta?.category === WorkflowNodeCategory.TRIGGER
 })
 
+const isNocoDBRecordTriggerNode = computed(() => {
+  const nodeMeta = getNodeMetaById(selectedNode.value?.type)
+  return nodeMeta?.id?.includes?.('nocodb.trigger.after')
+})
+
 const canTestNode = computed(() => {
   if (!selectedNode.value || !selectedNodeId.value) return false
 
@@ -60,7 +74,8 @@ const canTestNode = computed(() => {
 })
 
 const handleTestNode = async () => {
-  isTestingNode.value = true
+  localTestState.value = 'testing'
+  errorMessage.value = ''
   const nodeMeta = getNodeMetaById(selectedNode.value?.type)
 
   $e('a:workflow:node:test', {
@@ -70,21 +85,26 @@ const handleTestNode = async () => {
 
   try {
     await testExecuteNode(selectedNodeId.value)
+    localTestState.value = 'success'
 
     $e('a:workflow:node:test:success', {
       node_type: selectedNode.value?.type,
       node_category: nodeMeta?.category,
     })
-  } catch (error) {
+  } catch (er) {
+    localTestState.value = 'error'
+    errorMessage.value = (await extractSdkResponseErrorMsgv2(er))?.message || 'Unknown error occurred'
     $e('a:workflow:node:test:error', {
       node_type: selectedNode.value?.type,
       node_category: nodeMeta?.category,
     })
-    throw error
-  } finally {
-    isTestingNode.value = false
   }
 }
+
+watch(selectedNode, () => {
+  localTestState.value = 'idle'
+  errorMessage.value = ''
+})
 </script>
 
 <template>
@@ -98,17 +118,45 @@ const handleTestNode = async () => {
       </template>
     </div>
     <div class="w-full flex justify-end">
-      <NcTooltip placement="bottom" :disabled="canTestNode || untestedParentNodes.length === 0">
-        <NcButton type="secondary" size="small" :disabled="!canTestNode" :loading="isTestingNode" @click="handleTestNode">
-          <template v-if="isTriggerNode"> Use suggested record to test </template>
-          <template v-else> Test this action </template>
+      <NcTooltip placement="bottom" :disabled="(canTestNode || untestedParentNodes.length === 0) && testState !== 'error'">
+        <NcButton
+          type="secondary"
+          size="small"
+          :disabled="!canTestNode"
+          :loading="testState === 'testing'"
+          icon-position="right"
+          @click="handleTestNode"
+        >
+          <template #icon>
+            <GeneralIcon
+              v-if="testState === 'success'"
+              icon="circleCheckSolid"
+              class="!text-nc-content-green-dark w-4 h-4 flex-none"
+            />
+            <GeneralIcon
+              v-else-if="testState === 'error'"
+              icon="alertTriangleSolid"
+              class="!text-nc-content-red-dark w-4 h-4 flex-none"
+            />
+          </template>
+          <span>
+            <template v-if="testState === 'success'"> Test Successful </template>
+            <template v-else-if="isNocoDBRecordTriggerNode"> Use suggested record to test </template>
+            <template v-else-if="isTriggerNode"> Test this trigger </template>
+            <template v-else> Test this action </template>
+          </span>
         </NcButton>
 
         <template #title>
-          <div class="font-medium mb-1">⚠️ Previous nodes need testing first:</div>
-          <ul v-if="untestedParentNodes.length > 0" class="list-disc pl-5">
-            <li v-for="nodeName in untestedParentNodes" :key="nodeName">{{ nodeName }}</li>
-          </ul>
+          <template v-if="testState === 'error'">
+            {{ errorMessage }}
+          </template>
+          <template v-else>
+            <div class="font-medium mb-1">⚠️ Previous nodes need testing first:</div>
+            <ul v-if="untestedParentNodes.length > 0" class="list-disc pl-5">
+              <li v-for="nodeName in untestedParentNodes" :key="nodeName">{{ nodeName }}</li>
+            </ul>
+          </template>
         </template>
       </NcTooltip>
     </div>

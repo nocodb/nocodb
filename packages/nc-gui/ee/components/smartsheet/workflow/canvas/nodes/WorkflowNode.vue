@@ -10,17 +10,10 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const {
-  getNodeMetaById,
-  updateNode,
-  addPlusNode,
-  triggerLayout,
-  deleteNode,
-  selectedNodeId,
-  edges,
-  updateSelectedNode,
-  viewingExecution,
-} = useWorkflowOrThrow()
+const { getNodeMetaById, updateNode, addPlusNode, triggerLayout, deleteNode, selectedNodeId, edges, viewingExecution, activeTab } =
+  useWorkflowOrThrow()
+
+const enableEditableMenu = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
 
 const nodeMeta = computed(() => {
   return getNodeMetaById(props.type)
@@ -44,7 +37,7 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
     data: {},
   })
 
-  updateSelectedNode(props.id)
+  selectedNodeId.value = props.id
 
   const selectedNodeMeta = getNodeMetaById(option.id)
 
@@ -126,7 +119,7 @@ onClickOutside(
         <div
           v-if="selectedNode"
           :class="{
-            'ring ring-nc-brand-500 ring-offset-2': selectedNodeId === id || showDropdown,
+            'ring ring-nc-brand-500 ring-offset-2.5 ring-1.5': selectedNodeId === id || showDropdown,
           }"
           class="flex flex-col border-1 rounded-lg w-77 justify-center cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default relative"
           @click.stop="handleNodeClick"
@@ -140,17 +133,17 @@ onClickOutside(
                   WorkflowNodeCategory.TRIGGER,
                   WorkflowNodeCategory.ACTION,
                 ].includes(selectedNode.category),
-                'bg-nc-bg-maroon ': selectedNode.category === WorkflowNodeCategory.FLOW,
+                'bg-nc-bg-maroon-dark text-nc-content-maroon-dark': selectedNode.category === WorkflowNodeCategory.FLOW,
               }"
-              class="w-5 h-5 flex items-center justify-center rounded-md p-1"
+              class="w-6 h-6 flex items-center justify-center rounded-md p-1"
             >
-              <GeneralIcon :icon="selectedNode.icon" class="!w-4 !h-4 stroke-transparent" />
+              <GeneralIcon :icon="selectedNode.icon" class="!w-5 !h-5 stroke-transparent" />
             </div>
             <div class="text-nc-content-gray truncate flex-1 w-full text-bodyBold">
               {{ selectedNode.title }}
             </div>
 
-            <NcDropdown v-if="!viewingExecution" v-model:visible="showSubMenuDropdown">
+            <NcDropdown v-if="enableEditableMenu" v-model:visible="showSubMenuDropdown">
               <NcButton type="text" size="xxsmall" @click.stop>
                 <GeneralIcon icon="threeDotHorizontal" />
               </NcButton>
@@ -183,7 +176,7 @@ onClickOutside(
           </div>
           <NcDivider />
           <div
-            class="text-bodySm"
+            class="text-bodySm line-clamp-2"
             :class="{
               'text-nc-content-gray-muted': !props?.data?.description,
               'text-nc-content-gray': props?.data?.description,

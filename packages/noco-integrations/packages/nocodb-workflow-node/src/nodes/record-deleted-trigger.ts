@@ -286,9 +286,9 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
     }
   }
 
-  public async generateOutputVariables(): Promise<
-    NocoSDK.VariableDefinition[]
-  > {
+  public async generateOutputVariables(
+    context: NocoSDK.VariableGeneratorContext,
+  ): Promise<NocoSDK.VariableDefinition[]> {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -304,10 +304,11 @@ export class RecordDeletedTriggerNode extends WorkflowNodeIntegration<RecordDele
 
       if (!table) return [];
 
-      const recordVariables = NocoSDK.genRecordVariables(
+      const recordVariables = await NocoSDK.genRecordVariables(
         table.columns,
         false,
         'record',
+        context,
       );
 
       const additionalVariables: NocoSDK.VariableDefinition[] = [

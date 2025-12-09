@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { WorkflowNodeComparisonOp } from 'nocodb-sdk'
 import type { WorkflowNodeConditionGroup, WorkflowNodeConditionItem, WorkflowNodeFilterCondition } from 'nocodb-sdk'
-import ConditionItemRenderer from '~/components/smartsheet/workflow/sidebar/config/if/ConditionItemRenderer.vue'
+import ConditionItemRenderer from '~/components/smartsheet/workflow/sidebar/config/custom/if/ConditionItemRenderer.vue'
 
 interface IfNodeConfig {
   conditions: WorkflowNodeConditionItem[]
@@ -199,103 +199,97 @@ const updateAllSiblings = (path: number[], logicalOp: 'and' | 'or') => {
 
 <template>
   <div class="if-node-config">
-    <div class="px-4 py-3">
-      <div class="flex flex-col gap-2">
-        <label class="text-sm font-medium text-nc-content-gray-emphasis">Conditions</label>
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-nc-content-gray-emphasis">Conditions</label>
 
-        <NcDropdown
-          v-model:visible="isConditionDropdownOpen"
-          placement="bottomLeft"
-          overlay-class-name="nc-if-conditions-dropdown"
+      <NcDropdown v-model:visible="isConditionDropdownOpen" placement="bottomLeft" overlay-class-name="nc-if-conditions-dropdown">
+        <div
+          class="h-9 border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 transition-all cursor-pointer select-none text-sm"
+          :class="{
+            '!border-nc-border-brand shadow-selected': isConditionDropdownOpen,
+            'border-nc-border-gray-medium': !isConditionDropdownOpen,
+            'bg-nc-bg-brand-light': conditionsCount > 0,
+          }"
         >
           <div
-            class="h-9 border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 transition-all cursor-pointer select-none text-sm"
+            class="nc-conditions-count flex-1"
             :class="{
-              '!border-nc-border-brand shadow-selected': isConditionDropdownOpen,
-              'border-nc-border-gray-medium': !isConditionDropdownOpen,
-              'bg-nc-bg-brand-light': conditionsCount > 0,
+              'text-nc-content-brand': conditionsCount > 0,
+              'text-nc-content-gray-muted': conditionsCount === 0,
             }"
           >
-            <div
-              class="nc-conditions-count flex-1"
-              :class="{
-                'text-nc-content-brand': conditionsCount > 0,
-                'text-nc-content-gray-muted': conditionsCount === 0,
-              }"
-            >
-              {{ conditionsCount > 0 ? `${conditionsCount} condition${conditionsCount !== 1 ? 's' : ''}` : 'No conditions' }}
-            </div>
-
-            <GeneralIcon
-              icon="ncChevronDown"
-              class="flex-none w-4 h-4"
-              :class="{
-                'text-nc-content-brand': conditionsCount > 0,
-                'text-nc-content-gray-muted': conditionsCount === 0,
-              }"
-            />
+            {{ conditionsCount > 0 ? `${conditionsCount} condition${conditionsCount !== 1 ? 's' : ''}` : 'No conditions' }}
           </div>
 
-          <template #overlay>
-            <div class="nc-if-conditions-dropdown-container">
-              <div v-if="config.conditions.length === 0" class="p-4">
-                <div class="flex">
-                  <NcButton type="text" size="small" @click="addCondition()">
-                    <template #icon>
-                      <GeneralIcon icon="ncPlus" class="w-4 h-4" />
-                    </template>
-                    {{ t('activity.addFilter') }}
-                  </NcButton>
-                  <NcButton type="text" size="small" @click="addGroup()">
-                    <template #icon>
-                      <GeneralIcon icon="ncPlus" class="w-4 h-4" />
-                    </template>
-                    {{ t('activity.addFilterGroup') }}
-                  </NcButton>
-                </div>
+          <GeneralIcon
+            icon="ncChevronDown"
+            class="flex-none w-4 h-4"
+            :class="{
+              'text-nc-content-brand': conditionsCount > 0,
+              'text-nc-content-gray-muted': conditionsCount === 0,
+            }"
+          />
+        </div>
 
-                <div class="text-nc-content-gray-disabled mt-2 ml-0.5">
-                  {{ $t('title.noFiltersAdded') }}
-                </div>
+        <template #overlay>
+          <div class="nc-if-conditions-dropdown-container">
+            <div v-if="config.conditions.length === 0" class="p-4">
+              <div class="flex">
+                <NcButton type="text" size="small" @click="addCondition()">
+                  <template #icon>
+                    <GeneralIcon icon="ncPlus" class="w-4 h-4" />
+                  </template>
+                  {{ t('activity.addFilter') }}
+                </NcButton>
+                <NcButton type="text" size="small" @click="addGroup()">
+                  <template #icon>
+                    <GeneralIcon icon="ncPlus" class="w-4 h-4" />
+                  </template>
+                  {{ t('activity.addFilterGroup') }}
+                </NcButton>
               </div>
 
-              <div v-else class="p-3">
-                <div class="space-y-2 mb-3">
-                  <ConditionItemRenderer
-                    v-for="(item, index) in config.conditions"
-                    :key="index"
-                    :item="item"
-                    :path="[index]"
-                    :nested-level="0"
-                    :grouped-variables="groupedVariables"
-                    :flat-variables="flatVariables"
-                    @update="updateWorkflowNodeConditionItem"
-                    @update-all-siblings="updateAllSiblings"
-                    @add-condition="addCondition"
-                    @add-group="addGroup"
-                    @remove="removeWorkflowNodeConditionItem"
-                  />
-                </div>
-
-                <div class="flex gap-2 align-self">
-                  <NcButton type="text" size="small" @click="addCondition()">
-                    <template #icon>
-                      <GeneralIcon icon="ncPlus" class="w-4 h-4" />
-                    </template>
-                    {{ t('activity.addFilter') }}
-                  </NcButton>
-                  <NcButton type="text" size="small" @click="addGroup()">
-                    <template #icon>
-                      <GeneralIcon icon="ncPlus" class="w-4 h-4" />
-                    </template>
-                    {{ t('activity.addFilterGroup') }}
-                  </NcButton>
-                </div>
+              <div class="text-nc-content-gray-disabled mt-2 ml-0.5">
+                {{ $t('title.noFiltersAdded') }}
               </div>
             </div>
-          </template>
-        </NcDropdown>
-      </div>
+
+            <div v-else class="p-3">
+              <div class="space-y-2 mb-3">
+                <ConditionItemRenderer
+                  v-for="(item, index) in config.conditions"
+                  :key="index"
+                  :item="item"
+                  :path="[index]"
+                  :nested-level="0"
+                  :grouped-variables="groupedVariables"
+                  :flat-variables="flatVariables"
+                  @update="updateWorkflowNodeConditionItem"
+                  @update-all-siblings="updateAllSiblings"
+                  @add-condition="addCondition"
+                  @add-group="addGroup"
+                  @remove="removeWorkflowNodeConditionItem"
+                />
+              </div>
+
+              <div class="flex gap-2 align-self">
+                <NcButton type="text" size="small" @click="addCondition()">
+                  <template #icon>
+                    <GeneralIcon icon="ncPlus" class="w-4 h-4" />
+                  </template>
+                  {{ t('activity.addFilter') }}
+                </NcButton>
+                <NcButton type="text" size="small" @click="addGroup()">
+                  <template #icon>
+                    <GeneralIcon icon="ncPlus" class="w-4 h-4" />
+                  </template>
+                  {{ t('activity.addFilterGroup') }}
+                </NcButton>
+              </div>
+            </div>
+          </div>
+        </template>
+      </NcDropdown>
     </div>
   </div>
 </template>

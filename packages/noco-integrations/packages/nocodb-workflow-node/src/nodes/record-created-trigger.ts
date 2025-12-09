@@ -271,9 +271,9 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
     }
   }
 
-  public async generateOutputVariables(): Promise<
-    NocoSDK.VariableDefinition[]
-  > {
+  public async generateOutputVariables(
+    context: NocoSDK.VariableGeneratorContext,
+  ): Promise<NocoSDK.VariableDefinition[]> {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -288,10 +288,11 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
       );
 
       if (!table) return [];
-      const recordVariables = NocoSDK.genRecordVariables(
+      const recordVariables = await NocoSDK.genRecordVariables(
         table.columns,
         false,
         'record',
+        context,
       );
 
       // Table group

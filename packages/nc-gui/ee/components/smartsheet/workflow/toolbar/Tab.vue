@@ -12,11 +12,6 @@ const tabs = [
     value: 'logs',
     icon: 'audit',
   },
-  {
-    label: 'Settings',
-    value: 'settings',
-    icon: 'settings',
-  },
 ]
 
 const highlightStyle = ref({ left: '0px', width: '0px' })

@@ -15,6 +15,7 @@ export const entries: IntegrationEntry[] = [
       ...manifest,
       title: 'Send Message',
       icon: 'ncSlack',
+      order: 13,
     },
   },
 ];

@@ -1,13 +1,9 @@
 import {
-  FormBuilderInputType,
-  FormBuilderValidatorType,
   NocoSDK,
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
-import { parseJson } from '../utils/parseJson';
 import type {
-  FormDefinition,
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
   WorkflowNodeLog,
@@ -15,91 +11,40 @@ import type {
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 
+interface FilterItem {
+  fk_column_id?: string;
+  comparison_op?: string;
+  value?: any;
+  logical_op?: 'and' | 'or';
+  is_group?: boolean;
+  children?: FilterItem[];
+}
+
 interface ListRecordsNodeConfig extends WorkflowNodeConfig {
   modelId: string;
   viewId?: string;
   limit?: number;
   offset?: number;
-  filterJson?: string;
-  sortJson?: string;
+  sorts?: Array<{ fk_column_id: string; direction: 'asc' | 'desc' }>;
+  filters?: FilterItem[];
 }
 
 export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
-    const form: FormDefinition = [
-      {
-        type: FormBuilderInputType.SelectTable,
-        label: 'Table',
-        span: 24,
-        model: 'config.modelId',
-        placeholder: 'Select a table',
-        fetchOptionsKey: 'tables',
-        validators: [
-          {
-            type: FormBuilderValidatorType.Required,
-            message: 'Table is required',
-          },
-        ],
-      },
-      {
-        type: FormBuilderInputType.SelectView,
-        label: 'View',
-        span: 24,
-        model: 'config.viewId',
-        placeholder: 'Select a view',
-        fetchOptionsKey: 'views',
-        dependsOn: 'config.modelId',
-        condition: [
-          {
-            model: 'config.modelId',
-            notEmpty: true,
-          },
-        ],
-      },
-      {
-        type: FormBuilderInputType.Input,
-        label: 'Limit',
-        span: 12,
-        model: 'config.limit',
-        placeholder: '25',
-      },
-      {
-        type: FormBuilderInputType.Input,
-        label: 'Offset',
-        span: 12,
-        model: 'config.offset',
-        placeholder: '0',
-      },
-      {
-        type: FormBuilderInputType.WorkflowInput,
-        label: 'Filter JSON',
-        span: 24,
-        model: 'config.filterJson',
-        placeholder: '{ "where": "(Title,eq,Active)" }',
-      },
-      {
-        type: FormBuilderInputType.WorkflowInput,
-        label: 'Sort JSON',
-        span: 24,
-        model: 'config.sortJson',
-        placeholder: '{ "sort": "-CreatedAt" }',
-      },
-    ];
-
     return {
       id: 'nocodb.list_records',
-      title: 'List Records',
+      title: 'List records',
       description:
         'List records from a NocoDB table with optional filtering and sorting',
       icon: 'ncRecordFind',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
-      form,
+      form: [],
       keywords: ['nocodb', 'database', 'list', 'query', 'search', 'records'],
     };
   }
 
-  public async fetchOptions(key: 'tables' | 'views') {
+  public async fetchOptions(key: 'tables' | 'views' | 'columns') {
     switch (key) {
       case 'tables': {
         const tables = await this.nocodb.tablesService.getAccessibleTables(
@@ -138,6 +83,28 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
           view: view,
         }));
       }
+      case 'columns': {
+        if (!this.config.modelId) {
+          return [];
+        }
+        const table =
+          await this.nocodb.tablesService.getTableWithAccessibleViews(
+            this.nocodb.context,
+            {
+              tableId: this.config.modelId,
+              user: {
+                ...this.nocodb.user,
+                roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+              } as any,
+            },
+          );
+
+        return table.columns.map((column: any) => ({
+          label: column.title || column.column_name,
+          value: column.id,
+          column: column,
+        }));
+      }
       default:
         return [];
     }
@@ -150,7 +117,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
       errors.push({ path: 'config.modelId', message: 'Table is required' });
     }
 
-    let table;
+    let table: (NocoSDK.TableType & { views: NocoSDK.ViewType[] }) | undefined;
 
     if (config.modelId) {
       table = await this.nocodb.tablesService.getTableWithAccessibleViews(
@@ -171,8 +138,8 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
       }
     }
 
-    if (config.modelId && config.viewId) {
-      const view = table?.views?.find((v) => v.id === config.viewId);
+    if (config.modelId && config.viewId && table) {
+      const view = table.views?.find((v) => v.id === config.viewId);
 
       if (!view) {
         errors.push({
@@ -182,20 +149,54 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
       }
     }
 
-    if (config.filterJson) {
-      try {
-        parseJson(config.filterJson);
-      } catch {
-        errors.push({ path: 'config.filterJson', message: 'Invalid JSON' });
-      }
+    if (config.filters) {
+      const validateFilter = (filter: FilterItem, path: string) => {
+        if (filter.is_group) {
+          // Validate filter group
+          if (filter.children && Array.isArray(filter.children)) {
+            filter.children.forEach((child, index) => {
+              validateFilter(child, `${path}.children[${index}]`);
+            });
+          }
+        } else {
+          // Validate regular filter
+          if (!filter.fk_column_id) {
+            errors.push({
+              path: path,
+              message: 'Filter must have a column ID',
+            });
+          } else if (table?.columns) {
+            const column = table.columns.find(
+              (c) => c.id === filter.fk_column_id,
+            );
+            if (!column) {
+              errors.push({
+                path: path,
+                message: 'Invalid column in filter',
+              });
+            }
+          }
+        }
+      };
+
+      config.filters.forEach((filter, index) => {
+        validateFilter(filter, `config.filters[${index}]`);
+      });
     }
 
-    if (config.sortJson) {
-      try {
-        parseJson(config.sortJson);
-      } catch {
-        errors.push({ path: 'config.sortJson', message: 'Invalid JSON' });
-      }
+    if (config.sorts) {
+      config.sorts.forEach((sort) => {
+        if (!sort.fk_column_id || !sort.direction) {
+          errors.push({ path: 'config.sorts', message: 'Invalid sort' });
+        }
+
+        if (table?.columns) {
+          const column = table.columns.find((c) => c.id === sort.fk_column_id);
+          if (!column) {
+            errors.push({ path: 'config.sorts', message: 'Invalid sort' });
+          }
+        }
+      });
     }
 
     return { valid: errors.length === 0, errors };
@@ -208,7 +209,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
     const startTime = Date.now();
 
     try {
-      const { modelId, limit, offset, filterJson, sortJson, viewId } =
+      const { modelId, limit, offset, filters, sorts, viewId } =
         ctx.inputs.config;
 
       logs.push({
@@ -226,13 +227,20 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
       if (limit !== undefined) query.limit = limit;
       if (offset !== undefined) query.offset = offset;
 
-      if (filterJson) {
-        const filterObj = parseJson(filterJson);
-        Object.assign(query, filterObj);
+      if (filters) {
+        Object.assign(query, {
+          filterArrJson: JSON.stringify(filters),
+        });
       }
-      if (sortJson) {
-        const sortObj = parseJson(sortJson);
-        Object.assign(query, sortObj);
+      if (sorts) {
+        Object.assign(query, {
+          sort: JSON.stringify(
+            sorts.map((sort) => ({
+              field: sort.fk_column_id,
+              direction: sort.direction,
+            })),
+          ),
+        });
       }
 
       const result = await this.nocodb.dataService.dataList(
@@ -302,7 +310,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
 
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
     const variables: NocoSDK.VariableDefinition[] = [];
-    const { modelId, viewId } = this.config;
+    const { modelId, viewId, filters, sorts } = this.config;
 
     if (!modelId) return [];
 
@@ -382,27 +390,174 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         },
       });
 
-      variables.push({
-        key: 'config.filterJson',
-        name: 'Filter JSON',
-        type: NocoSDK.VariableType.String,
-        groupKey: NocoSDK.VariableGroupKey.Fields,
-        extra: {
-          icon: 'cellJson',
-          description: 'JSON filter criteria',
-        },
-      });
+      if (filters?.length) {
+        // Calculate max depth of nested filters
+        const getMaxDepth = (filterItems: FilterItem[], depth = 0): number => {
+          let maxDepth = depth;
+          filterItems.forEach((filter) => {
+            if (
+              filter.is_group &&
+              filter.children &&
+              filter.children.length > 0
+            ) {
+              const childDepth = getMaxDepth(filter.children, depth + 1);
+              maxDepth = Math.max(maxDepth, childDepth);
+            }
+          });
+          return maxDepth;
+        };
 
-      variables.push({
-        key: 'config.sortJson',
-        name: 'Sort JSON',
-        type: NocoSDK.VariableType.String,
-        groupKey: NocoSDK.VariableGroupKey.Fields,
-        extra: {
-          icon: 'cellJson',
-          description: 'JSON sort criteria',
-        },
-      });
+        // Recursively collect all column IDs from filters
+        const collectColumnIds = (filterItems: FilterItem[]): string[] => {
+          const columnIds: string[] = [];
+          filterItems.forEach((filter) => {
+            if (filter.is_group && filter.children) {
+              columnIds.push(...collectColumnIds(filter.children));
+            } else if (filter.fk_column_id) {
+              columnIds.push(filter.fk_column_id);
+            }
+          });
+          return columnIds;
+        };
+
+        const maxDepth = getMaxDepth(filters);
+        const columnIds = collectColumnIds(filters);
+        const referencedColumns = table.columns.filter(
+          (col) => col?.id && columnIds.includes(col.id),
+        );
+
+        // Build filter item schema with limited recursion depth
+        const buildFilterItemSchema = (currentDepth: number): any[] => {
+          const schema: any[] = [
+            {
+              key: 'fk_column_id',
+              name: 'Column',
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Fields,
+              extra: {
+                icon: 'fields',
+                description: 'Column ID',
+                entity: 'column',
+              },
+            },
+            {
+              key: 'comparison_op',
+              name: 'Comparison Operator',
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Fields,
+              extra: {
+                icon: 'cellText',
+                description: 'Comparison operator (eq, neq, gt, lt, etc.)',
+              },
+            },
+            {
+              key: 'value',
+              name: 'Value',
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Fields,
+              extra: {
+                icon: 'cellText',
+                description: 'Filter value',
+              },
+            },
+            {
+              key: 'logical_op',
+              name: 'Logical Operator',
+              type: NocoSDK.VariableType.String,
+              groupKey: NocoSDK.VariableGroupKey.Fields,
+              extra: {
+                icon: 'cellText',
+                description: 'Logical operator (and/or)',
+              },
+            },
+          ];
+
+          // Only add children field if we haven't reached max depth
+          if (currentDepth < maxDepth) {
+            schema.push({
+              key: 'children',
+              name: 'Children',
+              type: NocoSDK.VariableType.Array,
+              groupKey: NocoSDK.VariableGroupKey.Fields,
+              extra: {
+                icon: 'ncFilter',
+                description: 'Nested filter group children',
+                itemSchema: buildFilterItemSchema(currentDepth + 1),
+              },
+            });
+          }
+
+          return schema;
+        };
+
+        variables.push({
+          key: 'config.filters',
+          name: 'Filters',
+          type: NocoSDK.VariableType.Array,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'ncFilter',
+            description: 'Filter criteria for records',
+            entityReferences: referencedColumns.map((col) => ({
+              entity_id: col.id!,
+              entity: 'column',
+              title: col.title!,
+              field: 'fk_column_id',
+            })),
+            itemSchema: buildFilterItemSchema(0),
+          },
+        });
+      }
+
+      if (sorts?.length) {
+        const columnIds = sorts
+          .map((sort) => sort.fk_column_id)
+          .filter(Boolean);
+
+        const referencedColumns = table.columns.filter(
+          (col) => col?.id && columnIds.includes(col.id),
+        );
+
+        variables.push({
+          key: 'config.sorts',
+          name: 'Sorts',
+          type: NocoSDK.VariableType.Array,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'sort',
+            description: 'Sort criteria',
+            entityReferences: referencedColumns.map((col) => ({
+              entity_id: col.id!,
+              entity: 'column',
+              title: col.title!,
+              field: 'fk_column_id',
+            })),
+            itemSchema: [
+              {
+                key: 'fk_column_id',
+                name: 'Column',
+                type: NocoSDK.VariableType.String,
+                groupKey: NocoSDK.VariableGroupKey.Fields,
+                extra: {
+                  icon: 'fields',
+                  description: 'Column ID',
+                  entity: 'column', // Mark this field type
+                },
+              },
+              {
+                key: 'direction',
+                name: 'Direction',
+                type: NocoSDK.VariableType.String,
+                groupKey: NocoSDK.VariableGroupKey.Fields,
+                extra: {
+                  icon: 'cellText',
+                  description: 'Sort direction (asc/desc)',
+                },
+              },
+            ],
+          },
+        });
+      }
 
       return variables;
     } catch {
@@ -410,9 +565,9 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
     }
   }
 
-  public async generateOutputVariables(): Promise<
-    NocoSDK.VariableDefinition[]
-  > {
+  public async generateOutputVariables(
+    context: NocoSDK.VariableGeneratorContext,
+  ): Promise<NocoSDK.VariableDefinition[]> {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -428,10 +583,11 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
 
       if (!table) return [];
 
-      const recordVariables = NocoSDK.genRecordVariables(
+      const recordVariables = await NocoSDK.genRecordVariables(
         table.columns,
         true,
         'records',
+        context,
       );
 
       const paginationVariable: NocoSDK.VariableDefinition = {

@@ -26,7 +26,7 @@ const status = computed(() => {
 
 const STATUS_CONFIG = {
   success: {
-    icon: 'ncCheckCircle',
+    icon: 'ncCheck',
     testLabel: 'Tested successfully',
     executionLabel: 'Executed successfully',
   },
@@ -69,7 +69,7 @@ const tooltip = computed(() => {
 
       <div
         :class="{
-          'bg-nc-green-600 dark:bg-nc-green-500': status === 'success',
+          'bg-nc-green-700 dark:bg-nc-green-200': status === 'success',
           'bg-nc-red-500 dark:bg-nc-red-500': status === 'error',
           'bg-nc-brand-500 dark:bg-nc-brand-500': status === 'running',
           'bg-nc-gray-400 dark:bg-nc-gray-500': status === 'skipped' || status === 'pending',

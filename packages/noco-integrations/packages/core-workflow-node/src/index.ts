@@ -22,6 +22,7 @@ export const entries: IntegrationEntry[] = [
       ...manifest,
       title: 'When manually triggered',
       icon: 'ncPlay',
+      order: 4,
     },
   },
   {
@@ -33,6 +34,7 @@ export const entries: IntegrationEntry[] = [
       ...manifest,
       title: 'If Condition',
       icon: 'ncIfElse',
+      order: 5,
     },
   },
   {
@@ -44,6 +46,7 @@ export const entries: IntegrationEntry[] = [
       ...manifest,
       title: 'Send Email',
       icon: 'ncMail',
+      order: 12,
     },
   },
 ];

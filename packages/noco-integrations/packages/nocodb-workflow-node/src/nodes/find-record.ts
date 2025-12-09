@@ -70,7 +70,7 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
 
     return {
       id: 'nocodb.find_record',
-      title: 'Find Record',
+      title: 'Find record',
       description: 'Find a specific record by ID in a NocoDB table',
       icon: 'ncRecordFind',
       category: WorkflowNodeCategory.ACTION,
@@ -324,9 +324,9 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
     }
   }
 
-  public async generateOutputVariables(): Promise<
-    NocoSDK.VariableDefinition[]
-  > {
+  public async generateOutputVariables(
+    context: NocoSDK.VariableGeneratorContext,
+  ): Promise<NocoSDK.VariableDefinition[]> {
     const { modelId } = this.config;
 
     if (!modelId) return [];
@@ -342,7 +342,12 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
 
       if (!table) return [];
 
-      return NocoSDK.genRecordVariables(table.columns, false, 'record');
+      return await NocoSDK.genRecordVariables(
+        table.columns,
+        false,
+        'record',
+        context,
+      );
     } catch {
       return [];
     }

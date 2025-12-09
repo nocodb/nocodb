@@ -10,8 +10,10 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, updateSelectedNode, viewingExecution } =
+const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, viewingExecution, activeTab } =
   useWorkflowOrThrow()
+
+const enableEditableMenu = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
 
 const wrappperRef = ref()
 
@@ -31,7 +33,7 @@ const selectTriggerType = async (option: WorkflowNodeDefinition) => {
     data: {},
   })
 
-  updateSelectedNode(props.id)
+  selectedNodeId.value = props.id
 
   $e('a:workflow:trigger:select', {
     trigger_type: option.id,
@@ -85,7 +87,7 @@ onClickOutside(
         <div
           v-if="!selectedNode"
           :class="{
-            'ring ring-nc-brand-500 ring-offset-2 !border-nc-border-gray-dark': showDropdown,
+            'ring ring-nc-brand-500 ring-offset-2.5 ring-1.5 !border-nc-border-gray-dark': showDropdown,
           }"
           class="flex border-1 rounded-lg w-77 bg-nc-bg-default justify-center border-dashed cursor-pointer border-nc-border-brand px-2 py-4"
           @click="openDropdown"
@@ -101,7 +103,7 @@ onClickOutside(
           v-else
           class="flex flex-col border-1 w-77 rounded-lg cursor-pointer border-nc-border-gray-medium p-3 bg-nc-bg-default relative"
           :class="{
-            'ring ring-nc-brand-500 ring-offset-2': selectedNodeId === props.id || showDropdown,
+            'ring ring-nc-brand-500 ring-offset-2.5 ring-1.5': selectedNodeId === props.id || showDropdown,
           }"
           @click.stop="handleTriggerClick"
         >
@@ -116,16 +118,16 @@ onClickOutside(
                 ].includes(selectedNode.category),
                 'bg-nc-bg-maroon ': selectedNode.category === WorkflowNodeCategory.FLOW,
               }"
-              class="w-5 h-5 flex items-center justify-center rounded-md p-1"
+              class="w-6 h-6 flex items-center justify-center rounded-md p-1"
             >
-              <GeneralIcon :icon="selectedNode.icon" class="!w-4 !h-4 stroke-transparent" />
+              <GeneralIcon :icon="selectedNode.icon" class="!w-5 !h-5 stroke-transparent" />
             </div>
 
             <div class="text-nc-content-gray truncate flex-1 w-full text-bodyBold">
               {{ selectedNode.title }}
             </div>
 
-            <NcDropdown v-if="!viewingExecution" v-model:visible="showSubMenuDropdown">
+            <NcDropdown v-if="enableEditableMenu" v-model:visible="showSubMenuDropdown">
               <NcButton type="text" size="xxsmall" @click.stop>
                 <GeneralIcon icon="threeDotHorizontal" />
               </NcButton>
@@ -151,7 +153,7 @@ onClickOutside(
           </div>
           <NcDivider />
           <div
-            class="text-bodySm"
+            class="text-bodySm line-clamp-2"
             :class="{
               'text-nc-content-gray-muted': !props?.data?.description,
               'text-nc-content-gray': props?.data?.description,

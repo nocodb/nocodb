@@ -1,5 +1,5 @@
 import UITypes from '../UITypes';
-import { isSystemColumn, parseProp } from '../helperFunctions';
+import { isSystemColumn } from '../helperFunctions';
 import {
   VariableDefinition,
   VariableGroupKey,

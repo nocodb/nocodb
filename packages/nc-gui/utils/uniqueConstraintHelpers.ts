@@ -1,21 +1,7 @@
-import { type ColumnType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, UITypes, UNIQUE_CONSTRAINT_SUPPORTED_TYPES, isUniqueConstraintSupportedType } from 'nocodb-sdk'
 
-/**
- * Field types that support unique constraints
- */
-export const UNIQUE_CONSTRAINT_SUPPORTED_TYPES = [
-  UITypes.SingleLineText,
-  UITypes.Email,
-  UITypes.PhoneNumber,
-  UITypes.URL,
-  UITypes.Number,
-  UITypes.Decimal,
-  UITypes.Currency,
-  UITypes.Percent,
-  UITypes.Date,
-  UITypes.DateTime,
-  UITypes.Time,
-]
+// Re-export from SDK
+export { isUniqueConstraintSupportedType, UNIQUE_CONSTRAINT_SUPPORTED_TYPES }
 
 /**
  * Field types that are explicitly not supported
@@ -43,21 +29,6 @@ export const UNIQUE_CONSTRAINT_UNSUPPORTED_TYPES = [
   UITypes.LinkToAnotherRecord,
   UITypes.Links,
 ]
-
-/**
- * Checks if a field type supports unique constraints
- * @param uidt - UI data type
- * @param meta - Column metadata (for rich text check)
- * @returns true if the field type supports unique constraints
- */
-export function isUniqueConstraintSupportedType(uidt: UITypes, meta?: any): boolean {
-  // Check for LongText with rich text enabled (not supported)
-  if (uidt === UITypes.LongText && meta?.richMode) {
-    return false
-  }
-
-  return UNIQUE_CONSTRAINT_SUPPORTED_TYPES.includes(uidt)
-}
 
 /**
  * Checks if unique constraint can be enabled for a column

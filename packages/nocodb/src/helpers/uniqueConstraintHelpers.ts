@@ -1,35 +1,14 @@
-import { UITypes } from 'nocodb-sdk';
+import {
+  isUniqueConstraintSupportedType,
+  UITypes,
+  UNIQUE_CONSTRAINT_SUPPORTED_TYPES,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { Source } from '~/models';
 import { NcError } from '~/helpers/catchError';
 
-// Field types that support unique constraints
-export const UNIQUE_CONSTRAINT_SUPPORTED_TYPES = [
-  UITypes.SingleLineText,
-  UITypes.Email,
-  UITypes.PhoneNumber,
-  UITypes.URL,
-  UITypes.Number,
-  UITypes.Decimal,
-  UITypes.Currency,
-  UITypes.Percent,
-  UITypes.Date,
-  UITypes.DateTime,
-  UITypes.Time,
-];
-
-/**
- * Validates if a field type supports unique constraints
- * @param uidt - UI data type
- * @param meta - Column metadata (not used, kept for backward compatibility)
- * @returns true if the field type supports unique constraints
- */
-export function isUniqueConstraintSupportedType(
-  uidt: UITypes,
-  _meta?: any,
-): boolean {
-  return UNIQUE_CONSTRAINT_SUPPORTED_TYPES.includes(uidt);
-}
+// Re-export from SDK
+export { isUniqueConstraintSupportedType, UNIQUE_CONSTRAINT_SUPPORTED_TYPES };
 
 /**
  * Validates unique constraint request and throws error if invalid

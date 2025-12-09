@@ -1,22 +1,24 @@
 [theme='dark'] {
   .ant-input-number-affix-wrapper {
-    color: #ffffffa6;
+    color: rgba(var(--rgb-base), 0.65);
     border: 1px solid var(--nc-border-gray-medium);
+    background-color: transparent;
+    background-image: none;
   }
 
   .ant-input-number-affix-wrapper::placeholder {
     color: var(--nc-content-gray-muted);
   }
 
-  .ant-input-number-affix-wrapper:hover {
-    border-color: #165996;
-    border-right-width: 1px !important;
-  }
+  // .ant-input-number-affix-wrapper:hover {
+  //   border-color: #165996;
+  //   border-right-width: 1px !important;
+  // }
 
   .ant-input-number-affix-wrapper:focus,
   .ant-input-number-affix-wrapper-focused {
-    border-color: #177ddc;
-    box-shadow: 0 0 0 2px #177ddc33;
+    border-color: rgba(var(--rgb-color-brand-500), 1);
+    box-shadow: 0 0 0 2px rgba(var(--rgb-color-brand-500), 0.2);
     outline: 0;
   }
 
@@ -54,17 +56,19 @@
     box-shadow: none;
   }
 
-  .ant-input-number-affix-wrapper:not(.ant-input-number-affix-wrapper-disabled):hover {
-    border-color: #165996;
-  }
+  // .ant-input-number-affix-wrapper:not(.ant-input-number-affix-wrapper-disabled):hover {
+  //   border-color: #165996;
+  // }
 
   .ant-input-number-affix-wrapper > div.ant-input-number.ant-input-number-focused {
     box-shadow: none !important;
   }
 
   .ant-input-number {
-    color: #ffffffa6;
+    color: rgba(var(--rgb-base), 0.65);
     border: 1px solid var(--nc-border-gray-medium);
+    background-color: transparent;
+    background-image: none;
   }
 
   .ant-input-number::placeholder {
@@ -73,8 +77,8 @@
 
   .ant-input-number:focus,
   .ant-input-number-focused {
-    border-color: #177ddc;
-    box-shadow: 0 0 0 2px #177ddc33;
+    border-color: rgba(var(--rgb-color-brand-500), 1);
+    box-shadow: 0 0 0 2px rgba(var(--rgb-color-brand-500), 0.2);
     outline: 0;
   }
 
@@ -101,46 +105,51 @@
   }
 
   .ant-input-number-group {
-    color: #ffffffa6;
+    color: rgba(var(--rgb-base), 0.65);
   }
 
   .ant-input-number-group-addon {
-    color: #ffffffa6;
-    background-color: #ffffff0a;
+    color: rgba(var(--rgb-base), 0.65);
+    background-color: rgba(var(--rgb-base), 0.04);
     border: 1px solid var(--nc-border-gray-medium);
   }
 
   .ant-input-number-group-addon .ant-select-open .ant-select-selector,
   .ant-input-number-group-addon .ant-select-focused .ant-select-selector {
-    color: #177ddc;
+    color: rgba(var(--rgb-color-brand-500), 1);
   }
 
   .ant-input-number-handler {
-    color: #ffffff73;
+    color: rgba(var(--rgb-base), 0.45);
     border-left: 1px solid var(--nc-border-gray-medium);
+    background: var(--nc-bg-gray-light);
+  }
+
+  .ant-input-number-handler-down {
+    border-top: 1px solid var(--nc-border-gray-medium);
   }
 
   .ant-input-number-handler:active {
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--nc-bg-gray-light);
   }
 
-  .ant-input-number-handler:hover .ant-input-number-handler-up-inner,
-  .ant-input-number-handler:hover .ant-input-number-handler-down-inner {
-    color: #165996;
-  }
+  // .ant-input-number-handler:hover .ant-input-number-handler-up-inner,
+  // .ant-input-number-handler:hover .ant-input-number-handler-down-inner {
+  //   color: #165996;
+  // }
 
   .ant-input-number-handler-up-inner,
   .ant-input-number-handler-down-inner {
-    color: #ffffff73;
+    color: rgba(var(--rgb-base), 0.45);
   }
 
-  .ant-input-number:hover {
-    border-color: #165996;
-  }
+  // .ant-input-number:hover {
+  //   border-color: #165996;
+  // }
 
   .ant-input-number-focused {
-    border-color: #177ddc;
-    box-shadow: 0 0 0 2px #177ddc33;
+    border-color: rgba(var(--rgb-color-brand-500), 1);
+    box-shadow: 0 0 0 2px rgba(var(--rgb-color-brand-500), 0.2);
   }
 
   .ant-input-number-disabled {

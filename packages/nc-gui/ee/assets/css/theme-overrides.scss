@@ -292,28 +292,6 @@ body {
       &:not(:disabled):not(:-webkit-autofill) {
         @apply !bg-transparent text-nc-content-gray;
       }
-
-      // &:disabled {
-      //   @apply bg-nc-bg-gray-light border-nc-border-gray-medium hover:border-nc-border-gray-medium focus:(border-nc-border-gray-medium) text-nc-content-gray-muted;
-      // }
-    }
-  }
-
-  .ant-input-number {
-    .ant-input-number-handler {
-      @apply bg-nc-bg-gray-light border-l-nc-border-gray-medium;
-      color: rgba(var(--rgb-base), 0.45);
-
-      &:not(:hover) {
-        .ant-input-number-handler-down-inner,
-        .ant-input-number-handler-up-inner {
-          color: rgba(var(--rgb-base), 0.45);
-        }
-      }
-    }
-
-    .ant-input-number-handler-down {
-      @apply border-t-nc-border-gray-medium;
     }
   }
 
@@ -463,16 +441,6 @@ body {
     }
   }
 
-  // Ant select
-  .ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector {
-    @apply text-nc-content-gray-muted bg-nc-bg-gray-medium;
-  }
-
-  // Multiselect
-  .ant-select-multiple .ant-select-selection-item {
-    @apply bg-nc-bg-gray-medium border-nc-bg-gray-dark;
-  }
-
   // Sidebar
   .nc-home-create-new-btn,
   .nc-sidebar-item-dark {
@@ -481,5 +449,9 @@ body {
     &.active {
       @apply !bg-nc-bg-gray-medium !hover:bg-nc-bg-gray-medium;
     }
+  }
+
+  .ant-modal-close-x {
+    @apply text-nc-content-gray-subtle;
   }
 }

@@ -296,7 +296,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       ncMeta,
     );
 
-    return dependencies.filter((dep) => dep.triggerId);
+    return dependencies.filter((dep) => dep.triggerId || dep.nextSyncAt);
   }
 
   /**

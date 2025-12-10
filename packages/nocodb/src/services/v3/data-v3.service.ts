@@ -58,9 +58,11 @@ export class DataV3Service {
   private async getModelInfo(
     context: NcContext,
     modelId: string,
+    user?: any,
   ): Promise<ModelInfo> {
     const { model } = await this.dataTableService.getModelAndView(context, {
       modelId,
+      user,
     });
     const columns = await model.getColumns(context);
     const primaryKey = model.primaryKey;

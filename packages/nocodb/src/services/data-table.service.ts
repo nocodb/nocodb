@@ -1,17 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   isLinksOrLTAR,
+  isServiceUser,
   ncIsNumber,
   RelationTypes,
+  ServiceUserType,
   ViewTypes,
 } from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import type { NcContext } from '~/interface/config';
+import type { NcContext, NcRequest } from '~/interface/config';
 import { Column, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
+import { TablesService } from '~/services/tables.service';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -21,7 +24,10 @@ import { Profiler } from '~/helpers/profiler';
 
 @Injectable()
 export class DataTableService {
-  constructor(protected datasService: DatasService) {}
+  constructor(
+    protected datasService: DatasService,
+    protected tablesService: TablesService,
+  ) {}
   logger = new Logger(DataTableService.name);
 
   async dataList(
@@ -34,13 +40,15 @@ export class DataTableService {
       ignorePagination?: boolean;
       apiVersion?: NcApiVersion;
       includeSortAndFilterColumns?: boolean;
+      user?: any;
     },
   ) {
-    const { modelId, viewId, baseId, ...rest } = param;
+    const { modelId, viewId, baseId, user, ...rest } = param;
     const { model, view } = await this.getModelAndView(context, {
       modelId,
       viewId,
       baseId,
+      user,
     });
     return await this.datasService.dataList(context, {
       ...rest,
@@ -60,6 +68,7 @@ export class DataTableService {
       viewId?: string;
       query: any;
       apiVersion?: NcApiVersion;
+      user?: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -92,6 +101,7 @@ export class DataTableService {
       modelId: string;
       viewId?: string;
       query: any;
+      user?: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -177,6 +187,7 @@ export class DataTableService {
       rowId: string;
       cookie: any;
       beforeRowId?: string;
+      user?: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -288,6 +299,7 @@ export class DataTableService {
       modelId: string;
       query: any;
       apiVersion?: NcApiVersion;
+      user?: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -316,6 +328,7 @@ export class DataTableService {
       baseId?: string;
       viewId?: string;
       modelId: string;
+      user?: any;
     },
   ) {
     const model = await Model.get(context, param.modelId);
@@ -325,6 +338,19 @@ export class DataTableService {
 
     if (param.baseId && model.base_id !== param.baseId) {
       NcError.get(context).tableNotFound(param.modelId);
+    }
+
+    // Check table visibility permission (skip for service users like workflow)
+    if (param.user && !isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
+      const hasAccess = await this.tablesService.hasTableVisibilityAccess(
+        context,
+        param.modelId,
+        param.user,
+      );
+      if (!hasAccess) {
+        // Return 404 as if table doesn't exist
+        NcError.get(context).tableNotFound(param.modelId);
+      }
     }
 
     let view: View;
@@ -423,6 +449,7 @@ export class DataTableService {
       rowId: string | string[] | number | number[];
       columnId: string;
       apiVersion?: NcApiVersion;
+      user?: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -564,6 +591,7 @@ export class DataTableService {
         | Record<string, any>
         | Record<string, any>[];
       rowId: string;
+      user?: any;
     },
   ) {
     this.validateIds(context, param.refRowIds);
@@ -601,6 +629,7 @@ export class DataTableService {
       query: any;
       refRowIds: string | string[] | number | number[] | Record<string, any>;
       rowId: string;
+      user?: any;
     },
   ) {
     this.validateIds(context, param.refRowIds);
@@ -645,6 +674,7 @@ export class DataTableService {
         columnId: string;
         fk_related_model_id: string;
       }[];
+      user?: any;
     },
   ) {
     validatePayload(
@@ -873,6 +903,7 @@ export class DataTableService {
       viewId?: string;
       query: any;
       body: any;
+      user?: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -914,6 +945,7 @@ export class DataTableService {
       viewId?: string;
       query: any;
       body: any;
+      user?: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);

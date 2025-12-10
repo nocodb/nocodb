@@ -10,6 +10,8 @@ const { appInfo } = useGlobal()
 
 const { $e } = useNuxtApp()
 
+const { isDark, selectedTheme, isThemeEnabled } = useTheme()
+
 const workspaceId = computed(() => route.value.params.typeOrId as string)
 
 const websiteUrl = computed(() => {
@@ -25,6 +27,13 @@ onMounted(() => {
 onBeforeUnmount(() => {
   hideSidebar.value = false
 })
+
+const sendIframeMessage = (message: any) => {
+  const iframe = document.querySelector('iframe')
+  if (iframe) {
+    iframe.contentWindow?.postMessage(message, websiteUrl.value)
+  }
+}
 
 useEventListener('message', (event) => {
   if (event.origin !== websiteUrl.value) return
@@ -52,6 +61,13 @@ useEventListener('message', (event) => {
     $e(data.event, data.data)
   } else if (type === 'frameLoaded') {
     frameLoaded.value = true
+  } else if (type === 'on-theme-initialized') {
+    if (isThemeEnabled.value && selectedTheme.value) {
+      sendIframeMessage({
+        type: 'theme-mode-changed',
+        data: isDark.value ? 'dark' : 'light',
+      })
+    }
   }
 })
 
@@ -62,7 +78,27 @@ const embedPage = computed(() => {
 
   searchQuery.set('inApp', 'true')
 
+  if (isThemeEnabled.value) {
+    searchQuery.set('isThemeEnabled', `${isThemeEnabled.value}`)
+  }
+
   return `${websiteUrl.value}/${page}/?${searchQuery.toString()}`
+})
+
+watch(isDark, (newVal) => {
+  if (!isThemeEnabled.value) return
+
+  if (newVal) {
+    sendIframeMessage({
+      type: 'theme-mode-changed',
+      data: 'dark',
+    })
+  } else {
+    sendIframeMessage({
+      type: 'theme-mode-changed',
+      data: 'light',
+    })
+  }
 })
 </script>
 

@@ -136,6 +136,7 @@ export class DuplicateController {
         excludeHooks?: boolean;
         excludeScripts?: boolean;
         excludeDashboards?: boolean;
+        excludeWorkflows?: boolean;
       };
       // override duplicated base
       base?: any;

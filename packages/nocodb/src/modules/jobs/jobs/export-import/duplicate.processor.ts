@@ -66,6 +66,7 @@ export class DuplicateProcessor {
       excludeViews?: boolean;
       excludeComments?: boolean;
       excludeDashboards?: boolean;
+      excludeWorkflows?: boolean;
     };
   }) {
     throw new NotImplementedException();
@@ -95,6 +96,7 @@ export class DuplicateProcessor {
       excludeUsers?: boolean;
       excludeScripts?: boolean;
       excludeDashboards?: boolean;
+      excludeWorkflows?: boolean;
     };
     operation: JobTypes;
   }) {
@@ -156,6 +158,24 @@ export class DuplicateProcessor {
         );
       }
 
+      let exportedWorkflows = null;
+
+      if (!options.excludeWorkflows) {
+        exportedWorkflows = await this.exportService.serializeWorkflows(
+          context,
+          {
+            idMap: exportModelMap,
+          },
+          req,
+        );
+
+        elapsedTime(
+          hrTime,
+          `serialize workflows schema for ${dataSource.base_id}`,
+          operation,
+        );
+      }
+
       let exportedDashboards = null;
 
       if (!options.excludeDashboards) {
@@ -204,6 +224,16 @@ export class DuplicateProcessor {
           user,
           baseId: targetBase.id,
           data: exportedDashboards,
+          req,
+          idMap,
+        });
+      }
+
+      if (exportedWorkflows?.length) {
+        idMap = await this.importService.importWorkflows(targetContext, {
+          user,
+          baseId: targetBase.id,
+          data: exportedWorkflows,
           req,
           idMap,
         });
@@ -299,6 +329,7 @@ export class DuplicateProcessor {
     const excludeUsers = options?.excludeUsers || false;
     const excludeScripts = options?.excludeScripts || false;
     const excludeDashboards = options?.excludeDashboards || false;
+    const excludeWorkflows = options?.excludeWorkflows || false;
 
     const base = await Base.get(context, baseId);
     const dupProject = await Base.get(
@@ -324,6 +355,7 @@ export class DuplicateProcessor {
         excludeUsers,
         excludeScripts,
         excludeDashboards,
+        excludeWorkflows,
       },
       operation: JobTypes.DuplicateBase,
     });

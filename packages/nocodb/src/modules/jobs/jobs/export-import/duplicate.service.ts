@@ -41,6 +41,7 @@ export class DuplicateService {
         excludeHooks?: boolean;
         excludeScripts?: boolean;
         excludeDashboards?: boolean;
+        excludeWorkflows?: boolean;
       };
       // override duplicated base
       base?: any;

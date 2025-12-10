@@ -3,6 +3,7 @@ import {
   GeneralNodeID,
   genGeneralVariables,
   IntegrationsType,
+  isTriggerNode,
   NcBaseError,
   NOCO_SERVICE_USERS,
   ServiceUserType,
@@ -59,7 +60,10 @@ export class WorkflowExecutionService {
 
   public async getWorkflowNodes(context: NcContext) {
     const workflowNodeIntegrations = Integration.availableIntegrations
-      .filter((i) => i && i.type === IntegrationsType.WorkflowNode)
+      .filter(
+        (i) =>
+          i && i.type === IntegrationsType.WorkflowNode && !i.manifest.hidden,
+      )
       .sort((a, b) => {
         if (a.manifest.order && b.manifest.order) {
           return a.manifest.order - b.manifest.order;
@@ -506,10 +510,7 @@ export class WorkflowExecutionService {
     const startTime = Date.now();
 
     // Handle trigger nodes
-    if (
-      node.type === GeneralNodeID.TRIGGER ||
-      node.type?.startsWith('nocodb.trigger.')
-    ) {
+    if (isTriggerNode(node.type)) {
       return this.executeTriggerNode(context, node, triggerData, startTime);
     }
 
@@ -524,10 +525,7 @@ export class WorkflowExecutionService {
     startTime: number,
     testMode?: boolean,
   ): Promise<NodeExecutionResult> {
-    if (
-      node.type?.startsWith('nocodb.trigger.') ||
-      node.type?.startsWith('core.trigger.')
-    ) {
+    if (isTriggerNode(node.type)) {
       const nodeWrapper = this.getNodeWrapper(
         context,
         node.type,

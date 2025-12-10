@@ -128,6 +128,20 @@ export class ImportService {
     //  create dashboards
   }
 
+  async importWorkflows(
+    _context: NcContext,
+    _param: {
+      user: User;
+      baseId: string;
+      data: Array<any>;
+      req: NcRequest;
+      idMap: Map<string, string>;
+    },
+  ) {
+    return _param.idMap;
+    //  create workflows
+  }
+
   async importPermissions(
     _context: NcContext,
     _param: {

@@ -82,13 +82,15 @@ function buildWorkflowGraph(
 function determineStartNode(
   nodes: WorkflowGeneralNode[],
   triggerNodes: WorkflowGeneralNode[],
-  triggerNodeTitle: string | undefined,
+  triggerNodeTitleOrTriggerId: string | undefined,
   context: NcContext,
 ): string {
-  if (triggerNodeTitle) {
+  if (triggerNodeTitleOrTriggerId) {
     const triggerNode = nodes.find(
       (n) =>
-        n.data?.title === triggerNodeTitle || n.type === GeneralNodeID.TRIGGER,
+        n.data?.title === triggerNodeTitleOrTriggerId ||
+        n.type === GeneralNodeID.TRIGGER ||
+        n.id === triggerNodeTitleOrTriggerId,
     );
     if (!triggerNode) {
       NcError.get(context).workflowTriggerNodeNotFound();

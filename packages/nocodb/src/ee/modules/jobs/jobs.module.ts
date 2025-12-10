@@ -18,6 +18,7 @@ import { ReseatSubscriptionProcessor } from '~/modules/jobs/jobs/reseat-subscrip
 import { ExecuteWorkflowProcessor } from '~/modules/jobs/jobs/execute-workflow/execute-workflow.processor';
 import { NocoSyncModule } from '~/integrations/sync/module/sync.module';
 import { PaymentModule } from '~/modules/payment/payment.module';
+import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow-schedule.processor';
 
 @Module({
   ...JobsModuleMetadata,
@@ -44,6 +45,7 @@ import { PaymentModule } from '~/modules/payment/payment.module';
     ActionExecutionProcessor,
     ReseatSubscriptionProcessor,
     ExecuteWorkflowProcessor,
+    WorkflowScheduleProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

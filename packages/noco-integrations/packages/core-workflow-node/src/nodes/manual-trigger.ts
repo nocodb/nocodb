@@ -1,5 +1,6 @@
 import {
   NocoSDK,
+  TriggerActivationType,
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
@@ -23,6 +24,7 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
       description: 'Manually start a workflow execution',
       icon: 'ncPlay',
       category: WorkflowNodeCategory.TRIGGER,
+      activationType: TriggerActivationType.NONE,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form: [],
       keywords: ['manual', 'trigger', 'start', 'run'],

@@ -4,13 +4,9 @@ import {
 } from '@noco-integrations/core';
 import { manifest } from './manifest';
 import { ManualTriggerNode } from './nodes/manual-trigger';
+import { CronTriggerNode } from './nodes/cron-trigger';
 import { IfNode } from './nodes/if';
 import { SendEmailAction } from './nodes/send-email';
-
-export * from './manifest';
-export * from './nodes/manual-trigger';
-export * from './nodes/if';
-export * from './nodes/send-email';
 
 export const entries: IntegrationEntry[] = [
   {
@@ -23,6 +19,17 @@ export const entries: IntegrationEntry[] = [
       title: 'When manually triggered',
       icon: 'ncPlay',
       order: 4,
+    },
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'core.trigger.cron',
+    wrapper: CronTriggerNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'At scheduled time',
+      icon: 'ncClock',
     },
   },
   {

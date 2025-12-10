@@ -1562,6 +1562,7 @@
     "includeView": "Include views",
     "includeScripts": "Include scripts",
     "includeDashboards": "Include dashboards",
+    "includeWorkflows": "Include workflows",
     "includeWebhook": "Include webhook",
     "includeComments": "Include comments",
     "zoomInToViewColumns": "Zoom in to view columns",

@@ -2,7 +2,7 @@ import { IntegrationWrapper } from '../integration';
 import { AuthIntegration } from '../auth';
 import { NocoSDK } from '../sdk';
 import { IDataV3Service, ITablesService, IMailService } from './nocodb.interface';
-import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition } from 'nocodb-sdk'
+import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType } from 'nocodb-sdk'
 
 
 export interface WorkflowNodeLog {
@@ -45,6 +45,24 @@ export interface WorkflowNodeRunContext<TConfig = any> {
   ) => Promise<AuthIntegration<T, U>>;
 }
 
+/**
+ * Context provided when activating external webhook triggers
+ */
+export interface WorkflowActivationContext {
+  /** The webhook URL that external services should call */
+  webhookUrl: string;
+  /** Workflow ID */
+  workflowId: string;
+  /** Trigger node ID in the workflow */
+  nodeId: string;
+}
+
+/**
+ * State returned from onActivateHook that will be passed to onDeactivateHook
+ * Store any data needed for cleanup (e.g., external webhook IDs, secrets)
+ */
+export type WorkflowActivationState = Record<string, any>;
+
 export interface WorkflowNodeResult {
   outputs: Record<string, unknown>;
 
@@ -78,7 +96,8 @@ export interface WorkflowNodeConfig {
 export {
   WorkflowNodeCategory,
   WorkflowNodeCategoryType,
-  WorkflowNodeDefinition
+  WorkflowNodeDefinition,
+  TriggerActivationType,
 }
 
 export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig = WorkflowNodeConfig> extends IntegrationWrapper<TConfig> {
@@ -164,4 +183,58 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
   public async generateOutputVariables?(
     context: NocoSDK.VariableGeneratorContext,
   ): Promise<VariableDefinition[]>;
+
+  /**
+   * Called when workflow is published/enabled
+   * Use for: registering webhooks, establishing connections, subscribing to events
+   *
+   * @param context - Activation context with webhook URL and workflow info
+   * @returns State object that will be passed to onDeactivateHook for cleanup
+   *
+   * @example GitHub webhook
+   * ```typescript
+   * async onActivateHook(context: WorkflowActivationContext) {
+   *   const auth = await this.getAuthIntegration(this.config.authIntegrationId);
+   *   const webhook = await auth.use(async (client) => {
+   *     return client.repos.createWebhook({
+   *       owner: this.config.owner,
+   *       repo: this.config.repo,
+   *       config: { url: context.webhookUrl, content_type: 'json' },
+   *       events: this.config.events,
+   *     });
+   *   });
+   *   return { webhookId: webhook.data.id, createdAt: Date.now() };
+   * }
+   * ```
+   */
+  public async onActivateHook?(
+    context: WorkflowActivationContext
+  ): Promise<WorkflowActivationState | void>;
+
+  /**
+   * Called when workflow is unpublished/disabled
+   * Use for: cleanup, unregistering webhooks, closing connections
+   *
+   * @param context - Same context from activation
+   * @param state - The state object returned from onActivateHook()
+   *
+   * @example GitHub webhook cleanup
+   * ```typescript
+   * async onDeactivateHook(context: WorkflowActivationContext, state?: WorkflowActivationState) {
+   *   if (!state?.webhookId) return;
+   *   const auth = await this.getAuthIntegration(this.config.authIntegrationId);
+   *   await auth.use(async (client) => {
+   *     await client.repos.deleteWebhook({
+   *       owner: this.config.owner,
+   *       repo: this.config.repo,
+   *       hook_id: state.webhookId,
+   *     });
+   *   });
+   * }
+   * ```
+   */
+  public async onDeactivateHook?(
+    context: WorkflowActivationContext,
+    state?: WorkflowActivationState
+  ): Promise<void>;
 }

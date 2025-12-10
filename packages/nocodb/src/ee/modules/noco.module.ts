@@ -70,6 +70,7 @@ import { ScriptsService } from '~/services/scripts.service';
 /* Workflows */
 import { WorkflowsService } from '~/ee/services/workflows.service';
 import { WorkflowExecutionService } from '~/ee/services/workflow-execution.service';
+import { WorkflowWebhookController } from '~/ee/controllers/workflow-webhook.controller';
 
 /* Dashboards */
 import { DashboardsService } from '~/services/dashboards.service';
@@ -165,6 +166,9 @@ export const nocoModuleEeMetadata = {
     BaseMembersV3Controller,
 
     ScriptsV3Controller,
+
+    /* Workflows */
+    WorkflowWebhookController,
 
     // NOTE: COMMENTED OUT FOR NOW - ONLY USED FOR TESTING PURPOSES
     // /* Workspace Teams V3 */

@@ -47,6 +47,7 @@ import {
   Script,
   Source,
   View,
+  Workflow,
 } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -56,9 +57,9 @@ import { getQueriedColumns } from '~/helpers/dbHelpers';
 
 @Injectable()
 export class ExportService {
-  private readonly debugLog = debug('nc:jobs:import');
+  protected readonly debugLog = debug('nc:jobs:import');
 
-  constructor(private datasService: DatasService) {}
+  constructor(protected datasService: DatasService) {}
 
   async serializeScripts(context: NcContext) {
     const serializedScripts = [];
@@ -75,6 +76,10 @@ export class ExportService {
     }
 
     return serializedScripts;
+  }
+
+  async serializeWorkflows(_context: NcContext, _param: any, _req: NcRequest) {
+    return [];
   }
 
   async serializeDashboards(context: NcContext, param: any, req: NcRequest) {

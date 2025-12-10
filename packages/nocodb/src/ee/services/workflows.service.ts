@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import {
   AppEvents,
   DependencyTableType,
@@ -6,7 +6,12 @@ import {
   GeneralNodeID,
   generateUniqueCopyName,
   hasWorkflowDraftChanges,
+  isTriggerNode,
+  TriggerActivationType,
 } from 'nocodb-sdk';
+import { nanoid } from 'nanoid';
+import { CronExpressionParser } from 'cron-parser';
+import type { OnModuleInit } from '@nestjs/common';
 import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { extractWorkflowDependencies } from '~/services/workflows/extractDependency';
@@ -21,13 +26,30 @@ import {
 } from '~/models';
 import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import NocoSocket from '~/socket/NocoSocket';
+import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { JobTypes } from '~/interface/Jobs';
+import { NocoJobsService } from '~/services/noco-jobs.service';
 
 @Injectable()
-export class WorkflowsService {
+export class WorkflowsService implements OnModuleInit {
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected readonly workflowExecutionService: WorkflowExecutionService,
+    @Inject('JobsService') private readonly jobsService: IJobsService,
+    protected readonly nocoJobsService: NocoJobsService,
   ) {}
+
+  async onModuleInit() {
+    this.nocoJobsService.jobsQueue.add(
+      {
+        jobName: JobTypes.WorkflowCronSchedule,
+      },
+      {
+        jobId: JobTypes.WorkflowCronSchedule,
+        repeat: { cron: '* * * * *' },
+      },
+    );
+  }
 
   async listWorkflows(context: NcContext) {
     return await Workflow.list(context, context.base_id);
@@ -151,6 +173,12 @@ export class WorkflowsService {
 
     if (!workflow) {
       NcError.get(context).workflowNotFound(workflowId);
+    }
+
+    try {
+      await this.callOnDeactivateHooks(context, workflow);
+    } catch (error) {
+      console.error('Failed to trigger deactivation hooks:', error);
     }
 
     try {
@@ -410,6 +438,25 @@ export class WorkflowsService {
       );
     }
 
+    // Step 1: Deactivate existing external triggers
+    try {
+      await this.callOnDeactivateHooks(context, workflow);
+    } catch (error) {
+      console.error('Failed to trigger deactivation hooks:', error);
+    }
+
+    // Step 2: Clear old dependencies
+    try {
+      await DependencyTracker.clearDependencies(
+        context,
+        DependencyTableType.Workflow,
+        workflowId,
+      );
+    } catch (error) {
+      console.error('Failed to clear dependencies:', error);
+    }
+
+    // Step 3: Update workflow
     const updatedWorkflow = await Workflow.update(context, workflowId, {
       nodes: workflow.draft.nodes,
       edges: workflow.draft.edges,
@@ -417,6 +464,7 @@ export class WorkflowsService {
       updated_by: req.user.id,
     });
 
+    // Step 4: Track new dependencies
     try {
       const dependencies = extractWorkflowDependencies(
         updatedWorkflow.nodes || [],
@@ -429,6 +477,13 @@ export class WorkflowsService {
       );
     } catch (error) {
       console.error('Failed to track workflow dependencies:', error);
+    }
+
+    // Step 5: Activate new external triggers
+    try {
+      await this.callOnActivateHooks(context, updatedWorkflow, req);
+    } catch (error) {
+      console.error('Failed to trigger node activation hooks:', error);
     }
 
     this.appHooksService.emit(AppEvents.WORKFLOW_UPDATE, {
@@ -453,5 +508,257 @@ export class WorkflowsService {
     );
 
     return updatedWorkflow;
+  }
+
+  async handleWebhookTrigger(
+    context: NcContext,
+    params: {
+      workflowId: string;
+      triggerId: string;
+      req: NcRequest;
+    },
+  ) {
+    const { workflowId, triggerId, req } = params;
+
+    const workflow = await Workflow.get(context, workflowId);
+
+    if (!workflow) {
+      NcError.get(context).workflowNotFound(workflowId);
+    }
+
+    if (!workflow.enabled) {
+      return {
+        success: false,
+        message: 'Workflow is disabled',
+      };
+    }
+
+    const triggers = await Workflow.getExternalTriggers(
+      {
+        workspace_id: context.workspace_id,
+        base_id: context.base_id,
+      },
+      workflowId,
+    );
+
+    const trigger = triggers.find((t) => t.triggerId === triggerId);
+
+    if (!trigger) {
+      return {
+        success: false,
+        message: 'Trigger not found',
+      };
+    }
+
+    // Find the trigger node in the workflow
+    const triggerNode = workflow.nodes?.find(
+      (node) => node.id === trigger.nodeId,
+    );
+
+    if (!triggerNode) {
+      NcError.notFound('Trigger node not found in workflow');
+    }
+
+    await this.jobsService.add(JobTypes.ExecuteWorkflow, {
+      context: {
+        workspace_id: context.workspace_id,
+        base_id: context.base_id,
+      },
+      workflowId: workflow.id,
+      triggerNodeId: triggerNode.id,
+      triggerInputs: {
+        webhook: {
+          headers: req.headers,
+          body: req.body,
+          query: req.query,
+          method: req.method,
+          url: req.url,
+        },
+      },
+    });
+
+    return {
+      success: true,
+      message: 'Workflow triggered successfully',
+      workflowId: workflow.id,
+      executionQueued: true,
+    };
+  }
+
+  /**
+   * Call onActivateHook for workflow trigger nodes
+   */
+  private async callOnActivateHooks(
+    context: NcContext,
+    workflow: Workflow,
+    req: NcRequest,
+  ): Promise<void> {
+    const nodes = workflow.nodes || [];
+
+    const triggerNodes = nodes.filter((node) => isTriggerNode(node.type));
+
+    if (triggerNodes.length === 0) return;
+
+    for (const triggerNode of triggerNodes) {
+      try {
+        const integrationId = triggerNode.type;
+        const integrationConfig = triggerNode.data?.config;
+        if (!integrationId) continue;
+
+        const wrapper = this.workflowExecutionService.getNodeWrapper(
+          context,
+          integrationId,
+          integrationConfig,
+        );
+
+        if (!wrapper) continue;
+
+        const definition = await wrapper.definition();
+        const activationType =
+          definition.activationType || TriggerActivationType.NONE;
+        if (activationType === TriggerActivationType.NONE) continue;
+
+        if (typeof wrapper.onActivateHook !== 'function') continue;
+
+        if (activationType === TriggerActivationType.WEBHOOK) {
+          await this.activateWebhookTrigger(
+            context,
+            workflow,
+            triggerNode,
+            wrapper,
+            req,
+          );
+        } else if (activationType === TriggerActivationType.CRON) {
+          await this.activateCronTrigger(
+            context,
+            workflow,
+            triggerNode,
+            wrapper,
+          );
+        }
+      } catch (error) {
+        console.error(
+          `[Workflow] Failed to activate trigger for node ${triggerNode.id}:`,
+          error,
+        );
+      }
+    }
+  }
+
+  /**
+   * Activate a webhook-based external trigger
+   */
+  private async activateWebhookTrigger(
+    context: NcContext,
+    workflow: Workflow,
+    triggerNode: any,
+    wrapper: any,
+    req: NcRequest,
+  ): Promise<void> {
+    // Generate unique trigger ID
+    const triggerId = `trg_${nanoid(16)}`;
+
+    // Build webhook URL with RESTful path
+    const webhookUrl = `${req.ncSiteUrl}/api/v3/workflows/${context.workspace_id}/${context.base_id}/${workflow.id}/${triggerId}/webhook`;
+
+    // Call onActivateHook
+    const activationState = await wrapper.onActivateHook({
+      webhookUrl,
+      workflowId: workflow.id,
+      nodeId: triggerNode.id,
+    });
+
+    if (!activationState) return;
+
+    // Track trigger in Workflow model with triggerId for routing
+    await Workflow.trackExternalTrigger(context, workflow.id, {
+      nodeId: triggerNode.id,
+      nodeType: triggerNode.type,
+      triggerId,
+      activationState,
+    });
+  }
+
+  /**
+   * Activate a cron-based trigger
+   */
+  private async activateCronTrigger(
+    context: NcContext,
+    workflow: Workflow,
+    triggerNode: any,
+    wrapper: any,
+  ): Promise<void> {
+    // Call onActivateHook to get cron configuration
+    const activationState = await wrapper.onActivateHook({
+      workflowId: workflow.id,
+      nodeId: triggerNode.id,
+    });
+
+    if (!activationState?.cronExpression) return;
+
+    const interval = CronExpressionParser.parse(
+      activationState.cronExpression,
+      {
+        tz: activationState.timezone,
+        currentDate: new Date(),
+      },
+    );
+    const nextSyncAt = interval.next().toISOString();
+
+    await Workflow.trackExternalTrigger(context, workflow.id, {
+      nodeId: triggerNode.id,
+      nodeType: triggerNode.type,
+      nextSyncAt,
+      activationState,
+    });
+  }
+
+  /**
+   * Call onDeactivateHook for workflow trigger nodes
+   */
+  private async callOnDeactivateHooks(
+    context: NcContext,
+    workflow: Workflow,
+  ): Promise<void> {
+    // Get all external triggers for this workflow from Workflow model
+    const triggers = await Workflow.getExternalTriggers(context, workflow.id);
+
+    if (triggers.length === 0) return;
+
+    for (const trigger of triggers) {
+      try {
+        const integrationId = trigger.nodeType;
+        if (!integrationId) continue;
+
+        const triggerNode = workflow.nodes?.find(
+          (node) => node.id === trigger.nodeId,
+        );
+        const integrationConfig = triggerNode?.data?.config;
+
+        const wrapper = this.workflowExecutionService.getNodeWrapper(
+          context,
+          integrationId,
+          integrationConfig,
+        );
+
+        if (!wrapper) continue;
+
+        if (typeof wrapper.onDeactivateHook !== 'function') continue;
+
+        await wrapper.onDeactivateHook(
+          {
+            webhookUrl: '', // Not needed for deactivation
+            workflowId: workflow.id,
+            nodeId: trigger.nodeId,
+          },
+          trigger.activationState,
+        );
+      } catch (error) {
+        console.error(
+          `[Workflow] Failed to deactivate trigger for node ${trigger.nodeId}:`,
+          error,
+        );
+      }
+    }
   }
 }

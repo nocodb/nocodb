@@ -17,7 +17,9 @@ import {
   CacheScope,
   MetaTable,
 } from '~/utils/globals';
-import DependencyTracker from '~/models/DependencyTracker';
+import DependencyTracker, {
+  type HydratedDependencyTrackerType,
+} from '~/models/DependencyTracker';
 import { processConcurrently } from '~/utils';
 
 export default class Workflow extends WorkflowCE implements WorkflowType {
@@ -272,5 +274,64 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
     );
 
     return workflows.filter((wf) => wf.enabled);
+  }
+
+  /**
+   * Get external triggers for a workflow
+   * External triggers are self-referencing dependencies with a triggerId
+   */
+  public static async getExternalTriggers(
+    context: NcContext,
+    workflowId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<HydratedDependencyTrackerType<DependencyTableType.Workflow>[]> {
+    const dependencies = await DependencyTracker.getDependentsBySource(
+      context,
+      DependencyTableType.Workflow,
+      workflowId,
+      {
+        dependentType: DependencyTableType.Workflow,
+        dependentId: workflowId,
+      },
+      ncMeta,
+    );
+
+    return dependencies.filter((dep) => dep.triggerId || dep.nextSyncAt);
+  }
+
+  /**
+   * Track an external trigger as a self-referencing dependency
+   */
+  public static async trackExternalTrigger(
+    context: NcContext,
+    workflowId: string,
+    triggerData: {
+      nodeId: string;
+      nodeType: string;
+      triggerId?: string | null;
+      nextSyncAt?: string;
+      activationState?: Record<string, any>;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<void> {
+    await DependencyTracker.trackDependencies(
+      context,
+      DependencyTableType.Workflow,
+      workflowId,
+      {
+        workflows: [
+          {
+            id: workflowId, // Self-reference
+            nodeId: triggerData.nodeId,
+            nodeType: triggerData.nodeType,
+            triggerId: triggerData.triggerId,
+            nextSyncAt: triggerData.nextSyncAt,
+            activationState: triggerData.activationState,
+          },
+        ],
+      },
+      ncMeta,
+      true,
+    );
   }
 }

@@ -57,6 +57,7 @@ export enum JobTypes {
   ExecuteAction = 'execute-action',
   ReseatSubscription = 'reseat-subscription',
   ExecuteWorkflow = 'execute-workflow',
+  WorkflowCronSchedule = 'workflow-cron-schedule',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -72,6 +73,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.UpdateUsageStats,
   JobTypes.SyncModuleSchedule,
   JobTypes.ReseatSubscription,
+  JobTypes.WorkflowCronSchedule,
 ];
 
 export enum JobStatus {
@@ -157,6 +159,7 @@ export interface DuplicateBaseJobData extends JobData {
     excludeUsers?: boolean;
     excludeScripts?: boolean;
     excludeDashboards?: boolean;
+    excludeWorkflows?: boolean;
   };
 }
 

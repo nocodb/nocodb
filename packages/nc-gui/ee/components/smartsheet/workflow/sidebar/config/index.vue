@@ -2,6 +2,7 @@
 import { IntegrationsType } from 'nocodb-sdk'
 import IfNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/if/index.vue'
 import ListRecordsNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/list-records.vue'
+import CronTriggerNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/cron-trigger.vue'
 
 const {
   selectedNodeId,
@@ -79,11 +80,10 @@ provide(WorkflowVariableInj, {
   getAvailableVariablesFlat,
 })
 
-const isIfNode = computed(() => selectedNode.value?.type === 'core.flow.if')
-
 const FormNodeMap = {
   'core.flow.if': IfNodeConfig,
   'nocodb.list_records': ListRecordsNodeConfig,
+  'core.trigger.cron': CronTriggerNodeConfig,
 }
 
 const formSchema = computed(() => {

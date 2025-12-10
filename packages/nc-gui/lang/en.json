@@ -1021,6 +1021,8 @@
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
+    "tableVisibility": "Table Visibility",
+    "recordOperations": "Record Operations",
     "fieldPermissions": "Field permissions",
     "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
     "baseTypePrivateSubtext": "Invite-only base. Only you can view and manage its members.",

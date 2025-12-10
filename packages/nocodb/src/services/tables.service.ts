@@ -11,6 +11,8 @@ import {
   isVirtualCol,
   ModelTypes,
   NcBaseError,
+  PermissionEntity,
+  PermissionKey,
   ProjectRoles,
   RelationTypes,
   ServiceUserType,
@@ -31,7 +33,7 @@ import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { repopulateCreateTableSystemColumns } from '~/helpers/tableHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
-import { Base, Column, Model, ModelRoleVisibility } from '~/models';
+import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -485,6 +487,22 @@ export class TablesService {
     if (!table) {
       NcError.tableNotFound(param.tableId);
     }
+
+    // Check table visibility permission
+    // Base owners always have access, but we still need to check for others
+    if (!isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
+      const hasAccess = await this.hasTableVisibilityAccess(
+        context,
+        param.tableId,
+        param.user,
+      );
+
+      if (!hasAccess) {
+        // Return 404 as if table doesn't exist
+        NcError.tableNotFound(param.tableId);
+      }
+    }
+
     if (isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
       await table.getViews(context);
     } else {
@@ -561,6 +579,54 @@ export class TablesService {
     return Object.values(result);
   }
 
+  /**
+   * Check if user has access to a table based on TABLE_VISIBILITY permission
+   * Base owners always have access
+   */
+  async hasTableVisibilityAccess(
+    context: NcContext,
+    tableId: string,
+    user: User | UserType,
+    permissions?: Permission[],
+  ): Promise<boolean> {
+    // Base owners always have access
+    if (user?.roles?.[ProjectRoles.OWNER]) {
+      return true;
+    }
+
+    // Get permissions if not provided
+    if (!permissions) {
+      permissions = await Permission.list(context, context.base_id);
+    }
+
+    // Find TABLE_VISIBILITY permission for this table
+    const visibilityPermission = permissions.find(
+      (p) =>
+        p.entity === PermissionEntity.TABLE &&
+        p.entity_id === tableId &&
+        p.permission === PermissionKey.TABLE_VISIBILITY,
+    );
+
+    // If no permission exists, default to everyone (accessible)
+    if (!visibilityPermission) {
+      return true;
+    }
+
+    // Check if user has permission
+    const hasPermission = await Permission.isAllowed(
+      context,
+      visibilityPermission,
+      {
+        id: user.id,
+        role: Object.keys(user?.roles || {}).find(
+          (role) => user?.roles?.[role],
+        ) as ProjectRoles,
+      },
+    );
+
+    return hasPermission;
+  }
+
   async getAccessibleTables(
     context: NcContext,
     param: {
@@ -569,6 +635,7 @@ export class TablesService {
       includeM2M?: boolean;
       roles: Record<string, boolean>;
       allSources?: boolean;
+      user?: User | UserType;
     },
   ) {
     const viewList = await this.xcVisibilityMetaGet(context, param.baseId);
@@ -586,12 +653,32 @@ export class TablesService {
       return o;
     }, {});
 
-    const tableList = (
+    let tableList = (
       await Model.list(context, {
         base_id: param.baseId,
         source_id: param.allSources ? undefined : param.sourceId,
       })
     ).filter((t) => tableViewMapping[t.id]);
+
+    // Filter tables based on TABLE_VISIBILITY permission
+    if (param.user) {
+      const permissions = await Permission.list(context, param.baseId);
+      const accessibleTableIds = new Set<string>();
+
+      for (const table of tableList) {
+        const hasAccess = await this.hasTableVisibilityAccess(
+          context,
+          table.id,
+          param.user,
+          permissions,
+        );
+        if (hasAccess) {
+          accessibleTableIds.add(table.id);
+        }
+      }
+
+      tableList = tableList.filter((t) => accessibleTableIds.has(t.id));
+    }
 
     return param.includeM2M
       ? tableList

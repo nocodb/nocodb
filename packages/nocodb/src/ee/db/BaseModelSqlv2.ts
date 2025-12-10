@@ -3538,6 +3538,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     let errorMessage = 'You are not allowed for this action';
 
     switch (permission) {
+      case PermissionKey.TABLE_VISIBILITY:
+        errorMessage = 'You are not allowed to access this table';
+        break;
       case PermissionKey.TABLE_RECORD_ADD:
         errorMessage = 'You are not allowed to insert into this table';
         break;

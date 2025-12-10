@@ -66,8 +66,8 @@ const permissionOptions = computed(() => {
 
   // Filter options to only show roles that meet or exceed the minimum requirement
   return allPermissionOptions.value.filter((option) => {
-    // Always allow 'specific_users' and 'nobody' options
-    if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) return true
+    // Always allow 'specific_users', 'nobody', and 'everyone' options
+    if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY || option.value === PermissionOptionValue.EVERYONE) return true
 
     // Map option values to PermissionRole enum values for comparison
     let optionRole: string | undefined

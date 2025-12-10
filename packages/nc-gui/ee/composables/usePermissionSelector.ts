@@ -44,7 +44,7 @@ export const usePermissionSelector = (
     const minRoleIndex = roleHierarchy.indexOf(minimumRole)
 
     return allPermissionOptions.filter((option) => {
-      if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) {
+      if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY || option.value === PermissionOptionValue.EVERYONE) {
         return true // Always allow these options
       }
 
@@ -84,6 +84,8 @@ export const usePermissionSelector = (
         return PermissionOptionValue.CREATORS_AND_UP
       case 'Specific users':
         return PermissionOptionValue.SPECIFIC_USERS
+      case 'Everyone':
+        return PermissionOptionValue.EVERYONE
       case 'Nobody':
         return PermissionOptionValue.NOBODY
       default:
@@ -126,7 +128,7 @@ export const usePermissionSelector = (
         granted_role = PermissionRole.EDITOR
       }
 
-      if (currentPermission.value === PermissionOptionValue.EDITORS_AND_UP) {
+      if (currentPermission.value === PermissionOptionValue.EDITORS_AND_UP || currentPermission.value === PermissionOptionValue.EVERYONE) {
         // If permission entity is not found, do nothing
         if (!permissionsByEntity.value[`${config.value.entity}_${config.value.entityId}`]) {
           return
@@ -237,7 +239,12 @@ export const usePermissionSelector = (
         userSelectorSelectedUsers.value = new Set(permission.subjects?.map((subject) => subject.id) || [])
       }
     } else {
-      currentPermission.value = getInternalValue(currentValue.value)
+      // For table visibility, default to EVERYONE if no permission exists
+      if (config.value.permission === 'TABLE_VISIBILITY') {
+        currentPermission.value = PermissionOptionValue.EVERYONE
+      } else {
+        currentPermission.value = getInternalValue(currentValue.value)
+      }
     }
   }
 

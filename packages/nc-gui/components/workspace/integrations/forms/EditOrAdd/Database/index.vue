@@ -58,6 +58,8 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
+const { appInfo } = useGlobal()
+
 const creatingSource = ref(false)
 
 const _getDefaultConnectionConfig = (client = ClientType.MYSQL) => {
@@ -1218,7 +1220,7 @@ watch(
         </general-overlay>
       </div>
       <div class="nc-edit-or-add-integration-right-panel">
-        <template v-if="isEeUI">
+        <template v-if="appInfo.isCloud && !appInfo.isOnPrem">
           <DashboardSettingsDataSourcesInfo varient="new" />
           <NcDivider />
         </template>

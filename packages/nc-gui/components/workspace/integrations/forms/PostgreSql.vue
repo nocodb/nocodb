@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+const { appInfo } = useGlobal()
+
 const { activeIntegration, categories, activeCategory } = useIntegrationStore()
 
 const { copy } = useCopy()
@@ -43,7 +45,7 @@ const onInputFocus = () => {
 <template>
   <div ref="panelsRef" class="panels">
     <WorkspaceIntegrationsPanel title="Integration Details" icon="info">
-      <template #header-info>
+      <template v-if="appInfo.isCloud && !appInfo.isOnPrem" #header-info>
         <div
           class="text-nc-content-gray-muted !text-xs font-weight-normal flex items-center gap-2 cursor-pointer flex items-center"
           @click="copyIp"

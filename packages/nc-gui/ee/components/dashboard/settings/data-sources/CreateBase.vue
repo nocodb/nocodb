@@ -17,6 +17,8 @@ const props = defineProps<{ open: boolean; connectionType?: ClientType; isModal?
 const emit = defineEmits(['update:open', 'sourceCreated'])
 const vOpen = useVModel(props, 'open', emit)
 
+const { appInfo } = useGlobal()
+
 const { loadIntegrations, integrations, eventBus, pageMode, IntegrationsPageMode } = useIntegrationStore()
 
 const baseStore = useBase()
@@ -987,8 +989,10 @@ const isIntgrationDisabled = (integration: IntegrationType = {}) => {
           </general-overlay>
         </div>
         <div class="nc-add-source-right-panel">
-          <DashboardSettingsDataSourcesInfo varient="new" />
-          <NcDivider />
+          <template v-if="appInfo.isCloud && !appInfo.isOnPrem">
+            <DashboardSettingsDataSourcesInfo varient="new" />
+            <NcDivider />
+          </template>
           <DashboardSettingsDataSourcesSupportedDocs />
           <NcDivider />
         </div>

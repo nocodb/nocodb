@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PermissionEntity, PermissionKey, ProjectRoles } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
 import type { BaseType, TableType } from 'nocodb-sdk'
 import type { NcDropdownPlacement } from '#imports'
 
@@ -17,25 +17,13 @@ const { t } = useI18n()
 
 const { permissionsByEntity } = usePermissions()
 
-const { isUIAllowed } = useRoles()
-
-// Check if user is base owner (only owners can configure table visibility)
-const canConfigureTableVisibility = computed(() => {
-  const baseRole = props.base?.project_role
-  return baseRole === ProjectRoles.OWNER
-})
-
 // Permission configuration for table visibility
 const tableVisibilityConfig: PermissionConfig = {
   entity: PermissionEntity.TABLE,
   entityId: props.tableId,
   permission: PermissionKey.TABLE_VISIBILITY,
-  disabled: !canConfigureTableVisibility.value || (props.table.synced as boolean),
-  tooltip: props.table.synced 
-    ? t('msg.info.permissionsNotAvailableForSyncedTable')
-    : !canConfigureTableVisibility.value
-    ? t('msg.info.onlyBaseOwnersCanConfigureTableVisibility')
-    : undefined,
+  disabled: props.table.synced as boolean,
+  tooltip: props.table.synced ? t('msg.info.permissionsNotAvailableForSyncedTable') : undefined,
 }
 
 // Permission configurations for create and delete
@@ -85,7 +73,6 @@ const hasTablePermissions = computed(() => {
         :config="tableVisibilityConfig"
         :horizontal="horizontal"
         :placement="placement"
-        :readonly="!canConfigureTableVisibility"
         @save="handlePermissionSave"
       />
     </div>

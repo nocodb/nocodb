@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SourceType, TableType } from 'nocodb-sdk'
-import { PermissionEntity, PermissionKey, ProjectRoles } from 'nocodb-sdk'
+import { PermissionKey } from 'nocodb-sdk'
 
 interface Props {
   state: string
@@ -25,14 +25,6 @@ const { base } = storeToRefs(baseStore)
 const { activeTables } = storeToRefs(useTablesStore())
 
 const { getPermissionSummaryLabel } = usePermissions()
-
-const { isUIAllowed } = useRoles()
-
-// Check if user is base owner (only owners can configure table visibility)
-const canConfigureTableVisibility = computed(() => {
-  const baseRole = base.value?.project_role
-  return baseRole === ProjectRoles.OWNER
-})
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
@@ -79,6 +71,7 @@ const columns = [
     key: 'name',
     title: t('general.name'),
     name: 'Name',
+    minWidth: 250,
     padding: '0px 32px',
   },
   {
@@ -298,25 +291,12 @@ watch(
                 <span class="text-xs">{{ $t('general.permissionsNotAvailable') }}</span>
               </NcBadge>
             </NcTooltip>
-            <NcTooltip v-else-if="!canConfigureTableVisibility">
-              <template #title>
-                {{ $t('msg.info.onlyBaseOwnersCanConfigureTableVisibility') }}
-              </template>
-              <PermissionsInlineTableSelector
-                :base="base!"
-                :table-id="record.id"
-                :permission-type="PermissionKey.TABLE_VISIBILITY"
-                :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_VISIBILITY)"
-                :readonly="true"
-              />
-            </NcTooltip>
             <PermissionsInlineTableSelector
               v-else
               :base="base!"
               :table-id="record.id"
               :permission-type="PermissionKey.TABLE_VISIBILITY"
               :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_VISIBILITY)"
-              :readonly="false"
             />
           </template>
 

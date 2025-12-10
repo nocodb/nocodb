@@ -3,6 +3,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import {
   AppEvents,
   EventType,
+  extractRolesObj,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -590,7 +591,15 @@ export class TablesService {
     permissions?: Permission[],
   ): Promise<boolean> {
     // Base owners always have access
-    if (user?.roles?.[ProjectRoles.OWNER]) {
+    // Check base_roles (can be string or object)
+    const baseRoles = extractRolesObj(user?.base_roles);
+    if (baseRoles?.[ProjectRoles.OWNER]) {
+      return true;
+    }
+    
+    // Also check roles object for backward compatibility
+    const roles = extractRolesObj(user?.roles);
+    if (roles?.[ProjectRoles.OWNER]) {
       return true;
     }
 
@@ -661,7 +670,8 @@ export class TablesService {
     ).filter((t) => tableViewMapping[t.id]);
 
     // Filter tables based on TABLE_VISIBILITY permission
-    if (param.user) {
+    // Base owners always see all tables, so skip filtering for them
+    if (param.user && !param.roles?.[ProjectRoles.OWNER]) {
       const permissions = await Permission.list(context, param.baseId);
       const accessibleTableIds = new Set<string>();
 

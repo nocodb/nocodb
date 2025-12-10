@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SourceType, TableType } from 'nocodb-sdk'
-import { PermissionKey } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, ProjectRoles } from 'nocodb-sdk'
 
 interface Props {
   state: string
@@ -25,6 +25,14 @@ const { base } = storeToRefs(baseStore)
 const { activeTables } = storeToRefs(useTablesStore())
 
 const { getPermissionSummaryLabel } = usePermissions()
+
+const { isUIAllowed } = useRoles()
+
+// Check if user is base owner (only owners can configure table visibility)
+const canConfigureTableVisibility = computed(() => {
+  const baseRole = base.value?.project_role
+  return baseRole === ProjectRoles.OWNER
+})
 
 const { projectPageTab } = storeToRefs(useConfigStore())
 
@@ -79,6 +87,14 @@ const columns = [
     name: 'Source',
     width: 150,
     padding: '0px 32px',
+  },
+  {
+    key: 'table_visibility',
+    title: t('title.tableVisibility'),
+    name: 'Table Visibility',
+    minWidth: 180,
+    basis: '25%',
+    padding: '0px 12px',
   },
   {
     key: 'create_records',
@@ -270,6 +286,38 @@ watch(
               </NcTooltip>
             </div>
             <div v-else>&nbsp;</div>
+          </template>
+
+          <!-- Table Visibility Column -->
+          <template v-if="column.key === 'table_visibility'">
+            <NcTooltip v-if="record.synced">
+              <template #title>
+                {{ $t('msg.info.permissionsNotAvailableForSyncedTable') }}
+              </template>
+              <NcBadge color="gray" :border="false" class="!px-2">
+                <span class="text-xs">{{ $t('general.permissionsNotAvailable') }}</span>
+              </NcBadge>
+            </NcTooltip>
+            <NcTooltip v-else-if="!canConfigureTableVisibility">
+              <template #title>
+                {{ $t('msg.info.onlyBaseOwnersCanConfigureTableVisibility') }}
+              </template>
+              <PermissionsInlineTableSelector
+                :base="base!"
+                :table-id="record.id"
+                :permission-type="PermissionKey.TABLE_VISIBILITY"
+                :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_VISIBILITY)"
+                :readonly="true"
+              />
+            </NcTooltip>
+            <PermissionsInlineTableSelector
+              v-else
+              :base="base!"
+              :table-id="record.id"
+              :permission-type="PermissionKey.TABLE_VISIBILITY"
+              :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_VISIBILITY)"
+              :readonly="false"
+            />
           </template>
 
           <!-- Create Records Column -->

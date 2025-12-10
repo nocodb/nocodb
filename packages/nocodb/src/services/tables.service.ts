@@ -607,6 +607,7 @@ export class TablesService {
       req: NcRequest;
       synced?: boolean;
       apiVersion?: NcApiVersion;
+      isDuplicateOperation?: boolean;
     },
   ) {
     // before validating add title for columns if only column name is present
@@ -643,10 +644,12 @@ export class TablesService {
       source = base.sources.find((b) => b.id === param.sourceId);
     }
 
-    // add CreatedTime and LastModifiedTime system columns if missing in request payload
-    tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
-      columns: tableCreatePayLoad.columns,
-    });
+    if (!param.isDuplicateOperation) {
+      // add CreatedTime and LastModifiedTime system columns if missing in request payload
+      tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
+        columns: tableCreatePayLoad.columns,
+      });
+    }
 
     //#region validating table title and table name
     if (!tableCreatePayLoad.title) {

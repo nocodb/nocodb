@@ -325,7 +325,7 @@ watch(
     .nc-upgrade-sidebar-banner {
       @apply border-nc-border-gray-medium overflow-hidden;
 
-      box-shadow: 0px -2px 12px 0px rgba(0, 0, 0, 0.08) !important;
+      box-shadow: 0px -2px 12px 0px rgba(var(--rgb-base), 0.08) !important;
     }
   }
   &:not(.nc-limit-reached-banner) {

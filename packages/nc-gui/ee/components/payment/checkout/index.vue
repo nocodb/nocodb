@@ -212,7 +212,7 @@ onBeforeUnmount(async () => {
   @apply flex-1 flex flex-col md:flex-row justify-between gap-3 children:(flex-1 m-0 p-4 border-1 border-nc-border-gray-medium rounded-lg);
 
   .ant-radio-wrapper {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
 
     @apply transition-all text-base font-700 text-nc-content-gray;
     &:not(.ant-radio-wrapper-disabled).ant-radio-wrapper-checked {

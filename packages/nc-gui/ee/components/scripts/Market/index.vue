@@ -100,7 +100,7 @@ onMounted(() => {
             <NcTooltip
               v-for="(tab, idx) of tabs"
               :key="idx"
-              :disabled="tab.isDisabled"
+              :disabled="!tab.isDisabled"
               class="nc-scripts-market-header-tab-item"
               :class="{
                 'selected ': activeTab === tab.tabKey,
@@ -160,12 +160,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.nc-market-scripts-item {
-  &:hover {
-    box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
-  }
-}
-
 .tab {
   @apply flex flex-row items-center gap-x-2;
 }

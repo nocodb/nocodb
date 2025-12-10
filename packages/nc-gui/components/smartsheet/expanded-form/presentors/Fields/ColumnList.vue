@@ -170,12 +170,12 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
   transition: all 0.3s;
 
   &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
   }
   &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button) {
     @apply !border-1;
     &:not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
-      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+      box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
     }
   }
 
@@ -234,7 +234,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
     }
     :deep(.nc-virtual-cell-barcode) {
       .nc-barcode-container {
-        @apply border-1 rounded-lg border-nc-border-gray-medium h-[64px] max-w-full p-2;
+        @apply border-1 rounded-lg border-nc-border-gray-medium h-[64px] max-w-full p-2 dark:bg-white;
         svg {
           @apply !h-full;
         }

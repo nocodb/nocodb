@@ -1,5 +1,9 @@
 @use './ant-design-components/ant-radio.scss' as *;
 @use './ant-design-components/ant-alert.scss' as *;
+@use './ant-design-components/ant-input-number.scss' as *;
+@use './ant-design-components/ant-input-text.scss' as *;
+@use './ant-design-components/ant-select.scss' as *;
+// @use './ant-design-components/ant-form.scss' as *;
 
 /* Disable ALL transitions & animations while theme switching */
 html.theme-transition-off *,
@@ -273,41 +277,18 @@ body {
   select:-webkit-autofill:hover,
   select:-webkit-autofill:focus {
     -webkit-text-fill-color: var(--nc-content-gray);
-    -webkit-box-shadow: none;
-    box-shadow: none; /* Auto fill input bg color*/
-    transition: background-color 5000s ease-in-out 0s; /* Prevent flash on focus */
   }
 
   input:not([type='checkbox']):not([type='radio']),
   textarea,
   .ant-input-affix-wrapper,
   .ant-input-number {
-    @apply placeholder-nc-content-gray-disabled;
+    &:not(.ant-select-selection-search-input) {
+      @apply placeholder-nc-content-gray-disabled;
 
-    &:not(:disabled):not(:-webkit-autofill) {
-      @apply !bg-transparent text-nc-content-gray;
-    }
-
-    &:disabled {
-      @apply bg-nc-bg-gray-light border-nc-border-gray-medium hover:border-nc-border-gray-medium focus:(border-nc-border-gray-medium) text-nc-content-gray-muted;
-    }
-  }
-
-  .ant-input-number {
-    .ant-input-number-handler {
-      @apply bg-nc-bg-gray-light border-l-nc-border-gray-medium;
-      color: rgba(var(--rgb-base), 0.45);
-
-      &:not(:hover) {
-        .ant-input-number-handler-down-inner,
-        .ant-input-number-handler-up-inner {
-          color: rgba(var(--rgb-base), 0.45);
-        }
+      &:not(:disabled):not(:-webkit-autofill) {
+        @apply !bg-transparent text-nc-content-gray;
       }
-    }
-
-    .ant-input-number-handler-down {
-      @apply border-t-nc-border-gray-medium;
     }
   }
 
@@ -457,16 +438,6 @@ body {
     }
   }
 
-  // Ant select
-  .ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector {
-    @apply text-nc-content-gray-muted bg-nc-bg-gray-medium;
-  }
-
-  // Multiselect
-  .ant-select-multiple .ant-select-selection-item {
-    @apply bg-nc-bg-gray-medium border-nc-bg-gray-dark;
-  }
-
   // Sidebar
   .nc-home-create-new-btn,
   .nc-sidebar-item-dark {
@@ -475,5 +446,9 @@ body {
     &.active {
       @apply !bg-nc-bg-gray-medium !hover:bg-nc-bg-gray-medium;
     }
+  }
+
+  .ant-modal-close-x {
+    @apply text-nc-content-gray-subtle;
   }
 }

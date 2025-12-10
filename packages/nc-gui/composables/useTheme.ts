@@ -65,14 +65,22 @@ export const useTheme = createSharedComposable(() => {
 
   const setTheme = (theme: ThemeMode) => {
     selectedTheme.value = theme
+
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem('nc-theme', theme)
     }
   }
 
   const toggleTheme = () => {
-    setTheme(selectedTheme.value === 'dark' ? 'light' : 'dark')
+    const nextTheme = {
+      system: 'light',
+      light: 'dark',
+      dark: 'system',
+    }
+
+    setTheme((nextTheme[selectedTheme.value] as ThemeMode) ?? 'light')
   }
+
   /**
    * Cached version for better performance in canvas rendering
    */

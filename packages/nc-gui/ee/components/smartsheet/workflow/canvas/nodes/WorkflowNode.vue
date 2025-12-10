@@ -10,8 +10,17 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const { getNodeMetaById, updateNode, addPlusNode, triggerLayout, deleteNode, selectedNodeId, edges, viewingExecution, activeTab } =
-  useWorkflowOrThrow()
+const {
+  getNodeMetaById,
+  updateNode,
+  addPlusNode,
+  triggerLayout,
+  deleteNode,
+  selectedNodeId,
+  edges,
+  viewingExecution,
+  activeTab,
+} = useWorkflowOrThrow()
 
 const enableEditableMenu = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
 

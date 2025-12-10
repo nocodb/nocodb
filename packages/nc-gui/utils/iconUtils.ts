@@ -785,6 +785,7 @@ import NcHeadphone from '~icons/nc-icons-v2/headphone'
 import NcPaintRoller from '~icons/nc-icons-v2/paint-roller.svg'
 import NcConditions from '~icons/nc-icons-v2/conditions.svg'
 import NcSun from '~icons/nc-icons-v2/sun.svg'
+import NcSunMoon from '~icons/nc-icons-v2/sun-moon.svg'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -1820,6 +1821,7 @@ export const iconMap = {
   'ncChartPie': h(NcChartPie, { stroke: 'transparent' }),
   'ncGaugeWidget': h(NcGaugeWidget, { stroke: 'transparent' }),
   'ncSun': NcSun,
+  'ncSunMoon': NcSunMoon,
   'ncGraduationCap': NcGraduationCap,
   'ncSupportAgent': h(NcSupportAgent, { stroke: 'transparent' }),
   'ncBuilding': NcBuilding,
@@ -4600,6 +4602,10 @@ export const searchableMap = {
   ncSun: {
     icon: NcSun,
     keywords: ['sun', 'sunny', 'weather', 'light', 'day', 'morning', 'summer', 'warm', 'warmth'],
+  },
+  ncSunMoon: {
+    icon: NcSunMoon,
+    keywords: ['sun', 'moon', 'dark', 'light', 'theme', 'auto theme', 'system theme', 'appearance'],
   },
   ncGraduationCap: {
     icon: NcGraduationCap,

@@ -18,6 +18,8 @@ const props = defineProps<{
 
 const emit = defineEmits(['sourceUpdated', 'close'])
 
+const { appInfo } = useGlobal()
+
 const baseStore = useBase()
 const basesStore = useBases()
 const { base } = storeToRefs(baseStore)
@@ -643,8 +645,10 @@ function handleAutoScroll(scroll: boolean, className: string) {
         </general-overlay>
       </div>
       <div class="nc-edit-source-right-panel">
-        <DashboardSettingsDataSourcesInfo varient="new" />
-        <NcDivider />
+        <template v-if="appInfo.isCloud && !appInfo.isOnPrem">
+          <DashboardSettingsDataSourcesInfo varient="new" />
+          <NcDivider />
+        </template>
         <DashboardSettingsDataSourcesSupportedDocs />
         <NcDivider />
       </div>

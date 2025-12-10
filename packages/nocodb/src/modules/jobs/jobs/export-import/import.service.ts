@@ -266,7 +266,7 @@ export class ImportService {
         col.system &&
         [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt);
       // we exclude all virtual column except system CreatedTime and LastModifiedTime
-      // we also include cols marked as pk
+      // we also include cols marked as pk even if considered virtual
       const eitherSystemTimestampOrNotVirtual = (col: Column) =>
         isSystemTimestamp(col) || !isVirtualCol(col) || col.pk;
 

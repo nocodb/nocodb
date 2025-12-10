@@ -186,6 +186,7 @@ export class DuplicateProcessor {
         sourceId: targetBaseSource.id,
         data: exportedModels,
         req: req,
+        isDuplicateOperation: true,
       });
 
       if (exportedScripts) {
@@ -407,6 +408,7 @@ export class DuplicateProcessor {
         req,
         externalModels: relatedModels,
         columnWebhookManager,
+        isDuplicateOperation: true,
       });
 
       elapsedTime(hrTime, 'import model schema', 'duplicateModel');

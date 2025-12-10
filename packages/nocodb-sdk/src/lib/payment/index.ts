@@ -69,6 +69,7 @@ export enum PlanFeatureTypes {
   FEATURE_COPY_VIEW_SETTING_FROM_OTHER = 'feature_copy_view_setting_other',
   FEATURE_CARD_FIELD_HEADER_VISIBILITY = 'feature_card_field_header_visibility',
   FEATURE_SYNC = 'feature_sync',
+  FEATURE_UNIQUE = 'feature_unique',
 }
 
 export enum PlanTitles {
@@ -276,6 +277,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY]:
     'to hide field headers in Gallery and Kanban views.',
   [PlanFeatureTypes.FEATURE_SYNC]: 'to use sync feature.',
+  [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
 };
 
 export const getUpgradeMessage = (

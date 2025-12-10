@@ -193,7 +193,10 @@
     "upgradeToAddMoreTeamsSubtitle": "Upgrade to the {plan} plan to add more teams to your workspace.",
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseSync": "Upgrade to use sync",
-    "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources."
+    "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
+    "upgradeToEnableUnique": "Upgrade to enable unique",
+    "upgradeToEnableUniqueSubtitle": "Upgrade to the {plan} plan to enable unique constraint."
+
   },
   "general": {
     "done": "Done",

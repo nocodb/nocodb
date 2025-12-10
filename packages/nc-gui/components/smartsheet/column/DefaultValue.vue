@@ -159,7 +159,8 @@ const handleShowInput = () => {
               ) || isCurrentDate
             "
             :class="{
-              'w-4 h-4 cursor-pointer rounded-full z-3 text-nc-content-gray-muted hover:bg-nc-bg-gray-extralight dark:hover:bg-nc-bg-gray-medium default-value-clear': !vModel.unique,
+              'w-4 h-4 cursor-pointer rounded-full z-3 text-nc-content-gray-muted hover:bg-nc-bg-gray-extralight dark:hover:bg-nc-bg-gray-medium default-value-clear':
+                !vModel.unique,
               'w-4 h-4 rounded-full z-3 text-nc-content-gray-muted opacity-50 pointer-events-none': vModel.unique,
             }"
             @click.stop="!vModel.unique && updateCdfValue(null)"

@@ -265,6 +265,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SYNC)
   })
 
+  const blockUnique = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_UNIQUE)
+  })
+
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`
     let remainingSeats = seatCount
@@ -1250,6 +1254,26 @@ export const useEeConfig = createSharedComposable(() => {
 
     return true
   }
+  const showUpgradeToUseUnique = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockUnique.value) {
+      successCallback?.()
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToEnableUnique'),
+      content: t('upgrade.upgradeToEnableUniqueSubtitle', {
+        plan: getHigherPlan(),
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_UNIQUE,
+    })
+
+    return true
+  }
 
   const showUpgradeToUseSync = ({
     callback,
@@ -1353,6 +1377,8 @@ export const useEeConfig = createSharedComposable(() => {
     isHigherActivePlan,
     blockCardFieldHeaderVisibility,
     blockSync,
+    blockUnique,
+    showUpgradeToUseUnique,
     showUpgradeToUseSync,
   }
 })

@@ -1,5 +1,13 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType, UITypesSearchTerms, isAIPromptCol, isSupportedDisplayValueColumn } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  PlanFeatureTypes,
+  PlanTitles,
+  UITypesSearchTerms,
+  isAIPromptCol,
+  isSupportedDisplayValueColumn,
+} from 'nocodb-sdk'
 import {
   ButtonActionsType,
   UITypes,
@@ -100,7 +108,13 @@ const { t } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
-const { showUpgradeToUseAiPromptField, blockAiPromptField, showUpgradeToUseAiButtonField, blockAiButtonField } = useEeConfig()
+const {
+  showUpgradeToUseAiPromptField,
+  showUpgradeToUseUnique,
+  blockAiPromptField,
+  showUpgradeToUseAiButtonField,
+  blockAiButtonField,
+} = useEeConfig()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -137,6 +151,8 @@ const mounted = ref(false)
 const showDefaultValueInput = ref(false)
 
 const showHoverEffectOnSelectedType = ref(true)
+
+const { blockUnique } = useEeConfig()
 
 const columnUidt = computed({
   get: () => formState.value.uidt,
@@ -752,6 +768,17 @@ const lookupRollupFilterEnabled = computed(() => {
 
 const easterEggCount = ref(0)
 const easterEgg = computed(() => easterEggCount.value >= 2)
+
+const unique = computed({
+  get: () => formState.value.unique,
+  set: (value) => {
+    if (!!value && showUpgradeToUseUnique()) {
+      return
+    }
+
+    formState.value.unique = value
+  },
+})
 </script>
 
 <template>
@@ -1365,11 +1392,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
             <!--
             Default Value for JSON & LongText is not supported in MySQL  -->
             <NcTooltip
-              v-if="
-                isTextArea(formState) &&
-                formState.meta?.richMode &&
-                formState.unique
-              "
+              v-if="isTextArea(formState) && formState.meta?.richMode && formState.unique"
               title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
               placement="right"
             >
@@ -1386,7 +1409,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
             />
             <NcTooltip
-              v-if="
+              v-else-if="
                 !isVirtualCol(formState) &&
                 !isAttachment(formState) &&
                 !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
@@ -1434,7 +1457,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                   </div>
                 </template>
                 <NcSwitch
-                  v-model:checked="formState.unique"
+                  v-model:checked="unique"
                   size="small"
                   class="nc-switch"
                   :disabled="!canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
@@ -1449,6 +1472,15 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                       </template>
                       <GeneralIcon icon="info" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
                     </NcTooltip>
+
+                    <PaymentUpgradeBadge
+                      v-if="blockUnique && option.value"
+                      :feature="PlanFeatureTypes.FEATURE_UNIQUE"
+                      :plan-title="PlanTitles.PLUS"
+                      size="sm"
+                      remove-click
+                      class="!font-normal !text-bodyDefaultSm"
+                    />
                   </div>
                 </NcSwitch>
               </NcTooltip>

@@ -1916,7 +1916,7 @@ onKeyStroke('ArrowDown', onDown)
       >
         <div class="flex flex-col items-center justify-center gap-2">
           <a-spin size="large" />
-          <span class="text-center" v-html="loaderText"></span>
+          <span class="text-center" v-dompurify-html="loaderText"></span>
         </div>
       </div>
       <NcDropdown

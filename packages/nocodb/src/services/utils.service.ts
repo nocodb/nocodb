@@ -27,7 +27,11 @@ import {
   defaultGroupByLimitConfig,
   defaultLimitConfig,
 } from '~/helpers/extractLimitAndOffset';
-import { DriverClient, NC_DISABLE_SUPPORT_CHAT } from '~/utils/nc-config';
+import {
+  DriverClient,
+  NC_DISABLE_GROUP_BY_AGG,
+  NC_DISABLE_SUPPORT_CHAT,
+} from '~/utils/nc-config';
 import NocoCache from '~/cache/NocoCache';
 import { getCircularReplacer } from '~/utils';
 
@@ -490,6 +494,7 @@ export class UtilsService {
       allowLocalUrl: process.env.NC_ALLOW_LOCAL_HOOKS === 'true',
       isOnPrem,
       disableSupportChat: NC_DISABLE_SUPPORT_CHAT,
+      disableGroupByAggregation: NC_DISABLE_GROUP_BY_AGG,
       /**
        * Allow disabling onboarding flow based on env variable or development mode
        *

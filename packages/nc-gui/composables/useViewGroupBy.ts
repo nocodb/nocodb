@@ -340,7 +340,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         group = await processGroupData(response, group)
         // }
 
-        if (appInfo.value.ee && group?.children?.length) {
+        if (appInfo.value.ee && group?.children?.length && !appInfo.value.disableGroupByAggregation) {
           const aggregationAliasMapper = new AliasMapper()
 
           const aggregation = Object.values(gridViewCols.value)
@@ -435,7 +435,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       }>,
     ) {
       try {
-        if (!meta?.value?.id || !view.value?.id || !view.value?.fk_model_id || !appInfo.value.ee) return
+        if (
+          !meta?.value?.id ||
+          !view.value?.id ||
+          !view.value?.fk_model_id ||
+          !appInfo.value.ee ||
+          appInfo.value.disableGroupByAggregation
+        )
+          return
 
         let filteredFields = fields
         if (!fields) {

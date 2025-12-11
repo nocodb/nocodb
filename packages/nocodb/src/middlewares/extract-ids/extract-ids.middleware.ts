@@ -136,6 +136,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         if (!model) {
           NcError.get(context).tableNotFound(params.tableId || params.modelId);
         }
+
       }
     }
 
@@ -568,6 +569,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   }) {
     // do nothing
   }
+
 }
 
 // todo: refactor and move scope name to enum

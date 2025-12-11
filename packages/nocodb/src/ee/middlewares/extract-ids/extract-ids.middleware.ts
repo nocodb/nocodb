@@ -11,8 +11,11 @@ import {
   isServiceUser,
   NcApiVersion,
   OrgUserRoles,
+  PermissionEntity,
+  PermissionKey,
   PlanFeatureTypes,
   ProjectRoles,
+  ServiceUserType,
   SourceRestriction,
   ViewLockType,
   WorkspacePlan,
@@ -59,6 +62,8 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { beforeAclValidationHook } from '~/middlewares/extract-ids/extract-ids.helpers';
 import { RootScopes } from '~/utils/globals';
 import SSOClient from '~/models/SSOClient';
+import type { NcContext } from '~/interface/config';
+import { getProjectRole } from '~/utils/roleHelper';
 import {
   checkForFeature,
   checkIfEmailAllowedNonSSO,
@@ -120,6 +125,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   async use(req, res, next): Promise<any> {
     const { params } = req;
     let view;
+    let tableIdToCheck: string | null = null; // Store table ID for permission check at the end
 
     const context = {
       workspace_id: RootScopes.BYPASS,
@@ -162,6 +168,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         if (!model) {
           NcError.get(context).tableNotFound(params.tableId || params.modelId);
         }
+
+        // Extract table ID for permission check at the end
+        tableIdToCheck = model.id;
       }
     }
 
@@ -195,6 +204,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = model.base_id;
       req.ncSourceId = model.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = model.id;
     } else if (params.viewId) {
       view =
         (await View.get(context, params.viewId)) ||
@@ -206,6 +218,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = view?.fk_model_id;
     } else if (
       params.formViewId ||
       params.gridViewId ||
@@ -234,6 +249,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = view?.fk_model_id;
     } else if (params.publicDataUuid) {
       const view = await View.getByUUID(context, req.params.publicDataUuid);
 
@@ -278,6 +296,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = hook.base_id;
       req.ncSourceId = hook.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = hook.fk_model_id;
     } else if (params.rowColorConditionId) {
       const rowColorCondition = await RowColorCondition.getById(
         context,
@@ -294,6 +315,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       view = await View.get(context, rowColorCondition.fk_view_id);
       req.ncSourceId = view.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = view?.fk_model_id;
     } else if (params.gridViewColumnId) {
       const gridViewColumn = await GridViewColumn.get(
         context,
@@ -310,6 +334,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = gridViewColumn?.base_id;
       req.ncSourceId = gridViewColumn?.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
     } else if (params.formViewColumnId) {
       const formViewColumn = await FormViewColumn.get(
         context,
@@ -326,6 +355,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = formViewColumn.base_id;
       req.ncSourceId = formViewColumn.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
     } else if (params.galleryViewColumnId) {
       const galleryViewColumn = await GalleryViewColumn.get(
         context,
@@ -342,6 +376,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = galleryViewColumn.base_id;
       req.ncSourceId = galleryViewColumn.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
     } else if (params.columnId) {
       const column = await Column.get(context, { colId: params.columnId });
 
@@ -351,6 +390,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = column.base_id;
       req.ncSourceId = column.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = column.fk_model_id;
     } else if (params.filterId) {
       const filter = await Filter.get(context, params.filterId);
 
@@ -364,6 +406,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = filter.base_id;
       req.ncSourceId = filter.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
     } else if (params.filterParentId) {
       const filter = await Filter.get(context, params.filterParentId);
 
@@ -377,6 +424,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = filter.base_id;
       req.ncSourceId = filter.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
     } else if (params.widgetId) {
       const widget = await Widget.get(context, params.widgetId);
 
@@ -398,6 +450,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = sort.base_id;
       req.ncSourceId = sort.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
     } else if (params.syncId) {
       const syncSource = await SyncSource.get(context, req.params.syncId);
 
@@ -434,6 +491,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = model.base_id;
       req.ncSourceId = model.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = model.id;
     } else if (
       [
         '/api/v2/meta/comments/count',
@@ -454,6 +514,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = model.base_id;
       req.ncSourceId = model.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = model.id;
     } else if (
       [
         '/api/v1/db/meta/comment/:commentId',
@@ -474,6 +537,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = audit.base_id;
       req.ncSourceId = audit.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = audit.fk_model_id;
     }
     // extract base id from query params only if it's userMe endpoint
     else if (
@@ -516,6 +582,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
           }
 
           req.ncSourceId = model?.source_id;
+
+          // Extract table ID for permission check at the end
+          tableIdToCheck = model.id;
         }
       } else {
         NcError.baseNotFound(params.baseId ?? params.baseName);
@@ -638,8 +707,25 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       timezone: context.timezone,
     };
 
+    // Load and cache permissions in context to avoid multiple fetches
     if (req.ncBaseId && !isInternalWorkspaceScope) {
       req.permissions = await Permission.list(req.context, req.ncBaseId);
+      req.context.permissions = req.permissions;
+    }
+
+    // Perform table visibility check at the end if we extracted a table ID
+    if (
+      tableIdToCheck &&
+      req.user &&
+      !isServiceUser(req.user, ServiceUserType.WORKFLOW_USER) &&
+      req.ncBaseId
+    ) {
+      await this.checkTableVisibilityAccess(
+        req.context,
+        tableIdToCheck,
+        req.user,
+        req,
+      );
     }
 
     await this.additionalValidation({ req, res, next });
@@ -663,6 +749,65 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     req: any;
   }) {
     // do nothing
+  }
+
+  /**
+   * Check if user has access to a table based on TABLE_VISIBILITY permission
+   * Base owners always have access
+   */
+  private async checkTableVisibilityAccess(
+    context: NcContext,
+    tableId: string,
+    user: any,
+    req: any,
+  ): Promise<void> {
+    // Base owners always have access
+    const baseRoles = extractRolesObj(user?.base_roles);
+    if (baseRoles?.[ProjectRoles.OWNER]) {
+      return;
+    }
+
+    // Also check roles object for backward compatibility
+    const roles = extractRolesObj(user?.roles);
+    if (roles?.[ProjectRoles.OWNER]) {
+      return;
+    }
+
+    // Get permissions from context cache if available, otherwise fetch
+    let permissions = context.permissions;
+    if (!permissions && context.base_id) {
+      permissions = await Permission.list(context, context.base_id);
+      // Cache in context for future use
+      context.permissions = permissions;
+    }
+
+    // Find TABLE_VISIBILITY permission for this table
+    const visibilityPermission = permissions?.find(
+      (p) =>
+        p.entity === PermissionEntity.TABLE &&
+        p.entity_id === tableId &&
+        p.permission === PermissionKey.TABLE_VISIBILITY,
+    );
+
+    // If no permission exists, default to everyone (accessible)
+    if (!visibilityPermission) {
+      return;
+    }
+
+    // Check if user has permission
+    const hasPermission = await Permission.isAllowed(
+      context,
+      visibilityPermission,
+      {
+        id: user.id,
+        role: getProjectRole(user) as ProjectRoles,
+      },
+    );
+
+    if (!hasPermission) {
+      // Return 404 as if table doesn't exist
+      NcError.get(context).tableNotFound(tableId);
+    }
   }
 }
 

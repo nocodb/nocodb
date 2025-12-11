@@ -33,6 +33,7 @@ export class TablesService extends TableServiceCE {
       req: NcRequest;
       synced?: boolean;
       apiVersion?: NcApiVersion;
+      isDuplicateOperation?: boolean;
     },
   ) {
     const base = await Base.getWithInfo(context, param.baseId);

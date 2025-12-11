@@ -189,6 +189,7 @@ export class ImportService {
       existingModel?: Model;
       importColumnIds?: string[];
       columnWebhookManager?: ColumnWebhookManager;
+      isDuplicateOperation?: boolean;
     },
   ) {
     const targetContext = param.targetContext ?? context;
@@ -278,9 +279,17 @@ export class ImportService {
     for (const data of param.data) {
       const modelData = data.model;
 
+      const isSystemTimestamp = (col: Column) =>
+        col.system &&
+        [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt);
+      // we exclude all virtual column except system CreatedTime and LastModifiedTime
+      // we also include cols marked as pk even if considered virtual
+      const eitherSystemTimestampOrNotVirtual = (col: Column) =>
+        isSystemTimestamp(col) || !isVirtualCol(col) || col.pk;
+
       const reducedColumnSet = modelData.columns.filter(
         (a) =>
-          !isVirtualCol(a) &&
+          eitherSystemTimestampOrNotVirtual(a) &&
           a.uidt !== UITypes.ForeignKey &&
           !isAIPromptCol(a) &&
           (param.importColumnIds
@@ -301,6 +310,7 @@ export class ImportService {
             columns: reducedColumnSet.map((a) => withoutId(a)),
           }),
           req: param.req,
+          isDuplicateOperation: param.isDuplicateOperation,
         }));
 
       idMap.set(modelData.id, table.id);

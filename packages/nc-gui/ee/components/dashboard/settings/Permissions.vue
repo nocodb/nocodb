@@ -313,7 +313,8 @@ watch(
               :table-id="record.id"
               :permission-type="PermissionKey.TABLE_VISIBILITY"
               :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_VISIBILITY)"
-              :readonly="false"
+              readonly
+              inline-style
             />
           </template>
 

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
-import { PermissionMeta, PermissionOptionValue, PermissionRolePower } from 'nocodb-sdk'
+import { PermissionKey, PermissionMeta, PermissionOptionValue, PermissionRolePower } from 'nocodb-sdk'
 import PermissionsInlineUserSelector from './InlineUserSelector.vue'
 import type { NcDropdownPlacement } from '#imports'
 
@@ -13,11 +13,13 @@ interface Props {
   removeReadonlyPadding?: boolean
   borderOnHover?: boolean
   placement?: NcDropdownPlacement
+  inlineStyle?: boolean // New prop to match inline table style
 }
 const props = withDefaults(defineProps<Props>(), {
   borderOnHover: false,
   placement: 'bottomRight',
   removeReadonlyPadding: true,
+  inlineStyle: false,
 })
 
 const emits = defineEmits(['save'])
@@ -64,10 +66,26 @@ const permissionOptions = computed(() => {
   const minimumRolePower = PermissionRolePower[permissionMeta.minimumRole]
   if (!minimumRolePower) return allPermissionOptions.value
 
+  const isTableVisibility = props.config.permission === PermissionKey.TABLE_VISIBILITY
+
   // Filter options to only show roles that meet or exceed the minimum requirement
   return allPermissionOptions.value.filter((option) => {
-    // Always allow 'specific_users', 'nobody', and 'everyone' options
-    if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY || option.value === PermissionOptionValue.EVERYONE) return true
+    // For record permissions (create/delete), exclude Viewers & up and Everyone
+    if (!isTableVisibility) {
+      if (option.value === PermissionOptionValue.VIEWERS_AND_UP || option.value === PermissionOptionValue.EVERYONE) {
+        return false
+      }
+    }
+
+    // Always allow 'specific_users' and 'nobody' options
+    if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) {
+      return true
+    }
+
+    // For table visibility, always allow Everyone
+    if (isTableVisibility && option.value === PermissionOptionValue.EVERYONE) {
+      return true
+    }
 
     // Map option values to PermissionRole enum values for comparison
     let optionRole: string | undefined
@@ -145,11 +163,11 @@ const handleClickDropdown = (e: MouseEvent) => {
 
         <NcListDropdown
           v-model:is-open="isOpenPermissionDropdown"
-          :default-slot-wrapper-class="`${!readonly ? 'w-[165px]' : removeReadonlyPadding ? '!px-0 !border-0' : '!border-0'}`"
+          :default-slot-wrapper-class="inlineStyle ? '!px-0 !py-0 !border-0 !rounded-none !h-auto !shadow-none' : (!readonly ? 'w-[165px]' : removeReadonlyPadding ? '!px-0 !border-0' : '!border-0')"
           :placement="placement"
           :disabled="readonly || config.disabled"
           :show-as-disabled="false"
-          :border-on-hover="borderOnHover"
+          :border-on-hover="borderOnHover && !inlineStyle"
           @click="handleClickDropdown"
         >
           <NcTooltip :disabled="!config.disabled || !config.tooltip">
@@ -202,7 +220,12 @@ const handleClickDropdown = (e: MouseEvent) => {
                       <span class="text-captionDropdownDefault" :class="getPermissionTextColor(option.value)">{{
                         option.label
                       }}</span>
-                      <span v-if="option.isDefault" class="text-captionXsBold text-nc-content-gray-muted">(DEFAULT)</span>
+                      <span
+                        v-if="option.isDefault && !(config.permission === PermissionKey.TABLE_VISIBILITY && option.value === PermissionOptionValue.EDITORS_AND_UP)"
+                        class="text-captionXsBold text-nc-content-gray-muted"
+                      >
+                        (DEFAULT)
+                      </span>
                     </div>
                     <GeneralLoader
                       v-if="isLoading && option.value === (currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)"

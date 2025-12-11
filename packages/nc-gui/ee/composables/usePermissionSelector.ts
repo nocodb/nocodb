@@ -1,6 +1,7 @@
 import {
   PermissionEntity,
   PermissionGrantedType,
+  PermissionKey,
   PermissionOptionValue,
   PermissionOptions,
   PermissionRole,
@@ -43,11 +44,40 @@ export const usePermissionSelector = (
     const roleHierarchy = ['viewer', 'editor', 'creator', 'owner']
     const minRoleIndex = roleHierarchy.indexOf(minimumRole)
 
+    // Check if this is table visibility permission
+    // PermissionKey.TABLE_VISIBILITY enum value is 'TABLE_VISIBILITY'
+    const isTableVisibility = 
+      config.value.permission === PermissionKey.TABLE_VISIBILITY
+
     return allPermissionOptions.filter((option) => {
-      if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY || option.value === PermissionOptionValue.EVERYONE) {
-        return true // Always allow these options
+      // For record permissions (create/delete), exclude Viewers & up and Everyone
+      // This must be checked FIRST before any other logic
+      if (!isTableVisibility) {
+        if (option.value === PermissionOptionValue.VIEWERS_AND_UP) {
+          return false
+        }
+        if (option.value === PermissionOptionValue.EVERYONE) {
+          return false
+        }
       }
 
+      // Always allow these options for all permission types
+      if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) {
+        return true
+      }
+
+      // For table visibility, always allow Everyone and Viewers & up
+      if (isTableVisibility) {
+        if (option.value === PermissionOptionValue.EVERYONE) {
+          return true
+        }
+        if (option.value === PermissionOptionValue.VIEWERS_AND_UP) {
+          return true
+        }
+      }
+
+      // Additional role-based filtering (only applies if not already handled above)
+      // This should not execute for record permissions since we already excluded VIEWERS_AND_UP above
       if (option.value === PermissionOptionValue.VIEWERS_AND_UP && minRoleIndex > 0) {
         return false // Don't show viewers if minimum is editor or higher
       }
@@ -128,7 +158,14 @@ export const usePermissionSelector = (
         granted_role = PermissionRole.EDITOR
       }
 
-      if (currentPermission.value === PermissionOptionValue.EDITORS_AND_UP || currentPermission.value === PermissionOptionValue.EVERYONE) {
+      // For table visibility, only drop if EVERYONE is selected (default)
+      // For other permissions, drop if EDITORS_AND_UP or EVERYONE
+      const shouldDrop =
+        currentPermission.value === PermissionOptionValue.EVERYONE ||
+        (currentPermission.value === PermissionOptionValue.EDITORS_AND_UP &&
+          config.value.permission !== PermissionKey.TABLE_VISIBILITY)
+
+      if (shouldDrop) {
         // If permission entity is not found, do nothing
         if (!permissionsByEntity.value[`${config.value.entity}_${config.value.entityId}`]) {
           return
@@ -240,7 +277,7 @@ export const usePermissionSelector = (
       }
     } else {
       // For table visibility, default to EVERYONE if no permission exists
-      if (config.value.permission === 'TABLE_VISIBILITY') {
+      if (config.value.permission === PermissionKey.TABLE_VISIBILITY) {
         currentPermission.value = PermissionOptionValue.EVERYONE
       } else {
         currentPermission.value = getInternalValue(currentValue.value)

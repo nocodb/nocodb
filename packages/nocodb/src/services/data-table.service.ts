@@ -1,16 +1,14 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
   isLinksOrLTAR,
-  isServiceUser,
   ncIsNumber,
   RelationTypes,
-  ServiceUserType,
   ViewTypes,
 } from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcContext } from '~/interface/config';
 import { Column, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';

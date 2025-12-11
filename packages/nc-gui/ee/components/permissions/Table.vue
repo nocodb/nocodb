@@ -91,25 +91,25 @@ const hasTablePermissions = computed(() => {
     <div class="flex flex-col gap-3">
       <div class="text-nc-content-gray-emphasis text-bodyBold min-h-8 flex items-center">
         {{ $t('title.recordOperations') }}
-      </div>
+    </div>
 
-      <!-- Create Records Permission -->
-      <PermissionsSelector
-        :base="base"
-        :config="createPermissionConfig"
-        :horizontal="horizontal"
-        :placement="placement"
-        @save="handlePermissionSave"
-      />
+    <!-- Create Records Permission -->
+    <PermissionsSelector
+      :base="base"
+      :config="createPermissionConfig"
+      :horizontal="horizontal"
+      :placement="placement"
+      @save="handlePermissionSave"
+    />
 
-      <!-- Delete Records Permission -->
-      <PermissionsSelector
-        :base="base"
-        :config="deletePermissionConfig"
-        :horizontal="horizontal"
-        :placement="placement"
-        @save="handlePermissionSave"
-      />
+    <!-- Delete Records Permission -->
+    <PermissionsSelector
+      :base="base"
+      :config="deletePermissionConfig"
+      :horizontal="horizontal"
+      :placement="placement"
+      @save="handlePermissionSave"
+    />
     </div>
   </div>
 </template>

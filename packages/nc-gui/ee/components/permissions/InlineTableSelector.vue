@@ -8,9 +8,11 @@ const props = withDefaults(
     permissionType: PermissionKey
     currentValue: string
     readonly?: boolean
+    inlineStyle?: boolean
   }>(),
   {
     readonly: true,
+    inlineStyle: true,
   },
 )
 
@@ -22,5 +24,5 @@ const permissionConfig = computed<PermissionConfig>(() => ({
 </script>
 
 <template>
-  <PermissionsSelector :base="base" :config="permissionConfig" mode="inline" :readonly="readonly" />
+  <PermissionsSelector :base="base" :config="permissionConfig" mode="inline" :readonly="readonly" :inline-style="inlineStyle" />
 </template>

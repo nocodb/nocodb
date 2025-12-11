@@ -17,7 +17,6 @@ import { NcError } from '~/helpers/ncError';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
-import { getProjectRole } from '~/utils/roleHelper';
 
 @Injectable()
 export class PermissionsService {
@@ -52,9 +51,16 @@ export class PermissionsService {
 
     // Check if user is owner for TABLE_VISIBILITY permission
     if (permission_key === PermissionKey.TABLE_VISIBILITY) {
-      const userRole = await getProjectRole(context, req.user, context.base_id);
-      if (userRole !== ProjectRoles.OWNER) {
-        NcError.forbidden('Only base owners can configure table visibility permissions');
+      // Check base_roles (can be string or object)
+      const baseRoles = extractRolesObj(req.user?.base_roles);
+      const isOwner = baseRoles?.[ProjectRoles.OWNER];
+      
+      // Also check roles object for backward compatibility
+      if (!isOwner) {
+        const roles = extractRolesObj(req.user?.roles);
+        if (!roles?.[ProjectRoles.OWNER]) {
+          NcError.forbidden('Only base owners can configure table visibility permissions');
+        }
       }
     }
 
@@ -236,9 +242,16 @@ export class PermissionsService {
 
     // Check if user is owner for TABLE_VISIBILITY permission
     if (permission_key === PermissionKey.TABLE_VISIBILITY) {
-      const userRole = await getProjectRole(context, req.user, context.base_id);
-      if (userRole !== ProjectRoles.OWNER) {
-        NcError.forbidden('Only base owners can configure table visibility permissions');
+      // Check base_roles (can be string or object)
+      const baseRoles = extractRolesObj(req.user?.base_roles);
+      const isOwner = baseRoles?.[ProjectRoles.OWNER];
+      
+      // Also check roles object for backward compatibility
+      if (!isOwner) {
+        const roles = extractRolesObj(req.user?.roles);
+        if (!roles?.[ProjectRoles.OWNER]) {
+          NcError.forbidden('Only base owners can configure table visibility permissions');
+        }
       }
     }
 

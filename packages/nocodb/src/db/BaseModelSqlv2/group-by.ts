@@ -22,8 +22,9 @@ import {
   getColumnName,
 } from '~/helpers/dbHelpers';
 import { BaseUser, Column, Filter, Sort } from '~/models';
-import { getAliasGenerator, isOnPrem } from '~/utils';
+import { getAliasGenerator } from '~/utils';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
+import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
 
 // Returns a SQL expression that converts blank (null or '') values to NULL
 const sqlNullIfBlank = ({
@@ -347,7 +348,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       .select('*')
       .from({ g: 'grouped' });
 
-    if (!isOnPrem) {
+    if (!NC_DISABLE_GROUP_BY_LIMIT) {
       applyPaginate(outerQb, rest);
     }
 

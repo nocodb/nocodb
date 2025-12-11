@@ -10,6 +10,7 @@ import NcUpgrader from '~/version-upgrader/NcUpgrader';
 import NocoCache from '~/cache/NocoCache';
 import getInstance from '~/utils/getInstance';
 import initAdminFromEnv from '~/helpers/initAdminFromEnv';
+import initBasicAuth from '~/helpers/initBasicAuth';
 import { User } from '~/models';
 import { NcConfig, prepareEnv } from '~/utils/nc-config';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -109,6 +110,10 @@ export const InitMetaServiceProvider: FactoryProvider = {
     // init jwt secret
     await Noco.initJwt();
     NcDebug.log('JWT initialized');
+
+    // init basic auth credentials
+    await initBasicAuth(metaService);
+    NcDebug.log('HTTP Basic Auth initialized');
 
     // load super admin user from env if env is set
     await initAdminFromEnv(metaService);

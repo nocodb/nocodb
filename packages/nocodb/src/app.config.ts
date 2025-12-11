@@ -6,8 +6,10 @@ const config: AppConfig = {
     calc_execution_time: false,
   },
   basicAuth: {
-    username: process.env.NC_HTTP_BASIC_USER ?? 'defaultusername',
-    password: process.env.NC_HTTP_BASIC_PASS ?? 'defaultpassword',
+    // Initialized by initBasicAuth() during startup
+    // Sentinel values prevent use before initialization
+    username: process.env.NC_HTTP_BASIC_USER ?? '__UNINITIALIZED__',
+    password: process.env.NC_HTTP_BASIC_PASS ?? '__UNINITIALIZED__',
   },
   auth: {
     emailPattern:

@@ -11,6 +11,7 @@ import express from 'express';
 import cors from 'cors';
 import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
+import { getCorsOptions } from '~/utils/nc-config/cors';
 
 handleUncaughtErrors(process);
 
@@ -36,7 +37,7 @@ let httpServer: http.Server | null = null;
 async function createServer(isMaster: boolean): Promise<http.Server> {
   const server = express();
   server.enable('trust proxy');
-  server.use(cors());
+  server.use(cors(getCorsOptions()));
 
   // Add static file serving for the dashboard
   server.use(

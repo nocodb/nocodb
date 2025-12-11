@@ -3,6 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import Noco from '~/Noco';
 import { handleUncaughtErrors } from '~/utils';
+import { getCorsOptions } from '~/utils/nc-config/cors';
 handleUncaughtErrors(process);
 
 // ref: https://github.com/nodejs/node/issues/40702#issuecomment-1103623246
@@ -10,7 +11,7 @@ dns.setDefaultResultOrder('ipv4first');
 
 const server = express();
 server.enable('trust proxy');
-server.use(cors());
+server.use(cors(getCorsOptions()));
 
 server.set('view engine', 'ejs');
 

@@ -1,9 +1,11 @@
+import { Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import type { IEmailAdapter } from '~/types/nc-plugin';
 import type Mail from 'nodemailer/lib/mailer';
 import type { XcEmail } from '~/interface/IEmailAdapter';
 
 export default class SMTP implements IEmailAdapter {
+  private logger = new Logger(SMTP.name);
   private transporter: Mail;
   private input: any;
 
@@ -58,7 +60,11 @@ export default class SMTP implements IEmailAdapter {
       } as any);
       return true;
     } catch (e) {
-      console.log('SMTP test error :: ', e);
+      this.logger.error({
+        message: 'SMTP test failed',
+        error: e.message,
+        code: e.code,
+      });
       throw new Error(
         'SMTP test failed, please check server log for more details.',
       );

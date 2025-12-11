@@ -1,7 +1,9 @@
+import { Logger } from '@nestjs/common';
 import twilio from 'twilio';
 import type { IWebhookNotificationAdapter } from '~/types/nc-plugin';
 
 export default class TwilioWhatsapp implements IWebhookNotificationAdapter {
+  private logger = new Logger(TwilioWhatsapp.name);
   private input: any;
   private client: any;
 
@@ -22,7 +24,12 @@ export default class TwilioWhatsapp implements IWebhookNotificationAdapter {
           to: `whatsapp:${num}`,
         });
       } catch (e) {
-        console.log(e);
+        this.logger.error({
+          message: e.message,
+          code: e.code,
+          status: e.status,
+          moreInfo: e.moreInfo,
+        });
         throw e;
       }
     }

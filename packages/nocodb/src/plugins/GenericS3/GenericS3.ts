@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import fs from 'fs';
 import { promisify } from 'util';
 import { Readable } from 'stream';
@@ -24,6 +25,7 @@ interface GenericObjectStorageInput {
 export default class GenericS3 implements IStorageAdapterV2 {
   public name;
 
+  protected logger = new Logger(GenericS3.name);
   protected s3Client: S3Client;
   protected input: GenericObjectStorageInput;
 
@@ -181,7 +183,12 @@ export default class GenericS3 implements IStorageAdapterV2 {
 
       return this.patchUploadReturnKey(data.Location);
     } catch (error) {
-      console.error('Error uploading file', error);
+      this.logger.error({
+        message: 'Error uploading file',
+        error: error.message,
+        code: error.code,
+        statusCode: error.$metadata?.httpStatusCode,
+      });
       throw error;
     }
   }

@@ -235,7 +235,7 @@ const getAst = async (
     const nestedFields =
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
     if (nestedFields && nestedFields !== '*') {
-      if (col.uidt === UITypes.LinkToAnotherRecord) {
+      if (isLinksOrLTAR(col)) {
         const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
           context,
         );
@@ -257,14 +257,12 @@ const getAst = async (
         value = ast;
 
         // todo: include field relative to the relation => pk / fk
-      } else if (col.uidt === UITypes.Links) {
-        value = 1;
       } else {
         value = (
           Array.isArray(nestedFields) ? nestedFields : nestedFields.split(',')
         ).reduce((o, f) => ({ ...o, [f]: 1 }), {});
       }
-    } else if (col.uidt === UITypes.LinkToAnotherRecord) {
+    } else if (isLinksOrLTAR(col)) {
       const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
         context,
       );

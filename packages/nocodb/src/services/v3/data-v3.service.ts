@@ -1,4 +1,9 @@
-import { NcApiVersion, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  NcApiVersion,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { Injectable } from '@nestjs/common';
 import type {
   DataDeleteParams,
@@ -172,15 +177,21 @@ export class DataV3Service {
     for (const [key, value] of Object.entries(fields)) {
       if (!shouldIncludeField(key)) continue;
 
-      // Handle LTAR fields if columns are provided
+      // Handle LTAR/Links fields if columns are provided
       if (columns) {
         const column = columns.find((col) => col.title === key);
-        if (column?.uidt === UITypes.LinkToAnotherRecord) {
-          if (Array.isArray(value)) {
+        if (isLinksOrLTAR(column)) {
+          // For UITypes.Links, the linked data is stored with _nc_lk_ prefix
+          // Get the actual linked data from the record
+          const linkedDataKey =
+            column.uidt === UITypes.Links ? `_nc_lk_${key}` : key;
+          const linkedData = record[linkedDataKey];
+
+          if (Array.isArray(linkedData)) {
             // Check depth limit to prevent unbounded recursion
             if (depth >= MAX_NESTING_DEPTH) {
               // At max depth, return simplified representation based on relation type
-              transformedFields[key] = value.map((nestedRecord) => {
+              transformedFields[key] = linkedData.map((nestedRecord) => {
                 if (typeof nestedRecord === 'object' && nestedRecord !== null) {
                   // Try to extract ID from the nested record with fallbacks
                   const id =
@@ -213,9 +224,9 @@ export class DataV3Service {
 
             // Handle array of linked records with concurrency control
             const recordsToProcess =
-              nestedLimit && value.length > nestedLimit
-                ? value.slice(0, nestedLimit)
-                : value;
+              nestedLimit && linkedData.length > nestedLimit
+                ? linkedData.slice(0, nestedLimit)
+                : linkedData;
 
             // Transform all nested records using v3 format
             transformedFields[key] = await processConcurrently(
@@ -232,7 +243,7 @@ export class DataV3Service {
               },
             );
             continue;
-          } else if (value && typeof value === 'object') {
+          } else if (linkedData && typeof linkedData === 'object') {
             // Handle single nested record (typically BELONGS_TO or ONE_TO_ONE)
             const relatedModelInfo = await reuseOrSave(
               `relatedModelInfo_${column.id}`,
@@ -248,12 +259,17 @@ export class DataV3Service {
             // Transform single record using v3 format
             transformedFields[key] = await this.transformRecordToV3Format({
               context: context,
-              record: value,
+              record: linkedData,
               primaryKey: relatedPrimaryKey,
               primaryKeys: relatedPrimaryKeys,
               reuse,
               depth: depth + 1,
             });
+            continue;
+          }
+          // For Links columns that only have count (no linked data loaded), skip the count value
+          // The linked data should be loaded via nocoExecute and proto functions
+          if (column.uidt === UITypes.Links && typeof value === 'number') {
             continue;
           }
         }
@@ -503,9 +519,7 @@ export class DataV3Service {
       param.modelId,
     );
 
-    const ltarColumns = columns.filter(
-      (col) => col.uidt === UITypes.LinkToAnotherRecord,
-    );
+    const ltarColumns = columns.filter((col) => isLinksOrLTAR(col));
 
     // Transform the request body to match internal format
     const transformedBody = Array.isArray(param.body)
@@ -660,9 +674,7 @@ export class DataV3Service {
       param.modelId,
     );
 
-    const ltarColumns = columns.filter(
-      (col) => col.uidt === UITypes.LinkToAnotherRecord,
-    );
+    const ltarColumns = columns.filter((col) => isLinksOrLTAR(col));
 
     // Transform the request body to match internal format
     const transformedBody = Array.isArray(param.body)

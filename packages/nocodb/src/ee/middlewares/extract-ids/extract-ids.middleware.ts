@@ -31,6 +31,7 @@ import type {
   NestInterceptor,
   NestMiddleware,
 } from '@nestjs/common';
+import type { NcContext } from '~/interface/config';
 import {
   Base,
   Column,
@@ -62,7 +63,6 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { beforeAclValidationHook } from '~/middlewares/extract-ids/extract-ids.helpers';
 import { RootScopes } from '~/utils/globals';
 import SSOClient from '~/models/SSOClient';
-import type { NcContext } from '~/interface/config';
 import { getProjectRole } from '~/utils/roleHelper';
 import {
   checkForFeature,

@@ -14,7 +14,6 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import { Column, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
-import { TablesService } from '~/services/tables.service';
 import { NcError } from '~/helpers/catchError';
 import getAst from '~/helpers/getAst';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
@@ -24,10 +23,7 @@ import { Profiler } from '~/helpers/profiler';
 
 @Injectable()
 export class DataTableService {
-  constructor(
-    protected datasService: DatasService,
-    protected tablesService: TablesService,
-  ) {}
+  constructor(protected datasService: DatasService) {}
   logger = new Logger(DataTableService.name);
 
   async dataList(
@@ -340,18 +336,8 @@ export class DataTableService {
       NcError.get(context).tableNotFound(param.modelId);
     }
 
-    // Check table visibility permission (skip for service users like workflow)
-    if (param.user && !isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
-      const hasAccess = await this.tablesService.hasTableVisibilityAccess(
-        context,
-        param.modelId,
-        param.user,
-      );
-      if (!hasAccess) {
-        // Return 404 as if table doesn't exist
-        NcError.get(context).tableNotFound(param.modelId);
-      }
-    }
+    // Table visibility permission is checked in extract-ids middleware
+    // No need to check here to avoid circular dependency
 
     let view: View;
 

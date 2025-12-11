@@ -596,7 +596,7 @@ export class TablesService {
     if (baseRoles?.[ProjectRoles.OWNER]) {
       return true;
     }
-    
+
     // Also check roles object for backward compatibility
     const roles = extractRolesObj(user?.roles);
     if (roles?.[ProjectRoles.OWNER]) {
@@ -636,6 +636,29 @@ export class TablesService {
     return hasPermission;
   }
 
+  /**
+   * Check if a table has default table visibility (Everyone)
+   * Returns true if no TABLE_VISIBILITY permission exists (defaults to Everyone)
+   * When "Everyone" is selected in UI, the permission record is deleted,
+   * so no permission = Everyone = default visibility
+   */
+  hasDefaultTableVisibility(
+    tableId: string,
+    permissions: Permission[],
+  ): boolean {
+    // Find TABLE_VISIBILITY permission for this table
+    const visibilityPermission = permissions.find(
+      (p) =>
+        p.entity === PermissionEntity.TABLE &&
+        p.entity_id === tableId &&
+        p.permission === PermissionKey.TABLE_VISIBILITY,
+    );
+
+    // If no permission exists, it defaults to Everyone (default visibility)
+    // When "Everyone" is selected in UI, the permission is deleted
+    return !visibilityPermission;
+  }
+
   async getAccessibleTables(
     context: NcContext,
     param: {
@@ -645,6 +668,7 @@ export class TablesService {
       roles: Record<string, boolean>;
       allSources?: boolean;
       user?: User | UserType;
+      isPublicBase?: boolean;
     },
   ) {
     const viewList = await this.xcVisibilityMetaGet(context, param.baseId);
@@ -671,19 +695,27 @@ export class TablesService {
 
     // Filter tables based on TABLE_VISIBILITY permission
     // Base owners always see all tables, so skip filtering for them
-    if (param.user && !param.roles?.[ProjectRoles.OWNER]) {
+    if (!param.roles?.[ProjectRoles.OWNER]) {
       const permissions = await Permission.list(context, param.baseId);
       const accessibleTableIds = new Set<string>();
 
       for (const table of tableList) {
-        const hasAccess = await this.hasTableVisibilityAccess(
-          context,
-          table.id,
-          param.user,
-          permissions,
-        );
-        if (hasAccess) {
-          accessibleTableIds.add(table.id);
+        // For shared bases (public bases), only show tables with default visibility (Everyone)
+        if (param.isPublicBase) {
+          if (this.hasDefaultTableVisibility(table.id, permissions)) {
+            accessibleTableIds.add(table.id);
+          }
+        } else if (param.user) {
+          // For regular bases, check user access
+          const hasAccess = await this.hasTableVisibilityAccess(
+            context,
+            table.id,
+            param.user,
+            permissions,
+          );
+          if (hasAccess) {
+            accessibleTableIds.add(table.id);
+          }
         }
       }
 

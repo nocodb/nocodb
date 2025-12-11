@@ -120,6 +120,7 @@ export class TablesV3Service {
       roles: Record<string, boolean>;
       allSources?: boolean;
       user?: User | UserType;
+      isPublicBase?: boolean;
     },
   ) {
     const tables = await this.tablesService.getAccessibleTables(context, param);

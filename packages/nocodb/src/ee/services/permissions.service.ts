@@ -2,10 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   EventType,
+  extractRolesObj,
   NcBaseError,
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
+  ProjectRoles,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
@@ -15,6 +17,7 @@ import { NcError } from '~/helpers/ncError';
 import { CacheDelDirection, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import NocoSocket from '~/socket/NocoSocket';
+import { getProjectRole } from '~/utils/roleHelper';
 
 @Injectable()
 export class PermissionsService {
@@ -46,6 +49,14 @@ export class PermissionsService {
       enforce_for_automation = true,
       enforce_for_form = true,
     } = permissionObj;
+
+    // Check if user is owner for TABLE_VISIBILITY permission
+    if (permission_key === PermissionKey.TABLE_VISIBILITY) {
+      const userRole = await getProjectRole(context, req.user, context.base_id);
+      if (userRole !== ProjectRoles.OWNER) {
+        NcError.forbidden('Only base owners can configure table visibility permissions');
+      }
+    }
 
     let permission: Permission;
 
@@ -222,6 +233,14 @@ export class PermissionsService {
     req: NcRequest,
   ) {
     const { entity, entity_id, permission: permission_key } = permissionObj;
+
+    // Check if user is owner for TABLE_VISIBILITY permission
+    if (permission_key === PermissionKey.TABLE_VISIBILITY) {
+      const userRole = await getProjectRole(context, req.user, context.base_id);
+      if (userRole !== ProjectRoles.OWNER) {
+        NcError.forbidden('Only base owners can configure table visibility permissions');
+      }
+    }
 
     const permission = await Permission.getByEntity(
       context,

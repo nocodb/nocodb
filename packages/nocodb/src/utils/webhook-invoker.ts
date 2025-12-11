@@ -3,6 +3,7 @@ import { hasInputCalls, NOCO_SERVICE_USERS } from 'nocodb-sdk';
 import { useAgent } from 'request-filtering-agent';
 import { v4 as uuidv4 } from 'uuid';
 import type { AxiosResponse } from 'axios';
+import { generateWebhookSignature } from '~/utils/webhook-signature';
 import type {
   HookLogType,
   HookType,
@@ -136,6 +137,30 @@ export class WebhookInvoker {
     apiMeta.response = {};
     const url = parseBody(apiMeta.path, webhookData);
 
+    // Generate signature headers if signing_secret exists
+    let signatureHeaders = {};
+    if (hook.signing_secret) {
+      try {
+        const timestamp = Math.floor(Date.now() / 1000);
+        const signature = generateWebhookSignature(
+          apiMeta.body || webhookData,
+          hook.signing_secret,
+          timestamp,
+        );
+
+        if (signature) {
+          signatureHeaders = {
+            'x-nc-webhook-id': hook.id,
+            'x-nc-webhook-signature': signature,
+            'x-nc-webhook-timestamp': timestamp.toString(),
+          };
+        }
+      } catch (e) {
+        // Log error but don't fail webhook delivery
+        this.logger.error('Failed to generate webhook signature', e);
+      }
+    }
+
     const reqPayload = {
       params: apiMeta.parameters
         ? apiMeta.parameters.reduce((paramsObj, param) => {
@@ -148,14 +173,17 @@ export class WebhookInvoker {
       url: url,
       method: apiMeta.method,
       data: apiMeta.body,
-      headers: apiMeta.headers
-        ? apiMeta.headers.reduce((headersObj, header) => {
-            if (header.name && header.enabled) {
-              headersObj[header.name] = parseBody(header.value, webhookData);
-            }
-            return headersObj;
-          }, {})
-        : {},
+      headers: {
+        ...(apiMeta.headers
+          ? apiMeta.headers.reduce((headersObj, header) => {
+              if (header.name && header.enabled) {
+                headersObj[header.name] = parseBody(header.value, webhookData);
+              }
+              return headersObj;
+            }, {})
+          : {}),
+        ...signatureHeaders,
+      },
       withCredentials: true,
       ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true'
         ? {

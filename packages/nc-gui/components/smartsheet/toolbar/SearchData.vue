@@ -201,9 +201,9 @@ watch(
     </NcButton>
     <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true">
       <div
+        class="border-1 rounded-lg border-gray-200 overflow-hidden focus-within:(border-primary shadow-selected)"
         :class="{
-          'border-1 rounded-lg border-gray-200 overflow-hidden focus-within:(border-primary shadow-selected)': isMobileMode,
-          'border-primary shadow-selected': isMobileMode && search.query.length !== 0,
+          'border-primary shadow-selected': search.query.length !== 0,
         }"
       >
         <div class="flex flex-row h-8 relative">

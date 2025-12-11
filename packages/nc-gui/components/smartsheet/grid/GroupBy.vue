@@ -45,6 +45,8 @@ const emits = defineEmits(['update:paginationData'])
 
 const vGroup = useVModel(props, 'group', emits)
 
+const { appInfo } = useGlobal()
+
 const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
@@ -506,6 +508,7 @@ async function openNewRecordHandler() {
                   </div>
                 </div>
                 <SmartsheetGridAggregation
+                  v-if="!appInfo.disableGroupByAggregation"
                   :scroll-left="props.scrollLeft || _scrollLeft"
                   :max-depth="maxDepth"
                   :group="grp"

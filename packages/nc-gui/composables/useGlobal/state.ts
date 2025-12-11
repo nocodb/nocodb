@@ -146,6 +146,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     inviteOnlySignup: false,
     giftUrl: '',
     isOnPrem: false,
+    disableGroupByAggregation: false,
   })
 
   /** reactive token payload */

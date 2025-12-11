@@ -49,6 +49,7 @@ export interface AppInfo {
   disableSupportChat: boolean
   disableOnboardingFlow: boolean
   iframeWhitelistDomains?: Array<string>
+  disableGroupByAggregation?: boolean
 }
 
 export interface StoredState {

@@ -1042,7 +1042,7 @@ export function useCanvasRender({
       const bubbleHeight = 18
       const y = yOffset + (rowHeight.value - bubbleHeight) / 2
 
-      const _renderSingleLineText = (xOffset: number, render: boolean = false) => {
+      const _renderSingleLineText = (xOffset: number, render = false) => {
         return renderSingleLineText(ctx, {
           x: xOffset,
           y,
@@ -2932,7 +2932,7 @@ export function useCanvasRender({
           },
         )
 
-        if (appInfo.value?.ee) {
+        if (appInfo.value?.ee && !appInfo.value.disableGroupByAggregation) {
           const { start: startColIndex, end: endColIndex } = colSlice.value
           const visibleCols = columns.value.slice(startColIndex, endColIndex)
 

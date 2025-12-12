@@ -269,25 +269,19 @@ export class ColumnsService implements IColumnsService {
    * internal_meta is an internal field (not exposed via API)
    *
    * @param context - NcContext
-   * @param baseId - Base ID
-   * @param tableId - Table/Model ID
-   * @param columnId - Column ID (or temporary identifier like column name for new columns)
-   * @param existingInternalMeta - Existing internal_meta value (can be string, object, or null/undefined)
+   * @param column - Partial Column object containing base_id, fk_model_id, id, and internal_meta
    * @returns Updated internal_meta object with unique_constraint_name set
    */
   private storeUniqueConstraintNameInInternalMeta(
     context: NcContext,
-    baseId: string,
-    tableId: string,
-    columnId: string,
-    existingInternalMeta?: any,
+    column: Pick<Column, 'id' | 'base_id' | 'fk_model_id' | 'internal_meta'>,
   ): any {
     // Generate constraint name using base_id + '_' + table_id + '_' + column_id for fixed-length, unique constraint name
-    // For new columns, columnId might be a temporary identifier (like column name) that will be updated after insertion
-    const constraintName = `uk_${baseId}_${tableId}_${columnId}`;
+    // For new columns, column.id might be a temporary identifier (like column name) that will be updated after insertion
+    const constraintName = `uk_${column.base_id}_${column.fk_model_id}_${column.id}`;
 
     // Parse existing internal_meta or create new object
-    let internalMeta = existingInternalMeta;
+    let internalMeta = column.internal_meta;
     if (typeof internalMeta === 'string') {
       try {
         internalMeta = JSON.parse(internalMeta);
@@ -718,10 +712,7 @@ export class ColumnsService implements IColumnsService {
       // Enabling unique constraint - generate and store constraint name
       const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
         context,
-        context.base_id,
-        column.fk_model_id,
-        column.id,
-        column.internal_meta,
+        column,
       );
 
       // Store in colBody (will be saved to database)
@@ -3099,19 +3090,23 @@ export class ColumnsService implements IColumnsService {
             // Generate column ID upfront
             columnId = await ncMeta.genNanoid(MetaTable.COLUMNS);
 
-            // Use helper function with the generated column ID to set up internal_meta
-            const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
-              context,
-              context.base_id,
-              table.id,
-              columnId,
-              colBody.internal_meta,
-            );
-
             // Set base_id and fk_model_id in colBody so SQL client can use them
             (colBody as any).base_id = context.base_id;
             (colBody as any).fk_model_id = table.id;
             (colBody as any).id = columnId;
+
+            // Use helper function with the generated column ID to set up internal_meta
+            // Create a temporary column-like object for the method
+            const tempColumn = {
+              base_id: context.base_id,
+              fk_model_id: table.id,
+              id: columnId,
+            };
+
+            const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
+              context,
+              tempColumn,
+            );
 
             // Store in colBody (will be passed to SQL client and Column.insert)
             colBody.internal_meta = internalMeta;

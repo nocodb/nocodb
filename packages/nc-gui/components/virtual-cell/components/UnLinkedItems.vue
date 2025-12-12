@@ -51,6 +51,7 @@ const {
   refreshCurrentRow,
   rowId,
   externalBaseUserRoles,
+  isLinkedTableAccessible,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew, removeLTARRef, state: rowState } = useSmartsheetRowStoreOrThrow()
@@ -224,6 +225,8 @@ const onClick = (refRow: any, id: string) => {
 
 const addNewRecord = () => {
   if (showRecordPlanLimitExceededModal()) return
+  // Don't allow creating new record if linked table is not accessible
+  if (!isLinkedTableAccessible.value) return
 
   expandedFormRow.value = {}
   expandedFormDlg.value = true
@@ -451,6 +454,8 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 @link-or-unlink="onClick(refRow, id)"
                 @expand="
                   () => {
+                    // Don't allow expanding if linked table is not accessible
+                    if (!isLinkedTableAccessible) return
                     expandedFormRow = refRow
                     expandedFormDlg = true
                   }

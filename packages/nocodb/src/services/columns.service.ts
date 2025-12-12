@@ -4,11 +4,13 @@ import {
   AppEvents,
   ButtonActionsType,
   EventType,
+  extractRolesObj,
   FormulaDataTypes,
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isServiceUser,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
@@ -19,6 +21,8 @@ import {
   ncIsUndefined,
   parseProp,
   partialUpdateAllowedTypes,
+  PermissionEntity,
+  PermissionKey,
   ProjectRoles,
   readonlyMetaAllowedTypes,
   RelationTypes,
@@ -29,6 +33,7 @@ import {
   validateFormulaAndExtractTreeWithType,
   WebhookActions,
 } from 'nocodb-sdk';
+import { getProjectRole } from 'nocodb-sdk';
 import rfdc from 'rfdc';
 import type { ClientType } from 'nocodb-sdk';
 import type {
@@ -85,6 +90,7 @@ import {
   Hook,
   KanbanView,
   Model,
+  Permission,
   Script,
   Source,
   User,
@@ -5300,7 +5306,7 @@ export class ColumnsService implements IColumnsService {
 
   async getLinkColumnRefTable(
     context: NcContext,
-    { columnId, tableId }: { columnId: string; tableId: string },
+    { columnId, tableId, user }: { columnId: string; tableId: string; user?: UserType },
   ) {
     const column = await Column.get(context, { colId: columnId });
 
@@ -5334,7 +5340,48 @@ export class ColumnsService implements IColumnsService {
       return col.pk || col.pv;
     });
 
-    return table;
+    // Check table visibility access and add flag
+    let isPrivate = false;
+    if (user && !isServiceUser(user)) {
+      const baseRoles = extractRolesObj((user as any)?.base_roles);
+      // Base owners always have access
+      if (!baseRoles?.[ProjectRoles.OWNER]) {
+        const permissions = await Permission.list(context, table.base_id);
+        const visibilityPermission = permissions.find(
+          (p) =>
+            p.entity === PermissionEntity.TABLE &&
+            p.entity_id === tableId &&
+            p.permission === PermissionKey.TABLE_VISIBILITY,
+        );
+        if (visibilityPermission) {
+          // Get the user's project role (base role)
+          const userRole = getProjectRole(user) as ProjectRoles;
+          if (!userRole) {
+            isPrivate = true;
+          } else {
+            // Check if user has permission
+            // Type assertion needed because isAllowed is defined in EE Permission model
+            const hasPermission = await (Permission as any).isAllowed(
+              context,
+              visibilityPermission,
+              {
+                id: user.id,
+                role: userRole,
+              },
+            );
+            if (!hasPermission) {
+              isPrivate = true;
+            }
+          }
+        }
+      }
+    }
+
+    // Add isPrivate flag to table object
+    return {
+      ...table,
+      isPrivate,
+    };
   }
 }
 

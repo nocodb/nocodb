@@ -72,9 +72,11 @@ const permissionOptions = computed(() => {
   return allPermissionOptions.value.filter((option) => {
     // For record permissions (create/delete), exclude Viewers & up, Commenters & up, and Everyone
     if (!isTableVisibility) {
-      if (option.value === PermissionOptionValue.VIEWERS_AND_UP || 
-          option.value === PermissionOptionValue.COMMENTERS_AND_UP || 
-          option.value === PermissionOptionValue.EVERYONE) {
+      if (
+        option.value === PermissionOptionValue.VIEWERS_AND_UP ||
+        option.value === PermissionOptionValue.COMMENTERS_AND_UP ||
+        option.value === PermissionOptionValue.EVERYONE
+      ) {
         return false
       }
     }
@@ -182,7 +184,15 @@ const handleClickDropdown = (e: MouseEvent) => {
 
         <NcListDropdown
           v-model:is-open="isOpenPermissionDropdown"
-          :default-slot-wrapper-class="inlineStyle ? '!px-0 !py-0 !border-0 !rounded-none !h-auto !shadow-none' : (!readonly ? 'w-[165px]' : removeReadonlyPadding ? '!px-0 !border-0' : '!border-0')"
+          :default-slot-wrapper-class="
+            inlineStyle
+              ? '!px-0 !py-0 !border-0 !rounded-none !h-auto !shadow-none'
+              : !readonly
+              ? 'w-[165px]'
+              : removeReadonlyPadding
+              ? '!px-0 !border-0'
+              : '!border-0'
+          "
           :placement="placement"
           :disabled="readonly || config.disabled"
           :show-as-disabled="false"
@@ -240,7 +250,14 @@ const handleClickDropdown = (e: MouseEvent) => {
                         option.label
                       }}</span>
                       <span
-                        v-if="option.isDefault && !(config.permission === PermissionKey.TABLE_VISIBILITY && (option.value === PermissionOptionValue.EDITORS_AND_UP || option.value === PermissionOptionValue.COMMENTERS_AND_UP))"
+                        v-if="
+                          option.isDefault &&
+                          !(
+                            config.permission === PermissionKey.TABLE_VISIBILITY &&
+                            (option.value === PermissionOptionValue.EDITORS_AND_UP ||
+                              option.value === PermissionOptionValue.COMMENTERS_AND_UP)
+                          )
+                        "
                         class="text-captionXsBold text-nc-content-gray-muted"
                       >
                         (DEFAULT)

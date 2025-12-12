@@ -4,7 +4,6 @@ import {
   ModelTypes,
   PlanFeatureTypes,
   PlanTitles,
-  ProjectRoles,
   RelationTypes,
   SqliteUi,
   UITypes,
@@ -120,35 +119,75 @@ const { baseTables } = storeToRefs(tablesStore)
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
+
 const refTables = computed(() => {
   if (isEdit.value) {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const refTableId = referenceTableChildId.value
+    if (!refTableId) return []
+
+    // Load meta if not already loaded
     if (!metas.value[refTableId]) getMeta(refTableId)
-    return [metas.value[refTableId]]
+    const tableMeta = metas.value[refTableId]
+
+    // Check if table is private (from API response only)
+    const isPrivate = tableMeta && (tableMeta as any).isPrivate
+
+    if (isPrivate) {
+      // Return a "Private" table object with the actual table title if available
+      return [
+        {
+          id: refTableId,
+          title: tableMeta?.title || t('labels.privateTable'),
+          isPrivate: true,
+        },
+      ]
+    }
+
+    return tableMeta ? [tableMeta] : []
   }
+
+  let tablesList: any[] = []
 
   if (!crossBase.value) {
     if (!tables.value || !tables.value.length) {
       return []
     }
 
-    return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
+    tablesList = tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
+  } else {
+    if (!baseTables.value.get(vModel.value.ref_base_id)) {
+      return []
+    }
+
+    tablesList = [...baseTables.value.get(vModel.value.ref_base_id).filter((t) => t.type === ModelTypes.TABLE)]
   }
 
-  if (!baseTables.value.get(vModel.value.ref_base_id)) {
-    return []
-  }
-
-  return [...baseTables.value.get(vModel.value.ref_base_id).filter((t) => t.type === ModelTypes.TABLE)]
+  // Backend already filters tables based on visibility, so return all tables from the list
+  return tablesList
 })
 
 const refViews = computed(() => {
   const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
 
   if (!childId) return []
+
   const views = viewsByTable.value.get(childId)
 
+  // In edit mode, if view is not accessible, return a "Private view" object
+  if (isEdit.value && vModel.value.childViewId && isLinkedViewPrivate.value) {
+    // Try to get the view title from views if available, otherwise use "Private view"
+    const viewMeta = (views || []).find((v) => v.id === vModel.value.childViewId)
+    return [
+      {
+        id: vModel.value.childViewId,
+        title: viewMeta?.title || t('labels.privateView'),
+        isPrivate: true,
+      },
+    ]
+  }
+
+  // Backend already filters views based on table visibility, so return all views (excluding forms)
   return (views || []).filter((v) => v.type !== ViewTypes.FORM)
 })
 
@@ -222,6 +261,27 @@ const referenceTableChildId = computed({
       vModel.value.childTableTitle = refTables.value.find((t) => t.id === value)?.title
     }
   },
+})
+
+// Check if linked table is private (for edit mode display)
+// Only check isPrivate flag from API response
+const isLinkedTablePrivate = computed(() => {
+  if (!isEdit.value) return false
+  const refTableId = referenceTableChildId.value
+  if (!refTableId) return false
+  const tableMeta = metas.value[refTableId]
+  // Check isPrivate flag from API response
+  return !!(tableMeta && (tableMeta as any).isPrivate)
+})
+
+// Check if linked view is private (views inherit from table)
+const isLinkedViewPrivate = computed(() => {
+  if (!vModel.value.childViewId) return false
+  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+  if (!childId) return false
+  const tableMeta = metas.value[childId]
+  // Check isPrivate flag from API response
+  return !!(tableMeta && (tableMeta as any).isPrivate)
 })
 
 const linkType = computed({
@@ -471,7 +531,7 @@ const handleScrollIntoView = () => {
         <a-select
           v-model:value="referenceTableChildId"
           show-search
-          :disabled="isEdit"
+          :disabled="isEdit || isLinkedTablePrivate"
           :filter-option="filterOption"
           placeholder="select table to link"
           dropdown-class-name="nc-dropdown-ltar-child-table"
@@ -480,15 +540,17 @@ const handleScrollIntoView = () => {
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
-          <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
+          <a-select-option v-for="table of refTables" :key="table.id" :value="table.id" :disabled="(table as any).isPrivate">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon :meta="table" class="text-nc-content-gray-muted" />
+                <GeneralTableIcon v-if="(table as any).isPrivate" class="text-nc-content-gray-disabled" />
+                <GeneralTableIcon v-else :meta="table" class="text-nc-content-gray-muted" />
               </div>
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+              <NcTooltip v-if="!(table as any).isPrivate" class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ table.title }}</template>
                 <span>{{ table.title }}</span>
               </NcTooltip>
+              <span v-else class="text-nc-content-gray-disabled">{{ table.title }}</span>
             </div>
           </a-select-option>
         </a-select>
@@ -502,9 +564,13 @@ const handleScrollIntoView = () => {
             v-model:checked="limitRecToView"
             v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
             size="small"
-            :disabled="(!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) || isSyncedField"
+            :disabled="
+              (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) ||
+              isSyncedField ||
+              isLinkedTablePrivate
+            "
             @change="onLimitRecToViewChange"
-          ></a-switch>
+          />
 
           <span
             v-e="['c:link:limit-record-by-view', { status: limitRecToView }]"
@@ -530,18 +596,21 @@ const handleScrollIntoView = () => {
           v-model:value="vModel.childViewId"
           :placeholder="$t('labels.selectView')"
           show-search
+          :disabled="isLinkedViewPrivate"
           :filter-option="filterOption"
           dropdown-class-name="nc-dropdown-ltar-child-view"
         >
-          <a-select-option v-for="view of refViews" :key="view.title" :value="view.id">
+          <a-select-option v-for="view of refViews" :key="view.id" :value="view.id" :disabled="(view as any).isPrivate">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <GeneralViewIcon :meta="view" class="text-nc-content-gray-muted" />
+                <GeneralViewIcon v-if="(view as any).isPrivate" :meta="{} as any" class="text-nc-content-gray-disabled" />
+                <GeneralViewIcon v-else :meta="view" class="text-nc-content-gray-muted" />
               </div>
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+              <NcTooltip v-if="!(view as any).isPrivate" class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ view.title }}</template>
                 <span>{{ view.title }}</span>
               </NcTooltip>
+              <span v-else class="text-nc-content-gray-disabled">{{ view.title }}</span>
             </div>
           </a-select-option>
         </NcSelect>
@@ -557,7 +626,11 @@ const handleScrollIntoView = () => {
                 <a-switch
                   v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
                   :checked="limitRecToCond"
-                  :disabled="(!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) || isSyncedField"
+                  :disabled="
+                    (!vModel.childId && !(vModel.is_custom_link && vModel.custom?.ref_model_id)) ||
+                    isSyncedField ||
+                    isLinkedTablePrivate
+                  "
                   size="small"
                   @change="
                     (value) => {
@@ -566,7 +639,7 @@ const handleScrollIntoView = () => {
                       onFilterLabelClick()
                     }
                   "
-                ></a-switch>
+                />
                 <span
                   v-e="['c:link:limit-record-by-filter', { status: limitRecToCond }]"
                   data-testid="nc-limit-record-filters"
@@ -598,7 +671,7 @@ const handleScrollIntoView = () => {
             </NcTooltip>
           </template>
         </PaymentUpgradeBadgeProvider>
-        <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
+        <div v-if="limitRecToCond && !isLinkedTablePrivate" class="overflow-auto nc-scrollbar-thin">
           <LazySmartsheetToolbarColumnFilter
             ref="filterRef"
             v-model="vModel.filters"

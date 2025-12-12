@@ -46,8 +46,7 @@ export const usePermissionSelector = (
 
     // Check if this is table visibility permission
     // PermissionKey.TABLE_VISIBILITY enum value is 'TABLE_VISIBILITY'
-    const isTableVisibility = 
-      config.value.permission === PermissionKey.TABLE_VISIBILITY
+    const isTableVisibility = config.value.permission === PermissionKey.TABLE_VISIBILITY
 
     return allPermissionOptions.filter((option) => {
       // For record permissions (create/delete), exclude Viewers & up, Commenters & up, and Everyone

@@ -713,19 +713,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.context.permissions = req.permissions;
     }
 
-    // Perform table visibility check at the end if we extracted a table ID
-    if (
-      tableIdToCheck &&
-      req.user &&
-      !isServiceUser(req.user, ServiceUserType.WORKFLOW_USER) &&
-      req.ncBaseId
-    ) {
-      await this.checkTableVisibilityAccess(
-        req.context,
-        tableIdToCheck,
-        req.user,
-        req,
-      );
+    // Store table ID to check in context for ACL middleware to perform table visibility check
+    if (tableIdToCheck) {
+      req.context.ncTableId = tableIdToCheck;
     }
 
     await this.additionalValidation({ req, res, next });
@@ -750,25 +740,44 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   }) {
     // do nothing
   }
+}
+
+// todo: refactor and move scope name to enum
+function getUserRoleForScope(user: any, scope: string) {
+  if (scope === 'workspace') {
+    return user?.workspace_roles;
+  } else if (scope === 'base') {
+    return user?.base_roles;
+  } else if (scope === 'cloud-org') {
+    return user?.org_roles;
+  } else if (scope === 'org') {
+    return user?.roles;
+  }
+}
+
+@Injectable()
+export class AclMiddleware implements NestInterceptor {
+  constructor(private reflector: Reflector, private jwtStrategy: JwtStrategy) {}
 
   /**
    * Check if user has access to a table based on TABLE_VISIBILITY permission
    * Base owners always have access
+   * This is called after default ACL check
    */
   private async checkTableVisibilityAccess(
     context: NcContext,
     tableId: string,
     user: any,
-    req: any,
   ): Promise<void> {
     // Base owners always have access
-    const baseRoles = extractRolesObj(user?.base_roles);
+    // Check base_roles (can be string or object)
+    const baseRoles = extractRolesObj((user as any)?.base_roles);
     if (baseRoles?.[ProjectRoles.OWNER]) {
       return;
     }
 
     // Also check roles object for backward compatibility
-    const roles = extractRolesObj(user?.roles);
+    const roles = extractRolesObj((user as any)?.roles);
     if (roles?.[ProjectRoles.OWNER]) {
       return;
     }
@@ -794,13 +803,25 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       return;
     }
 
+    // Get the user's project role (base role)
+    // Use getProjectRole from nocodb-sdk which extracts the role from user object
+    // It looks at user.base_roles and returns the most powerful role
+    const userRole = getProjectRole(user) as ProjectRoles;
+
+    // If no role found, user doesn't have access
+    if (!userRole) {
+      // Return 404 as if table doesn't exist
+      NcError.get(context).tableNotFound(tableId);
+      return;
+    }
+
     // Check if user has permission
     const hasPermission = await Permission.isAllowed(
       context,
       visibilityPermission,
       {
         id: user.id,
-        role: getProjectRole(user) as ProjectRoles,
+        role: userRole,
       },
     );
 
@@ -809,24 +830,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       NcError.get(context).tableNotFound(tableId);
     }
   }
-}
-
-// todo: refactor and move scope name to enum
-function getUserRoleForScope(user: any, scope: string) {
-  if (scope === 'workspace') {
-    return user?.workspace_roles;
-  } else if (scope === 'base') {
-    return user?.base_roles;
-  } else if (scope === 'cloud-org') {
-    return user?.org_roles;
-  } else if (scope === 'org') {
-    return user?.roles;
-  }
-}
-
-@Injectable()
-export class AclMiddleware implements NestInterceptor {
-  constructor(private reflector: Reflector, private jwtStrategy: JwtStrategy) {}
 
   async aclFn(
     permissionName: string,
@@ -1056,6 +1059,21 @@ export class AclMiddleware implements NestInterceptor {
       //     Object.keys(roles).filter((k) => roles[k]),
       //   )} : Not allowed`,
       // );
+    }
+
+    // Check table visibility permission after default ACL check
+    // This ensures table visibility is enforced for all table-related operations
+    if (
+      req.context?.ncTableId &&
+      req.user &&
+      !isServiceUser(req.user, ServiceUserType.WORKFLOW_USER) &&
+      req.ncBaseId
+    ) {
+      await this.checkTableVisibilityAccess(
+        req.context,
+        req.context.ncTableId,
+        req.user,
+      );
     }
 
     // if base scope and current base is private check if user have active plan

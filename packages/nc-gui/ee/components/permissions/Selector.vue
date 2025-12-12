@@ -70,9 +70,11 @@ const permissionOptions = computed(() => {
 
   // Filter options to only show roles that meet or exceed the minimum requirement
   return allPermissionOptions.value.filter((option) => {
-    // For record permissions (create/delete), exclude Viewers & up and Everyone
+    // For record permissions (create/delete), exclude Viewers & up, Commenters & up, and Everyone
     if (!isTableVisibility) {
-      if (option.value === PermissionOptionValue.VIEWERS_AND_UP || option.value === PermissionOptionValue.EVERYONE) {
+      if (option.value === PermissionOptionValue.VIEWERS_AND_UP || 
+          option.value === PermissionOptionValue.COMMENTERS_AND_UP || 
+          option.value === PermissionOptionValue.EVERYONE) {
         return false
       }
     }
@@ -82,9 +84,23 @@ const permissionOptions = computed(() => {
       return true
     }
 
-    // For table visibility, always allow Everyone
-    if (isTableVisibility && option.value === PermissionOptionValue.EVERYONE) {
-      return true
+    // For table visibility, always allow Everyone, Viewers & up, Commenters & up, Editors & up, and Creators & up
+    if (isTableVisibility) {
+      if (option.value === PermissionOptionValue.EVERYONE) {
+        return true
+      }
+      if (option.value === PermissionOptionValue.VIEWERS_AND_UP) {
+        return true
+      }
+      if (option.value === PermissionOptionValue.COMMENTERS_AND_UP) {
+        return true
+      }
+      if (option.value === PermissionOptionValue.EDITORS_AND_UP) {
+        return true
+      }
+      if (option.value === PermissionOptionValue.CREATORS_AND_UP) {
+        return true
+      }
     }
 
     // Map option values to PermissionRole enum values for comparison
@@ -92,6 +108,9 @@ const permissionOptions = computed(() => {
     switch (option.value) {
       case PermissionOptionValue.VIEWERS_AND_UP:
         optionRole = 'viewer'
+        break
+      case PermissionOptionValue.COMMENTERS_AND_UP:
+        optionRole = 'commenter'
         break
       case PermissionOptionValue.EDITORS_AND_UP:
         optionRole = 'editor'
@@ -221,7 +240,7 @@ const handleClickDropdown = (e: MouseEvent) => {
                         option.label
                       }}</span>
                       <span
-                        v-if="option.isDefault && !(config.permission === PermissionKey.TABLE_VISIBILITY && option.value === PermissionOptionValue.EDITORS_AND_UP)"
+                        v-if="option.isDefault && !(config.permission === PermissionKey.TABLE_VISIBILITY && (option.value === PermissionOptionValue.EDITORS_AND_UP || option.value === PermissionOptionValue.COMMENTERS_AND_UP))"
                         class="text-captionXsBold text-nc-content-gray-muted"
                       >
                         (DEFAULT)

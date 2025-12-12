@@ -54,12 +54,14 @@ export class PermissionsService {
       // Check base_roles (can be string or object)
       const baseRoles = extractRolesObj(req.user?.base_roles);
       const isOwner = baseRoles?.[ProjectRoles.OWNER];
-      
+
       // Also check roles object for backward compatibility
       if (!isOwner) {
         const roles = extractRolesObj(req.user?.roles);
         if (!roles?.[ProjectRoles.OWNER]) {
-          NcError.forbidden('Only base owners can configure table visibility permissions');
+          NcError.forbidden(
+            'Only base owners can configure table visibility permissions',
+          );
         }
       }
     }
@@ -245,12 +247,14 @@ export class PermissionsService {
       // Check base_roles (can be string or object)
       const baseRoles = extractRolesObj(req.user?.base_roles);
       const isOwner = baseRoles?.[ProjectRoles.OWNER];
-      
+
       // Also check roles object for backward compatibility
       if (!isOwner) {
         const roles = extractRolesObj(req.user?.roles);
         if (!roles?.[ProjectRoles.OWNER]) {
-          NcError.forbidden('Only base owners can configure table visibility permissions');
+          NcError.forbidden(
+            'Only base owners can configure table visibility permissions',
+          );
         }
       }
     }

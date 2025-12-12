@@ -21,6 +21,7 @@ import {
 } from 'nocodb-sdk';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { ColumnsService } from '~/services/columns.service';
+import { getProjectRole } from 'nocodb-sdk';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnType,
@@ -38,7 +39,6 @@ import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
-import { getProjectRole } from 'nocodb-sdk';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';

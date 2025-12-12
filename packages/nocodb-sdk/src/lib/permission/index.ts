@@ -29,6 +29,7 @@ export enum PermissionRole {
 // Permission option values used across the application
 export enum PermissionOptionValue {
   VIEWERS_AND_UP = 'viewers_and_up',
+  COMMENTERS_AND_UP = 'commenters_and_up',
   EDITORS_AND_UP = 'editors_and_up',
   CREATORS_AND_UP = 'creators_and_up',
   SPECIFIC_USERS = 'specific_users',
@@ -59,9 +60,15 @@ export const PermissionOptions: PermissionOption[] = [
     isDefault: true,
   },
   {
+    value: PermissionOptionValue.COMMENTERS_AND_UP,
+    label: 'Commenters & up',
+    description: 'Members with Commenter, Editor, Creator or Owner role',
+    icon: 'role_commenter',
+  },
+  {
     value: PermissionOptionValue.VIEWERS_AND_UP,
     label: 'Viewers and up',
-    description: 'Members with Viewer, Editor, Creator or Owner role',
+    description: 'Members with Viewer, Commenter, Editor, Creator or Owner role',
     icon: 'role_viewer',
   },
   {
@@ -159,6 +166,8 @@ export const getPermissionOptionValue = (
   if (grantedType === PermissionGrantedType.ROLE) {
     if (grantedRole === PermissionRole.VIEWER) {
       return PermissionOptionValue.VIEWERS_AND_UP;
+    } else if (grantedRole === PermissionRole.COMMENTER) {
+      return PermissionOptionValue.COMMENTERS_AND_UP;
     } else if (grantedRole === PermissionRole.CREATOR) {
       return PermissionOptionValue.CREATORS_AND_UP;
     } else {

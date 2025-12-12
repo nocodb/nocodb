@@ -50,10 +50,13 @@ export const usePermissionSelector = (
       config.value.permission === PermissionKey.TABLE_VISIBILITY
 
     return allPermissionOptions.filter((option) => {
-      // For record permissions (create/delete), exclude Viewers & up and Everyone
+      // For record permissions (create/delete), exclude Viewers & up, Commenters & up, and Everyone
       // This must be checked FIRST before any other logic
       if (!isTableVisibility) {
         if (option.value === PermissionOptionValue.VIEWERS_AND_UP) {
+          return false
+        }
+        if (option.value === PermissionOptionValue.COMMENTERS_AND_UP) {
           return false
         }
         if (option.value === PermissionOptionValue.EVERYONE) {
@@ -66,7 +69,7 @@ export const usePermissionSelector = (
         return true
       }
 
-      // For table visibility, always allow Everyone and Viewers & up
+      // For table visibility, always allow Everyone, Viewers & up, Commenters & up, Editors & up, and Creators & up
       if (isTableVisibility) {
         if (option.value === PermissionOptionValue.EVERYONE) {
           return true
@@ -74,16 +77,31 @@ export const usePermissionSelector = (
         if (option.value === PermissionOptionValue.VIEWERS_AND_UP) {
           return true
         }
+        if (option.value === PermissionOptionValue.COMMENTERS_AND_UP) {
+          return true
+        }
+        if (option.value === PermissionOptionValue.EDITORS_AND_UP) {
+          return true
+        }
+        if (option.value === PermissionOptionValue.CREATORS_AND_UP) {
+          return true
+        }
       }
 
       // Additional role-based filtering (only applies if not already handled above)
-      // This should not execute for record permissions since we already excluded VIEWERS_AND_UP above
-      if (option.value === PermissionOptionValue.VIEWERS_AND_UP && minRoleIndex > 0) {
-        return false // Don't show viewers if minimum is editor or higher
-      }
+      // Skip this for table visibility since we already explicitly allowed all options above
+      if (!isTableVisibility) {
+        if (option.value === PermissionOptionValue.VIEWERS_AND_UP && minRoleIndex > 0) {
+          return false // Don't show viewers if minimum is editor or higher
+        }
 
-      if (option.value === PermissionOptionValue.EDITORS_AND_UP && minRoleIndex > 1) {
-        return false // Don't show editors if minimum is creator or higher
+        if (option.value === PermissionOptionValue.COMMENTERS_AND_UP && minRoleIndex > 1) {
+          return false // Don't show commenters if minimum is creator or higher
+        }
+
+        if (option.value === PermissionOptionValue.EDITORS_AND_UP && minRoleIndex > 1) {
+          return false // Don't show editors if minimum is creator or higher
+        }
       }
 
       return true
@@ -108,6 +126,8 @@ export const usePermissionSelector = (
     switch (displayValue) {
       case 'Viewers and up':
         return PermissionOptionValue.VIEWERS_AND_UP
+      case 'Commenters & up':
+        return PermissionOptionValue.COMMENTERS_AND_UP
       case 'Editors & up':
         return PermissionOptionValue.EDITORS_AND_UP
       case 'Creators & up':
@@ -142,6 +162,9 @@ export const usePermissionSelector = (
       if (currentPermission.value === PermissionOptionValue.VIEWERS_AND_UP) {
         granted_type = PermissionGrantedType.ROLE
         granted_role = PermissionRole.VIEWER
+      } else if (currentPermission.value === PermissionOptionValue.COMMENTERS_AND_UP) {
+        granted_type = PermissionGrantedType.ROLE
+        granted_role = PermissionRole.COMMENTER
       } else if (currentPermission.value === PermissionOptionValue.CREATORS_AND_UP) {
         granted_type = PermissionGrantedType.ROLE
         granted_role = PermissionRole.CREATOR
@@ -163,6 +186,8 @@ export const usePermissionSelector = (
       const shouldDrop =
         currentPermission.value === PermissionOptionValue.EVERYONE ||
         (currentPermission.value === PermissionOptionValue.EDITORS_AND_UP &&
+          config.value.permission !== PermissionKey.TABLE_VISIBILITY) ||
+        (currentPermission.value === PermissionOptionValue.COMMENTERS_AND_UP &&
           config.value.permission !== PermissionKey.TABLE_VISIBILITY)
 
       if (shouldDrop) {

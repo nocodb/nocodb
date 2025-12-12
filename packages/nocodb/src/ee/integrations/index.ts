@@ -9,6 +9,8 @@ import BamboohrAuth from '@noco-local-integrations/bamboohr-auth';
 import BamboohrSync from '@noco-local-integrations/bamboohr-sync';
 import BitbucketAuth from '@noco-local-integrations/bitbucket-auth';
 import BitbucketSync from '@noco-local-integrations/bitbucket-sync';
+import BoxAuth from '@noco-local-integrations/box-auth';
+import BoxSync from '@noco-local-integrations/box-sync';
 import ChatwootAuth from '@noco-local-integrations/chatwoot-auth';
 import ChatwootSync from '@noco-local-integrations/chatwoot-sync';
 import ClaudeAi from '@noco-local-integrations/claude-ai';
@@ -53,6 +55,8 @@ export default [
   ...(Array.isArray(BamboohrSync) ? BamboohrSync : [BamboohrSync]),
   ...(Array.isArray(BitbucketAuth) ? BitbucketAuth : [BitbucketAuth]),
   ...(Array.isArray(BitbucketSync) ? BitbucketSync : [BitbucketSync]),
+  ...(Array.isArray(BoxAuth) ? BoxAuth : [BoxAuth]),
+  ...(Array.isArray(BoxSync) ? BoxSync : [BoxSync]),
   ...(Array.isArray(ChatwootAuth) ? ChatwootAuth : [ChatwootAuth]),
   ...(Array.isArray(ChatwootSync) ? ChatwootSync : [ChatwootSync]),
   ...(Array.isArray(ClaudeAi) ? ClaudeAi : [ClaudeAi]),

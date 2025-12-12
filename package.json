@@ -47,6 +47,7 @@
   },
   "pnpm": {
     "overrides": {
+      "jsonwebtoken": "^9.0.3",
       "**>ip": "npm:@eggjs/ip@latest",
       "@azure/msal-node": "^2.16.2",
       "@babel/traverse@<7.23.2": ">=7.23.2",

@@ -114,6 +114,7 @@ const {
   blockAiPromptField,
   showUpgradeToUseAiButtonField,
   blockAiButtonField,
+  blockUnique,
 } = useEeConfig()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
@@ -151,8 +152,6 @@ const mounted = ref(false)
 const showDefaultValueInput = ref(false)
 
 const showHoverEffectOnSelectedType = ref(true)
-
-const { blockUnique } = useEeConfig()
 
 const columnUidt = computed({
   get: () => formState.value.uidt,

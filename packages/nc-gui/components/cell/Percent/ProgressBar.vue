@@ -2,9 +2,12 @@
 interface Props {
   percentage: number
   isShowNumber?: boolean
+  precision?: number
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  precision: 2,
+})
 
 const cPercentage = computed(() => Math.max(0, Math.min(100, props.percentage)))
 
@@ -43,7 +46,7 @@ const slotHasChildren = (name?: string) => {
                 'margin-left': `${-Math.min(cPercentage, 50)}%`,
               }"
             >
-              {{ `${formatPercentage(percentage)}` }}
+              {{ `${formatPercentage(percentage, precision)}` }}
             </span>
           </div>
           <div class="absolute transform top-1/2 -translate-y-1/2" :style="{ 'margin-left': `${labelMarginLeft}%` }">
@@ -53,13 +56,13 @@ const slotHasChildren = (name?: string) => {
                 'margin-left': `${-Math.min(cPercentage, 50)}%`,
               }"
             >
-              {{ `${formatPercentage(percentage)}` }}
+              {{ `${formatPercentage(percentage, precision)}` }}
             </span>
           </div>
         </template>
       </div>
       <div v-if="!isShowNumber" class="text-captionSm text-nc-content-gray-muted">
-        {{ `${formatPercentage(percentage)}` }}
+        {{ `${formatPercentage(percentage, precision)}` }}
       </div>
     </div>
   </div>

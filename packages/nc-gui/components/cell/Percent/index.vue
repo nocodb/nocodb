@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import { ColumnHelper, UITypes } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: number | string | null
@@ -31,6 +32,8 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
 
+const isLinkRecordDropdown = inject(IsLinkRecordDropdownInj, ref(false))
+
 const focus: VNodeRef = (el) =>
   !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value && (el as HTMLInputElement)?.focus()
 
@@ -38,9 +41,22 @@ const cellFocused = ref(false)
 
 const expandedEditEnabled = ref(false)
 
+const percentMeta = computed(() => {
+  return {
+    ...ColumnHelper.getColumnDefaultMeta(UITypes.Percent),
+    ...parseProp(column?.value?.meta),
+    is_progress: isUnderLookup.value && !isLinkRecordDropdown.value ? false : parseProp(column.value?.meta).is_progress ?? false,
+  }
+})
+
 const vModel = computed({
   get: () => {
-    return isForm.value && !isEditColumn.value && _vModel.value && !cellFocused.value && !isNaN(Number(_vModel.value))
+    return isForm.value &&
+      !isEditColumn.value &&
+      _vModel.value &&
+      !cellFocused.value &&
+      !isNaN(Number(_vModel.value)) &&
+      props.location !== 'filter'
       ? `${_vModel.value}%`
       : _vModel.value
   },
@@ -55,13 +71,6 @@ const vModel = computed({
   },
 })
 
-const percentMeta = computed(() => {
-  return {
-    ...parseProp(column.value?.meta),
-    is_progress: isUnderLookup ? false : parseProp(column.value?.meta).is_progress ?? false,
-  }
-})
-
 const inputType = computed(() => (isForm.value && !isEditColumn.value && props.location !== 'filter' ? 'text' : 'number'))
 
 const onBlur = () => {
@@ -74,13 +83,17 @@ const onBlur = () => {
 
 const onFocus = () => {
   cellFocused.value = true
-  editEnabled.value = true
+  if (!isReadonly(editEnabled)) {
+    editEnabled.value = true
+  }
   expandedEditEnabled.value = true
 }
 
 const onWrapperFocus = () => {
   cellFocused.value = true
-  editEnabled.value = true
+  if (!isReadonly(editEnabled)) {
+    editEnabled.value = true
+  }
   expandedEditEnabled.value = true
 
   nextTick(() => {
@@ -168,8 +181,8 @@ const onTabPress = (e: KeyboardEvent) => {
         :percent="Number(parseFloat(vModel.toString()).toFixed(2))"
         size="small"
         status="normal"
-        stroke-color="#3366FF"
-        trail-color="#E5E5E5"
+        stroke-color="var(--nc-content-brand)"
+        trail-color="var(--nc-bg-brand-inverted)"
         :show-info="false"
       />
     </div>

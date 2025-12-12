@@ -51,6 +51,8 @@ const isUnderLTAR = inject(IsUnderLTARInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+const isLinkRecordDropdown = inject(IsLinkRecordDropdownInj, ref(false))
+
 const isGrid = inject(IsGridInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -219,6 +221,8 @@ const showReadonlyField = computed(() => {
     }
 
     case 'percent': {
+      if (isUnderLookup.value && !isLinkRecordDropdown.value) return true
+
       return !(
         (!readOnly.value && editEnabled.value) ||
         (isExpandedFormOpen.value && (localEditEnabled.value || parseProp(column.value?.meta).is_progress))

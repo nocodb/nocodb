@@ -1,4 +1,4 @@
-import { ncIsNaN } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, ncIsNaN } from 'nocodb-sdk'
 import { renderSingleLineText, roundedRect } from '../utils/canvas'
 
 export const PercentCellRenderer: CellRenderer = {
@@ -8,7 +8,7 @@ export const PercentCellRenderer: CellRenderer = {
     ctx.textAlign = 'left'
 
     const meta = {
-      is_progress: false,
+      ...ColumnHelper.getColumnDefaultMeta(UITypes.Percent),
       ...parseProp(column?.meta),
     }
 
@@ -20,7 +20,7 @@ export const PercentCellRenderer: CellRenderer = {
       const { width: labelWidth } = renderSingleLineText(ctx, {
         x: x + width - padding,
         y,
-        text: !ncIsNaN(value) ? formatPercentage(value) : '',
+        text: !ncIsNaN(value) ? formatPercentage(value, Math.min(meta.precision, 2)) : '',
         textAlign: 'right',
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
@@ -44,7 +44,7 @@ export const PercentCellRenderer: CellRenderer = {
       renderSingleLineText(ctx, {
         x: x + width - padding,
         y,
-        text: !ncIsNaN(value) ? formatPercentage(value) : '',
+        text: !ncIsNaN(value) ? formatPercentage(value, Math.min(meta.precision, 2)) : '',
         textAlign: 'right',
         maxWidth: labelWidth,
         fontFamily: `${pv ? 600 : 500} 12px Inter`,
@@ -59,7 +59,7 @@ export const PercentCellRenderer: CellRenderer = {
     renderSingleLineText(ctx, {
       x: x + width - padding,
       y,
-      text: value !== null && typeof value !== 'undefined' && value !== '' ? `${value}%` : '',
+      text: value !== null && typeof value !== 'undefined' && value !== '' ? `${formatPercentage(value, meta.precision)}` : '',
       textAlign: 'right',
       maxWidth: width - padding * 2,
       fontFamily: `${pv ? 600 : 500} 13px Inter`,

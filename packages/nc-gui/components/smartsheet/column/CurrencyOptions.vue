@@ -150,7 +150,7 @@ const onPrecisionChange = (value: number) => {
           v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
           v-model:value="vModel.meta.precision"
           :disabled="isMoney && isPg"
-          dropdown-class-name="nc-dropdown-decimal-format"
+          dropdown-class-name="nc-dropdown-currency-precision-format"
           @change="onPrecisionChange"
         >
           <template #suffixIcon>

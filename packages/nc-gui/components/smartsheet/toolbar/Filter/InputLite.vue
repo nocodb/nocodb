@@ -244,6 +244,6 @@ const isSingleOrMultiSelect = computed(() => {
 }
 
 :deep(.nc-cell-field) {
-  @apply items-center;
+  @apply flex items-center;
 }
 </style>

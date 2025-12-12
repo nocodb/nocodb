@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import { ColumnHelper, UITypes, ncIsNaN, roundUpToPrecision } from 'nocodb-sdk'
 
 interface Props {
   modelValue?: number | string | null
@@ -11,19 +12,38 @@ interface Props {
 const props = defineProps<Props>()
 const emits = defineEmits(['update:modelValue'])
 
-const col = inject(ColumnInj)
+const column = inject(ColumnInj)
+
 const editEnabled = inject(EditModeInj, ref(false))
+
 const isEditColumn = inject(EditColumnInj, ref(false))
+
 const readOnly = inject(ReadonlyInj, ref(false))
+
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
+
 const isForm = inject(IsFormInj, ref(false))
+
 const isGrid = inject(IsGridInj, ref(false))
+
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
+
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+
+const isLinkRecordDropdown = inject(IsLinkRecordDropdownInj, ref(false))
 
 const _vModel = useVModel(props, 'modelValue', emits)
 const localEditEnabled = useVModel(props, 'localEditEnabled', emits, { defaultValue: false })
 const cellFocused = ref(false)
 const inputRef = ref<HTMLInputElement>()
+
+const percentMeta = computed(() => {
+  return {
+    ...ColumnHelper.getColumnDefaultMeta(UITypes.Percent),
+    ...parseProp(column?.value?.meta),
+    is_progress: isUnderLookup.value && !isLinkRecordDropdown.value ? false : parseProp(column?.value?.meta).is_progress ?? false,
+  }
+})
 
 const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpandedFormOpen.value))
 
@@ -44,22 +64,22 @@ const focus: VNodeRef = (el) => {
 
 const vModel = computed({
   get: () => {
-    return isForm.value && !isEditColumn.value && _vModel.value && !cellFocused.value && !isNaN(Number(_vModel.value))
-      ? `${_vModel.value}%`
+    return isForm.value && !isEditColumn.value && !cellFocused.value && !ncIsNaN(_vModel.value) && props.location !== 'filter'
+      ? `${roundUpToPrecision(Number(_vModel.value), percentMeta.value.precision ?? 2)}%`
       : _vModel.value
   },
   set: (value) => {
     if (value === '') {
       _vModel.value = null
     } else if (isForm.value && !isEditColumn.value) {
-      _vModel.value = isNaN(Number(value)) ? value : Number(value)
+      _vModel.value = ncIsNaN(value) ? value : Number(value)
     } else {
       _vModel.value = value
     }
   },
 })
 const vModelNumber = computed<number>(() => {
-  if (_vModel.value && _vModel.value !== '' && !isNaN(Number(_vModel.value))) {
+  if (_vModel.value && _vModel.value !== '' && !ncIsNaN(_vModel.value)) {
     return Number(_vModel.value)
   }
   return 0
@@ -90,12 +110,13 @@ onMounted(() => {
 
 <template>
   <CellPercentProgressBar
-    v-if="parseProp(col!.meta).is_progress && (isForm || isExpandedFormOpen)"
+    v-if="percentMeta.is_progress && (isForm || isExpandedFormOpen)"
     :style="{
       ...((isForm || isExpandedFormOpen) && { 'min-height': '22px', 'height': '22px' }),
     }"
     :is-show-number="true"
     :percentage="vModelNumber"
+    :precision="percentMeta.precision"
   >
     <template v-if="showInput" #default>
       <!-- eslint-disable vue/use-v-on-exact -->

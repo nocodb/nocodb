@@ -144,6 +144,7 @@ export class DataTableService {
         allowSystemColumn?: boolean;
         skipHooks?: boolean;
       };
+      user?: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);
@@ -217,6 +218,7 @@ export class DataTableService {
         allowSystemColumn?: boolean;
         skipHooks?: boolean;
       };
+      user?: any;
     },
   ) {
     const profiler = Profiler.start(`data-table/dataUpdate`);
@@ -260,6 +262,7 @@ export class DataTableService {
       // rowId: string;
       cookie: any;
       body: any;
+      user?: any;
     },
   ) {
     const { model, view } = await this.getModelAndView(context, param);

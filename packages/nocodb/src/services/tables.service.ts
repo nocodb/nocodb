@@ -38,6 +38,7 @@ import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
+import { getProjectRole } from 'nocodb-sdk';
 import getColumnPropsFromUIDT from '~/helpers/getColumnPropsFromUIDT';
 import getColumnUiType from '~/helpers/getColumnUiType';
 import getTableNameAlias, { getColumnNameAlias } from '~/helpers/getTableName';
@@ -592,13 +593,13 @@ export class TablesService {
   ): Promise<boolean> {
     // Base owners always have access
     // Check base_roles (can be string or object)
-    const baseRoles = extractRolesObj(user?.base_roles);
+    const baseRoles = extractRolesObj((user as any)?.base_roles);
     if (baseRoles?.[ProjectRoles.OWNER]) {
       return true;
     }
 
     // Also check roles object for backward compatibility
-    const roles = extractRolesObj(user?.roles);
+    const roles = extractRolesObj((user as any)?.roles);
     if (roles?.[ProjectRoles.OWNER]) {
       return true;
     }
@@ -621,15 +622,23 @@ export class TablesService {
       return true;
     }
 
+    // Get the user's project role (base role)
+    // Use getProjectRole from nocodb-sdk which extracts the role from user object
+    // It looks at user.base_roles and returns the most powerful role
+    const userRole = getProjectRole(user) as ProjectRoles;
+
+    // If no role found, user doesn't have access
+    if (!userRole) {
+      return false;
+    }
+
     // Check if user has permission
     const hasPermission = await Permission.isAllowed(
       context,
       visibilityPermission,
       {
         id: user.id,
-        role: Object.keys(user?.roles || {}).find(
-          (role) => user?.roles?.[role],
-        ) as ProjectRoles,
+        role: userRole,
       },
     );
 

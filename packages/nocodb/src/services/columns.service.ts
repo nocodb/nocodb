@@ -5341,7 +5341,7 @@ export class ColumnsService implements IColumnsService {
     });
 
     // Check table visibility access and add flag
-    let isPrivate = false;
+    let is_private = false;
     if (user && !isServiceUser(user)) {
       const baseRoles = extractRolesObj((user as any)?.base_roles);
       // Base owners always have access
@@ -5357,7 +5357,7 @@ export class ColumnsService implements IColumnsService {
           // Get the user's project role (base role)
           const userRole = getProjectRole(user) as ProjectRoles;
           if (!userRole) {
-            isPrivate = true;
+            is_private = true;
           } else {
             // Check if user has permission
             // Type assertion needed because isAllowed is defined in EE Permission model
@@ -5370,17 +5370,17 @@ export class ColumnsService implements IColumnsService {
               },
             );
             if (!hasPermission) {
-              isPrivate = true;
+              is_private = true;
             }
           }
         }
       }
     }
 
-    // Add isPrivate flag to table object
+    // Add is_private flag to table object
     return {
       ...table,
-      isPrivate,
+      is_private,
     };
   }
 }

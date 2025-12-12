@@ -68,25 +68,25 @@ const sourceColumn = computed(() => {
 }) */
 
 // Check if linked table is private (for edit mode display)
-// Only check isPrivate flag from API response
+// Only check is_private flag from API response
 const isRefTablePrivate = computed(() => {
   if (!isEdit.value) return false
   const refTableId = vModel.value.custom?.ref_model_id
   if (!refTableId) return false
   const tableMeta = metas.value[refTableId]
-  // Check isPrivate flag from API response
-  return !!(tableMeta && (tableMeta as any).isPrivate)
+  // Check is_private flag from API response
+  return !!(tableMeta && (tableMeta as any).is_private)
 })
 
 // Check if junction table is private
-// Only check isPrivate flag from API response
+// Only check is_private flag from API response
 const isJunctionTablePrivate = computed(() => {
   if (!isEdit.value) return false
   const juncTableId = vModel.value.custom?.junc_model_id
   if (!juncTableId) return false
   const tableMeta = metas.value[juncTableId]
-  // Check isPrivate flag from API response
-  return !!(tableMeta && (tableMeta as any).isPrivate)
+  // Check is_private flag from API response
+  return !!(tableMeta && (tableMeta as any).is_private)
 })
 
 const refTables = computed(() => {
@@ -99,7 +99,7 @@ const refTables = computed(() => {
     const tableMeta = metas.value[refTableId]
 
     // Check if table is private (from API response only)
-    const isPrivate = tableMeta && (tableMeta as any).isPrivate
+    const isPrivate = tableMeta && (tableMeta as any).is_private
 
     if (isPrivate) {
       // Return a "Private" table object with the actual table title if available
@@ -107,7 +107,7 @@ const refTables = computed(() => {
         {
           id: refTableId,
           title: tableMeta?.title || t('labels.privateTable'),
-          isPrivate: true,
+          is_private: true,
         },
       ]
     }
@@ -135,7 +135,7 @@ const junctionTables = computed(() => {
     const tableMeta = metas.value[juncTableId]
 
     // Check if table is private (from API response only)
-    const isPrivate = tableMeta && (tableMeta as any).isPrivate
+    const isPrivate = tableMeta && (tableMeta as any).is_private
 
     if (isPrivate) {
       // Return a "Private" table object with the actual table title if available
@@ -143,7 +143,7 @@ const junctionTables = computed(() => {
         {
           id: juncTableId,
           title: tableMeta?.title || t('labels.privateTable'),
-          isPrivate: true,
+          is_private: true,
         },
       ]
     }
@@ -425,13 +425,13 @@ onMounted(async () => {
               data-testid="custom-link-junction-table-id"
               @change="onModelIdChange(vModel.custom.junc_model_id, true)"
             >
-              <a-select-option v-for="table of junctionTables" :key="table.id" :value="table.id" :disabled="table.isPrivate">
+              <a-select-option v-for="table of junctionTables" :key="table.id" :value="table.id" :disabled="(table as any).is_private">
                 <div class="flex w-full items-center gap-2">
                   <div class="flex items-center justify-center">
-                    <GeneralTableIcon v-if="table.isPrivate" class="nc-table-icon text-nc-content-gray-disabled" />
+                    <GeneralTableIcon v-if="(table as any).is_private" class="nc-table-icon text-nc-content-gray-disabled" />
                     <GeneralTableIcon v-else :meta="table" class="nc-table-icon" />
                   </div>
-                  <NcTooltip v-if="!table.isPrivate" class="flex-1 truncate" show-on-truncate-only>
+                  <NcTooltip v-if="!(table as any).is_private" class="flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ table.title }}</template>
                     <span>{{ table.title }}</span>
                   </NcTooltip>
@@ -588,13 +588,13 @@ onMounted(async () => {
             data-testid="custom-link-target-table-id"
             @change="onModelIdChange(vModel.custom.ref_model_id)"
           >
-            <a-select-option v-for="table of refTables" :key="table.id" :value="table.id" :disabled="table.isPrivate">
+            <a-select-option v-for="table of refTables" :key="table.id" :value="table.id" :disabled="(table as any).is_private">
               <div class="flex w-full items-center gap-2">
                 <div class="flex items-center justify-center">
-                  <GeneralTableIcon v-if="table.isPrivate" class="nc-table-icon text-nc-content-gray-disabled" />
+                  <GeneralTableIcon v-if="(table as any).is_private" class="nc-table-icon text-nc-content-gray-disabled" />
                   <GeneralTableIcon v-else :meta="table" class="nc-table-icon" />
                 </div>
-                <NcTooltip v-if="!table.isPrivate" class="flex-1 truncate" show-on-truncate-only>
+                <NcTooltip v-if="!(table as any).is_private" class="flex-1 truncate" show-on-truncate-only>
                   <template #title>{{ table.title }}</template>
                   <span>{{ table.title }}</span>
                 </NcTooltip>

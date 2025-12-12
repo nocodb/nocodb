@@ -131,7 +131,7 @@ const refTables = computed(() => {
     const tableMeta = metas.value[refTableId]
 
     // Check if table is private (from API response only)
-    const isPrivate = tableMeta && (tableMeta as any).isPrivate
+    const isPrivate = tableMeta && (tableMeta as any).is_private
 
     if (isPrivate) {
       // Return a "Private" table object with the actual table title if available
@@ -139,7 +139,7 @@ const refTables = computed(() => {
         {
           id: refTableId,
           title: tableMeta?.title || t('labels.privateTable'),
-          isPrivate: true,
+          is_private: true,
         },
       ]
     }
@@ -182,7 +182,7 @@ const refViews = computed(() => {
       {
         id: vModel.value.childViewId,
         title: viewMeta?.title || t('labels.privateView'),
-        isPrivate: true,
+        is_private: true,
       },
     ]
   }
@@ -264,14 +264,14 @@ const referenceTableChildId = computed({
 })
 
 // Check if linked table is private (for edit mode display)
-// Only check isPrivate flag from API response
+// Only check is_private flag from API response
 const isLinkedTablePrivate = computed(() => {
   if (!isEdit.value) return false
   const refTableId = referenceTableChildId.value
   if (!refTableId) return false
   const tableMeta = metas.value[refTableId]
-  // Check isPrivate flag from API response
-  return !!(tableMeta && (tableMeta as any).isPrivate)
+  // Check is_private flag from API response
+  return !!(tableMeta && (tableMeta as any).is_private)
 })
 
 // Check if linked view is private (views inherit from table)
@@ -280,8 +280,8 @@ const isLinkedViewPrivate = computed(() => {
   const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
   if (!childId) return false
   const tableMeta = metas.value[childId]
-  // Check isPrivate flag from API response
-  return !!(tableMeta && (tableMeta as any).isPrivate)
+  // Check is_private flag from API response
+  return !!(tableMeta && (tableMeta as any).is_private)
 })
 
 const linkType = computed({
@@ -540,13 +540,13 @@ const handleScrollIntoView = () => {
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
-          <a-select-option v-for="table of refTables" :key="table.id" :value="table.id" :disabled="(table as any).isPrivate">
+          <a-select-option v-for="table of refTables" :key="table.id" :value="table.id" :disabled="(table as any).is_private">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon v-if="(table as any).isPrivate" class="text-nc-content-gray-disabled" />
+                <GeneralTableIcon v-if="(table as any).is_private" class="text-nc-content-gray-disabled" />
                 <GeneralTableIcon v-else :meta="table" class="text-nc-content-gray-muted" />
               </div>
-              <NcTooltip v-if="!(table as any).isPrivate" class="flex-1 truncate" show-on-truncate-only>
+              <NcTooltip v-if="!(table as any).is_private" class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ table.title }}</template>
                 <span>{{ table.title }}</span>
               </NcTooltip>
@@ -600,13 +600,13 @@ const handleScrollIntoView = () => {
           :filter-option="filterOption"
           dropdown-class-name="nc-dropdown-ltar-child-view"
         >
-          <a-select-option v-for="view of refViews" :key="view.id" :value="view.id" :disabled="(view as any).isPrivate">
+          <a-select-option v-for="view of refViews" :key="view.id" :value="view.id" :disabled="(view as any).is_private">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <GeneralViewIcon v-if="(view as any).isPrivate" :meta="{} as any" class="text-nc-content-gray-disabled" />
+                <GeneralViewIcon v-if="(view as any).is_private" :meta="{} as any" class="text-nc-content-gray-disabled" />
                 <GeneralViewIcon v-else :meta="view" class="text-nc-content-gray-muted" />
               </div>
-              <NcTooltip v-if="!(view as any).isPrivate" class="flex-1 truncate" show-on-truncate-only>
+              <NcTooltip v-if="!(view as any).is_private" class="flex-1 truncate" show-on-truncate-only>
                 <template #title>{{ view.title }}</template>
                 <span>{{ view.title }}</span>
               </NcTooltip>

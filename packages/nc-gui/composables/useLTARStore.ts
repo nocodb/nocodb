@@ -130,11 +130,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
 
-    // Check if linked table is accessible based on isPrivate flag from API response only
+    // Check if linked table is accessible based on is_private flag from API response only
     const isLinkedTableAccessible = computed(() => {
       if (!colOptions.value?.fk_related_model_id) return true
       // Check if table is marked as private from API response
-      return !(relatedTableMeta.value as any)?.isPrivate
+      return !(relatedTableMeta.value as any)?.is_private
     })
 
     const sqlUi = computed(() =>

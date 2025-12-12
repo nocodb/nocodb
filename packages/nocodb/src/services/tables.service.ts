@@ -13,7 +13,9 @@ import {
   ModelTypes,
   NcBaseError,
   PermissionEntity,
+  PermissionGrantedType,
   PermissionKey,
+  PermissionRole,
   ProjectRoles,
   RelationTypes,
   ServiceUserType,
@@ -668,6 +670,29 @@ export class TablesService {
     return !visibilityPermission;
   }
 
+  hasViewersAndUpTableVisibility(
+    tableId: string,
+    permissions: Permission[],
+  ): boolean {
+    // Find TABLE_VISIBILITY permission for this table
+    const visibilityPermission = permissions.find(
+      (p) =>
+        p.entity === PermissionEntity.TABLE &&
+        p.entity_id === tableId &&
+        p.permission === PermissionKey.TABLE_VISIBILITY,
+    );
+
+    // Check if permission is "Viewers & up" (granted_type: 'role', granted_role: 'viewer')
+    if (visibilityPermission) {
+      return (
+        visibilityPermission.granted_type === PermissionGrantedType.ROLE &&
+        visibilityPermission.granted_role === PermissionRole.VIEWER
+      );
+    }
+
+    return false;
+  }
+
   async getAccessibleTables(
     context: NcContext,
     param: {
@@ -709,9 +734,12 @@ export class TablesService {
       const accessibleTableIds = new Set<string>();
 
       for (const table of tableList) {
-        // For shared bases (public bases), only show tables with default visibility (Everyone)
+        // For shared bases (public bases), show tables with default visibility (Everyone) or "Viewers & up" permission
         if (param.isPublicBase) {
-          if (this.hasDefaultTableVisibility(table.id, permissions)) {
+          if (
+            this.hasDefaultTableVisibility(table.id, permissions) ||
+            this.hasViewersAndUpTableVisibility(table.id, permissions)
+          ) {
             accessibleTableIds.add(table.id);
           }
         } else if (param.user) {

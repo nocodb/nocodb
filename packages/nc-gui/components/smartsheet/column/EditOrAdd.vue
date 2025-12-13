@@ -769,13 +769,15 @@ const easterEggCount = ref(0)
 const easterEgg = computed(() => easterEggCount.value >= 2)
 
 const unique = computed({
-  get: () => formState.value.unique,
+  get: () => formState.value?.unique,
   set: (value) => {
     if (!!value && showUpgradeToUseUnique()) {
       return
     }
 
-    formState.value.unique = value
+    if (formState.value) {
+      formState.value.unique = value
+    }
   },
 })
 </script>
@@ -1388,6 +1390,53 @@ const unique = computed({
 
         <template v-if="!readOnly && isFullUpdateAllowed">
           <div class="nc-column-options-wrapper flex flex-col gap-4">
+            <!-- Unique Constraint Toggle -->
+            <template
+              v-if="
+                isXcdbBase(meta!.source_id) &&
+                !isVirtualCol(formState) &&
+                isUniqueConstraintSupportedType(formState.uidt, formState.meta) && isEeUI"
+            >
+              <NcTooltip
+                :disabled="canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
+                placement="right"
+                class="flex gap-1 items-center"
+              >
+                <template #title>
+                  <div class="max-w-xs">
+                    {{ canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).reason }}
+                  </div>
+                </template>
+                <NcSwitch
+                  v-model:checked="unique"
+                  size="small"
+                  class="nc-switch"
+                  :disabled="!canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
+                >
+                  <div class="text-sm text-nc-content-gray inline-flex items-center gap-1">
+                    <span>{{ $t('labels.uniqueValuesOnly') }}</span>
+                    <NcTooltip placement="right">
+                      <template #title>
+                        <div class="max-w-xs">
+                          {{ $t('msg.info.uniqueConstraintTooltip') }}
+                        </div>
+                      </template>
+                      <GeneralIcon icon="info" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+                    </NcTooltip>
+
+                    <PaymentUpgradeBadge
+                      v-if="blockUnique && unique"
+                      :feature="PlanFeatureTypes.FEATURE_UNIQUE"
+                      :plan-title="PlanTitles.BUSINESS"
+                      size="sm"
+                      remove-click
+                      class="!font-normal !text-bodyDefaultSm"
+                    />
+                  </div>
+                </NcSwitch>
+              </NcTooltip>
+            </template>
+
             <!--
             Default Value for JSON & LongText is not supported in MySQL  -->
             <NcTooltip
@@ -1437,53 +1486,6 @@ const unique = computed({
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
             />
-
-            <!-- Unique Constraint Toggle -->
-            <div
-              v-if="
-                isXcdbBase(meta!.source_id) &&
-                !isVirtualCol(formState) &&
-                isUniqueConstraintSupportedType(formState.uidt, formState.meta) && isEeUI"
-              class="flex gap-1"
-            >
-              <NcTooltip
-                :disabled="canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
-                placement="right"
-              >
-                <template #title>
-                  <div class="max-w-xs">
-                    {{ canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).reason }}
-                  </div>
-                </template>
-                <NcSwitch
-                  v-model:checked="unique"
-                  size="small"
-                  class="nc-switch"
-                  :disabled="!canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
-                >
-                  <div class="text-sm text-nc-content-gray inline-flex items-center gap-1">
-                    <span>{{ $t('labels.uniqueValuesOnly') }}</span>
-                    <NcTooltip placement="right">
-                      <template #title>
-                        <div class="max-w-xs">
-                          {{ $t('msg.info.uniqueConstraintTooltip') }}
-                        </div>
-                      </template>
-                      <GeneralIcon icon="info" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
-                    </NcTooltip>
-
-                    <PaymentUpgradeBadge
-                      v-if="blockUnique && option.value"
-                      :feature="PlanFeatureTypes.FEATURE_UNIQUE"
-                      :plan-title="PlanTitles.PLUS"
-                      size="sm"
-                      remove-click
-                      class="!font-normal !text-bodyDefaultSm"
-                    />
-                  </div>
-                </NcSwitch>
-              </NcTooltip>
-            </div>
           </div>
           <template v-if="easterEgg || (appInfo.ee && isAttachment(formState))">
             <!-- TODO: Refactor the if condition and verify AttachmentOption -->
@@ -1716,7 +1718,7 @@ const unique = computed({
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray-subtle flex;
+  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray-subtle flex font-normal;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;
@@ -1724,7 +1726,7 @@ const unique = computed({
 }
 
 :deep(.ant-form-item-label) {
-  @apply !pb-0 text-small leading-[18px] text-nc-content-gray-subtle;
+  @apply !pb-0 text-small leading-[18px] text-nc-content-gray-subtle font-normal;
 }
 
 :deep(.ant-form-item-control-input) {

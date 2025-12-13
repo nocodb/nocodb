@@ -3,7 +3,8 @@ import { HookHandlerService as HookHandlerServiceCE } from 'src/services/hook-ha
 import { type HookType, WebhookEvents } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { WorkflowNodeRunContext } from '@noco-local-integrations/core';
-import type { WorkflowExecutionService } from '~/services/workflow-execution.service';
+// @ts-ignore importing directly will cause circular dependency error
+import { type WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { JobTypes } from '~/interface/Jobs';
 import { Hook, Model } from '~/models';
 import Workflow from '~/ee/models/Workflow';
@@ -263,13 +264,13 @@ export class HookHandlerService extends HookHandlerServiceCE {
 
   private async shouldExecuteWorkflow(
     context: NcContext,
-    workflow: any,
+    workflow: Workflow,
     triggerType: string,
     triggerInputs: any,
   ): Promise<boolean> {
     try {
       const triggerNode = workflow.nodes?.find(
-        (node: any) => node.type === triggerType,
+        (node) => node.type === triggerType,
       );
 
       if (!triggerNode) {
@@ -296,14 +297,14 @@ export class HookHandlerService extends HookHandlerServiceCE {
         return true;
       }
 
-      const runContext: WorkflowNodeRunContext = {
+      const triggerRunContext: WorkflowNodeRunContext = {
         workspaceId: context.workspace_id,
         baseId: context.base_id,
         inputs: triggerInputs,
         testMode: false,
       };
 
-      const result = await nodeWrapper.run(runContext);
+      const result = await nodeWrapper.run(triggerRunContext);
 
       return result.status !== 'skipped';
     } catch (error) {

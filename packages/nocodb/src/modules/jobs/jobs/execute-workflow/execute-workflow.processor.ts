@@ -1,5 +1,6 @@
 import { Inject, Logger } from '@nestjs/common';
 import { EventType } from 'nocodb-sdk';
+import type { NcContext } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import { type ExecuteWorkflowJobData } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -144,7 +145,7 @@ export class ExecuteWorkflowProcessor {
   }
 
   private broadcastExecutionEvent(
-    context: any,
+    context: NcContext,
     workflowId: string,
     execution: WorkflowExecution,
     action: 'create' | 'update' | 'delete',

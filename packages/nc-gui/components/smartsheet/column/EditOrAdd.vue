@@ -1425,7 +1425,7 @@ const unique = computed({
                     </NcTooltip>
 
                     <PaymentUpgradeBadge
-                      v-if="blockUnique && unique"
+                      v-if="blockUnique && !unique"
                       :feature="PlanFeatureTypes.FEATURE_UNIQUE"
                       :plan-title="PlanTitles.BUSINESS"
                       size="sm"

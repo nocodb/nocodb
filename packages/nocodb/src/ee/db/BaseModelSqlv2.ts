@@ -49,7 +49,7 @@ import type CustomKnex from '~/db/CustomKnex';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
-import type { SelectOption } from '~/models';
+// import type { SelectOption } from '~/models';
 import { Source, View } from '~/models';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import {

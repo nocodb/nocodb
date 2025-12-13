@@ -55,6 +55,7 @@ import NocoCache from '~/cache/NocoCache';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { singleQueryRead as mysqlSingleQueryRead } from '~/services/data-opt/mysql-helpers';
 import { Profiler } from '~/helpers/profiler';
+import { haveFormulaColumn } from '~/helpers/dbHelpers';
 
 export function generateNestedRowSelectQuery({
   knex,
@@ -1554,30 +1555,39 @@ export async function singleQueryRead(
     .replace(/\?/g, '\\?')
     .replaceAll(`'${idPlaceholder}'`, '?');
 
-  if (!skipCache) {
-    // cache query for later use
-    await NocoCache.set(context, cacheKey, query);
-  }
-
   // const res = await finalQb;
 
-  const res = await baseModel.execAndParse(
-    knex
-      .raw(
-        query,
-        ctx.model.primaryKeys.length === 1
-          ? [ctx.id]
-          : ctx.id.split('___').map((id) => id.replaceAll('\\_', '_')),
-      )
-      .toQuery(),
-    null,
-    {
-      first: true,
-      skipSubstitutingColumnIds:
-        context.api_version === NcApiVersion.V3 &&
-        ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-    },
-  );
+  let res;
+  try {
+    res = await baseModel.execAndParse(
+      knex
+        .raw(
+          query,
+          ctx.model.primaryKeys.length === 1
+            ? [ctx.id]
+            : ctx.id.split('___').map((id) => id.replaceAll('\\_', '_')),
+        )
+        .toQuery(),
+      null,
+      {
+        first: true,
+        skipSubstitutingColumnIds:
+          context.api_version === NcApiVersion.V3 &&
+          ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      },
+    );
+  } catch (e) {
+    if (ctx.validateFormula || !haveFormulaColumn(columns)) throw e;
+    return singleQueryRead(context, {
+      ...ctx,
+      validateFormula: true,
+    });
+  }
+
+  if (!skipCache) {
+    // cache query for later use after successful execution
+    await NocoCache.set(context, cacheKey, query);
+  }
 
   return res;
 }
@@ -1923,30 +1933,41 @@ export async function singleQueryList(
         `limit '${placeholder}' offset '${placeholder}'`,
         'limit ? offset ?',
       );
-
-    // cache query for later use
-    await NocoCache.set(context, cacheKey, dataQuery);
   }
   profiler.log('get data without cache');
 
-  const [count, res] = await getDataWithCountCache(context, {
-    query: dataQuery,
-    countQuery: countQb.toQuery(),
-    limit: +listArgs.limit,
-    offset: +listArgs.offset,
-    knex,
-    countCacheKey,
-    skipCache,
-    excludeCount,
-    recordQueryTime: (time: string) => {
-      dbQueryTime = time;
-    },
-    apiVersion: ctx.apiVersion,
-    baseModel,
-    skipSubstitutingColumnIds:
-      context.api_version === NcApiVersion.V3 &&
-      ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-  });
+  let count, res;
+  try {
+    [count, res] = await getDataWithCountCache(context, {
+      query: dataQuery,
+      countQuery: countQb.toQuery(),
+      limit: +listArgs.limit,
+      offset: +listArgs.offset,
+      knex,
+      countCacheKey,
+      skipCache,
+      excludeCount,
+      recordQueryTime: (time: string) => {
+        dbQueryTime = time;
+      },
+      apiVersion: ctx.apiVersion,
+      baseModel,
+      skipSubstitutingColumnIds:
+        context.api_version === NcApiVersion.V3 &&
+        ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+    });
+  } catch (e) {
+    if (ctx.validateFormula || !haveFormulaColumn(columns)) throw e;
+    return singleQueryList(context, {
+      ...ctx,
+      validateFormula: true,
+    });
+  }
+
+  if (!skipCache) {
+    // cache query for later use after successful execution
+    await NocoCache.set(context, cacheKey, dataQuery);
+  }
 
   profiler.end();
   if (ctx.skipPaginateWrapper) {

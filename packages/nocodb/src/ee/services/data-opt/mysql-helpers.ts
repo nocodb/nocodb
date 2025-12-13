@@ -48,6 +48,7 @@ import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 import { parseHrtimeToMilliSeconds } from '~/helpers';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import { haveFormulaColumn } from '~/helpers/dbHelpers';
 
 const logger = new Logger('mysql-helpers');
 
@@ -1423,28 +1424,39 @@ export async function singleQueryRead(
     .replace(/\?/g, '\\?')
     .replaceAll(`'${idPlaceholder}'`, '?');
 
+  // const res = await finalQb;
+
+  let res;
+  try {
+    res = await baseModel.execAndParse(
+      knex
+        .raw(
+          query,
+          ctx.model.primaryKeys.map((pkCol) => pkCondition[pkCol.column_name]),
+        )
+        .toQuery(),
+      null,
+      {
+        first: true,
+        skipSubstitutingColumnIds:
+          context.api_version === NcApiVersion.V3 &&
+          ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      },
+    );
+  } catch (e) {
+    if (ctx.validateFormula || !haveFormulaColumn(columns)) throw e;
+    return singleQueryRead(context, {
+      ...ctx,
+      validateFormula: true,
+    });
+  }
+
   if (!skipCache) {
-    // cache query for later use
+    // cache query for later use after successful execution
     await NocoCache.set(context, cacheKey, query);
   }
 
-  // const res = await finalQb;
-
-  return await baseModel.execAndParse(
-    knex
-      .raw(
-        query,
-        ctx.model.primaryKeys.map((pkCol) => pkCondition[pkCol.column_name]),
-      )
-      .toQuery(),
-    null,
-    {
-      first: true,
-      skipSubstitutingColumnIds:
-        context.api_version === NcApiVersion.V3 &&
-        ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-    },
-  );
+  return res;
 }
 
 export async function singleQueryList(
@@ -1768,22 +1780,30 @@ export async function singleQueryList(
         'limit ? offset ?',
       );
 
-    // cache query for later use
-    await NocoCache.set(context, cacheKey, query);
-
     const startTime = process.hrtime();
     // run the query with actual limit and offset
-    res = await baseModel.execAndParse(
-      knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
-      undefined,
-      {
-        apiVersion: ctx.apiVersion,
-        skipSubstitutingColumnIds:
-          context.api_version === NcApiVersion.V3 &&
-          ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-      },
-    );
+    try {
+      res = await baseModel.execAndParse(
+        knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
+        undefined,
+        {
+          apiVersion: ctx.apiVersion,
+          skipSubstitutingColumnIds:
+            context.api_version === NcApiVersion.V3 &&
+            ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        },
+      );
+    } catch (e) {
+      if (ctx.validateFormula || !haveFormulaColumn(columns)) throw e;
+      return singleQueryList(context, {
+        ...ctx,
+        validateFormula: true,
+      });
+    }
     dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+
+    // cache query for later use after successful execution
+    await NocoCache.set(context, cacheKey, query);
   }
 
   if (ctx.skipPaginateWrapper) {

@@ -23,6 +23,7 @@ export class HookHandlerService extends HookHandlerServiceCE {
     @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly mailService: MailService,
     private readonly datasV3Service: DataV3Service,
+    protected readonly workflowExecutionService: WorkflowExecutionService,
   ) {
     super(eventEmitter, jobsService, mailService);
   }

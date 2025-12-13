@@ -102,7 +102,6 @@ const handleTestNode = async () => {
   } catch (er) {
     localTestState.value = 'error'
     localErrorMessage.value = (await extractSdkResponseErrorMsgv2(er))?.message || 'Unknown error occurred'
-    console.log(errorMessage.value)
     $e('a:workflow:node:test:error', {
       node_type: selectedNode.value?.type,
       node_category: nodeMeta?.category,
@@ -150,7 +149,7 @@ watch(selectedNode, () => {
           </template>
           <span>
             <template v-if="testState === 'success'"> Test successful </template>
-            <template v-else-if="isNocoDBRecordTriggerNode"> Use suggested record to test </template>
+            <template v-else-if="isNocoDBRecordTriggerNode">Use suggested record to test</template>
             <template v-else-if="isTriggerNode"> Test this trigger </template>
             <template v-else> Test this action </template>
           </span>

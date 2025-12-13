@@ -51,6 +51,18 @@ const dayOfWeek = ref(1)
 
 const dayOfMonth = ref(1)
 
+const isValidStepInterval = (values: readonly (number | string)[], expectedStep: number): boolean => {
+  const numericValues = values.filter((v): v is number => typeof v === 'number').sort((a, b) => a - b)
+  if (numericValues.length < 2) return false
+  
+  for (let i = 1; i < numericValues.length; i++) {
+    if (numericValues[i] - numericValues[i - 1] !== expectedStep) {
+      return false
+    }
+  }
+  return true
+}
+
 const parseCronExpression = (cronExpr: string) => {
   if (!cronExpr) return
 
@@ -82,10 +94,7 @@ const parseCronExpression = (cronExpr: string) => {
     ) {
       // Check if it's a regular interval (e.g., every 5 minutes: 0, 5, 10, 15...)
       const step = minuteValues[1] - minuteValues[0]
-      if (
-        step > 0 &&
-        minuteValues.every((v, i) => i === 0 || (minuteValues[i - 1] !== undefined && v === minuteValues[i - 1] + step))
-      ) {
+      if (step > 0 && isValidStepInterval(minuteValues, step)) {
         intervalType.value = 'minutes'
         intervalMinutes.value = step
         return
@@ -354,7 +363,7 @@ const intervalOptions = [
           <NcSelect v-model:value="hourOfDay" @change="updateIntervalConfig">
             <a-select-option v-for="hour in hoursOptions" :key="hour" :value="hour">
               <div class="flex items-center justify-between">
-                {{ hour > 12 ? hour - 12 : hour }} {{ hour > 12 ? 'PM' : 'AM' }}
+                {{ (hour % 12) || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
                 <GeneralIcon v-if="hourOfDay === hour" id="nc-selected-item-icon" class="text-primary w-4 h-4" icon="ncCheck" />
               </div>
             </a-select-option>
@@ -374,7 +383,7 @@ const intervalOptions = [
           </NcSelect>
         </div>
         <div class="text-xs text-nc-content-gray-muted mt-1">
-          Run at {{ hourOfDay > 12 ? hourOfDay - 12 : hourOfDay }}:{{ minuteOfHour }} {{ hourOfDay > 12 ? 'PM' : 'AM' }} every day
+          Run at {{ (hourOfDay % 12) || 12 }}:{{ minuteOfHour.toString().padStart(2, '0') }} {{ hourOfDay >= 12 ? 'PM' : 'AM' }} every day
         </div>
       </a-form-item>
     </template>
@@ -400,7 +409,7 @@ const intervalOptions = [
             <NcSelect v-model:value="hourOfDay" @change="updateIntervalConfig">
               <a-select-option v-for="hour in hoursOptions" :key="hour" :value="hour">
                 <div class="flex items-center justify-between">
-                  {{ hour > 12 ? hour - 12 : hour }} {{ hour > 12 ? 'PM' : 'AM' }}
+                  {{ (hour % 12) || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
                   <GeneralIcon v-if="hourOfDay === hour" id="nc-selected-item-icon" class="text-primary w-4 h-4" icon="ncCheck" />
                 </div>
               </a-select-option>
@@ -408,7 +417,7 @@ const intervalOptions = [
             <NcSelect v-model:value="minuteOfHour" @change="updateIntervalConfig">
               <a-select-option v-for="minute in minutesOptions" :key="minute" :value="minute">
                 <div class="flex items-center justify-between">
-                  {{ minute }}
+                  {{ minute.toString().padStart(2, '0') }}
                   <GeneralIcon
                     v-if="minuteOfHour === minute"
                     id="nc-selected-item-icon"
@@ -422,7 +431,7 @@ const intervalOptions = [
         </div>
         <div class="text-xs text-nc-content-gray-muted mt-1">
           Run on {{ daysOfWeekOptions.find((d) => d.value === dayOfWeek)?.label }} at
-          {{ hourOfDay > 12 ? hourOfDay - 12 : hourOfDay }}:{{ minuteOfHour }} {{ hourOfDay > 12 ? 'PM' : 'AM' }}
+          {{ (hourOfDay % 12) || 12 }}:{{ minuteOfHour.toString().padStart(2, '0') }} {{ hourOfDay >= 12 ? 'PM' : 'AM' }}
         </div>
       </a-form-item>
     </template>
@@ -443,7 +452,7 @@ const intervalOptions = [
             <NcSelect v-model:value="hourOfDay" @change="updateIntervalConfig">
               <a-select-option v-for="hour in hoursOptions" :key="hour" :value="hour">
                 <div class="flex items-center justify-between">
-                  {{ hour > 12 ? hour - 12 : hour }} {{ hour > 12 ? 'PM' : 'AM' }}
+                  {{ (hour % 12) || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
                   <GeneralIcon v-if="hourOfDay === hour" id="nc-selected-item-icon" class="text-primary w-4 h-4" icon="ncCheck" />
                 </div>
               </a-select-option>
@@ -451,7 +460,7 @@ const intervalOptions = [
             <NcSelect v-model:value="minuteOfHour" @change="updateIntervalConfig">
               <a-select-option v-for="minute in minutesOptions" :key="minute" :value="minute">
                 <div class="flex items-center justify-between">
-                  {{ minute }}
+                  {{ minute.toString().padStart(2, '0') }}
                   <GeneralIcon
                     v-if="minuteOfHour === minute"
                     id="nc-selected-item-icon"
@@ -464,7 +473,7 @@ const intervalOptions = [
           </div>
         </div>
         <div class="text-xs text-nc-content-gray-muted mt-1">
-          Run on day {{ dayOfMonth }} at {{ hourOfDay }}:{{ minuteOfHour }} every month
+          Run on day {{ dayOfMonth }} at {{ (hourOfDay % 12) || 12 }}:{{ minuteOfHour.toString().padStart(2, '0') }} {{ hourOfDay >= 12 ? 'PM' : 'AM' }} every month
         </div>
       </a-form-item>
     </template>

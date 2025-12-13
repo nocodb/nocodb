@@ -1266,7 +1266,7 @@ export const useEeConfig = createSharedComposable(() => {
     handleUpgradePlan({
       title: t('upgrade.upgradeToEnableUnique'),
       content: t('upgrade.upgradeToEnableUniqueSubtitle', {
-        plan: getHigherPlan(),
+        plan: PlanTitles.BUSINESS,
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_UNIQUE,

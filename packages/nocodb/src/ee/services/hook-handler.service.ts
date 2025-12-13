@@ -10,6 +10,7 @@ import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
+import { WorkflowExecutionService } from '~/ee/services/workflow-execution.service';
 
 export { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
 

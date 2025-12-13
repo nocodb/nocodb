@@ -2,6 +2,8 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { HookHandlerService as HookHandlerServiceCE } from 'src/services/hook-handler.service';
 import { type HookType, WebhookEvents } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { WorkflowNodeRunContext } from '@noco-local-integrations/core';
+import type { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { JobTypes } from '~/interface/Jobs';
 import { Hook, Model } from '~/models';
 import Workflow from '~/ee/models/Workflow';
@@ -10,7 +12,6 @@ import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
-import { WorkflowExecutionService } from '~/ee/services/workflow-execution.service';
 
 export { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
 
@@ -23,7 +24,8 @@ export class HookHandlerService extends HookHandlerServiceCE {
     @Inject('JobsService') protected readonly jobsService: IJobsService,
     protected readonly mailService: MailService,
     private readonly datasV3Service: DataV3Service,
-    protected readonly workflowExecutionService: WorkflowExecutionService,
+    @Inject('WorkflowExecutionService')
+    private readonly workflowExecutionService: WorkflowExecutionService,
   ) {
     super(eventEmitter, jobsService, mailService);
   }
@@ -63,6 +65,7 @@ export class HookHandlerService extends HookHandlerServiceCE {
       }
     }
   }
+
   override async handleHooks(
     context: NcContext,
     param: { hookName; prevData; newData; user; viewId; modelId },
@@ -217,6 +220,22 @@ export class HookHandlerService extends HookHandlerServiceCE {
         }
         for (const workflow of workflows) {
           try {
+            const shouldExecute = await this.shouldExecuteWorkflow(
+              context,
+              workflow,
+              triggerType,
+              triggerInputs,
+            );
+
+            if (!shouldExecute) {
+              this.logger.log({
+                message: 'Workflow trigger skipped, not queuing job',
+                workflowId: workflow.id,
+                triggerType,
+              });
+              continue;
+            }
+
             await this.jobsService.add(JobTypes.ExecuteWorkflow, {
               context,
               workflowId: workflow.id,
@@ -239,6 +258,62 @@ export class HookHandlerService extends HookHandlerServiceCE {
         hookName,
         modelId,
       });
+    }
+  }
+
+  private async shouldExecuteWorkflow(
+    context: NcContext,
+    workflow: any,
+    triggerType: string,
+    triggerInputs: any,
+  ): Promise<boolean> {
+    try {
+      const triggerNode = workflow.nodes?.find(
+        (node: any) => node.type === triggerType,
+      );
+
+      if (!triggerNode) {
+        this.logger.warn({
+          message: 'Trigger node not found in workflow',
+          workflowId: workflow.id,
+          triggerType,
+        });
+        return true;
+      }
+
+      const nodeWrapper = this.workflowExecutionService.getNodeWrapper(
+        context,
+        triggerNode.type,
+        triggerNode.data?.config || {},
+      );
+
+      if (!nodeWrapper) {
+        this.logger.warn({
+          message: 'Could not instantiate trigger node wrapper',
+          workflowId: workflow.id,
+          triggerType,
+        });
+        return true;
+      }
+
+      const runContext: WorkflowNodeRunContext = {
+        workspaceId: context.workspace_id,
+        baseId: context.base_id,
+        inputs: triggerInputs,
+        testMode: false,
+      };
+
+      const result = await nodeWrapper.run(runContext);
+
+      return result.status !== 'skipped';
+    } catch (error) {
+      this.logger.error({
+        error,
+        message: 'Error checking if workflow should execute, queuing anyway',
+        workflowId: workflow.id,
+        triggerType,
+      });
+      return true;
     }
   }
 }

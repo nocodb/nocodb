@@ -126,7 +126,11 @@ export const nocoModuleEeMetadata = {
 
     /* Workflows */
     WorkflowsService,
-    WorkflowExecutionService,
+
+    {
+      provide: 'WorkflowExecutionService',
+      useClass: WorkflowExecutionService,
+    },
 
     /* Dashboards */
     DashboardsService,
@@ -181,7 +185,7 @@ export const nocoModuleEeMetadata = {
   exports: [
     ScriptsService,
     WorkflowsService,
-    WorkflowExecutionService,
+    'WorkflowExecutionService',
     DashboardsService,
     PermissionsService,
     ActionsService,

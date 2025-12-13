@@ -16,6 +16,7 @@ export class ExecuteWorkflowProcessor {
 
   constructor(
     @Inject('JobsService') private readonly jobsService: IJobsService,
+    @Inject('WorkflowExecutionService')
     private readonly workflowExecutionService: WorkflowExecutionService,
   ) {}
 

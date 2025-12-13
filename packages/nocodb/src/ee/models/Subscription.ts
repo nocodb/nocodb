@@ -345,7 +345,7 @@ export default class Subscription {
           this.andOnIn('bu.base_id', activeBaseIds);
         } else {
           // If no active bases, make the join condition always false
-          this.andOn('1', '=', '0');
+          this.andOn(ncMeta.knex.raw('?', [0]), '=', ncMeta.knex.raw('?', [1]));
         }
       })
       // Left join with workspace team roles subquery

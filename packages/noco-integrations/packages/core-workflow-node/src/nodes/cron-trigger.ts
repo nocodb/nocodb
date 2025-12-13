@@ -51,17 +51,18 @@ export class CronTriggerNode extends WorkflowNodeIntegration<CronTriggerConfig> 
         message: 'Cron expression is required',
       });
     }
-
-    try {
-      CronExpressionParser.parse(config.cronExpression, {
-        strict: true,
-        tz: config.timezone || 'UTC',
-      });
-    } catch (err) {
-      errors.push({
-        path: 'config.cronExpression',
-        message: (err as Error).message || 'Invalid cron expression',
-      });
+    if (config.cronExpression) {
+      try {
+        CronExpressionParser.parse(config.cronExpression, {
+          strict: true,
+          tz: config.timezone || 'UTC',
+        });
+      } catch (err) {
+        errors.push({
+          path: 'config.cronExpression',
+          message: (err as Error).message || 'Invalid cron expression',
+        });
+      }
     }
 
     return { valid: errors.length === 0, errors };

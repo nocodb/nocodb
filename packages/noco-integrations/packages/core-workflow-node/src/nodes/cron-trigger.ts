@@ -4,6 +4,7 @@ import {
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
+import { CronExpressionParser } from 'cron-parser';
 import type {
   WorkflowActivationContext,
   WorkflowActivationState,
@@ -48,6 +49,18 @@ export class CronTriggerNode extends WorkflowNodeIntegration<CronTriggerConfig> 
       errors.push({
         path: 'config.cronExpression',
         message: 'Cron expression is required',
+      });
+    }
+
+    try {
+      CronExpressionParser.parse(config.cronExpression, {
+        strict: true,
+        tz: config.timezone || 'UTC',
+      });
+    } catch (err) {
+      errors.push({
+        path: 'config.cronExpression',
+        message: (err as Error).message || 'Invalid cron expression',
       });
     }
 

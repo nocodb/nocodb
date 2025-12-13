@@ -149,7 +149,7 @@ watch(selectedNode, () => {
             />
           </template>
           <span>
-            <template v-if="testState === 'success'"> Test Successful </template>
+            <template v-if="testState === 'success'"> Test successful </template>
             <template v-else-if="isNocoDBRecordTriggerNode"> Use suggested record to test </template>
             <template v-else-if="isTriggerNode"> Test this trigger </template>
             <template v-else> Test this action </template>

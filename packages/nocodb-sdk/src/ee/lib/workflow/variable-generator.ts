@@ -1,14 +1,14 @@
-import UITypes from '../UITypes';
-import { isSystemColumn } from '../helperFunctions';
+import UITypes from '~/lib/UITypes';
+import { isSystemColumn } from '~/lib/helperFunctions';
 import {
   VariableDefinition,
   VariableGroupKey,
   VariableType,
-} from './interface';
-import { RelationTypes } from '../globals';
+} from '~/lib/workflow/interface';
+import { RelationTypes } from '~/lib/globals';
 import { ColumnType } from '~/lib';
 import { LinkToAnotherRecordType, LookupType } from '~/lib/Api';
-import { FormulaDataTypes } from '../formula/enums';
+import { FormulaDataTypes } from '~/lib/formula/enums';
 
 /**
  * Context interface for async operations

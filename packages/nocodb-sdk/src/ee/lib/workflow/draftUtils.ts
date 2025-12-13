@@ -1,7 +1,7 @@
 import rfdc from 'rfdc';
 import isEqual from 'fast-deep-equal';
 import type { WorkflowType } from '~/lib/Api';
-import type { WorkflowGeneralNode } from './interface';
+import type { WorkflowGeneralNode } from '~/lib/workflow/interface';
 
 const clone = rfdc();
 

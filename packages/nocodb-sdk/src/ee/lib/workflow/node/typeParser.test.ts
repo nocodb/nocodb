@@ -2,7 +2,7 @@ import {
   type VariableDefinition,
   VariableGroupKey,
   VariableType,
-} from '../interface';
+} from '~/lib/workflow';
 import { extractDataTypeFromWorkflowNodeExpression } from './typeParser';
 import { WorkflowNodeFilterDataType } from './ifTypes';
 

@@ -14,7 +14,11 @@ const testState = computed(() => {
   return localTestState.value
 })
 
-const errorMessage = ref('')
+const localErrorMessage = ref('')
+
+const errorMessage = computed(() => {
+  return selectedNode.value?.data?.testResult?.error?.message || localErrorMessage.value
+})
 
 const findAllAncestors = (nodeId: string): Set<string> => {
   const ancestors = new Set<string>()
@@ -75,7 +79,7 @@ const canTestNode = computed(() => {
 
 const handleTestNode = async () => {
   localTestState.value = 'testing'
-  errorMessage.value = ''
+  localErrorMessage.value = ''
   const nodeMeta = getNodeMetaById(selectedNode.value?.type)
 
   $e('a:workflow:node:test', {
@@ -84,16 +88,20 @@ const handleTestNode = async () => {
   })
 
   try {
-    await testExecuteNode(selectedNodeId.value)
-    localTestState.value = 'success'
-
-    $e('a:workflow:node:test:success', {
-      node_type: selectedNode.value?.type,
-      node_category: nodeMeta?.category,
-    })
+    const res = await testExecuteNode(selectedNodeId.value)
+    if (res.status === 'success') {
+      localTestState.value = 'success'
+      $e('a:workflow:node:test:success', {
+        node_type: selectedNode.value?.type,
+        node_category: nodeMeta?.category,
+      })
+    } else {
+      localTestState.value = 'error'
+      localErrorMessage.value = res.error
+    }
   } catch (er) {
     localTestState.value = 'error'
-    errorMessage.value = (await extractSdkResponseErrorMsgv2(er))?.message || 'Unknown error occurred'
+    localErrorMessage.value = (await extractSdkResponseErrorMsgv2(er))?.message || 'Unknown error occurred'
     $e('a:workflow:node:test:error', {
       node_type: selectedNode.value?.type,
       node_category: nodeMeta?.category,
@@ -103,7 +111,7 @@ const handleTestNode = async () => {
 
 watch(selectedNode, () => {
   localTestState.value = 'idle'
-  errorMessage.value = ''
+  localErrorMessage.value = ''
 })
 </script>
 
@@ -140,8 +148,8 @@ watch(selectedNode, () => {
             />
           </template>
           <span>
-            <template v-if="testState === 'success'"> Test Successful </template>
-            <template v-else-if="isNocoDBRecordTriggerNode"> Use suggested record to test </template>
+            <template v-if="testState === 'success'"> Test successful </template>
+            <template v-else-if="isNocoDBRecordTriggerNode">Use suggested record to test</template>
             <template v-else-if="isTriggerNode"> Test this trigger </template>
             <template v-else> Test this action </template>
           </span>

@@ -329,6 +329,27 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       }
       return result
     } catch (e: any) {
+      // Clear the Local test Result
+      const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId)
+      if (nodeIndex !== -1) {
+        const updatedNodes = [...nodes.value]
+        if (updatedNodes && updatedNodes[nodeIndex] && updatedNodes[nodeIndex].data) {
+          updatedNodes[nodeIndex] = {
+            ...updatedNodes[nodeIndex],
+            data: {
+              ...updatedNodes[nodeIndex].data,
+              testResult: {
+                status: 'error',
+                error: await extractSdkResponseErrorMsgv2(e),
+              },
+            },
+          }
+        }
+        nodes.value = updatedNodes
+
+        // Save to backend
+        debouncedWorkflowUpdate()
+      }
       console.error('[Workflow] Test execution error:', e)
       throw e
     }

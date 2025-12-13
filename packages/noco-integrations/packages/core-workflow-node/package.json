@@ -9,7 +9,8 @@
     "dev": "tsc -w"
   },
   "dependencies": {
-    "@noco-integrations/core": "workspace:*"
+    "@noco-integrations/core": "workspace:*",
+    "cron-parser": "^5.4.0"
   },
   "devDependencies": {
     "@types/node": "^20.17.46",

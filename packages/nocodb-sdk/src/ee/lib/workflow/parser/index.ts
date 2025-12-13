@@ -1,4 +1,4 @@
-import { workflowJsep } from '../../formula/jsepInstances';
+import { workflowJsep } from '~/lib/formula/jsepInstances';
 
 /**
  * Security Error for workflow expression parser

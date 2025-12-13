@@ -1,6 +1,6 @@
-import type { VariableDefinition } from '../interface';
-import { workflowJsep } from '../../formula/jsepInstances';
-import { WorkflowNodeFilterDataType } from './ifTypes';
+import type { VariableDefinition } from '~/lib/workflow/interface';
+import { workflowJsep } from '~/lib/formula/jsepInstances';
+import { WorkflowNodeFilterDataType } from '~/lib/workflow/node/ifTypes';
 
 /**
  * Maps VariableType to WorkflowNodeFilterDataType

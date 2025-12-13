@@ -31,7 +31,7 @@ const STATUS_CONFIG = {
     executionLabel: 'Executed successfully',
   },
   error: {
-    icon: 'ncX',
+    icon: 'alertTriangle',
     testLabel: 'Test failed',
     executionLabel: 'Execution failed',
   },

@@ -130,11 +130,13 @@ class DataReflectionSession {
     if (this.closed) return;
     this.closed = true;
 
-    logger.log(
-      `Session closed for ${this.clientId} (${this.fk_workspace_id}). ` +
-        `Total query time: ${this.totalQueryTime}ms, Total queries: ${this.totalQueries}`,
+    logger.debug(
+      `Session closed for ${this.clientId} (${
+        this.fk_workspace_id
+      }). Total query time: ${this.totalQueryTime}ms, Total queries: ${
+        this.totalQueries
+      }. Total session time: ${Date.now() - this.sessionStartTime}ms.`,
     );
-    logger.log(`Total session time: ${Date.now() - this.sessionStartTime}ms`);
   }
 }
 
@@ -151,7 +153,7 @@ export default class DataReflection extends DataReflectionCE {
     const server = net.createServer((clientSocket: Socket) => {
       const clientId = nanoid();
 
-      logger.log(`Client ${clientId} connected`);
+      logger.debug(`Client ${clientId} connected`);
 
       clientSocket.on('data', async (data: Buffer) => {
         try {
@@ -486,7 +488,7 @@ function createSecurePostgresConnection(
         }
 
         const tlsSocket = tls.connect(tlsOptions, () => {
-          logger.log(
+          logger.debug(
             `SSL connection established to ${dataConfig.host}:${dataConfig.port}`,
           );
           resolve(tlsSocket);

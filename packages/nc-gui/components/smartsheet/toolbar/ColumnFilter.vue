@@ -1090,6 +1090,56 @@ defineExpose({
 
                   <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
                 </template>
+                <template v-if="workflow && showDynamicCondition">
+                  <NcDropdown
+                    class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
+                    :trigger="['click']"
+                    placement="left"
+                  >
+                    <NcButton type="text" size="small">
+                      <GeneralIcon icon="settings" />
+                    </NcButton>
+
+                    <template #overlay>
+                      <div class="relative overflow-visible min-h-17 w-10">
+                        <div
+                          class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
+                          style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
+                        >
+                          <div
+                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
+                            @click="resetDynamicField(filter, i)"
+                          >
+                            <div class="flex flex-row items-center justify-between w-full">
+                              <div class="flex flex-row items-center justify-start gap-x-3">Static condition</div>
+                              <GeneralIcon
+                                v-if="!filter.dynamic && !filter.fk_value_col_id"
+                                icon="check"
+                                class="w-4 h-4 text-primary"
+                              />
+                            </div>
+                            <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on static value</div>
+                          </div>
+                          <div
+                            v-e="['c:filter:dynamic-filter']"
+                            class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
+                            @click="changeToDynamic(filter, i)"
+                          >
+                            <div class="flex flex-row items-center justify-between w-full">
+                              <div class="flex flex-row items-center justify-start gap-x-2.5">Dynamic condition</div>
+                              <GeneralIcon
+                                v-if="filter.dynamic || filter.fk_value_col_id"
+                                icon="check"
+                                class="w-4 h-4 text-primary"
+                              />
+                            </div>
+                            <div class="flex flex-row text-xs text-nc-content-gray-disabled">Filter based on dynamic value</div>
+                          </div>
+                        </div>
+                      </div>
+                    </template>
+                  </NcDropdown>
+                </template>
                 <template v-if="link && showDynamicCondition">
                   <NcDropdown
                     class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"

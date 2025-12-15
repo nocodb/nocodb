@@ -644,6 +644,13 @@ import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
 import NcWebhook from '~icons/nc-icons-v2/webhook'
 
+import NcFormResponse from '~icons/nc-icons-v2/new-form-responce'
+import NcRecordCreate from '~icons/nc-icons-v2/record-create'
+import NcRecordUpdate from '~icons/nc-icons-v2/record-update'
+import NcRecordDelete from '~icons/nc-icons-v2/record-delete'
+import NcRecordEntersView from '~icons/nc-icons-v2/record-enters-view'
+import NcIfElse from '~icons/nc-icons-v2/if-else'
+
 import NcLogoAsanaColored from '~icons/nc-icons-v2/asana-colored.svg'
 import NcLogoAsana from '~icons/nc-icons-v2/asana.svg'
 import NcLogoBitbucketColored from '~icons/nc-icons-v2/bitbucket-colored.svg'
@@ -1805,6 +1812,15 @@ export const iconMap = {
   'ncSun': NcSun,
   'ncGraduationCap': NcGraduationCap,
   'ncSupportAgent': h(NcSupportAgent, { stroke: 'transparent' }),
+  'ncBuilding': NcBuilding,
+  'ncRecordCreate': NcRecordCreate,
+  'ncRecordUpdate': NcRecordUpdate,
+  'ncRecordDelete': NcRecordDelete,
+  'ncRecordFind': NcAuditNew,
+  'ncFormResponse': NcFormResponse,
+  'ncIfElse': NcIfElse,
+  'ncRecordEntersView': NcRecordEntersView,
+  'ncExtUrlPreviewEmptyState': h(NcExtUrlPreviewEmptyState, { stroke: 'transparent' }),
 }
 
 export const getMdiIcon = (type: string): any => {

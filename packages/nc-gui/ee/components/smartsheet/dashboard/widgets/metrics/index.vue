@@ -58,7 +58,7 @@ watch(
   <div
     class="nc-metric-widget !rounded-xl h-full w-full p-4 flex group flex-col gap-1 relative"
     :style="{
-      backgroundColor: colors?.fill,
+      ...(colors?.fill && { backgroundColor: colors?.fill }),
     }"
   >
     <div

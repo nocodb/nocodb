@@ -64,8 +64,10 @@ export async function validateCondition(
   data: any = {},
   {
     client,
+    skipFetchingChildren = false,
   }: {
     client: string;
+    skipFetchingChildren?: boolean;
   },
 ) {
   if (!filters.length) {
@@ -77,9 +79,14 @@ export async function validateCondition(
     const filter = _filter instanceof Filter ? _filter : new Filter(_filter);
     let res;
     if (filter.is_group) {
-      filter.children = filter.children || (await filter.getChildren(context));
+      // If skipFetchingChildren is true, only use children from the object
+      // This is useful for filters stored in JSON (like workflow configs) that aren't in the database
+      filter.children = skipFetchingChildren
+        ? filter.children || []
+        : filter.children || (await filter.getChildren(context));
       res = await validateCondition(context, filter.children, data, {
         client,
+        skipFetchingChildren,
       });
     } else {
       const column = await filter.getColumn(context);

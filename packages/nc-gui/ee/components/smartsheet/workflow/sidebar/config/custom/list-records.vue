@@ -33,6 +33,7 @@ const viewOptions = ref<any[]>([])
 const columns = ref<ColumnType[]>([])
 
 const isFilterDropdownOpen = ref(false)
+
 const isSortDropdownOpen = ref(false)
 
 const meta = computed(() => {
@@ -301,6 +302,7 @@ onMounted(() => {
               :auto-save="false"
               :show-loading="false"
               :web-hook="false"
+              :show-dynamic-condition="true"
               :workflow="true"
               :link="false"
               @update:filters-length="isFilterDropdownOpen = $event > 0"

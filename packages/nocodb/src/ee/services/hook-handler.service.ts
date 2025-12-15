@@ -1,14 +1,17 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { HookHandlerService as HookHandlerServiceCE } from 'src/services/hook-handler.service';
-import { type HookType, WebhookEvents } from 'nocodb-sdk';
+import { type HookType, ViewTypes, WebhookEvents } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { WorkflowNodeRunContext } from '@noco-local-integrations/core';
 // @ts-ignore importing directly will cause circular dependency error
 import { type WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { JobTypes } from '~/interface/Jobs';
-import { Hook, Model } from '~/models';
+import { Filter, Hook, Model, Source, View } from '~/models';
 import Workflow from '~/ee/models/Workflow';
-import { getAffectedColumns } from '~/helpers/webhookHelpers';
+import {
+  getAffectedColumns,
+  validateCondition,
+} from '~/helpers/webhookHelpers';
 import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
@@ -83,6 +86,23 @@ export class HookHandlerService extends HookHandlerServiceCE {
 
     // Trigger workflows for record events
     await this.triggerWorkflows(context, param);
+
+    // Trigger form submission workflows if this came from a form view
+    if (hookName === 'after.insert' && param.viewId) {
+      await this.triggerFormSubmissionWorkflows(context, param);
+    }
+
+    // Trigger record enters view workflows for insert and update
+    // Trigger record matches condition workflows for insert and update
+    if (
+      hookName === 'after.insert' ||
+      hookName === 'after.bulkInsert' ||
+      hookName === 'after.update' ||
+      hookName === 'after.bulkUpdate'
+    ) {
+      await this.triggerRecordEntersViewWorkflows(context, param);
+      await this.triggerRecordMatchesConditionWorkflows(context, param);
+    }
   }
 
   /**
@@ -229,11 +249,6 @@ export class HookHandlerService extends HookHandlerServiceCE {
             );
 
             if (!shouldExecute) {
-              this.logger.log({
-                message: 'Workflow trigger skipped, not queuing job',
-                workflowId: workflow.id,
-                triggerType,
-              });
               continue;
             }
 
@@ -315,6 +330,444 @@ export class HookHandlerService extends HookHandlerServiceCE {
         triggerType,
       });
       return true;
+    }
+  }
+
+  /**
+   * Trigger form submission workflows
+   */
+  private async triggerFormSubmissionWorkflows(
+    context: NcContext,
+    param: { hookName; prevData; newData; user; viewId; modelId },
+  ): Promise<void> {
+    const { modelId, newData, user, viewId } = param;
+
+    try {
+      const view = await View.get(context, viewId);
+
+      if (!view || view.type !== ViewTypes.FORM) {
+        // Not a form view, skip
+        return;
+      }
+
+      const triggerType = 'nocodb.trigger.form_submitted';
+      const newDataArray = Array.isArray(newData) ? newData : [newData];
+
+      const workflows = await Workflow.findByTrigger(
+        context,
+        triggerType,
+        view.id,
+      );
+
+      if (workflows.length === 0) {
+        return;
+      }
+
+      const model = await Model.get(context, modelId);
+      await model.getColumns(context);
+
+      for (const currentNewData of newDataArray) {
+        const transformedData =
+          await this.datasV3Service.transformRecordsToV3Format({
+            context,
+            records: [currentNewData],
+            primaryKey: model.primaryKey,
+            primaryKeys: model.primaryKeys,
+            columns: model.columns,
+            reuse: {},
+            depth: 0,
+          });
+
+        const triggerInputs = {
+          newData: transformedData[0],
+          user,
+          timestamp: new Date().toISOString(),
+          formViewId: viewId,
+        };
+
+        for (const workflow of workflows) {
+          try {
+            const shouldExecute = await this.shouldExecuteWorkflow(
+              context,
+              workflow,
+              triggerType,
+              triggerInputs,
+            );
+
+            if (!shouldExecute) {
+              continue;
+            }
+
+            await this.jobsService.add(JobTypes.ExecuteWorkflow, {
+              context,
+              workflowId: workflow.id,
+              triggerInputs,
+              user,
+            });
+          } catch (e) {
+            this.logger.error({
+              error: e,
+              details: 'Error while queuing form submission workflow execution',
+              workflowId: workflow.id,
+              formViewId: viewId,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error({
+        error,
+        details: 'Error in triggerFormSubmissionWorkflows',
+        viewId,
+        modelId,
+      });
+    }
+  }
+
+  /**
+   * Compute if a record matches view filters
+   * Used by record enters view and record matches condition triggers
+   */
+  private async computeViewFilterMatch(
+    context: NcContext,
+    viewId: string,
+    newData: any,
+    prevData: any,
+    source: Source,
+  ): Promise<{
+    matchesFilter: boolean;
+    prevMatchedFilter: boolean;
+  }> {
+    const view = await View.get(context, viewId);
+    if (!view) {
+      throw new Error(`View ${viewId} not found`);
+    }
+
+    const filters = await Filter.rootFilterList(context, { viewId });
+
+    // If no filters, view shows all records
+    if (!filters.length) {
+      if (!prevData) {
+        // INSERT: Record enters view (didn't exist before, now it's visible)
+        this.logger.debug({
+          message: 'No filters - INSERT triggers (record enters view)',
+          viewId,
+        });
+        return { matchesFilter: true, prevMatchedFilter: false };
+      } else {
+        // UPDATE: Record was already in view, still in view (no state change)
+        this.logger.debug({
+          message: 'No filters - UPDATE skipped (record already in view)',
+          viewId,
+        });
+        return { matchesFilter: true, prevMatchedFilter: true };
+      }
+    }
+
+    // Check if newData matches the view filters
+    const matchesFilter = await validateCondition(context, filters, newData, {
+      client: source?.type,
+    });
+
+    // Check if prevData matched the view filters (for updates)
+    const prevMatchedFilter =
+      prevData && filters.length
+        ? await validateCondition(context, filters, prevData, {
+            client: source?.type,
+          })
+        : false;
+
+    return { matchesFilter, prevMatchedFilter };
+  }
+
+  /**
+   * Trigger record enters view workflows
+   */
+  private async triggerRecordEntersViewWorkflows(
+    context: NcContext,
+    param: { hookName; prevData; newData; user; viewId; modelId },
+  ): Promise<void> {
+    const { modelId, newData, prevData, user, hookName } = param;
+
+    try {
+      const triggerType = 'nocodb.trigger.record_enters_view';
+
+      // Find all workflows with this trigger type for this table
+      const workflows = await Workflow.findByTrigger(
+        context,
+        triggerType,
+        modelId,
+      );
+
+      if (workflows.length === 0) {
+        return;
+      }
+
+      const model = await Model.get(context, modelId);
+      await model.getColumns(context);
+
+      const source = await Source.get(context, model.source_id);
+
+      const newDataArray = Array.isArray(newData) ? newData : [newData];
+      const prevDataArray = Array.isArray(prevData)
+        ? prevData
+        : prevData
+        ? [prevData]
+        : [];
+
+      for (let i = 0; i < newDataArray.length; i++) {
+        const currentNewData = newDataArray[i];
+        const currentPrevData = prevDataArray[i];
+
+        const transformedNewData =
+          await this.datasV3Service.transformRecordsToV3Format({
+            context,
+            records: [currentNewData],
+            primaryKey: model.primaryKey,
+            primaryKeys: model.primaryKeys,
+            columns: model.columns,
+            reuse: {},
+            depth: 0,
+          });
+
+        let transformedPrevData = null;
+        if (currentPrevData) {
+          const prevDataResult =
+            await this.datasV3Service.transformRecordsToV3Format({
+              context,
+              records: [currentPrevData],
+              primaryKey: model.primaryKey,
+              primaryKeys: model.primaryKeys,
+              columns: model.columns,
+              reuse: {},
+              depth: 0,
+            });
+          transformedPrevData = prevDataResult[0];
+        }
+
+        // For each workflow, check if the record entered the configured view
+        for (const workflow of workflows) {
+          try {
+            // Get the trigger node to find the viewId
+            const triggerNode = workflow.nodes?.find(
+              (node) => node.type === triggerType,
+            );
+
+            if (!triggerNode || !triggerNode.data?.config?.viewId) {
+              this.logger.warn({
+                message: 'Trigger node or viewId not found in workflow',
+                workflowId: workflow.id,
+                triggerType,
+              });
+              continue;
+            }
+
+            const viewId = triggerNode.data.config.viewId;
+
+            // Compute filter matches
+            const { matchesFilter, prevMatchedFilter } =
+              await this.computeViewFilterMatch(
+                context,
+                viewId,
+                currentNewData,
+                currentPrevData,
+                source,
+              );
+
+            // Record enters view if:
+            // - For insert: matchesFilter is true (prevMatchedFilter is false by default)
+            // - For update: prevMatchedFilter is false AND matchesFilter is true (state change)
+            if (prevMatchedFilter || !matchesFilter) {
+              // Record didn't enter the view
+              continue;
+            }
+
+            // Record entered view - queue workflow execution
+            const triggerInputs = {
+              newData: transformedNewData[0],
+              prevData: transformedPrevData,
+              user,
+              timestamp: new Date().toISOString(),
+            };
+
+            await this.jobsService.add(JobTypes.ExecuteWorkflow, {
+              context,
+              workflowId: workflow.id,
+              triggerInputs,
+              user,
+            });
+          } catch (e) {
+            this.logger.error({
+              error: e,
+              details: 'Error while queuing record enters view workflow',
+              workflowId: workflow.id,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error({
+        error,
+        details: 'Error in triggerRecordEntersViewWorkflows',
+        hookName,
+        modelId,
+      });
+    }
+  }
+
+  /**
+   * Trigger record matches condition workflows
+   */
+  private async triggerRecordMatchesConditionWorkflows(
+    context: NcContext,
+    param: { hookName; prevData; newData; user; viewId; modelId },
+  ): Promise<void> {
+    const { modelId, newData, prevData, user, hookName } = param;
+
+    try {
+      const triggerType = 'nocodb.trigger.record_matches_condition';
+
+      // Find all workflows with this trigger type for this table
+      const workflows = await Workflow.findByTrigger(
+        context,
+        triggerType,
+        modelId,
+      );
+
+      if (workflows.length === 0) {
+        return;
+      }
+
+      const model = await Model.get(context, modelId);
+      await model.getColumns(context);
+
+      const source = await Source.get(context, model.source_id);
+
+      const newDataArray = Array.isArray(newData) ? newData : [newData];
+      const prevDataArray = Array.isArray(prevData)
+        ? prevData
+        : prevData
+        ? [prevData]
+        : [];
+
+      for (let i = 0; i < newDataArray.length; i++) {
+        const currentNewData = newDataArray[i];
+        const currentPrevData = prevDataArray[i];
+
+        const transformedNewData =
+          await this.datasV3Service.transformRecordsToV3Format({
+            context,
+            records: [currentNewData],
+            primaryKey: model.primaryKey,
+            primaryKeys: model.primaryKeys,
+            columns: model.columns,
+            reuse: {},
+            depth: 0,
+          });
+
+        let transformedPrevData = null;
+        if (currentPrevData) {
+          const prevDataResult =
+            await this.datasV3Service.transformRecordsToV3Format({
+              context,
+              records: [currentPrevData],
+              primaryKey: model.primaryKey,
+              primaryKeys: model.primaryKeys,
+              columns: model.columns,
+              reuse: {},
+              depth: 0,
+            });
+          transformedPrevData = prevDataResult[0];
+        }
+
+        // For each workflow, check if the record matches the custom conditions
+        for (const workflow of workflows) {
+          try {
+            // Get the trigger node to find the filters
+            const triggerNode = workflow.nodes?.find(
+              (node) => node.type === triggerType,
+            );
+
+            if (!triggerNode || !triggerNode.data?.config?.filters) {
+              this.logger.warn({
+                message: 'Trigger node or filters not found in workflow',
+                workflowId: workflow.id,
+                triggerType,
+              });
+              continue;
+            }
+
+            const filtersForValidation = triggerNode.data.config.filters;
+
+            if (!filtersForValidation || filtersForValidation.length === 0) {
+              continue;
+            }
+
+            const matchesFilter = await validateCondition(
+              context,
+              filtersForValidation,
+              currentNewData,
+              {
+                client: source?.type,
+              },
+            );
+
+            const prevMatchedFilter =
+              currentPrevData && filtersForValidation.length
+                ? await validateCondition(
+                    context,
+                    filtersForValidation,
+                    currentPrevData,
+                    {
+                      client: source?.type,
+                    },
+                  )
+                : false;
+
+            // Record matches condition if:
+            // - For insert: matchesFilter is true (prevMatchedFilter is false by default)
+            // - For update: prevMatchedFilter is false AND matchesFilter is true (state change)
+            if (prevMatchedFilter || !matchesFilter) {
+              // Record didn't match the conditions (or was already matching)
+              this.logger.debug({
+                message: 'Record did not match conditions',
+                workflowId: workflow.id,
+                matchesFilter,
+                prevMatchedFilter,
+              });
+              continue;
+            }
+
+            // Record matched conditions - queue workflow execution
+            const triggerInputs = {
+              newData: transformedNewData[0],
+              prevData: transformedPrevData,
+              user,
+              timestamp: new Date().toISOString(),
+            };
+
+            await this.jobsService.add(JobTypes.ExecuteWorkflow, {
+              context,
+              workflowId: workflow.id,
+              triggerInputs,
+              user,
+            });
+          } catch (e) {
+            this.logger.error({
+              error: e,
+              details: 'Error while queuing record matches condition workflow',
+              workflowId: workflow.id,
+            });
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error({
+        error,
+        details: 'Error in triggerRecordMatchesConditionWorkflows',
+        hookName,
+        modelId,
+      });
     }
   }
 }

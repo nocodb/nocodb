@@ -651,6 +651,7 @@ import NcFormResponse from '~icons/nc-icons-v2/new-form-responce'
 import NcRecordCreate from '~icons/nc-icons-v2/record-create'
 import NcRecordUpdate from '~icons/nc-icons-v2/record-update'
 import NcRecordDelete from '~icons/nc-icons-v2/record-delete'
+import NcRecordEntersView from '~icons/nc-icons-v2/record-enters-view'
 import NcIfElse from '~icons/nc-icons-v2/if-else'
 
 import NcLogoAsanaColored from '~icons/nc-icons-v2/asana-colored.svg'
@@ -1831,6 +1832,7 @@ export const iconMap = {
   'ncRecordFind': NcAuditNew,
   'ncFormResponse': NcFormResponse,
   'ncIfElse': NcIfElse,
+  'ncRecordEntersView': NcRecordEntersView,
   'ncExtUrlPreviewEmptyState': h(NcExtUrlPreviewEmptyState, { stroke: 'transparent' }),
 }
 

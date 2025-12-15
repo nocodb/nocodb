@@ -48,7 +48,7 @@ const colors = computed(() => {
     <div v-if="appearanceType !== 'default'" class="grid grid-cols-3 gap-2">
       <div
         v-for="color in colors"
-        :key="color.value"
+        :key="color.id"
         class="flex flex-col border-2 rounded-lg cursor-pointer gap-2 p-4"
         :class="{
           'border-nc-fill-primary rounded-lg': color.id === appearanceTheme,

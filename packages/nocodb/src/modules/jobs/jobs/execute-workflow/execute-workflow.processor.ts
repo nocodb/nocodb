@@ -37,16 +37,10 @@ export class ExecuteWorkflowProcessor {
       return;
     }
 
-    const workspace = await Workspace.get(context.workspace_id);
-    const billingAnchor =
-      workspace?.payment?.subscription?.billing_cycle_anchor ||
-      workspace?.created_at;
-
     await UsageStat.incrby(
       context.workspace_id,
-      PlanLimitTypes.LIMIT_WORKFLOW_RUN,
+      PlanLimitTypes.LIMIT_AUTOMATION_RUN,
       1,
-      billingAnchor,
     );
 
     let executionRecord: WorkflowExecution | null = null;
@@ -89,9 +83,8 @@ export class ExecuteWorkflowProcessor {
 
         await UsageStat.incrby(
           context.workspace_id,
-          PlanLimitTypes.LIMIT_WORKFLOW_RUN,
+          PlanLimitTypes.LIMIT_AUTOMATION_RUN,
           -1,
-          billingAnchor,
         );
         return;
       }

@@ -709,6 +709,7 @@ export class HookHandlerService extends HookHandlerServiceCE {
               currentNewData,
               {
                 client: source?.type,
+                skipFetchingChildren: true,
               },
             );
 
@@ -720,6 +721,7 @@ export class HookHandlerService extends HookHandlerServiceCE {
                     currentPrevData,
                     {
                       client: source?.type,
+                      skipFetchingChildren: true,
                     },
                   )
                 : false;

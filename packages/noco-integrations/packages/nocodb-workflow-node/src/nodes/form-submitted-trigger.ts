@@ -272,7 +272,11 @@ export class FormSubmittedTriggerNode extends WorkflowNodeIntegration<FormSubmit
       }
 
       // Check if this submission is from the configured form
-      if (formViewId && formViewId !== this.config.formViewId) {
+      if (
+        !ctx.testMode &&
+        formViewId &&
+        formViewId !== this.config.formViewId
+      ) {
         logs.push({
           level: 'info',
           message: `Form submission skipped: expected form ${this.config.formViewId}, got ${formViewId}`,

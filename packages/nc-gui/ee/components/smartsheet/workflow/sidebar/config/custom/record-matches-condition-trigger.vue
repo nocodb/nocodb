@@ -78,17 +78,16 @@ provide(MetaInj, meta)
 
 // Handle table selection
 const onTableSelect = async (tableId?: string | null) => {
-  if (!tableId) return
+  if (!tableId) {
+    columns.value = []
+    return
+  }
   updateConfig({
-    modelId: tableId || undefined,
+    modelId: tableId,
     filters: [],
   })
 
-  if (tableId) {
-    await Promise.all([loadConfig('columns')])
-  } else {
-    columns.value = []
-  }
+  await loadConfig('columns')
 }
 
 const filters = computed({
@@ -175,7 +174,6 @@ onMounted(() => {
               :web-hook="false"
               :workflow="true"
               :show-dynamic-condition="false"
-              :dynamic-filter="true"
               :link="false"
               @update:filters-length="isFilterDropdownOpen = $event > 0"
             />

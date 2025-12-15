@@ -175,4 +175,13 @@ export default class WorkflowExecution implements IWorkflowExecution {
       },
     );
   }
+
+  static async delete(context: NcContext, id: string, ncMeta = Noco.ncMeta) {
+    return await ncMeta.metaDelete(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.WORKFLOW_EXECUTIONS,
+      id,
+    );
+  }
 }

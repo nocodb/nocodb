@@ -34,7 +34,8 @@ import { NocoJobsService } from '~/services/noco-jobs.service';
 export class WorkflowsService implements OnModuleInit {
   constructor(
     protected readonly appHooksService: AppHooksService,
-    protected readonly workflowExecutionService: WorkflowExecutionService,
+    @Inject('WorkflowExecutionService')
+    private readonly workflowExecutionService: WorkflowExecutionService,
     @Inject('JobsService') private readonly jobsService: IJobsService,
     protected readonly nocoJobsService: NocoJobsService,
   ) {}

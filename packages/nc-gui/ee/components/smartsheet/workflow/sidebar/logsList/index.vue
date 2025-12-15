@@ -19,6 +19,7 @@ const { base } = storeToRefs(useBase())
 const activeExecutionListener = ref<string | null>(null)
 
 const isLoading = ref(false)
+
 const isLoadingMore = ref(false)
 
 const executions = ref<any[]>([])
@@ -65,7 +66,6 @@ async function loadExecutionLogs(append = false) {
       isLoadingMore.value = true
     }
 
-    // Use cursor-based pagination: get executions older than the last one in the list
     const lastExecution = append && executions.value.length > 0 ? executions.value[executions.value.length - 1] : null
 
     const result = await loadWorkflowExecutions({
@@ -122,6 +122,11 @@ watch(
             const index = executions.value.findIndex((e) => e.id === id)
             if (index !== -1) {
               executions.value[index] = { ...executions.value[index], ...payload }
+            }
+          } else if (action === 'delete') {
+            const index = executions.value.findIndex((e) => e.id === id)
+            if (index !== -1) {
+              executions.value.splice(index, 1)
             }
           }
         },

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type {
@@ -14,6 +14,7 @@ export class WorkflowGetOperations
 {
   constructor(
     private readonly workflowsService: WorkflowsService,
+    @Inject('WorkflowExecutionService')
     private readonly workflowExecutionService: WorkflowExecutionService,
   ) {}
   operations = [

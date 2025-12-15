@@ -59,7 +59,7 @@ export interface WorkflowPayload extends BaseSocketPayload {
 export interface WorkflowExecutionPayload extends BaseSocketPayload {
   id: string;
   workflowId: string;
-  action: 'create' | 'update';
+  action: 'create' | 'update' | 'delete';
   payload: any;
 }
 

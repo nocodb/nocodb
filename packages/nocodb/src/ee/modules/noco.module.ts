@@ -68,9 +68,9 @@ import { SnapshotService } from '~/services/snapshot.service';
 import { ScriptsService } from '~/services/scripts.service';
 
 /* Workflows */
-import { WorkflowsService } from '~/ee/services/workflows.service';
-import { WorkflowExecutionService } from '~/ee/services/workflow-execution.service';
-import { WorkflowWebhookController } from '~/ee/controllers/workflow-webhook.controller';
+import { WorkflowsService } from '~/services/workflows.service';
+import { WorkflowExecutionService } from '~/services/workflow-execution.service';
+import { WorkflowWebhookController } from '~/controllers/workflow-webhook.controller';
 
 /* Dashboards */
 import { DashboardsService } from '~/services/dashboards.service';
@@ -126,7 +126,11 @@ export const nocoModuleEeMetadata = {
 
     /* Workflows */
     WorkflowsService,
-    WorkflowExecutionService,
+
+    {
+      provide: 'WorkflowExecutionService',
+      useClass: WorkflowExecutionService,
+    },
 
     /* Dashboards */
     DashboardsService,
@@ -181,7 +185,7 @@ export const nocoModuleEeMetadata = {
   exports: [
     ScriptsService,
     WorkflowsService,
-    WorkflowExecutionService,
+    'WorkflowExecutionService',
     DashboardsService,
     PermissionsService,
     ActionsService,

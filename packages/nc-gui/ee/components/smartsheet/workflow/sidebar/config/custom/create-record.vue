@@ -21,7 +21,7 @@ const config = computed<CreateRecordNodeConfig>(() => {
 
 const tableOptions = ref<any[]>([])
 
-const columns = ref<ColumnType[]>([])
+const columns = ref<any[]>([])
 
 const updateConfig = (updates: Partial<CreateRecordNodeConfig>) => {
   if (!selectedNodeId.value) return
@@ -51,7 +51,7 @@ const loadConfig = async (key: string) => {
     if (key === 'tables') {
       tableOptions.value = options || []
     } else if (key === 'fields') {
-      columns.value = (options || []).map((opt: any) => opt.column).filter(Boolean)
+      columns.value = options || []
     }
   } catch (e) {
     console.error('Failed to load tables:', e)
@@ -67,7 +67,7 @@ const meta = computed(() => {
   if (!table) return null
   table.columns = columns.value
   table.columnsById = columns.value.reduce((acc, col) => {
-    acc[col.id] = col
+    acc[col.column.id] = col.column
     return acc
   }, {} as Record<string, ColumnType>)
   return table

@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
+
+interface ColumnOption {
+  label: string
+  value: string
+  ncItemDisabled: boolean
+  column: ColumnType
+}
 
 interface Props {
   modelValue: Record<string, any>
-  columns: ColumnType[]
+  columns: Array<ColumnOption>
   meta: any
 }
 
@@ -96,17 +103,17 @@ provide(IsExpandedFormOpenInj, ref(true))
 useProvideSmartsheetLtarHelpers(computed(() => props.meta))
 useProvideSmartsheetRowStore(mockRow, ref(new Set<string>()))
 
-const isDynamicOnly = (col: ColumnType) => {
-  return DYNAMIC_ONLY_FIELDS.includes(col.uidt as UITypes)
+const isDynamicOnly = (col: ColumnOption) => {
+  return DYNAMIC_ONLY_FIELDS.includes(col.column.uidt as UITypes)
 }
 
-const supportsBothModes = (col: ColumnType) => {
-  return STATIC_AND_DYNAMIC_FIELDS.includes(col.uidt as UITypes)
+const supportsBothModes = (col: ColumnOption) => {
+  return STATIC_AND_DYNAMIC_FIELDS.includes(col.column.uidt as UITypes)
 }
 
-const getFieldMode = (col: ColumnType) => {
-  if (isDynamicOnly(col)) return 'dynamic'
-  return fieldInputModes.value[col.id] || 'static'
+const getFieldMode = (col: ColumnOption) => {
+  if (isDynamicOnly(col) || !col.column?.id) return 'dynamic'
+  return fieldInputModes.value[col.column.id] || 'static'
 }
 
 const toggleFieldMode = (fieldId: string, mode: 'static' | 'dynamic') => {
@@ -128,13 +135,14 @@ const updateFieldValue = (fieldId: string, value: any) => {
   emit('update:modelValue', updatedFields)
 }
 
-const addField = (col: ColumnType) => {
-  addedFieldIds.value.add(col.id)
+const addField = (col: ColumnOption) => {
+  if (col.ncItemDisabled || !col.column?.id) return
+  addedFieldIds.value.add(col.column.id)
   // Set default mode for the field
   if (isDynamicOnly(col)) {
-    fieldInputModes.value[col.id] = 'dynamic'
+    fieldInputModes.value[col.column.id] = 'dynamic'
   } else {
-    fieldInputModes.value[col.id] = 'static'
+    fieldInputModes.value[col.column.id] = 'static'
   }
   isFieldSelectorOpen.value = false
 }
@@ -148,16 +156,12 @@ const removeField = (fieldId: string) => {
   emit('update:modelValue', updatedFields)
 }
 
-const editableColumns = computed(() => {
-  return props.columns.filter((col) => !isSystemColumn(col) && !isVirtualCol(col))
-})
-
 const addedFields = computed(() => {
-  return editableColumns.value.filter((col) => addedFieldIds.value.has(col.id))
+  return props.columns.filter((col) => col.column?.id && addedFieldIds.value.has(col.column.id))
 })
 
 const availableFields = computed(() => {
-  return editableColumns.value.filter((col) => !addedFieldIds.value.has(col.id))
+  return props.columns.filter((col) => !col.column?.id || !addedFieldIds.value.has(col.column.id))
 })
 
 const isDynamicValue = (value: any): boolean => {
@@ -220,12 +224,20 @@ watch(
         <template #overlay>
           <NcMenu class="max-h-96 overflow-auto nc-scrollbar-thin">
             <template v-if="availableFields.length > 0">
-              <NcMenuItem v-for="col in availableFields" :key="col.id" @click="addField(col)">
-                <div class="flex items-center gap-2">
-                  <SmartsheetHeaderIcon :column="col" />
-                  <span>{{ col.title }}</span>
-                </div>
-              </NcMenuItem>
+              <template v-for="col in availableFields" :key="col.column?.id">
+                <NcTooltip v-if="col" :disabled="!col.ncItemDisabled" placement="right">
+                  <NcMenuItem :disabled="col.ncItemDisabled" @click="addField(col)">
+                    <div class="flex items-center gap-2">
+                      <SmartsheetHeaderIcon :column="col.column" />
+                      <span>{{ col.column.title }}</span>
+                    </div>
+                  </NcMenuItem>
+
+                  <template #title>
+                    {{ col.ncItemTooltip }}
+                  </template>
+                </NcTooltip>
+              </template>
             </template>
             <div v-else class="px-3 py-2 text-sm text-nc-content-gray-muted">All fields have been added</div>
           </NcMenu>
@@ -233,17 +245,17 @@ watch(
       </NcDropdown>
     </div>
     <div v-if="addedFields.length > 0" class="flex flex-col gap-3">
-      <div v-for="col in addedFields" :key="col.id" class="field-item flex flex-col gap-2">
+      <div v-for="col in addedFields" :key="col.column.id" class="field-item flex flex-col gap-2">
         <div class="flex items-center gap-2">
-          <SmartsheetHeaderIcon :column="col" class="text-nc-content-gray-muted" />
-          <span class="text-sm text-nc-content-gray-emphasis flex-1">{{ col.title }}</span>
-          <NcDropdown v-if="supportsBothModes(col)" :visible="settingsPanelOpen[col.id]">
-            <NcButton size="xs" type="text" class="!px-1.5" @click.stop="toggleSettingsPanel(col.id)">
+          <SmartsheetHeaderIcon :column="col.column" class="text-nc-content-gray-muted" />
+          <span class="text-sm text-nc-content-gray-emphasis flex-1">{{ col.column.title }}</span>
+          <NcDropdown v-if="supportsBothModes(col)" :visible="settingsPanelOpen[col.column.id]">
+            <NcButton size="xs" type="text" class="!px-1.5" @click.stop="toggleSettingsPanel(col.column.id)">
               <GeneralIcon icon="settings" class="text-nc-content-gray-subtle w-4 h-4" />
             </NcButton>
             <template #overlay>
               <NcMenu>
-                <NcMenuItem class="relative" @click="toggleFieldMode(col.id, 'static')">
+                <NcMenuItem class="relative" @click="toggleFieldMode(col.column.id, 'static')">
                   <div class="flex-1">
                     <div class="text-sm font-medium text-nc-content-gray-emphasis">Static</div>
                     <div class="text-xs text-nc-content-gray-muted mt-0.5">Enter values directly</div>
@@ -254,7 +266,7 @@ watch(
                     class="flex-none w-4 h-4 text-nc-content-brand mt-0.5 absolute right-2 top-2"
                   />
                 </NcMenuItem>
-                <NcMenuItem class="relative" @click="toggleFieldMode(col.id, 'dynamic')">
+                <NcMenuItem class="relative" @click="toggleFieldMode(col.column.id, 'dynamic')">
                   <div class="flex-1">
                     <div class="text-sm font-medium text-nc-content-gray-emphasis">Dynamic</div>
                     <div class="text-xs text-nc-content-gray-muted mt-0.5">
@@ -270,26 +282,26 @@ watch(
               </NcMenu>
             </template>
           </NcDropdown>
-          <NcButton size="xs" type="text" class="!px-1.5" @click="removeField(col.id)">
+          <NcButton size="xs" type="text" class="!px-1.5" @click="removeField(col.column.id)">
             <GeneralIcon icon="close" class="text-nc-content-gray-subtle w-4 h-4" />
           </NcButton>
         </div>
         <div class="field-input">
           <NcFormBuilderInputWorkflowInput
             v-if="getFieldMode(col) === 'dynamic'"
-            :model-value="modelValue[col.id]"
+            :model-value="modelValue[col.column.id]"
             :variables="flatVariables"
             :grouped-variables="groupedVariables"
-            :placeholder="`Enter ${col.title}`"
-            @update:model-value="updateFieldValue(col.id, $event)"
+            :placeholder="`Enter ${col.column.title}`"
+            @update:model-value="updateFieldValue(col.column.id, $event)"
           />
-          <SmartsheetDivDataCell v-else class="nc-workflow-static-cell" :data-uidt="col.uidt">
+          <SmartsheetDivDataCell v-else class="nc-workflow-static-cell" :data-uidt="col.column.uidt">
             <LazySmartsheetCell
-              v-model="mockRow.row[col.title]"
-              :column="col"
+              v-model="mockRow.row[col.column.title]"
+              :column="col.column"
               :edit-enabled="true"
               :active="true"
-              @update:model-value="updateFieldValue(col.id, $event)"
+              @update:model-value="updateFieldValue(col.column.id, $event)"
             />
           </SmartsheetDivDataCell>
         </div>

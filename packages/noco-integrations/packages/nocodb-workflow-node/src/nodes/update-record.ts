@@ -3,6 +3,7 @@ import {
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
+import { NON_EDITABLE_FIELDS } from '../utils/fields';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -75,7 +76,10 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
           .map((col: any) => ({
             label: col.title,
             value: col.title,
-            ncItemDisabled: false,
+            ncItemDisabled: NocoSDK.isUIType(col, NON_EDITABLE_FIELDS),
+            ncItemTooltip: NocoSDK.isUIType(col, NON_EDITABLE_FIELDS)
+              ? 'Computed fields cannot be updated'
+              : null,
             column: col,
           }));
       }

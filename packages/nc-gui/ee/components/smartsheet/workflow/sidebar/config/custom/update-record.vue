@@ -34,7 +34,14 @@ const config = computed<UpdateRecordNodeConfig>(() => {
 
 const tableOptions = ref<any[]>([])
 
-const columns = ref<ColumnType[]>([])
+const columns = ref<
+  Array<{
+    label: string
+    value: string
+    ncItemDisabled: boolean
+    column: ColumnType
+  }>
+>([])
 
 const updateConfig = (updates: Partial<UpdateRecordNodeConfig>) => {
   if (!selectedNodeId.value) return
@@ -64,7 +71,7 @@ const loadConfig = async (key: string) => {
     if (key === 'tables') {
       tableOptions.value = options || []
     } else if (key === 'fields') {
-      columns.value = (options || []).map((opt: any) => opt.column).filter(Boolean)
+      columns.value = options || []
     }
   } catch (e) {
     console.error('Failed to load tables:', e)
@@ -78,9 +85,9 @@ const loadConfig = async (key: string) => {
 const meta = computed(() => {
   const table = tableOptions.value.find((t) => t.table.id === config.value.modelId)?.table
   if (!table) return null
-  table.columns = columns.value
+  table.columns = columns.value.map((col) => col.column)
   table.columnsById = columns.value.reduce((acc, col) => {
-    acc[col.id] = col
+    acc[col.column.id] = col.column
     return acc
   }, {} as Record<string, ColumnType>)
   return table

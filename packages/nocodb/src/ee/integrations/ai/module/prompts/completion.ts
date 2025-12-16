@@ -192,6 +192,24 @@ export const predictScriptCompletion = (
            * await table.deleteRecordsAsync(['rec123', 'rec456']);
            */
           async deleteRecordsAsync(recordIds) {}
+
+          /**
+           * Triggers an action for specified rows using a Button field.
+           * This is useful for bulk processing button actions (such as AI generation) programmatically.
+           * @param {Object} params - Action parameters.
+           * @param {Array<string>} params.rowIds - Array of record IDs to process (max 25).
+           * @param {string} params.columnId - ID of the Button field to trigger.
+           * @returns {Promise<any>} Response from the action.
+           * @example
+           * // Trigger action for multiple records
+           * const buttonField = table.getField('AI Summary Button');
+           * const records = await table.selectRecordsAsync({ pageSize: 10 });
+           * const result = await table.generateRowsAsync({
+           *   rowIds: records.recordIds,
+           *   columnId: buttonField.id
+           * });
+           */
+          async generateRowsAsync(params) {}
         }
         3. View:
         /**

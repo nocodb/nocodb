@@ -2822,7 +2822,19 @@ declare interface Table {
    * @param ids - Array of ids
    */
   deleteRecordsAsync(records: Array<string | NocoDBRecord>): Promise<void>;
-  
+
+  /**
+   * Triggers an action for specified rows using a Button field.
+   * This is useful for bulk processing button actions (such as AI generation) programmatically.
+   * This action is asynchronous.
+   *
+   * @param params - Action parameters
+   * @param params.rowIds - Array of record IDs to process (max 25)
+   * @param params.columnId - ID of the Button field to trigger
+   * @returns Response from the action
+   */
+  generateRowsAsync(params: { rowIds: string[]; columnId: string }): Promise<any>;
+
     /**
    * Delete a record.
    * This action is asynchronous.
@@ -3887,6 +3899,19 @@ declare interface ConfigItem {}
     this.write(
       `deleteRecordsAsync(recordIdOrRecords: Array<string | ${this.pascalCase(tableName, 'table')}Table_Record>): Promise<void>`,
     )
+
+    this.formatJSDoc([
+      'Triggers an action for specified rows using a Button field.',
+      'This is useful for bulk processing button actions (such as AI generation) programmatically.',
+      'This action is asynchronous.',
+      '',
+      '@param params - Action parameters',
+      '@param params.rowIds - Array of record IDs to process (max 25)',
+      '@param params.columnId - ID of the Button field to trigger',
+      '@returns Response from the action',
+    ])
+
+    this.write(`generateRowsAsync(params: { rowIds: string[]; columnId: string }): Promise<any>`)
 
     // getView
     this.write(`/**

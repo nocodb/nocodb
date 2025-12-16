@@ -1915,16 +1915,61 @@ Object.freeze(UITypes);
       if (deleteObjs.length === 0) {
         throw new Error('Record IDs are required');
       }
-      
+
       if (deleteObjs.length > 10) {
         throw new Error('You can only delete up to 10 records at a time');
       }
-      
+
       try {
         await api.dbDataTableRowDelete(this.base.id, this.id, deleteObjs);
         return true
       } catch (e) {
         throw new Error(\`Failed to delete records in table \${this.name}\`)
+      }
+    }
+
+    async generateRowsAsync(params) {
+      const { rowIds, columnId } = params;
+
+      if (!rowIds || !Array.isArray(rowIds)) {
+        throw new Error('rowIds is required and must be an array');
+      }
+
+      if (rowIds.length === 0) {
+        throw new Error('rowIds must not be empty');
+      }
+
+      if (rowIds.length > 25) {
+        throw new Error('Only 25 rows can be processed at a time');
+      }
+
+      if (!columnId) {
+        throw new Error('columnId is required');
+      }
+
+      // Validate that the column exists in the table
+      const column = this.getField(columnId);
+      if (!column) {
+        throw new Error(\`Column \${columnId} not found in table \${this.name}\`);
+      }
+
+      // Validate that the column is a Button type
+      if (column.type !== 'Button') {
+        throw new Error(\`Column \${column.name} must be a Button field\`);
+      }
+
+      const requestBody = {
+        rowIds,
+        column: columnId,
+        preview: false
+      };
+
+      try {
+        // TODO: Replace with api.triggerAction() once added to SDK
+        const response = await api.__triggerAction(this.id, requestBody);
+        return response;
+      } catch (e) {
+        throw new Error(\`Failed to trigger action in table \${this.name}: \${e.message}\`);
       }
     }
   }

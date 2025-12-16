@@ -768,6 +768,11 @@
                         }
                       },
                       {
+                        "title": "UniqueEmail",
+                        "type": "Email",
+                        "unique": true
+                      },
+                      {
                         "title": "Email",
                         "type": "Email",
                         "default_value": "user@nocodb.com",
@@ -1945,6 +1950,15 @@
                       "precision": "4"
                     }
                   }
+                },
+                "Unique Constraint": {
+                  "value": {
+                    "title": "Unique Email",
+                    "type": "Email",
+                    "unique": true,
+                    "description": "Email field with unique constraint - no duplicate values allowed"
+                  },
+                  "summary": "Example of creating a field with unique constraint"
                 }
               }
             }
@@ -7367,6 +7381,10 @@
               "number"
             ],
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
+          },
+          "unique": {
+            "type": "boolean",
+            "description": "Enable unique constraint for the field. When enabled, the field will only accept unique values (no duplicates allowed). Note: Unique constraint is only supported for NC-DB (not external databases) and is mutually exclusive with default values. Supported field types: SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Date, DateTime, Time, Year, SingleSelect, Checkbox, and User fields."
           }
         },
         "required": [

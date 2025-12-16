@@ -101,8 +101,10 @@ export default function () {
           .send(tableData)
           .expect(400);
 
-        expect(response.body.error).to.exist;
-        expect(response.body.message).to.include('default value');
+        console.log(response.body);
+
+        expect(response.body.msg).to.exist;
+        expect(response.body.msg).to.include('default value');
       });
     });
 
@@ -201,8 +203,8 @@ export default function () {
           .send(columnData)
           .expect(400);
 
-        expect(response.body.error).to.exist;
-        expect(response.body.message).to.include('default value');
+        expect(response.body.msg).to.exist;
+        expect(response.body.msg).to.include('default value');
       });
 
       it('should reject unique constraint on unsupported types', async () => {
@@ -221,8 +223,8 @@ export default function () {
             .send(columnData)
             .expect(400);
 
-          expect(response.body.error).to.exist;
-          expect(response.body.message).to.include('not supported');
+          expect(response.body.msg).to.exist;
+          expect(response.body.msg).to.include('not supported');
         }
       });
     });
@@ -256,7 +258,7 @@ export default function () {
           .get(`${API_PREFIX}/fields/${column.id}`)
           .set('xc-token', context.xc_token)
           .expect(200);
-        
+
         // Skip test if column already has unique constraint
         if (getBefore.body.unique === true) {
           return;
@@ -264,6 +266,7 @@ export default function () {
 
         const updateData = {
           unique: true,
+          title: column.title,
         };
 
         const response = await request(context.app)
@@ -289,7 +292,7 @@ export default function () {
           .patch(`${API_PREFIX}/fields/${column.id}`)
           .set('xc-token', context.xc_token)
           .send({ default_value: 'default' });
-        
+
         // If setting default value fails, skip this test
         if (setDefaultResponse.status !== 200) {
           return;
@@ -299,16 +302,14 @@ export default function () {
         const response = await request(context.app)
           .patch(`${API_PREFIX}/fields/${column.id}`)
           .set('xc-token', context.xc_token)
-          .send({ unique: true });
+          .send({ unique: true, title: column.title });
 
         // Should fail with 400
         expect(response.status).to.eq(400);
-        expect(response.body.error || response.body.message).to.exist;
-        if (response.body.message) {
-          expect(response.body.message.toLowerCase()).to.satisfy((msg: string) => 
-            msg.includes('default') || msg.includes('unique')
-          );
-        }
+        expect(response.body.msg).to.exist;
+        expect(response.body.msg.toLowerCase()).to.satisfy(
+          (msg: string) => msg.includes('default') || msg.includes('unique'),
+        );
       });
 
       it('should reject enabling unique constraint if column has duplicates', async () => {
@@ -316,12 +317,10 @@ export default function () {
         await request(context.app)
           .post(`/api/v3/data/${initBase.id}/${table.id}/records`)
           .set('xc-token', context.xc_token)
-          .send({
-            records: [
-              { fields: { RegularColumn: 'duplicate' } },
-              { fields: { RegularColumn: 'duplicate' } },
-            ],
-          })
+          .send([
+            { fields: { RegularColumn: 'duplicate' } },
+            { fields: { RegularColumn: 'duplicate' } },
+          ])
           .expect(200);
 
         // Try to enable unique constraint - this should fail because duplicates exist
@@ -329,11 +328,11 @@ export default function () {
         const response = await request(context.app)
           .patch(`${API_PREFIX}/fields/${column.id}`)
           .set('xc-token', context.xc_token)
-          .send({ unique: true });
+          .send({ unique: true, title: column.title });
 
         // The error might be from the database or validation
-        expect([400, 500]).to.include(response.status);
-        expect(response.body.error || response.body.message).to.exist;
+        expect([400, 500, 409]).to.include(response.status);
+        expect(response.body.msg).to.exist;
       });
     });
 
@@ -367,21 +366,21 @@ export default function () {
           .get(`${API_PREFIX}/fields/${column.id}`)
           .set('xc-token', context.xc_token)
           .expect(200);
-        
+
         // Skip test if column doesn't have unique constraint
         if (getBefore.body.unique !== true) {
           // Try to enable it first
           await request(context.app)
             .patch(`${API_PREFIX}/fields/${column.id}`)
             .set('xc-token', context.xc_token)
-            .send({ unique: true });
-          
+            .send({ unique: true, title: column.title });
+
           // Check again
           const checkAfter = await request(context.app)
             .get(`${API_PREFIX}/fields/${column.id}`)
             .set('xc-token', context.xc_token)
             .expect(200);
-          
+
           if (checkAfter.body.unique !== true) {
             // Can't enable unique, skip this test
             return;
@@ -390,6 +389,7 @@ export default function () {
 
         const updateData = {
           unique: false,
+          title: column.title,
         };
 
         const response = await request(context.app)
@@ -419,13 +419,13 @@ export default function () {
           .get(`${API_PREFIX}/fields/${column.id}`)
           .set('xc-token', context.xc_token)
           .expect(200);
-        
+
         if (getBefore.body.unique === true) {
           // Remove unique constraint first
           await request(context.app)
             .patch(`${API_PREFIX}/fields/${column.id}`)
             .set('xc-token', context.xc_token)
-            .send({ unique: false })
+            .send({ unique: false, title: column.title })
             .expect(200);
         }
 
@@ -442,7 +442,7 @@ export default function () {
         const response = await request(context.app)
           .patch(`${API_PREFIX}/fields/${column.id}`)
           .set('xc-token', context.xc_token)
-          .send({ default_value: 'default' })
+          .send({ default_value: 'default', title: column.title })
           .expect(200);
 
         expect(response.body.default_value).to.exist;
@@ -477,9 +477,7 @@ export default function () {
         const response = await request(context.app)
           .post(`/api/v3/data/${initBase.id}/${table.id}/records`)
           .set('xc-token', context.xc_token)
-          .send({
-            records: [{ fields: { UniqueField: 'value1' } }],
-          })
+          .send([{ fields: { UniqueField: 'value1' } }])
           .expect(200);
 
         expect(response.body.records).to.have.length(1);
@@ -490,9 +488,7 @@ export default function () {
         const firstInsert = await request(context.app)
           .post(`/api/v3/data/${initBase.id}/${table.id}/records`)
           .set('xc-token', context.xc_token)
-          .send({
-            records: [{ fields: { UniqueField: 'duplicate' } }],
-          })
+          .send([{ fields: { UniqueField: 'duplicate' } }])
           .expect(200);
 
         expect(firstInsert.body.records).to.have.length(1);
@@ -501,13 +497,10 @@ export default function () {
         const response = await request(context.app)
           .post(`/api/v3/data/${initBase.id}/${table.id}/records`)
           .set('xc-token', context.xc_token)
-          .send({
-            records: [{ fields: { UniqueField: 'duplicate' } }],
-          });
+          .send([{ fields: { UniqueField: 'duplicate' } }]);
 
-        // May return 409 (Conflict) or 400 (Bad Request) depending on error handling
         expect([400, 409]).to.include(response.status);
-        expect(response.body.error || response.body.message).to.exist;
+        expect(response.body.message).to.exist;
         if (response.body.fieldName) {
           expect(response.body.fieldName).to.eq('UniqueField');
         }
@@ -518,9 +511,7 @@ export default function () {
         const insertResponse = await request(context.app)
           .post(`/api/v3/data/${initBase.id}/${table.id}/records`)
           .set('xc-token', context.xc_token)
-          .send({
-            records: [{ fields: { UniqueField: 'value1' } }],
-          })
+          .send([{ fields: { UniqueField: 'value1' } }])
           .expect(200);
 
         expect(insertResponse.body.records).to.have.length(1);
@@ -541,7 +532,9 @@ export default function () {
 
         expect(updateResponse.body.records).to.have.length(1);
         expect(updateResponse.body.records[0].fields).to.exist;
-        expect(updateResponse.body.records[0].fields.UniqueField).to.eq('value2');
+        expect(updateResponse.body.records[0].fields.UniqueField).to.eq(
+          'value2',
+        );
       });
 
       it('should reject updating to duplicate value', async () => {
@@ -549,9 +542,7 @@ export default function () {
         const insertResponse1 = await request(context.app)
           .post(`/api/v3/data/${initBase.id}/${table.id}/records`)
           .set('xc-token', context.xc_token)
-          .send({
-            records: [{ fields: { UniqueField: 'value1' } }],
-          })
+          .send([{ fields: { UniqueField: 'value1' } }])
           .expect(200);
 
         expect(insertResponse1.body.records).to.have.length(1);
@@ -562,9 +553,7 @@ export default function () {
         const insertResponse2 = await request(context.app)
           .post(`/api/v3/data/${initBase.id}/${table.id}/records`)
           .set('xc-token', context.xc_token)
-          .send({
-            records: [{ fields: { UniqueField: 'value2' } }],
-          })
+          .send([{ fields: { UniqueField: 'value2' } }])
           .expect(200);
 
         expect(insertResponse2.body.records).to.have.length(1);
@@ -584,7 +573,7 @@ export default function () {
 
         // May return 409 (Conflict) or 400 (Bad Request) depending on error handling
         expect([400, 409]).to.include(updateResponse.status);
-        expect(updateResponse.body.error || updateResponse.body.message).to.exist;
+        expect(updateResponse.body.message).to.exist;
         if (updateResponse.body.fieldName) {
           expect(updateResponse.body.fieldName).to.eq('UniqueField');
         }
@@ -592,4 +581,3 @@ export default function () {
     });
   });
 }
-

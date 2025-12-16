@@ -2112,6 +2112,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       return responses;
     } catch (e) {
+      // Handle unique constraint violations - this will throw if it's a unique constraint error
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+        insertData: datas,
+      });
       // await this.errorInsertb(e, data, null);
       throw e;
     }

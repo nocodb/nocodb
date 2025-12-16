@@ -215,6 +215,17 @@ export class PermissionsService {
 
     await this.broadcastPermissionUpdate(context);
 
+    if (permission_key === PermissionKey.TABLE_VISIBILITY) {
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_permission_update',
+          baseId: context.base_id,
+          payload: {},
+        },
+      });
+    }
+
     if (permissionEntryCreated) {
       Noco.appHooksService.emit(AppEvents.PERMISSION_CREATE, {
         permission,
@@ -301,6 +312,16 @@ export class PermissionsService {
 
     await this.broadcastPermissionUpdate(context);
 
+    if (permission_key === PermissionKey.TABLE_VISIBILITY) {
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_permission_update',
+          baseId: context.base_id,
+          payload: {},
+        },
+      });
+    }
     Noco.appHooksService.emit(AppEvents.PERMISSION_DELETE, {
       permission,
       context,
@@ -353,6 +374,21 @@ export class PermissionsService {
     }
 
     await this.broadcastPermissionUpdate(context);
+
+    if (
+      oldPermissions.some(
+        (p) => p.permission === PermissionKey.TABLE_VISIBILITY,
+      )
+    ) {
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_permission_update',
+          baseId: context.base_id,
+          payload: {},
+        },
+      });
+    }
   }
 
   async broadcastPermissionUpdate(context: NcContext) {

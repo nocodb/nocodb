@@ -1672,14 +1672,10 @@ export function useInfiniteData(args: {
       if (isUniqueConstraintViolationError(e)) {
         // Clear the cell value for unique constraint violations
         toUpdate.row[property] = null
-        // Use fieldName from response if available, otherwise use the message
+        // Use message directly from response (already includes field name)
         const errorData = e.response?.data
-        let errorMessage: string
-        if (errorData?.fieldName) {
-          errorMessage = `Field "${errorData.fieldName}": ${errorData.message || t('msg.error.uniqueConstraintViolation')}`
-        } else {
-          errorMessage = (await extractSdkResponseErrorMsg(e)) || t('msg.error.uniqueConstraintViolation')
-        }
+        const errorMessage =
+          errorData?.message || (await extractSdkResponseErrorMsg(e)) || t('msg.error.uniqueConstraintViolation')
         message.error(errorMessage)
         // Add visual cue (red border) - will be handled by cell component
         return undefined

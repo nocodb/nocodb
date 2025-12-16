@@ -2,28 +2,41 @@
 import { IntegrationsType } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import WorkflowFieldList from '~/components/smartsheet/workflow/sidebar/config/custom/common/WorkflowFieldList.vue'
-
-interface CreateRecordNodeConfig {
+interface UpdateRecordNodeConfig {
   modelId: string
+  rowId: string
   fields: Record<string, any>
 }
 
 const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions } = useWorkflowOrThrow()
 
+const workflowContext = inject(WorkflowVariableInj, null)
+
+const groupedVariables = computed(() => {
+  if (!selectedNodeId.value || !workflowContext?.getAvailableVariables) return []
+  return workflowContext.getAvailableVariables(selectedNodeId.value)
+})
+
+const flatVariables = computed(() => {
+  if (!selectedNodeId.value || !workflowContext?.getAvailableVariablesFlat) return []
+  return workflowContext.getAvailableVariablesFlat(selectedNodeId.value)
+})
+
 const { base } = storeToRefs(useBase())
 
-const config = computed<CreateRecordNodeConfig>(() => {
+const config = computed<UpdateRecordNodeConfig>(() => {
   return (selectedNode.value?.data?.config || {
     modelId: '',
+    rowId: '',
     fields: {},
-  }) as CreateRecordNodeConfig
+  }) as UpdateRecordNodeConfig
 })
 
 const tableOptions = ref<any[]>([])
 
 const columns = ref<ColumnType[]>([])
 
-const updateConfig = (updates: Partial<CreateRecordNodeConfig>) => {
+const updateConfig = (updates: Partial<UpdateRecordNodeConfig>) => {
   if (!selectedNodeId.value) return
   updateNode(selectedNodeId.value, {
     data: {
@@ -80,10 +93,15 @@ const onTableSelect = async (tableId?: string | null) => {
   }
   updateConfig({
     modelId: tableId,
+    rowId: config.value.rowId,
     fields: {},
   })
 
   await loadConfig('fields')
+}
+
+const updateRowId = (rowId: string) => {
+  updateConfig({ rowId })
 }
 
 const updateFields = (fields: Record<string, any>) => {
@@ -96,7 +114,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="create-record-config flex flex-col gap-4">
+  <div class="update-record-config flex flex-col gap-4">
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-nc-content-gray-emphasis">Table</label>
       <NcFormBuilderInputSelectTable
@@ -105,6 +123,17 @@ onMounted(() => {
         :multiple="false"
         :options="tableOptions"
         @update:value="onTableSelect"
+      />
+    </div>
+
+    <div v-if="config.modelId" class="flex flex-col gap-2">
+      <label class="text-sm font-medium text-nc-content-gray-emphasis">Record ID</label>
+      <NcFormBuilderInputWorkflowInput
+        :model-value="config.rowId"
+        :variables="flatVariables"
+        :grouped-variables="groupedVariables"
+        placeholder="Enter the record ID"
+        @update:model-value="updateRowId"
       />
     </div>
 

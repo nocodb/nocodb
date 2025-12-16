@@ -32,6 +32,8 @@ const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))!
 
 const isForm = inject(IsFormInj)!
 
+const isWorkflow = inject(isWorkflowInj, ref(false))!
+
 const isLinkRecordDropdown = inject(IsLinkRecordDropdownInj, ref(false))
 
 const focus: VNodeRef = (el) =>
@@ -176,7 +178,7 @@ const onTabPress = (e: KeyboardEvent) => {
       @mousedown.stop
     />
     <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
-    <div v-else-if="percentMeta.is_progress === true && vModel !== null && vModel !== undefined" class="px-2">
+    <div v-else-if="percentMeta.is_progress === true && vModel !== null && vModel !== undefined && !isWorkflow" class="px-2">
       <a-progress
         :percent="Number(parseFloat(vModel.toString()).toFixed(2))"
         size="small"

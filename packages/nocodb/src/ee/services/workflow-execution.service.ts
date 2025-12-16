@@ -661,9 +661,7 @@ export class WorkflowExecutionService {
           const errorMessages = validationResult.errors
             .map((e) => e.message)
             .join(', ');
-          NcError.get(context).badRequest(
-            `Node validation failed: ${errorMessages}`,
-          );
+          NcError.get(context).badRequest(errorMessages);
         }
       } catch (error) {
         this.logger.error(`Node validation error: ${targetNode.id}`, error);

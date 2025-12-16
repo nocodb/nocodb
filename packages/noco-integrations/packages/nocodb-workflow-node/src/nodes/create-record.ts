@@ -5,6 +5,7 @@ import {
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
+import { NON_EDITABLE_FIELDS } from '../utils/fields';
 import type {
   FormDefinition,
   WorkflowNodeConfig,
@@ -108,7 +109,13 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
         }
 
         return table.columns
-          .filter((col: any) => !NocoSDK.isSystemColumn(col))
+          .filter(
+            (col: any) =>
+              !(
+                NocoSDK.isSystemColumn(col) ||
+                NocoSDK.isUIType(col, NON_EDITABLE_FIELDS)
+              ),
+          )
           .map((col: any) => ({
             label: col.title,
             value: col.title,
@@ -180,6 +187,7 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
       const context = {
         workspace_id: ctx.workspaceId,
         base_id: ctx.baseId,
+        api_version: NocoSDK.NcApiVersion.V3,
       } as NocoSDK.NcContext;
 
       const result = await this.nocodb.dataService.dataInsert(context, {

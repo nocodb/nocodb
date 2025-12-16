@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { type TimeZone, getTimeZones } from '@vvo/tzdb'
-import cronstrue from 'cronstrue'
 import { CronExpressionParser } from 'cron-parser'
 import { computed, ref, watch } from 'vue'
 import { useWorkflowOrThrow } from '~/composables/useWorkflow'
@@ -33,8 +32,6 @@ interface CronTriggerNodeConfig {
 
 const { selectedNodeId, updateNode, selectedNode } = useWorkflowOrThrow()
 
-const { t } = useI18n()
-
 const config = computed<CronTriggerNodeConfig>(() => {
   return (selectedNode.value?.data?.config || {}) as CronTriggerNodeConfig
 })
@@ -54,7 +51,7 @@ const dayOfMonth = ref(1)
 const isValidStepInterval = (values: readonly (number | string)[], expectedStep: number): boolean => {
   const numericValues = values.filter((v): v is number => typeof v === 'number').sort((a, b) => a - b)
   if (numericValues.length < 2) return false
-  
+
   for (let i = 1; i < numericValues.length; i++) {
     if (numericValues[i] - numericValues[i - 1] !== expectedStep) {
       return false
@@ -214,18 +211,6 @@ const generateCronExpression = (): string => {
   }
 }
 
-const getCronDescription = (): string => {
-  try {
-    const cronExpr = generateCronExpression()
-    return cronstrue.toString(cronExpr, {
-      verbose: true,
-      use24HourTimeFormat: true,
-    })
-  } catch (error) {
-    return generateCronExpression()
-  }
-}
-
 const timezones = getTimeZones({ includeUtc: true }).sort((a, b) => a.name.localeCompare(b.name))
 
 const browserTzName = Intl.DateTimeFormat().resolvedOptions().timeZone
@@ -363,7 +348,7 @@ const intervalOptions = [
           <NcSelect v-model:value="hourOfDay" @change="updateIntervalConfig">
             <a-select-option v-for="hour in hoursOptions" :key="hour" :value="hour">
               <div class="flex items-center justify-between">
-                {{ (hour % 12) || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
+                {{ hour % 12 || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
                 <GeneralIcon v-if="hourOfDay === hour" id="nc-selected-item-icon" class="text-primary w-4 h-4" icon="ncCheck" />
               </div>
             </a-select-option>
@@ -383,7 +368,8 @@ const intervalOptions = [
           </NcSelect>
         </div>
         <div class="text-xs text-nc-content-gray-muted mt-1">
-          Run at {{ (hourOfDay % 12) || 12 }}:{{ minuteOfHour.toString().padStart(2, '0') }} {{ hourOfDay >= 12 ? 'PM' : 'AM' }} every day
+          Run at {{ hourOfDay % 12 || 12 }}:{{ minuteOfHour.toString().padStart(2, '0') }}
+          {{ hourOfDay >= 12 ? 'PM' : 'AM' }} every day
         </div>
       </a-form-item>
     </template>
@@ -409,7 +395,7 @@ const intervalOptions = [
             <NcSelect v-model:value="hourOfDay" @change="updateIntervalConfig">
               <a-select-option v-for="hour in hoursOptions" :key="hour" :value="hour">
                 <div class="flex items-center justify-between">
-                  {{ (hour % 12) || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
+                  {{ hour % 12 || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
                   <GeneralIcon v-if="hourOfDay === hour" id="nc-selected-item-icon" class="text-primary w-4 h-4" icon="ncCheck" />
                 </div>
               </a-select-option>
@@ -430,8 +416,10 @@ const intervalOptions = [
           </div>
         </div>
         <div class="text-xs text-nc-content-gray-muted mt-1">
-          Run on {{ daysOfWeekOptions.find((d) => d.value === dayOfWeek)?.label }} at
-          {{ (hourOfDay % 12) || 12 }}:{{ minuteOfHour.toString().padStart(2, '0') }} {{ hourOfDay >= 12 ? 'PM' : 'AM' }}
+          Run on {{ daysOfWeekOptions.find((d) => d.value === dayOfWeek)?.label }} at {{ hourOfDay % 12 || 12 }}:{{
+            minuteOfHour.toString().padStart(2, '0')
+          }}
+          {{ hourOfDay >= 12 ? 'PM' : 'AM' }}
         </div>
       </a-form-item>
     </template>
@@ -452,7 +440,7 @@ const intervalOptions = [
             <NcSelect v-model:value="hourOfDay" @change="updateIntervalConfig">
               <a-select-option v-for="hour in hoursOptions" :key="hour" :value="hour">
                 <div class="flex items-center justify-between">
-                  {{ (hour % 12) || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
+                  {{ hour % 12 || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
                   <GeneralIcon v-if="hourOfDay === hour" id="nc-selected-item-icon" class="text-primary w-4 h-4" icon="ncCheck" />
                 </div>
               </a-select-option>
@@ -473,7 +461,8 @@ const intervalOptions = [
           </div>
         </div>
         <div class="text-xs text-nc-content-gray-muted mt-1">
-          Run on day {{ dayOfMonth }} at {{ (hourOfDay % 12) || 12 }}:{{ minuteOfHour.toString().padStart(2, '0') }} {{ hourOfDay >= 12 ? 'PM' : 'AM' }} every month
+          Run on day {{ dayOfMonth }} at {{ hourOfDay % 12 || 12 }}:{{ minuteOfHour.toString().padStart(2, '0') }}
+          {{ hourOfDay >= 12 ? 'PM' : 'AM' }} every month
         </div>
       </a-form-item>
     </template>
@@ -485,7 +474,7 @@ const intervalOptions = [
         allow-clear
         :filter-option="(input, option) => antSelectFilterOption(input, option, ['key', 'data-abbreviation'])"
         dropdown-class-name="nc-dropdown-timezone"
-        :placeholder="t('workflow.selectTimezone')"
+        placeholder="Select timezone"
         class="nc-search-timezone"
         @change="onTimezoneChange"
       >

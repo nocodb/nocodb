@@ -76,9 +76,13 @@ export class PgDBErrorExtractor implements IClientDbErrorExtractor {
 
           // Update message to be more descriptive if we have column info
           if (columnName) {
-            message = `Unique constraint violation: The value${
-              duplicateValue ? ` '${duplicateValue}'` : ''
-            } already exists for the ${columnName} field.`;
+            if (duplicateValue === 'unknown') {
+              message = `Unique constraint violation: A record with the same value already exists for the ${columnName} field.`;
+            } else {
+              message = `Unique constraint violation: The value${
+                duplicateValue ? ` '${duplicateValue}'` : ''
+              } already exists for the ${columnName} field.`;
+            }
           }
         }
 

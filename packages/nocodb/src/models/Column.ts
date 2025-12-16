@@ -812,6 +812,7 @@ export default class Column<T = any> implements ColumnType {
         } catch {
           colData.meta = {};
         }
+        colData.internal_meta = parseMetaProp(colData, 'internal_meta');
         await NocoCache.set(context, `${CacheScope.COLUMN}:${colId}`, colData);
       }
     }

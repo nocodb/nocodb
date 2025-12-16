@@ -295,7 +295,9 @@ export class DataAttachmentV3Service {
       }
     } catch (error) {
       this.logger.error(`${error?.constructor?.name}: ${error?.message}`);
-      NcError.unprocessableEntity(`Failed to process base64 attachment`);
+      NcError.get(context).unprocessableEntity(
+        `Failed to process base64 attachment`,
+      );
     }
 
     const updatedAttachments = [...currentAttachments, ...processedAttachments];

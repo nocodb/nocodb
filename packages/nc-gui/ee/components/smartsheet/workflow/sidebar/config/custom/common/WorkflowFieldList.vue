@@ -135,8 +135,9 @@ const updateFieldValue = (fieldId: string, value: any) => {
   emit('update:modelValue', updatedFields)
 }
 
-const addField = (col: ColumnOption) => {
-  if (col.ncItemDisabled || !col.column?.id) return
+const addField = (colTitle: string) => {
+  const col = props.columns.find((c) => c.column?.title === colTitle)
+  if (!col || col.ncItemDisabled || !col.column?.id) return
   addedFieldIds.value.add(col.column.id)
   // Set default mode for the field
   if (isDynamicOnly(col)) {
@@ -222,25 +223,21 @@ watch(
           </div>
         </NcButton>
         <template #overlay>
-          <NcMenu class="max-h-96 overflow-auto nc-scrollbar-thin">
-            <template v-if="availableFields.length > 0">
-              <template v-for="col in availableFields" :key="col.column?.id">
-                <NcTooltip v-if="col" :disabled="!col.ncItemDisabled" placement="right">
-                  <NcMenuItem :disabled="col.ncItemDisabled" @click="addField(col)">
-                    <div class="flex items-center gap-2">
-                      <SmartsheetHeaderIcon :column="col.column" />
-                      <span>{{ col.column.title }}</span>
-                    </div>
-                  </NcMenuItem>
-
-                  <template #title>
-                    {{ col.ncItemTooltip }}
-                  </template>
-                </NcTooltip>
-              </template>
+          <NcList
+            v-model:open="isFieldSelectorOpen"
+            :list="availableFields"
+            variant="medium"
+            class="!w-auto"
+            wrapper-class-name="!h-auto"
+            @escape="isFieldSelectorOpen = false"
+            @update:value="addField"
+          >
+            <template #listItemExtraLeft="{ option }">
+              <div class="min-w-5 flex items-center justify-center">
+                <SmartsheetHeaderIcon :column="option.column" color="text-nc-content-gray-muted" />
+              </div>
             </template>
-            <div v-else class="px-3 py-2 text-sm text-nc-content-gray-muted">All fields have been added</div>
-          </NcMenu>
+          </NcList>
         </template>
       </NcDropdown>
     </div>

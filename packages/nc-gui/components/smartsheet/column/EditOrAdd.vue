@@ -530,8 +530,6 @@ onMounted(() => {
           if (formState.value.cdf) {
             formState.value.cdf = null
           }
-          // Show the input box in disabled state
-          isVisibleDefaultValueInput.value = true
         }
       },
     )

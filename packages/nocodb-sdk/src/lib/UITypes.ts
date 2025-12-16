@@ -490,7 +490,7 @@ export const isSelectTypeCol = (
   );
 };
 
-export const isUIType = <T extends UITypes>(
+export const isInUIType = <T extends UITypes>(
   colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string,
   types: T | readonly T[]
 ): colOrUidt is (ColumnType & { uidt: T }) | { uidt: T } | T => {

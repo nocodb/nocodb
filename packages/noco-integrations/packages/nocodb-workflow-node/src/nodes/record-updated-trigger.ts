@@ -151,7 +151,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
           ?.filter(
             (f) =>
               !(
-                NocoSDK.isUIType(f, NON_EDITABLE_FIELDS) ||
+                NocoSDK.isInUIType(f, NON_EDITABLE_FIELDS) ||
                 NocoSDK.isSystemColumn(f)
               ),
           )

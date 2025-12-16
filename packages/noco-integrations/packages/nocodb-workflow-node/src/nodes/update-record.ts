@@ -76,8 +76,8 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
           .map((col: any) => ({
             label: col.title,
             value: col.title,
-            ncItemDisabled: NocoSDK.isUIType(col, NON_EDITABLE_FIELDS),
-            ncItemTooltip: NocoSDK.isUIType(col, NON_EDITABLE_FIELDS)
+            ncItemDisabled: NocoSDK.isInUIType(col, NON_EDITABLE_FIELDS),
+            ncItemTooltip: NocoSDK.isInUIType(col, NON_EDITABLE_FIELDS)
               ? 'Computed fields cannot be updated'
               : null,
             column: col,

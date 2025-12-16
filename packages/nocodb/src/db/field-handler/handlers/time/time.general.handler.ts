@@ -84,6 +84,8 @@ export class TimeGeneralHandler extends GenericFieldHandler {
       'le',
       'btw',
       'nbtw',
+      'gb_eq',
+      'gb_null',
     ];
 
     if (!supportedOperations.includes(filter.comparison_op)) {
@@ -97,9 +99,18 @@ export class TimeGeneralHandler extends GenericFieldHandler {
 
     // For comparison operations that need a value, validate the time format
     if (
-      ['eq', 'neq', 'not', 'gt', 'lt', 'gte', 'lte', 'ge', 'le'].includes(
-        filter.comparison_op,
-      ) &&
+      [
+        'eq',
+        'neq',
+        'not',
+        'gt',
+        'lt',
+        'gte',
+        'lte',
+        'ge',
+        'le',
+        'gb_eq',
+      ].includes(filter.comparison_op) &&
       filter.value
     ) {
       // Try to parse the filter value as time

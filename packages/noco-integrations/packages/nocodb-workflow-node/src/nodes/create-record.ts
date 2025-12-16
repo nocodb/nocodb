@@ -75,8 +75,8 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
           .map((col: any) => ({
             label: col.title,
             value: col.title,
-            ncItemDisabled: NocoSDK.isUIType(col, NON_EDITABLE_FIELDS),
-            ncItemTooltip: NocoSDK.isUIType(col, NON_EDITABLE_FIELDS)
+            ncItemDisabled: NocoSDK.isInUIType(col, NON_EDITABLE_FIELDS),
+            ncItemTooltip: NocoSDK.isInUIType(col, NON_EDITABLE_FIELDS)
               ? 'Computed fields cannot be added'
               : null,
             column: col,

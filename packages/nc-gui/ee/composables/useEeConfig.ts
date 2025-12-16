@@ -1270,6 +1270,7 @@ export const useEeConfig = createSharedComposable(() => {
       }),
       callback,
       limitOrFeature: PlanFeatureTypes.FEATURE_UNIQUE,
+      requiredPlan: PlanTitles.BUSINESS,
     })
 
     return true

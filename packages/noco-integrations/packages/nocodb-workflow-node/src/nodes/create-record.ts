@@ -3,7 +3,7 @@ import {
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
-import { NON_EDITABLE_FIELDS } from '../utils/fields';
+import { NON_EDITABLE_FIELDS, normalizeRelationInput } from '../utils/fields';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -161,8 +161,13 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
       if (table && table.columns) {
         Object.entries(fields).forEach(([fieldId, value]) => {
           const column = table.columns.find((col: any) => col.id === fieldId);
+          if (!column || !column.title) return;
           if (column?.title) {
             transformedFields[column.title] = value;
+          }
+
+          if (NocoSDK.isLinksOrLTAR(column)) {
+            transformedFields[column.title] = normalizeRelationInput(value);
           }
         });
       }

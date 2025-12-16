@@ -1,4 +1,9 @@
-import { NcApiVersion, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  isLinksOrLTAR,
+  NcApiVersion,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import { Injectable, Logger } from '@nestjs/common';
 import { LTARColsUpdater } from 'src/db/BaseModelSqlv2/ltar-cols-updater';
 import type {
@@ -609,9 +614,7 @@ export class DataV3Service {
       param.modelId,
     );
 
-    const ltarColumns = columns.filter(
-      (col) => col.uidt === UITypes.LinkToAnotherRecord,
-    );
+    const ltarColumns = columns.filter((col) => isLinksOrLTAR(col));
 
     // Transform the request body to match internal format
     const transformedBody = Array.isArray(param.body)
@@ -780,9 +783,7 @@ export class DataV3Service {
       param.modelId,
     );
     profiler.log(`getModelInfo done`);
-    const ltarColumns = columns.filter(
-      (col) => col.uidt === UITypes.LinkToAnotherRecord,
-    );
+    const ltarColumns = columns.filter((col) => isLinksOrLTAR(col));
 
     // Transform the request body to match internal format
     const transformedBody = Array.isArray(param.body)

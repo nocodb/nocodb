@@ -10,7 +10,6 @@ import type {
   FilterVerificationResult,
 } from '~/db/field-handler/field-handler.interface';
 import type CustomKnex from '~/db/CustomKnex';
-import type { Knex } from '~/db/CustomKnex';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
 dayjs.extend(utc);
@@ -151,12 +150,7 @@ export class TimeGeneralHandler extends GenericFieldHandler {
       }
 
       if (parsedTime.isValid()) {
-        // Format to match database storage format
-        const isMysql = knex.clientType().startsWith('mysql');
-        const dateFormat = isMysql
-          ? 'YYYY-MM-DD HH:mm:ss'
-          : 'YYYY-MM-DD HH:mm:ssZ';
-        parsedVal = parsedTime.format(dateFormat);
+        parsedVal = parsedTime.format(this.getTimeFormat());
       }
     }
 
@@ -165,77 +159,5 @@ export class TimeGeneralHandler extends GenericFieldHandler {
       { knex, filter, column },
       options,
     );
-  }
-
-  override async filterGt(
-    args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
-      val: any;
-    },
-    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
-    _options: FilterOptions,
-  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
-    return {
-      rootApply: undefined,
-      clause: (qb: Knex.QueryBuilder) => {
-        qb.where((nestedQb) => {
-          nestedQb.where(args.sourceField as any, '>', args.val);
-        });
-      },
-    };
-  }
-
-  override async filterGte(
-    args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
-      val: any;
-    },
-    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
-    _options: FilterOptions,
-  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
-    return {
-      rootApply: undefined,
-      clause: (qb: Knex.QueryBuilder) => {
-        qb.where((nestedQb) => {
-          nestedQb.where(args.sourceField as any, '>=', args.val);
-        });
-      },
-    };
-  }
-
-  override async filterLt(
-    args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
-      val: any;
-    },
-    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
-    _options: FilterOptions,
-  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
-    return {
-      rootApply: undefined,
-      clause: (qb: Knex.QueryBuilder) => {
-        qb.where((nestedQb) => {
-          nestedQb.where(args.sourceField as any, '<', args.val);
-        });
-      },
-    };
-  }
-
-  override async filterLte(
-    args: {
-      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
-      val: any;
-    },
-    _rootArgs: { knex: CustomKnex; filter: Filter; column: Column },
-    _options: FilterOptions,
-  ): Promise<{ rootApply: any; clause: (qb: Knex.QueryBuilder) => void }> {
-    return {
-      rootApply: undefined,
-      clause: (qb: Knex.QueryBuilder) => {
-        qb.where((nestedQb) => {
-          nestedQb.where(args.sourceField as any, '<=', args.val);
-        });
-      },
-    };
   }
 }

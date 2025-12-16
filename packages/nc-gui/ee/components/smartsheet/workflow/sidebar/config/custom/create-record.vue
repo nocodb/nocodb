@@ -21,8 +21,14 @@ const config = computed<CreateRecordNodeConfig>(() => {
 
 const tableOptions = ref<any[]>([])
 
-const columns = ref<any[]>([])
-
+const columns = ref<
+  Array<{
+    label: string
+    value: string
+    ncItemDisabled: boolean
+    column: ColumnType
+  }>
+>([])
 const updateConfig = (updates: Partial<CreateRecordNodeConfig>) => {
   if (!selectedNodeId.value) return
   updateNode(selectedNodeId.value, {

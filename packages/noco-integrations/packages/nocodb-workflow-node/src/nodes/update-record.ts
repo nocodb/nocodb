@@ -298,17 +298,6 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         });
       });
 
-      variables.push({
-        key: 'config.fields',
-        name: 'Fields',
-        type: NocoSDK.VariableType.Object,
-        groupKey: NocoSDK.VariableGroupKey.Fields,
-        extra: {
-          icon: 'cellJson',
-          description: 'Field values for record update',
-        },
-      });
-
       return variables;
     } catch {
       return [];

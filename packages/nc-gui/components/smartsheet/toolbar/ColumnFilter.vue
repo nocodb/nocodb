@@ -1118,7 +1118,7 @@ defineExpose({
 
                   <div v-else-if="!isDateType(types[filter.fk_column_id])" class="flex-grow"></div>
                 </template>
-                <template v-if="workflow">
+                <template v-if="workflow && showDynamicCondition">
                   <NcDropdown
                     class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
                     :trigger="['click']"

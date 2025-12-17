@@ -3,6 +3,7 @@ import { IntegrationsType } from 'nocodb-sdk'
 import IfNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/if/index.vue'
 import ListRecordsNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/list-records.vue'
 import CronTriggerNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/cron-trigger.vue'
+import RecordMatchesConditionTriggerConfig from '~/components/smartsheet/workflow/sidebar/config/custom/record-matches-condition-trigger.vue'
 
 const {
   selectedNodeId,
@@ -84,6 +85,7 @@ const FormNodeMap = {
   'core.flow.if': IfNodeConfig,
   'nocodb.list_records': ListRecordsNodeConfig,
   'core.trigger.cron': CronTriggerNodeConfig,
+  'nocodb.trigger.record_matches_condition': RecordMatchesConditionTriggerConfig,
 }
 
 const formSchema = computed(() => {

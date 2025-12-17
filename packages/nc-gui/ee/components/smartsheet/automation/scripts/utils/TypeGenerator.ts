@@ -2831,9 +2831,9 @@ declare interface Table {
    * @param params - Action parameters
    * @param params.rowIds - Array of record IDs to process (max 25)
    * @param params.columnId - ID of the Button field to trigger
-   * @returns Response from the action
+   * @returns Array of updated records
    */
-  generateRowsAsync(params: { rowIds: string[]; columnId: string }): Promise<any>;
+  generateRowsAsync(params: { rowIds: string[]; columnId: string }): Promise<NocoDBRecord[]>;
 
     /**
    * Delete a record.
@@ -3908,10 +3908,10 @@ declare interface ConfigItem {}
       '@param params - Action parameters',
       '@param params.rowIds - Array of record IDs to process (max 25)',
       '@param params.columnId - ID of the Button field to trigger',
-      '@returns Response from the action',
+      '@returns Array of updated records',
     ])
 
-    this.write(`generateRowsAsync(params: { rowIds: string[]; columnId: string }): Promise<any>`)
+    this.write(`generateRowsAsync(params: { rowIds: string[]; columnId: string }): Promise<${interfaceName}[]>`)
 
     // getView
     this.write(`/**

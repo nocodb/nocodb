@@ -1960,14 +1960,13 @@ Object.freeze(UITypes);
 
       const requestBody = {
         rowIds,
-        column: columnId,
         preview: false
       };
 
       try {
-        // TODO: Replace with api.triggerAction() once added to SDK
-        const response = await api.__triggerAction(this.id, requestBody);
-        return response;
+        const response = await api.triggerAction(this.base.id, this.id, columnId, requestBody);
+        // Convert response to NocoDBRecord objects
+        return response.map(record => new NocoDBRecord(record, this));
       } catch (e) {
         throw new Error(\`Failed to trigger action in table \${this.name}: \${e.message}\`);
       }

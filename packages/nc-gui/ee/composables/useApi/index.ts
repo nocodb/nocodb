@@ -76,29 +76,7 @@ export function useApi<Data = any, RequestConfig = any>({
   const api = useGlobalInstance && !!nuxtApp.$api ? nuxtApp.$api : createApiInstance(apiOptions)
 
   /** api internalApi - with interceptors for token refresh already bound */
-  const internalApi = createApiInstance({ ...apiOptions, internal: true }) as InternalApi<any>
-
-  // TODO: Add triggerAction to SDK swagger spec and remove this temporary implementation
-  // Temporary custom implementation for triggerAction until added to SDK
-  if (internalApi && internalApi.api) {
-    ;(internalApi.api as any).__triggerAction = async (tableId: string, body: any) => {
-      const response = await fetch(`${internalApi.instance.defaults.baseURL}/api/v2/ai/tables/${tableId}/rows/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'xc-auth': nuxtApp.$state.token.value || '',
-        },
-        body: JSON.stringify(body),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(`HTTP ${response.status}: ${errorData.msg || response.statusText}`)
-      }
-
-      return await response.json()
-    }
-  }
+  const internalApi = createApiInstance({ ...apiOptions, internal: true })
 
   /** set loading to true and increment local and global request counter */
   // Long Polling causes the loading spinner to never stop

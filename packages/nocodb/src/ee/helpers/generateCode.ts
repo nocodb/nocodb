@@ -2014,14 +2014,13 @@ Object.freeze(UITypes);
 
       const requestBody = {
         rowIds,
-        column: columnId,
         preview: false
       };
 
       try {
-        // TODO: Replace with api.triggerAction() once added to SDK
-        const response = await api.__triggerAction(this.id, requestBody);
-        return response;
+        const response = await api.triggerAction(this.base.id, this.id, columnId, requestBody);
+        // Convert response to NocoDBRecord objects
+        return response.map(record => new NocoDBRecord(record, this));
       } catch (e) {
         throw new Error(\`Failed to trigger action in table \${this.name}: \${e.message}\`);
       }
@@ -2184,33 +2183,12 @@ function generateSessionApi(user: any): string {
 
 function generateApiProxy(req: NcRequest): string {
   return `
-  const __internalApiInstance = new InternalApi({
+  const api = (new InternalApi({
     baseURL: "${req.ncSiteUrl}",
     headers: {
       "xc-auth": "${req.headers['xc-auth']}"
     }
-  });
-  const api = __internalApiInstance.api;
-
-  // TODO: Add triggerAction to SDK swagger spec and remove this temporary implementation
-  // Temporary custom implementation for triggerAction until added to SDK
-  api.__triggerAction = async (tableId, body) => {
-    const response = await fetch(\`\${__internalApiInstance.instance.defaults.baseURL}/api/v2/ai/tables/\${tableId}/rows/generate\`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'xc-auth': __internalApiInstance.instance.defaults.headers['xc-auth']
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(\`HTTP \${response.status}: \${errorData.msg || response.statusText}\`);
-    }
-
-    return await response.json();
-  };
+  })).api
 `;
 }
 

@@ -125,6 +125,48 @@ const findAllChildNodes = (nodeId: string, edges: Edge[]): Set<string> => {
   return children
 }
 
+/**
+ * Find which output port from an iterate node leads to a target node
+ * Recursively follows edges to determine the port path
+ * @param iterateNodeId - The iterate node ID
+ * @param targetNodeId - The target node ID we're trying to reach
+ * @param edges - All edges in the workflow
+ * @returns The port ID ('body' or 'output') or null if no path found
+ */
+const findIterateNodePortForPath = (iterateNodeId: string, targetNodeId: string, edges: Edge[]): string | null => {
+  // Find all edges from the iterate node
+  const iterateEdges = edges.filter((e) => e.source === iterateNodeId)
+
+  // For each output port from the iterate node
+  for (const edge of iterateEdges) {
+    const portId = edge.sourceHandle
+
+    // Check if this edge leads to the target node (directly or indirectly)
+    const visited = new Set<string>()
+    const queue = [edge.target]
+
+    while (queue.length > 0) {
+      const currentNodeId = queue.shift()!
+
+      if (currentNodeId === targetNodeId) {
+        // Found a path from this port to the target node
+        return portId as string
+      }
+
+      if (visited.has(currentNodeId)) continue
+      visited.add(currentNodeId)
+
+      // Add all child nodes to the queue
+      const childEdges = edges.filter((e) => e.source === currentNodeId)
+      for (const childEdge of childEdges) {
+        queue.push(childEdge.target)
+      }
+    }
+  }
+
+  return null
+}
+
 export {
   generateUniqueNodeId,
   transformNode,
@@ -132,6 +174,7 @@ export {
   prefixVariableKeysRecursive,
   generateUniqueNodeTitle,
   findAllChildNodes,
+  findIterateNodePortForPath,
 }
 
 export type { UIWorkflowNodeDefinition }

@@ -12,6 +12,7 @@ enum VariableType {
 enum VariableGroupKey {
   Meta = 'meta', // System fields (id, createdAt, etc.)
   Fields = 'fields', // User data fields
+  Iteration = 'iteration', // Iteration variables (item, index for loops)
 }
 
 interface VariableDefinition {
@@ -66,6 +67,10 @@ interface VariableDefinition {
       title: string;
       field: string;
     }[];
+
+    // Port identifier for multi-port nodes (e.g., 'body', 'output' for iterate node)
+    // Used to filter variables based on which port is being accessed
+    port?: string;
   };
 
   // Nested variables for objects/arrays

@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { VariableDefinition } from 'nocodb-sdk'
+import { WorkflowNodeCategory } from 'nocodb-sdk'
 
 interface NodeGroup {
   nodeId: string
   nodeTitle: string
+  category: WorkflowNodeCategory
   variables: VariableDefinition[]
 }
 
@@ -21,8 +23,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 // State
 const selectedNodeIndex = ref(0)
+
 const selectedVariableIndex = ref(0)
+
 const searchQuery = ref(props.query || '')
+
 const navigationStack = ref<{ title: string; variables: VariableDefinition[] }[]>([])
 
 const nodeGroups = computed(() => {
@@ -74,7 +79,6 @@ const currentTitle = computed(() => {
   return 'Choose data'
 })
 
-// Filtered variables based on search
 const filteredVariables = computed(() => {
   if (!searchQuery.value) {
     return currentVariables.value
@@ -89,11 +93,12 @@ const filteredVariables = computed(() => {
   )
 })
 
-// Group variables by groupKey (fields, meta, etc.)
+// Group variables by groupKey (fields, meta, iteration, etc.)
 const groupedVariables = computed(() => {
   const groups: Record<string, VariableDefinition[]> = {
     fields: [],
     meta: [],
+    iteration: [],
     other: [],
   }
 
@@ -108,13 +113,12 @@ const groupedVariables = computed(() => {
   return groups
 })
 
-// Check if there are any variables
 const hasVariables = computed(() => filteredVariables.value.length > 0)
 
-// Group labels
 const groupLabels: Record<string, string> = {
   fields: 'Insert value from field',
   meta: 'System fields',
+  iteration: 'Iteration variables',
   other: 'Other',
 }
 
@@ -125,13 +129,15 @@ const scrollToSelected = () => {
   })
 }
 
-// Navigation into nested objects
+const currentParentVariable = ref<VariableDefinition | null>(null)
+
 const navigateInto = (variable: VariableDefinition) => {
   if (variable.children && variable.children.length > 0) {
     navigationStack.value.push({
       title: variable.name,
       variables: variable.children,
     })
+    currentParentVariable.value = variable
     selectedVariableIndex.value = 0
     searchQuery.value = ''
   }
@@ -141,6 +147,15 @@ const goBack = () => {
   if (navigationStack.value.length > 0) {
     navigationStack.value.pop()
     selectedVariableIndex.value = 0
+    if (navigationStack.value.length > 0) {
+      const parentLevel = navigationStack.value[navigationStack.value.length - 2]
+      if (parentLevel) {
+        currentParentVariable.value =
+          parentLevel.variables.find((v) => v.name === navigationStack.value[navigationStack.value.length - 1].title) || null
+      }
+    } else {
+      currentParentVariable.value = null
+    }
   }
 }
 
@@ -162,7 +177,6 @@ const leftHandler = () => {
   }
 }
 
-// Select a variable
 const selectVariable = (variable: VariableDefinition) => {
   const expression = `{{ ${variable.key} }}`
 
@@ -183,7 +197,6 @@ const rightHandler = () => {
 const enterHandler = () => {
   const variable = filteredVariables.value[selectedVariableIndex.value]
   if (variable) {
-    // If has children, navigate into it
     if (variable.children && variable.children.length > 0) {
       navigateInto(variable)
     } else {
@@ -192,7 +205,6 @@ const enterHandler = () => {
   }
 }
 
-// Keyboard navigation
 const onKeyDown = ({ event }: { event: KeyboardEvent }) => {
   if (event.key === 'ArrowUp') {
     upHandler()
@@ -228,21 +240,17 @@ const onKeyDown = ({ event }: { event: KeyboardEvent }) => {
   return false
 }
 
-// Select node
 const selectNode = (index: number) => {
   selectedNodeIndex.value = index
   selectedVariableIndex.value = 0
   navigationStack.value = []
 }
 
-// Get icon for variable type
 const getVariableIcon = (variable: VariableDefinition) => {
-  // Use icon from variable definition if available
   if (variable.extra?.icon) {
     return variable.extra.icon
   }
 
-  // Array types
   if (variable.isArray || variable.type === 'array') {
     return 'cellJson'
   }
@@ -265,7 +273,6 @@ const getVariableIcon = (variable: VariableDefinition) => {
   }
 }
 
-// Get icon for node
 const getNodeIcon = (node: NodeGroup) => {
   const firstVar = node.variables[0]
   if (firstVar?.extra?.nodeIcon) {
@@ -274,7 +281,6 @@ const getNodeIcon = (node: NodeGroup) => {
   return 'ncAutomation'
 }
 
-// Reset selection when node changes
 watch(selectedNodeIndex, () => {
   selectedVariableIndex.value = 0
   navigationStack.value = []
@@ -292,7 +298,6 @@ defineExpose({
     style="width: 560px; max-height: 400px"
     @mousedown.stop
   >
-    <!-- Left Panel: Node Selection -->
     <div class="nc-variable-picker-nodes w-[220px] border-r border-nc-border-gray-medium flex flex-col">
       <div class="px-3 py-2 text-sm font-semibold text-nc-content-gray-emphasis border-b border-nc-border-gray-light">
         Use data from...
@@ -310,9 +315,15 @@ defineExpose({
         >
           <div
             class="w-8 h-8 rounded-md flex items-center justify-center"
-            :class="index === selectedNodeIndex ? 'bg-nc-bg-brand' : 'bg-nc-bg-gray-medium'"
+            :class="{
+              'bg-nc-bg-brand text-nc-content-brand-disabled': [
+                WorkflowNodeCategory.TRIGGER,
+                WorkflowNodeCategory.ACTION,
+              ].includes(node.category),
+              'bg-nc-bg-maroon-dark text-nc-content-maroon-dark': node.category === WorkflowNodeCategory.FLOW,
+            }"
           >
-            <GeneralIcon :icon="getNodeIcon(node)" class="w-4 h-4 text-nc-content-gray-emphasis" />
+            <GeneralIcon :icon="getNodeIcon(node)" class="w-4 h-4" />
           </div>
           <div class="flex-1 min-w-0">
             <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ node.nodeTitle }}</div>
@@ -340,14 +351,7 @@ defineExpose({
 
       <!-- Search -->
       <div class="px-3 py-2 border-b border-nc-border-gray-light">
-        <a-input
-          v-model:value="searchQuery"
-          size="small"
-          placeholder="Search..."
-          class="!rounded-md nc-input-shadow"
-          allow-clear
-          @click.stop
-        >
+        <a-input v-model:value="searchQuery" placeholder="Search..." class="!rounded-md nc-input-shadow" allow-clear @click.stop>
           <template #prefix>
             <GeneralIcon icon="search" class="text-nc-content-gray-disabled w-4 h-4" />
           </template>
@@ -365,27 +369,59 @@ defineExpose({
             <div
               v-for="variable in groupedVariables.fields"
               :key="variable.key"
-              class="nc-variable-item flex items-center gap-2 px-3 py-2 mx-2 rounded-md cursor-pointer transition-colors"
+              class="nc-variable-item flex items-center gap-2 px-3 py-2 mx-2 rounded-md transition-colors"
               :class="{
-                'is-selected bg-nc-bg-gray-medium': filteredVariables.indexOf(variable) === selectedVariableIndex,
-                'hover:bg-nc-bg-gray-light': filteredVariables.indexOf(variable) !== selectedVariableIndex,
+                'is-selected bg-nc-bg-gray-light': filteredVariables.indexOf(variable) === selectedVariableIndex,
+                'hover:bg-nc-bg-gray-extralight': filteredVariables.indexOf(variable) !== selectedVariableIndex,
               }"
-              @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
             >
-              <div class="w-7 h-7 rounded flex items-center justify-center bg-nc-bg-gray-medium">
-                <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
-                <div v-if="variable?.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
-                  {{ variable.extra.description }}
+              <div
+                class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
+              >
+                <div class="w-7 h-7 rounded flex items-center justify-center bg-nc-bg-gray-medium">
+                  <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
+                  <div v-if="variable?.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
+                    {{ variable.extra.description }}
+                  </div>
                 </div>
               </div>
-              <GeneralIcon
-                v-if="variable.children?.length"
-                icon="chevronRight"
-                class="w-4 h-4 text-nc-content-gray-disabled flex-none"
-              />
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
+            </div>
+          </template>
+
+          <!-- Iteration Group -->
+          <template v-if="groupedVariables.iteration?.length">
+            <div class="px-3 pt-3 pb-1 text-xs font-semibold text-nc-content-gray-muted uppercase tracking-wide">
+              {{ groupLabels.iteration }}
+            </div>
+            <div
+              v-for="variable in groupedVariables.iteration"
+              :key="variable.key"
+              class="nc-variable-item flex items-center gap-2 px-3 py-2 mx-2 rounded-md transition-colors"
+              :class="{
+                'is-selected bg-nc-bg-gray-light': filteredVariables.indexOf(variable) === selectedVariableIndex,
+                'hover:bg-nc-bg-gray-extralight': filteredVariables.indexOf(variable) !== selectedVariableIndex,
+              }"
+            >
+              <div
+                class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
+              >
+                <div class="w-7 h-7 rounded flex items-center justify-center bg-nc-bg-gray-medium">
+                  <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
+                  <div v-if="variable?.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
+                    {{ variable.extra.description }}
+                  </div>
+                </div>
+              </div>
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
             </div>
           </template>
 
@@ -396,27 +432,27 @@ defineExpose({
             <div
               v-for="variable in groupedVariables.meta"
               :key="variable.key"
-              class="nc-variable-item flex items-center gap-2 px-3 py-2 mx-2 rounded-md cursor-pointer transition-colors"
+              class="nc-variable-item flex items-center gap-2 px-3 py-2 mx-2 rounded-md transition-colors"
               :class="{
-                'is-selected bg-nc-bg-gray-medium': filteredVariables.indexOf(variable) === selectedVariableIndex,
-                'hover:bg-nc-bg-gray-light': filteredVariables.indexOf(variable) !== selectedVariableIndex,
+                'is-selected bg-nc-bg-gray-light': filteredVariables.indexOf(variable) === selectedVariableIndex,
+                'hover:bg-nc-bg-gray-extralight': filteredVariables.indexOf(variable) !== selectedVariableIndex,
               }"
-              @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
             >
-              <div class="w-7 h-7 rounded flex items-center justify-center bg-nc-bg-gray-medium">
-                <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
-                <div v-if="variable.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
-                  {{ variable.extra.description }}
+              <div
+                class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
+              >
+                <div class="w-7 h-7 rounded flex items-center justify-center bg-nc-bg-gray-medium">
+                  <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
+                  <div v-if="variable.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
+                    {{ variable.extra.description }}
+                  </div>
                 </div>
               </div>
-              <GeneralIcon
-                v-if="variable.children?.length"
-                icon="chevronRight"
-                class="w-4 h-4 text-nc-content-gray-disabled flex-none"
-              />
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
             </div>
           </template>
 
@@ -427,27 +463,27 @@ defineExpose({
             <div
               v-for="variable in groupedVariables.other"
               :key="variable.key"
-              class="nc-variable-item flex items-center gap-2 px-3 py-2 mx-2 rounded-md cursor-pointer transition-colors"
+              class="nc-variable-item flex items-center gap-2 px-3 py-2 mx-2 rounded-md transition-colors"
               :class="{
-                'is-selected bg-nc-bg-gray-medium': filteredVariables.indexOf(variable) === selectedVariableIndex,
-                'hover:bg-nc-bg-gray-light': filteredVariables.indexOf(variable) !== selectedVariableIndex,
+                'is-selected bg-nc-bg-gray-light': filteredVariables.indexOf(variable) === selectedVariableIndex,
+                'hover:bg-nc-bg-gray-extralight': filteredVariables.indexOf(variable) !== selectedVariableIndex,
               }"
-              @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
             >
-              <div class="w-7 h-7 rounded flex items-center justify-center bg-nc-bg-gray-medium">
-                <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
-              </div>
-              <div class="flex-1 min-w-0">
-                <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
-                <div v-if="variable.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
-                  {{ variable.extra.description }}
+              <div
+                class="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                @click="variable.children?.length ? navigateInto(variable) : selectVariable(variable)"
+              >
+                <div class="w-7 h-7 rounded flex items-center justify-center bg-nc-bg-gray-medium">
+                  <GeneralIcon :icon="getVariableIcon(variable)" class="w-4 h-4 text-nc-content-gray-subtle" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-nc-content-gray-emphasis truncate">{{ variable.name }}</div>
+                  <div v-if="variable.extra?.description" class="text-xs text-nc-content-gray-disabled truncate">
+                    {{ variable.extra.description }}
+                  </div>
                 </div>
               </div>
-              <GeneralIcon
-                v-if="variable.children?.length"
-                icon="chevronRight"
-                class="w-4 h-4 text-nc-content-gray-disabled flex-none"
-              />
+              <NcButton size="xs" type="secondary" class="flex-none" @click.stop="selectVariable(variable)"> Select </NcButton>
             </div>
           </template>
         </template>

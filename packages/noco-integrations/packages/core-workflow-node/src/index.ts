@@ -6,6 +6,7 @@ import { manifest } from './manifest';
 import { ManualTriggerNode } from './nodes/manual-trigger';
 import { CronTriggerNode } from './nodes/cron-trigger';
 import { IfNode } from './nodes/if';
+import { IterateNode } from './nodes/iterate';
 import { SendEmailAction } from './nodes/send-email';
 
 export const entries: IntegrationEntry[] = [
@@ -42,6 +43,18 @@ export const entries: IntegrationEntry[] = [
       title: 'If Condition',
       icon: 'ncIfElse',
       order: 5,
+    },
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'core.flow.iterate',
+    wrapper: IterateNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'Iterate',
+      icon: 'ncRepeat',
+      order: 6,
     },
   },
   {

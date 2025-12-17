@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Handle, Position } from '@vue-flow/core'
 import type { NodeProps } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
 import type { WorkflowNodeDefinition } from 'nocodb-sdk'
 import { GeneralNodeID, WorkflowNodeCategory } from 'nocodb-sdk'
 import WorkflowNodeStatusIcon from './WorkflowNodeStatusIcon.vue'
@@ -10,17 +10,8 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const {
-  getNodeMetaById,
-  updateNode,
-  addPlusNode,
-  triggerLayout,
-  deleteNode,
-  selectedNodeId,
-  edges,
-  viewingExecution,
-  activeTab,
-} = useWorkflowOrThrow()
+const { getNodeMetaById, updateNode, triggerLayout, deleteNode, selectedNodeId, viewingExecution, activeTab } =
+  useWorkflowOrThrow()
 
 const enableEditableMenu = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
 
@@ -48,36 +39,10 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
 
   selectedNodeId.value = props.id
 
-  const selectedNodeMeta = getNodeMetaById(option.id)
-
   $e('a:workflow:node:select-type', {
     node_type: option.id,
     node_category: option.category,
   })
-
-  if (props.type === GeneralNodeID.PLUS) {
-    const hasOutputs = edges.value.some((e) => e.source === props.id)
-
-    if (!hasOutputs) {
-      // If it's a branch node (multiple outputs), add multiple plus nodes
-      if (selectedNodeMeta?.output && selectedNodeMeta.output > 1) {
-        // Add plus nodes for each output
-        for (let i = 0; i < selectedNodeMeta.output; i++) {
-          const label = i === 0 ? 'True' : 'False'
-          addPlusNode(props.id, label)
-        }
-      } else {
-        // Regular node, add single plus node
-        addPlusNode(props.id)
-      }
-
-      // Wait for Vue Flow and layout to process
-      await nextTick()
-      setTimeout(() => {
-        triggerLayout()
-      }, 50)
-    }
-  }
 }
 
 const handleDelete = async () => {

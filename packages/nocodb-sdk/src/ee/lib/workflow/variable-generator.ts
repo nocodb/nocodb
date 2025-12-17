@@ -16,6 +16,7 @@ import { FormulaDataTypes } from '~/lib/formula/enums';
 export interface VariableGeneratorContext {
   getColumn?: (columnId: string) => Promise<ColumnType> | ColumnType;
   getTableColumns?: (tableId: string) => Promise<ColumnType[]> | ColumnType[];
+  port?: string; // Current port for multi-port nodes (e.g., 'body', 'output' for iterate node)
 }
 
 /**

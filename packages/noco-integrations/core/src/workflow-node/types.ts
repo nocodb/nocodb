@@ -73,6 +73,14 @@ export interface WorkflowNodeResult {
   status?: 'success' | 'pending' | 'skipped' | 'error' | 'running';
 
   error?: { message: string; code?: string; data?: any };
+
+  /** Iteration metadata for iterate nodes */
+  meta?: {
+    iteration?: {
+      items: any[];
+      currentIndex: number;
+    };
+  }
 }
 
 export interface WorkflowNodeValidationResult {

@@ -639,9 +639,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
             if (!lookupRelation?.colOptions) break
 
-            const relatedTableMeta = await getMeta(
-              (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
-            )
+            let relatedTableMeta: TableType | null = null
+            const relatedTableId = (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id as string
+            try {
+              relatedTableMeta = await getMeta(relatedTableId, undefined, undefined, undefined, true)
+            } catch {
+              relatedTableMeta = await getPartialMeta(lookupRelation?.id, relatedTableId)
+            }
 
             nextCol = relatedTableMeta?.columns?.find(
               (c) => c.id === ((nextCol?.colOptions as LookupType).fk_lookup_column_id as string),

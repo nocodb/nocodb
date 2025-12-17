@@ -125,6 +125,7 @@ export class DuplicateDetectionService {
     };
   }
 
+  // keeping this function for future reference(bulk op or non-pg dbs), at the moment it's not used anywhere
   /**
    * Validates that a value doesn't violate unique constraint
    * @param context - NocoDB context

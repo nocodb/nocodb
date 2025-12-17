@@ -85,7 +85,8 @@ export function useKeyboardNavigation({
   const meta = inject(MetaInj, ref())
 
   const _handleKeyDown = async (e: KeyboardEvent) => {
-    if (isViewSearchActive() || isCreateViewActive() || isActiveElementInsideExtension()) return
+    if (isViewSearchActive() || isCreateViewActive() || isActiveElementInsideScriptPane() || isActiveElementInsideExtension())
+      return
     const activeDropdownEl = document.querySelector(
       '.nc-dropdown-single-select-cell.active,.nc-dropdown-multi-select-cell.active',
     )
@@ -101,7 +102,7 @@ export function useKeyboardNavigation({
     if (isDrawerOrModalExist() || isLinkDropdownExist() || isGeneralOverlayActive()) {
       // If Extension Pane is Active, ignore
       if (!isExtensionPaneActive()) return
-      else if (!isActiveElementInsideExtension() && isDrawerOrModalExist()) {
+      else if (!isActiveElementInsideExtension() && !isActiveElementInsideScriptPane() && isDrawerOrModalExist()) {
         // If extension pane open and active drawer or modal is not extension modal then we have to return, else it will prevent keyboard events
         return
       }

@@ -3911,7 +3911,7 @@ declare interface ConfigItem {}
       '@returns Array of updated records',
     ])
 
-    this.write(`generateRowsAsync(params: { rowIds: string[]; columnId: string }): Promise<${interfaceName}[]>`)
+    this.write(`generateRowsAsync(params: { rowIds: string[]; columnId: string }): Promise<${this.pascalCase(tableName, 'table')}Table_Record | null>`)
 
     // getView
     this.write(`/**

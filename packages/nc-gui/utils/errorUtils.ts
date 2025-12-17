@@ -79,12 +79,9 @@ export function isUniqueConstraintViolationError(e: Error & { response?: any }):
   const errorData = e.response.data
   // Check for FIELD_UNIQUE_CONSTRAINT_VIOLATION error code
   return (
-    errorData.error === 'FIELD_UNIQUE_CONSTRAINT_VIOLATION' ||
     errorData.error === NcErrorType.FIELD_UNIQUE_CONSTRAINT_VIOLATION ||
-    errorData.message?.includes('Duplicate value') ||
-    errorData.msg?.includes('Duplicate value') ||
-    errorData.message?.includes('Unique constraint violation') ||
-    errorData.msg?.includes('Unique constraint violation')
+    (errorData.message ?? errorData.msg)?.includes('Duplicate value') ||
+    (errorData.message ?? errorData.msg)?.includes('Unique constraint violation')
   )
 }
 

@@ -17,7 +17,8 @@
         "Views",
         "Fields",
         "View Filters",
-        "View Sorts"
+        "View Sorts",
+        "Scripts"
       ]
     },
     {
@@ -59,11 +60,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Base"
-                  },
-                  "description": "List of bases."
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Base"
+                      },
+                      "description": "List of bases."
+                    }
+                  }
                 },
                 "examples": {
                   "Example 1": {
@@ -1594,6 +1600,15 @@
         ],
         "parameters": [
           {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
             "name": "tableId",
             "in": "path",
             "required": true,
@@ -1661,7 +1676,6 @@
                           "table_id": "mrc5unwjdov67vr",
                           "title": "Grid View",
                           "type": "grid",
-                          "is_default": true,
                           "lock_type": "collaborative",
                           "created_at": "2025-06-26 15:02:56+00:00",
                           "updated_at": "2025-06-26 15:36:25+00:00"
@@ -2546,6 +2560,67 @@
           }
         }
       },
+      "put": {
+        "summary": "Replace filter",
+        "description": "Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request.",
+        "operationId": "view-filter-replace",
+        "tags": [
+          "View Filters"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view. It overwrites all existing filters."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterCreateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Filter or group updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterCreateUpdate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Filter or group not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/filters/{filterId}": {
       "patch": {
         "summary": "Update filter",
         "description": "Update the details of an existing filter or group.",
@@ -2623,7 +2698,7 @@
             "description": "Unique identifier for the base."
           },
           {
-            "name": "viewId",
+            "name": "filterId",
             "in": "path",
             "required": true,
             "schema": {
@@ -2635,56 +2710,6 @@
         "responses": {
           "204": {
             "description": "Filter or group deleted successfully."
-          },
-          "404": {
-            "description": "Filter or group not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "put": {
-        "summary": "Replace filter",
-        "description": "Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request.",
-        "operationId": "view-filter-replace",
-        "tags": [
-          "View Filters"
-        ],
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view. It overwrites all existing filters."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterCreateUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Filter or group updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilterCreateUpdate"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
           },
           "404": {
             "description": "Filter or group not found."
@@ -2823,7 +2848,9 @@
             "description": "Server error."
           }
         }
-      },
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/sorts/{sortId}": {
       "delete": {
         "summary": "Delete sort",
         "description": "Delete an existing sort.",
@@ -3155,6 +3182,272 @@
           },
           "500": {
             "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/scripts": {
+      "get": {
+        "summary": "List Scripts",
+        "description": "Retrieve a list of scripts associated with a specific base.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "scripts-list",
+        "tags": [
+          "Scripts"
+        ],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of scripts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptList"
+                },
+                "examples": {
+                  "scriptList": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "scrn8jzaljnw05eu1",
+                          "title": "Validate Emails",
+                          "description": "Validates email addresses in the 'Email' field of the 'Contacts' table.",
+                          "base_id": "pgfqcp0ocloo1j3",
+                          "workspace_id": "w6dw3fo0"
+                        },
+                        {
+                          "id": "scrna4t7xkmq92bf8",
+                          "title": "Normalize Phone Numbers",
+                          "description": "Cleans and standardizes phone numbers in the 'Phone' field of the 'Leads' table by removing non-numeric characters and applying a consistent format.",
+                          "base_id": "pgfqcp0ocloo1j3",
+                          "workspace_id": "w6dw3fo0"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create script",
+        "description": "Create a new script within the specified base by providing the required script details in the request body.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "script-create",
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "tags": [
+          "Scripts"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScriptCreateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Sample Script",
+                    "description": "Sample Description",
+                    "script": "Sample Script",
+                    "config": {},
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Script created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptGetResponse"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "screjw3n23233lk3",
+                      "title": "This is Script Title",
+                      "description": "Hello Script",
+                      "script": "const config = input.config({\n  title: \"My Script\",\n  description: \"This script processes data based on your configuration.\",\n  items: [\n    input.config.number('limit', {\n      label: 'Processing Limit',\n      description: 'Maximum number of records to process'\n    })\n  ]\n});\n\n// Use the configured values\n\n\nconst limit = config.limit;\n\noutput.text(`Processing limit: ${limit}`);",
+                      "config": {
+                        "limit": "23"
+                      },
+                      "meta": {},
+                      "base_id":  "bas3jh4h43k4j3d",
+                      "workspace_id": "ws3n3e3nf",
+                      "created_at":  "2025-01-16 06:04:18+00:00",
+                      "updated_at": "2025-01-16 06:04:18+00:00"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/scripts/{script_id}": {
+      "get": {
+        "summary": "Get Script Info",
+        "description": "Retrieve the details of a specific script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "script-read",
+        "tags": ["Scripts"],
+        "parameters": [
+          {
+            "name": "script_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the script."
+          },
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Script retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptGetResponse"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "screjw3n23233lk3",
+                      "title": "This is Script Title",
+                      "description": "Hello Script",
+                      "script": "output.inspect(base)",
+                      "config": {},
+                      "meta": {},
+                      "base_id":  "bas3jh4h43k4j3d",
+                      "workspace_id": "ws3n3e3nf",
+                      "created_at":  "2025-01-16 06:04:18+00:00",
+                      "updated_at": "2025-01-16 06:04:18+00:00"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update script",
+        "description": "Update the script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "script-update",
+        "tags": ["Scripts"],
+        "parameters": [
+          {
+            "name": "script_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the script."
+          },
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScriptUpdateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Script updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptGetResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete script",
+        "description": "Delete the script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "script-delete",
+        "tags": ["Scripts"],
+        "parameters": [
+          {
+            "name": "script_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the script."
+          },
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Script deleted."
           }
         }
       }
@@ -5753,10 +6046,6 @@
                   ],
                   "description": "View configuration edit state."
                 },
-                "is_default": {
-                  "type": "boolean",
-                  "description": "Indicates if this is the default view."
-                },
                 "created_by": {
                   "type": "string",
                   "description": "User ID of the creator."
@@ -6392,10 +6681,6 @@
               "table_id": {
                 "type": "string",
                 "description": "Id of table associated with the view."
-              },
-              "is_default": {
-                "type": "boolean",
-                "description": "Indicates if this is the default view. Omitted if not the default view."
               }
             },
             "required": [
@@ -8552,6 +8837,166 @@
           "workspace-level-viewer",
           "workspace-level-commenter",
           "workspace-level-no-access"
+        ]
+      },
+      "ScriptList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the script."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the script."
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Description of the script."
+                },
+                "base_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the base to which this script belongs to."
+                },
+                "workspace_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the workspace to which this base belongs to."
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "base_id",
+                "workspace_id"
+              ]
+            }
+          }
+        },
+        "required": [
+          "list"
+        ]
+      },
+      "ScriptCreateReq": {
+        "description": "Script create request body",
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the script."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the script."
+          },
+          "script": {
+            "type": "string",
+            "description": "Script content."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the script."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadata for the script."
+          }
+        }
+      },
+      "ScriptUpdateReq": {
+        "description": "Script update request body",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the script."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the script."
+          },
+          "script": {
+            "type": "string",
+            "description": "Script content."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the script."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadata for the script."
+          }
+        }
+      },
+      "ScriptGetResponse": {
+        "description": "Script with additional info",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the script"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the script."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the script."
+          },
+          "script": {
+            "type": "string",
+            "description": "Script content."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the script."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadata of the script."
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Unique identifier for the base"
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the script was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the script was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "script",
+          "base_id",
+          "workspace_id",
+          "created_at",
+          "updated_at"
         ]
       }
     },

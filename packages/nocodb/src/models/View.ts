@@ -11,6 +11,7 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import { isSupportedDisplayValueColumn } from 'nocodb-sdk';
 import type {
   BoolType,
   ColumnReqType,
@@ -1064,7 +1065,7 @@ export default class View implements ViewType {
 
     // keep primary_value_column always visible and first in grid view
     if (view.type === ViewTypes.GRID) {
-      const primary_value_column_meta = await ncMeta.metaGet2(
+      let primary_value_column_meta = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
         MetaTable.COLUMNS,
@@ -1073,6 +1074,33 @@ export default class View implements ViewType {
           pv: true,
         },
       );
+      if (!primary_value_column_meta) {
+        const metaColumns = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COLUMNS,
+          {
+            xcCondition: (qb) => {
+              qb.where('fk_model_id', view.fk_model_id);
+              qb.andWhere((subQb) => {
+                subQb.where('system', false).orWhereNull('system');
+              });
+            },
+            orderBy: { order: 'asc' },
+          },
+        );
+        primary_value_column_meta = metaColumns.find((col) =>
+          isSupportedDisplayValueColumn(col),
+        );
+        if (!primary_value_column_meta) {
+          NcError.get(context).internalServerError(
+            `No display field setup for table`,
+          );
+        }
+        await Column.update(context, primary_value_column_meta.id, {
+          pv: true,
+        });
+      }
 
       const primary_value_column = await ncMeta.metaGet2(
         context.workspace_id,

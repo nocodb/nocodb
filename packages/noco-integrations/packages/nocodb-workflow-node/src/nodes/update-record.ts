@@ -1,12 +1,10 @@
 import {
-  FormBuilderInputType,
-  FormBuilderValidatorType,
   NocoSDK,
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
+import { NON_EDITABLE_FIELDS, normalizeRelationInput } from '../utils/fields';
 import type {
-  FormDefinition,
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
   WorkflowNodeLog,
@@ -22,54 +20,6 @@ interface UpdateRecordNodeConfig extends WorkflowNodeConfig {
 
 export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
-    const form: FormDefinition = [
-      {
-        type: FormBuilderInputType.SelectTable,
-        label: 'Table',
-        span: 24,
-        model: 'config.modelId',
-        placeholder: 'Select a table',
-        fetchOptionsKey: 'tables',
-        validators: [
-          {
-            type: FormBuilderValidatorType.Required,
-            message: 'Table is required',
-          },
-        ],
-      },
-      {
-        type: FormBuilderInputType.WorkflowInput,
-        label: 'Record ID',
-        span: 24,
-        model: 'config.rowId',
-        placeholder: 'Enter the record ID',
-        validators: [
-          {
-            type: FormBuilderValidatorType.Required,
-            message: 'Record ID is required',
-          },
-        ],
-      },
-      {
-        type: FormBuilderInputType.FieldMapping,
-        label: 'Fields',
-        span: 24,
-        model: 'config.fields',
-        fetchOptionsKey: 'fields',
-        dependsOn: 'config.modelId',
-        condition: {
-          model: 'config.modelId',
-          notEmpty: true,
-        },
-        validators: [
-          {
-            type: FormBuilderValidatorType.Required,
-            message: 'At least one field is required',
-          },
-        ],
-      },
-    ];
-
     return {
       id: 'nocodb.update_record',
       title: 'Update Record',
@@ -77,7 +27,7 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
       icon: 'ncRecordUpdate',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
-      form,
+      form: [],
       keywords: ['nocodb', 'database', 'update', 'modify', 'record'],
     };
   }
@@ -126,7 +76,10 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
           .map((col: any) => ({
             label: col.title,
             value: col.title,
-            ncItemDisabled: false,
+            ncItemDisabled: NocoSDK.isInUIType(col, NON_EDITABLE_FIELDS),
+            ncItemTooltip: NocoSDK.isInUIType(col, NON_EDITABLE_FIELDS)
+              ? 'Computed fields cannot be updated'
+              : null,
             column: col,
           }));
       }
@@ -201,11 +154,35 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
       const context = {
         workspace_id: ctx.workspaceId,
         base_id: ctx.baseId,
+        api_version: NocoSDK.NcApiVersion.V3,
       } as NocoSDK.NcContext;
+
+      const table = await this.nocodb.tablesService.getTableWithAccessibleViews(
+        this.nocodb.context,
+        {
+          tableId: modelId,
+          user: this.nocodb.user as any,
+        },
+      );
+
+      const transformedFields: Record<string, any> = {};
+      if (table && table.columns) {
+        Object.entries(fields).forEach(([fieldId, value]) => {
+          const column = table.columns.find((col: any) => col.id === fieldId);
+          if (!column || !column.title) return;
+          if (column?.title) {
+            transformedFields[column.title] = value;
+          }
+
+          if (NocoSDK.isLinksOrLTAR(column)) {
+            transformedFields[column.title] = normalizeRelationInput(value);
+          }
+        });
+      }
 
       const result = await this.nocodb.dataService.dataUpdate(context, {
         modelId,
-        body: { id: rowId, fields },
+        body: { id: rowId, fields: transformedFields },
         cookie: {
           user: this.nocodb.user,
         },
@@ -311,30 +288,19 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         },
       };
 
-      Object.entries(fields).forEach(([key, value]) => {
-        const field = table.columns.find((col: any) => col.title === key);
+      Object.entries(fields).forEach(([fieldId, value]) => {
+        const field = table.columns.find((col: any) => col.id === fieldId);
         if (!field?.uidt || !value) return;
         fieldsVariable.children.push({
-          key: `config.fields.${key}`,
-          name: key,
+          key: `config.fields.${fieldId}`,
+          name: field.title!,
           type: NocoSDK.VariableType.String,
           groupKey: NocoSDK.VariableGroupKey.Fields,
           extra: {
             icon: NocoSDK.uiTypeToIcon(field),
-            description: `Field value for ${key}`,
+            description: `Field value for ${field.title}`,
           },
         });
-      });
-
-      variables.push({
-        key: 'config.fields',
-        name: 'Fields',
-        type: NocoSDK.VariableType.Object,
-        groupKey: NocoSDK.VariableGroupKey.Fields,
-        extra: {
-          icon: 'cellJson',
-          description: 'Field values for record update',
-        },
       });
 
       return variables;

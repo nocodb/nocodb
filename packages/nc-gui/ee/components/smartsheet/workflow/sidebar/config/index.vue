@@ -4,6 +4,8 @@ import IfNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom
 import ListRecordsNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/list-records.vue'
 import CronTriggerNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/cron-trigger.vue'
 import RecordMatchesConditionTriggerConfig from '~/components/smartsheet/workflow/sidebar/config/custom/record-matches-condition-trigger.vue'
+import CreateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/create-record.vue'
+import UpdateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/update-record.vue'
 
 const {
   selectedNodeId,
@@ -15,6 +17,8 @@ const {
   fetchNodeIntegrationOptions,
   clearChildNodesTestResults,
 } = useWorkflowOrThrow()
+
+provide(isWorkflowInj, ref(true))
 
 /**
  * Get available variables from all upstream nodes for a given node
@@ -86,6 +90,8 @@ const FormNodeMap = {
   'nocodb.list_records': ListRecordsNodeConfig,
   'core.trigger.cron': CronTriggerNodeConfig,
   'nocodb.trigger.record_matches_condition': RecordMatchesConditionTriggerConfig,
+  'nocodb.create_record': CreateRecordNodeConfig,
+  'nocodb.update_record': UpdateRecordNodeConfig,
 }
 
 const formSchema = computed(() => {

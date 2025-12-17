@@ -5,6 +5,7 @@ import {
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
+import { NON_EDITABLE_FIELDS } from '../utils/fields';
 import type {
   FormDefinition,
   WorkflowNodeConfig,
@@ -147,7 +148,13 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
             },
           );
         return table?.columns
-          ?.filter((f) => !NocoSDK.isSystemColumn(f))
+          ?.filter(
+            (f) =>
+              !(
+                NocoSDK.isInUIType(f, NON_EDITABLE_FIELDS) ||
+                NocoSDK.isSystemColumn(f)
+              ),
+          )
           .map((column: any) => ({
             label: column.title || column.column_name,
             value: column.id,

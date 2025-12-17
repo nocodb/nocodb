@@ -54,7 +54,6 @@ export class CronTriggerNode extends WorkflowNodeIntegration<CronTriggerConfig> 
     if (config.cronExpression) {
       try {
         CronExpressionParser.parse(config.cronExpression, {
-          strict: true,
           tz: config.timezone || 'UTC',
         });
       } catch (err) {

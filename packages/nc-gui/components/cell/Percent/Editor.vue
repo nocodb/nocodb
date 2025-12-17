@@ -26,6 +26,8 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
+const isWorkflow = inject(isWorkflowInj, ref(false))!
+
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
@@ -110,7 +112,7 @@ onMounted(() => {
 
 <template>
   <CellPercentProgressBar
-    v-if="percentMeta.is_progress && (isForm || isExpandedFormOpen)"
+    v-if="percentMeta.is_progress && (isForm || isExpandedFormOpen) && !isWorkflow"
     :style="{
       ...((isForm || isExpandedFormOpen) && { 'min-height': '22px', 'height': '22px' }),
     }"

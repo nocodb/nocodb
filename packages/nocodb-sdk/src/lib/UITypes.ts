@@ -489,6 +489,17 @@ export const isSelectTypeCol = (
     <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
   );
 };
+
+export const isInUIType = <T extends UITypes>(
+  colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string,
+  types: T | readonly T[]
+): colOrUidt is (ColumnType & { uidt: T }) | { uidt: T } | T => {
+  const uidt = <UITypes>(
+    (typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
+  );
+  return Array.isArray(types) ? types.includes(uidt as T) : uidt === types;
+};
+
 export default UITypes;
 
 export const readonlyMetaAllowedTypes = [

@@ -259,6 +259,10 @@ watch(readOnly, (newValue) => {
     @apply focus:border-nc-border-brand transition-colors;
     @apply min-h-[38px];
 
+    &:focus-within {
+      @apply !shadow-selected;
+    }
+
     &:not(.multiline) {
       @apply overflow-hidden;
       white-space: nowrap;

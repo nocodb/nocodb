@@ -191,6 +191,7 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
       const context = {
         workspace_id: ctx.workspaceId,
         base_id: ctx.baseId,
+        api_version: NocoSDK.NcApiVersion.V3,
       } as NocoSDK.NcContext;
 
       const result = await this.nocodb.dataService.dataRead(context, {

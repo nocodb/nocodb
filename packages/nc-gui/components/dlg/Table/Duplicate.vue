@@ -25,9 +25,13 @@ const { $e, $poller } = useNuxtApp()
 
 const basesStore = useBases()
 
+const { bases } = storeToRefs(basesStore)
+
 const { createProject: _createProject, loadProjects } = basesStore
 
-const { openTable } = useTablesStore()
+const tablesStore = useTablesStore()
+
+const { openTable } = tablesStore
 
 const baseStore = useBase()
 
@@ -53,7 +57,11 @@ const { getFeature } = useEeConfig()
 const wsDropdownOpen = ref(false)
 const baseDropdownOpen = ref(false)
 const targetWorkspace = ref(activeWorkspace)
-const targetBase = ref(activeBase.value)
+
+// Get the table's base from basesStore - this fixes the bug where target base
+// incorrectly defaulted to activeBase (current route's base) instead of the table's own base
+const tableBase = computed(() => bases.value.get(props.table.base_id!) ?? activeBase.value)
+const targetBase = ref<BaseType | null>(null)
 
 const targetTableMeta = computedAsync(async () => {
   return getMeta(props.table.id!)
@@ -143,7 +151,7 @@ const _duplicate = async () => {
     const jobData = await api.dbTable.duplicate(props.table.base_id!, props.table.id!, {
       options: {
         ...optionsToExclude.value,
-        ...(isContextDifferent ? { targetWorkspaceId: targetWorkspace.value!.id, targetBaseId: targetBase.value.id } : {}),
+        ...(isContextDifferent ? { targetWorkspaceId: targetWorkspace.value!.id, targetBaseId: targetBase.value!.id } : {}),
       },
     })
 
@@ -183,8 +191,12 @@ const _duplicate = async () => {
 
               openTable(newTable!)
             } else {
-              // TODO: navigating to specified base?
-              message.success(t(`msg.success.tableDuplicatedInOtherBase`))
+              // Refresh the target base's tables in the sidebar so it updates in real-time
+              if (targetBase.value?.id) {
+                await tablesStore.loadProjectTables(targetBase.value.id, true)
+                refreshCommandPalette()
+              }
+              message.success(t('msg.success.tableDuplicatedInOtherBase'))
             }
             isLoading.value = false
             dialogShow.value = false
@@ -222,6 +234,8 @@ watch(isTargetOtherBaseSufficientPlan, (newValue) => {
 const isEaster = ref(false)
 
 onMounted(() => {
+  // Initialize targetBase to the table's base (not the current active base)
+  targetBase.value = tableBase.value
   refreshTargetBases()
 })
 </script>

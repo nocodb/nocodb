@@ -23,6 +23,7 @@ import type { CanvasGroup } from '../lib/types'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
+import { isUniqueConstraintViolationError } from '~/utils/errorUtils'
 
 const formatData = (
   list: Record<string, any>[],
@@ -1667,6 +1668,18 @@ export function useInfiniteData(args: {
 
       return updatedRowData
     } catch (e: any) {
+      // Check if it's a unique constraint violation
+      if (isUniqueConstraintViolationError(e)) {
+        // Clear the cell value for unique constraint violations and set to previous value
+        toUpdate.row[property] = toUpdate.oldRow[property] ?? null
+        // Use message directly from response (already includes field name)
+        const errorData = e.response?.data
+        const errorMessage =
+          errorData?.message || (await extractSdkResponseErrorMsg(e)) || t('msg.error.uniqueConstraintViolation')
+        message.error(errorMessage)
+        return undefined
+      }
+
       toUpdate.row[property] = toUpdate.oldRow[property]
       const errorMessage = await extractSdkResponseErrorMsg(e)
       message.error(`${t('msg.error.rowUpdateFailed')}: ${errorMessage}`)

@@ -95,6 +95,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { chunkArray } from '~/utils/tsUtils';
 import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mysql-helpers';
 import { Profiler } from '~/helpers/profiler';
+import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -576,7 +577,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       });
 
       return Array.isArray(response) ? response[0] : response;
-    } catch (e) {
+    } catch (e: any) {
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+        insertData: data,
+      });
       await this.errorInsert(e, data, trx, cookie);
       throw e;
     }
@@ -681,7 +688,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         .update(updateObj)
         .where(await this._wherePk(id, true));
 
-      await this.execAndParse(query, null, { raw: true });
+      try {
+        await this.execAndParse(query, null, { raw: true });
+      } catch (e: any) {
+        // Handle unique constraint violations (throws if it's a unique constraint error)
+        await handleUniqueConstraintError({
+          error: e,
+          baseModel: this,
+          insertData: updateObj,
+        });
+        // If not a unique constraint error, re-throw the original error
+        throw e;
+      }
 
       const newId = this.extractPksValues({ ...prevData, ...updateObj }, true);
 
@@ -716,7 +734,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       }
       return newData;
-    } catch (e) {
+    } catch (e: any) {
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+        insertData: data,
+      });
       await this.errorUpdate(e, data, trx, cookie);
       throw e;
     }
@@ -2088,6 +2112,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       return responses;
     } catch (e) {
+      // Handle unique constraint violations - this will throw if it's a unique constraint error
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+        insertData: datas,
+      });
       // await this.errorInsertb(e, data, null);
       throw e;
     }
@@ -2389,8 +2419,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           }
 
           await trx.commit();
-        } catch (e) {
+        } catch (e: any) {
           await trx.rollback();
+          // Handle unique constraint violations (throws if it's a unique constraint error)
+          await handleUniqueConstraintError({
+            error: e,
+            baseModel: this,
+          });
           throw e;
         }
       }
@@ -2456,7 +2491,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       });
 
       return [...updateResponses, ...insertResponses];
-    } catch (e) {
+    } catch (e: any) {
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+      });
       throw e;
     }
   }
@@ -2641,8 +2681,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             await trx.raw(this.sanitizeQuery(q));
           }
           await trx.commit();
-        } catch (e) {
+        } catch (e: any) {
           await trx.rollback();
+          // Handle unique constraint violations (throws if it's a unique constraint error)
+          await handleUniqueConstraintError({
+            error: e,
+            baseModel: this,
+          });
           throw e;
         }
       }
@@ -2707,7 +2752,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
       profiler.end();
       return newData;
-    } catch (e) {
+    } catch (e: any) {
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+      });
       throw e;
     }
   }

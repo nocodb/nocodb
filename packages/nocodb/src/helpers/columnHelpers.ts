@@ -731,7 +731,6 @@ export const deleteColumnSystemPropsFromRequest = (col: any) => {
   delete col.rqd;
   delete col.un;
   delete col.ai;
-  delete col.unique;
   delete col.cc;
   delete col.csn;
   delete col.dtx;

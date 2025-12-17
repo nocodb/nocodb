@@ -10,6 +10,7 @@ import {
 import { Logger } from '@nestjs/common';
 import type { MetaService } from 'src/meta/meta.service';
 import type { ColumnReqType, ColumnType, LookupType } from 'nocodb-sdk';
+import type { ColumnInternalMeta } from '~/types/column-internal-meta';
 import { NcContext } from '~/interface/config';
 import FormulaColumn from '~/models/FormulaColumn';
 import LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
@@ -51,6 +52,7 @@ import {
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import { NcCache } from '~/decorators/nc-cache.decorator';
+import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 
 const selectColors = enumColors.light;
 
@@ -116,6 +118,7 @@ export default class Column<T = any> implements ColumnType {
 
   public validate: any;
   public meta: any;
+  public internal_meta?: ColumnInternalMeta;
 
   public asId?: string;
 
@@ -179,6 +182,7 @@ export default class Column<T = any> implements ColumnType {
       'source_id',
       'system',
       'meta',
+      'internal_meta', // Internal field for constraint metadata (not exposed via API)
       'virtual',
       'description',
       'readonly',
@@ -194,6 +198,15 @@ export default class Column<T = any> implements ColumnType {
 
     if (insertObj.meta && typeof insertObj.meta === 'object') {
       insertObj.meta = JSON.stringify(insertObj.meta);
+    }
+
+    if (
+      insertObj.internal_meta &&
+      typeof insertObj.internal_meta === 'object'
+    ) {
+      // Validate internal_meta structure before stringifying
+      validateColumnInternalMeta(insertObj.internal_meta);
+      insertObj.internal_meta = JSON.stringify(insertObj.internal_meta);
     }
 
     insertObj.order =
@@ -693,6 +706,8 @@ export default class Column<T = any> implements ColumnType {
 
       columnsList.forEach((column) => {
         column.meta = parseMetaProp(column);
+        // Parse internal_meta field (internal, not exposed via API)
+        column.internal_meta = parseMetaProp(column, 'internal_meta');
       });
 
       await NocoCache.setList(
@@ -795,6 +810,7 @@ export default class Column<T = any> implements ColumnType {
         } catch {
           colData.meta = {};
         }
+        colData.internal_meta = parseMetaProp(colData, 'internal_meta');
         await NocoCache.set(context, `${CacheScope.COLUMN}:${colId}`, colData);
       }
     }
@@ -1647,6 +1663,7 @@ export default class Column<T = any> implements ColumnType {
       'system',
       'validate',
       'meta',
+      'internal_meta', // Internal field for constraint metadata (not exposed via API)
       'readonly',
     ]);
 
@@ -1709,19 +1726,30 @@ export default class Column<T = any> implements ColumnType {
       await Column.deleteCoverImageColumnId(context, colId, ncMeta);
     }
 
-    // set meta
+    // Validate internal_meta if present
+    if (
+      updateObj.internal_meta &&
+      typeof updateObj.internal_meta === 'object'
+    ) {
+      const { validateColumnInternalMeta } = await import(
+        '~/types/column-internal-meta'
+      );
+      validateColumnInternalMeta(updateObj.internal_meta);
+    }
+
+    // set meta and internal_meta (internal_meta is internal, not exposed via API)
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
       MetaTable.COLUMNS,
-      prepareForDb(updateObj),
+      prepareForDb(updateObj, ['meta', 'internal_meta']),
       colId,
     );
 
     await NocoCache.update(
       context,
       `${CacheScope.COLUMN}:${colId}`,
-      prepareForResponse(updateObj),
+      prepareForResponse(updateObj, ['meta', 'internal_meta']),
     );
 
     // insert new col options only if existing colOption meta is deleted

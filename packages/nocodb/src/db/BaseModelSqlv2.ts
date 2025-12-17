@@ -108,6 +108,7 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
+import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import {
   Audit,
   BaseUser,
@@ -2011,7 +2012,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         .update(updateObj)
         .where(await this._wherePk(id, true));
 
-      await this.execAndParse(query, null, { raw: true });
+      try {
+        await this.execAndParse(query, null, { raw: true });
+      } catch (e: any) {
+        // Handle unique constraint violations (throws if it's a unique constraint error)
+        await handleUniqueConstraintError({
+          error: e,
+          baseModel: this,
+          insertData: updateObj,
+        });
+        // If not a unique constraint error, re-throw the original error
+        throw e;
+      }
 
       const newId = this.extractPksValues(
         {
@@ -2041,7 +2053,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       }
       return newData;
-    } catch (e) {
+    } catch (e: any) {
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+        insertData: data,
+      });
       await this.errorUpdate(e, data, trx, cookie);
       throw e;
     }
@@ -2317,7 +2335,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       });
 
       return response;
-    } catch (e) {
+    } catch (e: any) {
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+        insertData: data,
+      });
       throw e;
     }
   }
@@ -2473,7 +2497,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const pkValues = this.extractPksValues(data);
           updatedPks.push(pkValues);
           const wherePk = await this._wherePk(pkValues, true);
-          await trx(this.tnPath).update(data).where(wherePk);
+          try {
+            await trx(this.tnPath).update(data).where(wherePk);
+          } catch (e: any) {
+            // Handle unique constraint violations (throws if it's a unique constraint error)
+            await handleUniqueConstraintError({
+              error: e,
+              baseModel: this,
+              insertData: data,
+            });
+            // If not a unique constraint error, re-throw the original error
+            throw e;
+          }
         }
       }
 
@@ -2593,8 +2628,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       return [...updatedDataList, ...insertedDataList];
-    } catch (e) {
+    } catch (e: any) {
       await trx?.rollback();
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+      });
       throw e;
     }
   }
@@ -2944,15 +2984,37 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           this.model.primaryKeys.length === 1 &&
           (this.isPg || this.isMySQL || this.isSqlite)
         ) {
-          await batchUpdate(
-            transaction,
-            this.tnPath,
-            toBeUpdated.map((o) => o.d),
-            this.model.primaryKey.column_name,
-          );
+          try {
+            await batchUpdate(
+              transaction,
+              this.tnPath,
+              toBeUpdated.map((o) => o.d),
+              this.model.primaryKey.column_name,
+            );
+          } catch (e: any) {
+            // Handle unique constraint violations (throws if it's a unique constraint error)
+            // For bulk update, we can't determine which specific row/column, so pass undefined
+            await handleUniqueConstraintError({
+              error: e,
+              baseModel: this,
+            });
+            // If not a unique constraint error, re-throw the original error
+            throw e;
+          }
         } else {
           for (const o of toBeUpdated) {
-            await transaction(this.tnPath).update(o.d).where(o.wherePk);
+            try {
+              await transaction(this.tnPath).update(o.d).where(o.wherePk);
+            } catch (e: any) {
+              // Handle unique constraint violations (throws if it's a unique constraint error)
+              await handleUniqueConstraintError({
+                error: e,
+                baseModel: this,
+                insertData: o.d,
+              });
+              // If not a unique constraint error, re-throw the original error
+              throw e;
+            }
           }
         }
 
@@ -3012,8 +3074,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
       profiler.end();
       return newData;
-    } catch (e) {
+    } catch (e: any) {
       if (transaction) await transaction.rollback();
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+      });
       throw e;
     }
   }
@@ -3134,7 +3201,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
 
       return count;
-    } catch (e) {
+    } catch (e: any) {
+      // Handle unique constraint violations (throws if it's a unique constraint error)
+      await handleUniqueConstraintError({
+        error: e,
+        baseModel: this,
+        insertData: data,
+      });
       throw e;
     }
   }
@@ -4832,18 +4905,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     query = this.sanitizeQuery(query);
 
-    if (this.isPg || this.isSnowflake) {
-      return (await trx.raw(query))?.rows;
-    } else if (SELECT_REGEX.test(query)) {
-      return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
-    } else if (this.isMySQL && INSERT_REGEX.test(query)) {
-      const res = await trx.raw(query);
-      if (res && res[0] && res[0].insertId) {
-        return res[0].insertId;
+    try {
+      if (this.isPg || this.isSnowflake) {
+        return (await trx.raw(query))?.rows;
+      } else if (SELECT_REGEX.test(query)) {
+        return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
+      } else if (this.isMySQL && INSERT_REGEX.test(query)) {
+        const res = await trx.raw(query);
+        if (res && res[0] && res[0].insertId) {
+          return res[0].insertId;
+        }
+        return res;
+      } else {
+        return await trx.raw(query);
       }
-      return res;
-    } else {
-      return await trx.raw(query);
+    } catch (e: any) {
+      // For insert/update operations, unique constraint errors should be handled
+      // by the calling code (insert.ts, update methods). We just re-throw here.
+      throw e;
     }
   }
 

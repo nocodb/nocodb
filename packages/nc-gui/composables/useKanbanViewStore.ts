@@ -72,10 +72,6 @@ const [useProvideKanbanViewStore, useKanbanViewStore] = useInjectionState(
 
     provide(SharedViewPasswordInj, password)
 
-    const { isFeatureEnabled } = useBetaFeatureToggle()
-
-    const isOptimizedKanbanEnabled = computed(() => isFeatureEnabled('kanban_opt'))
-
     // kanban view meta data
     const kanbanMetaData = computed(() => {
       if (isPublic.value) {

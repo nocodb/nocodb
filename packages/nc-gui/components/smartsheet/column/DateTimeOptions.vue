@@ -122,7 +122,7 @@ const useSameTimezoneForAll = computed({
         <NcTooltip :disabled="true">
           <div class="flex items-center gap-1">
             <NcSwitch v-model:checked="isDisplayTimezone">
-              <div class="text-sm text-nc-content-gray select-none font-semibold">
+              <div class="text-sm text-nc-content-gray select-none">
                 {{ $t('labels.displayTimezone') }}
               </div>
             </NcSwitch>
@@ -133,7 +133,7 @@ const useSameTimezoneForAll = computed({
         <NcTooltip :disabled="true">
           <div class="flex items-center gap-1">
             <NcSwitch v-model:checked="useSameTimezoneForAll">
-              <div class="text-sm text-nc-content-gray select-none font-semibold">
+              <div class="text-sm text-nc-content-gray select-none">
                 {{ $t('labels.useSameTimezoneForAllMembers') }}
               </div>
             </NcSwitch>

@@ -203,31 +203,6 @@ const isStackVisible = (index: number): boolean => {
   return index >= Math.max(0, stackSlice.start - EXTRA_BUFFER) && index < stackSlice.end + EXTRA_BUFFER
 }
 
-// Get placeholder width for stacks before/after the visible range
-// Note: The parent has gap-3 (12px), so gaps are automatically added between flex items
-const getStackPlaceholderWidth = (position: 'left' | 'right') => {
-  if (position === 'left') {
-    // Calculate width for all stacks before the start index
-    // In flexbox with gap-3, each stack takes STACK_WIDTH
-    // The gap is handled by CSS, but we need to account for it in width calculation
-    // For N stacks: N * STACK_WIDTH + (N - 1) * STACK_GAP
-    // But since the placeholder is a single div, we need the total width
-    if (stackSlice.start === 0) return 0
-    const numStacks = stackSlice.start
-    // Calculate total width: stacks + gaps between them
-    const totalWidth = numStacks * STACK_WIDTH + (numStacks - 1) * STACK_GAP
-    return totalWidth
-  } else {
-    // Calculate width for all stacks after the end index
-    const totalStacks = groupingFieldColOptions.value.length
-    const remaining = Math.max(0, totalStacks - stackSlice.end)
-    if (remaining === 0) return 0
-    // Each remaining stack takes STACK_WIDTH, and there are (remaining - 1) gaps between them
-    const totalWidth = remaining * STACK_WIDTH + (remaining - 1) * STACK_GAP
-    return totalWidth
-  }
-}
-
 // Field height mapping for card height calculation
 const FIELD_HEIGHT = {
   [UITypes.LongText]: 150,
@@ -462,139 +437,15 @@ async function onMove(event: any, stackKey: string) {
   }
 }
 
-const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
-  if (!e.target) return
-
-  if (e.target.scrollTop + e.target.clientHeight + INFINITY_SCROLL_THRESHOLD >= e.target.scrollHeight) {
-    const stackTitle = e.target.getAttribute('data-stack-title')
-    const pageSize = appInfo.value.defaultLimit || 25
-    const stack = formattedData.value.get(stackTitle)
-
-    // Prevent multiple simultaneous loadMoreKanbanData calls for the same stack
-    if (loadingMoreData.get(stackTitle)) {
-      return
-    }
-
-    if (stack && (countByStack.value.get(stackTitle) === undefined || stack.length < countByStack.value.get(stackTitle)!)) {
-      loadingMoreData.set(stackTitle, true)
-      const page = Math.ceil(stack.length / pageSize)
-      const oldLength = stack.length
-
-      try {
-        await loadMoreKanbanData(stackTitle, {
-          offset:
-            page * pageSize > countByStack.value.get(stackTitle)! || page * pageSize > stack.length
-              ? (page - 1) * pageSize
-              : page * pageSize,
-        })
-
-        // After loading more data, recalculate slice to include new items
-        nextTick(() => {
-          const newStack = formattedData.value.get(stackTitle)
-          if (newStack && newStack.length > oldLength) {
-            const currentSlice = stackCardSlices.value.get(stackTitle)
-            const scrollTop = e.target.scrollTop
-            const containerHeight = e.target.clientHeight
-            const scrollHeight = e.target.scrollHeight
-            const newStackLength = newStack.length
-
-            // Check if we're at or near the bottom (within threshold)
-            const isAtBottom = scrollTop + containerHeight >= scrollHeight - INFINITY_SCROLL_THRESHOLD
-            // Also check if slice was showing items near the end
-            const wasShowingEnd = currentSlice && currentSlice.end >= oldLength - CARD_VIRTUAL_MARGIN * 2
-
-            if (isAtBottom || wasShowingEnd) {
-              // We're at the bottom or were showing end items, so expand slice to include ALL new items
-              // Use a small delay to ensure DOM has updated with new scrollHeight
-              setTimeout(() => {
-                const cardHeightWithGap = cardHeight.value + 8 // 8px gap between cards
-                const startIndex = Math.max(0, Math.floor(scrollTop / cardHeightWithGap))
-                const visibleCount = Math.ceil(containerHeight / cardHeightWithGap)
-
-                // Calculate new slice - ensure we show all newly loaded items
-                const BUFFER_ROWS = 2
-                const newStart = Math.max(0, startIndex - BUFFER_ROWS)
-                // Expand end to include all new items - use the full new stack length
-                const newEnd = Math.min(
-                  newStackLength,
-                  Math.max(
-                    currentSlice ? currentSlice.end + (newStackLength - oldLength) : newStackLength,
-                    startIndex + visibleCount + BUFFER_ROWS,
-                  ),
-                )
-
-                // Update with duringScroll=true to prevent triggering watch
-                updateStackCardSlice(stackTitle, { start: newStart, end: newEnd }, true)
-              }, 50)
-            } else {
-              // Not at the end, just recalculate normally
-              setTimeout(() => {
-                calculateCardSlice(stackTitle, scrollTop, containerHeight, false)
-              }, 50)
-            }
-          }
-          // Reset loading flag after a delay to allow DOM to update
-          setTimeout(() => {
-            loadingMoreData.set(stackTitle, false)
-          }, 200)
-        })
-      } catch (error) {
-        // Reset loading flag on error
-        loadingMoreData.set(stackTitle, false)
-        console.error('Error loading more kanban data:', error)
-      }
-    }
-  }
-})
-
-const handleDeleteStackClick = (stackTitle: string, stackIdx: number) => {
-  deleteStackVModel.value = true
-  stackToBeDeleted.value = stackTitle
-  stackIdxToBeDeleted.value = stackIdx
-}
-
-const handleDeleteStackConfirmClick = async () => {
-  await deleteStack(stackToBeDeleted.value, stackIdxToBeDeleted.value)
-  deleteStackVModel.value = false
-}
-
-const handleCollapseStack = async (stackIdx: number) => {
-  const currentCollapsed = groupingFieldColOptions.value[stackIdx].collapsed
-  await updateStackProperty(stackIdx, { collapsed: !currentCollapsed })
-}
-
-const handleCollapseAllStack = async () => {
-  await updateAllStacksProperty((stack) => {
-    if (stack.id !== addNewStackId && !stack.collapsed) {
-      return { collapsed: true }
-    }
-    return null // No update needed
-  })
-}
-
-const handleExpandAllStack = async () => {
-  await updateAllStacksProperty((stack) => {
-    if (stack.id !== addNewStackId && stack.collapsed) {
-      return { collapsed: false }
-    }
-    return null // No update needed
-  })
-}
-
-const handleCellClick = (col, event) => {
-  if (isButton(col)) {
-    event.stopPropagation()
-  }
-}
-
-// Track scroll position for each stack - use shallowRef to reduce reactive overhead
-const kanbanListRefs = shallowRef<Map<string | null, HTMLElement>>(new Map())
-
-const cardSliceCalculationRafs = new Map<string | null, number>()
-// Track scroll handlers for cleanup
-const scrollHandlers = new Map<string | null, (e: Event) => void>()
-// Track which stacks have been initialized to prevent re-initialization
-const initializedStacks = new Set<string | null>()
+// Track if we're currently updating slices to prevent loops
+let isUpdatingSlices = false
+// Track if we're in a scroll handler to prevent watch triggers (simple flag like Gallery.vue)
+let scrollRaf = false
+// Track if we're loading more data to prevent watch triggers during load
+const loadingMoreData = new Map<string | null, boolean>()
+// Track last update time per stack to throttle updates
+const lastSliceUpdateTime = new Map<string | null, number>()
+const SLICE_UPDATE_THROTTLE_MS = 50 // Throttle slice updates to prevent loops
 
 // Helper to update stackCardSlices with reactivity (shallowRef requires new Map reference)
 const updateStackCardSlice = (stackTitle: string | null, slice: { start: number; end: number }, duringScroll = false) => {
@@ -628,7 +479,7 @@ const updateStackCardSlice = (stackTitle: string | null, slice: { start: number;
 }
 
 // Calculate visible card range for a specific stack - uses dynamic card height
-const calculateCardSlice = (stackTitle: string | null, scrollTop: number, containerHeight: number, forceExpand = false) => {
+const calculateCardSlice = (stackTitle: string | null, scrollTop: number, containerHeight: number) => {
   // Note: isUpdatingSlices is only used in debouncedRecalculateSlices to prevent multiple batch updates
   // Individual calculateCardSlice calls from scroll handlers should proceed normally
 
@@ -706,12 +557,145 @@ const calculateCardSlice = (stackTitle: string | null, scrollTop: number, contai
   updateStackCardSlice(stackTitle, { start: newStart, end: newEnd }, scrollRaf)
 }
 
+const kanbanListScrollHandler = useDebounceFn(async (e: any) => {
+  if (!e.target) return
+
+  if (e.target.scrollTop + e.target.clientHeight + INFINITY_SCROLL_THRESHOLD >= e.target.scrollHeight) {
+    const stackTitle = e.target.getAttribute('data-stack-title')
+    const pageSize = appInfo.value.defaultLimit || 25
+    const stack = formattedData.value.get(stackTitle)
+
+    // Prevent multiple simultaneous loadMoreKanbanData calls for the same stack
+    if (loadingMoreData.get(stackTitle)) {
+      return
+    }
+
+    if (stack && (countByStack.value.get(stackTitle) === undefined || stack.length < countByStack.value.get(stackTitle)!)) {
+      loadingMoreData.set(stackTitle, true)
+      const page = Math.ceil(stack.length / pageSize)
+      const oldLength = stack.length
+
+      try {
+        await loadMoreKanbanData(stackTitle, {
+          offset:
+            page * pageSize > countByStack.value.get(stackTitle)! || page * pageSize > stack.length
+              ? (page - 1) * pageSize
+              : page * pageSize,
+        })
+
+        // After loading more data, recalculate slice to include new items
+        nextTick(() => {
+          const newStack = formattedData.value.get(stackTitle)
+          if (newStack && newStack.length > oldLength) {
+            const currentSlice = stackCardSlices.value.get(stackTitle)
+            const scrollTop = e.target.scrollTop
+            const containerHeight = e.target.clientHeight
+            const scrollHeight = e.target.scrollHeight
+            const newStackLength = newStack.length
+
+            // Check if we're at or near the bottom (within threshold)
+            const isAtBottom = scrollTop + containerHeight >= scrollHeight - INFINITY_SCROLL_THRESHOLD
+            // Also check if slice was showing items near the end
+            const wasShowingEnd = currentSlice && currentSlice.end >= oldLength - CARD_VIRTUAL_MARGIN * 2
+
+            if (isAtBottom || wasShowingEnd) {
+              // We're at the bottom or were showing end items, so expand slice to include ALL new items
+              // Use a small delay to ensure DOM has updated with new scrollHeight
+              setTimeout(() => {
+                const cardHeightWithGap = cardHeight.value + 8 // 8px gap between cards
+                const startIndex = Math.max(0, Math.floor(scrollTop / cardHeightWithGap))
+                const visibleCount = Math.ceil(containerHeight / cardHeightWithGap)
+
+                // Calculate new slice - ensure we show all newly loaded items
+                const BUFFER_ROWS = 2
+                const newStart = Math.max(0, startIndex - BUFFER_ROWS)
+                // Expand end to include all new items - use the full new stack length
+                const newEnd = Math.min(
+                  newStackLength,
+                  Math.max(
+                    currentSlice ? currentSlice.end + (newStackLength - oldLength) : newStackLength,
+                    startIndex + visibleCount + BUFFER_ROWS,
+                  ),
+                )
+
+                // Update with duringScroll=true to prevent triggering watch
+                updateStackCardSlice(stackTitle, { start: newStart, end: newEnd }, true)
+              }, 50)
+            } else {
+              // Not at the end, just recalculate normally
+              setTimeout(() => {
+                calculateCardSlice(stackTitle, scrollTop, containerHeight)
+              }, 50)
+            }
+          }
+          // Reset loading flag after a delay to allow DOM to update
+          setTimeout(() => {
+            loadingMoreData.set(stackTitle, false)
+          }, 200)
+        })
+      } catch (error) {
+        // Reset loading flag on error
+        loadingMoreData.set(stackTitle, false)
+        console.error('Error loading more kanban data:', error)
+      }
+    }
+  }
+})
+
+const handleDeleteStackClick = (stackTitle: string, stackIdx: number) => {
+  deleteStackVModel.value = true
+  stackToBeDeleted.value = stackTitle
+  stackIdxToBeDeleted.value = stackIdx
+}
+
+const handleDeleteStackConfirmClick = async () => {
+  await deleteStack(stackToBeDeleted.value, stackIdxToBeDeleted.value)
+  deleteStackVModel.value = false
+}
+
+const handleCollapseStack = async (stackIdx: number) => {
+  const currentCollapsed = groupingFieldColOptions.value[stackIdx].collapsed
+  await updateStackProperty(stackIdx, { collapsed: !currentCollapsed })
+}
+
+const handleCollapseAllStack = async () => {
+  await updateAllStacksProperty((stack) => {
+    if (stack.id !== addNewStackId && !stack.collapsed) {
+      return { collapsed: true }
+    }
+    return null // No update needed
+  })
+}
+
+const handleExpandAllStack = async () => {
+  await updateAllStacksProperty((stack) => {
+    if (stack.id !== addNewStackId && stack.collapsed) {
+      return { collapsed: false }
+    }
+    return null // No update needed
+  })
+}
+
+const handleCellClick = (col, event) => {
+  if (isButton(col)) {
+    event.stopPropagation()
+  }
+}
+
+// Track scroll position for each stack - use shallowRef to reduce reactive overhead
+const kanbanListRefs = shallowRef<Map<string | null, HTMLElement>>(new Map())
+
+const cardSliceCalculationRafs = new Map<string | null, number>()
+// Track scroll handlers for cleanup
+const scrollHandlers = new Map<string | null, (e: Event) => void>()
+// Track which stacks have been initialized to prevent re-initialization
+const initializedStacks = new Set<string | null>()
+
 // Helper to check visibility - uses version counter for reactivity (more efficient than hash)
 // This function is called in template v-if, so it must access reactive values to trigger re-renders
 const isCardVisible = (stackTitle: string | null, index: number): boolean => {
   const stackKey = stackTitle ?? null
   const slice = stackCardSlices.value.get(stackKey)
-  const stack = formattedData.value.get(stackKey)
 
   if (!slice) {
     // If no slice calculated yet, show items based on a reasonable viewport
@@ -740,15 +724,6 @@ const isCardVisible = (stackTitle: string | null, index: number): boolean => {
   }
 
   return isVisible
-}
-
-// Get the original index in the full list for a visible item
-const getOriginalIndex = (stackTitle: string | null, visibleIndex: number) => {
-  const slice = stackCardSlices.value.get(stackTitle)
-  if (!slice) {
-    return visibleIndex
-  }
-  return slice.start + visibleIndex
 }
 
 // Get total scroll height for a stack (for container height calculation)
@@ -785,62 +760,6 @@ const getTotalScrollHeight = (stackTitle: string | null) => {
   const totalHeight = stack.length * (currentCardHeight + wrapperPadding) + firstLastExtra
 
   return totalHeight
-}
-
-// Get placeholder height for virtual scrolling
-const getPlaceholderHeight = (stackTitle: string | null, position: 'top' | 'bottom') => {
-  try {
-    if (!stackCardSlices.value) return 0
-    const slice = stackCardSlices.value.get(stackTitle)
-    const stack = formattedData.value?.get(stackTitle)
-    if (!stack || !slice) return 0
-
-    const currentCardHeight = cardHeight.value
-    if (!currentCardHeight || currentCardHeight <= 0) {
-      return 0
-    }
-
-    const itemPadding = 8 // Base padding per item (py-1 = 4px top + 4px bottom)
-    const cardHeightWithGap = currentCardHeight + itemPadding
-
-    if (position === 'top') {
-      // For top placeholder: slice.start items before the visible range
-      if (slice.start === 0) return 0
-
-      // Calculate height of items before visible range
-      // If slice.start > 0, the first item in the placeholder has 4px extra top (pt-2)
-      // Formula: (cardHeight + 12) for first item + (slice.start - 1) * (cardHeight + 8) for rest
-      if (slice.start === 1) {
-        return currentCardHeight + 12 // First item only
-      }
-      // First item: cardHeight + 12, remaining: (slice.start - 1) * (cardHeight + 8)
-      return currentCardHeight + 12 + (slice.start - 1) * cardHeightWithGap
-    } else {
-      // For bottom placeholder: remaining items after slice.end
-      const remaining = stack.length - slice.end
-      if (remaining === 0) return 0
-
-      // Calculate height of items after visible range
-      // The last item in the entire stack has 4px extra bottom (pb-2)
-      // But if slice.end is not the last item, we need to check if the placeholder includes the last item
-      const isLastItemInPlaceholder = slice.end + remaining === stack.length
-
-      if (remaining === 1 && isLastItemInPlaceholder) {
-        // Only the last item: cardHeight + 12
-        return currentCardHeight + 12
-      }
-
-      if (isLastItemInPlaceholder) {
-        // Last item has extra 4px bottom: (remaining - 1) * (cardHeight + 8) + (cardHeight + 12)
-        return (remaining - 1) * cardHeightWithGap + (currentCardHeight + 12)
-      } else {
-        // No last item in placeholder: all items have standard padding
-        return remaining * cardHeightWithGap
-      }
-    }
-  } catch (e) {
-    return 0
-  }
 }
 
 // Create kanban list ref with scroll handler
@@ -921,7 +840,7 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
             if (!scrollRaf) {
               scrollRaf = true
               try {
-                calculateCardSlice(stackTitle, scrollTop, containerHeight, false)
+                calculateCardSlice(stackTitle, scrollTop, containerHeight)
               } catch (e) {
                 scrollRaf = false
               }
@@ -956,7 +875,7 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
             existingRaf = requestAnimationFrame(() => {
               scrollRaf = true
               try {
-                calculateCardSlice(stackTitle, scrollTop, containerHeight, false)
+                calculateCardSlice(stackTitle, scrollTop, containerHeight)
               } catch (e) {
                 scrollRaf = false
               }
@@ -971,7 +890,7 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
           try {
             // Always calculate slice on scroll - ensure items become visible
             // Updates are throttled and version increment is skipped to prevent watch
-            calculateCardSlice(stackTitle, scrollTop, containerHeight, false)
+            calculateCardSlice(stackTitle, scrollTop, containerHeight)
           } catch (e) {
             // Ensure flag is reset even on error
             scrollRaf = false
@@ -1014,7 +933,7 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
 
         if (element.clientHeight > 0) {
           const scrollTop = element.scrollTop || 0
-          calculateCardSlice(stackTitle, scrollTop, element.clientHeight, false)
+          calculateCardSlice(stackTitle, scrollTop, element.clientHeight)
           // Don't dispatch scroll event - it causes infinite loops
         } else if (stack && stack.length > 0) {
           // Even if container height is 0, ensure we have a slice set
@@ -1053,16 +972,6 @@ const createKanbanListRef = (stackTitle: string | null): VNodeRef => {
   }
 }
 
-// Track if we're currently updating slices to prevent loops
-let isUpdatingSlices = false
-// Track if we're in a scroll handler to prevent watch triggers (simple flag like Gallery.vue)
-let scrollRaf = false
-// Track if we're loading more data to prevent watch triggers during load
-const loadingMoreData = new Map<string | null, boolean>()
-// Track last update time per stack to throttle updates
-const lastSliceUpdateTime = new Map<string | null, number>()
-const SLICE_UPDATE_THROTTLE_MS = 50 // Throttle slice updates to prevent loops
-
 const openNewRecordFormHookHandler = async () => {
   const newRow = await addEmptyRow()
   // preset the grouping field value
@@ -1076,6 +985,18 @@ const openNewRecordFormHookHandler = async () => {
 }
 
 openNewRecordFormHook?.on(openNewRecordFormHookHandler)
+
+// Horizontal scroll handler
+let horizontalScrollRaf: number | undefined
+const handleHorizontalScroll = () => {
+  if (horizontalScrollRaf) {
+    cancelAnimationFrame(horizontalScrollRaf)
+  }
+  horizontalScrollRaf = requestAnimationFrame(() => {
+    calculateStackSlice()
+    horizontalScrollRaf = undefined
+  })
+}
 
 // remove openNewRecordFormHookHandler before unmounting
 // so that it won't be triggered multiple times
@@ -1156,7 +1077,7 @@ const debouncedRecalculateSlices = useDebounceFn(() => {
         const scrollTop = stackScrollTops.value.get(stackKey) || 0
         // Only recalculate if element is ready and we have data
         if (stackData && stackData.length > 0) {
-          calculateCardSlice(stackKey, scrollTop, element.clientHeight, false)
+          calculateCardSlice(stackKey, scrollTop, element.clientHeight)
         }
       } else if (stackData) {
         // Initialize slice even if element not found yet
@@ -1207,18 +1128,6 @@ watch(
   debouncedRecalculateSlices,
   { deep: false }, // Deep watch is not needed with hash-based tracking
 )
-
-// Horizontal scroll handler
-let horizontalScrollRaf: number | undefined
-const handleHorizontalScroll = () => {
-  if (horizontalScrollRaf) {
-    cancelAnimationFrame(horizontalScrollRaf)
-  }
-  horizontalScrollRaf = requestAnimationFrame(() => {
-    calculateStackSlice()
-    horizontalScrollRaf = undefined
-  })
-}
 
 // Watch for changes to stacks to recalculate slice
 watch(

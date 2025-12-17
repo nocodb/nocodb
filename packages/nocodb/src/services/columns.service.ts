@@ -95,7 +95,9 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
+import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import {
   convertAIRecordTypeToValue,
   convertValueToAIRecordType,
@@ -106,6 +108,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { DBErrorExtractor } from '~/helpers/db-error/extractor';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { getRelatedModelMap } from '~/utils/getRelatedModelMap';
+import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -257,7 +260,46 @@ export class ColumnsService implements IColumnsService {
     protected readonly viewRowColorService: ViewRowColorService,
     protected readonly filtersService: FiltersService,
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+    protected readonly duplicateDetectionService: DuplicateDetectionService,
   ) {}
+
+  /**
+   * Stores unique constraint name in internal_meta field when enabling unique constraint.
+   * This ensures we can drop the constraint even if table/column name changes later.
+   * internal_meta is an internal field (not exposed via API)
+   *
+   * @param context - NcContext
+   * @param column - Partial Column object containing base_id, fk_model_id, id, and internal_meta
+   * @returns Updated internal_meta object with unique_constraint_name set
+   */
+  private storeUniqueConstraintNameInInternalMeta(
+    context: NcContext,
+    column: Pick<Column, 'id' | 'base_id' | 'fk_model_id' | 'internal_meta'>,
+  ): any {
+    // Generate constraint name using base_id + '_' + table_id + '_' + column_id for fixed-length, unique constraint name
+    // For new columns, column.id might be a temporary identifier (like column name) that will be updated after insertion
+    const constraintName = `uk_${column.base_id}_${column.fk_model_id}_${column.id}`;
+
+    // Parse existing internal_meta or create new object
+    let internalMeta = column.internal_meta;
+    if (typeof internalMeta === 'string') {
+      try {
+        internalMeta = JSON.parse(internalMeta);
+      } catch {
+        internalMeta = {};
+      }
+    } else if (!internalMeta) {
+      internalMeta = {};
+    }
+
+    // Validate internal_meta structure
+    validateColumnInternalMeta(internalMeta);
+
+    // Store constraint name in internal_meta field
+    internalMeta.unique_constraint_name = constraintName;
+
+    return internalMeta;
+  }
 
   async updateFormulas(
     context: NcContext,
@@ -316,13 +358,36 @@ export class ColumnsService implements IColumnsService {
       columns: await Promise.all(
         table.columns.map(async (c) => {
           if (c.id === column.id) {
+            // Determine unique value: use column.unique if provided, otherwise preserve existing value
+            const uniqueValue =
+              column.unique !== undefined
+                ? column.unique
+                : (c as any).unique !== undefined
+                ? (c as any).unique
+                : false;
+
             const res = {
               ...c,
               ...column,
-              cn: column.column_name,
+              // Use column.column_name if provided and not empty, otherwise use existing column name
+              // This ensures we don't accidentally rename the column when only updating other properties
+              // Always set cn to the existing column name if column_name is not explicitly provided
+              cn:
+                column.column_name !== undefined &&
+                column.column_name !== null &&
+                column.column_name !== ''
+                  ? column.column_name
+                  : c.column_name,
+              // cno should always be the original column name (before any potential rename)
               cno: c.column_name,
               altered: Altered.UPDATE_COLUMN,
+              unique: uniqueValue,
             };
+
+            // Ensure cn and cno are set correctly - if not renaming, they should be the same
+            if (!res.cn) {
+              res.cn = res.cno;
+            }
 
             if (args.processColumn) {
               await args.processColumn();
@@ -576,6 +641,56 @@ export class ColumnsService implements IColumnsService {
       ...param.column,
     };
 
+    // Validate unique constraint for column updates
+    if ('unique' in param.column) {
+      // Check if disabling unique constraint (always allowed)
+      if (!param.column.unique && column.unique) {
+        // Disabling is allowed, no validation needed
+      } else if (param.column.unique) {
+        // Enabling or keeping unique constraint enabled
+        validateUniqueConstraint(
+          context,
+          (param.column.uidt || column.uidt) as UITypes,
+          (param.column as any).meta || column.meta,
+          !!(param.column as any).unique, // Convert to boolean (might be number or boolean)
+          source,
+          (param.column as any).cdf !== undefined
+            ? (param.column as any).cdf
+            : column.cdf,
+        );
+
+        // Check for existing duplicates if enabling unique constraint
+        if (!column.unique && param.column.unique) {
+          const duplicateCheck =
+            await this.duplicateDetectionService.checkForDuplicates(
+              context,
+              column,
+            );
+          if (duplicateCheck.hasDuplicates) {
+            NcError.get(context).badRequest(
+              `Found ${duplicateCheck.count} duplicate values in this field. Please edit or remove duplicates before enabling uniqueness.`,
+            );
+          }
+        }
+      }
+    }
+
+    // Check if default value is being set when unique constraint is enabled
+    if (
+      'cdf' in param.column &&
+      param.column.cdf !== null &&
+      param.column.cdf !== undefined &&
+      param.column.cdf !== ''
+    ) {
+      const currentUnique =
+        param.column.unique !== undefined ? param.column.unique : column.unique;
+      if (currentUnique) {
+        NcError.get(context).badRequest(
+          'Default values are not allowed for unique fields. Please disable the unique constraint first.',
+        );
+      }
+    }
+
     let colBody = { ...param.column } as Column & {
       formula?: string;
       formula_raw?: string;
@@ -589,6 +704,20 @@ export class ColumnsService implements IColumnsService {
       fk_integration_id?: string;
     } & Partial<Pick<ColumnReqType, 'column_order'>>;
     sqlUi.adjustLengthAndScale(colBody);
+
+    // Store unique constraint name in internal_meta field when enabling unique constraint
+    // This ensures we can drop the constraint even if table/column name changes later
+    // internal_meta is an internal field (not exposed via API)
+    if ((param.column as any).unique && !column.unique) {
+      // Enabling unique constraint - generate and store constraint name
+      const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
+        context,
+        column,
+      );
+
+      // Store in colBody (will be saved to database)
+      (colBody as any).internal_meta = internalMeta;
+    }
 
     const { applyRowColorInvolvement } =
       await this.viewRowColorService.checkIfColumnInvolved({
@@ -2390,6 +2519,37 @@ export class ColumnsService implements IColumnsService {
 
     let colBody: any = param.column;
 
+    // Store original cdf before getColumnPropsFromUIDT potentially overwrites it
+    const originalCdf = colBody.cdf;
+    const originalUnique = colBody.unique;
+
+    // Validate unique constraint BEFORE getColumnPropsFromUIDT
+    if (colBody.unique) {
+      validateUniqueConstraint(
+        context,
+        colBody.uidt,
+        colBody.meta,
+        colBody.unique,
+        {
+          is_meta: !!source.is_meta,
+          is_local: !!source.is_local,
+        },
+        originalCdf,
+      );
+    }
+
+    // Check if default value is being set when unique constraint is enabled
+    if (
+      originalCdf !== null &&
+      originalCdf !== undefined &&
+      originalCdf !== '' &&
+      colBody.unique
+    ) {
+      NcError.get(context).badRequest(
+        'Default values are not allowed for unique fields. Please disable the unique constraint first.',
+      );
+    }
+
     const colExtra = {
       view_id: colBody.view_id,
       column_order: colBody.column_order,
@@ -2653,7 +2813,14 @@ export class ColumnsService implements IColumnsService {
             }
 
             {
+              // Preserve original cdf before getColumnPropsFromUIDT potentially overwrites it
+              const preservedCdf = colBody.cdf;
               colBody = await getColumnPropsFromUIDT(colBody, source);
+
+              // Restore original cdf if it was set (getColumnPropsFromUIDT sets it to null by default)
+              if (preservedCdf !== undefined && preservedCdf !== null) {
+                colBody.cdf = preservedCdf;
+              }
 
               // remove default value for SQLite since it doesn't support default value as function when adding column
               // only support default value as constant value
@@ -2705,7 +2872,15 @@ export class ColumnsService implements IColumnsService {
         break;
       default:
         {
+          // Preserve original cdf before getColumnPropsFromUIDT potentially overwrites it
+          const preservedCdf = colBody.cdf;
           colBody = await getColumnPropsFromUIDT(colBody, source);
+
+          // Restore original cdf if it was set (getColumnPropsFromUIDT sets it to null by default)
+          if (preservedCdf !== undefined && preservedCdf !== null) {
+            colBody.cdf = preservedCdf;
+          }
+
           if (colBody.uidt === UITypes.Duration) {
             colBody.dtxp = '20';
             // by default, colBody.dtxs is 2
@@ -2908,6 +3083,35 @@ export class ColumnsService implements IColumnsService {
             colBody.prompt = prompt;
           }
 
+          // For columns with unique constraint, generate column ID upfront
+          // Then use the column ID to generate the constraint name before SQL operation
+          let columnId: string | null = null;
+          if (originalUnique && !isVirtualCol(param.column)) {
+            // Generate column ID upfront
+            columnId = await ncMeta.genNanoid(MetaTable.COLUMNS);
+
+            // Set base_id and fk_model_id in colBody so SQL client can use them
+            (colBody as any).base_id = context.base_id;
+            (colBody as any).fk_model_id = table.id;
+            (colBody as any).id = columnId;
+
+            // Use helper function with the generated column ID to set up internal_meta
+            // Create a temporary column-like object for the method
+            const tempColumn = {
+              base_id: context.base_id,
+              fk_model_id: table.id,
+              id: columnId,
+            };
+
+            const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
+              context,
+              tempColumn,
+            );
+
+            // Store in colBody (will be passed to SQL client and Column.insert)
+            colBody.internal_meta = internalMeta;
+          }
+
           const tableUpdateBody = {
             ...table,
             tn: table.table_name,
@@ -2952,9 +3156,11 @@ export class ColumnsService implements IColumnsService {
             Object.assign(colBody, insertedColumnMeta);
           }
 
+          // Insert column with pre-generated ID if available (for unique constraint)
           savedColumn = await Column.insert(context, {
             ...colBody,
             fk_model_id: table.id,
+            ...(columnId ? { id: columnId } : {}),
           });
         }
         break;

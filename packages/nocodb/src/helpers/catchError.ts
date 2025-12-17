@@ -17,6 +17,9 @@ export {
   ExternalError,
   ExternalTimeout,
 } from 'nocodb-sdk';
+// Import UniqueConstraintViolationError directly from error module
+// as it may not be exported from the main SDK index
+export { UniqueConstraintViolationError } from 'nocodb-sdk';
 export { AjvError, NcError } from '~/helpers/ncError';
 
 // extract db errors using database error code

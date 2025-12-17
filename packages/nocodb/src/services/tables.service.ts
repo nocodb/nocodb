@@ -44,6 +44,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 
 @Injectable()
 export class TablesService {
@@ -821,12 +822,55 @@ export class TablesService {
 
           return allowed;
         })
-        .map(async (c) => ({
-          ...(await getColumnPropsFromUIDT(c as any, source)),
-          cn: c.column_name,
-          column_name: c.column_name,
-        })),
+        .map(async (c) => {
+          // Store original cdf and unique before getColumnPropsFromUIDT potentially overwrites them
+          const originalCdf = c.cdf;
+          const originalUnique = c.unique;
+          const props = await getColumnPropsFromUIDT(c as any, source);
+          // getColumnPropsFromUIDT already preserves cdf if it was set (see getColumnPropsFromUIDT.ts lines 43-45)
+          // But we need to ensure it's preserved here as well in case getColumnPropsFromUIDT didn't preserve it
+          // Map unique to ck (column_key) for database operations
+          const preservedCdf =
+            originalCdf !== undefined &&
+            originalCdf !== null &&
+            originalCdf !== ''
+              ? originalCdf
+              : props.cdf !== undefined &&
+                props.cdf !== null &&
+                props.cdf !== ''
+              ? props.cdf
+              : null;
+          return {
+            ...props,
+            cdf: preservedCdf,
+            unique:
+              originalUnique !== undefined ? originalUnique : props.unique,
+            ck: originalUnique ? 1 : props.ck || 0, // Map unique to ck for database operations
+            cn: c.column_name,
+            column_name: c.column_name,
+          };
+        }),
     );
+
+    // Validate unique constraints for columns during table creation
+    // Do this AFTER getColumnPropsFromUIDT but use preserved cdf value
+    for (const column of tableCreatePayLoad.columns) {
+      if (column.unique) {
+        // Use the preserved cdf value from the column object
+        const cdfValue = column.cdf;
+        validateUniqueConstraint(
+          context,
+          column.uidt as UITypes,
+          column.meta,
+          !!column.unique, // Convert to boolean (might be number or boolean)
+          {
+            is_meta: !!source.is_meta,
+            is_local: !!source.is_local,
+          },
+          cdfValue as unknown as string,
+        );
+      }
+    }
 
     await sqlMgr.sqlOpPlus(source, 'tableCreate', {
       ...tableCreatePayLoad,

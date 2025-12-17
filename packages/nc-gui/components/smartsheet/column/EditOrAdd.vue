@@ -1,5 +1,13 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType, UITypesSearchTerms, isAIPromptCol, isSupportedDisplayValueColumn } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  PlanFeatureTypes,
+  PlanTitles,
+  UITypesSearchTerms,
+  isAIPromptCol,
+  isSupportedDisplayValueColumn,
+} from 'nocodb-sdk'
 import {
   ButtonActionsType,
   UITypes,
@@ -100,7 +108,14 @@ const { t } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
-const { showUpgradeToUseAiPromptField, blockAiPromptField, showUpgradeToUseAiButtonField, blockAiButtonField } = useEeConfig()
+const {
+  showUpgradeToUseAiPromptField,
+  showUpgradeToUseUnique,
+  blockAiPromptField,
+  showUpgradeToUseAiButtonField,
+  blockAiButtonField,
+  blockUnique,
+} = useEeConfig()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -125,6 +140,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const readOnly = computed(() => props.readonly)
 
 const { isMysql, isDatabricks, isXcdbBase } = useBase()
+
+const { canEnableUniqueConstraint, isUniqueConstraintSupportedType } = useUniqueConstraintHelpers()
 
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
@@ -504,6 +521,29 @@ onMounted(() => {
       }
     }
 
+    // Watch for mutual exclusivity between unique constraint and default value
+    watch(
+      () => formState.value.unique,
+      (newUnique) => {
+        if (newUnique) {
+          // If enabling unique constraint, clear default value
+          if (formState.value.cdf) {
+            formState.value.cdf = null
+          }
+        }
+      },
+    )
+
+    watch(
+      () => formState.value.cdf,
+      (newCdf) => {
+        if (newCdf && formState.value.unique) {
+          // If setting default value, disable unique constraint
+          formState.value.unique = false
+        }
+      },
+    )
+
     if (isForm.value && !props.fromTableExplorer && !enableDescription.value) {
       setTimeout(() => {
         antInput.value?.focus()
@@ -725,6 +765,19 @@ const lookupRollupFilterEnabled = computed(() => {
 
 const easterEggCount = ref(0)
 const easterEgg = computed(() => easterEggCount.value >= 2)
+
+const unique = computed({
+  get: () => formState.value?.unique,
+  set: (value) => {
+    if (!!value && showUpgradeToUseUnique()) {
+      return
+    }
+
+    if (formState.value) {
+      formState.value.unique = value
+    }
+  },
+})
 </script>
 
 <template>
@@ -1335,33 +1388,102 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 
         <template v-if="!readOnly && isFullUpdateAllowed">
           <div class="nc-column-options-wrapper flex flex-col gap-4">
+            <!-- Unique Constraint Toggle -->
+            <template
+              v-if="
+                isXcdbBase(meta!.source_id) &&
+                !isVirtualCol(formState) &&
+                isUniqueConstraintSupportedType(formState.uidt, formState.meta) && isEeUI"
+            >
+              <NcTooltip
+                :disabled="canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
+                placement="right"
+                class="flex gap-1 items-center"
+              >
+                <template #title>
+                  <div class="max-w-xs">
+                    {{ canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).reason }}
+                  </div>
+                </template>
+                <NcSwitch
+                  v-model:checked="unique"
+                  size="small"
+                  class="nc-switch"
+                  :disabled="!canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
+                >
+                  <div class="text-sm text-nc-content-gray inline-flex items-center gap-1">
+                    <span>{{ $t('labels.uniqueValuesOnly') }}</span>
+                    <NcTooltip placement="right">
+                      <template #title>
+                        <div class="max-w-xs">
+                          {{ $t('msg.info.uniqueConstraintTooltip') }}
+                        </div>
+                      </template>
+                      <GeneralIcon icon="info" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+                    </NcTooltip>
+
+                    <PaymentUpgradeBadge
+                      v-if="blockUnique && !unique"
+                      :feature="PlanFeatureTypes.FEATURE_UNIQUE"
+                      :plan-title="PlanTitles.BUSINESS"
+                      size="sm"
+                      remove-click
+                      class="!font-normal !text-bodyDefaultSm"
+                    />
+                  </div>
+                </NcSwitch>
+              </NcTooltip>
+            </template>
+
             <!--
             Default Value for JSON & LongText is not supported in MySQL  -->
+            <NcTooltip
+              v-if="isTextArea(formState) && formState.meta?.richMode && formState.unique"
+              title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
+              placement="right"
+            >
+              <div class="pointer-events-none opacity-60">
+                <LazySmartsheetColumnRichLongTextDefaultValue
+                  v-model:value="formState"
+                  v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
+                />
+              </div>
+            </NcTooltip>
             <LazySmartsheetColumnRichLongTextDefaultValue
-              v-if="isTextArea(formState) && formState.meta?.richMode"
+              v-else-if="isTextArea(formState) && formState.meta?.richMode"
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
             />
+            <NcTooltip
+              v-else-if="
+                !isVirtualCol(formState) &&
+                !isAttachment(formState) &&
+                !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
+                !isDatabricks(meta!.source_id) &&
+                formState.unique &&
+                !isAI(formState)
+              "
+              title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
+              placement="right"
+            >
+              <div class="pointer-events-none opacity-60">
+                <LazySmartsheetColumnDefaultValue
+                  v-model:value="formState"
+                  v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
+                />
+              </div>
+            </NcTooltip>
             <LazySmartsheetColumnDefaultValue
               v-else-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
           !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
-          !(isDatabricks(meta!.source_id) && formState.unique) &&
+          !isDatabricks(meta!.source_id) &&
           !isAI(formState)
           "
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
             />
-
-            <div
-              v-if="isDatabricks(meta!.source_id) && !formState.cdf && ![UITypes.MultiSelect, UITypes.Checkbox, UITypes.Rating, UITypes.Attachment, UITypes.Lookup, UITypes.Rollup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(formState.uidt)"
-              class="flex gap-1"
-            >
-              <NcSwitch v-model:checked="formState.unique" size="small" class="nc-switch">
-                <div class="text-sm text-nc-content-gray">Set as Unique</div>
-              </NcSwitch>
-            </div>
           </div>
           <template v-if="easterEgg || (appInfo.ee && isAttachment(formState))">
             <!-- TODO: Refactor the if condition and verify AttachmentOption -->
@@ -1594,7 +1716,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray-subtle flex;
+  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray-subtle flex font-normal;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;
@@ -1602,7 +1724,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 }
 
 :deep(.ant-form-item-label) {
-  @apply !pb-0 text-small leading-[18px] text-nc-content-gray-subtle;
+  @apply !pb-0 text-small leading-[18px] text-nc-content-gray-subtle font-normal;
 }
 
 :deep(.ant-form-item-control-input) {

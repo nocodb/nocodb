@@ -93,6 +93,7 @@ export class MysqlDBErrorExtractor implements IClientDbErrorExtractor {
         break;
       case 'ER_DUP_ENTRY':
         message = 'This record already exists.';
+        _type = DBError.UNIQUE_CONSTRAINT_VIOLATION;
         break;
       case 'ER_PARSE_ERROR':
         message = 'There was a syntax error in your SQL query.';

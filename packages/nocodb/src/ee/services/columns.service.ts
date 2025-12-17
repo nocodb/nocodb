@@ -48,6 +48,7 @@ import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
 import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
+import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
 
 @Injectable()
 export class ColumnsService extends ColumnsServiceCE {
@@ -59,6 +60,7 @@ export class ColumnsService extends ColumnsServiceCE {
     protected readonly viewRowColorService: ViewRowColorService,
     protected readonly filtersService: FiltersService,
     protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
+    protected readonly duplicateDetectionService: DuplicateDetectionService,
   ) {
     super(
       metaService,
@@ -67,6 +69,7 @@ export class ColumnsService extends ColumnsServiceCE {
       formulaColumnTypeChanger,
       filtersService,
       metaDependencyEventHandler,
+      duplicateDetectionService,
     );
   }
 

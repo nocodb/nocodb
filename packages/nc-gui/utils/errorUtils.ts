@@ -68,4 +68,21 @@ export async function extractSdkResponseErrorMsgv2(e: Error & { response: any })
   }
 }
 
+/**
+ * Checks if the error is a unique constraint violation
+ * @param e - Error object
+ * @returns true if it's a unique constraint violation
+ */
+export function isUniqueConstraintViolationError(e: Error & { response?: any }): boolean {
+  if (!e?.response?.data) return false
+
+  const errorData = e.response.data
+  // Check for FIELD_UNIQUE_CONSTRAINT_VIOLATION error code
+  return (
+    errorData.error === NcErrorType.FIELD_UNIQUE_CONSTRAINT_VIOLATION ||
+    (errorData.message ?? errorData.msg)?.includes('Duplicate value') ||
+    (errorData.message ?? errorData.msg)?.includes('Unique constraint violation')
+  )
+}
+
 export { NcErrorType }

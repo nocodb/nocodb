@@ -168,7 +168,9 @@ interface WorkflowGeneralEdge {
   source: string; // Source node ID
   target: string; // Target node ID
   animated: boolean;
-  label?: string; // Optional label like "True" or "False"
+  label?: string; // Optional label for display (e.g., "True", "For Each Item")
+  sourcePortId?: string; // Source node's output port ID for routing
+  targetPortId?: string; // Target node's input port ID
 }
 
 export {

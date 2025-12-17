@@ -882,7 +882,8 @@ export function prefixVariableKeys(
  */
 export function genGeneralVariables(
   output: any,
-  prefix: string = ''
+  prefix: string = '',
+  extra: Partial<VariableDefinition['extra']> = {}
 ): VariableDefinition[] {
   if (output == null) return [];
 
@@ -896,6 +897,7 @@ export function genGeneralVariables(
         name: prefix || 'value',
         type: typeof output as VariableType,
         groupKey: VariableGroupKey.Fields,
+        extra
       },
     ];
   }
@@ -917,6 +919,7 @@ export function genGeneralVariables(
           groupKey: VariableGroupKey.Fields,
           isArray: true,
           extra: {
+            ...extra,
             description: `Array of ${typeof firstItem}s`,
             itemSchema: [
               {
@@ -925,6 +928,7 @@ export function genGeneralVariables(
                 type: typeof firstItem as VariableType,
                 groupKey: VariableGroupKey.Fields,
                 extra: {
+                  ...extra,
                   description: `Individual ${typeof firstItem}`,
                 },
               },
@@ -937,6 +941,7 @@ export function genGeneralVariables(
               type: VariableType.Number,
               groupKey: VariableGroupKey.Meta,
               extra: {
+                ...extra,
                 description: 'Number of items',
               },
             },
@@ -964,6 +969,7 @@ export function genGeneralVariables(
         groupKey: VariableGroupKey.Fields,
         isArray: isNestedArray,
         extra: {
+          ...extra,
           description: `${itemKey} property of array item`,
         },
       };
@@ -984,17 +990,20 @@ export function genGeneralVariables(
                 type: typeof nestedValue as VariableType,
                 groupKey: VariableGroupKey.Fields,
                 extra: {
+                  ...extra,
                   description: `${nestedKey} property`,
                 },
               });
             }
             itemDef.extra = {
+              ...extra,
               ...itemDef.extra,
               itemSchema: nestedItemSchema,
             };
           } else {
             // Array of primitives
             itemDef.extra = {
+              ...extra,
               ...itemDef.extra,
               itemSchema: [
                 {
@@ -1002,6 +1011,7 @@ export function genGeneralVariables(
                   name: 'item',
                   type: typeof nestedFirstItem as VariableType,
                   groupKey: VariableGroupKey.Fields,
+                  extra
                 },
               ],
             };
@@ -1013,6 +1023,7 @@ export function genGeneralVariables(
               type: VariableType.Number,
               groupKey: VariableGroupKey.Meta,
               extra: {
+                ...extra,
                 description: 'Number of items',
               },
             },
@@ -1027,6 +1038,7 @@ export function genGeneralVariables(
               type: typeof nestedValue as VariableType,
               groupKey: VariableGroupKey.Fields,
               extra: {
+                ...extra,
                 description: `${nestedKey} property`,
               },
             });
@@ -1046,6 +1058,7 @@ export function genGeneralVariables(
         groupKey: VariableGroupKey.Fields,
         isArray: true,
         extra: {
+          ...extra,
           description: `Array of ${arrayName}`,
           itemSchema: itemSchema,
         },
@@ -1056,6 +1069,7 @@ export function genGeneralVariables(
             type: VariableType.Number,
             groupKey: VariableGroupKey.Meta,
             extra: {
+              ...extra,
               description: 'Number of items',
             },
           },
@@ -1080,6 +1094,7 @@ export function genGeneralVariables(
         : (valueType as VariableType),
       groupKey: VariableGroupKey.Fields,
       isArray,
+      extra
     };
 
     // Handle arrays with itemSchema
@@ -1089,6 +1104,7 @@ export function genGeneralVariables(
       // Array of primitives
       if (typeof firstItem !== 'object' || firstItem === null) {
         varDef.extra = {
+          ...extra,
           itemSchema: [
             {
               key: '',
@@ -1096,6 +1112,7 @@ export function genGeneralVariables(
               type: typeof firstItem as VariableType,
               groupKey: VariableGroupKey.Fields,
               extra: {
+                ...extra,
                 description: `Individual ${typeof firstItem}`,
               },
             },
@@ -1116,6 +1133,7 @@ export function genGeneralVariables(
             groupKey: VariableGroupKey.Fields,
             isArray: Array.isArray(itemValue),
             extra: {
+              ...extra,
               description: `${itemKey} property`,
             },
           });
@@ -1131,13 +1149,14 @@ export function genGeneralVariables(
           type: VariableType.Number,
           groupKey: VariableGroupKey.Meta,
           extra: {
+            ...extra,
             description: 'Number of items',
           },
         },
       ];
     } else if (!isArray && valueType === 'object' && value !== null) {
       // Regular object - recurse into children
-      varDef.children = genGeneralVariables(value, fullKey);
+      varDef.children = genGeneralVariables(value, fullKey, extra);
     }
 
     variables.push(varDef);

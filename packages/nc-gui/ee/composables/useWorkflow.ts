@@ -129,6 +129,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
     if (sourcePortId) {
       edge.sourceHandle = sourcePortId
+      edge.sourcePortId = sourcePortId
     }
 
     nodes.value = [...nodes.value, plusNode]
@@ -230,7 +231,8 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
             newEdge.labelBgStyle = inEdge.labelBgStyle
           }
           if (inEdge.sourceHandle) {
-            newEdge.sourceHandle = inEdge.sourceHandle
+            newEdge.sourceHandle = inEdge.sourceHandle // Vue Flow uses sourceHandle
+            newEdge.sourcePortId = inEdge.sourceHandle // Backend uses sourcePortId
           }
           bridgingEdges.push(newEdge)
         }

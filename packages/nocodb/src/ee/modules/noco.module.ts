@@ -28,6 +28,7 @@ import { ViewSettingsOverrideService } from '~/services/view-settings-override.s
 
 /* Datas */
 import { DataOptService } from '~/services/data-opt/data-opt.service';
+import { Datav3Controller } from '~/controllers/v3/data-v3.controller';
 
 /* Workspaces */
 import { WorkspacesService } from '~/services/workspaces.service';
@@ -170,6 +171,8 @@ export const nocoModuleEeMetadata = {
     BaseMembersV3Controller,
 
     ScriptsV3Controller,
+
+    Datav3Controller,
 
     /* Workflows */
     WorkflowWebhookController,

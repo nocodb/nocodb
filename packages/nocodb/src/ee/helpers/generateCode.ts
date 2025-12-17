@@ -1969,16 +1969,60 @@ Object.freeze(UITypes);
       if (deleteObjs.length === 0) {
         throw new Error('Record IDs are required');
       }
-      
+
       if (deleteObjs.length > 10) {
         throw new Error('You can only delete up to 10 records at a time');
       }
-      
+
       try {
         await api.dbDataTableRowDelete(this.base.id, this.id, deleteObjs);
         return true
       } catch (e) {
         throw new Error(\`Failed to delete records in table \${this.name}\`)
+      }
+    }
+
+    async generateRowsAsync(params) {
+      const { rowIds, columnId } = params;
+
+      if (!rowIds || !Array.isArray(rowIds)) {
+        throw new Error('rowIds is required and must be an array');
+      }
+
+      if (rowIds.length === 0) {
+        throw new Error('rowIds must not be empty');
+      }
+
+      if (rowIds.length > 25) {
+        throw new Error('Only 25 rows can be processed at a time');
+      }
+
+      if (!columnId) {
+        throw new Error('columnId is required');
+      }
+
+      // Validate that the column exists in the table
+      const column = this.getField(columnId);
+      if (!column) {
+        throw new Error(\`Column \${columnId} not found in table \${this.name}\`);
+      }
+
+      // Validate that the column is a Button type
+      if (column.type !== 'Button') {
+        throw new Error(\`Column \${column.name} must be a Button field\`);
+      }
+
+      const requestBody = {
+        rowIds,
+        preview: false
+      };
+
+      try {
+        const response = await api.triggerAction(this.base.id, this.id, columnId, requestBody);
+        // Convert response to NocoDBRecord objects
+        return response.map(record => new NocoDBRecord(record, this));
+      } catch (e) {
+        throw new Error(\`Failed to trigger action in table \${this.name}: \${e.message}\`);
       }
     }
   }

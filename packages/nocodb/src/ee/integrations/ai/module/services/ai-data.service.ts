@@ -69,73 +69,122 @@ const INLINE_SUPPORTED_MIMETYPES = [
   'application/xml',
 ];
 
+const schemaHelpers: {
+  [uidt: string]: (col: Column) => {
+    schema: any;
+    helperMessage: string;
+  };
+} = {
+  [UITypes.SingleSelect]: (col) => {
+    const options = col.colOptions.options.map((o) => `"${o.title}"`).join(',');
+    return {
+      schema: z
+        .enum(col.colOptions.options.map((o) => o.title))
+        .nullable()
+        .optional(),
+      helperMessage: `must be one and only one of the following options or null. options:${options}`,
+    };
+  },
+  [UITypes.MultiSelect]: (col) => {
+    const options = col.colOptions.options.map((o) => `"${o.title}"`).join(',');
+    return {
+      schema: z.string().nullable().optional(),
+      helperMessage: `must be a comma separated string only using options (like:opt1,opt2,opt3) or null. options:${options}`,
+    };
+  },
+  [UITypes.Checkbox]: (_col) => {
+    return {
+      schema: z.boolean().nullable().optional(),
+      helperMessage: 'must be a boolean or null',
+    };
+  },
+  [UITypes.Number]: (_col) => {
+    return {
+      schema: z.number().nullable().optional(),
+      helperMessage:
+        'must be a number (no thousand separator & "," as decimal separator) or null',
+    };
+  },
+  [UITypes.Currency]: (col) => {
+    const currency_code = col.meta?.currency_code || 'USD';
+    return {
+      schema: z.number().nullable().optional(),
+      helperMessage: `must be a number or null representing value in ${currency_code}`,
+    };
+  },
+  [UITypes.URL]: (_col) => {
+    return {
+      schema: z.string().nullable().optional(),
+      helperMessage: 'must be a valid URL or null',
+    };
+  },
+  [UITypes.Date]: (_col) => {
+    return {
+      schema: z.string().nullable().optional(),
+      helperMessage: 'must be a valid date in format YYYY-MM-DD or null',
+    };
+  },
+  [UITypes.DateTime]: (_col) => {
+    return {
+      schema: z.string().nullable().optional(),
+      helperMessage:
+        'must be a valid date-time in format YYYY-MM-DD HH:mm:ss or null',
+    };
+  },
+  [UITypes.SingleLineText]: (_col) => {
+    return {
+      schema: z.string().nullable().optional(),
+      helperMessage: '',
+    };
+  },
+  [UITypes.Email]: (_col) => {
+    return {
+      schema: z.string().nullable().optional(),
+      helperMessage: 'must be a valid email or null',
+    };
+  },
+  [UITypes.PhoneNumber]: (_col) => {
+    return {
+      schema: z.string().nullable().optional(),
+      helperMessage: 'must be a valid phone number or null',
+    };
+  },
+  [UITypes.LongText]: (_col) => {
+    return {
+      schema: z.string().nullable().optional(),
+      helperMessage: 'must be a string with rich text support or null',
+    };
+  },
+};
+
 const uidtHelper = (cols: Column[]) => {
   let userMessageAddition = '';
   const schema = cols.map((col) => {
-    if (col.uidt === UITypes.SingleSelect) {
-      userMessageAddition += `\n"${
-        col.title
-      }" must be one and only one of the following options or null. options:${col.colOptions.options
-        .map((o) => `"${o.title}"`)
-        .join(',')}`;
+    const colTitle = col.title;
+    const colDescription = col.description;
 
-      return [
-        col.title,
-        z
-          .enum(col.colOptions.options.map((o) => o.title))
-          .nullable()
-          .optional(),
-      ];
-    } else if (col.uidt === UITypes.MultiSelect) {
-      userMessageAddition += `\n"${
-        col.title
-      }" must be a comma separated string only using options (like:opt1,opt2,opt3) or null. options:${col.colOptions.options
-        .map((o) => `"${o.title}"`)
-        .join(',')}`;
+    const helper = schemaHelpers[col.uidt];
 
-      return [col.title, z.string().nullable().optional()];
-    } else if (col.uidt === UITypes.Checkbox) {
-      userMessageAddition += `\n"${col.title}" must be a boolean or null`;
+    if (helper) {
+      const { schema: colSchema, helperMessage } = helper(col);
 
-      return [col.title, z.boolean().nullable().optional()];
-    } else if (col.uidt === UITypes.Number) {
-      userMessageAddition += `\n"${col.title}" must be a number (no thousand separator & "," as decimal separator) or null`;
+      if (helperMessage) {
+        userMessageAddition += `\n"${colTitle}" ${helperMessage}`;
+      }
 
-      return [col.title, z.number().nullable().optional()];
-    } else if (col.uidt === UITypes.Currency) {
-      const currency_code = col.meta?.currency_code || 'USD';
+      if (colDescription) {
+        userMessageAddition += `\n"${colTitle}" description: ${colDescription}`;
+      }
 
-      userMessageAddition += `\n"${col.title}" must be a number or null representing value in ${currency_code}`;
-
-      return [col.title, z.number().nullable().optional()];
-    } else if (col.uidt === UITypes.URL) {
-      userMessageAddition += `\n"${col.title}" must be a valid URL or null`;
-
-      return [col.title, z.string().nullable().optional()];
-    } else if (col.uidt === UITypes.Date) {
-      userMessageAddition += `\n"${col.title}" must be a valid date in format YYYY-MM-DD or null`;
-
-      return [col.title, z.string().nullable().optional()];
-    } else if (col.uidt === UITypes.DateTime) {
-      userMessageAddition += `\n"${col.title}" must be a valid date-time in format YYYY-MM-DD HH:mm:ss or null`;
-
-      return [col.title, z.string().nullable().optional()];
-    } else if (col.uidt === UITypes.SingleLineText) {
-      return [col.title, z.string().nullable().optional()];
-    } else if (col.uidt === UITypes.Email) {
-      userMessageAddition += `\n"${col.title}" must be a valid email or null`;
-
-      return [col.title, z.string().nullable().optional()];
-    } else if (col.uidt === UITypes.PhoneNumber) {
-      userMessageAddition += `\n"${col.title}" must be a valid phone number or null`;
-
-      return [col.title, z.string().nullable().optional()];
-    } else if (col.uidt === UITypes.LongText) {
-      userMessageAddition += `\n"${col.title}" must be a string with rich text support or null`;
-
-      return [col.title, z.string().nullable().optional()];
+      return [colTitle, colSchema];
     }
-    return [col.title, z.any().optional()];
+
+    // Default case
+    if (colDescription) {
+      userMessageAddition += `\n"${colTitle}" description: ${colDescription}`;
+    }
+
+    return [colTitle, z.any().optional()];
   });
 
   return { schema, userMessageAddition };

@@ -4755,6 +4755,137 @@
         ]
       }
     },
+    "/api/v3/data/{baseId}/{tableId}/actions/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "**Base Identifier**."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "**Table Identifier**."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "**Button Field Identifier** to trigger the action."
+        }
+      ],
+      "post": {
+        "summary": "Trigger Button Action",
+        "operationId": "trigger-action",
+        "description": "Triggers a button action (such as AI generation) for specified rows. This is useful for bulk processing button actions programmatically. Maximum of 25 rows can be processed at a time.",
+        "tags": [
+          "Table Records"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "rowIds"
+                ],
+                "properties": {
+                  "rowIds": {
+                    "type": "array",
+                    "description": "Array of record IDs to process",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 25,
+                    "example": [
+                      "1",
+                      "2",
+                      "3"
+                    ]
+                  },
+                  "preview": {
+                    "type": "boolean",
+                    "description": "Preview mode (optional)",
+                    "default": false
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "rowIds": [
+                      "1",
+                      "2"
+                    ],
+                    "preview": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Action triggered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DataRecordV3"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "id": "1",
+                        "fields": {
+                          "Title": "Updated by AI",
+                          "Description": "Generated content..."
+                        }
+                      },
+                      {
+                        "id": "2",
+                        "fields": {
+                          "Title": "Another update",
+                          "Description": "More generated content..."
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      }
+    },
     "/api/v3/meta/workspaces/{workspaceId}/teams": {
       "get": {
         "summary": "List Teams",

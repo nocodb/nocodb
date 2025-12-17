@@ -3,7 +3,6 @@ import DOMPurify from 'isomorphic-dompurify';
 import {
   AppEvents,
   EventType,
-  extractRolesObj,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
@@ -12,18 +11,11 @@ import {
   isVirtualCol,
   ModelTypes,
   NcBaseError,
-  PermissionEntity,
-  PermissionGrantedType,
-  PermissionKey,
-  PermissionRole,
   ProjectRoles,
   RelationTypes,
   ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
-import { MetaDiffsService } from '~/services/meta-diffs.service';
-import { ColumnsService } from '~/services/columns.service';
-import { getProjectRole } from 'nocodb-sdk';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnType,
@@ -35,7 +27,14 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { repopulateCreateTableSystemColumns } from '~/helpers/tableHelpers';
+import { ColumnsService } from '~/services/columns.service';
+import { MetaDiffsService } from '~/services/meta-diffs.service';
+import {
+  hasDefaultTableVisibility,
+  hasTableVisibilityAccess,
+  hasViewersAndUpTableVisibility,
+  repopulateCreateTableSystemColumns,
+} from '~/helpers/tableHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
 import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -495,7 +494,7 @@ export class TablesService {
     // Check table visibility permission
     // Base owners always have access, but we still need to check for others
     if (!isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
-      const hasAccess = await this.hasTableVisibilityAccess(
+      const hasAccess = await hasTableVisibilityAccess(
         context,
         param.tableId,
         param.user,
@@ -583,116 +582,6 @@ export class TablesService {
     return Object.values(result);
   }
 
-  /**
-   * Check if user has access to a table based on TABLE_VISIBILITY permission
-   * Base owners always have access
-   */
-  async hasTableVisibilityAccess(
-    context: NcContext,
-    tableId: string,
-    user: User | UserType,
-    permissions?: Permission[],
-  ): Promise<boolean> {
-    // Base owners always have access
-    // Check base_roles (can be string or object)
-    const baseRoles = extractRolesObj((user as any)?.base_roles);
-    if (baseRoles?.[ProjectRoles.OWNER]) {
-      return true;
-    }
-
-    // Also check roles object for backward compatibility
-    const roles = extractRolesObj((user as any)?.roles);
-    if (roles?.[ProjectRoles.OWNER]) {
-      return true;
-    }
-
-    // Get permissions if not provided
-    if (!permissions) {
-      permissions = await Permission.list(context, context.base_id);
-    }
-
-    // Find TABLE_VISIBILITY permission for this table
-    const visibilityPermission = permissions.find(
-      (p) =>
-        p.entity === PermissionEntity.TABLE &&
-        p.entity_id === tableId &&
-        p.permission === PermissionKey.TABLE_VISIBILITY,
-    );
-
-    // If no permission exists, default to everyone (accessible)
-    if (!visibilityPermission) {
-      return true;
-    }
-
-    // Get the user's project role (base role)
-    // Use getProjectRole from nocodb-sdk which extracts the role from user object
-    // It looks at user.base_roles and returns the most powerful role
-    const userRole = getProjectRole(user) as ProjectRoles;
-
-    // If no role found, user doesn't have access
-    if (!userRole) {
-      return false;
-    }
-
-    // Check if user has permission
-    const hasPermission = await Permission.isAllowed(
-      context,
-      visibilityPermission,
-      {
-        id: user.id,
-        role: userRole,
-      },
-    );
-
-    return hasPermission;
-  }
-
-  /**
-   * Check if a table has default table visibility (Everyone)
-   * Returns true if no TABLE_VISIBILITY permission exists (defaults to Everyone)
-   * When "Everyone" is selected in UI, the permission record is deleted,
-   * so no permission = Everyone = default visibility
-   */
-  hasDefaultTableVisibility(
-    tableId: string,
-    permissions: Permission[],
-  ): boolean {
-    // Find TABLE_VISIBILITY permission for this table
-    const visibilityPermission = permissions.find(
-      (p) =>
-        p.entity === PermissionEntity.TABLE &&
-        p.entity_id === tableId &&
-        p.permission === PermissionKey.TABLE_VISIBILITY,
-    );
-
-    // If no permission exists, it defaults to Everyone (default visibility)
-    // When "Everyone" is selected in UI, the permission is deleted
-    return !visibilityPermission;
-  }
-
-  hasViewersAndUpTableVisibility(
-    tableId: string,
-    permissions: Permission[],
-  ): boolean {
-    // Find TABLE_VISIBILITY permission for this table
-    const visibilityPermission = permissions.find(
-      (p) =>
-        p.entity === PermissionEntity.TABLE &&
-        p.entity_id === tableId &&
-        p.permission === PermissionKey.TABLE_VISIBILITY,
-    );
-
-    // Check if permission is "Viewers & up" (granted_type: 'role', granted_role: 'viewer')
-    if (visibilityPermission) {
-      return (
-        visibilityPermission.granted_type === PermissionGrantedType.ROLE &&
-        visibilityPermission.granted_role === PermissionRole.VIEWER
-      );
-    }
-
-    return false;
-  }
-
   async getAccessibleTables(
     context: NcContext,
     param: {
@@ -737,14 +626,14 @@ export class TablesService {
         // For shared bases (public bases), show tables with default visibility (Everyone) or "Viewers & up" permission
         if (param.isPublicBase) {
           if (
-            this.hasDefaultTableVisibility(table.id, permissions) ||
-            this.hasViewersAndUpTableVisibility(table.id, permissions)
+            hasDefaultTableVisibility(table.id, permissions) ||
+            hasViewersAndUpTableVisibility(table.id, permissions)
           ) {
             accessibleTableIds.add(table.id);
           }
         } else if (param.user) {
           // For regular bases, check user access
-          const hasAccess = await this.hasTableVisibilityAccess(
+          const hasAccess = await hasTableVisibilityAccess(
             context,
             table.id,
             param.user,

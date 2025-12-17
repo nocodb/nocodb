@@ -10,6 +10,7 @@ import { forwardRef, Inject } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import { deserializeJSON } from '~/utils/serialize';
 import { getCommandPaletteForUserWorkspace } from '~/helpers/commandPaletteHelpers';
+import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import { TablesService } from '~/services/tables.service';
 import { Permission } from '~/models';
 
@@ -209,13 +210,12 @@ export class CommandPaletteService {
               }
             } else {
               // If no base role, check using hasTableVisibilityAccess as fallback
-              const hasAccess =
-                await this.tablesService.hasTableVisibilityAccess(
-                  context,
-                  tableId,
-                  param.user,
-                  permissions,
-                );
+              const hasAccess = await hasTableVisibilityAccess(
+                context,
+                tableId,
+                param.user,
+                permissions,
+              );
               if (hasAccess) {
                 accessibleTableIds.add(tableId);
               }

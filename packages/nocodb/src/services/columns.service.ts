@@ -5306,7 +5306,11 @@ export class ColumnsService implements IColumnsService {
 
   async getLinkColumnRefTable(
     context: NcContext,
-    { columnId, tableId, user }: { columnId: string; tableId: string; user?: UserType },
+    {
+      columnId,
+      tableId,
+      user,
+    }: { columnId: string; tableId: string; user?: UserType },
   ) {
     const column = await Column.get(context, { colId: columnId });
 

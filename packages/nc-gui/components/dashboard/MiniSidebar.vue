@@ -93,6 +93,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         isCmdJActive() ||
         isNcDropdownOpen() ||
         isActiveElementInsideExtension() ||
+        isActiveElementInsideScriptPane() ||
         isDrawerOrModalExist() ||
         isExpandedFormOpenExist()))
   ) {

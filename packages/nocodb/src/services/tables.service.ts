@@ -44,6 +44,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 
 @Injectable()
 export class TablesService {
@@ -853,9 +854,6 @@ export class TablesService {
 
     // Validate unique constraints for columns during table creation
     // Do this AFTER getColumnPropsFromUIDT but use preserved cdf value
-    const { validateUniqueConstraint } = await import(
-      '~/helpers/uniqueConstraintHelpers'
-    );
     for (const column of tableCreatePayLoad.columns) {
       if (column.unique) {
         // Use the preserved cdf value from the column object

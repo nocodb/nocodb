@@ -52,6 +52,7 @@ import {
 import { getFormulasReferredTheColumn } from '~/helpers/formulaHelpers';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 import { NcCache } from '~/decorators/nc-cache.decorator';
+import { validateColumnInternalMeta } from '~/types/column-internal-meta';
 
 const selectColors = enumColors.light;
 
@@ -204,9 +205,6 @@ export default class Column<T = any> implements ColumnType {
       typeof insertObj.internal_meta === 'object'
     ) {
       // Validate internal_meta structure before stringifying
-      const { validateColumnInternalMeta } = await import(
-        '~/types/column-internal-meta'
-      );
       validateColumnInternalMeta(insertObj.internal_meta);
       insertObj.internal_meta = JSON.stringify(insertObj.internal_meta);
     }

@@ -44,6 +44,8 @@ const permissionSelectorConfig = computed<PermissionSelectorConfig>(() => ({
 // Create a dummy currentValue ref since Selector doesn't use display values
 const currentValue = ref('')
 
+const isTableVisibility = computed(() => props.config?.permission === PermissionKey.TABLE_VISIBILITY)
+
 // Use the permission selector composable
 const {
   currentOption,
@@ -282,12 +284,14 @@ const handleClickDropdown = (e: MouseEvent) => {
           v-if="base.id && currentOption?.value === PermissionOptionValue.SPECIFIC_USERS"
           v-model:selected-users="userSelectorSelectedUsers"
           class="flex-1"
+          :class="{ 'mb-3': !isTableVisibility }"
           :base-id="base.id"
           :permission-label="permissionLabel"
           :permission-description="permissionDescription"
           :permission="config.permission"
           :entity-title="config.entityTitle"
           :readonly="props.readonly"
+          :hint="isTableVisibility ? null : $t('msg.permissionHintMsg')"
           @save="handleUserSelectorSave"
         />
       </template>
@@ -301,7 +305,7 @@ const handleClickDropdown = (e: MouseEvent) => {
           :permission-description="permissionDescription"
           :permission="config.permission"
           :entity-title="config.entityTitle"
-          :hint="$t('msg.permissionHintMsg')"
+          :hint="isTableVisibility ? null : $t('msg.permissionHintMsg')"
           @save="handleUserSelectorSave"
         />
       </template>

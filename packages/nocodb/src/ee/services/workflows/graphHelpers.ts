@@ -159,7 +159,7 @@ function getNextNode(
  * Generic conditional branching logic using port-based routing
  *
  * This function provides a universal way to handle branching nodes:
- * 1. If node returns `output.port`, match it to edge label (case-insensitive)
+ * 1. If node returns `output.port`, match it to edge sourcePortId (case-insensitive)
  * 2. Fallback to first edge if no match found
  *
  * @param currentNode - The node being executed

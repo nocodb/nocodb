@@ -584,6 +584,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
       if (
         data.type === 'formula' ||
         data.type === 'webhook' ||
+        data.type === 'script' ||
         data.type === 'ai'
       ) {
         return {
@@ -700,35 +701,6 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       );
       if (durationIdx > -1) {
         meta.duration = durationIdx;
-      }
-    } else if (data.uidt === UITypes.Button) {
-      // Convert the V3 oneOf schema format to the V2 format for buttons
-      const {
-        type,
-        formula,
-        webhook_id,
-        script_id,
-        prompt,
-        integration_id,
-        output_column_ids,
-        ...commonProps
-      } = meta as Record<string, any>;
-
-      // Set base meta properties
-      Object.assign(meta, commonProps);
-      meta.type = type;
-
-      // Add type-specific properties
-      if (type === 'formula' && formula) {
-        meta.formula = formula;
-      } else if (type === 'webhook' && webhook_id) {
-        meta.fk_webhook_id = webhook_id;
-      } else if (type === 'script' && script_id) {
-        meta.fk_script_id = script_id;
-      } else if (type === 'ai') {
-        if (prompt) meta.prompt = prompt;
-        if (integration_id) meta.integration_id = integration_id;
-        if (output_column_ids) meta.output_column_ids = output_column_ids;
       }
     }
     // if multi select then accept array of default values

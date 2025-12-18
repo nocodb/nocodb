@@ -8169,14 +8169,14 @@
                 ],
                 "description": "Button type: script"
               },
-              "script_hook_id": {
+              "button_script_id": {
                 "type": "string",
                 "description": "ID of the script to trigger"
               }
             },
             "required": [
               "type",
-              "script_hook_id"
+              "button_script_id"
             ]
           }
         ],
@@ -8185,7 +8185,8 @@
           "mapping": {
             "formula": "#/components/schemas/FieldOptions_Button/oneOf/0",
             "webhook": "#/components/schemas/FieldOptions_Button/oneOf/1",
-            "ai": "#/components/schemas/FieldOptions_Button/oneOf/2"
+            "ai": "#/components/schemas/FieldOptions_Button/oneOf/2",
+            "script": "#/components/schemas/FieldOptions_Button/oneOf/3"
           }
         },
         "additionalProperties": false

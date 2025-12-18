@@ -1,17 +1,7 @@
 import { Datav3Controller as Datav3ControllerCE } from 'src/controllers/v3/data-v3.controller';
-import {
-  Body,
-  Controller,
-  HttpCode,
-  Param,
-  Post,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, HttpCode, Param, Post, Req } from '@nestjs/common';
 import type { DataRecord } from '~/services/v3/data-v3.types';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-import { DataApiLimiterGuard } from '~/guards/data-api-limiter.guard';
-import { GlobalGuard } from '~/guards/global/global.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { DataV3Service } from '~/services/v3/data-v3.service';
@@ -23,7 +13,6 @@ import { Model } from '~/models';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 
 @Controller()
-@UseGuards(DataApiLimiterGuard, GlobalGuard)
 export class Datav3Controller extends Datav3ControllerCE {
   constructor(
     protected readonly dataV3Service: DataV3Service,

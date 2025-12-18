@@ -72,10 +72,7 @@ const permissionOptions = computed(() => {
   return allPermissionOptions.value.filter((option) => {
     // For record permissions (create/delete), exclude Viewers & up, Commenters & up, and Everyone
     if (!isTableVisibility) {
-      if (
-        option.value === PermissionOptionValue.COMMENTERS_AND_UP ||
-        option.value === PermissionOptionValue.EVERYONE
-      ) {
+      if (option.value === PermissionOptionValue.COMMENTERS_AND_UP || option.value === PermissionOptionValue.EVERYONE) {
         return false
       }
     }
@@ -284,14 +281,13 @@ const handleClickDropdown = (e: MouseEvent) => {
         <PermissionsInlineUserSelector
           v-if="base.id && currentOption?.value === PermissionOptionValue.SPECIFIC_USERS"
           v-model:selected-users="userSelectorSelectedUsers"
-          class="flex-1 mb-3"
+          class="flex-1"
           :base-id="base.id"
           :permission-label="permissionLabel"
           :permission-description="permissionDescription"
           :permission="config.permission"
           :entity-title="config.entityTitle"
           :readonly="props.readonly"
-          :hint="$t('msg.permissionHintMsg')"
           @save="handleUserSelectorSave"
         />
       </template>

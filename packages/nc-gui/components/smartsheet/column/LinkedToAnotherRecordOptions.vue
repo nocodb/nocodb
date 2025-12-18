@@ -119,7 +119,6 @@ const { baseTables } = storeToRefs(tablesStore)
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
-
 const refTables = computed(() => {
   if (isEdit.value) {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
@@ -129,7 +128,6 @@ const refTables = computed(() => {
     // Load meta if not already loaded
     if (!metas.value[refTableId]) getMeta(refTableId)
     const tableMeta = metas.value[refTableId]
-
     // Check if table is private (from API response only)
     const isPrivate = tableMeta && (tableMeta as any).is_private
 
@@ -191,7 +189,9 @@ const refViews = computed(() => {
   return (views || []).filter((v) => v.type !== ViewTypes.FORM)
 })
 
-const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
+const filterOption = (value: string, option: { key: string }) => {
+  return option.key.toLowerCase().includes(value.toLowerCase())
+}
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
 
@@ -540,7 +540,7 @@ const handleScrollIntoView = () => {
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
-          <a-select-option v-for="table of refTables" :key="table.id" :value="table.id" :disabled="(table as any).is_private">
+          <a-select-option v-for="table of refTables" :key="table.title" :value="table.id" :disabled="(table as any).is_private">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralTableIcon v-if="(table as any).is_private" class="text-nc-content-gray-disabled" />
@@ -550,7 +550,7 @@ const handleScrollIntoView = () => {
                 <template #title>{{ table.title }}</template>
                 <span>{{ table.title }}</span>
               </NcTooltip>
-              <span v-else class="text-nc-content-gray-disabled">{{ table.title }}</span>
+              <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.privateTable') }}</span>
             </div>
           </a-select-option>
         </a-select>
@@ -610,7 +610,7 @@ const handleScrollIntoView = () => {
                 <template #title>{{ view.title }}</template>
                 <span>{{ view.title }}</span>
               </NcTooltip>
-              <span v-else class="text-nc-content-gray-disabled">{{ view.title }}</span>
+              <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.privateView') }}</span>
             </div>
           </a-select-option>
         </NcSelect>

@@ -82,7 +82,7 @@ export function findVariableByPath(
 
     if (!variable?.children) continue;
     if (variable.children?.length > 0) {
-      const found = this.findVariableByPath(path, variable.children);
+      const found = findVariableByPath(path, variable.children);
       if (found) return found;
     }
   }

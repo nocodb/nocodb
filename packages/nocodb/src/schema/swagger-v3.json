@@ -3318,9 +3318,9 @@
                         "limit": "23"
                       },
                       "meta": {},
-                      "base_id":  "bas3jh4h43k4j3d",
+                      "base_id": "bas3jh4h43k4j3d",
                       "workspace_id": "ws3n3e3nf",
-                      "created_at":  "2025-01-16 06:04:18+00:00",
+                      "created_at": "2025-01-16 06:04:18+00:00",
                       "updated_at": "2025-01-16 06:04:18+00:00"
                     }
                   }
@@ -3336,7 +3336,9 @@
         "summary": "Get Script Info",
         "description": "Retrieve the details of a specific script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "script-read",
-        "tags": ["Scripts"],
+        "tags": [
+          "Scripts"
+        ],
         "parameters": [
           {
             "name": "script_id",
@@ -3374,9 +3376,9 @@
                       "script": "output.inspect(base)",
                       "config": {},
                       "meta": {},
-                      "base_id":  "bas3jh4h43k4j3d",
+                      "base_id": "bas3jh4h43k4j3d",
                       "workspace_id": "ws3n3e3nf",
-                      "created_at":  "2025-01-16 06:04:18+00:00",
+                      "created_at": "2025-01-16 06:04:18+00:00",
                       "updated_at": "2025-01-16 06:04:18+00:00"
                     }
                   }
@@ -3390,7 +3392,9 @@
         "summary": "Update script",
         "description": "Update the script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "script-update",
-        "tags": ["Scripts"],
+        "tags": [
+          "Scripts"
+        ],
         "parameters": [
           {
             "name": "script_id",
@@ -3438,7 +3442,9 @@
         "summary": "Delete script",
         "description": "Delete the script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "script-delete",
-        "tags": ["Scripts"],
+        "tags": [
+          "Scripts"
+        ],
         "parameters": [
           {
             "name": "script_id",
@@ -4920,7 +4926,9 @@
                       }
                     }
                   },
-                  "required": ["list"]
+                  "required": [
+                    "list"
+                  ]
                 }
               }
             }
@@ -6557,7 +6565,6 @@
           }
         }
       },
-
       "ViewAggregationEnum": {
         "type": "string",
         "enum": [
@@ -6884,7 +6891,9 @@
                 }
               }
             },
-            "required": ["field_id"]
+            "required": [
+              "field_id"
+            ]
           },
           "cover_field_id": {
             "type": "string",
@@ -7129,7 +7138,6 @@
                 "required": [
                   "options"
                 ]
-
               }
             ],
             "discriminator": {
@@ -7435,7 +7443,6 @@
                 "required": [
                   "options"
                 ]
-
               }
             ],
             "discriminator": {
@@ -7444,7 +7451,6 @@
           }
         ]
       },
-
       "FieldBase": {
         "type": "object",
         "properties": {
@@ -8089,7 +8095,8 @@
             "required": [
               "type",
               "formula"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
             "title": "Webhook Button",
@@ -8110,7 +8117,8 @@
             "required": [
               "type",
               "button_hook_id"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
             "title": "AI Button",
@@ -8156,7 +8164,8 @@
               "type",
               "prompt",
               "integration_id"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
             "title": "Script Button",
@@ -8177,7 +8186,8 @@
             "required": [
               "type",
               "button_script_id"
-            ]
+            ],
+            "additionalProperties": false
           }
         ],
         "discriminator": {
@@ -8188,8 +8198,7 @@
             "ai": "#/components/schemas/FieldOptions_Button/oneOf/2",
             "script": "#/components/schemas/FieldOptions_Button/oneOf/3"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "FieldOptions_Links": {
         "type": "object",
@@ -9471,7 +9480,10 @@
             "oneOf": [
               {
                 "type": "string",
-                "enum": ["EMOJI", "ICON"]
+                "enum": [
+                  "EMOJI",
+                  "ICON"
+                ]
               },
               {
                 "type": "null"
@@ -9544,7 +9556,10 @@
             "oneOf": [
               {
                 "type": "string",
-                "enum": ["EMOJI", "ICON"]
+                "enum": [
+                  "EMOJI",
+                  "ICON"
+                ]
               },
               {
                 "type": "null"
@@ -9594,7 +9609,10 @@
             "oneOf": [
               {
                 "type": "string",
-                "enum": ["EMOJI", "ICON"]
+                "enum": [
+                  "EMOJI",
+                  "ICON"
+                ]
               },
               {
                 "type": "null"
@@ -9632,7 +9650,10 @@
             "oneOf": [
               {
                 "type": "string",
-                "enum": ["EMOJI", "ICON"]
+                "enum": [
+                  "EMOJI",
+                  "ICON"
+                ]
               },
               {
                 "type": "null"
@@ -9671,7 +9692,10 @@
           "team_role": {
             "type": "string",
             "description": "Team role",
-            "enum": ["member", "owner"],
+            "enum": [
+              "member",
+              "owner"
+            ],
             "example": "member"
           }
         },
@@ -9698,7 +9722,10 @@
           "team_role": {
             "type": "string",
             "description": "Team role",
-            "enum": ["member", "owner"],
+            "enum": [
+              "member",
+              "owner"
+            ],
             "example": "member"
           }
         },
@@ -9720,7 +9747,10 @@
           "team_role": {
             "type": "string",
             "description": "Team role to assign",
-            "enum": ["member", "owner"],
+            "enum": [
+              "member",
+              "owner"
+            ],
             "example": "member"
           }
         },
@@ -9755,7 +9785,10 @@
           "team_role": {
             "type": "string",
             "description": "New team role",
-            "enum": ["member", "owner"],
+            "enum": [
+              "member",
+              "owner"
+            ],
             "example": "member"
           }
         },
@@ -10106,7 +10139,10 @@
             "description": "Title of the script."
           },
           "description": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Description of the script."
           },
           "script": {
@@ -10132,7 +10168,10 @@
             "description": "Title of the script."
           },
           "description": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "description": "Description of the script."
           },
           "script": {

@@ -723,7 +723,7 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
         meta.formula = formula;
       } else if (type === 'webhook' && webhook_id) {
         meta.fk_webhook_id = webhook_id;
-      } else if (type === 'script' && webhook_id) {
+      } else if (type === 'script' && script_id) {
         meta.fk_script_id = script_id;
       } else if (type === 'ai') {
         if (prompt) meta.prompt = prompt;

@@ -13,5 +13,6 @@ const integration: IntegrationEntry = {
   form,
   manifest,
 };
+export { JiraAuthIntegration };
 
 export default integration;

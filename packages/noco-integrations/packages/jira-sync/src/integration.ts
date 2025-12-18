@@ -4,6 +4,7 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
+import type { JiraProject, JiraSearchResponse } from './types';
 import type { JiraAuthIntegration } from '@noco-integrations/jira-auth';
 import type {
   SyncLinkValue,
@@ -97,15 +98,8 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
 
         // Paginate through Jira issues
         while (true) {
-          console.log({
-            params: {
-              jql,
-              startAt,
-              maxResults,
-            },
-          });
           const searchResultResponse = await auth.use(async (client) => {
-            return client.get('/search/jql', {
+            return client.get<JiraSearchResponse>('/search/jql', {
               params: {
                 jql,
                 startAt,
@@ -387,7 +381,9 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
   ): Promise<{ label: string; value: string }[]> {
     switch (key) {
       case 'projects': {
-        const response = await auth.use((client) => client.get('/project'));
+        const response = await auth.use((client) =>
+          client.get<JiraProject[]>('/project'),
+        );
         return response.data.map((project: any) => {
           return {
             label: project.name,

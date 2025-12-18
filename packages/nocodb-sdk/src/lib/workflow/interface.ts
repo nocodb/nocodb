@@ -97,6 +97,27 @@ interface NodeExecutionResult {
   isStale?: boolean;
   inputVariables?: VariableDefinition[];
   outputVariables?: VariableDefinition[];
+
+  // Loop context: Returned by loop nodes to control iteration
+  loopContext?: LoopContext;
+
+  // Iteration context: Tracks which iteration this result belongs to (if inside a loop)
+  iterationContext?: {
+    loopNodeId: string;
+    loopNodeTitle: string;
+    iterationIndex: number;
+    totalIterations: number;
+  };
+}
+
+// Loop context for loop nodes (iterate, etc.)
+interface LoopContext {
+  // Serializable state that persists across iterations
+  state: Record<string, any>;
+
+  // Output port IDs
+  bodyPort: string; // Port for loop body (e.g., 'body' for 'For Each Item')
+  exitPort: string; // Port for loop exit (e.g., 'output' for 'After Iterate')
 }
 
 interface WorkflowExecutionState {
@@ -182,4 +203,5 @@ export {
   NodeExecutionResult,
   WorkflowExecutionState,
   IWorkflowExecution,
+  LoopContext,
 };

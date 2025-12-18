@@ -9,7 +9,9 @@ import {
   ServiceUserType,
   WorkflowExpressionParser,
 } from 'nocodb-sdk';
+import rfdc from 'rfdc';
 import type {
+  LoopContext,
   NodeExecutionResult,
   VariableDefinition,
   VariableGeneratorContext,
@@ -36,6 +38,19 @@ import {
 } from '~/services/workflows/graphHelpers';
 import { ExpressionContext } from '~/services/workflows/ExpressionContext';
 import { MailService } from '~/services/mail/mail.service';
+
+const deepClone = rfdc();
+
+interface ActiveLoop extends LoopContext {
+  // Runtime node identification
+  nodeId: string;
+  nodeTitle: string;
+  nodeType: string;
+
+  // Runtime navigation (resolved edge targets)
+  bodyStartNodeId: string | null;
+  exitNodeId: string | null;
+}
 
 @Injectable()
 export class WorkflowExecutionService {
@@ -175,7 +190,7 @@ export class WorkflowExecutionService {
   ): any {
     try {
       const contextData = context.getAllNodeOutputs();
-      this.expressionParser.setContext(contextData);
+      this.expressionParser.setContext(deepClone(contextData));
 
       const fullMatchRegex = /^\{\{\s*(.+?)\s*}}$/;
       const fullMatch = template.match(fullMatchRegex);
@@ -276,6 +291,7 @@ export class WorkflowExecutionService {
       result.logs = nodeResult.logs;
       result.metrics = nodeResult.metrics;
       result.endTime = Date.now();
+      result.loopContext = nodeResult.loopContext;
 
       // Generate variable definitions for input/output
       if (
@@ -375,17 +391,13 @@ export class WorkflowExecutionService {
       );
 
       const executedNodes = new Set<string>();
-      const maxIterations = nodes.length * 10;
+      const maxIterations = nodes.length * 1000;
       let iterations = 0;
+
+      const activeLoops: ActiveLoop[] = [];
 
       while (currentNodeId && iterations < maxIterations) {
         iterations++;
-
-        // Detect cycles
-        if (executedNodes.has(currentNodeId)) {
-          this.logger.warn(`Cycle detected at node ${currentNodeId}`);
-          break;
-        }
 
         const node = nodeMap.get(currentNodeId);
         if (!node) {
@@ -393,11 +405,49 @@ export class WorkflowExecutionService {
           break;
         }
 
+        if (executedNodes.has(currentNodeId)) {
+          this.logger.warn(`Cycle detected at node ${currentNodeId}`);
+          break;
+        }
+
         if (node.type === GeneralNodeID.PLUS) {
           const outgoingEdges = graph.get(currentNodeId) || [];
-          currentNodeId =
-            outgoingEdges.length > 0 ? outgoingEdges[0].target : null;
-          continue;
+          if (outgoingEdges.length > 0) {
+            // Plus node has outgoing edge, follow it
+            currentNodeId = outgoingEdges[0].target;
+            continue;
+          } else if (activeLoops.length > 0) {
+            // Plus node at end of loop body, trigger loop advancement
+            const loop = activeLoops[activeLoops.length - 1];
+
+            // We've completed one iteration, advance the loop state
+            loop.state.currentIndex++;
+
+            // Check if we should continue iterating
+            const shouldContinue =
+              loop.state.currentIndex < loop.state.totalItems;
+
+            if (shouldContinue) {
+              // Clear executed nodes for new iteration (except the iterate node itself)
+              const iterateNodeId = loop.nodeId;
+              executedNodes.clear();
+              executedNodes.add(iterateNodeId);
+
+              // More iterations to process, continue to body
+              currentNodeId = loop.bodyStartNodeId;
+              continue;
+            } else {
+              // All iterations processed, exit loop
+              currentNodeId = loop.exitNodeId;
+
+              // Clean up loop state
+              activeLoops.pop();
+              continue;
+            }
+          } else {
+            // Plus node with no edges and no loop, end execution
+            break;
+          }
         }
 
         executedNodes.add(currentNodeId);
@@ -409,6 +459,16 @@ export class WorkflowExecutionService {
           nodes,
         );
 
+        for (const loop of activeLoops) {
+          // Inject variables namespaced by node title: $('Iterate').item
+          const variables = {
+            item: loop.state.items?.[loop.state.currentIndex],
+            index: loop.state.currentIndex,
+            itemCount: loop.state.totalItems,
+          };
+          expressionContext.setVariable(loop.nodeTitle, variables);
+        }
+
         // Execute node
         const result = await this.executeNodeByType(
           context,
@@ -416,6 +476,44 @@ export class WorkflowExecutionService {
           triggerData,
           expressionContext,
         );
+
+        // Handle loop context
+        if (result.loopContext && result.status === 'success') {
+          const outgoingEdges = graph.get(currentNodeId) || [];
+          const bodyEdge = outgoingEdges.find(
+            (e) => e.sourcePortId === result.loopContext.bodyPort,
+          );
+          const exitEdge = outgoingEdges.find(
+            (e) => e.sourcePortId === result.loopContext.exitPort,
+          );
+
+          activeLoops.push({
+            nodeId: currentNodeId,
+            nodeTitle: node.data?.title || currentNodeId,
+            nodeType: node.type,
+            state: result.loopContext.state,
+            variables: result.loopContext.variables,
+            bodyPort: result.loopContext.bodyPort,
+            exitPort: result.loopContext.exitPort,
+            bodyStartNodeId: bodyEdge?.target || null,
+            exitNodeId: exitEdge?.target || null,
+          });
+        }
+
+        // Add iteration context if inside a loop
+        if (activeLoops.length > 0) {
+          const currentLoop = activeLoops[activeLoops.length - 1];
+          result.iterationContext = {
+            loopNodeId: currentLoop.nodeId,
+            loopNodeTitle: currentLoop.nodeTitle,
+            iterationIndex: currentLoop.state.currentIndex,
+            totalIterations:
+              currentLoop.state.totalItems ||
+              currentLoop.state.items?.length ||
+              0,
+          };
+        }
+
         executionState.nodeResults.push(result);
 
         if (result.status === 'error') {

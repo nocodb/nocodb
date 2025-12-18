@@ -2,7 +2,7 @@ import { IntegrationWrapper } from '../integration';
 import { AuthIntegration } from '../auth';
 import { NocoSDK } from '../sdk';
 import { IDataV3Service, ITablesService, IMailService } from './nocodb.interface';
-import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType } from 'nocodb-sdk'
+import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType, LoopContext } from 'nocodb-sdk'
 
 
 export interface WorkflowNodeLog {
@@ -74,13 +74,7 @@ export interface WorkflowNodeResult {
 
   error?: { message: string; code?: string; data?: any };
 
-  /** Iteration metadata for iterate nodes */
-  meta?: {
-    iteration?: {
-      items: any[];
-      currentIndex: number;
-    };
-  }
+  loopContext?: LoopContext;
 }
 
 export interface WorkflowNodeValidationResult {

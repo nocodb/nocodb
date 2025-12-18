@@ -125,11 +125,14 @@ export class IterateNode extends WorkflowNodeIntegration<IterateNodeConfig> {
           itemCount: array.length,
           executionTimeMs: executionTime,
         },
-        meta: {
-          iteration: {
+        loopContext: {
+          state: {
             items: array,
             currentIndex: 0,
+            totalItems: array.length,
           },
+          bodyPort: 'body',
+          exitPort: 'output',
         },
       };
     } catch (error: any) {

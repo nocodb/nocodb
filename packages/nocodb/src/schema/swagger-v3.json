@@ -8071,6 +8071,7 @@
         "title": "Button",
         "oneOf": [
           {
+            "title": "Formula Button",
             "type": "object",
             "properties": {
               "type": {
@@ -8091,6 +8092,7 @@
             ]
           },
           {
+            "title": "Webhook Button",
             "type": "object",
             "properties": {
               "type": {
@@ -8111,6 +8113,7 @@
             ]
           },
           {
+            "title": "AI Button",
             "type": "object",
             "properties": {
               "type": {
@@ -8153,6 +8156,27 @@
               "type",
               "prompt",
               "integration_id"
+            ]
+          },
+          {
+            "title": "Script Button",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "script"
+                ],
+                "description": "Button type: script"
+              },
+              "script_hook_id": {
+                "type": "string",
+                "description": "ID of the script to trigger"
+              }
+            },
+            "required": [
+              "type",
+              "script_hook_id"
             ]
           }
         ],

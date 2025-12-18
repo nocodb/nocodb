@@ -647,6 +647,7 @@ const disposableEmailDomains = [
   'coin-host.net',
   'coinlink.club',
   'coldemail.info',
+  'comfythings.com',
   'compareshippingrates.org',
   'completegolfswing.com',
   'comwest.de',

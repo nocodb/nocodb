@@ -146,7 +146,9 @@ export async function hasTableVisibilityAccess(
 
   // Get permissions if not provided
   if (!permissions) {
-    permissions = await Permission.list(context, context.base_id);
+    if (!context.permissions)
+      context.permissions = await Permission.list(context, context.base_id);
+    permissions = context.permissions;
   }
 
   // Find TABLE_VISIBILITY permission for this table

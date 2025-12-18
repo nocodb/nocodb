@@ -234,6 +234,7 @@ export class WorkflowExecutionService {
     node: WorkflowGeneralNode,
     expressionContext: ExpressionContext,
     testMode?: boolean,
+    _nodeWrapper?: WorkflowNodeIntegration,
   ): Promise<NodeExecutionResult> {
     const result: NodeExecutionResult = {
       nodeId: node.id,
@@ -257,11 +258,9 @@ export class WorkflowExecutionService {
         return result;
       }
 
-      const nodeWrapper = this.getNodeWrapper(
-        context,
-        node.type,
-        node.data?.config || {},
-      );
+      const nodeWrapper =
+        _nodeWrapper ||
+        this.getNodeWrapper(context, node.type, node.data?.config || {});
       if (!nodeWrapper) {
         NcError.get(context).workflowNodeNotFound(node.type);
       }
@@ -492,7 +491,6 @@ export class WorkflowExecutionService {
             nodeTitle: node.data?.title || currentNodeId,
             nodeType: node.type,
             state: result.loopContext.state,
-            variables: result.loopContext.variables,
             bodyPort: result.loopContext.bodyPort,
             exitPort: result.loopContext.exitPort,
             bodyStartNodeId: bodyEdge?.target || null,
@@ -866,6 +864,7 @@ export class WorkflowExecutionService {
       targetNode,
       expressionContext,
       true,
+      nodeWrapper,
     );
 
     let inputVariables: VariableDefinition[] = [];

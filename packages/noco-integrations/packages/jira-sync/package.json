@@ -1,20 +1,18 @@
 {
-  "name": "@noco-integrations/jira-auth",
+  "name": "@noco-integrations/jira-sync",
   "version": "0.1.0",
+  "description": "Jira Sync integration for NocoDB",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "clean": "rimraf dist",
-    "lint": "eslint src --ext .ts"
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "axios": "^1.9.0"
+    "jira-client": "^8.2.2"
   },
   "devDependencies": {
-    "@types/jira-client": "^7.1.9",
-    "rimraf": "^5.0.10",
-    "typescript": "^5.8.3"
+    "typescript": "^5.2.2"
   }
-}
+} 

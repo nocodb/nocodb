@@ -31,6 +31,7 @@ import GoogleDriveAuth from '@noco-local-integrations/google-drive-auth';
 import GoogleDriveSync from '@noco-local-integrations/google-drive-sync';
 import GroqAi from '@noco-local-integrations/groq-ai';
 import JiraAuth from '@noco-local-integrations/jira-auth';
+import JiraSync from '@noco-local-integrations/jira-sync';
 import LinearAuth from '@noco-local-integrations/linear-auth';
 import LinearSync from '@noco-local-integrations/linear-sync';
 import MysqlAuth from '@noco-local-integrations/mysql-auth';
@@ -78,6 +79,7 @@ export default [
   ...(Array.isArray(GoogleDriveSync) ? GoogleDriveSync : [GoogleDriveSync]),
   ...(Array.isArray(GroqAi) ? GroqAi : [GroqAi]),
   ...(Array.isArray(JiraAuth) ? JiraAuth : [JiraAuth]),
+  ...(Array.isArray(JiraSync) ? JiraSync : [JiraSync]),
   ...(Array.isArray(LinearAuth) ? LinearAuth : [LinearAuth]),
   ...(Array.isArray(LinearSync) ? LinearSync : [LinearSync]),
   ...(Array.isArray(MysqlAuth) ? MysqlAuth : [MysqlAuth]),

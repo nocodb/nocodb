@@ -602,9 +602,6 @@ importers:
       axios:
         specifier: ^1.9.0
         version: 1.13.2
-      jira-client:
-        specifier: ^8.2.2
-        version: 8.2.2
     devDependencies:
       '@types/jira-client':
         specifier: ^7.1.9
@@ -614,6 +611,19 @@ importers:
         version: 5.0.10
       typescript:
         specifier: ^5.8.3
+        version: 5.8.3
+
+  packages/jira-sync:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      jira-client:
+        specifier: ^8.2.2
+        version: 8.2.2
+    devDependencies:
+      typescript:
+        specifier: ^5.2.2
         version: 5.8.3
 
   packages/linear-auth:

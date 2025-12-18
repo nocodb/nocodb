@@ -63,21 +63,16 @@ export const usePermissionSelector = (
         }
       }
 
-      // Always allow these options for all permission types
-      if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) {
-        return true
-      }
-
-      // For table visibility, always allow Everyone, Viewers & up, Commenters & up, Editors & up, and Creators & up
+      // For table visibility, always allow Everyone, Editors & up, and Creators & up
       if (isTableVisibility) {
         if (option.value === PermissionOptionValue.EVERYONE) {
           return true
         }
         if (option.value === PermissionOptionValue.VIEWERS_AND_UP) {
-          return true
+          return false
         }
         if (option.value === PermissionOptionValue.COMMENTERS_AND_UP) {
-          return true
+          return false
         }
         if (option.value === PermissionOptionValue.EDITORS_AND_UP) {
           return true
@@ -85,6 +80,14 @@ export const usePermissionSelector = (
         if (option.value === PermissionOptionValue.CREATORS_AND_UP) {
           return true
         }
+        if (option.value === PermissionOptionValue.NOBODY) {
+          return false
+        }
+      }
+
+      // Always allow these options for all permission types
+      if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) {
+        return true
       }
 
       // Additional role-based filtering (only applies if not already handled above)

@@ -60,15 +60,10 @@ export const PermissionOptions: PermissionOption[] = [
     isDefault: true,
   },
   {
-    value: PermissionOptionValue.COMMENTERS_AND_UP,
-    label: 'Commenters & up',
-    description: 'Members with Commenter, Editor, Creator or Owner role',
-    icon: 'role_commenter',
-  },
-  {
     value: PermissionOptionValue.VIEWERS_AND_UP,
     label: 'Viewers and up',
-    description: 'Members with Viewer, Commenter, Editor, Creator or Owner role',
+    description:
+      'Members with Viewer, Commenter, Editor, Creator or Owner role',
     icon: 'role_viewer',
   },
   {

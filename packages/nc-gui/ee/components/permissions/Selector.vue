@@ -73,7 +73,6 @@ const permissionOptions = computed(() => {
     // For record permissions (create/delete), exclude Viewers & up, Commenters & up, and Everyone
     if (!isTableVisibility) {
       if (
-        option.value === PermissionOptionValue.VIEWERS_AND_UP ||
         option.value === PermissionOptionValue.COMMENTERS_AND_UP ||
         option.value === PermissionOptionValue.EVERYONE
       ) {
@@ -81,21 +80,16 @@ const permissionOptions = computed(() => {
       }
     }
 
-    // Always allow 'specific_users' and 'nobody' options
-    if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) {
-      return true
-    }
-
-    // For table visibility, always allow Everyone, Viewers & up, Commenters & up, Editors & up, and Creators & up
+    // For table visibility, always allow Everyone, Editors & up, and Creators & up
     if (isTableVisibility) {
       if (option.value === PermissionOptionValue.EVERYONE) {
         return true
       }
       if (option.value === PermissionOptionValue.VIEWERS_AND_UP) {
-        return true
+        return false
       }
       if (option.value === PermissionOptionValue.COMMENTERS_AND_UP) {
-        return true
+        return false
       }
       if (option.value === PermissionOptionValue.EDITORS_AND_UP) {
         return true
@@ -103,6 +97,14 @@ const permissionOptions = computed(() => {
       if (option.value === PermissionOptionValue.CREATORS_AND_UP) {
         return true
       }
+      if (option.value === PermissionOptionValue.NOBODY) {
+        return false
+      }
+    }
+
+    // Always allow 'specific_users' and 'nobody' options
+    if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) {
+      return true
     }
 
     // Map option values to PermissionRole enum values for comparison

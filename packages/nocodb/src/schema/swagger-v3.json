@@ -1638,7 +1638,7 @@
         "tags": [
           "Views"
         ],
-        "description": "Retrieve a list of all views for a specific table.",
+        "description": "Retrieve a list of all views for a specific table.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "parameters": [
           {
             "name": "baseId",
@@ -1748,7 +1748,7 @@
       },
       "post": {
         "summary": "Create view",
-        "description": "Create a view for table.",
+        "description": "Create a view for table.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "view-create",
         "tags": [
           "Views"
@@ -2159,7 +2159,7 @@
     "/api/v3/meta/bases/{baseId}/views/{viewId}": {
       "get": {
         "summary": "Get view schema",
-        "description": "Retrieve the details of a specific view.",
+        "description": "Retrieve the details of a specific view.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "view-read",
         "tags": [
           "Views"
@@ -2260,7 +2260,7 @@
       },
       "patch": {
         "summary": "Update view",
-        "description": "Update the details of a specific view. The request body should contain the fields to be updated. Fields not included in the request body will remain unchanged. Fields included will overwrite the existing values. There is no provision for partial updates of fields, sort or filter using this PATCH request.",
+        "description": "Update the details of a specific view. The request body should contain the fields to be updated. Fields not included in the request body will remain unchanged. Fields included will overwrite the existing values. There is no provision for partial updates of fields, sort or filter using this PATCH request.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "view-update",
         "tags": [
           "Views"
@@ -2381,7 +2381,7 @@
       },
       "delete": {
         "summary": "Delete view",
-        "description": "Delete a specific view.",
+        "description": "Delete a specific view.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "view-delete",
         "tags": [
           "Views"

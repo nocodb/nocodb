@@ -638,7 +638,7 @@ useResizeObserver(inputWrapperRef, () => {
       <CellClampedText
         v-else-if="rowHeight"
         :value="vModel"
-        :lines="rowHeightTruncateLines(localRowHeight)"
+        :lines="isUnderLookup && (isGallery || isKanban) && !isExpandedFormOpen ? 1 : rowHeightTruncateLines(localRowHeight)"
         class="nc-text-area-clamped-text"
         :style="{
           'word-break': 'break-word',

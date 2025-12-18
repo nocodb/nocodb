@@ -7,10 +7,13 @@ const props = defineProps({
 })
 
 const { viewingExecution, nodes } = useWorkflowOrThrow()
+const { getNodeResultAtCurrentIteration } = useWorkflowExecutionLoop()
 
 const executionResult = computed(() => {
-  if (!viewingExecution.value?.execution_data?.nodeResults?.length) return null
-  return viewingExecution.value.execution_data.nodeResults.find((node) => node.nodeId === props.nodeId)
+  if (!viewingExecution.value?.execution_data) return null
+
+  // Use helper to find result in nested structure or main nodeResults
+  return getNodeResultAtCurrentIteration(props.nodeId, viewingExecution.value.execution_data)
 })
 
 const testResult = computed(() => {

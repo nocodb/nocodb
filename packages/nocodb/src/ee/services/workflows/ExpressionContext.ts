@@ -47,15 +47,14 @@ class ExpressionContext {
           contextData[title] = node.data.testResult.output;
         }
       });
-
-      return contextData;
+    } else {
+      this.nodeResults.forEach((result) => {
+        const node = this.nodesByTitle.get(result.nodeTitle);
+        if (node && result.status === 'success') {
+          contextData[result.nodeTitle] = result.output;
+        }
+      });
     }
-    this.nodeResults.forEach((result) => {
-      const node = this.nodesByTitle.get(result.nodeTitle);
-      if (node && result.status === 'success') {
-        contextData[result.nodeTitle] = result.output;
-      }
-    });
 
     this.additionalVariables.forEach((value, key) => {
       contextData[key] = value;

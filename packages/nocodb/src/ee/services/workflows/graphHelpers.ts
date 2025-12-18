@@ -253,4 +253,66 @@ function findParentNodes(
   return orderedParents;
 }
 
-export { buildWorkflowGraph, determineStartNode, getNextNode, findParentNodes };
+/**
+ * Find parent loop nodes for a given target node
+ * Returns array of loop info (supports nested loops)
+ */
+function findParentLoops(
+  targetNodeId: string,
+  reverseGraph: Map<
+    string,
+    Array<{
+      source?: string;
+      label?: string;
+      sourcePortId?: string;
+      edgeId: string;
+    }>
+  >,
+  nodeMap: Map<string, WorkflowGeneralNode>,
+): Array<{ loopNodeId: string; bodyPort: string }> {
+  const loops: Array<{ loopNodeId: string; bodyPort: string }> = [];
+  const visited = new Set<string>();
+
+  const queue = [targetNodeId];
+  visited.add(targetNodeId);
+
+  while (queue.length > 0) {
+    const currentId = queue.shift()!;
+    const incomingEdges = reverseGraph.get(currentId) || [];
+
+    for (const edge of incomingEdges) {
+      if (!edge.source) continue;
+
+      const sourceNode = nodeMap.get(edge.source);
+
+      // Check if source is a loop node with body port
+      if (sourceNode?.data?.testResult?.loopContext) {
+        const loopContext = sourceNode.data.testResult.loopContext;
+        // Check if this edge is from the loop's body port
+        if (edge.sourcePortId === loopContext.bodyPort) {
+          loops.push({
+            loopNodeId: edge.source,
+            bodyPort: loopContext.bodyPort,
+          });
+        }
+      }
+
+      // Continue traversal
+      if (!visited.has(edge.source)) {
+        visited.add(edge.source);
+        queue.push(edge.source);
+      }
+    }
+  }
+
+  // Return loops in order from outermost to innermost
+  return loops.reverse();
+}
+
+export {
+  buildWorkflowGraph,
+  determineStartNode,
+  getNextNode,
+  findParentNodes,
+  findParentLoops,
+};

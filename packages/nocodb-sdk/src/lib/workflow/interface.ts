@@ -100,14 +100,6 @@ interface NodeExecutionResult {
 
   // Loop context: Returned by loop nodes to control iteration
   loopContext?: LoopContext;
-
-  // Iteration context: Tracks which iteration this result belongs to (if inside a loop)
-  iterationContext?: {
-    loopNodeId: string;
-    loopNodeTitle: string;
-    iterationIndex: number;
-    totalIterations: number;
-  };
 }
 
 // Loop context for loop nodes (iterate, etc.)
@@ -120,6 +112,25 @@ interface LoopContext {
   exitPort: string; // Port for loop exit (e.g., 'output' for 'After Iterate')
 }
 
+// Loop iteration structure (recursive for nested loops)
+interface LoopIteration {
+  iterationIndex: number;
+  nodeResults: NodeExecutionResult[];
+  childLoops?: {
+    [loopNodeId: string]: LoopData;
+  };
+}
+
+// Loop data structure
+interface LoopData {
+  nodeId: string;
+  nodeTitle: string;
+  totalIterations: number;
+  iterations: {
+    [iterationIndex: number]: LoopIteration;
+  };
+}
+
 interface WorkflowExecutionState {
   id: string;
   workflowId: string;
@@ -130,6 +141,9 @@ interface WorkflowExecutionState {
   currentNodeId?: string;
   triggerData?: any;
   triggerNodeTitle?: string; // Optional: which trigger node to start from
+  loops?: {
+    [loopNodeId: string]: LoopData;
+  };
 }
 
 interface IWorkflowExecution {
@@ -204,4 +218,6 @@ export {
   WorkflowExecutionState,
   IWorkflowExecution,
   LoopContext,
+  LoopIteration,
+  LoopData,
 };

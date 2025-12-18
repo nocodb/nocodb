@@ -161,11 +161,37 @@ export class IterateNode extends WorkflowNodeIntegration<IterateNodeConfig> {
   }
 
   public async generateInputVariables(
-    _context: NocoSDK.VariableGeneratorContext,
+    context: NocoSDK.VariableGeneratorContext,
+    runtimeInputs?: any,
   ): Promise<NocoSDK.VariableDefinition[]> {
     const variables: NocoSDK.VariableDefinition[] = [];
 
-    // TODO: Figure out a way to get the VariableDefinition of the Input Array
+    let itemSchema: NocoSDK.VariableDefinition[] | undefined;
+
+    // Get array expression (from config or runtime)
+    const arrayExpression = this.config.array || runtimeInputs?.config?.array;
+
+    // Try static analysis first
+    if (
+      typeof arrayExpression === 'string' &&
+      context.inferSchemaFromExpression
+    ) {
+      itemSchema = await context.inferSchemaFromExpression(arrayExpression);
+    }
+
+    // Fall back to runtime introspection
+    if (!itemSchema && runtimeInputs?.config?.array) {
+      const actualArray = runtimeInputs.config.array;
+      if (NocoSDK.ncIsArray(actualArray) && actualArray.length > 0) {
+        itemSchema = NocoSDK.genGeneralVariables(actualArray[0], '');
+      }
+    }
+
+    // Add port information to all variables in the schema
+    if (itemSchema) {
+      itemSchema = NocoSDK.addPortToSchema(itemSchema, 'body');
+    }
+
     variables.push({
       key: 'config.array',
       name: 'Array',
@@ -175,6 +201,7 @@ export class IterateNode extends WorkflowNodeIntegration<IterateNodeConfig> {
         icon: 'cellJson',
         description:
           'Array to iterate over. Each item will be processed sequentially.',
+        itemSchema: itemSchema,
       },
     });
 
@@ -182,10 +209,36 @@ export class IterateNode extends WorkflowNodeIntegration<IterateNodeConfig> {
   }
 
   public async generateOutputVariables(
-    _context: NocoSDK.VariableGeneratorContext,
+    context: NocoSDK.VariableGeneratorContext,
+    runtimeInputs?: any,
   ): Promise<NocoSDK.VariableDefinition[]> {
-    // TODO: Figure out to pass the itemSchema from input
     let itemSchema: NocoSDK.VariableDefinition[] | undefined;
+
+    // Get array expression (from config or runtime)
+    const arrayExpression = this.config.array || runtimeInputs?.config?.array;
+
+    // Try static analysis first
+    if (
+      typeof arrayExpression === 'string' &&
+      context.inferSchemaFromExpression
+    ) {
+      itemSchema = await context.inferSchemaFromExpression(arrayExpression);
+    }
+
+    // Fall back to runtime introspection
+    if (!itemSchema && runtimeInputs?.config?.array) {
+      const actualArray = runtimeInputs.config.array;
+      if (NocoSDK.ncIsArray(actualArray) && actualArray.length > 0) {
+        itemSchema = NocoSDK.genGeneralVariables(actualArray[0], '');
+      }
+    }
+
+    // Add port information to all variables in the schema
+    if (itemSchema) {
+      itemSchema = NocoSDK.addPortToSchema(itemSchema, 'body');
+      // Prefix all keys with 'item.' for correct reference paths
+      itemSchema = NocoSDK.prefixVariableKeys(itemSchema, 'item');
+    }
 
     const bodyPortVariables: NocoSDK.VariableDefinition[] = [
       {
@@ -193,11 +246,11 @@ export class IterateNode extends WorkflowNodeIntegration<IterateNodeConfig> {
         name: 'Current Item',
         type: NocoSDK.VariableType.Object,
         groupKey: NocoSDK.VariableGroupKey.Iteration,
+        children: itemSchema,
         extra: {
           icon: 'cellJson',
           description: 'The current item being processed in the iteration',
           port: 'body',
-          itemSchema: itemSchema,
         },
       },
       {

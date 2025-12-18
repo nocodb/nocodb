@@ -64,7 +64,7 @@ const hasTablePermissions = computed(() => {
 <template>
   <div class="flex flex-col gap-5">
     <!-- Title only shown for owners -->
-    <div v-if="isBaseOwner" class="flex items-center justify-between">
+    <div class="flex items-center justify-between">
       <slot name="title">
         <div class="text-nc-content-gray-emphasis text-bodyBold min-h-8 flex items-center capitalize">
           {{ $t('title.tablePermissions') }}

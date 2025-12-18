@@ -345,7 +345,7 @@ export const colOptionBuilder = builderGenerator({
     related_table_rollup_field_id: 'fk_rollup_column_id',
 
     fk_webhook_id: 'button_hook_id',
-    fk_script_id: 'button_script_id',
+    fk_script_id: 'script_id',
 
     // todo: extract this
     // inverse_related_field_id: 'inverse_related_field_id',
@@ -492,7 +492,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         } else if (type === 'script') {
           options = {
             type,
-            webhook_id: rest.button_script_id,
+            script_id: rest.script_id,
             label: rest.label,
             color: rest.color,
             theme: rest.theme,
@@ -548,7 +548,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     'related_table_lookup_field_id',
     'rollup_function',
     'button_hook_id',
-    'button_script_id',
+    'script_id',
     'webhook_id',
     'type',
     'prompt',
@@ -567,7 +567,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     relation_type: 'type',
 
     button_hook_id: 'fk_webhook_id',
-    button_script_id: 'fk_script_id',
+    script_id: 'fk_script_id',
     webhook_id: 'fk_webhook_id',
 
     // parent id we need to extract from the url

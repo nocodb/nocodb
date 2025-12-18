@@ -8178,14 +8178,14 @@
                 ],
                 "description": "Button type: script"
               },
-              "button_script_id": {
+              "script_id": {
                 "type": "string",
                 "description": "ID of the script to trigger"
               }
             },
             "required": [
               "type",
-              "button_script_id"
+              "script_id"
             ],
             "additionalProperties": false
           }

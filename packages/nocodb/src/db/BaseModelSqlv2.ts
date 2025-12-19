@@ -6456,19 +6456,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     for (const column of this.model.columns) {
       if (column.uidt === UITypes.Meta && this.isPg) {
-        runAfterForLoop.push(() => {
-          if (!updatedColIds.length) return;
+        if (!isInsertData)
+          runAfterForLoop.push(() => {
+            if (!updatedColIds.length) return;
 
-          data[column.column_name] = prepareMetaUpdateQuery({
-            knex: this.dbDriver,
-            colIds: updatedColIds,
-            props: {
-              modifiedBy: cookie?.user?.id,
-              modifiedTime: this.now(),
-            },
-            metaColumn: column,
+            data[column.column_name] = prepareMetaUpdateQuery({
+              knex: this.dbDriver,
+              colIds: updatedColIds,
+              props: {
+                modifiedBy: cookie?.user?.id,
+                modifiedTime: this.now(),
+              },
+              metaColumn: column,
+            });
           });
-        });
 
         continue;
       }

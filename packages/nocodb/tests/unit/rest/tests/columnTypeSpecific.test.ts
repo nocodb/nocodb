@@ -21,6 +21,8 @@ import type Column from '../../../../src/models/Column';
 //   - delivers the same cell values as the referenced column
 //   - gets deleted if the referenced column gets deleted
 
+const isEE = process.env.EE === 'true';
+
 function columnTypeSpecificTests() {
   let context;
   let base: Base;
@@ -67,6 +69,15 @@ function columnTypeSpecificTests() {
       uidt: UITypes.Date,
       system: false,
     },
+    ...(isEE
+      ? [
+          {
+            title: '__nc_meta',
+            uidt: UITypes.Meta,
+            system: true,
+          },
+        ]
+      : []),
   ];
 
   describe('Qr Code Column', () => {
@@ -506,7 +517,10 @@ function columnTypeSpecificTests() {
         // get all columns
         let columns = await getColumnsByAPI(context, base, table);
         // delete the field
-        await deleteColumn(context, { table, column: columns.columns[7] });
+        await deleteColumn(context, {
+          table,
+          column: columns.columns[columns.columns.length - 1],
+        });
         // create column again
         await createColumn(context, table, {
           title: 'CreatedBy',

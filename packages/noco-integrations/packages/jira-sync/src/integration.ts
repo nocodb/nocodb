@@ -169,7 +169,7 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
           });
           const searchResult = searchResultResponse.data;
 
-          const issues: any[] = searchResult.issues || [];
+          const issues = searchResult.issues || [];
 
           if (!issues.length) {
             break;

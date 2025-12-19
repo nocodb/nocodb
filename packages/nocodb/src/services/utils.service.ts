@@ -9,13 +9,12 @@ import dayjs from 'dayjs';
 import type { ErrorReportReqType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import {
-  NC_APP_SETTINGS,
   NC_ATTACHMENT_FIELD_SIZE,
   NC_MAX_ATTACHMENTS_ALLOWED,
 } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
-import { Base, Store, User } from '~/models';
+import { Base, User } from '~/models';
 import Noco from '~/Noco';
 import { isCloud, isOnPrem, T } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -417,10 +416,7 @@ export class UtilsService {
     const baseHasAdmin = !(await User.isFirst());
     const instance = await getInstance();
 
-    let settings: { invite_only_signup?: boolean } = {};
-    try {
-      settings = JSON.parse((await Store.get(NC_APP_SETTINGS, true))?.value);
-    } catch {}
+    const settings = await Noco.getAppSettings();
 
     const oidcAuthEnabled = ['openid', 'oidc'].includes(
       process.env.NC_SSO?.toLowerCase(),
@@ -487,6 +483,7 @@ export class UtilsService {
       mainSubDomain: this.configService.get('mainSubDomain', { infer: true }),
       dashboardPath: this.configService.get('dashboardPath', { infer: true }),
       inviteOnlySignup: settings.invite_only_signup,
+      restrictWorkspaceCreation: settings.restrict_workspace_creation,
       samlProviderName,
       samlAuthEnabled,
       giftUrl,

@@ -32,8 +32,17 @@ interface CronTriggerNodeConfig {
 
 const { selectedNodeId, updateNode, selectedNode } = useWorkflowOrThrow()
 
+const browserTzName = Intl.DateTimeFormat().resolvedOptions().timeZone
+
 const config = computed<CronTriggerNodeConfig>(() => {
-  return (selectedNode.value?.data?.config || {}) as CronTriggerNodeConfig
+  const nodeConfig = (selectedNode.value?.data?.config || {}) as CronTriggerNodeConfig
+
+  // Default to browser timezone if not configured
+  if (!nodeConfig.timezone && browserTzName) {
+    nodeConfig.timezone = browserTzName
+  }
+
+  return nodeConfig
 })
 
 const intervalType = ref<IntervalType>('minutes')
@@ -213,8 +222,6 @@ const generateCronExpression = (): string => {
 
 const timezones = getTimeZones({ includeUtc: true }).sort((a, b) => a.name.localeCompare(b.name))
 
-const browserTzName = Intl.DateTimeFormat().resolvedOptions().timeZone
-
 const browserTz = timezones.find((tz) => isSameTimezone(tz.name, browserTzName))
 
 const utcTz = timezones.find((tz) => tz.name === 'Etc/UTC')
@@ -287,7 +294,7 @@ const intervalOptions = [
 </script>
 
 <template>
-  <a-form layout="vertical">
+  <a-form class="nc-cron-trigger-config" layout="vertical">
     <a-form-item label="Interval">
       <NcSelect v-model:value="intervalType" @change="updateIntervalConfig">
         <a-select-option v-for="interval in intervalOptions" :key="interval.value" :value="interval.value">
@@ -310,6 +317,7 @@ const intervalOptions = [
         <a-input-number
           v-model:value="intervalMinutes"
           :min="1"
+          type="number"
           :controls="false"
           :max="60"
           class="nc-input-shadow !rounded-lg w-full"
@@ -540,6 +548,17 @@ const intervalOptions = [
 :deep(.nc-dropdown-timezone) {
   .ant-select-item-option-content {
     @apply flex items-center justify-between w-full;
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-cron-trigger-config {
+  .ant-input-number-input {
+    &[type='number'] {
+      @apply border-0 ring-0;
+      border: 0 !important;
+    }
   }
 }
 </style>

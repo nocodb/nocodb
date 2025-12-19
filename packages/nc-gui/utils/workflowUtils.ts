@@ -167,6 +167,61 @@ const findIterateNodePortForPath = (iterateNodeId: string, targetNodeId: string,
   return null
 }
 
+/**
+ * Update variable references in a string when a node is renamed
+ * Replaces $('oldName') with $('newName') and $("oldName") with $("newName")
+ * @param content - The string content to update
+ * @param oldTitle - The old node title
+ * @param newTitle - The new node title
+ * @returns Updated string with replaced variable references
+ */
+const updateVariableReferences = (content: string, oldTitle: string, newTitle: string): string => {
+  if (!ncIsString(content)) return content
+
+  // Escape special regex characters in the old title
+  const escapedOldTitle = oldTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+  // Replace both single and double quoted references
+  const singleQuoteRegex = new RegExp(`\\$\\('${escapedOldTitle}'\\)`, 'g')
+  const doubleQuoteRegex = new RegExp(`\\$\\("${escapedOldTitle}"\\)`, 'g')
+
+  let updated = content.replace(singleQuoteRegex, `\$('${newTitle}')`)
+  updated = updated.replace(doubleQuoteRegex, `\$('${newTitle}')`)
+
+  return updated
+}
+
+/**
+ * Recursively update variable references in an object
+ * @param obj - The object to update
+ * @param oldTitle - The old node title
+ * @param newTitle - The new node title
+ * @returns Updated object with replaced variable references
+ */
+const updateVariableReferencesInObject = (obj: any, oldTitle: string, newTitle: string): any => {
+  if (ncIsNullOrUndefined(obj)) return obj
+
+  if (ncIsString(obj)) {
+    return updateVariableReferences(obj, oldTitle, newTitle)
+  }
+
+  if (ncIsArray(obj)) {
+    return obj.map((item) => updateVariableReferencesInObject(item, oldTitle, newTitle))
+  }
+
+  if (ncIsObject(obj)) {
+    const updated: any = {}
+    for (const key in obj) {
+      if (Object.prototype.hasOwnProperty.call(obj, key)) {
+        updated[key] = updateVariableReferencesInObject(obj[key], oldTitle, newTitle)
+      }
+    }
+    return updated
+  }
+
+  return obj
+}
+
 export {
   generateUniqueNodeId,
   transformNode,
@@ -175,6 +230,8 @@ export {
   generateUniqueNodeTitle,
   findAllChildNodes,
   findIterateNodePortForPath,
+  updateVariableReferences,
+  updateVariableReferencesInObject,
 }
 
 export type { UIWorkflowNodeDefinition }

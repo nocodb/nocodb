@@ -149,6 +149,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     const existingNode = nodes.value[nodeIndex]
     if (!existingNode) return
 
+    const oldTitle = existingNode.data?.title
+    const newTitle = updatedData.data?.title
+    const isTitleChanged = newTitle && oldTitle && newTitle !== oldTitle
+
     if (updatedData.type && updatedData.type !== existingNode.type && updatedData.type !== GeneralNodeID.PLUS) {
       const nodeMeta = getNodeMetaById(updatedData.type)
       if (!nodeMeta) return
@@ -163,6 +167,25 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     updatedNodes[nodeIndex] = {
       ...existingNode,
       ...updatedData,
+    }
+
+    if (isTitleChanged) {
+      const childNodeIds = findAllChildNodes(nodeId, edges.value)
+
+      for (const childNodeId of childNodeIds) {
+        const childNodeIndex = updatedNodes.findIndex((n) => n.id === childNodeId)
+        if (childNodeIndex !== -1) {
+          const childNode = updatedNodes[childNodeIndex]
+          if (childNode?.data) {
+            const updatedChildData = updateVariableReferencesInObject(childNode.data, oldTitle, newTitle)
+
+            updatedNodes[childNodeIndex] = {
+              ...childNode,
+              data: updatedChildData,
+            }
+          }
+        }
+      }
     }
 
     nodes.value = updatedNodes

@@ -27,6 +27,7 @@ import {
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 
 @Injectable()
 export class PublicMetasService {
@@ -209,11 +210,40 @@ export class PublicMetasService {
         id: ltarColOption.fk_related_model_id,
       },
     );
+    this.filterIfLimitedAccess(
+      relatedMetas,
+      ltarColOption.fk_related_model_id,
+      context,
+    );
     if (ltarColOption.type === 'mm') {
       relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo(
         mmContext,
         {
           id: ltarColOption.fk_mm_model_id,
+        },
+      );
+      this.filterIfLimitedAccess(
+        relatedMetas,
+        ltarColOption.fk_mm_model_id,
+        context,
+      );
+    }
+  }
+
+  private filterIfLimitedAccess(
+    relatedMetas: {
+      [p: string]: Model;
+    },
+    tableId: string,
+    context: NcContext,
+  ) {
+    if (
+      relatedMetas[tableId]?.columns &&
+      !hasDefaultTableVisibility(tableId, context.permissions)
+    ) {
+      relatedMetas[tableId].columns = relatedMetas[tableId].columns.filter(
+        (col) => {
+          return col.pk || col.pv;
         },
       );
     }
@@ -248,6 +278,12 @@ export class PublicMetasService {
       relatedMetas[relationCol.fk_model_id] = await Model.getWithInfo(context, {
         id: relationCol.fk_model_id,
       });
+
+      this.filterIfLimitedAccess(
+        relatedMetas,
+        relationCol.fk_model_id,
+        context,
+      );
     }
 
     // extract meta for table in which looked up column belongs
@@ -258,6 +294,11 @@ export class PublicMetasService {
         {
           id: lookedUpCol.fk_model_id,
         },
+      );
+      this.filterIfLimitedAccess(
+        relatedMetas,
+        lookedUpCol.fk_model_id,
+        context,
       );
     }
 

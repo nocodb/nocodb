@@ -74,33 +74,33 @@ export const extractCorrespondingLinkColumn = async (
     // Handle different relation types
     switch (colOptions.type) {
       case RelationTypes.HAS_MANY:
-        // For HM, the referenced table should have a BT column
+        // For HM, the referenced table should have a BT column and parent child will remain same
         if (
           refColOptions.type === RelationTypes.BELONGS_TO &&
-          refColOptions.fk_parent_column_id === colOptions.fk_child_column_id &&
-          refColOptions.fk_child_column_id === colOptions.fk_parent_column_id
+          refColOptions.fk_child_column_id === colOptions.fk_child_column_id &&
+          refColOptions.fk_parent_column_id === colOptions.fk_parent_column_id
         ) {
           return column;
         }
         break;
 
       case RelationTypes.BELONGS_TO:
-        // For BT, the referenced table should have an HM column
+        // For BT, the referenced table should have an HM column, and parent child will remain same
         if (
           refColOptions.type === RelationTypes.HAS_MANY &&
-          refColOptions.fk_parent_column_id === colOptions.fk_child_column_id &&
-          refColOptions.fk_child_column_id === colOptions.fk_parent_column_id
+          refColOptions.fk_child_column_id === colOptions.fk_child_column_id &&
+          refColOptions.fk_parent_column_id === colOptions.fk_parent_column_id
         ) {
           return column;
         }
         break;
 
       case RelationTypes.ONE_TO_ONE:
-        // For OO, the referenced table should have an OO column
+        // For OO, the referenced table should have an OO column and parent child will remain same
         if (
           refColOptions.type === RelationTypes.ONE_TO_ONE &&
-          refColOptions.fk_parent_column_id === colOptions.fk_child_column_id &&
-          refColOptions.fk_child_column_id === colOptions.fk_parent_column_id
+          refColOptions.fk_child_column_id === colOptions.fk_child_column_id &&
+          refColOptions.fk_parent_column_id === colOptions.fk_parent_column_id
         ) {
           return column;
         }
@@ -108,6 +108,7 @@ export const extractCorrespondingLinkColumn = async (
 
       case RelationTypes.MANY_TO_MANY:
         // For MM, check if the referenced table has an MM column that references the same junction table
+        // and the parent-child columns are swapped
         if (
           refColOptions.type === RelationTypes.MANY_TO_MANY &&
           refColOptions.fk_mm_model_id === colOptions.fk_mm_model_id && // Same junction table

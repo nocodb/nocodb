@@ -218,10 +218,13 @@ export class RelationManager {
     } = this.relationContext;
 
     // Get the corresponding link column ID for the parent table
-    const parentTableCorrespondingColumnId = (
+    const refTableLinkColumnId = (
       await extractCorrespondingLinkColumn(baseModel.context, {
         ltarColumn: column,
-        referencedTable: parentTable,
+        referencedTable:
+          colOptions.fk_related_model_id === parentTable.id
+            ? parentTable
+            : childTable,
       })
     )?.id;
 
@@ -302,7 +305,7 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [parentTableCorrespondingColumnId],
+            updatedColIds: [refTableLinkColumnId],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -359,14 +362,7 @@ export class RelationManager {
               model: parentTable,
               rowIds: [oldRowId],
               cookie: req,
-              updatedColIds: [
-                (
-                  await extractCorrespondingLinkColumn(childBaseModel.context, {
-                    ltarColumn: column,
-                    referencedTable: parentTable,
-                  })
-                )?.id,
-              ],
+              updatedColIds: [column.id],
             });
           }
 
@@ -395,7 +391,7 @@ export class RelationManager {
             rowIds: [childId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [column.id],
+            updatedColIds: [refTableLinkColumnId],
           });
 
           await childBaseModel.broadcastLinkUpdates([childId]);
@@ -406,7 +402,7 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [parentTableCorrespondingColumnId],
+            updatedColIds: [column.id],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -499,7 +495,7 @@ export class RelationManager {
             rowIds: [parentId],
             cookie: req,
             // Todo: extract rel in ref table
-            updatedColIds: [parentTableCorrespondingColumnId],
+            updatedColIds: [refTableLinkColumnId],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);
@@ -549,17 +545,7 @@ export class RelationManager {
                 model: childTable,
                 rowIds: [oldChildRowId],
                 cookie: req,
-                updatedColIds: [
-                  (
-                    await extractCorrespondingLinkColumn(
-                      childBaseModel.context,
-                      {
-                        ltarColumn: column,
-                        referencedTable: childTable,
-                      },
-                    )
-                  )?.id,
-                ],
+                updatedColIds: [column.id],
               });
             }
           }
@@ -602,14 +588,7 @@ export class RelationManager {
               model: parentTable,
               rowIds: [oldRowId],
               cookie: req,
-              updatedColIds: [
-                (
-                  await extractCorrespondingLinkColumn(childBaseModel.context, {
-                    ltarColumn: column,
-                    referencedTable: parentTable,
-                  })
-                )?.id,
-              ],
+              updatedColIds: [refTableLinkColumnId],
             });
           }
           // todo: unlink if it's already mapped
@@ -655,8 +634,7 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            // Todo: extract rel in ref table
-            updatedColIds: [column.id],
+            updatedColIds: [column.meta?.bt ? column.id : refTableLinkColumnId],
           });
 
           await childBaseModel.broadcastLinkUpdates([childId]);
@@ -666,8 +644,7 @@ export class RelationManager {
             model: parentTable,
             rowIds: parentId,
             cookie: req,
-            // Todo: extract rel in ref table
-            updatedColIds: [parentTableCorrespondingColumnId],
+            updatedColIds: [column.meta?.bt ? refTableLinkColumnId : column.id],
           });
 
           await parentBaseModel.broadcastLinkUpdates([parentId]);

@@ -519,11 +519,26 @@ export default function (API_VERSION: 'v2' | 'v3') {
         }[] = [];
         for (let i = 0; i < 400; i++) {
           const row = {
-            SingleLineText: rowMixedValue(columns[6], i),
-            MultiLineText: rowMixedValue(columns[7], i),
-            Email: rowMixedValue(columns[8], i),
-            Phone: rowMixedValue(columns[9], i),
-            Url: rowMixedValue(columns[10], i),
+            SingleLineText: rowMixedValue(
+              columns.find((c) => c.title === 'SingleLineText'),
+              i,
+            ),
+            MultiLineText: rowMixedValue(
+              columns.find((c) => c.title === 'MultiLineText'),
+              i,
+            ),
+            Email: rowMixedValue(
+              columns.find((c) => c.title === 'Email'),
+              i,
+            ),
+            Phone: rowMixedValue(
+              columns.find((c) => c.title === 'Phone'),
+              i,
+            ),
+            Url: rowMixedValue(
+              columns.find((c) => c.title === 'Url'),
+              i,
+            ),
           };
           rowAttributes.push(row);
         }
@@ -1422,12 +1437,36 @@ export default function (API_VERSION: 'v2' | 'v3') {
         }[] = [];
         for (let i = 0; i < 400; i++) {
           const row = {
-            Number: rowMixedValue(columns[6], i, true),
-            Decimal: rowMixedValue(columns[7], i, true),
-            Currency: rowMixedValue(columns[8], i, true),
-            Percent: rowMixedValue(columns[9], i, true),
-            Duration: rowMixedValue(columns[10], i, true),
-            Rating: rowMixedValue(columns[11], i, true),
+            Number: rowMixedValue(
+              columns.find((c) => c.title === 'Number'),
+              i,
+              true,
+            ),
+            Decimal: rowMixedValue(
+              columns.find((c) => c.title === 'Decimal'),
+              i,
+              true,
+            ),
+            Currency: rowMixedValue(
+              columns.find((c) => c.title === 'Currency'),
+              i,
+              true,
+            ),
+            Percent: rowMixedValue(
+              columns.find((c) => c.title === 'Percent'),
+              i,
+              true,
+            ),
+            Duration: rowMixedValue(
+              columns.find((c) => c.title === 'Duration'),
+              i,
+              true,
+            ),
+            Rating: rowMixedValue(
+              columns.find((c) => c.title === 'Rating'),
+              i,
+              true,
+            ),
           };
           rowAttributes.push(row);
         }
@@ -1693,8 +1732,15 @@ export default function (API_VERSION: 'v2' | 'v3') {
         }[] = [];
         for (let i = 0; i < 400; i++) {
           const row = {
-            SingleSelect: rowMixedValue(columns[6], i),
-            MultiSelect: rowMixedValue(columns[7], i, isV3),
+            SingleSelect: rowMixedValue(
+              columns.find((c) => c.title === 'SingleSelect'),
+              i,
+            ),
+            MultiSelect: rowMixedValue(
+              columns.find((c) => c.title === 'MultiSelect'),
+              i,
+              isV3,
+            ),
           };
           rowAttributes.push(row);
         }
@@ -1931,8 +1977,14 @@ export default function (API_VERSION: 'v2' | 'v3') {
         }[] = [];
         for (let i = 0; i < 800; i++) {
           const row = {
-            Date: rowMixedValue(columns[6], i),
-            DateTime: rowMixedValue(columns[7], i),
+            Date: rowMixedValue(
+              columns.find((c) => c.title === 'Date'),
+              i,
+            ),
+            DateTime: rowMixedValue(
+              columns.find((c) => c.title === 'DateTime'),
+              i,
+            ),
           };
           rowAttributes.push(row);
         }

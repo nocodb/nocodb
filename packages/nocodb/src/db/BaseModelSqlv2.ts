@@ -70,6 +70,17 @@ import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import type { TrackModificationsColumnOptions } from '~/models/TrackModificationsColumn';
 import type { LastModColumnOptions } from '~/models/LastModColumn';
 import {
+  batchUpdate,
+  extractColsMetaForAudit,
+  extractExcludedColumnNames,
+  generateAuditV1Payload,
+  nocoExecute,
+  populateUpdatePayloadDiff,
+  processConcurrently,
+  remapWithAlias,
+  removeBlankPropsAndMask,
+} from '~/utils';
+import {
   Audit,
   BaseUser,
   Column,
@@ -163,7 +174,6 @@ const JSON_COLUMN_TYPES = [UITypes.Button];
 const ORDER_STEP_INCREMENT = 1;
 
 const MAX_RECURSION_DEPTH = 2;
-
 
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
@@ -1068,7 +1078,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           }
           default:
-            NcError.notImplemented(
+            NcError.get(this.context).notImplemented(
               'This database is not supported for bulk aggregation',
             );
         }
@@ -4317,12 +4327,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (Array.isArray(columnValue)) {
         columnValueArr = columnValue;
       } else {
-        columnValueArr = `${columnValue}`.split(',').map((v) => v.trim());
-        // update the original object with trimmed values
-        if (insertOrUpdateObject[columnTitle])
-          insertOrUpdateObject[columnTitle] = columnValueArr.join(',');
-        else if (insertOrUpdateObject[columnName])
-          insertOrUpdateObject[columnName] = columnValueArr.join(',');
+        columnValueArr = `${columnValue}`.split(',').map((val) => val.trim());
       }
     } else {
       columnValueArr = [columnValue];

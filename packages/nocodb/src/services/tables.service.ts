@@ -641,10 +641,13 @@ export class TablesService {
       source = base.sources.find((b) => b.id === param.sourceId);
     }
 
-    // add CreatedTime and LastModifiedTime system columns if missing in request payload
-    tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
-      columns: tableCreatePayLoad.columns,
-    });
+    if (!param.isDuplicateOperation) {
+        // add CreatedTime and LastModifiedTime system columns if missing in request payload
+        tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
+            columns: tableCreatePayLoad.columns,
+            clientType: source.type
+        });
+    }
 
     //#region validating table title and table name
     if (!tableCreatePayLoad.title) {

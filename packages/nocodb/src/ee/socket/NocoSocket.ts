@@ -38,7 +38,6 @@ export default class NocoSocket {
           // Set up event handlers for this client
           this.setupClientEventHandlers(socket);
         } catch (e) {
-          this.logger.error(e);
           sendConnectionError(
             socket,
             new Error('Authentication failed'),

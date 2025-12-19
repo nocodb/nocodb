@@ -64,4 +64,4 @@ export { default as Workspace } from './Workspace';
 export { default as DependencyTracker } from './DependencyTracker';
 export { default as Widget } from './Widget';
 export { default as Workflow } from './Workflow';
-export { default as TrackModificationsColumn } from './LastModColumn';
+export { default as LastModColumn } from './LastModColumn';

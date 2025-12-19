@@ -38,9 +38,10 @@ export function useLayout() {
     for (const node of nodes) {
       const graphNode = findNode(node.id)
 
-      if (graphNode) {
-        dagreGraph.setNode(node.id, { width: graphNode.dimensions.width || 150, height: graphNode.dimensions.height || 50 })
-      }
+      const width = graphNode?.dimensions?.width || 150
+      const height = graphNode?.dimensions?.height || 50
+
+      dagreGraph.setNode(node.id, { width, height })
     }
 
     for (const edge of edges) {
@@ -52,11 +53,14 @@ export function useLayout() {
     return nodes.map((node) => {
       const nodeWithPosition = dagreGraph.node(node.id)
 
+      // Fallback to existing position if dagre didn't compute position
+      const position = nodeWithPosition ? { x: nodeWithPosition.x, y: nodeWithPosition.y } : node.position || { x: 0, y: 0 }
+
       return {
         ...node,
         targetPosition: isHorizontal ? Position.Left : Position.Top,
         sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
-        position: { x: nodeWithPosition.x, y: nodeWithPosition.y },
+        position,
       }
     })
   }

@@ -1221,7 +1221,11 @@ export const formulas: Record<string, FormulaMeta> = {
             throw new FormulaError(
               FormulaErrorType.INVALID_ARG,
               {},
-              `Column "${arg.name}" does not support LAST_MODIFIED_TIME`
+              `LAST_MODIFIED_TIME() is not supported for ${
+                virtualOrSystemColRef.system
+                  ? 'System'
+                  : virtualOrSystemColRef.uidt
+              } field.`
             );
           }
         }
@@ -1229,8 +1233,11 @@ export const formulas: Record<string, FormulaMeta> = {
     },
     description:
       'Returns the last modified time of the current record or selection if it exists',
-    syntax: 'LAST_MODIFIED_TIME()',
-    examples: [' LAST_MODIFIED_TIME()'],
+    syntax: 'LAST_MODIFIED_TIME([field1, ...])',
+    examples: [
+      'LAST_MODIFIED_TIME()',
+      'LAST_MODIFIED_TIME({Status}, {Priority})',
+    ],
     returnType: FormulaDataTypes.DATE,
   },
 };

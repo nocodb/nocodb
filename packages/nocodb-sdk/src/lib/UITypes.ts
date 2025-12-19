@@ -52,6 +52,7 @@ enum UITypes {
   CreatedBy = 'CreatedBy',
   LastModifiedBy = 'LastModifiedBy',
   Order = 'Order',
+  Meta = 'Meta',
 }
 
 export const UITypesName = {
@@ -98,6 +99,7 @@ export const UITypesName = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
+  [UITypes.Meta]: 'Row Meta',
   AIButton: 'AI Button',
   AIPrompt: 'AI Text',
 };
@@ -307,6 +309,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
   [UITypes.Order]: 'Order',
+  [UITypes.Meta]: 'Row Meta',
 };
 
 export const numericUITypes = [
@@ -765,4 +768,9 @@ export const customLinkSupportedTypes: UITypes[] = [
   UITypes.URL,
   UITypes.ID,
   UITypes.ForeignKey,
+];
+
+// column types that are not shown in the GUI
+export const hiddenColumnTypes: UITypes[] = [
+  UITypes.Meta,
 ];

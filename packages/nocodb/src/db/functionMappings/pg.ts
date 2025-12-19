@@ -6,6 +6,7 @@ import commonFns from './commonFns';
 import type { MapFnArgs } from '~/db/mapFunctionName';
 import { convertUnits } from '~/helpers/convertUnits';
 import { getWeekdayByText } from '~/helpers/formulaFnHelper';
+import { NcError } from '~/helpers/ncError';
 
 const getArraySource = async (argument: any, args: MapFnArgs) => {
   return await args.fn({
@@ -489,6 +490,58 @@ END`,
       builder: knex
         .raw(`SELECT (??)[??:??]`, [source, start, end])
         .wrap('(', ')'),
+    };
+  },
+
+  LAST_MODIFIED_TIME: async (args: MapFnArgs) => {
+    const { pt, knex } = args;
+
+    if (pt.arguments.length !== 0) {
+      // extract meta column
+      const rowMetaColumn = args.model?.columns?.find(
+        (col) => col.uidt === UITypes.Meta,
+      );
+
+      if (!rowMetaColumn) {
+        NcError.badRequest(
+          'This table does not support last modified time with arguments',
+        );
+      }
+
+      // extract columns by params
+      const columnQueries = pt.arguments
+        .map((arg) => {
+          const column = args.model?.columns?.find(
+            (col) => col.id === arg.name,
+          );
+
+          if (!column) return;
+
+          return knex.raw(
+            `(COALESCE(??::jsonb->'lastModifiedTime','{}'::jsonb)->> ?)::timestamp`,
+            [rowMetaColumn.column_name, column?.id],
+          );
+        })
+        .filter(Boolean);
+
+      return {
+        builder: args.knex.raw(`greatest(${columnQueries})`),
+      };
+    }
+
+    const createdAtCol = args.model?.columns?.find(
+      (col) => col.column_name === 'updated_at',
+    );
+    if (!createdAtCol) {
+      NcError.badRequest('Updated at field not found');
+    }
+
+    return {
+      builder: args.knex.raw(
+        `${
+          (await args.fn({ type: 'Identifier', name: createdAtCol.id })).builder
+        }`,
+      ),
     };
   },
 };

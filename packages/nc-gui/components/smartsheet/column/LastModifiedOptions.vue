@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, h, inject, ref, resolveComponent, watch } from 'vue'
-import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{ value: any }>()
 const emit = defineEmits<{

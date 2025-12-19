@@ -41,6 +41,8 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
+import { isEE } from '~/utils';
 
 @Injectable()
 export class TablesService {

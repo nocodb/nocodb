@@ -108,13 +108,4 @@ export class JiraAuthIntegration extends AuthIntegration<
   //     expires_in: response.data.expires_in,
   //   };
   // }
-
-  private extractPartFromUrl(url: string) {
-    try {
-      const { hostname, protocol } = new URL(url);
-      return { hostname, protocol };
-    } catch {
-      return { hostname: url, protocol: 'https' };
-    }
-  }
 }

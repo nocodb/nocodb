@@ -149,6 +149,7 @@ import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
+import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 
 dayjs.extend(utc);
@@ -163,42 +164,9 @@ const ORDER_STEP_INCREMENT = 1;
 
 const MAX_RECURSION_DEPTH = 2;
 
+
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
-
-function prepareMetaUpdateQuery({
-  knex,
-  colIds,
-  props,
-  metaColumn,
-}: {
-  knex: XKnex;
-  colIds: string[];
-  props: Record<string, unknown>;
-  metaColumn: Column;
-}) {
-  const jsonObjQuery = knex.raw('?::jsonb', JSON.stringify(props)).toString();
-
-  return knex.raw(
-    `COALESCE((:column:)::jsonb, '{}'::jsonb) || ${colIds
-      .map((id) => {
-        const idString = knex.raw('?::text', [id]);
-
-        return `jsonb_set(
-    '{}'::jsonb,
-    ARRAY[${idString}],
-    (
-       COALESCE(COALESCE((:column:)::jsonb, '{}'::jsonb)->(${knex.raw('?', [
-         id,
-       ])}::text), '{}'::jsonb))
-       || ${jsonObjQuery})`;
-      })
-      .join(' || ')}`,
-    {
-      column: metaColumn.column_name,
-    },
-  );
-}
 
 /**
  * Base class for models

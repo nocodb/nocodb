@@ -191,8 +191,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     colId: string;
     rowId: string;
   }) => {
-    console.log('addLinks called with:', { cookie, _childIds, colId, rowId });
-
     await baseModel.model.getColumns(baseModel.context);
     const column = baseModel.model.columnsById[colId];
 

@@ -166,7 +166,8 @@ class OracleClient extends KnexClient {
 
       log.debug('checking if db exists');
       const rows = await tempSqlClient.raw(
-        `select USERNAME from SYS.ALL_USERS WHERE USERNAME = '${this.connectionConfig.connection.user}'`,
+        `select USERNAME from SYS.ALL_USERS WHERE USERNAME = ?`,
+        [this.connectionConfig.connection.user],
       );
 
       if (rows.length === 0) {
@@ -215,8 +216,8 @@ class OracleClient extends KnexClient {
       log.debug('dropping database:', this.connectionConfig.connection.user);
       // await tempSqlClient.raw(`ALTER SYSTEM enable restricted session`);
       const sessions =
-        await tempSqlClient.raw(`select SID,SERIAL# from v$session where username =  '${this.connectionConfig.connection.user}'
-      `);
+        await tempSqlClient.raw(`select SID,SERIAL# from v$session where username = ?`,
+        [this.connectionConfig.connection.user]);
       log.debug(
         `Active Sessions for ${this.connectionConfig.connection.user}: `,
         sessions,
@@ -322,7 +323,8 @@ class OracleClient extends KnexClient {
 
     try {
       const rows = await this.raw(
-        `select TABLE_NAME as tn FROM all_tables WHERE OWNER = '${this.connectionConfig.connection.user}' AND tn = '${args.tn}'`,
+        `select TABLE_NAME as tn FROM all_tables WHERE OWNER = ? AND tn = ?`,
+        [this.connectionConfig.connection.user, args.tn],
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -342,7 +344,8 @@ class OracleClient extends KnexClient {
 
     try {
       const rows = await this.raw(
-        `select USERNAME from SYS.ALL_USERS WHERE USERNAME = '${args.databaseName}'`,
+        `select USERNAME from SYS.ALL_USERS WHERE USERNAME = ?`,
+        [args.databaseName],
       );
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -396,7 +399,8 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const rows = await this.raw(
-        `select table_name FROM all_tables WHERE owner='${args.databaseName}'`,
+        `select table_name FROM all_tables WHERE owner = ?`,
+        [args.databaseName],
       );
       for (let i = 0; i < rows.length; i++) {
         let el = rows[i];
@@ -535,7 +539,7 @@ class OracleClient extends KnexClient {
             AND cc_pk.constraint_name = c_pk.constraint_name
           )
         WHERE
-          a.owner = '${args.databaseName}'
+          a.owner = ?
           AND c.constraint_type = 'P'
       ) p ON
       c.table_name = p.table_name
@@ -560,11 +564,11 @@ class OracleClient extends KnexClient {
       c.table_name = seq.table_name
       AND c.column_name = seq.column_name
     WHERE
-      c.owner = '${args.databaseName}' AND  c.table_name = '${args.tn}'
+      c.owner = ? AND  c.table_name = ?
     ORDER BY
       c.table_name,
       c.column_id,
-      c.column_name`);
+      c.column_name`, [args.databaseName, args.databaseName, args.tn]);
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
@@ -634,8 +638,9 @@ class OracleClient extends KnexClient {
         from sys.all_indexes ind
         inner join sys.all_ind_columns ind_col on ind.owner = ind_col.index_owner
         and ind.index_name = ind_col.index_name
-        where ind.owner = '${args.databaseName}'  AND ind.table_name  = '${args.tn}'
+        where ind.owner = ? AND ind.table_name = ?
         order by ind.table_owner, ind.table_name, ind.index_name, ind_col.column_position`,
+        [args.databaseName, args.tn],
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -680,9 +685,10 @@ class OracleClient extends KnexClient {
       const response = await this.raw(
         `SELECT cols.table_name as tn, cols.column_name as cn, cols.position, cons.*
         FROM all_constraints cons, all_cons_columns cols
-        WHERE cols.table_name = '${args.tn}' AND cols.owner = '${args.databaseName}'
+        WHERE cols.table_name = ? AND cols.owner = ?
         AND cons.constraint_type in ('P','R','U') AND cons.constraint_name = cols.constraint_name
         AND cons.owner = cols.owner ORDER BY cons.constraint_name, cols.position`,
+        [args.tn, args.databaseName],
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -752,10 +758,10 @@ class OracleClient extends KnexClient {
       LEFT JOIN all_cons_columns cc_pk ON
         (	cc_pk.owner = c_pk.owner
           AND cc_pk.constraint_name = c_pk.constraint_name )
-      WHERE  a.owner = '${args.databaseName}'
+      WHERE  a.owner = ?
         AND c.constraint_type = 'R'
 
-      `);
+      `, [args.databaseName]);
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
@@ -805,10 +811,10 @@ class OracleClient extends KnexClient {
       LEFT JOIN all_cons_columns cc_pk ON
         (	cc_pk.owner = c_pk.owner
           AND cc_pk.constraint_name = c_pk.constraint_name )
-      WHERE  a.owner = '${args.databaseName}'
+      WHERE  a.owner = ?
         AND c.constraint_type = 'R'
 
-      `);
+      `, [args.databaseName]);
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
@@ -859,7 +865,7 @@ class OracleClient extends KnexClient {
       triggering_event, table_owner as schema_name, table_name as object_name, base_object_type as object_type,
       status, trigger_body as script     from sys.all_triggers
       -- excluding some Oracle maintained schemas
-      where owner = '${args.databaseName}' order by trigger_name, table_owner, table_name, base_object_type`);
+      where owner = ? order by trigger_name, table_owner, table_name, base_object_type`, [args.databaseName]);
 
       for (let i = 0; i < response.length; i++) {
         let el = response[i];
@@ -906,7 +912,8 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT *  FROM ALL_OBJECTS WHERE owner = '${args.databaseName}' and OBJECT_TYPE IN ('FUNCTION','PROCEDURE','PACKAGE')`,
+        `SELECT *  FROM ALL_OBJECTS WHERE owner = ? and OBJECT_TYPE IN ('FUNCTION','PROCEDURE','PACKAGE')`,
+        [args.databaseName],
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -952,7 +959,8 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT *  FROM ALL_OBJECTS WHERE owner = '${args.databaseName}' and OBJECT_TYPE IN ('FUNCTION','PROCEDURE','PACKAGE')`,
+        `SELECT *  FROM ALL_OBJECTS WHERE owner = ? and OBJECT_TYPE IN ('FUNCTION','PROCEDURE','PACKAGE')`,
+        [args.databaseName],
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -992,7 +1000,8 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT * FROM all_views WHERE owner='${args.databaseName}'`,
+        `SELECT * FROM all_views WHERE owner = ?`,
+        [args.databaseName],
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -1032,7 +1041,8 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT * FROM all_source  WHERE TYPE = 'FUNCTION' AND OWNER = '${args.databaseName}' AND NAME = '${args.function_name}' ORDER BY line`,
+        `SELECT * FROM all_source  WHERE TYPE = 'FUNCTION' AND OWNER = ? AND NAME = ? ORDER BY line`,
+        [args.databaseName, args.function_name],
       );
       const rows = [];
       if (response.length > 0) {
@@ -1078,7 +1088,8 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT * FROM all_source  WHERE TYPE = 'PROCEDURE' AND OWNER = '${args.databaseName}' AND NAME = '${args.procedure_name}' ORDER BY line`,
+        `SELECT * FROM all_source  WHERE TYPE = 'PROCEDURE' AND OWNER = ? AND NAME = ? ORDER BY line`,
+        [args.databaseName, args.procedure_name],
       );
       const rows = [];
       if (response.length > 0) {
@@ -1120,7 +1131,8 @@ class OracleClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.user;
 
       const response = await this.raw(
-        `SELECT * FROM all_views WHERE owner='${args.databaseName}' and view_name='${args.view_name}'`,
+        `SELECT * FROM all_views WHERE owner = ? and view_name = ?`,
+        [args.databaseName, args.view_name],
       );
 
       for (let i = 0; i < response.length; i++) {
@@ -1153,7 +1165,7 @@ class OracleClient extends KnexClient {
       triggering_event, table_owner as schema_name, table_name as object_name,
       base_object_type as object_type, status, trigger_body as script from sys.all_triggers
       -- excluding some Oracle maintained schemas
-      where owner = '${args.databaseName}' and trigger_name = '${args.trigger_name}' order by trigger_name, table_owner, table_name, base_object_type`);
+      where owner = ? and trigger_name = ? order by trigger_name, table_owner, table_name, base_object_type`, [args.databaseName, args.trigger_name]);
       if (!response[0]) return [];
 
       for (let i = 0; i < response.length; i++) {

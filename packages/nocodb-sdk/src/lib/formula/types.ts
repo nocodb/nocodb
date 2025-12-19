@@ -6,7 +6,7 @@ import {
   ComparisonOperator,
   StringOperator,
 } from './operators';
-import { ColumnType } from '../Api';
+import { UnifiedMetaType } from '~/lib';
 
 export interface ReferencedInfo {
   referencedColumn?: { id: string; uidt: string };
@@ -80,7 +80,11 @@ export type ParsedFormulaNode =
   | CompoundNode;
 
 export interface FormulaMetaCustomValidation {
-  (args: FormulaDataTypes[], parseTree: CallExpressionNode, columns: ColumnType[]): void;
+  (
+    args: FormulaDataTypes[],
+    parseTree: CallExpressionNode,
+    columns: UnifiedMetaType.IColumn[]
+  ): void;
 }
 
 export interface FormulaMeta {

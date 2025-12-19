@@ -49,7 +49,6 @@ import {
 } from '~/utils/column-webhook-manager';
 import { getBaseModelSqlFromModelId } from '~/helpers/dbHelpers';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import type { LastModColumnOptions } from '~/models/LastModColumn';
 import {
   BaseUser,
   CalendarRange,
@@ -88,6 +87,20 @@ import {
 import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import validateParams from '~/helpers/validateParams';
 import { MetaService } from '~/meta/meta.service';
+import {
+  BaseUser,
+  CalendarRange,
+  Column,
+  Filter,
+  FormulaColumn,
+  Hook,
+  KanbanView,
+  Model,
+  Script,
+  Source,
+  User,
+  View,
+} from '~/models';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { IFormulaColumnTypeChanger } from '~/services/formula-column-type-changer.types';
@@ -239,45 +252,6 @@ const generateColumnDeleteHandler = (
     },
   };
 };
-
-// todo: refactor and move to helpers
-async function dropColumnFromDB(
-  table: Model,
-  param: {
-    req?: any;
-    columnId: string;
-    user: UserType;
-    forceDeleteSystem?: boolean;
-    reuse?: ReusableParams;
-  },
-  sqlMgr: SqlMgrv2,
-  source: Source,
-) {
-  const tableUpdateBody = {
-    ...table,
-    tn: table.table_name,
-    originalColumns: table.columns.map((c) => ({
-      ...c,
-      cn: c.column_name,
-      cno: c.column_name,
-    })),
-    columns: table.columns.map((c) => {
-      if (c.id === param.columnId) {
-        return {
-          ...c,
-          cn: c.column_name,
-          cno: c.column_name,
-          altered: Altered.DELETE_COLUMN,
-        };
-      } else {
-        (c as any).cn = c.column_name;
-      }
-      return c;
-    }),
-  };
-
-  await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
-}
 
 @Injectable()
 export class ColumnsService implements IColumnsService {
@@ -816,20 +790,6 @@ export class ColumnsService implements IColumnsService {
             });
           }
 
-          // TODO: refactor
-          if (
-            [UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(
-              column.uidt,
-            ) &&
-            'colOptions' in colBody &&
-            (colBody.colOptions as LastModColumnOptions)?.triggerColumnIds
-          ) {
-            await Column.update(context, param.columnId, {
-              ...column,
-              colOptions: colBody.colOptions,
-            });
-          }
-
           if (
             'validate' in colBody &&
             ([UITypes.URL, UITypes.PhoneNumber, UITypes.Email].includes(
@@ -939,7 +899,6 @@ export class ColumnsService implements IColumnsService {
       // allow updating of title only
       await Column.update(context, param.columnId, {
         ...column,
-        colOptions: colBody.colOptions,
         title: colBody.title,
       });
     } else if (
@@ -2600,19 +2559,7 @@ export class ColumnsService implements IColumnsService {
             (c) => c.uidt === colBody.uidt && c.system,
           );
 
-          let isTriggerBasedCol = false;
-
-          // if triggerColumns configured - create column and map
-          if (
-            [UITypes.LastModifiedBy, UITypes.LastModifiedTime].includes(
-              colBody.uidt,
-            ) &&
-            colBody.colOptions?.triggerColumnIds?.length
-          ) {
-            isTriggerBasedCol = true;
-          }
-
-          if (!existingColumn || isTriggerBasedCol) {
+          if (!existingColumn) {
             let columnTitle;
 
             switch (colBody.uidt) {
@@ -2634,12 +2581,7 @@ export class ColumnsService implements IColumnsService {
                 break;
             }
 
-            if (isTriggerBasedCol) {
-              columnName = param.column.column_name || columnName;
-              columnTitle = param.column.title || columnTitle;
-            }
-
-            // check if column with same name exists in db
+            // todo:  check type as well
             const dbColumn = columns.find((c) => c.column_name === columnName);
 
             if (dbColumn) {
@@ -2680,18 +2622,13 @@ export class ColumnsService implements IColumnsService {
 
             const title = getUniqueColumnAliasName(table.columns, columnTitle);
 
-            const createdColumn = await Column.insert(context, {
+            await Column.insert(context, {
               ...colBody,
               title,
-              system: isTriggerBasedCol ? 0 : 1,
+              system: 1,
               fk_model_id: table.id,
               column_name: columnName,
             });
-
-            if (isTriggerBasedCol) {
-              savedColumn = createdColumn;
-              break;
-            }
           } else {
             columnName = existingColumn.column_name;
           }
@@ -3212,15 +3149,6 @@ export class ColumnsService implements IColumnsService {
             `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
-
-        if (
-          column.uidt === UITypes.LastModifiedTime &&
-          !column.system &&
-          column.column_name
-        ) {
-          await dropColumnFromDB(table, param, sqlMgr, source);
-        }
-
         await Column.delete2(
           context,
           {
@@ -3233,14 +3161,6 @@ export class ColumnsService implements IColumnsService {
       }
       case UITypes.CreatedBy:
       case UITypes.LastModifiedBy: {
-        if (
-          column.uidt === UITypes.LastModifiedBy &&
-          !column.system &&
-          column.column_name
-        ) {
-          await dropColumnFromDB(table, param, sqlMgr, source);
-        }
-
         await Column.delete2(
           context,
           {
@@ -3606,7 +3526,30 @@ export class ColumnsService implements IColumnsService {
         /* falls through to default */
       }
       default: {
-        await dropColumnFromDB(table, param, sqlMgr, source);
+        const tableUpdateBody = {
+          ...table,
+          tn: table.table_name,
+          originalColumns: table.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+            cno: c.column_name,
+          })),
+          columns: table.columns.map((c) => {
+            if (c.id === param.columnId) {
+              return {
+                ...c,
+                cn: c.column_name,
+                cno: c.column_name,
+                altered: Altered.DELETE_COLUMN,
+              };
+            } else {
+              (c as any).cn = c.column_name;
+            }
+            return c;
+          }),
+        };
+
+        await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
         await Column.delete2(
           context,

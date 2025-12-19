@@ -6184,31 +6184,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const updateObject = {};
 
-    const lastModifiedTimeColumns = columns.filter(
-      (c) =>
-        c.uidt === UITypes.LastModifiedTime &&
-        (c.system ||
-          (c.column_name &&
-            (c.colOptions as LastModColumnOptions)?.triggerColumnIds?.some(
-              (id) => updatedColIds.includes(id),
-            ))),
+    const lastModifiedTimeColumn = columns.find(
+      (c) => c.uidt === UITypes.LastModifiedTime && c.system,
     );
 
-    const lastModifiedByColumns = columns.filter(
-      (c) =>
-        c.uidt === UITypes.LastModifiedBy &&
-        (c.system ||
-          (c.column_name &&
-            (c.colOptions as LastModColumnOptions)?.triggerColumnIds?.some(
-              (id) => updatedColIds.includes(id),
-            ))),
+    const lastModifiedByColumn = columns.find(
+      (c) => c.uidt === UITypes.LastModifiedBy && c.system,
     );
 
-    for (const lastModifiedTimeColumn of lastModifiedTimeColumns) {
+    if (lastModifiedTimeColumn) {
       updateObject[lastModifiedTimeColumn.column_name] = this.now();
     }
 
-    for (const lastModifiedByColumn of lastModifiedByColumns) {
+    if (lastModifiedByColumn) {
       updateObject[lastModifiedByColumn.column_name] = cookie?.user?.id;
     }
 
@@ -6527,31 +6515,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           data[column.column_name] = isInsertData ? null : this.now();
         } else if (column.uidt === UITypes.LastModifiedBy) {
           data[column.column_name] = isInsertData ? null : cookie?.user?.id;
-        }
-      } else if (
-        [UITypes.LastModifiedTime, UITypes.LastModifiedBy].includes(
-          column.uidt,
-        ) &&
-        column.column_name &&
-        (column.colOptions as LastModColumnOptions)?.triggerColumnIds?.length &&
-        !isInsertData
-      ) {
-        // check if any of the tracked columns are updating
-        const trackColumnIds = (column.colOptions as LastModColumnOptions)
-          ?.triggerColumnIds;
-
-        if (
-          trackColumnIds.every((id) =>
-            ncIsUndefined(data[this.model.columnsById?.[id]?.column_name]),
-          )
-        ) {
-          continue;
-        }
-
-        if (column.uidt === UITypes.LastModifiedTime) {
-          data[column.column_name] = this.now();
-        } else if (column.uidt === UITypes.LastModifiedBy) {
-          data[column.column_name] = cookie?.user?.id;
         }
       }
       if (

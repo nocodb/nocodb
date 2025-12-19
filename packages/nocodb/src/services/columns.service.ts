@@ -2579,7 +2579,12 @@ export class ColumnsService implements IColumnsService {
                 break;
             }
 
-            // todo:  check type as well
+            if(isTriggerBasedCol){
+              columnName = param.column.column_name || columnName;
+              columnTitle = param.column.title || columnTitle;
+            }
+
+            // check if column with same name exists in db
             const dbColumn = columns.find((c) => c.column_name === columnName);
 
             if (dbColumn) {

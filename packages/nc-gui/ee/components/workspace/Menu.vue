@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { UseVirtualList } from '@vueuse/components'
-import { OrgUserRoles, type WorkspaceType, WorkspaceUserRoles, extractRolesObj } from 'nocodb-sdk'
+import { OrgUserRoles, type WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
 

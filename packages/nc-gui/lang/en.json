@@ -1551,6 +1551,7 @@
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "Allow signup only using invite url",
+    "restrictWorkspaceCreation": "Restrict workspace creation to super admin only",
     "nextRow": "Next record",
     "prevRow": "Prev record",
     "addRowGrid": "Manually add data in grid view",

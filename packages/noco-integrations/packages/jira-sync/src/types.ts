@@ -170,3 +170,19 @@ export interface JiraUserFull {
   };
   expand: string;
 }
+export interface JiraCommentsResponse {
+  startAt: number;
+  maxResults: number;
+  total: number;
+  comments: JiraComment[];
+}
+export interface JiraComment {
+  id: string;
+  self: string;
+  author: JiraUser;
+  body: JiraDocument; // ADF format
+  updateAuthor: JiraUser;
+  created: string; // ISO 8601
+  updated: string; // ISO 8601
+  jsdPublic?: boolean; // present for JSM
+}

@@ -8,7 +8,13 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
 import { adfToString } from './utils';
-import type { JiraProject, JiraSearchResponse, JiraUserFull } from './types';
+import type {
+  JiraComment,
+  JiraCommentsResponse,
+  JiraProject,
+  JiraSearchResponse,
+  JiraUserFull,
+} from './types';
 import type { JiraAuthIntegration } from '@noco-integrations/jira-auth';
 import type {
   SyncLinkValue,
@@ -127,9 +133,12 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
           jqlParts.push(`(${jqlQuery})`);
         }
 
+        let jiraTicketIncrementalValue: string | undefined;
         if (ticketIncrementalValue) {
-          const jiraTicketIncrementalValue =
-            await this.getJiraTimeFromIncremental(auth, ticketIncrementalValue);
+          jiraTicketIncrementalValue = await this.getJiraTimeFromIncremental(
+            auth,
+            ticketIncrementalValue,
+          );
           // Incremental filter based on last synced RemoteUpdatedAt
           // however somehow jira still treat this as >= so the last issue will still be fetched :|
           jqlParts.push(`updated > "${jiraTicketIncrementalValue}"`);
@@ -153,6 +162,7 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
                 startAt,
                 maxResults,
                 fields: ISSUE_FIELDS.join(','),
+                expand: 'renderedFields',
               },
             });
           });
@@ -224,44 +234,54 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
             }
 
             // // Stream comments for the issue if requested
-            // if (
-            //   resolvedTargetTables.includes(TARGET_TABLES.TICKETING_COMMENT)
-            // ) {
-            //   try {
-            //     const commentsResponse = await auth.use(async (client) => {
-            //       return client.getComments(issueKey);
-            //     });
+            if (
+              resolvedTargetTables.includes(TARGET_TABLES.TICKETING_COMMENT)
+            ) {
+              try {
+                const { data: commentsResponse } = (await auth.use(
+                  async (client) => {
+                    return client.get(`/issue/${issueId}/comment`);
+                  },
+                )) as { data: JiraCommentsResponse };
 
-            //     const comments: any[] =
-            //       commentsResponse?.comments || commentsResponse || [];
+                const comments =
+                  commentsResponse?.comments || commentsResponse || [];
 
-            //     for (const comment of comments) {
-            //       const commentId = comment.id?.toString();
-            //       if (!commentId) {
-            //         continue;
-            //       }
+                for (const comment of comments) {
+                  const commentId = comment.id?.toString();
+                  if (!commentId) {
+                    continue;
+                  }
+                  if (
+                    jiraTicketIncrementalValue &&
+                    dayjs(comment.updated).valueOf() <
+                      dayjs(jiraTicketIncrementalValue).valueOf()
+                  ) {
+                    // skip comment, before last sync
+                    continue;
+                  }
 
-            //       const enrichedComment = {
-            //         ...comment,
-            //         issueId,
-            //         issue: { key: issueKey },
-            //       };
+                  const enrichedComment = {
+                    ...comment,
+                    issueId,
+                    issue: { key: issueKey },
+                  };
 
-            //       const commentData = this.formatComment(enrichedComment);
+                  const commentData = this.formatComment(enrichedComment);
 
-            //       stream.push({
-            //         recordId: commentId,
-            //         targetTable: TARGET_TABLES.TICKETING_COMMENT,
-            //         data: commentData.data as TicketingCommentRecord,
-            //         links: commentData.links,
-            //       });
-            //     }
-            //   } catch (error) {
-            //     this.log(
-            //       `[Jira Sync] Error fetching comments for issue ${issueKey}: ${error}`,
-            //     );
-            //   }
-            // }
+                  stream.push({
+                    recordId: commentId,
+                    targetTable: TARGET_TABLES.TICKETING_COMMENT,
+                    data: commentData.data as TicketingCommentRecord,
+                    links: commentData.links,
+                  });
+                }
+              } catch (error) {
+                this.log(
+                  `[Jira Sync] Error fetching comments for issue ${issueKey}: ${error}`,
+                );
+              }
+            }
           }
 
           startAt += maxResults;
@@ -370,15 +390,22 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
     };
   }
 
-  private formatComment(comment: any): {
+  private formatComment(
+    comment: JiraComment & {
+      issueId: string;
+      issue: { key: string };
+    },
+  ): {
     data: TicketingCommentRecord;
     links?: Record<string, SyncLinkValue>;
   } {
+    let description: string | null = adfToString(comment.body);
+
     const commentData: TicketingCommentRecord = {
       Title: comment.author
-        ? `${comment.author.displayName || 'User'} commented on issue ${comment.issueKey || (comment.issue ? comment.issue.key : '#' + comment.issueId)}`
-        : `Comment on issue ${comment.issueKey || (comment.issue ? comment.issue.key : '#' + comment.issueId)}`,
-      Body: comment.renderedBody || comment.body || null,
+        ? `${comment.author.displayName || 'User'} commented on issue ${comment.issue?.key || (comment.issue ? comment.issue.key : '#' + comment.issueId)}`
+        : `Comment on issue ${comment.issue?.key || (comment.issue ? comment.issue.key : '#' + comment.issueId)}`,
+      Body: description,
       Url: comment.self || null,
       RemoteCreatedAt: comment.created || null,
       RemoteUpdatedAt: comment.updated || null,

@@ -41,7 +41,7 @@ export const extractCorrespondingLinkColumn = async (
 
   const colOptions = await ltarColumn.getColOptions(context);
 
-  const { refContext, mmContext } = colOptions.getRelContext(context);
+  const { refContext } = colOptions.getRelContext(context);
 
   // Get the table that contains the LTAR column
   const sourceTableId = ltarColumn.fk_model_id;
@@ -190,7 +190,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     colId: string;
     rowId: string;
   }) => {
-
     console.log('addLinks called with:', { cookie, _childIds, colId, rowId });
 
     await baseModel.model.getColumns(baseModel.context);
@@ -1040,12 +1039,13 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [childIds[0]],
             cookie,
             // Todo: extract rel in ref table
-            updatedColIds: [          (
-              await extractCorrespondingLinkColumn(baseModel.context, {
-                ltarColumn: column,
-                referencedTable: childTable,
-              })
-            )?.id,
+            updatedColIds: [
+              (
+                await extractCorrespondingLinkColumn(baseModel.context, {
+                  ltarColumn: column,
+                  referencedTable: childTable,
+                })
+              )?.id,
             ],
           });
 

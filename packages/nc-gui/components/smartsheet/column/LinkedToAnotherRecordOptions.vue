@@ -529,37 +529,52 @@ const handleScrollIntoView = () => {
         </a-form-item>
       </template>
       <a-form-item class="flex w-full pb-2 nc-ltar-child-table" v-bind="validateInfos.childId">
-        <a-select
-          v-model:value="referenceTableChildId"
-          show-search
-          :disabled="isEdit || isLinkedTablePrivate"
-          :filter-option="filterOption"
-          placeholder="select table to link"
-          dropdown-class-name="nc-dropdown-ltar-child-table"
-          @change="handleUpdateRefTable"
-        >
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-          </template>
-          <a-select-option v-for="table of refTables" :key="table.title" :value="table.id" :disabled="(table as any).is_private">
-            <div class="flex w-full items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon v-if="(table as any).is_private" class="text-nc-content-gray-disabled" />
-                <GeneralTableIcon v-else :meta="table" class="text-nc-content-gray-muted" />
+        <NcTooltip :disabled="!isLinkedTablePrivate" placement="right">
+          <a-select
+            v-model:value="referenceTableChildId"
+            show-search
+            :disabled="isEdit || isLinkedTablePrivate"
+            :filter-option="filterOption"
+            placeholder="select table to link"
+            dropdown-class-name="nc-dropdown-ltar-child-table"
+            @change="handleUpdateRefTable"
+          >
+            <template #suffixIcon>
+              <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+            </template>
+            <a-select-option
+              v-for="table of refTables"
+              :key="table.title"
+              :value="table.id"
+              :disabled="(table as any).is_private"
+            >
+              <div class="flex w-full items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralTableIcon v-if="(table as any).is_private" class="!text-nc-content-gray-disabled" />
+                  <GeneralTableIcon v-else :meta="table" class="text-nc-content-gray-muted" />
+                </div>
+                <NcTooltip v-if="!(table as any).is_private" class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ table.title }}</template>
+                  <span>{{ table.title }}</span>
+                </NcTooltip>
+                <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.privateTable') }}</span>
               </div>
-              <NcTooltip v-if="!(table as any).is_private" class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ table.title }}</template>
-                <span>{{ table.title }}</span>
-              </NcTooltip>
-              <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.privateTable') }}</span>
-            </div>
-          </a-select-option>
-        </a-select>
+            </a-select-option>
+          </a-select>
+
+          <template #title>
+            {{
+              $t('tooltip.notHaveAccess', {
+                context: $t('objects.table'),
+              })
+            }}
+          </template>
+        </NcTooltip>
       </a-form-item>
     </template>
 
     <div class="flex flex-col gap-2">
-      <NcTooltip :disabled="!isSyncedField" placement="right">
+      <NcTooltip :disabled="!isSyncedField && !isLinkedViewPrivate" placement="right">
         <div class="flex gap-2 items-center">
           <a-switch
             v-model:checked="limitRecToView"
@@ -590,35 +605,53 @@ const handleScrollIntoView = () => {
               <GeneralIcon icon="ncInfo" class="flex-none w-3.5 h-3.5" /> </a
           ></span>
         </div>
-        <template #title> {{ $t('tooltip.optionNotAvailableInSyncTable') }} </template>
+        <template #title>
+          {{
+            isSyncedField
+              ? $t('tooltip.optionNotAvailableInSyncTable')
+              : $t('tooltip.notHaveAccess', {
+                  context: $t('objects.view'),
+                })
+          }}
+        </template>
       </NcTooltip>
       <a-form-item v-if="limitRecToView" class="!pl-8 flex w-full pb-2 mt-4 space-y-2 nc-ltar-child-view">
-        <NcSelect
-          v-model:value="vModel.childViewId"
-          :placeholder="$t('labels.selectView')"
-          show-search
-          :disabled="isLinkedViewPrivate"
-          :filter-option="filterOption"
-          dropdown-class-name="nc-dropdown-ltar-child-view"
-        >
-          <a-select-option v-for="view of refViews" :key="view.title" :value="view.id" :disabled="(view as any).is_private">
-            <div class="flex w-full items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <GeneralViewIcon
-                  v-if="(view as any).is_private"
-                  :meta="{type: ViewTypes.GRID} as any"
-                  class="!text-nc-content-gray-disabled"
-                />
-                <GeneralViewIcon v-else :meta="view" class="text-nc-content-gray-muted" />
+        <NcTooltip :disabled="!isLinkedViewPrivate" placement="right">
+          <NcSelect
+            v-model:value="vModel.childViewId"
+            :placeholder="$t('labels.selectView')"
+            show-search
+            :disabled="isLinkedViewPrivate"
+            :filter-option="filterOption"
+            dropdown-class-name="nc-dropdown-ltar-child-view"
+          >
+            <a-select-option v-for="view of refViews" :key="view.title" :value="view.id" :disabled="(view as any).is_private">
+              <div class="flex w-full items-center gap-2">
+                <div class="min-w-5 flex items-center justify-center">
+                  <GeneralViewIcon
+                    v-if="(view as any).is_private"
+                    :meta="{type: ViewTypes.GRID} as any"
+                    class="!text-nc-content-gray-disabled"
+                  />
+                  <GeneralViewIcon v-else :meta="view" class="text-nc-content-gray-muted" />
+                </div>
+                <NcTooltip v-if="!(view as any).is_private" class="flex-1 truncate" show-on-truncate-only>
+                  <template #title>{{ view.title }}</template>
+                  <span>{{ view.title }}</span>
+                </NcTooltip>
+                <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.privateView') }}</span>
               </div>
-              <NcTooltip v-if="!(view as any).is_private" class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ view.title }}</template>
-                <span>{{ view.title }}</span>
-              </NcTooltip>
-              <span v-else class="text-nc-content-gray-disabled">{{ $t('labels.privateView') }}</span>
-            </div>
-          </a-select-option>
-        </NcSelect>
+            </a-select-option>
+          </NcSelect>
+
+          <template #title>
+            {{
+              $t('tooltip.notHaveAccess', {
+                context: $t('objects.view'),
+              })
+            }}
+          </template>
+        </NcTooltip>
       </a-form-item>
     </div>
 

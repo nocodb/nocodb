@@ -2010,6 +2010,7 @@
     "goBackHome": "Go back home"
   },
   "tooltip": {
+    "notHaveAccess": "You don’t have access to this {context}",
     "manualTriggerDisabled": "Only workflows with manual trigger can be triggered manually.",
     "optionNotAvailableInSyncTable": "This option is not available for synced fields",
     "cannotCreateRecordInSyncTable": "You cannot create records in synced table",

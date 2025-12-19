@@ -167,7 +167,7 @@ export enum CacheScope {
   COL_QRCODE = 'colQRCode',
   COL_BARCODE = 'colBarcode',
   COL_LONG_TEXT = 'colLongText',
-  COL_TRACK_MODIFICATIONS = 'colTrackModifications',
+  COL_LAST_MOD_OPTION = 'colTrackModifications',
   FILTER_EXP = 'filterExp',
   SORT = 'sort',
   SHARED_VIEW = 'sharedView',

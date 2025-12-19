@@ -1,7 +1,12 @@
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { Column } from '~/models';
-import { MetaTable } from '~/utils/globals';
+import { CacheScope, MetaTable } from '~/utils/globals';
+import NocoCache from '~/cache/NocoCache';
+
+export interface TrackModificationsColumnOptions {
+  triggerColumns: TrackModificationsColumn[];
+}
 
 export default class TrackModificationsColumn {
   id: string;
@@ -9,10 +14,10 @@ export default class TrackModificationsColumn {
   base_id?: string;
   fk_column_id: string;
   fk_trigger_column_id: string;
-  
+
   // Virtual properties
   triggerColumn?: Column;
-  trackColumn?: Column;
+  // trackColumn?: Column;
 
   constructor(data: Partial<TrackModificationsColumn>) {
     Object.assign(this, data);
@@ -24,15 +29,15 @@ export default class TrackModificationsColumn {
     ncMeta = Noco.ncMeta,
   ): Promise<TrackModificationsColumn[]> {
     const { fk_column_id, triggerColumns } = data;
-    
+
     // Get the track column to get workspace and base info
     const trackColumn = await Column.get(context, { colId: fk_column_id });
     if (!trackColumn) {
       throw new Error('Track column not found');
     }
-    
+
     const results = [];
-    
+
     // Insert each trigger column relationship
     for (const triggerColId of triggerColumns) {
       const id = await ncMeta.metaInsert2(
@@ -69,15 +74,12 @@ export default class TrackModificationsColumn {
     if (!record) return null;
 
     // Get the trigger column object
-    const triggerColumn = await Column.get(context, { colId: record.fk_trigger_column_id });
-    
-    // Get the track column object
-    const trackColumn = await Column.get(context, { colId: record.fk_column_id });
+    // const triggerColumn = await Column.get(context, { colId: record.fk_trigger_column_id });
 
     return new TrackModificationsColumn({
       ...record,
-      triggerColumn,
-      trackColumn,
+      // triggerColumn,
+      // trackColumn,
     });
   }
 
@@ -107,7 +109,7 @@ export default class TrackModificationsColumn {
     );
 
     return Promise.all(
-      records.map(record => this.get(context, { id: record.id }, ncMeta))
+      records.map((record) => this.get(context, { id: record.id }, ncMeta)),
     );
   }
 
@@ -126,7 +128,7 @@ export default class TrackModificationsColumn {
     );
 
     return Promise.all(
-      records.map(record => this.get(context, { id: record.id }, ncMeta))
+      records.map((record) => this.get(context, { id: record.id }, ncMeta)),
     );
   }
 
@@ -145,7 +147,7 @@ export default class TrackModificationsColumn {
     );
 
     return Promise.all(
-      records.map(record => this.get(context, { id: record.id }, ncMeta))
+      records.map((record) => this.get(context, { id: record.id }, ncMeta)),
     );
   }
 
@@ -161,9 +163,9 @@ export default class TrackModificationsColumn {
       context.base_id,
       'nc_col_track_modifications_trigger_columns',
       {
-        condition: { 
+        condition: {
           fk_column_id: trackColumnId,
-          fk_trigger_column_id: triggerColumnId 
+          fk_trigger_column_id: triggerColumnId,
         },
       },
     );
@@ -179,7 +181,12 @@ export default class TrackModificationsColumn {
     ncMeta = Noco.ncMeta,
   ): Promise<TrackModificationsColumn> {
     // Check if already exists
-    const existing = await this.isTriggerColumn(context, trackColumnId, triggerColumnId, ncMeta);
+    const existing = await this.isTriggerColumn(
+      context,
+      trackColumnId,
+      triggerColumnId,
+      ncMeta,
+    );
     if (existing) {
       throw new Error('Trigger column relationship already exists');
     }
@@ -217,9 +224,9 @@ export default class TrackModificationsColumn {
       context.base_id,
       'nc_col_track_modifications_trigger_columns',
       {
-        condition: { 
+        condition: {
           fk_column_id: trackColumnId,
-          fk_trigger_column_id: triggerColumnId 
+          fk_trigger_column_id: triggerColumnId,
         },
       },
     );
@@ -244,17 +251,7 @@ export default class TrackModificationsColumn {
     ncMeta = Noco.ncMeta,
   ): Promise<Column[]> {
     const records = await this.getByColumnId(context, trackColumnId, ncMeta);
-    return records.map(record => record.triggerColumn).filter(Boolean);
-  }
-
-  // Helper method to get all track columns for a trigger column
-  public static async getTrackColumns(
-    context: NcContext,
-    triggerColumnId: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Column[]> {
-    const records = await this.getByTriggerColumnId(context, triggerColumnId, ncMeta);
-    return records.map(record => record.trackColumn).filter(Boolean);
+    return records.map((record) => record.triggerColumn).filter(Boolean);
   }
 
   // Helper method to get trigger column IDs for a track column
@@ -272,6 +269,42 @@ export default class TrackModificationsColumn {
       },
     );
 
-    return records.map(record => record.fk_trigger_column_id);
+    return records.map((record) => record.fk_trigger_column_id);
+  }
+
+  public static async read(
+    context: NcContext,
+    fk_column_id: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<TrackModificationsColumnOptions | null> {
+    const cachedList = await NocoCache.getList(CacheScope.COL_LAST_MOD_OPTION, [
+      fk_column_id,
+    ]);
+    let { list: columns } = cachedList;
+    const { isNoneList } = cachedList;
+    if (!isNoneList && !columns.length) {
+      columns = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.COL_TRACK_MODIFICATIONS_TRIGGER_COLUMNS,
+        { condition: { fk_column_id } },
+      );
+      await NocoCache.setList(
+        CacheScope.COL_LAST_MOD_OPTION,
+        [fk_column_id],
+        columns.map(({ created_at, updated_at, ...others }) => others),
+      );
+    }
+
+    return columns?.length
+      ? {
+          triggerColumns: columns.map(
+            ({ created_at, updated_at, ...c }) =>
+              new TrackModificationsColumn(c),
+          ),
+        }
+      : {
+          triggerColumns: [],
+        };
   }
 }

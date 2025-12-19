@@ -9,17 +9,17 @@ import {
   isOrderCol,
   isVirtualCol,
   ModelTypes,
-  NcApiVersion,
   NcBaseError,
   ProjectRoles,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
+import type { NcApiVersion } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
-import type { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnType,
+  NcApiVersion,
   NormalColumnRequestType,
   TableReqType,
   TableType,

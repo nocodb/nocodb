@@ -9,7 +9,7 @@ import {
   getUniqueColumnName,
 } from '~/helpers/getUniqueName';
 import { DriverClient } from '~/utils/nc-config';
-import {isEE} from "~/utils";
+import { isEE } from '~/utils';
 
 export const repopulateCreateTableSystemColumns = (
   _context: NcContext,

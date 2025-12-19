@@ -291,9 +291,8 @@ export class DataAttachmentV3Service {
         generateThumbnailAttachments.push(processedAttachment);
       }
     } catch (error) {
-      NcError.unprocessableEntity(
-        `Failed to process base64 attachment: ${error}`,
-      );
+      console.error('Failed to process base64 attachment:', error);
+      NcError.unprocessableEntity('Failed to process base64 attachment');
     }
 
     const updatedAttachments = [...currentAttachments, ...processedAttachments];

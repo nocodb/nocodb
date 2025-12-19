@@ -4,7 +4,11 @@ import {
   SyncIntegration,
   TARGET_TABLES,
 } from '@noco-integrations/core';
-import type { JiraProject, JiraSearchResponse } from './types';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
+import { adfToString } from './utils';
+import type { JiraProject, JiraSearchResponse, JiraUserFull } from './types';
 import type { JiraAuthIntegration } from '@noco-integrations/jira-auth';
 import type {
   SyncLinkValue,
@@ -15,12 +19,31 @@ import type {
   TicketingUserRecord,
 } from '@noco-integrations/core';
 
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 export interface JiraSyncPayload {
   projects: string[];
   includeClosed: boolean;
   jqlQuery?: string;
 }
 
+const ISSUE_FIELDS = [
+  'summary',
+  'description',
+  'issuetype',
+  'status',
+  'priority',
+  'assignee',
+  'reporter',
+  'created',
+  'updated',
+  'duedate',
+  'labels',
+  'components',
+  'fixVersions',
+  'parent',
+];
 export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload> {
   public getTitle() {
     return `${this.config.projects.join(' ')}`;
@@ -28,6 +51,28 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
 
   public async getDestinationSchema(_auth: JiraAuthIntegration) {
     return SCHEMA_TICKETING;
+  }
+
+  async getTimezone(auth: JiraAuthIntegration) {
+    let configVars = this.getVars();
+    if (!configVars?.timezone) {
+      const myself = (await auth.use((client) => client.get('/myself'))) as {
+        data: JiraUserFull;
+      };
+
+      configVars = configVars ?? {};
+      configVars.timezone = myself.data.timeZone;
+      await this.saveVars(configVars);
+    }
+    return configVars.timezone;
+  }
+
+  async getJiraTimeFromIncremental(auth: JiraAuthIntegration, value?: string) {
+    if (!value) {
+      return value;
+    }
+    const timezone = await this.getTimezone(auth);
+    return dayjs.tz(value, 'ETC/Utc').tz(timezone).format('YYYY/MM/DD HH:mm');
   }
 
   public async fetchData(
@@ -83,8 +128,11 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
         }
 
         if (ticketIncrementalValue) {
+          const jiraTicketIncrementalValue =
+            await this.getJiraTimeFromIncremental(auth, ticketIncrementalValue);
           // Incremental filter based on last synced RemoteUpdatedAt
-          jqlParts.push(`updated >= "${ticketIncrementalValue}"`);
+          // however somehow jira still treat this as >= so the last issue will still be fetched :|
+          jqlParts.push(`updated > "${jiraTicketIncrementalValue}"`);
         }
 
         const jql = jqlParts.join(' AND ');
@@ -104,6 +152,7 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
                 jql,
                 startAt,
                 maxResults,
+                fields: ISSUE_FIELDS.join(','),
               },
             });
           });
@@ -262,10 +311,16 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
     data: TicketingTicketRecord;
     links?: Record<string, SyncLinkValue>;
   } {
+    let description: string | null = null;
+    if (issue.renderedFields?.description) {
+      description = issue.renderedFields.description;
+    } else if (issue.fields?.description) {
+      description = adfToString(issue.fields.description);
+    }
+
     const ticket: TicketingTicketRecord = {
       Name: issue.fields?.summary || null,
-      Description:
-        issue.renderedFields?.description || issue.fields?.description || null,
+      Description: description,
       'Due Date': issue.fields?.duedate || null,
       Priority: issue.fields?.priority?.name || null,
       Status: issue.fields?.status?.name || null,

@@ -10,9 +10,10 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
+    "dayjs": "^1.11.19",
     "jira-client": "^8.2.2"
   },
   "devDependencies": {
     "typescript": "^5.2.2"
   }
-} 
+}

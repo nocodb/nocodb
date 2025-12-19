@@ -2502,6 +2502,7 @@ export class AtImportProcessor {
           baseId: syncDB.baseId,
           sourceId: syncDB.sourceId,
           roles: { ...userRole, owner: true },
+          user: { ...req?.user, base_roles: { owner: true } },
         });
         for (const table of tables) {
           await this.tablesService.tableDelete(context, {

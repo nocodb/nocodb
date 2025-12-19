@@ -632,11 +632,19 @@ export class TablesService {
             accessibleTableIds.add(table.id);
           }
         } else if (param.user) {
+          let user = param.user ?? context.user;
+
+          if (!user) {
+            user = {
+              base_roles: param.roles,
+            } as unknown as UserType;
+          }
+
           // For regular bases, check user access
           const hasAccess = await hasTableVisibilityAccess(
             context,
             table.id,
-            param.user,
+            user,
             permissions,
           );
           if (hasAccess) {

@@ -2599,6 +2599,7 @@ export class AtImportProcessor {
               baseId: ncCreatedProjectSchema.id,
               sourceId: syncDB.sourceId,
               roles: { ...userRole, owner: true },
+              user: { ...req?.user, base_roles: { owner: true } },
             },
           );
 

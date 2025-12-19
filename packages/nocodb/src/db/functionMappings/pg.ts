@@ -518,7 +518,7 @@ END`,
           if (!column) return;
 
           return knex.raw(
-            `(COALESCE(??::jsonb->'lastModifiedTime','{}'::jsonb)->> ?)::timestamp`,
+            `(COALESCE(??::jsonb-> ?,'{}'::jsonb)->>'modifiedTime')::timestamp`,
             [rowMetaColumn.column_name, column?.id],
           );
         })

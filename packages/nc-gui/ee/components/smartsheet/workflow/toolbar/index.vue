@@ -1,42 +1,13 @@
 <script setup lang="ts">
-import type { WorkflowGeneralNode } from 'nocodb-sdk'
-import { GeneralNodeID, hasWorkflowDraftChanges } from 'nocodb-sdk'
 import Tab from './Tab.vue'
 
 const workflowStore = useWorkflowStore()
 
-const { updateWorkflow, publishWorkflow } = workflowStore
+const { updateWorkflow } = workflowStore
 
 const { activeWorkflow } = storeToRefs(workflowStore)
 
 const { $e } = useNuxtApp()
-
-const isPublishing = ref(false)
-
-const hasDraftChanges = computed(() => {
-  if (!activeWorkflow.value) return false
-  return hasWorkflowDraftChanges(activeWorkflow.value)
-})
-
-const canPublish = computed(() => {
-  if (!hasDraftChanges.value) return false
-
-  const draftNodes = (activeWorkflow.value?.draft?.nodes || []) as Array<WorkflowGeneralNode>
-
-  for (const node of draftNodes) {
-    if ([GeneralNodeID.TRIGGER, GeneralNodeID.PLUS].includes(node.type as any)) {
-      continue
-    }
-
-    const testResult = node.data?.testResult
-
-    if (!testResult || testResult?.status !== 'success' || testResult?.isStale === true) {
-      return false
-    }
-  }
-
-  return true
-})
 
 const toggleWorkflow = async () => {
   if (!activeWorkflow.value || !activeWorkflow.value.base_id || !activeWorkflow.value.id) {
@@ -53,31 +24,6 @@ const toggleWorkflow = async () => {
     workflow_id: activeWorkflow.value.id,
   })
 }
-
-const handlePublish = async () => {
-  if (!canPublish.value || !activeWorkflow.value?.id) return
-
-  isPublishing.value = true
-  try {
-    await publishWorkflow(activeWorkflow.value?.id)
-  } finally {
-    isPublishing.value = false
-  }
-}
-
-const revertToPublished = async () => {
-  if (!activeWorkflow.value?.id || !activeWorkflow.value?.base_id) return
-  await updateWorkflow(
-    activeWorkflow.value?.base_id,
-    activeWorkflow.value?.id,
-    {
-      draft: null,
-    },
-    {
-      bumpDirty: true,
-    },
-  )
-}
 </script>
 
 <template>
@@ -87,42 +33,6 @@ const revertToPublished = async () => {
     </div>
 
     <div class="flex items-center gap-2 mr-4">
-      <NcTooltip v-if="hasDraftChanges">
-        <div
-          class="rounded-md flex items-center gap-1 px-2 py-0.5 bg-orange-50 text-orange-600 text-caption border border-orange-200"
-        >
-          <GeneralIcon icon="edit" class="w-3 h-3" />
-          Draft
-        </div>
-        <template #title> You have unsaved changes </template>
-      </NcTooltip>
-
-      <NcTooltip v-if="hasDraftChanges">
-        <NcButton size="small" type="secondary" :disabled="isPublishing" @click="revertToPublished">
-          <template #icon>
-            <GeneralIcon icon="reload" />
-          </template>
-          Discard
-        </NcButton>
-        <template #title> Revert to published version </template>
-      </NcTooltip>
-
-      <NcTooltip v-if="hasDraftChanges" :disabled="canPublish">
-        <NcButton
-          size="small"
-          type="primary"
-          :disabled="!canPublish || isPublishing"
-          :loading="isPublishing"
-          @click="handlePublish"
-        >
-          <template #icon>
-            <GeneralIcon icon="ncUploadCloud" />
-          </template>
-          Publish
-        </NcButton>
-        <template #title> Please test all nodes before publishing </template>
-      </NcTooltip>
-
       <div
         class="rounded-md flex items-center gap-2 px-2 py-0.5"
         :class="{

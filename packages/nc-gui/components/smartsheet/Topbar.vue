@@ -10,7 +10,7 @@ const { activeAutomationId } = storeToRefs(useAutomationStore())
 
 const { activeDashboardId, isEditingDashboard } = storeToRefs(useDashboardStore())
 
-const { activeWorkflowId } = storeToRefs(useWorkflowStore())
+const { activeWorkflowId, activeWorkflowHasDraftChanges } = storeToRefs(useWorkflowStore())
 
 const isPublic = inject(IsPublicInj, ref(false))
 
@@ -40,7 +40,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
 <template>
   <div
     :class="{
-      'bg-nc-bg-brand': isEditingDashboard,
+      'bg-nc-bg-brand': isEditingDashboard || activeWorkflowHasDraftChanges,
     }"
     class="nc-table-topbar py-2 border-b-1 border-nc-border-gray-medium flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1)"
     style="z-index: 7"
@@ -65,7 +65,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
       <div v-if="!isSharedBase && !isMobileMode && !activeAutomationId && !activeDashboardId && !activeWorkflowId">
         <SmartsheetTopbarSelectMode />
       </div>
-      <div v-else-if="activeDashboardId">
+      <div v-else-if="activeDashboardId || activeWorkflowId">
         <SmartsheetTopbarEditingState />
       </div>
 

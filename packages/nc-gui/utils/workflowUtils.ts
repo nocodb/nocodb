@@ -30,6 +30,7 @@ function transformNode(backendNode: WorkflowNodeDefinition): UIWorkflowNodeDefin
 /**
  * Find all parent nodes (upstream nodes) for a given node
  * @param nodeId - The node ID to find parents for
+ * @param edges - All edges in the workflow
  * @returns Set of parent node IDs in execution order
  */
 const findAllParentNodes = (nodeId: string, edges: Edge[]): string[] => {

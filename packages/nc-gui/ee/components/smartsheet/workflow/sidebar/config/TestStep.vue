@@ -20,32 +20,10 @@ const errorMessage = computed(() => {
   return selectedNode.value?.data?.testResult?.error?.message || localErrorMessage.value
 })
 
-const findAllAncestors = (nodeId: string): Set<string> => {
-  const ancestors = new Set<string>()
-  const visited = new Set<string>()
-
-  const traverse = (currentId: string) => {
-    if (visited.has(currentId)) return
-    visited.add(currentId)
-
-    const parentEdges = edges.value.filter((edge) => edge.target === currentId)
-
-    for (const edge of parentEdges) {
-      if (edge.source) {
-        ancestors.add(edge.source)
-        traverse(edge.source)
-      }
-    }
-  }
-
-  traverse(nodeId)
-  return ancestors
-}
-
 const untestedParentNodes = computed(() => {
   if (!selectedNode.value || !selectedNodeId.value) return []
 
-  const ancestorIds = findAllAncestors(selectedNodeId.value)
+  const ancestorIds = new Set(findAllParentNodes(selectedNodeId.value, edges.value))
 
   return nodes.value
     .filter((node) => ancestorIds.has(node.id) && (!node.data?.testResult || node.data.testResult.status !== 'success'))
@@ -65,13 +43,13 @@ const isNocoDBRecordTriggerNode = computed(() => {
 const canTestNode = computed(() => {
   if (!selectedNode.value || !selectedNodeId.value) return false
 
-  const ancestorIds = findAllAncestors(selectedNodeId.value)
+  const ancestorIds = findAllParentNodes(selectedNodeId.value, edges.value)
 
-  if (ancestorIds.size === 0) {
+  if (ancestorIds.length === 0) {
     return true
   }
 
-  return Array.from(ancestorIds).every((ancestorId) => {
+  return ancestorIds.every((ancestorId) => {
     const ancestorNode = nodes.value.find((n) => n.id === ancestorId)
     return ancestorNode?.data?.testResult?.status === 'success'
   })

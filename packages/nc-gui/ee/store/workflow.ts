@@ -1,4 +1,4 @@
-import { PlanLimitTypes } from 'nocodb-sdk'
+import { PlanLimitTypes, hasWorkflowDraftChanges } from 'nocodb-sdk'
 import type { WorkflowNodeDefinition, WorkflowType } from 'nocodb-sdk'
 import { DlgWorkflowCreate } from '#components'
 
@@ -69,6 +69,11 @@ export const useWorkflowStore = defineStore('workflow', () => {
     if (!activeWorkflow.value) return ''
 
     return toReadableUrlSlug([activeWorkflow.value.title])
+  })
+
+  const activeWorkflowHasDraftChanges = computed(() => {
+    if (!activeWorkflow.value) return false
+    return hasWorkflowDraftChanges(activeWorkflow.value)
   })
 
   // Actions
@@ -577,6 +582,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     activeBaseWorkflows,
     activeWorkflowId,
     activeBaseNodeSchemas,
+    activeWorkflowHasDraftChanges,
 
     // Actions
     loadWorkflows,

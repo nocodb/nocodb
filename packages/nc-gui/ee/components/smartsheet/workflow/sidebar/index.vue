@@ -7,7 +7,7 @@ import ExecutionResult from '~/components/smartsheet/workflow/sidebar/config/Exe
 import NodeDetails from '~/components/smartsheet/workflow/sidebar/NodeDetails.vue'
 import LogSidebar from '~/components/smartsheet/workflow/sidebar/logsList/index.vue'
 
-const { selectedNode, selectedNodeId, activeTab, viewingExecution } = useWorkflowOrThrow()
+const { selectedNode, activeTab, viewingExecution } = useWorkflowOrThrow()
 </script>
 
 <template>

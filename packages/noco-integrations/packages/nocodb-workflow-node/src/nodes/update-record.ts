@@ -22,7 +22,7 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
   public async definition(): Promise<WorkflowNodeDefinition> {
     return {
       id: 'nocodb.update_record',
-      title: 'Update Record',
+      title: 'Update record',
       description: 'Update an existing record in a NocoDB table',
       icon: 'ncRecordUpdate',
       category: WorkflowNodeCategory.ACTION,

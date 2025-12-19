@@ -8,6 +8,7 @@ import TriggerNode from '~/components/smartsheet/workflow/canvas/nodes/Trigger.v
 import WorkflowNode from '~/components/smartsheet/workflow/canvas/nodes/WorkflowNode.vue'
 import { useWorkflowOrThrow } from '~/composables/useWorkflow'
 import { useLayout } from '~/components/smartsheet/workflow/useLayout'
+import ManualTrigger from '~/components/smartsheet/workflow/canvas/ManualTrigger.vue'
 
 const { nodes, edges, setLayoutCallback, nodeTypes: rawNodeTypes, workflow } = useWorkflowOrThrow()
 
@@ -87,6 +88,8 @@ onMounted(() => {
     class="workflow-canvas"
   >
   </VueFlow>
+
+  <ManualTrigger />
 </template>
 
 <style scoped lang="scss">

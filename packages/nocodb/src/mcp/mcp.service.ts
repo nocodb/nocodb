@@ -123,6 +123,7 @@ export class McpService {
             {
               baseId: context.base_id,
               roles: extractRolesObj(user?.base_roles),
+              user,
               allSources: true,
             },
           );

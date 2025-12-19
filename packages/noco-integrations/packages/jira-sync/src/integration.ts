@@ -295,7 +295,9 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
         stream.push(null); // End the stream
       } catch (error) {
         this.log(`[Jira Sync] Error fetching data: ${error}`);
-        stream.emit('error', error as Error);
+        stream.destroy(
+          error instanceof Error ? error : new Error(String(error)),
+        );
       }
     })();
 

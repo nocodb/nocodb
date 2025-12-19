@@ -1566,6 +1566,7 @@
     "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "baseDuplicateMessage2": "The duplicated base will include only the tables you have access to in this base. As a result, some relational fields and their derivatives may not function as expected.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Include views",
     "includeScripts": "Include scripts",

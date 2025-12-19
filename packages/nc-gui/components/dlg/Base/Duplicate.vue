@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
-import { type BaseType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { type BaseType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -11,7 +11,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { navigateToProject } = useGlobal()
+const { navigateToProject, user } = useGlobal()
 
 const { refreshCommandPalette } = useCommandPalette()
 
@@ -28,6 +28,11 @@ const basesStore = useBases()
 const { workspacesList, activeWorkspace } = useWorkspace()
 
 const { loadProjects, createProject: _createProject } = basesStore
+
+// Check if current user is base owner
+const isBaseOwner = computed(() => {
+  return user.value?.base_roles?.[ProjectRoles.OWNER]
+})
 
 const options = ref({
   includeData: true,
@@ -288,6 +293,7 @@ onKeyStroke('Enter', () => {
           class="mt-5 text-nc-content-gray-subtle2 font-medium"
         >
           {{ $t('labels.baseDuplicateMessage') }}
+          <template v-if="!isBaseOwner">{{ $t('labels.baseDuplicateMessage2') }}</template>
         </div>
 
         <div v-if="isEeUI" class="mb-5">

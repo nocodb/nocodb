@@ -140,8 +140,6 @@ export async function hasTableVisibilityAccess(
 
   // if user not defined then check if table have default visibility for all users
   if (!user) {
-    console.log(hasDefaultTableVisibility(tableId, context.permissions))
-
     return hasDefaultTableVisibility(tableId, context.permissions);
   }
 

@@ -8,6 +8,7 @@ import mime from 'mime/lite';
 import slash from 'slash';
 import PQueue from 'p-queue';
 import axios from 'axios';
+import { useAgent } from 'request-filtering-agent';
 import hash from 'object-hash';
 import moment from 'moment';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
@@ -284,7 +285,15 @@ export class AttachmentsService {
           let base64Buffer: Buffer;
 
           if (!url.startsWith('data:')) {
-            response = await axios.head(url, { maxRedirects: 5 });
+            response = await axios.head(url, {
+              maxRedirects: 5,
+              httpAgent: useAgent(url, {
+                stopPortScanningByUrlRedirection: true,
+              }),
+              httpsAgent: useAgent(url, {
+                stopPortScanningByUrlRedirection: true,
+              }),
+            });
             mimeType = response.headers['content-type']?.split(';')[0];
             size = response.headers['content-length'];
             finalUrl = response.request.res.responseUrl;

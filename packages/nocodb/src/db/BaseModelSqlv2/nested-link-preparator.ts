@@ -5,6 +5,7 @@ import {
   getRelatedLinksColumn,
 } from '~/helpers/dbHelpers';
 import { type Column, type LinkToAnotherRecordColumn, Model } from '~/models';
+import {extractCorrespondingLinkColumn} from "~/db/BaseModelSqlv2/add-remove-links";
 
 export class NestedLinkPreparator {
   async prepareNestedLinkQb(
@@ -368,12 +369,19 @@ export class NestedLinkPreparator {
             updatedColIds: [col.id],
           });
 
+          // Get the corresponding link column ID for the parent table
+          const refTableLinkColumnId = (
+            await extractCorrespondingLinkColumn(baseModel.context, {
+              ltarColumn: col,
+              referencedTable: refBaseModel.model,
+            })
+          )?.id;
+
           await refBaseModel.updateLastModified({
             model: refModel,
             rowIds: nestedData,
             cookie: req,
-            // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [refTableLinkColumnId],
           });
         });
       }

@@ -409,7 +409,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: childIds,
             cookie,
-            // Todo: extract rel in ref table
             updatedColIds: [
               (
                 await extractCorrespondingLinkColumn(baseModel.context, {
@@ -853,7 +852,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: childIds,
             cookie,
-            // Todo: extract rel in ref table
             updatedColIds: [
               (
                 await extractCorrespondingLinkColumn(baseModel.context, {
@@ -1039,7 +1037,6 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [childIds[0]],
             cookie,
-            // Todo: extract rel in ref table
             updatedColIds: [
               (
                 await extractCorrespondingLinkColumn(baseModel.context, {

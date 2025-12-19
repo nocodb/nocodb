@@ -1678,8 +1678,9 @@ export default class Column<T = any> implements ColumnType {
     );
 
     // insert new col options only if existing colOption meta is deleted
-    if (requiredColAvail)
+    if (requiredColAvail) {
       await this.insertColOption(context, column, colId, ncMeta);
+    }
 
     // on column update, delete any optimised single query cache
     await View.clearSingleQueryCache(context, oldCol.fk_model_id, null, ncMeta);

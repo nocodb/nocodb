@@ -293,7 +293,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: childIds,
             cookie,
             // Todo: extract rel in ref table
-            updatedColIds: []
+            updatedColIds: [],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -400,7 +400,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
-            updatedColIds: [column.id]
+            updatedColIds: [column.id],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -461,7 +461,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
-            updatedColIds: [column.id]
+            updatedColIds: [column.id],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -729,7 +729,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: childIds,
             cookie,
             // Todo: extract rel in ref table
-            updatedColIds: []
+            updatedColIds: [],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -742,7 +742,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: childTable,
             rowIds: [rowId],
             cookie,
-            updatedColIds: [column.id]
+            updatedColIds: [column.id],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -842,7 +842,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
-            updatedColIds: [column.id]
+            updatedColIds: [column.id],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -907,7 +907,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             rowIds: [childIds[0]],
             cookie,
             // Todo: extract rel in ref table
-            updatedColIds: []
+            updatedColIds: [],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {

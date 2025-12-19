@@ -13,7 +13,6 @@
     "axios": "^1.9.0"
   },
   "devDependencies": {
-    "@types/jira-client": "^7.1.9",
     "rimraf": "^5.0.10",
     "typescript": "^5.8.3"
   }

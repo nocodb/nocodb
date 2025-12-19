@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { UseVirtualList } from '@vueuse/components'
-import { type WorkspaceType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { OrgUserRoles, type WorkspaceType, WorkspaceUserRoles, extractRolesObj } from 'nocodb-sdk'
 
 const isMiniSidebar = inject(IsMiniSidebarInj, undefined)
 
@@ -10,6 +10,10 @@ const { activeWorkspace, workspacesList, workspaceUserCount } = storeToRefs(work
 const { loadWorkspaces } = workspaceStore
 
 const { appInfo } = useGlobal()
+
+const { orgRoles } = useRoles()
+
+const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
 
 const { leftSidebarState, isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 const viewportWidth = ref(window.innerWidth)
@@ -88,6 +92,14 @@ const onWorkspaceCreateClick = () => {
 
   createDlg.value = true
 }
+
+const canCreateWorkspace = computed(() => {
+  if (appInfo.value.restrictWorkspaceCreation !== true) {
+    return true
+  }
+
+  return !!isSuper.value
+})
 </script>
 
 <template>
@@ -272,8 +284,8 @@ const onWorkspaceCreateClick = () => {
                 </NcMenuItem>
               </template>
             </UseVirtualList>
-            <NcDivider v-if="otherWorkspaces.length && !isMobileMode" class="!mt-0" />
-            <NcMenuItem v-if="!isMobileMode" @click="onWorkspaceCreateClick">
+            <NcDivider v-if="otherWorkspaces.length && !isMobileMode && canCreateWorkspace" class="!mt-0" />
+            <NcMenuItem v-if="!isMobileMode && canCreateWorkspace" @click="onWorkspaceCreateClick">
               <div v-e="['c:workspace:create']" class="nc-workspace-menu-item group">
                 <GeneralIcon icon="plusSquare" class="!text-inherit" />
 

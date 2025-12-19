@@ -30,7 +30,6 @@ import type { BaseType, MetaType, SignUpReqType, UserType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
 import { T } from '~/utils';
-import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -42,7 +41,6 @@ import {
   Extension,
   Integration,
   PresignedUrl,
-  Store,
   Subscription,
   SyncSource,
   User,
@@ -198,12 +196,7 @@ export class UsersService extends UsersServiceCE {
 
     let roles: string = OrgUserRoles.CREATOR;
 
-    let settings: { invite_only_signup?: boolean } = {};
-    try {
-      settings = JSON.parse(
-        (await Store.get(NC_APP_SETTINGS, undefined, ncMeta))?.value,
-      );
-    } catch {}
+    const settings = await Noco.getAppSettings();
 
     // allow super user signup(first user) in non cloud mode(on-prem)
     const isFirstUserAndSuperUserAllowed =

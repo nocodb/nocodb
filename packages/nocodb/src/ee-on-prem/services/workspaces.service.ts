@@ -1,6 +1,7 @@
 import { WorkspacesService as WorkspacesServiceEE } from 'src/ee/services/workspaces.service';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { extractRolesObj, OrgUserRoles } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { UserType, WorkspaceType } from 'nocodb-sdk';
 import type { User } from '~/models';
@@ -11,6 +12,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { NcError } from '~/helpers/catchError';
 import { Workspace } from '~/models';
+import Noco from '~/Noco';
 
 @Injectable()
 export class WorkspacesService extends WorkspacesServiceEE {
@@ -37,6 +39,18 @@ export class WorkspacesService extends WorkspacesServiceEE {
     workspaces: WorkspaceType | WorkspaceType[];
     req: NcRequest;
   }) {
+    // Check if workspace creation is restricted
+    const settings = await Noco.getAppSettings();
+    if (settings.restrict_workspace_creation) {
+      // Only super admins can create workspaces when restriction is enabled
+      const userRoles = extractRolesObj(param.user.roles);
+      if (!userRoles[OrgUserRoles.SUPER_ADMIN]) {
+        NcError.forbidden(
+          'Workspace creation is restricted. Only instance admin can create workspaces.',
+        );
+      }
+    }
+
     /*  const userWorkspacesCount = await Workspace.count({
       fk_user_id: param.user.id,
     });

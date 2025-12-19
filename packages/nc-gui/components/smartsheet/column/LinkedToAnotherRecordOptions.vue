@@ -600,7 +600,7 @@ const handleScrollIntoView = () => {
           :filter-option="filterOption"
           dropdown-class-name="nc-dropdown-ltar-child-view"
         >
-          <a-select-option v-for="view of refViews" :key="view.id" :value="view.id" :disabled="(view as any).is_private">
+          <a-select-option v-for="view of refViews" :key="view.title" :value="view.id" :disabled="(view as any).is_private">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
                 <GeneralViewIcon v-if="(view as any).is_private" :meta="{} as any" class="text-nc-content-gray-disabled" />

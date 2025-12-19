@@ -131,6 +131,20 @@ export async function hasTableVisibilityAccess(
   user: User | UserType,
   permissions?: Permission[],
 ): Promise<boolean> {
+  // Get permissions if not provided
+  if (!permissions) {
+    if (!context.permissions)
+      context.permissions = await Permission.list(context, context.base_id);
+    permissions = context.permissions;
+  }
+
+  // if user not defined then check if table have default visibility for all users
+  if (!user) {
+    console.log(hasDefaultTableVisibility(tableId, context.permissions))
+
+    return hasDefaultTableVisibility(tableId, context.permissions);
+  }
+
   // Base owners always have access
   // Check base_roles (can be string or object)
   const baseRoles = extractRolesObj((user as any)?.base_roles);
@@ -142,13 +156,6 @@ export async function hasTableVisibilityAccess(
   const roles = extractRolesObj((user as any)?.roles);
   if (roles?.[ProjectRoles.OWNER]) {
     return true;
-  }
-
-  // Get permissions if not provided
-  if (!permissions) {
-    if (!context.permissions)
-      context.permissions = await Permission.list(context, context.base_id);
-    permissions = context.permissions;
   }
 
   // Find TABLE_VISIBILITY permission for this table

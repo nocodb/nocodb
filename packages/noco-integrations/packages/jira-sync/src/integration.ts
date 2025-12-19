@@ -50,6 +50,7 @@ const ISSUE_FIELDS = [
   'fixVersions',
   'parent',
 ];
+
 export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload> {
   public getTitle() {
     return `${this.config.projects.join(' ')}`;
@@ -78,7 +79,7 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
       return value;
     }
     const timezone = await this.getTimezone(auth);
-    return dayjs.tz(value, 'ETC/Utc').tz(timezone).format('YYYY/MM/DD HH:mm');
+    return dayjs.utc(value).tz(timezone).format('YYYY/MM/DD HH:mm');
   }
 
   public async fetchData(

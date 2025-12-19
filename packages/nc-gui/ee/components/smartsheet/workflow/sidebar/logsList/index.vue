@@ -161,15 +161,20 @@ onBeforeMount(async () => {
       <NcButton v-if="viewingExecution" type="text" size="small" @click="handleBackClick">
         <GeneralIcon icon="ncChevronLeft" />
       </NcButton>
-      <div class="text-bodyBold py-2 px-2">Run history</div>
+      <div class="text-subHeading2 py-2 px-2">Run history</div>
     </div>
-    <List
-      v-if="!viewingExecution"
-      v-model:active-item="activeItem"
-      :executions="executions"
-      :has-more="hasMore"
-      @load-more="loadMore"
-    />
+    <template v-if="!viewingExecution || isLoading">
+      <List
+        v-if="!isLoading"
+        v-model:active-item="activeItem"
+        :executions="executions"
+        :has-more="hasMore"
+        @load-more="loadMore"
+      />
+      <div v-else class="flex items-center justify-center h-full w-full">
+        <GeneralLoader size="xlarge" />
+      </div>
+    </template>
     <div v-else class="flex flex-col p-4 gap-4">
       <div class="flex flex-col gap-3">
         <div class="text-bodyBold text-nc-content-gray">Execution Details</div>
@@ -208,7 +213,7 @@ onBeforeMount(async () => {
     </div>
     <template v-if="viewingExecution">
       <NcDivider />
-      <div class="flex items-center p-4 text-nc-content-gray-muted text-bodySm">
+      <div class="flex items-center text-center p-4 text-nc-content-gray-muted">
         Click on a node in the canvas to view its execution details
       </div>
     </template>

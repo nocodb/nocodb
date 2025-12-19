@@ -100,6 +100,19 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
       });
     }
 
+    const isDynamic = config.to.includes('$(');
+
+    if (!isDynamic) {
+      const isValidEmail = NocoSDK.validateEmail(config.to);
+
+      if (!isValidEmail) {
+        errors.push({
+          path: 'config.to',
+          message: 'Please provide a valid email address',
+        });
+      }
+    }
+
     if (!config.subject || config.subject.trim() === '') {
       errors.push({
         path: 'config.subject',

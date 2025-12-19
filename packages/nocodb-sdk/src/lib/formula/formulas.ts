@@ -1183,6 +1183,7 @@ export const formulas: Record<string, FormulaMeta> = {
   //   syntax: 'CREATED_TIME()',
   //   examples: ['CREATED_TIME()'],
   // },
+  /*
   LAST_MODIFIED_TIME: {
     validation: {
       args: {
@@ -1239,5 +1240,5 @@ export const formulas: Record<string, FormulaMeta> = {
       'LAST_MODIFIED_TIME({Status}, {Priority})',
     ],
     returnType: FormulaDataTypes.DATE,
-  },
+  }, */
 };

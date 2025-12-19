@@ -668,6 +668,7 @@ export class RelationManager {
   async removeChild(params: { req: any }) {
     const {
       relationColOptions: colOptions,
+      relationColumn: column,
       baseModel,
       parentBaseModel,
       parentColumn,
@@ -823,8 +824,7 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            // Todo: extract rel in ref table
-            updatedColIds: [],
+            updatedColIds: [column.id],
           });
 
           await childBaseModel.broadcastLinkUpdates([childId]);

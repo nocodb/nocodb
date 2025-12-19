@@ -604,7 +604,11 @@ const handleScrollIntoView = () => {
           <a-select-option v-for="view of refViews" :key="view.title" :value="view.id" :disabled="(view as any).is_private">
             <div class="flex w-full items-center gap-2">
               <div class="min-w-5 flex items-center justify-center">
-                <GeneralViewIcon v-if="(view as any).is_private" :meta="{} as any" class="text-nc-content-gray-disabled" />
+                <GeneralViewIcon
+                  v-if="(view as any).is_private"
+                  :meta="{type: ViewTypes.GRID} as any"
+                  class="!text-nc-content-gray-disabled"
+                />
                 <GeneralViewIcon v-else :meta="view" class="text-nc-content-gray-muted" />
               </div>
               <NcTooltip v-if="!(view as any).is_private" class="flex-1 truncate" show-on-truncate-only>

@@ -53,10 +53,16 @@ export class SocketGateway implements OnModuleInit {
         try {
           const context = new ExecutionContextHost([socket.handshake as any]);
           const guard = new (AuthGuard('jwt'))(context);
-          await guard.canActivate(context);
-        } catch {}
+          const canActivate = await guard.canActivate(context);
 
-        next();
+          if (canActivate) {
+            next();
+          } else {
+            next(new Error('Unauthorized'));
+          }
+        } catch (error) {
+          next(new Error('Unauthorized'));
+        }
       })
       .on('connection', (socket) => {
         this.clients[socket.id] = socket;

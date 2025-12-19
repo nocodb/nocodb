@@ -11,6 +11,7 @@ import {
 } from '../../factory/column';
 import { createTable, getColumnsByAPI, getTable } from '../../factory/table';
 import { createBulkRows, listRow, rowMixedValue } from '../../factory/row';
+import { META_COL_NAME } from '../../../../src/constants';
 import type Model from '../../../../src/models/Model';
 import type Base from '~/models/Base';
 import type Column from '../../../../src/models/Column';
@@ -72,7 +73,7 @@ function columnTypeSpecificTests() {
     ...(isEE
       ? [
           {
-            title: '__nc_meta',
+            title: META_COL_NAME,
             uidt: UITypes.Meta,
             system: true,
           },

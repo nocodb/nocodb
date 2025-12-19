@@ -19,7 +19,6 @@ export enum MetaTable {
   COL_BARCODE = 'nc_col_barcode_v2',
   COL_LONG_TEXT = 'nc_col_long_text_v2',
   FILTER_EXP = 'nc_filter_exp_v2',
-  COL_LAST_MOD_TRIGGER_COLUMNS = 'nc_col_track_modifications_trigger_columns',
   // HOOK_FILTER_EXP = 'nc_hook_filter_exp_v2',
   SORT = 'nc_sort_v2',
   SHARED_VIEWS = 'nc_shared_views_v2',

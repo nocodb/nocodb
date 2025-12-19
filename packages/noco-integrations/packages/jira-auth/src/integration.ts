@@ -62,6 +62,8 @@ export class JiraAuthIntegration extends AuthIntegration<
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
       const client = await this.authenticate();
+      // try to verify jira url
+      new URL(this._config.jira_url);
 
       if (!client) {
         return {

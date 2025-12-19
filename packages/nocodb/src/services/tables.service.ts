@@ -494,7 +494,7 @@ export class TablesService {
 
     // Check table visibility permission
     // Base owners always have access, but we still need to check for others
-    if (!isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
+    if (!isServiceUser(param.user)) {
       const hasAccess = await hasTableVisibilityAccess(
         context,
         param.tableId,

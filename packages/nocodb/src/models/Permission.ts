@@ -3,6 +3,8 @@ import type {
   PermissionGrantedType,
   PermissionKey,
   PermissionRole,
+  ProjectRoles,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
@@ -34,5 +36,17 @@ export default class Permission {
     _ncMeta = Noco.ncMeta,
   ): Promise<Permission[]> {
     return [];
+  }
+
+  // placeholder for actual permission check logic
+  static async isAllowed(
+    _context: NcContext,
+    _permissionObj: Permission,
+    _user: {
+      id: string;
+      role: ProjectRoles | WorkspaceUserRoles;
+    },
+  ): Promise<boolean> {
+    return true;
   }
 }

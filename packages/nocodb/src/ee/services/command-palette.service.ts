@@ -6,22 +6,17 @@ import {
   type UserType,
   viewTypeAlias,
 } from 'nocodb-sdk';
-import { forwardRef, Inject } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import { deserializeJSON } from '~/utils/serialize';
 import { getCommandPaletteForUserWorkspace } from '~/helpers/commandPaletteHelpers';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
-import { TablesService } from '~/services/tables.service';
 import { Permission } from '~/models';
 
 @Injectable()
 export class CommandPaletteService {
   logger = new Logger('CommandPaletteService');
 
-  constructor(
-    @Inject(forwardRef(() => TablesService))
-    private tablesService: TablesService,
-  ) {}
+  constructor() {}
 
   async commandPalette(param: { body: any; user: UserType }) {
     const cmdData = [];

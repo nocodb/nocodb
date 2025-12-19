@@ -211,9 +211,9 @@ export class PublicMetasService {
       },
     );
     this.filterIfLimitedAccess(
+      context,
       relatedMetas,
       ltarColOption.fk_related_model_id,
-      context,
     );
     if (ltarColOption.type === 'mm') {
       relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo(
@@ -223,19 +223,19 @@ export class PublicMetasService {
         },
       );
       this.filterIfLimitedAccess(
+        context,
         relatedMetas,
         ltarColOption.fk_mm_model_id,
-        context,
       );
     }
   }
 
   private filterIfLimitedAccess(
+    context: NcContext,
     relatedMetas: {
       [p: string]: Model;
     },
     tableId: string,
-    context: NcContext,
   ) {
     if (
       relatedMetas[tableId]?.columns &&
@@ -280,9 +280,9 @@ export class PublicMetasService {
       });
 
       this.filterIfLimitedAccess(
+        context,
         relatedMetas,
         relationCol.fk_model_id,
-        context,
       );
     }
 
@@ -296,9 +296,9 @@ export class PublicMetasService {
         },
       );
       this.filterIfLimitedAccess(
+        context,
         relatedMetas,
         lookedUpCol.fk_model_id,
-        context,
       );
     }
 

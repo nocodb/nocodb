@@ -133,7 +133,6 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
-import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import {
   Audit,
   BaseUser,

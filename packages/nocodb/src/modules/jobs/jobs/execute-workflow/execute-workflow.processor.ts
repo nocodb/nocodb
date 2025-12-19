@@ -10,8 +10,6 @@ import { WorkflowExecutionService } from '~/services/workflow-execution.service'
 import NocoSocket from '~/socket/NocoSocket';
 import { UsageStat } from '~/ee/models';
 import { PlanLimitTypes } from '~/ee/helpers/paymentHelpers';
-import { Workspace } from '~/models';
-
 export class ExecuteWorkflowProcessor {
   protected logger = new Logger(ExecuteWorkflowProcessor.name);
 

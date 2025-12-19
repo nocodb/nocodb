@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import debug from 'debug';
 import { ExportService as ExportServiceCE } from 'src/modules/jobs/jobs/export-import/export.service';
 import type { NcRequest } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';

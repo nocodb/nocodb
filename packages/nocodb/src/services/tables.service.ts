@@ -16,9 +16,9 @@ import {
   ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
-import type { NcApiVersion } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
+import type { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnType,
   NcApiVersion,
@@ -46,9 +46,6 @@ import { sanitizeColumnName, validatePayload } from '~/helpers';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
-import { isEE } from '~/utils';
-import { META_COL_NAME } from '~/constants';
-import { DriverClient } from '~/utils/nc-config';
 
 @Injectable()
 export class TablesService {
@@ -650,11 +647,11 @@ export class TablesService {
     }
 
     if (!param.isDuplicateOperation) {
-        // add CreatedTime and LastModifiedTime system columns if missing in request payload
-        tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
-            columns: tableCreatePayLoad.columns,
-            clientType: source.type
-        });
+      // add CreatedTime and LastModifiedTime system columns if missing in request payload
+      tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
+        columns: tableCreatePayLoad.columns,
+        clientType: source.type,
+      });
     }
 
     //#region validating table title and table name

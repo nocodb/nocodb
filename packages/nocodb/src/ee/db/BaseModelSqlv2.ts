@@ -60,14 +60,7 @@ import {
   populateUpdatePayloadDiff,
   remapWithAlias,
 } from '~/utils';
-import {
-  Audit,
-  Column,
-  Filter,
-  Model,
-  ModelStat,
-  Permission,
-} from '~/models';
+import { Audit, Column, Filter, Model, ModelStat, Permission } from '~/models';
 import {
   getSingleQueryReadFn,
   singleQueryGroupedList,

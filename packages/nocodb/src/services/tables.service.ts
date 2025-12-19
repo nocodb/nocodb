@@ -16,7 +16,6 @@ import {
 } from 'nocodb-sdk';
 import { MetaDiffsService } from './meta-diffs.service';
 import { ColumnsService } from './columns.service';
-import type { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnType,
   NcApiVersion,

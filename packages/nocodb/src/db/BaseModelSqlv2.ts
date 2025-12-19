@@ -35,7 +35,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -68,30 +67,6 @@ import type {
 import type LookupColumn from '~/models/LookupColumn';
 import type { ResolverObj } from '~/utils';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
-import {
-  batchUpdate,
-  extractColsMetaForAudit,
-  extractExcludedColumnNames,
-  generateAuditV1Payload,
-  nocoExecute,
-  populateUpdatePayloadDiff,
-  processConcurrently,
-  remapWithAlias,
-  removeBlankPropsAndMask,
-} from '~/utils';
-import {
-  Audit,
-  BaseUser,
-  Column,
-  FileReference,
-  Filter,
-  GridViewColumn,
-  Model,
-  PresignedUrl,
-  Sort,
-  Source,
-  View,
-} from '~/models';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
 import { FieldHandler } from '~/db/field-handler';
@@ -4793,6 +4768,47 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
   }
 
+  /**
+   * Extract distinct group column values for grouping operations
+   * Handles options parameter, SingleSelect columns, and other column types
+   */
+  public async extractGroupingValues(
+    column: Column,
+    options?: (string | number | null | boolean)[],
+  ): Promise<Set<any>> {
+    // TODO: Add virtual column support
+    if (isVirtualCol(column)) {
+      NcError.get(this.context).notImplemented('Grouping for virtual columns');
+    }
+
+    let groupingValues: Set<any>;
+
+    if (options?.length) {
+      groupingValues = new Set(options);
+    } else if (column.uidt === UITypes.SingleSelect) {
+      const colOptions = await column.getColOptions<{
+        options: SelectOption[];
+      }>(this.context);
+      groupingValues = new Set(
+        (colOptions?.options ?? []).map((opt) => opt.title),
+      );
+      groupingValues.add(null);
+    } else {
+      groupingValues = new Set(
+        (
+          await this.execAndParse(
+            this.dbDriver(this.tnPath).select(column.column_name).distinct(),
+            null,
+            { raw: true },
+          )
+        ).map((row) => row[column.column_name]),
+      );
+      groupingValues.add(null);
+    }
+
+    return groupingValues;
+  }
+
   public async groupedList(
     args: {
       groupColumnId: string;
@@ -4815,29 +4831,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         NcError.notImplemented('Grouping for virtual columns');
 
       // extract distinct group column values
-      let groupingValues: Set<any>;
-      if (args.options?.length) {
-        groupingValues = new Set(args.options);
-      } else if (column.uidt === UITypes.SingleSelect) {
-        const colOptions = await column.getColOptions<{
-          options: SelectOption[];
-        }>(this.context);
-        groupingValues = new Set(
-          (colOptions?.options ?? []).map((opt) => opt.title),
-        );
-        groupingValues.add(null);
-      } else {
-        groupingValues = new Set(
-          (
-            await this.execAndParse(
-              this.dbDriver(this.tnPath).select(column.column_name).distinct(),
-              null,
-              { raw: true },
-            )
-          ).map((row) => row[column.column_name]),
-        );
-        groupingValues.add(null);
-      }
+      const groupingValues = await this.extractGroupingValues(
+        column,
+        args.options,
+      );
 
       const qb = this.dbDriver(this.tnPath);
       qb.limit(+rest?.limit || 25);

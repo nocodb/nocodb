@@ -3,7 +3,7 @@ import {
   FormBuilderInputType,
   FormBuilderValidatorType,
 } from '@noco-integrations/core';
-import { clientId, redirectUri } from './config';
+// import { clientId, redirectUri } from './config';
 import type { FormDefinition } from '@noco-integrations/core';
 
 export const form: FormDefinition = [
@@ -34,14 +34,14 @@ export const form: FormDefinition = [
         label: 'API Key',
         value: AuthType.ApiKey,
       },
-      ...(redirectUri && clientId
-        ? [
-            {
-              label: 'OAuth2',
-              value: AuthType.OAuth,
-            },
-          ]
-        : []),
+      // ...(redirectUri && clientId
+      //   ? [
+      //       {
+      //         label: 'OAuth2',
+      //         value: AuthType.OAuth,
+      //       },
+      //     ]
+      //   : []),
     ],
     validators: [
       {

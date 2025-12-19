@@ -13,6 +13,7 @@ import type {
   JiraCommentsResponse,
   JiraProject,
   JiraSearchResponse,
+  JiraUser,
   JiraUserFull,
 } from './types';
 import type { JiraAuthIntegration } from '@noco-integrations/jira-auth';
@@ -206,7 +207,7 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
 
             // Collect and stream users related to the issue
             if (resolvedTargetTables.includes(TARGET_TABLES.TICKETING_USER)) {
-              const users: any[] = [];
+              const users: JiraUser[] = [];
 
               if (issue.fields?.assignee) {
                 users.push(issue.fields.assignee);
@@ -281,6 +282,7 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
                 this.log(
                   `[Jira Sync] Error fetching comments for issue ${issueKey}: ${error}`,
                 );
+                throw error;
               }
             }
           }

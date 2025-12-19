@@ -27,19 +27,6 @@ To authenticate using a Jira API Key:
    - Paste the generated API token
    - Select "API Key" as the authentication method
 
-### OAuth Authentication
-
-To authenticate using Jira OAuth:
-
-1. Ensure your NocoDB instance is properly configured with Jira OAuth credentials (see SETUP.md)
-2. In the NocoDB Jira Auth integration configuration:
-   - Enter your Jira Cloud URL (e.g., `https://your-domain.atlassian.net`)
-   - Select "OAuth2" as the authentication method
-3. Click the "Connect to Jira" button
-4. You will be redirected to Atlassian to authorize the application
-5. Grant the requested permissions
-6. You will be redirected back to NocoDB with the authentication completed
-
 ## Required Permissions
 
 This integration requires the following Jira permissions:

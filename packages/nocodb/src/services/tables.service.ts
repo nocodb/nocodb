@@ -9,6 +9,8 @@ import {
   isOrderCol,
   isVirtualCol,
   ModelTypes,
+  NcApiVersion,
+  NcBaseError,
   ProjectRoles,
   RelationTypes,
   UITypes,
@@ -44,6 +46,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 import { isEE } from '~/utils';
 import { META_COL_NAME } from '~/constants';
+import { DriverClient } from '~/utils/nc-config';
 
 @Injectable()
 export class TablesService {

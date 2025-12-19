@@ -180,7 +180,7 @@ function prepareMetaUpdateQuery({
   const jsonObjQuery = knex.raw('?::jsonb', JSON.stringify(props)).toString();
 
   return knex.raw(
-    `(COALESCE((:column:)::jsonb, '{}'::jsonb) || ${colIds
+    `COALESCE((:column:)::jsonb, '{}'::jsonb) || ${colIds
       .map((id) => {
         const idString = knex.raw('?::text', [id]);
 

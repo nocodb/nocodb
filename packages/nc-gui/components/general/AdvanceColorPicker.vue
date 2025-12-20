@@ -8,6 +8,7 @@ interface Props {
   isOpen?: boolean
   includeBlackAndWhiteAsDefaultColors?: boolean
   invertInDarkMode?: boolean
+  showTextIcon?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -25,7 +26,7 @@ const vModel = computed({
   },
 })
 
-const { isDark } = useTheme()
+const { isDark, getColor } = useTheme()
 
 const showActiveColorTab = ref<boolean>(false)
 
@@ -132,10 +133,20 @@ watch(
                   class="color-selector"
                   :class="{ selected: compare(picked, color) }"
                   :style="{
-                    backgroundColor: `${getSelectTypeFieldOptionBgColor({ color: color || '#ccc', isDark: invertInDarkMode && isDark })}`,
+                    backgroundColor: getSelectTypeFieldOptionBgColor({
+                      color: color || '#ccc',
+                      isDark: invertInDarkMode && isDark,
+                    }),
+                    color: getSelectTypeFieldOptionTextColor({
+                      color: color || '#ccc',
+                      isDark: invertInDarkMode && isDark,
+                      getColor,
+                    }),
                   }"
                   @click="selectColor(color, true)"
-                ></button>
+                >
+                  <GeneralIcon v-if="showTextIcon" icon="cellText" class="w-3.5 h-3.5" />
+                </button>
               </div>
             </div>
           </div>

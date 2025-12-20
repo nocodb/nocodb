@@ -542,6 +542,7 @@ if (!isKanbanStack.value) {
                     v-model="kanbanStackOption.color"
                     :is-open="colorMenus[kanbanStackOption.index!]"
                     invert-in-dark-mode
+                    show-text-icon
                     @input="(el:string) => {
                       kanbanStackOption!.color = el
                       optionChanged(kanbanStackOption!)
@@ -633,6 +634,7 @@ if (!isKanbanStack.value) {
                         v-model="element.color"
                         :is-open="colorMenus[index]"
                         invert-in-dark-mode
+                        show-text-icon
                         @input="(el:string) => {
                           element.color = el
                           optionChanged(element)

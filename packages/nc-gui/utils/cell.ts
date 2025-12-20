@@ -105,7 +105,7 @@ export const getSelectTypeOptionTextColor = (
   getColor: GetColorType,
   disableGetColor = false,
 ): string => {
-  color = color ?? disableGetColor ? '#ccc' : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)') // Set default only if color is null or undefined
+  color = color ?? disableGetColor ? color || '#ccc' : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)') // Set default only if color is null or undefined
 
   return tinycolor.isReadable(color, '#fff', { level: 'AA', size: 'large' })
     ? '#fff'

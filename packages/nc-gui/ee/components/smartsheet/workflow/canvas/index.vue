@@ -16,6 +16,8 @@ const { fitView, nodesDraggable, edgesUpdatable } = useVueFlow()
 
 const { layout } = useLayout()
 
+const initNode = ref<boolean>(true)
+
 const nodeTypes = computed(() => {
   const types: Record<string, any> = {}
 
@@ -35,14 +37,17 @@ const nodeTypes = computed(() => {
 async function layoutGraph() {
   nodes.value = layout(nodes.value, edges.value, 'TB')
 
-  nextTick(() => {
-    fitView({
-      padding: 0.2,
-      duration: 200,
-      minZoom: 0.1,
-      maxZoom: 1,
+  if (initNode.value) {
+    initNode.value = false
+    nextTick(() => {
+      fitView({
+        padding: 0.2,
+        duration: 200,
+        minZoom: 0.1,
+        maxZoom: 1,
+      })
     })
-  })
+  }
 }
 
 watch(

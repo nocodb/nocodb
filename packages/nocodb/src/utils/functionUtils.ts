@@ -18,13 +18,15 @@
 export function throttleWithLast<T extends (...args: any[]) => any>(
   fn: T,
   delay: number,
-): (...args: Parameters<T>) => Promise<ReturnType<T>> {
+): (...args: Parameters<T>) => ReturnType<T> {
   let timeoutId: NodeJS.Timeout | null = null;
   let lastArgs: Parameters<T> | null = null;
   let isExecuting = false;
   let lastExecution = 0;
 
-  const execute = async (...args: Parameters<T>): Promise<ReturnType<T>> => {
+  const execute = async (
+    ...args: Parameters<T>
+  ): Promise<Awaited<ReturnType<T>>> => {
     isExecuting = true;
     lastExecution = Date.now();
     lastArgs = null;
@@ -49,7 +51,7 @@ export function throttleWithLast<T extends (...args: any[]) => any>(
     }
   };
 
-  return async (...args: Parameters<T>): Promise<ReturnType<T>> => {
+  return ((...args: Parameters<T>): ReturnType<T> => {
     // Store the latest args
     lastArgs = args;
 
@@ -61,14 +63,16 @@ export function throttleWithLast<T extends (...args: any[]) => any>(
 
     // If currently executing, the args will be picked up after current execution
     if (isExecuting) {
-      return Promise.resolve(undefined as ReturnType<T>);
+      return Promise.resolve(
+        undefined as Awaited<ReturnType<T>>,
+      ) as ReturnType<T>;
     }
 
     const timeSinceLastExec = Date.now() - lastExecution;
 
     // Execute immediately if enough time has passed
     if (timeSinceLastExec >= delay) {
-      return execute(...args);
+      return execute(...args) as ReturnType<T>;
     }
 
     // Schedule execution for remaining delay
@@ -79,6 +83,6 @@ export function throttleWithLast<T extends (...args: any[]) => any>(
         const result = await execute(...args);
         resolve(result);
       }, remainingDelay);
-    });
-  };
+    }) as ReturnType<T>;
+  }) as (...args: Parameters<T>) => ReturnType<T>;
 }

@@ -217,6 +217,9 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
         }
       }
 
+      // Clear all testResult of sub nodes if type is changed
+      clearChildNodesTestResults(nodeId)
+
       const oldNodeMeta = getNodeMetaById(existingNode.type)
       const cleanupResult = cleanupPortsOnTypeChange(nodeId, oldNodeMeta, nodeMeta, nodes.value, edges.value, findAllChildNodes)
 
@@ -246,6 +249,8 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     const nodeTypeMeta = getNodeMetaById(nodeToDelete.type)
 
     let firstParentNode: Node | null = null
+
+    clearChildNodesTestResults(nodeId)
 
     if (nodeTypeMeta && nodeTypeMeta.output && nodeTypeMeta.output > 1) {
       const childNodeIds = findAllChildNodes(nodeId, edges.value)
@@ -332,7 +337,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     await triggerLayout()
   }
 
-  const clearChildNodesTestResults = async (nodeId: string) => {
+  function clearChildNodesTestResults(nodeId: string) {
     const childNodeIds = findAllChildNodes(nodeId, edges.value)
     if (childNodeIds.size === 0) return
 

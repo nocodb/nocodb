@@ -25,7 +25,7 @@ const hasManualTrigger = computed(() => {
 
 <template>
   <div v-if="hasManualTrigger" class="absolute w-[calc(100%-379px)] bottom-2 flex items-center right-0 left-0">
-    <NcTooltip :disabled="!activeWorkflowHasDraftChanges">
+    <NcTooltip class="flex justify-center w-full items-center" :disabled="!activeWorkflowHasDraftChanges">
       <template #title> Workflow has draft changes. Please publish the workflow before triggering. </template>
       <NcButton
         class="mx-auto"

@@ -92,15 +92,13 @@ const getStatusIcon = (status: string) => {
             <GeneralIcon :icon="getStatusIcon(execution.status)" class="text-base-white !w-3 !h-3" />
           </div>
 
-          <div class="ml-2 flex flex-1 min-w-0">
-            <div class="font-semibold text-sm truncate">
-              {{ hookLogFormatter(execution.started_at) }}
-            </div>
-            <div class="flex-1" />
+          <div class="font-caption ml-2 truncate">
+            {{ hookLogFormatter(execution.started_at) }}
+          </div>
+          <div class="flex-1" />
 
-            <div class="text-body text-nc-content-gray-muted">
-              {{ getRelativeTime(execution.started_at) }}
-            </div>
+          <div class="text-body text-nc-content-gray-muted">
+            {{ getRelativeTime(execution.started_at) }}
           </div>
         </div>
       </template>

@@ -208,10 +208,7 @@ export function findParentNodesNeedingPlusNodes(
     if (outputPorts.length <= 1) return
 
     // Check if this deletion left this specific port empty
-    const hasOutgoingEdge = outgoingEdges.some(
-      (outEdge) =>
-        outEdge.source === inEdge.source && outEdge.sourceHandle === inEdge.sourceHandle && !deletedNodeIds.has(outEdge.target),
-    )
+    const hasOutgoingEdge = outgoingEdges.some((outEdge) => !deletedNodeIds.has(outEdge.target))
 
     if (!hasOutgoingEdge && inEdge.sourceHandle) {
       const port = outputPorts.find((p) => p.id === inEdge.sourceHandle)

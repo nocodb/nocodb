@@ -51,7 +51,7 @@ onMounted(async () => {
         </div>
       </GeneralOverlay>
       <SmartsheetWorkflowToolbar />
-      <div v-if="activeWorkflow" class="flex w-full main-wrapper">
+      <div v-if="activeWorkflow" class="flex w-full relative main-wrapper">
         <Canvas />
         <Sidebar />
       </div>

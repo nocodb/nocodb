@@ -25,7 +25,10 @@ import { SqlUiFactory } from '../sqlUi';
 import {
   extractBinaryExpReferencedInfo,
   extractCallExpressionReferencedInfo,
-} from './referenced-info-extractor';
+} from '~/lib/formula/referenced-info-extractor';
+import { UnifiedMetaType } from '~/lib/types';
+import { unifiedMeta } from '~/lib/unifiedMeta';
+import { getColOptions } from '../unifiedMeta/getColOptions';
 
 async function extractColumnIdentifierType({
   col,
@@ -103,21 +106,33 @@ async function extractColumnIdentifierType({
           // these functions produce a numeric value, which can be used in numeric functions
           res.dataType = FormulaDataTypes.NUMERIC;
         } else {
-          const relationColumnOpt = columns.find(
-            (column) =>
-              column.id === (<RollupType>col.colOptions).fk_relation_column_id
+          const rollupColOptions =
+            await getColOptions<UnifiedMetaType.IRollupColumn>(
+              unifiedMeta.getContextFromObject(col),
+              { column: col }
+            );
+          const relationColumn = columns.find(
+            (column) => column.id === rollupColOptions.fk_relation_column_id
           );
+
+          const relationColumnOpt =
+            await getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(
+              unifiedMeta.getContextFromObject(col),
+              { column: relationColumn }
+            );
 
           // the value is based on the foreign rollup column type
           const refTableMeta = await getMeta(
-            (<LinkToAnotherRecordType>relationColumnOpt.colOptions)
-              .fk_related_model_id
+            unifiedMeta.getContextFromObject(col),
+            {
+              id: relationColumnOpt.fk_related_model_id,
+            }
           );
 
           const refTableColumns = refTableMeta.columns;
+
           const childFieldColumn = refTableColumns.find(
-            (column: ColumnType) =>
-              column.id === col.colOptions.fk_rollup_column_id
+            (col) => col.id === rollupColOptions.fk_rollup_column_id
           );
 
           // extract type and add to res

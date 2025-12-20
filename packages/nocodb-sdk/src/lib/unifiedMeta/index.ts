@@ -5,6 +5,7 @@ import { getLinkInfo } from './getLinkInfo';
 import { getContextFromObject } from './getContextFromObject';
 import { getLookupRelatedInfo } from './getLookupRelatedInfo';
 import { getParsedTree } from './getParsedTree';
+import { getRollupColumn } from './getRollupColumn';
 
 export const unifiedMeta = {
   getColOptions,
@@ -13,5 +14,6 @@ export const unifiedMeta = {
   getLinkInfo,
   getContextFromObject,
   getLookupRelatedInfo,
+  getRollupColumn,
   getParsedTree,
 };

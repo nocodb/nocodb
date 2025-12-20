@@ -25,6 +25,7 @@ import {
 } from '~/lib/formula/referenced-info-extractor';
 import { UnifiedMetaType } from '~/lib/types';
 import { unifiedMeta } from '~/lib/unifiedMeta';
+import { getColOptions } from '../unifiedMeta/getColOptions';
 
 async function extractColumnIdentifierType({
   col,
@@ -106,30 +107,34 @@ async function extractColumnIdentifierType({
           // these functions produce a numeric value, which can be used in numeric functions
           res.dataType = FormulaDataTypes.NUMERIC;
         } else {
-          const relationColumnOpt = columns.find(
-            (column) =>
-              column.id ===
-              (<UnifiedMetaType.IRollupColumn>col.colOptions)
-                .fk_relation_column_id
+          const rollupColOptions =
+            await getColOptions<UnifiedMetaType.IRollupColumn>(
+              unifiedMeta.getContextFromObject(col),
+              { column: col }
+            );
+          const relationColumn = columns.find(
+            (column) => column.id === rollupColOptions.fk_relation_column_id
           );
+
+          const relationColumnOpt =
+            await getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(
+              unifiedMeta.getContextFromObject(col),
+              { column: relationColumn }
+            );
 
           // the value is based on the foreign rollup column type
           const refTableMeta = await getMeta(
             unifiedMeta.getContextFromObject(col),
             {
-              id: (<UnifiedMetaType.ILinkToAnotherRecordColumn>(
-                relationColumnOpt.colOptions
-              )).fk_related_model_id,
+              id: relationColumnOpt.fk_related_model_id,
             }
           );
 
           const refTableColumns = refTableMeta.columns;
-          const childFieldColumn = await (<UnifiedMetaType.IRollupColumn>(
-            col.colOptions
-          )).getRollupColumn({
-            base_id: col.base_id,
-            workspace_id: col.fk_workspace_id,
-          });
+
+          const childFieldColumn = refTableColumns.find(
+            (col) => col.id === rollupColOptions.fk_rollup_column_id
+          );
 
           // extract type and add to res
           Object.assign(

@@ -35,14 +35,7 @@ const { selectedNodeId, updateNode, selectedNode } = useWorkflowOrThrow()
 const browserTzName = Intl.DateTimeFormat().resolvedOptions().timeZone
 
 const config = computed<CronTriggerNodeConfig>(() => {
-  const nodeConfig = (selectedNode.value?.data?.config || {}) as CronTriggerNodeConfig
-
-  // Default to browser timezone if not configured
-  if (!nodeConfig.timezone && browserTzName) {
-    nodeConfig.timezone = browserTzName
-  }
-
-  return nodeConfig
+  return (selectedNode.value?.data?.config || {}) as CronTriggerNodeConfig
 })
 
 const intervalType = ref<IntervalType>('minutes')
@@ -291,6 +284,26 @@ const intervalOptions = [
     value: 'monthly',
   },
 ]
+
+watch(
+  () => selectedNode.value,
+  (node) => {
+    if (!node) return
+    const nodeConfig = (node.data?.config || {}) as CronTriggerNodeConfig
+    if (!nodeConfig.timezone && browserTzName) {
+      updateNode(selectedNodeId.value, {
+        data: {
+          ...node.data,
+          config: {
+            ...nodeConfig,
+            timezone: browserTzName,
+          },
+        },
+      })
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -557,7 +570,6 @@ const intervalOptions = [
   .ant-input-number-input {
     &[type='number'] {
       @apply border-0 ring-0;
-      border: 0 !important;
     }
   }
 }

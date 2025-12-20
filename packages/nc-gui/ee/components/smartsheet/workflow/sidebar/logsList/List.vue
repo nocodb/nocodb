@@ -67,7 +67,7 @@ const getStatusIcon = (status: string) => {
   <div ref="scrollContainer" class="log-container">
     <template v-if="executions.length === 0">
       <div class="flex flex-col items-center justify-center h-full w-full">
-        <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[264px] flex-none" />
+        <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[264px] flex-none" alt="No executions found" />
         <div class="text-body text-nc-content-gray-muted">No executions found</div>
       </div>
     </template>

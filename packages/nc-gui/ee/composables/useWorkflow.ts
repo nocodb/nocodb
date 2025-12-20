@@ -44,9 +44,16 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     return [...GENERAL_DEFAULT_NODES, ...activeBaseNodeSchemas.value.map(transformNode)]
   })
 
-  const selectedNode = computed<null | WorkflowGeneralNode>(() => {
+  const selectedNode = computed<WorkflowGeneralNode | null>((): WorkflowGeneralNode | null => {
     if (!selectedNodeId.value) return null
-    return nodes.value.find((n) => n.id === selectedNodeId.value) as WorkflowGeneralNode
+
+    const node = nodes.value.find((n) => n.id === selectedNodeId.value)
+
+    if (node && node.type) {
+      return node as WorkflowGeneralNode
+    }
+
+    return null
   })
 
   const getNodeMetaById = (id?: string): UIWorkflowNodeDefinition | null => {
@@ -165,7 +172,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
     const updatedNodes = [...nodes.value]
     const currentNodeIndex = updatedNodes.findIndex((n) => n.id === nodeId)
-    if (currentNodeIndex !== -1) {
+    if (currentNodeIndex !== -1 && updatedNodes[currentNodeIndex]) {
       updatedNodes[currentNodeIndex] = {
         ...updatedNodes[currentNodeIndex],
         ...updatedData,
@@ -200,7 +207,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
       // Update the node with unique title
       const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId)
-      if (nodeIndex !== -1) {
+      if (nodeIndex !== -1 && nodes.value[nodeIndex]) {
         nodes.value[nodeIndex] = {
           ...nodes.value[nodeIndex],
           data: {
@@ -367,7 +374,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId)
     if (nodeIndex !== -1) {
       const updatedNodes = [...nodes.value]
-      if (updatedNodes && updatedNodes[nodeIndex] && updatedNodes[nodeIndex].data) {
+      if (updatedNodes[nodeIndex]?.data) {
         updatedNodes[nodeIndex] = {
           ...updatedNodes[nodeIndex],
           data: {

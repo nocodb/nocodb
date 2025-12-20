@@ -30,9 +30,7 @@ const hasManualTrigger = computed(() => {
       </div>
     </NcButton>
   </div>
-  <template v-else>
-    <NcSpanHidden />
-  </template>
+  <NcSpanHidden v-else />
 </template>
 
 <style scoped lang="scss"></style>

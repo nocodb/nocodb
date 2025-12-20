@@ -31,7 +31,7 @@ function transformNode(backendNode: WorkflowNodeDefinition): UIWorkflowNodeDefin
  * Find all parent nodes (upstream nodes) for a given node
  * @param nodeId - The node ID to find parents for
  * @param edges - All edges in the workflow
- * @returns Set of parent node IDs in execution order
+ * @returns array of parent node IDs in execution order
  */
 const findAllParentNodes = (nodeId: string, edges: Edge[]): string[] => {
   const parents: string[] = []
@@ -179,19 +179,19 @@ const findIterateNodePortForPath = (iterateNodeId: string, targetNodeId: string,
 const updateVariableReferences = (content: string, oldTitle: string, newTitle: string): string => {
   if (!ncIsString(content)) return content
 
-  // Escape special regex characters in the old title
+  // Escape special regex characters in both titles
   const escapedOldTitle = oldTitle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const escapedNewTitle = newTitle.replace(/\$/g, '$$$$') // Escape $ for replacement string
 
   // Replace both single and double quoted references
   const singleQuoteRegex = new RegExp(`\\$\\('${escapedOldTitle}'\\)`, 'g')
   const doubleQuoteRegex = new RegExp(`\\$\\("${escapedOldTitle}"\\)`, 'g')
 
-  let updated = content.replace(singleQuoteRegex, `\$('${newTitle}')`)
-  updated = updated.replace(doubleQuoteRegex, `\$('${newTitle}')`)
+  let updated = content.replace(singleQuoteRegex, `$('${escapedNewTitle}')`)
+  updated = updated.replace(doubleQuoteRegex, `$("${escapedNewTitle}")`)
 
   return updated
 }
-
 /**
  * Recursively update variable references in an object
  * @param obj - The object to update

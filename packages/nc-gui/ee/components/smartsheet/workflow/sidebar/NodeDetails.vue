@@ -108,6 +108,10 @@ function handleTitleBlur() {
         <div
           v-if="!isTitleInEditMode || props.readOnly"
           class="text-subHeading2 line-clamp-2 max-w-70"
+          role="button"
+          tabindex="0"
+          @keydown.enter="enableTitleEditMode"
+          @keydown.space="enableTitleEditMode"
           @click="enableTitleEditMode"
         >
           {{ nodeTitle }}
@@ -135,7 +139,11 @@ function handleTitleBlur() {
       <div
         v-if="!isDescriptionInEditMode || props.readOnly"
         class="text-body line-clamp-3 w-85 px-1"
+        role="button"
+        tabindex="0"
         @click="enableDescriptionEditMode"
+        @keydown.enter="enableDescriptionEditMode"
+        @keydown.space="enableDescriptionEditMode"
       >
         <span v-if="!nodeDescription && !props.readOnly" class="text-nc-content-gray-muted">
           {{ $t('labels.addDescription') }}

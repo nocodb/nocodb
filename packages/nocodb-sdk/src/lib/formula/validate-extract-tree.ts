@@ -5,30 +5,32 @@ import {
   FormulaType,
   LinkToAnotherRecordType,
   LookupType,
-  RollupType,
-  TableType,
-} from '../Api';
-import UITypes from '../UITypes';
-import { FormulaDataTypes, FormulaErrorType, JSEPNode } from './enums';
-import { FormulaError } from './error';
+} from '~/lib/Api';
+import UITypes from '~/lib/UITypes';
+import {
+  FormulaDataTypes,
+  FormulaErrorType,
+  JSEPNode,
+} from '~/lib/formula/enums';
+import { FormulaError } from '~/lib/formula/error';
 import {
   BinaryExpressionNode,
   CallExpressionNode,
   IdentifierNode,
   ParsedFormulaNode,
-} from './operators';
-import { handleFormulaError } from './handle-formula-error';
-import { formulas } from './formulas';
-import { jsepCurlyHook, jsepIndexHook } from './hooks';
-import { ClientTypeOrSqlUI } from './types';
-import { SqlUiFactory } from '../sqlUi';
+} from '~/lib/formula/types';
+import { handleFormulaError } from '~/lib/formula/handle-formula-error';
+import { formulas } from '~/lib/formula/formulas';
+import { formulaJsep, formulaJsepWithIndex } from '~/lib/formula/jsepInstances';
+import { ClientTypeOrSqlUI } from '~/lib/formula/types';
+import { SqlUiFactory } from '~/lib/sqlUi';
 import {
   extractBinaryExpReferencedInfo,
   extractCallExpressionReferencedInfo,
 } from '~/lib/formula/referenced-info-extractor';
 import { UnifiedMetaType } from '~/lib/types';
 import { unifiedMeta } from '~/lib/unifiedMeta';
-import { getColOptions } from '../unifiedMeta/getColOptions';
+import { getColOptions } from '~/lib/unifiedMeta/getColOptions';
 
 async function extractColumnIdentifierType({
   col,

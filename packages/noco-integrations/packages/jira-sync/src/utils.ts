@@ -1,3 +1,5 @@
+// FIXME: check if we can use existing library / more official way to parse adf to markdown / html
+
 /**
  * Converts Atlassian Document Format (ADF) to plain string
  * Recursively processes ADF nodes to extract text content

@@ -22,6 +22,8 @@ export class JiraAuthIntegration extends AuthIntegration<
   JiraAuthConfig,
   AxiosInstance
 > {
+  // TODO: rate limit jira https://developer.atlassian.com/cloud/jira/platform/rate-limiting/#rate-limit-detection
+
   public async authenticate(): Promise<AuthResponse<AxiosInstance>> {
     switch (this.config.type) {
       case AuthType.ApiKey: {

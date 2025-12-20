@@ -4,7 +4,22 @@ This document provides instructions for setting up the Jira authentication integ
 
 ## Environment Variables
 
-To enable OAuth2 authentication with Jira, you need to set up the following environment variables:
+To enable OAuth2 authentication with Jira, set the following environment variables:
+
+- `INTEGRATION_AUTH_JIRA_CLIENT_ID`: OAuth client ID from Atlassian developer console
+- `INTEGRATION_AUTH_JIRA_CLIENT_SECRET`: OAuth client secret from Atlassian developer console
+- `INTEGRATION_AUTH_JIRA_REDIRECT_URI`: Redirect URI configured in Atlassian OAuth app
+
+## OAuth2 Setup
+
+Steps to configure OAuth2 authentication:
+
+1. Go to https://developer.atlassian.com/console/myapps/ and click "Create" → "OAuth 2.0 integration".
+2. Add a name and select "Jira" for the product scopes.
+3. In "Authorization", set the callback URL to your `INTEGRATION_AUTH_JIRA_REDIRECT_URI` (e.g., `https://<your-nocodb-host>/`).
+4. In "Permissions", enable the scopes below and save.
+5. Copy the "Client ID" and "Secret" into `INTEGRATION_AUTH_JIRA_CLIENT_ID` and `INTEGRATION_AUTH_JIRA_CLIENT_SECRET`.
+6. In NocoDB, choose Jira OAuth authentication and provide the same redirect URL and base URL.
 
 ## API Token Authentication
 

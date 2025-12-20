@@ -51,6 +51,8 @@ const { isUIAllowed } = useRoles()
 
 const { metas, getMeta } = useMetas()
 
+const { isDark } = useTheme()
+
 const { base, showBaseAccessRequestOverlay } = storeToRefs(useBase())
 
 const { getPossibleAttachmentSrc } = useAttachment()
@@ -951,7 +953,11 @@ const { message: templatedMessage } = useTemplatedMessage(
       <div
         v-if="submitted"
         class="h-full p-6 overflow-auto nc-form-scrollbar"
-        :style="{ background: parseProp(formViewData?.meta)?.background_color || 'var(--nc-bg-gray-extralight)' }"
+        :style="{
+          background: parseProp(formViewData?.meta)?.background_color
+            ? getSelectTypeFieldOptionBgColor({ color: parseProp(formViewData?.meta)?.background_color, isDark, shade: 0 })
+            : 'var(--nc-bg-gray-extralight)',
+        }"
         data-testid="nc-form-wrapper-submit"
       >
         <div class="max-w-[max(33%,688px)] mx-auto">
@@ -1041,7 +1047,15 @@ const { message: templatedMessage } = useTemplatedMessage(
             <template #preview>
               <div
                 class="w-full h-full overflow-auto nc-form-scrollbar p-6"
-                :style="{background:(formViewData?.meta as Record<string,any>).background_color || '#F9F9FA'}"
+                :style="{
+                  background: parseProp(formViewData?.meta)?.background_color
+                    ? getSelectTypeFieldOptionBgColor({
+                        color: parseProp(formViewData?.meta)?.background_color,
+                        isDark,
+                        shade: 0,
+                      })
+                    : 'var(--nc-bg-gray-extralight)',
+                }"
               >
                 <Transition
                   enter-active-class="transition-opacity delay-300 duration-300"
@@ -1948,6 +1962,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 ]"
                                 color-box-border
                                 is-new-design
+                                invert-in-dark-mode
                                 class="nc-form-theme-color-picker !pb-0 !pl-0 -ml-1"
                                 @input="handleChangeBackground"
                               />

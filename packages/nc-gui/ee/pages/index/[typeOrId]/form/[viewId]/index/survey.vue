@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { breakpointsTailwind } from '@vueuse/core'
-import tinycolor from 'tinycolor2'
 
 enum TransitionDirection {
   Left = 'left',
@@ -35,6 +34,7 @@ const {
   handleAddMissingRequiredFieldDefaultState,
   fieldMappings,
   isAddingEmptyRowPermitted,
+  backgroundAndTextColor,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -536,11 +536,7 @@ const { message: templatedMessage } = useTemplatedMessage(
             <GeneralFormBranding
               class="inline-flex mx-auto"
               :style="{
-                color: getSelectTypeFieldOptionTextColor({
-                  color: parseProp(sharedFormView?.meta)?.background_color || getColor('var(--nc-bg-gray-extralight)'),
-                  isDark,
-                  getColor,
-                }),
+                color: backgroundAndTextColor.textColor,
               }"
             />
           </div>

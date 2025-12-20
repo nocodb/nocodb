@@ -30,6 +30,8 @@ const { isKanbanStack, optionId, isNewStack } = toRefs(props)
 
 const { $e } = useNuxtApp()
 
+const { isDark, getColor } = useTheme()
+
 const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
 // const { base } = storeToRefs(useBase())
@@ -525,10 +527,8 @@ if (!isKanbanStack.value) {
                     'justify-center': isLoadingPredictOptions,
                   }"
                   :style="{
-                    backgroundColor: kanbanStackOption.color,
-                    color: tinycolor.isReadable(kanbanStackOption.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                      ? '#fff'
-                      : tinycolor.mostReadable(kanbanStackOption.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                    backgroundColor: getSelectTypeFieldOptionBgColor({ color: kanbanStackOption.color || '#ccc', isDark }),
+                    color: getSelectTypeFieldOptionTextColor({ color: kanbanStackOption.color || '#ccc', isDark, getColor }),
                   }"
                 >
                   <GeneralLoader v-if="isLoadingPredictOptions" size="regular" class="!text-current" />
@@ -618,10 +618,8 @@ if (!isKanbanStack.value) {
                     <div
                       class="h-6 w-6 rounded flex items-center"
                       :style="{
-                        backgroundColor: element.color,
-                        color: tinycolor.isReadable(element.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                          ? '#fff'
-                          : tinycolor.mostReadable(element.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                        backgroundColor: getSelectTypeFieldOptionBgColor({ color: element.color, isDark }),
+                        color: getSelectTypeFieldOptionTextColor({ color: element.color, isDark, getColor }),
                       }"
                     >
                       <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-current" />
@@ -683,10 +681,8 @@ if (!isKanbanStack.value) {
                   <div
                     class="h-6 w-6 rounded flex items-center justify-center"
                     :style="{
-                      backgroundColor: getNextColor(),
-                      color: tinycolor.isReadable(getNextColor() || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                        ? '#fff'
-                        : tinycolor.mostReadable(getNextColor() || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                      backgroundColor: getSelectTypeFieldOptionBgColor({ color: getNextColor(), isDark }),
+                      color: getSelectTypeFieldOptionTextColor({ color: getNextColor(), isDark, getColor }),
                     }"
                   >
                     <GeneralLoader size="regular" class="!text-current" />

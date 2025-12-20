@@ -1,7 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { AllAggregations, type ColumnType, PlanTitles, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
-import tinycolor from 'tinycolor2'
 import {
   isBoxHovered,
   renderCheckbox,

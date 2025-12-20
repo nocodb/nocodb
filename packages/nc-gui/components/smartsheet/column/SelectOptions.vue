@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import tinycolor from 'tinycolor2'
 import { type SelectOptionsType, UITypes } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
 

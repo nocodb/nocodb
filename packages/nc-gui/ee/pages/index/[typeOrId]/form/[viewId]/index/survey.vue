@@ -16,8 +16,6 @@ enum AnimationTarget {
 
 const { md } = useBreakpoints(breakpointsTailwind)
 
-const { isDark, getColor } = useTheme()
-
 const {
   formState,
   formColumns,

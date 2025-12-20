@@ -5,8 +5,6 @@ const route = useRoute()
 
 const router = useRouter()
 
-const { isDark } = useTheme()
-
 const shouldRedirect = (to: string) => {
   if (sharedViewMeta.value.surveyMode) {
     if (!to.includes('survey')) {

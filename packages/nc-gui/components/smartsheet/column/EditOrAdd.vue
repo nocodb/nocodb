@@ -1392,11 +1392,11 @@ const unique = computed({
           <div class="nc-column-options-wrapper flex flex-col gap-4">
             <!-- Unique Constraint Toggle -->
             <div
-              class="flex"
               v-if="
                 isXcdbBase(meta!.source_id) &&
                 !isVirtualCol(formState) &&
                 isUniqueConstraintSupportedType(formState.uidt, formState.meta) && isEeUI"
+              class="flex"
             >
               <NcTooltip
                 :disabled="canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable || onMouseOverUniqueValuesInfoIcon"

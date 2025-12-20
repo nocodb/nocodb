@@ -154,7 +154,7 @@ export class DataTableService {
       Array.isArray(param.body) &&
       param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
     ) {
-      NcError.get(context).maxInsertLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+      NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
     }
 
     const { model, view } = await this.getModelAndView(context, param);
@@ -237,7 +237,7 @@ export class DataTableService {
       Array.isArray(param.body) &&
       param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
     ) {
-      NcError.get(context).maxInsertLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+      NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
     }
 
     const profiler = Profiler.start(`data-table/dataUpdate`);
@@ -290,7 +290,7 @@ export class DataTableService {
       Array.isArray(param.body) &&
       param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
     ) {
-      NcError.get(context).maxInsertLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+      NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
     }
 
     const { model, view } = await this.getModelAndView(context, param);

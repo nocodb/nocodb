@@ -16,7 +16,6 @@ import {
   ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
-import type { WorkspaceRoles } from 'nocodb-sdk-v2';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnType,

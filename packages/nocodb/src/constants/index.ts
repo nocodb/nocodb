@@ -30,7 +30,7 @@ export const S3_PATCH_KEYS = [
   ...(Object.values(PublicAttachmentScope) as string[]),
 ];
 
-export const V3_INSERT_LIMIT = 10;
+export const V3_DATA_PAYLOAD_LIMIT = 10;
 export const V3_META_REQUEST_LIMIT = 10;
 export const V1_V2_DATA_PAYLOAD_LIMIT = 100;
 export const MAX_NESTING_DEPTH = 3;

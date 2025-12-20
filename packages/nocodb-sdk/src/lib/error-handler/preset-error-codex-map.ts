@@ -232,8 +232,8 @@ export const presetErrorCodexMap: Partial<
       'This workspace requires SSO-authenticated tokens. Please generate a new token after signing in with SSO',
     code: 403,
   },
-  [NcErrorType.ERR_MAX_INSERT_LIMIT_EXCEEDED]: {
-    message: (limit: string) => `Maximum ${limit} records during insert`,
+  [NcErrorType.ERR_MAX_PAYLOAD_LIMIT_EXCEEDED]: {
+    message: (limit: string) => `Maximum ${limit} entities are allowed per request`,
     code: 422,
   },
   [NcErrorType.ERR_MAX_WORKSPACE_LIMIT_REACHED]: {

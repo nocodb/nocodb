@@ -29,7 +29,7 @@ export class BulkDataAliasService extends BulkDataAliasServiceCE {
       Array.isArray(param.body) &&
       param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
     ) {
-      NcError.get(context).maxInsertLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+      NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
     }
 
     return await this.executeBulkOperation(context, {

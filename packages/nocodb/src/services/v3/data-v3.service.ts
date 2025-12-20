@@ -30,7 +30,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   MAX_NESTING_DEPTH,
   QUERY_STRING_FIELD_ID_ON_RESULT,
-  V3_INSERT_LIMIT,
+  V3_DATA_PAYLOAD_LIMIT,
 } from '~/constants';
 import { processConcurrently, reuseOrSave } from '~/utils';
 import { Profiler } from '~/helpers/profiler';
@@ -637,8 +637,8 @@ export class DataV3Service {
           ),
         ];
 
-    if (transformedBody.length > V3_INSERT_LIMIT) {
-      NcError.get(context).maxInsertLimitExceeded(V3_INSERT_LIMIT);
+    if (transformedBody.length > V3_DATA_PAYLOAD_LIMIT) {
+      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
     }
 
     const result = await this.dataTableService.dataInsert(context, {
@@ -751,8 +751,8 @@ export class DataV3Service {
       [primaryKey.title]: record.id,
     }));
 
-    if (recordIds.length > V3_INSERT_LIMIT) {
-      NcError.get(context).maxInsertLimitExceeded(V3_INSERT_LIMIT);
+    if (recordIds.length > V3_DATA_PAYLOAD_LIMIT) {
+      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
     }
     await this.dataTableService.dataDelete(context, {
       ...param,
@@ -811,8 +811,8 @@ export class DataV3Service {
         ];
     profiler.log(`transformLTARFieldsToInternal done`);
 
-    if (transformedBody.length > V3_INSERT_LIMIT) {
-      NcError.get(context).maxInsertLimitExceeded(V3_INSERT_LIMIT);
+    if (transformedBody.length > V3_DATA_PAYLOAD_LIMIT) {
+      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
     }
 
     await this.dataTableService.dataUpdate(context, {

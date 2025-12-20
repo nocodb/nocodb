@@ -157,12 +157,32 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     return plusNode.id
   }
 
+  const addNode = async (node: Node) => {
+    nodes.value = [...nodes.value, node]
+    debouncedWorkflowUpdate()
+  }
+
   const updateNode = async (nodeId: string, updatedData: Partial<Node>) => {
     const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId)
     if (nodeIndex === -1) return
 
     const existingNode = nodes.value[nodeIndex]
     if (!existingNode) return
+
+    // For note nodes, just update the data and skip workflow-specific logic
+    if (existingNode.type === GeneralNodeID.NOTE) {
+      const updatedNodes = [...nodes.value]
+      const currentNodeIndex = updatedNodes.findIndex((n) => n.id === nodeId)
+      if (currentNodeIndex !== -1 && updatedNodes[currentNodeIndex]) {
+        updatedNodes[currentNodeIndex] = {
+          ...updatedNodes[currentNodeIndex],
+          ...updatedData,
+        }
+      }
+      nodes.value = updatedNodes
+      debouncedWorkflowUpdate()
+      return
+    }
 
     const oldTitle = existingNode.data?.title
     const newTitle = updatedData.data?.title
@@ -241,6 +261,13 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
   const deleteNode = async (nodeId: string) => {
     const nodeToDelete = nodes.value.find((n) => n.id === nodeId)
     if (!nodeToDelete) return
+
+    // For note nodes, just remove from array and skip workflow-specific logic
+    if (nodeToDelete.type === GeneralNodeID.NOTE) {
+      nodes.value = nodes.value.filter((n) => n.id !== nodeId)
+      debouncedWorkflowUpdate()
+      return
+    }
 
     const nodesToDelete = new Set<string>()
 
@@ -508,6 +535,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     triggerLayout,
 
     // Node utilities
+    addNode,
     addPlusNode,
     updateNode,
     deleteNode,

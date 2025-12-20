@@ -339,6 +339,13 @@ export class WorkflowExecutionService {
         return result;
       }
 
+      if (node.type === GeneralNodeID.NOTE) {
+        result.status = 'success';
+        result.output = {};
+        result.endTime = Date.now();
+        return result;
+      }
+
       const nodeWrapper =
         _nodeWrapper ||
         this.getNodeWrapper(context, node.type, node.data?.config || {});

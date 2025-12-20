@@ -2,6 +2,7 @@ import type { Ref } from 'vue'
 import dagre from '@dagrejs/dagre'
 import type { Edge, Node } from '@vue-flow/core'
 import { Position, useVueFlow } from '@vue-flow/core'
+import { GeneralNodeID } from 'nocodb-sdk'
 
 type Direction = 'TB' | 'BT' | 'LR' | 'RL'
 
@@ -35,7 +36,9 @@ export function useLayout() {
 
     previousDirection.value = direction
 
-    for (const node of nodes) {
+    const workflowNodes = nodes.filter((node) => node.type !== GeneralNodeID.NOTE)
+
+    for (const node of workflowNodes) {
       const graphNode = findNode(node.id)
 
       const width = graphNode?.dimensions?.width || 150
@@ -51,6 +54,14 @@ export function useLayout() {
     dagre.layout(dagreGraph)
 
     return nodes.map((node) => {
+      // Note nodes keep their manual positions
+      if (node.type === GeneralNodeID.NOTE) {
+        return {
+          ...node,
+          position: node.position || { x: 0, y: 0 },
+        }
+      }
+
       const nodeWithPosition = dagreGraph.node(node.id)
 
       // Fallback to existing position if dagre didn't compute position

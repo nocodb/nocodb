@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { WorkflowNodeCategory } from 'nocodb-sdk'
+import { GeneralNodeID, WorkflowNodeCategory } from 'nocodb-sdk'
 
 const { getNodeMetaById, selectedNode, selectedNodeId, edges, nodes, testExecuteNode } = useWorkflowOrThrow()
 
@@ -26,7 +26,11 @@ const untestedParentNodes = computed(() => {
   const ancestorIds = new Set(findAllParentNodes(selectedNodeId.value, edges.value))
 
   return nodes.value
-    .filter((node) => ancestorIds.has(node.id) && (!node.data?.testResult || node.data.testResult.status !== 'success'))
+    .filter((node) => {
+      // Skip note nodes as they don't need to be tested
+      if (node.type === GeneralNodeID.NOTE) return false
+      return ancestorIds.has(node.id) && (!node.data?.testResult || node.data.testResult.status !== 'success')
+    })
     .map((node) => node.data?.title || node.id)
 })
 

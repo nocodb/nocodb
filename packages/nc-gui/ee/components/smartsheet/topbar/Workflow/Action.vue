@@ -30,7 +30,7 @@ const canPublish = computed(() => {
   const draftNodes = (activeWorkflow.value?.draft?.nodes || []) as Array<WorkflowGeneralNode>
 
   for (const node of draftNodes) {
-    if ([GeneralNodeID.TRIGGER, GeneralNodeID.PLUS].includes(node.type as any)) {
+    if ([GeneralNodeID.TRIGGER, GeneralNodeID.PLUS, GeneralNodeID.NOTE].includes(node.type as any)) {
       continue
     }
 

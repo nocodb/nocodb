@@ -495,8 +495,13 @@ export class WorkflowsService implements OnModuleInit {
     const failed = [];
 
     for (const node of draftNodes) {
+      // Skip non-workflow nodes (trigger, plus, and note nodes)
       if (
-        [GeneralNodeID.TRIGGER, GeneralNodeID.PLUS].includes(node.type as any)
+        [
+          GeneralNodeID.TRIGGER,
+          GeneralNodeID.PLUS,
+          GeneralNodeID.NOTE,
+        ].includes(node.type as any)
       ) {
         continue;
       }

@@ -142,4 +142,50 @@ export class JiraAuthIntegration extends AuthIntegration<
       expires_in: response.data.expires_in,
     };
   }
+
+  public async refreshToken(payload: { refresh_token: string }): Promise<{
+    oauth_token: string;
+    refresh_token?: string;
+    expires_in?: number;
+  }> {
+    const response = await axios.post(
+      tokenUri,
+      {
+        grant_type: 'refresh_token',
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: payload.refresh_token,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      },
+    );
+
+    return {
+      oauth_token: response.data.access_token,
+      refresh_token: response.data.refresh_token,
+      expires_in: response.data.expires_in,
+    };
+  }
+
+  protected shouldRefreshToken(err: any): boolean {
+    const config = this.config as any;
+
+    // Only refresh for OAuth configurations with refresh tokens
+    if (config.type !== AuthType.OAuth || !config.refresh_token) {
+      return false;
+    }
+
+    // Zoho returns 401 for expired tokens
+    const status = err?.response?.status;
+    if (status === 401) {
+      return true;
+    }
+
+    // Fall back to base class logic
+    return super.shouldRefreshToken(err);
+  }
 }

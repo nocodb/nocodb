@@ -3,6 +3,8 @@ import { BulkDataAliasService as BulkDataAliasServiceCE } from 'src/services/bul
 import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
+import { V1_V2_DATA_PAYLOAD_LIMIT } from '~/constants';
+import { NcError } from '~/helpers/catchError';
 
 @Injectable()
 export class BulkDataAliasService extends BulkDataAliasServiceCE {
@@ -21,6 +23,15 @@ export class BulkDataAliasService extends BulkDataAliasServiceCE {
       apiVersion?: NcApiVersion;
     },
   ) {
+    // Only enforce limit for API token requests (not UI requests)
+    if (
+      param.cookie?.user?.is_api_token &&
+      Array.isArray(param.body) &&
+      param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
+    ) {
+      NcError.get(context).maxInsertLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+    }
+
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkInsert',

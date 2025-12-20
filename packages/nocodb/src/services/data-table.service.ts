@@ -9,6 +9,7 @@ import { validatePayload } from 'src/helpers';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
+import { V1_V2_DATA_PAYLOAD_LIMIT } from '~/constants';
 import { Column, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
@@ -147,6 +148,15 @@ export class DataTableService {
       user?: any;
     },
   ) {
+    // Only enforce limit for API token requests (not UI requests)
+    if (
+      param.cookie?.user?.is_api_token &&
+      Array.isArray(param.body) &&
+      param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
+    ) {
+      NcError.get(context).maxInsertLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+    }
+
     const { model, view } = await this.getModelAndView(context, param);
     const source = await Source.get(context, model.source_id);
 
@@ -221,6 +231,15 @@ export class DataTableService {
       user?: any;
     },
   ) {
+    // Only enforce limit for API token requests (not UI requests)
+    if (
+      param.cookie?.user?.is_api_token &&
+      Array.isArray(param.body) &&
+      param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
+    ) {
+      NcError.get(context).maxInsertLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+    }
+
     const profiler = Profiler.start(`data-table/dataUpdate`);
     const { model, view } = await this.getModelAndView(context, param);
     profiler.log('getModelAndView done');
@@ -265,6 +284,15 @@ export class DataTableService {
       user?: any;
     },
   ) {
+    // Only enforce limit for API token requests (not UI requests)
+    if (
+      param.cookie?.user?.is_api_token &&
+      Array.isArray(param.body) &&
+      param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
+    ) {
+      NcError.get(context).maxInsertLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+    }
+
     const { model, view } = await this.getModelAndView(context, param);
 
     await this.checkForDuplicateRow(context, { rows: param.body, model });

@@ -46,6 +46,7 @@ export const getRollupColumn = async (
     const relatedTableColumns = await getColumns(context, {
       model: relatedTable,
     });
+    // TODO: possibly throw when column not found on relatedTableColumns
     return relatedTableColumns.find(
       (col) =>
         col.id ===

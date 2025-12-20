@@ -17,3 +17,5 @@ export const authUri =
     : '';
 
 export const tokenUri = 'https://auth.atlassian.com/oauth/token';
+
+export const cloudUrlFormat = `https://{MY_DOMAIN}.atlassian.net`;

@@ -4,7 +4,13 @@ import {
   createAxiosInstance,
 } from '@noco-integrations/core';
 import axios from 'axios';
-import { clientId, clientSecret, redirectUri, tokenUri } from './config';
+import {
+  clientId,
+  clientSecret,
+  cloudUrlFormat,
+  redirectUri,
+  tokenUri,
+} from './config';
 import type { AxiosInstance } from 'axios';
 import type { AtlassianAccessibleResource, JiraAuthConfig } from './types';
 import type {
@@ -40,7 +46,7 @@ export class JiraAuthIntegration extends AuthIntegration<
         return this.client;
       }
       case AuthType.OAuth: {
-        if (!this.config.jira_url || !this.config.oauth_token) {
+        if (!this.config.jira_domain || !this.config.oauth_token) {
           throw new Error('Missing required Jira configuration');
         }
         let configVars = await this.getVars();
@@ -55,7 +61,9 @@ export class JiraAuthIntegration extends AuthIntegration<
             },
           )) as { data: AtlassianAccessibleResource[] };
           const selectedDomain = accessibleResources.find(
-            (resource) => resource.url === this.config.jira_url,
+            (resource) =>
+              resource.url ===
+              cloudUrlFormat.replace('{MY_DOMAIN}', this.config.jira_domain!),
           );
           if (!selectedDomain) {
             throw new Error(
@@ -88,7 +96,7 @@ export class JiraAuthIntegration extends AuthIntegration<
     try {
       const client = await this.authenticate();
       // try to verify jira url
-      new URL(this._config.jira_url);
+      new URL(this._config.jira_url!);
 
       if (!client) {
         return {

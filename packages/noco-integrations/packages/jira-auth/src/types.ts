@@ -4,7 +4,7 @@ export interface JiraAuthConfig {
   type: AuthType;
   token?: string;
   email?: string;
-  jira_url: string;
+  jira_url?: string;
   oauth_token?: string;
   jira_domain?: string;
   refresh_token?: string;

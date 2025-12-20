@@ -63,6 +63,10 @@ export const form: FormDefinition = [
         message: 'Jira Cloud URL is required',
       },
     ],
+    condition: {
+      model: 'config.type',
+      value: AuthType.ApiKey,
+    },
   },
   {
     type: FormBuilderInputType.Input,
@@ -98,6 +102,24 @@ export const form: FormDefinition = [
     condition: {
       model: 'config.type',
       value: AuthType.ApiKey,
+    },
+  },
+  {
+    type: FormBuilderInputType.Input,
+    label: 'Jira Company Name (domain)',
+    width: 100,
+    model: 'config.jira_domain',
+    category: 'Authentication',
+    placeholder: 'MY_COMPANY_NAME',
+    validators: [
+      {
+        type: FormBuilderValidatorType.Required,
+        message: 'Jira Company Name is required',
+      },
+    ],
+    condition: {
+      model: 'config.type',
+      value: AuthType.OAuth,
     },
   },
   // do not add oauth for now, it require to fetch cloud id afterwards

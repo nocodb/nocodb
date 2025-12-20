@@ -153,6 +153,8 @@ const showDefaultValueInput = ref(false)
 
 const showHoverEffectOnSelectedType = ref(true)
 
+const onMouseOverUniqueValuesInfoIcon = ref(false)
+
 const columnUidt = computed({
   get: () => formState.value.uidt,
   set: (value: UITypes) => {
@@ -1389,14 +1391,15 @@ const unique = computed({
         <template v-if="!readOnly && isFullUpdateAllowed">
           <div class="nc-column-options-wrapper flex flex-col gap-4">
             <!-- Unique Constraint Toggle -->
-            <template
+            <div
+              class="flex"
               v-if="
                 isXcdbBase(meta!.source_id) &&
                 !isVirtualCol(formState) &&
                 isUniqueConstraintSupportedType(formState.uidt, formState.meta) && isEeUI"
             >
               <NcTooltip
-                :disabled="canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
+                :disabled="canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable || onMouseOverUniqueValuesInfoIcon"
                 placement="right"
                 class="flex gap-1 items-center"
               >
@@ -1419,7 +1422,12 @@ const unique = computed({
                           {{ $t('msg.info.uniqueConstraintTooltip') }}
                         </div>
                       </template>
-                      <GeneralIcon icon="info" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+                      <GeneralIcon
+                        icon="info"
+                        class="h-3.5 w-3.5 text-nc-content-gray-muted"
+                        @mouseover="onMouseOverUniqueValuesInfoIcon = true"
+                        @mouseleave="onMouseOverUniqueValuesInfoIcon = false"
+                      />
                     </NcTooltip>
 
                     <PaymentUpgradeBadge
@@ -1433,7 +1441,7 @@ const unique = computed({
                   </div>
                 </NcSwitch>
               </NcTooltip>
-            </template>
+            </div>
 
             <!--
             Default Value for JSON & LongText is not supported in MySQL  -->

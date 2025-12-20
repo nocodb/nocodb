@@ -196,7 +196,6 @@
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToEnableUnique": "Upgrade to enable unique",
     "upgradeToEnableUniqueSubtitle": "Upgrade to the {plan} plan to enable unique constraint."
-
   },
   "general": {
     "done": "Done",
@@ -2156,7 +2155,6 @@
     "searchModels": "Search models",
     "noItemsFound": "No items found",
     "defaultValue": "Default value",
-    "uniqueValuesOnly": "Unique values only",
     "filterByEmail": "Filter by E-mail",
     "filterQuery": "Filter query",
     "selectField": "Select field",

@@ -9,6 +9,8 @@ const emit = defineEmits(['update:value'])
 
 const vModel = useVModel(props, 'value', emit)
 
+const { isDark, getColor } = useTheme()
+
 const picked = computed({
   get: () => vModel.value.meta.color,
   set: (val) => {
@@ -24,6 +26,12 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
   icon: extractRatingIcon(vModel.value.meta || {}),
 }
+
+const iconColor = computed(() => {
+  if (!isDark.value) return vModel.value.meta.color
+
+  return getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), vModel.value.meta.color, ['#4a5268', '#d5dce8'])
+})
 
 // antdv doesn't support object as value
 // use iconIdx as value and update back in watch
@@ -87,13 +95,13 @@ watch(
               <component
                 :is="getMdiIcon(ratingIconList[vModel.meta.iconIdx].full)"
                 :style="{
-                  color: vModel.meta.color,
+                  color: iconColor,
                 }"
               />
               <component
                 :is="getMdiIcon(ratingIconList[vModel.meta.iconIdx].empty)"
                 :style="{
-                  color: vModel.meta.color,
+                  color: iconColor,
                 }"
               />
             </div>

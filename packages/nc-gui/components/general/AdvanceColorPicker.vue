@@ -9,6 +9,8 @@ interface Props {
   includeBlackAndWhiteAsDefaultColors?: boolean
   invertInDarkMode?: boolean
   showTextIcon?: boolean
+  getBgColorCallback?: (color: string, isDark: boolean) => string
+  getTextColorCallback?: (color: string, isDark: boolean) => string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -133,15 +135,19 @@ watch(
                   class="color-selector"
                   :class="{ selected: compare(picked, color) }"
                   :style="{
-                    backgroundColor: getSelectTypeFieldOptionBgColor({
-                      color: color || '#ccc',
-                      isDark: invertInDarkMode && isDark,
-                    }),
-                    color: getSelectTypeFieldOptionTextColor({
-                      color: color || '#ccc',
-                      isDark: invertInDarkMode && isDark,
-                      getColor,
-                    }),
+                    backgroundColor: getBgColorCallback
+                      ? getBgColorCallback(color || '#ccc', isDark)
+                      : getSelectTypeFieldOptionBgColor({
+                          color: color || '#ccc',
+                          isDark: invertInDarkMode && isDark,
+                        }),
+                    color: getTextColorCallback
+                      ? getTextColorCallback(color || '#ccc', isDark)
+                      : getSelectTypeFieldOptionTextColor({
+                          color: color || '#ccc',
+                          isDark: invertInDarkMode && isDark,
+                          getColor,
+                        }),
                   }"
                   @click="selectColor(color, true)"
                 >

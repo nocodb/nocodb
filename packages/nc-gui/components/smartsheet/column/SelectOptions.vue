@@ -541,6 +541,7 @@ if (!isKanbanStack.value) {
                   <LazyGeneralAdvanceColorPicker
                     v-model="kanbanStackOption.color"
                     :is-open="colorMenus[kanbanStackOption.index!]"
+                    invert-in-dark-mode
                     @input="(el:string) => {
                       kanbanStackOption!.color = el
                       optionChanged(kanbanStackOption!)
@@ -631,6 +632,7 @@ if (!isKanbanStack.value) {
                       <LazyGeneralAdvanceColorPicker
                         v-model="element.color"
                         :is-open="colorMenus[index]"
+                        invert-in-dark-mode
                         @input="(el:string) => {
                           element.color = el
                           optionChanged(element)

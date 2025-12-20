@@ -7,6 +7,7 @@ interface Props {
   modelValue?: string | any
   isOpen?: boolean
   includeBlackAndWhiteAsDefaultColors?: boolean
+  invertInDarkMode?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -23,6 +24,8 @@ const vModel = computed({
     emit('input', val || null)
   },
 })
+
+const { isDark } = useTheme()
 
 const showActiveColorTab = ref<boolean>(false)
 
@@ -129,7 +132,7 @@ watch(
                   class="color-selector"
                   :class="{ selected: compare(picked, color) }"
                   :style="{
-                    backgroundColor: `${color}`,
+                    backgroundColor: `${getSelectTypeFieldOptionBgColor({ color: color || '#ccc', isDark: invertInDarkMode && isDark })}`,
                   }"
                   @click="selectColor(color, true)"
                 ></button>

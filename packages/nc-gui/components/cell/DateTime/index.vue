@@ -137,7 +137,7 @@ const savingValue = ref()
 
 function saveChanges(val?: dayjs.Dayjs, saveOnChange = false) {
   if (!val) {
-    if (savingValue.value === null) {
+    if (savingValue.value === val && !ncIsUndefined(val)) {
       return
     }
 

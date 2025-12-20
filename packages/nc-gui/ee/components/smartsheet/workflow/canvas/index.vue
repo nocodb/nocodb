@@ -19,6 +19,7 @@ const { fitView, nodesDraggable, edgesUpdatable, onNodeDragStop, onNodesChange }
 const { layout } = useLayout()
 
 const initNode = ref<boolean>(true)
+const isInitializing = ref<boolean>(true)
 
 const nodeTypes = computed(() => {
   const types: Record<string, any> = {}
@@ -69,7 +70,7 @@ watch(
 
 onNodeDragStop((event) => {
   const { node } = event
-  if (node.type === GeneralNodeID.NOTE) {
+  if (node.type === GeneralNodeID.NOTE && !isInitializing.value) {
     updateNode(node.id, {
       position: node.position,
     })
@@ -77,6 +78,9 @@ onNodeDragStop((event) => {
 })
 
 onNodesChange((changes) => {
+  // Skip automatic dimension updates during initialization
+  if (isInitializing.value) return
+
   changes.forEach((change) => {
     if (change.type === 'dimensions' && change.dimensions) {
       const node = nodes.value.find((n) => n.id === change.id)
@@ -102,6 +106,10 @@ onMounted(() => {
   nextTick(() => {
     setTimeout(() => {
       layoutGraph()
+      // Allow updates after initial layout is complete
+      setTimeout(() => {
+        isInitializing.value = false
+      }, 500)
     }, 100)
   })
 })

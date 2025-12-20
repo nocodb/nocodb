@@ -3,7 +3,7 @@ import {
   FormBuilderInputType,
   FormBuilderValidatorType,
 } from '@noco-integrations/core';
-// import { clientId, redirectUri } from './config';
+import { authUri, clientId, redirectUri, scopes } from './config';
 import type { FormDefinition } from '@noco-integrations/core';
 
 export const form: FormDefinition = [
@@ -34,14 +34,14 @@ export const form: FormDefinition = [
         label: 'API Key',
         value: AuthType.ApiKey,
       },
-      // ...(redirectUri && clientId
-      //   ? [
-      //       {
-      //         label: 'OAuth2',
-      //         value: AuthType.OAuth,
-      //       },
-      //     ]
-      //   : []),
+      ...(redirectUri && clientId
+        ? [
+            {
+              label: 'OAuth2',
+              value: AuthType.OAuth,
+            },
+          ]
+        : []),
     ],
     validators: [
       {
@@ -101,32 +101,32 @@ export const form: FormDefinition = [
     },
   },
   // do not add oauth for now, it require to fetch cloud id afterwards
-  // ...(redirectUri && clientId
-  //   ? [
-  //       {
-  //         type: FormBuilderInputType.OAuth,
-  //         label: 'OAuth Configuration',
-  //         width: 100,
-  //         model: 'config.oauth',
-  //         category: 'Authentication',
-  //         validators: [
-  //           {
-  //             type: FormBuilderValidatorType.Required,
-  //             message: 'OAuth Configuration is required',
-  //           },
-  //         ],
-  //         condition: {
-  //           model: 'config.type',
-  //           value: AuthType.OAuth,
-  //         },
-  //         oauthMeta: {
-  //           provider: 'Jira',
-  //           authUri,
-  //           redirectUri,
-  //           clientId,
-  //           scopes,
-  //         },
-  //       },
-  //     ]
-  //   : []),
+  ...(redirectUri && clientId
+    ? [
+        {
+          type: FormBuilderInputType.OAuth,
+          label: 'OAuth Configuration',
+          width: 100,
+          model: 'config.oauth',
+          category: 'Authentication',
+          validators: [
+            {
+              type: FormBuilderValidatorType.Required,
+              message: 'OAuth Configuration is required',
+            },
+          ],
+          condition: {
+            model: 'config.type',
+            value: AuthType.OAuth,
+          },
+          oauthMeta: {
+            provider: 'Jira',
+            authUri,
+            redirectUri,
+            clientId,
+            scopes,
+          },
+        },
+      ]
+    : []),
 ];

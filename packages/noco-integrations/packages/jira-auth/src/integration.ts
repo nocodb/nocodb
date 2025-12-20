@@ -3,8 +3,10 @@ import {
   AuthType,
   createAxiosInstance,
 } from '@noco-integrations/core';
+import axios from 'axios';
+import { clientId, clientSecret, redirectUri, tokenUri } from './config';
 import type { AxiosInstance } from 'axios';
-import type { JiraAuthConfig } from './types';
+import type { AtlassianAccessibleResource, JiraAuthConfig } from './types';
 import type {
   AuthResponse,
   TestConnectionResponse,
@@ -37,23 +39,46 @@ export class JiraAuthIntegration extends AuthIntegration<
 
         return this.client;
       }
-      // case AuthType.OAuth:
-      //   if (!this.config.jira_url || !this.config.oauth_token) {
-      //     throw new Error('Missing required Jira configuration');
-      //   }
+      case AuthType.OAuth: {
+        if (!this.config.jira_url || !this.config.oauth_token) {
+          throw new Error('Missing required Jira configuration');
+        }
+        let configVars = await this.getVars();
+        configVars = configVars ?? {};
+        if (!configVars.cloud_id) {
+          const { data: accessibleResources } = (await axios.get(
+            'https://api.atlassian.com/oauth/token/accessible-resources',
+            {
+              headers: {
+                Authorization: `Bearer ${this.config.oauth_token}`,
+              },
+            },
+          )) as { data: AtlassianAccessibleResource[] };
+          const selectedDomain = accessibleResources.find(
+            (resource) => resource.url === this.config.jira_url,
+          );
+          if (!selectedDomain) {
+            throw new Error(
+              'Jira URL does not seem to be accessible from user. Please ensure that the domain is in this format: https://{MY_COMPANY_NAME}.atlassian.net',
+            );
+          }
+          configVars.cloud_id = selectedDomain.id;
+          await this.saveVars(configVars);
+        }
 
-      //   this.client = createAxiosInstance(
-      //     {
-      //       baseURL: `${this.config.jira_url}`,
-      //       headers: {
-      //         Authorization: `Bearer ${this.config.oauth_token}`,
-      //         'Content-Type': 'application/json',
-      //       },
-      //     },
-      //     this.getRateLimitConfig(),
-      //   );
+        this.client = createAxiosInstance(
+          {
+            baseURL: `https://api.atlassian.com/ex/jira/${configVars.cloud_id}/rest/api/3`,
+            headers: {
+              Authorization: `Bearer ${this.config.oauth_token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+          this.getRateLimitConfig(),
+        );
 
-      //   return this.client;
+        return this.client;
+      }
       default:
         throw new Error('Not implemented');
     }
@@ -85,29 +110,28 @@ export class JiraAuthIntegration extends AuthIntegration<
     }
   }
 
-  // public async exchangeToken(payload: { code: string; code_verifier: string }) {
-  //   const response = await axios.post(
-  //     tokenUri,
-  //     {
-  //       grant_type: 'authorization_code',
-  //       client_id: clientId,
-  //       client_secret: clientSecret,
-  //       code: payload.code,
-  //       redirect_uri: redirectUri,
-  //       code_verifier: payload.code_verifier,
-  //     },
-  //     {
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         Accept: 'application/json',
-  //       },
-  //     },
-  //   );
-  //   console.log('response.data', response.data);
-  //   return {
-  //     oauth_token: response.data.access_token,
-  //     refresh_token: response.data.refresh_token,
-  //     expires_in: response.data.expires_in,
-  //   };
-  // }
+  public async exchangeToken(payload: { code: string; code_verifier: string }) {
+    const response = await axios.post(
+      tokenUri,
+      {
+        grant_type: 'authorization_code',
+        client_id: clientId,
+        client_secret: clientSecret,
+        code: payload.code,
+        redirect_uri: redirectUri,
+        code_verifier: payload.code_verifier,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+      },
+    );
+    return {
+      oauth_token: response.data.access_token,
+      refresh_token: response.data.refresh_token,
+      expires_in: response.data.expires_in,
+    };
+  }
 }

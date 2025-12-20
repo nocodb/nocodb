@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<NcBadgeProps>(), {
   <div
     :class="{
       'border-nc-purple-500 bg-nc-bg-purple-dark dark:bg-nc-bg-purple-light': props.color === 'purple',
-      'border-nc-blue-500 bg-nc-bg-blue-dark': props.color === 'blue',
+      'border-nc-blue-500 bg-nc-bg-blue-dark dark:bg-nc-blue-20': props.color === 'blue',
       'border-nc-green-500 bg-nc-bg-green-dark dark:bg-nc-green-20': props.color === 'green',
       'border-nc-orange-500 bg-nc-bg-orange-dark dark:bg-nc-orange-20': props.color === 'orange',
       'border-nc-yellow-500 bg-nc-bg-yellow-dark dark:bg-nc-yellow-20': props.color === 'yellow',

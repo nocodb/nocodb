@@ -3,13 +3,13 @@ import { VueFlow, useVueFlow } from '@vue-flow/core'
 import { computed, markRaw } from 'vue'
 import type { WorkflowNodeDefinition } from 'nocodb-sdk'
 import { GeneralNodeID, WorkflowNodeCategory } from 'nocodb-sdk'
+import { Background } from '@vue-flow/background'
 import PlusNode from '~/components/smartsheet/workflow/canvas/nodes/Plus.vue'
 import TriggerNode from '~/components/smartsheet/workflow/canvas/nodes/Trigger.vue'
 import WorkflowNode from '~/components/smartsheet/workflow/canvas/nodes/WorkflowNode.vue'
 import { useWorkflowOrThrow } from '~/composables/useWorkflow'
 import { useLayout } from '~/components/smartsheet/workflow/useLayout'
-import ManualTrigger from '~/components/smartsheet/workflow/canvas/ManualTrigger.vue'
-import { Background } from '@vue-flow/background'
+import CanvasToolbar from '~/components/smartsheet/workflow/canvas/CanvasToolbar.vue'
 
 const { nodes, edges, setLayoutCallback, nodeTypes: rawNodeTypes, workflow } = useWorkflowOrThrow()
 
@@ -96,7 +96,7 @@ onMounted(() => {
     <Background />
   </VueFlow>
 
-  <ManualTrigger />
+  <CanvasToolbar />
 </template>
 
 <style scoped lang="scss">

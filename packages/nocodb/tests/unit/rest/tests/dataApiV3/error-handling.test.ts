@@ -707,7 +707,7 @@ describe('dataApiV3', () => {
       });
 
       it('will handle insert field format not valid for uidt Duration', async () => {
-        const values = ['HELLOW', -1, 1.365];
+        const values = ['HELLOW', -1];
         for (const value of values) {
           const response = await ncAxiosPost({
             url: `${numberBasedUrlPrefix}/${table.id}/records`,

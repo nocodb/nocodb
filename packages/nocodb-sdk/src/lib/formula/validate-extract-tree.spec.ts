@@ -226,6 +226,13 @@ const mockColumns: UnifiedMetaType.IColumn[] = [
         } as any),
     } as UnifiedMetaType.IFormulaColumn,
   },
+  // case Function to rollup
+  {
+    id: 'ciro4tf7xfab6pj',
+    title: 'Max(Number) from Table-L1',
+    uidt: UITypes.SingleLineText,
+    base_id: 'base1',
+  },
 ];
 
 const mockGetMeta: UnifiedMetaType.IGetModel = jest.fn(
@@ -260,6 +267,152 @@ const mockGetMeta: UnifiedMetaType.IGetModel = jest.fn(
 );
 
 const mockClientOrSqlUi = SqlUiFactory.create({ client: 'pg' });
+
+const caseIdentifierRollup = {
+  column: {
+    id: 'c4o52mufchcfgi8',
+    source_id: 'bv4r9c7t9enq9vs',
+    base_id: 'p4zgm45rxfc6izi',
+    fk_model_id: 'mroakgv13nikn55',
+    title: 'Formula',
+    column_name: 'Formula',
+    uidt: 'Formula',
+    system: false,
+    order: 10,
+    meta: {
+      display_column_meta: {
+        meta: {},
+        custom: {},
+      },
+      defaultViewColOrder: 10,
+      defaultViewColVisibility: true,
+    },
+    readonly: false,
+    fk_workspace_id: 'w5x8zatd',
+    colOptions: {
+      parsed_tree: {
+        type: 'Identifier',
+        name: 'cpqnd2bdmzg00x1',
+        raw: '{{cpqnd2bdmzg00x1}}',
+        dataType: 'string',
+        isDataArray: true,
+        referencedColumn: {
+          id: 'czb6z4e94l7kiyr',
+          uidt: 'SingleLineText',
+          intermediaryUidt: 'LinkToAnotherRecord',
+          intermediaryId: 'cpqnd2bdmzg00x1',
+        },
+      },
+      id: 'fhl7s1abjhwj6e0',
+      fk_column_id: 'c4o52mufchcfgi8',
+      formula: '{{cpqnd2bdmzg00x1}}',
+      formula_raw: '{Table-L1}',
+      base_id: 'p4zgm45rxfc6izi',
+      fk_workspace_id: 'w5x8zatd',
+    },
+    extra: {
+      display_type: 'SingleLineText',
+    },
+  },
+  columns: [
+    {
+      id: 'cizch3j3b3inbiv',
+      source_id: 'bv4r9c7t9enq9vs',
+      base_id: 'p4zgm45rxfc6izi',
+      fk_model_id: 'mroakgv13nikn55',
+      title: 'Id',
+      column_name: 'id',
+      uidt: 'ID',
+      order: 1,
+      meta: {
+        defaultViewColOrder: 2,
+        defaultViewColVisibility: true,
+      },
+      readonly: false,
+      fk_workspace_id: 'w5x8zatd',
+    },
+    {
+      id: 'cpxst4a7s3wf3pb',
+      source_id: 'bv4r9c7t9enq9vs',
+      base_id: 'p4zgm45rxfc6izi',
+      fk_model_id: 'mroakgv13nikn55',
+      title: 'Title',
+      column_name: 'title',
+      uidt: 'SingleLineText',
+      pv: true,
+      system: false,
+      order: 7,
+      meta: {
+        defaultViewColOrder: 1,
+        defaultViewColVisibility: true,
+      },
+      readonly: false,
+      fk_workspace_id: 'w5x8zatd',
+      extra: {},
+    },
+    {
+      id: 'cpqnd2bdmzg00x1',
+      source_id: 'bv4r9c7t9enq9vs',
+      base_id: 'p4zgm45rxfc6izi',
+      fk_model_id: 'mroakgv13nikn55',
+      title: 'Table-L1',
+      uidt: 'LinkToAnotherRecord',
+      virtual: true,
+      order: 8,
+      meta: {
+        plural: 'Table-L1s',
+        singular: 'Table-L1',
+        custom: false,
+        defaultViewColOrder: 8,
+        defaultViewColVisibility: true,
+      },
+      readonly: false,
+      fk_workspace_id: 'w5x8zatd',
+      colOptions: {
+        virtual: true,
+        id: 'lurlzpshvoroi9a',
+        type: 'hm',
+        fk_column_id: 'cpqnd2bdmzg00x1',
+        fk_related_model_id: 'mr6xbpmnuuusa9y',
+        fk_child_column_id: 'c1tmwp5y0mx5036',
+        fk_parent_column_id: 'cizch3j3b3inbiv',
+        base_id: 'p4zgm45rxfc6izi',
+        fk_workspace_id: 'w5x8zatd',
+      },
+      extra: {},
+    },
+    {
+      id: 'ccuxnqvpoueby3r',
+      source_id: 'bv4r9c7t9enq9vs',
+      base_id: 'p4zgm45rxfc6izi',
+      fk_model_id: 'mroakgv13nikn55',
+      title: 'Max(Number) from Table-L1',
+      column_name: 'Max(Number) from Table-L1',
+      uidt: 'Rollup',
+      system: false,
+      order: 9,
+      meta: {
+        precision: 0,
+        isLocaleString: false,
+        defaultViewColOrder: 9,
+        defaultViewColVisibility: true,
+      },
+      readonly: false,
+      fk_workspace_id: 'w5x8zatd',
+      colOptions: {
+        id: 'rl6o2v6aesvywmry',
+        fk_column_id: 'ccuxnqvpoueby3r',
+        fk_relation_column_id: 'cpqnd2bdmzg00x1',
+        fk_rollup_column_id: 'ciro4tf7xfab6pj',
+        rollup_function: 'max',
+        base_id: 'p4zgm45rxfc6izi',
+        fk_workspace_id: 'w5x8zatd',
+      },
+      extra: {},
+    },
+  ],
+  formula: '{Max(Number) from Table-L1}',
+};
 
 describe('validateFormulaAndExtractTreeWithType', () => {
   beforeEach(() => {
@@ -765,5 +918,14 @@ describe('validateFormulaAndExtractTreeWithType', () => {
         getMeta: mockGetMeta,
       })
     ).rejects.toHaveProperty('type', FormulaErrorType.INVALID_SYNTAX);
+  });
+  it('should return correct when identifier to rollup', async () => {
+    const result = await validateFormulaAndExtractTreeWithType({
+      formula: caseIdentifierRollup.formula,
+      columns: caseIdentifierRollup.columns as any[],
+      clientOrSqlUi: mockClientOrSqlUi,
+      getMeta: mockGetMeta,
+    });
+    expect(result.referencedColumn.uidt).toBe('SingleLineText');
   });
 });

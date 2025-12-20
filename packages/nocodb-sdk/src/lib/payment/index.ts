@@ -119,6 +119,8 @@ export const PlanMeta = {
     bgDark: 'var(--free-plan-bg-dark, #F4F4F5)',
     border: 'var(--free-plan-border, #E7E7E9)',
     chartFillColor: 'var(--color-gray-500, #6A7184)',
+    badgeBgColor: 'var(--free-plan-badge-bg-color, #F4F4F5)',
+    badgeTextColor: 'var(--free-plan-badge-text-color, #1F293A)',
   },
   [PlanTitles.PLUS]: {
     title: PlanTitles.PLUS,
@@ -129,6 +131,8 @@ export const PlanMeta = {
     bgDark: 'var(--plus-plan-bg-dark, #D7F2FF)',
     border: 'var(--plus-plan-border, #AFE5FF)',
     chartFillColor: 'var(--plus-plan-chart-fill-color, #207399)',
+    badgeBgColor: 'var(--plus-plan-badge-bg-color, #D7F2FF)',
+    badgeTextColor: 'var(--plus-plan-badge-text-color, #207399)',
   },
   [PlanTitles.BUSINESS]: {
     title: PlanTitles.BUSINESS,
@@ -139,6 +143,8 @@ export const PlanMeta = {
     bgDark: 'var(--business-plan-bg-dark, #FED8F4)',
     border: 'var(--business-plan-border, #FEB0E8)',
     chartFillColor: 'var(--business-plan-chart-fill-color, #972377)',
+    badgeBgColor: 'var(--business-plan-badge-bg-color, #FED8F4)',
+    badgeTextColor: 'var(--business-plan-badge-text-color, #972377)',
   },
   [PlanTitles.ENTERPRISE]: {
     title: PlanTitles.ENTERPRISE,
@@ -149,6 +155,8 @@ export const PlanMeta = {
     bgDark: 'var(--enterprise-plan-bg-dark, #FEE6D6)',
     border: 'var(--enterprise-plan-border, #FDCDAD)',
     chartFillColor: 'var(--enterprise-plan-chart-fill-color, #C86827)',
+    badgeBgColor: 'var(--enterprise-plan-badge-bg-color, #FEE6D6)',
+    badgeTextColor: 'var(--enterprise-plan-badge-text-color, #C86827)',
   },
 } as const;
 

@@ -394,6 +394,8 @@
   --free-plan-bg-dark: var(--color-gray-100, #f4f4f5);
   --free-plan-border: var(--color-gray-200, #e7e7e9);
   --free-plan-chart-fill-color: var(--color-gray-500, #6a7184);
+  --free-plan-badge-bg-color: var(--color-gray-100, #f4f4f5);
+  --free-plan-badge-text-color: var(--color-gray-800, #1f293a);
 
   /* Plus Plan  */
   --plus-plan-color: var(--color-blue-50, #edf9ff);
@@ -403,6 +405,8 @@
   --plus-plan-bg-dark: var(--color-blue-100, #d7f2ff);
   --plus-plan-border: var(--color-blue-200, #afe5ff);
   --plus-plan-chart-fill-color: var(--color-blue-700, #207399);
+  --plus-plan-badge-bg-color: var(--color-blue-100, #d7f2ff);
+  --plus-plan-badge-text-color: var(--color-blue-700, #207399);
 
   /* Business Plan  */
   --business-plan-color: var(--color-pink-50, #faf5ff);
@@ -412,6 +416,8 @@
   --business-plan-bg-dark: var(--color-pink-100, #fed8f4);
   --business-plan-border: var(--color-pink-200, #feb0e8);
   --business-plan-chart-fill-color: var(--color-pink-700, #972377);
+  --business-plan-badge-bg-color: var(--color-pink-100, #fed8f4);
+  --business-plan-badge-text-color: var(--color-pink-700, #972377);
 
   /* Enterprise Plan  */
   --enterprise-plan-color: var(--color-orange-50, #fff5ef);
@@ -421,6 +427,8 @@
   --enterprise-plan-bg-dark: var(--color-orange-100, #fee6d6);
   --enterprise-plan-border: var(--color-orange-200, #fdcdad);
   --enterprise-plan-chart-fill-color: var(--color-orange-700, #c86827);
+  --enterprise-plan-badge-bg-color: var(--color-orange-100, #fee6d6);
+  --enterprise-plan-badge-text-color: var(--color-orange-700, #c86827);
 
   /* View icon colors  */
   --color-view-icon-grid: #36bfff;
@@ -804,6 +812,8 @@
   --free-plan-bg-dark: var(--color-gray-100, #2a2c2e);
   --free-plan-border: var(--color-gray-200, #3b3d40);
   --free-plan-chart-fill-color: var(--color-gray-500, #989ca5);
+  --free-plan-badge-bg-color: var(--color-gray-100, #f4f4f5);
+  --free-plan-badge-text-color: var(--color-gray-800, #1f293a);
 
   /* Plus Plan  */
   --plus-plan-color: #062e4b;
@@ -813,6 +823,8 @@
   --plus-plan-bg-dark: #0b1e26;
   --plus-plan-border: #1e4a5b;
   --plus-plan-chart-fill-color: #63c2f5;
+  --plus-plan-badge-bg-color: var(--color-blue-100, #d7f2ff);
+  --plus-plan-badge-text-color: var(--color-blue-700, #207399);
 
   /* Business Plan  */
   --business-plan-color: #25172f;
@@ -822,6 +834,8 @@
   --business-plan-bg-dark: #1d1224;
   --business-plan-border: #5e2b54;
   --business-plan-chart-fill-color: #c45cc0;
+  --business-plan-badge-bg-color: var(--color-pink-100, #fed8f4);
+  --business-plan-badge-text-color: var(--color-pink-700, #972377);
 
   /* Enterprise Plan  */
   --enterprise-plan-color: #1b120b;
@@ -831,6 +845,8 @@
   --enterprise-plan-bg-dark: #160e08;
   --enterprise-plan-border: #70492c;
   --enterprise-plan-chart-fill-color: #e28e4c;
+  --enterprise-plan-badge-bg-color: var(--color-orange-100, #fee6d6);
+  --enterprise-plan-badge-text-color: var(--color-orange-700, #c86827);
 
   /* View icon colors  */
   --color-view-icon-grid: #5fccff;

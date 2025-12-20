@@ -9,6 +9,7 @@ import WorkflowNode from '~/components/smartsheet/workflow/canvas/nodes/Workflow
 import { useWorkflowOrThrow } from '~/composables/useWorkflow'
 import { useLayout } from '~/components/smartsheet/workflow/useLayout'
 import ManualTrigger from '~/components/smartsheet/workflow/canvas/ManualTrigger.vue'
+import { Background } from '@vue-flow/background'
 
 const { nodes, edges, setLayoutCallback, nodeTypes: rawNodeTypes, workflow } = useWorkflowOrThrow()
 
@@ -92,6 +93,7 @@ onMounted(() => {
     :delete-key-code="null"
     class="workflow-canvas"
   >
+    <Background />
   </VueFlow>
 
   <ManualTrigger />

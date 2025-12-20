@@ -12,6 +12,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { UsageStat } from '~/ee/models';
 import { PlanLimitTypes } from '~/ee/helpers/paymentHelpers';
 // import { Workspace } from '~/models';
+import { throttleWithLast } from '~/utils/functionUtils';
 
 export class ExecuteWorkflowProcessor {
   protected logger = new Logger(ExecuteWorkflowProcessor.name);
@@ -71,6 +72,21 @@ export class ExecuteWorkflowProcessor {
         workflow,
         triggerInputs,
         triggerNodeId,
+        throttleWithLast(async (state) => {
+          const execution = await WorkflowExecution.update(
+            context,
+            executionRecord.id,
+            {
+              execution_data: state,
+            },
+          );
+          this.broadcastExecutionEvent(
+            context,
+            workflowId,
+            execution,
+            'update',
+          );
+        }, 1000),
       );
 
       if (result.status === 'skipped') {

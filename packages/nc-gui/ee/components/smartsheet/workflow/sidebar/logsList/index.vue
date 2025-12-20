@@ -123,6 +123,9 @@ watch(
             if (index !== -1) {
               executions.value[index] = { ...executions.value[index], ...payload }
             }
+            if (viewingExecution.value?.id === id) {
+              viewingExecution.value = { ...viewingExecution.value, ...payload }
+            }
           } else if (action === 'delete') {
             const index = executions.value.findIndex((e) => e.id === id)
             if (index !== -1) {

@@ -29,10 +29,8 @@ export const useUserSync = createSharedComposable(() => {
       if (url.origin === 'https://app.nocodb.com') {
         return url.origin
       }
-      console.warn('Skipping iframe with untrusted origin:', url.origin)
       return null
     } catch (error) {
-      console.warn('Failed to determine iframe origin:', error)
       return null
     }
   }

@@ -49,8 +49,7 @@ export class JiraAuthIntegration extends AuthIntegration<
         if (!this.config.jira_domain || !this.config.oauth_token) {
           throw new Error('Missing required Jira configuration');
         }
-        let configVars = await this.getVars();
-        configVars = configVars ?? {};
+        const configVars = (await this.getVars()) ?? {};
         if (!configVars.cloud_id) {
           const { data: accessibleResources } = (await axios.get(
             'https://api.atlassian.com/oauth/token/accessible-resources',

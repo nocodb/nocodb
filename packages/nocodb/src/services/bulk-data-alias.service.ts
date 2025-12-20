@@ -3,11 +3,12 @@ import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
-import { V1_V2_DATA_PAYLOAD_LIMIT } from '~/constants';
-import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
+import {
+  getViewAndModelByAliasOrId,
+  validateV1V2DataPayloadLimit,
+} from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model, Source } from '~/models';
-import { NcError } from '~/helpers/catchError';
 
 type BulkOperation =
   | 'bulkInsert'
@@ -56,14 +57,7 @@ export class BulkDataAliasService {
       undo?: boolean;
     },
   ) {
-    // Only enforce limit for API token requests (not UI requests)
-    if (
-      param.cookie?.user?.is_api_token &&
-      Array.isArray(param.body) &&
-      param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
-    ) {
-      NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
-    }
+    validateV1V2DataPayloadLimit(context, param);
 
     return await this.executeBulkOperation(context, {
       ...param,
@@ -93,14 +87,7 @@ export class BulkDataAliasService {
       apiVersion?: NcApiVersion;
     },
   ) {
-    // Only enforce limit for API token requests (not UI requests)
-    if (
-      param.cookie?.user?.is_api_token &&
-      Array.isArray(param.body) &&
-      param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
-    ) {
-      NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
-    }
+    validateV1V2DataPayloadLimit(context, param);
 
     return await this.executeBulkOperation(context, {
       ...param,
@@ -147,14 +134,7 @@ export class BulkDataAliasService {
       cookie: NcRequest;
     },
   ) {
-    // Only enforce limit for API token requests (not UI requests)
-    if (
-      param.cookie?.user?.is_api_token &&
-      Array.isArray(param.body) &&
-      param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
-    ) {
-      NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
-    }
+    validateV1V2DataPayloadLimit(context, param);
 
     return await this.executeBulkOperation(context, {
       ...param,
@@ -192,14 +172,7 @@ export class BulkDataAliasService {
       undo: boolean;
     },
   ) {
-    // Only enforce limit for API token requests (not UI requests)
-    if (
-      param.cookie?.user?.is_api_token &&
-      Array.isArray(param.body) &&
-      param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
-    ) {
-      NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
-    }
+    validateV1V2DataPayloadLimit(context, param);
 
     return await this.executeBulkOperation(context, {
       ...param,

@@ -473,6 +473,10 @@ export function shouldSkipField(
           return true;
       }
     }
+
+    // skip all other columns if pkAndPvOnly passed as true
+    if (pkAndPvOnly && !column.pk && !column.pv) return true;
+
     return false;
   }
 }

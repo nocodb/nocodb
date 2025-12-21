@@ -152,6 +152,7 @@ export const useMetas = createSharedComposable(() => {
     try {
       loadingState.value[tableIdOrTitle] = true
       const model = await $api.dbLinks.tableRead(linkColumnId, tableIdOrTitle)
+      model.title = 'Private Table'
       metas.value[tableIdOrTitle] = model
       return model
     } catch (e) {

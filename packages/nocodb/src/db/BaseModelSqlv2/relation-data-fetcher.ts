@@ -8,6 +8,7 @@ import sortV2 from '~/db/sortV2';
 import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
 import getAst from '~/helpers/getAst';
 import { Filter, Model, View } from '~/models';
+import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -64,11 +65,18 @@ export const relationDataFetcher = (param: {
         const parentTn = baseModel.getTnPath(parentTable);
 
         const qb = childBaseModel.dbDriver(childTn);
+
+        const hasLimitedAccess = !(await hasTableVisibilityAccess(
+          baseModel.context,
+          childTable.id,
+          baseModel.context.user,
+        ));
+
         await childBaseModel.selectObject({
           qb,
           extractPkAndPv: true,
           fieldsSet: args.fieldsSet,
-          pkAndPvOnly: relationColOpts.isCrossBaseLink(),
+          pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
         });
         const view = relationColOpts.fk_target_view_id
           ? await View.get(refContext, relationColOpts.fk_target_view_id)
@@ -208,10 +216,16 @@ export const relationDataFetcher = (param: {
             .where(_wherePk(table.primaryKeys, parentId)),
         );
 
+      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+        baseModel.context,
+        refTable.id,
+        baseModel.context.user,
+      ));
+
       await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
-        pkAndPvOnly: relColOptions.isCrossBaseLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
       });
 
       await refTable.getViews(refContext);
@@ -395,10 +409,16 @@ export const relationDataFetcher = (param: {
         qb.limit(+rest?.limit || 25);
         qb.offset(+rest?.offset || 0);
 
+        const hasLimitedAccess = !(await hasTableVisibilityAccess(
+          baseModel.context,
+          childTable.id,
+          baseModel.context.user,
+        ));
+
         await childBaseModel.selectObject({
           qb,
           fieldsSet: args.fieldSet,
-          pkAndPvOnly: relationColOpts.isCrossBaseLink(),
+          pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
         });
 
         await childBaseModel.applySortAndFilter({
@@ -574,10 +594,16 @@ export const relationDataFetcher = (param: {
         .dbDriver(rtn)
         .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
+      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+        baseModel.context,
+        refTable.id,
+        baseModel.context.user,
+      ));
+
       await refBaseModel.selectObject({
         qb,
         fieldsSet: args.fieldsSet,
-        pkAndPvOnly: relColOptions.isCrossBaseLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
       });
 
       const view = relColOptions.fk_target_view_id
@@ -956,12 +982,20 @@ export const relationDataFetcher = (param: {
 
       const refView = await relColOptions.getChildView(refContext, refTable);
       let listArgs: any = {};
+
+      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+        baseModel.context,
+        refTable.id,
+        context.user,
+      ));
+
       if (refView) {
         const { dependencyFields } = await getAst(refContext, {
           model: refTable,
           query: {},
-          view: refView,
+          view: hasLimitedAccess ? null : refView,
           throwErrorIfInvalidParams: false,
+          extractOnlyPrimaries: hasLimitedAccess,
         });
         listArgs = dependencyFields;
       }
@@ -996,7 +1030,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: listArgs?.fieldsSet,
         viewId: refView?.id,
-        pkAndPvOnly: relColOptions.isCrossBaseLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
       });
 
       const aliasColObjMap = await refTable.getAliasColObjMap(refContext);
@@ -1090,9 +1124,15 @@ export const relationDataFetcher = (param: {
         await this.shuffle({ qb });
       }
 
+      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+        baseModel.context,
+        refTable.id,
+        context.user,
+      ));
+
       await refBaseModel.selectObject({
         qb,
-        pkAndPvOnly: relColOptions.isCrossBaseLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
       });
 
       const aliasColObjMap = await refTable.getAliasColObjMap(refContext);
@@ -1285,11 +1325,17 @@ export const relationDataFetcher = (param: {
       await parentTable.getColumns(parentContext);
       await childTable.getColumns(childContext);
 
+      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+        baseModel.context,
+        (isBt ? parentTable : childTable).id,
+        baseModel.context.user,
+      ));
+
       await refModel.selectObject({
         qb,
         fieldsSet: listArgs.fieldsSet,
         viewId: targetView?.id,
-        pkAndPvOnly: relColOptions.isCrossBaseLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
       });
 
       // extract col-alias map based on the correct relation table
@@ -1557,9 +1603,15 @@ export const relationDataFetcher = (param: {
         await this.shuffle({ qb });
       }
 
+      const hasLimitedAccess = !(await hasTableVisibilityAccess(
+        baseModel.context,
+        parentTable.id,
+        baseModel.context.user,
+      ));
+
       await parentBaseModel.selectObject({
         qb,
-        pkAndPvOnly: relColOptions.isCrossBaseLink(),
+        pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
       });
 
       const aliasColObjMap = await parentTable.getAliasColObjMap(

@@ -1,11 +1,22 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { type UserType, viewTypeAlias } from 'nocodb-sdk';
+import {
+  PermissionEntity,
+  PermissionKey,
+  ProjectRoles,
+  type UserType,
+  viewTypeAlias,
+} from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 import { deserializeJSON } from '~/utils/serialize';
 import { getCommandPaletteForUserWorkspace } from '~/helpers/commandPaletteHelpers';
+import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+import { Permission } from '~/models';
 
 @Injectable()
 export class CommandPaletteService {
   logger = new Logger('CommandPaletteService');
+
+  constructor() {}
 
   async commandPalette(param: { body: any; user: UserType }) {
     const cmdData = [];
@@ -106,6 +117,11 @@ export class CommandPaletteService {
           }
         >();
 
+        // First, collect all unique table IDs per base and track base roles
+        const baseTableIdsMap = new Map<string, Set<string>>();
+        const baseContextMap = new Map<string, NcContext>();
+        const baseRoleMap = new Map<string, string>(); // Track base role for each base
+
         for (const item of list) {
           if (!workspaces.has(item.workspace_id)) {
             workspaces.set(item.workspace_id, {
@@ -124,7 +140,94 @@ export class CommandPaletteService {
             });
           }
 
-          if (!tables.has(item.table_id)) {
+          // Collect unique table IDs per base and track base role
+          if (!baseTableIdsMap.has(item.base_id)) {
+            baseTableIdsMap.set(item.base_id, new Set<string>());
+            baseContextMap.set(item.base_id, {
+              workspace_id: item.workspace_id,
+              base_id: item.base_id,
+            } as NcContext);
+          }
+          if (item.table_id) {
+            baseTableIdsMap.get(item.base_id)!.add(item.table_id);
+          }
+          // Store base role (should be consistent for all items in same base)
+          if (item.base_role && !baseRoleMap.has(item.base_id)) {
+            baseRoleMap.set(item.base_id, item.base_role);
+          }
+        }
+
+        // Check table visibility permissions for each base
+        const accessibleTableIds = new Set<string>();
+        for (const [baseId, tableIds] of baseTableIdsMap) {
+          const context = baseContextMap.get(baseId)!;
+          const baseRole = baseRoleMap.get(baseId);
+
+          // Base owners always have access to all tables
+          if (baseRole === ProjectRoles.OWNER) {
+            for (const tableId of tableIds) {
+              accessibleTableIds.add(tableId);
+            }
+            continue;
+          }
+
+          const permissions = await Permission.list(context, baseId);
+
+          // Check each table's visibility
+          for (const tableId of tableIds) {
+            // Find TABLE_VISIBILITY permission for this table
+            const visibilityPermission = permissions.find(
+              (p) =>
+                p.entity === PermissionEntity.TABLE &&
+                p.entity_id === tableId &&
+                p.permission === PermissionKey.TABLE_VISIBILITY,
+            );
+
+            // If no permission exists, default to everyone (accessible)
+            if (!visibilityPermission) {
+              accessibleTableIds.add(tableId);
+              continue;
+            }
+
+            // Check if user's base role has permission
+            // Use Permission.isAllowed with the base_role from items
+            if (baseRole) {
+              const hasPermission = await Permission.isAllowed(
+                context,
+                visibilityPermission,
+                {
+                  id: param.user?.id,
+                  role: baseRole as any,
+                },
+              );
+              if (hasPermission) {
+                accessibleTableIds.add(tableId);
+              }
+            } else {
+              // If no base role, check using hasTableVisibilityAccess as fallback
+              const hasAccess = await hasTableVisibilityAccess(
+                context,
+                tableId,
+                param.user,
+                permissions,
+              );
+              if (hasAccess) {
+                accessibleTableIds.add(tableId);
+              }
+            }
+          }
+        }
+
+        // Filter and process items - only include accessible tables
+        for (const item of list) {
+          // Skip if table is not accessible
+          // hasTableVisibilityAccess already handles base owners, so if it returns false,
+          // the table is truly not accessible
+          if (item.table_id && !accessibleTableIds.has(item.table_id)) {
+            continue; // Skip this table/view
+          }
+
+          if (!tables.has(item.table_id) && item.table_id) {
             tables.set(item.table_id, {
               id: item.table_id,
               title: item.table_title,
@@ -136,7 +239,13 @@ export class CommandPaletteService {
             });
           }
 
-          if (!views.has(item.view_id)) {
+          // Only include views for accessible tables
+          if (
+            !views.has(item.view_id) &&
+            item.view_id &&
+            item.table_id &&
+            accessibleTableIds.has(item.table_id)
+          ) {
             views.set(item.view_id, {
               id: item.view_id,
               title: item.view_title,

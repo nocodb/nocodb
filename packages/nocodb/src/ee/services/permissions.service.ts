@@ -2,10 +2,12 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   EventType,
+  extractRolesObj,
   NcBaseError,
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
+  ProjectRoles,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Column, Model, Permission, WorkspaceUser } from '~/models';
@@ -46,6 +48,23 @@ export class PermissionsService {
       enforce_for_automation = true,
       enforce_for_form = true,
     } = permissionObj;
+
+    // Check if user is owner for TABLE_VISIBILITY permission
+    if (permission_key === PermissionKey.TABLE_VISIBILITY) {
+      // Check base_roles (can be string or object)
+      const baseRoles = extractRolesObj(req.user?.base_roles);
+      const isOwner = baseRoles?.[ProjectRoles.OWNER];
+
+      // Also check roles object for backward compatibility
+      if (!isOwner) {
+        const roles = extractRolesObj(req.user?.roles);
+        if (!roles?.[ProjectRoles.OWNER]) {
+          NcError.forbidden(
+            'Only base owners can configure table visibility permissions',
+          );
+        }
+      }
+    }
 
     let permission: Permission;
 
@@ -196,6 +215,17 @@ export class PermissionsService {
 
     await this.broadcastPermissionUpdate(context);
 
+    if (permission_key === PermissionKey.TABLE_VISIBILITY) {
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_permission_update',
+          baseId: context.base_id,
+          payload: {},
+        },
+      });
+    }
+
     if (permissionEntryCreated) {
       Noco.appHooksService.emit(AppEvents.PERMISSION_CREATE, {
         permission,
@@ -222,6 +252,23 @@ export class PermissionsService {
     req: NcRequest,
   ) {
     const { entity, entity_id, permission: permission_key } = permissionObj;
+
+    // Check if user is owner for TABLE_VISIBILITY permission
+    if (permission_key === PermissionKey.TABLE_VISIBILITY) {
+      // Check base_roles (can be string or object)
+      const baseRoles = extractRolesObj(req.user?.base_roles);
+      const isOwner = baseRoles?.[ProjectRoles.OWNER];
+
+      // Also check roles object for backward compatibility
+      if (!isOwner) {
+        const roles = extractRolesObj(req.user?.roles);
+        if (!roles?.[ProjectRoles.OWNER]) {
+          NcError.forbidden(
+            'Only base owners can configure table visibility permissions',
+          );
+        }
+      }
+    }
 
     const permission = await Permission.getByEntity(
       context,
@@ -265,6 +312,16 @@ export class PermissionsService {
 
     await this.broadcastPermissionUpdate(context);
 
+    if (permission_key === PermissionKey.TABLE_VISIBILITY) {
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_permission_update',
+          baseId: context.base_id,
+          payload: {},
+        },
+      });
+    }
     Noco.appHooksService.emit(AppEvents.PERMISSION_DELETE, {
       permission,
       context,
@@ -317,6 +374,21 @@ export class PermissionsService {
     }
 
     await this.broadcastPermissionUpdate(context);
+
+    if (
+      oldPermissions.some(
+        (p) => p.permission === PermissionKey.TABLE_VISIBILITY,
+      )
+    ) {
+      NocoSocket.broadcastEvent(context, {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'table_permission_update',
+          baseId: context.base_id,
+          payload: {},
+        },
+      });
+    }
   }
 
   async broadcastPermissionUpdate(context: NcContext) {

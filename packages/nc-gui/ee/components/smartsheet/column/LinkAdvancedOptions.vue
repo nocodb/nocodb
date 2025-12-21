@@ -9,7 +9,16 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isVirtualCol,
 } from 'nocodb-sdk'
-import { computed, storeToRefs, useBase, useColumnCreateStoreOrThrow, useMetas, useTablesStore, useVModel } from '#imports'
+import {
+  computed,
+  storeToRefs,
+  useBase,
+  useColumnCreateStoreOrThrow,
+  useI18n,
+  useMetas,
+  useTablesStore,
+  useVModel,
+} from '#imports'
 
 const props = defineProps<{
   value: any
@@ -26,6 +35,7 @@ const vModel = useVModel(props, 'value', emit)
 const { validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
 
 const { metas, getMeta } = useMetas()
+const { t } = useI18n()
 
 const isMm = computed(() => vModel.value.type === RelationTypes.MANY_TO_MANY)
 
@@ -57,20 +67,98 @@ const sourceColumn = computed(() => {
   return tables.value.filter((t) => t.type === ModelTypes.TABLE && t.source_id === meta.value?.source_id)
 }) */
 
+// Check if linked table is private (for edit mode display)
+// Only check is_private flag from API response
+const isRefTablePrivate = computed(() => {
+  if (!isEdit.value) return false
+  const refTableId = vModel.value.custom?.ref_model_id
+  if (!refTableId) return false
+  const tableMeta = metas.value[refTableId]
+  // Check is_private flag from API response
+  return !!(tableMeta && (tableMeta as any).is_private)
+})
+
+// Check if junction table is private
+// Only check is_private flag from API response
+const isJunctionTablePrivate = computed(() => {
+  if (!isEdit.value) return false
+  const juncTableId = vModel.value.custom?.junc_model_id
+  if (!juncTableId) return false
+  const tableMeta = metas.value[juncTableId]
+  // Check is_private flag from API response
+  return !!(tableMeta && (tableMeta as any).is_private)
+})
+
 const refTables = computed(() => {
+  if (isEdit.value) {
+    const refTableId = vModel.value.custom?.ref_model_id
+    if (!refTableId) return []
+
+    // Load meta if not already loaded
+    if (!metas.value[refTableId]) getMeta(refTableId)
+    const tableMeta = metas.value[refTableId]
+
+    // Check if table is private (from API response only)
+    const isPrivate = tableMeta && (tableMeta as any).is_private
+
+    if (isPrivate) {
+      // Return a "Private" table object with the actual table title if available
+      return [
+        {
+          id: refTableId,
+          title: tableMeta?.title || t('labels.privateTable'),
+          is_private: true,
+        },
+      ]
+    }
+
+    return tableMeta ? [tableMeta] : []
+  }
+
   if (!baseTables.value.get(vModel.value.custom.base_id)) {
     return []
   }
 
-  return [...baseTables.value.get(vModel.value.custom.base_id).filter((t) => t.type === ModelTypes.TABLE)]
+  const tablesList = [...baseTables.value.get(vModel.value.custom.base_id).filter((t) => t.type === ModelTypes.TABLE)]
+
+  // Backend already filters tables based on visibility, so return all tables from the list
+  return tablesList
 })
 
 const junctionTables = computed(() => {
+  if (isEdit.value) {
+    const juncTableId = vModel.value.custom?.junc_model_id
+    if (!juncTableId) return []
+
+    // Load meta if not already loaded
+    if (!metas.value[juncTableId]) getMeta(juncTableId)
+    const tableMeta = metas.value[juncTableId]
+
+    // Check if table is private (from API response only)
+    const isPrivate = tableMeta && (tableMeta as any).is_private
+
+    if (isPrivate) {
+      // Return a "Private" table object with the actual table title if available
+      return [
+        {
+          id: juncTableId,
+          title: tableMeta?.title || t('labels.privateTable'),
+          is_private: true,
+        },
+      ]
+    }
+
+    return tableMeta ? [tableMeta] : []
+  }
+
   if (!baseTables.value.get(vModel.value.custom.junc_base_id)) {
     return []
   }
 
-  return [...baseTables.value.get(vModel.value.custom.junc_base_id).filter((t) => t.type === ModelTypes.TABLE)]
+  const tablesList = [...baseTables.value.get(vModel.value.custom.junc_base_id).filter((t) => t.type === ModelTypes.TABLE)]
+
+  // Backend already filters tables based on visibility, so return all tables from the list
+  return tablesList
 })
 
 function filterSupportedColumns(columns: ColumnType[]) {
@@ -327,7 +415,7 @@ onMounted(async () => {
           >
             <NcSelect
               v-model:value="vModel.custom.junc_model_id"
-              :disabled="isEdit"
+              :disabled="isEdit || isJunctionTablePrivate"
               suffix-icon="chevronDown"
               show-search
               placeholder="-select table-"
@@ -337,15 +425,17 @@ onMounted(async () => {
               data-testid="custom-link-junction-table-id"
               @change="onModelIdChange(vModel.custom.junc_model_id, true)"
             >
-              <a-select-option v-for="table of junctionTables" :key="table.title" :value="table.id">
+              <a-select-option v-for="table of junctionTables" :key="table.id" :value="table.id" :disabled="(table as any).is_private">
                 <div class="flex w-full items-center gap-2">
                   <div class="flex items-center justify-center">
-                    <GeneralTableIcon :meta="table" class="nc-table-icon" />
+                    <GeneralTableIcon v-if="(table as any).is_private" class="nc-table-icon text-nc-content-gray-disabled" />
+                    <GeneralTableIcon v-else :meta="table" class="nc-table-icon" />
                   </div>
-                  <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                  <NcTooltip v-if="!(table as any).is_private" class="flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ table.title }}</template>
                     <span>{{ table.title }}</span>
                   </NcTooltip>
+                  <span v-else class="text-nc-content-gray-disabled">{{ table.title || $t('labels.privateTable') }}</span>
                 </div>
               </a-select-option>
             </NcSelect>
@@ -488,7 +578,7 @@ onMounted(async () => {
         <a-form-item class="nc-relation-settings-table-row nc-ltar-child-table" v-bind="validateInfos['custom.ref_model_id']">
           <NcSelect
             v-model:value="vModel.custom.ref_model_id"
-            :disabled="isEdit"
+            :disabled="isEdit || isRefTablePrivate"
             suffix-icon="chevronDown"
             show-search
             placeholder="-select table-"
@@ -498,15 +588,17 @@ onMounted(async () => {
             data-testid="custom-link-target-table-id"
             @change="onModelIdChange(vModel.custom.ref_model_id)"
           >
-            <a-select-option v-for="table of refTables" :key="table.title" :value="table.id">
+            <a-select-option v-for="table of refTables" :key="table.id" :value="table.id" :disabled="(table as any).is_private">
               <div class="flex w-full items-center gap-2">
                 <div class="flex items-center justify-center">
-                  <GeneralTableIcon :meta="table" class="nc-table-icon" />
+                  <GeneralTableIcon v-if="(table as any).is_private" class="nc-table-icon text-nc-content-gray-disabled" />
+                  <GeneralTableIcon v-else :meta="table" class="nc-table-icon" />
                 </div>
-                <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                <NcTooltip v-if="!(table as any).is_private" class="flex-1 truncate" show-on-truncate-only>
                   <template #title>{{ table.title }}</template>
                   <span>{{ table.title }}</span>
                 </NcTooltip>
+                <span v-else class="text-nc-content-gray-disabled">{{ table.title || $t('labels.privateTable') }}</span>
               </div>
             </a-select-option>
           </NcSelect>

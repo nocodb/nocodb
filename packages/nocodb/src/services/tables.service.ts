@@ -16,8 +16,7 @@ import {
   ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
-import { MetaDiffsService } from '~/services/meta-diffs.service';
-import { ColumnsService } from '~/services/columns.service';
+import type { WorkspaceRoles } from 'nocodb-sdk-v2';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnType,
@@ -29,9 +28,16 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
-import { repopulateCreateTableSystemColumns } from '~/helpers/tableHelpers';
+import { ColumnsService } from '~/services/columns.service';
+import { MetaDiffsService } from '~/services/meta-diffs.service';
+import {
+  hasDefaultTableVisibility,
+  hasTableVisibilityAccess,
+  hasViewersAndUpTableVisibility,
+  repopulateCreateTableSystemColumns,
+} from '~/helpers/tableHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
-import { Base, Column, Model, ModelRoleVisibility } from '~/models';
+import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -485,6 +491,22 @@ export class TablesService {
     if (!table) {
       NcError.tableNotFound(param.tableId);
     }
+
+    // Check table visibility permission
+    // Base owners always have access, but we still need to check for others
+    if (!isServiceUser(param.user)) {
+      const hasAccess = await hasTableVisibilityAccess(
+        context,
+        param.tableId,
+        param.user,
+      );
+
+      if (!hasAccess) {
+        // Return 404 as if table doesn't exist
+        NcError.tableNotFound(param.tableId);
+      }
+    }
+
     if (isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
       await table.getViews(context);
     } else {
@@ -569,6 +591,11 @@ export class TablesService {
       includeM2M?: boolean;
       roles: Record<string, boolean>;
       allSources?: boolean;
+      user: (User | UserType) & {
+        base_roles?: Record<string, boolean>;
+        workspace_roles?: Record<string, boolean>;
+      };
+      isPublicBase?: boolean;
     },
   ) {
     const viewList = await this.xcVisibilityMetaGet(context, param.baseId);
@@ -586,12 +613,52 @@ export class TablesService {
       return o;
     }, {});
 
-    const tableList = (
+    let tableList = (
       await Model.list(context, {
         base_id: param.baseId,
         source_id: param.allSources ? undefined : param.sourceId,
       })
     ).filter((t) => tableViewMapping[t.id]);
+
+    // Filter tables based on TABLE_VISIBILITY permission
+    // Base owners always see all tables, so skip filtering for them
+    if (!param.roles?.[ProjectRoles.OWNER]) {
+      const permissions = await Permission.list(context, param.baseId);
+      const accessibleTableIds = new Set<string>();
+
+      for (const table of tableList) {
+        // For shared bases (public bases), show tables with default visibility (Everyone) or "Viewers & up" permission
+        if (param.isPublicBase) {
+          if (
+            hasDefaultTableVisibility(table.id, permissions) ||
+            hasViewersAndUpTableVisibility(table.id, permissions)
+          ) {
+            accessibleTableIds.add(table.id);
+          }
+        } else if (param.user) {
+          let user = param.user ?? context.user;
+
+          if (!user) {
+            user = {
+              base_roles: param.roles,
+            } as unknown as UserType;
+          }
+
+          // For regular bases, check user access
+          const hasAccess = await hasTableVisibilityAccess(
+            context,
+            table.id,
+            user,
+            permissions,
+          );
+          if (hasAccess) {
+            accessibleTableIds.add(table.id);
+          }
+        }
+      }
+
+      tableList = tableList.filter((t) => accessibleTableIds.has(t.id));
+    }
 
     return param.includeM2M
       ? tableList

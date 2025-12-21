@@ -36,6 +36,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { TablesService } from '~/services/tables.service';
 import { TelemetryService } from '~/services/telemetry.service';
 import { DuplicateModelUtils } from '~/utils/duplicate-model.utils';
+import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 
 @Injectable()
 export class DuplicateProcessor {
@@ -131,9 +132,16 @@ export class DuplicateProcessor {
 
       const user = (req as any).user;
 
-      const models = (await dataSource.getModels(context)).filter(
+      const filteredModels = (await dataSource.getModels(context)).filter(
         (m) => m.source_id === dataSource.id && !m.mm && m.type === 'table',
       );
+
+      const models: Model[] = [];
+      for (const model of filteredModels) {
+        if (await hasTableVisibilityAccess(context, model.id, user)) {
+          models.push(model);
+        }
+      }
 
       const { serializedModels: exportedModels, idMap: exportModelMap } =
         await this.exportService.serializeModels(context, {

@@ -112,6 +112,9 @@ export const useRealtime = createSharedComposable(() => {
         baseTables.value.set(activeBaseId.value, tables)
       }
       refreshCommandPalette()
+    } else if (event.action === 'table_permission_update') {
+      loadProjectTables(activeBaseId.value, true)
+      refreshCommandPalette()
     } else if (event.action === 'table_update') {
       const updatedTable = event.payload
       const tables = baseTables.value.get(activeBaseId.value)

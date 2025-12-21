@@ -1,6 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NcApiVersion, UITypes } from 'nocodb-sdk';
+import type { WorkspaceRoles } from 'nocodb-sdk-v2';
 import type {
+  ProjectRoles,
   TableCreateV3Type,
   TableReqType,
   TableUpdateV3Type,
@@ -119,6 +121,11 @@ export class TablesV3Service {
       includeM2M?: boolean;
       roles: Record<string, boolean>;
       allSources?: boolean;
+      user: (User | UserType) & {
+        base_roles?: Record<string, boolean>;
+        workspace_roles?: Record<string, boolean>;
+      };
+      isPublicBase?: boolean;
     },
   ) {
     const tables = await this.tablesService.getAccessibleTables(context, param);

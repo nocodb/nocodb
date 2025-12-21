@@ -32,6 +32,7 @@ export class ApiDocsController {
     const swagger = await this.apiDocsService.swaggerJson(context, {
       baseId: baseId,
       siteUrl: req.ncSiteUrl,
+      req,
     });
 
     return swagger;
@@ -48,6 +49,7 @@ export class ApiDocsController {
     const swagger = await this.apiDocsService.swaggerJsonV2(context, {
       baseId: baseId,
       siteUrl: req.ncSiteUrl,
+      req,
     });
 
     return swagger;
@@ -108,6 +110,7 @@ export class ApiDocsController {
     const swagger = await this.apiDocsService.swaggerJsonV3(context, {
       baseId: baseId,
       siteUrl: req.ncSiteUrl,
+      req,
     });
 
     return swagger;

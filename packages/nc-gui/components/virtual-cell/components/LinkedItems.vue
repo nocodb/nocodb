@@ -59,6 +59,7 @@ const {
   relatedTableMeta,
   link,
   meta,
+  isLinkedTableAccessible,
   row,
   loadRelatedTableMeta,
   resetChildrenListOffsetCount,
@@ -151,11 +152,15 @@ const colTitle = computed(() => injectedColumn.value?.title || '')
 
 const onClick = (row: Row) => {
   if (isPublic.value || isForm.value) return
+  // Don't allow expanding if linked table is not accessible
+  if (!isLinkedTableAccessible.value) return
   expandedFormRow.value = row
   expandedFormDlg.value = true
 }
 const addNewRecord = () => {
   if (showRecordPlanLimitExceededModal()) return
+  // Don't allow creating new record if linked table is not accessible
+  if (!isLinkedTableAccessible.value) return
 
   expandedFormRow.value = {}
   expandedFormDlg.value = true

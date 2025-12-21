@@ -571,12 +571,14 @@ export class InternalController extends InternalControllerCE {
   @Acl('tableGet')
   async tableGet(
     @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
     @Param('columnId') columnId: string,
     @Param('refTableId') refTableId: string,
   ) {
     return await this.columnsService.getLinkColumnRefTable(context, {
       columnId,
       tableId: refTableId,
+      user: req.user,
     });
   }
 }

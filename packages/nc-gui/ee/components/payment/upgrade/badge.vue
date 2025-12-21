@@ -88,11 +88,15 @@ onBeforeUnmount(() => {
     :size="size"
     :border="false"
     class="nc-upgrade-badge cursor-pointer select-none"
-    :class="`nc-upgrade-${planTitle}-badge nc-size-${size}`"
+    :class="[
+      `nc-upgrade-${planTitle}-badge nc-size-${size}`,
+      {
+        'opacity-75': disabled,
+      },
+    ]"
     :style="{
-      'color': disabled ? activePlanMeta.accent : activePlanMeta.primary,
-      '--nc-badge-bg-light': activePlanMeta.bgDark,
-      '--nc-badge-bg-dark': activePlanMeta.bgDark,
+      'color': activePlanMeta.badgeTextColor,
+      '--nc-badge-bg-light': activePlanMeta.badgeBgColor,
     }"
     @click="showUpgradeModal"
   >
@@ -103,7 +107,7 @@ onBeforeUnmount(() => {
 
 <style lang="scss" scoped>
 .nc-upgrade-badge {
-  @apply bg-[var(--nc-badge-bg-light)] hover:bg-[var(--nc-badge-bg-dark)] group-hover:bg-[var(--nc-badge-bg-dark)] font-semibold transition-colors duration-200;
+  @apply bg-[var(--nc-badge-bg-light)] font-semibold transition-colors duration-200;
 
   &.nc-size-xs {
     @apply text-bodyDefaultSm font-normal;

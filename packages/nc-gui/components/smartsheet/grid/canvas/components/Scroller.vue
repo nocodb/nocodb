@@ -548,7 +548,7 @@ defineExpose({
 
 .custom-scrollbar-thumb {
   position: absolute;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(var(--rgb-base), 0.4);
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -556,7 +556,7 @@ defineExpose({
 }
 
 .custom-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(var(--rgb-base), 0.6);
 }
 
 .custom-scrollbar-thumb.vertical {

@@ -9,6 +9,7 @@ interface Props {
   pickButton?: boolean
   colorBoxBorder?: boolean
   isNewDesign?: boolean
+  invertInDarkMode?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   pickButton: false,
   colorBoxBorder: false,
   isNewDesign: false,
+  invertInDarkMode: false,
 })
 
 const emit = defineEmits(['input', 'closeModal'])
@@ -29,6 +31,8 @@ const vModel = computed({
     emit('input', val || null)
   },
 })
+
+const { isDark } = useTheme()
 
 const picked = ref<string>(props.modelValue || enumColor.light[0])
 
@@ -72,8 +76,18 @@ watch(picked, (n, _o) => {
           class="color-selector"
           :class="{ 'selected': compare(picked, color), 'new-design': isNewDesign }"
           :style="{
-            backgroundColor: `${color}`,
-            border: colorBoxBorder ? `1px solid ${tinycolor(color).darken(30).toString()}` : undefined,
+            backgroundColor: `${getSelectTypeFieldOptionBgColor({
+              color: color || '#ccc',
+              isDark: invertInDarkMode && isDark,
+              shade: 0,
+            })}`,
+            border: colorBoxBorder
+              ? `1px solid ${tinycolor(
+                  getSelectTypeFieldOptionBgColor({ color: color || '#ccc', isDark: invertInDarkMode && isDark, shade: 0 }),
+                )
+                  .darken(invertInDarkMode && isDark ? -30 : 30)
+                  .toString()}`
+              : undefined,
           }"
           @click="selectColor(color, true)"
         >

@@ -43,6 +43,9 @@ export const CheckboxCellRenderer: CellRenderer = {
       icon: extractCheckboxIcon(column?.meta ?? {}),
     }
 
+    // default checkbox color is #777 and it is looking like disabled text color in dark mode, so we need to use the gray['600'] color in dark mode
+    const columnMetaColor = isDark && columnMeta.color === '#777' ? getColor(themeV4Colors.gray['600']) : columnMeta.color
+
     if (!isRowHovered && !selected && !checked && !renderAsTag) {
       return
     } else if ((isRowHovered || selected) && !checked && readonly && !renderAsTag) {
@@ -69,8 +72,8 @@ export const CheckboxCellRenderer: CellRenderer = {
           x: x + tagWidth / 2 - 4,
           y: initialY + 3,
           color: isDark
-            ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), columnMeta.color, ['#4a5268', '#d5dce8'])
-            : columnMeta.color,
+            ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), columnMetaColor, ['#4a5268', '#d5dce8'])
+            : columnMetaColor,
         })
 
       return {
@@ -90,8 +93,8 @@ export const CheckboxCellRenderer: CellRenderer = {
         x: x + width / 2 - 7,
         y: y + height / 2 - 7,
         color: isDark
-          ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), columnMeta.color, ['#4a5268', '#d5dce8'])
-          : columnMeta.color,
+          ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), columnMetaColor, ['#4a5268', '#d5dce8'])
+          : columnMetaColor,
         alpha: checked ? 1 : isHover ? 0.7 : 0.3,
       })
     }

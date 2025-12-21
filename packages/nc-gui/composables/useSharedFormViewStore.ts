@@ -53,6 +53,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { metas, setMeta, getMeta } = useMetas()
 
+  const { isDark, getColor } = useTheme()
+
   const worksapce = useWorkspace()
 
   const { workspaces } = storeToRefs(worksapce)
@@ -89,6 +91,25 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const isValidRedirectUrl = computed(
     () => typeof sharedFormView.value?.redirect_url === 'string' && !!sharedFormView.value?.redirect_url?.trim(),
   )
+
+  const backgroundAndTextColor = computed(() => {
+    const result = {
+      bgColor: getColor('var(--nc-bg-gray-extralight)'),
+      textColor: '#ffffff',
+    }
+
+    if (parseProp(sharedFormView.value?.meta).background_color) {
+      result.bgColor = getSelectTypeFieldOptionBgColor({
+        color: parseProp(sharedFormView.value?.meta).background_color,
+        isDark: isDark.value,
+        shade: 0,
+      }) as string
+    }
+
+    result.textColor = getOppositeColorOfBackground(result.bgColor)
+
+    return result
+  })
 
   useProvideSmartsheetLtarHelpers(meta)
   const { state: additionalState } = useProvideSmartsheetRowStore(
@@ -889,6 +910,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     loadAllviewFilters,
     checkFieldVisibility,
     isAddingEmptyRowPermitted,
+    backgroundAndTextColor,
   }
 }, 'shared-form-view-store')
 

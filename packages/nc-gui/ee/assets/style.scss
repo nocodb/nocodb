@@ -208,10 +208,10 @@ main {
   }
   &::-webkit-scrollbar-thumb {
     width: 4px;
-    @apply bg-gray-200;
+    @apply bg-gray-200 dark:bg-gray-500;
   }
   &::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-300 dark:bg-gray-600;
   }
 }
 
@@ -235,10 +235,10 @@ main {
   }
   &::-webkit-scrollbar-thumb {
     width: 4px;
-    @apply bg-gray-200;
+    @apply bg-gray-200 dark:bg-gray-500;
   }
   &::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-300 dark:bg-gray-600;
   }
 }
 
@@ -261,10 +261,10 @@ main {
     border-radius: 10px;
 
     width: 4px;
-    @apply bg-gray-200;
+    @apply bg-gray-200 dark:bg-gray-500;
   }
   &::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-300 dark:bg-gray-600;
   }
 }
 
@@ -293,10 +293,10 @@ main {
     border-radius: 10px;
 
     width: 4px;
-    @apply bg-gray-300;
+    @apply bg-gray-300 dark:bg-gray-500;
   }
   &::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-400;
+    @apply bg-gray-400 dark:bg-gray-600;
   }
 }
 
@@ -319,10 +319,10 @@ main {
     border-radius: 10px;
 
     width: 4px;
-    background-color: rgba(0, 0, 0, 0.3);
+    background-color: rgba(var(--rgb-base), 0.3);
   }
   &::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(var(--rgb-base), 0.4);
   }
 }
 
@@ -344,10 +344,10 @@ main {
     border-radius: 10px;
 
     width: 8px;
-    @apply bg-gray-200;
+    @apply bg-gray-200 dark:bg-gray-500;
   }
   &::-webkit-scrollbar-thumb:hover {
-    @apply bg-gray-300;
+    @apply bg-gray-300 dark:bg-gray-600;
   }
 }
 
@@ -644,7 +644,7 @@ a {
   @apply !py-0;
 
   &.ant-dropdown-menu-submenu-popup {
-    @apply border-1 border-gray-200;
+    @apply border-1 border-nc-border-gray-medium;
   }
 
   .ant-dropdown-menu,

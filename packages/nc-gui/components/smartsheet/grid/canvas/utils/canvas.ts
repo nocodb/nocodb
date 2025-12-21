@@ -22,7 +22,7 @@ const abstractTypeCache: LRUCache<string, string> = new LRUCache({
   max: 1000,
 })
 
-const barcodeCache: LRUCache<string, any> = new LRUCache({
+export const barcodeCache: LRUCache<string, any> = new LRUCache({
   max: 1000,
 })
 
@@ -961,6 +961,7 @@ export function renderBarcode(
     value,
     renderAsTag = false,
     spriteLoader,
+    isDark = false,
   }: {
     x: number
     y: number
@@ -970,6 +971,7 @@ export function renderBarcode(
     value: string
     renderAsTag?: boolean
     spriteLoader: SpriteLoader
+    isDark?: boolean
   },
 ) {
   if (!value) return
@@ -1007,9 +1009,9 @@ export function renderBarcode(
         // height: height - padding * 2,
         displayValue: false,
         lineColor: '#000000',
-        margin: 0,
         fontSize: 12,
         font: 'Inter',
+        ...(isDark ? { marginTop: 4, marginBottom: 4, marginLeft: 8, marginRight: 8 } : { margin: 0 }),
       })
     }
 

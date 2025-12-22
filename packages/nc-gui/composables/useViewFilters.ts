@@ -680,7 +680,7 @@ export function useViewFilters(
     }
   }
 
-  const STRIP_KEYS = ['id', 'tmp_id', 'status', 'fk_parent_id', 'value']
+  const STRIP_KEYS = ['id', 'tmp_id', 'status', 'fk_parent_id']
 
   function normalizeFilterNode(filter: FilterType = {}, extra_strip_keys: Array<string> = []): ColumnFilterType {
     const raw = clone(filter) as any
@@ -702,7 +702,9 @@ export function useViewFilters(
       Object.assign(group, raw)
 
       // children must exist for group
-      group.children = ncIsArray(raw.children) ? raw.children.map((child) => normalizeFilterNode(child)) : []
+      group.children = ncIsArray(raw.children)
+        ? raw.children.filter((child) => child.status !== 'delete').map((child) => normalizeFilterNode(child))
+        : []
 
       // reset order for children
       group.children!.forEach((child, index) => {

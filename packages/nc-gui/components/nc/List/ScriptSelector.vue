@@ -141,7 +141,7 @@ defineExpose({
     >
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedScript" class="min-w-5 flex items-center justify-center">
-          <NcIconAutomation :automation="selectedScript" />
+          <NcIconScript :script="selectedScript" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span
@@ -177,7 +177,7 @@ defineExpose({
           @escape="onEsc"
         >
           <template #listItemExtraLeft="{ option }">
-            <NcIconAutomation :automation="option as ScriptType" />
+            <NcIconScript :script="option as ScriptType" />
           </template>
         </NcList>
       </template>

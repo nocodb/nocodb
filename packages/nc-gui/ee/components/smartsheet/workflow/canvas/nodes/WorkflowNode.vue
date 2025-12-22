@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Handle, Position } from '@vue-flow/core'
 import type { NodeProps } from '@vue-flow/core'
+import { Handle, Position } from '@vue-flow/core'
 import type { WorkflowNodeDefinition } from 'nocodb-sdk'
 import { GeneralNodeID, WorkflowNodeCategory } from 'nocodb-sdk'
 import WorkflowNodeStatusIcon from './WorkflowNodeStatusIcon.vue'
@@ -10,19 +10,40 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const {
-  getNodeMetaById,
-  updateNode,
-  addPlusNode,
-  triggerLayout,
-  deleteNode,
-  selectedNodeId,
-  edges,
-  viewingExecution,
-  activeTab,
-} = useWorkflowOrThrow()
+const { getNodeMetaById, updateNode, triggerLayout, deleteNode, selectedNodeId, viewingExecution, activeTab } =
+  useWorkflowOrThrow()
+
+const { getCurrentIteration, goToPreviousIteration, goToNextIteration, isLoopNode } = useWorkflowExecutionLoop()
 
 const enableEditableMenu = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
+
+const findLoopData = (loopsObj: any, loopNodeId: string, parentIterations: Record<string, number> = {}): any => {
+  // Check top-level loops
+  if (loopsObj[loopNodeId]) {
+    return loopsObj[loopNodeId]
+  }
+
+  // Recursively search in childLoops
+  for (const [parentLoopId, parentLoopData] of Object.entries(loopsObj)) {
+    const parentIteration = parentIterations[parentLoopId] ?? getCurrentIteration(parentLoopId)
+    const iteration = (parentLoopData as any).iterations?.[parentIteration]
+
+    if (iteration?.childLoops?.[loopNodeId]) {
+      return iteration.childLoops[loopNodeId]
+    }
+
+    // Recursively search deeper
+    if (iteration?.childLoops) {
+      const found = findLoopData(iteration.childLoops, loopNodeId, {
+        ...parentIterations,
+        [parentLoopId]: parentIteration,
+      })
+      if (found) return found
+    }
+  }
+
+  return null
+}
 
 const nodeMeta = computed(() => {
   return getNodeMetaById(props.type)
@@ -48,36 +69,10 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
 
   selectedNodeId.value = props.id
 
-  const selectedNodeMeta = getNodeMetaById(option.id)
-
   $e('a:workflow:node:select-type', {
     node_type: option.id,
     node_category: option.category,
   })
-
-  if (props.type === GeneralNodeID.PLUS) {
-    const hasOutputs = edges.value.some((e) => e.source === props.id)
-
-    if (!hasOutputs) {
-      // If it's a branch node (multiple outputs), add multiple plus nodes
-      if (selectedNodeMeta?.output && selectedNodeMeta.output > 1) {
-        // Add plus nodes for each output
-        for (let i = 0; i < selectedNodeMeta.output; i++) {
-          const label = i === 0 ? 'True' : 'False'
-          addPlusNode(props.id, label)
-        }
-      } else {
-        // Regular node, add single plus node
-        addPlusNode(props.id)
-      }
-
-      // Wait for Vue Flow and layout to process
-      await nextTick()
-      setTimeout(() => {
-        triggerLayout()
-      }, 50)
-    }
-  }
 }
 
 const handleDelete = async () => {
@@ -101,6 +96,45 @@ const handleNodeClick = () => {
   }
 }
 
+// Check if this is a loop node (shows navigation controls)
+const isThisLoopNode = computed(() => {
+  return isLoopNode(props.type)
+})
+
+// Get loop execution info (only for loop nodes themselves)
+const loopExecutionInfo = computed(() => {
+  if (!viewingExecution.value || !isThisLoopNode.value) return null
+
+  const executionData = viewingExecution.value.execution_data
+  if (!executionData?.loops) return null
+
+  // Find loop data (supports nested loops in childLoops)
+  const loop = findLoopData(executionData.loops, props.id)
+  if (loop) {
+    const currentIteration = getCurrentIteration(props.id)
+
+    return {
+      totalIterations: loop.totalIterations,
+      currentIteration,
+    }
+  }
+
+  return null
+})
+
+// Navigation functions for loop nodes
+const handlePreviousIteration = () => {
+  if (loopExecutionInfo.value) {
+    goToPreviousIteration(props.id)
+  }
+}
+
+const handleNextIteration = () => {
+  if (loopExecutionInfo.value) {
+    goToNextIteration(props.id, loopExecutionInfo.value.totalIterations)
+  }
+}
+
 onClickOutside(
   wrappperRef,
   () => {
@@ -110,13 +144,49 @@ onClickOutside(
     }
   },
   {
-    ignore: ['.node-sidebar', '.ant-select-dropdown', '.ant-picker-dropdown', '.ant-modal', '.nc-dropdown', '.tippy-box'],
+    ignore: [
+      '.node-sidebar',
+      '.ant-select-dropdown',
+      '.ant-picker-dropdown',
+      '.ant-modal',
+      '.nc-dropdown',
+      '.tippy-box',
+      '.loop-selector',
+    ],
   },
 )
 </script>
 
 <template>
-  <div ref="wrappperRef" class="workflow-node-wrapper">
+  <div ref="wrappperRef" class="workflow-node-wrapper relative">
+    <div
+      v-if="loopExecutionInfo"
+      class="absolute -top-7.5 left-0 loop-selector flex items-center bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg px-1 shadow-sm z-10"
+      @click.stop
+    >
+      <NcButton
+        type="text"
+        size="xxsmall"
+        :disabled="loopExecutionInfo.currentIteration === 0"
+        @click.stop="handlePreviousIteration"
+      >
+        <GeneralIcon icon="ncChevronLeft" />
+      </NcButton>
+
+      <div class="text-bodySm text-nc-content-gray-emphasis px-1 min-w-12 text-center">
+        {{ loopExecutionInfo.currentIteration + 1 }} / {{ loopExecutionInfo.totalIterations }}
+      </div>
+
+      <NcButton
+        type="text"
+        size="xxsmall"
+        :disabled="loopExecutionInfo.currentIteration >= loopExecutionInfo.totalIterations - 1"
+        @click.stop="handleNextIteration"
+      >
+        <GeneralIcon icon="ncChevronRight" />
+      </NcButton>
+    </div>
+
     <Handle type="target" :position="Position.Top" class="!w-3 !h-3 !bg-blue-500 !border-2 !border-white" />
     <Dropdown
       :disabled="disableDropdown"

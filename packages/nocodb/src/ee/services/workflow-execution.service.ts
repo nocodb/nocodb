@@ -1,15 +1,20 @@
 import { Injectable, Logger } from '@nestjs/common';
 import {
+  findVariableByPath,
   GeneralNodeID,
   genGeneralVariables,
   IntegrationsType,
   isTriggerNode,
   NcBaseError,
   NOCO_SERVICE_USERS,
+  parseWorkflowVariableExpression,
   ServiceUserType,
+  VariableType,
   WorkflowExpressionParser,
 } from 'nocodb-sdk';
+import rfdc from 'rfdc';
 import type {
+  LoopContext,
   NodeExecutionResult,
   VariableDefinition,
   VariableGeneratorContext,
@@ -31,11 +36,24 @@ import { NcError } from '~/helpers/ncError';
 import {
   buildWorkflowGraph,
   determineStartNode,
+  findParentLoops,
   findParentNodes,
   getNextNode,
 } from '~/services/workflows/graphHelpers';
 import { ExpressionContext } from '~/services/workflows/ExpressionContext';
 import { MailService } from '~/services/mail/mail.service';
+
+const deepClone = rfdc();
+
+interface ActiveLoop extends LoopContext {
+  // Runtime node identification
+  nodeId: string;
+  nodeTitle: string;
+
+  // Runtime navigation (resolved edge targets)
+  bodyStartNodeId: string | null;
+  exitNodeId: string | null;
+}
 
 @Injectable()
 export class WorkflowExecutionService {
@@ -44,12 +62,89 @@ export class WorkflowExecutionService {
 
   private getVariableGeneratorContext(
     context: NcContext,
+    nodes?: WorkflowGeneralNode[],
   ): VariableGeneratorContext {
     return {
       getColumn: (columnId: string) => Column.get(context, { colId: columnId }),
       getTableColumns: (tableId: string) =>
         Column.list(context, { fk_model_id: tableId }),
+      inferSchemaFromExpression: async (expression: string) => {
+        return this.inferSchemaFromExpression(expression, nodes);
+      },
     };
+  }
+
+  /**
+   * Get loop data from nested structure based on loop hierarchy
+   * Navigates through parent loops to find the correct loop data
+   */
+  private getLoopData(
+    executionState: WorkflowExecutionState,
+    activeLoops: ActiveLoop[],
+  ): any {
+    if (activeLoops.length === 0) return null;
+
+    // Start with top-level loop
+    let loopData = executionState.loops[activeLoops[0].nodeId];
+
+    // Navigate through nested loops
+    for (let i = 1; i < activeLoops.length; i++) {
+      const parentLoop = activeLoops[i - 1];
+      const currentLoopId = activeLoops[i].nodeId;
+      const parentIteration =
+        loopData.iterations[parentLoop.state.currentIndex];
+
+      if (!parentIteration?.childLoops?.[currentLoopId]) {
+        return null;
+      }
+
+      loopData = parentIteration.childLoops[currentLoopId];
+    }
+
+    return loopData;
+  }
+
+  /**
+   * Infer schema from a workflow expression by analyzing referenced nodes
+   */
+  private async inferSchemaFromExpression(
+    expression: string,
+    nodes?: WorkflowGeneralNode[],
+  ): Promise<VariableDefinition[] | undefined> {
+    try {
+      if (!nodes) return undefined;
+
+      const variableInfo = parseWorkflowVariableExpression(expression);
+      if (!variableInfo) return undefined;
+
+      const { nodeTitle, variablePath } = variableInfo;
+
+      // Find the referenced node
+      const referencedNode = nodes.find(
+        (n: any) => n.data?.title === nodeTitle,
+      );
+      if (!referencedNode) return undefined;
+
+      // Get its output variables (from test results or stored config)
+      const outputVars =
+        (referencedNode as any).data?.testResult?.outputVariables ||
+        (referencedNode as any).data?.outputVariables;
+      if (!outputVars) return undefined;
+
+      // Find the specific variable at variablePath
+      const variable = findVariableByPath(variablePath, outputVars);
+      if (!variable) return undefined;
+
+      // Extract itemSchema from array variable
+      if (variable.isArray || variable.type === VariableType.Array) {
+        return variable.extra?.itemSchema;
+      }
+
+      return undefined;
+    } catch {
+      // If static analysis fails, return undefined
+      return undefined;
+    }
   }
 
   constructor(
@@ -175,7 +270,7 @@ export class WorkflowExecutionService {
   ): any {
     try {
       const contextData = context.getAllNodeOutputs();
-      this.expressionParser.setContext(contextData);
+      this.expressionParser.setContext(deepClone(contextData));
 
       const fullMatchRegex = /^\{\{\s*(.+?)\s*}}$/;
       const fullMatch = template.match(fullMatchRegex);
@@ -219,6 +314,8 @@ export class WorkflowExecutionService {
     node: WorkflowGeneralNode,
     expressionContext: ExpressionContext,
     testMode?: boolean,
+    _nodeWrapper?: WorkflowNodeIntegration,
+    nodes?: WorkflowGeneralNode[],
   ): Promise<NodeExecutionResult> {
     const result: NodeExecutionResult = {
       nodeId: node.id,
@@ -242,11 +339,9 @@ export class WorkflowExecutionService {
         return result;
       }
 
-      const nodeWrapper = this.getNodeWrapper(
-        context,
-        node.type,
-        node.data?.config || {},
-      );
+      const nodeWrapper =
+        _nodeWrapper ||
+        this.getNodeWrapper(context, node.type, node.data?.config || {});
       if (!nodeWrapper) {
         NcError.get(context).workflowNodeNotFound(node.type);
       }
@@ -276,6 +371,7 @@ export class WorkflowExecutionService {
       result.logs = nodeResult.logs;
       result.metrics = nodeResult.metrics;
       result.endTime = Date.now();
+      result.loopContext = nodeResult.loopContext;
 
       // Generate variable definitions for input/output
       if (
@@ -284,7 +380,8 @@ export class WorkflowExecutionService {
       ) {
         try {
           result.inputVariables = await nodeWrapper.generateInputVariables(
-            this.getVariableGeneratorContext(context),
+            this.getVariableGeneratorContext(context, nodes),
+            { config: interpolatedData, output: result.output },
           );
         } catch (error) {
           this.logger.warn(
@@ -300,7 +397,8 @@ export class WorkflowExecutionService {
       ) {
         try {
           result.outputVariables = await nodeWrapper.generateOutputVariables(
-            this.getVariableGeneratorContext(context),
+            this.getVariableGeneratorContext(context, nodes),
+            { config: interpolatedData, output: result.output },
           );
         } catch (error) {
           this.logger.warn(
@@ -351,6 +449,7 @@ export class WorkflowExecutionService {
       nodeResults: [],
       triggerData,
       triggerNodeTitle,
+      loops: {},
     };
 
     try {
@@ -375,17 +474,13 @@ export class WorkflowExecutionService {
       );
 
       const executedNodes = new Set<string>();
-      const maxIterations = nodes.length * 10;
+      const maxIterations = nodes.length * 1000;
       let iterations = 0;
+
+      const activeLoops: ActiveLoop[] = [];
 
       while (currentNodeId && iterations < maxIterations) {
         iterations++;
-
-        // Detect cycles
-        if (executedNodes.has(currentNodeId)) {
-          this.logger.warn(`Cycle detected at node ${currentNodeId}`);
-          break;
-        }
 
         const node = nodeMap.get(currentNodeId);
         if (!node) {
@@ -393,11 +488,49 @@ export class WorkflowExecutionService {
           break;
         }
 
+        if (executedNodes.has(currentNodeId)) {
+          this.logger.warn(`Cycle detected at node ${currentNodeId}`);
+          break;
+        }
+
         if (node.type === GeneralNodeID.PLUS) {
           const outgoingEdges = graph.get(currentNodeId) || [];
-          currentNodeId =
-            outgoingEdges.length > 0 ? outgoingEdges[0].target : null;
-          continue;
+          if (outgoingEdges.length > 0) {
+            // Plus node has outgoing edge, follow it
+            currentNodeId = outgoingEdges[0].target;
+            continue;
+          } else if (activeLoops.length > 0) {
+            // Plus node at end of loop body, trigger loop advancement
+            const loop = activeLoops[activeLoops.length - 1];
+
+            // We've completed one iteration, advance the loop state
+            loop.state.currentIndex++;
+
+            // Check if we should continue iterating
+            const shouldContinue =
+              loop.state.currentIndex < loop.state.totalItems;
+
+            if (shouldContinue) {
+              // Clear executed nodes for new iteration (except the iterate node itself)
+              const iterateNodeId = loop.nodeId;
+              executedNodes.clear();
+              executedNodes.add(iterateNodeId);
+
+              // More iterations to process, continue to body
+              currentNodeId = loop.bodyStartNodeId;
+              continue;
+            } else {
+              // All iterations processed, exit loop
+              currentNodeId = loop.exitNodeId;
+
+              // Clean up loop state
+              activeLoops.pop();
+              continue;
+            }
+          } else {
+            // Plus node with no edges and no loop, end execution
+            break;
+          }
         }
 
         executedNodes.add(currentNodeId);
@@ -409,14 +542,103 @@ export class WorkflowExecutionService {
           nodes,
         );
 
+        for (const loop of activeLoops) {
+          // Inject variables namespaced by node title: $('Iterate').item
+          const variables = {
+            item: loop.state.items?.[loop.state.currentIndex],
+            index: loop.state.currentIndex,
+            itemCount: loop.state.totalItems,
+          };
+          expressionContext.setVariable(loop.nodeTitle, variables);
+        }
+
         // Execute node
         const result = await this.executeNodeByType(
           context,
           node,
           triggerData,
           expressionContext,
+          nodes,
         );
-        executionState.nodeResults.push(result);
+
+        // Handle loop context
+        if (result.loopContext && result.status === 'success') {
+          const outgoingEdges = graph.get(currentNodeId) || [];
+          const bodyEdge = outgoingEdges.find(
+            (e) => e.sourcePortId === result.loopContext.bodyPort,
+          );
+          const exitEdge = outgoingEdges.find(
+            (e) => e.sourcePortId === result.loopContext.exitPort,
+          );
+
+          activeLoops.push({
+            nodeId: currentNodeId,
+            nodeTitle: node.data?.title || currentNodeId,
+            state: result.loopContext.state,
+            bodyPort: result.loopContext.bodyPort,
+            exitPort: result.loopContext.exitPort,
+            bodyStartNodeId: bodyEdge?.target || null,
+            exitNodeId: exitEdge?.target || null,
+          });
+
+          // Initialize loop tracking structure (nested if inside another loop)
+          const loopData = {
+            nodeId: currentNodeId,
+            nodeTitle: node.data?.title || currentNodeId,
+            totalIterations:
+              result.loopContext.state.totalItems ||
+              result.loopContext.state.items?.length ||
+              0,
+            iterations: {},
+          };
+
+          if (activeLoops.length === 1) {
+            // Top-level loop - store at root
+            if (!executionState.loops[currentNodeId]) {
+              executionState.loops[currentNodeId] = loopData;
+            }
+          } else {
+            // Nested loop - store in parent iteration's childLoops
+            const parentLoop = activeLoops[activeLoops.length - 2];
+            const parentLoopData = this.getLoopData(
+              executionState,
+              activeLoops.slice(0, -1),
+            );
+            const parentIteration =
+              parentLoopData.iterations[parentLoop.state.currentIndex];
+
+            if (!parentIteration.childLoops) {
+              parentIteration.childLoops = {};
+            }
+            if (!parentIteration.childLoops[currentNodeId]) {
+              parentIteration.childLoops[currentNodeId] = loopData;
+            }
+          }
+        }
+
+        // Store result in appropriate location (nested loop structure or main nodeResults)
+        // Loop nodes themselves always go in nodeResults, only their children go in loops structure
+        const isThisNodeALoopNode = !!result.loopContext;
+        const isInsideALoop = activeLoops.length > 0 && !isThisNodeALoopNode;
+
+        if (isInsideALoop) {
+          // Inside a loop (but not the loop node itself) - store in nested structure
+          const currentLoop = activeLoops[activeLoops.length - 1];
+          const loopData = this.getLoopData(executionState, activeLoops);
+          const iterationIndex = currentLoop.state.currentIndex;
+
+          if (!loopData.iterations[iterationIndex]) {
+            loopData.iterations[iterationIndex] = {
+              iterationIndex,
+              nodeResults: [],
+            };
+          }
+
+          loopData.iterations[iterationIndex].nodeResults.push(result);
+        } else {
+          // Not in a loop OR this is the loop node itself - store in main nodeResults
+          executionState.nodeResults.push(result);
+        }
 
         if (result.status === 'error') {
           executionState.status = 'error';
@@ -506,16 +728,31 @@ export class WorkflowExecutionService {
     node: WorkflowGeneralNode,
     triggerData: any,
     expressionContext: ExpressionContext,
+    nodes?: WorkflowGeneralNode[],
   ): Promise<NodeExecutionResult> {
     const startTime = Date.now();
 
     // Handle trigger nodes
     if (isTriggerNode(node.type)) {
-      return this.executeTriggerNode(context, node, triggerData, startTime);
+      return this.executeTriggerNode(
+        context,
+        node,
+        triggerData,
+        startTime,
+        undefined,
+        nodes,
+      );
     }
 
     // Handle regular nodes
-    return this.executeNode(context, node, expressionContext);
+    return this.executeNode(
+      context,
+      node,
+      expressionContext,
+      undefined,
+      undefined,
+      nodes,
+    );
   }
 
   private async executeTriggerNode(
@@ -524,6 +761,7 @@ export class WorkflowExecutionService {
     triggerData: any,
     startTime: number,
     testMode?: boolean,
+    nodes?: WorkflowGeneralNode[],
   ): Promise<NodeExecutionResult> {
     if (isTriggerNode(node.type)) {
       const nodeWrapper = this.getNodeWrapper(
@@ -558,7 +796,8 @@ export class WorkflowExecutionService {
           if (typeof nodeWrapper.generateInputVariables === 'function') {
             try {
               result.inputVariables = await nodeWrapper.generateInputVariables(
-                this.getVariableGeneratorContext(context),
+                this.getVariableGeneratorContext(context, nodes),
+                { config: node.data?.config, output: nodeResult.outputs },
               );
             } catch (error) {
               this.logger.warn(
@@ -572,7 +811,8 @@ export class WorkflowExecutionService {
             try {
               result.outputVariables =
                 await nodeWrapper.generateOutputVariables(
-                  this.getVariableGeneratorContext(context),
+                  this.getVariableGeneratorContext(context, nodes),
+                  { config: node.data?.config, output: nodeResult.outputs },
                 );
             } catch (error) {
               this.logger.warn(
@@ -688,6 +928,7 @@ export class WorkflowExecutionService {
         testTriggerData || {},
         Date.now(),
         true,
+        nodes,
       );
 
       let inputVariables: VariableDefinition[] = [];
@@ -697,7 +938,8 @@ export class WorkflowExecutionService {
         if (typeof nodeWrapper.generateInputVariables === 'function') {
           try {
             inputVariables = await nodeWrapper.generateInputVariables(
-              this.getVariableGeneratorContext(context),
+              this.getVariableGeneratorContext(context, nodes),
+              { config: targetNode.data?.config, output: result.output },
             );
           } catch (error) {
             this.logger.warn(
@@ -710,7 +952,8 @@ export class WorkflowExecutionService {
         if (typeof nodeWrapper.generateOutputVariables === 'function') {
           try {
             outputVariables = await nodeWrapper.generateOutputVariables(
-              this.getVariableGeneratorContext(context),
+              this.getVariableGeneratorContext(context, nodes),
+              { config: targetNode.data?.config, output: result.output },
             );
           } catch (error) {
             this.logger.warn(
@@ -763,12 +1006,54 @@ export class WorkflowExecutionService {
 
     const expressionContext = new ExpressionContext(nodeResults, nodes, true);
 
+    // Check if target node is inside a loop and inject mock loop variables
+    const loopContext = findParentLoops(targetNodeId, reverseGraph, nodeMap);
+
+    for (const loopInfo of loopContext) {
+      const loopNode = nodeMap.get(loopInfo.loopNodeId);
+      const loopTestResult = loopNode?.data?.testResult;
+
+      if (!loopTestResult) {
+        NcError.get(context).badRequest(
+          `Please test "${
+            loopNode?.data?.title || 'loop'
+          }" node first before testing nodes inside it`,
+        );
+      }
+
+      // Inject mock loop variables for first iteration (index 0)
+      const loopItems = loopTestResult.output?.items || [];
+
+      const mockLoopVariables = {
+        item: loopItems[0],
+        index: 0,
+        itemCount: loopTestResult.output?.itemCount || loopItems.length,
+      };
+
+      expressionContext.setVariable(
+        loopNode?.data?.title || loopInfo.loopNodeId,
+        mockLoopVariables,
+      );
+    }
+
     const result = await this.executeNode(
       context,
       targetNode,
       expressionContext,
       true,
+      nodeWrapper,
+      nodes,
     );
+
+    // Add note if tested with mock loop variables
+    if (loopContext.length > 0) {
+      if (!result.logs) result.logs = [];
+      result.logs.unshift({
+        level: 'info',
+        message: `Tested with mock loop variables (iteration 0)`,
+        ts: Date.now(),
+      });
+    }
 
     let inputVariables: VariableDefinition[] = [];
     if (
@@ -777,7 +1062,8 @@ export class WorkflowExecutionService {
     ) {
       try {
         inputVariables = await nodeWrapper.generateInputVariables(
-          this.getVariableGeneratorContext(context),
+          this.getVariableGeneratorContext(context, nodes),
+          { config: targetNode.data?.config, output: result.output },
         );
       } catch (error) {
         this.logger.warn(
@@ -794,7 +1080,8 @@ export class WorkflowExecutionService {
     ) {
       try {
         outputVariables = await nodeWrapper.generateOutputVariables(
-          this.getVariableGeneratorContext(context),
+          this.getVariableGeneratorContext(context, nodes),
+          { config: targetNode.data?.config, output: result.output },
         );
       } catch (error) {
         this.logger.warn(
@@ -812,6 +1099,7 @@ export class WorkflowExecutionService {
         );
       }
     }
+
     return {
       ...result,
       inputVariables,

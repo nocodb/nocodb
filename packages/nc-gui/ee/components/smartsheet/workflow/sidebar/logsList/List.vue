@@ -26,6 +26,25 @@ const { isLoading: isLoadingMore } = useInfiniteScroll(
   { distance: 10, interval: 1000 },
 )
 
+const now = ref(Date.now())
+let intervalId: NodeJS.Timeout | null = null
+
+onMounted(() => {
+  intervalId = setInterval(() => {
+    now.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (intervalId) clearInterval(intervalId)
+})
+
+const getRelativeTime = (timestamp: string) => {
+  // eslint-disable-next-line no-unused-expressions
+  now.value // Access to trigger reactivity
+  return dayjs(timestamp).fromNow()
+}
+
 const getStatusIcon = (status: string) => {
   switch (status) {
     case 'completed':
@@ -58,7 +77,7 @@ const getStatusIcon = (status: string) => {
           :class="{
             'bg-nc-green-700 dark:bg-nc-green-200': execution.status === 'completed',
             'bg-nc-red-500 dark:bg-nc-red-500': execution.status === 'error',
-            'bg-nc-brand-500 dark:bg-nc-brand-500': execution.status === 'running',
+            'bg-nc-brand-500 dark:bg-nc-brand-500 animate-spin': execution.status === 'running',
             'bg-nc-gray-400 dark:bg-nc-gray-500': execution.status === 'skipped',
           }"
           class="w-5 h-5 rounded-full flex items-center justify-center flex-none"
@@ -73,7 +92,7 @@ const getStatusIcon = (status: string) => {
           <div class="flex-1" />
 
           <div class="text-body text-nc-content-gray-muted">
-            {{ dayjs(execution.started_at).fromNow() }}
+            {{ getRelativeTime(execution.started_at) }}
           </div>
         </div>
       </div>

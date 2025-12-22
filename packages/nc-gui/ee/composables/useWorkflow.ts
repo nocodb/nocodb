@@ -103,7 +103,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     layoutCallback?.()
   }
 
-  const addPlusNode = async (sourceNodeId: string, edgeLabel?: string) => {
+  const addPlusNode = async (sourceNodeId: string, edgeLabel?: string, sourcePortId?: string) => {
     const plusNode: Node = {
       id: generateUniqueNodeId(nodes.value),
       type: GeneralNodeID.PLUS,
@@ -125,6 +125,11 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       edge.label = edgeLabel
       edge.labelStyle = { fill: '#6b7280', fontWeight: 600, fontSize: 12 }
       edge.labelBgStyle = { fill: 'white' }
+    }
+
+    if (sourcePortId) {
+      edge.sourceHandle = sourcePortId
+      edge.sourcePortId = sourcePortId
     }
 
     nodes.value = [...nodes.value, plusNode]
@@ -224,6 +229,10 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
             newEdge.label = inEdge.label
             newEdge.labelStyle = inEdge.labelStyle
             newEdge.labelBgStyle = inEdge.labelBgStyle
+          }
+          if (inEdge.sourceHandle) {
+            newEdge.sourceHandle = inEdge.sourceHandle // Vue Flow uses sourceHandle
+            newEdge.sourcePortId = inEdge.sourceHandle // Backend uses sourcePortId
           }
           bridgingEdges.push(newEdge)
         }

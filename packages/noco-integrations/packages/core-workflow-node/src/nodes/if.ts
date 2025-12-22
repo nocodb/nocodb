@@ -176,6 +176,7 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
       return {
         outputs: {
           result: finalResult,
+          port: finalResult ? 'true' : 'false',
           conditions: conditions.map(
             (item: NocoSDK.WorkflowNodeConditionItem, i: number) => ({
               ...item,

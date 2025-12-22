@@ -12,6 +12,7 @@ enum VariableType {
 enum VariableGroupKey {
   Meta = 'meta', // System fields (id, createdAt, etc.)
   Fields = 'fields', // User data fields
+  Iteration = 'iteration', // Iteration variables (item, index for loops)
 }
 
 interface VariableDefinition {
@@ -66,6 +67,10 @@ interface VariableDefinition {
       title: string;
       field: string;
     }[];
+
+    // Port identifier for multi-port nodes (e.g., 'body', 'output' for iterate node)
+    // Used to filter variables based on which port is being accessed
+    port?: string;
   };
 
   // Nested variables for objects/arrays
@@ -92,6 +97,38 @@ interface NodeExecutionResult {
   isStale?: boolean;
   inputVariables?: VariableDefinition[];
   outputVariables?: VariableDefinition[];
+
+  // Loop context: Returned by loop nodes to control iteration
+  loopContext?: LoopContext;
+}
+
+// Loop context for loop nodes (iterate, etc.)
+interface LoopContext {
+  // Serializable state that persists across iterations
+  state: Record<string, any>;
+
+  // Output port IDs
+  bodyPort: string; // Port for loop body (e.g., 'body' for 'For Each Item')
+  exitPort: string; // Port for loop exit (e.g., 'output' for 'After Iterate')
+}
+
+// Loop iteration structure (recursive for nested loops)
+interface LoopIteration {
+  iterationIndex: number;
+  nodeResults: NodeExecutionResult[];
+  childLoops?: {
+    [loopNodeId: string]: LoopData;
+  };
+}
+
+// Loop data structure
+interface LoopData {
+  nodeId: string;
+  nodeTitle: string;
+  totalIterations: number;
+  iterations: {
+    [iterationIndex: number]: LoopIteration;
+  };
 }
 
 interface WorkflowExecutionState {
@@ -104,6 +141,9 @@ interface WorkflowExecutionState {
   currentNodeId?: string;
   triggerData?: any;
   triggerNodeTitle?: string; // Optional: which trigger node to start from
+  loops?: {
+    [loopNodeId: string]: LoopData;
+  };
 }
 
 interface IWorkflowExecution {
@@ -163,7 +203,9 @@ interface WorkflowGeneralEdge {
   source: string; // Source node ID
   target: string; // Target node ID
   animated: boolean;
-  label?: string; // Optional label like "True" or "False"
+  label?: string; // Optional label for display (e.g., "True", "For Each Item")
+  sourcePortId?: string; // Source node's output port ID for routing
+  targetPortId?: string; // Target node's input port ID
 }
 
 export {
@@ -175,4 +217,7 @@ export {
   NodeExecutionResult,
   WorkflowExecutionState,
   IWorkflowExecution,
+  LoopContext,
+  LoopIteration,
+  LoopData,
 };

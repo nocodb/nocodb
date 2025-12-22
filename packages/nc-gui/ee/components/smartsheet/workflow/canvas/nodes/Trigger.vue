@@ -70,7 +70,15 @@ onClickOutside(
     }
   },
   {
-    ignore: ['.node-sidebar', '.ant-select-dropdown', '.ant-picker-dropdown', '.ant-modal', '.nc-dropdown', '.tippy-box'],
+    ignore: [
+      '.node-sidebar',
+      '.ant-select-dropdown',
+      '.ant-picker-dropdown',
+      '.ant-modal',
+      '.nc-dropdown',
+      '.tippy-box',
+      '.loop-selector',
+    ],
   },
 )
 </script>

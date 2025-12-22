@@ -4,6 +4,7 @@ class ExpressionContext {
   private nodeResults: Map<string, NodeExecutionResult>;
   private nodesByTitle: Map<string, WorkflowGeneralNode>;
   private isTestCall = false;
+  private additionalVariables: Map<string, any> = new Map();
 
   constructor(
     nodeResults: NodeExecutionResult[],
@@ -27,8 +28,15 @@ class ExpressionContext {
   }
 
   /**
+   * Set an additional variable in the context (e.g., item, index for iterate nodes)
+   */
+  setVariable(key: string, value: any): void {
+    this.additionalVariables.set(key, value);
+  }
+
+  /**
    * Get all node outputs as a context object for the parser
-   * Includes test results if test run
+   * Includes test results if test run and additional variables (e.g., item, index)
    */
   getAllNodeOutputs(): Record<string, unknown> {
     const contextData: Record<string, unknown> = {};
@@ -39,14 +47,17 @@ class ExpressionContext {
           contextData[title] = node.data.testResult.output;
         }
       });
-
-      return contextData;
+    } else {
+      this.nodeResults.forEach((result) => {
+        const node = this.nodesByTitle.get(result.nodeTitle);
+        if (node && result.status === 'success') {
+          contextData[result.nodeTitle] = result.output;
+        }
+      });
     }
-    this.nodeResults.forEach((result) => {
-      const node = this.nodesByTitle.get(result.nodeTitle);
-      if (node && result.status === 'success') {
-        contextData[result.nodeTitle] = result.output;
-      }
+
+    this.additionalVariables.forEach((value, key) => {
+      contextData[key] = value;
     });
 
     return contextData;

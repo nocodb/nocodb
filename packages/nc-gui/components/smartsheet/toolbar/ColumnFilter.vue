@@ -106,6 +106,8 @@ const nested = computed(() => nestedLevel.value > 0)
 
 const { t } = useI18n()
 
+const { clone } = useUndoRedo()
+
 const logicalOps = [
   { value: 'and', text: t('general.and') },
   { value: 'or', text: t('general.or') },
@@ -433,10 +435,10 @@ const scrollDownIfNeeded = () => {
   }
 }
 
-const addFilter = async (filter?: Partial<FilterType>) => {
+const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => {
   await _addFilter(false, filter)
 
-  if (filter) {
+  if (filter && !isCopyFilter) {
     selectFilterField(filters.value[filters.value.length - 1], filters.value.length - 1)
   }
 
@@ -461,6 +463,25 @@ const addFilterGroup = async () => {
   }
 
   emit('addFilterGroup', nested.value)
+}
+
+const copyFilter = (filter: Filter) => {
+  const clonedFilter = clone(filter) || {}
+
+  // Extract all filter properties except id, tmp_id, status, order, and fk_parent_id
+  // (these should be regenerated/recalculated for the new filter)
+  const {
+    id: _id,
+    tmp_id: _tmp_id,
+    status: _status,
+    order: _order,
+    fk_parent_id: _fk_parent_id,
+    logical_op: _logical_op,
+    value: _value,
+    ...filterProps
+  } = clonedFilter
+
+  addFilter(filterProps, true)
 }
 
 const showFilterInput = (filter: Filter) => {
@@ -666,6 +687,7 @@ watch(
   filters,
   (value) => {
     if (value && value !== modelValue.value) {
+      console.log('change', value)
       modelValue.value = value
     }
   },
@@ -831,6 +853,7 @@ defineExpose({
       v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
       :list="filters"
       :disabled="!isReorderEnabled"
+      item-key="id"
       group="nc-column-filters"
       ghost-class="bg-nc-bg-gray-extralight"
       draggable=".nc-column-filter-item"
@@ -1240,7 +1263,18 @@ defineExpose({
               class="nc-filter-item-remove-btn self-center"
               @click.stop="deleteFilter(filter, i)"
             >
-              <component :is="iconMap.deleteListItem" />
+              <GeneralIcon icon="deleteListItem" />
+            </NcButton>
+            <NcButton
+              v-if="!filter.readOnly && !readOnly"
+              v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
+              type="text"
+              size="small"
+              :disabled="isLockedView"
+              class="nc-filter-item-copy-btn self-center"
+              @click.stop="copyFilter(filter)"
+            >
+              <GeneralIcon icon="copy" />
             </NcButton>
 
             <NcButton
@@ -1378,7 +1412,8 @@ defineExpose({
 
 <style scoped lang="scss">
 .nc-filter-item-remove-btn,
-.nc-filter-item-reorder-btn {
+.nc-filter-item-reorder-btn,
+.nc-filter-item-copy-btn {
   @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 

@@ -24,7 +24,7 @@ test.describe('Scripts - Configuration & Settings', () => {
     await page.waitForTimeout(1000);
 
     const url = page.url();
-    const match = url.match(/\/automations\/([^/]+)/);
+    const match = url.match(/\/scripts\/([^/]+)/);
     scriptId = match ? match[1] : '';
   });
 

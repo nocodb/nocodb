@@ -750,6 +750,11 @@ export function useViewFilters(
       })
     }
 
+    // if we copy filter then save it immediately
+    if (draftFilter && Object.keys(draftFilter).length > 1 && !(isForm.value && !isWebhook)) {
+      await saveOrUpdate(filters.value[filters.value.length - 1], filters.value.length - 1, false, true)
+    }
+
     lastFilters.value = clone(filters.value)
 
     $e('a:filter:add', {

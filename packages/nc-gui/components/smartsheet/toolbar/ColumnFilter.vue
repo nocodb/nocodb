@@ -680,7 +680,6 @@ watch(
   filters,
   (value) => {
     if (value && value !== modelValue.value) {
-      console.log('change', value)
       modelValue.value = value
     }
   },

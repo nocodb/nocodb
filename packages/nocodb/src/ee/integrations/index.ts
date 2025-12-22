@@ -35,6 +35,7 @@ import GroqAi from '@noco-local-integrations/groq-ai';
 import HubspotAuth from '@noco-local-integrations/hubspot-auth';
 import JiraCloudAuth from '@noco-local-integrations/jira-cloud-auth';
 import JiraCloudSync from '@noco-local-integrations/jira-cloud-sync';
+import HubspotAuth from '@noco-local-integrations/hubspot-auth';
 import LinearAuth from '@noco-local-integrations/linear-auth';
 import LinearSync from '@noco-local-integrations/linear-sync';
 import MysqlAuth from '@noco-local-integrations/mysql-auth';
@@ -91,13 +92,19 @@ export default [
   ...(Array.isArray(MysqlAuth) ? MysqlAuth : [MysqlAuth]),
   ...(Array.isArray(MysqlSync) ? MysqlSync : [MysqlSync]),
   ...(Array.isArray(NocodbAi) ? NocodbAi : [NocodbAi]),
-  ...(Array.isArray(NocodbWorkflowNode) ? NocodbWorkflowNode : [NocodbWorkflowNode]),
+  ...(Array.isArray(NocodbWorkflowNode)
+    ? NocodbWorkflowNode
+    : [NocodbWorkflowNode]),
   ...(Array.isArray(OpenaiAi) ? OpenaiAi : [OpenaiAi]),
-  ...(Array.isArray(OpenaiCompatibleAi) ? OpenaiCompatibleAi : [OpenaiCompatibleAi]),
+  ...(Array.isArray(OpenaiCompatibleAi)
+    ? OpenaiCompatibleAi
+    : [OpenaiCompatibleAi]),
   ...(Array.isArray(PostgresAuth) ? PostgresAuth : [PostgresAuth]),
   ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
   ...(Array.isArray(SlackAuth) ? SlackAuth : [SlackAuth]),
-  ...(Array.isArray(SlackWorkflowNode) ? SlackWorkflowNode : [SlackWorkflowNode]),
+  ...(Array.isArray(SlackWorkflowNode)
+    ? SlackWorkflowNode
+    : [SlackWorkflowNode]),
   ...(Array.isArray(ZendeskAuth) ? ZendeskAuth : [ZendeskAuth]),
   ...(Array.isArray(ZendeskSync) ? ZendeskSync : [ZendeskSync]),
   ...(Array.isArray(ZohoAuth) ? ZohoAuth : [ZohoAuth]),

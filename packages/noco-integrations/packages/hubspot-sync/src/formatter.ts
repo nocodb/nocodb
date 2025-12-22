@@ -32,6 +32,7 @@ export class HubspotFormatter {
             .join(', '),
           'Phone Numbers': company.properties.phone,
           RemoteRaw: JSON.stringify(company),
+          RemoteCreatedAt: company.properties.hs_createdate,
           RemoteUpdatedAt: company.properties.hs_lastmodifieddate,
         } as SyncRecord,
         links: {},

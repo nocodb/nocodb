@@ -79,7 +79,7 @@ export async function getAccounts() {
       ownerId: account.properties.hubspot_owner_id,
       rawData: account,
     }));
-  } catch (error) {
+  } catch (error: any) {
     console.error(
       'Error fetching accounts:',
       error.response?.data || error.message,
@@ -137,7 +137,7 @@ export async function getContacts() {
         contact.properties.notes_last_updated,
       rawData: contact,
     }));
-  } catch (error) {
+  } catch (error: any) {
     console.error(
       'Error fetching contacts:',
       error.response?.data || error.message,
@@ -169,9 +169,11 @@ export async function getContactsWithAccounts() {
 
           return {
             ...contact,
-            associatedAccountIds: associations.data.results.map((r) => r.id),
+            associatedAccountIds: associations.data.results.map(
+              (r: any) => r.id,
+            ),
           };
-        } catch (error) {
+        } catch {
           // Contact may not have associated companies
           return {
             ...contact,
@@ -182,7 +184,7 @@ export async function getContactsWithAccounts() {
     );
 
     return contactsWithAccounts;
-  } catch (error) {
+  } catch (error: any) {
     console.error(
       'Error fetching contacts with accounts:',
       error.response?.data || error.message,
@@ -211,7 +213,7 @@ export async function pullHubSpotData() {
       contacts,
       pulledAt: new Date().toISOString(),
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error in data pull:', error.message);
     throw error;
   }

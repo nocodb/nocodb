@@ -157,8 +157,10 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
                   filters: [
                     {
                       propertyName: 'hs_lastmodifieddate',
-                      operator: 'GTE',
-                      value: lastModifiedAfter,
+                      operator: 'GT',
+                      // +1000 is somehow required even with GT, otherwise the latest synced account will be fetched again
+                      // +1 will still keep fetching the latest synced account
+                      value: new Date(lastModifiedAfter).getTime() + 1000,
                     },
                   ],
                 },

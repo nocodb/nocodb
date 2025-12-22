@@ -47,7 +47,6 @@ import {
   Script,
   Source,
   View,
-  Workflow,
 } from '~/models';
 import { DatasService } from '~/services/datas.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';

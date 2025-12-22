@@ -3,6 +3,7 @@ import { BulkDataAliasService as BulkDataAliasServiceCE } from 'src/services/bul
 import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { NcContext } from '~/interface/config';
+import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
 
 @Injectable()
 export class BulkDataAliasService extends BulkDataAliasServiceCE {
@@ -21,6 +22,8 @@ export class BulkDataAliasService extends BulkDataAliasServiceCE {
       apiVersion?: NcApiVersion;
     },
   ) {
+    validateV1V2DataPayloadLimit(context, param);
+
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkInsert',

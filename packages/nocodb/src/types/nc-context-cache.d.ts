@@ -16,5 +16,9 @@ declare module 'nocodb-sdk' {
      * Cached permissions list for the base to avoid multiple fetches
      */
     permissions?: Permission[];
+    /**
+     * Indicates if the request is made using an API token
+     */
+    is_api_token?: boolean;
   }
 }

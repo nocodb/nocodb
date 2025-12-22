@@ -9,6 +9,7 @@ import { validatePayload } from 'src/helpers';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
+import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
 import { Column, Model, Source, View } from '~/models';
 import { nocoExecute, processConcurrently } from '~/utils';
 import { DatasService } from '~/services/datas.service';
@@ -147,6 +148,8 @@ export class DataTableService {
       user?: any;
     },
   ) {
+    validateV1V2DataPayloadLimit(context, param);
+
     const { model, view } = await this.getModelAndView(context, param);
     const source = await Source.get(context, model.source_id);
 
@@ -221,6 +224,8 @@ export class DataTableService {
       user?: any;
     },
   ) {
+    validateV1V2DataPayloadLimit(context, param);
+
     const profiler = Profiler.start(`data-table/dataUpdate`);
     const { model, view } = await this.getModelAndView(context, param);
     profiler.log('getModelAndView done');
@@ -265,6 +270,8 @@ export class DataTableService {
       user?: any;
     },
   ) {
+    validateV1V2DataPayloadLimit(context, param);
+
     const { model, view } = await this.getModelAndView(context, param);
 
     await this.checkForDuplicateRow(context, { rows: param.body, model });

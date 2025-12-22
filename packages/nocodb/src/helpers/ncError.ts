@@ -221,8 +221,8 @@ export class NcError {
   static allowedOnlySSOGeneratedToken(ncWorkspaceId: string): never {
     return NcError._.allowedOnlySSOGeneratedToken(ncWorkspaceId);
   }
-  static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
-    return NcError._.maxInsertLimitExceeded(limit, args);
+  static maxPayloadLimitExceeded(limit: number, args?: NcErrorArgs): never {
+    return NcError._.maxPayloadLimitExceeded(limit, args);
   }
   static baseUserError(message: string, args?: NcErrorArgs) {
     return NcError._.baseUserError(message, args);

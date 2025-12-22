@@ -104,6 +104,11 @@ export enum ModelTypes {
   DASHBOARD = 'dashboard',
 }
 
+export enum AutomationTypes {
+  SCRIPT = 'script',
+  WORKFLOW = 'workflow',
+}
+
 export enum ProjectStatus {
   JOB = 'job',
 }

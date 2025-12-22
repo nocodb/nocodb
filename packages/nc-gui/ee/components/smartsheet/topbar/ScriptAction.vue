@@ -1,9 +1,9 @@
 <script setup lang="ts">
 const { isRunning, runScript, stopExecution, playground } = useScriptStoreOrThrow()
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { activeAutomation, isLoadingAutomation, isSettingsOpen } = storeToRefs(automationStore)
+const { activeScript, isLoadingScript, isSettingsOpen } = storeToRefs(scriptStore)
 
 const { isValidConfig, shouldShowSettings, restartScript } = useScriptStoreOrThrow()
 
@@ -27,7 +27,7 @@ const hasPrintableContent = computed(() => {
 </script>
 
 <template>
-  <div v-if="!isLoadingAutomation && activeAutomation" class="flex items-center gap-2">
+  <div v-if="!isLoadingScript && activeScript" class="flex items-center gap-2">
     <NcButton
       v-if="shouldShowSettings"
       v-e="['a:script:settings:toggle', { visible: !isSettingsOpen }]"

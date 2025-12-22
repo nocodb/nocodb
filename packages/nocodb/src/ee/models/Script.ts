@@ -1,6 +1,6 @@
 import { Script as ScriptCE } from 'src/models';
 import { Logger } from '@nestjs/common';
-import { PlanLimitTypes } from 'nocodb-sdk';
+import { AutomationTypes, PlanLimitTypes } from 'nocodb-sdk';
 import type { ScriptType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
@@ -29,6 +29,7 @@ export default class Script extends ScriptCE implements ScriptType {
   config: Record<string, any>;
   base_id?: string;
   fk_workspace_id?: string;
+  type?: AutomationTypes;
 
   created_by?: string;
   created_at?: string;
@@ -54,8 +55,11 @@ export default class Script extends ScriptCE implements ScriptType {
       script = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.SCRIPTS,
-        scriptId,
+        MetaTable.AUTOMATIONS,
+        {
+          id: scriptId,
+          type: AutomationTypes.SCRIPT,
+        },
       );
 
       if (script) {
@@ -87,10 +91,11 @@ export default class Script extends ScriptCE implements ScriptType {
       scriptsList = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
-        MetaTable.SCRIPTS,
+        MetaTable.AUTOMATIONS,
         {
           condition: {
             base_id: baseId,
+            type: AutomationTypes.SCRIPT,
           },
           orderBy: {
             order: 'asc',
@@ -119,8 +124,11 @@ export default class Script extends ScriptCE implements ScriptType {
     await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.SCRIPTS,
-      scriptId,
+      MetaTable.AUTOMATIONS,
+      {
+        id: scriptId,
+        type: AutomationTypes.SCRIPT,
+      },
     );
 
     await NocoCache.deepDel(
@@ -161,9 +169,12 @@ export default class Script extends ScriptCE implements ScriptType {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.SCRIPTS,
+      MetaTable.AUTOMATIONS,
       prepareForDb(updateObj, ['meta', 'config']),
-      scriptId,
+      {
+        id: scriptId,
+        type: AutomationTypes.SCRIPT,
+      },
     );
 
     await NocoCache.update(
@@ -182,7 +193,7 @@ export default class Script extends ScriptCE implements ScriptType {
   public static async insert(
     context: NcContext,
     baseId: string,
-    script: Partial<ScriptType>,
+    script: Partial<Script>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(script, [
@@ -201,14 +212,16 @@ export default class Script extends ScriptCE implements ScriptType {
       insertObj.script = defaultScript;
     }
 
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.SCRIPTS, {
+    insertObj.type = AutomationTypes.SCRIPT;
+
+    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.AUTOMATIONS, {
       base_id: context.base_id,
     });
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.SCRIPTS,
+      MetaTable.AUTOMATIONS,
       insertObj,
     );
 

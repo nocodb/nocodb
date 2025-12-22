@@ -1,7 +1,7 @@
 import type { ScriptType } from 'nocodb-sdk'
 import { replaceConfigValues } from 'nocodb-sdk'
-import { createWorkerCode, generateIntegrationsCode } from '~/components/smartsheet/automation/scripts/utils/workerHelper'
-import { generateLibCode } from '~/components/smartsheet/automation/scripts/utils/editorUtils'
+import { createWorkerCode, generateIntegrationsCode } from '~/ee/components/smartsheet/script/utils/workerHelper'
+import { generateLibCode } from '~/ee/components/smartsheet/script/utils/editorUtils'
 import type { CallApiAction, ScriptPlaygroundItem, ViewActionPayload, WorkflowStepItem } from '~/lib/types'
 import { EventBusEnum, ScriptActionType, SmartsheetScriptActions } from '~/lib/enum'
 
@@ -10,9 +10,9 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const { $e } = useNuxtApp()
 
-  const automationStore = useAutomationStore()
+  const scriptStore = useScriptStore()
 
-  const { loadAutomation, updateBaseSchema } = automationStore
+  const { loadScript, updateBaseSchema } = scriptStore
 
   const { activeProjectId } = storeToRefs(useBases())
 
@@ -22,7 +22,7 @@ export const useScriptExecutor = createSharedComposable(() => {
 
   const { activeTableId } = storeToRefs(useTablesStore())
 
-  const { activeAutomationId, activeBaseSchema } = storeToRefs(automationStore)
+  const { activeScriptId, activeBaseSchema } = storeToRefs(scriptStore)
 
   const { aiIntegrations } = useNocoAi()
 
@@ -489,7 +489,7 @@ export const useScriptExecutor = createSharedComposable(() => {
         await updateBaseSchema()
       }
       if (typeof script === 'string') {
-        script = (await loadAutomation(script)) as ScriptType
+        script = (await loadScript(script)) as ScriptType
       }
 
       const code = replaceConfigValues(script.script ?? '', script.config ?? {})
@@ -733,7 +733,7 @@ export const useScriptExecutor = createSharedComposable(() => {
   onMounted(async () => {
     if (isPublic.value) return
 
-    await loadAutomation(activeAutomationId.value)
+    await loadScript(activeScriptId.value)
 
     setupQueueEventListeners()
 

@@ -26,7 +26,7 @@ const emit = defineEmits<{
 
 const { t } = useI18n()
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
 const modelValue = useVModel(props, 'value', emit)
 
@@ -40,7 +40,7 @@ const scriptList = computedAsync(async () => {
   let scripts: ScriptType[] = []
 
   if (props.baseId) {
-    scripts = await automationStore.loadAutomations({
+    scripts = await scriptStore.loadScripts({
       baseId: props.baseId,
       force: props.forceLoadScripts,
     })

@@ -1,6 +1,6 @@
 import { OnDeleteAction } from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import { BaseVersion, MetaTable } from '~/utils/globals';
+import { BaseVersion, MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   // We avoid init for existing instances
@@ -1036,7 +1036,7 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.SCRIPTS, (table) => {
+  await knex.schema.createTable(MetaTableOldV2.SCRIPTS, (table) => {
     table.string('id', 20).notNullable();
     table.text('title');
     table.text('description');
@@ -2006,7 +2006,7 @@ const up = async (knex: Knex) => {
     table.index(['slug'], 'nc_org_slug_index');
   });
 
-  await knex.schema.alterTable(MetaTable.SCRIPTS, (table) => {
+  await knex.schema.alterTable(MetaTableOldV2.SCRIPTS, (table) => {
     table.index(['base_id', 'fk_workspace_id'], 'nc_scripts_context');
     table.index(['id'], 'nc_scripts_oldpk_idx');
   });
@@ -2153,7 +2153,7 @@ const down = async (knex: Knex) => {
   await knex.schema.dropTableIfExists(MetaTable.SOURCES);
   await knex.schema.dropTableIfExists(MetaTable.SORT);
   await knex.schema.dropTableIfExists(MetaTable.SNAPSHOT);
-  await knex.schema.dropTableIfExists(MetaTable.SCRIPTS);
+  await knex.schema.dropTableIfExists(MetaTableOldV2.SCRIPTS);
   await knex.schema.dropTableIfExists(MetaTable.PLUGIN);
   await knex.schema.dropTableIfExists(MetaTable.ORG_USERS);
   await knex.schema.dropTableIfExists(MetaTable.ORG_DOMAIN);

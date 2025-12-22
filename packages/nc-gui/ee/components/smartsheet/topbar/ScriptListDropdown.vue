@@ -7,11 +7,11 @@ const { isUIAllowed } = useRoles()
 
 const { base } = storeToRefs(useBase())
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { openScript, openNewScriptModal } = automationStore
+const { openScript, openNewScriptModal } = scriptStore
 
-const { activeAutomation, activeBaseAutomations } = storeToRefs(automationStore)
+const { activeScript, activeBaseScripts } = storeToRefs(scriptStore)
 
 const isOpen = ref<boolean>(false)
 
@@ -36,7 +36,7 @@ function openAutomationCreateDialog() {
   openNewScriptModal({
     baseId: base.value?.id,
     e: 'c:automation:create:topbar',
-    loadAutomationsOnClose: true,
+    loadScriptsOnClose: true,
     scrollOnCreate: true,
   })
 }
@@ -48,8 +48,8 @@ function openAutomationCreateDialog() {
     <template #overlay>
       <LazyNcList
         v-model:open="isOpen"
-        :value="activeAutomation.id"
-        :list="activeBaseAutomations"
+        :value="activeScript.id"
+        :list="activeBaseScripts"
         option-value-key="id"
         option-label-key="title"
         class="min-w-64 !w-auto"
@@ -72,7 +72,7 @@ function openAutomationCreateDialog() {
             {{ option?.title }}
           </NcTooltip>
           <GeneralIcon
-            v-if="option.id === activeAutomation.id"
+            v-if="option.id === activeScript.id"
             id="nc-selected-item-icon"
             icon="check"
             class="flex-none text-primary w-4 h-4"

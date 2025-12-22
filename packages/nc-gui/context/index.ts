@@ -98,7 +98,7 @@ export const TreeViewInj: InjectionKey<{
     disableTitleDiffCheck?: boolean,
   ) => void
   openViewDescriptionDialog: (view: ViewType) => void
-  openAutomationDescriptionDialog?: (automation: any) => void
+  openScriptDescriptionDialog?: (script: any) => void
   openDashboardDescriptionDialog?: (dashboard: any) => void
   openWorkflowDescriptionDialog?: (workflow: any) => void
   openTableDescriptionDialog: (table: TableType) => void

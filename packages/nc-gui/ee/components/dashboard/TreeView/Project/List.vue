@@ -153,14 +153,14 @@ function openViewDescriptionDialog(view: ViewType) {
   }
 }
 
-function openAutomationDescriptionDialog(script: ScriptType) {
+function openScriptDescriptionDialog(script: ScriptType) {
   if (!script?.id) return
 
   $e('c:script:description')
 
   const isOpen = ref(true)
 
-  const { close } = useDialog(resolveComponent('DlgAutomationDescriptionUpdate'), {
+  const { close } = useDialog(resolveComponent('DlgScriptDescriptionUpdate'), {
     'modelValue': isOpen,
     'script': script,
     'onUpdate:modelValue': closeDialog,
@@ -416,7 +416,7 @@ provide(TreeViewInj, {
   setMenuContext,
   duplicateTable,
   openViewDescriptionDialog,
-  openAutomationDescriptionDialog,
+  openScriptDescriptionDialog,
   openDashboardDescriptionDialog,
   openWorkflowDescriptionDialog,
   openTableDescriptionDialog,

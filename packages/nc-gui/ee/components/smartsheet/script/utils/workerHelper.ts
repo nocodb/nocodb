@@ -2034,8 +2034,8 @@ Object.freeze(UITypes);
 }
 
 function generateBaseObject(): string {
-  const automationStore = useAutomationStore()
-  const { activeBaseSchema } = storeToRefs(automationStore)
+  const scriptStore = useScriptStore()
+  const { activeBaseSchema } = storeToRefs(scriptStore)
 
   return `
   var base = new Base({

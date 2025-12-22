@@ -1,8 +1,8 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals'
 
 const up = async (knex: Knex) => {
-  await knex.schema.createTable(MetaTable.WORKFLOWS, (table) => {
+  await knex.schema.createTable(MetaTableOldV2.WORKFLOWS, (table) => {
     table.string('id', 20).primary().notNullable();
     table.string('title', 255).notNullable();
     table.text('description');
@@ -31,7 +31,7 @@ const up = async (knex: Knex) => {
     table.index(['base_id', 'fk_workspace_id'], 'nc_workflows_context_idx');
   });
 
-  await knex.schema.createTable(MetaTable.WORKFLOW_EXECUTIONS, (table) => {
+  await knex.schema.createTable(MetaTableOldV2.WORKFLOW_EXECUTIONS, (table) => {
     table.string('id', 20).primary().notNullable();
     table.string('fk_workspace_id', 20);
     table.string('base_id', 20);
@@ -84,8 +84,8 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.dropTable(MetaTable.WORKFLOW_EXECUTIONS);
-  await knex.schema.dropTable(MetaTable.WORKFLOWS);
+  await knex.schema.dropTable(MetaTableOldV2.WORKFLOW_EXECUTIONS);
+  await knex.schema.dropTable(MetaTableOldV2.WORKFLOWS);
   await knex.schema.dropTable(MetaTable.DEPENDENCY_TRACKER);
 };
 

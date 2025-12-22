@@ -19,7 +19,7 @@ const source = computed(() => {
 
 const { isUIAllowed } = useRoles()
 
-const { isMarketVisible } = storeToRefs(useAutomationStore())
+const { isMarketVisible } = storeToRefs(useScriptStore())
 
 const { isWorkflowsEnabled } = storeToRefs(useWorkflowStore())
 

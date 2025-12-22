@@ -121,17 +121,16 @@ export class MetaService {
       [MetaTable.FILE_REFERENCES]: 'at',
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',
-      [MetaTable.SCRIPTS]: 'scr',
       [MetaTable.SYNC_CONFIGS]: 'sync',
       [MetaTable.PERMISSIONS]: 'perm',
       [MetaTable.PERMISSION_SUBJECTS]: 'pers',
       [MetaTable.DASHBOARDS]: 'dash',
       [MetaTable.WIDGETS]: 'wgt',
       [MetaTable.WORKSPACE]: 'w',
-      [MetaTable.WORKFLOWS]: 'wf',
-      [MetaTable.WORKFLOW_EXECUTIONS]: 'wfex',
       [MetaTable.DEPENDENCY_TRACKER]: 'dt',
       [MetaTable.INSTALLATIONS]: 'inst',
+      [MetaTable.AUTOMATIONS]: 'aut',
+      [MetaTable.AUTOMATION_EXECUTIONS]: 'auex',
     };
 
     const prefix = prefixMap[target] || 'nc';

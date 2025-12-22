@@ -24,14 +24,14 @@ watchDebounced(
   { debounce: 3000 },
 )
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
 const bases = useBases()
 const { openedProject } = storeToRefs(bases)
 
-const { showScriptDetails, getScriptAssetsURL, getScriptContent, createAutomation } = automationStore
+const { showScriptDetails, getScriptAssetsURL, getScriptContent, createScript } = scriptStore
 
-const { availableScripts } = storeToRefs(automationStore)
+const { availableScripts } = storeToRefs(scriptStore)
 
 const { showScriptPlanLimitExceededModal } = useEeConfig()
 
@@ -55,7 +55,7 @@ const onAddScript = async (scr: any) => {
 
   const content = getScriptContent(scr.id)
 
-  await createAutomation(openedProject.value?.id, {
+  await createScript(openedProject.value?.id, {
     title: scr.title,
     script: content,
     description: scr.subTitle,

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue'
 
-// Define SmartsheetAutomationScripts as an async component
-const SmartsheetAutomationScripts = defineAsyncComponent(() => import('./scripts/index.vue'))
+// Define SmartsheetScriptDetails as an async component
+const SmartsheetScriptDetails = defineAsyncComponent(() => import('./Details.vue'))
 
-const automationStore = useAutomationStore()
-const { updateBaseSchema } = automationStore
-const { isLoadingAutomation } = storeToRefs(automationStore)
+const scriptStore = useScriptStore()
+const { updateBaseSchema } = scriptStore
+const { isLoadingScript } = storeToRefs(scriptStore)
 
 onMounted(async () => {
   await updateBaseSchema()
@@ -16,9 +16,9 @@ onMounted(async () => {
 <template>
   <div style="height: calc(100svh)" class="nc-container flex flex-col h-full">
     <LazySmartsheetTopbar />
-    <template v-if="!isLoadingAutomation">
+    <template v-if="!isLoadingScript">
       <Suspense>
-        <SmartsheetAutomationScripts />
+        <SmartsheetScriptDetails />
         <template #fallback>
           <div class="flex items-center justify-center h-full">
             <GeneralLoader size="xlarge" />

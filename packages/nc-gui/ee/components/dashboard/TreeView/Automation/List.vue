@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import Sortable from 'sortablejs'
 import { type SortableEvent } from 'sortablejs'
-import { type ScriptType } from 'nocodb-sdk'
-import type { Menu as AntMenu } from 'ant-design-vue/lib/components'
+import { AutomationTypes, type ScriptType, type WorkflowType } from 'nocodb-sdk'
 
 const props = defineProps<{
   baseId: string
@@ -12,135 +11,52 @@ const baseId = toRef(props, 'baseId')
 
 const { $e } = useNuxtApp()
 
-const { t } = useI18n()
-
-const { addUndo, defineModelScope } = useUndoRedo()
-
-const { ncNavigateTo, isMobileMode } = useGlobal()
-
-const bases = useBases()
+const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
-const { isSharedBase } = storeToRefs(useBase())
+const scriptStore = useScriptStore()
 
-const { openedProject, baseHomeSearchQuery } = storeToRefs(bases)
+const workflowStore = useWorkflowStore()
 
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
+const { updateScript, openNewScriptModal } = scriptStore
 
-const automationStore = useAutomationStore()
+const { updateWorkflow, openNewWorkflowModal } = workflowStore
 
-const { updateAutomation, openNewScriptModal } = automationStore
+const { activeScriptId, scripts: allScripts, activeBaseScripts } = storeToRefs(scriptStore)
 
-const { activeAutomationId, automations } = storeToRefs(automationStore)
+const { activeWorkflowId, workflows: allWorkflows, activeBaseWorkflows } = storeToRefs(workflowStore)
 
-const scripts = computed(() => automations.value.get(baseId.value) ?? [])
+const scripts = computed(() => allScripts.value.get(baseId.value) ?? [])
 
-let sortable: Sortable
+const workflows = computed(() => allWorkflows.value.get(baseId.value) ?? [])
 
-const selected = ref<string[]>([])
+const menuRef = useTemplateRef('menuRef')
+
+const isMarked = ref<string | false>(false)
+
+const keys = ref<Record<string, number>>({})
 
 const dragging = ref(false)
 
-function onSortStart(evt: SortableEvent) {
-  evt.stopImmediatePropagation()
-  evt.preventDefault()
-  dragging.value = true
-}
-async function onSortEnd(evt: SortableEvent, undo = false) {
-  if (!undo) {
-    evt.stopImmediatePropagation()
-    evt.preventDefault()
-    dragging.value = false
-  }
+let sortable: Sortable
 
-  if (scripts.value.length < 2) return
+const allEntities = computed<Array<(WorkflowType & { type: 'workflow' }) | (ScriptType & { type: 'script' })>>(() => {
+  const entities = []
 
-  let { newIndex = 0, oldIndex = 0 } = evt
+  entities.push(...scripts.value.map((s) => ({ ...s, type: 'script' })))
+  entities.push(...workflows.value.map((w) => ({ ...w, type: 'workflow' })))
 
-  newIndex = newIndex - 1
-  oldIndex = oldIndex - 1
+  return entities
+})
 
-  if (newIndex === oldIndex) return
-
-  if (!undo) {
-    addUndo({
-      redo: {
-        fn: async () => {
-          const ord = sortable.toArray()
-          const temp = ord.splice(oldIndex, 1)
-          ord.splice(newIndex, 0, temp[0])
-          sortable.sort(ord)
-          await onSortEnd(evt, true)
-        },
-        args: [],
-      },
-      undo: {
-        fn: async () => {
-          const ord = sortable.toArray()
-          const temp = ord.splice(newIndex, 1)
-          ord.splice(oldIndex, 0, temp[0])
-          sortable.sort(ord)
-          await onSortEnd({ ...evt, oldIndex: newIndex, newIndex: oldIndex }, true)
-        },
-        args: [],
-      },
-      scope: defineModelScope({ view: activeAutomationId.value }),
-    })
-  }
-
-  const children = Array.from(evt.to.children as unknown as HTMLLIElement[])
-
-  // remove `Create View` children from list
-  children.shift()
-
-  const previousEl = children[newIndex - 1]
-  const nextEl = children[newIndex + 1]
-
-  const currentItem = scripts.value.find((v) => v.id === evt.item.id)
-
-  if (!currentItem || !currentItem.id) return
-
-  // set default order value as 0 if item not found
-  const previousItem = (
-    previousEl ? scripts.value.find((v) => v.id === previousEl.id) ?? { order: 0 } : { order: 0 }
-  ) as ScriptType
-  const nextItem = (nextEl ? scripts.value.find((v) => v.id === nextEl.id) : {}) as ScriptType
-
-  let nextOrder: number
-
-  // set new order value based on the new order of the items
-  if (scripts.value.length - 1 === newIndex) {
-    nextOrder = parseFloat(String(previousItem.order)) + 1
-  } else if (newIndex === 0) {
-    nextOrder = parseFloat(String(nextItem.order)) / 2
-  } else {
-    nextOrder = (parseFloat(String(previousItem.order)) + parseFloat(String(nextItem.order))) / 2
-  }
-
-  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
-
-  currentItem.order = _nextOrder
-
-  await updateAutomation(baseId.value, currentItem.id, {
-    order: currentItem.order,
-  })
-
-  markItem(currentItem.id)
-
-  $e('a:script:reorder')
-}
-
-async function changeScript(script: ScriptType) {
-  ncNavigateTo({
-    workspaceId: activeWorkspaceId.value,
-    baseId: baseId.value,
-    automationId: script.id,
-    automationTitle: script.title,
-  })
-}
-
-const isMarked = ref<string | false>(false)
+// Create entities by ID lookup for efficient access
+const entitiesById = computed(() =>
+  allEntities.value.reduce<Record<string, any>>((acc, entity) => {
+    acc[entity.id!] = entity
+    return acc
+  }, {}),
+)
 
 /** shortly mark an item after sorting */
 function markItem(id: string) {
@@ -150,208 +66,247 @@ function markItem(id: string) {
   }, 300)
 }
 
-/** validate script title */
-function validate(script: ScriptType) {
-  if (!script.title || script.title.trim().length < 0) {
-    return t('msg.error.scriptNameRequired')
-  }
-
-  if (scripts.value.some((s) => s.title === script.title && s.id !== script.id)) {
-    return t('msg.error.scriptNameDuplicate')
-  }
-
-  return true
-}
-
-async function onRename(script: ScriptType, originalTitle?: string, undo = false) {
-  try {
-    await updateAutomation(script.base_id, script.id as string, {
-      title: script.title,
-      order: script.order,
-    })
-
-    if (!undo) {
-      addUndo({
-        redo: {
-          fn: (s: ScriptType, title: string) => {
-            const tempTitle = s.title
-            s.title = title
-            onRename(s, tempTitle, true)
-          },
-          args: [script, script.title],
-        },
-        undo: {
-          fn: (s: ScriptType, title: string) => {
-            const tempTitle = s.title
-            s.title = title
-            onRename(s, tempTitle, true)
-          },
-          args: [script, originalTitle],
-        },
-        scope: defineModelScope({ base_id: script.base_id }),
-      })
-    }
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-const updateScriptIcon = async (icon: string, script: ScriptType) => {
-  try {
-    // modify the icon property in meta
-    script.meta = {
-      ...parseProp(script.meta),
-      icon,
-    }
-
-    await updateAutomation(script.base_id, script.id!, {
-      meta: script.meta,
-    })
-
-    $e('a:script:icon:sidebar', { icon })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-/** Open delete modal */
-function openDeleteDialog(script: ScriptType) {
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgAutomationDelete'), {
-    'modelValue': isOpen,
-    'script': script,
-    'onUpdate:modelValue': closeDialog,
-    'onDeleted': async () => {
-      closeDialog()
-    },
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-
-    close(1000)
-  }
-}
-
-const menuRef = ref<typeof AntMenu>()
-
-const initSortable = (el: HTMLElement) => {
-  if (sortable) sortable.destroy()
+const initSortable = (el: Element) => {
   if (isMobileMode.value) return
+  if (sortable) sortable.destroy()
 
-  sortable = new Sortable(el, {
-    // handle: '.nc-drag-icon',
+  sortable = Sortable.create(el as HTMLElement, {
     ghostClass: 'ghost',
-    onStart: onSortStart,
-    onEnd: onSortEnd,
+    onStart: (evt: SortableEvent) => {
+      evt.stopImmediatePropagation()
+      evt.preventDefault()
+      dragging.value = true
+    },
+    onEnd: async (evt) => {
+      const { newIndex = 0, oldIndex = 0 } = evt
+
+      evt.stopImmediatePropagation()
+      evt.preventDefault()
+
+      dragging.value = false
+
+      if (newIndex === oldIndex) return
+
+      const itemEl = evt.item as HTMLElement
+      const item = entitiesById.value[itemEl.dataset.id as string]
+
+      if (!item) return
+
+      // get the html collection of all list items
+      const children: HTMLCollection = evt.to.children
+
+      // skip if children count is 1
+      if (children.length < 2) return
+
+      // get items before and after the moved item
+      const itemBeforeEl = children[newIndex - 1] as HTMLElement
+      const itemAfterEl = children[newIndex + 1] as HTMLElement
+
+      // get items meta of before and after the moved item
+      const itemBefore = itemBeforeEl && entitiesById.value[itemBeforeEl.dataset.id as string]
+      const itemAfter = itemAfterEl && entitiesById.value[itemAfterEl.dataset.id as string]
+
+      // set new order value based on the new order of the items
+      if (children.length - 1 === newIndex) {
+        // Item moved to last position
+        item.order = (itemBefore?.order ?? 0) + 1
+      } else if (newIndex === 0) {
+        // Item moved to first position
+        item.order = (itemAfter?.order ?? 1) / 2
+      } else {
+        // Item moved to middle position
+        item.order = ((itemBefore?.order ?? 0) + (itemAfter?.order ?? 0)) / 2
+      }
+
+      // Update the allEntities array order to reflect the DOM change
+      const entities = [...allEntities.value]
+      const [movedEntity] = entities.splice(oldIndex, 1)
+      movedEntity.order = item.order
+      entities.splice(newIndex, 0, movedEntity)
+
+      // force re-render the list
+      if (keys.value.data) {
+        keys.value.data = keys.value.data + 1
+      } else {
+        keys.value.data = 1
+      }
+
+      // Update backend based on item type
+      if (item.type === AutomationTypes.SCRIPT) {
+        const scripts = activeBaseScripts.value
+        const scriptsIndex = scripts.findIndex((d) => d.id === item.id)
+        if (scriptsIndex !== -1) {
+          scripts[scriptsIndex].order = item.order
+        }
+        await updateScript(baseId.value, item.id, {
+          order: item.order,
+        })
+      } else if (item.type === AutomationTypes.WORKFLOW) {
+        const workflows = activeBaseWorkflows.value
+        const workflowsIndex = workflows.findIndex((t) => t.id === item.id)
+        if (workflowsIndex !== -1) {
+          workflows[workflowsIndex].order = item.order
+        }
+        await updateWorkflow(baseId.value, item.id, {
+          order: item.order,
+        })
+      }
+
+      markItem(item.id)
+      $e('a:data:reorder')
+    },
+    setData(dataTransfer, dragEl) {
+      if (!dragEl?.dataset?.id) {
+        return
+      }
+      dataTransfer.setData(
+        'text/json',
+        JSON.stringify({
+          id: dragEl.dataset.id,
+          title: dragEl.dataset.title,
+          type: dragEl.dataset.type,
+          sourceId: dragEl.dataset.sourceId,
+        }),
+      )
+    },
+    animation: 150,
+    revertOnSpill: true,
+    filter: isTouchEvent,
     ...getDraggableAutoScrollOptions({ scrollSensitivity: 50 }),
   })
 }
 
-onMounted(() => {
-  if (isUIAllowed('scriptCreateOrEdit') && menuRef.value) {
-    initSortable(menuRef.value.$el)
+watchEffect(() => {
+  if (menuRef.value && isUIAllowed('scriptCreateOrEdit')) {
+    initSortable(menuRef.value)
   }
-})
-
-const filteredScripts = computed(() => {
-  return scripts.value.filter((script) => searchCompare(script.title, baseHomeSearchQuery.value))
 })
 </script>
 
 <template>
-  <a-menu
-    ref="menuRef"
-    :class="{ dragging }"
-    :selected-keys="selected"
-    class="nc-scripts-menu flex flex-col w-full !border-r-0 !bg-inherit"
-  >
-    <template v-if="!scripts?.length && !isSharedBase && isUIAllowed('scriptCreateOrEdit')">
-      <div @click="openNewScriptModal({ baseId })">
-        <div
-          :class="{
-            'text-nc-content-brand hover:text-nc-content-brand-disabled': openedProject?.id === baseId,
-            'text-nc-content-gray-muted hover:text-nc-content-brand': openedProject?.id !== baseId,
-          }"
-          class="nc-create-script-btn flex flex-row items-center cursor-pointer rounded-md w-full"
-          role="button"
-        >
-          <div class="nc-project-home-section-item">
-            <GeneralIcon icon="plus" />
-            <div>
-              {{
-                $t('general.createEntity', {
-                  entity: $t('objects.script'),
-                })
-              }}
-            </div>
+  <div>
+    <NcDropdown v-if="!allEntities.length" overlay-class-name="nc-automation-create-dropdown">
+      <div
+        class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
+        role="button"
+      >
+        <div class="nc-project-home-section-item">
+          <GeneralIcon icon="plus" />
+          <div>
+            {{
+              $t('general.createEntity', {
+                entity: $t('objects.automation'),
+              })
+            }}
           </div>
         </div>
       </div>
-    </template>
+      <template #overlay>
+        <NcMenu class="max-w-48" variant="medium">
+          <NcMenuItem @click="openNewWorkflowModal({ baseId: baseId })">
+            <div class="item">
+              <div class="item-inner">
+                <GeneralIcon icon="ncAutomation" />
+                <div>
+                  {{ $t('objects.workflow') }}
+                </div>
+              </div>
+
+              <GeneralIcon class="plus" icon="plus" />
+            </div>
+          </NcMenuItem>
+          <NcMenuItem @click="openNewScriptModal({ baseId: baseId })">
+            <div class="item">
+              <div class="item-inner">
+                <GeneralIcon icon="ncScript" />
+                <div>
+                  {{ $t('objects.script') }}
+                </div>
+              </div>
+
+              <GeneralIcon class="plus" icon="plus" />
+            </div>
+          </NcMenuItem>
+        </NcMenu>
+      </template>
+    </NcDropdown>
+
     <div
-      v-if="!scripts?.length || !filteredScripts.length"
-      class="nc-project-home-section-item text-nc-content-gray-muted font-normal"
+      v-else
+      ref="menuRef"
+      :key="`data-${keys.data || 0}`"
+      :class="{ dragging }"
+      class="nc-automation-menu flex flex-col w-full !border-r-0 bg-nc-bg-gray-sidebar"
     >
-      {{
-        scripts?.length && !filteredScripts.length
-          ? $t('placeholder.noResultsFoundForYourSearch')
-          : $t('placeholder.noAutomations')
-      }}
+      <template v-for="entity of allEntities" :key="entity.id">
+        <DashboardTreeViewAutomationWorkflowNode
+          v-if="entity.type === AutomationTypes.WORKFLOW"
+          :data-id="entity.id"
+          :data-order="entity.order"
+          :data-title="entity.title"
+          :data-type="entity.type"
+          :workflow="entity"
+          class="nc-workflow-item nc-tree-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+          :class="{
+            'bg-nc-bg-gray-medium': isMarked === entity.id,
+            'active': activeWorkflowId === entity.id,
+          }"
+        />
+        <DashboardTreeViewAutomationScriptNode
+          v-else
+          :data-id="entity.id"
+          :data-order="entity.order"
+          :data-title="entity.title"
+          :data-type="entity.type"
+          :script="entity"
+          class="nc-script-item nc-tree-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
+          :class="{
+            'bg-nc-bg-gray-medium': isMarked === entity.id,
+            'active': activeScriptId === entity.id,
+          }"
+        />
+      </template>
     </div>
-    <template v-if="filteredScripts?.length">
-      <DashboardTreeViewAutomationNode
-        v-for="script of filteredScripts"
-        :id="script.id"
-        :key="script.id"
-        class="nc-script-item !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100"
-        :class="{
-          'bg-nc-bg-gray-medium': isMarked === script.id,
-          'active': activeAutomationId === script.id,
-        }"
-        :on-validate="validate"
-        :script="script"
-        @change-script="changeScript"
-        @rename="onRename"
-        @delete="openDeleteDialog"
-        @select-icon="updateScriptIcon($event, script)"
-      />
-    </template>
-  </a-menu>
+  </div>
 </template>
 
+<style scoped lang="scss">
+.item {
+  @apply flex flex-row items-center w-36 justify-between;
+}
+
+.item-inner {
+  @apply flex flex-row items-center gap-x-1.75;
+}
+
+.plus {
+  @apply text-nc-content-gray-muted;
+}
+</style>
+
 <style lang="scss">
-.nc-scripts-menu {
+.nc-automation-menu {
   .ghost,
   .ghost > * {
     @apply !pointer-events-none;
   }
 
-  &.dragging {
-    .nc-icon {
-      @apply !hidden;
-    }
+  .ghost {
+    @apply !bg-nc-bg-gray-medium;
+  }
 
+  &.dragging {
     .nc-view-icon {
       @apply !block;
     }
   }
 
-  .ant-menu-item:not(.sortable-chosen) {
-    @apply color-transition;
-  }
-
-  .ant-menu-title-content {
-    @apply !w-full;
-  }
-
-  .sortable-chosen {
-    @apply !bg-nc-bg-gray-medium;
-  }
-
   .active {
     @apply !bg-primary-selected dark:!bg-nc-bg-gray-medium font-medium;
   }
+}
+
+.nc-automation-create-dropdown {
+  @apply !max-w-43 !min-w-43 !left-18;
 }
 </style>

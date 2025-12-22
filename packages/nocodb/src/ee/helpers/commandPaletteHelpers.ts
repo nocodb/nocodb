@@ -1,4 +1,5 @@
 import {
+  AutomationTypes,
   ModelTypes,
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
@@ -92,6 +93,11 @@ export async function getCommandPaletteForUserWorkspace(
         'd.title as dashboard_title',
         'd.meta as dashboard_meta',
         'd.order as dashboard_order',
+
+        'w.id as workflow_id',
+        'w.title as workflow_title',
+        'w.meta as workflow_meta',
+        'w.order as workflow_order',
       )
       .from(rootQb.as('root'))
       .innerJoin(`${MetaTable.MODELS} as t`, `t.base_id`, `root.base_id`)
@@ -103,13 +109,37 @@ export async function getCommandPaletteForUserWorkspace(
           `root.base_role`,
         );
       })
-      .leftJoin(`${MetaTable.SCRIPTS} as s`, function () {
-        this.on(`s.base_id`, `=`, `root.base_id`).andOn(
-          ncMeta.knexConnection.raw(`CASE
+      .leftJoin(`${MetaTable.AUTOMATIONS} as s`, function () {
+        this.on(`s.base_id`, `=`, `root.base_id`)
+          .andOn(
+            ncMeta.knexConnection.raw(
+              `CASE
             WHEN root.base_role IN ('${ProjectRoles.EDITOR}', '${ProjectRoles.CREATOR}', '${ProjectRoles.OWNER}') THEN 1
             ELSE 0
-          END = 1`),
-        );
+          END = 1`,
+            ),
+          )
+          .andOn(
+            `s.type`,
+            `=`,
+            ncMeta.knexConnection.raw('?', [AutomationTypes.SCRIPT]),
+          );
+      })
+      .leftJoin(`${MetaTable.AUTOMATIONS} as w`, function () {
+        this.on(`w.base_id`, `=`, `root.base_id`)
+          .andOn(
+            ncMeta.knexConnection.raw(
+              `CASE
+            WHEN root.base_role IN ('${ProjectRoles.CREATOR}', '${ProjectRoles.OWNER}') THEN 1
+            ELSE 0
+          END = 1`,
+            ),
+          )
+          .andOn(
+            `w.type`,
+            `=`,
+            ncMeta.knexConnection.raw('?', [AutomationTypes.WORKFLOW]),
+          );
       })
       .leftJoin(`${MetaTable.MODELS} as d`, function (qb) {
         qb.on(`d.base_id`, `=`, `root.base_id`);

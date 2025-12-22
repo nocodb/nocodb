@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { BaseVersion, MetaTable } from '~/utils/globals';
+import { BaseVersion, MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   const migrationStart = Date.now();
@@ -75,7 +75,7 @@ const up = async (knex: Knex) => {
       'subject_id',
     ],
     [MetaTable.ROW_COLOR_CONDITIONS]: ['base_id', 'id'],
-    [MetaTable.SCRIPTS]: ['base_id', 'id'],
+    [MetaTableOldV2.SCRIPTS]: ['base_id', 'id'],
     [MetaTable.SORT]: ['base_id', 'id'],
     [MetaTable.SOURCES]: ['base_id', 'id'],
     [MetaTable.SYNC_CONFIGS]: ['base_id', 'id'],
@@ -247,7 +247,7 @@ const down = async (knex: Knex) => {
       'subject_id',
     ],
     [MetaTable.ROW_COLOR_CONDITIONS]: ['id'],
-    [MetaTable.SCRIPTS]: ['id'],
+    [MetaTableOldV2.SCRIPTS]: ['id'],
     [MetaTable.SORT]: ['id'],
     [MetaTable.SOURCES]: ['id'],
     [MetaTable.SYNC_CONFIGS]: ['id'],

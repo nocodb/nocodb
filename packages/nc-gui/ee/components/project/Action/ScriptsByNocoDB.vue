@@ -1,9 +1,9 @@
 <script setup lang="ts">
 const { isUIAllowed } = useRoles()
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { isMarketVisible } = storeToRefs(automationStore)
+const { isMarketVisible } = storeToRefs(scriptStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 

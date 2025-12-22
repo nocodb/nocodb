@@ -8,6 +8,7 @@ import * as nc_007_workflow_draft from './v0/nc_007_workflow_draft';
 import * as nc_008_license_server from './v0/nc_008_license_server';
 import * as nc_009_dependency_tracker_timestamp from './v0/nc_009_dependency_tracker_timestamp';
 import * as nc_010_add_constraints_col_in_column_table from './v0/nc_010_add_constraints_col_in_column_table';
+import * as nc_011_merge_workflows_scripts from './v0/nc_011_merge_workflows_scripts';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -27,6 +28,7 @@ export default class XcMigrationSourcev0 {
       'nc_008_license_server',
       'nc_009_dependency_tracker_timestamp',
       'nc_010_add_constraints_col_in_column_table',
+      'nc_011_merge_workflows_scripts',
     ]);
   }
 
@@ -56,6 +58,8 @@ export default class XcMigrationSourcev0 {
         return nc_009_dependency_tracker_timestamp;
       case 'nc_010_add_constraints_col_in_column_table':
         return nc_010_add_constraints_col_in_column_table;
+      case 'nc_011_merge_workflows_scripts':
+        return nc_011_merge_workflows_scripts;
     }
   }
 }

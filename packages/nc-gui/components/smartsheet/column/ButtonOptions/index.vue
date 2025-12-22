@@ -43,17 +43,17 @@ const { loadHooksList } = webhooksStore
 
 const { hooks } = toRefs(webhooksStore)
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { loadAutomations } = automationStore
+const { loadScripts } = scriptStore
 
 const bases = useBases()
 
 const { openedProject } = storeToRefs(bases)
 
-await Promise.all([loadHooksList(), loadAutomations({ baseId: openedProject.value!.id, force: true })])
+await Promise.all([loadHooksList(), loadScripts({ baseId: openedProject.value!.id, force: true })])
 
-const { activeBaseAutomations } = toRefs(automationStore)
+const { activeBaseScripts } = toRefs(scriptStore)
 
 const selectedWebhook = ref<HookType>()
 
@@ -273,7 +273,7 @@ if (isEdit.value) {
   vModel.value.fk_script_id = colOptions?.fk_script_id
   vModel.value.icon = colOptions?.icon
   selectedWebhook.value = hooks.value.find((hook) => hook.id === vModel.value?.fk_webhook_id)
-  selectedScript.value = activeBaseAutomations.value.find((script) => script.id === vModel.value?.fk_script_id)
+  selectedScript.value = activeBaseScripts.value.find((script) => script.id === vModel.value?.fk_script_id)
 
   if (vModel.value.type === ButtonActionsType.Ai) {
     vModel.value.formula_raw = colOptions?.formula_raw || ''

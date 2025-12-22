@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Pane, Splitpanes } from 'splitpanes'
-import { initializeMonaco } from '../../../../../lib/monaco'
-import { TypeGenerator } from '~/components/smartsheet/automation/scripts/utils/TypeGenerator'
+import { initializeMonaco } from '../../../../lib/monaco'
+import { TypeGenerator } from '~/ee/components/smartsheet/script/utils/TypeGenerator'
 
 // Lazy load Monaco Editor and its dependencies
 const loadMonacoEditor = () => import('monaco-editor')
@@ -22,7 +22,7 @@ let editor: monaco.editor.IStandaloneCodeEditor
 
 const { isDark } = useTheme()
 
-const { activeAutomation, activeBaseSchema } = storeToRefs(useAutomationStore())
+const { activeScript, activeBaseSchema } = storeToRefs(useScriptStore())
 
 const { appInfo } = useGlobal()
 
@@ -72,7 +72,7 @@ async function setupMonacoEditor() {
 
   await updateTypes()
 
-  const model = monaco.editor.createModel(activeAutomation.value?.script, 'typescript')
+  const model = monaco.editor.createModel(activeScript.value?.script, 'typescript')
 
   editor = monaco.editor.create(editorRef.value!, {
     model,
@@ -153,14 +153,14 @@ async function setupMonacoEditor() {
 }
 
 watch(
-  () => activeAutomation.value?._dirty,
+  () => activeScript.value?._dirty,
   (newVal) => {
     if (!newVal || !editor) return
 
     const pos = editor.getPosition()
-    if (activeAutomation.value?.script !== editor.getValue()) {
+    if (activeScript.value?.script !== editor.getValue()) {
       dirty = true
-      editor.setValue(activeAutomation.value.script)
+      editor.setValue(activeScript.value.script)
     }
     editor.setPosition(pos)
   },
@@ -169,9 +169,9 @@ watch(
 onMounted(async () => {
   await initializeMonaco()
   configValue.value = {
-    ...(activeAutomation.value?.config ?? {}),
+    ...(activeScript.value?.config ?? {}),
   }
-  await waitForCondition(() => !!activeAutomation.value)
+  await waitForCondition(() => !!activeScript.value)
   await until(() => editorRef.value).toBeTruthy()
   await setupMonacoEditor()
 })
@@ -211,20 +211,20 @@ onBeforeUnmount(async () => {
     <Splitpanes>
       <Pane v-show="isCreateEditScriptAllowed" min-size="20" :size="isEditorOpen ? 70 : 0" class="flex flex-col h-full min-w-0">
         <div v-if="isEditorOpen" class="w-full flex-1">
-          <div ref="editorRef" data-testid="nc-scripts-editor" :data-code="activeAutomation?.script" class="h-full" />
+          <div ref="editorRef" data-testid="nc-scripts-editor" :data-code="activeScript?.script" class="h-full" />
         </div>
       </Pane>
       <Pane :min-size="25" :size="isCreateEditScriptAllowed && isEditorOpen ? 30 : 100">
-        <SmartsheetAutomationScriptsConfigInput
+        <SmartsheetScriptConfigInput
           v-if="isSettingsOpen && shouldShowSettings"
           v-model:model-value="configValue"
           :config="config"
         />
-        <SmartsheetAutomationScriptsPlayground v-else :is-editor-open="isEditorOpen || !isCreateEditScriptAllowed" />
+        <SmartsheetScriptPlayground v-else :is-editor-open="isEditorOpen || !isCreateEditScriptAllowed" />
       </Pane>
     </Splitpanes>
   </div>
-  <SmartsheetAutomationScriptsBottomBar />
+  <SmartsheetScriptBottomBar />
 </template>
 
 <style lang="scss">

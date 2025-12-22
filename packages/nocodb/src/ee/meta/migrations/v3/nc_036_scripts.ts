@@ -1,8 +1,8 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
-  await knex.schema.createTable(MetaTable.SCRIPTS, (table) => {
+  await knex.schema.createTable(MetaTableOldV2.SCRIPTS, (table) => {
     table.string('id', 20).primary();
     table.text('title');
     table.text('description');
@@ -27,10 +27,10 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
-  await knex.schema.alterTable(MetaTable.SCRIPTS, (table) => {
+  await knex.schema.alterTable(MetaTableOldV2.SCRIPTS, (table) => {
     table.dropIndex(['base_id', 'fk_workspace_id'], 'nc_scripts_context');
   });
-  await knex.schema.dropTableIfExists(MetaTable.SCRIPTS);
+  await knex.schema.dropTableIfExists(MetaTableOldV2.SCRIPTS);
 
   await knex.schema.alterTable(MetaTable.COL_BUTTON, (table) => {
     table.dropColumn('fk_script_id');

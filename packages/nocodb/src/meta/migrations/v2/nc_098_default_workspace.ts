@@ -1,7 +1,11 @@
 import { OrgUserRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { customAlphabet } from 'nanoid';
 import type { Knex } from 'knex';
-import { MetaTable, NC_STORE_DEFAULT_WORKSPACE_ID_KEY } from '~/utils/globals';
+import {
+  MetaTable,
+  MetaTableOldV2,
+  NC_STORE_DEFAULT_WORKSPACE_ID_KEY,
+} from '~/utils/globals';
 
 const nanoidWorkspace = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz',
@@ -103,7 +107,7 @@ const up = async (knex: Knex) => {
     MetaTable.WORKSPACE_USER,
     MetaTable.SNAPSHOT,
     MetaTable.CUSTOM_URLS,
-    MetaTable.SCRIPTS,
+    MetaTableOldV2.SCRIPTS,
     MetaTable.JOBS,
     MetaTable.FILE_REFERENCES,
     MetaTable.INTEGRATIONS,

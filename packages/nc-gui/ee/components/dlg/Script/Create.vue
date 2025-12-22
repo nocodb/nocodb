@@ -23,18 +23,18 @@ const dialogShow = useVModel(props, 'modelValue', emits)
 
 const inputEl = ref<HTMLInputElement>()
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { createAutomation } = automationStore
+const { createScript } = scriptStore
 
-const { automations } = storeToRefs(automationStore)
+const { scripts } = storeToRefs(scriptStore)
 
 const script = reactive<Pick<ScriptType, 'title' | 'description'>>({})
 
-const scripts = computed(() => automations.value.get(baseId.value) || [])
+const scriptList = computed(() => scripts.value.get(baseId.value) || [])
 
-const createScript = async () => {
-  return await createAutomation(props.baseId, {
+const _createScript = async () => {
+  return await createScript(props.baseId, {
     title: script.title,
     description: script.description,
   })
@@ -57,7 +57,7 @@ const validators = computed(() => {
         validator: (_: any, value: any) => {
           // validate duplicate alias
           return new Promise((resolve, reject) => {
-            if ((scripts.value || []).some((t) => t.title === (value || ''))) {
+            if ((scriptList.value || []).some((t) => t.title === (value || ''))) {
               return reject(new Error('Duplicate script name'))
             }
             return resolve(true)
@@ -71,12 +71,12 @@ const { validate, validateInfos } = useForm(script, validators)
 
 const creating = ref(false)
 
-const _createScript = async () => {
+const createScriptHandler = async () => {
   if (creating.value) return
   try {
     creating.value = true
     await validate()
-    const createdScript = await createScript()
+    const createdScript = await _createScript()
     dialogShow.value = false
     emits('created', createdScript as ScriptType)
   } catch (e: any) {
@@ -107,8 +107,8 @@ const toggleDescription = () => {
 }
 
 onMounted(() => {
-  if (!scripts.value) return
-  script.title = generateUniqueTitle(`Script`, scripts.value ?? [], 'title', '-', true)
+  if (!scriptList.value) return
+  script.title = generateUniqueTitle(`Script`, scriptList.value ?? [], 'title', '-', true)
 
   nextTick(() => {
     inputEl.value?.focus()
@@ -138,7 +138,7 @@ watch(activeBaseId, () => {
     <div class="p-5 flex flex-col gap-5">
       <div class="flex justify-between w-full items-center">
         <div class="flex flex-row items-center gap-x-2 text-base font-semibold text-nc-content-gray">
-          <GeneralIcon icon="ncAutomation" class="!text-nc-content-gray-subtle2 w-5 h-5" />
+          <GeneralIcon icon="ncScript" class="!text-nc-content-gray-subtle2 w-5 h-5" />
           {{ $t('activity.createScript') }}
         </div>
       </div>
@@ -148,7 +148,7 @@ watch(activeBaseId, () => {
         :model="script"
         name="create-new-script-form"
         class="flex flex-col px-5 gap-5"
-        @keydown.enter="_createScript"
+        @keydown.enter="createScriptHandler"
         @keydown.esc="dialogShow = false"
       >
         <div class="flex flex-col gap-5">
@@ -205,7 +205,7 @@ watch(activeBaseId, () => {
               size="small"
               :disabled="validateInfos.title?.validateStatus === 'error' || creating"
               :loading="creating"
-              @click="_createScript"
+              @click="createScriptHandler"
             >
               {{ $t('activity.createScript') }}
               <template #loading> {{ $t('title.creatingScript') }} </template>

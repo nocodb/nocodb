@@ -20,7 +20,7 @@ interface CellUpdate {
 
 export class ActionManager {
   private api: Api<any>
-  private readonly loadAutomation: (id: string) => Promise<any>
+  private readonly loadScript: (id: string) => Promise<any>
   private readonly generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>
   private readonly triggerRefreshCanvas: () => void
   private meta: Ref<TableType>
@@ -47,7 +47,7 @@ export class ActionManager {
 
   constructor(
     api: Api<any>,
-    loadAutomation: (id: string) => Promise<any>,
+    loadScript: (id: string) => Promise<any>,
     generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>,
     meta: Ref<TableType>,
     triggerRefreshCanvas: () => void,
@@ -62,7 +62,7 @@ export class ActionManager {
     userSync?: any,
   ) {
     this.api = api
-    this.loadAutomation = loadAutomation
+    this.loadScript = loadScript
     this.generateRows = generateRows
     this.meta = meta
     this.triggerRefreshCanvas = triggerRefreshCanvas
@@ -312,7 +312,7 @@ export class ActionManager {
         }
 
         case 'script': {
-          const script = await this.loadAutomation(colOptions.fk_script_id)
+          const script = await this.loadScript(colOptions.fk_script_id)
 
           for (let i = 0; i < rowIds.length; i++) {
             const rowId = rowIds[i]!

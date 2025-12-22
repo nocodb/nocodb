@@ -98,8 +98,8 @@ export enum MetaTable {
   OAUTH_CLIENTS = 'nc_oauth_clients',
   OAUTH_AUTHORIZATION_CODES = 'nc_oauth_authorization_codes',
   OAUTH_TOKENS = 'nc_oauth_tokens',
-  WORKFLOWS = 'nc_workflows',
-  WORKFLOW_EXECUTIONS = 'nc_workflow_executions',
+  AUTOMATIONS = 'nc_automations',
+  AUTOMATION_EXECUTIONS = 'nc_automation_executions',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATIONS = 'nc_installations',
 }
@@ -142,7 +142,6 @@ export const BaseRelatedMetaTables = [
   MetaTable.PERMISSIONS,
   MetaTable.PERMISSION_SUBJECTS,
   MetaTable.ROW_COLOR_CONDITIONS,
-  MetaTable.SCRIPTS,
   MetaTable.SORT,
   MetaTable.SOURCES,
   MetaTable.SYNC_CONFIGS,
@@ -152,8 +151,8 @@ export const BaseRelatedMetaTables = [
   MetaTable.VIEWS,
   MetaTable.WIDGETS,
   MetaTable.MODEL_STAT,
-  MetaTable.WORKFLOWS,
-  MetaTable.WORKFLOW_EXECUTIONS,
+  MetaTable.AUTOMATIONS,
+  MetaTable.AUTOMATION_EXECUTIONS,
   MetaTable.DEPENDENCY_TRACKER,
 ];
 

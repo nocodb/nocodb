@@ -39,7 +39,7 @@ const activeActionPane = () => {
   open.value = false
 }
 
-const { loadAutomation } = useAutomationStore()
+const { loadScript } = useScriptStore()
 const { api } = useApi()
 const { $poller } = useNuxtApp()
 const { activeExecutions, handleWorkerMessage, eventBus } = useScriptExecutor()
@@ -55,15 +55,15 @@ const executionStatus = ref(
 
 const buttonInputStatus = ref(new Map<string, { hasInputCalls: boolean; isLoading: boolean }>())
 
-const loadButtonAutomations = async () => {
+const loadButtonScripts = async () => {
   for (const button of buttonActionColumns.value) {
     if (button.colOptions.type === ButtonActionsType.Script && button.colOptions.fk_script_id && button.id) {
       buttonInputStatus.value.set(button.id, { hasInputCalls: false, isLoading: true })
 
       try {
-        const automation = await loadAutomation(button.colOptions.fk_script_id)
-        if (automation?.script) {
-          const hasInput = hasInputCalls(automation.script)
+        const script = await loadScripts(button.colOptions.fk_script_id)
+        if (script?.script) {
+          const hasInput = hasInputCalls(script.script)
           buttonInputStatus.value.set(button.id, { hasInputCalls: hasInput, isLoading: false })
         } else {
           buttonInputStatus.value.set(button.id, { hasInputCalls: false, isLoading: false })
@@ -119,7 +119,7 @@ const shouldShowTooltip = (button: ColumnType & { colOptions: ButtonType }) => {
 watch(
   () => buttonActionColumns.value.length,
   () => {
-    loadButtonAutomations()
+    loadButtonScripts()
   },
   { immediate: true },
 )

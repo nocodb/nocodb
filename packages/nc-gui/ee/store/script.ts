@@ -1,8 +1,8 @@
 import { PlanLimitTypes, type ScriptType } from 'nocodb-sdk'
 import { parseScript, validateConfigValues } from 'nocodb-sdk'
-import { DlgAutomationCreate } from '#components'
+import { DlgScriptCreate } from '#components'
 
-export const useAutomationStore = defineStore('automation', () => {
+export const useScriptStore = defineStore('script', () => {
   const { $api, $e } = useNuxtApp()
   const router = useRouter()
   const route = useRoute()
@@ -17,86 +17,86 @@ export const useAutomationStore = defineStore('automation', () => {
   const { refreshCommandPalette } = useCommandPalette()
 
   // State
-  const automations = ref<Map<string, (ScriptType & { _dirty?: string | number })[]>>(new Map())
-  const isUpdatingAutomation = ref(false)
-  const isLoadingAutomation = ref(false)
+  const scripts = ref<Map<string, (ScriptType & { _dirty?: string | number })[]>>(new Map())
+  const isUpdatingScript = ref(false)
+  const isLoadingScript = ref(false)
   const isSettingsOpen = ref(false)
   const isMarketVisible = ref(false)
 
-  const activeBaseAutomations = computed(() => {
+  const activeBaseScripts = computed(() => {
     if (!activeProjectId.value) return []
-    return automations.value.get(activeProjectId.value) || []
+    return scripts.value.get(activeProjectId.value) || []
   })
 
-  const activeAutomationId = computed(() => route.params.automationId as string)
+  const activeScriptId = computed(() => route.params.scriptId as string)
 
-  const activeAutomation = computed(() => {
-    if (!activeAutomationId.value) return null
-    return activeBaseAutomations.value.find((a) => a.id === activeAutomationId.value) || null
+  const activeScript = computed(() => {
+    if (!activeScriptId.value) return null
+    return activeBaseScripts.value.find((a) => a.id === activeScriptId.value) || null
   })
 
-  const activeAutomationUrlSlug = computed(() => {
+  const activeScriptUrlSlug = computed(() => {
     return route.params.slugs?.[0] || ''
   })
 
-  const activeAutomationReadableUrlSlug = computed(() => {
-    if (!activeAutomation.value) return ''
+  const activeScriptReadableUrlSlug = computed(() => {
+    if (!activeScript.value) return ''
 
-    return toReadableUrlSlug([activeAutomation.value.title])
+    return toReadableUrlSlug([activeScript.value.title])
   })
 
   const activeBaseSchema = ref(null)
   // Actions
-  const loadAutomations = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
+  const loadScripts = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
     if (!activeWorkspaceId.value) return []
 
-    const existingAutomations = automations.value.get(baseId)
-    if (existingAutomations && !force) {
-      return existingAutomations
+    const existingScripts = scripts.value.get(baseId)
+    if (existingScripts && !force) {
+      return existingScripts
     }
 
     try {
-      isLoadingAutomation.value = true
+      isLoadingScript.value = true
 
       const response = (await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
         operation: 'listScripts',
       })) as ScriptType[]
 
-      automations.value.set(baseId, response)
+      scripts.value.set(baseId, response)
       return response
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return []
     } finally {
-      isLoadingAutomation.value = false
+      isLoadingScript.value = false
     }
   }
 
-  const loadAutomation = async (automationId: string, showLoader = true) => {
-    if (!activeProjectId.value || !activeWorkspaceId.value || !automationId) {
+  const loadScript = async (scriptId: string, showLoader = true) => {
+    if (!activeProjectId.value || !activeWorkspaceId.value || !scriptId) {
       return null
     }
 
-    let automation: null | ScriptType = null
+    let script: null | ScriptType = null
 
-    if (automations.value.get(activeProjectId.value)?.find((a) => a.id === automationId)) {
-      automation = (automations.value.get(activeProjectId.value) ?? []).find((a) => a.id === automationId) || null
+    if (scripts.value.get(activeProjectId.value)?.find((a) => a.id === scriptId)) {
+      script = (scripts.value.get(activeProjectId.value) ?? []).find((a) => a.id === scriptId) || null
     }
 
     try {
       if (showLoader) {
-        isLoadingAutomation.value = true
+        isLoadingScript.value = true
       }
 
-      automation =
-        automation ||
+      script =
+        script ||
         ((await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
           operation: 'getScript',
-          id: automationId,
+          id: scriptId,
         })) as unknown as ScriptType)
 
-      return automation
+      return script
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))
@@ -107,12 +107,12 @@ export const useAutomationStore = defineStore('automation', () => {
       return null
     } finally {
       if (showLoader) {
-        isLoadingAutomation.value = false
+        isLoadingScript.value = false
       }
     }
   }
 
-  const duplicateAutomation = async (baseId: string, automationId: string) => {
+  const duplicateScript = async (baseId: string, scriptId: string) => {
     if (!activeWorkspaceId.value) return null
     try {
       const created = await $api.internal.postOperation(
@@ -122,21 +122,21 @@ export const useAutomationStore = defineStore('automation', () => {
           operation: 'duplicateScript',
         },
         {
-          id: automationId,
+          id: scriptId,
         },
       )
 
       updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, 1)
 
-      const baseAutomations = automations.value.get(baseId) || []
-      baseAutomations.push(created)
-      automations.value.set(baseId, baseAutomations)
+      const baseScripts = scripts.value.get(baseId) || []
+      baseScripts.push(created)
+      scripts.value.set(baseId, baseScripts)
 
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,
         baseId: activeProjectId.value,
-        automationId: created.id,
-        automationTitle: created.title,
+        scriptId: created.id,
+        scriptTitle: created.title,
       })
 
       await refreshCommandPalette()
@@ -151,7 +151,7 @@ export const useAutomationStore = defineStore('automation', () => {
     }
   }
 
-  const createAutomation = async (baseId: string, automationData: Partial<ScriptType>) => {
+  const createScript = async (baseId: string, scriptData: Partial<ScriptType>) => {
     if (!activeWorkspaceId.value) return null
     try {
       const created = await $api.internal.postOperation(
@@ -160,20 +160,20 @@ export const useAutomationStore = defineStore('automation', () => {
         {
           operation: 'createScript',
         },
-        automationData,
+        scriptData,
       )
 
       updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, 1)
 
-      const baseAutomations = automations.value.get(baseId) || []
-      baseAutomations.push(created)
-      automations.value.set(baseId, baseAutomations)
+      const baseScripts = scripts.value.get(baseId) || []
+      baseScripts.push(created)
+      scripts.value.set(baseId, baseScripts)
 
       ncNavigateTo({
         workspaceId: activeWorkspaceId.value,
         baseId: activeProjectId.value,
-        automationId: created.id,
-        automationTitle: created.title,
+        scriptId: created.id,
+        scriptTitle: created.title,
       })
 
       await refreshCommandPalette()
@@ -186,9 +186,9 @@ export const useAutomationStore = defineStore('automation', () => {
     }
   }
 
-  const updateAutomation = async (
+  const updateScript = async (
     baseId: string,
-    automationId: string,
+    scriptId: string,
     updates: Partial<ScriptType>,
     options?: {
       skipNetworkCall?: boolean
@@ -196,12 +196,12 @@ export const useAutomationStore = defineStore('automation', () => {
   ) => {
     if (!activeWorkspaceId.value) return null
     try {
-      isUpdatingAutomation.value = true
+      isUpdatingScript.value = true
 
-      const automation = automations.value.get(baseId)?.find((a) => a.id === automationId)
+      const script = scripts.value.get(baseId)?.find((a) => a.id === scriptId)
       const updated = options?.skipNetworkCall
         ? {
-            ...automation,
+            ...script,
             ...updates,
           }
         : await $api.internal.postOperation(
@@ -212,7 +212,7 @@ export const useAutomationStore = defineStore('automation', () => {
             },
             {
               ...updates,
-              id: automationId,
+              id: scriptId,
             },
           )
 
@@ -222,14 +222,14 @@ export const useAutomationStore = defineStore('automation', () => {
         $e('a:script:update')
       }
 
-      const baseAutomations = automations.value.get(baseId) || []
-      const index = baseAutomations.findIndex((a) => a.id === automationId)
+      const baseScripts = scripts.value.get(baseId) || []
+      const index = baseScripts.findIndex((a) => a.id === scriptId)
       if (index !== -1) {
-        baseAutomations[index] = {
-          ...baseAutomations[index],
+        baseScripts[index] = {
+          ...baseScripts[index],
           ...updated,
         } as unknown as ScriptType
-        automations.value.set(baseId, baseAutomations)
+        scripts.value.set(baseId, baseScripts)
       }
 
       return updated
@@ -238,11 +238,11 @@ export const useAutomationStore = defineStore('automation', () => {
       message.error(await extractSdkResponseErrorMsgv2(e as any))
       return null
     } finally {
-      isUpdatingAutomation.value = false
+      isUpdatingScript.value = false
     }
   }
 
-  const deleteAutomation = async (baseId: string, automationId: string) => {
+  const deleteScript = async (baseId: string, scriptId: string) => {
     if (!activeWorkspaceId.value) return null
     try {
       await $api.internal.postOperation(
@@ -252,25 +252,25 @@ export const useAutomationStore = defineStore('automation', () => {
           operation: 'deleteScript',
         },
         {
-          id: automationId,
+          id: scriptId,
         },
       )
 
       updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, -1)
 
       // Update local state
-      const baseAutomations = automations.value.get(baseId) || []
-      const filtered = baseAutomations.filter((a) => a.id !== automationId)
-      automations.value.set(baseId, filtered)
+      const baseScripts = scripts.value.get(baseId) || []
+      const filtered = baseScripts.filter((a) => a.id !== scriptId)
+      scripts.value.set(baseId, filtered)
 
-      if (activeAutomationId.value === automationId) {
-        const nextAutomation = filtered[0]
-        if (nextAutomation) {
+      if (activeScriptId.value === scriptId) {
+        const nextScript = filtered[0]
+        if (nextScript) {
           ncNavigateTo({
             workspaceId: activeWorkspaceId.value,
             baseId: activeProjectId.value,
-            automationId: nextAutomation.id,
-            automationTitle: nextAutomation.title,
+            scriptId: nextScript.id,
+            scriptTitle: nextScript.title,
           })
         }
       }
@@ -320,8 +320,8 @@ export const useAutomationStore = defineStore('automation', () => {
     ncNavigateTo({
       workspaceId: workspaceIdOrType,
       baseId: baseIdOrBaseId,
-      automationId: script.id,
-      automationTitle: script.title,
+      scriptId: script.id,
+      scriptTitle: script.title,
     })
   }
 
@@ -344,17 +344,17 @@ export const useAutomationStore = defineStore('automation', () => {
     }
   })
 
-  // Watch for active automation changes
-  watch(activeAutomationId, async (automationId) => {
-    let automation
+  // Watch for active script changes
+  watch(activeScriptId, async (scriptId) => {
+    let script
     if (!activeProjectId.value) return
-    if (automationId) {
-      automation = await loadAutomation(automationId)
+    if (scriptId) {
+      script = await loadScript(scriptId)
     }
 
-    if (automation) {
-      const script = parseScript(automation.script ?? '')
-      const isValid = validateConfigValues(script ?? {}, automation?.config ?? {})
+    if (script) {
+      const scriptCode = parseScript(script.script ?? '')
+      const isValid = validateConfigValues(scriptCode ?? {}, script?.config ?? {})
       if (isValid?.length) {
         isSettingsOpen.value = true
       } else {
@@ -384,27 +384,27 @@ export const useAutomationStore = defineStore('automation', () => {
   async function openNewScriptModal({
     baseId,
     e,
-    loadAutomationsOnClose,
+    loadScriptsOnClose,
     scrollOnCreate,
   }: {
     baseId?: string
     e?: string
-    loadAutomationsOnClose?: boolean
+    loadScriptsOnClose?: boolean
     scrollOnCreate?: boolean
   }) {
     if (!baseId || showScriptPlanLimitExceededModal()) return
 
     const isDlgOpen = ref(true)
 
-    const { close } = useDialog(DlgAutomationCreate, {
+    const { close } = useDialog(DlgScriptCreate, {
       'modelValue': isDlgOpen,
       'baseId': baseId,
       'onUpdate:modelValue': () => closeDialog(),
       'onCreated': async (script: ScriptType) => {
         closeDialog()
 
-        if (loadAutomationsOnClose) {
-          await loadAutomations({ baseId, force: true })
+        if (loadScriptsOnClose) {
+          await loadScripts({ baseId, force: true })
         }
 
         $e(e ?? 'a:script:create')
@@ -413,7 +413,7 @@ export const useAutomationStore = defineStore('automation', () => {
 
         if (scrollOnCreate) {
           setTimeout(() => {
-            const newScriptDom = document.querySelector(`[data-automation-id="${script.id}"]`)
+            const newScriptDom = document.querySelector(`[data-script-id="${script.id}"]`)
             if (!newScriptDom) return
 
             // Scroll to the script node
@@ -430,26 +430,26 @@ export const useAutomationStore = defineStore('automation', () => {
   }
 
   /**
-   * Keeps the browser URL slug in sync with the automation's readable slug.
+   * Keeps the browser URL slug in sync with the script's readable slug.
    * Triggers only when:
    * - The current browser URL slug is missing, OR
-   * - The browser URL slug does not match the automation's readable slug.
+   * - The browser URL slug does not match the script's readable slug.
    */
   watch(
-    [activeAutomationReadableUrlSlug, activeAutomationUrlSlug],
-    ([newActiveAutomationReadableUrlSlug, newActiveAutomationUrlSlug]) => {
-      if (!newActiveAutomationReadableUrlSlug || newActiveAutomationUrlSlug === newActiveAutomationReadableUrlSlug) return
+    [activeScriptReadableUrlSlug, activeScriptUrlSlug],
+    ([newActiveScriptReadableUrlSlug, newActiveScriptUrlSlug]) => {
+      if (!newActiveScriptReadableUrlSlug || newActiveScriptUrlSlug === newActiveScriptReadableUrlSlug) return
 
       const slugs = (route.params.slugs as string[]) || []
 
-      const newSlug = [newActiveAutomationReadableUrlSlug]
+      const newSlug = [newActiveScriptReadableUrlSlug]
 
       if (slugs.length > 1) {
         newSlug.push(...slugs.slice(1))
       }
 
       router.replace({
-        name: 'index-typeOrId-baseId-index-automations-automationId-slugs',
+        name: 'index-typeOrId-baseId-index-scripts-scriptId-slugs',
         params: {
           ...route.params,
           slugs: newSlug,
@@ -466,23 +466,23 @@ export const useAutomationStore = defineStore('automation', () => {
 
   return {
     // State
-    automations,
-    activeAutomation,
-    isUpdatingAutomation,
-    isLoadingAutomation,
+    scripts,
+    activeScript,
+    isUpdatingScript,
+    isLoadingScript,
     isSettingsOpen,
     activeBaseSchema,
 
     // Getters
-    activeBaseAutomations,
-    activeAutomationId,
+    activeBaseScripts,
+    activeScriptId,
 
     // Actions
-    loadAutomations,
-    loadAutomation,
-    createAutomation,
-    updateAutomation,
-    deleteAutomation,
+    loadScripts,
+    loadScript,
+    createScript,
+    updateScript,
+    deleteScript,
     openScript,
 
     // Script Templates
@@ -496,12 +496,12 @@ export const useAutomationStore = defineStore('automation', () => {
     getScriptContent,
     getScriptAssetsURL: (pathOrUrl: string) => getPluginAssetUrl(pathOrUrl, pluginTypes.script),
     openNewScriptModal,
-    duplicateAutomation,
+    duplicateScript,
     updateBaseSchema,
   }
 })
 
 // Enable HMR
 if (import.meta.hot) {
-  import.meta.hot.accept(acceptHMRUpdate(useAutomationStore, import.meta.hot))
+  import.meta.hot.accept(acceptHMRUpdate(useScriptStore, import.meta.hot))
 }

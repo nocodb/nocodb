@@ -216,15 +216,15 @@ const notificationTypes = computed(() => {
   ]
 })
 
-const filterScripts = (automation: any) => {
-  if (hasInputCalls(automation.script)) {
+const filterScripts = (script: any) => {
+  if (hasInputCalls(script.script)) {
     return {
-      ...automation,
+      ...script,
       ncItemDisabled: true,
       ncItemTooltip: `Script with user inputs can't be used with webhooks`,
     }
   }
-  return automation
+  return script
 }
 
 const toggleOperation = (operation: string) => {
@@ -1333,11 +1333,11 @@ const webhookV2AndV3Diff = computed(() => {
 
                   <template v-if="isEeUI && hookRef.notification.type === 'Script'">
                     <a-form-item class="flex w-full my-3" v-bind="validateInfos['notification.payload.scriptId']">
-                      <NcListAutomationSelector
+                      <NcListScriptSelector
                         v-model:value="hookRef.notification.payload.scriptId"
                         data-testid="nc-dropdown-hook-notification-type"
                         class="nc-select-hook-scrip-type"
-                        :base-id="activeTable.base_id"
+                        :base-id="activeTable?.base_id"
                         :disable-label="true"
                         :map-script="filterScripts"
                         :auto-select="false"

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { WorkflowNodeCategory } from 'nocodb-sdk'
 import { IntegrationsType } from 'nocodb-sdk'
 import IfNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/if/index.vue'
 import ListRecordsNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/list-records.vue'
@@ -6,6 +7,8 @@ import CronTriggerNodeConfig from '~/components/smartsheet/workflow/sidebar/conf
 import RecordMatchesConditionTriggerConfig from '~/components/smartsheet/workflow/sidebar/config/custom/record-matches-condition-trigger.vue'
 import CreateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/create-record.vue'
 import UpdateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/update-record.vue'
+import IterateNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/iterate.vue'
+import { findIterateNodePortForPath } from '~/utils/workflowUtils'
 
 const {
   selectedNodeId,
@@ -33,6 +36,7 @@ const getAvailableVariables = (nodeId: string) => {
     nodeTitle: string
     nodeIcon?: string
     variables: any[]
+    category: WorkflowNodeCategory
   }> = []
 
   for (const parentId of parentNodeIds) {
@@ -49,12 +53,25 @@ const getAvailableVariables = (nodeId: string) => {
 
     const nodePrefix = `$('${parentNode.data?.title || parentId}')`
 
+    // For iterate nodes, filter variables based on which port path leads to current node
+    let filteredVariables = testResult.outputVariables
+    if (parentNode.type === 'core.flow.iterate') {
+      // Find which output port from the iterate node leads to the current node
+      const portId = findIterateNodePortForPath(parentId, nodeId, edges.value)
+
+      // Filter variables by port if we have a port ID
+      if (portId) {
+        filteredVariables = testResult.outputVariables.filter((v: any) => v.extra?.port === portId)
+      }
+    }
+
     // Add the node's variables with node context, recursively prefixing all keys
     variables.push({
       nodeId: parentId,
       nodeTitle: parentNode.data?.title || parentId,
       nodeIcon,
-      variables: testResult.outputVariables.map((v: any) => ({
+      category: nodeMeta.category,
+      variables: filteredVariables.map((v: any) => ({
         ...prefixVariableKeysRecursive(v, nodePrefix),
         extra: {
           ...v.extra,
@@ -92,6 +109,7 @@ const FormNodeMap = {
   'nocodb.trigger.record_matches_condition': RecordMatchesConditionTriggerConfig,
   'nocodb.create_record': CreateRecordNodeConfig,
   'nocodb.update_record': UpdateRecordNodeConfig,
+  'core.flow.iterate': IterateNodeConfig,
 }
 
 const formSchema = computed(() => {

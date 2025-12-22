@@ -196,7 +196,6 @@
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToEnableUnique": "Upgrade to enable unique",
     "upgradeToEnableUniqueSubtitle": "Upgrade to the {plan} plan to enable unique constraint."
-
   },
   "general": {
     "done": "Done",
@@ -1021,6 +1020,8 @@
     "duplicatesFound": "Duplicates found",
     "matchingResultsInRecords": "Matching results in {count} records",
     "tablePermissions": "Table permissions",
+    "tableVisibility": "Table Visibility",
+    "recordOperations": "Record Operations",
     "fieldPermissions": "Field permissions",
     "baseTypeDefaultSubtext": "Workspace members can collaborate based on their role.",
     "baseTypePrivateSubtext": "Invite-only base. Only you can view and manage its members.",
@@ -1221,6 +1222,8 @@
     "allowMetaWrite": "Allow Schema Change",
     "allowDataWrite": "Allow Data Write/Edit",
     "selectView": "Select a View",
+    "privateTable": "Private table",
+    "privateView": "Private view",
     "connectionDetails": "Source Connection Details",
     "metaSync": "Meta Sync",
     "mention": "Mention",
@@ -1551,6 +1554,7 @@
     "agreeToTos": "By signing up, you agree to the Terms of Service",
     "welcomeToNc": "Welcome to NocoDB!",
     "inviteOnlySignup": "Allow signup only using invite url",
+    "restrictWorkspaceCreation": "Restrict workspace creation to super admin only",
     "nextRow": "Next record",
     "prevRow": "Prev record",
     "addRowGrid": "Manually add data in grid view",
@@ -1562,6 +1566,7 @@
     "includeData": "Include Data",
     "includeRecords": "Include records",
     "baseDuplicateMessage": "Note: Cross-base links, Audit logs & integrations will not be duplicated.",
+    "baseDuplicateMessage2": "The duplicated base will include only the tables you have access to in this base. As a result, some relational fields and their derivatives may not function as expected.",
     "tableDuplicateMessage": "Note: Cross-base links will not be duplicated.",
     "includeView": "Include views",
     "includeScripts": "Include scripts",
@@ -2005,6 +2010,7 @@
     "goBackHome": "Go back home"
   },
   "tooltip": {
+    "notHaveAccess": "You don’t have access to this {context}",
     "manualTriggerDisabled": "Only workflows with manual trigger can be triggered manually.",
     "optionNotAvailableInSyncTable": "This option is not available for synced fields",
     "cannotCreateRecordInSyncTable": "You cannot create records in synced table",
@@ -2155,7 +2161,6 @@
     "searchModels": "Search models",
     "noItemsFound": "No items found",
     "defaultValue": "Default value",
-    "uniqueValuesOnly": "Unique values only",
     "filterByEmail": "Filter by E-mail",
     "filterQuery": "Filter query",
     "selectField": "Select field",
@@ -2397,6 +2402,7 @@
       "pasteNotSupported": "Paste operation is not supported on the active cell",
       "pasteNotSupportedInSyncedCells": "Paste operation is not supported in synced fields",
       "permissionsNotAvailableForSyncedTable": "Permissions not available for synced table",
+      "onlyBaseOwnersCanConfigureTableVisibility": "Only base owners can configure table visibility permissions",
       "duplicateNotAvailableForSyncedTable": "Cannot duplicate records in synced table",
       "deleteNotAvailableForSyncedTable": "Cannot delete records from synced table",
       "updateNotAvailableForSyncedTable": "Cannot update records in synced table",

@@ -493,9 +493,9 @@ export class NcErrorBase {
       }
     );
   }
-  maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
+  maxPayloadLimitExceeded(limit: number, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
-      NcErrorType.ERR_MAX_INSERT_LIMIT_EXCEEDED,
+      NcErrorType.ERR_MAX_PAYLOAD_LIMIT_EXCEEDED,
       {
         params: limit.toString(),
         ...args,

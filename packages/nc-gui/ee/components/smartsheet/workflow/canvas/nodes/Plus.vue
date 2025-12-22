@@ -32,10 +32,15 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
   if (!hasOutputs) {
     // If it's a branch node (multiple outputs), add multiple plus nodes
     if (selectedNodeMeta?.output && selectedNodeMeta.output > 1) {
+      // Get port labels from node definition and sort by order
+      const ports = (selectedNodeMeta.ports?.filter((p: any) => p.direction === 'output') || []).sort(
+        (a: any, b: any) => (a.order || 0) - (b.order || 0),
+      )
+
       // Add plus nodes for each output
       for (let i = 0; i < selectedNodeMeta.output; i++) {
-        const label = i === 0 ? 'True' : 'False'
-        addPlusNode(props.id, label)
+        const port = ports[i]
+        addPlusNode(props.id, port?.label, port?.id)
       }
     } else {
       // Regular node, add single plus node to maintain linear flow

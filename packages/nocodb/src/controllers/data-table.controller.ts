@@ -45,6 +45,7 @@ export class DataTableController {
       modelId: modelId,
       viewId: viewId,
       includeSortAndFilterColumns: includeSortAndFilterColumns === 'true',
+      user: req.user,
     });
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
@@ -65,6 +66,7 @@ export class DataTableController {
       query: req.query,
       modelId,
       viewId,
+      user: req.user,
     });
 
     res.json(countResult);
@@ -87,6 +89,7 @@ export class DataTableController {
       viewId,
       cookie: req,
       undo: undo === 'true',
+      user: req.user,
     });
   }
 
@@ -104,6 +107,7 @@ export class DataTableController {
       body: req.body,
       cookie: req,
       viewId,
+      user: req.user,
     });
   }
 
@@ -121,6 +125,7 @@ export class DataTableController {
       cookie: req,
       viewId,
       body: req.body,
+      user: req.user,
     });
   }
 
@@ -137,6 +142,7 @@ export class DataTableController {
       query: req.query,
       modelId,
       viewId,
+      user: req.user,
     });
   }
 
@@ -153,6 +159,7 @@ export class DataTableController {
       modelId,
       viewId,
       body: req.body,
+      user: req.user,
     });
   }
 
@@ -169,6 +176,7 @@ export class DataTableController {
       modelId,
       viewId,
       body: req.body,
+      user: req.user,
     });
   }
 
@@ -187,6 +195,7 @@ export class DataTableController {
       rowId: rowId,
       query: req.query,
       viewId,
+      user: req.user,
     });
   }
 
@@ -204,6 +213,7 @@ export class DataTableController {
       rowId: rowId,
       beforeRowId: before,
       cookie: req,
+      user: req.user,
     });
   }
 
@@ -224,6 +234,7 @@ export class DataTableController {
       query: req.query,
       viewId,
       columnId,
+      user: req.user,
     });
   }
 
@@ -253,6 +264,7 @@ export class DataTableController {
       columnId,
       refRowIds,
       cookie: req,
+      user: req.user,
     });
   }
 
@@ -276,6 +288,7 @@ export class DataTableController {
       columnId,
       refRowIds,
       cookie: req,
+      user: req.user,
     });
   }
 
@@ -303,6 +316,7 @@ export class DataTableController {
       columnId,
       data,
       cookie: req,
+      user: req.user,
     });
   }
 }

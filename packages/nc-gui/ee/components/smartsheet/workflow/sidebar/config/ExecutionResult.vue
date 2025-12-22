@@ -4,18 +4,28 @@ import VariableDisplay from './VariableDisplay.vue'
 
 const { viewingExecution, getNodeMetaById, selectedNode } = useWorkflowOrThrow()
 
+const { getNodeLoopInfo, getNodeResultAtCurrentIteration, getCurrentIteration } = useWorkflowExecutionLoop()
+
 const isInputExpanded = ref(true)
 
 const isOutputExpanded = ref(true)
+
+const loopContext = computed(() => {
+  if (!viewingExecution.value || !selectedNode.value) return null
+
+  const executionData = viewingExecution.value.execution_data
+  if (!executionData) return null
+
+  return getNodeLoopInfo(selectedNode.value.id, executionData)
+})
 
 const executionResult = computed(() => {
   if (!viewingExecution.value || !selectedNode.value) return null
 
   const executionData = viewingExecution.value.execution_data
-  if (!executionData || !executionData.nodeResults) return null
+  if (!executionData) return null
 
-  // Find the node result by nodeId
-  return (executionData.nodeResults || []).find((result: any) => result.nodeId === selectedNode.value?.id) || null
+  return getNodeResultAtCurrentIteration(selectedNode.value.id, executionData)
 })
 
 const nodeMeta = computed(() => {
@@ -43,11 +53,31 @@ const outputData = computed(() => {
 <template>
   <NcGroupedSettings title="Execution Result">
     <div v-if="executionResult" class="space-y-3">
+      <div
+        v-if="loopContext"
+        class="flex flex-col gap-2 p-2 bg-nc-bg-gray-light rounded-md border-1 border-nc-border-gray-medium"
+      >
+        <div v-for="(loop, index) in loopContext.loopPath" :key="loop.loopId" class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="ncRepeat" class="text-nc-content-gray-emphasis" :class="{ 'ml-4': index > 0 }" />
+            <div class="text-bodySm text-nc-content-gray-emphasis">
+              {{ loop.loopData.nodeTitle }}
+            </div>
+          </div>
+
+          <div class="text-bodySm font-mono text-nc-content-gray-emphasis px-2">
+            {{ getCurrentIteration(loop.loopId) + 1 }} / {{ loop.loopData.totalIterations }}
+          </div>
+        </div>
+      </div>
+
       <div class="space-y-1">
         <div v-if="executionResult.status === 'success'" class="text-bodyBold text-nc-content-green-dark">
           Node executed successfully
         </div>
-        <div v-else-if="executionResult.status === 'error'" class="text-bodyBold text-nc-content-red-dark">Node failed</div>
+        <div v-else-if="executionResult.status === 'error'" class="text-bodyBold text-nc-content-red-dark">
+          Node failed
+        </div>
         <div class="text-bodySm text-nc-content-gray-subtle">
           Executed {{ dayjs(executionResult.endTime || executionResult.startTime).fromNow() }}
         </div>

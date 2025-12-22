@@ -45,6 +45,8 @@ const router = useRouter()
 
 const route = router.currentRoute
 
+const { isDark, getColor } = useTheme()
+
 const { metaColumnById } = useViewColumnsOrThrow(view, meta)
 
 const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
@@ -1362,7 +1364,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             <a-tag
                               v-else
                               class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none !mt-0.5"
-                              :color="stack.color"
+                              :color="getSelectTypeFieldOptionBgColor({ color: stack.color || '#ccc', isDark })"
                               @dblclick="
                                 () => {
                                   if (stack.title !== null && hasEditPermission && !isPublic && !isLocked) {
@@ -1373,9 +1375,11 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             >
                               <span
                                 :style="{
-                                  color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                                    ? '#fff'
-                                    : tinycolor.mostReadable(stack.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                                  color: getSelectTypeFieldOptionTextColor({
+                                    color: stack.color || '#ccc',
+                                    isDark,
+                                    getColor,
+                                  }),
                                 }"
                                 class="text-sm font-semibold"
                               >

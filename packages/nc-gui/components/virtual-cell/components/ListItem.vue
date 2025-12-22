@@ -21,7 +21,7 @@ const props = withDefaults(
 
 defineEmits(['expand', 'linkOrUnlink'])
 
-const { showExtraFields, relatedTableMeta, meta } = useLTARStoreOrThrow()!
+const { showExtraFields, relatedTableMeta, meta, isLinkedTableAccessible } = useLTARStoreOrThrow()!
 
 provide(IsExpandedFormOpenInj, ref(true))
 
@@ -117,8 +117,9 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
             />
           </div>
 
+          <!-- Only show sub-fields if linked table is accessible -->
           <div
-            v-if="fields.length > 0 && showExtraFields"
+            v-if="isLinkedTableAccessible && fields.length > 0 && showExtraFields"
             class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5"
           >
             <div v-for="field in fields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
@@ -163,7 +164,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
             </div>
           </div>
         </div>
-        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7" @click.stop>
+        <div v-if="!isForm && !isPublic && isLinkedTableAccessible" class="flex-none flex items-center w-7" @click.stop>
           <NcTooltip class="flex" hide-on-click>
             <template #title>{{ $t('title.expand') }}</template>
 

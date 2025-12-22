@@ -255,7 +255,7 @@ const formatValue = (value: any): string => {
         </div>
       </template>
 
-      <div v-else>
+      <div v-else-if="getVariableValue(variable) !== undefined">
         <div
           class="flex items-center justify-between overflow-x-hidden py-1 hover:bg-nc-bg-gray-extralight border-b-1 border-nc-border-gray-extralight hover:bg-nc-bg-gray-medium cursor-pointer"
           :style="{ paddingLeft: `${depth * 1 + 0.75}rem`, paddingRight: '0.75rem' }"

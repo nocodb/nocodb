@@ -37,7 +37,10 @@ const checkboxMeta = computed(() => {
   }
 
   if (isDark.value) {
-    result.color = getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), result.color, ['#4a5268', '#d5dce8'])
+    result.color =
+      result.color === '#777'
+        ? getColor(themeV4Colors.gray['600'])
+        : getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), result.color, ['#4a5268', '#d5dce8'])
   }
 
   return result

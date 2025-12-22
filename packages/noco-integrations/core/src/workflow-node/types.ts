@@ -2,7 +2,7 @@ import { IntegrationWrapper } from '../integration';
 import { AuthIntegration } from '../auth';
 import { NocoSDK } from '../sdk';
 import { IDataV3Service, ITablesService, IMailService } from './nocodb.interface';
-import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType } from 'nocodb-sdk'
+import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType, LoopContext } from 'nocodb-sdk'
 
 
 export interface WorkflowNodeLog {
@@ -73,6 +73,8 @@ export interface WorkflowNodeResult {
   status?: 'success' | 'pending' | 'skipped' | 'error' | 'running';
 
   error?: { message: string; code?: string; data?: any };
+
+  loopContext?: LoopContext;
 }
 
 export interface WorkflowNodeValidationResult {
@@ -170,18 +172,26 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
    * Generate input variables from node configuration
    * Called when config changes (e.g., table selected)
    * Optional - implement if node has configurable inputs
+   *
+   * @param context - Variable generator context with database access and node graph
+   * @param runtimeInputs - Optional runtime data with interpolated config and actual outputs
    */
   public async generateInputVariables?(
     context: NocoSDK.VariableGeneratorContext,
+    runtimeInputs?: any,
   ): Promise<VariableDefinition[]>;
 
   /**
    * Generate output variables from node definition
    * Called after node definition or test execution
    * Optional - implement if node produces structured output
+   *
+   * @param context - Variable generator context with database access and node graph
+   * @param runtimeInputs - Optional runtime data with interpolated config and actual outputs
    */
   public async generateOutputVariables?(
     context: NocoSDK.VariableGeneratorContext,
+    runtimeInputs?: any,
   ): Promise<VariableDefinition[]>;
 
   /**

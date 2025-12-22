@@ -12,6 +12,8 @@ const vModel = useVModel(props, 'value', emit)
 // cater existing v1 cases
 const iconList = checkboxIconList
 
+const { isDark, getColor } = useTheme()
+
 const picked = computed({
   get: () => vModel.value.meta.color,
   set: (val) => {
@@ -27,6 +29,16 @@ vModel.value.meta = {
   ...(vModel.value.meta || {}),
   icon: extractCheckboxIcon(vModel.value.meta || {}),
 }
+
+const iconColor = computed(() => {
+  if (!isDark.value) return vModel.value.meta.color
+
+  if (vModel.value.meta.color === '#777') {
+    return getColor(themeV4Colors.gray['600'])
+  }
+
+  return getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), vModel.value.meta.color, ['#4a5268', '#d5dce8'])
+})
 
 // antdv doesn't support object as value
 // use iconIdx as value and update back in watch
@@ -89,13 +101,13 @@ watch(
               <component
                 :is="getMdiIcon(iconList[vModel.meta.iconIdx].checked)"
                 :style="{
-                  color: vModel.meta.color,
+                  color: iconColor,
                 }"
               />
               <component
                 :is="getMdiIcon(iconList[vModel.meta.iconIdx].unchecked)"
                 :style="{
-                  color: vModel.meta.color,
+                  color: iconColor,
                 }"
               />
             </div>

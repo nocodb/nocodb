@@ -57,7 +57,7 @@ onClickOutside(
       showDropdown.value = false
     }
   },
-  { ignore: ['.ant-dropdown', '.node-sidebar', '.nc-dropdown', '.tippy-box'] },
+  { ignore: ['.ant-dropdown', '.node-sidebar', '.nc-dropdown', '.tippy-box', '.loop-selector'] },
 )
 </script>
 
@@ -85,7 +85,7 @@ onClickOutside(
                     WorkflowNodeCategory.TRIGGER,
                     WorkflowNodeCategory.ACTION,
                   ].includes(node.category),
-                  'bg-nc-bg-maroon ': node.category === WorkflowNodeCategory.FLOW,
+                  'bg-nc-bg-maroon-dark text-nc-content-maroon-dark': node.category === WorkflowNodeCategory.FLOW,
                 }"
                 class="w-6 h-6 flex items-center justify-center rounded-md p-1"
               >

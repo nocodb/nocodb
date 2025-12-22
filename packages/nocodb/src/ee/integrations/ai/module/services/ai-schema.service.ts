@@ -606,6 +606,7 @@ export class AiSchemaService {
         sourceId: source.id,
         includeM2M: false,
         roles: extractRolesObj(req.user.base_roles),
+        user: params.req?.user,
       });
 
       const table = tables.find((t) => t.title === view.table);
@@ -929,6 +930,7 @@ export class AiSchemaService {
       sourceId: source.id,
       includeM2M: false,
       roles: extractRolesObj(req.user.base_roles),
+      user: params.req?.user,
     });
 
     const getTableId = (tableTitle: string) => {
@@ -1075,6 +1077,7 @@ export class AiSchemaService {
       sourceId: source.id,
       includeM2M: false,
       roles: extractRolesObj(req.user.base_roles),
+      user: params.req?.user,
     });
 
     if (params.tableIds && params.tableIds.length > 0) {

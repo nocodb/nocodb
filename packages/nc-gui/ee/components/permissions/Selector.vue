@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { BaseType } from 'nocodb-sdk'
-import { PermissionMeta, PermissionOptionValue, PermissionRolePower } from 'nocodb-sdk'
+import { PermissionKey, PermissionMeta, PermissionOptionValue, PermissionRolePower } from 'nocodb-sdk'
 import PermissionsInlineUserSelector from './InlineUserSelector.vue'
 import type { NcDropdownPlacement } from '#imports'
 
@@ -13,11 +13,13 @@ interface Props {
   removeReadonlyPadding?: boolean
   borderOnHover?: boolean
   placement?: NcDropdownPlacement
+  inlineStyle?: boolean // New prop to match inline table style
 }
 const props = withDefaults(defineProps<Props>(), {
   borderOnHover: false,
   placement: 'bottomRight',
   removeReadonlyPadding: true,
+  inlineStyle: false,
 })
 
 const emits = defineEmits(['save'])
@@ -42,6 +44,8 @@ const permissionSelectorConfig = computed<PermissionSelectorConfig>(() => ({
 // Create a dummy currentValue ref since Selector doesn't use display values
 const currentValue = ref('')
 
+const isTableVisibility = computed(() => props.config?.permission === PermissionKey.TABLE_VISIBILITY)
+
 // Use the permission selector composable
 const {
   currentOption,
@@ -64,16 +68,52 @@ const permissionOptions = computed(() => {
   const minimumRolePower = PermissionRolePower[permissionMeta.minimumRole]
   if (!minimumRolePower) return allPermissionOptions.value
 
+  const isTableVisibility = props.config.permission === PermissionKey.TABLE_VISIBILITY
+
   // Filter options to only show roles that meet or exceed the minimum requirement
   return allPermissionOptions.value.filter((option) => {
+    // For record permissions (create/delete), exclude Viewers & up, Commenters & up, and Everyone
+    if (!isTableVisibility) {
+      if (option.value === PermissionOptionValue.COMMENTERS_AND_UP || option.value === PermissionOptionValue.EVERYONE) {
+        return false
+      }
+    }
+
+    // For table visibility, always allow Everyone, Editors & up, and Creators & up
+    if (isTableVisibility) {
+      if (option.value === PermissionOptionValue.EVERYONE) {
+        return true
+      }
+      if (option.value === PermissionOptionValue.VIEWERS_AND_UP) {
+        return false
+      }
+      if (option.value === PermissionOptionValue.COMMENTERS_AND_UP) {
+        return false
+      }
+      if (option.value === PermissionOptionValue.EDITORS_AND_UP) {
+        return true
+      }
+      if (option.value === PermissionOptionValue.CREATORS_AND_UP) {
+        return true
+      }
+      if (option.value === PermissionOptionValue.NOBODY) {
+        return false
+      }
+    }
+
     // Always allow 'specific_users' and 'nobody' options
-    if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) return true
+    if (option.value === PermissionOptionValue.SPECIFIC_USERS || option.value === PermissionOptionValue.NOBODY) {
+      return true
+    }
 
     // Map option values to PermissionRole enum values for comparison
     let optionRole: string | undefined
     switch (option.value) {
       case PermissionOptionValue.VIEWERS_AND_UP:
         optionRole = 'viewer'
+        break
+      case PermissionOptionValue.COMMENTERS_AND_UP:
+        optionRole = 'commenter'
         break
       case PermissionOptionValue.EDITORS_AND_UP:
         optionRole = 'editor'
@@ -145,11 +185,19 @@ const handleClickDropdown = (e: MouseEvent) => {
 
         <NcListDropdown
           v-model:is-open="isOpenPermissionDropdown"
-          :default-slot-wrapper-class="`${!readonly ? 'w-[165px]' : removeReadonlyPadding ? '!px-0 !border-0' : '!border-0'}`"
+          :default-slot-wrapper-class="
+            inlineStyle
+              ? '!px-0 !py-0 !border-0 !rounded-none !h-auto !shadow-none'
+              : !readonly
+              ? 'w-[165px]'
+              : removeReadonlyPadding
+              ? '!px-0 !border-0'
+              : '!border-0'
+          "
           :placement="placement"
           :disabled="readonly || config.disabled"
           :show-as-disabled="false"
-          :border-on-hover="borderOnHover"
+          :border-on-hover="borderOnHover && !inlineStyle"
           @click="handleClickDropdown"
         >
           <NcTooltip :disabled="!config.disabled || !config.tooltip">
@@ -202,7 +250,19 @@ const handleClickDropdown = (e: MouseEvent) => {
                       <span class="text-captionDropdownDefault" :class="getPermissionTextColor(option.value)">{{
                         option.label
                       }}</span>
-                      <span v-if="option.isDefault" class="text-captionXsBold text-nc-content-gray-muted">(DEFAULT)</span>
+                      <span
+                        v-if="
+                          option.isDefault &&
+                          !(
+                            config.permission === PermissionKey.TABLE_VISIBILITY &&
+                            (option.value === PermissionOptionValue.EDITORS_AND_UP ||
+                              option.value === PermissionOptionValue.COMMENTERS_AND_UP)
+                          )
+                        "
+                        class="text-captionXsBold text-nc-content-gray-muted"
+                      >
+                        (DEFAULT)
+                      </span>
                     </div>
                     <GeneralLoader
                       v-if="isLoading && option.value === (currentOption?.value || PermissionOptionValue.EDITORS_AND_UP)"
@@ -223,14 +283,15 @@ const handleClickDropdown = (e: MouseEvent) => {
         <PermissionsInlineUserSelector
           v-if="base.id && currentOption?.value === PermissionOptionValue.SPECIFIC_USERS"
           v-model:selected-users="userSelectorSelectedUsers"
-          class="flex-1 mb-3"
+          class="flex-1"
+          :class="{ 'mb-3': !isTableVisibility }"
           :base-id="base.id"
           :permission-label="permissionLabel"
           :permission-description="permissionDescription"
           :permission="config.permission"
           :entity-title="config.entityTitle"
           :readonly="props.readonly"
-          :hint="$t('msg.permissionHintMsg')"
+          :hint="isTableVisibility ? null : $t('msg.permissionHintMsg')"
           @save="handleUserSelectorSave"
         />
       </template>
@@ -244,7 +305,7 @@ const handleClickDropdown = (e: MouseEvent) => {
           :permission-description="permissionDescription"
           :permission="config.permission"
           :entity-title="config.entityTitle"
-          :hint="$t('msg.permissionHintMsg')"
+          :hint="isTableVisibility ? null : $t('msg.permissionHintMsg')"
           @save="handleUserSelectorSave"
         />
       </template>

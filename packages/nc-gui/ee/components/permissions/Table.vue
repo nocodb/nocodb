@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, ProjectRoles } from 'nocodb-sdk'
 import type { BaseType, TableType } from 'nocodb-sdk'
 import type { NcDropdownPlacement } from '#imports'
 
@@ -16,6 +16,24 @@ const { $e } = useNuxtApp()
 const { t } = useI18n()
 
 const { permissionsByEntity } = usePermissions()
+
+// Check if current user is base owner
+const isBaseOwner = computed(() => {
+  return props.base?.project_role === ProjectRoles.OWNER
+})
+
+// Permission configuration for table visibility - only owners can configure
+const tableVisibilityConfig: PermissionConfig = {
+  entity: PermissionEntity.TABLE,
+  entityId: props.tableId,
+  permission: PermissionKey.TABLE_VISIBILITY,
+  disabled: (props.table.synced as boolean) || !isBaseOwner.value,
+  tooltip: props.table.synced
+    ? t('msg.info.permissionsNotAvailableForSyncedTable')
+    : !isBaseOwner.value
+    ? t('msg.info.onlyBaseOwnersCanConfigureTableVisibility')
+    : undefined,
+}
 
 // Permission configurations for create and delete
 const createPermissionConfig: PermissionConfig = {
@@ -45,6 +63,7 @@ const hasTablePermissions = computed(() => {
 
 <template>
   <div class="flex flex-col gap-5">
+    <!-- Title only shown for owners -->
     <div class="flex items-center justify-between">
       <slot name="title">
         <div class="text-nc-content-gray-emphasis text-bodyBold min-h-8 flex items-center capitalize">
@@ -54,22 +73,43 @@ const hasTablePermissions = computed(() => {
       <slot name="actions" :has-permissions="hasTablePermissions" />
     </div>
 
-    <!-- Create Records Permission -->
-    <PermissionsSelector
-      :base="base"
-      :config="createPermissionConfig"
-      :horizontal="horizontal"
-      :placement="placement"
-      @save="handlePermissionSave"
-    />
+    <!-- Table Visibility Section - Only visible to owners -->
+    <div v-if="isBaseOwner" class="flex flex-col gap-3">
+      <div class="text-nc-content-gray-emphasis text-bodyBold min-h-8 flex items-center">
+        {{ $t('title.tableVisibility') }}
+      </div>
+      <PermissionsSelector
+        :base="base"
+        :config="tableVisibilityConfig"
+        :horizontal="horizontal"
+        :placement="placement"
+        @save="handlePermissionSave"
+      />
+    </div>
 
-    <!-- Delete Records Permission -->
-    <PermissionsSelector
-      :base="base"
-      :config="deletePermissionConfig"
-      :horizontal="horizontal"
-      :placement="placement"
-      @save="handlePermissionSave"
-    />
+    <!-- Record Operations Section -->
+    <div class="flex flex-col gap-3">
+      <div class="text-nc-content-gray-emphasis text-bodyBold min-h-8 flex items-center">
+        {{ $t('title.recordOperations') }}
+      </div>
+
+      <!-- Create Records Permission -->
+      <PermissionsSelector
+        :base="base"
+        :config="createPermissionConfig"
+        :horizontal="horizontal"
+        :placement="placement"
+        @save="handlePermissionSave"
+      />
+
+      <!-- Delete Records Permission -->
+      <PermissionsSelector
+        :base="base"
+        :config="deletePermissionConfig"
+        :horizontal="horizontal"
+        :placement="placement"
+        @save="handlePermissionSave"
+      />
+    </div>
   </div>
 </template>

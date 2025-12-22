@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { sharedViewMeta, sharedFormView } = useSharedFormStoreOrThrow()
+const { sharedViewMeta, backgroundAndTextColor } = useSharedFormStoreOrThrow()
 
 const route = useRoute()
 
@@ -35,7 +35,7 @@ router.afterEach((to) => shouldRedirect(to.name as string))
       'children:(!h-auto my-auto)': sharedViewMeta?.surveyMode,
     }"
     :style="{
-      background: parseProp(sharedFormView?.meta)?.background_color || 'var(--nc-bg-gray-extralight)',
+      background: backgroundAndTextColor.bgColor,
     }"
   >
     <NuxtPage />

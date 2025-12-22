@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { breakpointsTailwind } from '@vueuse/core'
-import tinycolor from 'tinycolor2'
 
 enum TransitionDirection {
   Left = 'left',
@@ -32,6 +31,7 @@ const {
   isRequired,
   handleAddMissingRequiredFieldDefaultState,
   fieldMappings,
+  backgroundAndTextColor,
 } = useSharedFormStoreOrThrow()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
@@ -513,14 +513,7 @@ const { message: templatedMessage } = useTemplatedMessage(
             <GeneralFormBranding
               class="inline-flex mx-auto"
               :style="{
-                color: tinycolor.isReadable(parseProp(sharedFormView?.meta)?.background_color || '#F9F9FA', '#D5D5D9', {
-                  level: 'AA',
-                  size: 'large',
-                })
-                  ? '#fff'
-                  : tinycolor
-                      .mostReadable(parseProp(sharedFormView?.meta)?.background_color || '#F9F9FA', ['#374151', '#D5D5D9'])
-                      .toHex8String(),
+                color: backgroundAndTextColor.textColor,
               }"
             />
           </div>

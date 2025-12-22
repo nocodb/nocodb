@@ -1,3 +1,5 @@
+import { barcodeCache } from '../components/smartsheet/grid/canvas/utils/canvas'
+
 export type ThemeMode = 'system' | 'light' | 'dark'
 
 export const useTheme = createSharedComposable(() => {
@@ -246,6 +248,8 @@ export const useTheme = createSharedComposable(() => {
   watch(isDark, applyTheme, { immediate: true })
 
   watch(isDark, () => {
+    barcodeCache.clear()
+
     clearColorCache()
   })
 

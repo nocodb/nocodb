@@ -2,25 +2,22 @@ import { Injectable } from '@nestjs/common';
 import getSwaggerJSON from './swagger/getSwaggerJSON';
 import getSwaggerJSONV2 from './swaggerV2/getSwaggerJSONV2';
 import getSwaggerJSONV3 from './swaggerV3/getSwaggerJSONV3';
+import type { NcRequest } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Base, Model } from '~/models';
+import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 
 @Injectable()
 export class ApiDocsService {
   async swaggerJson(
     context: NcContext,
-    param: { baseId: string; siteUrl: string },
+    param: { baseId: string; siteUrl: string; req: NcRequest },
   ) {
     const base = await Base.get(context, param.baseId);
 
     if (!base) NcError.baseNotFound(param.baseId);
-
-    const models = await Model.list(context, {
-      base_id: param.baseId,
-      source_id: null,
-    });
-
+    const models = await this.extractVisibleModels(context, param);
     const swagger = await getSwaggerJSON(context, base, models);
 
     swagger.servers = [
@@ -40,19 +37,39 @@ export class ApiDocsService {
 
     return swagger;
   }
+
+  private async extractVisibleModels(
+    context: NcContext,
+    param: { baseId: string; siteUrl: string; req: NcRequest },
+  ) {
+    const allModels = await Model.list(context, {
+      base_id: param.baseId,
+      source_id: null,
+    });
+
+    const models: Model[] = [];
+    // filter based on table visibility permission
+    Promise.all(
+      allModels.map(async (model) => {
+        if (
+          await hasTableVisibilityAccess(context, model.id, param.req?.user)
+        ) {
+          models.push(model);
+        }
+      }),
+    );
+    return models;
+  }
+
   async swaggerJsonV2(
     context: NcContext,
-    param: { baseId: string; siteUrl: string },
+    param: { baseId: string; siteUrl: string; req: NcRequest },
   ) {
     const base = await Base.get(context, param.baseId);
 
     if (!base) NcError.baseNotFound(param.baseId);
 
-    const models = await Model.list(context, {
-      base_id: param.baseId,
-      source_id: null,
-    });
-
+    const models = await this.extractVisibleModels(context, param);
     const swagger = await getSwaggerJSONV2(context, base, models);
 
     swagger.servers = [
@@ -75,16 +92,13 @@ export class ApiDocsService {
 
   async swaggerJsonV3(
     context: NcContext,
-    param: { baseId: string; siteUrl: string },
+    param: { baseId: string; siteUrl: string; req: NcRequest },
   ) {
     const base = await Base.get(context, param.baseId);
 
     if (!base) NcError.baseNotFound(param.baseId);
 
-    const models = await Model.list(context, {
-      base_id: param.baseId,
-      source_id: null,
-    });
+    const models = await this.extractVisibleModels(context, param);
 
     const swagger = await getSwaggerJSONV3(context, base, models);
 

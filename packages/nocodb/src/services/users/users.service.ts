@@ -20,7 +20,6 @@ import type {
 import type { NcRequest } from '~/interface/config';
 import { isEE, T } from '~/utils';
 import { genJwt, setTokenCookie } from '~/services/users/helpers';
-import { NC_APP_SETTINGS } from '~/constants';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
@@ -30,7 +29,7 @@ import {
   RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
-import { PresignedUrl, Store, User, UserRefreshToken } from '~/models';
+import { PresignedUrl, User, UserRefreshToken } from '~/models';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { BasesService } from '~/services/bases.service';
@@ -169,12 +168,7 @@ export class UsersService {
         count: 1,
       });
     } else {
-      let settings: { invite_only_signup?: boolean } = {};
-      try {
-        settings = JSON.parse(
-          (await Store.get(NC_APP_SETTINGS, undefined, ncMeta))?.value,
-        );
-      } catch {}
+      const settings = await Noco.getAppSettings();
 
       if (settings?.invite_only_signup && !is_invite) {
         NcError.badRequest('Not allowed to signup, contact super admin.');

@@ -36,6 +36,7 @@ export interface AppInfo {
   mainSubDomain?: string
   dashboardPath: string
   inviteOnlySignup: boolean
+  restrictWorkspaceCreation: boolean
   samlAuthEnabled: boolean
   samlProviderName: string | null
   giftUrl: string

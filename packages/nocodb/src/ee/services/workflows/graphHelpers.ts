@@ -9,6 +9,7 @@ import { NcError } from '~/helpers/ncError';
 
 type Graph = Array<{
   label?: string;
+  sourcePortId?: string; // Port ID from source node
   edgeId: string;
   target?: string;
   source?: string;
@@ -59,12 +60,14 @@ function buildWorkflowGraph(
     graph.get(edge.source)!.push({
       target: edge.target,
       label: edge.label,
+      sourcePortId: edge.sourcePortId,
       edgeId: edge.id || edgeKey,
     });
 
     reverseGraph.get(edge.target)!.push({
       source: edge.source,
       label: edge.label,
+      sourcePortId: edge.sourcePortId,
       edgeId: edge.id || edgeKey,
     });
 
@@ -143,7 +146,7 @@ function getNextNode(
     return outgoingEdges[0].target;
   }
 
-  // 4. Conditional flow: Multiple outgoing edges - use node-specific logic
+  // 4. Conditional flow: Multiple outgoing edges
   return resolveConditionalBranch(
     currentNode,
     currentResult,
@@ -152,7 +155,19 @@ function getNextNode(
   );
 }
 
-// NEW: Extract conditional branching logic
+/**
+ * Generic conditional branching logic using port-based routing
+ *
+ * This function provides a universal way to handle branching nodes:
+ * 1. If node returns `output.port`, match it to edge sourcePortId (case-insensitive)
+ * 2. Fallback to first edge if no match found
+ *
+ * @param currentNode - The node being executed
+ * @param currentResult - The execution result from the node
+ * @param outgoingEdges - Available outgoing edges
+ * @param logger - Optional logger for debugging
+ * @returns Next node ID or null to end workflow
+ */
 function resolveConditionalBranch(
   currentNode: WorkflowGeneralNode,
   currentResult: NodeExecutionResult,
@@ -166,62 +181,27 @@ function resolveConditionalBranch(
     return outgoingEdges[0].target;
   }
 
-  if (nodeType === 'core.flow.if') {
-    return resolveIfNodeBranch(currentResult, outgoingEdges, logger);
-  }
+  // If the node returns a 'port' field in its output, match it to edge sourcePortId
+  if (currentResult.output?.port) {
+    const port = currentResult.output.port;
 
-  // Unknown branching node - log warning and take first edge
-  logger?.warn(
-    `Node type "${nodeType}" has multiple edges but no branching logic defined, taking first edge`,
-  );
-  return outgoingEdges[0]?.target || null;
-}
-
-// NEW: Extract if-node branch resolution
-function resolveIfNodeBranch(
-  result: NodeExecutionResult,
-  outgoingEdges: Graph,
-  logger?: { debug: (msg: string) => void; warn: (msg: string) => void },
-): string | null {
-  const conditionResult = result.output?.result;
-
-  // Handle boolean result
-  if (typeof conditionResult === 'boolean') {
-    const targetLabel = conditionResult ? 'true' : 'false';
     const matchingEdge = outgoingEdges.find(
-      (edge) => edge.label?.toLowerCase() === targetLabel,
+      (edge) => edge.sourcePortId?.toLowerCase() === String(port).toLowerCase(),
     );
 
     if (matchingEdge) {
-      logger?.debug(
-        `If condition evaluated to ${conditionResult}, taking "${targetLabel}" branch`,
-      );
+      logger?.debug(`Port-based routing: "${port}" -> ${matchingEdge.target}`);
       return matchingEdge.target;
     }
 
     logger?.warn(
-      `No edge found with label "${targetLabel}", looking for default branch`,
-    );
-  } else {
-    logger?.warn(
-      `If node result is not boolean (got ${typeof conditionResult}), looking for default branch`,
+      `Port "${port}" specified but no matching edge found with sourcePortId`,
     );
   }
 
-  // Fallback: Try to find default or false edge
-  const fallbackEdge = outgoingEdges.find(
-    (edge) =>
-      edge.label?.toLowerCase() === 'default' ||
-      edge.label?.toLowerCase() === 'false',
+  logger?.warn(
+    `Node type "${nodeType}" has multiple edges but no port specified, taking first edge`,
   );
-
-  if (fallbackEdge) {
-    logger?.debug('Taking fallback branch: default/false');
-    return fallbackEdge.target;
-  }
-
-  // Last resort: take first edge
-  logger?.warn('No matching branch found, taking first edge');
   return outgoingEdges[0]?.target || null;
 }
 
@@ -229,7 +209,12 @@ function findParentNodes(
   nodeId: string,
   reverseGraph: Map<
     string,
-    Array<{ source?: string; label?: string; edgeId: string }>
+    Array<{
+      source?: string;
+      label?: string;
+      sourcePortId?: string;
+      edgeId: string;
+    }>
   >,
   allNodes: WorkflowGeneralNode[],
 ): WorkflowGeneralNode[] {
@@ -268,4 +253,66 @@ function findParentNodes(
   return orderedParents;
 }
 
-export { buildWorkflowGraph, determineStartNode, getNextNode, findParentNodes };
+/**
+ * Find parent loop nodes for a given target node
+ * Returns array of loop info (supports nested loops)
+ */
+function findParentLoops(
+  targetNodeId: string,
+  reverseGraph: Map<
+    string,
+    Array<{
+      source?: string;
+      label?: string;
+      sourcePortId?: string;
+      edgeId: string;
+    }>
+  >,
+  nodeMap: Map<string, WorkflowGeneralNode>,
+): Array<{ loopNodeId: string; bodyPort: string }> {
+  const loops: Array<{ loopNodeId: string; bodyPort: string }> = [];
+  const visited = new Set<string>();
+
+  const queue = [targetNodeId];
+  visited.add(targetNodeId);
+
+  while (queue.length > 0) {
+    const currentId = queue.shift()!;
+    const incomingEdges = reverseGraph.get(currentId) || [];
+
+    for (const edge of incomingEdges) {
+      if (!edge.source) continue;
+
+      const sourceNode = nodeMap.get(edge.source);
+
+      // Check if source is a loop node with body port
+      if (sourceNode?.data?.testResult?.loopContext) {
+        const loopContext = sourceNode.data.testResult.loopContext;
+        // Check if this edge is from the loop's body port
+        if (edge.sourcePortId === loopContext.bodyPort) {
+          loops.push({
+            loopNodeId: edge.source,
+            bodyPort: loopContext.bodyPort,
+          });
+        }
+      }
+
+      // Continue traversal
+      if (!visited.has(edge.source)) {
+        visited.add(edge.source);
+        queue.push(edge.source);
+      }
+    }
+  }
+
+  // Return loops in order from outermost to innermost
+  return loops.reverse();
+}
+
+export {
+  buildWorkflowGraph,
+  determineStartNode,
+  getNextNode,
+  findParentNodes,
+  findParentLoops,
+};

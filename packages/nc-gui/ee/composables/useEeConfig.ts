@@ -1,4 +1,4 @@
-import type { OnPremPlanTitles, type PlanLimitExceededDetailsType, type ProjectRoles, type WorkspaceUserRoles } from 'nocodb-sdk'
+import type { OnPremPlanTitles, PlanLimitExceededDetailsType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 import {
   GRACE_PERIOD_DURATION,
   HigherPlan,

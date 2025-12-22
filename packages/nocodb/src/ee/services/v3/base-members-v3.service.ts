@@ -36,7 +36,7 @@ export class BaseMembersV3Service extends BaseMembersV3ServiceCE {
     );
 
     if (param.baseMembers?.length > V3_META_REQUEST_LIMIT) {
-      NcError.get(context).maxInsertLimitExceeded(V3_META_REQUEST_LIMIT);
+      NcError.get(context).maxPayloadLimitExceeded(V3_META_REQUEST_LIMIT);
     }
     const ncMeta = await Noco.ncMeta.startTransaction();
     const userIds = [];

@@ -130,6 +130,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return metas.value?.[colOptions.value?.fk_related_model_id as string]
     })
 
+    // Check if linked table is accessible based on is_private flag from API response only
+    const isLinkedTableAccessible = computed(() => {
+      if (!colOptions.value?.fk_related_model_id) return true
+      // Check if table is marked as private from API response
+      return !(relatedTableMeta.value as any)?.is_private
+    })
+
     const sqlUi = computed(() =>
       (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
     )
@@ -875,6 +882,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     return {
       relatedTableMeta,
+      isLinkedTableAccessible,
       loadRelatedTableMeta,
       targetViewColumns,
       targetViewColumnsById,

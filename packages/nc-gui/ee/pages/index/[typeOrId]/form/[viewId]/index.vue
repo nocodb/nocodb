@@ -5,6 +5,8 @@ const route = useRoute()
 
 const router = useRouter()
 
+const { isDark } = useTheme()
+
 const shouldRedirect = (to: string) => {
   if (sharedViewMeta.value.surveyMode) {
     if (!to.includes('survey')) {
@@ -36,7 +38,9 @@ router.afterEach((to) => shouldRedirect(to.name as string))
       'relative': !isAddingEmptyRowPermitted,
     }"
     :style="{
-      background: parseProp(sharedFormView?.meta)?.background_color || 'var(--nc-bg-gray-extralight)',
+      background: parseProp(sharedFormView?.meta)?.background_color
+        ? getSelectTypeFieldOptionBgColor({ color: parseProp(sharedFormView?.meta)?.background_color, isDark, shade: 0 })
+        : 'var(--nc-bg-gray-extralight)',
     }"
   >
     <NuxtPage />

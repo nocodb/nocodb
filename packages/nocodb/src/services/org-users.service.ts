@@ -12,12 +12,11 @@ import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { MailService } from '~/services/mail/mail.service';
-import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { BaseUser, PresignedUrl, Store, SyncSource, User } from '~/models';
+import { BaseUser, PresignedUrl, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -302,18 +301,11 @@ export class OrgUsersService {
   }
 
   async appSettingsGet() {
-    let settings = {};
-    try {
-      settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
-    } catch {}
-    return settings;
+    return await Noco.getAppSettings();
   }
 
   async appSettingsSet(param: { settings: any }) {
-    await Store.saveOrUpdate({
-      value: JSON.stringify(param.settings),
-      key: NC_APP_SETTINGS,
-    });
+    await Noco.updateAppSettings(param.settings);
     return true;
   }
 }

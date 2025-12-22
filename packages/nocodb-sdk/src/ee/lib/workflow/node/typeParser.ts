@@ -534,3 +534,87 @@ export function extractDataTypeFromWorkflowNodeExpression(
     return WorkflowNodeFilterDataType.TEXT;
   }
 }
+
+/**
+ * Interface for parsed workflow variable information
+ */
+export interface ParsedVariableInfo {
+  nodeTitle: string;
+  variablePath: string;
+}
+
+/**
+ * Extracts node reference and variable path from a workflow expression
+ * Handles simple variable references like:
+ * - {{ $('NodeName').path.to.variable }}
+ * - {{ $('NodeName')['path'] }}
+ * - {{ $('NodeName')['path']['to']['variable'] }}
+ *
+ * @param expression - The expression string (e.g., "{{ $('Node').records }}")
+ * @returns Parsed variable info or null if not a simple variable reference
+ *
+ * @example
+ * parseWorkflowVariableExpression("{{ $('Get Records').records }}")
+ * // Returns: { nodeTitle: 'Get Records', variablePath: 'records' }
+ *
+ * @example
+ * parseWorkflowVariableExpression("{{ $('Get Records')['records'] }}")
+ * // Returns: { nodeTitle: 'Get Records', variablePath: 'records' }
+ */
+export function parseWorkflowVariableExpression(
+  expression: string
+): ParsedVariableInfo | null {
+  if (!expression) return null;
+
+  // Remove {{ }} if present
+  const cleanExpression = expression.replace(/^\{\{\s*|\s*}}$/g, '').trim();
+
+  // Match pattern: $('NodeName')
+  const nodeMatch = cleanExpression.match(/^\$\(['"]([^'"]+)['"]\)/);
+  if (!nodeMatch) return null;
+
+  const nodeTitle = nodeMatch[1];
+  const remainder = cleanExpression.substring(nodeMatch[0].length);
+
+  // If there's no path after the node reference
+  if (!remainder) {
+    return {
+      nodeTitle,
+      variablePath: '',
+    };
+  }
+
+  // Extract the path - can be dot notation or bracket notation
+  // Examples: .records, ['records'], .records.field, ['records']['field']
+  const pathParts: string[] = [];
+  let currentPos = 0;
+
+  while (currentPos < remainder.length) {
+    // Match dot notation: .propertyName
+    const dotMatch = remainder.substring(currentPos).match(/^\.([a-zA-Z_$][a-zA-Z0-9_$]*)/);
+    if (dotMatch) {
+      pathParts.push(dotMatch[1]);
+      currentPos += dotMatch[0].length;
+      continue;
+    }
+
+    // Match bracket notation: ['propertyName'] or ["propertyName"]
+    const bracketMatch = remainder.substring(currentPos).match(/^\[['"]([^'"]+)['"]\]/);
+    if (bracketMatch) {
+      pathParts.push(bracketMatch[1]);
+      currentPos += bracketMatch[0].length;
+      continue;
+    }
+
+    // If we can't match anything, this might be a complex expression
+    return null;
+  }
+
+  // Join path parts with dots for consistency
+  const variablePath = pathParts.join('.');
+
+  return {
+    nodeTitle,
+    variablePath,
+  };
+}

@@ -1,7 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { AllAggregations, type ColumnType, PlanTitles, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
-import tinycolor from 'tinycolor2'
 import {
   isBoxHovered,
   renderCheckbox,
@@ -192,7 +191,7 @@ export function useCanvasRender({
   const isLocked = inject(IsLockedInj, ref(false))
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const { getColor } = useTheme()
+  const { isDark, getColor } = useTheme()
 
   const { isRowColouringEnabled } = useViewRowColorRender()
 
@@ -3242,16 +3241,14 @@ export function useCanvasRender({
       for (let i = 0; i < tags.length; i++) {
         const tag = tags[i] || ''
         const color = colors[i] || '#ccc'
+
+        const opBgColor = !isDark.value ? color : getAdaptiveTint(color, { isDarkMode: isDark.value, shade: -10 })
+
         const displayText = tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag
 
-        const textColor = tinycolor.isReadable(color, getColor(themeV4Colors.base.white), {
-          level: 'AA',
-          size: 'large',
-        })
-          ? getColor(themeV4Colors.base.white)
-          : tinycolor
-              .mostReadable(color, [getColor(themeV4Colors.gray['800']), getColor(themeV4Colors.base.white)])
-              .toHex8String()
+        const textColor = !isDark.value
+          ? getSelectTypeOptionTextColor(color, getColor, true)
+          : getOppositeColorOfBackground(opBgColor, color)
 
         ctx.save()
         ctx.font = '700 13px Inter'
@@ -3287,7 +3284,7 @@ export function useCanvasRender({
             tagPaddingY: 2,
             tagHeight: 22,
             tagRadius: 12,
-            tagBgColor: color,
+            tagBgColor: opBgColor,
             tagSpacing: 0,
             tagFontFamily: '700 13px Inter',
           },

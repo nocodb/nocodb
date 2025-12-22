@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { SourceType, TableType } from 'nocodb-sdk'
-import { PermissionKey } from 'nocodb-sdk'
+import { PermissionKey, ProjectRoles } from 'nocodb-sdk'
 
 interface Props {
   state: string
@@ -27,6 +27,11 @@ const { activeTables } = storeToRefs(useTablesStore())
 const { getPermissionSummaryLabel } = usePermissions()
 
 const { projectPageTab } = storeToRefs(useConfigStore())
+
+// Check if current user is base owner
+const isBaseOwner = computed(() => {
+  return base.value?.project_role === ProjectRoles.OWNER
+})
 
 const searchQuery = ref<string>('')
 
@@ -66,45 +71,65 @@ const tables = computed(() => {
     })
 })
 
-const columns = [
-  {
-    key: 'name',
-    title: t('general.name'),
-    name: 'Name',
-    padding: '0px 32px',
-  },
-  {
-    key: 'source_id',
-    title: t('general.source'),
-    name: 'Source',
-    width: 150,
-    padding: '0px 32px',
-  },
-  {
-    key: 'create_records',
-    title: 'Create records',
-    name: 'Create records',
-    minWidth: 180,
-    basis: '25%',
-    padding: '0px 12px',
-  },
-  {
-    key: 'delete_records',
-    title: 'Delete records',
-    name: 'Delete records',
-    minWidth: 180,
-    basis: '25%',
-    padding: '0px 12px',
-  },
-  {
-    key: 'context_actions',
-    title: '',
-    name: '',
-    justify: 'justify-end',
-    padding: '0px 12px',
-    width: 60,
-  },
-] as NcTableColumnProps[]
+const columns = computed(() => {
+  const baseColumns = [
+    {
+      key: 'name',
+      title: t('general.name'),
+      name: 'Name',
+      minWidth: 250,
+      padding: '0px 32px',
+    },
+    {
+      key: 'source_id',
+      title: t('general.source'),
+      name: 'Source',
+      width: 150,
+      padding: '0px 32px',
+    },
+  ] as NcTableColumnProps[]
+
+  // Only show table visibility column for owners
+  if (isBaseOwner.value) {
+    baseColumns.push({
+      key: 'table_visibility',
+      title: t('title.tableVisibility'),
+      name: 'Table Visibility',
+      minWidth: 180,
+      basis: '25%',
+      padding: '0px 12px',
+    })
+  }
+
+  baseColumns.push(
+    {
+      key: 'create_records',
+      title: 'Create records',
+      name: 'Create records',
+      minWidth: 180,
+      basis: '25%',
+      padding: '0px 12px',
+    },
+    {
+      key: 'delete_records',
+      title: 'Delete records',
+      name: 'Delete records',
+      minWidth: 180,
+      basis: '25%',
+      padding: '0px 12px',
+    },
+    {
+      key: 'context_actions',
+      title: '',
+      name: '',
+      justify: 'justify-end',
+      padding: '0px 12px',
+      width: 60,
+    },
+  )
+
+  return baseColumns
+})
 
 // Handle opening field permissions modal
 const openFieldPermissionsModal = (tableId: string) => {
@@ -270,6 +295,27 @@ watch(
               </NcTooltip>
             </div>
             <div v-else>&nbsp;</div>
+          </template>
+
+          <!-- Table Visibility Column - Only visible to owners -->
+          <template v-if="column.key === 'table_visibility' && isBaseOwner">
+            <NcTooltip v-if="record.synced">
+              <template #title>
+                {{ $t('msg.info.permissionsNotAvailableForSyncedTable') }}
+              </template>
+              <NcBadge color="gray" :border="false" class="!px-2">
+                <span class="text-xs">{{ $t('general.permissionsNotAvailable') }}</span>
+              </NcBadge>
+            </NcTooltip>
+            <PermissionsInlineTableSelector
+              v-else
+              :base="base!"
+              :table-id="record.id"
+              :permission-type="PermissionKey.TABLE_VISIBILITY"
+              :current-value="getPermissionSummaryLabel('table', record.id, PermissionKey.TABLE_VISIBILITY)"
+              readonly
+              inline-style
+            />
           </template>
 
           <!-- Create Records Column -->

@@ -279,6 +279,20 @@ export function useViewFilters(
     }
   }
 
+  const findFilterById = (filters: ColumnFilterType[] = [], parentId: string): ColumnFilterType | null => {
+    for (const filter of filters) {
+      if (filter.id === parentId || filter.tmp_id === parentId) {
+        return filter
+      }
+
+      if (filter.children?.length) {
+        const found = findFilterById(filter.children, parentId)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
   const loadAllChildFilters = async (filters: ColumnFilterType[]) => {
     // Array to store promises of child filter loading
     const promises = []
@@ -485,7 +499,8 @@ export function useViewFilters(
               fn: (changes: Partial<ColumnFilterType>, index: number) => {
                 const f = filters.value[index]
 
-                if (f) {
+                // If parent filter is deleted then skip
+                if (f && (!f.fk_parent_id || findFilterById(filters.value, f.fk_parent_id))) {
                   for (const [prop, val] of Object.entries(changes)) {
                     f[prop as keyof ColumnFilterType] = val
                   }
@@ -497,7 +512,9 @@ export function useViewFilters(
             redo: {
               fn: (changes: Partial<ColumnFilterType>, index: number) => {
                 const f = filters.value[index]
-                if (f) {
+
+                // If parent filter is deleted then skip
+                if (f && (!f.fk_parent_id || findFilterById(filters.value, f.fk_parent_id))) {
                   for (const [prop, val] of Object.entries(changes)) {
                     f[prop as keyof ColumnFilterType] = val
                   }

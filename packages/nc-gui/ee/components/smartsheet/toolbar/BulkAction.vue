@@ -61,7 +61,7 @@ const loadButtonScripts = async () => {
       buttonInputStatus.value.set(button.id, { hasInputCalls: false, isLoading: true })
 
       try {
-        const script = await loadScripts(button.colOptions.fk_script_id)
+        const script = await loadScript(button.colOptions.fk_script_id)
         if (script?.script) {
           const hasInput = hasInputCalls(script.script)
           buttonInputStatus.value.set(button.id, { hasInputCalls: hasInput, isLoading: false })

@@ -323,6 +323,7 @@ export const useRealtime = createSharedComposable(() => {
         break
       }
       case 'delete': {
+        const deletedScript = existingScripts.find((d) => d.id === id)
         const updatedScripts = existingScripts.filter((d) => d.id !== id)
         scripts.value.set(baseId, updatedScripts)
         updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, -1)
@@ -339,7 +340,7 @@ export const useRealtime = createSharedComposable(() => {
             })
             showInfoModal({
               title: `Script no longer available`,
-              content: `${nextScript.title} may have been deleted or your access removed.`,
+              content: `${deletedScript?.title || 'The script'} may have been deleted or your access removed.`,
             })
           } else {
             ncNavigateTo({
@@ -348,7 +349,7 @@ export const useRealtime = createSharedComposable(() => {
             })
             showInfoModal({
               title: `Script no longer available`,
-              content: `${nextScript.title} may have been deleted or your access removed.`,
+              content: `${deletedScript?.title || 'The script'} may have been deleted or your access removed.`,
             })
           }
         }

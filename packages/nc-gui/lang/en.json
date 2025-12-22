@@ -2084,10 +2084,10 @@
     "approachingLimit": "Approaching limit",
     "exceedingLimit": "Exceeding limit",
     "filteredByCurrentUser": "Filtered by current user",
-    "navigateToBaseToCreateTable": "Navigate to a base to create table",
-    "navigateToBaseToCreateScript": "Navigate to a base to create script",
-    "navigateToBaseToCreateDashboard": "Navigate to a base to create dashboard",
-    "navigateToTableToCreateView": "Navigate to a table to create view",
+    "navigateToBaseToCreateTable": "Navigate to a base to create a table",
+    "navigateToBaseToCreateScript": "Navigate to a base to create a script"
+    "navigateToBaseToCreateDashboard": "Navigate to a base to create a dashboard"
+    "navigateToTableToCreateView": "Navigate to a table to create a view"
     "youDontHaveAccessToCreateNewTable": "You don't have access to create new table",
     "youDontHaveAccessToCreateNewView": "You don't have access to create new view",
     "youDontHaveAccessToCreateNewScript": "You don't have access to create new script",

@@ -16,9 +16,9 @@ import {
   ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
-import type { NcApiVersion } from 'nocodb-sdk';
 import type {
   ColumnType,
+  NcApiVersion,
   NormalColumnRequestType,
   TableReqType,
   TableType,
@@ -715,6 +715,7 @@ export class TablesService {
       // add CreatedTime and LastModifiedTime system columns if missing in request payload
       tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
         columns: tableCreatePayLoad.columns,
+        clientType: source.type,
       });
     }
 

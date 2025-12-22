@@ -22,12 +22,12 @@ import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type CustomKnex from '~/db/CustomKnex';
+import type { XKnex } from '~/db/CustomKnex';
 import type {
   XcFilter,
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { Filter, GridViewColumn } from '~/models';
-import type { XKnex } from '~/db/CustomKnex';
 import { NcError } from '~/helpers/catchError';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import {
@@ -449,6 +449,8 @@ export function shouldSkipField(
   extractPkAndPv,
   pkAndPvOnly = false,
 ) {
+  // skip row meta column
+  if (column.uidt === UITypes.Meta) return true;
   if (fieldsSet && !pkAndPvOnly) {
     return !fieldsSet.has(column.title) && !fieldsSet.has(column.id);
   } else {

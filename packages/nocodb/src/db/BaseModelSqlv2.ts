@@ -37,7 +37,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -53,6 +52,7 @@ import type {
   ParsedFormulaNode,
   UpdatePayload,
 } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -108,7 +108,6 @@ import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import { extractProps } from '~/helpers/extractProps';
 import getAst from '~/helpers/getAst';
 import { sanitize, unsanitize } from '~/helpers/sqlSanitize';
-import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import {
   Audit,
   BaseUser,
@@ -139,6 +138,7 @@ import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
+import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 
@@ -877,11 +877,217 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }>,
     view?: View,
   ) {
-    return baseModelGroupBy(this, logger).bulkAggregate(
-      args,
-      bulkFilterList,
-      view,
-    );
+    try {
+      if (!bulkFilterList?.length) {
+        return {};
+      }
+
+      const { where, aggregation } = this._getListArgs(args as any);
+
+      const columns = await this.model.getColumns(this.context);
+
+      let viewColumns: any[];
+      if (this.viewId) {
+        viewColumns = (
+          await GridViewColumn.list(this.context, this.viewId)
+        ).filter((c) => {
+          const col = this.model.columnsById[c.fk_column_id];
+          return c.show && (view?.show_system_fields || !isSystemColumn(col));
+        });
+
+        // By default, the aggregation is done based on the columns configured in the view
+        // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
+        // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
+        if (aggregation?.length) {
+          viewColumns = viewColumns
+            .map((c) => {
+              const agg = aggregation.find((a) => a.field === c.fk_column_id);
+              return new GridViewColumn({
+                ...c,
+                show: !!agg,
+                aggregation: agg ? agg.type : c.aggregation,
+              });
+            })
+            .filter((c) => c.show);
+        }
+      } else {
+        // If no viewId, use all model columns or those specified in aggregation
+        if (aggregation?.length) {
+          viewColumns = aggregation
+            .map((agg) => {
+              const col = this.model.columnsById[agg.field];
+              if (!col) return null;
+              return {
+                fk_column_id: col.id,
+                aggregation: agg.type,
+                show: true,
+              };
+            })
+            .filter(Boolean);
+        } else {
+          viewColumns = [];
+        }
+      }
+
+      const aliasColObjMap = await this.model.getAliasColObjMap(
+        this.context,
+        columns,
+      );
+
+      const qb = this.dbDriver(this.tnPath);
+
+      const aggregateExpressions = {};
+
+      // Construct aggregate expressions for each view column
+      for (const viewColumn of viewColumns) {
+        const col = this.model.columnsById[viewColumn.fk_column_id];
+        if (
+          !col ||
+          !viewColumn.aggregation ||
+          (isLinksOrLTAR(col) && col.system)
+        )
+          continue;
+
+        const aliasFieldName = col.id;
+        const aggSql = await applyAggregation({
+          baseModelSqlv2: this,
+          aggregation: viewColumn.aggregation,
+          column: col,
+        });
+
+        if (aggSql) {
+          aggregateExpressions[aliasFieldName] = aggSql;
+        }
+      }
+
+      if (!Object.keys(aggregateExpressions).length) {
+        return {};
+      }
+
+      let viewFilterList = [];
+      if (this.viewId) {
+        viewFilterList = await Filter.rootFilterList(this.context, {
+          viewId: this.viewId,
+        });
+      }
+
+      const selectors = [] as Array<Knex.Raw>;
+      // Generate a knex raw query for each filter in the bulkFilterList
+      for (const f of bulkFilterList) {
+        const tQb = this.dbDriver(this.tnPath);
+        const { filters: aggFilter } = extractFilterFromXwhere(
+          this.context,
+          f.where,
+          aliasColObjMap,
+        );
+        let aggFilterJson = f.filterArrJson;
+        try {
+          aggFilterJson = JSON.parse(aggFilterJson as any);
+        } catch (_e) {}
+
+        await conditionV2(
+          this,
+          [
+            ...(this.viewId
+              ? [
+                  new Filter({
+                    children: viewFilterList || [],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: extractFilterFromXwhere(
+                this.context,
+                where,
+                aliasColObjMap,
+              ).filters,
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: aggFilter,
+              is_group: true,
+              logical_op: 'and',
+            }),
+            ...(aggFilterJson
+              ? [
+                  new Filter({
+                    children: aggFilterJson as Filter[],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+          ],
+          tQb,
+        );
+
+        let jsonBuildObject;
+
+        switch (this.dbDriver.client.config.client) {
+          case 'pg': {
+            jsonBuildObject = this.dbDriver.raw(
+              `JSON_BUILD_OBJECT(${Object.keys(aggregateExpressions)
+                .map((key) => {
+                  return `'${key}', ${aggregateExpressions[key]}`;
+                })
+                .join(', ')})`,
+            );
+
+            break;
+          }
+          case 'mysql2': {
+            jsonBuildObject = this.dbDriver.raw(`JSON_OBJECT(
+              ${Object.keys(aggregateExpressions)
+                .map((key) => `'${key}', ${aggregateExpressions[key]}`)
+                .join(', ')})`);
+            break;
+          }
+
+          case 'sqlite3': {
+            jsonBuildObject = this.dbDriver.raw(`json_object(
+                ${Object.keys(aggregateExpressions)
+                  .map((key) => `'${key}', ${aggregateExpressions[key]}`)
+                  .join(', ')})`);
+            break;
+          }
+          default:
+            NcError.get(this.context).notImplemented(
+              'This database is not supported for bulk aggregation',
+            );
+        }
+
+        tQb.select(jsonBuildObject);
+
+        if (this.dbDriver.client.config.client === 'mysql2') {
+          selectors.push(
+            this.dbDriver.raw('JSON_UNQUOTE(??) as ??', [
+              jsonBuildObject,
+              `${f.alias}`,
+            ]),
+          );
+        } else {
+          selectors.push(this.dbDriver.raw('(??) as ??', [tQb, `${f.alias}`]));
+        }
+      }
+
+      qb.select(...selectors);
+
+      qb.limit(1);
+
+      return await this.execAndParse(qb, null, {
+        first: true,
+        bulkAggregate: true,
+      });
+    } catch (err) {
+      logger.log(err);
+      return [];
+    }
   }
 
   async aggregate(args: { filterArr?: Filter[]; where?: string }, view?: View) {
@@ -2012,18 +2218,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         .update(updateObj)
         .where(await this._wherePk(id, true));
 
-      try {
-        await this.execAndParse(query, null, { raw: true });
-      } catch (e: any) {
-        // Handle unique constraint violations (throws if it's a unique constraint error)
-        await handleUniqueConstraintError({
-          error: e,
-          baseModel: this,
-          insertData: updateObj,
-        });
-        // If not a unique constraint error, re-throw the original error
-        throw e;
-      }
+      await this.execAndParse(query, null, { raw: true });
 
       const newId = this.extractPksValues(
         {
@@ -2053,13 +2248,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.afterUpdate(prevData, newData, trx, cookie, updateObj);
       }
       return newData;
-    } catch (e: any) {
-      // Handle unique constraint violations (throws if it's a unique constraint error)
-      await handleUniqueConstraintError({
-        error: e,
-        baseModel: this,
-        insertData: data,
-      });
+    } catch (e) {
       await this.errorUpdate(e, data, trx, cookie);
       throw e;
     }
@@ -2335,13 +2524,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       });
 
       return response;
-    } catch (e: any) {
-      // Handle unique constraint violations (throws if it's a unique constraint error)
-      await handleUniqueConstraintError({
-        error: e,
-        baseModel: this,
-        insertData: data,
-      });
+    } catch (e) {
       throw e;
     }
   }
@@ -2497,18 +2680,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           const pkValues = this.extractPksValues(data);
           updatedPks.push(pkValues);
           const wherePk = await this._wherePk(pkValues, true);
-          try {
-            await trx(this.tnPath).update(data).where(wherePk);
-          } catch (e: any) {
-            // Handle unique constraint violations (throws if it's a unique constraint error)
-            await handleUniqueConstraintError({
-              error: e,
-              baseModel: this,
-              insertData: data,
-            });
-            // If not a unique constraint error, re-throw the original error
-            throw e;
-          }
+          await trx(this.tnPath).update(data).where(wherePk);
         }
       }
 
@@ -2628,13 +2800,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       return [...updatedDataList, ...insertedDataList];
-    } catch (e: any) {
+    } catch (e) {
       await trx?.rollback();
-      // Handle unique constraint violations (throws if it's a unique constraint error)
-      await handleUniqueConstraintError({
-        error: e,
-        baseModel: this,
-      });
       throw e;
     }
   }
@@ -2984,37 +3151,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           this.model.primaryKeys.length === 1 &&
           (this.isPg || this.isMySQL || this.isSqlite)
         ) {
-          try {
-            await batchUpdate(
-              transaction,
-              this.tnPath,
-              toBeUpdated.map((o) => o.d),
-              this.model.primaryKey.column_name,
-            );
-          } catch (e: any) {
-            // Handle unique constraint violations (throws if it's a unique constraint error)
-            // For bulk update, we can't determine which specific row/column, so pass undefined
-            await handleUniqueConstraintError({
-              error: e,
-              baseModel: this,
-            });
-            // If not a unique constraint error, re-throw the original error
-            throw e;
-          }
+          await batchUpdate(
+            transaction,
+            this.tnPath,
+            toBeUpdated.map((o) => o.d),
+            this.model.primaryKey.column_name,
+          );
         } else {
           for (const o of toBeUpdated) {
-            try {
-              await transaction(this.tnPath).update(o.d).where(o.wherePk);
-            } catch (e: any) {
-              // Handle unique constraint violations (throws if it's a unique constraint error)
-              await handleUniqueConstraintError({
-                error: e,
-                baseModel: this,
-                insertData: o.d,
-              });
-              // If not a unique constraint error, re-throw the original error
-              throw e;
-            }
+            await transaction(this.tnPath).update(o.d).where(o.wherePk);
           }
         }
 
@@ -3074,13 +3219,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
       profiler.end();
       return newData;
-    } catch (e: any) {
+    } catch (e) {
       if (transaction) await transaction.rollback();
-      // Handle unique constraint violations (throws if it's a unique constraint error)
-      await handleUniqueConstraintError({
-        error: e,
-        baseModel: this,
-      });
       throw e;
     }
   }
@@ -3201,13 +3341,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.afterBulkUpdate(null, count, this.dbDriver, cookie, true);
 
       return count;
-    } catch (e: any) {
-      // Handle unique constraint violations (throws if it's a unique constraint error)
-      await handleUniqueConstraintError({
-        error: e,
-        baseModel: this,
-        insertData: data,
-      });
+    } catch (e) {
       throw e;
     }
   }
@@ -4120,12 +4254,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (Array.isArray(columnValue)) {
         columnValueArr = columnValue;
       } else {
-        columnValueArr = `${columnValue}`.split(',').map((v) => v.trim());
-        // update the original object with trimmed values
-        if (insertOrUpdateObject[columnTitle])
-          insertOrUpdateObject[columnTitle] = columnValueArr.join(',');
-        else if (insertOrUpdateObject[columnName])
-          insertOrUpdateObject[columnName] = columnValueArr.join(',');
+        columnValueArr = `${columnValue}`.split(',').map((val) => val.trim());
       }
     } else {
       columnValueArr = [columnValue];
@@ -4905,24 +5034,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     query = this.sanitizeQuery(query);
 
-    try {
-      if (this.isPg || this.isSnowflake) {
-        return (await trx.raw(query))?.rows;
-      } else if (SELECT_REGEX.test(query)) {
-        return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
-      } else if (this.isMySQL && INSERT_REGEX.test(query)) {
-        const res = await trx.raw(query);
-        if (res && res[0] && res[0].insertId) {
-          return res[0].insertId;
-        }
-        return res;
-      } else {
-        return await trx.raw(query);
+    if (this.isPg || this.isSnowflake) {
+      return (await trx.raw(query))?.rows;
+    } else if (SELECT_REGEX.test(query)) {
+      return await trx.from(trx.raw(query).wrap('(', ') __nc_alias'));
+    } else if (this.isMySQL && INSERT_REGEX.test(query)) {
+      const res = await trx.raw(query);
+      if (res && res[0] && res[0].insertId) {
+        return res[0].insertId;
       }
-    } catch (e: any) {
-      // For insert/update operations, unique constraint errors should be handled
-      // by the calling code (insert.ts, update methods). We just re-throw here.
-      throw e;
+      return res;
+    } else {
+      return await trx.raw(query);
     }
   }
 
@@ -6037,12 +6160,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     model = this.model,
     knex = this.dbDriver,
     baseModel = this,
+    updatedColIds,
   }: {
     rowIds: any | any[];
     cookie?: { user?: any };
     model?: Model;
     knex?: XKnex;
     baseModel?: BaseModelSqlv2;
+    updatedColIds: string[];
   }) {
     const columns = await model.getColumns(this.context);
 
@@ -6056,12 +6181,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       (c) => c.uidt === UITypes.LastModifiedBy && c.system,
     );
 
+    const metaColumn = columns.find((c) => c.uidt === UITypes.Meta);
+
     if (lastModifiedTimeColumn) {
       updateObject[lastModifiedTimeColumn.column_name] = this.now();
     }
 
     if (lastModifiedByColumn) {
       updateObject[lastModifiedByColumn.column_name] = cookie?.user?.id;
+    }
+
+    if (metaColumn && updatedColIds.length > 0) {
+      updateObject[metaColumn.column_name] = prepareMetaUpdateQuery({
+        knex: this.dbDriver,
+        colIds: updatedColIds,
+        props: {
+          modifiedBy: cookie?.user?.id,
+          modifiedTime: this.now(),
+        },
+        metaColumn,
+      });
     }
 
     if (Object.keys(updateObject).length === 0) return;
@@ -6252,6 +6391,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo?: boolean;
     },
   ): Promise<void> {
+    const runAfterForLoop = [];
+    const updatedColIds = [];
+
     // Handle autoincrement primary key columns for insert operations
     if (isInsertData && !extra?.undo) {
       // Handle primary key
@@ -6270,6 +6412,29 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     for (const column of this.model.columns) {
+      if (column.uidt === UITypes.Meta && this.isPg) {
+        if (!isInsertData)
+          runAfterForLoop.push(() => {
+            if (!updatedColIds.length) return;
+
+            data[column.column_name] = prepareMetaUpdateQuery({
+              knex: this.dbDriver,
+              colIds: updatedColIds,
+              props: {
+                modifiedBy: cookie?.user?.id,
+                modifiedTime: this.now(),
+              },
+              metaColumn: column,
+            });
+          });
+
+        continue;
+      }
+
+      if (!ncIsUndefined(data[column.column_name]) && !isInsertData) {
+        updatedColIds.push(column.id);
+      }
+
       if (
         !ncIsUndefined(data[column.column_name]) &&
         !ncIsNull(data[column.column_name]) &&
@@ -6710,6 +6875,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           data[column.column_name] = JSON.stringify(obj);
         }
+      }
+    }
+
+    if (runAfterForLoop.length) {
+      for (const fn of runAfterForLoop) {
+        await fn();
       }
     }
   }

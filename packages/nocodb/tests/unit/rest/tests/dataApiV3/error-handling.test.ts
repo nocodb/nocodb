@@ -747,10 +747,10 @@ describe('dataApiV3', () => {
           body: insertObj,
           status: 422,
         });
-        expect(response.body.error).to.eq(
-          'ERR_MAX_PAYLOAD_LIMIT_EXCEEDED',
+        expect(response.body.error).to.eq('ERR_MAX_PAYLOAD_LIMIT_EXCEEDED');
+        expect(response.body.message).to.eq(
+          `Maximum 10 entities are allowed per request`,
         );
-        expect(response.body.message).to.eq(`Maximum 10 records during insert`);
       });
       it(`will handle update field format not valid`, async () => {
         if (!isPg(testContext.context)) {

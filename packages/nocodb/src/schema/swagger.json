@@ -21910,7 +21910,8 @@
               "CreatedBy",
               "LastModifiedBy",
               "AI",
-              "Order"
+              "Order",
+              "Meta"
             ],
             "type": "string"
           },
@@ -22987,7 +22988,7 @@
             "fk_view_id": "vw_s1pf4umdnikoyn",
             "help": null,
             "id": "fvc_8z1i7t8aswkqxx",
-            "label": "dsdsds",
+            "label": "First name",
             "order": 1,
             "required": false,
             "show": 1,
@@ -23077,7 +23078,7 @@
             "fk_view_id": "vw_s1pf4umdnikoyn",
             "help": null,
             "id": "fvc_8z1i7t8aswkqxx",
-            "label": "dsdsds",
+            "label": "First name",
             "order": 1,
             "required": false,
             "show": 1,
@@ -25780,7 +25781,8 @@
               "CreatedBy",
               "LastModifiedBy",
               "AI",
-              "Order"
+              "Order",
+              "Meta"
             ],
             "type": "string",
             "description": "UI Data Type"

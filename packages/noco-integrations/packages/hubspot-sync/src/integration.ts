@@ -1,10 +1,10 @@
 import {
   DataObjectStream,
+  SCHEMA_CRM,
   SCHEMA_FILE_STORAGE,
   SyncIntegration,
 } from '@noco-integrations/core';
 import { HubspotFormatter } from './formatter';
-import type { FilesListFolderResponse } from './types';
 import type { DropboxAuthIntegration } from '@noco-integrations/dropbox-auth';
 import type {
   SyncLinkValue,
@@ -24,7 +24,7 @@ export default class HubspotSyncIntegration extends SyncIntegration<DropboxSyncP
   }
 
   public async getDestinationSchema(_auth: DropboxAuthIntegration) {
-    return SCHEMA_FILE_STORAGE;
+    return SCHEMA_CRM;
   }
 
   public async fetchData(

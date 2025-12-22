@@ -4,15 +4,15 @@ import {
 } from '@noco-integrations/core';
 import manifest from './manifest';
 import form from './form';
-import DropboxSyncIntegration from './integration';
+import HubspotSyncIntegration from './integration';
 
 const integration: IntegrationEntry = {
   type: IntegrationType.Sync,
-  sub_type: 'dropbox',
-  wrapper: DropboxSyncIntegration,
+  sub_type: 'hubspot',
+  wrapper: HubspotSyncIntegration,
   form,
   manifest,
 };
 
-export { manifest, form, DropboxSyncIntegration };
+export { manifest, form, HubspotSyncIntegration };
 export default integration;

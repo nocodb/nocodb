@@ -77,6 +77,7 @@ export class FormSubmittedTriggerNode extends WorkflowNodeIntegration<FormSubmit
           {
             baseId: this.nocodb.context.base_id,
             roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+            user: this.nocodb.user,
           },
         );
 

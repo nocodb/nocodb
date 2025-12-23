@@ -621,7 +621,7 @@ export class TablesService {
 
     // Filter tables based on TABLE_VISIBILITY permission
     // Base owners always see all tables, so skip filtering for them
-    if (!param.roles?.[ProjectRoles.OWNER]) {
+    if (!param.roles?.[ProjectRoles.OWNER] && !isServiceUser(param.user)) {
       const permissions = await Permission.list(context, param.baseId);
       const accessibleTableIds = new Set<string>();
 

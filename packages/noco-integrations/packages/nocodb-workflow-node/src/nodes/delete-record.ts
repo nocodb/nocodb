@@ -71,6 +71,7 @@ export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeCo
           {
             baseId: this.nocodb.context.base_id,
             roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+            user: this.nocodb.user,
           },
         );
 

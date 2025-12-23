@@ -25,7 +25,7 @@ const { updateWorkflow, openNewWorkflowModal } = workflowStore
 
 const { activeScriptId, scripts: allScripts, activeBaseScripts } = storeToRefs(scriptStore)
 
-const { activeWorkflowId, workflows: allWorkflows, activeBaseWorkflows } = storeToRefs(workflowStore)
+const { activeWorkflowId, workflows: allWorkflows, activeBaseWorkflows, isWorkflowsEnabled } = storeToRefs(workflowStore)
 
 const scripts = computed(() => allScripts.value.get(baseId.value) ?? [])
 
@@ -47,7 +47,7 @@ const allEntities = computed<Array<(WorkflowType & { type: 'workflow' }) | (Scri
   entities.push(...scripts.value.map((s) => ({ ...s, type: 'script' })))
   entities.push(...workflows.value.map((w) => ({ ...w, type: 'workflow' })))
 
-  return entities
+  return entities.sort((a, b) => (a.order || 0) - (b.order || 0))
 })
 
 // Create entities by ID lookup for efficient access
@@ -118,11 +118,19 @@ const initSortable = (el: Element) => {
         item.order = ((itemBefore?.order ?? 0) + (itemAfter?.order ?? 0)) / 2
       }
 
-      // Update the allEntities array order to reflect the DOM change
-      const entities = [...allEntities.value]
-      const [movedEntity] = entities.splice(oldIndex, 1)
-      movedEntity.order = item.order
-      entities.splice(newIndex, 0, movedEntity)
+      if (item.type === AutomationTypes.SCRIPT) {
+        const scripts = activeBaseScripts.value
+        const scriptsIndex = scripts.findIndex((d) => d.id === item.id)
+        if (scriptsIndex !== -1) {
+          scripts[scriptsIndex].order = item.order
+        }
+      } else if (item.type === AutomationTypes.WORKFLOW) {
+        const workflows = activeBaseWorkflows.value
+        const workflowsIndex = workflows.findIndex((t) => t.id === item.id)
+        if (workflowsIndex !== -1) {
+          workflows[workflowsIndex].order = item.order
+        }
+      }
 
       // force re-render the list
       if (keys.value.data) {
@@ -133,20 +141,10 @@ const initSortable = (el: Element) => {
 
       // Update backend based on item type
       if (item.type === AutomationTypes.SCRIPT) {
-        const scripts = activeBaseScripts.value
-        const scriptsIndex = scripts.findIndex((d) => d.id === item.id)
-        if (scriptsIndex !== -1) {
-          scripts[scriptsIndex].order = item.order
-        }
         await updateScript(baseId.value, item.id, {
           order: item.order,
         })
       } else if (item.type === AutomationTypes.WORKFLOW) {
-        const workflows = activeBaseWorkflows.value
-        const workflowsIndex = workflows.findIndex((t) => t.id === item.id)
-        if (workflowsIndex !== -1) {
-          workflows[workflowsIndex].order = item.order
-        }
         await updateWorkflow(baseId.value, item.id, {
           order: item.order,
         })
@@ -185,10 +183,57 @@ watchEffect(() => {
 
 <template>
   <div>
-    <NcDropdown v-if="!allEntities.length" overlay-class-name="nc-automation-create-dropdown">
+    <template v-if="!allEntities.length">
+      <NcDropdown v-if="isWorkflowsEnabled" overlay-class-name="nc-automation-create-dropdown">
+        <div
+          class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
+          role="button"
+        >
+          <div class="nc-project-home-section-item">
+            <GeneralIcon icon="plus" />
+            <div>
+              {{
+                $t('general.createEntity', {
+                  entity: $t('objects.automation'),
+                })
+              }}
+            </div>
+          </div>
+        </div>
+        <template #overlay>
+          <NcMenu class="max-w-54" variant="medium">
+            <NcMenuItem @click="openNewWorkflowModal({ baseId })">
+              <div class="item">
+                <div class="item-inner">
+                  <GeneralIcon icon="ncAutomation" />
+                  <div>
+                    {{ $t('objects.workflow') }}
+                  </div>
+                  <NcBadgeBeta />
+                </div>
+                <GeneralIcon class="plus" icon="plus" />
+              </div>
+            </NcMenuItem>
+            <NcMenuItem @click="openNewScriptModal({ baseId })">
+              <div class="item">
+                <div class="item-inner">
+                  <GeneralIcon icon="ncScript" />
+                  <div>
+                    {{ $t('objects.script') }}
+                  </div>
+                </div>
+
+                <GeneralIcon class="plus" icon="plus" />
+              </div>
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+      </NcDropdown>
       <div
+        v-else
         class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
         role="button"
+        @click="openNewScriptModal({ baseId })"
       >
         <div class="nc-project-home-section-item">
           <GeneralIcon icon="plus" />
@@ -201,35 +246,7 @@ watchEffect(() => {
           </div>
         </div>
       </div>
-      <template #overlay>
-        <NcMenu class="max-w-48" variant="medium">
-          <NcMenuItem @click="openNewWorkflowModal({ baseId })">
-            <div class="item">
-              <div class="item-inner">
-                <GeneralIcon icon="ncAutomation" />
-                <div>
-                  {{ $t('objects.workflow') }}
-                </div>
-              </div>
-
-              <GeneralIcon class="plus" icon="plus" />
-            </div>
-          </NcMenuItem>
-          <NcMenuItem @click="openNewScriptModal({ baseId })">
-            <div class="item">
-              <div class="item-inner">
-                <GeneralIcon icon="ncScript" />
-                <div>
-                  {{ $t('objects.script') }}
-                </div>
-              </div>
-
-              <GeneralIcon class="plus" icon="plus" />
-            </div>
-          </NcMenuItem>
-        </NcMenu>
-      </template>
-    </NcDropdown>
+    </template>
 
     <div
       v-else
@@ -272,7 +289,7 @@ watchEffect(() => {
 
 <style scoped lang="scss">
 .item {
-  @apply flex flex-row items-center w-36 justify-between;
+  @apply flex flex-row items-center w-39 justify-between;
 }
 
 .item-inner {
@@ -307,6 +324,6 @@ watchEffect(() => {
 }
 
 .nc-automation-create-dropdown {
-  @apply !max-w-43 !min-w-43 !left-18;
+  @apply !max-w-45 !min-w-45 !left-18;
 }
 </style>

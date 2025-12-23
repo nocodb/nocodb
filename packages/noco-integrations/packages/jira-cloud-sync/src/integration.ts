@@ -16,7 +16,7 @@ import type {
   JiraUser,
   JiraUserFull,
 } from './types';
-import type { JiraAuthIntegration } from '@noco-integrations/jira-auth';
+import type { JiraCloudAuthIntegration } from '@noco-integrations/jira-cloud-auth';
 import type {
   SyncLinkValue,
   SyncRecord,
@@ -52,16 +52,16 @@ const ISSUE_FIELDS = [
   'parent',
 ];
 
-export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload> {
+export default class JiraCloudSyncIntegration extends SyncIntegration<JiraSyncPayload> {
   public getTitle() {
     return `${this.config.projects.join(' ')}`;
   }
 
-  public async getDestinationSchema(_auth: JiraAuthIntegration) {
+  public async getDestinationSchema(_auth: JiraCloudAuthIntegration) {
     return SCHEMA_TICKETING;
   }
 
-  async getTimezone(auth: JiraAuthIntegration) {
+  async getTimezone(auth: JiraCloudAuthIntegration) {
     let configVars = this.getVars();
     if (!configVars?.timezone) {
       const myself = (await auth.use((client) => client.get('/myself'))) as {
@@ -75,7 +75,10 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
     return configVars.timezone;
   }
 
-  async getJiraTimeFromIncremental(auth: JiraAuthIntegration, value?: string) {
+  async getJiraTimeFromIncremental(
+    auth: JiraCloudAuthIntegration,
+    value?: string,
+  ) {
     if (!value) {
       return value;
     }
@@ -84,7 +87,7 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
   }
 
   public async fetchData(
-    auth: JiraAuthIntegration,
+    auth: JiraCloudAuthIntegration,
     args: {
       targetTables?: TARGET_TABLES[];
       targetTableIncrementalValues?: Record<TARGET_TABLES, string>;
@@ -463,7 +466,7 @@ export default class JiraSyncIntegration extends SyncIntegration<JiraSyncPayload
   }
 
   async fetchOptions(
-    auth: JiraAuthIntegration,
+    auth: JiraCloudAuthIntegration,
     key: string,
   ): Promise<{ label: string; value: string }[]> {
     switch (key) {

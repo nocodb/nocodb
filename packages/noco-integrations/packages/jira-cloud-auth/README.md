@@ -1,6 +1,6 @@
-# Jira Auth Integration for NocoDB
+# Jira Cloud Auth Integration for NocoDB
 
-This package provides Jira authentication integration for NocoDB, supporting both API Key and OAuth2 authentication methods.
+This package provides Jira Cloud authentication integration for NocoDB, supporting both API Key and OAuth2 authentication methods.
 
 ## Features
 

@@ -1,6 +1,6 @@
-# Jira Auth Integration Setup
+# Jira Cloud Auth Integration Setup
 
-This document provides instructions for setting up the Jira authentication integration for NocoDB.
+This document provides instructions for setting up the Jira cloud authentication integration for NocoDB.
 
 ## Environment Variables
 

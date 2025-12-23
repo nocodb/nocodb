@@ -14,7 +14,7 @@ const form: FormDefinition = [
     category: 'Authentication',
     integrationFilter: {
       type: IntegrationType.Auth,
-      sub_type: 'jira',
+      sub_type: 'jira-cloud',
     },
     validators: [
       {

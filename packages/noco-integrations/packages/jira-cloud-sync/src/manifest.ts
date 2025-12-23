@@ -4,7 +4,7 @@ import {
 } from '@noco-integrations/core';
 
 const manifest: IntegrationManifest = {
-  title: 'Jira',
+  title: 'Jira Cloud',
   icon: 'jira',
   version: '0.1.0',
   description: 'Sync Jira issues and projects',

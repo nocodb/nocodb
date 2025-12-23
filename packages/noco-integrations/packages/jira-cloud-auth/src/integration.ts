@@ -18,7 +18,7 @@ import type {
   TestConnectionResponse,
 } from '@noco-integrations/core';
 
-export class JiraAuthIntegration extends AuthIntegration<
+export class JiraCloudAuthIntegration extends AuthIntegration<
   JiraAuthConfig,
   AxiosInstance
 > {

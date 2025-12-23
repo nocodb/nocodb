@@ -75,9 +75,7 @@ const outputData = computed(() => {
         <div v-if="executionResult.status === 'success'" class="text-bodyBold text-nc-content-green-dark">
           Node executed successfully
         </div>
-        <div v-else-if="executionResult.status === 'error'" class="text-bodyBold text-nc-content-red-dark">
-          Node failed
-        </div>
+        <div v-else-if="executionResult.status === 'error'" class="text-bodyBold text-nc-content-red-dark">Node failed</div>
         <div class="text-bodySm text-nc-content-gray-subtle">
           Executed {{ dayjs(executionResult.endTime || executionResult.startTime).fromNow() }}
         </div>

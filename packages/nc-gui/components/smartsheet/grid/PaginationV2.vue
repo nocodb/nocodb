@@ -129,11 +129,7 @@ const getCountWithLabel = (defaultCount: number) => {
     label:
       selectedCellCount.value && selectedCellCount.value > 1
         ? t('labels.cellsSelected')
-        : customLabel
-        ? customLabel
-        : labelCount !== 1
-        ? t('objects.records')
-        : t('objects.record'),
+        : customLabel || (labelCount !== 1 ? t('objects.records') : t('objects.record')),
   }
 }
 </script>

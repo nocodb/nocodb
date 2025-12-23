@@ -180,7 +180,7 @@ export class JiraAuthIntegration extends AuthIntegration<
       return false;
     }
 
-    // Zoho returns 401 for expired tokens
+    // Returns 401 for expired tokens
     const status = err?.response?.status;
     if (status === 401) {
       return true;

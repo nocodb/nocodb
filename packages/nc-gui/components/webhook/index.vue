@@ -154,20 +154,6 @@ let hookRef = reactive<
   version: 'v3',
 })
 
-const hasUnsavedChanges = computed(() => {
-  if (
-    !props.hook ||
-    !hookRef.id ||
-    !oldHookRef.value ||
-    !hookRef ||
-    showUpgradeModal.value ||
-    filterRef.value?.isUpdatedAnyFilter
-  )
-    return true
-
-  return !ncIsEmptyObject(diff(removeUndefinedFromObj(oldHookRef.value), removeUndefinedFromObj(hookRef)))
-})
-
 const operationsEnum = computed(() => {
   if (!hookRef.event) {
     return [] as {
@@ -206,6 +192,13 @@ const filterRef = ref()
 const isDropdownOpen = ref()
 
 const titleDomRef = ref<HTMLInputElement | undefined>()
+
+const hasUnsavedChanges = computed(() => {
+  if (!props.hook || !hookRef.id || !oldHookRef.value || !hookRef || showUpgradeModal.value || filterRef.value?.isFilterUpdated)
+    return true
+
+  return !ncIsEmptyObject(diff(removeUndefinedFromObj(oldHookRef.value), removeUndefinedFromObj(hookRef)))
+})
 
 const notificationTypes = computed(() => {
   return [

@@ -74,7 +74,7 @@ export function useViewFilters(
 
   const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 
-  // To keep track of any filter updates, in webhook we enable save changes button based on any new changes
+  // Tracks if any filter has been updated - used for webhook save state management
   const isFilterUpdated = ref<boolean>(false)
 
   const filters = computed<ColumnFilterType[]>({

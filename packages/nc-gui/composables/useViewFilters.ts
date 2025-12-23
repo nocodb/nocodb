@@ -74,6 +74,9 @@ export function useViewFilters(
 
   const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 
+  // Tracks if any filter has been updated - used for webhook save state management
+  const isFilterUpdated = ref<boolean>(false)
+
   const filters = computed<ColumnFilterType[]>({
     get: () => {
       return (nestedMode.value && !isLink && !isWebhook && !isWidget && !isWorkflow) || (isForm.value && !isWebhook)
@@ -514,6 +517,7 @@ export function useViewFilters(
         filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))
       } else if (!autoApply?.value && !force) {
         filter.status = filter.id ? 'update' : 'create'
+        isFilterUpdated.value = true
       } else if (filters.value[i]?.id && filters.value[i]?.status !== 'create') {
         await $api.dbTableFilter.update(filters.value[i].id!, {
           ...filter,
@@ -609,6 +613,9 @@ export function useViewFilters(
   const deleteFilter = async (filter: ColumnFilterType, i: number, undo = false) => {
     // update the filter status
     filter.status = 'delete'
+
+    isFilterUpdated.value = true
+
     if (!undo && !filter.is_group && !(isForm.value && !isWebhook)) {
       addUndo({
         undo: {
@@ -673,6 +680,8 @@ export function useViewFilters(
     }
   }
   const addFilter = async (undo = false, draftFilter: Partial<FilterType> = {}) => {
+    isFilterUpdated.value = true
+
     filters.value.push(
       (draftFilter?.fk_column_id ? { ...placeholderFilter(), ...draftFilter } : placeholderFilter()) as ColumnFilterType,
     )
@@ -709,6 +718,8 @@ export function useViewFilters(
   }
 
   const addFilterGroup = async () => {
+    isFilterUpdated.value = true
+
     const child = placeholderFilter()
     child.order = 1
 
@@ -844,5 +855,6 @@ export function useViewFilters(
     loadBtLookupTypes,
     btLookupTypesMap,
     types,
+    isFilterUpdated,
   }
 }

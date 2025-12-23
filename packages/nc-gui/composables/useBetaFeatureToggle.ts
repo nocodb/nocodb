@@ -23,7 +23,6 @@ const FEATURES = [
     description: 'Keep your eyes healthy with dark mode.',
     enabled: false,
     version: 1,
-    isEE: true,
   },
   {
     id: 'canvas_group_grid_view',
@@ -46,7 +45,6 @@ const FEATURES = [
     enabled: true,
     version: 3,
     isEE: true,
-    isOnPrem: false,
   },
   {
     id: 'ai_beta_features',
@@ -56,7 +54,6 @@ const FEATURES = [
     version: 2,
     isEngineering: true,
     isEE: true,
-    isOnPrem: false,
   },
   {
     id: 'integrations',

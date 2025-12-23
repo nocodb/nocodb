@@ -4300,7 +4300,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (Array.isArray(columnValue)) {
         columnValueArr = columnValue;
       } else {
-        columnValueArr = `${columnValue}`.split(',').map((val) => val.trim());
+        columnValueArr = `${columnValue}`.split(',').map((v) => v.trim());
+        // update the original object with trimmed values
+        if (insertOrUpdateObject[columnTitle])
+          insertOrUpdateObject[columnTitle] = columnValueArr.join(',');
+        else if (insertOrUpdateObject[columnName])
+          insertOrUpdateObject[columnName] = columnValueArr.join(',');
       }
     } else {
       columnValueArr = [columnValue];

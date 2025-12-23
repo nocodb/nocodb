@@ -2259,7 +2259,7 @@ export function useCanvasRender({
               ? t('labels.recordSelected')
               : t('labels.recordsSelected')
             : selection.value.cellCount > 1
-            ? t('labels.cellsSelected', { n: selection.value.cellCount })
+            ? t('labels.cellsSelected')
             : isGroupBy.value
             ? count !== 1
               ? t('objects.groups')

@@ -36,7 +36,11 @@ export class HubspotFormatter {
           RemoteCreatedAt: company.properties.hs_createdate,
           RemoteUpdatedAt: company.properties.hs_lastmodifieddate,
         } as SyncRecord,
-        links: {},
+        links: {
+          Owner: company.properties.hubspot_owner_id
+            ? [company.properties.hubspot_owner_id]
+            : [],
+        },
       });
     }
     return result;
@@ -61,8 +65,12 @@ export class HubspotFormatter {
           'Phone Numbers':
             contact.properties.phone || contact.properties.mobilephone,
           'Remote Fields': {
-            'Job Title': contact.properties.jobtitle,
-            Company: contact.properties.company,
+            ...(contact.properties.jobtitle && {
+              'Job Title': contact.properties.jobtitle,
+            }),
+            ...(contact.properties.company && {
+              Company: contact.properties.company,
+            }),
           },
           Addresses: [
             contact.properties.address,
@@ -76,6 +84,41 @@ export class HubspotFormatter {
           RemoteRaw: JSON.stringify(contact),
           RemoteCreatedAt: contact.properties.createdate,
           RemoteUpdatedAt: contact.properties.hs_lastmodifieddate,
+        } as SyncRecord,
+        links: {
+          Owner: contact.properties.hubspot_owner_id
+            ? [contact.properties.hubspot_owner_id]
+            : [],
+        },
+      });
+    }
+    return result;
+  }
+
+  formatUsers({ users }: { users: any[] }) {
+    const result: Array<{
+      recordId: string;
+      targetTable: TARGET_TABLES;
+      data: SyncRecord;
+      links?: Record<string, SyncLinkValue>;
+    }> = [];
+
+    for (const user of users) {
+      result.push({
+        recordId: user.id,
+        targetTable: TARGET_TABLES.CRM_USER,
+        data: {
+          Name: user.firstName
+            ? `${user.firstName} ${user.lastName || ''}`.trim()
+            : user.email,
+          Email: user.email,
+          'First Name': user.firstName,
+          'Last Name': user.lastName,
+          'Phone Number': user.phone,
+          RemoteRaw: JSON.stringify(user),
+          RemoteCreatedAt: user.createdAt,
+          RemoteUpdatedAt: user.updatedAt,
+          'Is Active': user.active !== false, // Default to true if not explicitly false
         } as SyncRecord,
         links: {},
       });

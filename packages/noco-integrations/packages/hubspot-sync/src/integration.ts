@@ -43,6 +43,11 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
         const lastModifiedCrmAccount =
           args.targetTableIncrementalValues?.[TARGET_TABLES.CRM_ACCOUNT];
 
+        await this.fetchUser(auth, {
+          lastModifiedAfter: lastModifiedCrmAccount,
+          stream,
+        });
+
         await this.fetchAccounts(auth, {
           lastModifiedAfter: lastModifiedCrmAccount,
           stream,
@@ -192,6 +197,35 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
         'Error fetching accounts:',
         error.response?.data || error.message,
       );
+      throw error;
+    }
+  }
+
+  async fetchUser(
+    auth: HubspotAuthIntegration,
+    {
+      lastModifiedAfter: _lastModifiedAfter, // Prefix with _ to indicate it's intentionally unused
+      stream,
+    }: { lastModifiedAfter?: string; stream: DataObjectStream<SyncRecord> },
+  ) {
+    try {
+      console.log('Fetching users...');
+      await this.fetchAllRecords<any>(auth, {
+        endpoint: '/crm/v3/owners',
+        method: 'get',
+        body: {
+          limit: 100,
+        },
+        onResponse: async (data: any[]) => {
+          for (const formattedUser of this.formatter.formatUsers({
+            users: data,
+          })) {
+            stream.push(formattedUser);
+          }
+        },
+      });
+    } catch (error) {
+      console.error('Error fetching users:', error);
       throw error;
     }
   }

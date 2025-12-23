@@ -149,8 +149,6 @@ const editor = useEditor({
     markdown = markdown.replaceAll('<br/>', '\n')
     markdown = markdown.replaceAll('<br>', '\n')
 
-    console.log(markdown)
-
     vModel.value = markdown
   },
   editable: !readOnly.value,
@@ -253,7 +251,7 @@ watch(readOnly, (newValue) => {
   @apply relative w-full;
 
   .nc-workflow-input-editor {
-    &:has(.multiline) {
+    &.multiline {
       .ProseMirror {
         @apply h-auto min-h-16;
       }

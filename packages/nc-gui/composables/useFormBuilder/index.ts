@@ -213,8 +213,6 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
         }
       > = {}
 
-      let currentGroup: string | null = null
-
       for (const field of fields) {
         if (field.group) {
           if (!groups[field.group]) {
@@ -226,9 +224,6 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
             }
           }
           groups[field.group].fields.push(field)
-          currentGroup = field.group
-        } else {
-          currentGroup = null
         }
       }
 

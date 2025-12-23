@@ -2,12 +2,16 @@ import {
   DataObjectStream,
   SCHEMA_CRM,
   SyncIntegration,
+  TARGET_TABLES,
 } from '@noco-integrations/core';
-import { TARGET_TABLES } from '@noco-integrations/core';
 import { HubspotFormatter } from './formatter';
 import type { SyncLinkValue, SyncRecord } from '@noco-integrations/core';
-import type { HubSpotApiResponse, HubSpotCompany } from './types';
 import type { HubspotAuthIntegration } from '@noco-integrations/hubspot-auth';
+import type {
+  HubSpotApiResponse,
+  HubSpotCompany,
+  HubSpotContact,
+} from './types';
 
 export interface HubspotSyncPayload {
   title: string;
@@ -40,6 +44,11 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
           args.targetTableIncrementalValues?.[TARGET_TABLES.CRM_ACCOUNT];
 
         await this.fetchAccounts(auth, {
+          lastModifiedAfter: lastModifiedCrmAccount,
+          stream,
+        });
+
+        await this.fetchContacts(auth, {
           lastModifiedAfter: lastModifiedCrmAccount,
           stream,
         });
@@ -181,6 +190,71 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
     } catch (error: any) {
       console.error(
         'Error fetching accounts:',
+        error.response?.data || error.message,
+      );
+      throw error;
+    }
+  }
+
+  async fetchContacts(
+    auth: HubspotAuthIntegration,
+    {
+      lastModifiedAfter,
+      stream,
+    }: { lastModifiedAfter?: string; stream: DataObjectStream<SyncRecord> },
+  ) {
+    const properties = [
+      'firstname',
+      'lastname',
+      'email',
+      'phone',
+      'mobilephone',
+      'jobtitle',
+      'company',
+      'address',
+      'city',
+      'state',
+      'zip',
+      'country',
+      'hs_lastmodifieddate',
+      'hubspot_owner_id',
+    ];
+
+    try {
+      console.log('Fetching contacts...');
+      await this.fetchAllRecords<HubSpotContact>(auth, {
+        endpoint: '/crm/v3/objects/contacts/search',
+        method: 'post',
+        body: {
+          filterGroups: lastModifiedAfter
+            ? [
+                {
+                  filters: [
+                    {
+                      propertyName: 'hs_lastmodifieddate',
+                      operator: 'GT',
+                      // +1000 is required to avoid fetching the same contact again
+                      value: new Date(lastModifiedAfter).getTime() + 1000,
+                    },
+                  ],
+                },
+              ]
+            : undefined,
+          properties,
+          sorts: ['hs_lastmodifieddate'],
+        },
+        onResponse: async (data: HubSpotContact[]) => {
+          for (const formattedContact of this.formatter.formatContacts({
+            contacts: data,
+          })) {
+            stream.push(formattedContact);
+          }
+          console.log(`Retrieved ${data.length} contacts`);
+        },
+      });
+    } catch (error: any) {
+      console.error(
+        'Error fetching contacts:',
         error.response?.data || error.message,
       );
       throw error;

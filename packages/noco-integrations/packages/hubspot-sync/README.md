@@ -1,102 +1,86 @@
-# Dropbox Sync Integration
+# HubSpot Sync Integration
 
-Sync Dropbox files and folders into the NocoDB file storage schema. The package extends the `SyncIntegration` base class and streams normalized records through `DataObjectStream`.
+Sync HubSpot CRM data into NocoDB's CRM schema. This package extends the `SyncIntegration` base class and streams normalized records through `DataObjectStream`.
 
 ## Features
 
-- **File storage schema coverage**: Populates `FILE_STORAGE_FILE` and `FILE_STORAGE_FOLDER` tables.
-- **Cursor-based incremental sync**: Uses Dropbox API cursors to resume syncing from the last position.
-- **Hierarchical folder structure**: Automatically links files to folders and folders to parent folders.
-- **Batch-friendly streaming**: Streams data in batches of 25 records to keep memory usage low.
-- **Recursive file listing**: Syncs all files and folders recursively from the Dropbox root.
+- **CRM schema coverage**: Syncs HubSpot companies into the `CRM_ACCOUNT` table.
+- **Incremental sync**: Uses `hs_lastmodifieddate` to only fetch updated records.
+- **Comprehensive field mapping**: Maps common HubSpot company fields to standardized CRM fields.
+- **Batch processing**: Efficiently processes records in batches to manage API rate limits.
+- **Raw data preservation**: Maintains original HubSpot data in the `RemoteRaw` field.
 
 ## How It Works
 
-1. Requires a Dropbox Auth integration (`@noco-integrations/dropbox-auth`) that provides an authenticated API client.
-2. `fetchData()` initiates a recursive folder listing starting from the root path (`''`).
-3. On the first run, it calls `/files/list_folder` to get the initial cursor and file/folder entries.
-4. On subsequent runs, it uses the stored cursor to call `/files/list_folder/continue` to fetch remaining entries.
-5. The formatter processes entries, separating files and folders, and formats them according to the file storage schema.
-6. Folders are processed first to ensure parent folders exist before files reference them.
-7. Records are emitted through `DataObjectStream` until `null` is pushed to close the stream.
+1. Requires a HubSpot Auth integration (`@noco-integrations/hubspot-auth`) that provides an authenticated API client.
+2. `fetchData()` initiates a sync of HubSpot companies.
+3. The integration fetches companies from HubSpot's API with pagination support.
+4. The formatter processes each company record, mapping HubSpot fields to the CRM schema.
+5. Records are emitted through `DataObjectStream` until all data is processed.
 
 ## Configuration
 
 ### Prerequisites
 
 - NocoDB instance with the integrations framework enabled.
-- Dropbox Auth integration configured with OAuth token or API key.
+- HubSpot Auth integration configured with OAuth token.
 
 ### Sync Form Fields
 
 | Field | Description |
 | --- | --- |
 | `title` | Display name for this sync instance. |
-| `config.authIntegrationId` | Reference to an existing Dropbox auth connection. |
+| `config.authIntegrationId` | Reference to an existing HubSpot auth connection. |
 
-### Required Dropbox Permissions
+### Required HubSpot Permissions
 
-Grant the OAuth token or API key the ability to read:
+Ensure your HubSpot OAuth token has the following scopes:
 
-- `files.content.read` – read file contents.
-- `files.metadata.read` – read file and folder metadata.
+- `crm.objects.companies.read` – Read company data
+- `crm.schemas.companies.read` – Read company schema (for field metadata)
 
 ## Target Tables & Data Mapping
 
-All data is written to the file storage schema exported by `@noco-integrations/core`.
+All data is written to the CRM schema exported by `@noco-integrations/core`.
 
-### `FILE_STORAGE_FOLDER`
+### `CRM_ACCOUNT`
 
-Fields populated by `DropboxFormatter.formatEntries()`:
+Fields populated by `HubspotFormatter.formatAccounts()`:
 
-- `Name` – folder name
-- `Folder URL` – full path display (e.g., `/folder1/folder2`)
-- `Size` – null (folders don't have size)
-- `Description` – null
-- `RemoteRaw` – full folder JSON from Dropbox API
-- `RemoteCreatedAt` – null
-- `RemoteUpdatedAt` – null
-- Links `Parent Folder` → parent folder `recordId` (if not root)
-
-### `FILE_STORAGE_FILE`
-
-Fields populated by `DropboxFormatter.formatEntries()`:
-
-- `Name` – file name
-- `File URL` – full path display (e.g., `/folder/file.txt`)
-- `File Thumbnail URL` – null
-- `Size` – file size in bytes
-- `Mime Type` – detected MIME type based on file extension
-- `Checksum` – content hash from Dropbox
-- `RemoteRaw` – full file JSON from Dropbox API
-- `RemoteCreatedAt` – client modification timestamp
-- `RemoteUpdatedAt` – server modification timestamp
-- Links `Folder` → parent folder `recordId` (if not root)
+- `Name` – Company name from HubSpot
+- `Description` – Company description
+- `Industry` – Industry classification
+- `Website` – Company website URL
+- `Number Of Employees` – Company size
+- `Address` – Combined address fields (street, city, state, zip, country)
+- `Phone Numbers` – Primary phone number
+- `RemoteRaw` – Full company JSON from HubSpot API
+- `RemoteCreatedAt` – Company creation date (`hs_createdate`)
+- `RemoteUpdatedAt` – Last modification date (`hs_lastmodifieddate`)
 
 ## API Endpoints Used
 
-- `POST /files/list_folder` – initial folder listing with recursive option
-- `POST /files/list_folder/continue` – continue listing with cursor
+- `GET /crm/v3/objects/companies` – Fetch company data
+- `GET /crm/v3/properties/companies` – Get company property definitions
 
 ## Incremental Sync
 
-- Uses Dropbox API cursor-based pagination stored in `file_cursor` variable.
-- On first run, starts from root path and stores the initial cursor.
-- On subsequent runs, continues from the stored cursor using `/files/list_folder/continue`.
-- The cursor is saved after each batch completes, allowing resumable syncs.
-- The incremental key uses `RemoteUpdatedAt` for tracking updates.
+- Uses `hs_lastmodifieddate` to track changes.
+- Only fetches records modified since the last successful sync.
+- Automatically handles pagination through the HubSpot API.
 
 ## Error Handling & Limits
 
 - Any error during fetching destroys the stream and surfaces the original exception.
-- Dropbox API rate limits apply; stagger schedules for large accounts.
-- Files and folders are processed in batches of 25 to manage memory usage.
-- MIME type detection falls back to `application/octet-stream` if detection fails.
+- Respects HubSpot API rate limits with automatic retry logic.
+- Processes records in batches to manage memory usage.
+- Preserves original HubSpot data in `RemoteRaw` for reference.
 
 ## Usage Example
 
 ```typescript
 import { Integration, TARGET_TABLES } from '@noco-integrations/core';
+import HubspotSyncIntegration from '@noco-integrations/hubspot-sync';
 
 const syncIntegration = await Integration.get(context, syncIntegrationId);
 const authIntegration = await Integration.get(
@@ -123,6 +107,6 @@ for await (const record of stream) {
 
 ## Next Steps
 
-- Pair this integration with automations or workflows that process the file storage tables.
-- Monitor Dropbox API usage to size batch schedules (current batch size = 25).
-- Extend `DropboxFormatter` if additional file storage fields are needed (for example, thumbnail URLs or custom metadata).
+- Use this integration to sync HubSpot company data into your NocoDB CRM schema.
+- Monitor HubSpot API usage to stay within rate limits.
+- Extend `HubspotFormatter` to include additional company fields or custom properties as needed.

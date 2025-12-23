@@ -166,6 +166,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       return checkConditionItem(condition)
     }
 
+    const groupCollapseState = ref<Record<string, boolean>>({})
+
     const formElementsCategorized = computed(() => {
       const categorizedItems: Record<string, any> = {}
 
@@ -186,6 +188,47 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
       return categorizedItems
     })
+
+    const toggleGroup = (groupKey: string) => {
+      const currentState = groupCollapseState.value[groupKey]
+      groupCollapseState.value = {
+        ...groupCollapseState.value,
+        [groupKey]: currentState === undefined ? false : !currentState,
+      }
+    }
+
+    const isGroupCollapsed = (groupKey: string, defaultCollapsed = true) => {
+      return groupCollapseState.value[groupKey] ?? defaultCollapsed
+    }
+
+    const getGroupInfo = (category: string) => {
+      const fields = formElementsCategorized.value[category] || []
+      const groups: Record<
+        string,
+        {
+          fields: FormBuilderElement[]
+          collapsible: boolean
+          label?: string
+          defaultCollapsed: boolean
+        }
+      > = {}
+
+      for (const field of fields) {
+        if (field.group) {
+          if (!groups[field.group]) {
+            groups[field.group] = {
+              fields: [],
+              collapsible: field.groupCollapsible ?? false,
+              label: field.groupLabel,
+              defaultCollapsed: field.groupDefaultCollapsed ?? true,
+            }
+          }
+          groups[field.group].fields.push(field)
+        }
+      }
+
+      return groups
+    }
 
     const validators = computed(() => {
       const validatorsObject: Record<string, any> = {}
@@ -322,6 +365,9 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       loadOptions,
       getFieldOptions,
       getIsLoadingFieldOptions,
+      toggleGroup,
+      isGroupCollapsed,
+      getGroupInfo,
     }
   },
   'form-builder-helper',

@@ -1,0 +1,18 @@
+{
+  "name": "@noco-integrations/jira-cloud-sync",
+  "version": "0.1.0",
+  "description": "Jira Sync integration for NocoDB",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@noco-integrations/core": "workspace:*",
+    "dayjs": "^1.11.19"
+  },
+  "devDependencies": {
+    "typescript": "^5.2.2"
+  }
+}

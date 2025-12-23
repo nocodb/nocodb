@@ -4,6 +4,7 @@ import {
   PlanLimitTypes,
 } from 'nocodb-sdk';
 import { default as WorkflowCE } from 'src/models/Workflow';
+import { Logger } from '@nestjs/common';
 import type {
   WorkflowGeneralEdge,
   WorkflowGeneralNode,
@@ -25,6 +26,9 @@ import DependencyTracker, {
   type HydratedDependencyTrackerType,
 } from '~/models/DependencyTracker';
 import { processConcurrently } from '~/utils';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+
+const logger = new Logger('Workflow');
 
 export default class Workflow extends WorkflowCE implements WorkflowType {
   id?: string;
@@ -186,6 +190,9 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
       1,
     );
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     return this.get(context, id, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
@@ -230,6 +237,10 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       prepareForResponse(updateObj, ['nodes', 'edges', 'meta', 'draft']),
     );
 
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
+
     return this.get(context, workflowId, ncMeta);
   }
 
@@ -257,6 +268,10 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
       -1,
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     await WorkflowExecution.deleteByWorkflow(context, workflowId, ncMeta);
 

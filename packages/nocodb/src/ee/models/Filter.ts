@@ -79,9 +79,12 @@ export default class Filter extends FilterCE implements FilterType {
     }
     insertObj.meta = stringifyMetaProp(insertObj);
 
-    insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
-      [referencedModelColName]: filter[referencedModelColName],
-    });
+    // if insertObj has order, use it as this might be copy filter
+    insertObj.order = insertObj.order
+      ? insertObj.order
+      : await ncMeta.metaGetNextOrder(MetaTable.FILTER_EXP, {
+          [referencedModelColName]: filter[referencedModelColName],
+        });
 
     if (!filter.source_id) {
       let model: { base_id?: string; source_id?: string };

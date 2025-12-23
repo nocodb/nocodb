@@ -26,6 +26,8 @@ export function useViewRowColorOption(params: {
 
   const { eventBus } = useSmartsheetStoreOrThrow()
 
+  const { clone } = useUndoRedo()
+
   const meta = inject(MetaInj, ref())
   const { metas } = useMetas()
   const { getPlanLimit } = useWorkspace()
@@ -131,6 +133,86 @@ export function useViewRowColorOption(params: {
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
 
     isLoadingFilter.value = false
+  }
+
+  const placeholderFilter = (colorIndex: number) => {
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToAdd = conditions[colorIndex]!
+    const evalColumn = filterColumns.value.find((k) => k.pv)
+
+    const filter = {
+      id: undefined,
+      tmp_id: generateUniqueRandomUUID(conditions, ['id', 'tmp_id']),
+      fk_row_color_condition_id: conditionToAdd.id,
+      fk_parent_id: undefined, // add parent id later
+      fk_column_id: evalColumn?.id,
+      comparison_op: 'eq',
+      is_group: false,
+      logical_op: conditionToAdd.conditions[0]?.logical_op ?? 'and',
+      order: conditionToAdd.conditions.length + 1,
+    }
+
+    return filter
+  }
+
+  const placeholderGroupFilter = (colorIndex: number) => {
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToAdd = conditions[colorIndex]!
+
+    const filter = {
+      id: undefined,
+      tmp_id: generateUniqueRandomUUID(conditions, ['id', 'tmp_id']),
+      fk_row_color_condition_id: conditionToAdd.id,
+      is_group: true,
+      children: [],
+      logical_op: conditionToAdd.conditions[0]?.logical_op ?? 'and',
+      order: conditionToAdd.conditions.length + 1,
+    }
+
+    return filter
+  }
+
+  const STRIP_KEYS = ['id', 'tmp_id', 'status', 'fk_parent_id']
+
+  function normalizeFilterNode(
+    filter: ColumnFilterType = {},
+    colorIndex: number,
+    extra_strip_keys: Array<string> = [],
+  ): ColumnFilterType {
+    const raw = clone(filter) as any
+
+    // remove runtime / persisted props
+    for (const key of STRIP_KEYS) {
+      delete raw[key]
+    }
+
+    for (const key of extra_strip_keys) {
+      delete raw[key]
+    }
+
+    // 🔹 GROUP FILTER
+    if (raw.is_group) {
+      const group = placeholderGroupFilter(colorIndex)
+
+      // apply allowed props (logical_op, fk_column_id, etc.)
+      Object.assign(group, raw)
+
+      // children must exist for group
+      group.children = ncIsArray(raw.children) ? raw.children.map((child) => normalizeFilterNode(child, colorIndex)) : []
+
+      // reset order for children
+      group.children!.forEach((child, index) => {
+        child.order = child.order ?? index + 1
+      })
+
+      return group
+    }
+
+    // 🔹 LEAF FILTER
+    const leaf = placeholderFilter(colorIndex)
+    Object.assign(leaf, raw)
+
+    return leaf
   }
 
   const onRowColorConditionAdd = async () => {
@@ -433,6 +515,198 @@ export function useViewRowColorOption(params: {
     isLoadingFilter.value = false
   }
 
+  const onRowColorConditionFilterCopy = async (colorIndex: number, filterToCopy: any, isGroup: boolean) => {
+    isLoadingFilter.value = true
+
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToAdd = conditions[colorIndex]!
+
+    if (isGroup) {
+      // For group filter copy, copy with children but without ids
+      const copyFilterRecursively = (originalFilter: any): any => {
+        const copiedFilter: any = {
+          id: undefined,
+          tmp_id: generateUniqueRandomUUID(conditionToAdd.conditions, ['id', 'tmp_id']),
+          fk_row_color_condition_id: conditionToAdd.id,
+          fk_parent_id: originalFilter.fk_parent_id,
+          fk_column_id: originalFilter.fk_column_id,
+          comparison_op: originalFilter.comparison_op,
+          comparison_sub_op: originalFilter.comparison_sub_op,
+          is_group: originalFilter.is_group,
+          logical_op: originalFilter.logical_op,
+          value: originalFilter.value,
+          order: originalFilter.order,
+        }
+
+        // Recursively copy children if they exist
+        if (originalFilter.children && originalFilter.children.length > 0) {
+          copiedFilter.children = originalFilter.children.map((child: any) => copyFilterRecursively(child))
+        } else if (originalFilter.is_group) {
+          copiedFilter.children = []
+        }
+
+        return copiedFilter
+      }
+
+      const filter = copyFilterRecursively(filterToCopy)
+      // Update order for the root group filter
+      filter.order = conditionToAdd.conditions.length + 1
+
+      conditionToAdd.conditions.push(filter)
+      let parentFilter = null
+      if (filter.fk_parent_id) {
+        parentFilter = conditionToAdd.conditions.find((f) => f.id === filter.fk_parent_id)
+        parentFilter.children?.push(filter)
+      } else if (filterToCopy.fk_parent_id) {
+        parentFilter = conditionToAdd.conditions.find((f) => f.id === filterToCopy.fk_parent_id)
+        parentFilter.children?.push(filter)
+      } else {
+        conditionToAdd.nestedConditions.push(filter)
+      }
+
+      await pushPendingAction(async () => {
+        const filterToCreate = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
+        // Don't delete children - Filter.insert supports children directly
+        const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, filterToCreate)
+        filter.id = result.id
+      })
+
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+    } else {
+      // For regular filter copy, follow the same pattern as onRowColorConditionFilterAdd
+      // but with pre-configured values from the filter being copied
+      const filter = {
+        id: undefined,
+        tmp_id: generateUniqueRandomUUID(conditionToAdd.conditions, ['id', 'tmp_id']),
+        fk_row_color_condition_id: conditionToAdd.id,
+        fk_parent_id: filterToCopy.fk_parent_id, // Keep the same parent as the original
+        fk_column_id: filterToCopy.fk_column_id,
+        comparison_op: filterToCopy.comparison_op,
+        comparison_sub_op: filterToCopy.comparison_sub_op,
+        is_group: false,
+        logical_op: filterToCopy.logical_op || conditionToAdd.conditions[0]?.logical_op || 'and',
+        value: filterToCopy.value,
+        order: conditionToAdd.conditions.length + 1,
+      }
+
+      adjustFilterWhenColumnChange({
+        column: filterColumns.value.find((k) => k.id === filter.fk_column_id),
+        filter,
+        showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
+      })
+
+      conditionToAdd.conditions.push(filter)
+      let parentFilter = null
+      if (filter.fk_parent_id) {
+        parentFilter = conditionToAdd.conditions.find((f) => f.id === filter.fk_parent_id)
+        parentFilter.children?.push(filter)
+      } else if (filterToCopy.fk_parent_id) {
+        parentFilter = conditionToAdd.conditions.find((f) => f.id === filterToCopy.fk_parent_id)
+        parentFilter.children?.push(filter)
+      } else {
+        conditionToAdd.nestedConditions.push(filter)
+      }
+
+      await pushPendingAction(async () => {
+        const toInsert = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
+        const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, toInsert)
+        filter.id = result.id
+      })
+
+      reloadViewDataIfNeeded(filter.fk_column_id)
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+    }
+
+    isLoadingFilter.value = false
+  }
+
+  const onRowColorConditionCopy = async (index: number) => {
+    await popPendingAction()
+
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToCopy = conditions[index]!
+
+    // Deep clone the condition and its nested filters with children structure
+    const cloneFilter = (filter: any): any => {
+      const clonedFilter: any = {
+        id: undefined,
+        tmp_id: generateUniqueRandomUUID([], ['id', 'tmp_id']),
+        fk_row_color_condition_id: undefined,
+        fk_parent_id: undefined,
+        fk_column_id: filter.fk_column_id,
+        comparison_op: filter.comparison_op,
+        comparison_sub_op: filter.comparison_sub_op,
+        is_group: filter.is_group,
+        logical_op: filter.logical_op,
+        value: filter.value,
+        order: filter.order,
+      }
+
+      // Clone children recursively - Filter.insert supports children directly
+      if (filter.children && filter.children.length > 0) {
+        clonedFilter.children = filter.children.map((child: any) => cloneFilter(child))
+      }
+
+      return clonedFilter
+    }
+
+    // Clone nested conditions structure recursively with children
+    const cloneNestedConditions = (nested: any[]): any[] => {
+      return nested.map((item) => cloneFilter(item))
+    }
+
+    // Clone nested conditions, but exclude the first root filter since it's already created
+    // The first root filter in nestedConditions corresponds to conditions[0] which is created separately
+    const clonedNestedConditions = cloneNestedConditions(conditionToCopy.nestedConditions || [])
+
+    // Create the copied condition
+    const copiedCondition: any = {
+      id: undefined,
+      tmp_id: generateUniqueRandomUUID(conditions, ['id', 'tmp_id']),
+      color: conditionToCopy.color,
+      is_set_as_background: conditionToCopy.is_set_as_background,
+      nc_order: conditions.length + 1,
+      conditions: conditionToCopy.conditions.map((filter) => cloneFilter(filter)),
+      nestedConditions: clonedNestedConditions,
+    }
+
+    conditions.push(copiedCondition)
+
+    await pushPendingAction(async () => {
+      // Create the condition on the server without any filter
+      const response = await $api.dbView.viewRowColorConditionAdd(params.view.value.id!, copiedCondition)
+      copiedCondition.id = response.id
+
+      // Create all copied filters in parallel using Promise.all
+      // Each filter can have nested children, which Filter.insert will handle recursively
+      if (copiedCondition.nestedConditions && copiedCondition.nestedConditions.length > 0) {
+        await Promise.all(
+          copiedCondition.nestedConditions.map((filter: any) => {
+            const filterToCreate: any = {
+              ...filter,
+              fk_row_color_condition_id: copiedCondition.id,
+              // children structure is preserved - Filter.insert will recursively create all nested children
+            }
+            // Remove tmp_id and id as they will be generated by the server
+            delete filterToCreate.tmp_id
+            delete filterToCreate.id
+
+            // Create filter - Filter.insert supports children directly
+            return $api.rowColorConditions.rowColorConditionsFilterCreate(copiedCondition.id!, filterToCreate)
+          }),
+        )
+      }
+
+      updateViewLocalState(params.view.value.id!, {
+        row_coloring_mode: ROW_COLORING_MODE.FILTER,
+      })
+    })
+
+    await popPendingAction()
+
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+  }
+
   const filterPerViewLimit = computed(() => getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW))
 
   return {
@@ -447,9 +721,11 @@ export function useViewRowColorOption(params: {
     onRowColorConditionAdd,
     onRowColorConditionDelete,
     onRowColorConditionUpdate,
+    onRowColorConditionCopy,
     onRowColorConditionFilterAdd,
     onRowColorConditionFilterUpdate,
     onRowColorConditionFilterAddGroup,
     onRowColorConditionFilterDelete,
+    onRowColorConditionFilterCopy,
   }
 }

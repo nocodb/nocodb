@@ -3,13 +3,17 @@ const props = defineProps<{
   readOnly?: boolean
 }>()
 
-const { selectedNode, selectedNodeId, getNodeMetaById, updateNode } = useWorkflowOrThrow()
+const { selectedNode, selectedNodeId, getNodeMetaById, updateNode, nodes } = useWorkflowOrThrow()
 
 const { $e } = useNuxtApp()
 
 const isDescriptionInEditMode = ref(false)
 
+const isTitleInEditMode = ref(false)
+
 const descriptionInputRef = ref()
+
+const titleInputRef = ref()
 
 const nodeMeta = computed(() => {
   return getNodeMetaById(selectedNode.value?.type)
@@ -29,6 +33,17 @@ const nodeDescription = computed({
   },
 })
 
+const pendingTitle = ref<string | undefined>()
+
+const nodeTitle = computed({
+  get() {
+    return pendingTitle.value ?? selectedNode.value?.data?.title
+  },
+  set(value) {
+    pendingTitle.value = value
+  },
+})
+
 function enableDescriptionEditMode() {
   isDescriptionInEditMode.value = true
   nextTick(() => {
@@ -39,6 +54,42 @@ function enableDescriptionEditMode() {
 function handleDescriptionBlur() {
   isDescriptionInEditMode.value = false
   $e('a:workflow:node:description:update', {
+    node_type: selectedNode.value?.type,
+    node_id: selectedNodeId.value,
+  })
+}
+
+function enableTitleEditMode() {
+  isTitleInEditMode.value = true
+  nextTick(() => {
+    titleInputRef.value.focus()
+  })
+}
+
+function handleTitleBlur() {
+  const newTitle = pendingTitle.value?.trim()
+  const oldTitle = selectedNode.value?.data?.title
+
+  if (newTitle && newTitle !== oldTitle) {
+    const isDuplicate = nodes.value.some((node) => node.id !== selectedNodeId.value && node.data?.title === newTitle)
+
+    if (isDuplicate) {
+      message.error('A node with this name already exists. Please choose a different name.')
+      pendingTitle.value = oldTitle
+      return
+    }
+
+    updateNode(selectedNodeId.value, {
+      data: {
+        ...selectedNode.value?.data,
+        title: newTitle,
+      },
+    })
+  }
+
+  pendingTitle.value = undefined
+  isTitleInEditMode.value = false
+  $e('a:workflow:node:title:update', {
     node_type: selectedNode.value?.type,
     node_id: selectedNodeId.value,
   })
@@ -54,12 +105,27 @@ function handleDescriptionBlur() {
         <GeneralIcon :icon="nodeMeta.icon" class="w-6 h-6 stroke-transparent" />
       </div>
       <div>
-        <div class="text-subHeading2">
-          {{ nodeMeta.title }}
+        <div
+          v-if="!isTitleInEditMode || props.readOnly"
+          class="text-subHeading2 line-clamp-2 max-w-70"
+          role="button"
+          tabindex="0"
+          @keydown.enter="enableTitleEditMode"
+          @keydown.space="enableTitleEditMode"
+          @click="enableTitleEditMode"
+        >
+          {{ nodeTitle }}
         </div>
-        <span class="capitalize text-nc-content-gray-subtle text-caption rounded-lg px-1 py-0.5 bg-nc-bg-gray-light">
-          {{ nodeMeta.category }} Node
-        </span>
+        <div v-else class="mb-2">
+          <a-input
+            ref="titleInputRef"
+            v-model:value="nodeTitle"
+            class="input-sm nc-input-shadow text-subHeading2 !rounded-lg !w-65"
+            @keydown.enter="handleTitleBlur"
+            @blur="handleTitleBlur"
+            @keydown.esc="handleTitleBlur"
+          />
+        </div>
       </div>
     </div>
 
@@ -73,7 +139,11 @@ function handleDescriptionBlur() {
       <div
         v-if="!isDescriptionInEditMode || props.readOnly"
         class="text-body line-clamp-3 w-85 px-1"
+        role="button"
+        tabindex="0"
         @click="enableDescriptionEditMode"
+        @keydown.enter="enableDescriptionEditMode"
+        @keydown.space="enableDescriptionEditMode"
       >
         <span v-if="!nodeDescription && !props.readOnly" class="text-nc-content-gray-muted">
           {{ $t('labels.addDescription') }}

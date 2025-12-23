@@ -45,19 +45,13 @@ onMounted(async () => {
         'flex items-center justify-center': isLoading,
       }"
     >
-      <GeneralOverlay
-        v-show="isLoading"
-        :model-value="isLoading"
-        inline
-        transition
-        class="!bg-opacity-15 rounded-xl overflow-hidden"
-      >
+      <GeneralOverlay :model-value="isLoading" inline transition class="!bg-opacity-15 rounded-xl overflow-hidden">
         <div class="flex flex-col items-center justify-center h-full w-full !bg-nc-bg-default !bg-opacity-80">
           <a-spin size="large" />
         </div>
       </GeneralOverlay>
       <SmartsheetWorkflowToolbar />
-      <div v-if="activeWorkflow" class="flex w-full main-wrapper">
+      <div v-if="activeWorkflow" class="flex w-full relative main-wrapper">
         <Canvas />
         <Sidebar />
       </div>

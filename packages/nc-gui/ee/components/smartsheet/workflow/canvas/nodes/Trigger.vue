@@ -10,8 +10,7 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const { updateNode, addPlusNode, triggerLayout, getNodeMetaById, selectedNodeId, edges, viewingExecution, activeTab } =
-  useWorkflowOrThrow()
+const { updateNode, getNodeMetaById, selectedNodeId, viewingExecution, activeTab } = useWorkflowOrThrow()
 
 const enableEditableMenu = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
 
@@ -38,16 +37,6 @@ const selectTriggerType = async (option: WorkflowNodeDefinition) => {
   $e('a:workflow:trigger:select', {
     trigger_type: option.id,
   })
-
-  const hasPlusNode = edges.value.some((e) => e.source === props.id)
-  if (!hasPlusNode) {
-    await addPlusNode(props.id)
-
-    await nextTick()
-    setTimeout(() => {
-      triggerLayout()
-    }, 50)
-  }
 }
 
 const handleTriggerClick = () => {
@@ -132,7 +121,7 @@ onClickOutside(
             </div>
 
             <div class="text-nc-content-gray truncate flex-1 w-full text-bodyBold">
-              {{ selectedNode.title }}
+              {{ props.data.title || selectedNode.title }}
             </div>
 
             <NcDropdown v-if="enableEditableMenu" v-model:visible="showSubMenuDropdown">

@@ -1,44 +1,88 @@
 <script setup lang="ts">
-import { useWorkflowOrThrow } from '~/composables/useWorkflow'
+import type { WorkflowGeneralNode } from 'nocodb-sdk'
+import { GeneralNodeID } from 'nocodb-sdk'
 
-const { executeWorkflow: _executeWorkflow } = useWorkflowStore()
+const workflowStore = useWorkflowStore()
 
-const { nodes, workflow } = useWorkflowOrThrow()
+const { activeWorkflowHasDraftChanges, activeWorkflow } = storeToRefs(workflowStore)
 
-const isLoading = ref(false)
+const { updateWorkflow, publishWorkflow } = useWorkflowStore()
 
-const hasManualTrigger = computed(() => {
-  return nodes.value.some((node) => node.type === 'core.trigger.manual')
+const isPublishing = ref(false)
+
+const revertToPublished = async () => {
+  if (!activeWorkflow.value?.id || !activeWorkflow.value?.base_id) return
+  await updateWorkflow(
+    activeWorkflow.value?.base_id,
+    activeWorkflow.value?.id,
+    {
+      draft: null,
+    },
+    {
+      bumpDirty: true,
+    },
+  )
+}
+
+const canPublish = computed(() => {
+  if (!activeWorkflowHasDraftChanges.value) return false
+
+  const draftNodes = (activeWorkflow.value?.draft?.nodes || []) as Array<WorkflowGeneralNode>
+
+  for (const node of draftNodes) {
+    if ([GeneralNodeID.TRIGGER, GeneralNodeID.PLUS, GeneralNodeID.NOTE].includes(node.type as any)) {
+      continue
+    }
+
+    const testResult = node.data?.testResult
+
+    if (!testResult || testResult?.status !== 'success' || testResult?.isStale === true) {
+      return false
+    }
+  }
+
+  return true
 })
 
-const executeWorkflow = async () => {
-  if (!workflow.value?.id) return
-  isLoading.value = true
-  await _executeWorkflow(workflow.value?.id)
-  isLoading.value = false
+const handlePublish = async () => {
+  if (!canPublish.value || !activeWorkflow.value?.id) return
+
+  isPublishing.value = true
+  try {
+    await publishWorkflow(activeWorkflow.value?.id)
+  } finally {
+    isPublishing.value = false
+  }
 }
 </script>
 
 <template>
   <div class="flex justify-between">
     <div class="flex gap-2 w-full">
-      <NcTooltip placement="left" :disabled="hasManualTrigger">
-        <NcButton
-          :disabled="!hasManualTrigger || isLoading"
-          :loading="isLoading"
-          type="secondary"
-          size="small"
-          @click="executeWorkflow"
-        >
-          <div class="flex items-center gap-2">
-            <GeneralIcon icon="ncSend" />
-            {{ $t('labels.triggerWorkflow') }}
-          </div>
+      <NcTooltip v-if="activeWorkflowHasDraftChanges">
+        <NcButton size="small" type="secondary" @click="revertToPublished">
+          <template #icon>
+            <GeneralIcon icon="reload" />
+          </template>
+          Discard
         </NcButton>
+        <template #title> Discard draft changes and restore published version </template>
+      </NcTooltip>
 
-        <template #title>
-          {{ $t('tooltip.manualTriggerDisabled') }}
-        </template>
+      <NcTooltip v-if="activeWorkflowHasDraftChanges" :disabled="canPublish">
+        <NcButton
+          size="small"
+          type="primary"
+          :disabled="!canPublish || isPublishing"
+          :loading="isPublishing"
+          @click="handlePublish"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncUploadCloud" />
+          </template>
+          Publish
+        </NcButton>
+        <template #title> Please test all nodes before publishing </template>
       </NcTooltip>
     </div>
   </div>

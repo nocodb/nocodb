@@ -1,6 +1,11 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { HookHandlerService as HookHandlerServiceCE } from 'src/services/hook-handler.service';
-import { type HookType, ViewTypes, WebhookEvents } from 'nocodb-sdk';
+import {
+  type HookType,
+  PlanLimitTypes,
+  ViewTypes,
+  WebhookEvents,
+} from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import type { WorkflowNodeRunContext } from '@noco-local-integrations/core';
 // @ts-ignore importing directly will cause circular dependency error
@@ -16,6 +21,7 @@ import { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { MailService } from '~/services/mail/mail.service';
 import { DataV3Service } from '~/services/v3/data-v3.service';
+import { checkLimit } from '~/helpers/paymentHelpers';
 
 export { HANDLE_WEBHOOK } from 'src/services/hook-handler.service';
 
@@ -83,6 +89,13 @@ export class HookHandlerService extends HookHandlerServiceCE {
 
     // Call parent to handle webhooks
     await super.handleHooks(context, param);
+
+    await checkLimit({
+      workspaceId: context.workspace_id,
+      type: PlanLimitTypes.LIMIT_AUTOMATION_RUN,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} automations for your plan.`,
+    });
 
     // Trigger workflows for record events
     await this.triggerWorkflows(context, param);

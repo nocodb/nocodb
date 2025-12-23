@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   DependencyTableType,
@@ -29,9 +29,12 @@ import NocoSocket from '~/socket/NocoSocket';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
+import { throttleWithLast } from '~/utils/functionUtils';
 
 @Injectable()
 export class WorkflowsService implements OnModuleInit {
+  private readonly logger = new Logger(WorkflowsService.name);
+
   constructor(
     protected readonly appHooksService: AppHooksService,
     @Inject('WorkflowExecutionService')
@@ -298,23 +301,107 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).workflowNotFound(workflowId);
     }
 
-    // Execute the workflow
-    const executionState = await this.workflowExecutionService.executeWorkflow(
-      context,
-      workflow,
-      payload?.triggerData,
-      payload?.triggerNodeTitle,
-    );
+    let executionRecord: WorkflowExecution | null = null;
 
-    // Emit event
-    this.appHooksService.emit(AppEvents.WORKFLOW_EXECUTE, {
-      workflow,
-      context,
-      req,
-      user: req.user,
-    });
+    try {
+      executionRecord = await WorkflowExecution.insert(context, workflowId, {
+        workflow_data: {
+          id: workflow.id,
+          title: workflow.title,
+          nodes: workflow.nodes,
+          edges: workflow.edges,
+        },
+        finished: false,
+        started_at: new Date().toISOString(),
+        status: 'running',
+      });
 
-    return executionState;
+      this.broadcastExecutionEvent(
+        context,
+        workflowId,
+        executionRecord,
+        'create',
+      );
+
+      const executionState =
+        await this.workflowExecutionService.executeWorkflow(
+          context,
+          workflow,
+          payload?.triggerData,
+          payload?.triggerNodeTitle,
+          throttleWithLast(async (state) => {
+            await WorkflowExecution.update(context, executionRecord.id, {
+              execution_data: state,
+            });
+
+            const updatedExecution = await WorkflowExecution.get(
+              context,
+              executionRecord.id,
+            );
+            this.broadcastExecutionEvent(
+              context,
+              workflowId,
+              updatedExecution,
+              'update',
+            );
+          }, 1000),
+        );
+
+      const updatedExecution = await WorkflowExecution.update(
+        context,
+        executionRecord.id,
+        {
+          execution_data: executionState,
+          finished: true,
+          finished_at: new Date().toISOString(),
+          status: executionState.status,
+        },
+      );
+
+      this.broadcastExecutionEvent(
+        context,
+        workflowId,
+        updatedExecution,
+        'update',
+      );
+
+      this.appHooksService.emit(AppEvents.WORKFLOW_EXECUTE, {
+        workflow,
+        context,
+        req,
+        user: req.user,
+      });
+
+      return executionState;
+    } catch (error) {
+      this.logger.error(`Failed to execute workflow ${workflowId}:`, error);
+
+      if (executionRecord) {
+        try {
+          const updatedExecution = await WorkflowExecution.update(
+            context,
+            executionRecord.id,
+            {
+              finished: true,
+              finished_at: new Date().toISOString(),
+              status: 'error',
+              execution_data: null,
+            },
+          );
+
+          this.broadcastExecutionEvent(
+            context,
+            workflowId,
+            updatedExecution,
+            'update',
+          );
+        } catch (updateError) {
+          this.logger.error(`Failed to update execution log:`, updateError);
+        }
+      }
+
+      throw error;
+    }
   }
 
   async integrationFetchOptions(
@@ -408,8 +495,13 @@ export class WorkflowsService implements OnModuleInit {
     const failed = [];
 
     for (const node of draftNodes) {
+      // Skip non-workflow nodes (trigger, plus, and note nodes)
       if (
-        [GeneralNodeID.TRIGGER, GeneralNodeID.PLUS].includes(node.type as any)
+        [
+          GeneralNodeID.TRIGGER,
+          GeneralNodeID.PLUS,
+          GeneralNodeID.NOTE,
+        ].includes(node.type as any)
       ) {
         continue;
       }
@@ -761,5 +853,23 @@ export class WorkflowsService implements OnModuleInit {
         );
       }
     }
+  }
+
+  private broadcastExecutionEvent(
+    context: NcContext,
+    workflowId: string,
+    execution: WorkflowExecution,
+    action: 'create' | 'update' | 'delete',
+  ) {
+    NocoSocket.broadcastEvent(context, {
+      event: EventType.WORKFLOW_EXECUTION_EVENT,
+      payload: {
+        id: execution.id,
+        workflowId,
+        action,
+        payload: execution,
+      },
+      scopes: [workflowId],
+    });
   }
 }

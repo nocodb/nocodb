@@ -285,7 +285,7 @@ export const FreePlan = Plan.prepare({
     [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]: 1,
     [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]: 1,
     [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: true,
-    [PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE]: 2,
+    [PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE]: 1,
     ...(process.env.NODE_ENV === 'test'
       ? {
           [PlanFeatureTypes.FEATURE_SSO]: true,

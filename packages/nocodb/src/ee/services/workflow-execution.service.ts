@@ -339,6 +339,13 @@ export class WorkflowExecutionService {
         return result;
       }
 
+      if (node.type === GeneralNodeID.NOTE) {
+        result.status = 'success';
+        result.output = {};
+        result.endTime = Date.now();
+        return result;
+      }
+
       const nodeWrapper =
         _nodeWrapper ||
         this.getNodeWrapper(context, node.type, node.data?.config || {});
@@ -436,6 +443,7 @@ export class WorkflowExecutionService {
     workflow: WorkflowType,
     triggerData?: any,
     triggerNodeTitle?: string,
+    onNodeExecuted?: (state: WorkflowExecutionState) => Promise<void>,
   ): Promise<WorkflowExecutionState> {
     const executionId = `exec-${Date.now()}-${Math.random()
       .toString(36)
@@ -638,6 +646,14 @@ export class WorkflowExecutionService {
         } else {
           // Not in a loop OR this is the loop node itself - store in main nodeResults
           executionState.nodeResults.push(result);
+        }
+
+        if (onNodeExecuted) {
+          try {
+            await onNodeExecuted(executionState);
+          } catch (error) {
+            this.logger.error('Progress callback failed:', error);
+          }
         }
 
         if (result.status === 'error') {

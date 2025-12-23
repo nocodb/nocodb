@@ -100,6 +100,19 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
       });
     }
 
+    const isDynamic = config.to.includes('$(');
+
+    if (!isDynamic) {
+      const isValidEmail = NocoSDK.validateEmail(config.to);
+
+      if (!isValidEmail) {
+        errors.push({
+          path: 'config.to',
+          message: 'Please provide a valid email address',
+        });
+      }
+    }
+
     if (!config.subject || config.subject.trim() === '') {
       errors.push({
         path: 'config.subject',
@@ -112,6 +125,25 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
         path: 'config.body',
         message: 'Body is required',
       });
+    }
+
+    const toEntries = config.to
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+
+    for (const entry of toEntries) {
+      const isDynamicEntry = /\$\([^)]*\)/.test(entry);
+      if (!isDynamicEntry) {
+        const isValidEmail = NocoSDK.validateEmail(entry);
+        if (!isValidEmail) {
+          errors.push({
+            path: 'config.to',
+            message: 'Please provide a valid email address',
+          });
+          break;
+        }
+      }
     }
 
     return { valid: errors.length === 0, errors };

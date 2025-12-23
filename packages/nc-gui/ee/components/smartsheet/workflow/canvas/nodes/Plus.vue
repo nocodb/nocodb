@@ -9,52 +9,22 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const { getNodeMetaById, updateNode, addPlusNode, triggerLayout, edges, selectedNodeId } = useWorkflowOrThrow()
+const { updateNode, selectedNodeId } = useWorkflowOrThrow()
 
 const selectNodeType = async (option: WorkflowNodeDefinition) => {
-  updateNode(props.id, {
+  await updateNode(props.id, {
     type: option.id,
     data: {
       ...props.data,
     },
   })
-  // Check if the selected node type has multiple outputs (like if/else)
-  const selectedNodeMeta = getNodeMetaById(option.id)
 
   $e('a:workflow:node:add', {
     node_type: option.id,
     node_category: option.category,
   })
 
-  // Check if this node already has connections
-  const hasOutputs = edges.value.some((e) => e.source === props.id)
-
-  if (!hasOutputs) {
-    // If it's a branch node (multiple outputs), add multiple plus nodes
-    if (selectedNodeMeta?.output && selectedNodeMeta.output > 1) {
-      // Get port labels from node definition and sort by order
-      const ports = (selectedNodeMeta.ports?.filter((p: any) => p.direction === 'output') || []).sort(
-        (a: any, b: any) => (a.order || 0) - (b.order || 0),
-      )
-
-      // Add plus nodes for each output
-      for (let i = 0; i < selectedNodeMeta.output; i++) {
-        const port = ports[i]
-        addPlusNode(props.id, port?.label, port?.id)
-      }
-    } else {
-      // Regular node, add single plus node to maintain linear flow
-      addPlusNode(props.id)
-    }
-
-    // Wait for Vue Flow and layout to process
-    await nextTick()
-    setTimeout(() => {
-      triggerLayout()
-    }, 50)
-
-    selectedNodeId.value = props.id
-  }
+  selectedNodeId.value = props.id
 }
 </script>
 

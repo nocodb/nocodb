@@ -65,28 +65,34 @@ const getStatusIcon = (status: string) => {
 
 <template>
   <div ref="scrollContainer" class="log-container">
-    <template v-for="execution of executions" :key="execution.id">
-      <div
-        class="cursor-pointer flex items-center hover:bg-nc-bg-gray-extralight py-2 px-3"
-        :class="{
-          '!bg-nc-bg-brand': activeItem === execution,
-        }"
-        @click="emit('update:activeItem', execution)"
-      >
+    <template v-if="executions.length === 0">
+      <div class="flex flex-col items-center justify-center h-full w-full">
+        <img src="~assets/img/placeholder/no-search-result-found.png" class="!w-[264px] flex-none" alt="No executions found" />
+        <div class="text-body text-nc-content-gray-muted">No executions found</div>
+      </div>
+    </template>
+    <template v-else>
+      <template v-for="execution of executions" :key="execution.id">
         <div
+          class="cursor-pointer flex items-center hover:bg-nc-bg-gray-extralight py-2 px-3"
           :class="{
-            'bg-nc-green-700 dark:bg-nc-green-200': execution.status === 'completed',
-            'bg-nc-red-500 dark:bg-nc-red-500': execution.status === 'error',
-            'bg-nc-brand-500 dark:bg-nc-brand-500 animate-spin': execution.status === 'running',
-            'bg-nc-gray-400 dark:bg-nc-gray-500': execution.status === 'skipped',
+            '!bg-nc-bg-brand': activeItem === execution,
           }"
-          class="w-5 h-5 rounded-full flex items-center justify-center flex-none"
+          @click="emit('update:activeItem', execution)"
         >
-          <GeneralIcon :icon="getStatusIcon(execution.status)" class="text-base-white !w-3 !h-3" />
-        </div>
+          <div
+            :class="{
+              'bg-nc-green-700 dark:bg-nc-green-200': execution.status === 'completed',
+              'bg-nc-red-500 dark:bg-nc-red-500': execution.status === 'error',
+              'bg-nc-brand-500 dark:bg-nc-brand-500 animate-spin': execution.status === 'running',
+              'bg-nc-gray-400 dark:bg-nc-gray-500': execution.status === 'skipped',
+            }"
+            class="w-5 h-5 rounded-full flex items-center justify-center flex-none"
+          >
+            <GeneralIcon :icon="getStatusIcon(execution.status)" class="text-base-white !w-3 !h-3" />
+          </div>
 
-        <div class="ml-2 flex flex-1 min-w-0">
-          <div class="font-semibold text-sm truncate">
+          <div class="font-caption ml-2 truncate">
             {{ hookLogFormatter(execution.started_at) }}
           </div>
           <div class="flex-1" />
@@ -95,7 +101,7 @@ const getStatusIcon = (status: string) => {
             {{ getRelativeTime(execution.started_at) }}
           </div>
         </div>
-      </div>
+      </template>
     </template>
   </div>
 </template>

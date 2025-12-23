@@ -2,6 +2,12 @@ import type { IWorkflowExecution, WorkflowGeneralNode, WorkflowType } from 'noco
 import { GENERAL_DEFAULT_NODES, GeneralNodeID, INIT_WORKFLOW_NODES } from 'nocodb-sdk'
 import type { Edge, Node } from '@vue-flow/core'
 import rfdc from 'rfdc'
+import {
+  cleanupPortsOnTypeChange,
+  ensurePortsConnected,
+  filterOutPlusNodes,
+  findParentNodesNeedingPlusNodes,
+} from '~/utils/workflowGraphUtils'
 
 const clone = rfdc()
 
@@ -38,9 +44,16 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     return [...GENERAL_DEFAULT_NODES, ...activeBaseNodeSchemas.value.map(transformNode)]
   })
 
-  const selectedNode = computed<null | WorkflowGeneralNode>(() => {
+  const selectedNode = computed<WorkflowGeneralNode | null>((): WorkflowGeneralNode | null => {
     if (!selectedNodeId.value) return null
-    return nodes.value.find((n) => n.id === selectedNodeId.value) as WorkflowGeneralNode
+
+    const node = nodes.value.find((n) => n.id === selectedNodeId.value)
+
+    if (node && node.type) {
+      return node as WorkflowGeneralNode
+    }
+
+    return null
   })
 
   const getNodeMetaById = (id?: string): UIWorkflowNodeDefinition | null => {
@@ -103,7 +116,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     layoutCallback?.()
   }
 
-  const addPlusNode = async (sourceNodeId: string, edgeLabel?: string, sourcePortId?: string) => {
+  const addPlusNode = async (sourceNodeId: string, edgeLabel?: string, sourcePortId?: string, skipLayout = false) => {
     const plusNode: Node = {
       id: generateUniqueNodeId(nodes.value),
       type: GeneralNodeID.PLUS,
@@ -137,9 +150,16 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
     debouncedWorkflowUpdate()
 
-    await triggerLayout()
+    if (!skipLayout) {
+      await triggerLayout()
+    }
 
     return plusNode.id
+  }
+
+  const addNode = async (node: Node) => {
+    nodes.value = [...nodes.value, node]
+    debouncedWorkflowUpdate()
   }
 
   const updateNode = async (nodeId: string, updatedData: Partial<Node>) => {
@@ -149,32 +169,105 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     const existingNode = nodes.value[nodeIndex]
     if (!existingNode) return
 
-    if (updatedData.type && updatedData.type !== existingNode.type && updatedData.type !== GeneralNodeID.PLUS) {
-      const nodeMeta = getNodeMetaById(updatedData.type)
-      if (!nodeMeta) return
-      const uniqueTitle = generateUniqueNodeTitle(nodeMeta, nodes.value)
-      updatedData.data = {
-        ...updatedData.data,
-        title: uniqueTitle,
+    // For note nodes, just update the data and skip workflow-specific logic
+    if (existingNode.type === GeneralNodeID.NOTE) {
+      const updatedNodes = [...nodes.value]
+      const currentNodeIndex = updatedNodes.findIndex((n) => n.id === nodeId)
+      if (currentNodeIndex !== -1 && updatedNodes[currentNodeIndex]) {
+        updatedNodes[currentNodeIndex] = {
+          ...updatedNodes[currentNodeIndex],
+          ...updatedData,
+        }
+      }
+      nodes.value = updatedNodes
+      debouncedWorkflowUpdate()
+      return
+    }
+
+    const oldTitle = existingNode.data?.title
+    const newTitle = updatedData.data?.title
+    const isTitleChanged = newTitle && oldTitle && newTitle !== oldTitle
+
+    const isTypeChanged = updatedData.type && updatedData.type !== existingNode.type && updatedData.type !== GeneralNodeID.PLUS
+
+    const updatedNodes = [...nodes.value]
+    const currentNodeIndex = updatedNodes.findIndex((n) => n.id === nodeId)
+    if (currentNodeIndex !== -1 && updatedNodes[currentNodeIndex]) {
+      updatedNodes[currentNodeIndex] = {
+        ...updatedNodes[currentNodeIndex],
+        ...updatedData,
       }
     }
 
-    const updatedNodes = [...nodes.value]
-    updatedNodes[nodeIndex] = {
-      ...existingNode,
-      ...updatedData,
+    if (isTitleChanged) {
+      const childNodeIds = findAllChildNodes(nodeId, edges.value)
+
+      for (const childNodeId of childNodeIds) {
+        const childNodeIndex = updatedNodes.findIndex((n) => n.id === childNodeId)
+        if (childNodeIndex !== -1) {
+          const childNode = updatedNodes[childNodeIndex]
+          if (childNode?.data) {
+            const updatedChildData = updateVariableReferencesInObject(childNode.data, oldTitle, newTitle)
+
+            updatedNodes[childNodeIndex] = {
+              ...childNode,
+              data: updatedChildData,
+            }
+          }
+        }
+      }
     }
 
     nodes.value = updatedNodes
 
+    if (isTypeChanged) {
+      const nodeMeta = getNodeMetaById(updatedData.type)
+      if (!nodeMeta) return
+      const uniqueTitle = generateUniqueNodeTitle(nodeMeta, nodes.value)
+
+      // Update the node with unique title
+      const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId)
+      if (nodeIndex !== -1 && nodes.value[nodeIndex]) {
+        nodes.value[nodeIndex] = {
+          ...nodes.value[nodeIndex],
+          data: {
+            ...nodes.value[nodeIndex].data,
+            title: uniqueTitle,
+          },
+        }
+      }
+
+      // Clear all testResult of sub nodes if type is changed
+      clearChildNodesTestResults(nodeId)
+
+      const oldNodeMeta = getNodeMetaById(existingNode.type)
+      const cleanupResult = cleanupPortsOnTypeChange(nodeId, oldNodeMeta, nodeMeta, nodes.value, edges.value, findAllChildNodes)
+
+      nodes.value = cleanupResult.nodes
+      edges.value = cleanupResult.edges
+    }
+
     debouncedWorkflowUpdate()
 
+    if (isTypeChanged) {
+      const nodeMeta = getNodeMetaById(updatedData.type)
+      await ensurePortsConnected(nodeId, nodeMeta, edges.value, addPlusNode, false)
+    }
+
+    // Trigger layout once after all changes are complete
     await triggerLayout()
   }
 
   const deleteNode = async (nodeId: string) => {
     const nodeToDelete = nodes.value.find((n) => n.id === nodeId)
     if (!nodeToDelete) return
+
+    // For note nodes, just remove from array and skip workflow-specific logic
+    if (nodeToDelete.type === GeneralNodeID.NOTE) {
+      nodes.value = nodes.value.filter((n) => n.id !== nodeId)
+      debouncedWorkflowUpdate()
+      return
+    }
 
     const nodesToDelete = new Set<string>()
 
@@ -184,16 +277,11 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
     let firstParentNode: Node | null = null
 
+    clearChildNodesTestResults(nodeId)
+
     if (nodeTypeMeta && nodeTypeMeta.output && nodeTypeMeta.output > 1) {
-      const findChildNodes = (parentId: string) => {
-        edges.value.forEach((edge) => {
-          if (edge.source === parentId) {
-            nodesToDelete.add(edge.target)
-            findChildNodes(edge.target)
-          }
-        })
-      }
-      findChildNodes(nodeId)
+      const childNodeIds = findAllChildNodes(nodeId, edges.value)
+      childNodeIds.forEach((id) => nodesToDelete.add(id))
 
       const findFirstParent = (childId: string): Node | null => {
         for (const edge of edges.value) {
@@ -246,9 +334,15 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       ...bridgingEdges,
     ]
 
-    debouncedWorkflowUpdate()
+    const parentNodesNeedingPlusNodes = findParentNodesNeedingPlusNodes(
+      nodesToDelete,
+      incomingEdges,
+      outgoingEdges,
+      nodes.value,
+      getNodeMetaById,
+    )
 
-    await triggerLayout()
+    debouncedWorkflowUpdate()
 
     if (nodes.value?.length === 1 && nodes.value[0]?.type === GeneralNodeID.PLUS) {
       nodes.value = INIT_WORKFLOW_NODES
@@ -256,14 +350,21 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       firstParentNode = null
     }
 
-    await nextTick(() => {
-      if (firstParentNode) {
-        addPlusNode(firstParentNode.id)
+    await nextTick()
+    if (firstParentNode) {
+      await addPlusNode(firstParentNode.id, undefined, undefined, true)
+    }
+
+    for (const [parentNodeId, emptyPorts] of parentNodesNeedingPlusNodes) {
+      for (const port of emptyPorts) {
+        await addPlusNode(parentNodeId, port.label, port.id, true)
       }
-    })
+    }
+
+    await triggerLayout()
   }
 
-  const clearChildNodesTestResults = async (nodeId: string) => {
+  function clearChildNodesTestResults(nodeId: string) {
     const childNodeIds = findAllChildNodes(nodeId, edges.value)
     if (childNodeIds.size === 0) return
 
@@ -301,6 +402,24 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     }
   }
 
+  const updateNodeTestResult = (nodeId: string, testResult: any) => {
+    const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId)
+    if (nodeIndex !== -1) {
+      const updatedNodes = [...nodes.value]
+      if (updatedNodes[nodeIndex]?.data) {
+        updatedNodes[nodeIndex] = {
+          ...updatedNodes[nodeIndex],
+          data: {
+            ...updatedNodes[nodeIndex].data,
+            testResult,
+          },
+        }
+      }
+      nodes.value = updatedNodes
+      debouncedWorkflowUpdate()
+    }
+  }
+
   const testExecuteNode = async (nodeId: string, testTriggerData?: any) => {
     if (!activeWorkspaceId.value || !activeProjectId.value || !workflow.value) return
 
@@ -318,47 +437,13 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
         },
       )
 
-      // Store test result in the node's data
-      const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId)
-      if (nodeIndex !== -1) {
-        const updatedNodes = [...nodes.value]
-        if (updatedNodes && updatedNodes[nodeIndex] && updatedNodes[nodeIndex].data) {
-          updatedNodes[nodeIndex] = {
-            ...updatedNodes[nodeIndex],
-            data: {
-              ...updatedNodes[nodeIndex].data,
-              testResult: result,
-            },
-          }
-        }
-        nodes.value = updatedNodes
-
-        // Save to backend
-        debouncedWorkflowUpdate()
-      }
+      updateNodeTestResult(nodeId, result)
       return result
     } catch (e: any) {
-      // Clear the Local test Result
-      const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId)
-      if (nodeIndex !== -1) {
-        const updatedNodes = [...nodes.value]
-        if (updatedNodes && updatedNodes[nodeIndex] && updatedNodes[nodeIndex].data) {
-          updatedNodes[nodeIndex] = {
-            ...updatedNodes[nodeIndex],
-            data: {
-              ...updatedNodes[nodeIndex].data,
-              testResult: {
-                status: 'error',
-                error: await extractSdkResponseErrorMsgv2(e),
-              },
-            },
-          }
-        }
-        nodes.value = updatedNodes
-
-        // Save to backend
-        debouncedWorkflowUpdate()
-      }
+      updateNodeTestResult(nodeId, {
+        status: 'error',
+        error: await extractSdkResponseErrorMsgv2(e),
+      })
       console.error('[Workflow] Test execution error:', e)
       throw e
     }
@@ -367,19 +452,9 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
   watch(viewingExecution, async (execution) => {
     if (execution) {
       if (execution.workflow_data) {
-        nodes.value = (execution.workflow_data.nodes || []).filter(
-          (node: Node) => !Object.values(GeneralNodeID).includes(node.type as any),
-        ) as Array<Node>
-
-        const removedNodeIds = new Set(
-          (execution.workflow_data.nodes || [])
-            .filter((node: Node) => Object.values(GeneralNodeID).includes(node.type as any))
-            .map((node: Node) => node.id),
-        )
-
-        edges.value = (execution.workflow_data.edges || []).filter(
-          (edge: Edge) => !removedNodeIds.has(edge.source) && !removedNodeIds.has(edge.target),
-        ) as Array<Edge>
+        const filtered = filterOutPlusNodes(execution.workflow_data.nodes || [], execution.workflow_data.edges || [])
+        nodes.value = filtered.nodes as Array<Node>
+        edges.value = filtered.edges as Array<Edge>
         await triggerLayout()
       }
     } else {
@@ -387,19 +462,9 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       const sourceEdges = workflow.value?.draft?.edges || workflow.value?.edges || []
 
       if (activeTab.value === 'logs') {
-        nodes.value = (sourceNodes as Array<Node>).filter(
-          (node: Node) => !Object.values(GeneralNodeID).includes(node.type as any),
-        )
-
-        const removedNodeIds = new Set(
-          (sourceNodes as Array<Node>)
-            .filter((node: Node) => Object.values(GeneralNodeID).includes(node.type as any))
-            .map((node: Node) => node.id),
-        )
-
-        edges.value = (sourceEdges as Array<Edge>).filter(
-          (edge: Edge) => !removedNodeIds.has(edge.source) && !removedNodeIds.has(edge.target),
-        )
+        const filtered = filterOutPlusNodes(sourceNodes as Array<Node>, sourceEdges as Array<Edge>)
+        nodes.value = filtered.nodes
+        edges.value = filtered.edges
       } else {
         nodes.value = sourceNodes as Array<Node>
         edges.value = sourceEdges as Array<Edge>
@@ -419,19 +484,9 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       const sourceEdges = workflow.value?.draft?.edges || workflow.value?.edges || []
 
       if (tab === 'logs') {
-        nodes.value = (sourceNodes as Array<Node>).filter(
-          (node: Node) => !Object.values(GeneralNodeID).includes(node.type as any),
-        )
-
-        const removedNodeIds = new Set(
-          (sourceNodes as Array<Node>)
-            .filter((node: Node) => Object.values(GeneralNodeID).includes(node.type as any))
-            .map((node: Node) => node.id),
-        )
-
-        edges.value = (sourceEdges as Array<Edge>).filter(
-          (edge: Edge) => !removedNodeIds.has(edge.source) && !removedNodeIds.has(edge.target),
-        )
+        const filtered = filterOutPlusNodes(sourceNodes as Array<Node>, sourceEdges as Array<Edge>)
+        nodes.value = filtered.nodes
+        edges.value = filtered.edges
       } else {
         nodes.value = sourceNodes as Array<Node>
         edges.value = sourceEdges as Array<Edge>
@@ -449,19 +504,9 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       const updatedEdges = workflow.value?.draft?.edges || workflow.value?.edges || []
 
       if (activeTab.value === 'logs') {
-        nodes.value = (updatedNodes as Array<Node>).filter(
-          (node: Node) => !Object.values(GeneralNodeID).includes(node.type as any),
-        )
-
-        const removedNodeIds = new Set(
-          (updatedNodes as Array<Node>)
-            .filter((node: Node) => Object.values(GeneralNodeID).includes(node.type as any))
-            .map((node: Node) => node.id),
-        )
-
-        edges.value = (updatedEdges as Array<Edge>).filter(
-          (edge: Edge) => !removedNodeIds.has(edge.source) && !removedNodeIds.has(edge.target),
-        )
+        const filtered = filterOutPlusNodes(updatedNodes as Array<Node>, updatedEdges as Array<Edge>)
+        nodes.value = filtered.nodes
+        edges.value = filtered.edges
       } else {
         nodes.value = updatedNodes as Array<Node>
         edges.value = updatedEdges as Array<Edge>
@@ -490,6 +535,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     triggerLayout,
 
     // Node utilities
+    addNode,
     addPlusNode,
     updateNode,
     deleteNode,

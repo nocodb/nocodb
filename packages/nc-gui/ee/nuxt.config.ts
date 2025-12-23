@@ -286,6 +286,7 @@ export default defineNuxtConfig({
         '@vue-flow/background',
         '@vue-flow/core',
         '@vue-flow/minimap',
+        '@vue-flow/node-resizer',
         '@vuelidate/core',
         '@vuelidate/validators',
         '@vueuse/integrations/useQRCode',

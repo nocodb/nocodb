@@ -3,6 +3,7 @@ import { WorkflowNodeCategory, WorkflowNodeDefinition } from './node';
 export const GeneralNodeID = {
   TRIGGER: 'core.trigger',
   PLUS: 'core.plus',
+  NOTE: 'note',
 } as const;
 
 /**

@@ -69,6 +69,16 @@ function handleDescriptionBlur() {
     workflow_id: workflow.value?.id,
   })
 }
+
+watch(
+  () => workflow.value?.description,
+  () => {
+    if (isDescriptionInEditMode.value) return
+    if (workflow.value?.description !== localInput.description) {
+      localInput.description = workflow.value?.description || ''
+    }
+  },
+)
 </script>
 
 <template>

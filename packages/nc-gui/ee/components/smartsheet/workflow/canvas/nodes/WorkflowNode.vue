@@ -219,7 +219,7 @@ onClickOutside(
               <GeneralIcon :icon="selectedNode.icon" class="!w-5 !h-5 stroke-transparent" />
             </div>
             <div class="text-nc-content-gray truncate flex-1 w-full text-bodyBold">
-              {{ selectedNode.title }}
+              {{ props.data.title || selectedNode.title }}
             </div>
 
             <NcDropdown v-if="enableEditableMenu" v-model:visible="showSubMenuDropdown">

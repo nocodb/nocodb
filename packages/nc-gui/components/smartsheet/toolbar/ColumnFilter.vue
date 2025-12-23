@@ -166,6 +166,7 @@ const {
   loadBtLookupTypes,
   btLookupTypesMap,
   types,
+  isFilterUpdated,
 } = useViewFilters(
   activeView,
   parentId,
@@ -198,6 +199,10 @@ const wrapperDomRef = ref<HTMLElement>()
 const addFiltersRowDomRef = ref<HTMLElement>()
 
 const isMounted = ref(false)
+
+const isUpdatedAnyFilter = computed(() => {
+  return isFilterUpdated.value || localNestedFilters.value.some((filter) => filter?.isUpdatedAnyFilter)
+})
 
 const isReorderEnabled = computed(() => {
   return isEeUI && isViewFilter.value
@@ -743,6 +748,7 @@ defineExpose({
   parentId,
   addFilterGroup,
   addFilter,
+  isUpdatedAnyFilter,
 })
 </script>
 

@@ -11,6 +11,7 @@ const props = defineProps<{
   totalRows?: number
   depth?: number
   disablePagination?: boolean
+  selectedCellCount?: number
 }>()
 
 const emits = defineEmits(['update:paginationData'])
@@ -21,13 +22,13 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { changePage, customLabel } = props
 
-const showSizeChanger = toRef(props, 'showSizeChanger')
+const { showSizeChanger, disablePagination, selectedCellCount } = toRefs(props)
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
 
-const disablePagination = toRef(props, 'disablePagination')
-
 const { metas } = useMetas()
+
+const { t } = useI18n()
 
 const baseStore = useBase()
 
@@ -53,7 +54,13 @@ watch(
   },
 )
 
-const count = computed(() => vPaginationData.value?.totalRows ?? Infinity)
+const count = computed(() => {
+  if (selectedCellCount.value && selectedCellCount.value > 1) {
+    return selectedCellCount.value
+  }
+
+  return vPaginationData.value?.totalRows ?? Infinity
+})
 
 const page = computed({
   get: () => vPaginationData?.value?.page ?? 1,
@@ -109,6 +116,26 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
   }
   return 0
 }
+
+const getCountWithLabel = (defaultCount: number) => {
+  let labelCount = defaultCount
+
+  if (selectedCellCount.value && selectedCellCount.value > 1) {
+    labelCount = selectedCellCount.value
+  }
+
+  return {
+    count: labelCount,
+    label:
+      selectedCellCount.value && selectedCellCount.value > 1
+        ? t('labels.cellsSelected')
+        : customLabel
+        ? customLabel
+        : labelCount !== 1
+        ? t('objects.records')
+        : t('objects.record'),
+  }
+}
 </script>
 
 <template>
@@ -141,28 +168,28 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
                 <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
               </div>
               <NcTooltip v-else class="flex sticky items-center h-full">
+                <template #title> {{ getCountWithLabel(count).count }} {{ getCountWithLabel(count).label }} </template>
+                <span
+                  data-testid="grid-pagination"
+                  class="text-nc-content-gray-muted text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
+                >
+                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(getCountWithLabel(count).count) }}
+                  {{ getCountWithLabel(count).label }}
+                </span>
+              </NcTooltip>
+            </template>
+
+            <template v-else-if="+totalRows >= 0 || (selectedCellCount && selectedCellCount > 1)">
+              <NcTooltip class="flex sticky items-center h-full">
                 <template #title>
-                  {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
+                  {{ getCountWithLabel(totalRows ?? 0).count }} {{ getCountWithLabel(totalRows ?? 0).label }}
                 </template>
                 <span
                   data-testid="grid-pagination"
                   class="text-nc-content-gray-muted text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
                 >
-                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(count) }}
-                  {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
-                </span>
-              </NcTooltip>
-            </template>
-
-            <template v-else-if="+totalRows >= 0">
-              <NcTooltip class="flex sticky items-center h-full">
-                <template #title> {{ totalRows }} {{ totalRows !== 1 ? $t('objects.records') : $t('objects.record') }} </template>
-                <span
-                  data-testid="grid-pagination"
-                  class="text-nc-content-gray-muted text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
-                >
-                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(totalRows) }}
-                  {{ totalRows !== 1 ? $t('objects.records') : $t('objects.record') }}
+                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(getCountWithLabel(totalRows ?? 0).count) }}
+                  {{ getCountWithLabel(totalRows ?? 0).label }}
                 </span>
               </NcTooltip>
             </template>

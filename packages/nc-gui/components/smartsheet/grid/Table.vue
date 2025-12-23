@@ -830,6 +830,8 @@ const {
   false,
 )
 
+const selectedCellCount = computed(() => selectedRange.cellCount)
+
 function scrollToRow(row?: number) {
   clearSelectedRange()
   makeActive(row ?? dataRef.value.length - 1, 0)
@@ -1811,6 +1813,7 @@ provide(CellUrlDisableOverlayInj, disableUrlOverlay)
 defineExpose({
   scrollToRow,
   openColumnCreate,
+  selectedCellCount,
 })
 
 // when expand is clicked the drawer should open
@@ -2827,6 +2830,7 @@ onKeyStroke('ArrowDown', onDown)
         :change-page="changePage"
         :show-size-changer="!isGroupBy"
         :scroll-left="scrollLeft"
+        :selected-cell-count="selectedRange.cellCount"
       />
     </div>
     <div v-if="headerOnly !== true && paginationDataRef && !isGroupBy" class="absolute bottom-12 left-2" @click.stop>

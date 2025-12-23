@@ -3253,6 +3253,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
       :total-rows="Math.max(props.totalRows, props.actualTotalRows)"
       :scroll-left="scrollLeft"
       :disable-pagination="true"
+      :selected-cell-count="selectedRange.cellCount"
     />
   </div>
 </template>

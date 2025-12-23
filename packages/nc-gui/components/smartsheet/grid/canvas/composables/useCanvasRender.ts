@@ -2212,14 +2212,22 @@ export function useCanvasRender({
           ctx.restore()
         }
 
-        const count = isGroupBy.value ? totalGroups.value : Math.max(totalRows.value, actualTotalRows.value ?? 0)
-        const label = isGroupBy.value
-          ? count !== 1
-            ? t('objects.groups')
-            : t('objects.group')
-          : count !== 1
-          ? t('objects.records')
-          : t('objects.record')
+        const count =
+          selection.value.cellCount > 1
+            ? selection.value.cellCount
+            : isGroupBy.value
+            ? totalGroups.value
+            : Math.max(totalRows.value, actualTotalRows.value ?? 0)
+        const label =
+          selection.value.cellCount > 1
+            ? t('labels.cellsSelected', { n: selection.value.cellCount })
+            : isGroupBy.value
+            ? count !== 1
+              ? t('objects.groups')
+              : t('objects.group')
+            : count !== 1
+            ? t('objects.records')
+            : t('objects.record')
 
         renderSingleLineText(ctx, {
           text: `${Intl.NumberFormat('en', { notation: 'compact' }).format(count)} ${label}`,

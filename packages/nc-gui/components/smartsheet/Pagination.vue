@@ -14,6 +14,7 @@ interface Props {
   alignLeft?: boolean
   showSizeChanger?: boolean
   isAddNewRecordGridMode?: boolean
+  selectedCellCount?: number
 }
 
 const props = defineProps<Props>()
@@ -158,7 +159,16 @@ const tempPageVal = ref(page.value)
           class="caption nc-grid-row-count mr-2.5 text-nc-content-gray-muted text-xs"
           data-testid="grid-pagination"
         >
-          {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
+          {{ selectedCellCount && selectedCellCount > 1 ? selectedCellCount : count }}
+          {{
+            selectedCellCount && selectedCellCount > 1
+              ? $t('labels.cellsSelected')
+              : customLabel
+              ? customLabel
+              : count !== 1
+              ? $t('objects.records')
+              : $t('objects.record')
+          }}
         </span>
       </div>
     </div>

@@ -59,6 +59,10 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
 
+const tableRef = ref<typeof Table>()
+
+const selectedCellCount = computed(() => tableRef.value?.selectedCellCount ?? 0)
+
 const groupByKeyId = computed(() => routeQuery.value.group)
 
 const expandedFormOnRowIdDlg = computed({
@@ -330,12 +334,17 @@ onBeforeUnmount(async () => {
 })
 
 reloadViewDataHook?.on(reloadTableData)
+
+defineExpose({
+  selectedCellCount,
+})
 </script>
 
 <template>
   <!-- eslint-disable vue/no-restricted-v-bind -->
   <Table
     v-if="vGroup.rows"
+    ref="tableRef"
     v-model:selected-all-records="selectedAllRecords"
     class="nc-group-table"
     :data="vGroup.rows"

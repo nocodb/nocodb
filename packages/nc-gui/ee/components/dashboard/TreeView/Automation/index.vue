@@ -9,8 +9,7 @@ const scriptStore = useScriptStore()
 
 const { loadScripts } = scriptStore
 
-const { isMarketVisible, isDetailsVisible, detailsScriptId, activeScriptId, activeScript, scripts } =
-  storeToRefs(scriptStore)
+const { isMarketVisible, isDetailsVisible, detailsScriptId, activeScriptId, activeScript, scripts } = storeToRefs(scriptStore)
 
 const bases = useBases()
 

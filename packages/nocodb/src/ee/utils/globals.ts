@@ -78,7 +78,6 @@ export enum MetaTable {
   SNAPSHOT = 'nc_snapshots',
   DATA_REFLECTION = 'nc_data_reflection',
   CUSTOM_URLS = 'nc_custom_urls_v2',
-  SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'nc_sync_configs',
   SYNC_MAPPINGS = 'nc_sync_mappings',
   PLANS = 'nc_plans',

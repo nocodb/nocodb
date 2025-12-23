@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { MetaTable, MetaTableOldV2 } from '~/utils/globals'
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTableOldV2.WORKFLOWS, (table) => {

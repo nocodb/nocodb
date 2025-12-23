@@ -6,7 +6,7 @@ const { isUIAllowed } = useRoles()
 
 const { isViewsLoading, openedViewsTab } = storeToRefs(useViewsStore())
 
-const { activeAutomationId } = storeToRefs(useAutomationStore())
+const { activeScriptId } = storeToRefs(useScriptStore())
 
 const { activeDashboardId, isEditingDashboard } = storeToRefs(useDashboardStore())
 
@@ -45,7 +45,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
     class="nc-table-topbar py-2 border-b-1 border-nc-border-gray-medium flex gap-3 items-center justify-between overflow-hidden relative h-[var(--topbar-height)] max-h-[var(--topbar-height)] min-h-[var(--topbar-height)] md:(px-2) xs:(px-1)"
     style="z-index: 7"
   >
-    <template v-if="isViewsLoading && !activeAutomationId && !activeDashboardId && !activeWorkflowId">
+    <template v-if="isViewsLoading && !activeScriptId && !activeDashboardId && !activeWorkflowId">
       <a-skeleton-input :active="true" class="!w-44 !h-4 ml-2 !rounded overflow-hidden" />
     </template>
     <template v-else>
@@ -56,13 +56,13 @@ const topbarBreadcrumbItemWidth = computed(() => {
         }"
       >
         <GeneralOpenLeftSidebarBtn />
-        <LazySmartsheetToolbarViewInfo v-if="!isPublic && !activeAutomationId && !activeDashboardId && !activeWorkflowId" />
-        <LazySmartsheetTopbarAutomationInfo v-if="!isPublic && activeAutomationId" />
+        <LazySmartsheetToolbarViewInfo v-if="!isPublic && !activeScriptId && !activeDashboardId && !activeWorkflowId" />
+        <LazySmartsheetTopbarScriptInfo v-if="!isPublic && activeScriptId" />
         <LazySmartsheetTopbarDashboardInfo v-if="!isPublic && activeDashboardId" />
         <LazySmartsheetTopbarWorkflowInfo v-if="!isPublic && activeWorkflowId" />
       </div>
 
-      <div v-if="!isSharedBase && !isMobileMode && !activeAutomationId && !activeDashboardId && !activeWorkflowId">
+      <div v-if="!isSharedBase && !isMobileMode && !activeScriptId && !activeDashboardId && !activeWorkflowId">
         <SmartsheetTopbarSelectMode />
       </div>
       <div v-else-if="activeDashboardId || activeWorkflowId">
@@ -70,13 +70,13 @@ const topbarBreadcrumbItemWidth = computed(() => {
       </div>
 
       <div class="flex items-center justify-end gap-2 flex-1">
-        <GeneralApiLoader v-if="!isMobileMode && !activeAutomationId && !activeDashboardId" />
+        <GeneralApiLoader v-if="!isMobileMode && !activeScriptId && !activeDashboardId" />
 
         <NcButton
           v-if="
             (appInfo.isOnPrem || isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&
             !isSharedBase &&
-            !activeAutomationId &&
+            !activeScriptId &&
             !activeDashboardId &&
             !activeWorkflowId &&
             openedViewsTab === 'view' &&
@@ -108,7 +108,7 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <NcButton
           v-if="
             !isSharedBase &&
-            !activeAutomationId &&
+            !activeScriptId &&
             !activeDashboardId &&
             !activeWorkflowId &&
             openedViewsTab === 'view' &&
@@ -140,10 +140,10 @@ const topbarBreadcrumbItemWidth = computed(() => {
 
         <div v-if="!isSharedBase" class="flex gap-2 items-center empty:hidden">
           <LazySmartsheetTopbarDashboardState v-if="activeDashboardId && isUIAllowed('dashboardEdit')" />
-          <LazySmartsheetTopbarScriptAction v-if="activeAutomationId && appInfo.ee" />
+          <LazySmartsheetTopbarScriptAction v-if="activeScriptId && appInfo.ee" />
           <LazySmartsheetTopbarWorkflowAction v-if="activeWorkflowId && appInfo.ee" />
         </div>
-        <LazySmartsheetTopbarShareProject v-if="!activeAutomationId && !activeWorkflowId" />
+        <LazySmartsheetTopbarShareProject v-if="!activeScriptId && !activeWorkflowId" />
 
         <div v-if="isSharedBase">
           <LazyGeneralLanguage

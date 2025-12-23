@@ -15,13 +15,13 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const script = toRef(props, 'script')
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { updateAutomation } = automationStore
+const { updateScript } = scriptStore
 
-const { automations } = storeToRefs(automationStore)
+const { scripts } = storeToRefs(scriptStore)
 
-const scripts = computed(() => automations.value.get(script.value.base_id) || [])
+const scriptList = computed(() => scripts.value.get(script.value.base_id) || [])
 
 const { $e } = useNuxtApp()
 
@@ -45,7 +45,7 @@ const validators = computed(() => {
         validator: (_: any, value: any) => {
           // validate duplicate alias
           return new Promise((resolve, reject) => {
-            if ((scripts.value || []).some((t) => t.title === (value || ''))) {
+            if ((scriptList.value || []).some((t) => t.title === (value || ''))) {
               return reject(new Error('Duplicate script name'))
             }
             return resolve(true)
@@ -85,7 +85,7 @@ const renameScript = async (undo = false, disableTitleDiffCheck?: boolean | unde
 
   loading.value = true
   try {
-    await updateAutomation(script.value.base_id, script.value.id as string, {
+    await updateScript(script.value.base_id, script.value.id as string, {
       title: formState.title,
     })
 

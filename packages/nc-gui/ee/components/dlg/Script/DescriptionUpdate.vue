@@ -11,7 +11,7 @@ const { script, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'updated'])
 
-const { loadAutomations, updateAutomation } = useAutomationStore()
+const { loadScripts, updateScript } = useScriptStore()
 
 const { $e } = useNuxtApp()
 
@@ -70,7 +70,7 @@ const updateDescription = async (undo = false) => {
 
   loading.value = true
   try {
-    await updateAutomation(script.base_id, script.id as string, {
+    await updateScript(script.base_id, script.id as string, {
       description: formState.description,
     })
 
@@ -96,7 +96,7 @@ const updateDescription = async (undo = false) => {
       })
     }
 
-    await loadAutomations({ baseId: script.base_id, force: true })
+    await loadScripts({ baseId: script.base_id, force: true })
 
     $e('a:script:description:update')
 

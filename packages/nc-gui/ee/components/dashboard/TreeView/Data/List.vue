@@ -270,7 +270,7 @@ watchEffect(() => {
       class="nc-data-menu flex flex-col w-full !border-r-0 bg-nc-bg-gray-sidebar"
     >
       <template v-for="entity of allEntities" :key="entity.id">
-        <DashboardTreeViewDashboardNode
+        <DashboardTreeViewDataDashboardNode
           v-if="entity.type === ModelTypes.DASHBOARD"
           :data-id="entity.id"
           :data-order="entity.order"

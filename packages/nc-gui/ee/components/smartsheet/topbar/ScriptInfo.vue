@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { isMobileMode } = useGlobal()
 
-const { activeAutomation } = storeToRefs(useAutomationStore())
+const { activeScript } = storeToRefs(useScriptStore())
 
 const { base, isSharedBase } = storeToRefs(useBase())
 
@@ -42,19 +42,19 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
       <GeneralIcon icon="ncSlash1" class="nc-breadcrumb-divider" />
     </template>
     <template v-if="!isMobileMode">
-      <SmartsheetTopbarAutomationListDropdown v-if="activeAutomation">
+      <SmartsheetTopbarScriptListDropdown v-if="activeScript">
         <template #default="{ isOpen }">
           <div
             class="rounded-lg h-8 px-2 text-nc-content-gray-subtle font-weight-500 hover:(bg-nc-bg-gray-light text-nc-content-gray-emphasis) flex items-center gap-1 cursor-pointer"
             :class="{
               'max-w-full': isMobileMode,
-              'max-w-1/4': !isSharedBase && !isMobileMode && !activeAutomation,
+              'max-w-1/4': !isSharedBase && !isMobileMode && !activeScript,
             }"
           >
             <LazyGeneralEmojiPicker
               v-if="!isMobileMode"
-              :key="activeAutomation?.meta"
-              :emoji="activeAutomation?.meta?.icon"
+              :key="activeScript?.meta"
+              :emoji="activeScript?.meta?.icon"
               readonly
               size="xsmall"
               class="mr-1"
@@ -77,7 +77,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
               :disabled="isOpen"
             >
               <template #title>
-                {{ activeAutomation?.title }}
+                {{ activeScript?.title }}
               </template>
               <span
                 class="text-ellipsis"
@@ -87,7 +87,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
                   display: 'inline',
                 }"
               >
-                {{ activeAutomation?.title }}
+                {{ activeScript?.title }}
               </span>
             </NcTooltip>
             <GeneralIcon
@@ -97,7 +97,7 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
             />
           </div>
         </template>
-      </SmartsheetTopbarAutomationListDropdown>
+      </SmartsheetTopbarScriptListDropdown>
     </template>
   </div>
 </template>

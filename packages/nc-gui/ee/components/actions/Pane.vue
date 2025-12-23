@@ -97,7 +97,7 @@ watch(isPanelExpanded, (newValue) => {
                 </div>
               </div>
 
-              <SmartsheetAutomationScriptsPlayground
+              <SmartsheetScriptPlayground
                 v-if="execution.playground.length > 0"
                 class="mt-2"
                 :playground="execution.playground"

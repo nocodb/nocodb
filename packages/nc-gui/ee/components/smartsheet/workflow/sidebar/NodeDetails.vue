@@ -116,7 +116,7 @@ function handleTitleBlur() {
         >
           {{ nodeTitle }}
         </div>
-        <div v-else class="mb-2">
+        <div v-else>
           <a-input
             ref="titleInputRef"
             v-model:value="nodeTitle"

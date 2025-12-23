@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import Automation from '../Automation/index.vue'
 import Data from '../Data/index.vue'
-import Workflow from '../Workflow/index.vue'
 
 const router = useRouter()
 const route = router.currentRoute
@@ -12,10 +11,8 @@ const { isSharedBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 const workflowStore = useWorkflowStore()
 
-const { isWorkflowsEnabled } = storeToRefs(workflowStore)
-
 const { openNewWorkflowModal } = workflowStore
-const { openNewScriptModal } = useAutomationStore()
+const { openNewScriptModal } = useScriptStore()
 const { openNewDashboardModal } = useDashboardStore()
 
 const base = inject(ProjectInj)!
@@ -174,10 +171,7 @@ const hasTableCreatePermission = computed(() => {
     </div>
     <div class="flex-1 relative overflow-y-auto nc-scrollbar-thin">
       <Data :base-id="base.id" />
-      <!-- Scripts section -->
-      <Automation v-if="!isSharedBase && isUIAllowed('scriptList') && !isMobileMode" :base-id="base.id" />
-      <!-- Workflows section -->
-      <Workflow v-if="!isSharedBase && isUIAllowed('workflowList') && !isMobileMode && isWorkflowsEnabled" :base-id="base.id" />
+      <Automation v-if="!isSharedBase && !isMobileMode" :base-id="base.id" />
     </div>
 
     <slot name="footer"> </slot>

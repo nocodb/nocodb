@@ -12,9 +12,9 @@ const visible = useVModel(props, 'visible', emits)
 
 const script = toRef(props, 'script')
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { deleteAutomation } = automationStore
+const { deleteScript } = scriptStore
 
 const { $e } = useNuxtApp()
 
@@ -25,7 +25,7 @@ const onDelete = async () => {
 
   isLoading.value = true
   try {
-    await deleteAutomation(script.value.base_id, script.value.id as string)
+    await deleteScript(script.value.base_id, script.value.id as string)
 
     $e('a:script:delete')
 

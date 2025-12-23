@@ -4,32 +4,19 @@ import type { WritableComputedRef } from '@vue/reactivity'
 
 interface Props {
   workflow: WorkflowType
-  onValidate: (workflow: WorkflowType) => boolean | string
-}
-
-interface Emits {
-  (event: 'update:workflow', data: Record<string, any>): void
-
-  (event: 'selectIcon', icon: string): void
-
-  (event: 'changeWorkflow', workflow: Record<string, any>): void
-
-  (event: 'rename', workflow: WorkflowType, title: string | undefined): void
-
-  (event: 'delete', workflow: WorkflowType): void
-
-  (event: 'openModal', data: { type: WorkflowType }): void
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits<Emits>()
-
-const vModel = useVModel(props, 'workflow', emits) as WritableComputedRef<WorkflowType & { created_by?: string }>
+const vModel = useVModel(props, 'workflow') as WritableComputedRef<WorkflowType & { created_by?: string }>
 
 const { $e } = useNuxtApp()
 
-const { isMobileMode, user } = useGlobal()
+const { t } = useI18n()
+
+const { addUndo, defineModelScope } = useUndoRedo()
+
+const { isMobileMode, user, ncNavigateTo } = useGlobal()
 
 const { isSharedBase } = useBase()
 
@@ -39,13 +26,13 @@ const { isUIAllowed } = useRoles()
 
 const workflowStore = useWorkflowStore()
 
-const { duplicateWorkflow } = workflowStore
-
 const basesStore = useBases()
 
 const { activeProjectId } = storeToRefs(basesStore)
 
-const { activeWorkflowId } = storeToRefs(workflowStore)
+const { duplicateWorkflow: _duplicateWorkflow, updateWorkflow } = workflowStore
+
+const { activeWorkflowId, activeBaseWorkflows } = storeToRefs(workflowStore)
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -71,6 +58,7 @@ const _title = ref<string | undefined>()
 const showWorkflowNodeTooltip = ref(true)
 
 const idUserMap = computed(() => {
+  if (!base.value?.id) return {}
   return (basesUser.value.get(base.value?.id) || []).reduce((acc, user) => {
     acc[user.id] = user
     acc[user.email] = user
@@ -78,18 +66,27 @@ const idUserMap = computed(() => {
   }, {} as Record<string, any>)
 })
 
+const changeWorkflow = (workflow: WorkflowType) => {
+  ncNavigateTo({
+    workspaceId: workflow.fk_workspace_id,
+    baseId: workflow.base_id,
+    workflowId: workflow.id,
+    workflowTitle: workflow.title,
+  })
+}
+
 /** Debounce click handler, so we can potentially enable editing workflow name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
-  emits('changeWorkflow', vModel.value)
+  changeWorkflow(vModel.value)
 }, 250)
 
 const handleOnClick = () => {
   if (isEditing.value || isStopped.value) return
 
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+  const cmdOrCtrl = isMac() ? metaKey?.value : control?.value
 
   if (cmdOrCtrl) {
-    emits('changeWorkflow', vModel.value)
+    changeWorkflow(vModel.value)
   } else {
     onClick()
   }
@@ -102,23 +99,17 @@ const focusInput = () => {
   })
 }
 
-const isLoading = ref(false)
-
-const duplicateWorkflowAction = async (workflow: WorkflowType) => {
-  if (!activeProjectId.value) return
-
-  if (showWorkflowPlanLimitExceededModal()) {
-    isDropdownOpen.value = false
-    return
+/** validate workflow title */
+function validateWorkflowTitle(workflow: WorkflowType) {
+  if (!workflow.title?.trim()) {
+    return t('msg.error.workflowNameRequired')
   }
 
-  try {
-    isLoading.value = true
-    await duplicateWorkflow(activeProjectId.value, workflow.id)
-    isDropdownOpen.value = false
-  } finally {
-    isLoading.value = false
+  if (activeBaseWorkflows.value.some((s) => s.title === workflow.title && s.id !== workflow.id)) {
+    return t('msg.error.workflowNameDuplicate')
   }
+
+  return true
 }
 
 /** Enable editing workflow name on dbl click */
@@ -182,7 +173,41 @@ const onRenameMenuClick = () => {
   }
 }
 
-/** Rename an workflow */
+async function onRenameWorkflow(workflow: WorkflowType, originalTitle?: string, undo = false) {
+  if (!workflow?.id || !workflow?.base_id) return
+  try {
+    await updateWorkflow(workflow.base_id, workflow.id, {
+      title: workflow.title,
+      order: workflow.order,
+    })
+
+    if (!undo) {
+      addUndo({
+        redo: {
+          fn: (s: WorkflowType, title: string) => {
+            const tempTitle = s.title
+            s.title = title
+            onRenameWorkflow(s, tempTitle, true)
+          },
+          args: [workflow, workflow.title],
+        },
+        undo: {
+          fn: (s: WorkflowType, title: string) => {
+            const tempTitle = s.title
+            s.title = title
+            onRenameWorkflow(s, tempTitle, true)
+          },
+          args: [workflow, originalTitle],
+        },
+        scope: defineModelScope({ base_id: workflow.base_id }),
+      })
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+/** Rename a workflow */
 async function onRename() {
   isDropdownOpen.value = false
   if (!isEditing.value) return
@@ -191,7 +216,7 @@ async function onRename() {
     _title.value = _title.value.trim()
   }
 
-  const isValid = props.onValidate({ ...vModel.value, title: _title.value! })
+  const isValid = validateWorkflowTitle({ ...vModel.value, title: _title.value! })
 
   if (isValid !== true) {
     message.error(isValid)
@@ -209,7 +234,7 @@ async function onRename() {
 
   vModel.value.title = _title.value || ''
 
-  emits('rename', vModel.value, originalTitle)
+  await onRenameWorkflow(vModel.value, originalTitle)
 
   onStopEdit()
 }
@@ -217,7 +242,7 @@ async function onRename() {
 const openWorkflowDescriptionDialog = (workflow: WorkflowType) => {
   isDropdownOpen.value = false
 
-  _openWorkflowDescriptionDialog(workflow)
+  _openWorkflowDescriptionDialog?.(workflow)
 }
 
 /** Cancel renaming workflow */
@@ -238,18 +263,70 @@ function onStopEdit() {
   }, 250)
 }
 
-const isWorkflowDeleteDialogVisible = ref(false)
+const isLoading = ref(false)
+
+const duplicateWorkflow = async (workflow: WorkflowType) => {
+  if (!activeProjectId.value || !workflow.id) return
+
+  if (showWorkflowPlanLimitExceededModal()) {
+    isDropdownOpen.value = false
+    return
+  }
+
+  try {
+    isLoading.value = true
+    await _duplicateWorkflow(activeProjectId.value, workflow.id)
+    isDropdownOpen.value = false
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const updateWorkflowIcon = async (icon: string, workflow: WorkflowType) => {
+  if (!workflow?.id || !workflow?.base_id) return
+  try {
+    // modify the icon property in meta
+    workflow.meta = {
+      ...parseProp(workflow.meta),
+      icon,
+    }
+
+    await updateWorkflow(workflow.base_id, workflow.id, {
+      meta: workflow.meta,
+    })
+
+    $e('a:workflow:icon:sidebar', { icon })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 
 const deleteWorkflow = () => {
   isDropdownOpen.value = false
-  isWorkflowDeleteDialogVisible.value = true
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgWorkflowDelete'), {
+    'visible': isOpen,
+    'workflow': vModel.value,
+    'onUpdate:visible': closeDialog,
+    'onDeleted': () => {
+      closeDialog()
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 </script>
 
 <template>
-  <a-menu-item
+  <div
+    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :data-testid="`view-sidebar-workflow-${vModel.title}`"
-    class="nc-sidebar-node !rounded-md !px-0.75 !pl-2 !xs:(pl-2) !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >
@@ -259,6 +336,7 @@ const deleteWorkflow = () => {
       :tooltip-style="{ width: '240px', zIndex: '1049' }"
       placement="right"
       trigger="hover"
+      class="w-full"
       :mouse-enter-delay="0.5"
     >
       <template #title>
@@ -291,8 +369,6 @@ const deleteWorkflow = () => {
           class="flex min-w-6"
           @mouseenter="showWorkflowNodeTooltip = false"
           @mouseleave="showWorkflowNodeTooltip = true"
-          @click.stop
-          @dblclick.stop
         >
           <LazyGeneralEmojiPicker
             :key="props.workflow?.meta?.icon"
@@ -301,25 +377,14 @@ const deleteWorkflow = () => {
             :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
             class="nc-workflow-icon"
             size="small"
-            @emoji-selected="emits('selectIcon', $event)"
+            @emoji-selected="updateWorkflowIcon($event, vModel)"
           >
-            <template #default="{ isOpen }">
-              <NcTooltip
-                class="flex"
-                placement="topLeft"
-                hide-on-click
-                :disabled="isOpen || isMobileMode || !isUIAllowed('viewCreateOrEdit')"
-              >
-                <template #title>
-                  {{ $t('general.changeIcon') }}
-                </template>
-
-                <GeneralIcon
-                  :class="activeWorkflowId === vModel.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
-                  class="nc-workflow-icon w-4 text-nc-content-gray-subtle !text-[16px]"
-                  icon="ncAutomation"
-                />
-              </NcTooltip>
+            <template #default>
+              <GeneralIcon
+                :class="activeWorkflowId === vModel.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
+                class="nc-workflow-icon w-4 text-nc-content-gray-subtle !text-[16px]"
+                icon="ncAutomation"
+              />
             </template>
           </LazyGeneralEmojiPicker>
         </div>
@@ -407,7 +472,7 @@ const deleteWorkflow = () => {
                     v-e="['c:workflow:rename']"
                     :data-testid="`sidebar-workflow-rename-${workflow.title}`"
                     class="nc-workflow-rename"
-                    @click="onRenameMenuClick(workflow)"
+                    @click="onRenameMenuClick"
                   >
                     <GeneralIcon class="text-nc-content-gray-subtle" icon="rename" />
                     {{ $t('general.rename') }} {{ 'Workflow'.toLowerCase() }}
@@ -427,7 +492,7 @@ const deleteWorkflow = () => {
                     v-e="['c:workflow:duplicate']"
                     :data-testid="`sidebar-workflow-duplicate-${workflow.title}`"
                     class="nc-workflow-duplicate"
-                    @click="duplicateWorkflowAction(workflow)"
+                    @click="duplicateWorkflow(workflow)"
                   >
                     <GeneralLoader v-if="isLoading" />
                     <GeneralIcon v-else class="text-nc-content-gray-subtle" icon="duplicate" />
@@ -451,6 +516,5 @@ const deleteWorkflow = () => {
         </template>
       </div>
     </NcTooltip>
-    <DlgWorkflowDelete v-if="workflow.id" v-model:visible="isWorkflowDeleteDialogVisible" :workflow="workflow" />
-  </a-menu-item>
+  </div>
 </template>

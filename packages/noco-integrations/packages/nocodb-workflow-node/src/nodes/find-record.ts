@@ -88,6 +88,7 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
           {
             baseId: this.nocodb.context.base_id,
             roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+            user: this.nocodb.user,
           },
         );
 

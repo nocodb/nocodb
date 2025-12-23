@@ -9,6 +9,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const { showWorkflowPlanLimitExceededModal, updateStatLimit } = useEeConfig()
 
+  const { refreshCommandPalette } = useCommandPalette()
+
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
   const router = useRouter()
@@ -181,6 +183,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
         workflowTitle: created.title,
       })
 
+      await refreshCommandPalette()
+
       return created
     } catch (e) {
       console.error(e)
@@ -234,6 +238,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
         workflows.value.set(baseId, updatedWorkflows)
       }
 
+      await refreshCommandPalette()
+
       if (!options?.skipNetworkCall) {
         $e('a:workflow:update')
       }
@@ -261,6 +267,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
       )
 
       updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, -1)
+
+      await refreshCommandPalette()
 
       $e('a:workflow:delete')
 
@@ -327,6 +335,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
         workflowId: created.id,
         workflowTitle: created.title,
       })
+
+      await refreshCommandPalette()
 
       $e('a:workflow:duplicate')
 

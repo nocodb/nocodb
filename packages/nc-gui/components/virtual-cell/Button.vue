@@ -38,9 +38,9 @@ const { runScript, activeExecutions, fieldIDRowMapping } = useScriptExecutor()
 
 const { addScriptExecution } = useActionPane()
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { loadAutomation } = automationStore
+const { loadScript } = scriptStore
 
 const isLoading = ref(false)
 
@@ -206,7 +206,7 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      const script = await loadAutomation(colOptions.fk_script_id)
+      const script = await loadScript(colOptions.fk_script_id)
 
       if (!script) {
         throw new Error('Script not found')

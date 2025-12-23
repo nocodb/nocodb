@@ -99,7 +99,6 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.COL_BUTTON]: 'btn',
       [MetaTable.SNAPSHOT]: 'snap',
       [MetaTable.CUSTOM_URLS]: 'cu',
-      [MetaTable.SCRIPTS]: 'scr',
       [MetaTable.SYNC_CONFIGS]: 'sync',
       [MetaTable.PLANS]: 'pl',
       [MetaTable.SUBSCRIPTIONS]: 'sub',
@@ -109,10 +108,10 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.PERMISSION_SUBJECTS]: 'pers',
       [MetaTable.DASHBOARDS]: 'dash',
       [MetaTable.WIDGETS]: 'wgt',
-      [MetaTable.WORKFLOWS]: 'wf',
-      [MetaTable.WORKFLOW_EXECUTIONS]: 'wfex',
       [MetaTable.DEPENDENCY_TRACKER]: 'dt',
       [MetaTable.INSTALLATIONS]: 'inst',
+      [MetaTable.AUTOMATIONS]: 'aut',
+      [MetaTable.AUTOMATION_EXECUTIONS]: 'auex',
     };
 
     const prefix = prefixMap[target] || 'nc';

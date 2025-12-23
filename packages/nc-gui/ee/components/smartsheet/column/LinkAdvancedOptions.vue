@@ -425,7 +425,12 @@ onMounted(async () => {
               data-testid="custom-link-junction-table-id"
               @change="onModelIdChange(vModel.custom.junc_model_id, true)"
             >
-              <a-select-option v-for="table of junctionTables" :key="table.id" :value="table.id" :disabled="(table as any).is_private">
+              <a-select-option
+                v-for="table of junctionTables"
+                :key="table.id"
+                :value="table.id"
+                :disabled="(table as any).is_private"
+              >
                 <div class="flex w-full items-center gap-2">
                   <div class="flex items-center justify-center">
                     <GeneralTableIcon v-if="(table as any).is_private" class="nc-table-icon text-nc-content-gray-disabled" />

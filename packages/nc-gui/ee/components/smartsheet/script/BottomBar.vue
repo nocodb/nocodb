@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { isUpdatingAutomation } = storeToRefs(useAutomationStore())
+const { isUpdatingScript } = storeToRefs(useScriptStore())
 
 const { isEditorOpen, isCreateEditScriptAllowed } = useScriptStoreOrThrow()
 
@@ -46,7 +46,7 @@ const clearTimeouts = () => {
   }
 }
 
-watch(isUpdatingAutomation, (newValue, oldValue) => {
+watch(isUpdatingScript, (newValue, oldValue) => {
   if (newValue && !oldValue) {
     // Started saving
     clearTimeouts()
@@ -93,7 +93,7 @@ onUnmounted(() => {
       <div v-if="displayText" class="flex items-center ml-2 gap-2">
         <Transition name="slide-fade" mode="out-in">
           <div
-            v-if="isUpdatingAutomation"
+            v-if="isUpdatingScript"
             key="saving"
             class="text-nc-content-gray-subtle2 text-bodyDefaultSm flex items-center gap-2"
           >

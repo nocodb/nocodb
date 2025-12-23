@@ -1,8 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NcApiVersion, UITypes } from 'nocodb-sdk';
-import type { WorkspaceRoles } from 'nocodb-sdk-v2';
 import type {
-  ProjectRoles,
   TableCreateV3Type,
   TableReqType,
   TableUpdateV3Type,

@@ -7,22 +7,22 @@ const { isUIAllowed } = useRoles()
 
 const { base } = storeToRefs(useBase())
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { openScript, openNewScriptModal } = automationStore
+const { openScript, openNewScriptModal } = scriptStore
 
-const { activeAutomation, activeBaseAutomations } = storeToRefs(automationStore)
+const { activeScript, activeBaseScripts } = storeToRefs(scriptStore)
 
 const isOpen = ref<boolean>(false)
 
 /**
- * Handles navigation to a selected automation.
+ * Handles navigation to a selected script.
  *
- * @param automation - The automation to navigate to.
+ * @param script - The script to navigate to.
  *
  * @remarks
  * This function is called when a user selects a script from the dropdown list.
- * It checks if the automation has a valid ID and then opens the selected automation.
+ * It checks if the script has a valid ID and then opens the selected script.
  */
 const handleNavigateToScript = (script: ScriptType) => {
   if (script?.id) {
@@ -30,13 +30,13 @@ const handleNavigateToScript = (script: ScriptType) => {
   }
 }
 
-function openAutomationCreateDialog() {
+function openScriptCreateDialog() {
   isOpen.value = false
 
   openNewScriptModal({
     baseId: base.value?.id,
-    e: 'c:automation:create:topbar',
-    loadAutomationsOnClose: true,
+    e: 'c:script:create:topbar',
+    loadScriptsOnClose: true,
     scrollOnCreate: true,
   })
 }
@@ -48,12 +48,12 @@ function openAutomationCreateDialog() {
     <template #overlay>
       <LazyNcList
         v-model:open="isOpen"
-        :value="activeAutomation.id"
-        :list="activeBaseAutomations"
+        :value="activeScript.id"
+        :list="activeBaseScripts"
         option-value-key="id"
         option-label-key="title"
         class="min-w-64 !w-auto"
-        search-input-placeholder="Search automations"
+        search-input-placeholder="Search scripts"
         variant="medium"
         @change="handleNavigateToScript"
       >
@@ -72,7 +72,7 @@ function openAutomationCreateDialog() {
             {{ option?.title }}
           </NcTooltip>
           <GeneralIcon
-            v-if="option.id === activeAutomation.id"
+            v-if="option.id === activeScript.id"
             id="nc-selected-item-icon"
             icon="check"
             class="flex-none text-primary w-4 h-4"
@@ -81,7 +81,7 @@ function openAutomationCreateDialog() {
 
         <template v-if="!isMobileMode && isUIAllowed('scriptCreateOrEdit')" #listFooter>
           <NcDivider class="!mt-0 !mb-2" />
-          <div class="px-2 mb-2" @click="openAutomationCreateDialog()">
+          <div class="px-2 mb-2" @click="openScriptCreateDialog()">
             <div
               class="px-2 py-1.5 flex items-center justify-between gap-2 text-sm font-weight-500 !text-nc-content-brand hover:bg-nc-bg-gray-light rounded-md cursor-pointer"
             >

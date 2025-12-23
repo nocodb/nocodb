@@ -22,9 +22,9 @@ const { openedProject } = storeToRefs(baseStore)
 
 const isScriptSelectionDropdownOpen = ref(false)
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { activeBaseAutomations } = toRefs(automationStore)
+const { activeBaseScripts } = toRefs(scriptStore)
 
 const { isScriptCreateModalOpen } = useColumnCreateStoreOrThrow()
 
@@ -35,8 +35,8 @@ const editScript = () => {
     ncNavigateTo({
       baseId: openedProject.value!.id,
       workspaceId: openedProject.value!.fk_workspace_id,
-      automationId: selectedScript.value.id,
-      automationTitle: selectedScript.value.title,
+      scriptId: selectedScript.value.id,
+      scriptTitle: selectedScript.value.title,
       newTab: true,
     })
   }
@@ -78,7 +78,7 @@ watch(isScriptModal, (newVal) => {
             :is-parent-open="isScriptSelectionDropdownOpen"
             :search-input-placeholder="$t('placeholder.searchFields')"
             :option-config="{ selectOptionEvent: ['c:actions:script'], optionClassName: '' }"
-            :options="activeBaseAutomations"
+            :options="activeBaseScripts"
             :selected-option-id="selectedScript?.id"
             disable-mascot
             class="max-h-72 max-w-85"

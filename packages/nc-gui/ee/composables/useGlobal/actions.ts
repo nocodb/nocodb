@@ -246,8 +246,8 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     viewId,
     viewTitle,
     query,
-    automationId,
-    automationTitle,
+    scriptId,
+    scriptTitle,
     workflowId,
     workflowTitle,
     replace,
@@ -261,8 +261,8 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
     tableTitle?: string
     viewId?: string
     viewTitle?: string
-    automationId?: string
-    automationTitle?: string
+    scriptId?: string
+    scriptTitle?: string
     dashboardId?: string
     dashboardTitle?: string
     workflowId?: string
@@ -279,8 +279,8 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
         }`
       : ''
 
-    const automationPath = automationId
-      ? `/automations/${automationId}${toReadableUrlSlug([automationTitle]) ? `/${toReadableUrlSlug([automationTitle])}` : ''}`
+    const scriptPath = scriptId
+      ? `/scripts/${scriptId}${toReadableUrlSlug([scriptTitle]) ? `/${toReadableUrlSlug([scriptTitle])}` : ''}`
       : ''
 
     const dashboardPath = dashboardId
@@ -296,8 +296,8 @@ export function useGlobalActions(state: State, getters: Getters): Actions & Acti
 
     let path: string
     if (baseId) {
-      if (automationId) {
-        path = `/${workspaceId}/${baseId}${automationPath}${queryParams}`
+      if (scriptId) {
+        path = `/${workspaceId}/${baseId}${scriptPath}${queryParams}`
       } else if (dashboardId) {
         path = `/${workspaceId}/${baseId}${dashboardPath}${queryParams}`
       } else if (workflowId) {

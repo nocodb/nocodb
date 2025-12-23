@@ -27,11 +27,11 @@ export const useBase = defineStore('baseStore', () => {
 
   const tablesStore = useTablesStore()
 
-  const automationStore = useAutomationStore()
+  const scriptStore = useScriptStore()
   const dashboardStore = useDashboardStore()
   const workflowStore = useWorkflowStore()
 
-  const { loadAutomations } = automationStore
+  const { loadScripts } = scriptStore
   const { loadDashboards } = dashboardStore
   const { loadWorkflows } = workflowStore
 
@@ -151,7 +151,7 @@ export const useBase = defineStore('baseStore', () => {
   async function loadTables() {
     if (base.value.id) {
       await tablesStore.loadProjectTables(base.value.id, true)
-      await loadAutomations({ baseId: base.value.id || baseId.value })
+      await loadScripts({ baseId: base.value.id || baseId.value })
       await loadDashboards({ baseId: base.value.id || baseId.value })
       await loadWorkflows({ baseId: base.value.id || baseId.value, force: true })
 
@@ -279,7 +279,6 @@ export const useBase = defineStore('baseStore', () => {
     id: string
     type: 'database' | 'documentation'
     isSharedBase?: boolean
-    isAutomation?: boolean
     projectPage?: ProjectPageType
   }) => {
     if (isSharedBase) {

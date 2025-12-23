@@ -34,7 +34,7 @@ export const useRealtime = createSharedComposable(() => {
   const dashboardStore = useDashboardStore()
   const { dashboards, activeDashboardId } = storeToRefs(dashboardStore)
 
-  const { automations, activeAutomationId } = storeToRefs(useAutomationStore())
+  const { scripts, activeScriptId } = storeToRefs(useScriptStore())
   const { widgets, selectedWidget } = storeToRefs(useWidgetStore())
 
   const { workflows, activeWorkflowId } = storeToRefs(useWorkflowStore())
@@ -43,7 +43,7 @@ export const useRealtime = createSharedComposable(() => {
 
   const activeUserListener = ref<string | null>(null)
   const activeBaseMetaListener = ref<string | null>(null)
-  const activeAutomationListener = ref<string | null>(null)
+  const activeScriptListener = ref<string | null>(null)
   const activeWorkflowListener = ref<string | null>(null)
   const activeDashboardListener = ref<string | null>(null)
   const activeWidgetListener = ref<string | null>(null)
@@ -300,46 +300,47 @@ export const useRealtime = createSharedComposable(() => {
   }
 
   const handleScriptEvent = (payload: ScriptPayload, baseId: string) => {
-    const { id, action, payload: automation } = payload
-    const existingAutomations = automations.value.get(baseId) || []
+    const { id, action, payload: script } = payload
+    const existingScripts = scripts.value.get(baseId) || []
 
     switch (action) {
       case 'create': {
-        const updatedAutomations = [...existingAutomations, automation]
-        automations.value.set(baseId, updatedAutomations)
+        const updatedScripts = [...existingScripts, script]
+        scripts.value.set(baseId, updatedScripts)
         updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, 1)
         refreshCommandPalette()
 
         break
       }
       case 'update': {
-        const updatedAutomations = existingAutomations.map((d) =>
-          d.id === id ? { ...d, ...automation, _dirty: d._dirty ? +d._dirty + 1 : 1 } : d,
+        const updatedScripts = existingScripts.map((d) =>
+          d.id === id ? { ...d, ...script, _dirty: d._dirty ? +d._dirty + 1 : 1 } : d,
         )
 
-        updatedAutomations.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+        updatedScripts.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
 
-        automations.value.set(baseId, updatedAutomations)
+        scripts.value.set(baseId, updatedScripts)
         break
       }
       case 'delete': {
-        const updatedAutomations = existingAutomations.filter((d) => d.id !== id)
-        automations.value.set(baseId, updatedAutomations)
+        const deletedScript = existingScripts.find((d) => d.id === id)
+        const updatedScripts = existingScripts.filter((d) => d.id !== id)
+        scripts.value.set(baseId, updatedScripts)
         updateStatLimit(PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE, -1)
         refreshCommandPalette()
 
-        if (activeAutomationId.value === id) {
-          const nextAutomation = updatedAutomations[0]
-          if (nextAutomation) {
+        if (activeScriptId.value === id) {
+          const nextScript = updatedScripts[0]
+          if (nextScript) {
             ncNavigateTo({
               workspaceId: activeWorkspaceId.value,
               baseId,
-              automationId: nextAutomation.id,
-              automationTitle: nextAutomation.title,
+              scriptId: nextScript.id,
+              scriptTitle: nextScript.title,
             })
             showInfoModal({
-              title: `Automation no longer available`,
-              content: `${automation.title} may have been deleted or your access removed.`,
+              title: `Script no longer available`,
+              content: `${deletedScript?.title || 'The script'} may have been deleted or your access removed.`,
             })
           } else {
             ncNavigateTo({
@@ -347,8 +348,8 @@ export const useRealtime = createSharedComposable(() => {
               baseId,
             })
             showInfoModal({
-              title: `Automation no longer available`,
-              content: `${automation.title} may have been deleted or your access removed.`,
+              title: `Script no longer available`,
+              content: `${deletedScript?.title || 'The script'} may have been deleted or your access removed.`,
             })
           }
         }
@@ -366,7 +367,7 @@ export const useRealtime = createSharedComposable(() => {
         const updatedWorkflows = [...existingWorkflows, workflow]
         workflows.value.set(baseId, updatedWorkflows)
         updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, 1)
-
+        refreshCommandPalette()
         break
       }
       case 'update': {
@@ -375,6 +376,7 @@ export const useRealtime = createSharedComposable(() => {
         )
 
         updatedWorkflows.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+        refreshCommandPalette()
 
         workflows.value.set(baseId, updatedWorkflows)
         break
@@ -383,7 +385,7 @@ export const useRealtime = createSharedComposable(() => {
         const updatedWorkflows = existingWorkflows.filter((d) => d.id !== id)
         workflows.value.set(baseId, updatedWorkflows)
         updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, -1)
-
+        refreshCommandPalette()
         if (activeWorkflowId.value === id) {
           const nextWorkflow = updatedWorkflows[0]
           if (nextWorkflow) {
@@ -733,12 +735,12 @@ export const useRealtime = createSharedComposable(() => {
           handleBaseMetaEvent,
         )
 
-        // Handle automation events
-        if (activeAutomationListener.value) {
-          $ncSocket.offMessage(activeAutomationListener.value)
+        // Handle script events
+        if (activeScriptListener.value) {
+          $ncSocket.offMessage(activeScriptListener.value)
         }
 
-        activeAutomationListener.value = $ncSocket.onMessage(
+        activeScriptListener.value = $ncSocket.onMessage(
           `${EventType.SCRIPT_EVENT}:${activeWorkspaceId.value}:${activeBaseId.value}`,
           (payload: ScriptPayload) => {
             handleScriptEvent(payload, activeBaseId.value)
@@ -789,7 +791,7 @@ export const useRealtime = createSharedComposable(() => {
     ;[
       activeUserListener.value,
       activeBaseMetaListener.value,
-      activeAutomationListener.value,
+      activeScriptListener.value,
       activeDashboardListener.value,
       activeWidgetListener.value,
       activeTeamListener.value,

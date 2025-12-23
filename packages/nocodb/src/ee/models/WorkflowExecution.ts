@@ -34,7 +34,7 @@ export default class WorkflowExecution implements IWorkflowExecution {
     const execution = await ncMeta.metaGet2(
       context.workspace_id,
       context.base_id,
-      MetaTable.WORKFLOW_EXECUTIONS,
+      MetaTable.AUTOMATION_EXECUTIONS,
       executionId,
     );
 
@@ -70,7 +70,7 @@ export default class WorkflowExecution implements IWorkflowExecution {
       const cursorExecution = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.WORKFLOW_EXECUTIONS,
+        MetaTable.AUTOMATION_EXECUTIONS,
         cursorId,
       );
 
@@ -86,7 +86,7 @@ export default class WorkflowExecution implements IWorkflowExecution {
     const executionList = await ncMeta.metaList2(
       context.workspace_id,
       context.base_id,
-      MetaTable.WORKFLOW_EXECUTIONS,
+      MetaTable.AUTOMATION_EXECUTIONS,
       {
         condition,
         xcCondition,
@@ -129,7 +129,7 @@ export default class WorkflowExecution implements IWorkflowExecution {
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.WORKFLOW_EXECUTIONS,
+      MetaTable.AUTOMATION_EXECUTIONS,
       prepareForDb(insertObj, ['workflow_data', 'execution_data']),
     );
 
@@ -153,7 +153,7 @@ export default class WorkflowExecution implements IWorkflowExecution {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.WORKFLOW_EXECUTIONS,
+      MetaTable.AUTOMATION_EXECUTIONS,
       prepareForDb(updateObj, ['workflow_data', 'execution_data']),
       executionId,
     );
@@ -169,7 +169,7 @@ export default class WorkflowExecution implements IWorkflowExecution {
     return await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.WORKFLOW_EXECUTIONS,
+      MetaTable.AUTOMATION_EXECUTIONS,
       {
         fk_workflow_id: workflowId,
       },
@@ -180,7 +180,7 @@ export default class WorkflowExecution implements IWorkflowExecution {
     return await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.WORKFLOW_EXECUTIONS,
+      MetaTable.AUTOMATION_EXECUTIONS,
       id,
     );
   }

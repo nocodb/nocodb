@@ -12,7 +12,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
 const { ncNavigateTo } = useGlobal()
 
@@ -23,9 +23,9 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 const bases = useBases()
 const { openedProject } = storeToRefs(bases)
 
-const { getScriptAssetsURL, getScriptContent, createAutomation } = automationStore
+const { getScriptAssetsURL, getScriptContent, createScript } = scriptStore
 
-const { availableScripts, descriptionContent, isMarketVisible } = storeToRefs(automationStore)
+const { availableScripts, descriptionContent, isMarketVisible } = storeToRefs(scriptStore)
 
 const { showScriptPlanLimitExceededModal } = useEeConfig()
 
@@ -43,7 +43,7 @@ const onAddScript = async (scr: any) => {
     return
   }
 
-  const script = await createAutomation(openedProject.value?.id, {
+  const script = await createScript(openedProject.value?.id, {
     title: scr.title,
     script: scriptContent.value,
     description: scr.subTitle,
@@ -56,8 +56,8 @@ const onAddScript = async (scr: any) => {
   ncNavigateTo({
     workspaceId: activeWorkspaceId.value,
     baseId: openedProject.value?.id,
-    automationId: script.id,
-    automationTitle: script.title,
+    scriptId: script.id,
+    scriptTitle: script.title,
   })
   vModel.value = false
 }

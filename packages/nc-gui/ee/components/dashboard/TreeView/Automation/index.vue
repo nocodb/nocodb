@@ -5,12 +5,11 @@ const props = defineProps<{
 
 const baseId = toRef(props, 'baseId')
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { loadAutomations } = automationStore
+const { loadScripts } = scriptStore
 
-const { isMarketVisible, isDetailsVisible, detailsScriptId, activeAutomationId, activeAutomation, automations } =
-  storeToRefs(automationStore)
+const { isMarketVisible, isDetailsVisible, detailsScriptId, activeScriptId, activeScript, scripts } = storeToRefs(scriptStore)
 
 const bases = useBases()
 
@@ -19,18 +18,18 @@ const { openedProject } = storeToRefs(bases)
 const isExpanded = ref(true)
 
 const onExpand = async () => {
-  loadAutomations({ baseId: baseId.value })
+  loadScripts({ baseId: baseId.value })
   isExpanded.value = !isExpanded.value
 }
 
 watch(
-  () => activeAutomation.value?.id,
+  () => activeScript.value?.id,
   async () => {
-    if (!activeAutomation.value) return
+    if (!activeScript.value) return
 
-    await loadAutomations({ baseId: baseId.value })
+    await loadScripts({ baseId: baseId.value })
 
-    if (activeAutomation.value?.base_id === openedProject.value?.id) {
+    if (activeScript.value?.base_id === openedProject.value?.id) {
       isExpanded.value = true
     }
   },
@@ -39,25 +38,25 @@ watch(
   },
 )
 
-let automationTimeout: NodeJS.Timeout
+let scriptTimeout: NodeJS.Timeout
 
-watch(activeAutomationId, () => {
-  loadAutomations({ baseId: baseId.value })
+watch(activeScriptId, () => {
+  loadScripts({ baseId: baseId.value })
 
-  if (automationTimeout) {
-    clearTimeout(automationTimeout)
+  if (scriptTimeout) {
+    clearTimeout(scriptTimeout)
   }
 
-  if (activeAutomationId.value && isExpanded.value) {
-    const _automations = automations.value.get(baseId.value) ?? []
+  if (activeScriptId.value && isExpanded.value) {
+    const _scripts = scripts.value.get(baseId.value) ?? []
 
-    if (_automations.length) return
+    if (_scripts.length) return
 
-    automationTimeout = setTimeout(() => {
+    scriptTimeout = setTimeout(() => {
       if (isExpanded.value) {
         isExpanded.value = false
       }
-      clearTimeout(automationTimeout)
+      clearTimeout(scriptTimeout)
     }, 10000)
   }
 })

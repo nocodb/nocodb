@@ -3,10 +3,10 @@ import { parseScript, validateConfigValues } from 'nocodb-sdk'
 import { ScriptActionType } from '~/lib/enum'
 import type { ScriptInputFileUploadResult } from '~/lib/types'
 
-const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: ScriptType) => {
-  const automationStore = useAutomationStore()
-  const { updateAutomation } = automationStore
-  const { activeAutomation, isSettingsOpen } = storeToRefs(automationStore)
+const [useProvideScriptStore, useNcScriptStore] = useInjectionState((_script: ScriptType) => {
+  const scriptStore = useScriptStore()
+  const { updateScript: updateScriptInStore } = scriptStore
+  const { activeScript, isSettingsOpen } = storeToRefs(scriptStore)
   const { activeProjectId } = storeToRefs(useBases())
   const { isUIAllowed } = useRoles()
   const { $e } = useNuxtApp()
@@ -25,7 +25,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   const configValue = ref<Record<string, any>>({})
 
   const config = computed(() => {
-    return parseScript(activeAutomation.value?.script) ?? {}
+    return parseScript(activeScript.value?.script) ?? {}
   })
 
   const isCreateEditScriptAllowed = computed(() => {
@@ -40,7 +40,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   })
 
   const isValidConfig = computed(() => {
-    return validateConfigValues(config.value ?? {}, activeAutomation.value?.config ?? {})?.length === 0
+    return validateConfigValues(config.value ?? {}, activeScript.value?.config ?? {})?.length === 0
   })
 
   const shouldShowSettings = computed(() => {
@@ -101,13 +101,13 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   }
 
   const runScript = async () => {
-    if (isRunning.value || !isValidConfig.value || !activeAutomation.value?.id) return
+    if (isRunning.value || !isValidConfig.value || !activeScript.value?.id) return
 
     isSettingsOpen.value = false
 
     activeExecutionId.value = await executeScript({
-      ...activeAutomation.value,
-      script: activeAutomation.value.script,
+      ...activeScript.value,
+      script: activeScript.value.script,
     })
 
     $e('a:script:run')
@@ -134,12 +134,12 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
     config?: Record<string, any>
     skipNetworkCall?: boolean
   }) => {
-    if (!activeProjectId.value || !activeAutomation.value?.id) return
+    if (!activeProjectId.value || !activeScript.value?.id) return
 
     if (isCreateEditScriptAllowed.value) {
-      await updateAutomation(
+      await updateScriptInStore(
         activeProjectId.value,
-        activeAutomation.value.id,
+        activeScript.value.id,
         {
           script,
           config,
@@ -156,9 +156,9 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
   }
 
   const debouncedSave = useDebounceFn(async () => {
-    if (!activeProjectId.value || !activeAutomation.value?.id) return
+    if (!activeProjectId.value || !activeScript.value?.id) return
     await updateScript({
-      script: activeAutomation.value.script,
+      script: activeScript.value.script,
     })
   }, 500)
 
@@ -198,7 +198,7 @@ const [useProvideScriptStore, useScriptStore] = useInjectionState((_script: Scri
 export { useProvideScriptStore }
 
 export function useScriptStoreOrThrow() {
-  const state = useScriptStore()
+  const state = useNcScriptStore()
 
   if (!state) {
     throw new Error('useScriptStoreOrThrow must be used within a ScriptStoreProvider')

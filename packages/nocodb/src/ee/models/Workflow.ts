@@ -1,5 +1,10 @@
-import { DependencyTableType, PlanLimitTypes } from 'nocodb-sdk';
+import {
+  AutomationTypes,
+  DependencyTableType,
+  PlanLimitTypes,
+} from 'nocodb-sdk';
 import { default as WorkflowCE } from 'src/models/Workflow';
+import { Logger } from '@nestjs/common';
 import type {
   WorkflowGeneralEdge,
   WorkflowGeneralNode,
@@ -21,6 +26,9 @@ import DependencyTracker, {
   type HydratedDependencyTrackerType,
 } from '~/models/DependencyTracker';
 import { processConcurrently } from '~/utils';
+import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
+
+const logger = new Logger('Workflow');
 
 export default class Workflow extends WorkflowCE implements WorkflowType {
   id?: string;
@@ -37,6 +45,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
   nodes?: WorkflowGeneralNode[];
   edges?: WorkflowGeneralEdge[];
 
+  type?: AutomationTypes;
   enabled?: boolean;
 
   trigger_count?: number;
@@ -69,8 +78,11 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       workflow = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
-        MetaTable.WORKFLOWS,
-        workflowId,
+        MetaTable.AUTOMATIONS,
+        {
+          id: workflowId,
+          type: AutomationTypes.WORKFLOW,
+        },
       );
 
       if (workflow) {
@@ -108,10 +120,11 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       workflowList = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
-        MetaTable.WORKFLOWS,
+        MetaTable.AUTOMATIONS,
         {
           condition: {
             base_id: baseId,
+            type: AutomationTypes.WORKFLOW,
           },
           orderBy: {
             created_at: 'asc',
@@ -152,21 +165,23 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       'meta',
       'draft',
       'order',
+      'type',
       'created_by',
     ]);
 
     if (!insertObj.order) {
-      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.WORKFLOWS, {
+      insertObj.order = await ncMeta.metaGetNextOrder(MetaTable.AUTOMATIONS, {
         fk_workspace_id: context.workspace_id,
         base_id: context.base_id,
       });
     }
+    insertObj.type = AutomationTypes.WORKFLOW;
 
     const { id } = await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,
-      MetaTable.WORKFLOWS,
-      prepareForDb(insertObj, ['nodes', 'edges', 'meta']),
+      MetaTable.AUTOMATIONS,
+      prepareForDb(insertObj, ['nodes', 'edges', 'meta', 'draft']),
     );
 
     await NocoCache.incrHashField(
@@ -175,6 +190,9 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
       1,
     );
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     return this.get(context, id, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
@@ -208,7 +226,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
     await ncMeta.metaUpdate(
       context.workspace_id,
       context.base_id,
-      MetaTable.WORKFLOWS,
+      MetaTable.AUTOMATIONS,
       prepareForDb(updateObj, ['nodes', 'edges', 'meta', 'draft']),
       workflowId,
     );
@@ -218,6 +236,10 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       `${CacheScope.WORKFLOW}:${workflowId}`,
       prepareForResponse(updateObj, ['nodes', 'edges', 'meta', 'draft']),
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     return this.get(context, workflowId, ncMeta);
   }
@@ -230,7 +252,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
     const res = await ncMeta.metaDelete(
       context.workspace_id,
       context.base_id,
-      MetaTable.WORKFLOWS,
+      MetaTable.AUTOMATIONS,
       workflowId,
     );
 
@@ -246,6 +268,10 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
       -1,
     );
+
+    cleanCommandPaletteCache(context.workspace_id).catch(() => {
+      logger.error('Failed to clean command palette cache');
+    });
 
     await WorkflowExecution.deleteByWorkflow(context, workflowId, ncMeta);
 

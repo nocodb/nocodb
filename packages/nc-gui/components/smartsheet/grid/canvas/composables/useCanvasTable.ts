@@ -236,7 +236,7 @@ export function useCanvasTable({
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
-  const automationStore = useAutomationStore()
+  const scriptStore = useScriptStore()
   const tooltipStore = useTooltipStore()
   const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
   const { isRowColouringEnabled } = useViewRowColorRender()
@@ -270,10 +270,10 @@ export function useCanvasTable({
 
   const { eventBus: scriptEventBus } = useScriptExecutor()
 
-  const { loadAutomation } = automationStore
+  const { loadScript } = scriptStore
   const actionManager = new ActionManager(
     $api,
-    loadAutomation,
+    loadScript,
     generateRows,
     meta,
     triggerRefreshCanvas,

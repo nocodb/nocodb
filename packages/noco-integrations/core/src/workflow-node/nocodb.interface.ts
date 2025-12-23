@@ -228,6 +228,7 @@ export interface ITablesService {
       sourceId?: string;
       includeM2M?: boolean;
       roles: Record<string, boolean>;
+      user: NocoSDK.UserType;
     },
   ): Promise<NocoSDK.TableType[]>;
 

@@ -1,5 +1,6 @@
 import { Logger } from '@nestjs/common';
 import {
+  AutomationTypes,
   ModelTypes,
   NON_SEAT_ROLES,
   PlanLimitTypes,
@@ -681,15 +682,17 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
             .where('fk_workspace_id', id)
             .whereIn('base_id', activeBaseIds),
           [PlanLimitTypes.LIMIT_SCRIPT_PER_WORKSPACE]: ncMeta
-            .knexConnection(MetaTable.SCRIPTS)
+            .knexConnection(MetaTable.AUTOMATIONS)
             .count('*')
             .where('fk_workspace_id', id)
-            .whereIn('base_id', activeBaseIds),
+            .whereIn('base_id', activeBaseIds)
+            .where('type', AutomationTypes.SCRIPT),
           [PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE]: ncMeta
-            .knexConnection(MetaTable.WORKFLOWS)
+            .knexConnection(MetaTable.AUTOMATIONS)
             .count('*')
             .where('fk_workspace_id', id)
-            .whereIn('base_id', activeBaseIds),
+            .whereIn('base_id', activeBaseIds)
+            .where('type', AutomationTypes.WORKFLOW),
           [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.SOURCES)
             .count('*')

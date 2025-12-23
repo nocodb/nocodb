@@ -4,32 +4,19 @@ import type { WritableComputedRef } from '@vue/reactivity'
 
 interface Props {
   script: ScriptType
-  onValidate: (script: ScriptType) => boolean | string
-}
-
-interface Emits {
-  (event: 'update:automation', data: Record<string, any>): void
-
-  (event: 'selectIcon', icon: string): void
-
-  (event: 'changeScript', script: Record<string, any>): void
-
-  (event: 'rename', script: ScriptType, title: string | undefined): void
-
-  (event: 'delete', script: ScriptType): void
-
-  (event: 'openModal', data: { type: ScriptType }): void
 }
 
 const props = defineProps<Props>()
 
-const emits = defineEmits<Emits>()
-
-const vModel = useVModel(props, 'script', emits) as WritableComputedRef<ScriptType & { created_by?: string }>
+const vModel = useVModel(props, 'script') as WritableComputedRef<ScriptType & { created_by?: string }>
 
 const { $e } = useNuxtApp()
 
-const { isMobileMode, user } = useGlobal()
+const { t } = useI18n()
+
+const { addUndo, defineModelScope } = useUndoRedo()
+
+const { isMobileMode, user, ncNavigateTo } = useGlobal()
 
 const { isSharedBase } = useBase()
 
@@ -37,21 +24,21 @@ const { basesUser } = storeToRefs(useBases())
 
 const { isUIAllowed } = useRoles()
 
-const automationStore = useAutomationStore()
-
-const { duplicateAutomation } = automationStore
+const scriptStore = useScriptStore()
 
 const basesStore = useBases()
 
 const { activeProjectId } = storeToRefs(basesStore)
 
-const { activeAutomationId } = storeToRefs(automationStore)
+const { duplicateScript: _duplicateScript, updateScript } = scriptStore
+
+const { activeScriptId, activeBaseScripts } = storeToRefs(scriptStore)
 
 const { meta: metaKey, control } = useMagicKeys()
 
 const { showScriptPlanLimitExceededModal } = useEeConfig()
 
-const { openAutomationDescriptionDialog: _openAutomationDescriptionDialog } = inject(TreeViewInj)!
+const { openScriptDescriptionDialog: _openScriptDescriptionDialog } = inject(TreeViewInj)!
 
 const base = inject(ProjectInj, ref())
 
@@ -68,9 +55,10 @@ const isStopped = ref(false)
 /** Original script title when editing the script name */
 const _title = ref<string | undefined>()
 
-const showAutomationNodeTooltip = ref(true)
+const showScriptNodeTooltip = ref(true)
 
 const idUserMap = computed(() => {
+  if (!base.value?.id) return {}
   return (basesUser.value.get(base.value?.id) || []).reduce((acc, user) => {
     acc[user.id] = user
     acc[user.email] = user
@@ -78,18 +66,27 @@ const idUserMap = computed(() => {
   }, {} as Record<string, any>)
 })
 
+const changeScript = (script: ScriptType) => {
+  ncNavigateTo({
+    workspaceId: script.fk_workspace_id,
+    baseId: script.base_id,
+    scriptId: script.id,
+    scriptTitle: script.title,
+  })
+}
+
 /** Debounce click handler, so we can potentially enable editing script name {@see onDblClick} */
 const onClick = useDebounceFn(() => {
-  emits('changeScript', vModel.value)
+  changeScript(vModel.value)
 }, 250)
 
 const handleOnClick = () => {
   if (isEditing.value || isStopped.value) return
 
-  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+  const cmdOrCtrl = isMac() ? metaKey?.value : control?.value
 
   if (cmdOrCtrl) {
-    emits('changeScript', vModel.value)
+    changeScript(vModel.value)
   } else {
     onClick()
   }
@@ -102,23 +99,15 @@ const focusInput = () => {
   })
 }
 
-const isLoading = ref(false)
-
-const duplicateScript = async (script: ScriptType) => {
-  if (!activeProjectId.value) return
-
-  if (showScriptPlanLimitExceededModal()) {
-    isDropdownOpen.value = false
-    return
+function validateScriptTitle(script: ScriptType) {
+  if (!script.title?.trim()) {
+    return t('msg.error.scriptNameRequired')
   }
 
-  try {
-    isLoading.value = true
-    await duplicateAutomation(activeProjectId.value, script.id)
-    isDropdownOpen.value = false
-  } finally {
-    isLoading.value = false
+  if (activeBaseScripts.value.some((s) => s.title === script.title && s.id !== script.id)) {
+    return t('msg.error.scriptNameDuplicate')
   }
+  return true
 }
 
 /** Enable editing script name on dbl click */
@@ -182,6 +171,40 @@ const onRenameMenuClick = () => {
   }
 }
 
+async function onRenameScript(script: ScriptType, originalTitle?: string, undo = false) {
+  if (!script?.id || !script?.base_id) return
+  try {
+    await updateScript(script.base_id, script.id, {
+      title: script.title,
+      order: script.order,
+    })
+
+    if (!undo) {
+      addUndo({
+        redo: {
+          fn: (s: ScriptType, title: string) => {
+            const tempTitle = s.title
+            s.title = title
+            onRenameScript(s, tempTitle, true)
+          },
+          args: [script, script.title],
+        },
+        undo: {
+          fn: (s: ScriptType, title: string) => {
+            const tempTitle = s.title
+            s.title = title
+            onRenameScript(s, tempTitle, true)
+          },
+          args: [script, originalTitle],
+        },
+        scope: defineModelScope({ base_id: script.base_id }),
+      })
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 /** Rename a script */
 async function onRename() {
   isDropdownOpen.value = false
@@ -191,7 +214,7 @@ async function onRename() {
     _title.value = _title.value.trim()
   }
 
-  const isValid = props.onValidate({ ...vModel.value, title: _title.value! })
+  const isValid = validateScriptTitle({ ...vModel.value, title: _title.value! })
 
   if (isValid !== true) {
     message.error(isValid)
@@ -209,15 +232,15 @@ async function onRename() {
 
   vModel.value.title = _title.value || ''
 
-  emits('rename', vModel.value, originalTitle)
+  await onRenameScript(vModel.value, originalTitle)
 
   onStopEdit()
 }
 
-const openAutomationDescriptionDialog = (script: ScriptType) => {
+const openScriptDescriptionDialog = (script: ScriptType) => {
   isDropdownOpen.value = false
 
-  _openAutomationDescriptionDialog(script)
+  _openScriptDescriptionDialog?.(script)
 }
 
 /** Cancel renaming script */
@@ -238,27 +261,80 @@ function onStopEdit() {
   }, 250)
 }
 
-const isScriptDeleteDialogVisible = ref(false)
+const isLoading = ref(false)
+
+const duplicateScript = async (script: ScriptType) => {
+  if (!activeProjectId.value || !script?.id || !script?.base_id) return
+
+  if (showScriptPlanLimitExceededModal()) {
+    isDropdownOpen.value = false
+    return
+  }
+
+  try {
+    isLoading.value = true
+    await _duplicateScript(activeProjectId.value, script.id)
+    isDropdownOpen.value = false
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const updateScriptIcon = async (icon: string, script: ScriptType) => {
+  if (!script?.id || !script?.base_id) return
+  try {
+    // modify the icon property in meta
+    script.meta = {
+      ...parseProp(script.meta),
+      icon,
+    }
+
+    await updateScript(script.base_id, script.id, {
+      meta: script.meta,
+    })
+
+    $e('a:script:icon:sidebar', { icon })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 
 const deleteScript = () => {
   isDropdownOpen.value = false
-  isScriptDeleteDialogVisible.value = true
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgScriptDelete'), {
+    'visible': isOpen,
+    'script': vModel.value,
+    'onUpdate:visible': closeDialog,
+    'onDeleted': () => {
+      closeDialog()
+    },
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+
+    close(1000)
+  }
 }
 </script>
 
 <template>
-  <a-menu-item
+  <div
+    class="nc-sidebar-node !pl-2 !xs:(pl-2) !rounded-md !px-0.75 !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :data-testid="`view-sidebar-script-${vModel.title}`"
-    class="nc-sidebar-node !rounded-md !px-0.75 !pl-2 !xs:(pl-2) !py-0.5 w-full transition-all ease-in duration-100 !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     @dblclick.stop="onDblClick"
     @click.prevent="handleOnClick"
   >
     <NcTooltip
-      :disabled="isEditing || isDropdownOpen || !showAutomationNodeTooltip"
+      :disabled="isEditing || isDropdownOpen || !showScriptNodeTooltip"
       :overlay-inner-style="{ width: '240px' }"
       :tooltip-style="{ width: '240px', zIndex: '1049' }"
       placement="right"
       trigger="hover"
+      class="w-full"
       :mouse-enter-delay="0.5"
     >
       <template #title>
@@ -289,8 +365,8 @@ const deleteScript = () => {
           v-e="['c:script:emoji-picker']"
           :data-testid="`view-sidebar-drag-handle-${vModel.title}`"
           class="flex min-w-6"
-          @mouseenter="showAutomationNodeTooltip = false"
-          @mouseleave="showAutomationNodeTooltip = true"
+          @mouseenter="showScriptNodeTooltip = false"
+          @mouseleave="showScriptNodeTooltip = true"
           @click.stop
           @dblclick.stop
         >
@@ -301,25 +377,14 @@ const deleteScript = () => {
             :readonly="isMobileMode || !isUIAllowed('viewCreateOrEdit')"
             class="nc-script-icon"
             size="small"
-            @emoji-selected="emits('selectIcon', $event)"
+            @emoji-selected="updateScriptIcon($event, vModel)"
           >
-            <template #default="{ isOpen }">
-              <NcTooltip
-                class="flex"
-                placement="topLeft"
-                hide-on-click
-                :disabled="isOpen || isMobileMode || !isUIAllowed('viewCreateOrEdit')"
-              >
-                <template #title>
-                  {{ $t('general.changeIcon') }}
-                </template>
-
-                <GeneralIcon
-                  :class="activeAutomationId === vModel.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
-                  class="nc-script-icon w-4 text-nc-content-gray-subtle !text-[16px]"
-                  icon="ncScript"
-                />
-              </NcTooltip>
+            <template #default>
+              <GeneralIcon
+                :class="activeScriptId === vModel.id ? '!text-nc-brand-600/85' : '!text-nc-gray-600/75'"
+                class="nc-script-icon w-4 text-nc-content-gray-subtle !text-[16px]"
+                icon="ncScript"
+              />
             </template>
           </LazyGeneralEmojiPicker>
         </div>
@@ -329,7 +394,7 @@ const deleteScript = () => {
           ref="input"
           v-model:value="_title"
           :class="{
-            'font-semibold !text-nc-content-brand-disabled': activeAutomationId === vModel.id,
+            'font-semibold !text-nc-content-brand-disabled': activeScriptId === vModel.id,
           }"
           :style="{
             fontWeight: 'inherit',
@@ -347,7 +412,7 @@ const deleteScript = () => {
           <template #title> {{ vModel.title }}</template>
           <div
             :class="{
-              'font-semibold text-nc-content-brand-disabled': activeAutomationId === vModel.id,
+              'font-semibold text-nc-content-brand-disabled': activeScriptId === vModel.id,
             }"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             data-testid="sidebar-script-title"
@@ -359,8 +424,8 @@ const deleteScript = () => {
           <NcTooltip
             v-if="vModel.description?.length"
             placement="bottom"
-            @mouseenter="showAutomationNodeTooltip = false"
-            @mouseleave="showAutomationNodeTooltip = true"
+            @mouseenter="showScriptNodeTooltip = false"
+            @mouseleave="showScriptNodeTooltip = true"
           >
             <template #title>
               <div class="whitespace-pre-wrap break-words">{{ vModel.description }}</div>
@@ -381,8 +446,8 @@ const deleteScript = () => {
               class="nc-sidebar-node-btn invisible !group-hover:(visible opacity-100) nc-sidebar-script-node-context-btn"
               size="xxsmall"
               type="text"
-              @mouseenter="showAutomationNodeTooltip = false"
-              @mouseleave="showAutomationNodeTooltip = true"
+              @mouseenter="showScriptNodeTooltip = false"
+              @mouseleave="showScriptNodeTooltip = true"
               @click.stop="isDropdownOpen = !isDropdownOpen"
               @dblclick.stop
             >
@@ -417,7 +482,7 @@ const deleteScript = () => {
                     v-e="['c:script:update-description']"
                     :data-testid="`sidebar-script-description-${script.title}`"
                     class="nc-script-description"
-                    @click="openAutomationDescriptionDialog(script)"
+                    @click="openScriptDescriptionDialog(script)"
                   >
                     <GeneralIcon class="text-nc-content-gray-subtle" icon="ncAlignLeft" />
                     {{ $t('labels.editDescription') }}
@@ -451,6 +516,5 @@ const deleteScript = () => {
         </template>
       </div>
     </NcTooltip>
-    <DlgAutomationDelete v-if="script.id" v-model:visible="isScriptDeleteDialogVisible" :script="script" />
-  </a-menu-item>
+  </div>
 </template>

@@ -57,6 +57,7 @@ export class RecordCreatedTriggerNode extends WorkflowNodeIntegration<RecordCrea
           {
             baseId: this.nocodb.context.base_id,
             roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+            user: this.nocodb.user,
           },
         );
 

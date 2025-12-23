@@ -1,5 +1,5 @@
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   if (await knex.schema.hasTable(MetaTable.WORKSPACE)) {
@@ -502,7 +502,7 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.SCRIPTS, (table) => {
+  await knex.schema.createTable(MetaTableOldV2.SCRIPTS, (table) => {
     table.string('id', 20).notNullable();
     table.text('title');
     table.text('description');
@@ -517,7 +517,7 @@ const up = async (knex: Knex) => {
     table.primary(['base_id', 'id']);
   });
 
-  await knex.schema.alterTable(MetaTable.SCRIPTS, (table) => {
+  await knex.schema.alterTable(MetaTableOldV2.SCRIPTS, (table) => {
     table.index(['base_id', 'fk_workspace_id'], 'nc_scripts_context');
     table.index(['id'], 'nc_scripts_oldpk_idx');
   });
@@ -1150,7 +1150,7 @@ const down = async (knex: Knex) => {
   await knex.schema.dropTable(MetaTable.SSO_CLIENT_DOMAIN);
   await knex.schema.dropTable(MetaTable.SSO_CLIENT);
   await knex.schema.dropTable(MetaTable.DB_MUX);
-  await knex.schema.dropTable(MetaTable.SCRIPTS);
+  await knex.schema.dropTable(MetaTableOldV2.SCRIPTS);
   await knex.schema.dropTable(MetaTable.SNAPSHOT);
   await knex.schema.dropTable(MetaTable.ORG);
   await knex.schema.dropTable(MetaTable.ORG_DOMAIN);

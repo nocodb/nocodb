@@ -2,9 +2,9 @@
 import type { ScriptType } from 'nocodb-sdk'
 
 const props = defineProps<{
-  automation: ScriptType
+  script: ScriptType
 }>()
-const meta = computed(() => props.automation.meta as Record<string, any> | undefined)
+const meta = computed(() => props.script.meta as Record<string, any> | undefined)
 const icon = computed<string>(() => meta.value?.icon)
 </script>
 

@@ -52,6 +52,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
           {
             baseId: this.nocodb.context.base_id,
             roles: { [NocoSDK.ProjectRoles.EDITOR]: true },
+            user: this.nocodb.user,
           },
         );
 

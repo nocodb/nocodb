@@ -509,9 +509,9 @@ export const useBases = defineStore('basesStore', () => {
       () => route.value.params.baseId,
       () => route.value.params.viewId,
       () => route.value.params.viewTitle,
-      () => route.value.params.automationId,
+      () => route.value.params.scriptId,
     ],
-    ([newBaseId, newTableId, newViewId, newAutomationId], [oldBaseId, oldTableId, oldViewId, oldAutomationId]) => {
+    ([newBaseId, newTableId, newViewId, newScriptId], [oldBaseId, oldTableId, oldViewId, oldScriptId]) => {
       if (!activeProjectId.value) {
         showProjectList.value = true
         return
@@ -521,7 +521,7 @@ export const useBases = defineStore('basesStore', () => {
         (newBaseId && newBaseId !== oldBaseId) ||
         newTableId !== oldTableId ||
         newViewId !== oldViewId ||
-        newAutomationId !== oldAutomationId
+        newScriptId !== oldScriptId
       )
 
       if (showProjectList.value === shouldShowProjectList) return

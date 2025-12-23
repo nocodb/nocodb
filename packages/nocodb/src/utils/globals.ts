@@ -63,7 +63,6 @@ export enum MetaTable {
   ROW_COLOR_CONDITIONS = 'nc_row_color_conditions',
   DATA_REFLECTION = 'nc_data_reflection',
   CUSTOM_URLS = 'nc_custom_urls_v2',
-  SCRIPTS = 'nc_scripts',
   SYNC_CONFIGS = 'nc_sync_configs',
   SYNC_MAPPINGS = 'nc_sync_mappings',
   USAGE_STATS = 'nc_usage_stats',
@@ -99,8 +98,8 @@ export enum MetaTable {
   ORG_USERS = 'nc_org_users',
   PLANS = 'nc_plans',
   SUBSCRIPTIONS = 'nc_subscriptions',
-  WORKFLOWS = 'nc_workflows',
-  WORKFLOW_EXECUTIONS = 'nc_workflow_executions',
+  AUTOMATIONS = 'nc_automations',
+  AUTOMATION_EXECUTIONS = 'nc_automation_executions',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATIONS = 'nc_installations',
 }
@@ -143,7 +142,6 @@ export const BaseRelatedMetaTables = [
   MetaTable.PERMISSIONS,
   MetaTable.PERMISSION_SUBJECTS,
   MetaTable.ROW_COLOR_CONDITIONS,
-  MetaTable.SCRIPTS,
   MetaTable.SORT,
   MetaTable.SOURCES,
   MetaTable.SYNC_CONFIGS,
@@ -153,8 +151,8 @@ export const BaseRelatedMetaTables = [
   MetaTable.VIEWS,
   MetaTable.WIDGETS,
   MetaTable.MODEL_STAT,
-  MetaTable.WORKFLOWS,
-  MetaTable.WORKFLOW_EXECUTIONS,
+  MetaTable.AUTOMATIONS,
+  MetaTable.AUTOMATION_EXECUTIONS,
   MetaTable.DEPENDENCY_TRACKER,
 ];
 
@@ -166,6 +164,9 @@ export enum MetaTableOldV2 {
   WIDGET = 'nc_ds_widget_v2',
   DASHBOARD_PROJECT_DB_PROJECT_LINKINGS = 'nc_ds_dashboard_project_db_project_linkings_v2',
   WIDGET_DB_DEPENDENCIES = 'nc_ds_widget_db_dependencies_v2',
+  WORKFLOWS = 'nc_workflows',
+  WORKFLOW_EXECUTIONS = 'nc_workflow_executions',
+  SCRIPTS = 'nc_scripts',
 }
 
 export const orderedMetaTables = [

@@ -3,9 +3,9 @@ const { t } = useI18n()
 
 const { isUIAllowed } = useRoles()
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { openNewScriptModal: _openNewScriptModal } = automationStore
+const { openNewScriptModal: _openNewScriptModal } = scriptStore
 
 const { openedProject } = storeToRefs(useBases())
 
@@ -18,7 +18,7 @@ const label = computed(() => {
 async function openNewScriptModal() {
   _openNewScriptModal({
     baseId: openedProject.value?.id,
-    loadAutomationsOnClose: true,
+    loadScriptsOnClose: true,
     scrollOnCreate: true,
   })
 }

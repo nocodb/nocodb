@@ -50,6 +50,10 @@ export class CommandPaletteService {
           dashboard_title: string;
           dashboard_meta: string;
           dashboard_order: number;
+          workflow_id: string;
+          workflow_title: string;
+          workflow_meta: string;
+          workflow_order: number;
         }[] = await getCommandPaletteForUserWorkspace(
           param.user?.id,
           data.workspace_id,
@@ -121,6 +125,18 @@ export class CommandPaletteService {
         const baseTableIdsMap = new Map<string, Set<string>>();
         const baseContextMap = new Map<string, NcContext>();
         const baseRoleMap = new Map<string, string>(); // Track base role for each base
+
+        const workflows = new Map<
+          string,
+          {
+            id: string;
+            title: string;
+            workspace_id: string;
+            base_id: string;
+            order: number;
+            meta: any;
+          }
+        >();
 
         for (const item of list) {
           if (!workspaces.has(item.workspace_id)) {
@@ -278,6 +294,16 @@ export class CommandPaletteService {
               order: item.dashboard_order,
             });
           }
+          if (!workflows.has(item.workflow_id) && item.workflow_id) {
+            workflows.set(item.workflow_id, {
+              id: item.workflow_id,
+              title: item.workflow_title,
+              meta: deserializeJSON(item.workflow_meta),
+              workspace_id: item.workspace_id,
+              base_id: item.base_id,
+              order: item.workflow_order,
+            });
+          }
         }
 
         /*
@@ -350,7 +376,7 @@ export class CommandPaletteService {
             parent: `p-${script.base_id}`,
             icon: script?.meta?.icon || 'ncScript',
             projectName: bases.get(script.base_id)?.title,
-            section: 'Scripts',
+            section: 'Automations',
             handler: {
               type: 'navigate',
               payload: `/${script.workspace_id}/${
@@ -373,6 +399,23 @@ export class CommandPaletteService {
               payload: `/${dashboard.workspace_id}/${
                 dashboard.base_id
               }/dashboards/${encodeURIComponent(dashboard.id)}`,
+            },
+          });
+        }
+
+        for (const [id, workflow] of workflows) {
+          cmdData.push({
+            id: `workflow-${id}`,
+            title: workflow.title,
+            parent: `p-${workflow.base_id}`,
+            icon: workflow?.meta?.icon || 'ncAutomation',
+            projectName: bases.get(workflow.base_id)?.title,
+            section: 'Automations',
+            handler: {
+              type: 'navigate',
+              payload: `/${workflow.workspace_id}/${
+                workflow.base_id
+              }/workflows/${encodeURIComponent(workflow.id)}`,
             },
           });
         }

@@ -32,19 +32,19 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
     const form: FormDefinition = [
       {
         type: FormBuilderInputType.SelectIntegration,
-        label: 'Slack integration',
+        label: 'Slack Account',
         model: 'config.authIntegrationId',
         integrationFilter: { type: IntegrationType.Auth, sub_type: 'slack' },
         validators: [
           {
             type: FormBuilderValidatorType.Required,
-            message: 'Slack integration is required',
+            message: 'Slack Account is required',
           },
         ],
       },
       {
         type: FormBuilderInputType.Select,
-        label: 'Send message to',
+        label: 'Channel/User',
         model: 'config.sendTo',
         defaultValue: 'channel',
         options: [
@@ -119,6 +119,10 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         model: 'config.botName',
         placeholder: 'Custom bot name (optional)',
         helpText: 'Override the default bot name for this message',
+        group: 'moreOptions',
+        groupCollapsible: true,
+        groupLabel: 'Show more options',
+        groupDefaultCollapsed: true,
       },
       {
         type: FormBuilderInputType.WorkflowInput,
@@ -126,13 +130,7 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         model: 'config.botIcon',
         placeholder: 'Bot icon URL or emoji (optional)',
         helpText: 'Image URL or emoji code like :robot_face:',
-      },
-      {
-        type: FormBuilderInputType.Checkbox,
-        label: 'Unfurl links',
-        model: 'config.unfurlLinks',
-        defaultValue: false,
-        helpText: 'Enable unfurling of primarily text-based content',
+        group: 'moreOptions',
       },
     ];
 
@@ -209,6 +207,8 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
     const startTime = Date.now();
     const logs: any[] = [];
 
+    const config = ctx.inputs?.config || {};
+
     try {
       const {
         authIntegrationId,
@@ -219,7 +219,7 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         botName,
         botIcon,
         unfurlLinks,
-      } = ctx.inputs.config;
+      } = config;
 
       if (!authIntegrationId) {
         return {

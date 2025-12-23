@@ -5,6 +5,7 @@ import { EditorContent, VueRenderer, useEditor } from '@tiptap/vue-3'
 import type { VariableDefinition } from 'nocodb-sdk'
 import tippy from 'tippy.js'
 import { WorkflowExpression, WorkflowVariablePicker } from '~/helpers/tiptap-markdown/extensions'
+import { Markdown } from '~/helpers/tiptap-markdown'
 
 interface NodeGroup {
   nodeId: string
@@ -39,19 +40,6 @@ const vModel = computed({
 })
 
 const { readOnly } = toRefs(props)
-
-// Serialize TipTap document to plain text with expressions
-const serializeDoc = (doc: any): string => {
-  let text = ''
-  doc.descendants((node: any) => {
-    if (node.type.name === 'workflowExpression') {
-      text += node.attrs.expression || `{{ ${node.attrs.id} }}`
-    } else if (node.text) {
-      text += node.text
-    }
-  })
-  return text.trim()
-}
 
 // Custom suggestion render to pass groupedItems
 const createSuggestionRender = () => ({
@@ -112,20 +100,23 @@ const createSuggestionRender = () => ({
   },
 })
 
-const isMultiline = computed(() => props.plugins?.includes('multiline'))
+const isMultiline = computed(() => props.plugins?.includes('multiline') || false)
 
 const editor = useEditor({
   content: '',
   extensions: [
     StarterKit.configure({
       heading: false,
-      hardBreak: isMultiline.value,
+      hardBreak: isMultiline.value ? { keepMarks: true } : false,
       blockquote: false,
       bulletList: false,
       orderedList: false,
       listItem: false,
       codeBlock: false,
       horizontalRule: false,
+      bold: false,
+      italic: false,
+      strike: false,
     }),
     Placeholder.configure({
       emptyEditorClass: 'is-editor-empty',
@@ -150,9 +141,17 @@ const editor = useEditor({
       },
       variables: props.variables,
     }),
+    Markdown.configure({ breaks: true, transformPastedText: false }),
   ],
   onUpdate: ({ editor }) => {
-    vModel.value = serializeDoc(editor.state.doc)
+    let markdown = editor.storage.markdown.getMarkdown()
+
+    markdown = markdown.replaceAll('<br/>', '\n')
+    markdown = markdown.replaceAll('<br>', '\n')
+
+    console.log(markdown)
+
+    vModel.value = markdown
   },
   editable: !readOnly.value,
   autofocus: false,
@@ -233,7 +232,13 @@ watch(readOnly, (newValue) => {
 
 <template>
   <div class="nc-workflow-input relative">
-    <EditorContent :editor="editor" class="nc-workflow-input-editor" :class="[{ multiline: isMultiline }]" />
+    <EditorContent
+      :editor="editor"
+      class="nc-workflow-input-editor"
+      :class="{
+        multiline: isMultiline,
+      }"
+    />
 
     <NcTooltip v-if="!readOnly" class="absolute top-1 right-1" hide-on-click title="Insert variable">
       <NcButton size="xs" type="text" class="nc-workflow-input-insert-btn !px-1.5" @click.stop="insertExpression">
@@ -247,6 +252,20 @@ watch(readOnly, (newValue) => {
 .nc-workflow-input {
   @apply relative w-full;
 
+  .nc-workflow-input-editor {
+    &:has(.multiline) {
+      .ProseMirror {
+        @apply h-auto min-h-16;
+      }
+    }
+
+    &:not(.multiline) {
+      .ProseMirror {
+        @apply min-h-8 h-10;
+      }
+    }
+  }
+
   .nc-workflow-expression {
     @apply bg-nc-bg-brand text-nc-content-brand rounded px-1.5 py-0.5 mx-0.5 font-medium cursor-pointer;
     @apply inline-flex items-center gap-1;
@@ -257,7 +276,6 @@ watch(readOnly, (newValue) => {
   .ProseMirror {
     @apply w-full px-3 py-2 outline-none border-1 border-nc-border-gray-medium rounded-lg;
     @apply focus:border-nc-border-brand transition-colors;
-    @apply min-h-[38px];
 
     &:focus-within {
       @apply !shadow-selected;

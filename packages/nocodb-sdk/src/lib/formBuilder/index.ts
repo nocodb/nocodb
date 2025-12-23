@@ -140,6 +140,26 @@ interface FormBuilderElementBase {
    * Link to the documentation for the element
    */
   docsLink?: string;
+  /**
+   * Group name for this field. Fields with the same group name will be grouped together.
+   * Groups can be placed anywhere in the form and can contain any fields.
+   */
+  group?: string;
+  /**
+   * Whether this group should be collapsible (only applies to first field in a group)
+   * When true, the group will have a toggle button to show/hide all fields in the group
+   */
+  groupCollapsible?: boolean;
+  /**
+   * Label for the collapsible group (only applies to first field in a group)
+   * If not provided, defaults to "Show more" / "Show less"
+   */
+  groupLabel?: string;
+  /**
+   * Whether the group should be collapsed by default (only applies to first field in a group)
+   * Default: true for collapsible groups
+   */
+  groupDefaultCollapsed?: boolean;
 }
 
 /**

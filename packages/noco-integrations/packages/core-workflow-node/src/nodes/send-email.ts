@@ -50,6 +50,10 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
           model: 'config.cc',
           placeholder: 'cc@example.com',
           span: 24,
+          group: 'moreOptions',
+          groupCollapsible: true,
+          groupLabel: 'Show more options',
+          groupDefaultCollapsed: true,
         },
         {
           type: FormBuilderInputType.WorkflowInput,
@@ -57,6 +61,7 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
           model: 'config.bcc',
           placeholder: 'bcc@example.com',
           span: 24,
+          group: 'moreOptions',
         },
         {
           type: FormBuilderInputType.WorkflowInput,

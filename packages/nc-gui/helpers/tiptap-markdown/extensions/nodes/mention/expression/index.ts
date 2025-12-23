@@ -75,12 +75,18 @@ export const WorkflowExpression = TipTapMention.extend({
 
   addStorage() {
     return {
+      markdown: {
+        serialize(state: any, node: any) {
+          const expression = node.attrs.expression || `{{ ${node.attrs.id} }}`
+          state.write(expression)
+        },
+      },
       serialize(node: any) {
         return node.attrs.expression || ''
       },
       // Parse NocoDB expression format
       parse(text: string) {
-        const expressionRegex = /\{\{([^}]+)\}\}/g
+        const expressionRegex = /\{\{([^}]+)}}/g
         const matches = text.matchAll(expressionRegex)
 
         const expressions: Array<{ expression: string; position: number }> = []

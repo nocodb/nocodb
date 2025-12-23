@@ -216,6 +216,28 @@ export function useCanvasRender({
     ctx.restore()
   }
 
+  function extractGroupPaths(
+    groups: Map<number, CanvasGroup>,
+    parentPath: any[] = [],
+    result: GroupNestedIn[][] = [],
+  ): GroupNestedIn[][] {
+    for (const [, group] of groups) {
+      const currentPath = [...parentPath, ...(group.path ?? [])]
+
+      if (currentPath.length) {
+        // push current group path
+        result.push(currentPath)
+      }
+
+      // recurse into children
+      if (group.groups && group.groups.size > 0) {
+        extractGroupPaths(group.groups, currentPath, result)
+      }
+    }
+
+    return result
+  }
+
   function renderHeader(
     ctx: CanvasRenderingContext2D,
     activeState?: {
@@ -2212,14 +2234,31 @@ export function useCanvasRender({
           ctx.restore()
         }
 
+        const selectedGroupRecords = isGroupBy.value
+          ? extractGroupPaths(cachedGroups.value).reduce((acc, path) => {
+              const dataCache = getDataCache(path)
+              const selectedRowsCount = dataCache.selectedRows.value?.length ?? 0
+
+              return acc + selectedRowsCount
+            }, 0)
+          : vSelectedAllRecords.value
+          ? Math.max(totalRows.value, actualTotalRows.value ?? 0)
+          : selectedRows.value?.length ?? 0
+
         const count =
-          selection.value.cellCount > 1
+          selectedGroupRecords > 0
+            ? selectedGroupRecords
+            : selection.value.cellCount > 1
             ? selection.value.cellCount
             : isGroupBy.value
             ? totalGroups.value
             : Math.max(totalRows.value, actualTotalRows.value ?? 0)
         const label =
-          selection.value.cellCount > 1
+          selectedGroupRecords > 0
+            ? selectedGroupRecords === 1
+              ? t('labels.recordSelected')
+              : t('labels.recordsSelected')
+            : selection.value.cellCount > 1
             ? t('labels.cellsSelected', { n: selection.value.cellCount })
             : isGroupBy.value
             ? count !== 1

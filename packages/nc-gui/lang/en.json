@@ -1700,7 +1700,9 @@
     "chooseWorkspaceToApplyTemplate": "Choose a workspace to apply this template",
     "hideFieldHeader": "Hide field header",
     "showFieldHeader": "Show field header",
-    "cellsSelected": "cells selected"
+    "cellsSelected": "cells selected",
+    "recordSelected": "record selected",
+    "recordsSelected": "records selected"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

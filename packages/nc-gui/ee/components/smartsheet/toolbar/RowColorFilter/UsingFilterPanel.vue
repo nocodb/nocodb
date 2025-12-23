@@ -23,7 +23,7 @@ interface Props {
       addFilterGroup: (index: number, event: FilterGroupChangeEvent) => Promise<void>
       deleteFilter: (index: number, event: FilterGroupChangeEvent) => Promise<void>
       rowChange: (index: number, event: FilterRowChangeEvent) => Promise<void>
-      copyFilter: (index: number, filter: any, isGroup: boolean) => Promise<void>
+      copyFilter: (index: number, event: FilterRowChangeEvent) => Promise<void>
     }
   }
 }
@@ -205,7 +205,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                 addFilterGroup: ($event) => handler.filters.addFilterGroup(i, $event),
                 deleteFilter: ($event) => handler.filters.deleteFilter(i, $event),
                 rowChange: ($event) => handler.filters.rowChange(i, $event),
-                copyFilter: (filter, isGroup) => handler.filters.copyFilter(i, filter, isGroup),
+                copyFilter: ($event) => handler.filters.copyFilter(i, $event),
               }"
               :query-filter="false"
               is-colour-filter

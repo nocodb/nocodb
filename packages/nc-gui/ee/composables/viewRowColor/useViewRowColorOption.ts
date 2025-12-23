@@ -515,11 +515,15 @@ export function useViewRowColorOption(params: {
     isLoadingFilter.value = false
   }
 
-  const onRowColorConditionFilterCopy = async (colorIndex: number, filterToCopy: any, isGroup: boolean) => {
+  const onRowColorConditionFilterCopy = async (colorIndex: number, params: FilterRowChangeEvent) => {
     isLoadingFilter.value = true
 
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
     const conditionToAdd = conditions[colorIndex]!
+
+    // Extract filter details from params (following same pattern as deleteFilter/copyFilter in FilterGroup.vue)
+    const filterToCopy = params.filter
+    const isGroup = filterToCopy.is_group
 
     if (isGroup) {
       // For group filter copy, copy with children but without ids
@@ -571,7 +575,7 @@ export function useViewRowColorOption(params: {
         filter.id = result.id
       })
 
-      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+      await popPendingAction()
     } else {
       // For regular filter copy, follow the same pattern as onRowColorConditionFilterAdd
       // but with pre-configured values from the filter being copied
@@ -613,9 +617,13 @@ export function useViewRowColorOption(params: {
         filter.id = result.id
       })
 
+      await popPendingAction()
+
       reloadViewDataIfNeeded(filter.fk_column_id)
-      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
     }
+
+    eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
 
     isLoadingFilter.value = false
   }
@@ -657,7 +665,7 @@ export function useViewRowColorOption(params: {
 
     // Clone nested conditions, but exclude the first root filter since it's already created
     // The first root filter in nestedConditions corresponds to conditions[0] which is created separately
-    let clonedNestedConditions = [...cloneNestedConditions(conditionToCopy.nestedConditions || [])]
+    const clonedNestedConditions = [...cloneNestedConditions(conditionToCopy.nestedConditions || [])]
 
     // Create the copied condition
     const copiedCondition: any = {

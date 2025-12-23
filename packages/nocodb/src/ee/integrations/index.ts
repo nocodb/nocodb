@@ -29,6 +29,8 @@ import GitlabSync from '@noco-local-integrations/gitlab-sync';
 import GoogleAi from '@noco-local-integrations/google-ai';
 import GoogleDriveAuth from '@noco-local-integrations/google-drive-auth';
 import GoogleDriveSync from '@noco-local-integrations/google-drive-sync';
+import GoogleMailAuth from '@noco-local-integrations/google-mail-auth';
+import GoogleWorkflowNodes from '@noco-local-integrations/google-workflow-nodes';
 import GroqAi from '@noco-local-integrations/groq-ai';
 import LinearAuth from '@noco-local-integrations/linear-auth';
 import LinearSync from '@noco-local-integrations/linear-sync';
@@ -75,6 +77,8 @@ export default [
   ...(Array.isArray(GoogleAi) ? GoogleAi : [GoogleAi]),
   ...(Array.isArray(GoogleDriveAuth) ? GoogleDriveAuth : [GoogleDriveAuth]),
   ...(Array.isArray(GoogleDriveSync) ? GoogleDriveSync : [GoogleDriveSync]),
+  ...(Array.isArray(GoogleMailAuth) ? GoogleMailAuth : [GoogleMailAuth]),
+  ...(Array.isArray(GoogleWorkflowNodes) ? GoogleWorkflowNodes : [GoogleWorkflowNodes]),
   ...(Array.isArray(GroqAi) ? GroqAi : [GroqAi]),
   ...(Array.isArray(LinearAuth) ? LinearAuth : [LinearAuth]),
   ...(Array.isArray(LinearSync) ? LinearSync : [LinearSync]),

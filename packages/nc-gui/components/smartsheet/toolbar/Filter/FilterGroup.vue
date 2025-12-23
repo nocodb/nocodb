@@ -499,6 +499,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                 :is-loading-filter="isLoadingFilter"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
+                @copy="onFilterCopy($event, i)"
               />
             </template>
           </template>

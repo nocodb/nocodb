@@ -553,8 +553,22 @@ export function useViewRowColorOption(params: {
       }
 
       const filter = copyFilterRecursively(filterToCopy)
-      // Update order for the root group filter
-      filter.order = conditionToAdd.conditions.length + 1
+      // Update order for the root group filter - max of current group or root
+      let nextOrder: number
+      if (filterToCopy.fk_parent_id) {
+        // If copying into a group, find the max order among siblings
+        const parentFilter = conditionToAdd.conditions.find((f) => f.id === filterToCopy.fk_parent_id)
+        if (parentFilter?.children?.length) {
+          nextOrder = Math.max(...parentFilter.children.map((child: any) => child?.order ?? 0)) + 1
+        } else {
+          nextOrder = 1
+        }
+      } else {
+        // If copying to root level, find the max order among root filters
+        const rootFilters = conditionToAdd.conditions.filter((f) => !f.fk_parent_id)
+        nextOrder = rootFilters.length ? Math.max(...rootFilters.map((f: any) => f?.order ?? 0)) + 1 : 1
+      }
+      filter.order = nextOrder
 
       conditionToAdd.conditions.push(filter)
       let parentFilter = null
@@ -579,6 +593,23 @@ export function useViewRowColorOption(params: {
     } else {
       // For regular filter copy, follow the same pattern as onRowColorConditionFilterAdd
       // but with pre-configured values from the filter being copied
+
+      // Calculate order: max of current group or root
+      let nextOrder: number
+      if (filterToCopy.fk_parent_id) {
+        // If copying into a group, find the max order among siblings
+        const parentFilter = conditionToAdd.conditions.find((f) => f.id === filterToCopy.fk_parent_id)
+        if (parentFilter?.children?.length) {
+          nextOrder = Math.max(...parentFilter.children.map((child: any) => child?.order ?? 0)) + 1
+        } else {
+          nextOrder = 1
+        }
+      } else {
+        // If copying to root level, find the max order among root filters
+        const rootFilters = conditionToAdd.conditions.filter((f) => !f.fk_parent_id)
+        nextOrder = rootFilters.length ? Math.max(...rootFilters.map((f: any) => f?.order ?? 0)) + 1 : 1
+      }
+
       const filter = {
         id: undefined,
         tmp_id: generateUniqueRandomUUID(conditionToAdd.conditions, ['id', 'tmp_id']),
@@ -590,14 +621,8 @@ export function useViewRowColorOption(params: {
         is_group: false,
         logical_op: filterToCopy.logical_op || conditionToAdd.conditions[0]?.logical_op || 'and',
         value: filterToCopy.value,
-        order: conditionToAdd.conditions.length + 1,
+        order: nextOrder,
       }
-
-      adjustFilterWhenColumnChange({
-        column: filterColumns.value.find((k) => k.id === filter.fk_column_id),
-        filter,
-        showNullAndEmptyInFilter: baseMeta.value?.showNullAndEmptyInFilter,
-      })
 
       conditionToAdd.conditions.push(filter)
       let parentFilter = null

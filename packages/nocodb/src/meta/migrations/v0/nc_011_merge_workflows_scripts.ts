@@ -147,6 +147,69 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
+  await migrateTableInBatches(
+    knex,
+    MetaTable.AUTOMATIONS,
+    MetaTableOldV2.SCRIPTS,
+    (automation) => {
+      return {
+        id: automation.id,
+        title: automation.title,
+        description: automation.description,
+        meta: automation.meta,
+        fk_workspace_id: automation.fk_workspace_id,
+        base_id: automation.base_id,
+        order: automation.order,
+        created_by: automation.created_by,
+        created_at: automation.created_at,
+        updated_at: automation.updated_at,
+        script: automation.script,
+        config: automation.config,
+      };
+    },
+    logger,
+    {
+      whereConditions: (queryBuilder) => {
+        return queryBuilder
+          .where('type', AutomationTypes.SCRIPT)
+          .orderBy(['base_id', 'fk_workspace_id', 'order']);
+      },
+    },
+  );
+
+  await migrateTableInBatches(
+    knex,
+    MetaTable.AUTOMATIONS,
+    MetaTableOldV2.WORKFLOWS,
+    (automation) => {
+      return {
+        id: automation.id,
+        title: automation.title,
+        description: automation.description,
+        meta: automation.meta,
+        fk_workspace_id: automation.fk_workspace_id,
+        base_id: automation.base_id,
+        order: automation.order,
+        created_by: automation.created_by,
+        updated_by: automation.updated_by,
+        created_at: automation.created_at,
+        updated_at: automation.updated_at,
+        enabled: automation.enabled,
+        nodes: automation.nodes,
+        edges: automation.edges,
+        draft: automation.draft,
+      };
+    },
+    logger,
+    {
+      whereConditions: (queryBuilder) => {
+        return queryBuilder
+          .where('type', AutomationTypes.WORKFLOW)
+          .orderBy(['base_id', 'fk_workspace_id', 'order']);
+      },
+    },
+  );
+
   await knex.schema.dropTable(MetaTable.AUTOMATIONS);
   await knex.schema.renameTable(
     MetaTable.AUTOMATION_EXECUTIONS,

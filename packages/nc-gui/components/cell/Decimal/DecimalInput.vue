@@ -210,7 +210,14 @@ onMounted(() => {
 })
 
 watch(vModel, (newValue) => {
-  if (!inputRef.value || newValue || inputRef.value.value === getFormattedModelValue()) return
+  if (
+    !inputRef.value ||
+    newValue ||
+    inputRef.value.value === getFormattedModelValue() ||
+    inputRef.value.value === (newValue?.toString() || '')
+  ) {
+    return
+  }
 
   // Clear input value if vModel is null and input value is not empty and not a dot or minus
   if (!newValue && inputRef.value.value && !['.', '-'].includes(inputRef.value.value)) {

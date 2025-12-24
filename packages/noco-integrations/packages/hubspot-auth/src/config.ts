@@ -11,10 +11,8 @@ export const redirectUri = process.env.INTEGRATION_AUTH_HUBSPOT_REDIRECT_URI;
 // See: https://developers.hubspot.com/docs/apps/legacy-apps/authentication/scopes
 export const scopes = [
   'oauth',
-  'crm.objects.leads.read',
   'crm.objects.companies.read',
   'crm.objects.contacts.read',
-  'crm.objects.users.read',
   'crm.objects.owners.read',
 ];
 

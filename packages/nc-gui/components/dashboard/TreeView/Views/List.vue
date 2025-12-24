@@ -41,7 +41,11 @@ const { t } = useI18n()
 
 const { viewsByTable, activeView, allRecentViews, isShowEveryonePersonalViewsEnabled } = storeToRefs(useViewsStore())
 
-const views = computed(() => viewsByTable.value.get(table.value.id!) ?? [])
+const views = computed(() => {
+  if (!table.value.base_id || !table.value.id) return []
+  const key = `${table.value.base_id}:${table.value.id}`
+  return viewsByTable.value.get(key) ?? []
+})
 
 const { api } = useApi()
 
@@ -160,28 +164,31 @@ const initSortable = (el: Element) => {
       }
 
       // Update the order in the viewsByTable map to trigger reactivity
-      const tableViews = viewsByTable.value.get(table.value.id!)
-      if (tableViews) {
-        // Sort the views array by order to reflect the new position
-        tableViews.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+      if (table.value.base_id && table.value.id) {
+        const key = `${table.value.base_id}:${table.value.id}`
+        const tableViews = viewsByTable.value.get(key)
+        if (tableViews) {
+          // Sort the views array by order to reflect the new position
+          tableViews.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+
+          const defaultViewAfterUpdate = getFirstNonPersonalView(tableViews, {
+            includeViewType: ViewTypes.GRID,
+          })
+
+          await updateView(
+            currentItem.id,
+            {
+              order: currentItem.order,
+            },
+            {
+              is_default_view: isFirstCollaborativeView || defaultViewAfterUpdate?.id !== firstCollaborativeView?.id,
+            },
+          )
+
+          markItem(currentItem.id)
+          $e('a:view:reorder')
+        }
       }
-
-      const defaultViewAfterUpdate = getFirstNonPersonalView(tableViews, {
-        includeViewType: ViewTypes.GRID,
-      })
-
-      await updateView(
-        currentItem.id,
-        {
-          order: currentItem.order,
-        },
-        {
-          is_default_view: isFirstCollaborativeView || defaultViewAfterUpdate?.id !== firstCollaborativeView?.id,
-        },
-      )
-
-      markItem(currentItem.id)
-      $e('a:view:reorder')
     },
     animation: 150,
     revertOnSpill: true,

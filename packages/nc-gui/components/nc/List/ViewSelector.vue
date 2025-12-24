@@ -54,7 +54,16 @@ const viewList = computedAsync(async () => {
     return []
   }
 
-  let viewsList: ViewType[] = viewsByTable.value.get(props.tableId) || []
+  // Find the key in viewsByTable that matches this tableId
+  let key: string | undefined
+  for (const [k] of viewsByTable.value) {
+    if (k.endsWith(`:${props.tableId}`)) {
+      key = k
+      break
+    }
+  }
+
+  let viewsList: ViewType[] = key ? viewsByTable.value.get(key) || [] : []
 
   if (props.filterView) {
     viewsList = viewsList.filter(props.filterView)

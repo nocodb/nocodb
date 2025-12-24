@@ -74,8 +74,9 @@ export function useTableNew(param: {
       if (navigate && openedViewsTab.value === 'view') {
         let defaultView = table?.views?.[0]
 
-        if (!defaultView) {
-          const views = viewsByTable.value.get(table.id as string) ?? []
+        if (!defaultView && table.base_id) {
+          const key = `${table.base_id}:${table.id}`
+          const views = viewsByTable.value.get(key) ?? []
 
           defaultView = getFirstNonPersonalView(views)
         }
@@ -99,21 +100,24 @@ export function useTableNew(param: {
       try {
         await loadViews({ tableId: table.id as string })
 
-        const views = viewsByTable.value.get(table.id as string) ?? []
-        if (navigate && openedViewsTab.value !== 'view' && views.length && views[0].id) {
-          // find the default view and navigate to it, if not found navigate to the first one
-          const defaultView = getFirstNonPersonalView(views)
+        if (table.base_id) {
+          const key = `${table.base_id}:${table.id}`
+          const views = viewsByTable.value.get(key) ?? []
+          if (navigate && openedViewsTab.value !== 'view' && views.length && views[0].id) {
+            // find the default view and navigate to it, if not found navigate to the first one
+            const defaultView = getFirstNonPersonalView(views)
 
-          await navigateTo(
-            `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${
-              defaultView.id
-            }/${getViewReadableUrlSlug({ tableTitle: table.title, viewOrViewTitle: defaultView })}}/${openedViewsTab.value}`,
-            cmdOrCtrl
-              ? {
-                  open: navigateToBlankTargetOpenOption,
-                }
-              : undefined,
-          )
+            await navigateTo(
+              `${cmdOrCtrl ? '#' : ''}/${workspaceIdOrType}/${baseIdOrBaseId}/${table?.id}/${
+                defaultView.id
+              }/${getViewReadableUrlSlug({ tableTitle: table.title, viewOrViewTitle: defaultView })}}/${openedViewsTab.value}`,
+              cmdOrCtrl
+                ? {
+                    open: navigateToBlankTargetOpenOption,
+                  }
+                : undefined,
+            )
+          }
         }
       } catch (e) {
         console.error(e)

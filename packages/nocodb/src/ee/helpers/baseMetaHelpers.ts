@@ -172,6 +172,15 @@ export async function serializeMeta(
           }
         }
 
+        // remove uuid for shared to avoid conflicts
+        if (records.length > 0) {
+          if (metaTable === MetaTable.VIEWS) {
+            for (const record of records) {
+              record.uuid = null;
+            }
+          }
+        }
+
         baseSchema[metaTable] = records;
       } catch (error) {
         console.error(`Failed to serialize table ${metaTable}:`, error);

@@ -66,6 +66,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const allRecentViews = ref<RecentView[]>([])
 
+  // Helper function to create composite key: baseId:tableId
+  const getViewsKey = (baseId: string, tableId: string) => `${baseId}:${tableId}`
+
   const viewsByTable = ref<Map<string, ViewType[]>>(new Map())
 
   const activeSorts = ref<SortType[]>([])
@@ -92,12 +95,17 @@ export const useViewsStore = defineStore('viewsStore', () => {
   )
 
   const views = computed({
-    get: () => (tablesStore.activeTableId ? viewsByTable.value.get(tablesStore.activeTableId) : []) ?? [],
+    get: () => {
+      if (!tablesStore.activeTableId || !activeTable.value?.base_id) return []
+      const key = getViewsKey(activeTable.value.base_id, tablesStore.activeTableId)
+      return viewsByTable.value.get(key) ?? []
+    },
     set: (value) => {
-      if (!tablesStore.activeTableId) return
-      if (!value) return viewsByTable.value.delete(tablesStore.activeTableId)
+      if (!tablesStore.activeTableId || !activeTable.value?.base_id) return
+      const key = getViewsKey(activeTable.value.base_id, tablesStore.activeTableId)
+      if (!value) return viewsByTable.value.delete(key)
 
-      viewsByTable.value.set(tablesStore.activeTableId, value)
+      viewsByTable.value.set(key, value)
     },
   })
 
@@ -208,13 +216,22 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
     let response
     if (tableId) {
-      if (!force && viewsByTable.value.get(tableId)) {
+      // Get the base_id for the table
+      const table = tablesStore.baseTables.get(activeProjectId.value!)?.find((t) => t.id === tableId)
+      if (!table?.base_id) {
+        console.warn('Could not find base_id for table:', tableId)
+        return
+      }
+
+      const key = getViewsKey(table.base_id, tableId)
+
+      if (!force && viewsByTable.value.get(key)) {
         viewsByTable.value.set(
-          tableId,
-          (viewsByTable.value.get(tableId) ?? []).sort((a, b) => a.order! - b.order!),
+          key,
+          (viewsByTable.value.get(key) ?? []).sort((a, b) => a.order! - b.order!),
         )
         isViewsLoading.value = false
-        return viewsByTable.value.get(tableId)
+        return viewsByTable.value.get(key)
       }
       if (!ignoreLoading) isViewsLoading.value = true
 
@@ -226,7 +243,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       ).list as ViewType[]
       if (response) {
         viewsByTable.value.set(
-          tableId,
+          key,
           response.sort((a, b) => a.order! - b.order!),
         )
       }
@@ -442,15 +459,24 @@ export const useViewsStore = defineStore('viewsStore', () => {
       }
 
       if (data) {
+        // Get the base_id for the table
+        const table = tablesStore.baseTables.get(activeProjectId.value!)?.find((t) => t.id === tableId)
+        if (!table?.base_id) {
+          console.warn('Could not find base_id for table:', tableId)
+          return null
+        }
+
+        const key = getViewsKey(table.base_id, tableId)
+
         // Add the new view to the store
-        const tableViews = viewsByTable.value.get(tableId) || []
+        const tableViews = viewsByTable.value.get(key) || []
 
         // Get the first collaborative grid view before
         const oldFirstCollabGridView = getFirstNonPersonalView(tableViews, {
           includeViewType: ViewTypes.GRID,
         })
 
-        viewsByTable.value.set(tableId, [...tableViews, data])
+        viewsByTable.value.set(key, [...tableViews, data])
 
         // Get the new first collaborative grid view after adding
         const newFirstCollabGridView = getFirstNonPersonalView([...tableViews, data], {
@@ -459,7 +485,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
         // If the first collaborative grid view changed, trigger getMeta
         if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && tableId) {
-          await getMeta(tableId, true)
+          await getMeta(table.base_id, tableId, true)
         }
 
         // Refresh command palette
@@ -480,9 +506,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }
 
   const duplicateView = async (view: ViewType): Promise<ViewType | null> => {
-    if (!view?.id) return null
+    if (!view?.id || !view?.base_id) return null
 
-    const views = viewsByTable.value.get(view.fk_model_id) || []
+    const key = getViewsKey(view.base_id, view.fk_model_id)
+    const views = viewsByTable.value.get(key) || []
     const uniqueTitle = generateUniqueTitle(`${view.title} copy`, views, 'title', '_', true)
 
     const getViewSpecificProps = (sourceView: ViewType) => {
@@ -543,7 +570,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }
 
   const deleteView = async (view: ViewType) => {
-    if (!view?.id) return
+    if (!view?.id || !view?.base_id) return
 
     const activeViewId = activeView.value?.id
 
@@ -558,8 +585,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
         {},
       )
 
+      const key = getViewsKey(view.base_id, view.fk_model_id)
+
       // Remove view from the viewsByTable map
-      const tableViews = viewsByTable.value.get(view.fk_model_id) || []
+      const tableViews = viewsByTable.value.get(key) || []
 
       // Get the first collaborative grid view before delete
       const oldFirstCollabGridView = getFirstNonPersonalView(tableViews, {
@@ -567,7 +596,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       })
 
       const updatedViews = tableViews.filter((v) => v.id !== view.id)
-      viewsByTable.value.set(view.fk_model_id, updatedViews)
+      viewsByTable.value.set(key, updatedViews)
 
       // Get the new first collaborative grid view after delete
       const newFirstCollabGridView = getFirstNonPersonalView(updatedViews, {
@@ -576,7 +605,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       // If the first collaborative grid view changed after deletion, trigger getMeta
       if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && view.fk_model_id) {
-        await getMeta(view.fk_model_id, true)
+        await getMeta(view.base_id, view.fk_model_id, true)
       }
 
       // Remove from recent views
@@ -594,7 +623,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       // If we deleted the active view, navigate to default or first view
       if (activeViewId === view.id) {
-        const remainingViews = viewsByTable.value.get(view.fk_model_id) || []
+        const key = getViewsKey(view.base_id, view.fk_model_id)
+        const remainingViews = viewsByTable.value.get(key) || []
         const defaultView = remainingViews[0]
 
         if (defaultView && activeTable.value) {
@@ -639,18 +669,20 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       // Find the table and update the view in the store
       const tableId = activeView.value?.fk_model_id
-      if (tableId) {
-        const tableViews = viewsByTable.value.get(tableId) || []
+      const baseId = activeView.value?.base_id
+      if (tableId && baseId) {
+        const key = getViewsKey(baseId, tableId)
+        const tableViews = viewsByTable.value.get(key) || []
         const viewIndex = tableViews.findIndex((v) => v.id === viewId)
 
         if (viewIndex !== -1) {
           if (extra?.is_default_view && tableId) {
-            await getMeta(tableId, true)
+            await getMeta(baseId, tableId, true)
           }
 
           // Replace with the response from API
           tableViews[viewIndex] = updatedView
-          viewsByTable.value.set(tableId, [...tableViews])
+          viewsByTable.value.set(key, [...tableViews])
 
           // Update recent views if title changed
           if (updatedView.title) {
@@ -721,13 +753,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
       // Find the table and update the view in the store
       const tableId = activeView.value?.fk_model_id
-      if (tableId) {
-        const tableViews = viewsByTable.value.get(tableId) || []
+      const baseId = activeView.value?.base_id
+      if (tableId && baseId) {
+        const key = getViewsKey(baseId, tableId)
+        const tableViews = viewsByTable.value.get(key) || []
         const viewIndex = tableViews.findIndex((v) => v.id === viewId)
 
         if (viewIndex !== -1) {
           tableViews[viewIndex] = updatedView
-          viewsByTable.value.set(tableId, [...tableViews])
+          viewsByTable.value.set(key, [...tableViews])
         }
       }
 
@@ -802,12 +836,40 @@ export const useViewsStore = defineStore('viewsStore', () => {
     )
   }
 
-  const updateViewCoverImageColumnId = ({ columnIds, metaId }: { columnIds: Set<string>; metaId: string }) => {
-    if (!viewsByTable.value.get(metaId)) return
+  const updateViewCoverImageColumnId = ({
+    columnIds,
+    metaId,
+    baseId,
+  }: {
+    columnIds: Set<string>
+    metaId: string
+    baseId?: string
+  }) => {
+    // Try to find the key in the viewsByTable map
+    // First try with provided baseId if available
+    let key: string | undefined
+    if (baseId) {
+      key = getViewsKey(baseId, metaId)
+      if (!viewsByTable.value.get(key)) {
+        key = undefined
+      }
+    }
+
+    // If not found, search through all keys to find a match for this metaId
+    if (!key) {
+      for (const [k] of viewsByTable.value) {
+        if (k.endsWith(`:${metaId}`)) {
+          key = k
+          break
+        }
+      }
+    }
+
+    if (!key || !viewsByTable.value.get(key)) return
 
     let isColumnUsedAsCoverImage = false
 
-    for (const view of viewsByTable.value.get(metaId) || []) {
+    for (const view of viewsByTable.value.get(key) || []) {
       if (
         [_ViewTypes.GALLERY, _ViewTypes.KANBAN].includes(view.type) &&
         view.view?.fk_cover_image_col_id &&
@@ -821,8 +883,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     if (!isColumnUsedAsCoverImage) return
 
     viewsByTable.value.set(
-      metaId,
-      (viewsByTable.value.get(metaId) || [])
+      key,
+      (viewsByTable.value.get(key) || [])
         .map((view) => {
           if (
             [_ViewTypes.GALLERY, _ViewTypes.KANBAN].includes(view.type) &&
@@ -975,12 +1037,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (from === 'toolbar') {
         result.isVisible = false
       }
-    } else if ((viewsByTable.value.get(view.fk_model_id) || []).length < 2) {
-      result.isDisabled = true
-      result.tooltip = t('tooltip.youNeedAtLeastOneExistingViewToCopyConfigurations')
+    } else if (view.base_id) {
+      const key = getViewsKey(view.base_id, view.fk_model_id)
+      if ((viewsByTable.value.get(key) || []).length < 2) {
+        result.isDisabled = true
+        result.tooltip = t('tooltip.youNeedAtLeastOneExistingViewToCopyConfigurations')
 
-      if (from === 'toolbar') {
-        result.isVisible = false
+        if (from === 'toolbar') {
+          result.isVisible = false
+        }
       }
     }
 
@@ -1056,14 +1121,15 @@ export const useViewsStore = defineStore('viewsStore', () => {
         await getMeta(destView.base_id!, destView.fk_model_id!, true)
       }
 
-      if (res?.view && destView.fk_model_id) {
-        const tableViews = viewsByTable.value.get(destView.fk_model_id) || []
+      if (res?.view && destView.fk_model_id && destView.base_id) {
+        const key = getViewsKey(destView.base_id, destView.fk_model_id)
+        const tableViews = viewsByTable.value.get(key) || []
         const viewIndex = tableViews.findIndex((v) => v.id === destView.id)
 
         if (viewIndex !== -1) {
           // Replace with the response from API
           tableViews[viewIndex] = res.view
-          viewsByTable.value.set(destView.fk_model_id, [...tableViews])
+          viewsByTable.value.set(key, [...tableViews])
 
           refreshCommandPalette()
         }
@@ -1113,7 +1179,19 @@ export const useViewsStore = defineStore('viewsStore', () => {
     await loadViews({
       tableId,
     })
-    const grids = viewsByTable.value.get(tableId)?.filter((v) => v.type === ViewTypes.GRID && v.lock_type !== LockType.Personal)
+
+    // Find the key in viewsByTable that matches this tableId
+    let key: string | undefined
+    for (const [k] of viewsByTable.value) {
+      if (k.endsWith(`:${tableId}`)) {
+        key = k
+        break
+      }
+    }
+
+    if (!key) return false
+
+    const grids = viewsByTable.value.get(key)?.filter((v) => v.type === ViewTypes.GRID && v.lock_type !== LockType.Personal)
     return grids?.length === 1
   }
 

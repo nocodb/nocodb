@@ -170,7 +170,10 @@ export const useRealtime = createSharedComposable(() => {
         if (!skipDataReload) $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
       }
     } else if (event.action === 'view_create') {
-      const views = viewsByTable.value.get(event.payload.fk_model_id) || []
+      if (!event.payload.base_id || !event.payload.fk_model_id) return
+
+      const key = `${event.payload.base_id}:${event.payload.fk_model_id}`
+      const views = viewsByTable.value.get(key) || []
 
       // Check if there was a first collaborative grid view before
       const oldFirstCollabGridView = getFirstNonPersonalView(views, {
@@ -186,12 +189,15 @@ export const useRealtime = createSharedComposable(() => {
 
       // If the first collaborative grid view changed, trigger getMeta
       if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id) {
-        getMeta(event.payload.fk_model_id, true)
+        getMeta(event.payload.base_id, event.payload.fk_model_id, true)
       }
 
       refreshCommandPalette()
     } else if (event.action === 'view_update') {
-      const tableViews = viewsByTable.value.get(event.payload.fk_model_id)
+      if (!event.payload.base_id || !event.payload.fk_model_id) return
+
+      const key = `${event.payload.base_id}:${event.payload.fk_model_id}`
+      const tableViews = viewsByTable.value.get(key)
       const view = tableViews?.find((v) => v.id === event.payload.id)
       if (view) {
         const needReload = !view?.show_system_fields && event.payload?.show_system_fields
@@ -221,7 +227,10 @@ export const useRealtime = createSharedComposable(() => {
       }
       refreshCommandPalette()
     } else if (event.action === 'view_delete') {
-      const views = viewsByTable.value.get(event.payload.fk_model_id)
+      if (!event.payload.base_id || !event.payload.fk_model_id) return
+
+      const key = `${event.payload.base_id}:${event.payload.fk_model_id}`
+      const views = viewsByTable.value.get(key)
       if (views) {
         // Check if there was a first collaborative grid view before delete
         const oldFirstCollabGridView = getFirstNonPersonalView(views, {

@@ -1,10 +1,12 @@
-import { generateObject, generateText, type LanguageModel } from 'ai';
+import { generateObject, generateText } from 'ai';
 import { createGroq } from '@ai-sdk/groq';
 import {
   type AiGenerateObjectArgs,
+  type AiGetModelArgs,
   AiIntegration,
 } from '@noco-integrations/core';
 import type { AiGenerateTextArgs } from '@noco-integrations/core';
+import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 export class GroqAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
@@ -41,8 +43,8 @@ export class GroqAiIntegration extends AiIntegration {
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -59,8 +61,29 @@ export class GroqAiIntegration extends AiIntegration {
     return aliases[model] || model;
   }
 
+  public getModel(args?: AiGetModelArgs): LanguageModel {
+    const customModel = args?.customModel;
+    const model = customModel || this.config.models[0];
+
+    if (!model) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const apiKey = this.config.apiKey;
+
+    if (!apiKey) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const groqClient = createGroq({
+      apiKey,
+    });
+
+    return groqClient(model);
+  }
+
   public async generateText(args: AiGenerateTextArgs) {
-    const { prompt, messages, system } = args;
+    const { system } = args;
 
     if (!this.model || args.customModel) {
       const model = args.customModel || this.config.models[0];
@@ -84,16 +107,17 @@ export class GroqAiIntegration extends AiIntegration {
 
     const response = await generateText({
       model: this.model,
-      prompt,
-      messages,
       temperature: 0.5,
       system,
+      ...('messages' in args
+        ? { messages: args.messages }
+        : { prompt: args.prompt }),
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },

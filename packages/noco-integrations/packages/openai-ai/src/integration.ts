@@ -1,10 +1,12 @@
-import { generateObject, generateText, type LanguageModel } from 'ai';
+import { generateObject, generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import {
   type AiGenerateObjectArgs,
+  type AiGetModelArgs,
   AiIntegration,
 } from '@noco-integrations/core';
 import type { AiGenerateTextArgs } from '@noco-integrations/core';
+import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 export class OpenAIIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
@@ -27,7 +29,6 @@ export class OpenAIIntegration extends AiIntegration {
 
       const customOpenAi = createOpenAI({
         apiKey: apiKey,
-        compatibility: 'strict',
       });
 
       this.model = customOpenAi(model);
@@ -42,8 +43,8 @@ export class OpenAIIntegration extends AiIntegration {
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -52,7 +53,7 @@ export class OpenAIIntegration extends AiIntegration {
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { prompt, messages, customModel } = args;
+    const { customModel } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
@@ -71,7 +72,6 @@ export class OpenAIIntegration extends AiIntegration {
 
       const customOpenAi = createOpenAI({
         apiKey: apiKey,
-        compatibility: 'strict',
       });
 
       this.model = customOpenAi(model);
@@ -79,15 +79,16 @@ export class OpenAIIntegration extends AiIntegration {
 
     const response = await generateText({
       model: this.model,
-      prompt,
-      messages,
       temperature: 0.5,
+      ...('messages' in args
+        ? { messages: args.messages }
+        : { prompt: args.prompt }),
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -103,6 +104,27 @@ export class OpenAIIntegration extends AiIntegration {
       'o4-mini': 'o4-mini',
     };
     return aliases[model] || model;
+  }
+
+  public getModel(args?: AiGetModelArgs): LanguageModel {
+    const customModel = args?.customModel;
+    const model = customModel || this.config.models[0];
+
+    if (!model) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const apiKey = this.config.apiKey;
+
+    if (!apiKey) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const openAI = createOpenAI({
+      apiKey,
+    });
+
+    return openAI(model);
   }
 
   public availableModels(): { value: string; label: string }[] {

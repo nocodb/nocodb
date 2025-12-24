@@ -1,10 +1,12 @@
-import { generateObject, generateText, type LanguageModel } from 'ai';
+import { generateObject, generateText } from 'ai';
 import { createAzure } from '@ai-sdk/azure';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
+  type AiGetModelArgs,
   AiIntegration,
 } from '@noco-integrations/core';
+import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 export class AzureAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
@@ -45,8 +47,8 @@ export class AzureAiIntegration extends AiIntegration {
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -55,7 +57,7 @@ export class AzureAiIntegration extends AiIntegration {
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { prompt, messages, customModel, system } = args;
+    const { customModel, system } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
@@ -83,15 +85,16 @@ export class AzureAiIntegration extends AiIntegration {
     const response = await generateText({
       system,
       model: this.model,
-      prompt,
-      messages,
       temperature: 0.5,
+      ...('messages' in args
+        ? { messages: args.messages }
+        : { prompt: args.prompt }),
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -107,6 +110,31 @@ export class AzureAiIntegration extends AiIntegration {
       'o4-mini': 'o4-mini',
     };
     return aliases[model] || model;
+  }
+
+  public getModel(args?: AiGetModelArgs): LanguageModel {
+    const customModel = args?.customModel;
+    const model = customModel || this.config.models[0];
+
+    if (!model) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const resourceName = this.config.resourceName;
+    const apiKey = this.config.apiKey;
+    const apiVersion = this.config.apiVersion;
+
+    if (!resourceName || !apiKey) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const azureClient = createAzure({
+      resourceName,
+      apiKey,
+      apiVersion,
+    });
+
+    return azureClient(model);
   }
 
   public availableModels(): { value: string; label: string }[] {

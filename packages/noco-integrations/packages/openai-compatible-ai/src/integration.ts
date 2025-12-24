@@ -1,10 +1,12 @@
-import { generateObject, generateText, type LanguageModel } from 'ai';
+import { generateObject, generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import {
   type AiGenerateObjectArgs,
+  type AiGetModelArgs,
   AiIntegration,
 } from '@noco-integrations/core';
 import type { AiGenerateTextArgs } from '@noco-integrations/core';
+import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 export class OpenAiCompatibleAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
@@ -29,7 +31,6 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
       const openAIClient = createOpenAI({
         baseURL,
         apiKey,
-        compatibility: 'compatible', // This is important for compatibility with alternative implementations
       });
 
       this.model = openAIClient(model);
@@ -44,8 +45,8 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -54,7 +55,7 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { prompt, messages, customModel, system } = args;
+    const { customModel, system } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
@@ -80,7 +81,6 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
       const customOpenai = createOpenAI({
         apiKey,
         baseURL,
-        compatibility: 'compatible', // This is important for compatibility with alternative implementations
       });
 
       this.model = customOpenai(model) as LanguageModel;
@@ -88,16 +88,17 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
 
     const response = await generateText({
       model: this.model,
-      prompt,
-      messages,
       system,
       temperature: 0.5,
+      ...('messages' in args
+        ? { messages: args.messages }
+        : { prompt: args.prompt }),
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -113,6 +114,29 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
       'deepseek-r1-distill-llama-70b': 'DeepSeek R1 Distill Llama 70B',
     };
     return aliases[model] || model;
+  }
+
+  public getModel(args?: AiGetModelArgs): LanguageModel {
+    const customModel = args?.customModel;
+    const model = customModel || this.config.models[0];
+
+    if (!model) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const baseURL = this.config.baseURL;
+    const apiKey = this.config.apiKey || 'dummy-key'; // Some implementations don't require an API key
+
+    if (!baseURL) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const openAIClient = createOpenAI({
+      baseURL,
+      apiKey,
+    });
+
+    return openAIClient(model);
   }
 
   public availableModels(): { value: string; label: string }[] {

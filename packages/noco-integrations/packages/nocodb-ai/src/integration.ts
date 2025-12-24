@@ -1,10 +1,12 @@
-import { generateObject, generateText, type LanguageModel } from 'ai';
+import { generateObject, generateText } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { AiIntegration } from '@noco-integrations/core';
 import type {
   AiGenerateObjectArgs,
   AiGenerateTextArgs,
+  AiGetModelArgs,
 } from '@noco-integrations/core';
+import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 const modelMap: Record<string, string> = {
   high: 'gpt-4o',
@@ -34,7 +36,6 @@ export class NocodbAiIntegration extends AiIntegration {
 
       const customOpenAi = createOpenAI({
         apiKey: apiKey,
-        compatibility: 'strict',
       });
 
       this.model = customOpenAi(model) as LanguageModel;
@@ -49,8 +50,8 @@ export class NocodbAiIntegration extends AiIntegration {
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -59,7 +60,7 @@ export class NocodbAiIntegration extends AiIntegration {
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { prompt, messages, customModel, system } = args;
+    const { customModel, system } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
@@ -81,7 +82,6 @@ export class NocodbAiIntegration extends AiIntegration {
 
       const customOpenAi = createOpenAI({
         apiKey: apiKey,
-        compatibility: 'strict',
       });
 
       this.model = customOpenAi(model);
@@ -89,16 +89,17 @@ export class NocodbAiIntegration extends AiIntegration {
 
     const response = await generateText({
       model: this.model,
-      prompt,
-      messages,
       temperature: 0.5,
       system,
+      ...('messages' in args
+        ? { messages: args.messages }
+        : { prompt: args.prompt }),
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -114,6 +115,27 @@ export class NocodbAiIntegration extends AiIntegration {
     };
 
     return aliases[model] || model;
+  }
+
+  public getModel(args?: AiGetModelArgs): LanguageModel {
+    const customModel = args?.customModel;
+    const config = this.config || {};
+
+    const inputModel = customModel || config?.models?.[0];
+    const model =
+      modelMap[inputModel as keyof typeof modelMap] || modelMap.high;
+
+    const apiKey = config.apiKey;
+
+    if (!apiKey) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const openAI = createOpenAI({
+      apiKey,
+    });
+
+    return openAI(model);
   }
 
   public availableModels(): { value: string; label: string }[] {

@@ -37,6 +37,8 @@ import JiraCloudAuth from '@noco-local-integrations/jira-cloud-auth';
 import JiraCloudSync from '@noco-local-integrations/jira-cloud-sync';
 import HubspotAuth from '@noco-local-integrations/hubspot-auth';
 import HubspotSync from '@noco-local-integrations/hubspot-sync';
+import JiraCloudAuth from '@noco-local-integrations/jira-cloud-auth';
+import JiraCloudSync from '@noco-local-integrations/jira-cloud-sync';
 import LinearAuth from '@noco-local-integrations/linear-auth';
 import LinearSync from '@noco-local-integrations/linear-sync';
 import MysqlAuth from '@noco-local-integrations/mysql-auth';

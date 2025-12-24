@@ -217,8 +217,8 @@ export const useRealtime = createSharedComposable(() => {
 
         // If the first collaborative grid view changed (e.g., view changed from personal to collaborative)
         // trigger getMeta to refresh table metadata
-        if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id) {
-          getMeta(event.payload.fk_model_id, true)
+        if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id && event.payload.base_id) {
+          getMeta(event.payload.base_id, event.payload.fk_model_id, true)
         }
 
         if (needReload) $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)

@@ -171,7 +171,13 @@ const refViews = computed(() => {
 
   if (!childId) return []
 
-  const views = viewsByTable.value.get(childId)
+  // Find the child table to get its base_id
+  const childTable = tables.value.find((t) => t.id === childId)
+
+  if (!childTable?.base_id) return []
+
+  const key = `${childTable.base_id}:${childId}`
+  const views = viewsByTable.value.get(key) || []
 
   // In edit mode, if view is not accessible, return a "Private view" object
   if (isEdit.value && vModel.value.childViewId && isLinkedViewPrivate.value) {

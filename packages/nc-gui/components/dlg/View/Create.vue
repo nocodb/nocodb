@@ -115,7 +115,12 @@ const { t } = useI18n()
 
 const isViewCreating = ref(false)
 
-const views = computed(() => viewsByTable.value.get(tableId.value) ?? [])
+const views = computed(() => {
+  if (!tableId.value || !baseId.value) return []
+
+  const key = `${baseId.value}:${tableId.value}`
+  return viewsByTable.value.get(key) ?? []
+})
 
 const isNecessaryColumnsPresent = ref(true)
 

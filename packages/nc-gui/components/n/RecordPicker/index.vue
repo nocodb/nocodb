@@ -97,16 +97,23 @@ const loadMetas = async () => {
 
   tableMeta.value = (await getMeta(tableMeta.value?.base_id, props.tableId))!
 
+  // Helper function to find views for this table
+  const findViews = () => {
+    if (!tableMeta.value?.base_id) return []
+    const key = `${tableMeta.value.base_id}:${props.tableId}`
+    return viewsByTable.value.get(key) || []
+  }
+
   if (props.viewId) {
-    viewMeta.value = viewsByTable.value.get(props.tableId)?.find((v) => v.id === props.viewId)
+    viewMeta.value = findViews().find((v) => v.id === props.viewId)
 
     if (!viewMeta.value) {
       await loadViews({ tableId: props.tableId, force: true })
-      viewMeta.value = viewsByTable.value.get(props.tableId)?.find((v) => v.id === props.viewId)
+      viewMeta.value = findViews().find((v) => v.id === props.viewId)
     }
   } else {
     await loadViews({ tableId: props.tableId, force: true })
-    viewMeta.value = getFirstNonPersonalView(viewsByTable.value.get(props.tableId) || [], {
+    viewMeta.value = getFirstNonPersonalView(findViews(), {
       includeViewType: ViewTypes.GRID,
     })
   }

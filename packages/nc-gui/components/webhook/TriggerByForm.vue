@@ -13,12 +13,18 @@ const viewStore = useViewsStore()
 
 const { viewsByTable } = storeToRefs(viewStore)
 
+const { base } = storeToRefs(useBase())
+
 const filterView = (v: ViewType) => {
   return v.type === ViewTypes.FORM
 }
 
 const formOptions = computed(() => {
-  const views = viewsByTable.value.get(props.tableId) || []
+  if (!base.value?.id) return []
+
+  const key = `${base.value.id}:${props.tableId}`
+  const views = viewsByTable.value.get(key) || []
+
   return views.filter(filterView).map((view) => ({
     label: view.title,
     value: view.id,

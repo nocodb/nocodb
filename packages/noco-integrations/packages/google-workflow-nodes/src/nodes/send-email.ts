@@ -12,6 +12,7 @@ import {
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
+  WorkflowNodeLog,
   WorkflowNodeResult,
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
@@ -173,7 +174,7 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
           return response.data.sendAs || [];
         });
 
-        return result.map((sendAs: any) => ({
+        return result.map((sendAs: gmail_v1.Schema$SendAs) => ({
           label: sendAs.displayName
             ? `${sendAs.displayName} <${sendAs.sendAsEmail}>`
             : sendAs.sendAsEmail,
@@ -193,6 +194,71 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
     }
   }
 
+  /**
+   * Sanitizes email header values to prevent header injection attacks.
+   * Removes carriage return and line feed characters that could be used
+   * to inject additional headers or modify email behavior.
+   *
+   * @param value The header value to sanitize
+   * @returns The sanitized header value
+   */
+  private sanitizeHeaderValue(value: string): string {
+    if (!value) return '';
+    // Remove \r and \n characters to prevent header injection
+    return value.replace(/[\r\n]/g, '');
+  }
+
+  /**
+   * Validates email addresses in a comma-separated list.
+   * Skips validation for dynamic values (variables like $(variableName)).
+   *
+   * @param emails Comma-separated email addresses
+   * @returns True if all emails are valid or dynamic, false otherwise
+   */
+  private validateEmails(emails: string): boolean {
+    if (!emails || !emails.trim()) return false;
+
+    const emailList = emails
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+
+    for (const email of emailList) {
+      // Skip validation for dynamic values
+      const isDynamic = /\$\([^)]*\)/.test(email);
+      if (!isDynamic) {
+        const isValid = NocoSDK.validateEmail(email);
+        if (!isValid) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   * Builds a raw RFC 2822–formatted email and encodes it for the Gmail API.
+   *
+   * The method constructs the message by:
+   * - Assembling standard RFC 2822 headers (From, To, Cc, Bcc, Reply-To,
+   *   In-Reply-To, Subject, MIME-Version, and Content-Type).
+   * - Joining headers using CRLF (`\r\n`) line endings.
+   * - Appending an empty CRLF line to separate headers from the body, followed
+   *   by the message body content. This yields a single RFC 2822–compliant
+   *   message string.
+   *
+   * The resulting message string is then:
+   * - Encoded to base64.
+   * - Converted to base64url by replacing '+' with '-', '/' with '_', and
+   *   trimming any trailing '=' padding characters.
+   *
+   * This base64url-encoded string is suitable for use as the `raw` field in
+   * the Gmail `users.messages.send` API.
+   *
+   * @param config Email configuration options used to populate headers and body.
+   * @returns A base64url-encoded RFC 2822 message string.
+   */
   private createRawEmail(config: SendEmailNodeConfig): string {
     const {
       to,
@@ -210,31 +276,35 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
     const headers: string[] = [];
 
     if (fromAddress) {
-      const fromHeader = fromName
-        ? `"${fromName}" <${fromAddress}>`
-        : fromAddress;
+      const sanitizedFromName = fromName
+        ? this.sanitizeHeaderValue(fromName)
+        : '';
+      const sanitizedFromAddress = this.sanitizeHeaderValue(fromAddress);
+      const fromHeader = sanitizedFromName
+        ? `"${sanitizedFromName}" <${sanitizedFromAddress}>`
+        : sanitizedFromAddress;
       headers.push(`From: ${fromHeader}`);
     }
 
-    headers.push(`To: ${to}`);
+    headers.push(`To: ${this.sanitizeHeaderValue(to)}`);
 
     if (cc) {
-      headers.push(`Cc: ${cc}`);
+      headers.push(`Cc: ${this.sanitizeHeaderValue(cc)}`);
     }
 
     if (bcc) {
-      headers.push(`Bcc: ${bcc}`);
+      headers.push(`Bcc: ${this.sanitizeHeaderValue(bcc)}`);
     }
 
     if (replyTo) {
-      headers.push(`Reply-To: ${replyTo}`);
+      headers.push(`Reply-To: ${this.sanitizeHeaderValue(replyTo)}`);
     }
 
     if (inReplyTo) {
-      headers.push(`In-Reply-To: ${inReplyTo}`);
+      headers.push(`In-Reply-To: ${this.sanitizeHeaderValue(inReplyTo)}`);
     }
 
-    headers.push(`Subject: ${subject}`);
+    headers.push(`Subject: ${this.sanitizeHeaderValue(subject)}`);
     headers.push(
       `Content-Type: text/${isHtml ? 'html' : 'plain'}; charset=utf-8`,
     );
@@ -253,7 +323,7 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
     ctx: WorkflowNodeRunContext<SendEmailNodeConfig>,
   ): Promise<WorkflowNodeResult> {
     const startTime = Date.now();
-    const logs: any[] = [];
+    const logs: Array<WorkflowNodeLog> = [];
 
     const config = ctx.inputs?.config || {};
 
@@ -278,7 +348,56 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
           status: 'error',
           error: {
             message: 'Recipient email is required',
-            code: 'MISSING_RECIPIENT',
+            code: 'INVALID_INPUT',
+          },
+          logs,
+        };
+      }
+
+      if (!this.validateEmails(to)) {
+        return {
+          outputs: {},
+          status: 'error',
+          error: {
+            message: 'Please provide a valid email address in the To field',
+            code: 'INVALID_INPUT',
+          },
+          logs,
+        };
+      }
+
+      if (config.cc && !this.validateEmails(config.cc)) {
+        return {
+          outputs: {},
+          status: 'error',
+          error: {
+            message: 'Please provide a valid email address in the CC field',
+            code: 'INVALID_INPUT',
+          },
+          logs,
+        };
+      }
+
+      if (config.bcc && !this.validateEmails(config.bcc)) {
+        return {
+          outputs: {},
+          status: 'error',
+          error: {
+            message: 'Please provide a valid email address in the BCC field',
+            code: 'INVALID_INPUT',
+          },
+          logs,
+        };
+      }
+
+      if (config.replyTo && !this.validateEmails(config.replyTo)) {
+        return {
+          outputs: {},
+          status: 'error',
+          error: {
+            message:
+              'Please provide a valid email address in the Reply To field',
+            code: 'INVALID_INPUT',
           },
           logs,
         };
@@ -290,7 +409,7 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
           status: 'error',
           error: {
             message: 'Subject is required',
-            code: 'MISSING_SUBJECT',
+            code: 'INVALID_INPUT',
           },
           logs,
         };
@@ -302,7 +421,7 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
           status: 'error',
           error: {
             message: 'Email body is required',
-            code: 'MISSING_BODY',
+            code: 'INVALID_INPUT',
           },
           logs,
         };

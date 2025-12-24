@@ -49,7 +49,7 @@ export const SCHEMA_CRM: SyncSchema = {
   [TARGET_TABLES.CRM_CONTACT]: {
     title: TARGET_TABLES_META[TARGET_TABLES.CRM_CONTACT].label,
     columns: [
-      { title: 'First Name', uidt: UITypes.SingleLineText },
+      { title: 'First Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Last Name', uidt: UITypes.SingleLineText },
       { title: 'Addresses', uidt: UITypes.SingleLineText },
       { title: 'Email Addresses', uidt: UITypes.Email },
@@ -208,7 +208,7 @@ export const SCHEMA_CRM: SyncSchema = {
   [TARGET_TABLES.CRM_USER]: {
     title: TARGET_TABLES_META[TARGET_TABLES.CRM_USER].label,
     columns: [
-      { title: 'Name', uidt: UITypes.SingleLineText },
+      { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Email', uidt: UITypes.Email },
       { title: 'Is Active', uidt: UITypes.Checkbox },
       { title: 'Remote Fields', uidt: UITypes.JSON },

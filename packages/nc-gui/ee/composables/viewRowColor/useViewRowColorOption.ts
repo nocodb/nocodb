@@ -87,7 +87,15 @@ export function useViewRowColorOption(params: {
   }
 
   const onRemoveRowColoringMode = async () => {
-    await $api.dbView.deleteViewRowColor(params.view.value.id)
+    await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      {
+        operation: 'viewRowColorDelete',
+        viewId: params.view.value.id,
+      },
+      {},
+    )
     rowColorInfo.value = { mode: null, conditions: [] }
 
     const viewMeta = parseProp(getViewById(params.view.value.id!)?.meta)
@@ -107,7 +115,15 @@ export function useViewRowColorOption(params: {
     isLoadingFilter.value = true
 
     if (rowColorInfo.value.fk_column_id) {
-      await $api.dbView.viewRowColorSelectAdd(params.view.value.id, rowColorInfo.value)
+      await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'viewRowColorSelectAdd',
+          viewId: params.view.value.id,
+        },
+        rowColorInfo.value,
+      )
 
       const viewMeta = parseProp(getViewById(params.view.value.id!)?.meta)
 
@@ -162,10 +178,18 @@ export function useViewRowColorOption(params: {
     conditions.push(conditionToAdd)
 
     await pushPendingAction(async () => {
-      const response = await $api.dbView.viewRowColorConditionAdd(params.view.value.id, {
-        ...conditionToAdd,
-        filter,
-      })
+      const response = await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'viewRowColorConditionAdd',
+          viewId: params.view.value.id,
+        },
+        {
+          ...conditionToAdd,
+          filter,
+        },
+      )
       conditionToAdd.id = response.id
       const rowColoringResponse: RowColoringInfo = response.info
       if (conditionToAdd.conditions[0]) {
@@ -191,7 +215,15 @@ export function useViewRowColorOption(params: {
       rowColorInfo.value.fk_column_id = selectColumn?.id
       rowColorInfo.value.is_set_as_background = false
       if (rowColorInfo.value.fk_column_id) {
-        await $api.dbView.viewRowColorSelectAdd(params.view.value.id, rowColorInfo.value)
+        await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'viewRowColorSelectAdd',
+            viewId: params.view.value.id,
+          },
+          rowColorInfo.value,
+        )
 
         reloadViewDataIfNeeded(rowColorInfo.value.fk_column_id)
       }
@@ -228,7 +260,15 @@ export function useViewRowColorOption(params: {
       conditions.splice(index, 1)
       if (deleteConditionId) {
         try {
-          await $api.dbView.viewRowColorConditionDelete(params.view.value.id, deleteConditionId)
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewRowColorConditionDelete',
+              rowColorConditionId: deleteConditionId,
+            },
+            {},
+          )
         } catch (err: any) {
           console.log('error', err)
         }
@@ -247,11 +287,19 @@ export function useViewRowColorOption(params: {
     conditionToUpdate.is_set_as_background = params.is_set_as_background
     conditionToUpdate.color = params.color
     try {
-      await $api.dbView.viewRowColorConditionUpdate(view.value.id, conditionToUpdate?.id, {
-        color: params.color,
-        is_set_as_background: params.is_set_as_background,
-        nc_order: conditionToUpdate.nc_order,
-      })
+      await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'viewRowColorConditionUpdate',
+          rowColorConditionId: conditionToUpdate?.id,
+        },
+        {
+          color: params.color,
+          is_set_as_background: params.is_set_as_background,
+          nc_order: conditionToUpdate.nc_order,
+        },
+      )
     } catch (err: any) {
       console.log('error', err)
     }

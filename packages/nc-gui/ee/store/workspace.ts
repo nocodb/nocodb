@@ -43,8 +43,6 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   // todo: update type in swagger
   const basesStore = useBases()
 
-  const workspaceStore = useWorkspace()
-
   const deletingWorkspace = ref(false)
 
   const ssoLoginRequiredDlg = ref(false)
@@ -341,7 +339,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
         onCurrentUserLeftCallback?.()
         userLocalStorageInfoManager.clearWorkspace(currentUser.value?.id, workspaceId ?? activeWorkspace.value.id!)
 
-        const list = await workspaceStore.loadWorkspaces()
+        const list = await loadWorkspaces()
         message.success(`You’ve left the workspace. Switched to ${list?.[0]?.title ?? 'another'} workspace.`)
         return await navigateTo(`/${list?.[0]?.id}`)
       }

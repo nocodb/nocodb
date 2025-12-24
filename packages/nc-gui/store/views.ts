@@ -186,6 +186,8 @@ export const useViewsStore = defineStore('viewsStore', () => {
     ignoreLoading,
     force,
   }: { tableId?: string; ignoreLoading?: boolean; force?: boolean } = {}) => {
+    await until(() => activeProjectId.value).toBeTruthy()
+
     tableId = tableId ?? tablesStore.activeTableId
 
     let response

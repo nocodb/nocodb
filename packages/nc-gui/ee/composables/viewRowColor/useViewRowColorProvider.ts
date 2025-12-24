@@ -33,7 +33,11 @@ export function useViewRowColorProvider(params: { shared?: boolean }) {
     if (!viewId.value) return
 
     const rowColorInfoResponse = !params.shared
-      ? customPayload || (await $api.dbView.getViewRowColor(viewId.value))
+      ? customPayload ||
+        (await $api.internal.getOperation(activeView.value!.fk_workspace_id!, activeView.value!.base_id!, {
+          operation: 'viewRowColorInfo',
+          viewId: viewId.value,
+        }))
       : (activeView.value as ViewType & { viewRowColorInfo: RowColoringInfo | null })?.viewRowColorInfo
 
     if (!rowColorInfoResponse) {

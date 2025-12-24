@@ -41,6 +41,7 @@ import { MailService } from '~/services/mail/mail.service';
 import { TablesService } from '~/services/tables.service';
 import { ViewsService } from '~/services/views.service';
 import { ViewColumnsService } from '~/services/view-columns.service';
+import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
 import { SortsService } from '~/services/sorts.service';
 import { HooksService } from '~/services/hooks.service';
@@ -71,6 +72,7 @@ export class InternalController extends InternalControllerCE {
     protected readonly tablesService: TablesService,
     protected readonly viewsService: ViewsService,
     protected readonly viewColumnsService: ViewColumnsService,
+    protected readonly viewRowColorService: ViewRowColorService,
     protected readonly filtersService: FiltersService,
     protected readonly sortsService: SortsService,
     protected readonly hooksService: HooksService,
@@ -216,6 +218,11 @@ export class InternalController extends InternalControllerCE {
             viewId: req.query.viewId as string,
           }),
         );
+      case 'viewRowColorInfo':
+        return (await this.viewRowColorService.getByViewId({
+          context,
+          fk_view_id: req.query.viewId as string,
+        })) as any;
       case 'filterList':
         return new PagedResponseImpl(
           await this.filtersService.filterList(context, {
@@ -625,6 +632,48 @@ export class InternalController extends InternalControllerCE {
           columnId: req.query.columnId,
           column: payload,
           req,
+        });
+      case 'viewColumnCreate':
+        return await this.viewColumnsService.columnAdd(context, {
+          viewId: req.query.viewId,
+          column: payload,
+          req,
+        });
+      case 'viewRowColorConditionAdd':
+        return await this.viewRowColorService.addRowColoringCondition({
+          context,
+          fk_view_id: req.query.viewId,
+          color: payload.color,
+          is_set_as_background: payload.is_set_as_background,
+          nc_order: payload.nc_order,
+          filter: payload.filter,
+        });
+      case 'viewRowColorConditionUpdate':
+        return await this.viewRowColorService.updateRowColoringCondition({
+          context,
+          fk_view_id: req.query.viewId,
+          fk_row_coloring_conditions_id: req.query.rowColorConditionId,
+          color: payload.color,
+          is_set_as_background: payload.is_set_as_background,
+          nc_order: payload.nc_order,
+        });
+      case 'viewRowColorConditionDelete':
+        return await this.viewRowColorService.deleteRowColoringCondition({
+          context,
+          fk_view_id: req.query.viewId,
+          fk_row_coloring_conditions_id: req.query.rowColorConditionId,
+        });
+      case 'viewRowColorSelectAdd':
+        return await this.viewRowColorService.setRowColoringSelect({
+          context,
+          fk_view_id: req.query.viewId,
+          fk_column_id: payload.fk_column_id,
+          is_set_as_background: payload.is_set_as_background,
+        });
+      case 'viewRowColorDelete':
+        return await this.viewRowColorService.removeRowColorInfo({
+          context,
+          fk_view_id: req.query.viewId,
         });
       case 'filterCreate':
         return await this.filtersService.filterCreate(context, {

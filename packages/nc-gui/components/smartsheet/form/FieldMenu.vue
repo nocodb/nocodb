@@ -59,7 +59,12 @@ const duplicateVirtualColumn = async () => {
   }
 
   try {
-    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder
@@ -114,7 +119,12 @@ const openDuplicateDlg = async () => {
   ) {
     duplicateVirtualColumn()
   } else {
-    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder

@@ -6,6 +6,8 @@ import type Record from '~icons/*'
 
 // todo: merge with base store
 export const useBases = defineStore('basesStore', () => {
+  console.log('useBases store initialized', new Error('Stack trace').stack)
+
   const { $api, $e } = useNuxtApp()
 
   const { loadRoles, isUIAllowed } = useRoles()

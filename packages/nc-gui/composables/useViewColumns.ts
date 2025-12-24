@@ -77,7 +77,15 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       let order = 1
 
-      const data = ((isPublic ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id)).list) as any[]) ?? []
+      const data =
+        ((isPublic
+          ? meta.value?.columns
+          : (
+              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'viewColumnList',
+                viewId: view.value.id,
+              })
+            ).list) as any[]) ?? []
 
       const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
         // If hide column api is in progress and we try to load columns before that then we need to assign local visibility state
@@ -292,7 +300,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       if (isUIAllowed('viewFieldEdit')) {
         if (field.id && view?.value?.id) {
-          await $api.dbViewColumn.update(view.value.id, field.id, field)
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnUpdate',
+              viewId: view.value.id,
+              columnId: field.id,
+            },
+            field,
+          )
 
           if (updateDefaultViewColMeta) {
             updateDefaultViewColumnMeta(field.fk_column_id, {
@@ -301,7 +318,15 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
             })
           }
         } else if (view.value?.id) {
-          const insertedField = (await $api.dbViewColumn.create(view.value.id, field)) as any
+          const insertedField = (await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnCreate',
+              viewId: view.value.id,
+            },
+            field,
+          )) as any
 
           /** update the field in fields if defined */
           if (fields.value) fields.value[index] = insertedField

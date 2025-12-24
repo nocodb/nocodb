@@ -170,7 +170,12 @@ const duplicateVirtualColumn = async () => {
   }
 
   try {
-    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder
@@ -225,7 +230,12 @@ const openDuplicateDlg = async () => {
   ) {
     duplicateVirtualColumn()
   } else {
-    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder
@@ -258,7 +268,12 @@ const openDuplicateDlg = async () => {
 
 // add column before or after current column
 const addColumn = async (before = false) => {
-  const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+  const gridViewColumnList = (
+    await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+      operation: 'viewColumnList',
+      viewId: view.value?.id as string,
+    })
+  ).list
 
   const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
 
@@ -330,9 +345,24 @@ const hideOrShowField = async () => {
 
   try {
     const currentColumn =
-      currentViewColumn || (await $api.dbViewColumn.list(viewId)).list.find((f) => f.fk_column_id === column!.value.id)
+      currentViewColumn ||
+      (
+        await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'viewColumnList',
+          viewId,
+        })
+      ).list.find((f) => f.fk_column_id === column!.value.id)
 
-    await $api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: !currentColumn.show })
+    await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      {
+        operation: 'viewColumnUpdate',
+        viewId: view.value!.id!,
+        columnId: currentColumn!.id!,
+      },
+      { show: !currentColumn.show },
+    )
 
     if (!hidingViewColumnsMap.value[column.value.id!]) {
       if (isExpandedForm.value) {
@@ -353,7 +383,16 @@ const hideOrShowField = async () => {
     addUndo({
       redo: {
         fn: async function redo(id: string, fk_column_id: string, show: boolean) {
-          await $api.dbViewColumn.update(viewId, id, { show: !show })
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnUpdate',
+              viewId,
+              columnId: id,
+            },
+            { show: !show },
+          )
 
           if (isExpandedForm.value) {
             await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
@@ -370,7 +409,16 @@ const hideOrShowField = async () => {
       },
       undo: {
         fn: async function undo(id: string, fk_column_id: string, show: boolean) {
-          await $api.dbViewColumn.update(viewId, id, { show })
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnUpdate',
+              viewId,
+              columnId: id,
+            },
+            { show },
+          )
 
           if (isExpandedForm.value) {
             await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)

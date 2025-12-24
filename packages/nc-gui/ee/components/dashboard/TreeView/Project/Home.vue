@@ -29,6 +29,8 @@ const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
+const { isDark } = useTheme()
+
 const projectNodeRef = ref()
 
 // If only base is open, i.e in case of docs, base view is open and not the page view
@@ -97,7 +99,8 @@ const hasTableCreatePermission = computed(() => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <img alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
+              <img v-if="isDark" alt="NocoDB" src="~/assets/img/brand/text.png" />
+              <img v-else alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
             </a>
 
             <div class="flex flex-grow"></div>

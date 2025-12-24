@@ -96,12 +96,33 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const views = computed({
     get: () => {
-      if (!tablesStore.activeTableId || !activeTable.value?.base_id) return []
-      const key = getViewsKey(activeTable.value.base_id, tablesStore.activeTableId)
-      return viewsByTable.value.get(key) ?? []
+      if (!tablesStore.activeTableId) return []
+
+      // Try to get the base_id from activeTable
+      if (activeTable.value?.base_id) {
+        const key = getViewsKey(activeTable.value.base_id, tablesStore.activeTableId)
+        return viewsByTable.value.get(key) ?? []
+      }
+
+      // Fallback: Search through all keys to find a match for this tableId
+      // This handles the case when activeTable.base_id is not yet available (e.g., direct URL load)
+      for (const [k, views] of viewsByTable.value) {
+        if (k.endsWith(`:${tablesStore.activeTableId}`)) {
+          return views
+        }
+      }
+
+      return []
     },
     set: (value) => {
-      if (!tablesStore.activeTableId || !activeTable.value?.base_id) return
+      if (!tablesStore.activeTableId) return
+
+      // For setting, we need the base_id
+      if (!activeTable.value?.base_id) {
+        console.warn('Cannot set views without base_id')
+        return
+      }
+
       const key = getViewsKey(activeTable.value.base_id, tablesStore.activeTableId)
       if (!value) return viewsByTable.value.delete(key)
 
@@ -217,6 +238,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
     let response
     if (tableId) {
       // Get the base_id for the table
+      // Wait for tables to be loaded if they're not available yet
+      await until(() => tablesStore.baseTables.get(activeProjectId.value!)?.length).toBeTruthy({ timeout: 10000 })
+
       const table = tablesStore.baseTables.get(activeProjectId.value!)?.find((t) => t.id === tableId)
       if (!table?.base_id) {
         console.warn('Could not find base_id for table:', tableId)

@@ -104,6 +104,7 @@ const onDelete = async () => {
 
     viewsStore.updateViewCoverImageColumnId({
       metaId: meta.value?.id as string,
+      baseId: meta.value?.base_id,
       columnIds: new Set([column.value.id as string]),
     })
     eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)

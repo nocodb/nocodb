@@ -1009,7 +1009,11 @@ const saveChanges = async () => {
     onInit()
 
     // Update views if column is used as cover image
-    viewsStore.updateViewCoverImageColumnId({ metaId: meta.value.id as string, columnIds: deletedOrUpdatedColumnIds })
+    viewsStore.updateViewCoverImageColumnId({
+      metaId: meta.value.id as string,
+      baseId: meta.value.base_id,
+      columnIds: deletedOrUpdatedColumnIds,
+    })
 
     columnsHash.value = (
       await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {

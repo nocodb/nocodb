@@ -867,29 +867,10 @@ export const useViewsStore = defineStore('viewsStore', () => {
   }: {
     columnIds: Set<string>
     metaId: string
-    baseId?: string
+    baseId: string
   }) => {
-    // Try to find the key in the viewsByTable map
-    // First try with provided baseId if available
-    let key: string | undefined
-    if (baseId) {
-      key = getViewsKey(baseId, metaId)
-      if (!viewsByTable.value.get(key)) {
-        key = undefined
-      }
-    }
-
-    // If not found, search through all keys to find a match for this metaId
-    if (!key) {
-      for (const [k] of viewsByTable.value) {
-        if (k.endsWith(`:${metaId}`)) {
-          key = k
-          break
-        }
-      }
-    }
-
-    if (!key || !viewsByTable.value.get(key)) return
+    const key = getViewsKey(baseId, metaId)
+    if (!viewsByTable.value.get(key)) return
 
     let isColumnUsedAsCoverImage = false
 

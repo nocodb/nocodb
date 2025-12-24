@@ -151,6 +151,14 @@ export type InternalPOSTResponseType = Promise<
         entity: Dashboard | Workflow;
       }[];
     }
+  | {
+      link: any[];
+      unlink: any;
+    }
+  | {
+      link: (string | number)[];
+      unlink: (string | number)[];
+    }
 >;
 
 export interface InternalApiModule<

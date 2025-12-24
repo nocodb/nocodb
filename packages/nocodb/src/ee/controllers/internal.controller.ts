@@ -61,6 +61,7 @@ import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
 import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 import { UtilsService } from '~/services/utils.service';
+import { DataTableService } from '~/services/data-table.service';
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -102,6 +103,7 @@ export class InternalController extends InternalControllerCE {
     private readonly usersService: UsersService,
     private readonly workspaceTeamsV3Service: WorkspaceTeamsV3Service,
     private readonly baseTeamsV3Service: BaseTeamsV3Service,
+    private readonly dataTableService: DataTableService,
   ) {
     super(aclMiddleware, internalApiModules);
   }
@@ -330,6 +332,16 @@ export class InternalController extends InternalControllerCE {
       case 'template': {
         return await this.utilsService.template(req);
       }
+      case 'nestedDataList':
+        context.cache = true;
+        return await this.dataTableService.nestedDataList(context, {
+          modelId: req.query.tableId as string,
+          rowId: req.query.rowId as string,
+          query: req.query,
+          viewId: req.query.viewId as string,
+          columnId: req.query.columnId as string,
+          user: req.user,
+        });
       default:
         return await super.internalAPI(
           context,
@@ -995,6 +1007,41 @@ export class InternalController extends InternalControllerCE {
           });
         }
       }
+      case 'nestedDataLink':
+        return await this.dataTableService.nestedLink(context, {
+          modelId: req.query.tableId as string,
+          rowId: req.query.rowId as string,
+          query: req.query,
+          viewId: req.query.viewId as string,
+          columnId: req.query.columnId as string,
+          refRowIds: payload,
+          cookie: req,
+          user: req.user,
+        });
+      case 'nestedDataUnlink':
+        return await this.dataTableService.nestedUnlink(context, {
+          modelId: req.query.tableId as string,
+          rowId: req.query.rowId as string,
+          query: req.query,
+          viewId: req.query.viewId as string,
+          columnId: req.query.columnId as string,
+          refRowIds: payload,
+          cookie: req,
+          user: req.user,
+        });
+      case 'nestedDataListCopyPasteOrDeleteAll':
+        return await this.dataTableService.nestedListCopyPasteOrDeleteAll(
+          context,
+          {
+            modelId: req.query.tableId as string,
+            query: req.query,
+            viewId: req.query.viewId as string,
+            columnId: req.query.columnId as string,
+            data: payload,
+            cookie: req,
+            user: req.user,
+          },
+        );
       default:
         return await super.internalAPIPost(
           context,

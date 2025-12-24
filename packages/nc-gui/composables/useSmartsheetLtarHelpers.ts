@@ -190,9 +190,14 @@ const [useProvideSmartsheetLtarHelpers, useSmartsheetLtarHelpers] = useInjection
           if ((<LinkToAnotherRecordType>column.colOptions)?.type === RelationTypes.MANY_TO_MANY) {
             if (!row.row[column.title!]) return
 
-            const result = await $api.dbDataTableRow.nestedListCopyPasteOrDeleteAll(
-              meta.value?.id as string,
-              column.id as string,
+            const result = await $api.internal.postOperation(
+              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+              meta.value?.base_id ?? base.value.id,
+              {
+                operation: 'nestedDataListCopyPasteOrDeleteAll',
+                tableId: meta.value?.id as string,
+                columnId: column.id as string,
+              },
               [
                 {
                   operation: 'deleteAll',

@@ -15,4 +15,8 @@ export const OPERATION_SCOPES = {
   oAuthAuthorizationRevoke: 'org',
   oAuthClientRegenerateSecret: 'org',
   checkDependency: 'base',
+  nestedDataList: 'base',
+  nestedDataLink: 'base',
+  nestedDataUnlink: 'base',
+  nestedDataListCopyPasteOrDeleteAll: 'base',
 } as const;

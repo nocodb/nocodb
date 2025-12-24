@@ -302,10 +302,15 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
                 await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
                 await syncLTARRefs(rowObj, rowObj.row)
               } else if (isMm(columnObj)) {
-                await api.dbDataTableRow.nestedLink(
-                  meta.value?.id as string,
-                  columnObj.id as string,
-                  encodeURIComponent(rowId as string),
+                await api.internal.postOperation(
+                  meta.value?.fk_workspace_id as string,
+                  meta.value?.base_id as string,
+                  {
+                    operation: 'nestedDataLink',
+                    tableId: meta.value?.id as string,
+                    columnId: columnObj.id as string,
+                    rowId: encodeURIComponent(rowId as string),
+                  },
                   mmClearResult,
                 )
                 rowObj.row[columnObj.title] = mmOldResult ?? null

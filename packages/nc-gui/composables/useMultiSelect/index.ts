@@ -1380,9 +1380,15 @@ export function useMultiSelect(
             let result
 
             try {
-              result = await api.dbDataTableRow.nestedListCopyPasteOrDeleteAll(
-                meta.value?.id as string,
-                columnObj.id as string,
+              result = await api.internal.postOperation(
+                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                meta.value?.base_id ?? base.value.id,
+                {
+                  operation: 'nestedDataListCopyPasteOrDeleteAll',
+                  tableId: meta.value?.id as string,
+                  columnId: columnObj.id as string,
+                  viewId: activeView?.value?.id,
+                },
                 [
                   {
                     operation: 'copy',
@@ -1398,7 +1404,6 @@ export function useMultiSelect(
                       (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id || pasteVal.fk_related_model_id,
                   },
                 ],
-                { viewId: activeView?.value?.id },
               )
             } catch {
               rowObj.row[columnObj.title!] = oldCellValue
@@ -1435,22 +1440,30 @@ export function useMultiSelect(
                         ) {
                           await Promise.all([
                             result.link.length &&
-                              api.dbDataTableRow.nestedLink(
-                                meta.value?.id as string,
-                                columnObj.id as string,
-                                encodeURIComponent(pasteRowPk),
-                                result.link,
+                              api.internal.postOperation(
+                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                                meta.value?.base_id ?? base.value.id,
                                 {
+                                  operation: 'nestedDataLink',
+                                  tableId: meta.value?.id as string,
+                                  columnId: columnObj.id as string,
+                                  rowId: encodeURIComponent(pasteRowPk),
                                   viewId: activeView?.value?.id,
                                 },
+                                result.link,
                               ),
                             result.unlink.length &&
-                              api.dbDataTableRow.nestedUnlink(
-                                meta.value?.id as string,
-                                columnObj.id as string,
-                                encodeURIComponent(pasteRowPk),
+                              api.internal.postOperation(
+                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                                meta.value?.base_id ?? base.value.id,
+                                {
+                                  operation: 'nestedDataUnlink',
+                                  tableId: meta.value?.id as string,
+                                  columnId: columnObj.id as string,
+                                  rowId: encodeURIComponent(pasteRowPk),
+                                  viewId: activeView?.value?.id,
+                                },
                                 result.unlink,
-                                { viewId: activeView?.value?.id },
                               ),
                           ])
 
@@ -1497,17 +1510,27 @@ export function useMultiSelect(
                         ) {
                           await Promise.all([
                             result.unlink.length &&
-                              api.dbDataTableRow.nestedLink(
-                                meta.value?.id as string,
-                                columnObj.id as string,
-                                encodeURIComponent(pasteRowPk),
+                              api.internal.postOperation(
+                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                                meta.value?.base_id ?? base.value.id,
+                                {
+                                  operation: 'nestedDataLink',
+                                  tableId: meta.value?.id as string,
+                                  columnId: columnObj.id as string,
+                                  rowId: encodeURIComponent(pasteRowPk),
+                                },
                                 result.unlink,
                               ),
                             result.link.length &&
-                              api.dbDataTableRow.nestedUnlink(
-                                meta.value?.id as string,
-                                columnObj.id as string,
-                                encodeURIComponent(pasteRowPk),
+                              api.internal.postOperation(
+                                meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                                meta.value?.base_id ?? base.value.id,
+                                {
+                                  operation: 'nestedDataUnlink',
+                                  tableId: meta.value?.id as string,
+                                  columnId: columnObj.id as string,
+                                  rowId: encodeURIComponent(pasteRowPk),
+                                },
                                 result.link,
                               ),
                           ])
@@ -1553,22 +1576,30 @@ export function useMultiSelect(
                       ) {
                         await Promise.all([
                           result.link.length &&
-                            api.dbDataTableRow.nestedLink(
-                              meta.value?.id as string,
-                              columnObj.id as string,
-                              encodeURIComponent(pasteRowPk),
-                              result.link,
+                            api.internal.postOperation(
+                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                              meta.value?.base_id ?? base.value.id,
                               {
+                                operation: 'nestedDataLink',
+                                tableId: meta.value?.id as string,
+                                columnId: columnObj.id as string,
+                                rowId: encodeURIComponent(pasteRowPk),
                                 viewId: activeView?.value?.id,
                               },
+                              result.link,
                             ),
                           result.unlink.length &&
-                            api.dbDataTableRow.nestedUnlink(
-                              meta.value?.id as string,
-                              columnObj.id as string,
-                              encodeURIComponent(pasteRowPk),
+                            api.internal.postOperation(
+                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                              meta.value?.base_id ?? base.value.id,
+                              {
+                                operation: 'nestedDataUnlink',
+                                tableId: meta.value?.id as string,
+                                columnId: columnObj.id as string,
+                                rowId: encodeURIComponent(pasteRowPk),
+                                viewId: activeView?.value?.id,
+                              },
                               result.unlink,
-                              { viewId: activeView?.value?.id },
                             ),
                         ])
 
@@ -1598,17 +1629,27 @@ export function useMultiSelect(
                       ) {
                         await Promise.all([
                           result.unlink.length &&
-                            api.dbDataTableRow.nestedLink(
-                              meta.value?.id as string,
-                              columnObj.id as string,
-                              encodeURIComponent(pasteRowPk),
+                            api.internal.postOperation(
+                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                              meta.value?.base_id ?? base.value.id,
+                              {
+                                operation: 'nestedDataLink',
+                                tableId: meta.value?.id as string,
+                                columnId: columnObj.id as string,
+                                rowId: encodeURIComponent(pasteRowPk),
+                              },
                               result.unlink,
                             ),
                           result.link.length &&
-                            api.dbDataTableRow.nestedUnlink(
-                              meta.value?.id as string,
-                              columnObj.id as string,
-                              encodeURIComponent(pasteRowPk),
+                            api.internal.postOperation(
+                              meta.value?.fk_workspace_id ?? base.value.fk_workspace_id,
+                              meta.value?.base_id ?? base.value.id,
+                              {
+                                operation: 'nestedDataUnlink',
+                                tableId: meta.value?.id as string,
+                                columnId: columnObj.id as string,
+                                rowId: encodeURIComponent(pasteRowPk),
+                              },
                               result.link,
                             ),
                         ])

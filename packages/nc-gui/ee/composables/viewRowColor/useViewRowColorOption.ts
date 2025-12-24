@@ -26,6 +26,8 @@ export function useViewRowColorOption(params: {
 
   const { eventBus } = useSmartsheetStoreOrThrow()
 
+  const { clone } = useUndoRedo()
+
   const meta = inject(MetaInj, ref())
   const { metas } = useMetas()
   const { getPlanLimit } = useWorkspace()
@@ -433,6 +435,236 @@ export function useViewRowColorOption(params: {
     isLoadingFilter.value = false
   }
 
+  const onRowColorConditionFilterCopy = async (colorIndex: number, params: FilterRowChangeEvent) => {
+    isLoadingFilter.value = true
+
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToAdd = conditions[colorIndex]!
+
+    // Extract filter details from params (following same pattern as deleteFilter/copyFilter in FilterGroup.vue)
+    const filterToCopy = params.filter
+    const isGroup = filterToCopy.is_group
+
+    if (isGroup) {
+      // For group filter copy, copy with children but without ids
+      const copyFilterRecursively = (originalFilter: any): any => {
+        const copiedFilter: any = {
+          id: undefined,
+          tmp_id: generateUniqueRandomUUID(conditionToAdd.conditions, ['id', 'tmp_id']),
+          fk_row_color_condition_id: conditionToAdd.id,
+          fk_parent_id: originalFilter.fk_parent_id,
+          fk_column_id: originalFilter.fk_column_id,
+          comparison_op: originalFilter.comparison_op,
+          comparison_sub_op: originalFilter.comparison_sub_op,
+          is_group: originalFilter.is_group,
+          logical_op: originalFilter.logical_op,
+          value: originalFilter.value,
+          order: originalFilter.order,
+        }
+
+        // Recursively copy children if they exist
+        if (originalFilter.children && originalFilter.children.length > 0) {
+          copiedFilter.children = originalFilter.children.map((child: any) => copyFilterRecursively(child))
+        } else if (originalFilter.is_group) {
+          copiedFilter.children = []
+        }
+
+        return copiedFilter
+      }
+
+      const filter = copyFilterRecursively(filterToCopy)
+      // Update order for the root group filter - max of current group or root
+      let nextOrder: number
+      if (filterToCopy.fk_parent_id) {
+        // If copying into a group, find the max order among siblings
+        const parentFilter = conditionToAdd.conditions.find((f) => f.id === filterToCopy.fk_parent_id)
+        if (parentFilter?.children?.length) {
+          nextOrder = Math.max(...parentFilter.children.map((child: any) => child?.order ?? 0)) + 1
+        } else {
+          nextOrder = 1
+        }
+      } else {
+        // If copying to root level, find the max order among root filters
+        const rootFilters = conditionToAdd.conditions.filter((f) => !f.fk_parent_id)
+        nextOrder = rootFilters.length ? Math.max(...rootFilters.map((f: any) => f?.order ?? 0)) + 1 : 1
+      }
+      filter.order = nextOrder
+
+      conditionToAdd.conditions.push(filter)
+      let parentFilter = null
+      if (filter.fk_parent_id) {
+        parentFilter = conditionToAdd.conditions.find((f) => f.id === filter.fk_parent_id)
+        parentFilter.children?.push(filter)
+      } else if (filterToCopy.fk_parent_id) {
+        parentFilter = conditionToAdd.conditions.find((f) => f.id === filterToCopy.fk_parent_id)
+        parentFilter.children?.push(filter)
+      } else {
+        conditionToAdd.nestedConditions.push(filter)
+      }
+
+      await pushPendingAction(async () => {
+        const filterToCreate = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
+        // Don't delete children - Filter.insert supports children directly
+        const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, filterToCreate)
+        filter.id = result.id
+      })
+
+      await popPendingAction()
+    } else {
+      // For regular filter copy, follow the same pattern as onRowColorConditionFilterAdd
+      // but with pre-configured values from the filter being copied
+
+      // Calculate order: max of current group or root
+      let nextOrder: number
+      if (filterToCopy.fk_parent_id) {
+        // If copying into a group, find the max order among siblings
+        const parentFilter = conditionToAdd.conditions.find((f) => f.id === filterToCopy.fk_parent_id)
+        if (parentFilter?.children?.length) {
+          nextOrder = Math.max(...parentFilter.children.map((child: any) => child?.order ?? 0)) + 1
+        } else {
+          nextOrder = 1
+        }
+      } else {
+        // If copying to root level, find the max order among root filters
+        const rootFilters = conditionToAdd.conditions.filter((f) => !f.fk_parent_id)
+        nextOrder = rootFilters.length ? Math.max(...rootFilters.map((f: any) => f?.order ?? 0)) + 1 : 1
+      }
+
+      const filter = {
+        id: undefined,
+        tmp_id: generateUniqueRandomUUID(conditionToAdd.conditions, ['id', 'tmp_id']),
+        fk_row_color_condition_id: conditionToAdd.id,
+        fk_parent_id: filterToCopy.fk_parent_id, // Keep the same parent as the original
+        fk_column_id: filterToCopy.fk_column_id,
+        comparison_op: filterToCopy.comparison_op,
+        comparison_sub_op: filterToCopy.comparison_sub_op,
+        is_group: false,
+        logical_op: filterToCopy.logical_op || conditionToAdd.conditions[0]?.logical_op || 'and',
+        value: filterToCopy.value,
+        order: nextOrder,
+      }
+
+      conditionToAdd.conditions.push(filter)
+      let parentFilter = null
+      if (filter.fk_parent_id) {
+        parentFilter = conditionToAdd.conditions.find((f) => f.id === filter.fk_parent_id)
+        parentFilter.children?.push(filter)
+      } else if (filterToCopy.fk_parent_id) {
+        parentFilter = conditionToAdd.conditions.find((f) => f.id === filterToCopy.fk_parent_id)
+        parentFilter.children?.push(filter)
+      } else {
+        conditionToAdd.nestedConditions.push(filter)
+      }
+
+      await pushPendingAction(async () => {
+        const toInsert = { ...filter, fk_parent_id: parentFilter?.id ?? filter.fk_parent_id }
+        const result = await $api.rowColorConditions.rowColorConditionsFilterCreate(conditionToAdd.id, toInsert)
+        filter.id = result.id
+      })
+
+      await popPendingAction()
+
+      reloadViewDataIfNeeded(filter.fk_column_id)
+    }
+
+    eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+
+    isLoadingFilter.value = false
+  }
+
+  const onRowColorConditionCopy = async (index: number) => {
+    await popPendingAction()
+
+    const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
+    const conditionToCopy = clone(conditions[index]!)
+
+    // Deep clone the condition and its nested filters with children structure
+    const cloneFilter = (filter: any): any => {
+      const clonedFilter: any = {
+        id: undefined,
+        tmp_id: generateUniqueRandomUUID([], ['id', 'tmp_id']),
+        fk_row_color_condition_id: undefined,
+        fk_parent_id: undefined,
+        fk_column_id: filter.fk_column_id,
+        comparison_op: filter.comparison_op,
+        comparison_sub_op: filter.comparison_sub_op,
+        is_group: filter.is_group,
+        logical_op: filter.logical_op,
+        value: filter.value,
+        order: filter.order,
+      }
+
+      // Clone children recursively - Filter.insert supports children directly
+      if (filter.children && filter.children.length > 0) {
+        clonedFilter.children = filter.children.map((child: any) => cloneFilter(child))
+      }
+
+      return clonedFilter
+    }
+
+    // Clone nested conditions structure recursively with children
+    const cloneNestedConditions = (nested: any[]): any[] => {
+      return nested.map((item) => cloneFilter(item))
+    }
+
+    // Clone nested conditions, but exclude the first root filter since it's already created
+    // The first root filter in nestedConditions corresponds to conditions[0] which is created separately
+    const clonedNestedConditions = [...cloneNestedConditions(conditionToCopy.nestedConditions || [])]
+
+    // Create the copied condition
+    const copiedCondition: any = {
+      id: undefined,
+      tmp_id: generateUniqueRandomUUID(conditions, ['id', 'tmp_id']),
+      color: conditionToCopy.color,
+      is_set_as_background: conditionToCopy.is_set_as_background,
+      nc_order: conditions.length + 1,
+      conditions: conditionToCopy.conditions.map((filter) => cloneFilter(filter)),
+      nestedConditions: clonedNestedConditions,
+    }
+
+    conditions.push(copiedCondition)
+
+    await pushPendingAction(async () => {
+      // Create the condition on the server without any filter
+      const response = await $api.dbView.viewRowColorConditionAdd(params.view.value.id!, copiedCondition)
+      copiedCondition.id = response.id
+
+      // Create all copied filters in parallel using Promise.all
+      // Each filter can have nested children, which Filter.insert will handle recursively
+      if (copiedCondition.nestedConditions && copiedCondition.nestedConditions.length > 0) {
+        copiedCondition.nestedConditions = await Promise.all(
+          copiedCondition.nestedConditions.map(async (filter: any) => {
+            const filterToCreate: any = {
+              ...filter,
+              fk_row_color_condition_id: copiedCondition.id,
+            }
+            delete filterToCreate.id
+
+            // Create filter - Filter.insert supports children directly
+            const createdFilter = await $api.rowColorConditions.rowColorConditionsFilterCreate(
+              copiedCondition.id!,
+              filterToCreate,
+            )
+
+            filterToCreate.id = createdFilter.id
+
+            return filterToCreate
+          }),
+        )
+      }
+
+      updateViewLocalState(params.view.value.id!, {
+        row_coloring_mode: ROW_COLORING_MODE.FILTER,
+      })
+    })
+
+    await popPendingAction()
+
+    eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+    eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+  }
+
   const filterPerViewLimit = computed(() => getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW))
 
   return {
@@ -447,9 +679,11 @@ export function useViewRowColorOption(params: {
     onRowColorConditionAdd,
     onRowColorConditionDelete,
     onRowColorConditionUpdate,
+    onRowColorConditionCopy,
     onRowColorConditionFilterAdd,
     onRowColorConditionFilterUpdate,
     onRowColorConditionFilterAddGroup,
     onRowColorConditionFilterDelete,
+    onRowColorConditionFilterCopy,
   }
 }

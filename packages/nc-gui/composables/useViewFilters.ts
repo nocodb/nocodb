@@ -279,6 +279,20 @@ export function useViewFilters(
     }
   }
 
+  const findFilterById = (filters: ColumnFilterType[] = [], parentId: string): ColumnFilterType | null => {
+    for (const filter of filters) {
+      if (filter.id === parentId || filter.tmp_id === parentId) {
+        return filter
+      }
+
+      if (filter.children?.length) {
+        const found = findFilterById(filter.children, parentId)
+        if (found) return found
+      }
+    }
+    return null
+  }
+
   const loadAllChildFilters = async (filters: ColumnFilterType[]) => {
     // Array to store promises of child filter loading
     const promises = []
@@ -485,7 +499,8 @@ export function useViewFilters(
               fn: (changes: Partial<ColumnFilterType>, index: number) => {
                 const f = filters.value[index]
 
-                if (f) {
+                // If parent filter is deleted then skip
+                if (f && (!f.fk_parent_id || findFilterById(filters.value, f.fk_parent_id))) {
                   for (const [prop, val] of Object.entries(changes)) {
                     f[prop as keyof ColumnFilterType] = val
                   }
@@ -497,7 +512,9 @@ export function useViewFilters(
             redo: {
               fn: (changes: Partial<ColumnFilterType>, index: number) => {
                 const f = filters.value[index]
-                if (f) {
+
+                // If parent filter is deleted then skip
+                if (f && (!f.fk_parent_id || findFilterById(filters.value, f.fk_parent_id))) {
                   for (const [prop, val] of Object.entries(changes)) {
                     f[prop as keyof ColumnFilterType] = val
                   }
@@ -679,11 +696,55 @@ export function useViewFilters(
       if (!isLink && !isWebhook && !isWidget) allFilters.value = allFilters.value.filter((f) => f.id !== filter.id)
     }
   }
+
+  const STRIP_KEYS = ['id', 'tmp_id', 'status', 'fk_parent_id']
+
+  function normalizeFilterNode(filter: FilterType = {}, extra_strip_keys: Array<string> = []): ColumnFilterType {
+    const raw = clone(filter) as any
+
+    // remove runtime / persisted props
+    for (const key of STRIP_KEYS) {
+      delete raw[key]
+    }
+
+    for (const key of extra_strip_keys) {
+      delete raw[key]
+    }
+
+    // 🔹 GROUP FILTER
+    if (raw.is_group) {
+      const group = placeholderGroupFilter()
+
+      // apply allowed props (logical_op, fk_column_id, etc.)
+      Object.assign(group, raw)
+
+      // children must exist for group
+      group.children = ncIsArray(raw.children)
+        ? raw.children.filter((child) => child.status !== 'delete').map((child) => normalizeFilterNode(child))
+        : []
+
+      // reset order for children
+      group.children!.forEach((child, index) => {
+        child.order = child.order ?? index + 1
+      })
+
+      return group
+    }
+
+    // 🔹 LEAF FILTER
+    const leaf = placeholderFilter()
+    Object.assign(leaf, raw)
+
+    return leaf
+  }
+
   const addFilter = async (undo = false, draftFilter: Partial<FilterType> = {}) => {
     isFilterUpdated.value = true
 
     filters.value.push(
-      (draftFilter?.fk_column_id ? { ...placeholderFilter(), ...draftFilter } : placeholderFilter()) as ColumnFilterType,
+      (draftFilter?.fk_column_id
+        ? { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order']) }
+        : placeholderFilter()) as ColumnFilterType,
     )
     if (!undo && !(isForm.value && !isWebhook)) {
       addUndo({
@@ -706,6 +767,11 @@ export function useViewFilters(
       })
     }
 
+    // if we copy filter then save it immediately
+    if (draftFilter && Object.keys(draftFilter).length > 1 && !(isForm.value && !isWebhook)) {
+      await saveOrUpdate(filters.value[filters.value.length - 1], filters.value.length - 1, false, true)
+    }
+
     lastFilters.value = clone(filters.value)
 
     $e('a:filter:add', {
@@ -717,21 +783,50 @@ export function useViewFilters(
     })
   }
 
-  const addFilterGroup = async () => {
+  const addFilterGroup = async (draftFilter: Partial<ColumnFilterType> = {}) => {
     isFilterUpdated.value = true
-
-    const child = placeholderFilter()
-    child.order = 1
 
     const placeHolderGroupFilter: ColumnFilterType = placeholderGroupFilter()
 
-    if (nestedMode.value || isWorkflow) placeHolderGroupFilter.children = [child]
+    const draftFilterHasChildren = draftFilter && ncIsArray(draftFilter.children) && draftFilter.children.length > 0
+
+    if (draftFilterHasChildren) {
+      draftFilter.children = draftFilter.children.map((child) => normalizeFilterNode(child))
+
+      placeHolderGroupFilter.children = draftFilter.children
+    } else if (nestedMode.value || isWorkflow) {
+      const child = placeholderFilter()
+      child.order = 1
+
+      placeHolderGroupFilter.children = [child]
+    }
 
     filters.value.push(placeHolderGroupFilter)
 
     const index = filters.value.length - 1
 
-    await saveOrUpdate(filters.value[index], index)
+    if (draftFilterHasChildren && !(isForm.value && !isWebhook)) {
+      addUndo({
+        undo: {
+          fn: async function undo(this: UndoRedoAction, i: number) {
+            this.redo.args = [i, clone(filters.value[i])]
+            await deleteFilter(filters.value[i], i, true)
+          },
+          args: [filters.value.length - 1],
+        },
+        redo: {
+          fn: async (i: number, fl: ColumnFilterType) => {
+            fl.status = 'create'
+            filters.value.splice(i, 0, fl)
+            await saveOrUpdate(fl, i, false, true)
+          },
+          args: [],
+        },
+        scope: defineViewScope({ view: activeView.value }),
+      })
+    }
+
+    await saveOrUpdate(filters.value[index], index, false, !!draftFilterHasChildren)
 
     lastFilters.value = clone(filters.value)
 

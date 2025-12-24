@@ -214,6 +214,7 @@ const addFilter = async () => {
 const addFilterGroup = async () => {
   return innerAdd(true)
 }
+
 const onFilterDelete = async (
   event: {
     filter: ColumnFilterType
@@ -240,6 +241,42 @@ const onFilterDelete = async (
     emits('change', {
       type: 'delete',
       filter: deletedFilter,
+      filters: [...vModel.value],
+      index: props.index,
+      value: [...vModel.value],
+      parentFilter: props.parentFilter,
+      fk_parent_id: props.fkParentId,
+      prevValue,
+    })
+  }
+}
+
+const onFilterCopy = async (
+  event: {
+    filter: ColumnFilterType
+    index: number
+  },
+  index: number,
+) => {
+  const prevValue = [...vModel.value]
+
+  if (props.handler?.copyFilter) {
+    await props.handler?.copyFilter({
+      type: 'copy',
+      filter: vModel.value[index],
+      filters: vModel.value,
+      index: props.index,
+      value: [...vModel.value],
+      parentFilter: props.parentFilter,
+      fk_parent_id: props.fkParentId,
+      prevValue,
+    })
+  } else {
+    const copiedFilter = vModel.value.splice(index, 1)
+
+    emits('change', {
+      type: 'copy',
+      filter: copiedFilter,
       filters: [...vModel.value],
       index: props.index,
       value: [...vModel.value],
@@ -437,6 +474,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                 :is-loading-filter="isLoadingFilter"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
+                @copy="onFilterCopy($event, i)"
               />
             </template>
           </template>
@@ -461,6 +499,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                 :is-loading-filter="isLoadingFilter"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
+                @copy="onFilterCopy($event, i)"
               />
             </template>
           </template>
@@ -590,7 +629,8 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 }
 
 .nc-filter-item-remove-btn,
-.nc-filter-item-reorder-btn {
+.nc-filter-item-reorder-btn,
+.nc-filter-item-copy-btn {
   @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 

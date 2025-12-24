@@ -33,10 +33,12 @@ const {
   onRowColorConditionAdd,
   onRowColorConditionDelete,
   onRowColorConditionUpdate,
+  onRowColorConditionCopy,
   onRowColorConditionFilterAdd,
   onRowColorConditionFilterUpdate,
   onRowColorConditionFilterAddGroup,
   onRowColorConditionFilterDelete,
+  onRowColorConditionFilterCopy,
   filterColumns,
 } = useViewRowColorOption({
   meta,
@@ -150,12 +152,14 @@ watch(open, (value) => {
               conditionAdd: onRowColorConditionAdd,
               conditionDelete: onRowColorConditionDelete,
               conditionUpdate: onRowColorConditionUpdate,
+              conditionCopy: onRowColorConditionCopy,
               allConditionDeleted: onRemoveRowColoringMode,
               filters: {
                 addFilter: onRowColorConditionFilterAdd,
                 addFilterGroup: onRowColorConditionFilterAddGroup,
                 deleteFilter: onRowColorConditionFilterDelete,
                 rowChange: onRowColorConditionFilterUpdate,
+                copyFilter: onRowColorConditionFilterCopy,
               },
             }"
             :disabled="!hasPermission"

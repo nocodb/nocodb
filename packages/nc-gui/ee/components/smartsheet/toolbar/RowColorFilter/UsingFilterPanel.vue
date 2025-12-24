@@ -16,12 +16,14 @@ interface Props {
     conditionAdd: () => void
     conditionUpdate: (params: { index: number; color: string; is_set_as_background: boolean; nc_order?: number }) => void
     conditionDelete: (index: number) => void
+    conditionCopy: (index: number) => void
     allConditionDeleted: () => void
     filters: {
       addFilter: (index: number, event: FilterGroupChangeEvent) => Promise<void>
       addFilterGroup: (index: number, event: FilterGroupChangeEvent) => Promise<void>
       deleteFilter: (index: number, event: FilterGroupChangeEvent) => Promise<void>
       rowChange: (index: number, event: FilterRowChangeEvent) => Promise<void>
+      copyFilter: (index: number, event: FilterRowChangeEvent) => Promise<void>
     }
   }
 }
@@ -37,6 +39,8 @@ const emits = defineEmits<Emits>()
 const vModel = useVModel(props, 'modelValue', emits)
 
 const { isUIAllowed } = useRoles()
+
+const { isCopyFilterEnabled } = useBetaFeatureToggle()
 
 const hasPermission = computed(() => isUIAllowed('rowColourUpdate'))
 
@@ -201,6 +205,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                 addFilterGroup: ($event) => handler.filters.addFilterGroup(i, $event),
                 deleteFilter: ($event) => handler.filters.deleteFilter(i, $event),
                 rowChange: ($event) => handler.filters.rowChange(i, $event),
+                copyFilter: ($event) => handler.filters.copyFilter(i, $event),
               }"
               :query-filter="false"
               is-colour-filter
@@ -250,8 +255,19 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       :disabled="readOnlyFilter"
                       @click="removeColor(i)"
                     >
-                      <component :is="iconMap.deleteListItem" />
+                      <GeneralIcon icon="deleteListItem" />
                     </NcButton>
+                    <NcButton
+                      v-if="!disabled && hasPermission && isCopyFilterEnabled"
+                      type="text"
+                      size="small"
+                      class="nc-filter-item-copy-btn cursor-pointer"
+                      :disabled="readOnlyFilter"
+                      @click="handler.conditionCopy(i)"
+                    >
+                      <GeneralIcon icon="copy" />
+                    </NcButton>
+
                     <NcButton
                       v-if="!disabled && hasPermission"
                       type="text"

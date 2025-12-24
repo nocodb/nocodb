@@ -106,6 +106,8 @@ const nested = computed(() => nestedLevel.value > 0)
 
 const { t } = useI18n()
 
+const { clone } = useUndoRedo()
+
 const logicalOps = [
   { value: 'and', text: t('general.and') },
   { value: 'or', text: t('general.or') },
@@ -126,6 +128,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
+
+const { isCopyFilterEnabled } = useBetaFeatureToggle()
 
 const { nestedFilters, isForm, eventBus } =
   widget.value || workflow.value
@@ -433,10 +437,10 @@ const scrollDownIfNeeded = () => {
   }
 }
 
-const addFilter = async (filter?: Partial<FilterType>) => {
+const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => {
   await _addFilter(false, filter)
 
-  if (filter) {
+  if (filter && !isCopyFilter) {
     selectFilterField(filters.value[filters.value.length - 1], filters.value.length - 1)
   }
 
@@ -450,8 +454,8 @@ const addFilter = async (filter?: Partial<FilterType>) => {
   emit('addFilter', nested.value)
 }
 
-const addFilterGroup = async () => {
-  await _addFilterGroup()
+const addFilterGroup = async (filter?: Partial<FilterType>) => {
+  await _addFilterGroup(filter)
 
   if (!nested.value) {
     // if nested, scroll to bottom
@@ -461,6 +465,16 @@ const addFilterGroup = async () => {
   }
 
   emit('addFilterGroup', nested.value)
+}
+
+const copyFilter = (filter: Filter, isGroup = false) => {
+  const filterToCopy = clone(filter)
+
+  if (isGroup) {
+    addFilterGroup(filterToCopy)
+  } else {
+    addFilter(filterToCopy, true)
+  }
 }
 
 const showFilterInput = (filter: Filter) => {
@@ -791,7 +805,7 @@ defineExpose({
                   </div>
                 </NcMenuItem>
 
-                <NcMenuItem v-if="nestedLevel < 5" data-testid="add-filter-group-menu" @click.stop="addFilterGroup">
+                <NcMenuItem v-if="nestedLevel < 5" data-testid="add-filter-group-menu" @click.stop="() => addFilterGroup()">
                   <div class="flex items-center gap-1">
                     <!-- Add Filter Group -->
                     <component :is="iconMap.plusSquare" />
@@ -809,7 +823,11 @@ defineExpose({
                 </div>
               </NcMenuItem>
 
-              <NcMenuItem v-if="!webHook && nestedLevel < 5" data-testid="add-filter-group-menu" @click.stop="addFilterGroup">
+              <NcMenuItem
+                v-if="!webHook && nestedLevel < 5"
+                data-testid="add-filter-group-menu"
+                @click.stop="() => addFilterGroup()"
+              >
                 <div class="flex items-center gap-1">
                   <!-- Add Filter Group -->
                   <component :is="iconMap.plusSquare" />
@@ -925,7 +943,18 @@ defineExpose({
                       class="nc-filter-item-remove-btn cursor-pointer"
                       @click.stop="deleteFilter(filter, i)"
                     >
-                      <component :is="iconMap.deleteListItem" />
+                      <GeneralIcon icon="deleteListItem" />
+                    </NcButton>
+                    <NcButton
+                      v-if="!filter.readOnly && !readOnly && isCopyFilterEnabled"
+                      v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
+                      type="text"
+                      size="small"
+                      :disabled="isLockedView"
+                      class="nc-filter-item-copy-btn"
+                      @click.stop="copyFilter(filter, true)"
+                    >
+                      <GeneralIcon icon="copy" />
                     </NcButton>
                     <NcButton
                       v-if="!filter.readOnly && !readOnly && isReorderEnabled"
@@ -1240,7 +1269,18 @@ defineExpose({
               class="nc-filter-item-remove-btn self-center"
               @click.stop="deleteFilter(filter, i)"
             >
-              <component :is="iconMap.deleteListItem" />
+              <GeneralIcon icon="deleteListItem" />
+            </NcButton>
+            <NcButton
+              v-if="!filter.readOnly && !readOnly && isCopyFilterEnabled"
+              v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
+              type="text"
+              size="small"
+              :disabled="isLockedView"
+              class="nc-filter-item-copy-btn self-center"
+              @click.stop="copyFilter(filter)"
+            >
+              <GeneralIcon icon="copy" />
             </NcButton>
 
             <NcButton
@@ -1378,7 +1418,8 @@ defineExpose({
 
 <style scoped lang="scss">
 .nc-filter-item-remove-btn,
-.nc-filter-item-reorder-btn {
+.nc-filter-item-reorder-btn,
+.nc-filter-item-copy-btn {
   @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 

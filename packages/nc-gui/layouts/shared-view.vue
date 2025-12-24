@@ -104,6 +104,8 @@ export default {
           </div>
 
           <div class="flex items-center gap-3">
+            <DashboardMiniSidebarTheme placement="bottom" render-as-btn />
+
             <LazySmartsheetToolbarExportWithProvider v-if="allowCSVDownload" />
 
             <a

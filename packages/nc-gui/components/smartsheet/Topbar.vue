@@ -143,6 +143,9 @@ const topbarBreadcrumbItemWidth = computed(() => {
           <LazySmartsheetTopbarScriptAction v-if="activeScriptId && appInfo.ee" />
           <LazySmartsheetTopbarWorkflowAction v-if="activeWorkflowId && appInfo.ee" />
         </div>
+
+        <DashboardMiniSidebarTheme v-if="isSharedBase" placement="bottom" render-as-btn button-class="h-8 w-8" />
+
         <LazySmartsheetTopbarShareProject v-if="!activeScriptId && !activeWorkflowId" />
 
         <div v-if="isSharedBase">

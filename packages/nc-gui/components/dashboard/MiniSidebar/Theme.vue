@@ -7,7 +7,7 @@ interface Props {
   buttonClass?: string
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   placement: 'right',
   buttonClass: 'h-7 w-7',
 })

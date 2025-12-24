@@ -246,7 +246,7 @@ export function useGridCellHandler(params: {
         y,
         text: 'Updating ...',
         fontFamily: `500 13px Inter`,
-        fillStyle: '#374151',
+        fillStyle: getColor(themeV4Colors.gray['700']),
         height,
         py: padding,
         cellRenderStore,
@@ -256,7 +256,7 @@ export function useGridCellHandler(params: {
     if (actionManager?.isLoading(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
       const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id!)
       if (loadingStartTime) {
-        renderSpinner(ctx, x + width / 2, y + 8, 16, '#3366FF', loadingStartTime, 1.5)
+        renderSpinner(ctx, x + width / 2, y + 8, 16, getColor(themeV4Colors.brand['500']), loadingStartTime, 1.5)
         return
       }
     }
@@ -413,7 +413,7 @@ export function useGridCellHandler(params: {
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         baseRoles: baseRoles.value,
         t,
-        getColor
+        getColor,
       })
     }
     return false

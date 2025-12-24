@@ -33,7 +33,7 @@ export class HubspotFormatter {
           'Phone Numbers':
             company.properties.phone || company.properties.mobilephone,
           RemoteRaw: JSON.stringify(company),
-          RemoteCreatedAt: company.properties.hs_createdate,
+          RemoteCreatedAt: company.properties.createdate,
           RemoteUpdatedAt: company.properties.hs_lastmodifieddate,
         } as SyncRecord,
         links: {
@@ -61,7 +61,7 @@ export class HubspotFormatter {
         data: {
           'First Name': contact.properties.firstname,
           'Last Name': contact.properties.lastname,
-          'Email Address': contact.properties.email,
+          'Email Addresses': contact.properties.email,
           'Phone Numbers':
             contact.properties.phone || contact.properties.mobilephone,
           'Remote Fields': {
@@ -83,7 +83,9 @@ export class HubspotFormatter {
             .join(', '),
           RemoteRaw: JSON.stringify(contact),
           RemoteCreatedAt: contact.properties.createdate,
-          RemoteUpdatedAt: contact.properties.hs_lastmodifieddate,
+          RemoteUpdatedAt:
+            contact.properties.hs_lastmodifieddate ??
+            contact.properties.lastmodifieddate,
         } as SyncRecord,
         links: {
           Owner: contact.properties.hubspot_owner_id

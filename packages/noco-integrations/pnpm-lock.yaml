@@ -645,6 +645,25 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  packages/hubspot-sync:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      axios:
+        specifier: ^1.9.0
+        version: 1.13.2
+      mime:
+        specifier: ^4.1.0
+        version: 4.1.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.17.46
+        version: 20.17.46
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   packages/jira-cloud-auth:
     dependencies:
       '@noco-integrations/core':

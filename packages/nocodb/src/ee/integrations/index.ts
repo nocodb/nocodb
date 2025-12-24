@@ -33,9 +33,6 @@ import GoogleMailAuth from '@noco-local-integrations/google-mail-auth';
 import GoogleWorkflowNodes from '@noco-local-integrations/google-workflow-nodes';
 import GroqAi from '@noco-local-integrations/groq-ai';
 import HubspotAuth from '@noco-local-integrations/hubspot-auth';
-import JiraCloudAuth from '@noco-local-integrations/jira-cloud-auth';
-import JiraCloudSync from '@noco-local-integrations/jira-cloud-sync';
-import HubspotAuth from '@noco-local-integrations/hubspot-auth';
 import HubspotSync from '@noco-local-integrations/hubspot-sync';
 import JiraCloudAuth from '@noco-local-integrations/jira-cloud-auth';
 import JiraCloudSync from '@noco-local-integrations/jira-cloud-sync';
@@ -88,6 +85,7 @@ export default [
   ...(Array.isArray(GoogleWorkflowNodes) ? GoogleWorkflowNodes : [GoogleWorkflowNodes]),
   ...(Array.isArray(GroqAi) ? GroqAi : [GroqAi]),
   ...(Array.isArray(HubspotAuth) ? HubspotAuth : [HubspotAuth]),
+  ...(Array.isArray(HubspotSync) ? HubspotSync : [HubspotSync]),
   ...(Array.isArray(JiraCloudAuth) ? JiraCloudAuth : [JiraCloudAuth]),
   ...(Array.isArray(JiraCloudSync) ? JiraCloudSync : [JiraCloudSync]),
   ...(Array.isArray(LinearAuth) ? LinearAuth : [LinearAuth]),
@@ -95,19 +93,13 @@ export default [
   ...(Array.isArray(MysqlAuth) ? MysqlAuth : [MysqlAuth]),
   ...(Array.isArray(MysqlSync) ? MysqlSync : [MysqlSync]),
   ...(Array.isArray(NocodbAi) ? NocodbAi : [NocodbAi]),
-  ...(Array.isArray(NocodbWorkflowNode)
-    ? NocodbWorkflowNode
-    : [NocodbWorkflowNode]),
+  ...(Array.isArray(NocodbWorkflowNode) ? NocodbWorkflowNode : [NocodbWorkflowNode]),
   ...(Array.isArray(OpenaiAi) ? OpenaiAi : [OpenaiAi]),
-  ...(Array.isArray(OpenaiCompatibleAi)
-    ? OpenaiCompatibleAi
-    : [OpenaiCompatibleAi]),
+  ...(Array.isArray(OpenaiCompatibleAi) ? OpenaiCompatibleAi : [OpenaiCompatibleAi]),
   ...(Array.isArray(PostgresAuth) ? PostgresAuth : [PostgresAuth]),
   ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
   ...(Array.isArray(SlackAuth) ? SlackAuth : [SlackAuth]),
-  ...(Array.isArray(SlackWorkflowNode)
-    ? SlackWorkflowNode
-    : [SlackWorkflowNode]),
+  ...(Array.isArray(SlackWorkflowNode) ? SlackWorkflowNode : [SlackWorkflowNode]),
   ...(Array.isArray(ZendeskAuth) ? ZendeskAuth : [ZendeskAuth]),
   ...(Array.isArray(ZendeskSync) ? ZendeskSync : [ZendeskSync]),
   ...(Array.isArray(ZohoAuth) ? ZohoAuth : [ZohoAuth]),

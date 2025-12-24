@@ -32,6 +32,7 @@ import GoogleDriveSync from '@noco-local-integrations/google-drive-sync';
 import GoogleMailAuth from '@noco-local-integrations/google-mail-auth';
 import GoogleWorkflowNodes from '@noco-local-integrations/google-workflow-nodes';
 import GroqAi from '@noco-local-integrations/groq-ai';
+import HubspotAuth from '@noco-local-integrations/hubspot-auth';
 import JiraCloudAuth from '@noco-local-integrations/jira-cloud-auth';
 import JiraCloudSync from '@noco-local-integrations/jira-cloud-sync';
 import LinearAuth from '@noco-local-integrations/linear-auth';
@@ -82,6 +83,7 @@ export default [
   ...(Array.isArray(GoogleMailAuth) ? GoogleMailAuth : [GoogleMailAuth]),
   ...(Array.isArray(GoogleWorkflowNodes) ? GoogleWorkflowNodes : [GoogleWorkflowNodes]),
   ...(Array.isArray(GroqAi) ? GroqAi : [GroqAi]),
+  ...(Array.isArray(HubspotAuth) ? HubspotAuth : [HubspotAuth]),
   ...(Array.isArray(JiraCloudAuth) ? JiraCloudAuth : [JiraCloudAuth]),
   ...(Array.isArray(JiraCloudSync) ? JiraCloudSync : [JiraCloudSync]),
   ...(Array.isArray(LinearAuth) ? LinearAuth : [LinearAuth]),

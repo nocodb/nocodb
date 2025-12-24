@@ -24,6 +24,7 @@ export class ActionManager {
   private readonly generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>
   private readonly triggerRefreshCanvas: () => void
   private meta: Ref<TableType>
+  private baseInfo: { baseId: string; workspaceId: string } | null = null
   private readonly getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
@@ -71,6 +72,10 @@ export class ActionManager {
     this.userSync = userSync
 
     this.setupEventListeners()
+  }
+
+  setBaseInfo(baseId: string, workspaceId: string) {
+    this.baseInfo = { baseId, workspaceId }
   }
 
   private eventMap = {
@@ -306,7 +311,22 @@ export class ActionManager {
           if (!webhookId) throw new Error('No webhook configured')
 
           for (const rowId of rowIds) {
-            await this.executeAction(rowId, column.id, [], () => this.api.dbTableWebhook.trigger(webhookId, rowId))
+            await this.executeAction(rowId, column.id, [], async () => {
+              if (!this.baseInfo) {
+                throw new Error('Base information not available. Call setBaseInfo() first.')
+              }
+
+              return this.api.internal.postOperation(
+                this.baseInfo.workspaceId,
+                this.baseInfo.baseId,
+                {
+                  operation: 'hookTrigger',
+                  hookId: webhookId,
+                  rowId,
+                },
+                {},
+              )
+            })
           }
           break
         }

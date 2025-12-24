@@ -205,7 +205,14 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
     const loadAllviewFilters = async () => {
       if (!viewMeta.value?.id) return
       try {
-        const formViewFilters = (await $api.dbTableFilter.read(viewMeta.value.id, { includeAllFilters: true })).list || []
+        const formViewFilters =
+          (
+            await $api.internal.getOperation(_meta.value!.fk_workspace_id!, _meta.value!.base_id!, {
+              operation: 'filterList',
+              viewId: viewMeta.value.id,
+              includeAllFilters: true,
+            })
+          ).list || []
 
         if (!formViewFilters.length) return
 

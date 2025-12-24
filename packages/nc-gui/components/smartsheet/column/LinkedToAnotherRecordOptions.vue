@@ -53,7 +53,7 @@ const { t } = useI18n()
 
 const { getPlanTitle } = useEeConfig()
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 if (!isEdit.value) {
   setAdditionalValidations({
@@ -127,7 +127,7 @@ const refTables = computed(() => {
     if (!refTableId) return []
 
     // Load meta if not already loaded
-    if (!metas.value[refTableId]) getMeta(refTableId)
+    if (!metas.value[refTableId]) getMeta(meta.value?.base_id, refTableId)
     const tableMeta = metas.value[refTableId]
     // Check if table is private (from API response only)
     const isPrivate = tableMeta && (tableMeta as any).is_private
@@ -145,6 +145,7 @@ const refTables = computed(() => {
 
     return tableMeta ? [tableMeta] : []
   }
+})
 
   let tablesList: any[] = []
 
@@ -200,7 +201,7 @@ watch(
   () => (vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId),
   async (tableId) => {
     if (tableId) {
-      getMeta(tableId).catch(() => {
+      getMeta(meta.value?.base_id, tableId).catch(() => {
         // ignore
       })
       viewsStore
@@ -240,7 +241,7 @@ provide(
   MetaInj,
   computed(() => {
     const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
-    return metas.value[childId] || {}
+    return getMetaByKey(meta.value?.base_id, childId) || {}
   }),
 )
 

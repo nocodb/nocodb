@@ -151,6 +151,7 @@ export const useInfiniteGroups = (
 
         if (groupCol.column.uidt === UITypes.LinkToAnotherRecord) {
           const relatedTableMeta = await getMeta(
+            base.value?.id as string,
             (groupCol.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
           )
           if (!relatedTableMeta) continue
@@ -166,7 +167,7 @@ export const useInfiniteGroups = (
           )
           if (!relationColumn) continue
 
-          const relatedTableMeta = await getMeta(relationColumn.colOptions.fk_related_model_id as string)
+          const relatedTableMeta = await getMeta(base.value?.id as string, relationColumn.colOptions.fk_related_model_id as string)
           if (!relatedTableMeta) continue
 
           const lookupColumn = relatedTableMeta.columns?.find(
@@ -180,6 +181,7 @@ export const useInfiniteGroups = (
           // Check if the lookup column is a LinkToAnotherRecord
           if (lookupColumn.uidt === UITypes.LinkToAnotherRecord) {
             const targetTableMeta = await getMeta(
+              base.value?.id as string,
               (lookupColumn.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
             )
             if (targetTableMeta) {

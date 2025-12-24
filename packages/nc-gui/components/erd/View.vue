@@ -35,7 +35,7 @@ const baseTables = computed(() => _baseTables.value.get(baseId.value) ?? [])
 
 const sources = computed<SourceType[]>(() => bases.value.get(baseId.value)?.sources || [])
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const tables = ref<TableType[]>([])
 
@@ -58,13 +58,13 @@ const fetchMissingTableMetas = async (localTables: TableType[]) => {
   const processChunk = async (chunk: TableType[]) => {
     await Promise.all(
       chunk.map(async (table) => {
-        await getMeta(table.id!)
+        await getMeta(baseId.value, table.id!)
       }),
     )
   }
 
   // filter out tables that are already loaded and are not from the same source
-  const filteredTables = localTables.filter((t: TableType) => !metas.value[t.id!] && t.source_id === props.sourceId)
+  const filteredTables = localTables.filter((t: TableType) => !getMetaByKey(baseId.value, t.id!) && t.source_id === props.sourceId)
 
   // Split the tables into chunks and process each chunk sequentially to avoid hitting throttling limits
   for (let i = 0; i < filteredTables.length; i += chunkSize) {
@@ -77,7 +77,7 @@ const populateTables = async () => {
   let localTables: TableType[] = []
   if (props.table) {
     // use getMeta method to load meta since it will get meta if not loaded already
-    const tableMeta = await getMeta(props.table!.id!)
+    const tableMeta = await getMeta(baseId.value, props.table!.id!)
 
     // if table is provided only get the table and its related tables
     localTables = baseTables.value.filter(

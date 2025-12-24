@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { $api } = useNuxtApp()
 
-const { getMeta, metas } = useMetas()
+const { getMeta, metas, getMetaByKey } = useMetas()
 
 const { t } = useI18n()
 
@@ -71,7 +71,7 @@ const getLookupColPayload = (selectedColumn: ColumnType) => {
 }
 
 const availableRollupPerColumn = computed(() => {
-  const relatedTableColumns: ColumnType[] = metas.value[relatedModel.value?.id]?.columns || []
+  const relatedTableColumns: ColumnType[] = getMetaByKey(meta.value?.base_id, relatedModel.value?.id)?.columns || []
 
   return relatedTableColumns.reduce((acc, curr) => {
     if (!curr?.id) return acc
@@ -122,7 +122,7 @@ const createLookupsOrRollup = async () => {
     const currIndex = meta.value?.columns?.length ?? 0
 
     for (const [k] of Object.entries(selectedFields.value).filter(([, v]) => v)) {
-      const selectedColumn = metas.value[relatedModel.value?.id].columns.find((c) => c.id === k)
+      const selectedColumn = getMetaByKey(meta.value?.base_id, relatedModel.value?.id)?.columns.find((c) => c.id === k)
       const index = filteredColumns.value.findIndex((c) => c.id === k)
       const tempCol = {
         uidt: props.type,
@@ -153,12 +153,17 @@ const createLookupsOrRollup = async () => {
       })
     }
 
-    await $api.dbTableColumn.bulk(meta.value?.id, {
-      hash: meta.value?.columnsHash,
-      ops: bulkOpsCols,
-    })
+    await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      { operation: 'columnsBulk', tableId: meta.value?.id! },
+      {
+        hash: meta.value?.columnsHash,
+        ops: bulkOpsCols,
+      },
+    )
 
-    await getMeta(meta?.value?.id as string, true)
+    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
     value.value = false
   } catch (e) {
@@ -173,7 +178,7 @@ watch(
   [relatedModel, searchField, value, () => props.type, availableRollupPerColumn],
   async () => {
     if (relatedModel.value) {
-      const columns = metas.value[relatedModel.value.id]?.columns || []
+      const columns = getMetaByKey(meta.value?.base_id, relatedModel.value.id)?.columns || []
       filteredColumns.value = columns.filter((c: any) => {
         if (props.type === UITypes.Lookup) {
           return (
@@ -195,7 +200,7 @@ watch(
 )
 
 onMounted(async () => {
-  relatedModel.value = await getMeta(fkRelatedModelId.value)
+  relatedModel.value = await getMeta(meta?.value?.base_id as string, fkRelatedModelId.value)
 })
 </script>
 

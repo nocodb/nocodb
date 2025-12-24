@@ -86,7 +86,7 @@ export async function populateInsertObject({
 }: {
   meta: TableType
   ltarState: Record<string, any>
-  getMeta: (tableIdOrTitle: string, force?: boolean) => Promise<TableType | null>
+  getMeta: (baseId: string, tableIdOrTitle: string, force?: boolean) => Promise<TableType | null>
   row: Record<string, any>
   throwError?: boolean
   undo?: boolean
@@ -106,7 +106,7 @@ export async function populateInsertObject({
         const ltarVal = ltarState[col.title!] || row[col.title!]
         const colOpt = <LinkToAnotherRecordType>col.colOptions
         const childCol = meta.columns!.find((c) => colOpt.fk_child_column_id === c.id)
-        const relatedTableMeta = (await getMeta(colOpt.fk_related_model_id!)) as TableType
+        const relatedTableMeta = (await getMeta(meta.base_id!, colOpt.fk_related_model_id!)) as TableType
         if (relatedTableMeta && childCol) {
           o[childCol.title!] = ltarVal[relatedTableMeta!.columns!.find((c) => c.id === colOpt.fk_parent_column_id)!.title!]
           if (o[childCol.title!] !== null && o[childCol.title!] !== undefined) missingRequiredColumns.delete(childCol.title)

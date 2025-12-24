@@ -40,7 +40,7 @@ import { TablesService } from '~/services/tables.service';
 import { isEE, isOnPrem } from '~/utils';
 import { getWorkspaceDbServer } from '~/utils/cloudDb';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { MetaTable } from '~/utils/globals';
+import { BaseVersion, MetaTable } from '~/utils/globals';
 import { getToolDir } from '~/utils/nc-config';
 import NocoSocket from '~/socket/NocoSocket';
 
@@ -391,7 +391,7 @@ export class BasesService extends BasesServiceCE {
     const transaction = await ncMeta.startTransaction();
 
     try {
-      await Base.softDelete(context, param.baseId, ncMeta);
+      await Base.delete(context, param.baseId, ncMeta);
 
       await transaction.commit();
     } catch (e) {
@@ -433,7 +433,7 @@ export class BasesService extends BasesServiceCE {
     context: NcContext,
     param: {
       baseId: string;
-      base: ProjectUpdateReqType;
+      base: ProjectUpdateReqType & { version?: BaseVersion };
       user: UserType;
       req: NcRequest;
       apiVersion?: NcApiVersion;

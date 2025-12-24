@@ -1,14 +1,37 @@
 import type { DependencyTableType, NcContext, NcRequest } from 'nocodb-sdk';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
-import type { MCPToken, OAuthClient } from '~/models';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type { Dashboard, Workflow } from '~/models';
+import type {
+  Column,
+  DataReflection,
+  Filter,
+  Hook,
+  HookLog,
+  MCPToken,
+  Model,
+  OAuthClient,
+  Script,
+  Sort,
+  View,
+} from '~/models';
 
 export type InternalGETResponseType = Promise<
   | void
+  | DataReflection
   | MCPToken
   | MCPToken[]
+  | Script
+  | Script[]
   | PagedResponseImpl<any>
+  | Model[]
+  | Column[]
+  | View[]
+  | Filter[]
+  | Sort[]
+  | Hook[]
+  | HookLog[]
+  | { hash: string }
   | OAuthClient
   | OAuthClient[]
 >;
@@ -27,6 +50,17 @@ export type InternalPOSTResponseType = Promise<
         entity: Dashboard | Workflow;
       }[];
     }
+  | DataReflection
+  | MCPToken
+  | Script
+  | { id: string; secret?: string }
+  | { failedOps: any[] }
+  | Model
+  | Column
+  | View
+  | Filter
+  | Sort
+  | Hook
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

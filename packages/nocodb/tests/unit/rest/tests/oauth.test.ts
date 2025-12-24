@@ -44,7 +44,7 @@ function oauthTests() {
           client_type: 'public',
           redirect_uris: ['https://example.com/callback'],
         })
-        .expect(201);
+        .expect(200);
       expect(response.body).to.have.property('client_id');
       expect(response.body).to.have.property('client_secret').to.be.null;
     });
@@ -60,7 +60,7 @@ function oauthTests() {
           client_type: 'confidential',
           redirect_uris: ['https://example.com/callback'],
         })
-        .expect(201);
+        .expect(200);
 
       expect(response.body).to.have.property('client_id');
       expect(response.body).to.have.property('client_secret');
@@ -77,7 +77,7 @@ function oauthTests() {
           client_type: 'public',
           redirect_uris: ['https://example.com/callback'],
         })
-        .expect(201);
+        .expect(200);
 
       const clientId = createResponse.body.client_id;
 
@@ -105,7 +105,7 @@ function oauthTests() {
           client_type: 'public',
           redirect_uris: ['https://example.com/callback'],
         })
-        .expect(201);
+        .expect(200);
 
       clientId = clientResponse.body.client_id;
       codeVerifier = generateCodeVerifier();
@@ -259,7 +259,7 @@ function oauthTests() {
           client_type: 'public',
           redirect_uris: ['https://example.com/callback'],
         })
-        .expect(201);
+        .expect(200);
 
       clientId = clientResponse.body.client_id;
       const codeVerifier = generateCodeVerifier();
@@ -372,7 +372,7 @@ function oauthTests() {
           client_type: 'public',
           redirect_uris: ['https://example.com/callback'],
         })
-        .expect(201);
+        .expect(200);
 
       clientId = clientResponse.body.client_id;
     });
@@ -486,7 +486,7 @@ function oauthTests() {
           client_type: 'confidential',
           redirect_uris: ['https://example.com/callback'],
         })
-        .expect(201);
+        .expect(200);
 
       clientId = clientResponse.body.client_id;
       clientSecret = clientResponse.body.client_secret;

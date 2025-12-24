@@ -9,6 +9,8 @@ const props = defineProps<Props>()
 
 const { api, isLoading } = useApi()
 
+const { base } = storeToRefs(useBase())
+
 const hookLogs = ref<HookLogType[]>([])
 
 const { appInfo } = useGlobal()
@@ -42,7 +44,9 @@ async function loadHookLogs(page = logPaginationData.value.page, limit = logPagi
   try {
     logPaginationData.value.page = page || 1
     logPaginationData.value.pageSize = limit || 10
-    const { list, pageInfo } = await api.dbTableWebhookLogs.list(props.hook.id!, {
+    const { list, pageInfo } = await api.internal.getOperation(base.value!.fk_workspace_id!, base.value!.id!, {
+      operation: 'hookLogList',
+      hookId: props.hook.id!,
       offset: logPaginationData.value.pageSize * (logPaginationData.value.page - 1),
       limit,
     })

@@ -5,18 +5,23 @@ import type {
   NodeExecutionResult,
 } from 'nocodb-sdk';
 import type { TestConnectionResponse } from '@noco-local-integrations/core';
+import type { JobTypes } from 'src/interface/Jobs';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type {
-  DataReflection,
+  Column,
+  Filter,
+  Hook,
+  HookLog,
   Integration,
   MCPToken,
+  Model,
   OAuthClient,
-  Script,
+  Sort,
   SyncConfig,
+  View,
   Workflow,
 } from '~/models';
-import type Dashboard from '~/models/Dashboard';
-import type Widget from '~/models/Widget';
+import type { Dashboard, DataReflection, Script, Widget } from '~/models';
 import type { JobId } from 'bull';
 import type {
   TeamDetailV3Type,
@@ -39,13 +44,11 @@ import type {
 
 export type InternalGETResponseType = Promise<
   | void
+  | DataReflection
   | MCPToken
   | MCPToken[]
-  | DataReflection
-  | SyncConfig[]
-  | Script[]
   | Script
-  | PagedResponseImpl<any>
+  | Script[]
   | Dashboard
   | Dashboard[]
   | Widget
@@ -76,18 +79,45 @@ export type InternalGETResponseType = Promise<
       };
     }
   | { nodes: any[] }
+  | PagedResponseImpl<any>
+  | Model
+  | Column[]
+  | View[]
+  | Filter[]
+  | Sort[]
+  | Hook[]
+  | HookLog[]
+  | SyncConfig[]
+  | { hash: string }
 >;
 
 export type InternalPOSTResponseType = Promise<
   | void
   | boolean
-  | MCPToken
   | DataReflection
+  | MCPToken
+  | Script
   | Dashboard
   | Widget
+  | Widget[]
   | OAuthClient
   | Workflow
   | { id: JobId; secret?: string }
+  | { id: string; secret?: string }
+  | { msg: string }
+  | { failedOps: any[] }
+  | Model
+  | Column
+  | View
+  | Filter
+  | Sort
+  | Hook
+  | TestConnectionResponse
+  | { id: JobId; name?: JobTypes }
+  | { syncConfig: SyncConfig; integration: Integration }
+  | { label: string; value: string }[]
+  | TeamV3ResponseType
+  | TeamMemberV3ResponseType[]
   | {
       integration: Integration;
       syncConfig: SyncConfig;

@@ -313,7 +313,12 @@ export function useCopyPaste({
         if (options.expand) {
           colsToPaste = fields.value.slice(selection.value.start.col, selection.value.start.col + pasteMatrixCols)
           if (newColsNeeded > 0) {
-            const columnsHash = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+            const columnsHash = (
+              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'columnsHash',
+                tableId: meta.value?.id!,
+              })
+            ).hash
             const columnsLength = meta.value?.columns?.length || 0
 
             // Create new columns as needed
@@ -343,12 +348,17 @@ export function useCopyPaste({
               })
             }
 
-            await $api.dbTableColumn.bulk(meta.value?.id, {
-              hash: columnsHash,
-              ops: bulkOpsCols,
-            })
+            await $api.internal.postOperation(
+              meta.value!.fk_workspace_id!,
+              meta.value!.base_id!,
+              { operation: 'columnsBulk', tableId: meta.value?.id! },
+              {
+                hash: columnsHash,
+                ops: bulkOpsCols,
+              },
+            )
 
-            await getMeta(meta?.value?.id as string, true)
+            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
           }
         } else {
@@ -494,7 +504,7 @@ export function useCopyPaste({
 
             if (!foreignKeyColumn) return
 
-            const relatedTableMeta = await getMeta((columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+            const relatedTableMeta = await getMeta(meta?.value?.base_id as string, (columnObj.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
 
             // update old row to allow undo redo as bt column update only through foreignKeyColumn title
             rowObj.oldRow[columnObj.title!] = rowObj.row[columnObj.title!]

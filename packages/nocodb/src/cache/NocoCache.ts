@@ -272,6 +272,17 @@ export default class NocoCache {
     );
   }
 
+  public static async clear(context: CacheContext): Promise<void> {
+    if (this.cacheDisabled) return Promise.resolve();
+    return this.client.processPattern(
+      `${this.prefix}:${cacheContext(context)}:*`,
+      async (keys: string[]) => {
+        await this.client.del(keys);
+      },
+      { count: 100, batch: true, raw: true },
+    );
+  }
+
   public static async destroy(): Promise<boolean> {
     if (this.cacheDisabled) return Promise.resolve(true);
     return this.client.destroy();

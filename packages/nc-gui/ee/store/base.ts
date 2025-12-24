@@ -19,9 +19,15 @@ export const useBase = defineStore('baseStore', () => {
 
   const forcedProjectId = ref<string>()
 
-  const baseId = computed(() => forcedProjectId.value || (route.value.params.baseId as string))
-
   const basesStore = useBases()
+
+  const baseId = computed(() => {
+    // In shared base mode, use activeProjectId from basesStore which has the correct base ID
+    if (route.value.params.typeOrId === 'base') {
+      return forcedProjectId.value || basesStore.activeProjectId || (route.value.params.baseId as string)
+    }
+    return forcedProjectId.value || (route.value.params.baseId as string)
+  })
 
   const workspaceStore = useWorkspace()
 
@@ -44,7 +50,11 @@ export const useBase = defineStore('baseStore', () => {
 
   // todo: new-layout
   const base = computed<NcProject>(() => basesStore.bases.get(baseId.value) || sharedProject.value || {})
-  const tables = computed<TableType[]>(() => tablesStore.baseTables.get(baseId.value) || [])
+  const tables = computed<TableType[]>(() => {
+    const tablesList = tablesStore.baseTables.get(baseId.value) || []
+    console.log('[base.ts tables computed] Accessed - baseId:', baseId.value, 'count:', tablesList.length)
+    return tablesList
+  })
 
   const baseLoadedHook = createEventHook<BaseType>()
 
@@ -149,7 +159,9 @@ export const useBase = defineStore('baseStore', () => {
 
   // todo: add force parameter
   async function loadTables() {
+    console.log('[base.ts loadTables] START - base.value.id:', base.value.id)
     if (base.value.id) {
+      console.log('[base.ts loadTables] Calling tablesStore.loadProjectTables')
       await tablesStore.loadProjectTables(base.value.id, true)
       await loadScripts({ baseId: base.value.id || baseId.value })
       await loadDashboards({ baseId: base.value.id || baseId.value })

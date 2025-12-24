@@ -580,7 +580,7 @@ export class ColumnPageObject extends BasePage {
     await this.waitForResponse({
       uiAction: menuOption,
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `/sorts`,
+      requestUrlPathToMatch: `operation=sort`,
     });
 
     await this.grid.toolbar.parent.dashboard.waitForLoaderToDisappear();

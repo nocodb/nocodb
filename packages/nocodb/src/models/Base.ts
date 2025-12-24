@@ -75,6 +75,7 @@ export default class Base implements BaseType {
       'meta',
       'color',
       'order',
+      'version',
     ]);
 
     if (!insertObj.order) {
@@ -439,6 +440,7 @@ export default class Base implements BaseType {
       'uuid',
       'password',
       'roles',
+      'version',
     ]);
 
     // stringify meta

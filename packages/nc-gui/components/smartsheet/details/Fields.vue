@@ -968,10 +968,15 @@ const saveChanges = async () => {
       return rest
     })
 
-    const res = await $api.dbTableColumn.bulk(meta.value?.id, {
-      hash: columnsHash.value,
-      ops: ops.value,
-    })
+    const res = await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      { operation: 'columnsBulk', tableId: meta.value?.id! },
+      {
+        hash: columnsHash.value,
+        ops: ops.value,
+      },
+    )
 
     await loadViewColumns()
 
@@ -998,7 +1003,7 @@ const saveChanges = async () => {
       }
     }
 
-    await getMeta(meta.value.id, true)
+    await getMeta(meta.value.base_id!, meta.value.id, true)
 
     metaToLocal()
     onInit()
@@ -1006,7 +1011,12 @@ const saveChanges = async () => {
     // Update views if column is used as cover image
     viewsStore.updateViewCoverImageColumnId({ metaId: meta.value.id as string, columnIds: deletedOrUpdatedColumnIds })
 
-    columnsHash.value = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+    columnsHash.value = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'columnsHash',
+        tableId: meta.value?.id!,
+      })
+    ).hash
 
     showSystemFields.value = showOrHideSystemFields.value
     visibilityOps.value = []
@@ -1134,7 +1144,12 @@ watch(
   meta,
   async (newMeta) => {
     if (newMeta?.id) {
-      columnsHash.value = (await $api.dbTableColumn.hash(newMeta.id)).hash
+      columnsHash.value = (
+        await $api.internal.getOperation(newMeta.fk_workspace_id!, newMeta.base_id!, {
+          operation: 'columnsHash',
+          tableId: newMeta.id!,
+        })
+      ).hash
     }
   },
   { deep: true },
@@ -1144,7 +1159,12 @@ onMounted(async () => {
   await until(() => !!(meta.value?.id && meta.value?.columns)).toBeTruthy()
 
   if (meta.value && meta.value.id) {
-    columnsHash.value = (await $api.dbTableColumn.hash(meta.value.id)).hash
+    columnsHash.value = (
+      await $api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
+        operation: 'columnsHash',
+        tableId: meta.value.id!,
+      })
+    ).hash
   }
 
   metaToLocal()

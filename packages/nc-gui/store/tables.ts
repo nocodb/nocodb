@@ -136,7 +136,7 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
     const { getMeta } = useMetas()
 
-    await getMeta(table.id as string)
+    await getMeta(table.base_id!, table.id as string)
 
     // const typeOrId = (route.value.params.typeOrId as string) || 'nc'
 
@@ -165,11 +165,19 @@ export const useTablesStore = defineStore('tablesStore', () => {
     if (!table) return
 
     try {
-      await $api.dbTable.update(table.id as string, {
-        base_id: table.base_id,
-        table_name: table.table_name,
-        title: table.title,
-      })
+      await $api.internal.postOperation(
+        table.fk_workspace_id!,
+        table.base_id!,
+        {
+          operation: 'tableUpdate',
+          tableId: table.id as string,
+        },
+        {
+          base_id: table.base_id,
+          table_name: table.table_name,
+          title: table.title,
+        },
+      )
 
       await loadProjectTables(table.base_id!, true)
 
@@ -194,7 +202,10 @@ export const useTablesStore = defineStore('tablesStore', () => {
       }
 
       // update metas
-      const newMeta = await $api.dbTable.read(table.id as string)
+      const newMeta = await $api.internal.getOperation(table.fk_workspace_id!, table.base_id!, {
+        operation: 'tableGet',
+        tableId: table.id as string,
+      })
       baseTables.value.set(
         table.base_id!,
         baseTables.value.get(table.base_id!)!.map((t) => (t.id === table.id ? { ...t, ...newMeta } : t)),
@@ -212,7 +223,10 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
   const loadTableMeta = async (tableId: string) => {
     try {
-      const meta = await $api.dbTable.read(tableId as string)
+      const meta = await $api.internal.getOperation(workspaceStore.activeWorkspaceId!, basesStore.activeProjectId!, {
+        operation: 'tableGet',
+        tableId,
+      })
       baseTables.value.set(
         meta.base_id!,
         baseTables.value.get(meta.base_id!)!.map((t) => (t.id === tableId ? { ...t, ...meta } : t)),
@@ -255,8 +269,9 @@ export const useTablesStore = defineStore('tablesStore', () => {
 
   const reloadTableMeta = async (tableId: string) => {
     const { getMeta } = useMetas()
+    const baseId = activeTable.value?.base_id ?? basesStore.activeProjectId
 
-    await getMeta(tableId, true)
+    await getMeta(baseId!, tableId, true)
   }
 
   function openTableCreateDialog({

@@ -54,7 +54,7 @@ const isAllowedToEditField = computed(() => {
   return isAllowed(PermissionEntity.FIELD, column.value.id, PermissionKey.RECORD_FIELD_EDIT)
 })
 
-const { metas } = useMetas()
+const { getMetaByKey } = useMetas()
 
 const { isUIAllowed, isMetaReadOnly } = useRoles()
 
@@ -87,7 +87,8 @@ const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
 
 const relatedTableMeta = computed(
   () =>
-    relationColumnOptions.value?.fk_related_model_id && metas.value?.[relationColumnOptions.value?.fk_related_model_id as string],
+    relationColumnOptions.value?.fk_related_model_id &&
+    getMetaByKey(meta.value?.base_id, relationColumnOptions.value?.fk_related_model_id as string),
 )
 
 const relatedTableTitle = computed(() => relatedTableMeta.value?.title)
@@ -102,10 +103,10 @@ const tooltipMsg = computed(() => {
     if (isMm(column.value)) {
       const mmTableMeta =
         tables.value?.find((t) => t.id === column.value?.colOptions?.fk_mm_model_id) ||
-        metas.value?.[column.value?.colOptions?.fk_mm_model_id as string]
+        getMetaByKey(meta.value?.base_id, column.value?.colOptions?.fk_mm_model_id as string)
       suffix = mmTableMeta ? `\nJunction Table: ${mmTableMeta.title}` : ''
     } else if (isHm(column.value)) {
-      const fkColumn = metas.value?.[column.value?.colOptions?.fk_related_model_id as string]?.columns?.find(
+      const fkColumn = getMetaByKey(meta.value?.base_id, column.value?.colOptions?.fk_related_model_id as string)?.columns?.find(
         (c) => c.id === column.value?.colOptions?.fk_child_column_id,
       )
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`

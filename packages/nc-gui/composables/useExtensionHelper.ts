@@ -89,7 +89,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     }
 
     const getTableMeta = async (tableId: string) => {
-      return getMeta(tableId)
+      return getMeta(baseId.value!, tableId)
     }
 
     const insertData = async (params: { tableId: string; data: Record<string, any>[]; autoInsertOption?: boolean }) => {
@@ -146,7 +146,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       const chunkSize = 100
 
-      const tableMeta = await getMeta(tableId)
+      const tableMeta = await getMeta(baseId.value!, tableId)
 
       if (!tableMeta?.columns) throw new Error('Table not found')
 

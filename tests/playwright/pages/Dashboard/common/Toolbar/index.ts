@@ -178,7 +178,7 @@ export class ToolbarPage extends BasePage {
         // Since on opening filter menu, api is called to fetch filter options, and will rerender the menu
         await this.waitForResponse({
           uiAction: clickFilterAction,
-          requestUrlPathToMatch: '/api/v1/',
+          requestUrlPathToMatch: 'filterList',
           httpMethodsToMatch: ['GET'],
         });
       } else {

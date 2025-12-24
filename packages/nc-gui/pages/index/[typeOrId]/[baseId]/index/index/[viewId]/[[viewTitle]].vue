@@ -18,7 +18,7 @@ watch(
     until(tables)
       .toMatch((tables) => tables.length > 0)
       .then(() => {
-        getMeta(viewId as string, undefined, undefined, undefined, undefined, true)
+        getMeta(route.params.baseId as string, viewId as string, undefined, undefined, undefined, true)
       })
   },
   { immediate: true },

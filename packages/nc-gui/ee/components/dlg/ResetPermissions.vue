@@ -164,7 +164,7 @@ const loadTableMeta = async () => {
   }
 
   try {
-    const tableMetaData = await getMeta(props.tableId)
+    const tableMetaData = await getMeta(base.value?.id, props.tableId)
     columns.value = tableMetaData?.columns ?? []
   } catch (error: any) {
     console.error('Failed to load table metadata:', error)

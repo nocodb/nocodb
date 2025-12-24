@@ -1,9 +1,10 @@
-import { generateObject, generateText } from 'ai';
+import { generateText, Output } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import {
   type AiGenerateObjectArgs,
   type AiGetModelArgs,
   AiIntegration,
+  type ModelCapability,
 } from '@noco-integrations/core';
 import type { AiGenerateTextArgs } from '@noco-integrations/core';
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
@@ -36,9 +37,9 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
       this.model = openAIClient(model);
     }
 
-    const response = await generateObject({
+    const response = await generateText({
       model: this.model as LanguageModel,
-      schema,
+      output: Output.object({ schema }),
       messages,
       temperature: 0.5,
     });
@@ -50,7 +51,7 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object as T,
+      data: response.output as T,
     };
   }
 
@@ -107,13 +108,11 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
   }
 
   public getModelAlias(model: string): string {
-    const aliases: Record<string, string> = {
-      'llama-4-maverick': 'Llama 4 Maverick',
-      'llama-3-70b': 'Llama 3 70B',
-      'mixtral-8x22b': 'Mixtral 8x22B',
-      'deepseek-r1-distill-llama-70b': 'DeepSeek R1 Distill Llama 70B',
-    };
-    return aliases[model] || model;
+    return model; // Use the model name as-is for compatible providers
+  }
+
+  public getModelCapabilities(_model: string): ModelCapability[] {
+    return ['text', 'tools'];
   }
 
   public getModel(args?: AiGetModelArgs): LanguageModel {
@@ -139,10 +138,11 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
     return openAIClient(model);
   }
 
-  public availableModels(): { value: string; label: string }[] {
+  public availableModels() {
     return this.config.models.map((model: string) => ({
       value: model,
       label: this.getModelAlias(model),
+      capabilities: this.getModelCapabilities(model),
     }));
   }
 }

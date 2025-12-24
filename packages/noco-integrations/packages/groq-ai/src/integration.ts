@@ -1,9 +1,10 @@
-import { generateObject, generateText } from 'ai';
+import { generateText, Output } from 'ai';
 import { createGroq } from '@ai-sdk/groq';
 import {
   type AiGenerateObjectArgs,
   type AiGetModelArgs,
   AiIntegration,
+  type ModelCapability,
 } from '@noco-integrations/core';
 import type { AiGenerateTextArgs } from '@noco-integrations/core';
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
@@ -34,9 +35,9 @@ export class GroqAiIntegration extends AiIntegration {
       this.model = groqClient(model);
     }
 
-    const response = await generateObject({
+    const response = await generateText({
       model: this.model as LanguageModel,
-      schema,
+      output: Output.object({ schema }),
       messages,
       temperature: 0.5,
     });
@@ -48,17 +49,34 @@ export class GroqAiIntegration extends AiIntegration {
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object as T,
+      data: response.output as T,
     };
   }
 
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
-      'llama-4-maverick': 'Llama-4 Maverick',
-      'llama-4-scout': 'Llama-4 Scout',
-      'deepseek-r1-distill-llama-70b': 'DeepSeek R1 Distill Llama 70B',
+      // Llama 4 series
+      'meta-llama/llama-4-maverick-17b-128e-instruct': 'Llama 4 Maverick 17B',
+      'meta-llama/llama-4-scout-17b-16e-instruct': 'Llama 4 Scout 17B',
+      // Llama 3.x series
+      'llama-3.3-70b-versatile': 'Llama 3.3 70B Versatile',
+      'llama-3.1-8b-instant': 'Llama 3.1 8B Instant',
+      // Groq models
+      'groq/compound': 'Groq Compound',
+      'groq/compound-mini': 'Groq Compound Mini',
+      // OpenAI OSS models
+      'openai/gpt-oss-120b': 'GPT OSS 120B',
+      'openai/gpt-oss-20b': 'GPT OSS 20B',
+      // Moonshot AI
+      'moonshotai/kimi-k2-instruct': 'Kimi K2',
+      // Qwen
+      'qwen/qwen3-32b': 'Qwen3 32B',
     };
     return aliases[model] || model;
+  }
+
+  public getModelCapabilities(_model: string): ModelCapability[] {
+    return ['text', 'tools'];
   }
 
   public getModel(args?: AiGetModelArgs): LanguageModel {
@@ -125,10 +143,11 @@ export class GroqAiIntegration extends AiIntegration {
     };
   }
 
-  public availableModels(): { value: string; label: string }[] {
+  public availableModels() {
     return this.config.models.map((model: string) => ({
       value: model,
       label: this.getModelAlias(model),
+      capabilities: this.getModelCapabilities(model),
     }));
   }
 }

@@ -1,10 +1,11 @@
-import { generateObject, generateText } from 'ai';
+import { generateText, Output } from 'ai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
   type AiGetModelArgs,
   AiIntegration,
+  type ModelCapability,
 } from '@noco-integrations/core';
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
@@ -34,9 +35,9 @@ export class ClaudeIntegration extends AiIntegration {
       this.model = anthropic(model);
     }
 
-    const response = await generateObject({
+    const response = await generateText({
       model: this.model,
-      schema,
+      output: Output.object({ schema }),
       messages,
       temperature: 0.5,
     });
@@ -48,7 +49,7 @@ export class ClaudeIntegration extends AiIntegration {
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object as T,
+      data: response.output as T,
     };
   }
 
@@ -99,16 +100,33 @@ export class ClaudeIntegration extends AiIntegration {
 
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
-      'claude-3-5-sonnet-20240620': 'Claude 3.5 Sonnet',
-      'claude-3-opus-20240229': 'Claude 3 Opus',
-      'claude-3-sonnet-20240229': 'Claude 3 Sonnet',
-      'claude-3-haiku-20240307': 'Claude 3 Haiku',
-      'claude-2.1': 'Claude 2.1',
-      'claude-2.0': 'Claude 2.0',
-      'claude-instant-1.2': 'Claude Instant 1.2',
+      // Claude 4.5 series
+      'claude-opus-4-5': 'Claude Opus 4.5',
+      'claude-sonnet-4-5': 'Claude Sonnet 4.5',
+      'claude-haiku-4-5': 'Claude Haiku 4.5',
+      // Claude 4.1 series
+      'claude-opus-4-1': 'Claude Opus 4.1',
+      // Claude 4.0 series
+      'claude-opus-4-0': 'Claude Opus 4',
+      'claude-sonnet-4-0': 'Claude Sonnet 4',
     };
 
     return aliases[model] || model;
+  }
+
+  public getModelCapabilities(model: string): ModelCapability[] {
+    const capabilities: Record<string, ModelCapability[]> = {
+      // Claude 4.5 series - all support vision and tools
+      'claude-opus-4-5': ['text', 'vision', 'tools'],
+      'claude-sonnet-4-5': ['text', 'vision', 'tools'],
+      'claude-haiku-4-5': ['text', 'vision', 'tools'],
+      // Claude 4.1 series
+      'claude-opus-4-1': ['text', 'vision', 'tools'],
+      // Claude 4.0 series
+      'claude-opus-4-0': ['text', 'vision', 'tools'],
+      'claude-sonnet-4-0': ['text', 'vision', 'tools'],
+    };
+    return capabilities[model] || ['text'];
   }
 
   public getModel(args?: AiGetModelArgs): LanguageModel {

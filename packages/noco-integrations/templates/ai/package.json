@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "ai": "^2.2.31"
+    "@ai-sdk/provider": "^3.0.0",
+    "ai": "^6.0.3"
   },
   "devDependencies": {
     "typescript": "^5.4.2"

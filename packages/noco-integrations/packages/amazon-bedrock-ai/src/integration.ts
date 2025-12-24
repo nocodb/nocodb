@@ -1,10 +1,11 @@
-import { generateObject, generateText } from 'ai';
+import { generateText, Output } from 'ai';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
   type AiGetModelArgs,
   AiIntegration,
+  type ModelCapability,
 } from '@noco-integrations/core';
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
@@ -38,9 +39,9 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
       this.model = bedrockClient(model);
     }
 
-    const response = await generateObject({
+    const response = await generateText({
       model: this.model as LanguageModel,
-      schema,
+      output: Output.object({ schema }),
       messages,
       temperature: 0.5,
     });
@@ -52,7 +53,7 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object as T,
+      data: response.output as T,
     };
   }
 
@@ -105,20 +106,53 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
 
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
-      'anthropic.claude-3-sonnet-20240229-v1:0': 'Claude 3 Sonnet',
-      'anthropic.claude-3-haiku-20240307-v1:0': 'Claude 3 Haiku',
-      'anthropic.claude-3-opus-20240229-v1:0': 'Claude 3 Opus',
-      'meta.llama3-70b-instruct-v1:0': 'Llama 3 70B',
-      'meta.llama3-8b-instruct-v1:0': 'Llama 3 8B',
-      'mistral.mistral-7b-instruct-v0:2': 'Mistral 7B',
-      'mistral.mixtral-8x7b-instruct-v0:1': 'Mixtral 8x7B',
-      'amazon.titan-text-express-v1': 'Amazon Titan Text Express',
-      'amazon.nova-micro-v1:0': 'Amazon Nova Micro',
-      'amazon.nova-lite-v1:0': 'Amazon Nova Lite',
-      'amazon.nova-pro-v1:0': 'Amazon Nova Pro',
+      // Claude 4.5 series
+      'anthropic.claude-opus-4-5-20251101-v1:0': 'Claude Opus 4.5',
+      'anthropic.claude-sonnet-4-5-20250929-v1:0': 'Claude Sonnet 4.5',
+      'anthropic.claude-haiku-4-5-20251001-v1:0': 'Claude Haiku 4.5',
+      // Claude 4.x series
+      'anthropic.claude-opus-4-1-20250805-v1:0': 'Claude Opus 4.1',
+      'anthropic.claude-sonnet-4-20250514-v1:0': 'Claude Sonnet 4',
+      // Amazon Nova series
+      'amazon.nova-2-lite-v1:0': 'Nova 2 Lite',
+      'amazon.nova-premier-v1:0': 'Nova Premier',
+      'amazon.nova-pro-v1:0': 'Nova Pro',
+      'amazon.nova-lite-v1:0': 'Nova Lite',
+      'amazon.nova-micro-v1:0': 'Nova Micro',
+      // Meta Llama series
+      'meta.llama4-maverick-17b-instruct-v1:0': 'Llama 4 Maverick',
+      'meta.llama4-scout-17b-instruct-v1:0': 'Llama 4 Scout',
+      'meta.llama3-3-70b-instruct-v1:0': 'Llama 3.3 70B',
+      // DeepSeek
+      'deepseek.r1-v1:0': 'DeepSeek R1',
+      'deepseek.v3-v1:0': 'DeepSeek V3.1',
+      // Mistral
+      'mistral.mistral-large-3-675b-instruct': 'Mistral Large 3',
     };
 
     return aliases[model] || model;
+  }
+
+  public getModelCapabilities(model: string): ModelCapability[] {
+    const capabilities: Record<string, ModelCapability[]> = {
+      // Claude models - all support vision
+      'anthropic.claude-opus-4-5-20251101-v1:0': ['text', 'vision', 'tools'],
+      'anthropic.claude-sonnet-4-5-20250929-v1:0': ['text', 'vision', 'tools'],
+      'anthropic.claude-haiku-4-5-20251001-v1:0': ['text', 'vision', 'tools'],
+      'anthropic.claude-opus-4-1-20250805-v1:0': ['text', 'vision', 'tools'],
+      'anthropic.claude-sonnet-4-20250514-v1:0': ['text', 'vision', 'tools'],
+      // Nova 2 Lite and Premier support vision
+      'amazon.nova-2-lite-v1:0': ['text', 'vision', 'tools'],
+      'amazon.nova-premier-v1:0': ['text', 'vision', 'tools'],
+      'amazon.nova-pro-v1:0': ['text', 'vision', 'tools'],
+      'amazon.nova-lite-v1:0': ['text', 'vision', 'tools'],
+      // Llama 4 models support vision
+      'meta.llama4-maverick-17b-instruct-v1:0': ['text', 'vision', 'tools'],
+      'meta.llama4-scout-17b-instruct-v1:0': ['text', 'vision', 'tools'],
+      // Mistral Large 3 supports vision
+      'mistral.mistral-large-3-675b-instruct': ['text', 'vision', 'tools'],
+    };
+    return capabilities[model] || ['text', 'tools'];
   }
 
   public getModel(args?: AiGetModelArgs): LanguageModel {
@@ -147,10 +181,11 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
     return bedrockClient(model);
   }
 
-  public availableModels(): { value: string; label: string }[] {
+  public availableModels() {
     return this.config.models.map((model: string) => ({
       value: model,
       label: this.getModelAlias(model),
+      capabilities: this.getModelCapabilities(model),
     }));
   }
 }

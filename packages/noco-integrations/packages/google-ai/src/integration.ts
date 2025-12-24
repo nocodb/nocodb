@@ -1,10 +1,11 @@
-import { generateObject, generateText } from 'ai';
+import { generateText, Output } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
   type AiGetModelArgs,
   AiIntegration,
+  type ModelCapability,
 } from '@noco-integrations/core';
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
@@ -34,9 +35,9 @@ export class GeminiIntegration extends AiIntegration {
       this.model = google(model);
     }
 
-    const response = await generateObject({
+    const response = await generateText({
       model: this.model,
-      schema,
+      output: Output.object({ schema }),
       messages,
       temperature: 0.5,
     });
@@ -48,7 +49,7 @@ export class GeminiIntegration extends AiIntegration {
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object as T,
+      data: response.output as T,
     };
   }
 
@@ -99,11 +100,24 @@ export class GeminiIntegration extends AiIntegration {
 
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
-      'gemini-2.5-pro-preview-05-06': 'Gemini 2.5 Pro Preview 05-06',
-      'gemini-2.5-flash-preview-04-17': 'Gemini 2.5 Flash Preview 04-17',
+      'gemini-2.5-pro': 'Gemini 2.5 Pro',
+      'gemini-2.5-flash': 'Gemini 2.5 Flash',
+      'gemini-2.5-flash-lite': 'Gemini 2.5 Flash Lite',
+      'gemini-3-flash': 'Gemini 3 Flash',
       'gemini-2.0-flash': 'Gemini 2.0 Flash',
     };
     return aliases[model] || model;
+  }
+
+  public getModelCapabilities(model: string): ModelCapability[] {
+    const capabilities: Record<string, ModelCapability[]> = {
+      'gemini-2.5-pro': ['text', 'vision', 'tools'],
+      'gemini-2.5-flash': ['text', 'vision', 'tools'],
+      'gemini-2.5-flash-lite': ['text', 'vision', 'tools'],
+      'gemini-3-flash': ['text', 'vision', 'tools'],
+      'gemini-2.0-flash': ['text', 'vision', 'tools'],
+    };
+    return capabilities[model] || ['text'];
   }
 
   public getModel(args?: AiGetModelArgs): LanguageModel {

@@ -1,10 +1,11 @@
-import { generateObject, generateText } from 'ai';
+import { generateText, Output } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { AiIntegration } from '@noco-integrations/core';
 import type {
   AiGenerateObjectArgs,
   AiGenerateTextArgs,
   AiGetModelArgs,
+  ModelCapability,
 } from '@noco-integrations/core';
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
@@ -41,9 +42,9 @@ export class NocodbAiIntegration extends AiIntegration {
       this.model = customOpenAi(model) as LanguageModel;
     }
 
-    const response = await generateObject({
+    const response = await generateText({
       model: this.model as LanguageModel,
-      schema,
+      output: Output.object({ schema }),
       messages,
       temperature: 0.5,
     });
@@ -55,7 +56,7 @@ export class NocodbAiIntegration extends AiIntegration {
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object as T,
+      data: response.output as T,
     };
   }
 
@@ -117,6 +118,10 @@ export class NocodbAiIntegration extends AiIntegration {
     return aliases[model] || model;
   }
 
+  public getModelCapabilities(_model: string): ModelCapability[] {
+    return ['text', 'vision', 'tools'];
+  }
+
   public getModel(args?: AiGetModelArgs): LanguageModel {
     const customModel = args?.customModel;
     const config = this.config || {};
@@ -138,10 +143,11 @@ export class NocodbAiIntegration extends AiIntegration {
     return openAI(model);
   }
 
-  public availableModels(): { value: string; label: string }[] {
+  public availableModels() {
     return (this.config?.models || []).map((model: string) => ({
       value: model,
       label: this.getModelAlias(model),
+      capabilities: this.getModelCapabilities(model),
     }));
   }
 }

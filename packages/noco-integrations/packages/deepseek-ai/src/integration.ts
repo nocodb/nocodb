@@ -1,10 +1,11 @@
-import { generateObject, generateText } from 'ai';
+import { generateText, Output } from 'ai';
 import { createDeepSeek } from '@ai-sdk/deepseek';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
   type AiGetModelArgs,
   AiIntegration,
+  type ModelCapability,
 } from '@noco-integrations/core';
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
@@ -34,9 +35,9 @@ export class DeepseekAiIntegration extends AiIntegration {
       this.model = deepseekClient(model);
     }
 
-    const response = await generateObject({
+    const response = await generateText({
       model: this.model as LanguageModel,
-      schema,
+      output: Output.object({ schema }),
       messages,
       temperature: 0.5,
     });
@@ -48,7 +49,7 @@ export class DeepseekAiIntegration extends AiIntegration {
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object as T,
+      data: response.output as T,
     };
   }
 
@@ -99,10 +100,14 @@ export class DeepseekAiIntegration extends AiIntegration {
 
   public getModelAlias(model: string): string {
     const aliases: Record<string, string> = {
-      'deepseek-v3': 'DeepSeek v3',
-      'deepseek-r1': 'DeepSeek R1',
+      'deepseek-chat': 'DeepSeek Chat',
+      'deepseek-reasoner': 'DeepSeek Reasoner',
     };
     return aliases[model] || model;
+  }
+
+  public getModelCapabilities(_model: string): ModelCapability[] {
+    return ['text', 'tools'];
   }
 
   public getModel(args?: AiGetModelArgs): LanguageModel {
@@ -126,10 +131,11 @@ export class DeepseekAiIntegration extends AiIntegration {
     return deepseekClient(model);
   }
 
-  public availableModels(): { value: string; label: string }[] {
+  public availableModels() {
     return this.config.models.map((model: string) => ({
       value: model,
       label: this.getModelAlias(model),
+      capabilities: this.getModelCapabilities(model),
     }));
   }
 }

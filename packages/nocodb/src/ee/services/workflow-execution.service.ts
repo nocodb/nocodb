@@ -214,7 +214,7 @@ export class WorkflowExecutionService {
       return null;
     }
 
-    const getAuthIntegration = async (integrationId: string) => {
+    const getIntegration = async (integrationId: string) => {
       if (!integrationId) {
         NcError.get(context).badRequest('Integration ID is required');
       }
@@ -268,9 +268,9 @@ export class WorkflowExecutionService {
         {},
       ) as WorkflowNodeIntegration;
 
-      // Inject auth loader into node instance
-      if (typeof nodeWrapper.setAuthLoader === 'function') {
-        nodeWrapper.setAuthLoader(getAuthIntegration);
+      // Inject integration loader into node instance
+      if (typeof nodeWrapper.setIntegrationLoader === 'function') {
+        nodeWrapper.setIntegrationLoader(getIntegration);
       }
     } catch (e) {
       this.logger.error(`Failed to instantiate wrapper for ${nodeType}:`, e);

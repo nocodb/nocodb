@@ -289,6 +289,41 @@ interface AssociationRequest {
   type: AssociationType;
 }
 
+/**
+ * Team information associated with an owner
+ */
+interface HubSpotOwnerTeam {
+  /** The unique ID of the team */
+  id: string;
+  /** The name of the team */
+  name: string;
+  /** Whether this is the owner's primary team */
+  primary: boolean;
+}
+
+/**
+ * Owner object representing a HubSpot user who can own records
+ */
+interface HubSpotOwner {
+  /** The unique ID of the owner */
+  id: string;
+  /** The email address of the owner */
+  email: string;
+  /** The first name of the owner */
+  firstName: string;
+  /** The last name of the owner */
+  lastName: string;
+  /** The user ID associated with the owner */
+  userId: number;
+  /** ISO 8601 timestamp when the owner was created */
+  createdAt: string;
+  /** ISO 8601 timestamp when the owner was last updated */
+  updatedAt: string;
+  /** Whether the owner has been archived */
+  archived: boolean;
+  /** Array of teams the owner belongs to */
+  teams?: HubSpotOwnerTeam[];
+}
 // ============================================
 // Export all types
 // ============================================
@@ -306,6 +341,8 @@ export type {
   HubSpotContactProperties,
   HubSpotAssociation,
   HubSpotAssociationResponse,
+  HubSpotOwner,
+  HubSpotOwnerTeam,
 
   // Normalized Types
   Account,

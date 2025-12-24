@@ -11,6 +11,7 @@ import type {
   HubSpotApiResponse,
   HubSpotCompany,
   HubSpotContact,
+  HubSpotOwner,
 } from './types';
 
 export interface HubspotSyncPayload {
@@ -37,7 +38,7 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
   ): Promise<DataObjectStream<SyncRecord>> {
     const stream = new DataObjectStream<SyncRecord>();
 
-    // Simplified data fetching for Dropbox employees
+    // Simplified data fetching for Hubspot employees
     void (async () => {
       try {
         const lastModifiedCrmAccount =
@@ -74,7 +75,7 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
 
         stream.push(null);
       } catch (error) {
-        console.error('[Dropbox Sync] Error fetching data:', error);
+        console.error('[Hubspot Sync] Error fetching data:', error);
         stream.destroy(
           error instanceof Error ? error : new Error(String(error)),
         );
@@ -232,18 +233,18 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
     }: {
       lastModifiedAfter?: string;
       stream: DataObjectStream<SyncRecord>;
-      onResponse?: (data: any[]) => Promise<void>;
+      onResponse?: (data: HubSpotOwner[]) => Promise<void>;
     },
   ) {
     try {
       console.log('Fetching users...');
-      await this.fetchAllRecords<any>(auth, {
+      await this.fetchAllRecords<HubSpotOwner>(auth, {
         endpoint: '/crm/v3/owners',
         method: 'get',
         body: {
           limit: 100,
         },
-        onResponse: async (data: any[]) => {
+        onResponse: async (data: HubSpotOwner[]) => {
           for (const formattedUser of this.formatter.formatUsers({
             users: data,
           })) {

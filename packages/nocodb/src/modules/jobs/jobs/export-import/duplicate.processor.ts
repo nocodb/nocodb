@@ -785,7 +785,7 @@ export class DuplicateProcessor {
       sourceModels: Model[];
       destProject: Base;
       destBase: Source;
-      hrTime: { hrTime: [number, number] };
+      hrTime: NocoHrTime;
       options?: {
         excludeData?: boolean;
         excludeViews?: boolean;

@@ -6,7 +6,6 @@ import Noco from '~/Noco';
 import { BaseRelatedMetaTables, MetaTable } from '~/utils/globals';
 import { Base, Column, Model, Source } from '~/models';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import NocoCache from '~/cache/NocoCache';
 
 // Altered enum from columns service
@@ -99,7 +98,7 @@ const orderedSerializableMetaTables = [
   MetaTable.SYNC_LOGS,
 
   // Scripts and tokens
-  MetaTable.SCRIPTS,
+  MetaTable.AUTOMATIONS,
   MetaTable.MCP_TOKENS,
 
   // Statistics

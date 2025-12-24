@@ -145,7 +145,6 @@ const refTables = computed(() => {
 
     return tableMeta ? [tableMeta] : []
   }
-})
 
   let tablesList: any[] = []
 

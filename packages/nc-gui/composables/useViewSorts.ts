@@ -36,9 +36,10 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       if (!isUIAllowed('sortSync')) {
         return
       }
-      if (!view?.value) return
+      if (!view?.value || !meta.value) return
+
       sorts.value = (
-        await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        await $api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
           operation: 'sortList',
           viewId: view.value!.id!,
         })

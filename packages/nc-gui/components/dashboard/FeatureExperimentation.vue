@@ -226,7 +226,7 @@ onUnmounted(() => {
 <style lang="scss">
 .nc-features-drawer {
   .ant-drawer-content-wrapper {
-    @apply !rounded-l-xl overflow-hidden mt-[48px] h-[calc(100vh_-_48px)];
+    @apply !rounded-l-xl overflow-hidden mt-[48px] h-[calc(100vh_-_48px)] border-1 border-r-0 border-nc-border-gray-medium;
     .ant-drawer-body {
       @apply p-0;
     }

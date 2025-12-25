@@ -33,7 +33,7 @@ interface GenerateStructuredActionConfig extends WorkflowNodeConfig {
 export class GenerateStructuredAction extends WorkflowNodeIntegration<GenerateStructuredActionConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
     return {
-      id: 'core.action.generate-structured',
+      id: 'ai.action.generate-structured',
       title: 'Generate structured data',
       description:
         'Generate structured data using AI models with custom schema',
@@ -108,13 +108,11 @@ export class GenerateStructuredAction extends WorkflowNodeIntegration<GenerateSt
           this.config.integrationId,
         );
 
-        return aiIntegration.availableModels().map((model: any) => ({
+        const models = await aiIntegration.availableModels('tools');
+
+        return models.map((model: any) => ({
           label: model.label,
           value: model.value,
-          ncItemDisabled: !model.capabilities?.includes('tools'),
-          ncItemTooltip: !model.capabilities?.includes('tools')
-            ? 'Model does not support structured output'
-            : '',
         }));
       } catch {
         return [];

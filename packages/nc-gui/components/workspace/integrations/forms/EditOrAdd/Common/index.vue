@@ -21,6 +21,10 @@ const {
   testConnection,
 } = useIntegrationStore()
 
+const { $api } = useNuxtApp()
+
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
 const isEditMode = computed(() => pageMode.value === IntegrationsPageMode.EDIT)
 
 const testConnectionResult = ref<{ success: boolean; message?: string } | null>(null)
@@ -58,6 +62,19 @@ const { form, formState, isLoading, initialState, submit } = useProvideFormBuild
   },
   onChange: () => {
     testConnectionResult.value = null
+  },
+  fetchOptions: async (key) => {
+    const wsId = activeWorkspaceId?.value
+    if (!wsId) return []
+    return await $api.internal.postOperation(
+      wsId,
+      NO_SCOPE,
+      { operation: 'integrationFetchOptions' },
+      {
+        integration: formState.value,
+        key,
+      },
+    )
   },
 })
 

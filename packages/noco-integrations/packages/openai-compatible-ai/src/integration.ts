@@ -4,13 +4,14 @@ import {
   type AiGenerateObjectArgs,
   type AiGetModelArgs,
   AiIntegration,
-  type ModelCapability,
 } from '@noco-integrations/core';
 import type { AiGenerateTextArgs } from '@noco-integrations/core';
 import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 export class OpenAiCompatibleAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
+
+  protected supportedModels = [];
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
     const { messages, schema } = args;
@@ -107,14 +108,6 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
     };
   }
 
-  public getModelAlias(model: string): string {
-    return model; // Use the model name as-is for compatible providers
-  }
-
-  public getModelCapabilities(_model: string): ModelCapability[] {
-    return ['text', 'tools'];
-  }
-
   public getModel(args?: AiGetModelArgs): LanguageModel {
     const customModel = args?.customModel;
     const model = customModel || this.config.models[0];
@@ -136,13 +129,5 @@ export class OpenAiCompatibleAiIntegration extends AiIntegration {
     });
 
     return openAIClient(model);
-  }
-
-  public availableModels() {
-    return this.config.models.map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-      capabilities: this.getModelCapabilities(model),
-    }));
   }
 }

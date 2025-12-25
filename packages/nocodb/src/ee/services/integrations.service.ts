@@ -510,4 +510,26 @@ export class IntegrationsService extends IntegrationsServiceCE {
       return errorResponse;
     }
   }
+
+  async integrationFetchOptions(
+    context: NcContext,
+    param: {
+      integration: IntegrationReqType;
+      key: string;
+      params?: any;
+    },
+  ) {
+    const { integration, key, params } = param;
+
+    const tempIntegrationWrapper =
+      Integration.tempIntegrationWrapper<any>(integration);
+
+    if (!tempIntegrationWrapper) {
+      NcError.get(context).badRequest('Invalid integration');
+    }
+
+    // Call fetchOptions with payload
+    const payload = { key, params };
+    return await tempIntegrationWrapper.fetchOptions(payload);
+  }
 }

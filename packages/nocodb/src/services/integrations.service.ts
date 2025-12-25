@@ -466,6 +466,6 @@ export class IntegrationsService {
       NcError.get(context).genericNotFound('Endpoint', params.endpoint);
     }
 
-    return wrapper[params.endpoint](context, params.payload);
+    return wrapper[params.endpoint](params.payload);
   }
 }

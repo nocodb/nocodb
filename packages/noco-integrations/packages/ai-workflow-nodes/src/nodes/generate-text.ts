@@ -24,7 +24,7 @@ interface GenerateTextActionConfig extends WorkflowNodeConfig {
 export class GenerateTextAction extends WorkflowNodeIntegration<GenerateTextActionConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
     return {
-      id: 'core.action.generate-text',
+      id: 'ai.action.generate-text',
       title: 'Generate text',
       description: 'Generate text content using AI models',
       icon: 'openai',
@@ -123,14 +123,14 @@ export class GenerateTextAction extends WorkflowNodeIntegration<GenerateTextActi
           this.config.integrationId,
         );
 
-        return aiIntegration.availableModels().map((model: any) => ({
-          label: model.label,
-          value: model.value,
-          ncItemDisabled: !model.capabilities?.includes('text'),
-          ncItemTooltip: !model.capabilities?.includes('text')
-            ? 'Model does not support text generation'
-            : '',
-        }));
+        const models = await aiIntegration.availableModels();
+
+        return models
+          .filter((model: any) => model.capabilities?.includes('text'))
+          .map((model: any) => ({
+            label: model.label,
+            value: model.value,
+          }));
       } catch {
         return [];
       }

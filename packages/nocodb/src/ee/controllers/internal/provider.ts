@@ -2,12 +2,14 @@ import { InternalApiModules as InternalApiModulesCE } from 'src/controllers/inte
 import type { InternalApiModule } from '~/utils/internal-type';
 import { WorkflowPostOperations } from '~/controllers/internal/modules/WorkflowPost.operations';
 import { WorkflowGetOperations } from '~/controllers/internal/modules/WorkflowGet.operations';
+import { IntegrationPostOperations } from '~/controllers/internal/modules/IntegrationPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
   ...InternalApiModulesCE,
   WorkflowPostOperations,
   WorkflowGetOperations,
+  IntegrationPostOperations,
 ];
 
 export const InternalApiModuleProvider = {

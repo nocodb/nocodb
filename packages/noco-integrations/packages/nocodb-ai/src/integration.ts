@@ -18,6 +18,24 @@ const modelMap: Record<string, string> = {
 export class NocodbAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
+  protected supportedModels = [
+    {
+      value: 'high',
+      label: 'High',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'medium',
+      label: 'Medium',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'low',
+      label: 'Low',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+  ];
+
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
     const { messages, schema } = args;
 
@@ -108,20 +126,6 @@ export class NocodbAiIntegration extends AiIntegration {
     };
   }
 
-  public getModelAlias(model: string): string {
-    const aliases: Record<string, string> = {
-      high: 'High',
-      medium: 'Medium',
-      low: 'Low',
-    };
-
-    return aliases[model] || model;
-  }
-
-  public getModelCapabilities(_model: string): ModelCapability[] {
-    return ['text', 'vision', 'tools'];
-  }
-
   public getModel(args?: AiGetModelArgs): LanguageModel {
     const customModel = args?.customModel;
     const config = this.config || {};
@@ -141,13 +145,5 @@ export class NocodbAiIntegration extends AiIntegration {
     });
 
     return openAI(model);
-  }
-
-  public availableModels() {
-    return (this.config?.models || []).map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-      capabilities: this.getModelCapabilities(model),
-    }));
   }
 }

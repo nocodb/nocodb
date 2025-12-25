@@ -12,6 +12,19 @@ import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 export class DeepseekAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
+  protected supportedModels = [
+    {
+      value: 'deepseek-chat',
+      label: 'DeepSeek Chat',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'deepseek-reasoner',
+      label: 'DeepSeek Reasoner',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+  ];
+
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
     const { messages, schema } = args;
 
@@ -98,18 +111,6 @@ export class DeepseekAiIntegration extends AiIntegration {
     };
   }
 
-  public getModelAlias(model: string): string {
-    const aliases: Record<string, string> = {
-      'deepseek-chat': 'DeepSeek Chat',
-      'deepseek-reasoner': 'DeepSeek Reasoner',
-    };
-    return aliases[model] || model;
-  }
-
-  public getModelCapabilities(_model: string): ModelCapability[] {
-    return ['text', 'tools'];
-  }
-
   public getModel(args?: AiGetModelArgs): LanguageModel {
     const customModel = args?.customModel;
     const model = customModel || this.config.models[0];
@@ -129,13 +130,5 @@ export class DeepseekAiIntegration extends AiIntegration {
     });
 
     return deepseekClient(model);
-  }
-
-  public availableModels() {
-    return this.config.models.map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-      capabilities: this.getModelCapabilities(model),
-    }));
   }
 }

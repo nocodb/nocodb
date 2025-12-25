@@ -7,4 +7,5 @@ export const manifest = createManifest(IntegrationType.Ai, {
   version: '0.1.0',
   author: 'NocoDB',
   order: 4,
+  expose: ['fetchOptions'],
 });

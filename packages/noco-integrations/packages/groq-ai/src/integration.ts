@@ -12,6 +12,65 @@ import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 export class GroqAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
+  protected supportedModels = [
+    // Llama 4 series
+    {
+      value: 'meta-llama/llama-4-maverick-17b-128e-instruct',
+      label: 'Llama 4 Maverick 17B',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'meta-llama/llama-4-scout-17b-16e-instruct',
+      label: 'Llama 4 Scout 17B',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // Llama 3.x series
+    {
+      value: 'llama-3.3-70b-versatile',
+      label: 'Llama 3.3 70B Versatile',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'llama-3.1-8b-instant',
+      label: 'Llama 3.1 8B Instant',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // Groq models
+    {
+      value: 'groq/compound',
+      label: 'Groq Compound',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'groq/compound-mini',
+      label: 'Groq Compound Mini',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // OpenAI OSS models
+    {
+      value: 'openai/gpt-oss-120b',
+      label: 'GPT OSS 120B',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'openai/gpt-oss-20b',
+      label: 'GPT OSS 20B',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // Moonshot AI
+    {
+      value: 'moonshotai/kimi-k2-instruct',
+      label: 'Kimi K2',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // Qwen
+    {
+      value: 'qwen/qwen3-32b',
+      label: 'Qwen3 32B',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+  ];
+
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
     const { messages, schema } = args;
 
@@ -51,32 +110,6 @@ export class GroqAiIntegration extends AiIntegration {
       },
       data: response.output as T,
     };
-  }
-
-  public getModelAlias(model: string): string {
-    const aliases: Record<string, string> = {
-      // Llama 4 series
-      'meta-llama/llama-4-maverick-17b-128e-instruct': 'Llama 4 Maverick 17B',
-      'meta-llama/llama-4-scout-17b-16e-instruct': 'Llama 4 Scout 17B',
-      // Llama 3.x series
-      'llama-3.3-70b-versatile': 'Llama 3.3 70B Versatile',
-      'llama-3.1-8b-instant': 'Llama 3.1 8B Instant',
-      // Groq models
-      'groq/compound': 'Groq Compound',
-      'groq/compound-mini': 'Groq Compound Mini',
-      // OpenAI OSS models
-      'openai/gpt-oss-120b': 'GPT OSS 120B',
-      'openai/gpt-oss-20b': 'GPT OSS 20B',
-      // Moonshot AI
-      'moonshotai/kimi-k2-instruct': 'Kimi K2',
-      // Qwen
-      'qwen/qwen3-32b': 'Qwen3 32B',
-    };
-    return aliases[model] || model;
-  }
-
-  public getModelCapabilities(_model: string): ModelCapability[] {
-    return ['text', 'tools'];
   }
 
   public getModel(args?: AiGetModelArgs): LanguageModel {
@@ -141,13 +174,5 @@ export class GroqAiIntegration extends AiIntegration {
       },
       data: response.text,
     };
-  }
-
-  public availableModels() {
-    return this.config.models.map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-      capabilities: this.getModelCapabilities(model),
-    }));
   }
 }

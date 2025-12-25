@@ -14,15 +14,52 @@ export abstract class AiIntegration<T extends { models: string[] } = any> extend
   abstract generateObject<T>(
     args: AiGenerateObjectArgs,
   ): Promise<AiGenerateObjectResponse<T>>;
-  abstract getModelAlias(model: string): string;
-  abstract getModelCapabilities(model: string): ModelCapability[];
 
-  public availableModels(): ModelInfo[] {
-    return (this.config.models || []).map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-      capabilities: this.getModelCapabilities(model),
-    }));
+  /**
+   * List of models supported by this AI provider with their capabilities
+   * Override this in each integration to define supported models
+   */
+  protected abstract supportedModels: ModelInfo[];
+
+  /**
+   * Get available models based on user configuration
+   * @param capability - Optional capability filter (e.g., 'text', 'vision', 'tools')
+   * @returns List of models that match the criteria
+   *
+   * Note: Custom models (not in supportedModels) are always included,
+   * assuming they support all capabilities
+   */
+  public async availableModels(capability?: ModelCapability): Promise<ModelInfo[]> {
+    const results: ModelInfo[] = [];
+
+    for (const modelId of this.config.models || []) {
+      // Find model in supportedModels list
+      const supportedModel = this.supportedModels.find(m => m.value === modelId);
+
+      if (supportedModel) {
+        // Known model - check capabilities if specified
+        if (!capability || supportedModel.capabilities.includes(capability)) {
+          results.push(supportedModel);
+        }
+      } else {
+        // Custom/unknown model - assume it supports everything
+        results.push({
+          value: modelId,
+          label: modelId, // Use the ID as label
+          capabilities: ['text', 'vision', 'tools', 'image-generation'],
+        });
+      }
+    }
+
+    return results;
+  }
+
+  public async fetchOptions(payload: { key: string; params?: { capability?: ModelCapability } }): Promise<unknown> {
+    const { key, params } = payload;
+    if (key === 'models') {
+      return this.supportedModels;
+    }
+    return [];
   }
 
   abstract generateText(args: AiGenerateTextArgs): Promise<AiGenerateTextResponse>;

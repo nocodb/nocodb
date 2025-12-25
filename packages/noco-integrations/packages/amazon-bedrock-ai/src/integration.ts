@@ -12,6 +12,89 @@ import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 export class AmazonBedrockAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
+  protected supportedModels = [
+    {
+      value: 'anthropic.claude-opus-4-5-20251101-v1:0',
+      label: 'Claude Opus 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'anthropic.claude-sonnet-4-5-20250929-v1:0',
+      label: 'Claude Sonnet 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'anthropic.claude-haiku-4-5-20251001-v1:0',
+      label: 'Claude Haiku 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'anthropic.claude-opus-4-1-20250805-v1:0',
+      label: 'Claude Opus 4.1',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'anthropic.claude-sonnet-4-20250514-v1:0',
+      label: 'Claude Sonnet 4',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'amazon.nova-2-lite-v1:0',
+      label: 'Nova 2 Lite',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'amazon.nova-premier-v1:0',
+      label: 'Nova Premier',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'amazon.nova-pro-v1:0',
+      label: 'Nova Pro',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'amazon.nova-lite-v1:0',
+      label: 'Nova Lite',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'amazon.nova-micro-v1:0',
+      label: 'Nova Micro',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'meta.llama4-maverick-17b-instruct-v1:0',
+      label: 'Llama 4 Maverick',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'meta.llama4-scout-17b-instruct-v1:0',
+      label: 'Llama 4 Scout',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'meta.llama3-3-70b-instruct-v1:0',
+      label: 'Llama 3.3 70B',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'deepseek.r1-v1:0',
+      label: 'DeepSeek R1',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'deepseek.v3-v1:0',
+      label: 'DeepSeek V3.1',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'mistral.mistral-large-3-675b-instruct',
+      label: 'Mistral Large 3',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+  ];
+
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
     const { messages, schema } = args;
 
@@ -104,57 +187,6 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
     };
   }
 
-  public getModelAlias(model: string): string {
-    const aliases: Record<string, string> = {
-      // Claude 4.5 series
-      'anthropic.claude-opus-4-5-20251101-v1:0': 'Claude Opus 4.5',
-      'anthropic.claude-sonnet-4-5-20250929-v1:0': 'Claude Sonnet 4.5',
-      'anthropic.claude-haiku-4-5-20251001-v1:0': 'Claude Haiku 4.5',
-      // Claude 4.x series
-      'anthropic.claude-opus-4-1-20250805-v1:0': 'Claude Opus 4.1',
-      'anthropic.claude-sonnet-4-20250514-v1:0': 'Claude Sonnet 4',
-      // Amazon Nova series
-      'amazon.nova-2-lite-v1:0': 'Nova 2 Lite',
-      'amazon.nova-premier-v1:0': 'Nova Premier',
-      'amazon.nova-pro-v1:0': 'Nova Pro',
-      'amazon.nova-lite-v1:0': 'Nova Lite',
-      'amazon.nova-micro-v1:0': 'Nova Micro',
-      // Meta Llama series
-      'meta.llama4-maverick-17b-instruct-v1:0': 'Llama 4 Maverick',
-      'meta.llama4-scout-17b-instruct-v1:0': 'Llama 4 Scout',
-      'meta.llama3-3-70b-instruct-v1:0': 'Llama 3.3 70B',
-      // DeepSeek
-      'deepseek.r1-v1:0': 'DeepSeek R1',
-      'deepseek.v3-v1:0': 'DeepSeek V3.1',
-      // Mistral
-      'mistral.mistral-large-3-675b-instruct': 'Mistral Large 3',
-    };
-
-    return aliases[model] || model;
-  }
-
-  public getModelCapabilities(model: string): ModelCapability[] {
-    const capabilities: Record<string, ModelCapability[]> = {
-      // Claude models - all support vision
-      'anthropic.claude-opus-4-5-20251101-v1:0': ['text', 'vision', 'tools'],
-      'anthropic.claude-sonnet-4-5-20250929-v1:0': ['text', 'vision', 'tools'],
-      'anthropic.claude-haiku-4-5-20251001-v1:0': ['text', 'vision', 'tools'],
-      'anthropic.claude-opus-4-1-20250805-v1:0': ['text', 'vision', 'tools'],
-      'anthropic.claude-sonnet-4-20250514-v1:0': ['text', 'vision', 'tools'],
-      // Nova 2 Lite and Premier support vision
-      'amazon.nova-2-lite-v1:0': ['text', 'vision', 'tools'],
-      'amazon.nova-premier-v1:0': ['text', 'vision', 'tools'],
-      'amazon.nova-pro-v1:0': ['text', 'vision', 'tools'],
-      'amazon.nova-lite-v1:0': ['text', 'vision', 'tools'],
-      // Llama 4 models support vision
-      'meta.llama4-maverick-17b-instruct-v1:0': ['text', 'vision', 'tools'],
-      'meta.llama4-scout-17b-instruct-v1:0': ['text', 'vision', 'tools'],
-      // Mistral Large 3 supports vision
-      'mistral.mistral-large-3-675b-instruct': ['text', 'vision', 'tools'],
-    };
-    return capabilities[model] || ['text', 'tools'];
-  }
-
   public getModel(args?: AiGetModelArgs): LanguageModel {
     const customModel = args?.customModel;
     const model = customModel || this.config.models[0];
@@ -179,13 +211,5 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
     });
 
     return bedrockClient(model);
-  }
-
-  public availableModels() {
-    return this.config.models.map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-      capabilities: this.getModelCapabilities(model),
-    }));
   }
 }

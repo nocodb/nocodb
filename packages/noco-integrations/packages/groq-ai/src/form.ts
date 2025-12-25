@@ -41,15 +41,8 @@ export const form: FormDefinition = [
     placeholder: 'Allowed models',
     category: 'Settings',
     selectMode: 'multipleWithInput',
-    options: [
-      { value: 'llama-4-maverick', label: 'Llama-4 Maverick' },
-      { value: 'llama-4-scout', label: 'Llama-4 Scout' },
-      {
-        value: 'deepseek-r1-distill-llama-70b',
-        label: 'DeepSeek R1 Distill Llama 70B',
-      },
-    ],
-    defaultValue: ['llama-4-maverick'],
+    fetchOptionsKey: 'models',
+    defaultValue: ['meta-llama/llama-4-maverick-17b-128e-instruct'],
     validators: [
       {
         type: FormBuilderValidatorType.Required,

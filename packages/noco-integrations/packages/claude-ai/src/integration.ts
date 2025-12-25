@@ -12,6 +12,42 @@ import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 export class ClaudeIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
 
+  protected supportedModels = [
+    // Claude 4.5 series
+    {
+      value: 'claude-opus-4-5',
+      label: 'Claude Opus 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'claude-sonnet-4-5',
+      label: 'Claude Sonnet 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'claude-haiku-4-5',
+      label: 'Claude Haiku 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    // Claude 4.1 series
+    {
+      value: 'claude-opus-4-1',
+      label: 'Claude Opus 4.1',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    // Claude 4.0 series
+    {
+      value: 'claude-opus-4-0',
+      label: 'Claude Opus 4',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'claude-sonnet-4-0',
+      label: 'Claude Sonnet 4',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+  ];
+
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
     const { messages, schema } = args;
 
@@ -96,37 +132,6 @@ export class ClaudeIntegration extends AiIntegration {
       },
       data: response.text,
     };
-  }
-
-  public getModelAlias(model: string): string {
-    const aliases: Record<string, string> = {
-      // Claude 4.5 series
-      'claude-opus-4-5': 'Claude Opus 4.5',
-      'claude-sonnet-4-5': 'Claude Sonnet 4.5',
-      'claude-haiku-4-5': 'Claude Haiku 4.5',
-      // Claude 4.1 series
-      'claude-opus-4-1': 'Claude Opus 4.1',
-      // Claude 4.0 series
-      'claude-opus-4-0': 'Claude Opus 4',
-      'claude-sonnet-4-0': 'Claude Sonnet 4',
-    };
-
-    return aliases[model] || model;
-  }
-
-  public getModelCapabilities(model: string): ModelCapability[] {
-    const capabilities: Record<string, ModelCapability[]> = {
-      // Claude 4.5 series - all support vision and tools
-      'claude-opus-4-5': ['text', 'vision', 'tools'],
-      'claude-sonnet-4-5': ['text', 'vision', 'tools'],
-      'claude-haiku-4-5': ['text', 'vision', 'tools'],
-      // Claude 4.1 series
-      'claude-opus-4-1': ['text', 'vision', 'tools'],
-      // Claude 4.0 series
-      'claude-opus-4-0': ['text', 'vision', 'tools'],
-      'claude-sonnet-4-0': ['text', 'vision', 'tools'],
-    };
-    return capabilities[model] || ['text'];
   }
 
   public getModel(args?: AiGetModelArgs): LanguageModel {

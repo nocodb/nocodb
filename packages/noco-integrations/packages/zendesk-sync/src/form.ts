@@ -40,7 +40,8 @@ const form: FormDefinition = [
   {
     type: FormBuilderInputType.Checkbox,
     label: 'Include closed tickets',
-    description: 'Sync both open and closed tickets to maintain a complete record of project history and resolutions.',
+    description:
+      'Sync both open and closed tickets to maintain a complete record of project history and resolutions.',
     span: 24,
     model: 'config.includeClosed',
     category: 'Options',

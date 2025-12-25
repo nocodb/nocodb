@@ -10,4 +10,5 @@ export const manifest = createManifest(IntegrationType.Ai, {
   iconStyle: {
     width: '32px',
   },
+  expose: ['fetchOptions'],
 });

@@ -13,6 +13,7 @@ export const OPERATION_SCOPES = {
   addChildSync: 'base',
   authIntegrationTestConnection: 'workspace',
   syncIntegrationFetchOptions: 'workspace',
+  integrationFetchOptions: 'workspace',
   listScripts: 'base',
   getScript: 'base',
   createScript: 'base',

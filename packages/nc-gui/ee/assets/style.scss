@@ -1380,7 +1380,7 @@ svg.nc-virtual-cell-icon {
   }
 
   img {
-    @apply max-w-full;
+    @apply max-w-[calc(100%_-_0.25rem)];
   }
 
   em {

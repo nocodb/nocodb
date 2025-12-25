@@ -34,7 +34,7 @@ export class GenerateStructuredAction extends WorkflowNodeIntegration<GenerateSt
   public async definition(): Promise<WorkflowNodeDefinition> {
     return {
       id: 'core.action.generate-structured',
-      title: 'Generate Structured Data with AI',
+      title: 'Generate structured data',
       description:
         'Generate structured data using AI models with custom schema',
       icon: 'openai',
@@ -129,7 +129,7 @@ export class GenerateStructuredAction extends WorkflowNodeIntegration<GenerateSt
 
     for (const field of fields) {
       if (!field.name || field.name.trim() === '') {
-        continue; // Skip fields without names
+        continue;
       }
 
       let zodType: z.ZodTypeAny;

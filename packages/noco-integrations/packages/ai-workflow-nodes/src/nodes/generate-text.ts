@@ -25,7 +25,7 @@ export class GenerateTextAction extends WorkflowNodeIntegration<GenerateTextActi
   public async definition(): Promise<WorkflowNodeDefinition> {
     return {
       id: 'core.action.generate-text',
-      title: 'Generate Text with AI',
+      title: 'Generate text',
       description: 'Generate text content using AI models',
       icon: 'openai',
       category: WorkflowNodeCategory.ACTION,

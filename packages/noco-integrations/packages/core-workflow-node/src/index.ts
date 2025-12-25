@@ -10,8 +10,6 @@ import { IterateNode } from './nodes/iterate';
 import { SendEmailAction } from './nodes/send-email';
 import { DelayNode } from './nodes/delay';
 import { WaitUntilNode } from './nodes/wait-until';
-import { GenerateTextAction } from './nodes/generate-text';
-import { GenerateStructuredAction } from './nodes/generate-structured';
 
 export const entries: IntegrationEntry[] = [
   {
@@ -25,6 +23,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncPlay',
       order: 4,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -36,6 +35,7 @@ export const entries: IntegrationEntry[] = [
       title: 'At scheduled time',
       icon: 'ncClock',
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -48,6 +48,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncIfElse',
       order: 5,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -60,6 +61,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncRepeat',
       order: 6,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -72,6 +74,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncMail',
       order: 12,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -84,6 +87,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncClock',
       order: 7,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -96,30 +100,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncCalendar',
       order: 8,
     },
-  },
-  {
-    type: IntegrationType.WorkflowNode,
-    sub_type: 'core.action.generate-text',
-    wrapper: GenerateTextAction,
-    form: [],
-    manifest: {
-      ...manifest,
-      title: 'Generate Text with AI',
-      icon: 'openai',
-      order: 13,
-    },
-  },
-  {
-    type: IntegrationType.WorkflowNode,
-    sub_type: 'core.action.generate-structured',
-    wrapper: GenerateStructuredAction,
-    form: [],
-    manifest: {
-      ...manifest,
-      title: 'Generate Structured Data with AI',
-      icon: 'openai',
-      order: 14,
-    },
+    packageManifest: manifest,
   },
 ];
 

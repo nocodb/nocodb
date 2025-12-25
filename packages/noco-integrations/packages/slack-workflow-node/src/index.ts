@@ -17,6 +17,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncSlack',
       order: 13,
     },
+    packageManifest: manifest,
   },
 ];
 

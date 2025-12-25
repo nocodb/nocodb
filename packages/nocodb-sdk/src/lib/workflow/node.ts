@@ -49,4 +49,10 @@ export interface WorkflowNodeDefinition {
    * - CRON: Requires scheduling (e.g., cron triggers)
    */
   activationType?: TriggerActivationType;
+
+  package?: {
+    name: string; // e.g., 'github', 'google', 'core', 'nocodb'
+    title: string; // e.g., 'GitHub', 'Google', 'Core', 'NocoDB'
+    icon?: string; // Package icon
+  };
 }

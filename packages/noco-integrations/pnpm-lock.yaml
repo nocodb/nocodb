@@ -78,6 +78,19 @@ importers:
         specifier: ^3.1.4
         version: 3.1.4(@types/node@20.17.46)
 
+  packages/ai-workflow-nodes:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+    devDependencies:
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   packages/amazon-bedrock-ai:
     dependencies:
       '@ai-sdk/amazon-bedrock':
@@ -320,6 +333,9 @@ importers:
       cron-parser:
         specifier: ^5.4.0
         version: 5.4.0
+      zod:
+        specifier: ^3.25.76
+        version: 3.25.76
     devDependencies:
       '@types/node':
         specifier: ^20.17.46
@@ -3781,11 +3797,6 @@ packages:
   url-template@2.0.8:
     resolution: {integrity: sha512-XdVKMF4SJ0nP/O7XIPB0JwAEuT9lDIYnNsK8yGVe43y0AWoKeJNdv3ZNWh7ksJ6KqQFjOO6ox/VEitLnaVNufw==}
 
-  use-sync-external-store@1.5.0:
-    resolution: {integrity: sha512-Rb46I4cGGVBmjamjphe8L/UnvJD+uPPtTkNvX5mZgqdbavhI4EbgIWJiIHXJ8bc/i9EQGPRh4DwEURJ552Do0A==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-
   validator@13.15.0:
     resolution: {integrity: sha512-36B2ryl4+oL5QxZ3AzD0t5SsMNGvTtQHpjgFO5tbNxfXbMFkY822ktCDe1MnlqV3301QQI9SLHDNJokDI+Z9pA==}
     engines: {node: '>= 0.10'}
@@ -7042,10 +7053,6 @@ snapshots:
       punycode: 2.3.1
 
   url-template@2.0.8: {}
-
-  use-sync-external-store@1.5.0(react@18.3.1):
-    dependencies:
-      react: 18.3.1
 
   validator@13.15.0: {}
 

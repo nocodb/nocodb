@@ -177,12 +177,31 @@ export class WorkflowExecutionService {
 
         if (typeof instance.definition === 'function') {
           const definition = await instance.definition();
+
+          const packagePrefix = integration.sub_type?.split('.')[0] || 'core';
+
+          const usePackageManifest =
+            integration.packageManifest &&
+            packagePrefix !== 'core' &&
+            packagePrefix !== 'nocodb';
+
+          const packageInfo = usePackageManifest
+            ? integration.packageManifest
+            : null;
+
           nodes.push({
             ...definition,
             source: {
               type: integration.type,
               subType: integration.sub_type,
             },
+            package: packageInfo
+              ? {
+                  name: packagePrefix,
+                  title: packageInfo.title,
+                  icon: packageInfo.icon,
+                }
+              : undefined,
           });
         }
       } catch (error) {

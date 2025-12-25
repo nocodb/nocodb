@@ -17,6 +17,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'gmail',
       order: 14,
     },
+    packageManifest: manifest,
   },
 ];
 

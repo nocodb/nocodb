@@ -27,6 +27,7 @@ export const entries: IntegrationEntry[] = [
       title: 'NocoDB - Record Created Trigger',
       order: 1,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -38,6 +39,7 @@ export const entries: IntegrationEntry[] = [
       title: 'NocoDB - Record Updated Trigger',
       order: 2,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -49,6 +51,7 @@ export const entries: IntegrationEntry[] = [
       title: 'NocoDB - Record Deleted Trigger',
       order: 3,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -60,6 +63,7 @@ export const entries: IntegrationEntry[] = [
       title: 'NocoDB - Form Submitted Trigger',
       order: 4,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -71,6 +75,7 @@ export const entries: IntegrationEntry[] = [
       title: 'NocoDB - Record Enters View Trigger',
       order: 5,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -82,6 +87,7 @@ export const entries: IntegrationEntry[] = [
       title: 'NocoDB - Record Matches Condition Trigger',
       order: 6,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -93,6 +99,7 @@ export const entries: IntegrationEntry[] = [
       title: 'NocoDB - Create Record',
       order: 7,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -104,6 +111,7 @@ export const entries: IntegrationEntry[] = [
       title: 'NocoDB - Update Record',
       order: 8,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -115,6 +123,7 @@ export const entries: IntegrationEntry[] = [
       title: 'NocoDB - Find Record',
       order: 9,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -126,6 +135,7 @@ export const entries: IntegrationEntry[] = [
       title: 'NocoDB - List Records',
       order: 10,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -137,6 +147,7 @@ export const entries: IntegrationEntry[] = [
       title: 'NocoDB - Delete Record',
       order: 11,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,

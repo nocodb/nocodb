@@ -36,8 +36,6 @@ export const Image = TiptapImage.extend<ImageOptions, { markdown: MarkdownNodeSp
 
   /**
    * Convert markdown syntax while typing
-   * ![a](1.png) text ![b](2.png)
-
    */
   addInputRules() {
     return [

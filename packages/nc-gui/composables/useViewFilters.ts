@@ -743,7 +743,7 @@ export function useViewFilters(
 
     filters.value.push(
       (draftFilter?.fk_column_id
-        ? { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order']) }
+        ? { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order', 'logical_op']) }
         : placeholderFilter()) as ColumnFilterType,
     )
     if (!undo && !(isForm.value && !isWebhook)) {

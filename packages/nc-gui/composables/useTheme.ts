@@ -245,6 +245,18 @@ export const useTheme = createSharedComposable(() => {
     })
   }
 
+  // Update selectedTheme when nc-theme is changed in another tab
+  const handleStorageChange = (event: StorageEvent) => {
+    if (event.key === 'nc-theme' && event.newValue) {
+      const newTheme = event.newValue as ThemeMode
+      if (['system', 'light', 'dark'].includes(newTheme) && newTheme !== selectedTheme.value) {
+        selectedTheme.value = newTheme
+      }
+    }
+  }
+
+  useEventListener(window, 'storage', handleStorageChange)
+
   watch(isDark, applyTheme, { immediate: true })
 
   watch(isDark, () => {

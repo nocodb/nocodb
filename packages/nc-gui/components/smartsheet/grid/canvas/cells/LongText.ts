@@ -86,6 +86,7 @@ export const LongTextCellRenderer: CellRenderer = {
         selected,
         baseUsers,
         user,
+        getColor,
       })
 
       // Restore context after clipping

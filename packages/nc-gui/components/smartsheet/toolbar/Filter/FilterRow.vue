@@ -629,7 +629,7 @@ const onChangeToDynamic = async () => {
           <component :is="iconMap.deleteListItem" />
         </NcButton>
       </div>
-      <div v-if="!vModel.readOnly && !disabled && isCopyFilterEnabled" :class="{ 'cursor-wait': isLoadingFilter }">
+      <div v-if="!vModel.readOnly && !disabled && isEeUI && isCopyFilterEnabled" :class="{ 'cursor-wait': isLoadingFilter }">
         <NcButton
           :key="index"
           v-e="['c:filter:copy', { link: !!link, webHook: !!webHook, widget: !!widget }]"

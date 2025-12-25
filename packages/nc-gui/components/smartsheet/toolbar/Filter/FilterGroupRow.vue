@@ -228,7 +228,7 @@ const onCopy = () => {
             </NcButton>
           </div>
           <div
-            v-if="!vModel.readOnly && !disabled && isCopyFilterEnabled"
+            v-if="!vModel.readOnly && !disabled && isEeUI && isCopyFilterEnabled"
             class="inline-block"
             :class="{ 'cursor-wait': isLoadingFilter }"
           >

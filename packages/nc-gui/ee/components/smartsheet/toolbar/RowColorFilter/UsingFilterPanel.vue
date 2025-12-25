@@ -258,7 +258,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       <GeneralIcon icon="deleteListItem" />
                     </NcButton>
                     <NcButton
-                      v-if="!disabled && hasPermission && isCopyFilterEnabled"
+                      v-if="!disabled && hasPermission && isEeUI && isCopyFilterEnabled"
                       type="text"
                       size="small"
                       class="nc-filter-item-copy-btn cursor-pointer"

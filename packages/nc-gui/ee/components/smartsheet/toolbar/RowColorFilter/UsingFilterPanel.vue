@@ -40,8 +40,6 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const { isUIAllowed } = useRoles()
 
-const { isCopyFilterEnabled } = useBetaFeatureToggle()
-
 const hasPermission = computed(() => isUIAllowed('rowColourUpdate'))
 
 const readOnlyFilter = computed(() => props.isLockedView || props.disabled)
@@ -258,7 +256,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       <GeneralIcon icon="deleteListItem" />
                     </NcButton>
                     <NcButton
-                      v-if="!disabled && hasPermission && isEeUI && isCopyFilterEnabled"
+                      v-if="!disabled && hasPermission && isEeUI"
                       type="text"
                       size="small"
                       class="nc-filter-item-copy-btn cursor-pointer"

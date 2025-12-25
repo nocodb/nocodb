@@ -129,7 +129,6 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
-const { isCopyFilterEnabled } = useBetaFeatureToggle()
 
 const { nestedFilters, isForm, eventBus } =
   widget.value || workflow.value
@@ -946,7 +945,7 @@ defineExpose({
                       <GeneralIcon icon="deleteListItem" />
                     </NcButton>
                     <NcButton
-                      v-if="!filter.readOnly && !readOnly && isEeUI && isCopyFilterEnabled"
+                      v-if="!filter.readOnly && !readOnly && isEeUI"
                       v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
                       type="text"
                       size="small"
@@ -1272,7 +1271,7 @@ defineExpose({
               <GeneralIcon icon="deleteListItem" />
             </NcButton>
             <NcButton
-              v-if="!filter.readOnly && !readOnly && isEeUI && isCopyFilterEnabled"
+              v-if="!filter.readOnly && !readOnly && isEeUI"
               v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
               type="text"
               size="small"

@@ -611,23 +611,27 @@ export function useViewFilters(
   }
 
   function deleteFilterGroupFromAllFilters(filter: ColumnFilterType) {
+    if (!filter) return
+
     // if (!isLink && !isWebhook) return
 
     // Find all child filters of the specified parentId
-    const childFilters = allFilters.value.filter((f) => f.fk_parent_id === filter.id)
+    const childFilters = allFilters.value.filter((f) => f && f.fk_parent_id === filter.id)
 
     // Recursively delete child filter of child filter
     childFilters.forEach((childFilter) => {
-      if (childFilter.is_group) {
+      if (childFilter?.is_group) {
         deleteFilterGroupFromAllFilters(childFilter as ColumnFilterType)
       }
     })
 
     // Remove the parent object and its children from the array
-    allFilters.value = allFilters.value.filter((f) => f.id !== filter.id && f.fk_parent_id !== filter.id)
+    allFilters.value = allFilters.value.filter((f) => f && f.id !== filter.id && f.fk_parent_id !== filter.id)
   }
 
   const deleteFilter = async (filter: ColumnFilterType, i: number, undo = false) => {
+    if (!filter) return
+
     // update the filter status
     filter.status = 'delete'
 

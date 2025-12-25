@@ -7,6 +7,7 @@ import { BaseRelatedMetaTables, MetaTable } from '~/utils/globals';
 import { Base, Column, Model, Source } from '~/models';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import NocoCache from '~/cache/NocoCache';
+import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 // Altered enum from columns service
 enum Altered {
@@ -172,6 +173,72 @@ export async function serializeMeta(
           }
         }
 
+        // Extract pgSerialLastVal for PostgreSQL tables
+        if (metaTable === MetaTable.MODELS && records.length > 0) {
+          const base = await Base.get(sourceContext, base_id);
+          if (base) {
+            for (const record of records) {
+              if (record.type === ModelTypes.TABLE) {
+                const source = await Source.get(
+                  sourceContext,
+                  record.source_id,
+                );
+                if (source?.type === 'pg') {
+                  try {
+                    const model = await Model.get(
+                      sourceContext,
+                      record.id,
+                      ncMeta,
+                    );
+                    if (model) {
+                      await model.getColumns(sourceContext, ncMeta);
+                      const aiColumn = model.columns.find((col) => col.ai);
+
+                      if (aiColumn) {
+                        const baseModel = await Model.getBaseModelSQL(
+                          sourceContext,
+                          {
+                            id: model.id,
+                            viewId: null,
+                            dbDriver: await NcConnectionMgrv2.get(source),
+                          },
+                        );
+                        const sqlClient = await NcConnectionMgrv2.getSqlClient(
+                          source,
+                        );
+                        const seq = await sqlClient.raw(
+                          `SELECT pg_get_serial_sequence('??', ?) as seq;`,
+                          [
+                            baseModel.getTnPath(model.table_name),
+                            aiColumn.column_name,
+                          ],
+                        );
+
+                        if (seq.rows.length > 0 && seq.rows[0].seq) {
+                          const seqName = seq.rows[0].seq;
+                          const res = await sqlClient.raw(
+                            `SELECT last_value as last FROM ${seqName};`,
+                          );
+
+                          if (res.rows.length > 0) {
+                            record.pgSerialLastVal = res.rows[0].last;
+                          }
+                        }
+                      }
+                    }
+                  } catch (error) {
+                    console.error(
+                      `Failed to extract pgSerialLastVal for table ${record.table_name}:`,
+                      error,
+                    );
+                    // Continue without pgSerialLastVal
+                  }
+                }
+              }
+            }
+          }
+        }
+
         // remove uuid for shared to avoid conflicts
         if (records.length > 0) {
           if (metaTable === MetaTable.VIEWS) {
@@ -275,6 +342,52 @@ async function createColumnIndex(
     indexName,
   };
   await sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
+}
+
+// Helper function to set PostgreSQL sequence value for auto-increment columns
+async function setPostgresSequenceValue(
+  context: NcContext,
+  {
+    table,
+    columns,
+    source,
+    pgSerialLastVal,
+  }: {
+    table: Model;
+    columns: Column[];
+    source: Source;
+    pgSerialLastVal?: number;
+  },
+) {
+  if (source.type !== 'pg' || !pgSerialLastVal) {
+    return;
+  }
+
+  // Find the auto-increment column
+  const aiColumn = columns.find((col) => col.ai);
+  if (!aiColumn) {
+    return;
+  }
+
+  try {
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: table.id,
+      viewId: null,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+    const sqlClient = await NcConnectionMgrv2.getSqlClient(source);
+    await sqlClient.raw(`SELECT setval(pg_get_serial_sequence('??', ?), ?);`, [
+      baseModel.getTnPath(table.table_name),
+      aiColumn.column_name,
+      pgSerialLastVal,
+    ]);
+  } catch (error) {
+    console.error(
+      `Failed to set PostgreSQL sequence value for table ${table.table_name}:`,
+      error,
+    );
+    // Don't throw - this is not critical enough to fail the entire operation
+  }
 }
 
 export async function applyMeta(
@@ -527,6 +640,17 @@ async function handleTableCreations(
       // Only create physical table if it's not a view and has physical columns
       if (tableRecord.type === ModelTypes.TABLE && physicalColumns.length > 0) {
         await sqlMgr.sqlOpPlus(source, 'tableCreate', tablePayload);
+
+        // Set PostgreSQL sequence value for auto-increment columns
+        const table = await Model.get(targetContext, insertedTableId, ncMeta);
+        if (table && tableRecord.pgSerialLastVal) {
+          await setPostgresSequenceValue(targetContext, {
+            table,
+            columns: tableColumns,
+            source,
+            pgSerialLastVal: tableRecord.pgSerialLastVal,
+          });
+        }
       } else if (tableRecord.type === ModelTypes.VIEW) {
         // Handle view creation if needed
         await sqlMgr.sqlOpPlus(source, 'viewCreate', {

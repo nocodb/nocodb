@@ -19,6 +19,7 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
+import type { BaseVersion } from '~/utils/globals';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { getFeature, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
@@ -40,7 +41,7 @@ import { TablesService } from '~/services/tables.service';
 import { isEE, isOnPrem } from '~/utils';
 import { getWorkspaceDbServer } from '~/utils/cloudDb';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
-import { BaseVersion, MetaTable } from '~/utils/globals';
+import { MetaTable } from '~/utils/globals';
 import { getToolDir } from '~/utils/nc-config';
 import NocoSocket from '~/socket/NocoSocket';
 

@@ -129,7 +129,6 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
-
 const { nestedFilters, isForm, eventBus } =
   widget.value || workflow.value
     ? {

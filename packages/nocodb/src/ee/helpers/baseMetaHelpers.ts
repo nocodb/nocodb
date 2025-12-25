@@ -582,8 +582,11 @@ async function handleTableCreations(
 
   for (const tableRecord of tablesToAdd) {
     try {
-      // Prepare table record for insertion
-      const tableToInsert = {
+      // Extract pgSerialLastVal before insertion
+      const pgSerialLastVal = tableRecord.pgSerialLastVal;
+
+      // Prepare table record for insertion (exclude pgSerialLastVal)
+      const { pgSerialLastVal: _, ...tableToInsert } = {
         ...tableRecord,
         base_id: targetContext.base_id,
       };
@@ -643,12 +646,12 @@ async function handleTableCreations(
 
         // Set PostgreSQL sequence value for auto-increment columns
         const table = await Model.get(targetContext, insertedTableId, ncMeta);
-        if (table && tableRecord.pgSerialLastVal) {
+        if (table && pgSerialLastVal) {
           await setPostgresSequenceValue(targetContext, {
             table,
             columns: tableColumns,
             source,
-            pgSerialLastVal: tableRecord.pgSerialLastVal,
+            pgSerialLastVal,
           });
         }
       } else if (tableRecord.type === ModelTypes.VIEW) {

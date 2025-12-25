@@ -724,7 +724,7 @@ export function useViewFilters(
 
       // children must exist for group
       group.children = ncIsArray(raw.children)
-        ? raw.children.filter((child) => child.status !== 'delete').map((child) => normalizeFilterNode(child))
+        ? raw.children.filter((child) => child && child.status !== 'delete').map((child) => normalizeFilterNode(child))
         : []
 
       // reset order for children

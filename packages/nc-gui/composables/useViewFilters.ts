@@ -358,7 +358,12 @@ export function useViewFilters(
             })
           ).list as ColumnFilterType[]
         } else if (hookId && !isNestedRoot) {
-          filters.value = (await $api.dbTableWebhookFilter.read(hookId)).list as ColumnFilterType[]
+          filters.value = (
+            await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              operation: 'hookFilterList',
+              hookId,
+            })
+          ).list as ColumnFilterType[]
         }
       } else {
         if (isLink || linkColId?.value) {
@@ -465,11 +470,19 @@ export function useViewFilters(
           // extract children value if found to restore
           const children = filters.value[+i]?.children
           if (hookId) {
-            filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
-              ...filter,
-              children: undefined,
-              fk_parent_id: parentId.value,
-            } as FilterType)) as ColumnFilterType
+            filters.value[+i] = (await $api.internal.postOperation(
+              (meta.value as any).fk_workspace_id!,
+              (meta.value as any).base_id!,
+              {
+                operation: 'hookFilterCreate',
+                hookId,
+              },
+              {
+                ...filter,
+                children: undefined,
+                fk_parent_id: parentId.value,
+              } as FilterType,
+            )) as ColumnFilterType
           } else if (linkId || linkColId?.value) {
             filters.value[+i] = (await $api.internal.postOperation(
               (meta.value as any).fk_workspace_id!,

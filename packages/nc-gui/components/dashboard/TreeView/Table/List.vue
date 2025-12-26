@@ -102,9 +102,17 @@ const initSortable = (el: Element) => {
       }
 
       // update the item order
-      await $api.dbTable.reorder(item.id as string, {
-        order: item.order,
-      })
+      await $api.internal.postOperation(
+        base.value.fk_workspace_id!,
+        base.value.id!,
+        {
+          operation: 'tableReorder',
+          tableId: item.id as string,
+        },
+        {
+          order: item.order,
+        },
+      )
     },
     animation: 150,
     setData(dataTransfer, dragEl) {

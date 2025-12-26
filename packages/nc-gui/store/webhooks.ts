@@ -85,17 +85,30 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
       if (newHook) {
         $e('a:webhook:copy')
         // create the corresponding filters
-        const hookFilters = (await $api.dbTableWebhookFilter.read(hook.id!, {})).list
+        const hookFilters = (
+          await $api.internal.getOperation(activeTable.value!.fk_workspace_id!, activeTable.value!.base_id!, {
+            operation: 'hookFilterList',
+            hookId: hook.id!,
+          })
+        ).list
         for (const hookFilter of hookFilters) {
-          await $api.dbTableWebhookFilter.create(newHook.id!, {
-            comparison_op: hookFilter.comparison_op,
-            comparison_sub_op: hookFilter.comparison_sub_op,
-            fk_column_id: hookFilter.fk_column_id,
-            fk_parent_id: hookFilter.fk_parent_id,
-            is_group: hookFilter.is_group,
-            logical_op: hookFilter.logical_op,
-            value: hookFilter.value,
-          } as FilterReqType)
+          await $api.internal.postOperation(
+            activeTable.value!.fk_workspace_id!,
+            activeTable.value!.base_id!,
+            {
+              operation: 'hookFilterCreate',
+              hookId: newHook.id!,
+            },
+            {
+              comparison_op: hookFilter.comparison_op,
+              comparison_sub_op: hookFilter.comparison_sub_op,
+              fk_column_id: hookFilter.fk_column_id,
+              fk_parent_id: hookFilter.fk_parent_id,
+              is_group: hookFilter.is_group,
+              logical_op: hookFilter.logical_op,
+              value: hookFilter.value,
+            } as FilterReqType,
+          )
         }
         newHook.notification = parseProp(newHook.notification)
         hooks.value = [newHook, ...hooks.value]

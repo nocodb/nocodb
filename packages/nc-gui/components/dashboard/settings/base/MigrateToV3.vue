@@ -35,7 +35,7 @@ const migrateToV3 = async () => {
 
     isModalVisible.value = false
 
-    navigateToProject({
+    await navigateToProject({
       workspaceId: base.value?.fk_workspace_id,
       baseId: baseId.value,
       query: {
@@ -52,85 +52,105 @@ const migrateToV3 = async () => {
 
 <template>
   <div data-testid="nc-settings-subtab-migrate-to-v3" class="item-card flex flex-col w-full">
-    <div class="text-nc-content-gray-emphasis font-semibold text-lg">
-      {{ $t('labels.migrateToV3') }}
-    </div>
+    <div class="text-nc-content-gray-emphasis font-semibold text-lg">Migrate to v3</div>
 
     <div class="text-nc-content-gray-subtle2 mt-2 leading-5">
-      Upgrade your base to V3 for enhanced capabilities and new features.
+      Upgrade this base to v3 to unlock the latest platform capabilities and future-ready APIs.
+      <a href="https://docs.nocodb.com/" target="_blank" rel="noopener noreferrer" class="text-nc-content-brand"> Learn more </a>
     </div>
 
-    <div class="flex flex-col border-1 rounded-lg mt-6 border-nc-border-gray-medium p-4 gap-4">
-      <div class="flex flex-col gap-3">
+    <div class="mt-6">
+      <div class="text-nc-content-gray-emphasis font-semibold mb-3">What changes after migration</div>
+      <div class="flex flex-col gap-2 mb-6">
         <div class="flex items-start gap-2">
-          <GeneralIcon icon="check" class="flex-none text-nc-content-brand mt-0.5" />
-          <span class="text-nc-content-gray"> V3 bases allow bases to be duplicated with same ids for entities under base </span>
+          <span class="text-nc-content-gray text-sm">•</span>
+          <span class="text-nc-content-gray text-sm">
+            Bases can be duplicated while <span class="font-semibold">preserving entity IDs</span>
+          </span>
         </div>
-
         <div class="flex items-start gap-2">
-          <GeneralIcon icon="check" class="flex-none text-nc-content-brand mt-0.5" />
-          <span class="text-nc-content-gray"> It will be only possible to use via v3 API </span>
+          <span class="text-nc-content-gray text-sm">•</span>
+          <span class="text-nc-content-gray text-sm">
+            Access is available <span class="font-semibold">only via the V3 API</span>
+          </span>
         </div>
-
         <div class="flex items-start gap-2">
-          <GeneralIcon icon="alertTriangle" class="flex-none text-orange-500 mt-0.5" />
-          <span class="text-nc-content-gray font-semibold"> V1 and V2 API access will not be allowed </span>
+          <span class="text-nc-content-gray text-sm">•</span>
+          <span class="text-nc-content-gray text-sm">Designed for improved scalability and long-term compatibility</span>
         </div>
+      </div>
 
+      <div class="text-nc-content-gray-emphasis font-semibold mb-3">Important considerations</div>
+      <div class="flex flex-col gap-2 mb-4">
         <div class="flex items-start gap-2">
-          <GeneralIcon icon="alertTriangle" class="flex-none text-orange-500 mt-0.5" />
-          <span class="text-nc-content-gray font-semibold">
-            This operation is irreversible and there is no going back after migrate
+          <span class="text-nc-content-gray text-sm">•</span>
+          <span class="text-nc-content-gray text-sm">
+            <span class="font-semibold">V1 and V2 APIs will no longer work</span> for this base after migration to v3
+          </span>
+        </div>
+        <div class="flex items-start gap-2">
+          <span class="text-nc-content-gray text-sm">•</span>
+          <span class="text-nc-content-gray text-sm">
+            <span class="font-semibold">Migration is permanent</span> — reverting back to earlier versions is not supported
           </span>
         </div>
       </div>
 
+      <div class="bg-nc-bg-gray-light border-l-4 border-nc-content-brand p-3 mb-6">
+        <span class="text-nc-content-gray text-sm">
+          We recommend migrating only after confirming all integrations are compatible with the v3 API.
+        </span>
+      </div>
+
       <div class="flex gap-2">
         <NcButton size="medium" type="primary" data-testid="nc-migrate-to-v3-button" @click="isModalVisible = true">
-          {{ $t('labels.migrateToV3') }}
+          Migrate to v3
         </NcButton>
       </div>
     </div>
 
     <GeneralModal v-model:visible="isModalVisible" size="small" centered>
       <div class="flex flex-col p-6">
-        <div class="flex flex-row pb-2 mb-3 font-medium text-lg text-nc-content-gray">
-          {{ $t('labels.migrateToV3') }}
+        <div class="flex flex-row pb-2 mb-4 font-semibold text-lg text-nc-content-gray-emphasis">Migrate to V3</div>
+
+        <div class="mb-2 text-nc-content-gray-emphasis font-medium">Are you sure you want to migrate this base to v3?</div>
+
+        <div class="mb-4 text-nc-content-gray text-sm">
+          This change upgrades the base to the latest architecture and API version.
         </div>
 
-        <div class="mb-3 text-nc-content-gray">Do you want to migrate this base to V3?</div>
-
-        <div v-if="base" class="flex flex-col gap-3 p-4 bg-nc-bg-gray-extralight rounded-lg mb-3">
-          <div class="flex items-start gap-2">
-            <GeneralIcon icon="alertTriangle" class="flex-none text-orange-500 mt-0.5" />
-            <span class="text-nc-content-gray font-semibold text-sm"> V1 and V2 API access will not be allowed </span>
-          </div>
-          <div class="flex items-start gap-2">
-            <GeneralIcon icon="alertTriangle" class="flex-none text-orange-500 mt-0.5" />
-            <span class="text-nc-content-gray font-semibold text-sm">
-              This operation is irreversible and there is no going back after migrate
-            </span>
+        <div v-if="base" class="mb-4">
+          <div class="text-nc-content-gray-emphasis font-medium mb-2 text-sm">Before you continue</div>
+          <div class="flex flex-col gap-2">
+            <div class="flex items-start gap-2">
+              <GeneralIcon icon="alertTriangle" class="flex-none text-orange-500 mt-0.5 w-4 h-4" />
+              <span class="text-nc-content-gray text-sm">
+                <span class="font-semibold">V1 and V2 APIs will no longer work</span> for this base
+              </span>
+            </div>
+            <div class="flex items-start gap-2">
+              <GeneralIcon icon="alertTriangle" class="flex-none text-orange-500 mt-0.5 w-4 h-4" />
+              <span class="text-nc-content-gray text-sm">
+                <span class="font-semibold">Migration is permanent</span> — this action cannot be undone
+              </span>
+            </div>
           </div>
         </div>
 
-        <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-          <NcButton type="secondary" size="small" @click="isModalVisible = false">
-            {{ $t('general.cancel') }}
-          </NcButton>
+        <div class="flex flex-row gap-x-2 mt-2 pt-4 border-t border-nc-border-gray-medium justify-end">
+          <NcButton type="secondary" size="small" @click="isModalVisible = false"> Cancel </NcButton>
 
           <NcButton
             key="submit"
-            type="danger"
+            type="primary"
             size="small"
             html-type="submit"
             :loading="isLoading"
             data-testid="nc-migrate-to-v3-confirm-btn"
             @click="migrateToV3"
           >
-            {{ $t('labels.migrateToV3') }}
-            <template #loading>
-              {{ $t('general.migrating') }}
-            </template>
+            Confirm migration to v3
+            <template #loading> Migrating... </template>
           </NcButton>
         </div>
       </div>

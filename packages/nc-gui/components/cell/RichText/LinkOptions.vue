@@ -31,6 +31,7 @@ const imageAlt = ref('')
 const imagePreviewError = ref(false)
 const isImageOptionsVisible = ref(false)
 const isImageEditMode = ref(false) // Track if we're in edit mode
+const isAddImageMode = ref(false) // Track if we're adding a new image
 
 // This is used to prevent the menu from showing up after a link is deleted, an edge case when the link with empty placeholder text is deleted.
 // This is because checkLinkMark is not called in that case
@@ -40,6 +41,8 @@ const justDeleted = ref(false)
 // It checks if either a link mark is active or an image node is selected
 const checkLinkMarkOrImageNode = (editor: Editor) => {
   if (!editor.view.editable) return false
+
+  console.log('editor', editor)
 
   if (justDeleted.value) {
     setTimeout(() => {
@@ -55,11 +58,20 @@ const checkLinkMarkOrImageNode = (editor: Editor) => {
   if (selectedNode && selectedNode.type && selectedNode.type.name === 'image') {
     if (imageNode.value !== selectedNode) {
       isImageEditMode.value = false
+      isAddImageMode.value = false
     }
 
     imageNode.value = selectedNode
     imageSrc.value = selectedNode.attrs?.src || ''
     imageAlt.value = selectedNode.attrs?.alt || ''
+
+    // Check if we're in "add image" mode from editor storage
+    if (!imageSrc.value) {
+      // New image being added - enter edit mode automatically
+      isImageEditMode.value = true
+      isAddImageMode.value = true
+    }
+
     isImageOptionsVisible.value = true
     isLinkOptionsVisible.value = false
     return true
@@ -171,18 +183,27 @@ const deleteImage = () => {
   editor.value.view.dispatch(editor.value.view.state.tr.delete(from, to))
 }
 
-const previewImage = () => {
-  if (imageSrc.value) {
-    window.open(imageSrc.value, '_blank', 'noopener,noreferrer')
-  }
-}
-
 const toggleImageEditMode = () => {
   isImageEditMode.value = !isImageEditMode.value
 }
 
+const cancelImageEdit = () => {
+  if (isAddImageMode.value) {
+    // For new images, remove the temporary image when canceling
+    deleteImage()
+    isAddImageMode.value = false
+  }
+  isImageEditMode.value = false
+}
+
 const applyImageChanges = () => {
-  updateImageAttributes()
+  if (!imageSrc.value) {
+    // If no URL provided, remove the temporary image
+    deleteImage()
+  } else {
+    updateImageAttributes()
+  }
+
   isImageEditMode.value = false
 }
 
@@ -238,6 +259,7 @@ watch([isLinkOptionsVisible, isImageOptionsVisible], ([linkVisible, imageVisible
   // Reset edit mode when image options are hidden
   if (!imageVisible && oldImageVisible) {
     isImageEditMode.value = false
+    isAddImageMode.value = false
   }
 })
 
@@ -337,7 +359,7 @@ const tabIndex = computed(() => {
       @keydown.stop="handleKeyDown"
     >
       <!-- Compact view (Google Sheets style) -->
-      <div v-if="!isImageEditMode" class="flex items-center gap-x-1">
+      <div v-if="!isImageEditMode && !isAddImageMode" class="flex items-center gap-x-1">
         <!-- Image URL text (truncated) -->
         <div class="flex-1 min-w-0">
           <div class="text-bodyDefaultSm text-nc-content-gray truncate">
@@ -402,7 +424,7 @@ const tabIndex = computed(() => {
 
         <!-- Action buttons -->
         <div class="flex items-center justify-end gap-x-2 pt-2 border-t border-nc-border-gray-light">
-          <NcButton :tabindex="tabIndex" size="small" type="text" @click="toggleImageEditMode"> Cancel </NcButton>
+          <NcButton :tabindex="tabIndex" size="small" type="text" @click="cancelImageEdit"> Cancel </NcButton>
           <NcButton :tabindex="tabIndex" size="small" type="primary" @click="applyImageChanges"> Apply </NcButton>
         </div>
       </div>

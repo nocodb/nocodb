@@ -31,6 +31,7 @@ export const Image = TiptapImage.extend<ImageOptions, { markdown: MarkdownNodeSp
           },
         },
       },
+      addImageMode: false,
     }
   },
 

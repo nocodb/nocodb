@@ -17,6 +17,8 @@ interface Props {
 
 const { editor, isFormField } = toRefs(props)
 
+const propsEditor = computed(() => editor.value)
+
 const inputRef = ref<HTMLInputElement>()
 const linkNodeMark = ref<Mark | undefined>()
 const href = ref('')
@@ -40,8 +42,6 @@ const justDeleted = ref(false)
 const checkLinkMarkOrImageNode = (editor: Editor) => {
   if (!editor.view.editable) return false
 
-  console.log('editor', editor)
-
   if (justDeleted.value) {
     setTimeout(() => {
       justDeleted.value = false
@@ -53,6 +53,26 @@ const checkLinkMarkOrImageNode = (editor: Editor) => {
   const selection = editor?.state?.selection
   const selectedNode = selection && 'node' in selection ? (selection as any).node : null
 
+  // Check if we're in add image mode (from SelectedBubbleMenu)
+  if (propsEditor.value?.storage?.image?.addImageMode) {
+    // Reset the flag so it doesn't trigger again
+    propsEditor.value.storage.image.addImageMode = false
+
+    // Enter add image mode
+    isImageEditMode.value = true
+    isAddImageMode.value = true
+    isImageOptionsVisible.value = true
+    isLinkOptionsVisible.value = false
+
+    // Clear any existing values for new image
+    imageNode.value = null
+    imageSrc.value = ''
+    imageAlt.value = ''
+
+    return true
+  }
+
+  // Check for existing image node selection
   if (selectedNode && selectedNode.type && selectedNode.type.name === 'image') {
     if (imageNode.value !== selectedNode) {
       isImageEditMode.value = false
@@ -60,15 +80,8 @@ const checkLinkMarkOrImageNode = (editor: Editor) => {
     }
 
     imageNode.value = selectedNode
-    imageSrc.value = selectedNode.attrs?.src || ''
-    imageAlt.value = selectedNode.attrs?.alt || ''
-
-    // Check if we're in "add image" mode from editor storage
-    if (!imageSrc.value) {
-      // New image being added - enter edit mode automatically
-      isImageEditMode.value = true
-      isAddImageMode.value = true
-    }
+    imageSrc.value = selectedNode?.attrs?.src || ''
+    imageAlt.value = selectedNode?.attrs?.alt || ''
 
     isImageOptionsVisible.value = true
     isLinkOptionsVisible.value = false
@@ -172,6 +185,8 @@ const updateImageAttributes = () => {
       alt: imageAlt.value,
     }),
   )
+
+  editor.value?.chain().focus().run()
 }
 
 const deleteImage = () => {
@@ -179,6 +194,8 @@ const deleteImage = () => {
 
   const { from, to } = editor.value.state.selection
   editor.value.view.dispatch(editor.value.view.state.tr.delete(from, to))
+
+  editor.value?.chain().focus().run()
 }
 
 const toggleImageEditMode = () => {
@@ -186,23 +203,44 @@ const toggleImageEditMode = () => {
 }
 
 const cancelImageEdit = () => {
-  if (isAddImageMode.value) {
-    // For new images, remove the temporary image when canceling
-    deleteImage()
-    isAddImageMode.value = false
-  }
+  // For add image mode, just close the form (no image was inserted yet)
+  // For edit mode, just close the form (keep existing image unchanged)
   isImageEditMode.value = false
+  isAddImageMode.value = false
+
+  editor.value!.chain().focus().run()
 }
 
 const applyImageChanges = () => {
-  if (!imageSrc.value) {
-    // If no URL provided, remove the temporary image
-    deleteImage()
+  if (isAddImageMode.value) {
+    // Adding a new image
+    if (imageSrc.value) {
+      // Insert new image at current cursor position
+      editor.value
+        ?.chain()
+        ?.setImage({
+          src: imageSrc.value,
+          alt: imageAlt.value || undefined,
+        })
+        ?.focus()
+        ?.run()
+    } else {
+      editor.value?.chain().focus().run()
+    }
+
+    // If no URL provided, do nothing (just close the form)
   } else {
-    updateImageAttributes()
+    // Editing existing image
+    if (!imageSrc.value) {
+      // If no URL provided, remove the existing image
+      deleteImage()
+    } else {
+      updateImageAttributes()
+    }
   }
 
   isImageEditMode.value = false
+  isAddImageMode.value = false
 }
 
 const handleKeyDown = (e: any) => {
@@ -360,8 +398,8 @@ const tabIndex = computed(() => {
       data-testid="nc-text-area-rich-image-options"
       @keydown.stop="handleKeyDown"
     >
-      <!-- Compact view (Google Sheets style) -->
-      <div v-if="!isImageEditMode && !isAddImageMode" class="flex items-center gap-x-1">
+      <!-- Compact view (Google Sheets style) - only show for existing images -->
+      <div v-if="!isImageEditMode && !isAddImageMode && imageNode" class="flex items-center gap-x-1">
         <!-- Image URL text (truncated) -->
         <div class="flex-1 min-w-0">
           <div class="text-bodyDefaultSm text-nc-content-gray truncate">

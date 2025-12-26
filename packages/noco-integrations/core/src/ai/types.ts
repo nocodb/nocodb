@@ -54,8 +54,8 @@ export abstract class AiIntegration<T extends { models: string[] } = any> extend
     return results;
   }
 
-  public async fetchOptions(payload: { key: string; params?: { capability?: ModelCapability } }): Promise<unknown> {
-    const { key, params } = payload;
+  public async fetchOptions(payload: { key: string }): Promise<unknown> {
+    const { key } = payload;
     if (key === 'models') {
       return this.supportedModels;
     }

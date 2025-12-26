@@ -162,8 +162,9 @@ export class GenerateTextAction extends WorkflowNodeIntegration<GenerateTextActi
         config.integrationId,
       );
 
-      let model = config.model;
-      model = Array.isArray(model) ? model[0] : model;
+      const model = Array.isArray(config.model)
+        ? config.model[0]
+        : config.model;
 
       const result = await aiIntegration.generateText({
         prompt: config.prompt,
@@ -212,7 +213,6 @@ export class GenerateTextAction extends WorkflowNodeIntegration<GenerateTextActi
         level: 'error',
         message: `Text generation failed: ${error.message}`,
         ts: Date.now(),
-        data: error.stack,
       });
 
       return {

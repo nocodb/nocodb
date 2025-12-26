@@ -769,9 +769,9 @@ export const renderMarkdownBlocks = (
         const isHovered = isBoxHovered(linkBox, mousePosition)
 
         if (isHovered && selected) {
-          multilineTextFnProps.fillStyle = '#000'
-          ctx.fillStyle = '#000'
-          ctx.strokeStyle = '#000'
+          multilineTextFnProps.fillStyle = getColor(themeV4Colors.base.black)
+          ctx.fillStyle = getColor(themeV4Colors.base.black)
+          ctx.strokeStyle = getColor(themeV4Colors.base.black)
         }
 
         links.push({
@@ -965,6 +965,7 @@ export function renderBarcode(
     renderAsTag = false,
     spriteLoader,
     isDark = false,
+    getColor,
   }: {
     x: number
     y: number
@@ -975,6 +976,7 @@ export function renderBarcode(
     renderAsTag?: boolean
     spriteLoader: SpriteLoader
     isDark?: boolean
+    getColor: GetColorType
   },
 ) {
   if (!value) return
@@ -1051,7 +1053,7 @@ export function renderBarcode(
     ctx.font = `500 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
-    ctx.fillStyle = '#4a5268'
+    ctx.fillStyle = getColor(themeV4Colors.gray['600'])
 
     const { text, width: textWidth } = truncateText(ctx, value.toString(), width - padding * 2, true)
 
@@ -1063,7 +1065,7 @@ export function renderBarcode(
       height,
       fontSize: 13,
       fontFamily: '500 13px Inter',
-      fillStyle: '#4a5268',
+      fillStyle: getColor(themeV4Colors.gray['600']),
       textAlign: 'left',
     })
 

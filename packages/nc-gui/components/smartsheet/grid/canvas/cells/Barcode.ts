@@ -3,7 +3,7 @@ import { validateBarcode } from '../utils/cell'
 
 export const BarcodeCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, column, tag = {}, spriteLoader, cellRenderStore, isDark } = props
+    const { value, x, y, width, height, column, tag = {}, spriteLoader, cellRenderStore, isDark, getColor } = props
     const { renderAsTag } = tag
     const returnValue = renderBarcode(ctx, {
       x,
@@ -15,6 +15,7 @@ export const BarcodeCellRenderer: CellRenderer = {
       renderAsTag,
       spriteLoader,
       isDark,
+      getColor,
     })
 
     if (returnValue?.startX) {

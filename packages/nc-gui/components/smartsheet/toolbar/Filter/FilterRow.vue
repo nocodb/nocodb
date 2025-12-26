@@ -57,8 +57,6 @@ const meta = inject(MetaInj, ref())
 // t is a standalone dependency, so not need to abstract it
 const { t } = useI18n()
 
-const { isCopyFilterEnabled } = useBetaFeatureToggle()
-
 const logicalOps = [
   { value: 'and', text: t('general.and') },
   { value: 'or', text: t('general.or') },
@@ -629,7 +627,7 @@ const onChangeToDynamic = async () => {
           <component :is="iconMap.deleteListItem" />
         </NcButton>
       </div>
-      <div v-if="!vModel.readOnly && !disabled && isCopyFilterEnabled" :class="{ 'cursor-wait': isLoadingFilter }">
+      <div v-if="!vModel.readOnly && !disabled && isEeUI" :class="{ 'cursor-wait': isLoadingFilter }">
         <NcButton
           :key="index"
           v-e="['c:filter:copy', { link: !!link, webHook: !!webHook, widget: !!widget }]"

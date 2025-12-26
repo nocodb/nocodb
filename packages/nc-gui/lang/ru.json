@@ -513,7 +513,7 @@
       "orgLevelViewer": "Читатель уровня организации"
     },
     "roleDescription": {
-      "workspace-level-owner": "Has full control over all workspace bases, settings, and billing",
+      "workspace-level-owner": "",
       "workspace-level-creator": "Can create, configure, and edit all bases within the workspace",
       "workspace-level-editor": "Can add, edit, and delete records, but cannot modify base configurations",
       "workspace-level-commenter": "Can view and comment on records within workspace bases",

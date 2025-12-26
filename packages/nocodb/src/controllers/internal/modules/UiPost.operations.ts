@@ -22,6 +22,7 @@ import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { CommentsService } from '~/services/comments.service';
+import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 
 @Injectable()
 export class UiPostOperations
@@ -45,6 +46,7 @@ export class UiPostOperations
     protected mapsService: MapsService,
     protected calendarsService: CalendarsService,
     protected commentsService: CommentsService,
+    protected bulkDataAliasService: BulkDataAliasService,
   ) {}
   operations = [
     'tableUpdate' as const,
@@ -106,7 +108,9 @@ export class UiPostOperations
     'commentUpdate' as const,
     'commentDelete' as const,
     'commentResolve' as const,
-  ];
+    'dataDelete' as const,
+    'dataDeleteAll' as const,
+  ] satisfies ReadonlyArray<keyof typeof OPERATION_SCOPES>;
   httpMethod = 'POST' as const;
 
   async handle(
@@ -489,6 +493,22 @@ export class UiPostOperations
         return await this.commentsService.commentDelete(context, {
           commentId: payload.commentId,
           user: req.user,
+          req,
+        });
+      case 'dataDelete':
+        return await this.dataTableService.dataDelete(context, {
+          modelId: req.query.tableId as string,
+          cookie: req,
+          viewId: req.query.viewId as string,
+          body: payload,
+          user: req.user,
+        });
+      case 'dataDeleteAll':
+        return await this.bulkDataAliasService.bulkDataDeleteAll(context, {
+          baseName: context.base_id,
+          tableName: req.query.tableId!,
+          query: req.query,
+          viewName: req.query.viewId,
           req,
         });
     }

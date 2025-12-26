@@ -59,6 +59,7 @@ export class UiGetOperations
     'dataAggregate' as const,
     'commentList' as const,
     'commentCount' as const,
+    'dataList' as const,
   ];
   httpMethod = 'GET' as const;
 
@@ -198,6 +199,15 @@ export class UiGetOperations
         return await this.commentsService.commentsCount(context, {
           fk_model_id: req.query.fk_model_id as string,
           ids: Array.isArray(req.query.ids) ? req.query.ids : [req.query.ids],
+        });
+      case 'dataList':
+        context.cache = true;
+        return await this.dataTableService.dataList(context, {
+          query: req.query,
+          modelId: req.query.tableId as string,
+          viewId: req.query.viewId as string,
+          includeSortAndFilterColumns: req.query.includeSortAndFilterColumns === 'true',
+          user: req.user,
         });
     }
   }

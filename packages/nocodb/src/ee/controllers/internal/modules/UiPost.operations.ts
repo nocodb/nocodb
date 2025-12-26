@@ -23,6 +23,7 @@ import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { CommentsService } from '~/services/comments.service';
+import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 
 @Injectable()
 export class UiPostOperations
@@ -47,6 +48,7 @@ export class UiPostOperations
     protected mapsService: MapsService,
     protected calendarsService: CalendarsService,
     protected commentsService: CommentsService,
+    protected bulkDataAliasService: BulkDataAliasService,
   ) {
     super(
       dataTableService,
@@ -66,6 +68,7 @@ export class UiPostOperations
       mapsService,
       calendarsService,
       commentsService,
+      bulkDataAliasService,
     );
   }
 

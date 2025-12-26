@@ -100,4 +100,7 @@ export const OPERATION_SCOPES = {
   commentUpdate: 'base',
   commentDelete: 'base',
   commentResolve: 'base',
+  dataList: 'base',
+  dataDelete: 'base',
+  dataDeleteAll: 'base',
 } as const;

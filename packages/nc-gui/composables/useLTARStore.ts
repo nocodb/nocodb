@@ -475,18 +475,18 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } else if (isNewRow?.value) {
           const linkRowData = await sanitizeRowData(row.value.row)
 
-          childrenExcludedList.value = await $api.dbTableRow.list(
-            NOCO,
-            relatedTableMeta?.value?.base_id ?? baseId,
-            relatedTableMeta?.value?.id as string,
+          childrenExcludedList.value = await $api.internal.getOperation(
+            (relatedTableMeta.value as any).fk_workspace_id!,
+            relatedTableMeta.value!.base_id!,
             {
+              operation: 'dataList',
+              tableId: relatedTableMeta?.value?.id as string,
               limit: childrenExcludedListPagination.size,
               offset,
               where,
-              // todo: include only required fields
               linkColumnId: column.value.fk_column_id || column.value.id,
               linkRowData: JSON.stringify(linkRowData),
-            } as any,
+            },
           )
           const ids = new Set(childrenList.value?.list?.map((item) => item.Id) ?? [])
           if (childrenExcludedList.value.list && ids.size) {

@@ -32,6 +32,8 @@ export const OPERATION_SCOPES = {
   tableSampleData: 'base',
   linkFilterList: 'base',
   widgetFilterList: 'base',
+  formViewGet: 'base',
+  mapViewGet: 'base',
 
   // UI Post Operations
   tableUpdate: 'base',
@@ -76,6 +78,7 @@ export const OPERATION_SCOPES = {
   calendarViewCreate: 'base',
   gridViewUpdate: 'base',
   formViewUpdate: 'base',
+  formColumnUpdate: 'base',
   galleryViewUpdate: 'base',
   kanbanViewUpdate: 'base',
   mapViewUpdate: 'base',
@@ -88,4 +91,13 @@ export const OPERATION_SCOPES = {
   nestedDataLink: 'base',
   nestedDataUnlink: 'base',
   nestedDataListCopyPasteOrDeleteAll: 'base',
+  dataAggregate: 'base',
+  bulkAggregate: 'base',
+  bulkDataList: 'base',
+  commentList: 'base',
+  commentCount: 'base',
+  commentRow: 'base',
+  commentUpdate: 'base',
+  commentDelete: 'base',
+  commentResolve: 'base',
 } as const;

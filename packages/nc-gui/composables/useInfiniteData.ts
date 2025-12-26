@@ -332,9 +332,10 @@ export function useInfiniteData(args: {
     if (allIds.length === 0) return
 
     try {
-      const aggCommentCount = await $api.utils.commentCount({
-        ids: allIds,
+      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentCount',
         fk_model_id: meta.value!.id as string,
+        ids: allIds,
       })
 
       aggCommentCount?.forEach((commentData: Record<string, any>) => {
@@ -402,7 +403,17 @@ export function useInfiniteData(args: {
       }
 
       const bulkResponse = !isPublic?.value
-        ? await $api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id!, { viewId: viewMeta.value?.id }, bulkRequests, {})
+        ? await $api.internal.postOperation(
+            (meta.value as any).fk_workspace_id!,
+            meta.value.base_id!,
+            {
+              operation: 'bulkDataList',
+              tableId: meta.value.id!,
+              viewId: viewMeta.value?.id,
+              baseId: meta.value.base_id!,
+            },
+            bulkRequests,
+          )
         : await fetchBulkListData({}, bulkRequests)
 
       const allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }> = []
@@ -570,9 +581,10 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     try {
-      const aggCommentCount = await $api.utils.commentCount({
-        ids,
+      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentCount',
         fk_model_id: meta.value!.id as string,
+        ids,
       })
 
       formattedData.forEach((row) => {

@@ -154,7 +154,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // actions
 
     const loadRelatedTableMeta = async () => {
-      await getMeta(base.value?.id!, colOptions.value.fk_related_model_id as string)
+      const relatedBaseId = colOptions.value.fk_related_base_id || base.value?.id
+      if (!relatedBaseId) {
+        console.error('Cannot load related table meta: base_id not found')
+        return
+      }
+
+      await getMeta(relatedBaseId, colOptions.value.fk_related_model_id as string)
 
       if (isPublic.value) return
 
@@ -164,10 +170,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       if (!viewId) return
 
       try {
-        targetViewColumns.value = (await getViewColumns(viewId)) ?? []
-      } catch {
+        // Pass relatedBaseId as first parameter for proper cross-base support
+        targetViewColumns.value = (await getViewColumns(relatedBaseId, viewId)) ?? []
+      } catch (e) {
+        console.error('Failed to load related table view columns:', e)
         targetViewColumns.value = []
-        message.error('Field to load related table view columns')
+        message.error('Failed to load related table view columns')
       }
     }
 
@@ -285,10 +293,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
      */
     const extractOnlyPrimaryValues = async (value: any, col: ColumnType) => {
       const currColOptions = (col.colOptions || {}) as LinkToAnotherRecordType
+      const relatedBaseId = currColOptions.fk_related_base_id || (base.value?.id as string)
 
-      await getMeta(base.value?.id as string, currColOptions.fk_related_model_id as string)
+      await getMeta(relatedBaseId, currColOptions.fk_related_model_id as string)
 
-      const currColRelatedTableMeta = getMetaByKey(base.value?.id as string, currColOptions?.fk_related_model_id as string)
+      const currColRelatedTableMeta = getMetaByKey(relatedBaseId, currColOptions?.fk_related_model_id as string)
 
       if (!currColRelatedTableMeta) return
 

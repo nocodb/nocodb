@@ -17,10 +17,12 @@ import { SortsService } from '~/services/sorts.service';
 import { HooksService } from '~/services/hooks.service';
 import { GridsService } from '~/services/grids.service';
 import { FormsService } from '~/services/forms.service';
+import { FormColumnsService } from '~/services/form-columns.service';
 import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
+import { CommentsService } from '~/services/comments.service';
 
 @Injectable()
 export class UiPostOperations
@@ -39,10 +41,12 @@ export class UiPostOperations
     protected hooksService: HooksService,
     protected gridsService: GridsService,
     protected formsService: FormsService,
+    protected formColumnsService: FormColumnsService,
     protected galleriesService: GalleriesService,
     protected kanbansService: KanbansService,
     protected mapsService: MapsService,
     protected calendarsService: CalendarsService,
+    protected commentsService: CommentsService,
   ) {
     super(
       dataTableService,
@@ -56,10 +60,12 @@ export class UiPostOperations
       hooksService,
       gridsService,
       formsService,
+      formColumnsService,
       galleriesService,
       kanbansService,
       mapsService,
       calendarsService,
+      commentsService,
     );
   }
 
@@ -98,6 +104,21 @@ export class UiPostOperations
         return await this.filtersService.rowColorConditionsCreate(context, {
           rowColorConditionsId: req.query.rowColorConditionId,
           filter: payload,
+        });
+      case 'bulkAggregate':
+        context.cache = true;
+        return await this.dataTableService.bulkAggregate(context, {
+          query: req.query,
+          modelId: req.query.tableId as string,
+          viewId: req.query.viewId as string,
+          baseId: req.query.baseId as string,
+          body: payload,
+        });
+      case 'commentResolve':
+        return await this.commentsService.commentResolve(context, {
+          commentId: payload.commentId,
+          user: req.user,
+          req,
         });
     }
 

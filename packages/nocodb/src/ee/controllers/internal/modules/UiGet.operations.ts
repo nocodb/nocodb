@@ -16,6 +16,9 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
 import { SortsService } from '~/services/sorts.service';
 import { HooksService } from '~/services/hooks.service';
+import { FormsService } from '~/services/forms.service';
+import { MapsService } from '~/services/maps.service';
+import { CommentsService } from '~/services/comments.service';
 
 @Injectable()
 export class UiGetOperations
@@ -32,6 +35,9 @@ export class UiGetOperations
     protected filtersService: FiltersService,
     protected sortsService: SortsService,
     protected hooksService: HooksService,
+    protected formsService: FormsService,
+    protected mapsService: MapsService,
+    protected commentsService: CommentsService,
   ) {
     super(
       dataTableService,
@@ -43,6 +49,9 @@ export class UiGetOperations
       filtersService,
       sortsService,
       hooksService,
+      formsService,
+      mapsService,
+      commentsService,
     );
   }
 

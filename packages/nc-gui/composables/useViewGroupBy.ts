@@ -37,7 +37,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { gridViewCols } = useViewColumnsOrThrow()
 
-    const { getMeta } = useMetas()
+    const { getMeta, getPartialMeta } = useMetas()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
 
@@ -363,10 +363,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
           if (aggregation.length) {
             aggResponse = !isPublic
-              ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-                  meta.value!.id,
+              ? await api.internal.postOperation(
+                  meta.value!.fk_workspace_id!,
+                  meta.value!.base_id!,
                   {
+                    operation: 'bulkAggregate',
+                    tableId: meta.value!.id,
                     viewId: view.value!.id,
+                    baseId: meta.value!.base_id!,
                     aggregation,
                   },
                   aggregationParams,
@@ -468,10 +472,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
         })
 
         const response = !isPublic
-          ? await api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-              meta.value!.id,
+          ? await api.internal.postOperation(
+              (meta.value as any)!.fk_workspace_id!,
+              meta.value!.base_id!,
               {
+                operation: 'bulkAggregate',
+                tableId: meta.value!.id,
                 viewId: view.value!.id,
+                baseId: meta.value!.base_id!,
                 ...(filteredFields ? { aggregation: filteredFields } : {}),
               },
               aggregationParams,
@@ -641,11 +649,13 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             if (!lookupRelation?.colOptions) break
 
             let relatedTableMeta: TableType | null = null
-            const relatedTableId = (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id as string
+            const lookupRelColOpts = lookupRelation.colOptions as LinkToAnotherRecordType
+            const relatedTableId = lookupRelColOpts.fk_related_model_id as string
+            const relatedBaseId = lookupRelColOpts.fk_related_base_id || (base.value?.id as string)
             try {
-              relatedTableMeta = await getMeta(base.value?.id as string, relatedTableId, undefined, undefined, undefined, true)
+              relatedTableMeta = await getMeta(relatedBaseId, relatedTableId, undefined, undefined, undefined, true)
             } catch {
-              relatedTableMeta = await getPartialMeta(base.value?.id as string, lookupRelation?.id, relatedTableId)
+              relatedTableMeta = await getPartialMeta(relatedBaseId, lookupRelation?.id, relatedTableId)
             }
 
             nextCol = relatedTableMeta?.columns?.find(
@@ -682,10 +692,15 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       if (!ids.length) return
 
       try {
-        const aggCommentCount = await $api.utils.commentCount({
-          ids,
-          fk_model_id: meta.value!.id as string,
-        })
+        const aggCommentCount = await $api.internal.getOperation(
+          (meta.value as any).fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'commentCount',
+            fk_model_id: meta.value!.id as string,
+            ids,
+          },
+        )
 
         formattedData.forEach((row) => {
           const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])

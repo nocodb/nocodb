@@ -745,22 +745,52 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (!args?.skipNetworkCall) {
         switch (viewType) {
           case ViewTypes.GRID:
-            updatedView = await $api.dbView.gridUpdate(viewId, updates)
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'gridViewUpdate', viewId },
+              updates,
+            )
             break
           case ViewTypes.GALLERY:
-            updatedView = await $api.dbView.galleryUpdate(viewId, updates)
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'galleryViewUpdate', viewId },
+              updates,
+            )
             break
           case ViewTypes.KANBAN:
-            updatedView = await $api.dbView.kanbanUpdate(viewId, updates)
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'kanbanViewUpdate', viewId },
+              updates,
+            )
             break
           case ViewTypes.MAP:
-            updatedView = await $api.dbView.mapUpdate(viewId, updates)
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'mapViewUpdate', viewId },
+              updates,
+            )
             break
           case ViewTypes.CALENDAR:
-            updatedView = await $api.dbView.calendarUpdate(viewId, updates)
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'calendarViewUpdate', viewId },
+              updates,
+            )
             break
           case ViewTypes.FORM:
-            updatedView = await $api.dbView.formUpdate(viewId, updates)
+            updatedView = await $api.internal.postOperation(
+              activeView.value!.fk_workspace_id!,
+              activeView.value!.base_id!,
+              { operation: 'formViewUpdate', viewId },
+              updates,
+            )
             break
           default:
             throw new Error(`Unsupported view type for meta update: ${viewType}`)

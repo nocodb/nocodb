@@ -449,7 +449,12 @@ export function useViewRowColorOption(params: {
         delete updateObj.children
 
         if (updateObj.id) {
-          await $api.dbTableFilter.update(updateObj.id, updateObj)
+          await $api.internal.postOperation(
+            activeView.value!.fk_workspace_id!,
+            activeView.value!.base_id!,
+            { operation: 'filterUpdate', filterId: updateObj.id },
+            updateObj,
+          )
         }
       }
     }
@@ -457,7 +462,12 @@ export function useViewRowColorOption(params: {
     delete updateObj.children
 
     if (filter.id) {
-      await $api.dbTableFilter.update(filter!.id, updateObj)
+      await $api.internal.postOperation(
+        activeView.value!.fk_workspace_id!,
+        activeView.value!.base_id!,
+        { operation: 'filterUpdate', filterId: filter.id },
+        updateObj,
+      )
     }
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
   }
@@ -692,7 +702,12 @@ export function useViewRowColorOption(params: {
 
     await pushPendingAction(async () => {
       // Create the condition on the server without any filter
-      const response = await $api.dbView.viewRowColorConditionAdd(params.view.value.id!, copiedCondition)
+      const response = await $api.internal.postOperation(
+        params.view.value.fk_workspace_id!,
+        params.view.value.base_id!,
+        { operation: 'viewRowColorConditionAdd', viewId: params.view.value.id },
+        copiedCondition,
+      )
       copiedCondition.id = response.id
 
       // Create all copied filters in parallel using Promise.all

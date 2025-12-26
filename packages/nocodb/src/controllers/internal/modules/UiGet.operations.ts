@@ -15,6 +15,9 @@ import { ViewRowColorService } from '~/services/view-row-color.service';
 import { FiltersService } from '~/services/filters.service';
 import { SortsService } from '~/services/sorts.service';
 import { HooksService } from '~/services/hooks.service';
+import { FormsService } from '~/services/forms.service';
+import { MapsService } from '~/services/maps.service';
+import { CommentsService } from '~/services/comments.service';
 
 @Injectable()
 export class UiGetOperations
@@ -30,6 +33,9 @@ export class UiGetOperations
     protected filtersService: FiltersService,
     protected sortsService: SortsService,
     protected hooksService: HooksService,
+    protected formsService: FormsService,
+    protected mapsService: MapsService,
+    protected commentsService: CommentsService,
   ) {}
   operations = [
     'nestedDataList' as const,
@@ -48,6 +54,11 @@ export class UiGetOperations
     'tableSampleData' as const,
     'linkFilterList' as const,
     'widgetFilterList' as const,
+    'formViewGet' as const,
+    'mapViewGet' as const,
+    'dataAggregate' as const,
+    'commentList' as const,
+    'commentCount' as const,
   ];
   httpMethod = 'GET' as const;
 
@@ -107,6 +118,7 @@ export class UiGetOperations
         return new PagedResponseImpl(
           await this.filtersService.filterList(context, {
             viewId: req.query.viewId as string,
+            includeAllFilters: req.query.includeAllFilters === 'true',
           }),
         );
       case 'filterChildrenList':
@@ -155,6 +167,37 @@ export class UiGetOperations
           version: req.query.version as any,
           includeUser: req.query.includeUser === 'true',
           event: req.query.event as any,
+        });
+      case 'formViewGet':
+        return await this.formsService.formViewGet(context, {
+          formViewId: req.query.formViewId as string,
+        });
+      case 'mapViewGet':
+        return await this.mapsService.mapViewGet(context, {
+          mapViewId: req.query.mapViewId as string,
+        });
+      case 'dataAggregate':
+        context.cache = true;
+        return await this.dataTableService.dataAggregate(context, {
+          query: req.query,
+          modelId: req.query.tableId as string,
+          viewId: req.query.viewId as string,
+          baseId: req.query.baseId as string,
+          user: req.user,
+        });
+      case 'commentList':
+        return new PagedResponseImpl(
+          await this.commentsService.commentList(context, {
+            query: {
+              row_id: req.query.row_id as string,
+              fk_model_id: req.query.fk_model_id as string,
+            },
+          }),
+        );
+      case 'commentCount':
+        return await this.commentsService.commentsCount(context, {
+          fk_model_id: req.query.fk_model_id as string,
+          ids: Array.isArray(req.query.ids) ? req.query.ids : [req.query.ids],
         });
     }
   }

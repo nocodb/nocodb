@@ -472,7 +472,12 @@ async function onMove(event: any, isVisibleFormFields = false) {
     element.order = ((localColumns.value[newIndex - 1]?.order ?? 0) + (localColumns.value[newIndex + 1].order ?? 0)) / 2
   }
 
-  await $api.dbView.formColumnUpdate(element.id, element)
+  await $api.internal.postOperation(
+    view.value!.fk_workspace_id!,
+    view.value!.base_id!,
+    { operation: 'formColumnUpdate', formColumnId: element.id },
+    element,
+  )
 
   fields.value[fieldIndex] = element as any
 
@@ -500,7 +505,12 @@ async function showOrHideColumn(column: Record<string, any>, show: boolean, isFo
 
   if (fieldIndex !== -1 && fieldIndex !== undefined && fields.value?.[fieldIndex]) {
     column.show = show
-    await $api.dbView.formColumnUpdate(column.id, column)
+    await $api.internal.postOperation(
+      view.value!.fk_workspace_id!,
+      view.value!.base_id!,
+      { operation: 'formColumnUpdate', formColumnId: column.id },
+      column,
+    )
 
     fields.value[fieldIndex] = column as any
 

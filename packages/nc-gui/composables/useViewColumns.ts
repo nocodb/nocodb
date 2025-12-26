@@ -215,11 +215,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       if (view?.value?.id) {
         if (ignoreIds) {
-          await $api.dbView.showAllColumn(view.value.id, {
+          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
+            operation: 'viewShowAll',
+            viewId: view.value.id,
             ignoreIds,
           })
         } else {
-          await $api.dbView.showAllColumn(view.value.id)
+          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
+            operation: 'viewShowAll',
+            viewId: view.value.id,
+          })
         }
 
         if (isDefaultView.value) {
@@ -267,11 +272,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
       if (view?.value?.id) {
         if (ignoreIds) {
-          await $api.dbView.hideAllColumn(view.value.id, {
+          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
+            operation: 'viewHideAll',
+            viewId: view.value.id,
             ignoreIds,
           })
         } else {
-          await $api.dbView.hideAllColumn(view.value.id)
+          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
+            operation: 'viewHideAll',
+            viewId: view.value.id,
+          })
         }
 
         if (isDefaultView.value) {
@@ -568,9 +578,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       try {
         // sync with server if allowed
         if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
-          await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
-            ...props,
-          })
+          await $api.internal.postOperation(
+            view.value!.fk_workspace_id!,
+            view.value!.base_id!,
+            {
+              operation: 'viewColumnUpdate',
+              viewId: view.value!.id,
+              columnId: gridViewCols.value[id].id,
+            },
+            props,
+          )
         }
 
         if (gridViewCols.value?.[id]) {

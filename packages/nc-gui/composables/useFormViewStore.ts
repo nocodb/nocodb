@@ -184,7 +184,12 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
         validateActiveField(col)
 
         try {
-          await $api.dbView.formColumnUpdate(col.id, col)
+          await $api.internal.postOperation(
+            viewMeta.value!.fk_workspace_id!,
+            viewMeta.value!.base_id!,
+            { operation: 'formColumnUpdate', formColumnId: col.id },
+            col,
+          )
         } catch (e: any) {
           message.error(await extractSdkResponseErrorMsg(e))
         }

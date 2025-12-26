@@ -98,9 +98,8 @@ const orderedSerializableMetaTables = [
   MetaTable.SYNC_MAPPINGS,
   MetaTable.SYNC_LOGS,
 
-  // Scripts and tokens
+  // Scripts and workflows
   MetaTable.AUTOMATIONS,
-  MetaTable.MCP_TOKENS,
 
   // Statistics
   MetaTable.MODEL_STAT,

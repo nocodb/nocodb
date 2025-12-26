@@ -16,10 +16,12 @@ import { SortsService } from '~/services/sorts.service';
 import { HooksService } from '~/services/hooks.service';
 import { GridsService } from '~/services/grids.service';
 import { FormsService } from '~/services/forms.service';
+import { FormColumnsService } from '~/services/form-columns.service';
 import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
+import { CommentsService } from '~/services/comments.service';
 
 @Injectable()
 export class UiPostOperations
@@ -37,10 +39,12 @@ export class UiPostOperations
     protected hooksService: HooksService,
     protected gridsService: GridsService,
     protected formsService: FormsService,
+    protected formColumnsService: FormColumnsService,
     protected galleriesService: GalleriesService,
     protected kanbansService: KanbansService,
     protected mapsService: MapsService,
     protected calendarsService: CalendarsService,
+    protected commentsService: CommentsService,
   ) {}
   operations = [
     'tableUpdate' as const,
@@ -85,6 +89,7 @@ export class UiPostOperations
     'calendarViewCreate' as const,
     'gridViewUpdate' as const,
     'formViewUpdate' as const,
+    'formColumnUpdate' as const,
     'galleryViewUpdate' as const,
     'kanbanViewUpdate' as const,
     'mapViewUpdate' as const,
@@ -95,6 +100,12 @@ export class UiPostOperations
     'linkFilterCreate' as const,
     'widgetFilterCreate' as const,
     'rowColorConditionsFilterCreate' as const,
+    'bulkAggregate' as const,
+    'bulkDataList' as const,
+    'commentRow' as const,
+    'commentUpdate' as const,
+    'commentDelete' as const,
+    'commentResolve' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -387,6 +398,12 @@ export class UiPostOperations
           form: payload,
           req,
         });
+      case 'formColumnUpdate':
+        return await this.formColumnsService.columnUpdate(context, {
+          formViewColumnId: req.query.formColumnId,
+          formViewColumn: payload,
+          req,
+        });
       case 'galleryViewUpdate':
         return await this.galleriesService.galleryViewUpdate(context, {
           galleryViewId: req.query.viewId,
@@ -446,6 +463,34 @@ export class UiPostOperations
             user: req.user,
           },
         );
+      case 'bulkDataList':
+        return await this.dataTableService.bulkDataList(context, {
+          query: req.query,
+          modelId: req.query.tableId as string,
+          viewId: req.query.viewId as string,
+          baseId: req.query.baseId as string,
+          body: payload,
+          user: req.user,
+        });
+      case 'commentRow':
+        return await this.commentsService.commentRow(context, {
+          body: payload,
+          user: req.user,
+          req,
+        });
+      case 'commentUpdate':
+        return await this.commentsService.commentUpdate(context, {
+          commentId: payload.commentId,
+          user: req.user,
+          body: payload,
+          req,
+        });
+      case 'commentDelete':
+        return await this.commentsService.commentDelete(context, {
+          commentId: payload.commentId,
+          user: req.user,
+          req,
+        });
     }
   }
 }

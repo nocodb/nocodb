@@ -3,6 +3,14 @@ import rfdc from 'rfdc'
 const deepClone = rfdc()
 const FEATURES = [
   {
+    id: 'bases_v3',
+    title: 'Bases V3',
+    description:
+      'Experience the next generation of NocoDB with Bases V3, allowing duplicates with same id and enhanced performance.',
+    enabled: false,
+    version: 1,
+  },
+  {
     id: 'workflows',
     title: 'Workflows',
     description: 'Automate tasks with visual workflows - connect triggers, actions, and data transformations without code.',

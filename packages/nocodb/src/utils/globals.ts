@@ -409,11 +409,6 @@ export enum FilterCacheScope {
   PARENT = 'parent',
 }
 
-export enum BaseVersion {
-  V2 = 2,
-  V3 = 3,
-}
-
 export const NC_STORE_DEFAULT_WORKSPACE_ID_KEY = 'NC_DEFAULT_WORKSPACE_ID';
 
 export enum ResourceType {

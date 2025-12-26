@@ -1,6 +1,6 @@
 import { acceptHMRUpdate, defineStore } from 'pinia'
 import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType } from 'nocodb-sdk'
-import { ProjectRoles, SqlUiFactory } from 'nocodb-sdk'
+import { BaseVersion, ProjectRoles, SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import type Record from '~icons/*'
 import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
@@ -11,9 +11,9 @@ export const useBases = defineStore('basesStore', () => {
 
   const { loadRoles, isUIAllowed } = useRoles()
 
-  const { user: currentUser } = useGlobal()
+  const { appInfo, user: currentUser } = useGlobal()
 
-  const { appInfo } = useGlobal()
+  const { isFeatureEnabled } = useBetaFeatureToggle()
 
   const baseRoles = ref<Record<string, any>>({})
 
@@ -354,6 +354,7 @@ export const useBases = defineStore('basesStore', () => {
           ...(basePayload.meta || {}),
         }),
         default_role: basePayload.default_role ?? undefined,
+        ...(isFeatureEnabled(FEATURE_FLAG.BASES_V3) ? { version: BaseVersion.V3 } : {}),
       },
       {
         baseURL: getBaseUrl(basePayload.workspaceId),

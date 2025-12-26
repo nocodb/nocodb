@@ -4,6 +4,7 @@ import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
+  BaseVersion,
   EventType,
   IntegrationsType,
   NcBaseError,
@@ -19,7 +20,6 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { BaseVersion } from '~/utils/globals';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { getFeature, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
@@ -73,7 +73,7 @@ export class BasesService extends BasesServiceCE {
   }
 
   async baseCreate(param: {
-    base: ProjectReqType;
+    base: ProjectReqType & { version?: BaseVersion };
     user: any;
     req: any;
     apiVersion?: NcApiVersion;
@@ -245,6 +245,8 @@ export class BasesService extends BasesServiceCE {
 
     baseBody.title = DOMPurify.sanitize(baseBody.title);
     baseBody.slug = baseBody.title;
+    // TODO: set default version to V3 after beta of v3 is over
+    baseBody.version = param.base.version || BaseVersion.V2;
 
     const base = await Base.createProject(baseBody);
 

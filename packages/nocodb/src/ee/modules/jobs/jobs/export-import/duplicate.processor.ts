@@ -2,6 +2,7 @@ import debug from 'debug';
 import { Injectable } from '@nestjs/common';
 import { DuplicateProcessor as DuplicateProcessorCE } from 'src/modules/jobs/jobs/export-import/duplicate.processor';
 import { AppEvents, generateUniqueCopyName } from 'nocodb-sdk';
+import { BaseVersion } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
@@ -23,12 +24,7 @@ import { DashboardsService } from '~/services/dashboards.service';
 import { withoutId } from '~/helpers/exportImportHelpers';
 import { FiltersService } from '~/services/filters.service';
 import { applyMeta, diffMeta, serializeMeta } from '~/helpers/baseMetaHelpers';
-import {
-  BaseVersion,
-  CacheDelDirection,
-  CacheScope,
-  MetaTable,
-} from '~/utils/globals';
+import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 
@@ -229,6 +225,20 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
     };
     operation: JobTypes;
   }) {
+    // For non-v3 bases, use the CE duplication logic
+    if (sourceBase.version !== BaseVersion.V3) {
+      return super.duplicateBaseJob({
+        sourceBase,
+        targetBase,
+        dataSource,
+        req,
+        context,
+        options,
+        operation,
+        targetContext: _targetContext,
+      });
+    }
+
     const hrTime = initTime();
     this.debugLog(
       `Starting base duplication job for ${sourceBase.id} -> ${targetBase.id}`,

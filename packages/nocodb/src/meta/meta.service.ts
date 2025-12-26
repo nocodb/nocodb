@@ -1,6 +1,7 @@
 import { Injectable, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
 import { v7 as uuidv7 } from 'uuid';
+import { BaseVersion } from 'nocodb-sdk';
 import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -15,7 +16,6 @@ import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import {
   BaseRelatedMetaTables,
-  BaseVersion,
   MetaTable,
   RootScopes,
   RootScopeTables,

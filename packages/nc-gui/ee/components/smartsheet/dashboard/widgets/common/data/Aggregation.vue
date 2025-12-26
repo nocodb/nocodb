@@ -146,6 +146,7 @@ watch(selectedValue, () => {
         :filter-column="filterAggregation"
         :column-id="selectedFieldId"
         :table-id="modelId"
+        :base-id="selectedWidget?.base_id"
         @update:value="handleChange('aggregation')"
       />
     </div>

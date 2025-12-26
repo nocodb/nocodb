@@ -1153,7 +1153,16 @@ export function useMultiSelect(
           colsToPaste = existingFields.slice(startColIndex, startColIndex + pasteMatrixCols)
 
           if (newColsNeeded > 0) {
-            const columnsHash = (await api.dbTableColumn.hash(meta.value?.id)).hash
+            const columnsHash = (
+              await $api.internal.getOperation(
+                (meta.value as any)?.fk_workspace_id ?? base.value!.fk_workspace_id!,
+                meta.value!.base_id!,
+                {
+                  operation: 'columnsHash',
+                  tableId: meta.value?.id,
+                },
+              )
+            ).hash
             const columnsLength = meta.value?.columns?.length || 0
 
             for (let i = 0; i < newColsNeeded; i++) {
@@ -1182,12 +1191,17 @@ export function useMultiSelect(
               })
             }
 
-            await api.dbTableColumn.bulk(meta.value?.id, {
-              hash: columnsHash,
-              ops: bulkOpsCols,
-            })
+            await $api.internal.postOperation(
+              (meta.value as any)?.fk_workspace_id ?? base.value!.fk_workspace_id!,
+              meta.value!.base_id!,
+              { operation: 'columnsBulk', tableId: meta.value?.id },
+              {
+                hash: columnsHash,
+                ops: bulkOpsCols,
+              },
+            )
 
-            await getMeta(meta?.value?.id as string, true)
+            await getMeta(meta.value!.base_id!, meta?.value?.id as string, true)
 
             colsToPaste = [...colsToPaste, ...bulkOpsCols.map(({ column }) => column)]
           }

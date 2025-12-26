@@ -18,6 +18,8 @@ const { editor, isFormField } = toRefs(props)
 
 const propsEditor = computed(() => editor.value)
 
+const isImageRenderEnabled = computed(() => !propsEditor.value?.storage?.markdown?.options?.renderImagesAsLinks)
+
 const inputRef = ref<HTMLInputElement>()
 const linkNodeMark = ref<Mark | undefined>()
 const href = ref('')
@@ -50,7 +52,7 @@ const checkLinkMarkOrImageNode = (editor: Editor) => {
   const selectedNode = selection && 'node' in selection ? (selection as any).node : null
 
   // Check if we're in add image mode (from SelectedBubbleMenu)
-  if (propsEditor.value?.storage?.image?.addImageMode) {
+  if (isImageRenderEnabled.value && propsEditor.value?.storage?.image?.addImageMode) {
     // Reset the flag so it doesn't trigger again
     propsEditor.value.storage.image.addImageMode = false
 
@@ -67,7 +69,7 @@ const checkLinkMarkOrImageNode = (editor: Editor) => {
   }
 
   // Check for existing image node selection
-  if (selectedNode && selectedNode.type && selectedNode.type.name === 'image') {
+  if (isImageRenderEnabled.value && selectedNode && selectedNode.type && selectedNode.type.name === 'image') {
     if (imageNode.value !== selectedNode) {
       isImageEditMode.value = false
       isAddImageMode.value = false
@@ -295,7 +297,7 @@ const tabIndex = computed(() => {
       </div>
     </div>
     <CellRichTextImageOptions
-      v-if="isImageOptionsVisible"
+      v-if="isImageOptionsVisible && isImageRenderEnabled"
       v-model:is-add-image-mode="isAddImageMode"
       v-model:is-image-edit-mode="isImageEditMode"
       v-model:is-image-options-visible="isImageOptionsVisible"

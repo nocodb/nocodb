@@ -8,6 +8,7 @@ import { Markdown } from '~/helpers/tiptap-markdown'
 
 import {
   HardBreak,
+  Image,
   Italic,
   Link,
   Paragraph,
@@ -16,7 +17,6 @@ import {
   Underline,
   UserMention,
   UserMentionList,
-  Image,
 } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
@@ -138,7 +138,7 @@ const getTiptapExtensions = () => {
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
     }),
-    Markdown.configure({ breaks: true, transformPastedText: true, renderImagesAsLinks: false }),
+    Markdown.configure({ breaks: true, transformPastedText: true, renderImagesAsLinks: !isEeUI }),
   ]
 
   if (appInfo.value.ee && !props.hideMention) {

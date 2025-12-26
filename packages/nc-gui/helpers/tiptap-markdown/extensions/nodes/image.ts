@@ -1,8 +1,8 @@
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
-import type { MarkdownNodeSpec } from '../../types'
-import { mdImageAsText } from '../../../tiptap/functionality'
 import TiptapImage, { type ImageOptions } from '@tiptap/extension-image'
 import { nodeInputRule, nodePasteRule } from '@tiptap/core'
+import type { MarkdownNodeSpec } from '../../types'
+import { mdImageAsText } from '../../../tiptap/functionality'
 
 /**
  * Matches ONLY completed image syntax while typing

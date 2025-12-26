@@ -23,12 +23,10 @@ const href = ref('')
 const isLinkOptionsVisible = ref(false)
 
 // Image options state
-const imageWrapperRef = ref<HTMLElement>()
 const imageSrcInputRef = ref<HTMLInputElement>()
 const imageNode = ref<any>()
 const imageSrc = ref('')
 const imageAlt = ref('')
-const imagePreviewError = ref(false)
 const isImageOptionsVisible = ref(false)
 const isImageEditMode = ref(false) // Track if we're in edit mode
 const isAddImageMode = ref(false) // Track if we're adding a new image
@@ -210,6 +208,12 @@ const applyImageChanges = () => {
 const handleKeyDown = (e: any) => {
   const isCtrlPressed = isMac() ? e.metaKey : e.ctrlKey
 
+  // Prevent undo/redo when image options are in edit mode (unsaved changes)
+  if (isImageOptionsVisible.value && (isImageEditMode.value || isAddImageMode.value) && isCtrlPressed && e.key === 'z') {
+    return // Don't execute editor undo/redo
+  }
+
+  // Allow normal undo/redo when not editing images
   // Ctrl + Z/ Meta + Z
   if (isCtrlPressed && e.key === 'z') {
     e.preventDefault()
@@ -297,7 +301,6 @@ const tabIndex = computed(() => {
     <!-- Link Options -->
     <div
       v-if="!justDeleted && isLinkOptionsVisible && !isImageOptionsVisible"
-      ref="wrapperRef"
       class="relative bubble-menu nc-text-area-rich-link-options bg-nc-bg-default flex flex-col border-1 border-nc-border-gray-medium py-1 px-1 rounded-lg w-full"
       data-testid="nc-text-area-rich-link-options"
       @keydown.stop="handleKeyDown"
@@ -349,7 +352,6 @@ const tabIndex = computed(() => {
     </div>
     <div
       v-if="isImageOptionsVisible"
-      ref="imageWrapperRef"
       class="relative bubble-menu nc-text-area-rich-image-options bg-nc-bg-default flex flex-col border-1 border-nc-border-gray-medium rounded-lg w-full"
       :class="{
         'p-3': isImageEditMode,

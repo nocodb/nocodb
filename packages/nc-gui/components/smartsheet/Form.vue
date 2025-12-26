@@ -36,6 +36,7 @@ const hiddenBubbleMenuOptions = [
   RichTextBubbleMenuOptions.bulletList,
   RichTextBubbleMenuOptions.numberedList,
   RichTextBubbleMenuOptions.taskList,
+  RichTextBubbleMenuOptions.image,
 ]
 
 const enum NcForm {

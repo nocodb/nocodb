@@ -6,9 +6,8 @@ export const tenantId =
 
 export const scopes = [
   'https://graph.microsoft.com/Mail.Send',
-  'https://graph.microsoft.com/Mail.Read',
   'https://graph.microsoft.com/MailboxSettings.Read',
-  'https://graph.microsoft.com/User.Read',
+  'https://graph.microsoft.com/User.ReadBasic.All',
 ];
 
 export const authUri =

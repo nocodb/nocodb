@@ -26,7 +26,6 @@ interface SendEmailNodeConfig extends WorkflowNodeConfig {
   bcc?: string;
   fromAddress?: string;
   replyTo?: string;
-  importance?: 'low' | 'normal' | 'high';
   isHtml?: boolean;
 }
 
@@ -78,14 +77,13 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
         group: 'moreOptions',
       },
       {
-        type: FormBuilderInputType.Select,
+        type: FormBuilderInputType.WorkflowInput,
         label: 'From address',
         model: 'config.fromAddress',
-        fetchOptionsKey: 'mailboxes',
         dependsOn: 'config.authIntegrationId',
         placeholder: 'Select sender address',
         helpText:
-          'Send mail from this mailbox (if you have access to multiple mailboxes)',
+          'Send mail from this address. Your Outlook account must have permission to send from this address\n',
         group: 'moreOptions',
       },
       {
@@ -94,18 +92,6 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
         model: 'config.replyTo',
         placeholder: 'reply@example.com',
         helpText: 'Email address(es) to use in replies to this email',
-        group: 'moreOptions',
-      },
-      {
-        type: FormBuilderInputType.Select,
-        label: 'Importance',
-        model: 'config.importance',
-        defaultValue: 'normal',
-        options: [
-          { label: 'Low', value: 'low' },
-          { label: 'Normal', value: 'normal' },
-          { label: 'High', value: 'high' },
-        ],
         group: 'moreOptions',
       },
       {
@@ -147,31 +133,8 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
     };
   }
 
-  public async fetchOptions(key: string): Promise<unknown> {
-    const authIntegrationId = this.config.authIntegrationId;
-
-    if (!authIntegrationId) {
-      return [];
-    }
-
-    const auth = await this.getAuthIntegration<any, Client>(authIntegrationId);
-
-    switch (key) {
-      case 'mailboxes': {
-        const result = await auth.use(async (client) => {
-          const user = await client.api('/me').get();
-          return [{ email: user.mail || user.userPrincipalName }];
-        });
-
-        return result.map((mailbox: any) => ({
-          label: mailbox.email,
-          value: mailbox.email,
-        }));
-      }
-
-      default:
-        return [];
-    }
+  public async fetchOptions(_key: string): Promise<unknown> {
+    return [];
   }
 
   private parseEmailAddresses(
@@ -260,7 +223,7 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
       const message: any = {
         subject,
         body: {
-          contentType: config.isHtml ? 'HTML' : 'Text',
+          contentType: 'Text',
           content: body,
         },
         toRecipients: this.parseEmailAddresses(to),
@@ -276,10 +239,6 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
 
       if (config.replyTo) {
         message.replyTo = this.parseEmailAddresses(config.replyTo);
-      }
-
-      if (config.importance) {
-        message.importance = config.importance;
       }
 
       await auth.use(async (client) => {

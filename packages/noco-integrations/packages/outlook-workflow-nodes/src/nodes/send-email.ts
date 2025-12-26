@@ -137,6 +137,35 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
     return [];
   }
 
+  /**
+   * Validates email addresses in a comma-separated list.
+   * Skips validation for dynamic values (variables like $(variableName)).
+   *
+   * @param emails Comma-separated email addresses
+   * @returns True if all emails are valid or dynamic, false otherwise
+   */
+  private validateEmails(emails: string): boolean {
+    if (!emails || !emails.trim()) return false;
+
+    const emailList = emails
+      .split(',')
+      .map((entry) => entry.trim())
+      .filter((entry) => entry.length > 0);
+
+    for (const email of emailList) {
+      // Skip validation for dynamic values
+      const isDynamic = /\$\([^)]*\)/.test(email);
+      if (!isDynamic) {
+        const isValid = NocoSDK.validateEmail(email);
+        if (!isValid) {
+          return false;
+        }
+      }
+    }
+
+    return true;
+  }
+
   private parseEmailAddresses(
     emails: string,
   ): Array<{ emailAddress: { address: string } }> {
@@ -180,7 +209,56 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
           status: 'error',
           error: {
             message: 'Recipient email is required',
-            code: 'MISSING_RECIPIENT',
+            code: 'INVALID_INPUT',
+          },
+          logs,
+        };
+      }
+
+      if (!this.validateEmails(to)) {
+        return {
+          outputs: {},
+          status: 'error',
+          error: {
+            message: 'Please provide a valid email address in the To field',
+            code: 'INVALID_INPUT',
+          },
+          logs,
+        };
+      }
+
+      if (config.cc && !this.validateEmails(config.cc)) {
+        return {
+          outputs: {},
+          status: 'error',
+          error: {
+            message: 'Please provide a valid email address in the CC field',
+            code: 'INVALID_INPUT',
+          },
+          logs,
+        };
+      }
+
+      if (config.bcc && !this.validateEmails(config.bcc)) {
+        return {
+          outputs: {},
+          status: 'error',
+          error: {
+            message: 'Please provide a valid email address in the BCC field',
+            code: 'INVALID_INPUT',
+          },
+          logs,
+        };
+      }
+
+      if (config.replyTo && !this.validateEmails(config.replyTo)) {
+        return {
+          outputs: {},
+          status: 'error',
+          error: {
+            message:
+              'Please provide a valid email address in the Reply To field',
+            code: 'INVALID_INPUT',
           },
           logs,
         };
@@ -192,7 +270,7 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
           status: 'error',
           error: {
             message: 'Subject is required',
-            code: 'MISSING_SUBJECT',
+            code: 'INVALID_INPUT',
           },
           logs,
         };
@@ -204,7 +282,7 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
           status: 'error',
           error: {
             message: 'Email body is required',
-            code: 'MISSING_BODY',
+            code: 'INVALID_INPUT',
           },
           logs,
         };

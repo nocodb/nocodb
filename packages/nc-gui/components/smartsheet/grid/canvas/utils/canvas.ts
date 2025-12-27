@@ -925,7 +925,9 @@ export function renderMultiLineText(
   }
 
   // Include `firstLineMaxWidth` in the cache key to avoid incorrect caching
-  const cacheKey = `${text}-${fontFamily}-${maxWidth}-${maxLines}-${firstLineMaxWidth ?? 'default'}`
+  const cacheKey = `${text}-${fontFamily}-${maxWidth}-${maxLines}-${firstLineMaxWidth ?? 'default'}-${
+    renderAsPreTag ? 'pre' : 'plain'
+  }`
   const cachedText = multiLineTextCache.get(cacheKey)
 
   if (cachedText) {
@@ -933,7 +935,6 @@ export function renderMultiLineText(
     width = cachedText.width
   } else {
     lines = wrapTextToLines(ctx, { text, maxWidth, maxLines, firstLineMaxWidth, renderAsPreTag })
-    console.log('lines', lines)
     width = Math.min(Math.max(...lines.map((line) => ctx.measureText(line).width)), maxWidth)
 
     multiLineTextCache.set(cacheKey, { lines, width })

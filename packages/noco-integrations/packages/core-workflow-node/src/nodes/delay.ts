@@ -119,10 +119,9 @@ export class DelayNode extends WorkflowNodeIntegration<DelayNodeConfig> {
     try {
       const { duration, unit } = ctx.inputs.config;
 
-      const delayMs = (duration *
-        DelayNode.TIME_UNITS[
-          unit as keyof typeof DelayNode.TIME_UNITS
-        ]) as any as any;
+      const delayMs =
+        duration *
+        DelayNode.TIME_UNITS[unit as keyof typeof DelayNode.TIME_UNITS];
 
       const resumeAt = Date.now() + delayMs;
 

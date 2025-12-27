@@ -172,6 +172,9 @@ export function useKeyboardNavigation({
     if (cmdOrCtrl && (!editEnabled.value || EDIT_INTERACTABLE.includes(editEnabled.value?.column?.uidt))) {
       switch (e.key.toLowerCase()) {
         case 'c':
+          // If cell is not selected then return
+          if (activeCell.value.row === -1 || activeCell.value.column === -1) return
+
           e.preventDefault()
           copyValue({ row: activeCell.value.row, col: activeCell.value.column }, groupPath)
           return

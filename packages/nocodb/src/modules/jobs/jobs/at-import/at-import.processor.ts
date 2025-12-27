@@ -620,6 +620,11 @@ export class AtImportProcessor {
             uidt: getNocoType(col),
           };
 
+          // Add description to column
+          if (col?.description) {
+            ncCol.description = col.description;
+          }
+
           // not supported datatype: pure formula field
           // allow formula based computed fields (created time/ modified time to go through)
           if (ncCol.uidt === UITypes.Formula) {

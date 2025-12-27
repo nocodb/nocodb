@@ -28457,6 +28457,11 @@
           "calendar_range": {
             "description": "Calendar Range or Null",
             "$ref": "#/components/schemas/CalendarRangeOrNull"
+          },
+          "description": {
+            "$ref": "#/components/schemas/TextOrNull",
+            "description": "Description of the view.",
+            "example": "This is a grid view."
           }
         },
         "required": [

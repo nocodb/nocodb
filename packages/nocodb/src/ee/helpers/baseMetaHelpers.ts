@@ -29,6 +29,10 @@ const isPhysicalCol = (col: Column) => {
   );
 };
 
+const isMetadataOnly = (modelType: ModelTypes) => {
+  return [ModelTypes.DASHBOARD, ModelTypes.VIEW].includes(modelType);
+};
+
 const serializableMetaTables = BaseRelatedMetaTables.filter(
   (t) =>
     ![
@@ -470,6 +474,14 @@ async function handleTableDeletions(
   const tablesToDelete = metaDiff.delete[MetaTable.MODELS] || [];
 
   for (const tableRecord of tablesToDelete) {
+    // For metadata-only entities (like dashboards), skip DDL operations
+    if (isMetadataOnly(tableRecord.type)) {
+      // Just delete the metadata record
+      await ncMeta.knex(MetaTable.MODELS).where('id', tableRecord.id).delete();
+      continue;
+    }
+
+    // For physical entities (tables/views), perform DDL operations
     const source = await Source.get(
       targetContext,
       tableRecord.source_id,
@@ -594,6 +606,11 @@ async function handleTableCreations(
       const insertedTableId = tableRecord.id;
 
       await ncMeta.knex(MetaTable.MODELS).insert(tableToInsert);
+
+      // For metadata-only entities (like dashboards), skip column and DDL operations
+      if (isMetadataOnly(tableRecord.type)) {
+        continue;
+      }
 
       // Get all columns for this new table
       const tableColumns = (metaDiff.add[MetaTable.COLUMNS] || []).filter(
@@ -789,31 +806,34 @@ async function handleTableUpdates(
         continue;
       }
 
-      // Check if table_name has changed (requires DDL operation)
-      if (existingTable.table_name !== tableRecord.table_name) {
-        const source = await Source.get(
-          targetContext,
-          tableRecord.source_id,
-          false,
-          ncMeta,
-        );
-
-        if (source) {
-          const base = await Base.get(targetContext, base_id);
-          const sqlMgr = await ProjectMgrv2.getSqlMgr(
+      // For metadata-only entities (like dashboards), skip DDL operations
+      if (!isMetadataOnly(tableRecord.type)) {
+        // Check if table_name has changed (requires DDL operation)
+        if (existingTable.table_name !== tableRecord.table_name) {
+          const source = await Source.get(
             targetContext,
-            base,
+            tableRecord.source_id,
+            false,
             ncMeta,
           );
 
-          // Perform DDL operation to rename table
-          if (existingTable.type === ModelTypes.TABLE) {
-            await sqlMgr.sqlOpPlus(source, 'tableRename', {
-              ...tableRecord,
-              tn: tableRecord.table_name,
-              tn_old: existingTable.table_name,
-              schema: source.getConfig()?.schema,
-            });
+          if (source) {
+            const base = await Base.get(targetContext, base_id);
+            const sqlMgr = await ProjectMgrv2.getSqlMgr(
+              targetContext,
+              base,
+              ncMeta,
+            );
+
+            // Perform DDL operation to rename table
+            if (existingTable.type === ModelTypes.TABLE) {
+              await sqlMgr.sqlOpPlus(source, 'tableRename', {
+                ...tableRecord,
+                tn: tableRecord.table_name,
+                tn_old: existingTable.table_name,
+                schema: source.getConfig()?.schema,
+              });
+            }
           }
         }
       }
@@ -1195,6 +1215,11 @@ async function createMissingIndexes(
 
     for (const tableRecord of tablesToAdd) {
       try {
+        // Skip index creation for metadata-only entities (like dashboards)
+        if (isMetadataOnly(tableRecord.type)) {
+          continue;
+        }
+
         // Get the source for this table
         const source = await Source.get(
           targetContext,

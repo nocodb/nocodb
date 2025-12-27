@@ -74,7 +74,7 @@ onClickOutside(
     >
     </slot>
     <template #overlay>
-      <NcMenu variant="medium">
+      <NcMenu class="w-77" variant="medium">
         <template v-for="(nodes, cate, index) in nodeByCategory" :key="cate">
           <NcMenuItemLabel class="!capitalize"> {{ cate }} </NcMenuItemLabel>
           <NcMenuItem v-for="node in nodes" :key="node.title" @click="selectNodeOption(node)">

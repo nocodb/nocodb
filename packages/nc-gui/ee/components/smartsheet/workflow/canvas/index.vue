@@ -8,6 +8,7 @@ import PlusNode from '~/components/smartsheet/workflow/canvas/nodes/Plus.vue'
 import TriggerNode from '~/components/smartsheet/workflow/canvas/nodes/Trigger.vue'
 import WorkflowNode from '~/components/smartsheet/workflow/canvas/nodes/WorkflowNode.vue'
 import NoteNode from '~/components/smartsheet/workflow/canvas/nodes/Note.vue'
+import CustomEdge from '~/components/smartsheet/workflow/canvas/edges/CustomEdge.vue'
 import { useWorkflowOrThrow } from '~/composables/useWorkflow'
 import { useLayout } from '~/components/smartsheet/workflow/useLayout'
 import CanvasToolbar from '~/components/smartsheet/workflow/CanvasToolbar.vue'
@@ -130,6 +131,28 @@ onMounted(() => {
     :delete-key-code="null"
     class="workflow-canvas"
   >
+    <template #edge-custom="customEdgeProps">
+      <CustomEdge
+        :id="customEdgeProps.id"
+        :source="customEdgeProps.source"
+        :target="customEdgeProps.target"
+        :source-x="customEdgeProps.sourceX"
+        :source-y="customEdgeProps.sourceY"
+        :target-x="customEdgeProps.targetX"
+        :target-y="customEdgeProps.targetY"
+        :source-position="customEdgeProps.sourcePosition"
+        :target-position="customEdgeProps.targetPosition"
+        :source-handle="customEdgeProps.sourceHandle"
+        :target-handle="customEdgeProps.targetHandle"
+        :target-node="customEdgeProps.targetNode"
+        :label="customEdgeProps.label"
+        :label-style="customEdgeProps.labelStyle"
+        :label-bg-style="customEdgeProps.labelBgStyle"
+        :marker-end="customEdgeProps.markerEnd"
+        :style="customEdgeProps.style"
+      />
+    </template>
+
     <Background />
   </VueFlow>
 

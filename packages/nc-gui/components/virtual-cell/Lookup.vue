@@ -2,7 +2,7 @@
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 
-const { metas, getMeta, getMetaByKey } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const { isMobileMode } = useGlobal()
 

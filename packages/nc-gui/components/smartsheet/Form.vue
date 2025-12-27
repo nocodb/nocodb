@@ -49,7 +49,7 @@ const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
-const { metas, getMeta, getMetaByKey } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const { isDark } = useTheme()
 

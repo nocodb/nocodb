@@ -1025,6 +1025,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             meta.value?.columns as ColumnType[],
             getBaseType(viewMeta.value?.view?.source_id),
             metas.value,
+            meta.value?.base_id,
             {
               currentUser: user.value,
               timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -1105,6 +1106,7 @@ const [useProvideCalendarViewStore, useCalendarViewStore] = useInjectionState(
             meta.value?.columns as ColumnType[],
             getBaseType(viewMeta.value?.view?.source_id),
             metas.value,
+            meta.value?.base_id,
             {
               currentUser: user.value,
               timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

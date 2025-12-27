@@ -196,8 +196,6 @@ export function useCanvasTable({
   const attachmentCellDropOver = ref<AttachmentCellDropOverType | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
-  const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
-  const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas)
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const elementMap = new CanvasElement([])
@@ -231,6 +229,10 @@ export function useCanvasTable({
     gridEditEnabled,
     isViewOperationsAllowed,
   } = useSmartsheetStoreOrThrow()
+
+  // Initialize loaders that need meta.base_id after meta is available
+  const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas, (meta.value as TableType)?.base_id)
+  const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas)
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()

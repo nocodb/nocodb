@@ -66,7 +66,7 @@ export function useViewFilters(
 
   const { isUIAllowed } = useRoles()
 
-  const { metas, getMeta } = useMetas()
+  const { getMeta, getMetaByKey } = useMetas()
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -979,11 +979,12 @@ export function useViewFilters(
   /** on column delete reload filters, identify by checking columns count */
   watch(
     () => {
-      if (!view?.value || !metas?.value?.[view?.value?.fk_model_id as string]) {
-        return 0
-      }
+      if (!view?.value) return 0
 
-      return metas?.value?.[view?.value?.fk_model_id as string]?.columns?.length || 0
+      const tableMeta = getMetaByKey(meta.value?.base_id as string, view.value.fk_model_id as string)
+      if (!tableMeta) return 0
+
+      return tableMeta.columns?.length || 0
     },
     async (nextColsLength: number, oldColsLength: number) => {
       if (nextColsLength && nextColsLength < oldColsLength) await loadFilters()
@@ -1011,7 +1012,10 @@ export function useViewFilters(
             break
           }
 
-          const relatedTableMeta = await getMeta(meta.value!.base_id!, (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!)
+          const relatedTableMeta = await getMeta(
+            meta.value!.base_id!,
+            (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+          )
           nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
 
           // if next column is same as root lookup column then break the loop

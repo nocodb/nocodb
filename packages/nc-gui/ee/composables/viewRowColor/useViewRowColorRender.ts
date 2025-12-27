@@ -12,6 +12,8 @@ export function useViewRowColorRender() {
 
   const { meta } = useSmartsheetStoreOrThrow()
 
+  const { metas } = useMetas()
+
   const { activeViewRowColorInfo } = storeToRefs(useViewsStore())
 
   const isRowColouringEnabled = computed(() => {
@@ -69,7 +71,8 @@ export function useViewRowColorRender() {
           row,
           metaColumns.value as ColumnType[],
           getBaseType(meta.value!.source_id),
-          meta.value!,
+          metas.value,
+          meta.value?.base_id,
           {
             currentUser: user.value ?? undefined,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

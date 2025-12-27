@@ -16,7 +16,7 @@ useSidebar('nc-right-sidebar')
 
 const { isUIAllowed } = useRoles()
 
-const { metas, getMeta, getMetaByKey } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const { ncNavigateTo } = useGlobal()
 

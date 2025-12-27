@@ -67,6 +67,7 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
         formState: formState.value,
         isMysql,
         getMeta,
+        baseId: baseStore.baseId,
       })
     })
 
@@ -617,15 +618,17 @@ const [useProvideFormViewStore, useFormViewStore] = useInjectionState(
 
       try {
         const formViewFilters =
-          (await $api.internal.getOperation(viewMeta.value.fk_workspace_id!, viewMeta.value.base_id!, {
-            operation: 'filterList',
-            viewId: viewMeta.value.id,
-            includeAllFilters: 'true',
-          })).list || []
+          (
+            await $api.internal.getOperation(viewMeta.value.fk_workspace_id!, viewMeta.value.base_id!, {
+              operation: 'filterList',
+              viewId: viewMeta.value.id,
+              includeAllFilters: 'true',
+            })
+          ).list || []
 
         if (!formViewFilters.length) return
 
-        const formFilter = new FormFilters({ data: formViewFilters })
+        const formFilter = new FormFilters({ data: formViewFilters, baseId: viewMeta.value.base_id })
 
         const allFilters = formFilter.getNestedGroupedFilters()
 

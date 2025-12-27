@@ -166,6 +166,7 @@ export function validateRowFilters(
   columns: ColumnType[],
   client: any,
   metas: Record<string, any>,
+  baseId?: string,
   options?: {
     currentUser?: {
       id: string
@@ -180,6 +181,7 @@ export function validateRowFilters(
     columns,
     client,
     metas,
+    baseId,
     options,
   })
 }
@@ -382,12 +384,21 @@ export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => 
 export const getRollupValue = (modelValue: string | null | number, params: ParsePlainCellValueProps['params']) => {
   const { col, meta, metas } = params
 
+  // Helper to get meta with composite key or fallback to table ID only
+  const getMeta = (tableId: string) => {
+    const baseId = meta?.base_id
+    if (baseId) {
+      return metas?.[`${baseId}:${tableId}`] || metas?.[tableId]
+    }
+    return metas?.[tableId]
+  }
+
   const colOptions = col.colOptions as RollupType
   const relationColumnOptions = colOptions.fk_relation_column_id
     ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions as LinkToAnotherRecordType)
     : null
   const relatedTableMeta =
-    relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
+    relationColumnOptions?.fk_related_model_id && getMeta(relationColumnOptions.fk_related_model_id as string)
 
   let childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
     | ColumnType
@@ -415,13 +426,22 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
 export const getLookupValue = (modelValue: string | null | number | Array<any>, params: ParsePlainCellValueProps['params']) => {
   const { col, meta, metas } = params
 
+  // Helper to get meta with composite key or fallback to table ID only
+  const getMeta = (tableId: string) => {
+    const baseId = meta?.base_id
+    if (baseId) {
+      return metas?.[`${baseId}:${tableId}`] || metas?.[tableId]
+    }
+    return metas?.[tableId]
+  }
+
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
     ? (meta?.value ?? meta)?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
     : col.colOptions
 
   const relatedTableMeta =
-    relationColumnOptions?.fk_related_model_id && metas?.[relationColumnOptions.fk_related_model_id as string]
+    relationColumnOptions?.fk_related_model_id && getMeta(relationColumnOptions.fk_related_model_id as string)
 
   const childColumn = relatedTableMeta?.columns.find(
     (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find((c) => c.pv).id),
@@ -441,7 +461,7 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
 
 export function getLookupColumnType(
   col: ColumnType,
-  meta: { columns: ColumnType[] },
+  meta: { columns: ColumnType[]; base_id?: string },
   metas: Record<string, any>,
   visitedIds = new Set<string>(),
 ): UITypes | null | undefined {
@@ -449,6 +469,7 @@ export function getLookupColumnType(
     col,
     meta,
     metas,
+    baseId: meta.base_id,
     visitedIds,
   })
 }

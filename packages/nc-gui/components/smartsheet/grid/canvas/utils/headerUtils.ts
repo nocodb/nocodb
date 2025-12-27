@@ -19,10 +19,12 @@ export function getCustomColumnTooltip({
   column,
   metas,
   getMeta,
+  baseId,
   isExternalLink = false,
 }: {
   column: CanvasGridColumn
   metas: Record<string, TableType>
+  baseId?: string
   isExternalLink: boolean
   getMeta?: (tableId: string) => Promise<TableType>
 }): string {
@@ -37,13 +39,28 @@ export function getCustomColumnTooltip({
 
   if (!relOptions) return
 
-  const currentTable = metas[column.columnObj.fk_model_id]
-  const refTable = metas[relOptions.fk_related_model_id]
+  // Helper to get meta with composite key
+  const getMetaWithKey = (tableId: string) => {
+    if (baseId) {
+      return metas[`${baseId}:${tableId}`] || metas[tableId]
+    }
+    // Fallback: search through all metas to find matching tableId
+    for (const [key, value] of Object.entries(metas)) {
+      if (key.endsWith(`:${tableId}`)) {
+        return value
+      }
+    }
+    return metas[tableId]
+  }
+
+  const currentTable = getMetaWithKey(column.columnObj.fk_model_id)
+  const refTable = getMetaWithKey(relOptions.fk_related_model_id)
   let mmTable: TableType
   if (relOptions.type === RelationTypes.MANY_TO_MANY) {
-    if (metas[relOptions.fk_mm_model_id]) {
+    const mmMeta = getMetaWithKey(relOptions.fk_mm_model_id)
+    if (mmMeta) {
       // skip if created by NocoDB
-      mmTable = metas[relOptions.fk_mm_model_id]?.title?.includes('nc_m2m_') ? null : metas[relOptions.fk_mm_model_id]
+      mmTable = mmMeta?.title?.includes('nc_m2m_') ? null : mmMeta
     } else {
       // if metas not found in store, fetch it
       getMeta?.(relOptions.fk_mm_model_id).catch((_e) => {

@@ -95,7 +95,7 @@ export const useRealtime = createSharedComposable(() => {
           const tables = baseTables.value.get(activeBaseId.value)
           for (const table of tables || []) {
             if (table.id && table.source_id === payload.source_id) {
-              getMeta(table.id, true)
+              getMeta(baseId, table.id, true)
               break
             }
           }
@@ -259,8 +259,8 @@ export const useRealtime = createSharedComposable(() => {
         })
 
         // If the first collaborative grid view changed after deletion, trigger getMeta
-        if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id) {
-          getMeta(event.payload.fk_model_id, true)
+        if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id && event.payload.base_id) {
+          getMeta(event.payload.base_id, event.payload.fk_model_id, true)
         }
       }
       refreshCommandPalette()

@@ -17,6 +17,7 @@ export const LookupCellRenderer: CellRenderer = {
       value,
       renderCell,
       metas,
+      meta,
       height,
       width: _width,
       padding = 10,
@@ -28,18 +29,35 @@ export const LookupCellRenderer: CellRenderer = {
     let y = _y
     let width = _width - ellipsisWidth
 
+    // Helper to get meta with composite key
+    const getMeta = (tableId: string) => {
+      const baseId = meta?.base_id
+      if (baseId) {
+        return metas?.[`${baseId}:${tableId}`] || metas?.[tableId]
+      }
+      // Fallback: search through all metas to find matching tableId
+      if (metas) {
+        for (const [key, value] of Object.entries(metas)) {
+          if (key.endsWith(`:${tableId}`)) {
+            return value
+          }
+        }
+      }
+      return metas?.[tableId]
+    }
+
     // If it is empty text then no need to render
     if (!metas) return
 
     const colOptions = column.colOptions as LookupType
 
-    const relatedColObj = metas?.[column.fk_model_id!]?.columns?.find(
+    const relatedColObj = getMeta(column.fk_model_id!)?.columns?.find(
       (c) => c.id === column?.colOptions?.fk_relation_column_id,
     ) as ColumnType
 
     if (!relatedColObj) return
 
-    const relatedTableMeta = metas?.[relatedColObj.colOptions?.fk_related_model_id]
+    const relatedTableMeta = getMeta(relatedColObj.colOptions?.fk_related_model_id)
 
     // Load related table meta if not present
     if (!relatedTableMeta) {

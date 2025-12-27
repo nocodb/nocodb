@@ -14,7 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const { $api } = useNuxtApp()
 
-const { getMeta, metas, getMetaByKey } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const { t } = useI18n()
 

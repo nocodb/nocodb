@@ -74,7 +74,8 @@ const isRefTablePrivate = computed(() => {
   if (!props.isEdit) return false
   const refTableId = vModel.value.custom?.ref_model_id
   if (!refTableId) return false
-  const tableMeta = metas.value[refTableId]
+  const baseId = vModel.value.custom?.base_id
+  const tableMeta = getMetaByKey(baseId, refTableId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
 })
@@ -85,7 +86,8 @@ const isJunctionTablePrivate = computed(() => {
   if (!props.isEdit) return false
   const juncTableId = vModel.value.custom?.junc_model_id
   if (!juncTableId) return false
-  const tableMeta = metas.value[juncTableId]
+  const baseId = vModel.value.custom?.junc_base_id
+  const tableMeta = getMetaByKey(baseId, juncTableId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
 })
@@ -97,8 +99,8 @@ const refTables = computed(() => {
 
     // Load meta if not already loaded
     const baseId = vModel.value.custom?.base_id
-    if (!metas.value[refTableId] && baseId) getMeta(baseId, refTableId)
-    const tableMeta = metas.value[refTableId]
+    if (!getMetaByKey(baseId, refTableId) && baseId) getMeta(baseId, refTableId)
+    const tableMeta = getMetaByKey(baseId, refTableId)
 
     // Check if table is private (from API response only)
     const isPrivate = tableMeta && (tableMeta as any).is_private
@@ -134,8 +136,8 @@ const junctionTables = computed(() => {
 
     // Load meta if not already loaded
     const baseId = vModel.value.custom?.junc_base_id
-    if (!metas.value[juncTableId] && baseId) getMeta(baseId, juncTableId)
-    const tableMeta = metas.value[juncTableId]
+    if (!getMetaByKey(baseId, juncTableId) && baseId) getMeta(baseId, juncTableId)
+    const tableMeta = getMetaByKey(baseId, juncTableId)
 
     // Check if table is private (from API response only)
     const isPrivate = tableMeta && (tableMeta as any).is_private

@@ -20,7 +20,7 @@ const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { getMeta, metas, getMetaByKey } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const meta = inject(MetaInj, ref())
 

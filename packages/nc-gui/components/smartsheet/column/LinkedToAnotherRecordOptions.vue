@@ -127,8 +127,9 @@ const refTables = computed(() => {
     if (!refTableId) return []
 
     // Load meta if not already loaded
-    if (!metas.value[refTableId]) getMeta(meta.value?.base_id, refTableId)
-    const tableMeta = metas.value[refTableId]
+    const baseId = meta.value?.base_id
+    if (!getMetaByKey(baseId, refTableId)) getMeta(baseId, refTableId)
+    const tableMeta = getMetaByKey(baseId, refTableId)
     // Check if table is private (from API response only)
     const isPrivate = tableMeta && (tableMeta as any).is_private
 
@@ -276,7 +277,8 @@ const isLinkedTablePrivate = computed(() => {
   if (!isEdit.value) return false
   const refTableId = referenceTableChildId.value
   if (!refTableId) return false
-  const tableMeta = metas.value[refTableId]
+  const baseId = meta.value?.base_id
+  const tableMeta = getMetaByKey(baseId, refTableId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
 })
@@ -286,7 +288,8 @@ const isLinkedViewPrivate = computed(() => {
   if (!vModel.value.childViewId) return false
   const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
   if (!childId) return false
-  const tableMeta = metas.value[childId]
+  const baseId = meta.value?.base_id
+  const tableMeta = getMetaByKey(baseId, childId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
 })

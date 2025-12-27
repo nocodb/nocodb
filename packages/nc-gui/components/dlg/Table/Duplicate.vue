@@ -186,7 +186,8 @@ const _duplicate = async () => {
             } else {
               // Load target base tables if target workspace is the same as active workspace
               if (targetWorkspace.value?.id === activeWorkspace?.id) {
-                loadProjectTables(targetBase.value.id!, true)
+                await loadProjectTables(targetBase.value.id!, true)
+                refreshCommandPalette()
               }
 
               // TODO: navigating to specified base?

@@ -7,7 +7,7 @@ import type {
 } from 'nocodb-sdk';
 import { NcError } from '~/helpers/ncError';
 
-type Graph = Array<{
+export type Graph = Array<{
   label?: string;
   sourcePortId?: string; // Port ID from source node
   edgeId: string;

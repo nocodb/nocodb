@@ -38,8 +38,8 @@ import {
   determineStartNode,
   findParentLoops,
   findParentNodes,
-  getNextNode,
-} from '~/services/workflows/graphHelpers';
+  getNextNode, Graph,
+} from '~/services/workflows/graphHelpers'
 import { ExpressionContext } from '~/services/workflows/ExpressionContext';
 import { MailService } from '~/services/mail/mail.service';
 
@@ -309,6 +309,61 @@ export class WorkflowExecutionService {
     return obj;
   }
 
+  /**
+   * Check if a node is a delay/wait node
+   * Delay nodes return resumeAt timestamp in their output
+   */
+  private isDelayNode(node: WorkflowGeneralNode, result: NodeExecutionResult): boolean {
+    // Check if it's a delay or wait-until node type
+    const isDelayNodeType =
+      node.type === 'core.flow.delay' ||
+      node.type === 'core.flow.wait-until';
+
+    // Verify it succeeded and has a valid future resumeAt timestamp
+    return (
+      isDelayNodeType &&
+      result.status === 'success' &&
+      result.output &&
+      typeof result.output.resumeAt === 'number' &&
+      result.output.resumeAt > Date.now()
+    );
+  }
+
+  /**
+   * Handle delay node execution by pausing workflow and scheduling resume
+   */
+  private handleDelayNode(
+    executionState: WorkflowExecutionState,
+    delayNodeResult: NodeExecutionResult,
+    currentNodeId: string,
+    graph: Map<string, Graph>,
+  ): WorkflowExecutionState {
+    const resumeAt = delayNodeResult.output.resumeAt;
+
+    // Store delay node result
+    executionState.nodeResults.push(delayNodeResult);
+
+    // Find next node after delay
+    const outgoingEdges = graph.get(currentNodeId) || [];
+    const nextNodeId = outgoingEdges[0]?.target || null;
+
+    // Update execution state to waiting
+    executionState.status = 'waiting';
+    executionState.pausedAt = Date.now();
+    executionState.resumeAt = resumeAt;
+    executionState.nextNodeId = nextNodeId;
+
+    console.log(executionState)
+
+    this.logger.log(
+      `Workflow ${executionState.workflowId} paused at node ${currentNodeId}, will resume at ${new Date(
+        resumeAt,
+      ).toISOString()}`,
+    );
+
+    return executionState;
+  }
+
   private async executeNode(
     context: NcContext,
     node: WorkflowGeneralNode,
@@ -444,12 +499,14 @@ export class WorkflowExecutionService {
     triggerData?: any,
     triggerNodeTitle?: string,
     onNodeExecuted?: (state: WorkflowExecutionState) => Promise<void>,
+    resumeState?: WorkflowExecutionState,
+    existingExecutionId?: string,
   ): Promise<WorkflowExecutionState> {
-    const executionId = `exec-${Date.now()}-${Math.random()
-      .toString(36)
-      .slice(2, 9)}`;
+    const executionId =
+      existingExecutionId ||
+      `exec-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
 
-    const executionState: WorkflowExecutionState = {
+    const executionState: WorkflowExecutionState = resumeState || {
       id: executionId,
       workflowId: workflow.id,
       status: 'running',
@@ -474,14 +531,14 @@ export class WorkflowExecutionService {
 
       const { graph, triggerNodes } = buildWorkflowGraph(nodes, edges);
 
-      let currentNodeId = determineStartNode(
-        nodes,
-        triggerNodes,
-        triggerNodeTitle,
-        context,
-      );
+      let currentNodeId = resumeState?.nextNodeId
+        ? resumeState.nextNodeId
+        : determineStartNode(nodes, triggerNodes, triggerNodeTitle, context);
 
-      const executedNodes = new Set<string>();
+      // Restore executed nodes from resume state if resuming
+      const executedNodes = new Set<string>(
+        resumeState?.nodeResults.map((r) => r.nodeId) || [],
+      );
       const maxIterations = nodes.length * 1000;
       let iterations = 0;
 
@@ -568,6 +625,16 @@ export class WorkflowExecutionService {
           expressionContext,
           nodes,
         );
+
+        // Check if node is a delay/pause node and should pause execution
+        if (this.isDelayNode(node, result)) {
+          return this.handleDelayNode(
+            executionState,
+            result,
+            currentNodeId,
+            graph,
+          );
+        }
 
         // Handle loop context
         if (result.loopContext && result.status === 'success') {

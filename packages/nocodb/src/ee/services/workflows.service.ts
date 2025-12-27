@@ -334,7 +334,7 @@ export class WorkflowsService implements OnModuleInit {
         'create',
       );
 
-      let isDone = false
+      let isDone = false;
 
       const executionState =
         await this.workflowExecutionService.executeWorkflow(
@@ -371,7 +371,10 @@ export class WorkflowsService implements OnModuleInit {
           finished: true,
           finished_at: new Date().toISOString(),
           status: executionState.status,
-          resume_at: new Date(executionState.resumeAt).toISOString(),
+          resume_at:
+            executionState.status === 'waiting' && executionState.resumeAt
+              ? new Date(executionState.resumeAt).toISOString()
+              : undefined,
         },
       );
 
@@ -517,14 +520,11 @@ export class WorkflowsService implements OnModuleInit {
 
     if (pendingExecutionsCount > 0) {
       if (params?.cancelPendingExecutions === undefined) {
-        NcError.get(context).workflowWaitingExecutions(
-          pendingExecutionsCount,
-          {
-            details: {
-              count: pendingExecutionsCount,
-            },
+        NcError.get(context).workflowWaitingExecutions(pendingExecutionsCount, {
+          details: {
+            count: pendingExecutionsCount,
           },
-        );
+        });
       }
 
       if (params?.cancelPendingExecutions === true) {

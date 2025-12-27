@@ -113,7 +113,9 @@ export class WorkflowProcessor {
         const delayMs = result.resumeAt - Date.now();
 
         this.logger.log(
-          `Workflow ${workflowId} execution ${executionRecord.id} paused, will resume at ${resumeDate.toISOString()} (in ${delayMs}ms)`,
+          `Workflow ${workflowId} execution ${
+            executionRecord.id
+          } paused, will resume at ${resumeDate.toISOString()} (in ${delayMs}ms)`,
         );
 
         // Update execution with waiting status and resume_at
@@ -146,6 +148,7 @@ export class WorkflowProcessor {
           finished: true,
           finished_at: new Date().toISOString(),
           status: result.status,
+          resume_at: null,
         },
       );
 
@@ -168,6 +171,7 @@ export class WorkflowProcessor {
               finished_at: new Date().toISOString(),
               status: 'error',
               execution_data: null,
+              resume_at: null,
             },
           );
 
@@ -194,10 +198,7 @@ export class WorkflowProcessor {
     );
 
     try {
-      let execution = await WorkflowExecution.get(
-        context as NcContext,
-        executionId,
-      );
+      let execution = await WorkflowExecution.get(context, executionId);
 
       if (!execution) {
         this.logger.warn(`Execution ${executionId} not found`);
@@ -217,7 +218,7 @@ export class WorkflowProcessor {
           `Cannot resume: workflow snapshot missing for execution ${executionId}`,
         );
         await this.updateExecutionStatus(
-          context as NcContext,
+          context,
           executionId,
           execution.fk_workflow_id,
           'error',
@@ -228,7 +229,7 @@ export class WorkflowProcessor {
       const workflow = execution.workflow_data as any;
 
       const currentWorkflow = await Workflow.get(
-        context as NcContext,
+        context,
         execution.fk_workflow_id,
       );
 
@@ -237,7 +238,7 @@ export class WorkflowProcessor {
           `Workflow ${execution.fk_workflow_id} is disabled, cancelling execution ${executionId}`,
         );
         await this.updateExecutionStatus(
-          context as NcContext,
+          context,
           executionId,
           execution.fk_workflow_id,
           'cancelled',
@@ -249,7 +250,7 @@ export class WorkflowProcessor {
       const state = execution.execution_data;
       if (!state) {
         await this.updateExecutionStatus(
-          context as NcContext,
+          context,
           executionId,
           execution.fk_workflow_id,
           'error',
@@ -263,14 +264,14 @@ export class WorkflowProcessor {
 
       this.logger.log(`Resuming from node ${state.nextNodeId}`);
 
-      execution = await WorkflowExecution.update(context as NcContext, executionId, {
+      execution = await WorkflowExecution.update(context, executionId, {
         status: 'running',
         execution_data: state,
       });
 
       // Broadcast resume event
       this.broadcastExecutionEvent(
-        context as NcContext,
+        context,
         execution.fk_workflow_id,
         execution,
         'update',
@@ -280,7 +281,7 @@ export class WorkflowProcessor {
 
       // Continue execution with snapshot and progress callback
       const result = await this.workflowExecutionService.executeWorkflow(
-        context as NcContext,
+        context,
         workflow,
         state.triggerData,
         state.triggerNodeTitle,
@@ -288,7 +289,7 @@ export class WorkflowProcessor {
           if (isDone) return;
 
           const updatedExecution = await WorkflowExecution.update(
-            context as NcContext,
+            context,
             executionId,
             {
               execution_data: updatedState,
@@ -299,7 +300,7 @@ export class WorkflowProcessor {
           );
 
           this.broadcastExecutionEvent(
-            context as NcContext,
+            context,
             execution.fk_workflow_id,
             updatedExecution,
             'update',
@@ -313,7 +314,7 @@ export class WorkflowProcessor {
 
       // Update final state
       const finalExecution = await WorkflowExecution.update(
-        context as NcContext,
+        context,
         executionId,
         {
           status: result.status,
@@ -321,11 +322,12 @@ export class WorkflowProcessor {
           finished: result.status !== 'waiting',
           finished_at:
             result.status !== 'waiting' ? new Date().toISOString() : null,
+          resume_at: result.status !== 'waiting' ? null : execution.resume_at,
         },
       );
 
       this.broadcastExecutionEvent(
-        context as NcContext,
+        context,
         execution.fk_workflow_id,
         finalExecution,
         'update',
@@ -345,7 +347,7 @@ export class WorkflowProcessor {
       // Update execution status to error
       try {
         const errorExecution = await WorkflowExecution.update(
-          context as NcContext,
+          context,
           executionId,
           {
             status: 'error',
@@ -356,7 +358,7 @@ export class WorkflowProcessor {
 
         if (errorExecution) {
           this.broadcastExecutionEvent(
-            context as NcContext,
+            context,
             errorExecution.fk_workflow_id,
             errorExecution,
             'update',
@@ -387,7 +389,12 @@ export class WorkflowProcessor {
       },
     );
 
-    this.broadcastExecutionEvent(context, workflowId, updatedExecution, 'update');
+    this.broadcastExecutionEvent(
+      context,
+      workflowId,
+      updatedExecution,
+      'update',
+    );
   }
 
   private broadcastExecutionEvent(
@@ -396,7 +403,8 @@ export class WorkflowProcessor {
     execution: WorkflowExecution,
     action: 'create' | 'update' | 'delete',
   ) {
-    NocoSocket.broadcastEvent(context, {      event: EventType.WORKFLOW_EXECUTION_EVENT,
+    NocoSocket.broadcastEvent(context, {
+      event: EventType.WORKFLOW_EXECUTION_EVENT,
       payload: {
         id: execution.id,
         workflowId,

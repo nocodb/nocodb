@@ -30,7 +30,7 @@ export default class XcMigrationSourcev0 {
       'nc_009_dependency_tracker_timestamp',
       'nc_010_add_constraints_col_in_column_table',
       'nc_011_merge_workflows_scripts',
-      'nc_012_workflow_delay'
+      'nc_012_workflow_delay',
     ]);
   }
 
@@ -63,7 +63,7 @@ export default class XcMigrationSourcev0 {
       case 'nc_011_merge_workflows_scripts':
         return nc_011_merge_workflows_scripts;
       case 'nc_012_workflow_delay':
-        return nc_012_workflow_delay
+        return nc_012_workflow_delay;
     }
   }
 }

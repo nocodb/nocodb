@@ -29,6 +29,7 @@ import type {
   WorkflowNodeResult,
   WorkflowNodeRunContext,
 } from '@noco-local-integrations/core';
+import type { Graph } from '~/services/workflows/graphHelpers';
 import { Column, Integration } from '~/models';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { TablesService } from '~/services/tables.service';
@@ -38,8 +39,8 @@ import {
   determineStartNode,
   findParentLoops,
   findParentNodes,
-  getNextNode, Graph,
-} from '~/services/workflows/graphHelpers'
+  getNextNode,
+} from '~/services/workflows/graphHelpers';
 import { ExpressionContext } from '~/services/workflows/ExpressionContext';
 import { MailService } from '~/services/mail/mail.service';
 
@@ -313,11 +314,13 @@ export class WorkflowExecutionService {
    * Check if a node is a delay/wait node
    * Delay nodes return resumeAt timestamp in their output
    */
-  private isDelayNode(node: WorkflowGeneralNode, result: NodeExecutionResult): boolean {
+  private isDelayNode(
+    node: WorkflowGeneralNode,
+    result: NodeExecutionResult,
+  ): boolean {
     // Check if it's a delay or wait-until node type
     const isDelayNodeType =
-      node.type === 'core.flow.delay' ||
-      node.type === 'core.flow.wait-until';
+      node.type === 'core.flow.delay' || node.type === 'core.flow.wait-until';
 
     // Verify it succeeded and has a valid future resumeAt timestamp
     return (
@@ -353,10 +356,10 @@ export class WorkflowExecutionService {
     executionState.resumeAt = resumeAt;
     executionState.nextNodeId = nextNodeId;
 
-    console.log(executionState)
-
     this.logger.log(
-      `Workflow ${executionState.workflowId} paused at node ${currentNodeId}, will resume at ${new Date(
+      `Workflow ${
+        executionState.workflowId
+      } paused at node ${currentNodeId}, will resume at ${new Date(
         resumeAt,
       ).toISOString()}`,
     );

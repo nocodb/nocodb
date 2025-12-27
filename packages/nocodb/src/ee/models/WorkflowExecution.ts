@@ -17,7 +17,7 @@ export default class WorkflowExecution implements IWorkflowExecution {
   finished: boolean;
   started_at: string;
   finished_at: string;
-  status: IWorkflowExecution['status']; // 'success', 'error', 'in_progress', 'skipped', 'pending', 'waiting'
+  status: IWorkflowExecution['status']; // 'success', 'error', 'in_progress', 'skipped', 'pending', 'waiting', 'cancelled'
 
   resume_at?: string; // When to resume if paused
 
@@ -194,14 +194,16 @@ export default class WorkflowExecution implements IWorkflowExecution {
     workflowId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-
     return await ncMeta.metaCount(
-      context.workspace_id, context.base_id, MetaTable.AUTOMATION_EXECUTIONS, {
+      context.workspace_id,
+      context.base_id,
+      MetaTable.AUTOMATION_EXECUTIONS,
+      {
         condition: {
           fk_workflow_id: workflowId,
-          status: 'waiting'
+          status: 'waiting',
         },
-      }
+      },
     );
   }
 }

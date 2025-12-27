@@ -117,7 +117,7 @@ export class DelayNode extends WorkflowNodeIntegration<DelayNodeConfig> {
     const startTime = Date.now();
 
     try {
-      const { duration, unit } = ctx.inputs.config;
+      const { duration, unit } = ctx.inputs.config as DelayNodeConfig;
 
       const delayMs =
         duration *

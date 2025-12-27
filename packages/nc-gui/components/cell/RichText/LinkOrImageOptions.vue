@@ -31,6 +31,8 @@ const isImageOptionsVisible = ref(false)
 const isImageEditMode = ref(false) // Track if we're in edit mode
 const isAddImageMode = ref(false) // Track if we're adding a new image
 
+const revalidatePosition = ref(false)
+
 // This is used to prevent the menu from showing up after a link is deleted, an edge case when the link with empty placeholder text is deleted.
 // This is because checkLinkMark is not called in that case
 const justDeleted = ref(false)
@@ -70,7 +72,7 @@ const checkLinkMarkOrImageNode = (editor: Editor) => {
 
   // Check for existing image node selection
   if (isImageRenderEnabled.value && selectedNode && selectedNode.type && selectedNode.type.name === 'image') {
-    if (imageNode.value !== selectedNode) {
+    if (imageNode.value !== selectedNode && !revalidatePosition.value) {
       isImageEditMode.value = false
       isAddImageMode.value = false
     }
@@ -213,6 +215,19 @@ watch([isLinkOptionsVisible, isImageOptionsVisible], ([linkVisible, imageVisible
   }
 })
 
+watch([isImageEditMode, isImageOptionsVisible], () => {
+  if (!isImageEditMode.value || !isImageOptionsVisible.value) {
+    revalidatePosition.value = false
+  }
+})
+
+const onImageEditModeUpdate = () => {
+  setTimeout(() => {
+    revalidatePosition.value = true
+    editor.value?.chain()?.focus().run()
+  }, 100)
+}
+
 const openLink = () => {
   if (href.value) {
     window.open(href.value, '_blank', 'noopener,noreferrer')
@@ -240,6 +255,7 @@ const tabIndex = computed(() => {
     :tippy-options="{
       duration: 100,
       maxWidth: 400,
+      placement: isImageOptionsVisible && isImageRenderEnabled && (isImageEditMode || isAddImageMode) ? 'auto-start' : 'auto',
       onMount: onMountLinkOptions,
     }"
     :should-show="(checkLinkMarkOrImageNode as any)"
@@ -300,6 +316,7 @@ const tabIndex = computed(() => {
       v-if="isImageOptionsVisible && isImageRenderEnabled"
       v-model:is-add-image-mode="isAddImageMode"
       v-model:is-image-edit-mode="isImageEditMode"
+      @update:is-image-edit-mode="onImageEditModeUpdate"
       v-model:is-image-options-visible="isImageOptionsVisible"
       :editor="editor"
       :tab-index="tabIndex"

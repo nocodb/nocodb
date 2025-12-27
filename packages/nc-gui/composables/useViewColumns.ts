@@ -582,9 +582,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
             view.value!.fk_workspace_id!,
             view.value!.base_id!,
             {
-              operation: 'viewColumnUpdate',
-              viewId: view.value!.id,
-              columnId: gridViewCols.value[id].id,
+              operation: 'gridViewColumnUpdate',
+              gridViewColumnId: gridViewCols.value[id].id,
             },
             props,
           )

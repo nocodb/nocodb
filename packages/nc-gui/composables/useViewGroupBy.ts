@@ -692,15 +692,11 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       if (!ids.length) return
 
       try {
-        const aggCommentCount = await $api.internal.getOperation(
-          (meta.value as any).fk_workspace_id!,
-          meta.value!.base_id!,
-          {
-            operation: 'commentCount',
-            fk_model_id: meta.value!.id as string,
-            ids,
-          },
-        )
+        const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'commentCount',
+          fk_model_id: meta.value!.id as string,
+          ids,
+        })
 
         formattedData.forEach((row) => {
           const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])

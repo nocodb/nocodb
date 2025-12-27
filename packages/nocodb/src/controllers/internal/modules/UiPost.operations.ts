@@ -15,6 +15,7 @@ import { FiltersService } from '~/services/filters.service';
 import { SortsService } from '~/services/sorts.service';
 import { HooksService } from '~/services/hooks.service';
 import { GridsService } from '~/services/grids.service';
+import { GridColumnsService } from '~/services/grid-columns.service';
 import { FormsService } from '~/services/forms.service';
 import { FormColumnsService } from '~/services/form-columns.service';
 import { GalleriesService } from '~/services/galleries.service';
@@ -39,6 +40,7 @@ export class UiPostOperations
     protected sortsService: SortsService,
     protected hooksService: HooksService,
     protected gridsService: GridsService,
+    protected gridColumnsService: GridColumnsService,
     protected formsService: FormsService,
     protected formColumnsService: FormColumnsService,
     protected galleriesService: GalleriesService,
@@ -66,6 +68,7 @@ export class UiPostOperations
     'viewHideAll' as const,
     'viewColumnUpdate' as const,
     'viewColumnCreate' as const,
+    'gridViewColumnUpdate' as const,
     'viewRowColorConditionAdd' as const,
     'viewRowColorConditionUpdate' as const,
     'viewRowColorConditionDelete' as const,
@@ -227,6 +230,12 @@ export class UiPostOperations
           viewId: req.query.viewId,
           columnId: req.query.columnId,
           column: payload,
+          req,
+        });
+      case 'gridViewColumnUpdate':
+        return await this.gridColumnsService.gridColumnUpdate(context, {
+          gridViewColumnId: req.query.gridViewColumnId,
+          grid: payload,
           req,
         });
       case 'viewColumnCreate':

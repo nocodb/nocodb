@@ -52,6 +52,7 @@ export const OPERATION_SCOPES = {
   viewShowAll: 'base',
   viewHideAll: 'base',
   viewColumnUpdate: 'base',
+  gridViewColumnUpdate: 'base',
   viewColumnCreate: 'base',
   viewRowColorConditionAdd: 'base',
   viewRowColorConditionUpdate: 'base',

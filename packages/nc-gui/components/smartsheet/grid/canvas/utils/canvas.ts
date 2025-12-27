@@ -924,7 +924,7 @@ export function renderMultiLineText(
     ctx.font = fontFamily
   }
 
-  // Include `firstLineMaxWidth` in the cache key to avoid incorrect caching
+  // Include `firstLineMaxWidth` and `renderAsPreTag` in the cache key to avoid incorrect caching
   const cacheKey = `${text}-${fontFamily}-${maxWidth}-${maxLines}-${firstLineMaxWidth ?? 'default'}-${
     renderAsPreTag ? 'pre' : 'plain'
   }`

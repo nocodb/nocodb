@@ -57,7 +57,7 @@ const dependencyMessage = computed(() => {
   <div>
     <div v-if="status === 'loading'" class="flex items-center gap-2 text-nc-content-gray-muted">
       <GeneralLoader size="regular" />
-      <span>{{ $t('general.checkingDependencies') }}</span>
+      <span>{{ $t('labels.checkingDependencies') }}</span>
     </div>
 
     <div v-else-if="status === 'done' && hasBreakingChanges && totalCount > 0">

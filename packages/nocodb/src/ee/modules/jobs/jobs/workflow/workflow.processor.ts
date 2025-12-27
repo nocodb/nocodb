@@ -109,13 +109,11 @@ export class WorkflowProcessor {
 
       // Handle waiting status (delay node)
       if (result.status === 'waiting' && result.resumeAt) {
-        const resumeDate = new Date(result.resumeAt);
         const delayMs = result.resumeAt - Date.now();
+        const resumeAtISO = new Date(result.resumeAt).toISOString();
 
         this.logger.log(
-          `Workflow ${workflowId} execution ${
-            executionRecord.id
-          } paused, will resume at ${resumeDate.toISOString()} (in ${delayMs}ms)`,
+          `Workflow ${workflowId} execution ${executionRecord.id} paused, will resume at ${resumeAtISO} (in ${delayMs}ms)`,
         );
 
         // Update execution with waiting status and resume_at
@@ -126,7 +124,7 @@ export class WorkflowProcessor {
             execution_data: result,
             finished: false,
             status: 'waiting',
-            resume_at: resumeDate.toISOString(),
+            resume_at: resumeAtISO,
           },
         );
 

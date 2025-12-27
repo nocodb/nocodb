@@ -123,9 +123,8 @@ export class DelayNode extends WorkflowNodeIntegration<DelayNodeConfig> {
         duration *
         DelayNode.TIME_UNITS[unit as keyof typeof DelayNode.TIME_UNITS];
 
+      // Calculate UTC timestamp
       const resumeAt = Date.now() + delayMs;
-
-      const resumeDate = new Date(resumeAt);
 
       logs.push({
         level: 'info',
@@ -135,7 +134,7 @@ export class DelayNode extends WorkflowNodeIntegration<DelayNodeConfig> {
           duration,
           unit,
           delayMs,
-          resumeAt: resumeDate.toISOString(),
+          resumeAt: new Date(resumeAt).toISOString(),
         },
       });
 
@@ -143,8 +142,8 @@ export class DelayNode extends WorkflowNodeIntegration<DelayNodeConfig> {
 
       return {
         outputs: {
-          resumeAt,
-          scheduledResumeTime: resumeDate.toISOString(),
+          resumeAt, // UTC timestamp for workflow engine
+          scheduledResumeTime: new Date(resumeAt).toISOString(),
         },
         status: 'success',
         logs,

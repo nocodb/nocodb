@@ -17,7 +17,8 @@ import type {
 } from '@noco-integrations/core';
 
 interface WaitUntilNodeConfig extends WorkflowNodeConfig {
-  datetime: string; // ISO 8601 datetime string
+  datetime: string; // ISO 8601 datetime string in UTC (e.g., '2024-12-31T23:59:59Z')
+  timezone?: string; // Timezone used to interpret the datetime (e.g., 'America/New_York')
 }
 
 export class WaitUntilNode extends WorkflowNodeIntegration<WaitUntilNodeConfig> {
@@ -83,6 +84,7 @@ export class WaitUntilNode extends WorkflowNodeIntegration<WaitUntilNodeConfig> 
     try {
       const { datetime } = ctx.inputs.config;
 
+      // Parse datetime string to UTC timestamp
       const targetDate = new Date(datetime);
       const resumeAt = targetDate.getTime();
       const now = Date.now();

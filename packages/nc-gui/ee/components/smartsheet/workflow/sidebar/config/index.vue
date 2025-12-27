@@ -8,6 +8,7 @@ import RecordMatchesConditionTriggerConfig from '~/components/smartsheet/workflo
 import CreateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/create-record.vue'
 import UpdateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/update-record.vue'
 import IterateNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/iterate.vue'
+import WaitUntilNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/wait-until.vue'
 import { findIterateNodePortForPath } from '~/utils/workflowUtils'
 
 const {
@@ -110,6 +111,7 @@ const FormNodeMap = {
   'nocodb.create_record': CreateRecordNodeConfig,
   'nocodb.update_record': UpdateRecordNodeConfig,
   'core.flow.iterate': IterateNodeConfig,
+  'core.flow.wait-until': WaitUntilNodeConfig,
 }
 
 const formSchema = computed(() => {

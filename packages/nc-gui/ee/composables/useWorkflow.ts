@@ -222,6 +222,13 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     if (firstOutputPort && outputPorts.length > 1) {
       edgeFromNewNode.sourceHandle = firstOutputPort.id
       edgeFromNewNode.sourcePortId = firstOutputPort.id
+
+      // Add label if the port has one
+      if (firstOutputPort.label) {
+        edgeFromNewNode.label = firstOutputPort.label
+        edgeFromNewNode.labelStyle = { fill: 'var(--nc-content-gray-muted)', fontWeight: 600, fontSize: 12 }
+        edgeFromNewNode.labelBgStyle = { fill: 'var(--nc-bg-default)' }
+      }
     }
 
     // Add the new node and edges

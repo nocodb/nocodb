@@ -44,24 +44,32 @@ const pasteText = (target: HTMLInputElement, value: string) => {
     target.setSelectionRange(newCursorIndex, newCursorIndex)
   }
 }
-const refreshVModel = () => {
-  if (inputRef.value && (vModel.value || vModel.value === 0)) {
+
+const getFormattedModelValue = () => {
+  if (vModel.value || vModel.value === 0) {
     if (typeof vModel.value === 'number') {
       if (props.precision) {
-        inputRef.value.value = vModel.value.toFixed(props.precision) ?? ''
+        return vModel.value.toFixed(props.precision) ?? ''
       } else {
-        inputRef.value.value = vModel.value.toString()
+        return vModel.value.toString()
       }
     } else if (typeof vModel.value === 'string') {
       const numberValue = Number(vModel.value)
       if (!ncIsNaN(numberValue)) {
         if (props.precision) {
-          inputRef.value.value = numberValue.toFixed(props.precision) ?? ''
+          return numberValue.toFixed(props.precision) ?? ''
         } else {
-          inputRef.value.value = numberValue.toString()
+          return numberValue.toString()
         }
       }
     }
+  }
+
+  return ''
+}
+const refreshVModel = () => {
+  if (inputRef.value && (vModel.value || vModel.value === 0)) {
+    inputRef.value.value = getFormattedModelValue()
   }
 }
 const saveValue = (targetValue: string) => {
@@ -198,6 +206,22 @@ onMounted(() => {
         inputRef.value.focus()
       }
     })
+  }
+})
+
+watch(vModel, (newValue) => {
+  if (
+    !inputRef.value ||
+    newValue ||
+    inputRef.value.value === getFormattedModelValue() ||
+    inputRef.value.value === (newValue?.toString() || '')
+  ) {
+    return
+  }
+
+  // Clear input value if vModel is null and input value is not empty and not a dot or minus
+  if (!newValue && inputRef.value.value && !['.', '-'].includes(inputRef.value.value)) {
+    inputRef.value.value = ''
   }
 })
 </script>

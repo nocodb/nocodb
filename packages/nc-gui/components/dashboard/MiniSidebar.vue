@@ -356,7 +356,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 
   .nc-mini-sidebar-btn-full-width {
-    @apply w-[var(--mini-sidebar-width)] h-[var(--mini-sidebar-width)] flex-none flex justify-center items-center cursor-pointer;
+    @apply w-[var(--mini-sidebar-width)] h-[var(--mini-sidebar-width)] flex-none flex justify-center items-center cursor-pointer transition-all duration-200;
 
     &:hover {
       .nc-mini-sidebar-btn:not(.active) {

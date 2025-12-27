@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 const { isLoading, appInfo } = useGlobal()
 
+const { isDark } = useTheme()
+
 const { isMobileMode } = storeToRefs(useConfigStore())
 
 const { sharedView, allowCSVDownload } = useSharedView()
@@ -70,7 +72,8 @@ export default {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <img width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
+              <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png" class="flex-none min-w-[96px]" />
+              <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
             </a>
 
             <div class="flex items-center gap-2 text-nc-content-gray-emphasis text-sm truncate">
@@ -101,6 +104,8 @@ export default {
           </div>
 
           <div class="flex items-center gap-3">
+            <DashboardMiniSidebarTheme placement="bottom" render-as-btn />
+
             <LazySmartsheetToolbarExportWithProvider v-if="allowCSVDownload" />
 
             <a

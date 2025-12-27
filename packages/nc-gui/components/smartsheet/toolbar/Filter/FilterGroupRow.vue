@@ -62,8 +62,6 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
 
-const { isCopyFilterEnabled } = useBetaFeatureToggle()
-
 const logicalOps = [
   { value: 'and', text: t('general.and') },
   { value: 'or', text: t('general.or') },
@@ -227,11 +225,7 @@ const onCopy = () => {
               <component :is="iconMap.deleteListItem" />
             </NcButton>
           </div>
-          <div
-            v-if="!vModel.readOnly && !disabled && isCopyFilterEnabled"
-            class="inline-block"
-            :class="{ 'cursor-wait': isLoadingFilter }"
-          >
+          <div v-if="!vModel.readOnly && !disabled && isEeUI" class="inline-block" :class="{ 'cursor-wait': isLoadingFilter }">
             <NcButton
               :key="index"
               v-e="['c:filter:copy', { link: !!link, webHook: !!webHook, widget: !!widget }]"

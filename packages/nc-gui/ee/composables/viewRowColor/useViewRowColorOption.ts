@@ -518,6 +518,11 @@ export function useViewRowColorOption(params: {
 
     // Extract filter details from params (following same pattern as deleteFilter/copyFilter in FilterGroup.vue)
     const filterToCopy = params.filter
+    if (!filterToCopy) {
+      isLoadingFilter.value = false
+      return
+    }
+
     const isGroup = filterToCopy.is_group
 
     if (isGroup) {
@@ -539,7 +544,9 @@ export function useViewRowColorOption(params: {
 
         // Recursively copy children if they exist
         if (originalFilter.children && originalFilter.children.length > 0) {
-          copiedFilter.children = originalFilter.children.map((child: any) => copyFilterRecursively(child))
+          copiedFilter.children = originalFilter.children
+            .filter((child: any) => child)
+            .map((child: any) => copyFilterRecursively(child))
         } else if (originalFilter.is_group) {
           copiedFilter.children = []
         }
@@ -649,10 +656,17 @@ export function useViewRowColorOption(params: {
   }
 
   const onRowColorConditionCopy = async (index: number) => {
+    isLoadingFilter.value = true
+
     await popPendingAction()
 
     const conditions = (rowColorInfo.value as RowColoringInfoFilter).conditions
-    const conditionToCopy = clone(conditions[index]!)
+    const conditionToCopy = conditions[index] ? clone(conditions[index]!) : null
+
+    if (!conditionToCopy) {
+      isLoadingFilter.value = false
+      return
+    }
 
     // Deep clone the condition and its nested filters with children structure
     const cloneFilter = (filter: any): any => {
@@ -743,6 +757,8 @@ export function useViewRowColorOption(params: {
 
     eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
     eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
+
+    isLoadingFilter.value = false
   }
 
   const filterPerViewLimit = computed(() => getPlanLimit(PlanLimitTypes.LIMIT_FILTER_PER_VIEW))

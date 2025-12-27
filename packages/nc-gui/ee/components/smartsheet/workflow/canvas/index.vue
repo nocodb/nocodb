@@ -10,7 +10,7 @@ import WorkflowNode from '~/components/smartsheet/workflow/canvas/nodes/Workflow
 import NoteNode from '~/components/smartsheet/workflow/canvas/nodes/Note.vue'
 import { useWorkflowOrThrow } from '~/composables/useWorkflow'
 import { useLayout } from '~/components/smartsheet/workflow/useLayout'
-import CanvasToolbar from '~/components/smartsheet/workflow/canvas/CanvasToolbar.vue'
+import CanvasToolbar from '~/components/smartsheet/workflow/CanvasToolbar.vue'
 
 const { nodes, edges, setLayoutCallback, nodeTypes: rawNodeTypes, workflow, updateNode } = useWorkflowOrThrow()
 

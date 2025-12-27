@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { IntegrationsType } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import WorkflowFieldList from '~/components/smartsheet/workflow/sidebar/config/custom/common/WorkflowFieldList.vue'
+import WorkflowFieldList from '~/components/smartsheet/workflow/sidebar/config/custom/WorkflowFieldList.vue'
 
 interface CreateRecordNodeConfig {
   modelId: string

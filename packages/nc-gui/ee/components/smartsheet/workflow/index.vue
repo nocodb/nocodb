@@ -50,7 +50,7 @@ onMounted(async () => {
           <a-spin size="large" />
         </div>
       </GeneralOverlay>
-      <SmartsheetWorkflowToolbar />
+      <SmartsheetWorkflowTopbar />
       <div v-if="activeWorkflow" class="flex w-full relative main-wrapper">
         <Canvas />
         <Sidebar />

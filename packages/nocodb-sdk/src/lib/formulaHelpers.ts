@@ -157,11 +157,17 @@ export function jsepTreeToFormula(node, isCallExpId = false) {
 function escapeLiteral(v: string) {
   return (
     v
-      // replace \ to \\, escape only unescaped \
+      // 1️⃣ Temporarily protect real newline
+      .replace(/\\n/g, '__NC_NEWLINE__')
+
+      // 2️⃣ Escape unescaped backslashes (replace \ to \\, escape only unescaped \)
       .replace(/([^\\]|^)\\(?!\\)/g, `$1\\\\`)
-      // replace " to \"
+
+      // 3️⃣ Escape quotes (replace " to \" and ' to \')
       .replace(/([^\\]|^)"/g, `$1\\"`)
-      // replace ' to \'
       .replace(/([^\\]|^)'/g, `$1\\'`)
+
+      // 4️⃣ Restore protected newline and tab
+      .replace(/__NC_NEWLINE__/g, '\\n')
   );
 }

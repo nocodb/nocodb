@@ -2,7 +2,7 @@ import { renderMultiLineText, renderTagLabel } from '../utils/canvas'
 
 export const SingleLineTextCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
+    const { value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor, formula } = props
     const text = (Array.isArray(value) ? value.join(',') : value?.toString()) ?? ''
 
     if (!text) {
@@ -23,6 +23,7 @@ export const SingleLineTextCellRenderer: CellRenderer = {
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
         fillStyle: pv ? '#3366FF' : textColor,
         height,
+        renderAsPreTag: formula,
       })
 
       return {

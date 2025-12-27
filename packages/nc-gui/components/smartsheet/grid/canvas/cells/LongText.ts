@@ -105,6 +105,7 @@ export const LongTextCellRenderer: CellRenderer = {
         fillStyle: pv ? '#3366FF' : textColor,
         height,
         cellRenderStore: props.cellRenderStore,
+        renderAsPreTag: true,
       })
 
       if (!props.tag?.renderAsTag && selected) {

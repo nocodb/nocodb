@@ -136,11 +136,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       formState.value = {
         ...(fromTableExplorer?.value || formState.value?.is_ai_field || formState.value?.ai_temp_id
           ? {
-              is_ai_field: formState.value?.is_ai_field,
-              ai_temp_id: formState.value?.ai_temp_id,
-              view_id: formState.value?.view_id,
-              description: formState.value?.description,
-            }
+            is_ai_field: formState.value?.is_ai_field,
+            ai_temp_id: formState.value?.ai_temp_id,
+            view_id: formState.value?.view_id,
+            description: formState.value?.description,
+          }
           : {}),
         custom: {},
         ...(!isEdit.value && {
@@ -226,11 +226,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         title: [
           ...(isEdit.value
             ? [
-                {
-                  required: true,
-                  message: t('msg.error.columnNameRequired'),
-                },
-              ]
+              {
+                required: true,
+                message: t('msg.error.columnNameRequired'),
+              },
+            ]
             : []),
           // validation for unique column name
           {
@@ -252,13 +252,13 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
                 const isAiFieldExist = isAiModeFieldModal.value
                   ? activeTabSelectedFields.value.some((c) => {
-                      return (
-                        c.ai_temp_id !== formState.value?.ai_temp_id &&
-                        ((value || '').trim().toLowerCase() === (c.formState?.column_name || '').trim().toLowerCase() ||
-                          (value || '').trim().toLowerCase() === (c.formState?.title || '').trim().toLowerCase() ||
-                          (value || '').trim().toLowerCase() === (c?.title || '').trim().toLowerCase())
-                      )
-                    })
+                    return (
+                      c.ai_temp_id !== formState.value?.ai_temp_id &&
+                      ((value || '').trim().toLowerCase() === (c.formState?.column_name || '').trim().toLowerCase() ||
+                        (value || '').trim().toLowerCase() === (c.formState?.title || '').trim().toLowerCase() ||
+                        (value || '').trim().toLowerCase() === (c?.title || '').trim().toLowerCase())
+                    )
+                  })
                   : false
 
                 if (
@@ -423,7 +423,12 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             }
             eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
             eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
+            eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)
           } catch (e: any) {
+            if (isUniqueConstraintViolationError(e)) {
+              message.error(t('msg.error.uniqueConstraintViolation'))
+              return
+            }
             if (!validateInfos.formula_raw) validateInfos.formula_raw = {}
             validateInfos.formula_raw!.validateStatus = 'error'
             if (!validateInfos.formula_raw?.help) {

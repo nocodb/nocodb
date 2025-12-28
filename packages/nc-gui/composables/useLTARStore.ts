@@ -127,7 +127,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // getters
     const meta = computed(() => getMetaByKey(column?.value?.base_id as string, column?.value?.fk_model_id as string))
     const relatedTableMeta = computed<TableType>(() => {
-      return getMetaByKey(column?.value?.base_id as string, colOptions.value?.fk_related_model_id as string)
+      const relatedBaseId = colOptions.value?.fk_related_base_id || column?.value?.base_id
+      return getMetaByKey(relatedBaseId as string, colOptions.value?.fk_related_model_id as string)
     })
 
     // Check if linked table is accessible based on is_private flag from API response only

@@ -228,26 +228,34 @@ export const useViewsStore = defineStore('viewsStore', () => {
 
   const loadViews = async ({
     tableId,
+    baseId,
     ignoreLoading,
     force,
-  }: { tableId?: string; ignoreLoading?: boolean; force?: boolean } = {}) => {
-    await until(() => activeProjectId.value).toBeTruthy()
+  }: { tableId?: string; baseId?: string; ignoreLoading?: boolean; force?: boolean } = {}) => {
+    const effectiveBaseId = baseId || activeProjectId.value
+
+    if (!effectiveBaseId) {
+      console.error('[loadViews] baseId is required but was not provided')
+      return
+    }
 
     tableId = tableId ?? tablesStore.activeTableId
 
     let response
     if (tableId) {
-      // Get the base_id for the table
       // Wait for tables to be loaded if they're not available yet
-      await until(() => tablesStore.baseTables.get(activeProjectId.value!)?.length).toBeTruthy({ timeout: 10000 })
+      await until(() => tablesStore.baseTables.get(effectiveBaseId)?.length).toBeTruthy({ timeout: 10000 })
 
-      const table = tablesStore.baseTables.get(activeProjectId.value!)?.find((t) => t.id === tableId)
-      if (!table?.base_id) {
-        console.warn('Could not find base_id for table:', tableId)
+      const table = tablesStore.baseTables.get(effectiveBaseId)?.find((t) => t.id === tableId)
+      if (!table) {
+        console.warn('Could not find table:', tableId, 'in base:', effectiveBaseId)
         return
       }
 
-      const key = getViewsKey(table.base_id, tableId)
+      // Use the table's actual base_id (handles cross-base scenarios)
+      const tableBaseId = table.base_id || effectiveBaseId
+
+      const key = getViewsKey(tableBaseId, tableId)
 
       if (!force && viewsByTable.value.get(key)) {
         viewsByTable.value.set(
@@ -260,7 +268,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
       if (!ignoreLoading) isViewsLoading.value = true
 
       response = (
-        await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value!, {
+        await $api.internal.getOperation(activeWorkspaceId.value!, tableBaseId, {
           operation: 'viewList',
           tableId,
         })

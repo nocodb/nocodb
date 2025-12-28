@@ -337,7 +337,7 @@ export function useCanvasTable({
     }
 
     const baseId = meta.value.base_id
-    const fetchMetaIdsLocal: string[] = []
+    const fetchMetaIdsLocal: Array<[string, string, string]> = [] // [columnId, tableId, baseId]
     const cols = fields.value
       .map((f) => {
         if (!f.id) return false
@@ -357,18 +357,22 @@ export function useCanvasTable({
           ) as ColumnType
 
           if (relatedColObj && relatedColObj.colOptions?.fk_related_model_id) {
-            const relatedMetaKey = `${baseId}:${relatedColObj.colOptions.fk_related_model_id}`
+            // For cross-base links, use fk_related_base_id, otherwise use current baseId
+            const relatedBaseId = (relatedColObj.colOptions as any)?.fk_related_base_id || baseId
+            const relatedMetaKey = `${relatedBaseId}:${relatedColObj.colOptions.fk_related_model_id}`
             if (!metas.value?.[relatedMetaKey]) {
-              fetchMetaIdsLocal.push([relatedColObj.id, relatedColObj.colOptions.fk_related_model_id])
+              fetchMetaIdsLocal.push([relatedColObj.id, relatedColObj.colOptions.fk_related_model_id, relatedBaseId])
             } else {
               relatedTableMeta = metas.value?.[relatedMetaKey]
             }
           }
         } else if (isLTAR(f.uidt, f.colOptions)) {
           if (f.colOptions?.fk_related_model_id) {
-            const ltarMetaKey = `${baseId}:${f.colOptions.fk_related_model_id}`
+            // For cross-base links, use fk_related_base_id, otherwise use current baseId
+            const relatedBaseId = (f.colOptions as any)?.fk_related_base_id || baseId
+            const ltarMetaKey = `${relatedBaseId}:${f.colOptions.fk_related_model_id}`
             if (!metas.value?.[ltarMetaKey]) {
-              fetchMetaIdsLocal.push([f.id, f.colOptions.fk_related_model_id])
+              fetchMetaIdsLocal.push([f.id, f.colOptions.fk_related_model_id, relatedBaseId])
             } else {
               relatedTableMeta = metas.value?.[ltarMetaKey]
             }
@@ -1448,21 +1452,15 @@ export function useCanvasTable({
       fetchMetaIds.value = []
 
       try {
-        const baseId = (meta.value as any)?.base_id
-        if (!baseId) {
-          console.warn('[useCanvasTable] Cannot load metas: base_id is missing from meta')
-          return
-        }
-
         await Promise.all(
-          metaIdsToFetch.map(async ([colId, tableId]) => {
-            if (!tableId) return
+          metaIdsToFetch.map(async ([colId, tableId, relatedBaseId]) => {
+            if (!tableId || !relatedBaseId) return
             try {
-              await getMeta(baseId, tableId, false, false, true)
+              await getMeta(relatedBaseId, tableId, false, false, true)
             } catch {}
-            const metaKey = `${baseId}:${tableId}`
+            const metaKey = `${relatedBaseId}:${tableId}`
             if (!metas.value[metaKey]) {
-              await getPartialMeta(baseId, colId, tableId)
+              await getPartialMeta(relatedBaseId, colId, tableId)
             }
           }),
         )

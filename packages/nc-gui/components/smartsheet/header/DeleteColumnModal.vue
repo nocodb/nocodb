@@ -92,7 +92,8 @@ const onDelete = async () => {
 
     /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
     if (isLinksOrLTAR(column.value) && column.value?.colOptions) {
-      await getMeta(meta?.value?.base_id as string, (column.value.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
+      const relatedBaseId = (column.value.colOptions as LinkToAnotherRecordType).fk_related_base_id || meta?.value?.base_id
+      await getMeta(relatedBaseId as string, (column.value.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
 
       // reload tables if deleted column is mm and include m2m is true
       if (includeM2M.value && (column.value.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {

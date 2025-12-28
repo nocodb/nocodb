@@ -46,6 +46,12 @@ provide(RowHeightInj, providedHeightRef)
 
 const dropdownInitialHeight = ref(0)
 
+// Helper to get the correct base ID for related table (handles cross-base links)
+const getRelatedBaseId = (col: ColumnType | undefined) => {
+  if (!col) return parentMeta.value?.base_id
+  return (col.colOptions as any)?.fk_related_base_id || parentMeta.value?.base_id
+}
+
 const relationColumn = computed(() => {
   if (column.value?.fk_model_id && parentMeta.value?.base_id) {
     return getMetaByKey(parentMeta.value.base_id, column.value.fk_model_id)?.columns?.find(
@@ -67,15 +73,19 @@ watch(
 watch(
   relationColumn,
   async (relationCol: { colOptions: LinkToAnotherRecordType }) => {
-    if (relationCol && relationCol.colOptions && parentMeta.value?.base_id) await getMeta(parentMeta.value.base_id, relationCol.colOptions.fk_related_model_id!)
+    if (relationCol && relationCol.colOptions) {
+      const relatedBaseId = getRelatedBaseId(relationCol as ColumnType)
+      if (relatedBaseId) await getMeta(relatedBaseId, relationCol.colOptions.fk_related_model_id!)
+    }
   },
   { immediate: true },
 )
 
 const lookupTableMeta = computed<Record<string, any> | undefined>(() => {
-  if (relationColumn.value && relationColumn.value?.colOptions && parentMeta.value?.base_id)
-    return getMetaByKey(parentMeta.value.base_id, relationColumn.value.colOptions.fk_related_model_id!)
-
+  if (relationColumn.value && relationColumn.value?.colOptions) {
+    const relatedBaseId = getRelatedBaseId(relationColumn.value as ColumnType)
+    if (relatedBaseId) return getMetaByKey(relatedBaseId, relationColumn.value.colOptions.fk_related_model_id!)
+  }
   return undefined
 })
 

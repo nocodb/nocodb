@@ -126,10 +126,16 @@ const refTables = computed(() => {
     const refTableId = referenceTableChildId.value
     if (!refTableId) return []
 
+    // For cross-base links, use the related base ID, otherwise use current base ID
+    const relatedBaseId = crossBase.value
+      ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id
+      : meta.value?.base_id
+
+    if (!relatedBaseId) return []
+
     // Load meta if not already loaded
-    const baseId = meta.value?.base_id
-    if (!getMetaByKey(baseId, refTableId)) getMeta(baseId, refTableId)
-    const tableMeta = getMetaByKey(baseId, refTableId)
+    if (!getMetaByKey(relatedBaseId, refTableId)) getMeta(relatedBaseId, refTableId)
+    const tableMeta = getMetaByKey(relatedBaseId, refTableId)
     // Check if table is private (from API response only)
     const isPrivate = tableMeta && (tableMeta as any).is_private
 
@@ -172,12 +178,19 @@ const refViews = computed(() => {
 
   if (!childId) return []
 
-  // Find the child table to get its base_id
-  const childTable = tables.value.find((t) => t.id === childId)
+  // For cross-base links, get the related base ID, otherwise use current base ID
+  const relatedBaseId = crossBase.value
+    ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+    : meta.value?.base_id
 
-  if (!childTable?.base_id) return []
+  if (!relatedBaseId) return []
 
-  const key = `${childTable.base_id}:${childId}`
+  // Find the child table to get its actual base_id (should match relatedBaseId)
+  const childTable = baseTables.value.get(relatedBaseId)?.find((t) => t.id === childId)
+
+  if (!childTable) return []
+
+  const key = `${relatedBaseId}:${childId}`
   const views = viewsByTable.value.get(key) || []
 
   // In edit mode, if view is not accessible, return a "Private view" object
@@ -207,13 +220,21 @@ watch(
   () => (vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId),
   async (tableId) => {
     if (tableId) {
-      getMeta(meta.value?.base_id, tableId).catch(() => {
+      // For cross-base links, use the related base ID
+      const relatedBaseId = crossBase.value
+        ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+        : meta.value?.base_id
+
+      if (!relatedBaseId) return
+
+      getMeta(relatedBaseId, tableId).catch(() => {
         // ignore
       })
       viewsStore
         .loadViews({
           ignoreLoading: true,
           tableId,
+          baseId: relatedBaseId,
         })
         .catch(() => {
           // ignore
@@ -247,13 +268,19 @@ provide(
   MetaInj,
   computed(() => {
     const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
-    return getMetaByKey(meta.value?.base_id, childId) || {}
+
+    // For cross-base links, use the related base ID
+    const relatedBaseId = crossBase.value
+      ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+      : meta.value?.base_id
+
+    return (getMetaByKey(relatedBaseId, childId) as any) || {}
   }),
 )
 
 onMounted(() => {
   setPostSaveOrUpdateCbk(async ({ colId, column }) => {
-    await filterRef.value?.applyChanges(colId || column.id, false)
+    await filterRef.value?.applyChanges(colId || column?.id, false)
   })
 })
 

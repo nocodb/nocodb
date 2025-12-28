@@ -288,12 +288,13 @@ const getPrefillValue = (c: ColumnType, value: any) => {
     case UITypes.Links: {
       const values = Array.isArray(value) ? value : [value]
       const fk_related_model_id = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+      const relatedBaseId = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || meta.value?.base_id
 
       if (!fk_related_model_id) return
 
       const rowIds = values
         .map((row) => {
-          return extractPkFromRow(row, getMetaByKey(meta.value?.base_id, fk_related_model_id)?.columns || [])
+          return extractPkFromRow(row, getMetaByKey(relatedBaseId, fk_related_model_id)?.columns || [])
         })
         .filter((rowId) => !!rowId)
         .join(',')
@@ -776,9 +777,10 @@ async function loadReleatedMetas() {
   await Promise.all(
     (localColumns.value || []).map(async (c: ColumnType) => {
       const fk_related_model_id = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+      const relatedBaseId = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || meta?.value?.base_id
 
       if (isVirtualCol(c) && isLinksOrLTAR(c) && fk_related_model_id) {
-        await getMeta(meta?.value?.base_id as string, fk_related_model_id)
+        await getMeta(relatedBaseId as string, fk_related_model_id)
       }
       return c
     }),

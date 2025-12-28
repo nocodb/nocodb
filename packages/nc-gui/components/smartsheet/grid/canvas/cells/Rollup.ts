@@ -1,41 +1,30 @@
-import { type ColumnType, type RollupType, UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, type RollupType, UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
 
 import rfdc from 'rfdc'
+import { getMetaWithCompositeKey, getRelatedBaseId } from '../utils/cell'
 
 const clone = rfdc()
 export const RollupCellRenderer: CellRenderer = {
   render: (ctx, props) => {
     const { column, value, metas, meta, renderCell } = props
 
-    // Helper to get meta with composite key
-    const getMeta = (tableId: string) => {
-      const baseId = meta?.base_id
-      if (baseId) {
-        return metas?.[`${baseId}:${tableId}`] || metas?.[tableId]
-      }
-      // Fallback: search through all metas to find matching tableId
-      if (metas) {
-        for (const [key, value] of Object.entries(metas)) {
-          if (key.endsWith(`:${tableId}`)) {
-            return value
-          }
-        }
-      }
-      return metas?.[tableId]
-    }
-
     // If it is empty text then no need to render
     if (!isValidValue(value)) return
 
     const colOptions = column.colOptions as RollupType
 
-    const relatedColObj = getMeta(column.fk_model_id!)?.columns?.find(
-      (c) => c.id === colOptions?.fk_relation_column_id,
+    const relatedColObj = getMetaWithCompositeKey(metas, meta?.base_id, column.fk_model_id)?.columns?.find(
+      (c: any) => c.id === colOptions?.fk_relation_column_id,
     ) as ColumnType
 
     if (!relatedColObj) return
 
-    const relatedTableMeta = getMeta(relatedColObj.colOptions?.fk_related_model_id)
+    const relatedColOptions = relatedColObj.colOptions as LinkToAnotherRecordType
+    if (!relatedColOptions) return
+
+    // Get the correct base ID for the related table (handles cross-base links)
+    const relatedBaseId = getRelatedBaseId(relatedColObj, meta?.base_id || '')
+    const relatedTableMeta = getMetaWithCompositeKey(metas, relatedBaseId, relatedColOptions.fk_related_model_id)
 
     const childColumn = clone((relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_rollup_column_id))
 

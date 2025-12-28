@@ -1238,7 +1238,8 @@ export function useInfiniteData(args: {
 
       const colOptions = column.colOptions as LinkToAnotherRecordType
 
-      const relatedTableMeta = getMetaByKey(metaValue?.base_id, colOptions?.fk_related_model_id as string)
+      const relatedBaseId = (colOptions as any)?.fk_related_base_id || metaValue?.base_id
+      const relatedTableMeta = getMetaByKey(relatedBaseId, colOptions?.fk_related_model_id as string)
 
       if (isHm(column) || isMm(column)) {
         const relatedRows = (row[column.title!] ?? []) as Record<string, any>[]

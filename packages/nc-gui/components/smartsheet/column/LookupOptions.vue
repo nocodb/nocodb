@@ -58,13 +58,16 @@ const refTables = computed(() => {
 
   const _refTables = meta.value.columns
     .filter((column) => canUseForLookupLinkField(column, meta.value?.source_id))
-    .map((column) => ({
-      col: column.colOptions,
-      column,
-      ...(tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id) ||
-        getMetaByKey(meta.value?.base_id, (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!) ||
-        {}),
-    }))
+    .map((column) => {
+      const relatedBaseId = (column.colOptions as any)?.fk_related_base_id || meta.value?.base_id
+      return {
+        col: column.colOptions,
+        column,
+        ...(tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id) ||
+          getMetaByKey(relatedBaseId, (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!) ||
+          {}),
+      }
+    })
     .filter((table) => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
   return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
 })

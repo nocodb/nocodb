@@ -202,10 +202,18 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const extensionId = params.extensionId || query.extensionId;
 
       if (mcpTokenId) {
-        const mcpToken = await MCPToken.get(context, mcpTokenId);
+        const mcpToken = await MCPToken.get(
+          {
+            workspace_id: RootScopes.FULL_BYPASS,
+            base_id: RootScopes.FULL_BYPASS,
+          },
+          mcpTokenId,
+        );
         if (!mcpToken) {
           NcError.get(context).genericNotFound('MCPToken', mcpTokenId);
         }
+        req.ncBaseId = mcpToken.base_id;
+        req.ncWorkspaceId = mcpToken.fk_workspace_id;
       } else if (integrationId) {
         const integration = await Integration.get(context, integrationId);
         if (!integration) {
@@ -544,7 +552,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
 
     if (params.mcpTokenId) {
-      const mcpToken = await MCPToken.get(context, params.mcpTokenId);
+      const mcpToken = await MCPToken.get(
+        {
+          workspace_id: RootScopes.FULL_BYPASS,
+          base_id: RootScopes.FULL_BYPASS,
+        },
+        params.mcpTokenId,
+      );
       if (!mcpToken) {
         NcError.get(context).genericNotFound('MCPToken', params.mcpTokenId);
       }

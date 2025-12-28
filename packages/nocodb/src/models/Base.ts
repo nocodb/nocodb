@@ -661,9 +661,9 @@ export default class Base implements BaseType {
       ));
     let baseData = null;
     if (!baseId) {
-      baseData = await Noco.ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
+      baseData = await ncMeta.metaGet2(
+        RootScopes.FULL_BYPASS,
+        RootScopes.FULL_BYPASS,
         MetaTable.PROJECT,
         {
           uuid,

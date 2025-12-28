@@ -48,6 +48,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import {
@@ -1307,8 +1308,8 @@ export default class View implements ViewType {
     ncMeta = Noco.ncMeta,
   ) {
     const view = await ncMeta.metaGet2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.FULL_BYPASS,
+      RootScopes.FULL_BYPASS,
       MetaTable.VIEWS,
       {
         uuid,

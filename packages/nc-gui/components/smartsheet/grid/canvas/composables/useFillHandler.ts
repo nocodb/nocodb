@@ -65,7 +65,7 @@ export function useFillHandler({
   const selectRangeMap = computed(() => {
     const map: Record<string, boolean> = {}
 
-    map[`${activeCell.value.row} -${activeCell.value.column} `] = true
+    map[`${activeCell.value.row}-${activeCell.value.column}`] = true
 
     if (selection.value._start === null || selection.value._end === null) {
       return map
@@ -79,14 +79,14 @@ export function useFillHandler({
 
       for (let row = startRow; row <= endRow; row++) {
         for (let col = startCol; col <= endCol; col++) {
-          map[`${row} -${col} `] = true
+          map[`${row}-${col}`] = true
         }
       }
     } else {
       // Normal selection behavior
       for (let row = selection.value.start.row; row <= selection.value.end.row; row++) {
         for (let col = selection.value.start.col; col <= selection.value.end.col; col++) {
-          map[`${row} -${col} `] = true
+          map[`${row}-${col}`] = true
         }
       }
     }
@@ -420,7 +420,7 @@ export function useFillHandler({
             }
 
             // If the current cell is not part of the initial selection range, add the row to rowsToPaste
-            if (!selectRangeMap.value[`${row} -${selection.value.start.col} `]) {
+            if (!selectRangeMap.value[`${row}-${selection.value.start.col}`]) {
               rowsToPaste.push(rowObj)
             }
 

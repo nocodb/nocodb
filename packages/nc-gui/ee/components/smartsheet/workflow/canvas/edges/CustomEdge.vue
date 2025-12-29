@@ -78,9 +78,11 @@ const props = defineProps({
   },
 })
 
-const { insertNodeBetween, getNodeMetaById } = useWorkflowOrThrow()
+const { insertNodeBetween, getNodeMetaById, viewingExecution, activeTab } = useWorkflowOrThrow()
 
 const { $e } = useNuxtApp()
+
+const isEditMode = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
 
 const path = computed(() =>
   getSmoothStepPath({
@@ -98,7 +100,7 @@ const labelX = computed(() => path.value[1])
 const labelY = computed(() => path.value[2])
 
 const showPlusButton = computed(() => {
-  return props.targetNode?.type !== GeneralNodeID.PLUS
+  return props.targetNode?.type !== GeneralNodeID.PLUS && isEditMode.value
 })
 
 const selectNodeType = async (option: WorkflowNodeDefinition) => {

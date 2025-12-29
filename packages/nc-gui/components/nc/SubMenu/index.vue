@@ -126,7 +126,7 @@ const responsiveVariant = computed(() => {
   @apply !rounded-lg border-1 border-nc-border-gray-extralight min-w-[144px];
 
   .ant-dropdown-menu.ant-dropdown-menu-sub {
-    @apply !rounded-lg !shadow-lg shadow-nc-border-gray-medium;
+    @apply !rounded-lg !shadow-lg shadow-nc-border-gray-medium dark:!shadow-black/40;
   }
 
   &:not(.nc-variant-default) {

@@ -119,15 +119,7 @@ const getTiptapExtensions = () => {
     Italic,
 
     // Nodes
-    Image.configure({
-      resize: {
-        enabled: true,
-        directions: ['top', 'bottom', 'left', 'right'], // can be any direction or diagonal combination
-        minWidth: 50,
-        minHeight: 50,
-        alwaysPreserveAspectRatio: true,
-      },
-    }),
+    Image,
     Paragraph,
     HardBreak,
     TaskList,

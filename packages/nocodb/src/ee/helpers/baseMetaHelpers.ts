@@ -1,5 +1,5 @@
 import hash from 'object-hash';
-import { isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
+import { EventType, isVirtualCol, ModelTypes, UITypes } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import Noco from '~/Noco';
@@ -8,6 +8,7 @@ import { Base, Column, Model, Source } from '~/models';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import NocoCache from '~/cache/NocoCache';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
+import NocoSocket from '~/socket/NocoSocket';
 
 // Altered enum from columns service
 enum Altered {
@@ -42,7 +43,29 @@ const serializableMetaTables = BaseRelatedMetaTables.filter(
     ].includes(t),
 );
 
-// Order matters for proper dependency resolution during duplication
+const tablePrimaryKeys: Record<string, string | string[]> = {
+  [MetaTable.GRID_VIEW]: 'fk_view_id',
+  [MetaTable.FORM_VIEW]: 'fk_view_id',
+  [MetaTable.GALLERY_VIEW]: 'fk_view_id',
+  [MetaTable.KANBAN_VIEW]: 'fk_view_id',
+  [MetaTable.CALENDAR_VIEW]: 'fk_view_id',
+  [MetaTable.MAP_VIEW]: 'fk_view_id',
+  [MetaTable.MODEL_STAT]: ['fk_workspace_id', 'base_id', 'fk_model_id'],
+  // Default to 'id' for all other tables
+};
+
+// Helper function to get record identifier
+function getRecordKey(record: any, metaTable: string): string {
+  const pkFields = tablePrimaryKeys[metaTable] || 'id';
+
+  if (Array.isArray(pkFields)) {
+    // Composite key: join values with a delimiter
+    return pkFields.map((field) => record[field]).join('::');
+  }
+
+  return record[pkFields];
+}
+
 const orderedSerializableMetaTables = [
   // Core structure first
   MetaTable.MODELS,
@@ -122,7 +145,11 @@ export type BaseMetaDiff = {
 export async function serializeMeta(
   sourceContext: NcContext,
   options?: {
-    override?: { base_id?: string; fk_workspace_id?: string };
+    override?: {
+      base_id?: string;
+      fk_workspace_id?: string;
+      source_id?: string; // Override source_id for cross-base sync
+    };
     prefix?: {
       old: string;
       new: string;
@@ -150,7 +177,7 @@ export async function serializeMeta(
           .orderBy('created_at', 'asc')
           .select();
 
-        // Apply overrides if provided (for changing base_id/workspace_id)
+        // Apply overrides if provided (for changing base_id/workspace_id/source_id)
         if (override && records.length > 0) {
           for (const record of records) {
             // Only override specified fields, preserve all other data
@@ -159,6 +186,12 @@ export async function serializeMeta(
             }
             if (override.fk_workspace_id !== undefined) {
               record.fk_workspace_id = override.fk_workspace_id;
+            }
+            if (
+              override.source_id !== undefined &&
+              record.source_id !== undefined
+            ) {
+              record.source_id = override.source_id;
             }
           }
         }
@@ -282,19 +315,28 @@ export async function diffMeta(
       const oldRecords = oldMeta[metaTable] || [];
       const newRecords = newMeta[metaTable] || [];
 
-      const oldRecordMap = new Map(oldRecords.map((r) => [r.id, r]));
-      const newRecordMap = new Map(newRecords.map((r) => [r.id, r]));
+      const oldRecordMap = new Map(
+        oldRecords.map((r) => [getRecordKey(r, metaTable), r]),
+      );
+      const newRecordMap = new Map(
+        newRecords.map((r) => [getRecordKey(r, metaTable), r]),
+      );
 
-      const toAdd = newRecords.filter((r) => !oldRecordMap.has(r.id));
-      const toDelete = oldRecords.filter((r) => !newRecordMap.has(r.id));
+      const toAdd = newRecords.filter(
+        (r) => !oldRecordMap.has(getRecordKey(r, metaTable)),
+      );
+      const toDelete = oldRecords.filter(
+        (r) => !newRecordMap.has(getRecordKey(r, metaTable)),
+      );
       const toUpdate = newRecords.filter((r) => {
-        if (!oldRecordMap.has(r.id)) return false;
-        const oldRecord = oldRecordMap.get(r.id);
+        const key = getRecordKey(r, metaTable);
+        if (!oldRecordMap.has(key)) return false;
+        const oldRecord = oldRecordMap.get(key);
         try {
           return hash(oldRecord) !== hash(r);
         } catch (error) {
           console.warn(
-            `Hash comparison failed for ${metaTable} record ${r.id}:`,
+            `Hash comparison failed for ${metaTable} record ${key}:`,
             error,
           );
           // Fallback to JSON comparison
@@ -335,9 +377,6 @@ async function createColumnIndex(
     tableName: string;
   },
 ) {
-  // TODO: implement for snowflake (right now create index does not work with identifier quoting in snowflake - bug?)
-  if (source.type === 'snowflake') return;
-
   const indexArgs = {
     columns: [column.column_name],
     tn: tableName,
@@ -458,6 +497,22 @@ export async function applyMeta(
     progressCallback?.('Clearing caches', 98);
     await clearRelatedCaches(targetContext);
 
+    // Step 9: Broadcast realtime event to trigger UI reload
+    progressCallback?.('Broadcasting changes', 99);
+    NocoSocket.broadcastEvent(
+      targetContext,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'base_full_reload',
+          payload: {
+            base_id: base_id,
+          },
+        },
+      },
+      targetContext.socket_id,
+    );
+
     progressCallback?.('Completed', 100);
   } catch (error) {
     console.error('Failed to apply metadata changes:', error);
@@ -476,18 +531,41 @@ async function handleTableDeletions(
   for (const tableRecord of tablesToDelete) {
     // For metadata-only entities (like dashboards), skip DDL operations
     if (isMetadataOnly(tableRecord.type)) {
-      // Just delete the metadata record
-      await ncMeta.knex(MetaTable.MODELS).where('id', tableRecord.id).delete();
+      // Just delete the metadata record using composite key
+      await ncMeta
+        .knex(MetaTable.MODELS)
+        .where('id', tableRecord.id)
+        .where('base_id', targetContext.base_id)
+        .delete();
       continue;
     }
 
     // For physical entities (tables/views), perform DDL operations
-    const source = await Source.get(
+    let source = await Source.get(
       targetContext,
       tableRecord.source_id,
       false,
       ncMeta,
     );
+
+    // If source not found (e.g., in cross-base sync), use the first source from target base
+    if (!source) {
+      const sources = await base.getSources(false, ncMeta);
+      source = sources?.[0];
+    }
+
+    // Skip if still no source available
+    if (!source) {
+      console.warn(`No source found for table deletion ${tableRecord.id}`);
+      // Just delete the metadata record using composite key
+      await ncMeta
+        .knex(MetaTable.MODELS)
+        .where('id', tableRecord.id)
+        .where('base_id', targetContext.base_id)
+        .delete();
+      continue;
+    }
+
     const sqlMgr = await ProjectMgrv2.getSqlMgr(targetContext, base, ncMeta);
 
     // Get columns for this table from the diff delete data
@@ -502,21 +580,37 @@ async function handleTableDeletions(
       columns: tableColumns.map((c) => ({
         ...c,
         cn: c.column_name,
+        tn: tableRecord.table_name, // Add table name to each column
       })),
     };
 
     // Perform SQL operation to drop table
-    if (tableRecord.type === ModelTypes.TABLE) {
-      await sqlMgr.sqlOpPlus(source, 'tableDelete', tableForSQL);
-    } else if (tableRecord.type === ModelTypes.VIEW) {
-      await sqlMgr.sqlOpPlus(source, 'viewDelete', {
-        ...tableForSQL,
-        view_name: tableRecord.table_name,
-      });
+    try {
+      if (tableRecord.type === ModelTypes.TABLE) {
+        await sqlMgr.sqlOpPlus(source, 'tableDelete', tableForSQL);
+      } else if (tableRecord.type === ModelTypes.VIEW) {
+        await sqlMgr.sqlOpPlus(source, 'viewDelete', {
+          ...tableForSQL,
+          view_name: tableRecord.table_name,
+        });
+      }
+    } catch (error) {
+      // If table doesn't exist (42P01), that's okay - it was already deleted
+      if (error.code === '42P01') {
+        console.warn(
+          `Table ${tableRecord.table_name} already deleted, skipping DDL`,
+        );
+      } else {
+        throw error;
+      }
     }
 
-    // Delete the table metadata (columns will be cascade deleted)
-    await ncMeta.knex(MetaTable.MODELS).where('id', tableRecord.id).delete();
+    // Delete the table metadata (columns will be cascade deleted) using composite key
+    await ncMeta
+      .knex(MetaTable.MODELS)
+      .where('id', tableRecord.id)
+      .where('base_id', targetContext.base_id)
+      .delete();
   }
 }
 
@@ -547,39 +641,100 @@ async function handleStandaloneColumnDeletions(
     if (parentTable && isPhysicalCol(columnRecord)) {
       await parentTable.getColumns(targetContext, ncMeta);
 
-      const source = await Source.get(
-        targetContext,
-        parentTable.source_id,
-        false,
-        ncMeta,
+      // Check if the column still exists in the current table metadata
+      const columnStillExists = parentTable.columns.some(
+        (c) =>
+          c.id === columnRecord.id ||
+          c.column_name === columnRecord.column_name,
       );
-      const sqlMgr = await ProjectMgrv2.getSqlMgr(targetContext, base, ncMeta);
 
-      const tableUpdateBody = {
-        ...parentTable,
-        tn: parentTable.table_name,
-        originalColumns: parentTable.columns.map((c) => ({
-          ...c,
-          cn: c.column_name,
-        })),
-        columns: [
-          ...parentTable.columns.map((c) => ({
-            ...c,
-            cn: c.column_name,
-          })),
-          {
-            ...columnRecord,
-            cn: columnRecord.column_name,
-            altered: Altered.DELETE_COLUMN,
-          },
-        ],
-      };
+      // Only attempt DDL operation if column exists
+      if (columnStillExists) {
+        // Get source - try from parent table first, fallback to base's sources
+        let source = await Source.get(
+          targetContext,
+          parentTable.source_id,
+          false,
+          ncMeta,
+        );
 
-      await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+        // If source not found (e.g., in cross-base sync), use the first source from target base
+        if (!source) {
+          const sources = await base.getSources(false, ncMeta);
+          source = sources?.[0];
+        }
+
+        // Skip if still no source available
+        if (!source) {
+          console.warn(
+            `No source found for column deletion in table ${parentTable.id}`,
+          );
+          continue;
+        }
+
+        const sqlMgr = await ProjectMgrv2.getSqlMgr(
+          targetContext,
+          base,
+          ncMeta,
+        );
+
+        const tableUpdateBody = {
+          ...parentTable,
+          tn: parentTable.table_name,
+          originalColumns: [
+            ...parentTable.columns.map((c) => ({
+              ...c,
+              cn: c.column_name,
+              tn: parentTable.table_name, // Add table name to each column
+            })),
+            // Include the deleted column in originalColumns so PG client can find it
+            {
+              ...columnRecord,
+              cn: columnRecord.column_name,
+              tn: parentTable.table_name,
+            },
+          ],
+          columns: [
+            ...parentTable.columns.map((c) => ({
+              ...c,
+              cn: c.column_name,
+              tn: parentTable.table_name, // Add table name to each column
+            })),
+            {
+              ...columnRecord,
+              cn: columnRecord.column_name,
+              cno: columnRecord.column_name, // Set cno for PG client to match against originalColumns
+              tn: parentTable.table_name, // Add table name to the deleted column
+              altered: Altered.DELETE_COLUMN,
+            },
+          ],
+        };
+
+        try {
+          await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+        } catch (error) {
+          // If column doesn't exist in database (42703), that's okay - it was already deleted
+          if (error.code === '42703') {
+            console.warn(
+              `Column ${columnRecord.column_name} already deleted from ${parentTable.table_name}, skipping DDL`,
+            );
+          } else {
+            throw error;
+          }
+        }
+      } else {
+        console.log(
+          `Column ${columnRecord.column_name} already removed from ${parentTable.table_name} metadata, skipping DDL`,
+        );
+      }
     }
 
-    // Delete the column metadata
-    await ncMeta.knex(MetaTable.COLUMNS).where('id', columnRecord.id).delete();
+    // Delete the column metadata (idempotent - won't fail if already deleted) using composite key
+    await ncMeta
+      .knex(MetaTable.COLUMNS)
+      .where('id', columnRecord.id)
+      .where('base_id', targetContext.base_id)
+      .delete();
   }
 }
 
@@ -593,19 +748,35 @@ async function handleTableCreations(
 
   for (const tableRecord of tablesToAdd) {
     try {
-      // Extract pgSerialLastVal before insertion
-      const pgSerialLastVal = tableRecord.pgSerialLastVal;
+      // Check if table metadata already exists (idempotency check)
+      const existingTable = await ncMeta
+        .knex(MetaTable.MODELS)
+        .where('id', tableRecord.id)
+        .where('base_id', targetContext.base_id)
+        .first();
 
-      // Prepare table record for insertion (exclude pgSerialLastVal)
-      const { pgSerialLastVal: _, ...tableToInsert } = {
-        ...tableRecord,
-        base_id: targetContext.base_id,
-      };
-
-      // First, insert table metadata
       const insertedTableId = tableRecord.id;
 
-      await ncMeta.knex(MetaTable.MODELS).insert(tableToInsert);
+      if (!existingTable) {
+        // Extract pgSerialLastVal before insertion
+        const pgSerialLastVal = tableRecord.pgSerialLastVal;
+
+        // Prepare table record for insertion (exclude pgSerialLastVal)
+        const { pgSerialLastVal: _, ...tableToInsert } = {
+          ...tableRecord,
+          base_id: targetContext.base_id,
+        };
+
+        // Insert table metadata
+        await ncMeta.knex(MetaTable.MODELS).insert(tableToInsert);
+
+        // Store pgSerialLastVal for later use
+        tableRecord.pgSerialLastVal = pgSerialLastVal;
+      } else {
+        console.log(
+          `Table ${tableRecord.table_name} metadata already exists, skipping metadata insertion`,
+        );
+      }
 
       // For metadata-only entities (like dashboards), skip column and DDL operations
       if (isMetadataOnly(tableRecord.type)) {
@@ -617,15 +788,27 @@ async function handleTableCreations(
         (c) => c.fk_model_id === tableRecord.id,
       );
 
-      // Insert all column metadata for this table
+      // Insert all column metadata for this table (check for existing columns)
       for (const columnRecord of tableColumns) {
-        const columnToInsert = {
-          ...columnRecord,
-          base_id: targetContext.base_id,
-          fk_model_id: insertedTableId,
-        };
+        const existingColumn = await ncMeta
+          .knex(MetaTable.COLUMNS)
+          .where('id', columnRecord.id)
+          .where('base_id', targetContext.base_id)
+          .first();
 
-        await ncMeta.knex(MetaTable.COLUMNS).insert(columnToInsert);
+        if (!existingColumn) {
+          const columnToInsert = {
+            ...columnRecord,
+            base_id: targetContext.base_id,
+            fk_model_id: insertedTableId,
+          };
+
+          await ncMeta.knex(MetaTable.COLUMNS).insert(columnToInsert);
+        } else {
+          console.log(
+            `Column ${columnRecord.column_name} metadata already exists, skipping`,
+          );
+        }
       }
 
       // Now perform SQL operation to create table with all its columns
@@ -648,6 +831,7 @@ async function handleTableCreations(
         .map((c) => ({
           ...c,
           cn: c.column_name,
+          tn: tableRecord.table_name, // Add table name to each column
         }));
 
       const tablePayload = {
@@ -658,32 +842,81 @@ async function handleTableCreations(
 
       // Only create physical table if it's not a view and has physical columns
       if (tableRecord.type === ModelTypes.TABLE && physicalColumns.length > 0) {
-        await sqlMgr.sqlOpPlus(source, 'tableCreate', tablePayload);
+        let tableCreated = false;
+        try {
+          await sqlMgr.sqlOpPlus(source, 'tableCreate', tablePayload);
+          tableCreated = true;
+        } catch (error) {
+          // If table already exists in database (42P07), that's okay
+          if (error.code === '42P07') {
+            console.warn(
+              `Table ${tableRecord.table_name} already exists in database, skipping DDL`,
+            );
+          } else {
+            throw error;
+          }
+        }
 
-        // Set PostgreSQL sequence value for auto-increment columns
-        const table = await Model.get(targetContext, insertedTableId, ncMeta);
-        if (table && pgSerialLastVal) {
-          await setPostgresSequenceValue(targetContext, {
-            table,
-            columns: tableColumns,
-            source,
-            pgSerialLastVal,
-          });
+        // Set PostgreSQL sequence value for auto-increment columns (only if table was just created or if pgSerialLastVal exists)
+        if (tableCreated && tableRecord.pgSerialLastVal) {
+          try {
+            const table = await Model.get(
+              targetContext,
+              insertedTableId,
+              ncMeta,
+            );
+            if (table) {
+              await setPostgresSequenceValue(targetContext, {
+                table,
+                columns: tableColumns,
+                source,
+                pgSerialLastVal: tableRecord.pgSerialLastVal,
+              });
+            }
+          } catch (error) {
+            console.warn(
+              `Failed to set PostgreSQL sequence for ${tableRecord.table_name}:`,
+              error,
+            );
+            // Don't throw - this is not critical
+          }
         }
       } else if (tableRecord.type === ModelTypes.VIEW) {
-        // Handle view creation if needed
-        await sqlMgr.sqlOpPlus(source, 'viewCreate', {
-          ...tablePayload,
-          view_name: tableRecord.table_name,
-        });
+        try {
+          // Handle view creation if needed
+          await sqlMgr.sqlOpPlus(source, 'viewCreate', {
+            ...tablePayload,
+            view_name: tableRecord.table_name,
+          });
+        } catch (error) {
+          // If view already exists, that's okay
+          if (error.code === '42P07') {
+            console.warn(
+              `View ${tableRecord.table_name} already exists in database, skipping DDL`,
+            );
+          } else {
+            throw error;
+          }
+        }
       }
 
       // Note: Indexes will be created after all metadata is applied
     } catch (error) {
-      console.error(`Failed to create table ${tableRecord.table_name}:`, error);
-      throw new Error(
-        `Failed to create table ${tableRecord.table_name}: ${error.message}`,
-      );
+      // Only throw if it's not an idempotency-related error that we've already handled
+      if (error.code !== '42P07' && error.code !== '42701') {
+        console.error(
+          `Failed to create table ${tableRecord.table_name}:`,
+          error,
+        );
+        throw new Error(
+          `Failed to create table ${tableRecord.table_name}: ${error.message}`,
+        );
+      } else {
+        // Log but don't throw for already-exists errors
+        console.log(
+          `Skipped table ${tableRecord.table_name} creation due to existing object`,
+        );
+      }
     }
   }
 }
@@ -706,14 +939,27 @@ async function handleStandaloneColumnAdditions(
         continue;
       }
 
-      // Prepare column record for insertion
-      const columnToInsert = {
-        ...columnRecord,
-        base_id: targetContext.base_id,
-      };
+      // Check if column metadata already exists (idempotency check)
+      const existingColumn = await ncMeta
+        .knex(MetaTable.COLUMNS)
+        .where('id', columnRecord.id)
+        .where('base_id', targetContext.base_id)
+        .first();
 
-      // Insert column metadata
-      await ncMeta.knex(MetaTable.COLUMNS).insert(columnToInsert);
+      if (!existingColumn) {
+        // Prepare column record for insertion
+        const columnToInsert = {
+          ...columnRecord,
+          base_id: targetContext.base_id,
+        };
+
+        // Insert column metadata
+        await ncMeta.knex(MetaTable.COLUMNS).insert(columnToInsert);
+      } else {
+        console.log(
+          `Column ${columnRecord.column_name} metadata already exists, skipping metadata insertion`,
+        );
+      }
 
       // Perform SQL operation for non-virtual columns
       if (isPhysicalCol(columnRecord)) {
@@ -726,54 +972,81 @@ async function handleStandaloneColumnAdditions(
         if (parentTable) {
           await parentTable.getColumns(targetContext, ncMeta);
 
-          const source = await Source.get(
-            targetContext,
-            parentTable.source_id,
-            false,
-            ncMeta,
+          // Check if column already exists in table (avoid duplicate column error)
+          const columnAlreadyExists = parentTable.columns.some(
+            (c) =>
+              c.id === columnRecord.id ||
+              c.column_name === columnRecord.column_name,
           );
 
-          if (!source) {
-            throw new Error(`Source not found: ${parentTable.source_id}`);
-          }
+          if (!columnAlreadyExists) {
+            const source = await Source.get(
+              targetContext,
+              parentTable.source_id,
+              false,
+              ncMeta,
+            );
 
-          const sqlMgr = await ProjectMgrv2.getSqlMgr(
-            targetContext,
-            base,
-            ncMeta,
-          );
+            if (!source) {
+              throw new Error(`Source not found: ${parentTable.source_id}`);
+            }
 
-          const tableUpdateBody = {
-            ...parentTable,
-            tn: parentTable.table_name,
-            originalColumns: parentTable.columns.map((c) => ({
-              ...c,
-              cn: c.column_name,
-            })),
-            columns: [
-              ...parentTable.columns.map((c) => ({
+            const sqlMgr = await ProjectMgrv2.getSqlMgr(
+              targetContext,
+              base,
+              ncMeta,
+            );
+
+            const tableUpdateBody = {
+              ...parentTable,
+              tn: parentTable.table_name,
+              originalColumns: parentTable.columns.map((c) => ({
                 ...c,
                 cn: c.column_name,
+                tn: parentTable.table_name, // Add table name to each column
               })),
-              {
-                ...columnRecord,
-                cn: columnRecord.column_name,
-                altered: Altered.NEW_COLUMN,
-              },
-            ],
-          };
+              columns: [
+                ...parentTable.columns.map((c) => ({
+                  ...c,
+                  cn: c.column_name,
+                  tn: parentTable.table_name, // Add table name to each column
+                })),
+                {
+                  ...columnRecord,
+                  cn: columnRecord.column_name,
+                  tn: parentTable.table_name, // Add table name to the new column
+                  altered: Altered.NEW_COLUMN,
+                },
+              ],
+            };
 
-          await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+            try {
+              await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
 
-          // Handle foreign key constraint creation for non-virtual FK columns
-          await createForeignKeyConstraint(
-            targetContext,
-            columnRecord,
-            parentTable,
-            source,
-            base,
-            ncMeta,
-          );
+              // Handle foreign key constraint creation for non-virtual FK columns
+              await createForeignKeyConstraint(
+                targetContext,
+                columnRecord,
+                parentTable,
+                source,
+                base,
+                ncMeta,
+              );
+            } catch (error) {
+              // If column already exists in database (42701), that's okay
+              if (error.code === '42701') {
+                console.warn(
+                  `Column ${columnRecord.column_name} already exists in ${parentTable.table_name}, skipping DDL`,
+                );
+              } else {
+                throw error;
+              }
+            }
+          } else {
+            console.log(
+              `Column ${columnRecord.column_name} already exists in ${parentTable.table_name}, skipping DDL`,
+            );
+          }
         }
       }
     } catch (error) {
@@ -799,6 +1072,7 @@ async function handleTableUpdates(
       const existingTable = await ncMeta
         .knex(MetaTable.MODELS)
         .where('id', tableRecord.id)
+        .where('base_id', base_id)
         .first();
 
       if (!existingTable) {
@@ -838,11 +1112,12 @@ async function handleTableUpdates(
         }
       }
 
-      // Update the table metadata
+      // Update the table metadata using composite key
       const { id, ...updateData } = tableRecord;
       await ncMeta
         .knex(MetaTable.MODELS)
         .where('id', id)
+        .where('base_id', base_id)
         .update({ ...updateData, base_id });
     } catch (error) {
       console.error(`Failed to update table ${tableRecord.table_name}:`, error);
@@ -949,11 +1224,12 @@ async function handleColumnUpdates(
         }
       }
 
-      // Update the column metadata
+      // Update the column metadata using composite key
       const { id, ...updateData } = columnRecord;
       await ncMeta
         .knex(MetaTable.COLUMNS)
         .where('id', id)
+        .where('base_id', base_id)
         .update({ ...updateData, base_id });
     } catch (error) {
       console.error(
@@ -989,12 +1265,29 @@ async function handleNonDDLChanges(
       // Handle deletions first
       for (const record of toDelete) {
         try {
-          await ncMeta.knex(metaTable).where('id', record.id).delete();
+          const pkFields = tablePrimaryKeys[metaTable] || 'id';
+
+          // Build the where clause based on primary key type
+          let whereClause: any;
+          if (Array.isArray(pkFields)) {
+            // Composite primary key
+            whereClause = {};
+            for (const field of pkFields) {
+              whereClause[field] = record[field];
+            }
+          } else {
+            // Single primary key
+            whereClause = { [pkFields]: record[pkFields] };
+          }
+
+          // Always add base_id filter for data isolation
+          await ncMeta
+            .knex(metaTable)
+            .where(whereClause)
+            .where('base_id', base_id)
+            .delete();
         } catch (error) {
-          console.warn(
-            `Failed to delete ${metaTable} record ${record.id}:`,
-            error,
-          );
+          console.warn(`Failed to delete ${metaTable} record:`, error);
           // Continue with other deletions
         }
       }
@@ -1002,16 +1295,43 @@ async function handleNonDDLChanges(
       // Handle updates
       for (const record of toUpdate) {
         try {
-          const { id, ...updateData } = record;
+          const pkFields = tablePrimaryKeys[metaTable] || 'id';
+          const updateData = { ...record };
+
+          // Build the where clause based on primary key type
+          let whereClause: any;
+          if (Array.isArray(pkFields)) {
+            // Composite primary key
+            whereClause = {};
+            for (const field of pkFields) {
+              whereClause[field] = record[field];
+              delete updateData[field]; // Don't update PK fields
+            }
+          } else {
+            // Single primary key
+            whereClause = { [pkFields]: record[pkFields] };
+            delete updateData[pkFields]; // Don't update PK field
+          }
+
+          // Skip if no primary key values found
+          if (
+            Object.keys(whereClause).length === 0 ||
+            Object.values(whereClause).some((v) => v === undefined)
+          ) {
+            console.warn(
+              `Skipping update for ${metaTable} record without valid primary key:`,
+              record,
+            );
+            continue;
+          }
+
           await ncMeta
             .knex(metaTable)
-            .where('id', id)
+            .where(whereClause)
+            .where('base_id', base_id)
             .update({ ...updateData, base_id });
         } catch (error) {
-          console.warn(
-            `Failed to update ${metaTable} record ${record.id}:`,
-            error,
-          );
+          console.warn(`Failed to update ${metaTable} record:`, error);
           // Continue with other updates
         }
       }
@@ -1060,12 +1380,23 @@ async function createOrderIndexForTable(
 
     const indexName = `${tableRecord.table_name}_order_idx`;
 
-    await sqlMgr.sqlOpPlus(source, 'indexCreate', {
-      columns: [metaOrderColumn.column_name],
-      tn: model.table_name,
-      non_unique: true,
-      indexName,
-    });
+    try {
+      await sqlMgr.sqlOpPlus(source, 'indexCreate', {
+        columns: [metaOrderColumn.column_name],
+        tn: model.table_name,
+        non_unique: true,
+        indexName,
+      });
+    } catch (indexError) {
+      // If index already exists (42P07), that's okay
+      if (indexError.code === '42P07') {
+        console.log(
+          `Index ${indexName} already exists for ${tableRecord.table_name}, skipping`,
+        );
+      } else {
+        throw indexError;
+      }
+    }
   } catch (e) {
     // Log the error but don't fail the entire operation
     console.error(
@@ -1112,8 +1443,13 @@ async function createForeignKeyIndexesForTable(
         // Find the related LTAR column to get the proper index name
         const ltarColumn = await ncMeta
           .knex(MetaTable.COL_RELATIONS)
-          .where('fk_child_column_id', fkColumn.id)
-          .orWhere('fk_parent_column_id', fkColumn.id)
+          .where('base_id', tableRecord.base_id)
+          .andWhere(function () {
+            this.where('fk_child_column_id', fkColumn.id).orWhere(
+              'fk_parent_column_id',
+              fkColumn.id,
+            );
+          })
           .first();
 
         let indexName;
@@ -1138,7 +1474,18 @@ async function createForeignKeyIndexesForTable(
           indexName,
         };
 
-        await sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
+        try {
+          await sqlMgr.sqlOpPlus(source, 'indexCreate', indexArgs);
+        } catch (indexError) {
+          // If index already exists (42P07), that's okay
+          if (indexError.code === '42P07') {
+            console.log(
+              `Index ${indexName} already exists for ${fkColumn.column_name}, skipping`,
+            );
+          } else {
+            throw indexError;
+          }
+        }
       } catch (e) {
         console.warn(
           `Failed to create FK index for ${fkColumn.column_name}:`,
@@ -1172,9 +1519,14 @@ async function createForeignKeyConstraint(
     // Get the related table and column information from the column metadata
     // For foreign keys, we need to find the related LinkToAnotherRecord column
     const relatedLinkColumn = await ncMeta
-      .knex(MetaTable.COLUMNS)
-      .where('fk_child_column_id', columnRecord.id)
-      .orWhere('fk_parent_column_id', columnRecord.id)
+      .knex(MetaTable.COL_RELATIONS)
+      .where('base_id', parentTable.base_id)
+      .andWhere(function () {
+        this.where('fk_child_column_id', columnRecord.id).orWhere(
+          'fk_parent_column_id',
+          columnRecord.id,
+        );
+      })
       .first();
 
     if (!relatedLinkColumn) {

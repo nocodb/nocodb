@@ -20,7 +20,7 @@ export const useRealtime = createSharedComposable(() => {
   const basesStore = useBases()
   const { bases, basesUser } = storeToRefs(basesStore)
 
-  const { setMeta, getMeta } = useMetas()
+  const { setMeta, getMeta, clearAllMeta } = useMetas()
   const { tables: _tables, baseId: activeBaseId, base } = storeToRefs(useBase())
 
   const tableStore = useTablesStore()
@@ -34,10 +34,14 @@ export const useRealtime = createSharedComposable(() => {
   const dashboardStore = useDashboardStore()
   const { dashboards, activeDashboardId } = storeToRefs(dashboardStore)
 
-  const { scripts, activeScriptId } = storeToRefs(useScriptStore())
-  const { widgets, selectedWidget } = storeToRefs(useWidgetStore())
+  const scriptStore = useScriptStore()
+  const { scripts, activeScriptId } = storeToRefs(scriptStore)
 
-  const { workflows, activeWorkflowId } = storeToRefs(useWorkflowStore())
+  const widgetStore = useWidgetStore()
+  const { widgets, selectedWidget } = storeToRefs(widgetStore)
+
+  const workflowStore = useWorkflowStore()
+  const { workflows, activeWorkflowId } = storeToRefs(workflowStore)
 
   const { baseExtensions, Extension } = useExtensions()
 
@@ -102,6 +106,37 @@ export const useRealtime = createSharedComposable(() => {
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
         })
+      }
+    } else if (event.action === 'base_full_reload') {
+      const { payload } = event
+      const baseId = payload.base_id
+      if (baseId && activeBaseId.value === baseId) {
+        // Clear all cached metadata first to ensure fresh data
+        clearAllMeta()
+
+        // Reload everything in the base
+        loadProjectTables(baseId, true).then(() => {
+          // Reload all table metadata
+          const tables = baseTables.value.get(baseId)
+          for (const table of tables || []) {
+            if (table.id) {
+              getMeta(baseId, table.id, true)
+            }
+          }
+          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
+          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+        })
+
+        // Reload scripts
+        scriptStore.loadScripts({ baseId, force: true })
+
+        // Reload workflows
+        workflowStore.loadWorkflows({ baseId, force: true })
+
+        // Reload dashboards
+        dashboardStore.loadDashboards({ baseId, force: true })
+
+        refreshCommandPalette()
       }
     } else if (event.action === 'table_create') {
       const tables = baseTables.value.get(activeBaseId.value)

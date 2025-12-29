@@ -306,7 +306,7 @@ onClickOutside(editorDom, (e) => {
           'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
           'max-w-[calc(100%_-_198px)]': fullMode,
           'justify-start left-0.5': isForm,
-          'justify-end xs:hidden': !isForm,
+          'justify-end xs:hidden max-w-[calc(100%_-_2px)]': !isForm,
         }"
       >
         <div class="nc-scrollbar-thin relative">

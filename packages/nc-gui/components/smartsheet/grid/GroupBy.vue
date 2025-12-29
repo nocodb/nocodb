@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import tinycolor from 'tinycolor2'
 import { CommonAggregations } from 'nocodb-sdk'
 import { shouldRenderCell } from '../../../utils/groupbyUtils'
 import Table from './Table.vue'
@@ -415,7 +414,7 @@ async function openNewRecordHandler() {
                           class="!py-0 !px-[12px] !rounded-[12px]"
                           :color="
                             getSelectTypeFieldOptionBgColor({
-                              isDark: isDark,
+                              isDark,
                               color: grp.color?.split(',')[+tagIndex] || '#ccc',
                             })
                           "
@@ -452,7 +451,7 @@ async function openNewRecordHandler() {
                         :class="`${grp.column.uidt === 'SingleSelect' ? '!rounded-[12px]' : '!rounded-[6px]'}`"
                         :color="
                           getSelectTypeFieldOptionBgColor({
-                            isDark: isDark,
+                            isDark,
                             color: grp.color || '#ccc',
                           })
                         "

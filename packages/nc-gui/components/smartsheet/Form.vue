@@ -953,7 +953,7 @@ const { message: templatedMessage } = useTemplatedMessage(
     <template v-else>
       <div
         v-if="submitted"
-        class="h-full p-6 overflow-auto nc-form-scrollbar"
+        class="h-full p-6 overflow-auto nc-scrollbar-thin"
         :style="{
           background: parseProp(formViewData?.meta)?.background_color
             ? getSelectTypeFieldOptionBgColor({ color: parseProp(formViewData?.meta)?.background_color, isDark, shade: 0 })
@@ -1047,7 +1047,7 @@ const { message: templatedMessage } = useTemplatedMessage(
           <SmartsheetFormLayout :is-sidebar-visible="isSidebarVisible">
             <template #preview>
               <div
-                class="w-full h-full overflow-auto nc-form-scrollbar p-6"
+                class="w-full h-full overflow-auto nc-scrollbar-thin p-6"
                 :style="{
                   background: parseProp(formViewData?.meta)?.background_color
                     ? getSelectTypeFieldOptionBgColor({
@@ -1077,7 +1077,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     </NcTooltip>
                   </div>
                 </Transition>
-                <div class="nc-form-preview min-w-[616px] overflow-x-auto nc-form-scrollbar" @click="handleOnClick">
+                <div class="nc-form-preview min-w-[616px] overflow-x-auto nc-scrollbar-thin" @click="handleOnClick">
                   <div v-if="!isAllowedToAddRecord" class="mb-6">
                     <NcAlert
                       type="warning"
@@ -1602,7 +1602,7 @@ const { message: templatedMessage } = useTemplatedMessage(
               <div
                 class="nc-form-right-panel h-full flex-grow max-w-full"
                 :class="{
-                  'overflow-y-auto nc-form-scrollbar': activeField,
+                  'overflow-y-auto nc-scrollbar-thin': activeField,
                   'relative': isLocked,
                 }"
               >
@@ -1692,7 +1692,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                       :model-value="activeFieldLabel"
                       :rows="1"
                       :hide-scrollbar="false"
-                      class="form-meta-input nc-form-input-label !max-h-7.5rem nc-form-scrollbar hover:(border-nc-brand-400)"
+                      class="form-meta-input nc-form-input-label !max-h-7.5rem nc-scrollbar-thin hover:(border-nc-brand-400)"
                       data-testid="nc-form-input-label"
                       :placeholder="$t('msg.info.formInput')"
                       @focus="onFocusActiveFieldLabel"
@@ -1795,7 +1795,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                       </form>
 
                       <div
-                        class="nc-form-fields-list border-1 border-nc-border-gray-medium rounded-lg overflow-y-auto nc-form-scrollbar"
+                        class="nc-form-fields-list border-1 border-nc-border-gray-medium rounded-lg overflow-y-auto nc-scrollbar-thin"
                       >
                         <div v-if="!localColumns.length" class="px-0.5 py-2 text-nc-content-gray-muted text-center">
                           {{ $t('title.noFieldsFound') }}
@@ -1939,7 +1939,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                         </template>
                       </div>
                     </Pane>
-                    <Pane min-size="20" size="50" class="nc-form-right-splitpane-item !overflow-y-auto nc-form-scrollbar">
+                    <Pane min-size="20" size="50" class="nc-form-right-splitpane-item !overflow-y-auto nc-scrollbar-thin">
                       <div class="p-4 flex flex-col space-y-4 border-b border-nc-border-gray-medium">
                         <!-- Appearance Settings -->
                         <div class="text-sm font-bold text-nc-content-gray">{{ $t('labels.appearanceSettings') }}</div>
@@ -2352,12 +2352,6 @@ const { message: templatedMessage } = useTemplatedMessage(
   }
 }
 
-.nc-form-scrollbar {
-  @apply scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent;
-  &::-webkit-scrollbar-thumb:hover {
-    @apply !scrollbar-thumb-gray-300;
-  }
-}
 :deep(.nc-form-theme-color-picker .color-selector) {
   @apply !text-nc-content-inverted-primary;
 }

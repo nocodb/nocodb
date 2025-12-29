@@ -1,17 +1,12 @@
 <script setup lang="ts">
-interface ScriptVariable {
-  name: string
-  value: any
-}
-
-interface ExecuteScriptNodeConfig {
-  script: string
-  variables: ScriptVariable[]
-}
+import type { ExecuteScriptNodeConfig, ScriptVariable } from './types'
+import EditModal from '~/components/smartsheet/workflow/sidebar/config/custom/RunScript/EditModal.vue'
 
 const { selectedNodeId, updateNode, selectedNode } = useWorkflowOrThrow()
 
 const workflowContext = inject(WorkflowVariableInj, null)
+
+const editModal = ref(false)
 
 const groupedVariables = computed(() => {
   if (!selectedNodeId.value || !workflowContext?.getAvailableVariables) return []
@@ -57,16 +52,6 @@ const variables = computed({
   },
 })
 
-const addVariable = () => {
-  const newVariables = [...variables.value, { name: '', value: '' }]
-  variables.value = newVariables
-}
-
-const removeVariable = (index: number) => {
-  const newVariables = variables.value.filter((_, i) => i !== index)
-  variables.value = newVariables
-}
-
 const updateVariable = (index: number, field: 'name' | 'value', value: any) => {
   const newVariables = [...variables.value]
   newVariables[index] = {
@@ -79,33 +64,18 @@ const updateVariable = (index: number, field: 'name' | 'value', value: any) => {
 
 <template>
   <div class="execute-script-config flex flex-col gap-4">
-    <!-- Variables Section -->
     <div class="flex flex-col gap-2">
-      <div class="flex items-center justify-between">
-        <label class="text-sm font-medium text-nc-content-gray-emphasis">Input Variables</label>
-        <NcButton size="xs" type="secondary" @click="addVariable">
-          <template #icon>
-            <GeneralIcon icon="ncPlus" class="w-4 h-4" />
-          </template>
-          Add Variable
-        </NcButton>
-      </div>
-
-      <div v-if="variables.length === 0" class="text-xs text-nc-content-gray-subtle">
+      <label class="text-sm font-medium text-nc-content-gray-emphasis">Input Variables</label>
+      <div v-if="variables.filter((v) => v.name).length === 0" class="text-xs text-nc-content-gray-subtle">
         Add variables that will be accessible via <code class="px-1 py-0.5 bg-nc-bg-gray-light rounded">input.config()</code> in
         your script
       </div>
 
-      <div v-for="(variable, index) in variables" :key="index" class="flex gap-2 items-start">
-        <div class="flex-1">
-          <a-input
-            v-model:value="variable.name"
-            placeholder="Variable name"
-            size="small"
-            @update:value="(val) => updateVariable(index, 'name', val)"
-          />
-        </div>
-        <div class="flex-1">
+      <template v-for="(variable, index) in variables.filter((v) => v.name)" :key="variable.name">
+        <div class="flex gap-2 flex-col">
+          <div>
+            {{ variable.name }}
+          </div>
           <NcFormBuilderInputWorkflowInput
             :model-value="variable.value"
             :variables="flatVariables"
@@ -114,30 +84,30 @@ const updateVariable = (index: number, field: 'name' | 'value', value: any) => {
             @update:model-value="(val) => updateVariable(index, 'value', val)"
           />
         </div>
-        <NcButton size="xs" type="text" @click="removeVariable(index)">
-          <template #icon>
-            <GeneralIcon icon="ncTrash" class="w-4 h-4 text-nc-content-red-dark" />
-          </template>
+      </template>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center justify-between">
+        <label class="text-sm font-medium text-nc-content-gray-emphasis">Script</label>
+
+        <NcButton size="small" type="secondary" @click="editModal = true">
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="ncCode" />
+            Edit code
+          </div>
         </NcButton>
       </div>
-    </div>
 
-    <!-- Script Editor Section -->
-    <div class="flex flex-col gap-2">
-      <label class="text-sm font-medium text-nc-content-gray-emphasis">Script</label>
-      <div class="text-xs text-nc-content-gray-subtle mb-2">
-        Use <code class="px-1 py-0.5 bg-nc-bg-gray-light rounded">input.config()</code> to access variables and
-        <code class="px-1 py-0.5 bg-nc-bg-gray-light rounded">output.set(key, value)</code> to set outputs.
+      <div class="font-mono bg-nc-bg-gray-extralight px-3 py-2">
+        <template v-if="scriptCode">
+          {{ scriptCode }}
+        </template>
+        <span v-else class="text-nc-content-gray-muted font-mono"> No script provided </span>
       </div>
-
-      <MonacoEditor
-        v-model="scriptCode"
-        class="!h-96 border-1 border-nc-border-gray-medium rounded-lg overflow-hidden"
-        lang="javascript"
-        :validate="false"
-        hide-minimap
-      />
     </div>
+
+    <EditModal v-model:value="editModal" />
   </div>
 </template>
 

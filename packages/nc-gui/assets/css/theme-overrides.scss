@@ -451,4 +451,10 @@ body {
   .ant-modal-close-x {
     @apply text-nc-content-gray-subtle;
   }
+
+  .ant-dropdown-button {
+    .ant-btn {
+      @apply bg-nc-bg-default border-nc-border-gray-medium;
+    }
+  }
 }

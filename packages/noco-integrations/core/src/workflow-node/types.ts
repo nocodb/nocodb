@@ -89,6 +89,8 @@ export interface NocoDBContext {
   tablesService: ITablesService;
   user: NocoSDK.UserType;
   mailService: IMailService;
+  getBaseSchema: () => Promise<any>;
+  getAccessToken: () => string;
 }
 
 export interface WorkflowNodeConfig {

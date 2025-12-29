@@ -43,6 +43,9 @@ import {
 } from '~/services/workflows/graphHelpers';
 import { ExpressionContext } from '~/services/workflows/ExpressionContext';
 import { MailService } from '~/services/mail/mail.service';
+import { getBaseSchema } from '~/helpers/scriptHelper'
+import { genJwt } from '~/services/users/helpers'
+import Noco from '~/Noco'
 
 const deepClone = rfdc();
 
@@ -239,12 +242,26 @@ export class WorkflowExecutionService {
           _nocodb: {
             context: {
               ...context,
+              nc_site_url: context.nc_site_url,
               user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
             },
             dataService: this.dataV3Service,
             tablesService: this.tablesService,
             mailService: this.mailService,
             user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+            getBaseSchema: async () => await getBaseSchema(context),
+            getAccessToken: () => genJwt(
+              {
+                ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+                extra: {
+                  context: context,
+                },
+              },
+              Noco.getConfig(),
+              {
+                expiresIn: '10m',
+              },
+            )
           },
         },
         {},

@@ -14,6 +14,7 @@ import { RecordDeletedTriggerNode } from './nodes/record-deleted-trigger';
 import { FormSubmittedTriggerNode } from './nodes/form-submitted-trigger';
 import { RecordEntersViewTriggerNode } from './nodes/record-enters-view-trigger';
 import { RecordMatchesConditionTriggerNode } from './nodes/record-matches-condition-trigger';
+import { ExecuteScriptNode } from './nodes/execute-script/index';
 
 export const entries: IntegrationEntry[] = [
   {
@@ -135,6 +136,17 @@ export const entries: IntegrationEntry[] = [
       ...manifest,
       title: 'NocoDB - Delete Record',
       order: 11,
+    },
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'nocodb.execute_script',
+    wrapper: ExecuteScriptNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'NocoDB - Execute Script',
+      order: 12,
     },
   },
 ];

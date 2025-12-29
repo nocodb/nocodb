@@ -1900,7 +1900,7 @@ onKeyStroke('ArrowDown', onDown)
       :class="{
         'hidden w-0 !h-0 left-0 !max-h-0 !max-w-0': !draggedCol,
       }"
-      class="absolute flex items-center z-40 top-0 h-full bg-gray-50 pointer-events-none opacity-60"
+      class="absolute flex items-center z-40 top-0 h-full bg-nc-bg-gray-extralight pointer-events-none opacity-60"
     >
       <div
         v-if="draggedCol"
@@ -1909,13 +1909,13 @@ onKeyStroke('ArrowDown', onDown)
         'max-width': gridViewCols[draggedCol.id!]?.width || '180px',
         'width': gridViewCols[draggedCol.id!]?.width || '180px',
       }"
-        class="border-r-1 border-l-1 border-gray-200 h-full"
+        class="border-r-1 border-l-1 border-nc-border-gray-medium h-full"
       ></div>
     </div>
     <div ref="gridWrapper" class="nc-grid-wrapper min-h-0 flex-1 relative" :class="gridWrapperClass">
       <div
         v-show="isPaginationLoading && !headerOnly"
-        class="flex items-center justify-center bg-white/80 absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
+        class="flex items-center justify-center bg-nc-bg-default/80 absolute l-0 t-0 w-full h-full z-10 pb-10 pointer-events-none"
       >
         <div class="flex flex-col items-center justify-center gap-2">
           <a-spin size="large" />
@@ -1929,7 +1929,7 @@ onKeyStroke('ArrowDown', onDown)
       >
         <div>
           <table
-            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5 bg-white"
+            class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-nc-bg-default sticky top-0 z-5"
             :class="{
               mobile: isMobileMode,
               desktop: !isMobileMode,
@@ -1940,7 +1940,7 @@ onKeyStroke('ArrowDown', onDown)
                 <td
                   v-for="(col, colIndex) of dummyColumnDataForLoading"
                   :key="colIndex"
-                  class="!bg-gray-50 h-full border-b-1 border-r-1"
+                  class="!bg-nc-bg-gray-extralight h-full border-b-1 border-r-1"
                   :class="{ 'min-w-45': colIndex !== 0, 'min-w-16': colIndex === 0 }"
                 >
                   <a-skeleton
@@ -1959,7 +1959,7 @@ onKeyStroke('ArrowDown', onDown)
                 <th class="w-[64px] min-w-[64px]" data-testid="grid-id-column">
                   <div class="w-full h-full flex pl-2 pr-1 items-center" data-testid="nc-check-all">
                     <template v-if="!readOnly && !hideCheckbox">
-                      <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
+                      <div class="nc-no-label text-nc-content-gray-muted" :class="{ hidden: vSelectedAllRecords }">#</div>
                       <div
                         :class="{
                           hidden: !vSelectedAllRecords,
@@ -1973,7 +1973,7 @@ onKeyStroke('ArrowDown', onDown)
                       </div>
                     </template>
                     <template v-else>
-                      <div class="text-gray-500">#</div>
+                      <div class="text-nc-content-gray-muted">#</div>
                     </template>
                   </div>
                 </th>
@@ -1999,7 +1999,7 @@ onKeyStroke('ArrowDown', onDown)
                   @click="selectColumn(fields[0].id!)"
                 >
                   <div
-                    class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
+                    class="w-full h-full flex items-center text-nc-content-gray-muted pl-2 pr-1"
                     draggable="false"
                     @dragstart.stop="onDragStart(fields[0].id!, $event)"
                     @drag.stop="onDrag($event)"
@@ -2046,7 +2046,7 @@ onKeyStroke('ArrowDown', onDown)
                   @click="selectColumn(col.id!)"
                 >
                   <div
-                    class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
+                    class="w-full h-full flex items-center text-nc-content-gray-muted pl-2 pr-1"
                     :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission || isLocked ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
@@ -2079,7 +2079,9 @@ onKeyStroke('ArrowDown', onDown)
                   }"
                   @click.stop="addColumnDropdown = true"
                 >
-                  <div class="absolute top-0 left-0 h-8 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
+                  <div
+                    class="absolute top-0 left-0 h-8 border-b-1 border-r-1 border-nc-border-gray-medium nc-grid-add-edit-column group"
+                  >
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
@@ -2088,7 +2090,10 @@ onKeyStroke('ArrowDown', onDown)
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
                         <GeneralIcon v-if="isEeUI && (altModifier || persistMenu)" icon="magic" class="text-sm text-orange-400" />
-                        <component :is="iconMap.plus" class="text-base nc-column-add text-gray-500 !group-hover:text-black" />
+                        <component
+                          :is="iconMap.plus"
+                          class="text-base nc-column-add text-nc-content-gray-muted !group-hover:text-nc-content-gray-extreme"
+                        />
                       </div>
 
                       <template v-if="isEeUI && persistMenu && meta?.id" #overlay>
@@ -2096,11 +2101,11 @@ onKeyStroke('ArrowDown', onDown)
                           <NcSubMenu v-if="predictedNextColumn?.length" key="predict-column" class="py-0 px-0 w-full">
                             <template #title>
                               <div class="flex flex-row items-center px-1 py-0.5 gap-1 w-full">
-                                <MdiTableColumnPlusAfter class="flex h-[1rem] text-gray-500" />
+                                <MdiTableColumnPlusAfter class="flex h-[1rem] text-nc-content-gray-muted" />
                                 <div class="text-xs flex-1">
                                   {{ $t('activity.predictColumns') }}
                                 </div>
-                                <MdiChevronRight class="text-gray-500" />
+                                <MdiChevronRight class="text-nc-content-gray-muted" />
                               </div>
                             </template>
                             <template #expandIcon></template>
@@ -2111,7 +2116,7 @@ onKeyStroke('ArrowDown', onDown)
                             </template>
 
                             <NcMenuItem class="flex flex-row items-center" @click="predictNextColumn(meta.id)">
-                              <div class="text-red-500 text-xs">
+                              <div class="text-nc-content-red-medium text-xs">
                                 <MdiReload />
                                 Generate Again
                               </div>
@@ -2120,7 +2125,7 @@ onKeyStroke('ArrowDown', onDown)
                           <NcMenuItem v-else class="flex flex-row items-center py-3" @click="predictNextColumn(meta.id)">
                             <!-- Predict Columns -->
                             <MdiReload v-if="predictingNextColumn" class="animate-infinite animate-spin" />
-                            <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-gray-500" />
+                            <MdiTableColumnPlusAfter v-else class="flex h-[1rem] text-nc-content-gray-muted" />
                             <div class="text-xs">
                               {{ $t('activity.predictColumns') }}
                             </div>
@@ -2128,11 +2133,11 @@ onKeyStroke('ArrowDown', onDown)
                           <NcSubMenu v-if="predictedNextFormulas?.length" key="predict-formula" class="py-0 px-0 w-full">
                             <template #title>
                               <div class="flex flex-row items-center px-1 py-0.5 gap-1 w-full">
-                                <MdiCalculatorVariant class="flex h-[1rem] text-gray-500" />
+                                <MdiCalculatorVariant class="flex h-[1rem] text-nc-content-gray-muted" />
                                 <div class="text-xs flex-1">
                                   {{ $t('activity.predictFormulas') }}
                                 </div>
-                                <MdiChevronRight class="text-gray-500" />
+                                <MdiChevronRight class="text-nc-content-gray-muted" />
                               </div>
                             </template>
                             <template #expandIcon></template>
@@ -2150,7 +2155,7 @@ onKeyStroke('ArrowDown', onDown)
                             </template>
 
                             <NcMenuItem class="flex flex-row items-center" @click="predictNextFormulas(meta.id)">
-                              <div class="text-red-500 text-xs">
+                              <div class="text-nc-content-red-medium text-xs">
                                 <MdiReload />
                                 Generate Again
                               </div>
@@ -2159,7 +2164,7 @@ onKeyStroke('ArrowDown', onDown)
                           <NcMenuItem v-else class="flex flex-row items-center py-3" @click="predictNextFormulas(meta.id)">
                             <!-- Predict Formulas -->
                             <MdiReload v-if="predictingNextFormulas" class="animate-infinite animate-spin" />
-                            <MdiCalculatorVariant v-else class="flex h-[1rem] text-gray-500" />
+                            <MdiCalculatorVariant v-else class="flex h-[1rem] text-nc-content-gray-muted" />
                             <div class="text-xs">
                               {{ $t('activity.predictFormulas') }}
                             </div>
@@ -2215,7 +2220,7 @@ onKeyStroke('ArrowDown', onDown)
           >
             <table
               ref="smartTable"
-              class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
+              class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-nc-bg-default relative"
               :class="{
                 'mobile': isMobileMode,
                 'desktop': !isMobileMode,
@@ -2267,7 +2272,7 @@ onKeyStroke('ArrowDown', onDown)
                       >
                         <div class="w-[64px] pl-2 pr-1 items-center w-full flex gap-0.5">
                           <div
-                            class="nc-row-no sm:min-w-4 text-gray-500 flex items-center justify-between h-4 w-full"
+                            class="nc-row-no sm:min-w-4 text-nc-content-gray-muted flex items-center justify-between h-4 w-full"
                             :class="{
                               'toggle': !readOnly,
                               'hidden': row.rowMeta.selected,
@@ -2312,7 +2317,7 @@ onKeyStroke('ArrowDown', onDown)
                               <span
                                 v-if="row.rowMeta?.commentCount && expandForm"
                                 v-e="['c:expanded-form:open']"
-                                class="px-1 rounded-md rounded-bl-none transition-all border-1 border-brand-200 cursor-pointer font-sembold select-none hover:bg-brand-100 !min-h-4.5 !min-w-5 !leading-[18px] inline-block text-brand-500 bg-brand-50"
+                                class="px-1 rounded-md rounded-bl-none transition-all border-1 border-brand-200 cursor-pointer font-sembold select-none hover:bg-brand-100 !min-h-4.5 !min-w-5 !leading-[18px] inline-block text-nc-content-brand bg-nc-bg-brand"
                                 :class="{
                                   'text-[10px] font-600 px-0.5': row.rowMeta.commentCount > 99,
                                   'text-small font-500 px-0.8': row.rowMeta.commentCount <= 99,
@@ -2323,7 +2328,7 @@ onKeyStroke('ArrowDown', onDown)
                               </span>
                               <div
                                 v-else
-                                class="cursor-pointer flex items-center border-1 border-gray-100 active:ring rounded-md p-0.75 hover:(bg-white border-nc-border-gray-medium)"
+                                class="cursor-pointer flex items-center border-1 border-nc-border-gray-light active:ring rounded-md p-0.75 hover:(bg-nc-bg-default border-nc-border-gray-medium)"
                               >
                                 <component
                                   :is="iconMap.maximize"
@@ -2516,15 +2521,15 @@ onKeyStroke('ArrowDown', onDown)
                   @click="addEmptyRow()"
                 >
                   <td
-                    class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                    class="nc-grid-add-new-cell-item h-8 border-b-1 border-nc-border-gray-light bg-nc-bg-default group-hover:bg-nc-bg-gray-extralight absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-nc-content-gray-muted"
                   >
                     <component
                       :is="iconMap.plus"
                       v-if="!isViewColumnsLoading"
-                      class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
+                      class="text-pint-500 text-base ml-2 mt-0 text-nc-content-gray-subtle2 group-hover:text-nc-content-gray-extreme"
                     />
                   </td>
-                  <td class="!border-gray-100" :colspan="visibleColLength"></td>
+                  <td class="!border-nc-border-gray-light" :colspan="visibleColLength"></td>
                 </tr>
               </tbody>
             </table>
@@ -2679,7 +2684,7 @@ onKeyStroke('ArrowDown', onDown)
               @click="clearSelectedRangeOfCells()"
             >
               <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
-                <GeneralIcon icon="closeBox" class="text-gray-500" />
+                <GeneralIcon icon="closeBox" class="text-nc-content-gray-muted" />
                 {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
               </div>
             </NcMenuItem>
@@ -2761,7 +2766,10 @@ onKeyStroke('ArrowDown', onDown)
               :disabled="isPaginationLoading"
               @click.stop="isAddNewRecordGridMode ? addEmptyRow() : onNewRecordToFormClick()"
             >
-              <div data-testid="nc-pagination-add-record" class="flex items-center px-2 text-gray-600 hover:text-black">
+              <div
+                data-testid="nc-pagination-add-record"
+                class="flex items-center px-2 text-nc-content-gray-subtle2 hover:text-nc-content-gray-extreme"
+              >
                 <span>
                   <template v-if="isAddNewRecordGridMode">
                     {{ $t('activity.newRecord') }}
@@ -2773,7 +2781,7 @@ onKeyStroke('ArrowDown', onDown)
               <template #overlay>
                 <div class="relative overflow-visible min-h-17 w-10">
                   <div
-                    class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-white rounded-lg border-1 border-gray-200 justify-start overflow-hidden"
+                    class="absolute -top-21 flex flex-col min-h-34.5 w-70 p-1.5 bg-nc-bg-default rounded-lg border-1 border-nc-border-gray-medium justify-start overflow-hidden"
                     style="box-shadow: 0px 4px 6px -2px rgba(0, 0, 0, 0.06), 0px -12px 16px -4px rgba(0, 0, 0, 0.1)"
                     :class="{
                       '-left-32.5': !isAddNewRecordGridMode,
@@ -2782,7 +2790,7 @@ onKeyStroke('ArrowDown', onDown)
                   >
                     <div
                       v-e="['c:row:add:grid']"
-                      class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-grid group"
+                      class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-grid group"
                       @click="onNewRecordToGridClick"
                     >
                       <div class="flex flex-row items-center justify-between w-full">
@@ -2799,7 +2807,7 @@ onKeyStroke('ArrowDown', onDown)
                     </div>
                     <div
                       v-e="['c:row:add:form']"
-                      class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-gray-100 text-gray-600 nc-new-record-with-form group"
+                      class="px-4 py-3 flex flex-col select-none gap-y-2 cursor-pointer rounded-md hover:bg-nc-bg-gray-light text-nc-content-gray-subtle2 nc-new-record-with-form group"
                       @click="onNewRecordToFormClick"
                     >
                       <div class="flex flex-row items-center justify-between w-full">
@@ -2818,7 +2826,7 @@ onKeyStroke('ArrowDown', onDown)
                 </div>
               </template>
               <template #icon>
-                <component :is="iconMap.arrowUp" class="text-gray-600 h-4 w-4" />
+                <component :is="iconMap.arrowUp" class="text-nc-content-gray-subtle2 h-4 w-4" />
               </template>
             </a-dropdown-button>
           </div>
@@ -2909,7 +2917,7 @@ onKeyStroke('ArrowDown', onDown)
 <style lang="scss">
 .nc-grid-pagination-wrapper .ant-dropdown-button {
   > .ant-btn {
-    @apply !p-0 !rounded-l-lg hover:border-gray-400;
+    @apply !p-0 !rounded-l-lg hover:border-nc-border-gray-extradark;
   }
 
   > .ant-dropdown-trigger {
@@ -2933,23 +2941,23 @@ onKeyStroke('ArrowDown', onDown)
   @apply h-full w-full;
 
   .nc-grid-add-edit-column {
-    @apply bg-gray-50;
+    @apply bg-nc-bg-gray-extralight;
   }
 
   .nc-grid-add-new-cell:hover td {
-    @apply text-black !bg-gray-50;
+    @apply text-nc-content-gray-extreme !bg-nc-bg-gray-extralight;
   }
 
   td:not(.nc-grid-add-new-cell-item),
   th {
-    @apply border-gray-100 border-solid border-r bg-gray-100 p-0;
+    @apply border-nc-border-gray-light border-solid border-r bg-nc-bg-gray-light p-0;
     min-height: 32px !important;
     height: 32px !important;
     position: relative;
   }
 
   th {
-    @apply border-b-1 border-gray-200;
+    @apply border-b-1 border-nc-border-gray-medium;
 
     :deep(.name) {
       @apply text-small;
@@ -2966,7 +2974,7 @@ onKeyStroke('ArrowDown', onDown)
   }
 
   td:not(.nc-grid-add-new-cell-item) {
-    @apply bg-white border-b;
+    @apply bg-nc-bg-default border-b;
   }
 
   td:not(:first-child):not(.nc-grid-add-new-cell-item) {
@@ -2995,11 +3003,11 @@ onKeyStroke('ArrowDown', onDown)
     &.active-cell {
       :deep(.nc-cell) {
         a.nc-cell-field-link {
-          @apply !text-brand-500;
+          @apply !text-nc-content-brand;
 
           &:hover,
           .nc-cell-field {
-            @apply !text-brand-500;
+            @apply !text-nc-content-brand;
           }
         }
       }
@@ -3015,13 +3023,13 @@ onKeyStroke('ArrowDown', onDown)
       }
 
       &:not(.nc-display-value-cell) {
-        @apply text-gray-600;
+        @apply text-nc-content-gray-subtle2;
         font-weight: 500;
 
         .nc-cell-field:not(.nc-null),
         input:not(.nc-null),
         textarea:not(.nc-null) {
-          @apply text-gray-600;
+          @apply text-nc-content-gray-subtle2;
           font-weight: 500;
         }
       }
@@ -3121,7 +3129,7 @@ onKeyStroke('ArrowDown', onDown)
   }
 
   td.active.readonly::after {
-    @apply text-primary bg-gray-50 bg-opacity-5 !border-gray-200;
+    @apply text-primary bg-nc-bg-gray-extralight bg-opacity-5 !border-nc-border-gray-medium;
   }
 
   td.active-cell::after {
@@ -3141,7 +3149,7 @@ onKeyStroke('ArrowDown', onDown)
 
   // todo: replace with css variable
   td.filling::after {
-    @apply border-1 border-dashed text-primary border-current bg-gray-100 bg-opacity-50;
+    @apply border-1 border-dashed text-primary border-current bg-nc-bg-gray-light bg-opacity-50;
   }
 
   //td.active::before {
@@ -3160,7 +3168,7 @@ onKeyStroke('ArrowDown', onDown)
     position: sticky !important;
     left: 0;
     z-index: 4;
-    background: white;
+    background: var(--color-base-white);
   }
 
   .desktop {
@@ -3168,25 +3176,25 @@ onKeyStroke('ArrowDown', onDown)
       position: sticky !important;
       z-index: 5;
       left: 64px;
-      @apply border-r-1 border-r-gray-200;
+      @apply border-r-1 border-r-nc-border-gray-medium;
     }
 
     tbody tr:not(.nc-grid-add-new-cell) td:nth-child(2) {
       position: sticky !important;
       z-index: 4;
       left: 64px;
-      background: white;
-      @apply border-r-1 border-r-gray-100;
+      // background: white;
+      @apply border-r-1 border-r-nc-border-gray-light;
     }
   }
 
   .nc-grid-skeleton-loader {
     thead th:nth-child(2) {
-      @apply border-r-1 !border-r-gray-50;
+      @apply border-r-1 !border-r-nc-border-gray-extralight;
     }
 
     tbody td:not(.nc-grid-add-new-cell-item):nth-child(2) {
-      @apply border-r-1 !border-r-gray-50;
+      @apply border-r-1 !border-r-nc-border-gray-extralight;
     }
   }
 }
@@ -3200,14 +3208,14 @@ onKeyStroke('ArrowDown', onDown)
   :deep(.resizer:active),
   :deep(.resizer:focus) {
     // todo: replace with primary color
-    @apply bg-blue-500/50;
+    @apply bg-nc-blue-500/50;
     cursor: col-resize;
   }
 }
 
 .nc-grid-row {
   td.nc-grid-cell.column-filtered.active {
-    @apply !bg-green-100;
+    @apply !bg-nc-bg-green-dark;
 
     :deep(input),
     :deep(textarea) {
@@ -3215,7 +3223,7 @@ onKeyStroke('ArrowDown', onDown)
     }
   }
   td.nc-grid-cell.column-sorted.active {
-    @apply !bg-orange-100;
+    @apply !bg-nc-bg-orange-dark;
 
     :deep(input),
     :deep(textarea) {
@@ -3254,13 +3262,13 @@ onKeyStroke('ArrowDown', onDown)
     &:not(.selected-row) {
       td.nc-grid-cell:not(.active),
       td:nth-child(2):not(.active) {
-        @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
+        @apply !bg-nc-bg-gray-extralight border-b-nc-border-gray-medium border-r-nc-border-gray-medium;
 
         &.column-filtered {
-          @apply !bg-green-100;
+          @apply !bg-nc-bg-green-dark;
         }
         &.column-sorted {
-          @apply !bg-orange-100;
+          @apply !bg-nc-bg-orange-dark;
         }
       }
     }
@@ -3269,13 +3277,13 @@ onKeyStroke('ArrowDown', onDown)
   &.selected-row {
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active) {
-      @apply !bg-[#F0F3FF] border-b-gray-200 border-r-gray-200;
+      @apply !bg-nc-bg-brand border-b-nc-border-gray-medium border-r-nc-border-gray-medium;
 
       &.column-filtered {
-        @apply !bg-green-100;
+        @apply !bg-nc-bg-green-dark;
       }
       &.column-sorted {
-        @apply !bg-orange-100;
+        @apply !bg-nc-bg-orange-dark;
       }
     }
   }
@@ -3283,7 +3291,7 @@ onKeyStroke('ArrowDown', onDown)
   &:not(.selected-row):has(+ .selected-row) {
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
-      @apply border-b-gray-200;
+      @apply border-b-nc-border-gray-medium;
     }
   }
 
@@ -3292,11 +3300,11 @@ onKeyStroke('ArrowDown', onDown)
     td:nth-child(2):not(.active) {
       &.column-filtered,
       &.column-sorted {
-        @apply border-b-gray-200 border-r-gray-200;
+        @apply border-b-nc-border-gray-medium border-r-nc-border-gray-medium;
       }
       &:has(+ .column-filtered),
       &:has(+ .column-sorted) {
-        @apply border-r-gray-200;
+        @apply border-r-nc-border-gray-medium;
       }
     }
   }
@@ -3306,7 +3314,7 @@ onKeyStroke('ArrowDown', onDown)
     &:not(.selected-row) {
       td.nc-grid-cell:not(.active),
       td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
-        @apply border-b-gray-200;
+        @apply border-b-nc-border-gray-medium;
       }
     }
   }
@@ -3325,11 +3333,11 @@ onKeyStroke('ArrowDown', onDown)
 }
 
 .nc-required-cell {
-  box-shadow: inset 0 0 2px #f00;
+  box-shadow: inset 0 0 2px var(--color-red-500);
 }
 
 .nc-fill-handle {
-  @apply w-[6px] h-[6px] absolute rounded-full bg-red-500 !pointer-events-auto mt-[-4px] ml-[-4px];
+  @apply w-[6px] h-[6px] absolute rounded-full bg-nc-red-500 !pointer-events-auto mt-[-4px] ml-[-4px];
 }
 
 .nc-fill-handle:hover,
@@ -3339,7 +3347,7 @@ onKeyStroke('ArrowDown', onDown)
 }
 
 :deep(.ant-skeleton-input) {
-  @apply rounded text-gray-100 !bg-gray-100 !bg-opacity-65;
+  @apply rounded text-nc-gray-100 !bg-nc-bg-gray-light !bg-opacity-65;
   animation: slow-show-1 5s ease 5s forwards;
 }
 
@@ -3347,12 +3355,5 @@ onKeyStroke('ArrowDown', onDown)
   :deep(.ant-btn.ant-dropdown-trigger.ant-btn-icon-only) {
     @apply !flex items-center justify-center;
   }
-}
-
-.col-filtered {
-  background: var(--nc-bg-coloured-green, #ecfff2) !important;
-}
-.col-sorted {
-  background: var(--nc-bg-coloured-maroon, #fff0f7) !important;
 }
 </style>

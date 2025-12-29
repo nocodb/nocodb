@@ -1232,6 +1232,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     sort?: string | string[];
     filterArr?: Filter[];
     sortArr?: Sort[];
+    minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
     return await baseModelGroupBy(this, logger).list(args);
   }
@@ -1242,6 +1243,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     limit?;
     offset?;
     filterArr?: Filter[];
+    minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
     return await baseModelGroupBy(this, logger).count(args);
   }

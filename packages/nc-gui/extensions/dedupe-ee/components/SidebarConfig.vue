@@ -12,6 +12,12 @@ const onSelectField = () => {
   saveConfig()
   loadGroupSets()
 }
+
+onMounted(() => {
+  if (!config.value.selectedFieldId) return
+
+  loadGroupSets()
+})
 </script>
 
 <template>
@@ -19,7 +25,7 @@ const onSelectField = () => {
     <NcListTableSelector
       v-model:value="config.selectedTableId"
       force-layout="vertical"
-      @update:value="(value) => onTableSelect(value)"
+      @update:value="(value) => onTableSelect(value as string)"
     />
 
     <NcListViewSelector

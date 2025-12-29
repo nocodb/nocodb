@@ -536,10 +536,11 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
             limit: 100,
             sort: `+${selectedField.value?.title}` as any,
             column_name: selectedField.value?.title,
-          },
+            minCount: 2, // Only return groups with count >= 2 (duplicates)
+          } as any, // Type assertion needed until API types are updated
         )
 
-        groups.push(...(res.list || []).filter((group) => group.count > 1))
+        groups.push(...(res.list || []))
 
         if (res.pageInfo?.isLastPage) {
           hasMore = false
@@ -573,6 +574,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     tableList,
     viewList,
     availableFields,
+    selectedField,
     currentDuplicateSet,
     currentSetRecords,
     hasMoreSets,

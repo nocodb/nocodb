@@ -115,7 +115,7 @@ const FormNodeMap = {
   'core.flow.iterate': IterateNodeConfig,
   'core.flow.wait-until': WaitUntilNodeConfig,
   'nocodb.run_script': RunScriptNodeConfig,
-  'core.action.generate-structured': GenerateStructuredNodeConfig,
+  'ai.action.generate-structured': GenerateStructuredNodeConfig,
 }
 
 const formSchema = computed(() => {

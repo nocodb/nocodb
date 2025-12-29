@@ -14,7 +14,7 @@ import { RecordDeletedTriggerNode } from './nodes/record-deleted-trigger';
 import { FormSubmittedTriggerNode } from './nodes/form-submitted-trigger';
 import { RecordEntersViewTriggerNode } from './nodes/record-enters-view-trigger';
 import { RecordMatchesConditionTriggerNode } from './nodes/record-matches-condition-trigger';
-import { ExecuteScriptNode } from './nodes/execute-script/index';
+import { RunScriptNode } from './nodes/run-script';
 
 export const entries: IntegrationEntry[] = [
   {
@@ -140,12 +140,12 @@ export const entries: IntegrationEntry[] = [
   },
   {
     type: IntegrationType.WorkflowNode,
-    sub_type: 'nocodb.execute_script',
-    wrapper: ExecuteScriptNode,
+    sub_type: 'nocodb.run_script',
+    wrapper: RunScriptNode,
     form: [],
     manifest: {
       ...manifest,
-      title: 'NocoDB - Execute Script',
+      title: 'NocoDB - Run Script',
       order: 12,
     },
   },

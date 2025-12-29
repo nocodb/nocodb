@@ -18,18 +18,18 @@ interface ScriptVariable {
   value: any;
 }
 
-interface ExecuteScriptNodeConfig extends WorkflowNodeConfig {
+interface RunScriptNodeConfig extends WorkflowNodeConfig {
   script: string;
   variables: ScriptVariable[];
 }
 
-export class ExecuteScriptNode extends WorkflowNodeIntegration<ExecuteScriptNodeConfig> {
+export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
     return {
-      id: 'nocodb.execute_script',
+      id: 'nocodb.run_script',
       title: 'Run a Script',
       description:
-        'Execute custom JavaScript code with access to Base, Table, View, Field, Record, and Collaborators',
+        'Execute custom script with access to Base, Table, View, Field, Record, and Collaborators',
       icon: 'ncScript',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
@@ -38,7 +38,7 @@ export class ExecuteScriptNode extends WorkflowNodeIntegration<ExecuteScriptNode
     };
   }
 
-  public async validate(config: ExecuteScriptNodeConfig) {
+  public async validate(config: RunScriptNodeConfig) {
     const errors: { path?: string; message: string }[] = [];
 
     if (!config.script || config.script.trim() === '') {
@@ -59,7 +59,7 @@ export class ExecuteScriptNode extends WorkflowNodeIntegration<ExecuteScriptNode
   }
 
   public async run(
-    ctx: WorkflowNodeRunContext<ExecuteScriptNodeConfig>,
+    ctx: WorkflowNodeRunContext<RunScriptNodeConfig>,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();
@@ -332,7 +332,8 @@ export class ExecuteScriptNode extends WorkflowNodeIntegration<ExecuteScriptNode
 
           if (inferredVars && inferredVars.length > 0) {
             // Find the root variable (the one matching our key)
-            const rootVar = inferredVars.find((v) => v.key === key) || inferredVars[0];
+            const rootVar =
+              inferredVars.find((v) => v.key === key) || inferredVars[0];
 
             variables.push({
               ...rootVar,

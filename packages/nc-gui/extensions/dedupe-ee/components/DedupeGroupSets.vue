@@ -1,36 +1,16 @@
 <script lang="ts" setup>
+import { type TableType } from 'nocodb-sdk'
 import { useDedupeOrThrow } from '../lib/useDedupe'
 
-const { selectedField, isLoadingGroupSets, groupSets } = useDedupeOrThrow()
+const { selectedField, isLoadingGroupSets, groupSets, meta } = useDedupeOrThrow()
+
+provide(MetaInj, ref(meta.value as TableType))
 
 const getFieldValue = (group: Record<string, any>) => {
   // The field title (e.g., "fNumber") is used as the key in the group object
   const fieldTitle = selectedField?.value?.title
   if (!fieldTitle) return null
   return group[fieldTitle]
-}
-
-const getFieldTitle = () => {
-  return selectedField?.value?.title || 'Field'
-}
-
-const formatValue = (value: any) => {
-  if (value == null || value === '') {
-    return '(blank)'
-  }
-
-  // Handle dates
-  if (value instanceof Date) {
-    return value.toLocaleString()
-  }
-
-  // Handle numbers
-  if (typeof value === 'number') {
-    return value.toLocaleString()
-  }
-
-  // Handle strings
-  return String(value)
 }
 </script>
 
@@ -55,25 +35,26 @@ const formatValue = (value: any) => {
       <div
         v-for="(group, index) in groupSets"
         :key="index"
-        class="flex items-center justify-between p-4 border border-nc-border-gray-medium rounded-lg hover:border-nc-border-gray-medium hover:shadow-sm transition-all cursor-pointer"
+        class="flex items-center justify-between px-3 py-2 border-1 border-nc-border-gray-medium rounded-lg"
       >
-        <div class="flex items-center gap-3 flex-1">
-          <div class="flex-shrink-0">
-            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <span class="text-blue-600 font-semibold">{{ group.count }}</span>
-            </div>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="text-sm font-medium text-nc-content-gray-extreme">
-              <span>{{ getFieldTitle() }}:</span>
-              <span class="text-nc-content-gray-subtle font-normal ml-1">
-                {{ formatValue(getFieldValue(group)) }}
-              </span>
-            </div>
-            <div class="text-xs text-nc-content-gray-muted mt-1">
-              {{ group.count }} duplicate record{{ group.count > 1 ? 's' : '' }}
-            </div>
-          </div>
+        <div class="flex items-center gap-3 flex-1 justify-between">
+          <NcTooltip v-if="selectedField" class="truncate leading-[20px]" show-on-truncate-only>
+            <template #title>
+              <SmartsheetPlainCell
+                :model-value="getFieldValue(group)"
+                :column="selectedField"
+                class="font-semibold leading-[20px]"
+              />
+            </template>
+
+            <SmartsheetPlainCell
+              :model-value="getFieldValue(group)"
+              :column="selectedField"
+              class="font-semibold text-nc-content-brand leading-[20px]"
+            />
+          </NcTooltip>
+
+          <div class="text-bodyDefaultSm text-nc-content-gray-muted whitespace-nowrap">Count: {{ group.count }}</div>
         </div>
       </div>
     </div>

@@ -24,9 +24,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       return jwtPayload;
 
     if (
-      [NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER].email,
-        NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER].email]
-        .includes(jwtPayload?.email)
+      [
+        NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER].email,
+        NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER].email,
+      ].includes(jwtPayload?.email)
     ) {
       // Avoid service user to get access to other workspaces and bases
       if (

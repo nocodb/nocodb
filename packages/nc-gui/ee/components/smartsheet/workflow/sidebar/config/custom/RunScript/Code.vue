@@ -61,8 +61,6 @@ const updateTypes = async () => {
   ])
 }
 
-const dirty = false
-
 const updateTheme = async () => {
   const monaco = await loadMonacoEditor()
   if (isDark.value) {
@@ -127,10 +125,6 @@ async function setupMonacoEditor() {
   updateTheme()
 
   editor.onDidChangeModelContent(() => {
-    if (dirty) {
-      dirty = false
-      return
-    }
     updateConfig({
       script: editor.getValue(),
     })

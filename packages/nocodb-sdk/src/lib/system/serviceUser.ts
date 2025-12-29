@@ -27,8 +27,15 @@ const NOCO_SERVICE_USERS = {
 
 type ServiceUserKey = keyof typeof NOCO_SERVICE_USERS;
 
-const isServiceUser = (user: any, serviceType?: ServiceUserKey): boolean => {
+const isServiceUser = (
+  user: any,
+  serviceType?: ServiceUserKey | ServiceUserKey[]
+): boolean => {
   if (!user) return false;
+
+  if (Array.isArray(serviceType)) {
+    return serviceType.some((type) => isServiceUser(user, type));
+  }
 
   // If specific service type is provided, check against that service user only
   if (serviceType) {

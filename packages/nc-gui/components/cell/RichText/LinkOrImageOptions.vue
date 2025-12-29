@@ -316,11 +316,11 @@ const tabIndex = computed(() => {
       v-if="isImageOptionsVisible && isImageRenderEnabled"
       v-model:is-add-image-mode="isAddImageMode"
       v-model:is-image-edit-mode="isImageEditMode"
-      @update:is-image-edit-mode="onImageEditModeUpdate"
       v-model:is-image-options-visible="isImageOptionsVisible"
       :editor="editor"
       :tab-index="tabIndex"
       :image-node="imageNode"
+      @update:is-image-edit-mode="onImageEditModeUpdate"
     />
   </BubbleMenu>
 </template>

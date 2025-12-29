@@ -219,29 +219,3 @@ export const getRelatedBaseId = (relationColumn: ColumnType | undefined, current
   // For same-base links, fk_related_base_id will be undefined, so use current base ID
   return colOptions?.fk_related_base_id || currentBaseId
 }
-
-/**
- * Get meta from metas object using composite key (baseId:tableId) or fallback to tableId only.
- * This properly handles both same-base and cross-base scenarios.
- *
- * @param metas - The metas object from store
- * @param baseId - The base ID where the table belongs
- * @param tableId - The table ID to look up
- * @returns The table meta or undefined if not found
- */
-export const getMetaWithCompositeKey = (
-  metas: Record<string, any> | undefined,
-  baseId: string | undefined,
-  tableId: string | undefined,
-): any => {
-  if (!metas || !tableId) return undefined
-
-  // If baseId is provided, try composite key first
-  if (baseId) {
-    const compositeKey = `${baseId}:${tableId}`
-    if (metas[compositeKey]) return metas[compositeKey]
-  }
-
-  // Fallback to tableId only (for backward compatibility)
-  return metas[tableId]
-}

@@ -211,5 +211,15 @@ export const useMetas = createSharedComposable(() => {
       loadingState.value[loadingKey] = false
     }
   }
-  return { getMeta, clearAllMeta, metas, metasWithIdAsKey, removeMeta, setMeta, getPartialMeta, getMetaByKey }
+
+  return {
+    getMeta,
+    clearAllMeta,
+    metas,
+    metasWithIdAsKey,
+    removeMeta,
+    setMeta,
+    getPartialMeta,
+    getMetaByKey,
+  }
 })

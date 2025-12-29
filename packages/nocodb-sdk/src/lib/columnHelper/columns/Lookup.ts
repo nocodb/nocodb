@@ -39,9 +39,10 @@ export class LookupHelper extends AbstractColumnHelper {
       ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)
           ?.colOptions as LinkToAnotherRecordType)
       : null;
+    const relatedBaseId = relationColumnOptions?.fk_related_base_id || baseId;
     const relatedTableMeta =
       relationColumnOptions?.fk_related_model_id &&
-      getMetaWithCompositeKey(metas, baseId, relationColumnOptions.fk_related_model_id as string);
+      getMetaWithCompositeKey(metas, relatedBaseId, relationColumnOptions.fk_related_model_id as string);
 
     const childColumn = relatedTableMeta?.columns.find(
       (c: ColumnType) => c.id === colOptions.fk_lookup_column_id

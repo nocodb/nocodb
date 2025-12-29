@@ -168,8 +168,9 @@ const _duplicate = async () => {
                 if ([UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt as UITypes)) {
                   if (col && col.colOptions) {
                     const relatedTableId = (col.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
-                    if (relatedTableId) {
-                      await getMeta(activeBase.value?.id, relatedTableId, true)
+                    const relatedBaseId = (col.colOptions as any)?.fk_related_base_id || activeBase.value?.id
+                    if (relatedTableId && relatedBaseId) {
+                      await getMeta(relatedBaseId, relatedTableId, true)
                     }
                   }
                 }

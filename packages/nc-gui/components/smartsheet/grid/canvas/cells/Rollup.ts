@@ -1,7 +1,14 @@
-import { type ColumnType, type LinkToAnotherRecordType, type RollupType, UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
+import {
+  type ColumnType,
+  type LinkToAnotherRecordType,
+  type RollupType,
+  UITypes,
+  getMetaWithCompositeKey,
+  getRenderAsTextFunForUiType,
+} from 'nocodb-sdk'
 
 import rfdc from 'rfdc'
-import { getMetaWithCompositeKey, getRelatedBaseId } from '../utils/cell'
+import { getRelatedBaseId } from '../utils/cell'
 
 const clone = rfdc()
 export const RollupCellRenderer: CellRenderer = {
@@ -9,7 +16,7 @@ export const RollupCellRenderer: CellRenderer = {
     const { column, value, metas, meta, renderCell } = props
 
     // If it is empty text then no need to render
-    if (!isValidValue(value)) return
+    if (!metas || !isValidValue(value)) return
 
     const colOptions = column.colOptions as RollupType
 

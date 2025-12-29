@@ -1,12 +1,6 @@
-import { RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, getMetaWithCompositeKey, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import {
-  getMetaWithCompositeKey,
-  getRelatedBaseId,
-  getSingleMultiselectColOptions,
-  getUserColOptions,
-  renderAsCellLookupOrLtarValue,
-} from '../utils/cell'
+import { getRelatedBaseId, getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
 import { renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
 

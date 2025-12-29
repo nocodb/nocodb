@@ -2,7 +2,7 @@ import { UITypes, isVirtualCol } from 'nocodb-sdk'
 
 export class TypeGenerator {
   public tables = []
-  private initialCode = `
+  private initialCodeForScripts = `
 declare let console: {
   log(...args: Array<unknown>): void
   warn(...args: Array<unknown>): void
@@ -3032,10 +3032,2243 @@ declare const viewActions: {
 declare interface ConfigItem {}
 
 `
+  private initalCodeForWorkflow = `
+declare let console: {
+  log(...args: Array<unknown>): void
+  warn(...args: Array<unknown>): void
+  error(...args: Array<unknown>): void
+}
+
+interface EmailAttachment {
+  /** Name that will be displayed to the recipient. Unicode is allowed. */
+  filename?: string;
+  /** Contents of the file */
+  content?: string | Buffer;
+  /** HTTP(S) URL that should be fetched and attached */
+  href?: string;
+  /** Custom HTTP headers for href, for example { authorization: 'Bearer …' } */
+  httpHeaders?: object;
+  /** Explicit MIME type. Defaults to the type inferred from filename */
+  contentType?: string;
+  /** Content‑Disposition header. Defaults to 'attachment' */
+  contentDisposition?: string;
+  /** Content‑ID for embedding the attachment inline in the HTML body */
+  cid?: string;
+  /** Encoding applied when content is a string (e.g. 'base64', 'hex') */
+  encoding?: string;
+  /** Custom headers for the individual MIME node */
+  headers?: object;
+  /** Advanced: Full pre‑built MIME node including headers. Overrides every other field. */
+  raw?: string;
+}
+
+interface NocoDbFile {
+  /** File URL (preferred) */
+  url?: string;
+  /** File title/name */
+  title: string;
+  /** MIME type of the file */
+  mimetype: string;
+  /** File size in bytes */
+  size: number;
+  /** Signed URL for secure access (preferred over url) */
+  signedUrl?: string;
+  /** Thumbnails object (ignored for email attachments) */
+  thumbnails?: {
+    tiny: {
+      signedPath: string | never
+      signedUrl: string | never
+    },
+    small: {
+      signedPath: string | never
+      signedUrl: string | never
+    },
+    card_cover: {
+      signedPath: string | never
+      signedUrl: string | never
+    },
+  } | never
+}
+
+interface EmailOptions {
+  /** Recipient email address(es) */
+  to: string | string[];
+  /** Email subject line */
+  subject: string;
+  /** HTML content of the email */
+  html?: string;
+  /** Plain text content of the email */
+  text?: string;
+  /** Email attachments - supports both standard email attachments and NocoDB file objects */
+  attachments?: Array<EmailAttachment | NocoDbFile>;
+  /** CC recipient email address(es) */
+  cc?: string[];
+  /** BCC recipient email address(es) */
+  bcc?: string[];
+}
+
+interface EmailResult {
+  /** Whether the email was successfully sent */
+  success: boolean;
+}
+
+/**
+ * Send an email from the script.
+ * 
+ * @param options - Email configuration options
+ * @returns Promise that resolves to email send result
+ * 
+ * @example
+ * \`\`\`javascript
+ * // Send HTML email
+ * await script.email({
+ *   to: 'user@example.com',
+ *   subject: 'Hello World',
+ *   html: '<h1>Welcome!</h1><p>Thanks for signing up.</p>'
+ * });
+ * 
+ * // Send to multiple recipients
+ * await script.email({
+ *   to: ['user1@example.com', 'user2@example.com'],
+ *   subject: 'Team Update',
+ *   text: 'Here is the latest team update...'
+ * });
+ * 
+ * // Send with attachments
+ * await script.email({
+ *   to: 'user@example.com',
+ *   subject: 'Files Attached',
+ *   html: '<p>Please find the attached files.</p>',
+ *   attachments: [
+ *     // Standard email attachment
+ *     {
+ *       filename: 'report.pdf',
+ *       href: 'https://example.com/report.pdf',
+ *       contentType: 'application/pdf'
+ *     },
+ *     // NocoDB file object (auto-converted)
+ *     {
+ *       title: 'document.pdf',
+ *       mimetype: 'application/pdf',
+ *       size: 1024000,
+ *       signedUrl: 'https://storage.example.com/signed-url-123'
+ *     },
+ *     // Direct content attachment
+ *     {
+ *       filename: 'data.txt',
+ *       content: 'Hello World',
+ *       contentType: 'text/plain'
+ *     }
+ *   ]
+ * });
+ * \`\`\`
+ */
+declare function email(options: EmailOptions): Promise<EmailResult>;
+
+/**
+ * Script Email API for sending emails from scripts.
+ * // Send email
+ * await script.email({
+ *   to: 'user@example.com',
+ *   subject: 'Hello World',
+ *   text: '<strong>It works!</strong>'
+ * });
+ */
+declare const script: {
+  email: typeof email;
+};
+
+
+/**
+ * Configuration options for button inputs
+ * @template T The type of value that the button will return when selected
+ */
+declare interface ButtonOption<T = string> {
+   /**
+    * The label to display on the button
+    */
+    label: string;
+    
+    /**
+     * The value to return when the button is selected
+     */
+    
+    value?: T;
+    
+    /**
+     * The variant of the button
+     * @default "default"
+     * Possible values: "default", "danger", "primary", "secondary"
+     */
+    variant?: "default" | "danger" | "primary" | "secondary";
+}
+
+/**
+* Raw binary data object
+*/
+declare interface NcBlob {
+ /** Size in bytes */
+ readonly size: number;
+ 
+ /** MIME type */
+ readonly type: string;
+ 
+ /** Extract portion of blob data */
+ slice(start?: number, end?: number, contentType?: string): Blob;
+}
+
+/**
+* File system file object
+* @extends NcBlob
+*/
+declare interface NcFile extends NcBlob {
+ /** Last modified timestamp */
+ readonly lastModified: number;
+ 
+ /** File name with extension */
+ readonly name: string;
+}
+
+interface RemoteFetchResponse<T = any> {
+  data: T;
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  config: {
+    url: string;
+    method: string;
+    headers: Record<string, string>;
+    data: any;
+  };
+  error?: {
+    message: string;
+    code?: string;
+    name: string;
+    stack?: string;
+  };
+}
+
+declare function remoteFetchAsync<T = any>(
+  url: string,
+  options?: {
+    method?: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS'
+    headers?: Record<string, string>
+    body?: string | null
+  },
+): Promise<RemoteFetchResponse<T>>
+
+declare const output: {
+  set: (key: string, value: any) => void
+}
+
+declare interface Collaborator {
+  /**
+   * The user ID of the collaborator.
+   */
+  readonly id: string
+
+  /**
+   * The name of the collaborator. Could be \`null\` if the user's account doesn't yet have a name.
+   */
+  readonly name: string
+
+  /**
+   * The email address of the user collaborator
+   */
+  readonly email: string
+}
+
+declare interface NocoDBRecord {
+  /**
+   * The unique identifier for this record.
+   * For single primary key tables, this is the primary key value.
+   * For composite primary keys, this is the concatenated values with "___" separator.
+   */
+  readonly id: string
+
+  /**
+   * The primary display value for this record.
+   * Returns undefined if no primary value field is configured.
+   */
+  readonly name: string
+
+  /**
+   * Gets a specific cell value in this record.
+   * The value format depends on the field type.
+   *
+   * @param fieldOrIdOrName - The field ID or name or Field to get the value for
+   * @throws {Error} If the field is not found or not included in the query
+   */
+  getCellValue(fieldOrIdOrName: Field | string): any
+  /**
+   * Gets a specific cell value in this record, formatted as a string.
+   * Special handling is provided for:
+   * - User fields (returns display_name or email)
+   * - Button fields (returns label)
+   * - Other object values (returns toString())
+   *
+   * @param fieldOrIdOrName - The field ID or name to get the value for
+   * @returns Empty string if value is null/undefined, string representation otherwise
+   * @throws {Error} If the field is not found or not included in the query
+   */
+  getCellValueAsString(fieldOrIdOrName: Field | string): string
+}
+
+/**
+ * Result set from a record query
+ */
+declare interface RecordQueryResult {
+  /**
+   * Array of record IDs in this result set
+   */
+  readonly recordIds: ReadonlyArray<string>
+
+  /**
+   * Array of records in this result set
+   */
+  readonly records: ReadonlyArray<NocoDBRecord>
+
+  /**
+   * Whether there are more records available to load
+   */
+  readonly hasMoreRecords: boolean
+
+  /**
+   * Get a specific record from the result set by ID
+   *
+   * @param recordId - ID of the record to retrieve
+   * @throws {Error} If record is not found in the result set
+   */
+  getRecord(recordId: string): NocoDBRecord
+
+  /**
+   * Load the next page of records if available
+   *
+   * @returns Promise resolving to updated RecordQueryResult, or null if no more records
+   */
+  loadMoreRecords(): Promise<RecordQueryResult | null>
+}
+
+enum UITypes {
+  ID = 'ID',
+  LinkToAnotherRecord = 'LinkToAnotherRecord',
+  ForeignKey = 'ForeignKey',
+  Lookup = 'Lookup',
+  SingleLineText = 'SingleLineText',
+  LongText = 'LongText',
+  Attachment = 'Attachment',
+  Checkbox = 'Checkbox',
+  MultiSelect = 'MultiSelect',
+  SingleSelect = 'SingleSelect',
+  Date = 'Date',
+  Year = 'Year',
+  Time = 'Time',
+  PhoneNumber = 'PhoneNumber',
+  GeoData = 'GeoData',
+  Email = 'Email',
+  URL = 'URL',
+  Number = 'Number',
+  Decimal = 'Decimal',
+  Currency = 'Currency',
+  Percent = 'Percent',
+  Duration = 'Duration',
+  Rating = 'Rating',
+  Formula = 'Formula',
+  Rollup = 'Rollup',
+  DateTime = 'DateTime',
+  CreatedTime = 'CreatedTime',
+  LastModifiedTime = 'LastModifiedTime',
+  Geometry = 'Geometry',
+  JSON = 'JSON',
+  SpecificDBType = 'SpecificDBType',
+  Barcode = 'Barcode',
+  QrCode = 'QrCode',
+  Button = 'Button',
+  Links = 'Links',
+  User = 'User',
+  CreatedBy = 'CreatedBy',
+  LastModifiedBy = 'LastModifiedBy',
+  Order = 'Order',
+}
+
+/**
+ * Type definition for field options when creating or updating fields
+ */
+
+declare type FieldOptionsWriteFormat<FieldTypeT extends UITypes> = FieldTypeT extends UITypes.Checkbox
+  ? {
+      /**
+       * Icon to display for the checkbox
+       */
+      icon: 'square' | 'circle-check' | 'heart' | 'circle-filled' | 'thumbs-up' | 'flag'
+
+      /**
+       * Color of the checkbox when checked
+       */
+      color: string
+    }
+  : FieldTypeT extends UITypes.MultiSelect | UITypes.SingleSelect
+  ? {
+      /**
+       * Available choices for single select / multi select fields
+       */
+      choices: Array<{
+        id?: string // Optional for new choices
+        title: string
+        color: string
+      }>
+    }
+  : FieldTypeT extends UITypes.LongText
+  ? {
+      /**
+       * Whether to enable rich text formatting
+       */
+      rich_text: boolean
+      /**
+       * Whether to enable AI text generation
+       */
+      ai: boolean
+    }
+  : FieldTypeT extends UITypes.Number | UITypes.Decimal
+  ? {
+      /**
+       * Whether to show thousands separator
+       */
+      locale_string: boolean
+    }
+  : FieldTypeT extends UITypes.Currency
+  ? {
+      /**
+       * Locale for currency formatting
+       */
+      locale: string
+      /**
+       * Currency code (e.g., 'USD')
+       */
+      code:
+        | 'AED'
+        | 'AFN'
+        | 'ALL'
+        | 'AMD'
+        | 'ANG'
+        | 'AOA'
+        | 'ARS'
+        | 'AUD'
+        | 'AWG'
+        | 'AZN'
+        | 'BAM'
+        | 'BBD'
+        | 'BDT'
+        | 'BGN'
+        | 'BHD'
+        | 'BIF'
+        | 'BMD'
+        | 'BND'
+        | 'BOB'
+        | 'BOV'
+        | 'BRL'
+        | 'BSD'
+        | 'BTN'
+        | 'BWP'
+        | 'BYR'
+        | 'BZD'
+        | 'CAD'
+        | 'CDF'
+        | 'CHE'
+        | 'CHF'
+        | 'CHW'
+        | 'CLF'
+        | 'CLP'
+        | 'CNY'
+        | 'COP'
+        | 'COU'
+        | 'CRC'
+        | 'CUP'
+        | 'CVE'
+        | 'CYP'
+        | 'CZK'
+        | 'DJF'
+        | 'DKK'
+        | 'DOP'
+        | 'DZD'
+        | 'EEK'
+        | 'EGP'
+        | 'ERN'
+        | 'ETB'
+        | 'EUR'
+        | 'FJD'
+        | 'FKP'
+        | 'GBP'
+        | 'GEL'
+        | 'GHC'
+        | 'GIP'
+        | 'GMD'
+        | 'GNF'
+        | 'GTQ'
+        | 'GYD'
+        | 'HKD'
+        | 'HNL'
+        | 'HRK'
+        | 'HTG'
+        | 'HUF'
+        | 'IDR'
+        | 'ILS'
+        | 'INR'
+        | 'IQD'
+        | 'IRR'
+        | 'ISK'
+        | 'JMD'
+        | 'JOD'
+        | 'JPY'
+        | 'KES'
+        | 'KGS'
+        | 'KHR'
+        | 'KMF'
+        | 'KPW'
+        | 'KRW'
+        | 'KWD'
+        | 'KYD'
+        | 'KZT'
+        | 'LAK'
+        | 'LBP'
+        | 'LKR'
+        | 'LRD'
+        | 'LSL'
+        | 'LTL'
+        | 'LVL'
+        | 'LYD'
+        | 'MAD'
+        | 'MDL'
+        | 'MGA'
+        | 'MKD'
+        | 'MMK'
+        | 'MNT'
+        | 'MOP'
+        | 'MRO'
+        | 'MTL'
+        | 'MUR'
+        | 'MVR'
+        | 'MWK'
+        | 'MXN'
+        | 'MXV'
+        | 'MYR'
+        | 'MZN'
+        | 'NAD'
+        | 'NGN'
+        | 'NIO'
+        | 'NOK'
+        | 'NPR'
+        | 'NZD'
+        | 'OMR'
+        | 'PAB'
+        | 'PEN'
+        | 'PGK'
+        | 'PHP'
+        | 'PKR'
+        | 'PLN'
+        | 'PYG'
+        | 'QAR'
+        | 'ROL'
+        | 'RON'
+        | 'RSD'
+        | 'RUB'
+        | 'RWF'
+        | 'SAR'
+        | 'SBD'
+        | 'SCR'
+        | 'SDD'
+        | 'SEK'
+        | 'SGD'
+        | 'SHP'
+        | 'SIT'
+        | 'SKK'
+        | 'SLL'
+        | 'SOS'
+        | 'SRD'
+        | 'STD'
+        | 'SYP'
+        | 'SZL'
+        | 'THB'
+        | 'TJS'
+        | 'TMM'
+        | 'TND'
+        | 'TOP'
+        | 'TRY'
+        | 'TTD'
+        | 'TWD'
+        | 'TZS'
+        | 'UAH'
+        | 'UGX'
+        | 'USD'
+        | 'USN'
+        | 'USS'
+        | 'UYU'
+        | 'UZS'
+        | 'VEB'
+        | 'VND'
+        | 'VUV'
+        | 'WST'
+        | 'XAF'
+        | 'XAG'
+        | 'XAU'
+        | 'XBA'
+        | 'XBB'
+        | 'XBC'
+        | 'XBD'
+        | 'XCD'
+        | 'XDR'
+        | 'XFO'
+        | 'XFU'
+        | 'XOF'
+        | 'XPD'
+        | 'XPF'
+        | 'XPT'
+        | 'XTS'
+        | 'XXX'
+        | 'YER'
+        | 'ZAR'
+        | 'ZMK'
+        | 'ZWD'
+    }
+  : FieldTypeT extends UITypes.Duration
+  ? {
+      /**
+       * Format configuration for duration
+       */
+      duration_format: 'h:mm' | 'h:mm:ss' | 'h:mm:ss.s' | 'h:mm:ss.ss' | 'h:mm:ss.sss'
+    }
+  : FieldTypeT extends UITypes.Rating
+  ? {
+      /**
+       * Icon to display for rating
+       */
+      icon: 'star' | 'heart' | 'circle-filled' | 'thumbs-up' | 'flag'
+      /**
+       * Maximum rating value (1-10)
+       */
+      max_value: number
+      /**
+       * Color of rating icons
+       */
+      color: string
+    }
+  : FieldTypeT extends UITypes.Date
+  ? {
+      /**
+       * Date format string
+       */
+      date_format: string
+    }
+  : FieldTypeT extends UITypes.DateTime
+  ? {
+      /**
+       * Date format string
+       */
+      date_format: string
+      /**
+       * Time format string
+       */
+      time_format: string
+      /**
+       * Whether to use 12-hour format
+       */
+      ['12hr_format']: boolean
+      /**
+       * Timezone string
+       */
+      timezone: string | null
+      /**
+       * display_timezone boolean
+       */
+      display_timezone: boolean
+      /**
+       * use_same_timezone_for_all boolean
+       */
+       use_same_timezone_for_all: boolean
+    }
+  : FieldTypeT extends UITypes.Time
+  ? {
+      /**
+       * Whether to use 12-hour format
+       */
+      ['12hr_format']: boolean
+    }
+  : FieldTypeT extends UITypes.Email | UITypes.URL | UITypes.PhoneNumber
+  ? {
+      /**
+       * Whether to validate user inputted data
+       */
+      validation: boolean
+    }
+  : FieldTypeT extends UITypes.Percent
+  ? {
+      /**
+       * Whether to display as progress bar
+       */
+      show_as_progress: boolean
+    }
+  : FieldTypeT extends UITypes.Barcode
+  ? {
+      /**
+       * Barcode format type
+       */
+      barcode_format:
+        | 'CODE128'
+        | 'upc'
+        | 'EAN13'
+        | 'EAN8'
+        | 'EAN5'
+        | 'EAN2'
+        | 'CODE39'
+        | 'ITF14'
+        | 'MSI'
+        | 'PHARMACODE'
+        | 'CODABAR'
+      /**
+       * Field ID containing barcode value
+       */
+      barcode_value_field_id: string
+    }
+  : FieldTypeT extends UITypes.QrCode
+  ? {
+      /**
+       * Field ID containing QR code value
+       */
+      qrcode_value_field_id: string
+    }
+  : FieldTypeT extends UITypes.Formula
+  ? {
+      /**
+       * Formula expression
+       */
+      formula: string
+      result:
+        | {
+            /**
+             * Result format type
+             */
+            type:
+              | UITypes.Decimal
+              | UITypes.Currency
+              | UITypes.Percent
+              | UITypes.Rating
+              | UITypes.Email
+              | UITypes.URL
+              | UITypes.PhoneNumber
+              | UITypes.DateTime
+              | UITypes.Date
+              | UITypes.Time
+              | UITypes.Checkbox
+            /**
+             * Format configuration for result
+             */
+            format: FieldOptionsWriteFormat<
+              NonNullable<
+                Extract<
+                  typeof UITypes,
+                  | UITypes.Decimal
+                  | UITypes.Currency
+                  | UITypes.Percent
+                  | UITypes.Rating
+                  | UITypes.Email
+                  | UITypes.URL
+                  | UITypes.PhoneNumber
+                  | UITypes.DateTime
+                  | UITypes.Date
+                  | UITypes.Time
+                  | UITypes.Checkbox
+                >
+              >
+            >
+          }
+        | null
+    }
+  : FieldTypeT extends UITypes.Lookup
+  ? {
+      /**
+       * Field to lookup in related table
+       */
+      related_table_lookup_field_id: string
+      /**
+       * Relation field to use
+       */
+      related_field_id: string
+    }
+  : FieldTypeT extends UITypes.Rollup
+  ? {
+      /**
+       * Field to rollup from linked table
+       */
+      related_table_rollup_field_id: string
+      /**
+       * Rollup function to apply
+       */
+      rollup_function: 'min' | 'max' | 'sum' | 'avg' | 'count' | 'countDistinct' | 'sumDistinct' | 'avgDistinct'
+      /**
+       * Relation field to use
+       */
+      related_field_id: string
+  }
+  : FieldTypeT extends UITypes.Links
+  ? {
+      /**
+       * Type of relation (e.g., 'mm' for many-to-many)
+       * mm: Many-to-Many
+       * hm: Has Many
+       * oo: One-to-One
+       * bt: Belongs To
+       */
+      relation_type: 'mm' | 'hm' | 'oo' | 'bt'
+      /**
+       * ID of related table
+       */
+      related_table_id: string
+      /**
+       * Optional view ID for limiting record selection
+       */
+      limit_record_selection_view_id?: string | null
+    }
+  : FieldTypeT extends UITypes.LinkToAnotherRecord
+  ? {
+      /**
+       * Type of relation (e.g., 'mm' for many-to-many)
+       * mm: Many-to-Many
+       * hm: Has Many
+       * oo: One-to-One
+       * bt: Belongs To
+       */
+      relation_type: 'mm' | 'hm' | 'oo' | 'bt'
+      /**
+       * ID of related table
+       */
+      related_table_id: string
+      /**
+       * Optional view ID for limiting record selection
+       */
+      limit_record_selection_view_id?: string | null
+    }
+  : FieldTypeT extends UITypes.Button
+  ? {
+      /**
+       * Button icon name
+       */
+      icon: string
+
+      /**
+       * Button label text
+       */
+      label: string
+
+      /**
+       * Button color theme
+       */
+      color: 'brand' | 'red' | 'green' | 'maroon' | 'blue' | 'yellow' | 'purple' | 'gray' | 'orange' | 'pink'
+
+      /**
+       * Button visual theme
+       * - solid: Filled background with white text
+       * - light: Light background with colored text
+       * - text: No background, only colored text
+       */
+      theme: 'solid' | 'light' | 'text'
+    } & (
+      | {
+          /**
+           * URL type button that opens generated URL
+           */
+          type: 'url'
+          /**
+           * Formula to generate the URL
+           * The Fields can be referenced in the formula using the format {field_name}
+           */
+          formula: string
+          model?: never
+          script_id?: never
+          button_hook_id?: never
+          integration_id?: never
+        }
+      | {
+          /**
+           * Script type button that executes a NocoDB script
+           */
+          type: 'script'
+          /**
+           * ID of the script to execute
+           */
+          script_id: string
+          formula?: never
+          model?: never
+          button_hook_id?: never
+          integration_id?: never
+        }
+      | {
+          /**
+           * Webhook type button that calls configured webhook
+           */
+          type: 'webhook'
+          /**
+           * ID of the webhook to call
+           */
+          button_hook_id: string
+          formula?: never
+          model?: never
+          script_id?: never
+          integration_id?: never
+        }
+      | {
+          /**
+           * AI type button that generates cell values using AI
+           */
+          type: 'ai'
+          /**
+           * Model to use for AI generation
+           */
+          model: string
+          /**
+           * ID of the AI integration to use
+           */
+          integration_id: string
+
+          /**
+           * Prompt text for AI model
+           * The Fields can be referenced in the prompt using the format {field_name}
+           * Example: "Generate a description for the product {product_name}"
+           */
+          prompt: string
+          
+          /**
+           * Output column IDs
+           * IDs of columns where AI output should be stored
+           */
+          output_column_ids?: string
+
+          script_id?: never
+          button_hook_id?: never
+        }
+    )
+  : FieldTypeT extends UITypes.User
+  ? {
+      /**
+       * Whether multiple users can be selected
+       */
+      allow_multiple_users: boolean
+    }
+    : FieldTypeT extends UITypes.CreatedTime 
+    ? {
+      /**
+      * Date format string
+      */
+      date_format: string
+      /**
+      * Time format string
+      */
+      time_format: string
+      /**
+      * Whether to use 12-hour format
+      */
+      ['12hr_format']: boolean
+      /**
+       * Timezone string
+       */
+      timezone: string | null
+      /**
+       * display_timezone boolean
+       */
+      display_timezone: boolean
+      /**
+       * use_same_timezone_for_all boolean
+       */
+       use_same_timezone_for_all: boolean
+    }
+    : FieldTypeT extends UITypes.LastModifiedTime
+    ? {
+      /**
+      * Date format string
+      */
+      date_format: string
+      /**
+      * Time format string
+      */
+      time_format: string
+      /**
+      * Whether to use 12-hour format
+      */
+      ['12hr_format']: boolean
+      /**
+       * Timezone string
+       */
+      timezone: string | null
+      /**
+       * display_timezone boolean
+       */
+      display_timezone: boolean
+      /**
+       * use_same_timezone_for_all boolean
+       */
+       use_same_timezone_for_all: boolean
+    }
+  : FieldTypeT extends
+      | UITypes.Order
+      | UITypes.CreatedBy
+      | UITypes.LastModifiedBy
+      | UITypes.JSON
+      | UITypes.SpecificDBType
+      | UITypes.GeoData
+      | UITypes.Geometry
+      | UITypes.Attachment
+      | UITypes.Year
+      | UITypes.SingleLineText
+      | UITypes.ID
+      | UITypes.ForeignKey
+  ? never
+  : null
+
+/**
+ * Base interface that all field types extend.
+ */
+declare interface BaseField {
+  /**
+   * The unique identifier for the field.
+   */
+  readonly id: string
+
+  /**
+   * The name of the field as displayed in the UI.
+   */
+  readonly name: string
+
+  /**
+   * The type of the field as defined in UITypes enum.
+   */
+  readonly type: UITypes
+
+  /**
+   * Whether this is a system field (true) or user-defined field (false).
+   */
+  // readonly system: boolean
+
+  /**
+   * Whether this field is the primary key. Null if not applicable.
+   */
+   readonly primary_key: boolean | null
+
+  /**
+   * Whether this field is the primary value display field. Null if not applicable.
+   */
+   readonly primary_value: boolean | null
+   
+  /**
+   * Whether this field is a system field
+   */
+   readonly is_system_field: boolean
+
+  /**
+   * Optional description of the field.
+   */
+  readonly description: string | null
+
+  /**
+   * Default value for the field if no value is provided.
+   */
+  readonly default_value: any
+
+  /**
+   * Configuration options specific to the field type.
+   */
+  readonly options: Record<string, any>
+  
+  /**
+   * \`true\` if this field is computed, \`false\` otherwise. A field is "computed" if it's value is not
+   * set by user input (e.g. autoNumber, formula, etc.).
+   */
+  readonly isComputed: boolean
+
+  /**
+   * Updates the options configuration for this field.
+   *
+   * @param options - New options configuration object. Structure depends on field type.
+   * @returns Promise that resolves when update is complete
+   */
+  updateOptionsAsync(options: { [key: string]: unknown }): Promise<void>
+
+  /**
+   * Updates the description of this field.
+   *
+   * @param description - New description text, or null to remove description
+   * @returns Promise that resolves when update is complete
+   */
+  updateDescriptionAsync(description: string | null): Promise<void>
+
+  /**
+   * Updates the display name of this field.
+   *
+   * @param name - New field name
+   * @returns Promise that resolves when update is complete
+   */
+  updateNameAsync(name: string): Promise<void>
+}
+
+/**
+ * Field type for primary key/ID columns.
+ */
+declare interface IDField extends BaseField {
+  readonly type: UITypes.ID
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+/**
+ * Field type for single line text input.
+ */
+declare interface SingleLineTextField extends BaseField {
+  readonly type: UITypes.SingleLineText
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+/**
+ * Field type for multi-line text input with optional rich text formatting.
+ */
+declare interface LongTextField extends BaseField {
+  readonly type: UITypes.LongText
+  readonly options: {
+    /**
+     * Whether rich text formatting is enabled.
+     */
+    rich_text: boolean
+    /**
+     * Whether AI text generation is enabled for this field.
+     */
+    ai: boolean
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.LongText>): Promise<void>
+}
+
+/**
+ * Field type for multi-select dropdown input.
+ */
+
+declare interface MultiSelectField extends BaseField {
+  readonly type: UITypes.MultiSelect
+  readonly options: {
+    /**
+     * Available choices for multi select field.
+     */
+    choices: Array<{
+      id?: string
+      title: string
+      color: string
+    }>
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.MultiSelect>): Promise<void>
+}
+
+/**
+ * Field type for single-select dropdown input.
+ */
+
+declare interface SingleSelectField extends BaseField {
+  readonly type: UITypes.SingleSelect
+  readonly options: {
+    /**
+     * Available choices for single select field.
+     */
+    choices: Array<{
+      id?: string
+      title: string
+      color: string
+    }>
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.SingleSelect>): Promise<void>
+}
+
+/**
+ * Field type for Attachment Field.
+ */
+declare interface AttachmentField extends BaseField {
+  readonly type: UITypes.Attachment
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface CheckboxField extends BaseField {
+  readonly type: UITypes.Checkbox
+  readonly options: {
+    /**
+     * Icon to display for the checkbox
+     */
+    icon: 'square' | 'circle-check' | 'heart' | 'circle-filled' | 'thumbs-up' | 'flag'
+
+    /**
+     * Color of the checkbox when checked
+     */
+    color: string
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Checkbox>): Promise<void>
+}
+
+declare interface DateTimeField extends BaseField {
+  readonly type: UITypes.DateTime
+  readonly options: {
+    /**
+     * Date format string
+     */
+    date_format: string
+    /**
+     * Time format string
+     */
+    time_format: string
+    /**
+     * Whether to use 12-hour format
+     */
+    ['12hr_format']: boolean
+    /**
+     * Timezone string
+     */
+    timezone: string | null
+    /**
+     * display_timezone boolean
+     */
+    display_timezone: boolean
+    /**
+     * use_same_timezone_for_all boolean
+     */
+    use_same_timezone_for_all: boolean
+  }
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.DateTime>): Promise<void>
+}
+
+declare interface DateField extends BaseField {
+  readonly type: UITypes.Date
+  readonly options: {
+    /**
+     * Date format string
+     */
+    date_format: string
+  }
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Date>): Promise<void>
+}
+
+declare interface TimeField extends BaseField {
+  readonly type: UITypes.Time
+  readonly options: {
+    /**
+     * Whether to use 12-hour format
+     */
+    ['12hr_format']: boolean
+  }
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Time>): Promise<void>
+}
+
+declare interface UrlField extends BaseField {
+  readonly type: UITypes.URL
+  readonly options: {
+    /**
+     * Whether to validate user inputted data
+     */
+    validation: boolean
+  }
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.URL>): Promise<void>
+}
+
+declare interface PhoneNumberField extends BaseField {
+  readonly type: UITypes.PhoneNumber
+  readonly options: {
+    /**
+     * Whether to validate user inputted data
+     */
+    validation: boolean
+  }
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.PhoneNumber>): Promise<void>
+}
+
+declare interface EmailField extends BaseField {
+  readonly type: UITypes.Email
+  readonly options: {
+    /**
+     * Whether to validate user inputted data
+     */
+    validation: boolean
+  }
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Email>): Promise<void>
+}
+
+declare interface PercentField extends BaseField {
+  readonly type: UITypes.Percent
+  readonly options: {
+    /**
+     * Whether to display as progress bar
+     */
+    show_as_progress: boolean
+  }
+}
+
+declare interface BarcodeField extends BaseField {
+  readonly type: UITypes.Barcode
+  readonly options: {
+    /**
+     * Barcode format type
+     */
+    barcode_format: 'CODE128' | 'upc' | 'EAN13' | 'EAN8' | 'EAN5' | 'EAN2' | 'CODE39' | 'ITF14' | 'MSI' | 'PHARMACODE' | 'CODABAR'
+    /**
+     * Field ID containing barcode value
+     */
+    barcode_value_field_id: string
+  }
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Barcode>): Promise<void>
+}
+
+declare interface QrCodeField extends BaseField {
+  readonly type: UITypes.QrCode
+  readonly options: {
+    /**
+     * Field ID containing QR code value
+     */
+    qrcode_value_field_id: string
+  }
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.QrCode>): Promise<void>
+}
+
+declare interface FormulaField extends BaseField {
+  readonly type: UITypes.Formula
+  readonly options: {
+    /**
+     * Formula expression
+     */
+    formula: string
+    result:
+      | {
+          /**
+           * Result format type
+           */
+          type:
+            | UITypes.Decimal
+            | UITypes.Currency
+            | UITypes.Percent
+            | UITypes.Rating
+            | UITypes.Email
+            | UITypes.URL
+            | UITypes.PhoneNumber
+            | UITypes.DateTime
+            | UITypes.Date
+            | UITypes.Time
+            | UITypes.Checkbox
+          /**
+           * Format configuration for result
+           */
+           format: FieldOptionsWriteFormat<UITypes.Decimal | UITypes.Currency | UITypes.Percent | UITypes.Rating | UITypes.Email | UITypes.URL | UITypes.PhoneNumber | UITypes.DateTime | UITypes.Date | UITypes.Time | UITypes.Checkbox>
+
+        }
+      | null
+  }
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Formula>): Promise<void>
+}
+
+declare interface LookupField extends BaseField {
+  readonly type: UITypes.Lookup
+  readonly options: {
+    /**
+     * Field to lookup in related table
+     */
+    related_table_lookup_field_id: string
+    /**
+     * Relation field to use
+     */
+    related_field_id: string
+  }
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Lookup>): Promise<void>
+}
+
+declare interface RollupField extends BaseField {
+  readonly type: UITypes.Rollup
+  readonly options: {
+    /**
+     * Field to rollup from linked table
+     */
+    related_table_rollup_field_id: string
+    /**
+     * Rollup function to apply
+     */
+    rollup_function: 'min' | 'max' | 'sum' | 'avg' | 'count' | 'countDistinct' | 'sumDistinct' | 'avgDistinct'
+    /**
+     * Relation field to use
+     */
+    related_field_id: string
+    
+    /**
+     * Whether to show thousands separator
+     */
+    locale_string: boolean
+    
+    /**
+     * Number of decimal places to display
+     * Possible values 0 - 8
+     */
+     precision: number
+  }
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Rollup>): Promise<void>
+}
+
+declare interface LinksField extends BaseField {
+  readonly type: UITypes.Links
+  readonly options: {
+    /**
+     * Type of relation (e.g., 'mm' for many-to-many)
+     * mm: Many-to-Many
+     * hm: Has Many
+     * oo: One-to-One
+     * bt: Belongs To
+     */
+    relation_type: 'mm' | 'hm' | 'oo' | 'bt'
+    /**
+     * ID of related table
+     */
+    related_table_id: string
+    /**
+     * Optional view ID for limiting record selection
+     */
+    limit_record_selection_view_id?: string | null
+  }
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface YearField extends BaseField {
+  readonly type: UITypes.Year
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface GeoDataField extends BaseField {
+  readonly type: UITypes.GeoData
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface NumberField extends BaseField {
+  readonly type: UITypes.Number
+  readonly options: {
+    /**
+     * Whether to show thousands separator
+     */
+    locale_string: boolean
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Number>): Promise<void>
+}
+
+declare interface DecimalField extends BaseField {
+  readonly type: UITypes.Decimal
+  readonly options: {
+    /**
+     * Whether to show thousands separator
+     */
+    locale_string: boolean
+    
+    /**
+     * Number of decimal places to display
+     * Possible values 0 - 8
+     */
+     precision: number
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Decimal>): Promise<void>
+}
+
+declare interface CurrencyField extends BaseField {
+  readonly type: UITypes.Currency
+  readonly options: {
+    /**
+     * Locale for currency formatting
+     */
+    locale: string
+    /**
+     * Currency code (e.g., 'USD')
+     */
+    code:
+      | 'AED'
+      | 'AFN'
+      | 'ALL'
+      | 'AMD'
+      | 'ANG'
+      | 'AOA'
+      | 'ARS'
+      | 'AUD'
+      | 'AWG'
+      | 'AZN'
+      | 'BAM'
+      | 'BBD'
+      | 'BDT'
+      | 'BGN'
+      | 'BHD'
+      | 'BIF'
+      | 'BMD'
+      | 'BND'
+      | 'BOB'
+      | 'BOV'
+      | 'BRL'
+      | 'BSD'
+      | 'BTN'
+      | 'BWP'
+      | 'BYR'
+      | 'BZD'
+      | 'CAD'
+      | 'CDF'
+      | 'CHE'
+      | 'CHF'
+      | 'CHW'
+      | 'CLF'
+      | 'CLP'
+      | 'CNY'
+      | 'COP'
+      | 'COU'
+      | 'CRC'
+      | 'CUP'
+      | 'CVE'
+      | 'CYP'
+      | 'CZK'
+      | 'DJF'
+      | 'DKK'
+      | 'DOP'
+      | 'DZD'
+      | 'EEK'
+      | 'EGP'
+      | 'ERN'
+      | 'ETB'
+      | 'EUR'
+      | 'FJD'
+      | 'FKP'
+      | 'GBP'
+      | 'GEL'
+      | 'GHC'
+      | 'GIP'
+      | 'GMD'
+      | 'GNF'
+      | 'GTQ'
+      | 'GYD'
+      | 'HKD'
+      | 'HNL'
+      | 'HRK'
+      | 'HTG'
+      | 'HUF'
+      | 'IDR'
+      | 'ILS'
+      | 'INR'
+      | 'IQD'
+      | 'IRR'
+      | 'ISK'
+      | 'JMD'
+      | 'JOD'
+      | 'JPY'
+      | 'KES'
+      | 'KGS'
+      | 'KHR'
+      | 'KMF'
+      | 'KPW'
+      | 'KRW'
+      | 'KWD'
+      | 'KYD'
+      | 'KZT'
+      | 'LAK'
+      | 'LBP'
+      | 'LKR'
+      | 'LRD'
+      | 'LSL'
+      | 'LTL'
+      | 'LVL'
+      | 'LYD'
+      | 'MAD'
+      | 'MDL'
+      | 'MGA'
+      | 'MKD'
+      | 'MMK'
+      | 'MNT'
+      | 'MOP'
+      | 'MRO'
+      | 'MTL'
+      | 'MUR'
+      | 'MVR'
+      | 'MWK'
+      | 'MXN'
+      | 'MXV'
+      | 'MYR'
+      | 'MZN'
+      | 'NAD'
+      | 'NGN'
+      | 'NIO'
+      | 'NOK'
+      | 'NPR'
+      | 'NZD'
+      | 'OMR'
+      | 'PAB'
+      | 'PEN'
+      | 'PGK'
+      | 'PHP'
+      | 'PKR'
+      | 'PLN'
+      | 'PYG'
+      | 'QAR'
+      | 'ROL'
+      | 'RON'
+      | 'RSD'
+      | 'RUB'
+      | 'RWF'
+      | 'SAR'
+      | 'SBD'
+      | 'SCR'
+      | 'SDD'
+      | 'SEK'
+      | 'SGD'
+      | 'SHP'
+      | 'SIT'
+      | 'SKK'
+      | 'SLL'
+      | 'SOS'
+      | 'SRD'
+      | 'STD'
+      | 'SYP'
+      | 'SZL'
+      | 'THB'
+      | 'TJS'
+      | 'TMM'
+      | 'TND'
+      | 'TOP'
+      | 'TRY'
+      | 'TTD'
+      | 'TWD'
+      | 'TZS'
+      | 'UAH'
+      | 'UGX'
+      | 'USD'
+      | 'USN'
+      | 'USS'
+      | 'UYU'
+      | 'UZS'
+      | 'VEB'
+      | 'VND'
+      | 'VUV'
+      | 'WST'
+      | 'XAF'
+      | 'XAG'
+      | 'XAU'
+      | 'XBA'
+      | 'XBB'
+      | 'XBC'
+      | 'XBD'
+      | 'XCD'
+      | 'XDR'
+      | 'XFO'
+      | 'XFU'
+      | 'XOF'
+      | 'XPD'
+      | 'XPF'
+      | 'XPT'
+      | 'XTS'
+      | 'XXX'
+      | 'YER'
+      | 'ZAR'
+      | 'ZMK'
+      | 'ZWD'
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Currency>): Promise<void>
+}
+
+declare interface DurationField extends BaseField {
+  readonly type: UITypes.Duration
+  readonly options: {
+    /**
+     * Format configuration for duration
+     */
+    duration_format: 'h:mm' | 'h:mm:ss' | 'h:mm:ss.s' | 'h:mm:ss.ss' | 'h:mm:ss.sss'
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Duration>): Promise<void>
+}
+
+declare interface RatingField extends BaseField {
+  readonly type: UITypes.Rating
+  readonly options: {
+    /**
+     * Icon to display for rating
+     */
+    icon: 'star' | 'heart' | 'circle-filled' | 'thumbs-up' | 'flag'
+    /**
+     * Maximum rating value (1-10)
+     */
+    max_value: number
+    /**
+     * Color of rating icons
+     */
+    color: string
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.Rating>): Promise<void>
+}
+
+declare interface CreatedTimeField extends BaseField {
+  readonly type: UITypes.CreatedTime  
+  readonly options: {
+    /**
+     * Date format string
+     */
+    date_format: string
+    /**
+     * Time format string
+     */
+    time_format: string
+    /**
+     * Whether to use 12-hour format
+     */
+    ['12hr_format']: boolean
+    /**
+     * Timezone string
+     */
+    timezone: string | null
+    /**
+     * display_timezone boolean
+     */
+    display_timezone: boolean
+    /**
+     * use_same_timezone_for_all boolean
+     */
+    use_same_timezone_for_all: boolean
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.CreatedTime>): Promise<void>
+}
+
+declare interface LastModifiedTimeField extends BaseField {
+  readonly type: UITypes.LastModifiedTime
+  readonly options: {
+    /**
+     * Date format string
+     */
+    date_format: string
+    /**
+     * Time format string
+     */
+    time_format: string
+    /**
+     * Whether to use 12-hour format
+     */
+    ['12hr_format']: boolean
+    /**
+     * Timezone string
+     */
+    timezone: string | null
+    /**
+     * display_timezone boolean
+     */
+    display_timezone: boolean
+    /**
+     * use_same_timezone_for_all boolean
+     */
+    use_same_timezone_for_all: boolean
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.LastModifiedTime>): Promise<void>
+}
+
+declare interface LastModifiedByField extends BaseField {
+  readonly type: UITypes.LastModifiedBy
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface CreatedByField extends BaseField {
+  readonly type: UITypes.CreatedBy
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface UserField extends BaseField {
+  readonly type: UITypes.User
+  readonly options: {
+    /**
+     * Whether multiple users can be selected
+     */
+    allow_multiple_users: boolean
+  }
+
+  updateOptionsAsync(options: FieldOptionsWriteFormat<UITypes.User>): Promise<void>
+}
+
+declare interface GeometryField extends BaseField {
+  readonly type: UITypes.Geometry
+
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface JsonField extends BaseField {
+  readonly type: UITypes.JSON
+
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface OrderField extends BaseField {
+  readonly type: UITypes.Order
+
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface ButtonField extends BaseField {
+  readonly type: UITypes.Button
+
+  readonly options: {
+    /**
+     * Button icon name
+     */
+    icon: string
+
+    /**
+     * Button label text
+     */
+    label: string
+
+    /**
+     * Button color theme
+     */
+    color: 'brand' | 'red' | 'green' | 'maroon' | 'blue' | 'yellow' | 'purple' | 'gray' | 'orange' | 'pink'
+
+    /**
+     * Button visual theme
+     * - solid: Filled background with white text
+     * - light: Light background with colored text
+     * - text: No background, only colored text
+     */
+    theme: 'solid' | 'light' | 'text'
+  } & (
+    | {
+        /**
+         * URL type button that opens generated URL
+         */
+        type: 'url'
+        /**
+         * Formula to generate the URL
+         * The Fields can be referenced in the formula using the format {field_name}
+         */
+        formula: string
+        model?: never
+        script_id?: never
+        button_hook_id?: never
+        integration_id?: never
+      }
+    | {
+        /**
+         * Script type button that executes a NocoDB script
+         */
+        type: 'script'
+        /**
+         * ID of the script to execute
+         */
+        script_id: string
+        formula?: never
+        model?: never
+        button_hook_id?: never
+        integration_id?: never
+      }
+    | {
+        /**
+         * Webhook type button that calls configured webhook
+         */
+        type: 'webhook'
+        /**
+         * ID of the webhook to call
+         */
+        button_hook_id: string
+        formula?: never
+        model?: never
+        script_id?: never
+        integration_id?: never
+      }
+    | {
+        /**
+         * AI type button that generates cell values using AI
+         */
+        type: 'ai'
+        /**
+         * Model to use for AI generation
+         */
+        model: string
+        /**
+         * ID of the AI integration to use
+         */
+        integration_id: string
+
+        /**
+         * Prompt text for AI model
+         * The Fields can be referenced in the prompt using the format {field_name}
+         * Example: "Generate a description for the product {product_name}"
+         */
+        formula: string
+
+        script_id?: never
+        button_hook_id?: never
+      }
+  )
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface ForeignKeyField extends BaseField {
+  readonly type: UITypes.ForeignKey
+
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface LinkToAnotherRecordField extends BaseField {
+  readonly type: UITypes.LinkToAnotherRecord
+
+  readonly options: {
+    /**
+     * Type of relation (e.g., 'mm' for many-to-many)
+     * mm: Many-to-Many
+     * hm: Has Many
+     * oo: One-to-One
+     * bt: Belongs To
+     */
+    relation_type: 'mm' | 'hm' | 'oo' | 'bt'
+    /**
+     * ID of related table
+     */
+    related_table_id: string
+    /**
+     * Optional view ID for limiting record selection
+     */
+    limit_record_selection_view_id?: string | null
+  }
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare interface SpecificDBTypeField extends BaseField {
+  readonly type: UITypes.SpecificDBType
+
+  readonly options: never
+
+  updateOptionsAsync(options: never): Promise<void>
+}
+
+declare type Field =
+  | IDField
+  | SingleLineTextField
+  | LongTextField
+  | MultiSelectField
+  | SingleSelectField
+  | AttachmentField
+  | CheckboxField
+  | DateTimeField
+  | DateField
+  | TimeField
+  | UrlField
+  | PhoneNumberField
+  | EmailField
+  | PercentField
+  | BarcodeField
+  | QrCodeField
+  | FormulaField
+  | LookupField
+  | RollupField
+  | LinksField
+  | YearField
+  | GeoDataField
+  | DecimalField
+  | NumberField
+  | CurrencyField
+  | DurationField
+  | RatingField
+  | CreatedByField
+  | LastModifiedByField
+  | CreatedTimeField
+  | LastModifiedTimeField
+  | UserField
+  | GeometryField
+  | JsonField
+  | OrderField
+  | LinkToAnotherRecordField
+  | ButtonField
+  | ForeignKeyField
+  | SpecificDBTypeField
+
+declare interface View {
+  /**
+   * The unique ID of this view.
+   */
+  readonly id: string
+  /**
+   * The name of the view.
+   */
+  readonly name: string
+  /**
+   * Description of the view, if any.
+   */
+  readonly description: string | null
+  /**
+   * The type of the view, such as Grid, Calendar, or Kanban.
+   */
+  readonly type: 'grid' | 'form' | 'calendar' | 'gallery' | 'kanban'
+
+  /**
+   * Select records from the view. This action is asynchronous.
+   * Always includes primary key and primary value fields in results.
+   *
+   * @param options - Query options including fields, sorts, and pagination
+   */
+  selectRecordsAsync(options?: {
+    /**
+     * Fields to include in results
+     */
+    fields?: ReadonlyArray<Field | string>
+    /**
+     * Sort specifications
+     */
+    sorts?: ReadonlyArray<{
+      field: Field | string
+      direction: 'asc' | 'desc'
+    }>
+    /**
+     * Specific record IDs to fetch
+     */
+    recordIds?: ReadonlyArray<string>
+    /**
+     * Maximum records to return (default: 50)
+     */
+    pageSize?: number
+    /**
+     * Page number (default: 1)
+     */
+    page?: number
+    /**
+     * where filter expression
+     */
+    where?: string
+  }): Promise<RecordQueryResult>
+
+  /**
+   * Select a single record from the view. This action is asynchronous.
+   * Always includes primary key and primary value fields in results.
+   *
+   * @param recordId - ID of the record to fetch
+   * @param options - Options for selecting fields
+   */
+  selectRecordAsync(
+    recordId: any,
+    options?: {
+      fields?: Array<Field | string>
+    },
+  ): Promise<NocoDBRecord | null>
+}
+
+declare interface Table {
+  /**
+   * The unique ID of this table.
+   */
+  readonly id: string
+
+  /**
+   * The name of the table.
+   */
+  readonly name: string
+
+  /**
+   * The description of this table, if it has one.
+   */
+  readonly description: string | null
+
+  /**
+   * The fields in this table.
+   */
+  readonly fields: ReadonlyArray<Field>
+
+  /**
+   * The views in this table.
+   */
+  readonly views: ReadonlyArray<View>
+
+  /**
+   * Get a field in the table by its id or name.
+   */
+  getField(idOrName: string): Field | undefined
+
+  /**
+   * Get a view in the table by its id or name.
+   */
+  getView(idOrName: string): View | undefined
+  
+ /**
+  * Creates a new field in the table.
+  * 
+  * @param options Configuration for the new field
+  * @returns Promise resolving to the newly created Field
+  */
+  createFieldAsync<T extends UITypes>(options: {
+    /**
+     * The name for the new field
+     */
+     name: string;
+  
+    /**
+     * The type of field to create
+     */
+    type: T;
+  
+    /**
+     * Optional description for the field
+     */
+     description?: string | null;
+  
+    /**
+     * Optional default value for the field
+     */
+     default_value?: any;
+  
+    /**
+     * Type-specific options for the field
+     */
+    options?: FieldOptionsWriteFormat<T>;
+  }): Promise<Field>;
+
+  /**
+   * Select records from the table. This action is asynchronous.
+   * Always includes primary key and primary value fields in results.
+   */
+  selectRecordsAsync(options?: {
+    /**
+     * Fields to include in results
+     */
+    fields?: ReadonlyArray<Field | string>
+    /**
+     * Sort specifications
+     */
+    sorts?: ReadonlyArray<{
+      field: Field | string
+      direction: 'asc' | 'desc'
+    }>
+    /**
+     * Specific record IDs to fetch
+     */
+    recordIds?: ReadonlyArray<string>
+    /**
+     * Maximum records to return (default: 50)
+     */
+    pageSize?: number
+    /**
+     * Page number (default: 1)
+     */
+    page?: number
+    /**
+     * where filter expression
+     */
+    where?: string
+  }): Promise<RecordQueryResult>
+
+  /**
+   * Select a single record from the table. This action is asynchronous.
+   * Always includes primary key and primary value fields in results.
+   */
+  selectRecordAsync(
+    recordId: any,
+    options?: {
+      fields?: Array<Field | string>
+    },
+  ): Promise<NocoDBRecord | null>
+
+  /**
+   * Creates a new record with the specified field values.
+   * Field values can be referenced by either field name or ID.
+   * This action is asynchronous.
+   *
+   * @param data - NocoDBRecord data with field values
+   * @returns ID of created record
+   */
+  createRecordAsync(data: { [key: string]: unknown }): Promise<string>
+
+  /**
+   * Creates multiple records with the specified field values.
+   * Field values can be referenced by either field name or ID.
+   * This action is asynchronous.
+   *
+   * @param data - Array of record data with field values
+   * @returns Array of created record IDs
+   */
+  createRecordsAsync(data: Array<{ fields: { [key: string]: unknown } }>): Promise<string[]>
+
+  /**
+   * Updates field values for a record.
+   * Field values can be referenced by either field name or ID.
+   * This action is asynchronous.
+   *
+   * @param recordOrRecordId - ID of record to update
+   * @param data - New field values
+   */
+  updateRecordAsync(recordOrRecordId: NocoDBRecord | any, data: { [key: string]: unknown }): Promise<void>
+
+  /**
+   * Updates field values for multiple records.
+   * Field values can be referenced by either field name or ID.
+   * This action is asynchronous.
+   *
+   * @param records - Array of record updates
+   */
+  updateRecordsAsync(records: Array<{id: string; fields: {[key: string]: unknown}}>): Promise<void>;
+  
+  /**
+   * Delete multiple records.
+   * This action is asynchronous.
+   *
+   * @param ids - Array of ids
+   */
+  deleteRecordsAsync(records: Array<string | NocoDBRecord>): Promise<void>;
+
+  /**
+   * Triggers an action for specified rows using a Button field.
+   * This is useful for bulk processing button actions (such as AI generation) programmatically.
+   * This action is asynchronous.
+   *
+   * @param params - Action parameters
+   * @param params.rowIds - Array of record IDs to process (max 25)
+   * @param params.columnId - ID of the Button field to trigger
+   * @returns Array of updated records
+   */
+  generateRowsAsync(params: { rowIds: string[]; columnId: string }): Promise<NocoDBRecord[]>;
+
+    /**
+   * Delete a record.
+   * This action is asynchronous.
+   *
+   * @param recordIdOrRecord - Id or Record
+   */
+  deleteRecordAsync(recordIdOrRecord: string | NocoDBRecord): Promise<void>;
+}
+declare interface ConfigItem {}
+
+`
   private output: string[] = []
   private indent = 0
-  constructor() {
-    this.output.push(this.initialCode)
+  private is_workflow = false
+  constructor(isWorkflow = false) {
+    this.is_workflow = isWorkflow
+    this.output.push(isWorkflow ? this.initalCodeForWorkflow : this.initialCodeForScripts)
   }
 
   private write(line = '') {
@@ -4016,6 +6249,20 @@ declare interface ConfigItem {}
     this.write('}')
   }
 
+  generateInputInterfaceForWorkflow(schema: any) {
+    this.write(`declare var input: {`)
+    this.indent_in()
+    this.formatJSDoc([
+      `Your scripting automation action can use inputs that are passed to it using the built-in input object. Click '+ Add property' within 'Script input' and specify the keys and values of your input. Keys must be string literals, while values may use template expressions which allow you to refer to the results of previous automation steps.`,
+      `It returns an object with all input keys mapped to their corresponding values.`,
+    ])
+
+    this.write(`config: () => any`)
+    this.indent_out()
+    this.write(`}`)
+    this.indent_out()
+  }
+
   generateInputInterface(schema: any) {
     this.write(`declare var input: {`)
     this.indent_in()
@@ -4459,9 +6706,13 @@ declare interface ConfigItem {}
 
     this.write('declare let base: Base')
 
-    this.write(`// Input Interface`)
-
-    this.generateInputInterface(schema)
+    if (!this.is_workflow) {
+      this.write(`// Input Interface`)
+      this.generateInputInterface(schema)
+    } else {
+      this.write(`// Input Interface`)
+      this.generateInputInterfaceForWorkflow(schema)
+    }
 
     return this.output.join('\n')
   }

@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import Variables from '~/components/smartsheet/workflow/sidebar/config/custom/RunScript/Variables.vue'
+import Code from '~/components/smartsheet/workflow/sidebar/config/custom/RunScript/Code.vue'
+import Result from '~/components/smartsheet/workflow/sidebar/config/custom/RunScript/Result.vue'
 interface Props {
   value: boolean
 }
@@ -32,8 +34,10 @@ const modalVisible = useVModel(props, 'value')
       </div>
     </template>
 
-    <div class="w-full h-full">
-      <Variables class="w-1/3" />
+    <div class="w-full flex h-full">
+      <Variables class="w-4/18" />
+      <Code class="w-9/18" />
+      <Result class="w-5/18" />
     </div>
   </NcModal>
 </template>

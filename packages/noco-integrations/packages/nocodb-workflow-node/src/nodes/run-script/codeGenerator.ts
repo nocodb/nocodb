@@ -1569,7 +1569,7 @@ export function generateApiProxy(req: NocoSDK.NcRequest): string {
 
 export function generateInputAPI(variableContext: Record<string, any>): string {
   return `
-  const __nc_input_config = ${JSON.stringify(variableContext)};
+  const __nc_input_config = (${JSON.stringify(variableContext)});
 
   const input = {
     config: () => {
@@ -1633,7 +1633,7 @@ export function generateScriptMessageHandler(userCode: string): string {
       } catch (e) {
         ____script_error = true;
         ____script_error_message = e?.message;
-        console.error(e);
+        console.error(e?.message);
       } finally {
         postMessage('${ScriptActionType.DONE}', {
           error: ____script_error,

@@ -67,7 +67,7 @@ const addVariable = () => {
 </script>
 
 <template>
-  <div class="border-r-1 border-b-1 h-full">
+  <div class="border-r-1 border-b-1 h-full overflow-y-auto nc-scrollbar-x-md">
     <div class="text-nc-content-gray-emphasis px-3 border-b-1 text-captionBold py-2">Variables</div>
 
     <NcGroupedSettings class="!px-3" title="Inputs">

@@ -213,6 +213,7 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
     try {
       return await Sandbox.create(process.env.E2B_TEMPLATE_ID, {
         apiKey: process.env.E2B_API_KEY,
+        timeoutMs: 180 * 1000, // 180 seconds
       });
     } catch (error: any) {
       throw new Error(`Sandbox creation failed: ${error.message}`);
@@ -318,61 +319,6 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
     runtimeInputs?: any,
   ): Promise<NocoSDK.VariableDefinition[]> {
     // Look at runtimeInputs.output (the actual output from the script execution)
-    if (runtimeInputs?.output && typeof runtimeInputs.output === 'object') {
-      const outputKeys = Object.keys(runtimeInputs.output);
-
-      if (outputKeys.length > 0) {
-        const variables: NocoSDK.VariableDefinition[] = [];
-
-        for (const key of outputKeys) {
-          const value = runtimeInputs.output[key];
-
-          // Generate variables with the key as prefix - this handles deep nesting
-          const inferredVars = NocoSDK.genGeneralVariables(value, key);
-
-          if (inferredVars && inferredVars.length > 0) {
-            // Find the root variable (the one matching our key)
-            const rootVar =
-              inferredVars.find((v) => v.key === key) || inferredVars[0];
-
-            variables.push({
-              ...rootVar,
-              extra: {
-                ...rootVar.extra,
-                description: `Output value: ${key}`,
-              },
-            });
-          } else {
-            // Fallback for primitive values
-            variables.push({
-              key,
-              name: key,
-              type: NocoSDK.VariableType.String,
-              groupKey: NocoSDK.VariableGroupKey.Fields,
-              extra: {
-                icon: 'cellText',
-                description: `Output value: ${key}`,
-              },
-            });
-          }
-        }
-
-        return variables;
-      }
-    }
-
-    // Fallback: Return a generic output object when no runtime data available
-    return [
-      {
-        key: 'output',
-        name: 'Output',
-        type: NocoSDK.VariableType.Object,
-        groupKey: NocoSDK.VariableGroupKey.Fields,
-        extra: {
-          icon: 'cellJson',
-          description: 'Values set by the script via output.set()',
-        },
-      },
-    ];
+    return NocoSDK.genGeneralVariables(runtimeInputs.output, '');
   }
 }

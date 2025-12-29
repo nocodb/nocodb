@@ -614,12 +614,13 @@ defineOptions({
                         sidebar: props.inSidebar,
                       },
                     ]"
-                    class="w-full flex flex-row items-center gap-x-3"
+                    class="w-full flex flex-row items-center gap-x-2"
                   >
+                    <GeneralIcon icon="ncUser" class="opacity-80" />
                     <div>
                       {{ $t('labels.assignAsPersonalView') }}
                     </div>
-                    <div class="flex-1 w-full" />
+                    <div class="flex-1 w-full mr-1" />
                     <LazyPaymentUpgradeBadge
                       :feature="PlanFeatureTypes.FEATURE_PERSONAL_VIEWS"
                       :limit-or-feature="'to access assign as personal view feature.' as PlanFeatureTypes"
@@ -645,6 +646,8 @@ defineOptions({
               inner-class="w-full"
               @click="click(PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY, () => onToggleFieldHeaderVisibility())"
             >
+              <GeneralIcon :icon="isFieldHeaderVisible ? 'eye' : 'eyeSlash'" class="!w-4 !h-4 opacity-80" />
+
               {{ isFieldHeaderVisible ? $t('labels.hideFieldHeader') : $t('labels.showFieldHeader') }}
 
               <div class="flex-1 w-full" />

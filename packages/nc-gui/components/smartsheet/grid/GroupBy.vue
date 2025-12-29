@@ -47,7 +47,7 @@ const vGroup = useVModel(props, 'group', emits)
 
 const { appInfo } = useGlobal()
 
-const { getColor } = useTheme()
+const { isDark, getColor } = useTheme()
 
 const meta = inject(MetaInj, ref())
 
@@ -319,28 +319,28 @@ const bgColor = computed(() => {
   if (props.maxDepth === 3) {
     switch (_depth) {
       case 2:
-        return '#F9F9FA'
+        return getColor(themeV4Colors.gray['50'])
       case 1:
-        return '#F4F4F5'
+        return getColor(themeV4Colors.gray['100'])
       default:
-        return '#F1F1F1'
+        return getColor('#F1F1F1', themeV4Colors.gray['200'])
     }
   }
 
   if (props.maxDepth === 2) {
     switch (_depth) {
       case 1:
-        return '#F9F9FA'
+        return getColor(themeV4Colors.gray['50'])
       default:
-        return '#F4F4F5'
+        return getColor(themeV4Colors.gray['100'])
     }
   }
 
   if (props.maxDepth === 1) {
-    return '#F9F9FA'
+    return getColor(themeV4Colors.gray['50'])
   }
 
-  return '#F9F9FA'
+  return getColor(themeV4Colors.gray['50'])
 })
 async function openNewRecordHandler() {
   if (_depth !== 0) return
@@ -413,15 +413,21 @@ async function openNewRecordHandler() {
                           v-for="[tagIndex, tag] of Object.entries(grp.key.split(','))"
                           :key="`panel-tag-${grp.column.id}-${tag}`"
                           class="!py-0 !px-[12px] !rounded-[12px]"
-                          :color="grp.color.split(',')[+tagIndex]"
+                          :color="
+                            getSelectTypeFieldOptionBgColor({
+                              isDark: isDark,
+                              color: grp.color?.split(',')[+tagIndex] || '#ccc',
+                            })
+                          "
                         >
                           <span
                             class="nc-group-value"
                             :style="{
-                              'color': getOppositeColorOfBackground(
-                                getColor('var(--nc-bg-default)'),
-                                grp.color.split(',')[+tagIndex] || '#ccc',
-                              ),
+                              'color': getSelectTypeFieldOptionTextColor({
+                                isDark,
+                                color: grp.color?.split(',')[+tagIndex] || '#ccc',
+                                getColor,
+                              }),
                               'font-size': '14px',
                               'font-weight': 500,
                             }"
@@ -436,7 +442,7 @@ async function openNewRecordHandler() {
                       >
                         <template v-for="(val, ind) of parseKey(grp)" :key="ind">
                           <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
-                          <span v-else class="text-gray-400">No mapped value</span>
+                          <span v-else class="text-nc-content-gray-disabled">No mapped value</span>
                         </template>
                       </div>
                       <a-tag
@@ -444,12 +450,21 @@ async function openNewRecordHandler() {
                         :key="`panel-tag-${grp.column.id}-${grp.key}`"
                         class="!py-0 !px-[12px]"
                         :class="`${grp.column.uidt === 'SingleSelect' ? '!rounded-[12px]' : '!rounded-[6px]'}`"
-                        :color="grp.color"
+                        :color="
+                          getSelectTypeFieldOptionBgColor({
+                            isDark: isDark,
+                            color: grp.color || '#ccc',
+                          })
+                        "
                       >
                         <span
                           class="nc-group-value font-semibold text-[13px]"
                           :style="{
-                            color: getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), grp.color || '#ccc'),
+                            color: getSelectTypeFieldOptionTextColor({
+                              isDark,
+                              color: grp.color || '#ccc',
+                              getColor,
+                            }),
                           }"
                         >
                           <template v-if="grp.key in GROUP_BY_VARS.VAR_TITLES">{{ GROUP_BY_VARS.VAR_TITLES[grp.key] }}</template>

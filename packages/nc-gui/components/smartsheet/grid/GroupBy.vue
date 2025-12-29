@@ -47,6 +47,8 @@ const vGroup = useVModel(props, 'group', emits)
 
 const { appInfo } = useGlobal()
 
+const { getColor } = useTheme()
+
 const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
@@ -360,8 +362,7 @@ async function openNewRecordHandler() {
     <div ref="scrollable" :style="`${vGroup.root === true ? 'width: fit-content' : 'width: 100%'}`">
       <div v-if="vGroup.root === true" class="flex sticky top-0 z-5">
         <div
-          class="border-b-1 border-gray-200 mb-2"
-          style="background-color: #f4f4f5"
+          class="border-b-1 border-nc-border-gray-medium mb-2 bg-nc-bg-gray-light"
           :style="{ 'padding-left': `${(maxDepth || 1) * 9}px` }"
         ></div>
         <Table ref="tableHeader" class="mb-2" :data="[]" :hide-checkbox="true" :header-only="true" />
@@ -376,7 +377,7 @@ async function openNewRecordHandler() {
           <a-collapse-panel
             v-for="grp of vGroup?.children ?? []"
             :key="`group-panel-${grp.key}`"
-            class="!border-1 border-gray-300 nc-group rounded-[8px] mb-2"
+            class="!border-1 border-nc-border-gray-dark nc-group rounded-[8px] mb-2"
             :style="`background: ${bgColor};`"
             :show-arrow="false"
           >
@@ -393,7 +394,7 @@ async function openNewRecordHandler() {
                     '!rounded-bl-[8px]': !activeGroups.includes(grp.key.toString()),
                   }"
                   :style="`width:${computedWidth};background: ${bgColor};`"
-                  class="!sticky flex z-10 justify-between !h-9.8 border-r-1 !rounded-tl-[8px] group pr-2 border-gray-300 overflow-clip items-center !left-0"
+                  class="!sticky flex z-10 justify-between !h-9.8 border-r-1 !rounded-tl-[8px] group pr-2 border-nc-border-gray-dark overflow-clip items-center !left-0"
                 >
                   <div class="flex items-center">
                     <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">
@@ -417,14 +418,10 @@ async function openNewRecordHandler() {
                           <span
                             class="nc-group-value"
                             :style="{
-                              'color': tinycolor.isReadable(grp.color.split(',')[+tagIndex] || '#ccc', '#fff', {
-                                level: 'AA',
-                                size: 'large',
-                              })
-                                ? '#fff'
-                                : tinycolor
-                                    .mostReadable(grp.color.split(',')[+tagIndex] || '#ccc', ['#0b1d05', '#fff'])
-                                    .toHex8String(),
+                              'color': getOppositeColorOfBackground(
+                                getColor('var(--nc-bg-default)'),
+                                grp.color.split(',')[+tagIndex] || '#ccc',
+                              ),
                               'font-size': '14px',
                               'font-weight': 500,
                             }"
@@ -452,12 +449,7 @@ async function openNewRecordHandler() {
                         <span
                           class="nc-group-value font-semibold text-[13px]"
                           :style="{
-                            color: tinycolor.isReadable(grp.color || '#ccc', '#fff', {
-                              level: 'AA',
-                              size: 'large',
-                            })
-                              ? '#fff'
-                              : tinycolor.mostReadable(grp.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                            color: getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), grp.color || '#ccc'),
                           }"
                         >
                           <template v-if="grp.key in GROUP_BY_VARS.VAR_TITLES">{{ GROUP_BY_VARS.VAR_TITLES[grp.key] }}</template>
@@ -472,11 +464,11 @@ async function openNewRecordHandler() {
                     :style="`background: linear-gradient(to right, hsla(0, 0%, 97%, 0), ${bgColor} 18%);`"
                     class="flex !h-10 absolute right-0 pl-8 pr-2 items-center"
                   >
-                    <div class="text-xs group-hover:hidden text-gray-500 nc-group-row-count">
+                    <div class="text-xs group-hover:hidden text-nc-content-gray-muted nc-group-row-count">
                       <span>
                         {{ $t('datatype.Count') }}
                       </span>
-                      <span class="text-[#374151] ml-2"> {{ grp.count }} </span>
+                      <span class="text-nc-content-gray-subtle ml-2"> {{ grp.count }} </span>
                     </div>
 
                     <NcDropdown class="!hidden !group-hover:block">
@@ -610,15 +602,15 @@ async function openNewRecordHandler() {
   border-radius: 0 0 8px 8px !important;
 }
 :deep(.ant-collapse) {
-  @apply !border-gray-300 !bg-transparent;
+  @apply !border-nc-border-gray-dark !bg-transparent;
 }
 
 :deep(.ant-collapse-item) {
-  @apply !border-gray-300;
+  @apply !border-nc-border-gray-dark;
 }
 
 :deep(.ant-collapse-header) {
-  @apply !p-0 !border-gray-300 !rounded-lg;
+  @apply !p-0 !border-nc-border-gray-dark !rounded-lg;
 }
 :deep(.ant-collapse-item-active > .ant-collapse-header) {
   border-radius: 8px 8px 0 0 !important;

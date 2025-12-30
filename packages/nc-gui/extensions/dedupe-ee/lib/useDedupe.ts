@@ -123,7 +123,46 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }
   }
 
+  // Reset all dedupe state
+  const resetDedupeState = () => {
+    // Clear field selection
+    config.value.selectedFieldIds = []
+    config.value.selectedFieldId = undefined
+    
+    // Clear group sets
+    groupSets.value = []
+    hasMoreGroupSets.value = false
+    groupSetsPage.value = 1
+    totalGroupSets.value = 0
+    
+    // Clear duplicate sets
+    duplicateSets.value = []
+    currentSetIndex.value = 0
+    totalDuplicateSets.value = 0
+    hasMoreDuplicateSets.value = false
+    duplicateSetsPage.value = 1
+    
+    // Reset merge state
+    mergeState.value = {
+      primaryRecordId: null,
+      excludedRecordIds: new Set(),
+      selectedFields: {},
+    }
+    
+    // Reset step to config
+    currentStep.value = 'config'
+    
+    // Cancel any ongoing requests
+    if (loadGroupSetsController.value) {
+      loadGroupSetsController.value.cancel()
+      loadGroupSetsController.value = undefined
+    }
+  }
+
   const onTableSelect = async (tableId?: string) => {
+    // Reset all dedupe state when table changes
+    resetDedupeState()
+    
     if (!tableId) {
       config.value.selectedTableId = activeTableId.value
       await reloadViews()
@@ -136,12 +175,13 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
           excludeViewType: ViewTypes.FORM,
         })?.id || activeViewId.value
     }
-    config.value.selectedFieldIds = []
     await loadTableMeta()
     await saveConfig()
   }
 
   const onViewSelect = async (viewId: string) => {
+    // Reset dedupe state when view changes (since field selection depends on view)
+    resetDedupeState()
     config.value.selectedViewId = viewId
     await saveConfig()
   }

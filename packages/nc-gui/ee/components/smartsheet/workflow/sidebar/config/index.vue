@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { WorkflowNodeCategory } from 'nocodb-sdk'
 import { IntegrationsType } from 'nocodb-sdk'
-import IfNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/if/index.vue'
+import IfNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/If/index.vue'
 import ListRecordsNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/ListRecords.vue'
 import CronTriggerNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/CronTrigger.vue'
 import RecordMatchesConditionTriggerConfig from '~/components/smartsheet/workflow/sidebar/config/custom/RecordMatchesConditionTrigger.vue'
@@ -9,6 +9,7 @@ import CreateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/con
 import UpdateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/UpdateRecord.vue'
 import IterateNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/Iterate.vue'
 import WaitUntilNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/WaitUntil.vue'
+import RunScriptNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/RunScript/index.vue'
 import { findIterateNodePortForPath } from '~/utils/workflowUtils'
 
 const {
@@ -112,6 +113,7 @@ const FormNodeMap = {
   'nocodb.update_record': UpdateRecordNodeConfig,
   'core.flow.iterate': IterateNodeConfig,
   'core.flow.wait-until': WaitUntilNodeConfig,
+  'nocodb.run_script': RunScriptNodeConfig,
 }
 
 const formSchema = computed(() => {

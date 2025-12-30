@@ -24,8 +24,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       return jwtPayload;
 
     if (
-      jwtPayload?.email ===
-      NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER].email
+      [
+        NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER].email,
+        NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER].email,
+      ].includes(jwtPayload?.email)
     ) {
       // Avoid service user to get access to other workspaces and bases
       if (
@@ -43,7 +45,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
       return {
         ...jwtPayload,
-        base_roles: ProjectRoles.EDITOR,
+        base_roles: ProjectRoles.CREATOR,
         isAuthorized: true,
         // always treat automation user like accessing via API Token
         is_api_token: true,

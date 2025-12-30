@@ -5,9 +5,10 @@ const { getNodeMetaById, selectedNode, selectedNodeId, edges, nodes, testExecute
 
 const { $e } = useNuxtApp()
 
-const localTestState = ref<'idle' | 'testing' | 'success' | 'error'>('idle')
+const localTestState = ref<'idle' | 'testing' | 'success' | 'error'>()
 
 const testState = computed(() => {
+  if (localTestState.value) return localTestState.value
   if (selectedNode.value?.data?.testResult && selectedNode.value.data.testResult?.isStale !== true) {
     return selectedNode.value.data.testResult.status === 'success' ? 'success' : 'error'
   }
@@ -112,7 +113,7 @@ watch(selectedNode, () => {
         <NcButton
           type="secondary"
           size="small"
-          :disabled="!canTestNode"
+          :disabled="!canTestNode || testState === 'testing'"
           :loading="testState === 'testing'"
           icon-position="right"
           @click="handleTestNode"

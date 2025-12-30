@@ -400,7 +400,12 @@ export class InternalController extends InternalControllerCE {
         return await this.actionsService.triggerAction(context, payload, req);
 
       case 'sendEmail':
-        if (!isServiceUser(req.user, ServiceUserType.AUTOMATION_USER)) {
+        if (
+          !isServiceUser(req.user, [
+            ServiceUserType.AUTOMATION_USER,
+            ServiceUserType.WORKFLOW_USER,
+          ])
+        ) {
           NcError.notFound('Operation');
         }
         return await this.mailService.sendMailRaw(payload);

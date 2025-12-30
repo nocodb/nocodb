@@ -464,6 +464,10 @@ export const useScriptStore = defineStore('script', () => {
     },
   )
 
+  onMounted(() => {
+    updateBaseSchema()
+  })
+
   return {
     // State
     scripts,

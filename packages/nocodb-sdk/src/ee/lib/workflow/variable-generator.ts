@@ -877,6 +877,84 @@ export async function genRecordVariables(
 }
 
 /**
+ * Helper function to recursively generate itemSchema for array items
+ */
+function buildItemSchema(
+  item: any,
+  extra: Partial<VariableDefinition['extra']> = {}
+): VariableDefinition[] {
+  if (typeof item !== 'object' || item === null) {
+    // Primitive item
+    return [
+      {
+        key: '',
+        name: 'item',
+        type: typeof item as VariableType,
+        groupKey: VariableGroupKey.Fields,
+        isArray: false,
+        extra: {
+          ...extra,
+          description: `Individual ${typeof item}`,
+        },
+      },
+    ];
+  }
+
+  // Object item - analyze all properties recursively
+  const itemSchema: VariableDefinition[] = [];
+
+  for (const [key, value] of Object.entries(item)) {
+    const isNestedArray = Array.isArray(value);
+    const valueType = typeof value;
+
+    const itemDef: VariableDefinition = {
+      key,
+      name: key,
+      type: isNestedArray
+        ? VariableType.Array
+        : valueType === 'object' && value !== null
+        ? VariableType.Object
+        : (valueType as VariableType),
+      groupKey: VariableGroupKey.Fields,
+      isArray: isNestedArray,
+      extra: {
+        ...extra,
+        description: `${key} property`,
+      },
+    };
+
+    // Recursively handle nested arrays
+    if (isNestedArray && value.length > 0) {
+      const nestedItemSchema = buildItemSchema(value[0], extra);
+      itemDef.extra = {
+        ...itemDef.extra,
+        itemSchema: nestedItemSchema,
+      };
+      itemDef.children = [
+        {
+          key: `${key}.length`,
+          name: 'Length',
+          type: VariableType.Number,
+          groupKey: VariableGroupKey.Meta,
+          extra: {
+            ...extra,
+            description: 'Number of items',
+          },
+        },
+      ];
+    } else if (valueType === 'object' && value !== null && !isNestedArray) {
+      // Recursively handle nested objects
+      const nestedChildren = buildItemSchema(value, extra);
+      itemDef.children = nestedChildren;
+    }
+
+    itemSchema.push(itemDef);
+  }
+
+  return itemSchema;
+}
+
+/**
  * Generate variables from actual output data (fallback for unknown structures)
  * This is used when we don't have column definitions but have actual output data
  */
@@ -909,146 +987,8 @@ export function genGeneralVariables(
     const firstItem = output[0];
     const arrayName = prefix.split('.').pop() || 'items';
 
-    // If array items are primitives (string, number, boolean)
-    if (typeof firstItem !== 'object' || firstItem === null) {
-      return [
-        {
-          key: prefix,
-          name: arrayName,
-          type: VariableType.Array,
-          groupKey: VariableGroupKey.Fields,
-          isArray: true,
-          extra: {
-            ...extra,
-            description: `Array of ${typeof firstItem}s`,
-            itemSchema: [
-              {
-                key: '',
-                name: 'item',
-                type: typeof firstItem as VariableType,
-                groupKey: VariableGroupKey.Fields,
-                extra: {
-                  ...extra,
-                  description: `Individual ${typeof firstItem}`,
-                },
-              },
-            ],
-          },
-          children: [
-            {
-              key: `${prefix}.length`,
-              name: 'Length',
-              type: VariableType.Number,
-              groupKey: VariableGroupKey.Meta,
-              extra: {
-                ...extra,
-                description: 'Number of items',
-              },
-            },
-          ],
-        },
-      ];
-    }
-
-    // If array items are objects, analyze the structure
-    const itemSchema: VariableDefinition[] = [];
-
-    // Analyze first item's properties
-    for (const [itemKey, itemValue] of Object.entries(firstItem)) {
-      const isNestedArray = Array.isArray(itemValue);
-      const valueType = typeof itemValue;
-
-      const itemDef: VariableDefinition = {
-        key: itemKey,
-        name: itemKey,
-        type: isNestedArray
-          ? VariableType.Array
-          : valueType === 'object' && itemValue !== null
-          ? VariableType.Object
-          : (valueType as VariableType),
-        groupKey: VariableGroupKey.Fields,
-        isArray: isNestedArray,
-        extra: {
-          ...extra,
-          description: `${itemKey} property of array item`,
-        },
-      };
-
-      // For nested objects/arrays, recursively build schema
-      if (typeof itemValue === 'object' && itemValue !== null) {
-        if (Array.isArray(itemValue) && itemValue.length > 0) {
-          // Nested array - recursively generate its itemSchema
-          const nestedFirstItem = itemValue[0];
-          if (typeof nestedFirstItem === 'object' && nestedFirstItem !== null) {
-            const nestedItemSchema: VariableDefinition[] = [];
-            for (const [nestedKey, nestedValue] of Object.entries(
-              nestedFirstItem
-            )) {
-              nestedItemSchema.push({
-                key: nestedKey,
-                name: nestedKey,
-                type: typeof nestedValue as VariableType,
-                groupKey: VariableGroupKey.Fields,
-                extra: {
-                  ...extra,
-                  description: `${nestedKey} property`,
-                },
-              });
-            }
-            itemDef.extra = {
-              ...extra,
-              ...itemDef.extra,
-              itemSchema: nestedItemSchema,
-            };
-          } else {
-            // Array of primitives
-            itemDef.extra = {
-              ...extra,
-              ...itemDef.extra,
-              itemSchema: [
-                {
-                  key: '',
-                  name: 'item',
-                  type: typeof nestedFirstItem as VariableType,
-                  groupKey: VariableGroupKey.Fields,
-                  extra
-                },
-              ],
-            };
-          }
-          itemDef.children = [
-            {
-              key: `${itemKey}.length`,
-              name: 'Length',
-              type: VariableType.Number,
-              groupKey: VariableGroupKey.Meta,
-              extra: {
-                ...extra,
-                description: 'Number of items',
-              },
-            },
-          ];
-        } else if (!Array.isArray(itemValue)) {
-          // Nested object - build children
-          const nestedChildren: VariableDefinition[] = [];
-          for (const [nestedKey, nestedValue] of Object.entries(itemValue)) {
-            nestedChildren.push({
-              key: `${itemKey}.${nestedKey}`,
-              name: nestedKey,
-              type: typeof nestedValue as VariableType,
-              groupKey: VariableGroupKey.Fields,
-              extra: {
-                ...extra,
-                description: `${nestedKey} property`,
-              },
-            });
-          }
-          itemDef.children = nestedChildren;
-        }
-      }
-
-      itemSchema.push(itemDef);
-    }
+    // Use helper function to recursively build itemSchema
+    const itemSchema = buildItemSchema(firstItem, extra);
 
     return [
       {
@@ -1101,45 +1041,9 @@ export function genGeneralVariables(
     if (isArray && value.length > 0) {
       const firstItem = value[0];
 
-      // Array of primitives
-      if (typeof firstItem !== 'object' || firstItem === null) {
-        varDef.extra = {
-          ...extra,
-          itemSchema: [
-            {
-              key: '',
-              name: 'item',
-              type: typeof firstItem as VariableType,
-              groupKey: VariableGroupKey.Fields,
-              extra: {
-                ...extra,
-                description: `Individual ${typeof firstItem}`,
-              },
-            },
-          ],
-        };
-      } else {
-        // Array of objects - build itemSchema
-        const itemSchema: VariableDefinition[] = [];
-        for (const [itemKey, itemValue] of Object.entries(firstItem)) {
-          itemSchema.push({
-            key: itemKey,
-            name: itemKey,
-            type: Array.isArray(itemValue)
-              ? VariableType.Array
-              : typeof itemValue === 'object' && itemValue !== null
-              ? VariableType.Object
-              : (typeof itemValue as VariableType),
-            groupKey: VariableGroupKey.Fields,
-            isArray: Array.isArray(itemValue),
-            extra: {
-              ...extra,
-              description: `${itemKey} property`,
-            },
-          });
-        }
-        varDef.extra = { itemSchema };
-      }
+      // Use helper function to recursively build itemSchema
+      const itemSchema = buildItemSchema(firstItem, extra);
+      varDef.extra = { ...extra, itemSchema };
 
       // Add length property
       varDef.children = [

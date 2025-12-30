@@ -530,7 +530,7 @@ export class WorkflowsService implements OnModuleInit {
       if (params?.cancelPendingExecutions === true) {
         const limit = 100;
         let totalCancelled = 0;
-
+        // eslint-disable-next-line no-constant-condition
         while (true) {
           const executions = await Noco.ncMeta
             .knexConnection(MetaTable.AUTOMATION_EXECUTIONS)

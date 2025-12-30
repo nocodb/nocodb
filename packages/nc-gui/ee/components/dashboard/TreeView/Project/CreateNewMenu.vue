@@ -36,6 +36,8 @@ const openMarketPlace = () => {
   vVisible.value = false
   isMarketVisible.value = true
 }
+
+const syncIcons = [SyncDataType.GITHUB, SyncDataType.JIRA, SyncDataType.ZENDESK]
 </script>
 
 <template>
@@ -89,6 +91,7 @@ const openMarketPlace = () => {
     <ProjectSyncCreateProvider>
       <template #default="{ createSyncClick }">
         <NcMenuItem
+          class="nc-menu-item-sync"
           inner-class="w-full"
           data-testid="create-new-sync"
           @click="
@@ -100,7 +103,12 @@ const openMarketPlace = () => {
           <GeneralIcon icon="ncZap" />
           {{ $t('labels.sync') }}
           <div class="flex-1 w-full" />
-          <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
+          <div class="flex items-center">
+            <div v-for="icon in syncIcons" :key="icon" class="nc-sync-icon-wrapper">
+              <GeneralIntegrationIcon :type="icon" size="sx" class="nc-sync-icon" />
+            </div>
+            <div class="nc-sync-icon-wrapper text-nc-content-gray-muted text-bodySm">+10</div>
+          </div>
         </NcMenuItem>
       </template>
     </ProjectSyncCreateProvider>
@@ -156,6 +164,28 @@ const openMarketPlace = () => {
     </NcMenuItem>
   </NcMenu>
 </template>
+
+<style scoped lang="scss">
+.nc-menu-item-sync {
+  .nc-sync-icon-wrapper {
+    @apply flex items-center justify-center children:flex-none w-6;
+  }
+
+  .nc-sync-icon {
+    transition: fill 0.2s ease;
+  }
+
+  &:not(:hover) {
+    .nc-sync-icon {
+      @apply text-nc-content-gray-muted;
+
+      & * {
+        fill: currentColor !important;
+      }
+    }
+  }
+}
+</style>
 
 <style lang="scss">
 .nc-menu-item-combo {

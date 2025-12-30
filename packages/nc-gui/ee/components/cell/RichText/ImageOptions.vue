@@ -45,7 +45,6 @@ const validators = computed(() => ({
     {
       required: true,
       message: 'Image URL is required',
-      trigger: 'blur',
     },
     {
       validator: async (_: any, value: string) => {
@@ -54,6 +53,7 @@ const validators = computed(() => ({
         try {
           const isValid = await isValidImageURL(value, {
             allowDataUrl: allowBase64.value,
+            timeout: 5000,
           })
 
           if (!isValid) {
@@ -69,7 +69,6 @@ const validators = computed(() => ({
           return Promise.reject(new Error('Failed to validate image URL'))
         }
       },
-      trigger: 'blur',
     },
   ],
 }))
@@ -147,18 +146,6 @@ const applyImageChanges = async () => {
 
     isImageEditMode.value = false
     isAddImageMode.value = false
-  } catch (error: any) {
-    // no need to show toast as we show error in the form item
-
-    if (error?.errorFields?.length) {
-      console.error(error)
-    }
-  }
-}
-
-const validateImageUrl = async () => {
-  try {
-    await validate()
   } catch (error: any) {
     // no need to show toast as we show error in the form item
 
@@ -255,8 +242,6 @@ watch(
         <a-input
           ref="imageSrcInputRef"
           v-model:value="formState.imageSrc"
-          @update:value="validateImageUrl"
-          @blur="validateImageUrl"
           :tabindex="tabIndex"
           class="nc-input-sm"
           placeholder="Enter image URL"

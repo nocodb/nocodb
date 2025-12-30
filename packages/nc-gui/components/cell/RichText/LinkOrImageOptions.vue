@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
-import { getMarkRange, type Node } from '@tiptap/core'
+import { type Node, getMarkRange } from '@tiptap/core'
 import type { Mark } from '@tiptap/pm/model'
 
 const props = defineProps<Props>()

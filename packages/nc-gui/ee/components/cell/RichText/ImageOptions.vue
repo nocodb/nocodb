@@ -1,20 +1,18 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
+import { type Node } from '@tiptap/core'
 
 interface Props {
   editor: Editor
   tabIndex?: number
   isAddImageMode: boolean
   isImageEditMode: boolean
-  isImageOptionsVisible: boolean
-  imageNode: any
+  imageNode: Node
 }
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emits = defineEmits(['blur', 'update:isAddImageMode', 'update:isImageEditMode', 'update:isImageOptionsVisible'])
-
-const isImageOptionsVisible = useVModel(props, 'isImageOptionsVisible', emits)
+const emits = defineEmits(['update:isAddImageMode', 'update:isImageEditMode'])
 
 const isImageEditMode = useVModel(props, 'isImageEditMode', emits)
 
@@ -31,11 +29,11 @@ const updateImageAttributes = () => {
   if (!imageNode.value) return
 
   const { from } = editor.value.state.selection
-  const formatedSrc = imageSrc.value
+  const formattedSrc = imageSrc.value
 
   editor.value.view.dispatch(
     editor.value.view.state.tr.setNodeMarkup(from, undefined, {
-      src: formatedSrc,
+      src: formattedSrc,
       alt: imageAlt.value,
     }),
   )
@@ -97,15 +95,6 @@ const applyImageChanges = () => {
   isAddImageMode.value = false
 }
 
-const handleKeyDown = (e: any) => {
-  const isCtrlPressed = isMac() ? e.metaKey : e.ctrlKey
-
-  // Prevent undo/redo when image options are in edit mode (unsaved changes)
-  if (isImageOptionsVisible.value && (isImageEditMode.value || isAddImageMode.value) && isCtrlPressed && e.key === 'z') {
-    // Don't execute editor undo/redo
-  }
-}
-
 // Watch for edit mode changes to focus input
 watch(
   isImageEditMode,
@@ -144,7 +133,6 @@ watch(
       'py-1 pr-1 pl-3': !isImageEditMode,
     }"
     data-testid="nc-text-area-rich-image-options"
-    @keydown.stop="handleKeyDown"
   >
     <!-- Compact view (Google Sheets style) - only show for existing images -->
     <div v-if="!isImageEditMode && !isAddImageMode && imageNode" class="flex items-center gap-x-1">

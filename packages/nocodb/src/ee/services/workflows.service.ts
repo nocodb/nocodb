@@ -260,6 +260,7 @@ export class WorkflowsService implements OnModuleInit {
       meta: workflow.meta,
       nodes: workflow.nodes,
       edges: workflow.edges,
+      draft: workflow.draft,
       description: workflow.description,
       created_by: req.user.id,
     });

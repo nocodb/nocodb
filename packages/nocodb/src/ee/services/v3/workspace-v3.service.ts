@@ -92,10 +92,19 @@ export class WorkspaceV3Service {
     return { list: this.builder().build(workspaces.list) };
   }
 
+  // placeholder to be overridden
+  async validateWorkspaceCreate(
+    _context: NcContext,
+    _param: { body: WorkspaceV3Create; cookie: any },
+  ) {
+    return true;
+  }
+
   async workspaceCreate(
     _context: NcContext,
     { body, cookie }: { body: WorkspaceV3Create; cookie: any },
   ) {
+    await this.validateWorkspaceCreate(_context, { body, cookie });
     const workspace = await this.workspaceService.create({
       user: cookie.user,
       workspaces: {

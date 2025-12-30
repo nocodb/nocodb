@@ -22,7 +22,6 @@ export class WorkspaceV3Service {
         'id',
         'title',
         'fk_org_id',
-        'meta',
         'created_at',
         'updated_at',
         'individual_members',
@@ -31,9 +30,6 @@ export class WorkspaceV3Service {
         fk_org_id: 'org_id',
       },
       transformFn(data) {
-        if (data.meta) {
-          data.meta = parseMetaProp(data);
-        }
         return data;
       },
     });

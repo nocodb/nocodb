@@ -11,9 +11,7 @@ export interface WorkspaceV3 extends WorkspaceV3Create {
   id: string;
   org_id?: string;
   title: string;
-  meta: {
-    icon_color: string;
-  };
+  meta?: any;
   created_at: string;
   updated_at: string;
 }

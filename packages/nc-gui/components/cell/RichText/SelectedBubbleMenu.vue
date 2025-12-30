@@ -90,6 +90,10 @@ const onToggleLink = () => {
 }
 
 const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
+  if (option === RichTextBubbleMenuOptions.image && editor.value?.storage?.markdown?.options?.renderImagesAsLinks) {
+    return false
+  }
+
   if (isFormField.value) return !hiddenOptions.value.includes(option)
 
   return true

@@ -128,30 +128,30 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     // Clear field selection
     config.value.selectedFieldIds = []
     config.value.selectedFieldId = undefined
-    
-    // Clear group sets
+
+    // Clear group sets (only when resetting completely, not when navigating between groups)
     groupSets.value = []
     hasMoreGroupSets.value = false
     groupSetsPage.value = 1
     totalGroupSets.value = 0
-    
+
     // Clear duplicate sets
     duplicateSets.value = []
     currentSetIndex.value = 0
     totalDuplicateSets.value = 0
     hasMoreDuplicateSets.value = false
     duplicateSetsPage.value = 1
-    
+
     // Reset merge state
     mergeState.value = {
       primaryRecordId: null,
       excludedRecordIds: new Set(),
       selectedFields: {},
     }
-    
+
     // Reset step to config
     currentStep.value = 'config'
-    
+
     // Cancel any ongoing requests
     if (loadGroupSetsController.value) {
       loadGroupSetsController.value.cancel()
@@ -159,10 +159,19 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }
   }
 
+  // Reset merge state only (for navigating between groups)
+  const resetMergeStateOnly = () => {
+    mergeState.value = {
+      primaryRecordId: null,
+      excludedRecordIds: new Set(),
+      selectedFields: {},
+    }
+  }
+
   const onTableSelect = async (tableId?: string) => {
     // Reset all dedupe state when table changes
     resetDedupeState()
-    
+
     if (!tableId) {
       config.value.selectedTableId = activeTableId.value
       await reloadViews()
@@ -268,7 +277,16 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         allRecords.push(...(response.list || []))
 
         if (response.pageInfo?.isLastPage) {
-          duplicateSet.records = allRecords
+          // Update the duplicateSet in the array to ensure reactivity
+          const setIndex = duplicateSets.value.findIndex((ds) => ds.key === duplicateSet.key)
+          if (setIndex !== -1 && duplicateSets.value[setIndex]) {
+            duplicateSets.value[setIndex] = {
+              ...duplicateSets.value[setIndex],
+              records: allRecords,
+            }
+          } else {
+            duplicateSet.records = allRecords
+          }
         } else {
           page++
           await fetchPage()
@@ -434,17 +452,27 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     return getFieldValue(fieldId, selectedRecordId)
   }
 
-  const nextSet = () => {
+  const nextSet = async () => {
     if (hasMoreSets.value) {
       currentSetIndex.value++
-      resetMergeState()
+      resetMergeStateOnly()
+      // Load records for the new current set if not already loaded
+      const currentSet = duplicateSets.value[currentSetIndex.value]
+      if (currentSet && !currentSet.records) {
+        await loadRecordsForGroup(currentSet)
+      }
     }
   }
 
-  const previousSet = () => {
+  const previousSet = async () => {
     if (hasPreviousSets.value) {
       currentSetIndex.value--
-      resetMergeState()
+      resetMergeStateOnly()
+      // Load records for the new current set if not already loaded
+      const currentSet = duplicateSets.value[currentSetIndex.value]
+      if (currentSet && !currentSet.records) {
+        await loadRecordsForGroup(currentSet)
+      }
     }
   }
 
@@ -586,9 +614,14 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
       if (reset) {
         groupSets.value = res.list || []
-        totalGroupSets.value = res.pageInfo?.totalRows || res.list?.length || 0
+        // Use totalRows from pageInfo (from API) - this is the accurate total count
+        totalGroupSets.value = res.pageInfo?.totalRows ?? 0
       } else {
         groupSets.value.push(...(res.list || []))
+        // Update totalGroupSets if pageInfo provides it (should be same, but ensure consistency)
+        if (res.pageInfo?.totalRows) {
+          totalGroupSets.value = res.pageInfo.totalRows
+        }
       }
 
       hasMoreGroupSets.value = !res.pageInfo?.isLastPage && (res.list?.length || 0) >= groupSetsPageSize
@@ -607,40 +640,63 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     await loadGroupSets(false)
   }
 
-  // Navigate to review step for a specific group
-  async function navigateToReviewForGroup(group: Record<string, any>) {
+  // Navigate to review step - convert all groupSets to duplicateSets
+  async function navigateToReviewForGroup(group?: Record<string, any>) {
     if (!config.value.selectedFieldId || !selectedField.value) return
 
-    // Build fieldValues from the group data
-    // The group object has the field title as key (e.g., "fNumber": "123")
-    const fieldValues: Record<string, any> = {}
     const fieldTitle = selectedField.value.title
-    if (fieldTitle && group[fieldTitle] !== undefined) {
-      fieldValues[config.value.selectedFieldId] = group[fieldTitle]
+    if (!fieldTitle) return
+
+    // Ensure we have groups loaded
+    if (groupSets.value.length === 0) {
+      await loadGroupSets(true)
     }
 
-    // Create a duplicate set from the group
-    const duplicateSet: DuplicateSet = {
-      key: `${config.value.selectedFieldId}:${group[fieldTitle] || 'null'}`,
-      fieldValues,
-      recordCount: group.count || 0,
-      records: undefined, // Will be loaded on demand
+    // Convert all currently loaded groupSets to duplicateSets
+    const newDuplicateSets: DuplicateSet[] = []
+    for (const groupItem of groupSets.value) {
+      const fieldValues: Record<string, any> = {}
+      if (groupItem[fieldTitle] !== undefined) {
+        fieldValues[config.value.selectedFieldId] = groupItem[fieldTitle]
+      }
+
+      const duplicateSet: DuplicateSet = {
+        key: `${config.value.selectedFieldId}:${groupItem[fieldTitle] || 'null'}`,
+        fieldValues,
+        recordCount: groupItem.count || 0,
+        records: undefined, // Will be loaded on demand
+      }
+      newDuplicateSets.push(duplicateSet)
     }
 
-    // Clear existing duplicate sets and set this one
-    duplicateSets.value = [duplicateSet]
-    currentSetIndex.value = 0
-    totalDuplicateSets.value = 1
-    hasMoreDuplicateSets.value = false
+    // Set all duplicate sets
+    duplicateSets.value = newDuplicateSets
+    // Use totalGroupSets (from API) as the total count, not just loaded groups
+    totalDuplicateSets.value = totalGroupSets.value || newDuplicateSets.length
+    hasMoreDuplicateSets.value = hasMoreGroupSets.value
 
-    // Reset merge state
-    resetMergeState()
+    // Find the index of the selected group, or default to 0
+    let initialIndex = 0
+    if (group && fieldTitle && config.value.selectedFieldId) {
+      const selectedValue = group[fieldTitle]
+      const selectedFieldId = config.value.selectedFieldId
+      initialIndex = newDuplicateSets.findIndex((ds) => ds.fieldValues[selectedFieldId] === selectedValue)
+      if (initialIndex === -1) initialIndex = 0
+    }
+
+    currentSetIndex.value = initialIndex
+
+    // Reset merge state only (don't clear groupSets)
+    resetMergeStateOnly()
 
     // Navigate to review step
     currentStep.value = 'review'
 
-    // Load records for this group
-    await loadRecordsForGroup(duplicateSet)
+    // Load records for the initial group
+    const initialDuplicateSet = duplicateSets.value[currentSetIndex.value]
+    if (initialDuplicateSet) {
+      await loadRecordsForGroup(initialDuplicateSet)
+    }
   }
 
   return {
@@ -681,6 +737,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     loadMoreDuplicateSets,
     loadRecordsForGroup,
     resetMergeState,
+    resetMergeStateOnly,
     setPrimaryRecord,
     excludeRecord,
     includeRecord,

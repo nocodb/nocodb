@@ -15,6 +15,7 @@ const {
   hasMoreDuplicateSets,
   currentSetIndex,
   totalDuplicateSets,
+  totalGroupSets,
   groupSets,
   isLoadingGroupSets,
 } = useDedupeOrThrow()
@@ -93,7 +94,9 @@ const handleMerge = async () => {
 
       <!-- Right side: Review step -->
       <div class="flex items-center gap-2">
-        <span class="text-sm text-nc-content-gray-muted"> {{ currentSetIndex + 1 }} of {{ groupSets.length }} </span>
+        <span class="text-sm text-nc-content-gray-muted">
+          {{ currentSetIndex + 1 }} of {{ totalGroupSets || totalDuplicateSets || duplicateSets.length || groupSets.length }}
+        </span>
         <NcButton size="small" type="secondary" @click="onCancel">
           {{ $t('general.cancel') }}
         </NcButton>

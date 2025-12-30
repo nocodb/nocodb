@@ -3,24 +3,39 @@ import { useDedupeOrThrow } from '../lib/useDedupe'
 import DuplicateRecordCard from './DuplicateRecordCard.vue'
 import MergePreview from './MergePreview.vue'
 
-const dedupe = useDedupeOrThrow()
+const {
+  currentStep,
+  currentDuplicateSet,
+  currentSetRecords,
+  isLoadingCurrentSetRecords,
+  availableFields,
+  mergeState,
+  duplicateSets,
+  hasMoreDuplicateSets,
+  isLoadingMoreSets,
+  nextSet,
+  previousSet,
+  mergeAndDelete,
+  loadMoreDuplicateSets,
+  getFieldValue,
+  getSelectedFieldValue,
+  setPrimaryRecord,
+  excludeRecord,
+  includeRecord,
+  selectFieldValue,
+  hasMoreSets,
+  hasPreviousSets,
+} = useDedupeOrThrow()
 
 const skipSet = async () => {
-  await dedupe.nextSet()
-  if (dedupe.duplicateSets.value.length === 0 && !dedupe.hasMoreDuplicateSets.value) {
-    dedupe.currentStep.value = 'config'
-  }
-}
-
-const handleMergeAndDelete = async () => {
-  const allResolved = await dedupe.mergeAndDelete()
-  if (allResolved) {
-    dedupe.currentStep.value = 'config'
+  await nextSet()
+  if (duplicateSets.value.length === 0 && !hasMoreDuplicateSets.value) {
+    currentStep.value = 'config'
   }
 }
 
 const handleBackToConfig = () => {
-  dedupe.currentStep.value = 'config'
+  currentStep.value = 'config'
 }
 
 const scrollContainer = ref<HTMLElement>()
@@ -29,8 +44,8 @@ const scrollContainer = ref<HTMLElement>()
 useInfiniteScroll(
   scrollContainer,
   async () => {
-    if (dedupe.hasMoreDuplicateSets.value && !dedupe.isLoadingMoreSets.value) {
-      await dedupe.loadMoreDuplicateSets()
+    if (hasMoreDuplicateSets.value && !isLoadingMoreSets.value) {
+      await loadMoreDuplicateSets()
     }
   },
   { distance: 200 },
@@ -49,10 +64,16 @@ useInfiniteScroll(
             deleted.
           </p>
         </div>
+        <div class="flex gap-2">
+          <NcButton size="small" :disabled="!hasPreviousSets" @click="previousSet">
+            Previous
+          </NcButton>
+          <NcButton size="small" :disabled="!hasMoreSets" @click="nextSet"> Next </NcButton>
+        </div>
       </div>
     </div>
 
-    <div v-if="!dedupe.currentDuplicateSet.value" class="flex-1 flex items-center justify-center">
+    <div v-if="!currentDuplicateSet" class="flex-1 flex items-center justify-center">
       <a-empty description="No duplicate set selected" :image="Empty.PRESENTED_IMAGE_SIMPLE">
         <template #description>
           <span class="text-nc-content-gray-muted">Select a duplicate group to review</span>
@@ -61,41 +82,41 @@ useInfiniteScroll(
     </div>
 
     <div v-else ref="scrollContainer" class="flex-1 overflow-y-auto p-4 nc-scrollbar-thin">
-      <div v-if="dedupe.isLoadingCurrentSetRecords.value" class="text-center py-8">
+      <div v-if="isLoadingCurrentSetRecords" class="text-center py-8">
         <a-spin />
         <p class="text-gray-500 mt-2">Loading records for this duplicate set...</p>
       </div>
 
-      <div v-else-if="dedupe.currentSetRecords.value.length === 0" class="text-center py-8 text-gray-500">
+      <div v-else-if="currentSetRecords.length === 0" class="text-center py-8 text-gray-500">
         All records in this set have been excluded.
       </div>
 
       <div v-else class="space-y-4">
         <!-- Record Cards -->
         <DuplicateRecordCard
-          v-for="record of dedupe.currentSetRecords.value"
+          v-for="record of currentSetRecords"
           :key="record.Id"
           :record="record"
           :record-id="record.Id"
-          :fields="dedupe.availableFields.value"
-          :is-primary="dedupe.mergeState.value.primaryRecordId === record.Id"
-          :is-excluded="dedupe.mergeState.value.excludedRecordIds.has(record.Id)"
-          :selected-fields="dedupe.mergeState.value.selectedFields"
-          :get-field-value="dedupe.getFieldValue"
-          @set-primary="dedupe.setPrimaryRecord"
-          @exclude="dedupe.excludeRecord"
-          @include="dedupe.includeRecord"
-          @select-field="dedupe.selectFieldValue"
+          :fields="availableFields"
+          :is-primary="mergeState.primaryRecordId === record.Id"
+          :is-excluded="mergeState.excludedRecordIds.has(record.Id)"
+          :selected-fields="mergeState.selectedFields"
+          :get-field-value="getFieldValue"
+          @set-primary="setPrimaryRecord"
+          @exclude="excludeRecord"
+          @include="includeRecord"
+          @select-field="selectFieldValue"
         />
 
         <!-- Merge Preview -->
         <MergePreview
-          v-if="dedupe.mergeState.value.primaryRecordId"
-          :fields="dedupe.availableFields.value"
-          :primary-record-id="dedupe.mergeState.value.primaryRecordId"
-          :selected-fields="dedupe.mergeState.value.selectedFields"
-          :get-selected-field-value="dedupe.getSelectedFieldValue"
-          :get-field-value="dedupe.getFieldValue"
+          v-if="mergeState.primaryRecordId"
+          :fields="availableFields"
+          :primary-record-id="mergeState.primaryRecordId"
+          :selected-fields="mergeState.selectedFields"
+          :get-selected-field-value="getSelectedFieldValue"
+          :get-field-value="getFieldValue"
         />
       </div>
     </div>

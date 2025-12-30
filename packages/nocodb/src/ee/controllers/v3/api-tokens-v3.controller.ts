@@ -9,7 +9,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTokenReqType } from 'nocodb-sdk';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -34,7 +33,11 @@ export class ApiTokensV3Controller {
   @Acl('apiTokenCreate', {
     scope: 'org',
   })
-  async apiTokenCreate(@Req() req: NcRequest, @Body() body: ApiTokenReqType) {
+  async apiTokenCreate(
+    @Req() req: NcRequest,
+    // TODO: change body to use req type
+    @Body() body: { title: string },
+  ) {
     return await this.apiTokensV3Service.create({ body, cookie: req });
   }
 

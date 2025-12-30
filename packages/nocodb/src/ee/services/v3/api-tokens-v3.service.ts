@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { NcApiVersion, type NcRequest } from 'nocodb-sdk';
-import type { ApiTokenReqType } from 'nocodb-sdk';
 import {
   type ApiV3DataTransformationBuilder,
   builderGenerator,
@@ -60,10 +59,14 @@ export class ApiTokensV3Service {
     };
   }
 
-  async create(param: { cookie: NcRequest; body: ApiTokenReqType }) {
+  async create(param: {
+    cookie: NcRequest;
+    // TODO: change body to use req type
+    body: { title: string };
+  }) {
     await this.validateRequestor(param);
     const result = await this.orgTokensService.apiTokenCreate({
-      apiToken: param.body,
+      apiToken: { description: param.body.title },
       user: param.cookie['user'],
       req: param.cookie,
     });

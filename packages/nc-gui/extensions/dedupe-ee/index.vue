@@ -1,25 +1,19 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import { useProvideDedupe } from './lib/useDedupe'
 import ReviewStep from './components/ReviewStep.vue'
 import SidebarConfig from './components/SidebarConfig.vue'
 import DedupeGroupSets from './components/DedupeGroupSets.vue'
 import DedupeFooter from './components/DedupeFooter.vue'
 
-const step = ref<'config' | 'review'>('config')
-
 // Provide dedupe instance to child components
 const {
   loadSavedConfig,
-  duplicateSets,
-  currentDuplicateSet,
-  loadRecordsForGroup,
   config,
   onTableSelect,
   saveConfig,
   isLoadingGroupSets,
-  groupSets,
   scrollContainer,
+  currentStep,
 } = useProvideDedupe()
 
 const { fullscreen, toggleFullScreen } = useExtensionHelperOrThrow()
@@ -29,27 +23,6 @@ onMounted(async () => {
   await loadSavedConfig()
 })
 
-// Watch for duplicate finding completion
-watch(
-  () => duplicateSets.value.length,
-  async (length) => {
-    if (length > 0 && step.value === 'config') {
-      step.value = 'review'
-      // Load records for the first duplicate set
-      if (currentDuplicateSet.value && !currentDuplicateSet.value.records) {
-        await loadRecordsForGroup(currentDuplicateSet.value)
-      }
-    }
-  },
-)
-
-const handleBackToConfig = () => {
-  step.value = 'config'
-}
-
-const handleAllDuplicatesResolved = () => {
-  step.value = 'config'
-}
 </script>
 
 <template>
@@ -64,7 +37,7 @@ const handleAllDuplicatesResolved = () => {
 
     <div v-else class="h-full">
       <div class="h-[calc(100%_-_56px)] w-full flex">
-        <template v-if="step === 'config'">
+        <template v-if="currentStep === 'config'">
           <div class="h-full min-w-xs border-r border-nc-border-gray-medium nc-scrollbar-thin px-4">
             <SidebarConfig />
           </div>
@@ -81,7 +54,10 @@ const handleAllDuplicatesResolved = () => {
           </div>
         </template>
         <template v-else>
-          <ReviewStep @back-to-config="handleBackToConfig" @all-duplicates-resolved="handleAllDuplicatesResolved" />
+          <!-- Review step - full width, no sidebar -->
+          <div class="flex-1 w-full h-full">
+            <ReviewStep />
+          </div>
         </template>
       </div>
       <DedupeFooter />

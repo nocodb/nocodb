@@ -607,6 +607,42 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     await loadGroupSets(false)
   }
 
+  // Navigate to review step for a specific group
+  async function navigateToReviewForGroup(group: Record<string, any>) {
+    if (!config.value.selectedFieldId || !selectedField.value) return
+
+    // Build fieldValues from the group data
+    // The group object has the field title as key (e.g., "fNumber": "123")
+    const fieldValues: Record<string, any> = {}
+    const fieldTitle = selectedField.value.title
+    if (fieldTitle && group[fieldTitle] !== undefined) {
+      fieldValues[config.value.selectedFieldId] = group[fieldTitle]
+    }
+
+    // Create a duplicate set from the group
+    const duplicateSet: DuplicateSet = {
+      key: `${config.value.selectedFieldId}:${group[fieldTitle] || 'null'}`,
+      fieldValues,
+      recordCount: group.count || 0,
+      records: undefined, // Will be loaded on demand
+    }
+
+    // Clear existing duplicate sets and set this one
+    duplicateSets.value = [duplicateSet]
+    currentSetIndex.value = 0
+    totalDuplicateSets.value = 1
+    hasMoreDuplicateSets.value = false
+
+    // Reset merge state
+    resetMergeState()
+
+    // Navigate to review step
+    currentStep.value = 'review'
+
+    // Load records for this group
+    await loadRecordsForGroup(duplicateSet)
+  }
+
   return {
     // State
     config,
@@ -660,6 +696,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     loadMoreGroupSets,
     hasMoreGroupSets,
     totalGroupSets,
+    navigateToReviewForGroup,
   }
 })
 

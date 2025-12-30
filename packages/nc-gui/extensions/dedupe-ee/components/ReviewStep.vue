@@ -5,23 +5,22 @@ import MergePreview from './MergePreview.vue'
 
 const dedupe = useDedupeOrThrow()
 
-const emit = defineEmits<{
-  backToConfig: []
-  allDuplicatesResolved: []
-}>()
-
 const skipSet = async () => {
   await dedupe.nextSet()
   if (dedupe.duplicateSets.value.length === 0 && !dedupe.hasMoreDuplicateSets.value) {
-    emit('allDuplicatesResolved')
+    dedupe.currentStep.value = 'config'
   }
 }
 
 const handleMergeAndDelete = async () => {
   const allResolved = await dedupe.mergeAndDelete()
   if (allResolved) {
-    emit('allDuplicatesResolved')
+    dedupe.currentStep.value = 'config'
   }
+}
+
+const handleBackToConfig = () => {
+  dedupe.currentStep.value = 'config'
 }
 
 const scrollContainer = ref<HTMLElement>()
@@ -43,32 +42,25 @@ useInfiniteScroll(
     <div class="p-4 border-b">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-lg font-semibold">Review Duplicates</h2>
-          <p class="text-sm text-gray-600">
-            Set {{ dedupe.currentSetIndex.value + 1 }} of
-            {{ dedupe.totalDuplicateSets.value || dedupe.duplicateSets.value.length }}
-            {{ dedupe.hasMoreDuplicateSets.value ? '+' : '' }}
+          <h2 class="text-lg font-semibold">Resolve duplicate records</h2>
+          <p class="text-bodyDefaultSm text-nc-content-gray-muted">
+            For each set of duplicates, pick a primary record. All other records in the set will be deleted when you merge. Click
+            a field to merge it into the primary record. If a record isn't a duplicate, exclude it from the set and it won't be
+            deleted.
           </p>
-        </div>
-        <div class="flex gap-2">
-          <NcButton size="small" :disabled="!dedupe.hasPreviousSets.value" @click="() => dedupe.previousSet()">
-            Previous
-          </NcButton>
-          <NcButton size="small" :disabled="!dedupe.hasMoreSets.value" @click="() => dedupe.nextSet()"> Next </NcButton>
-          <NcButton size="small" @click="skipSet"> Skip </NcButton>
-          <NcButton size="small" @click="emit('backToConfig')"> Back to Config </NcButton>
         </div>
       </div>
     </div>
 
-    <div v-if="dedupe.currentDuplicateSet.value" class="flex-1 overflow-y-auto p-4">
-      <div class="mb-4 flex items-center justify-between">
-        <NcButton size="small" @click="dedupe.resetMergeState"> Reset </NcButton>
-        <div v-if="dedupe.isLoadingCurrentSetRecords.value" class="text-sm text-gray-500">
-          Loading records...
-        </div>
-      </div>
+    <div v-if="!dedupe.currentDuplicateSet.value" class="flex-1 flex items-center justify-center">
+      <a-empty description="No duplicate set selected" :image="Empty.PRESENTED_IMAGE_SIMPLE">
+        <template #description>
+          <span class="text-nc-content-gray-muted">Select a duplicate group to review</span>
+        </template>
+      </a-empty>
+    </div>
 
+    <div v-else ref="scrollContainer" class="flex-1 overflow-y-auto p-4 nc-scrollbar-thin">
       <div v-if="dedupe.isLoadingCurrentSetRecords.value" class="text-center py-8">
         <a-spin />
         <p class="text-gray-500 mt-2">Loading records for this duplicate set...</p>
@@ -105,18 +97,6 @@ useInfiniteScroll(
           :get-selected-field-value="dedupe.getSelectedFieldValue"
           :get-field-value="dedupe.getFieldValue"
         />
-
-        <!-- Actions -->
-        <div class="flex gap-2 pt-4">
-          <NcButton
-            type="primary"
-            :disabled="!dedupe.mergeState.value.primaryRecordId || dedupe.currentSetRecords.value.length <= 1 || dedupe.isMerging.value"
-            :loading="dedupe.isMerging.value"
-            @click="handleMergeAndDelete"
-          >
-            Merge and Delete {{ dedupe.currentSetRecords.value.length - 1 }} Record(s)
-          </NcButton>
-        </div>
       </div>
     </div>
   </div>

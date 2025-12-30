@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTokensV3CreateRequest } from '~/services/v3/api-tokens-v3.type';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -35,8 +36,7 @@ export class ApiTokensV3Controller {
   })
   async apiTokenCreate(
     @Req() req: NcRequest,
-    // TODO: change body to use req type
-    @Body() body: { title: string },
+    @Body() body: ApiTokensV3CreateRequest,
   ) {
     return await this.apiTokensV3Service.create({ body, cookie: req });
   }

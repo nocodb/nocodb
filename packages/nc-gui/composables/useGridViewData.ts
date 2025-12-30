@@ -480,10 +480,7 @@ export function useGridViewData(
   async function bulkUpdateRows(
     rows: Row[],
     props: string[],
-    {
-      metaValue = meta.value,
-      onError,
-    }: { metaValue?: TableType; viewMetaValue?: ViewType; onError?: (e: any) => void } = {},
+    { metaValue = meta.value, onError }: { metaValue?: TableType; viewMetaValue?: ViewType; onError?: (e: any) => void } = {},
     undo = false,
     path: Array<number> = [],
   ): Promise<void> {
@@ -543,7 +540,7 @@ export function useGridViewData(
       onError?.(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
       isBulkOperationInProgress.value = false
-      return false
+      return
     } finally {
       rows.forEach((row) => {
         if (row.rowMeta) row.rowMeta.saving = false

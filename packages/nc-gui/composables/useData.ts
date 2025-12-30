@@ -200,13 +200,12 @@ export function useData(args: {
   ) {
     if (toUpdate.rowMeta) {
       toUpdate.rowMeta.saving = true
-      
+
       // Clear previous error for this property if it exists
       if (toUpdate.rowMeta.errors && toUpdate.rowMeta.errors[property]) {
-         delete toUpdate.rowMeta.errors[property]
+        delete toUpdate.rowMeta.errors[property]
       }
     }
-
 
     try {
       const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
@@ -311,12 +310,12 @@ export function useData(args: {
     } catch (e: any) {
       toUpdate.row[property] = toUpdate.oldRow[property]
       const msg = await extractSdkResponseErrorMsg(e)
-      
+
       if (!toUpdate.rowMeta.errors) {
         toUpdate.rowMeta.errors = {}
       }
       toUpdate.rowMeta.errors[property] = msg
-      
+
       message.error(`${t('msg.error.rowUpdateFailed')}: ${msg}`)
     } finally {
       if (toUpdate.rowMeta) toUpdate.rowMeta.saving = false

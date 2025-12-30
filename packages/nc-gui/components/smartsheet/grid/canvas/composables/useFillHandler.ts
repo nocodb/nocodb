@@ -250,8 +250,6 @@ export function useFillHandler({
     )
   }
 
-
-
   const handleFillEnd = async () => {
     // Check if fill mode is currently active
     if (isFillMode.value) {
@@ -272,8 +270,6 @@ export function useFillHandler({
 
         // If the fill start range is null, exit the function
         if (fillStartRange.value === null) return
-
-
 
         // Check if both start and end points of the selection are defined
         if (selection.value._start !== null && selection.value._end !== null) {
@@ -346,12 +342,12 @@ export function useFillHandler({
                   rowObj.rowMeta.saving = false
                 }
               }
+              // Ensure UI cleanup
+              fillStartRange.value = null
+              isFillMode.value = false
+              clearTextCache()
+              triggerReRender()
             }
-            // Ensure UI cleanup
-            fillStartRange.value = null
-            isFillMode.value = false
-            clearTextCache()
-            triggerReRender()
           }
 
           // if not localAiMode, use the new v2 handle fill logic
@@ -619,14 +615,6 @@ export function useFillHandler({
           console.error(error, (error as SuppressedError).isErrorSuppressed)
           message.error(error?.message || 'Something went wrong')
         }
-        // Cleanup on sync errors
-        fillStartRange.value = null
-        isFillMode.value = false
-        clearTextCache()
-        triggerReRender()
-      } finally {
-        // The finally block is no longer needed as cleanup is handled by onError or the catch block for sync errors.
-        // Keeping it empty or removing it based on preference. For now, removing.
       }
     }
   }

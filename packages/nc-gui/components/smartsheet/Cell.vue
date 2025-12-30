@@ -129,7 +129,7 @@ const vModel = computed({
       emit('update:cdf', val)
     } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
-      
+
       // Clear error on value change
       if (currentRow.value.rowMeta.errors?.[column.value.title]) {
         delete currentRow.value.rowMeta.errors[column.value.title]
@@ -145,10 +145,6 @@ const vModel = computed({
       }
     }
   },
-})
-
-const errorMessage = computed(() => {
-  return currentRow.value?.rowMeta?.errors?.[column.value.title]
 })
 
 const navigate = (dir: NavigateDir, e: KeyboardEvent) => {
@@ -333,15 +329,6 @@ const cellClassName = computed(() => {
     @keydown.enter.exact="navigate(NavigateDir.NEXT, $event)"
     @keydown.shift.enter.exact="navigate(NavigateDir.PREV, $event)"
   >
-    <NcTooltip
-      v-if="errorMessage"
-      class="absolute right-0 top-0 bottom-0 !w-1 !h-full bg-red-500 z-10"
-      placement="top"
-    >
-      <template #title>
-        {{ errorMessage }}
-      </template>
-    </NcTooltip>
     <template v-if="column">
       <div v-if="isGenerating" class="nc-cell-field flex items-center gap-2 w-full">
         <GeneralLoader />

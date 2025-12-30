@@ -344,7 +344,7 @@ onClickOutside(editorDom, (e) => {
         class="nc-rich-text-content flex flex-col nc-textarea-rich-editor w-full"
         :class="{
           'mt-2.5 flex-grow': fullMode,
-          'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
+          'nc-scrollbar-thin': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
           [`!overflow-hidden nc-rich-truncate nc-line-clamp-${rowHeightTruncateLines(localRowHeight)}`]:
             !fullMode && readOnly && localRowHeight && !isExpandedFormOpen && !isForm,

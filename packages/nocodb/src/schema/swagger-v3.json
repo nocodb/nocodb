@@ -9546,19 +9546,6 @@
             "type": "string",
             "description": "Organization identifier (required for cloud, absent for on-prem EE)"
           },
-          "meta": {
-            "type": "object",
-            "description": "Workspace metadata",
-            "properties": {
-              "icon_color": {
-                "type": "string",
-                "description": "Icon color for the workspace"
-              }
-            },
-            "required": [
-              "icon_color"
-            ]
-          },
           "created_at": {
             "type": "string",
             "format": "date-time",

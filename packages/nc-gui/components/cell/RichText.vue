@@ -317,7 +317,7 @@ onClickOutside(editorDom, (e) => {
           'justify-end xs:hidden': !isForm,
         }"
       >
-        <div class="scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent relative">
+        <div class="nc-scrollbar-thin relative">
           <CellRichTextSelectedBubbleMenu
             v-if="editor"
             :editor="editor"

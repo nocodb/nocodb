@@ -9542,7 +9542,6 @@
         "required": [
           "id",
           "title",
-          "meta",
           "created_at",
           "updated_at"
         ]

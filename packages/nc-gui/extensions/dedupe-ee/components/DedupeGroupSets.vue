@@ -2,7 +2,16 @@
 import { type TableType } from 'nocodb-sdk'
 import { useDedupeOrThrow } from '../lib/useDedupe'
 
-const { selectedField, isLoadingGroupSets, groupSets, meta } = useDedupeOrThrow()
+const {
+  selectedField,
+  isLoadingGroupSets,
+  groupSets,
+  meta,
+  loadMoreGroupSets,
+  hasMoreGroupSets,
+  totalGroupSets,
+  scrollContainer,
+} = useDedupeOrThrow()
 
 provide(MetaInj, ref(meta.value as TableType))
 
@@ -12,6 +21,19 @@ const getFieldValue = (group: Record<string, any>) => {
   if (!fieldTitle) return null
   return group[fieldTitle]
 }
+
+// Infinite scroll for loading more group sets
+useInfiniteScroll(
+  scrollContainer,
+  async () => {
+    if (groupSets.value.length <= 0) return
+
+    if (hasMoreGroupSets.value && !isLoadingGroupSets.value) {
+      await loadMoreGroupSets()
+    }
+  },
+  { distance: 200 },
+)
 </script>
 
 <template>
@@ -19,7 +41,10 @@ const getFieldValue = (group: Record<string, any>) => {
     <div class="flex items-center justify-between">
       <div>
         <h2 class="text-lg font-semibold">Duplicate Groups</h2>
-        <p class="text-sm text-nc-content-gray-muted mt-2">Found {{ groupSets.length }} group(s) with duplicates</p>
+        <p class="text-sm text-nc-content-gray-muted mt-2">
+          Found {{ totalGroupSets || groupSets.length }} group(s) with duplicates
+          {{ hasMoreGroupSets ? '+' : '' }}
+        </p>
       </div>
     </div>
 
@@ -56,6 +81,11 @@ const getFieldValue = (group: Record<string, any>) => {
 
           <div class="text-bodyDefaultSm text-nc-content-gray-muted whitespace-nowrap">Count: {{ group.count }}</div>
         </div>
+      </div>
+
+      <!-- Loading indicator for infinite scroll -->
+      <div v-if="isLoadingGroupSets && groupSets.length > 0" class="flex justify-center py-4">
+        <a-spin size="small" />
       </div>
     </div>
   </div>

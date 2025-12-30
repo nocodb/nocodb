@@ -20,6 +20,7 @@ const {
   saveConfig,
   isLoadingGroupSets,
   groupSets,
+  scrollContainer,
 } = useProvideDedupe()
 
 const { fullscreen, toggleFullScreen } = useExtensionHelperOrThrow()
@@ -68,7 +69,7 @@ const handleAllDuplicatesResolved = () => {
           <div class="h-full min-w-xs border-r border-nc-border-gray-medium nc-scrollbar-thin px-4">
             <SidebarConfig />
           </div>
-          <div class="flex-1 p-6 nc-scrollbar-thin relative">
+          <div ref="scrollContainer" class="flex-1 p-6 nc-scrollbar-thin relative">
             <div class="max-w-[768px] mx-auto">
               <DedupeGroupSets />
             </div>

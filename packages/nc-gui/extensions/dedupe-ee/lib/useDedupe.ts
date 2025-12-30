@@ -9,7 +9,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const { user } = useGlobal()
   const {
     extension,
-
     tables,
     getViewsForTable,
     getTableMeta,
@@ -44,6 +43,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const hasMoreDuplicateSets = ref(false)
   const duplicateSetsPage = ref(1)
   const pageSize = 20
+
+  const scrollContainer = ref<HTMLElement>()
 
   const mergeState = ref<MergeState>({
     primaryRecordId: null,
@@ -501,12 +502,14 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   }
 
   const groupSets = ref<Record<string, any>[]>([])
+  const hasMoreGroupSets = ref(false)
+  const groupSetsPage = ref(1)
+  const groupSetsPageSize = 50
+  const totalGroupSets = ref(0)
 
   const loadGroupSetsController = ref() // A ref to manage the CancelToken source for Axios requests.
 
-  async function loadGroupSets() {
-    groupSets.value = []
-
+  async function loadGroupSets(reset = true) {
     if (!config.value.selectedTableId || !config.value.selectedViewId || !config.value.selectedFieldId) {
       return
     }
@@ -519,36 +522,36 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     const CancelToken = axios.CancelToken // Axios CancelToken utility.
     loadGroupSetsController.value = CancelToken.source() // Create a new token source for the current request.
 
-    isLoadingGroupSets.value = true
-    let page = 1
-    let hasMore = true
+    if (reset) {
+      groupSets.value = []
+      groupSetsPage.value = 1
+      isLoadingGroupSets.value = true
+    }
 
-    let groups: Record<string, any>[] = []
     try {
-      while (hasMore) {
-        const res = await $api.dbViewRow.groupBy(
-          'noco',
-          activeBaseId.value!,
-          config.value.selectedTableId,
-          config.value.selectedViewId,
-          {
-            offset: (page - 1) * 100,
-            limit: 100,
-            sort: `+${selectedField.value?.title}` as any,
-            column_name: selectedField.value?.title,
-            minCount: 2, // Only return groups with count >= 2 (duplicates)
-          } as any, // Type assertion needed until API types are updated
-        )
+      const res = await $api.dbViewRow.groupBy(
+        'noco',
+        activeBaseId.value!,
+        config.value.selectedTableId,
+        config.value.selectedViewId,
+        {
+          offset: (groupSetsPage.value - 1) * groupSetsPageSize,
+          limit: groupSetsPageSize,
+          sort: `+${selectedField.value?.title}` as any,
+          column_name: selectedField.value?.title,
+          minCount: 2, // Only return groups with count >= 2 (duplicates)
+        } as any, // Type assertion needed until API types are updated
+        loadGroupSetsController.value ? { cancelToken: loadGroupSetsController.value.token } : undefined,
+      )
 
-        groups.push(...(res.list || []))
-
-        if (res.pageInfo?.isLastPage) {
-          hasMore = false
-        }
+      if (reset) {
+        groupSets.value = res.list || []
+        totalGroupSets.value = res.pageInfo?.totalRows || res.list?.length || 0
+      } else {
+        groupSets.value.push(...(res.list || []))
       }
 
-      groupSets.value = groups
-      console.log('groups', groups)
+      hasMoreGroupSets.value = !res.pageInfo?.isLastPage && (res.list?.length || 0) >= groupSetsPageSize
     } catch (error: any) {
       if (!axios.isCancel(error)) {
         message.error(`Error loading group sets: ${error.message || 'Unknown error'}`)
@@ -556,6 +559,12 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     } finally {
       isLoadingGroupSets.value = false
     }
+  }
+
+  async function loadMoreGroupSets() {
+    if (!hasMoreGroupSets.value || isLoadingGroupSets.value) return
+    groupSetsPage.value++
+    await loadGroupSets(false)
   }
 
   return {
@@ -569,6 +578,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     isMerging,
     mergeState,
     currentStep,
+    scrollContainer,
 
     // Computed
     tableList,
@@ -607,6 +617,9 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     groupSets,
     isLoadingGroupSets,
     loadGroupSets,
+    loadMoreGroupSets,
+    hasMoreGroupSets,
+    totalGroupSets,
   }
 })
 

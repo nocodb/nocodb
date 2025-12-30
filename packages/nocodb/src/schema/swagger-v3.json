@@ -19,7 +19,8 @@
         "Fields",
         "View Filters",
         "View Sorts",
-        "Scripts"
+        "Scripts",
+        "API Tokens"
       ]
     },
     {
@@ -5603,6 +5604,166 @@
       }
     }
   },
+  "/api/v3/meta/tokens": {
+    "get": {
+      "summary": "List API tokens",
+      "description": "Retrieve a list of all API tokens for the organization.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+      "tags": [
+        "API Tokens"
+      ],
+      "security": [
+        {
+          "xc-token": []
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "List of API tokens",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "list": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ApiTokenV3"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "401": {
+          "$ref": "#/components/responses/UnauthorizedV3"
+        },
+        "403": {
+          "$ref": "#/components/responses/ForbiddenV3"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerErrorV3"
+        }
+      }
+    },
+    "post": {
+      "summary": "Create API token",
+      "description": "Create a new API token for the organization.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+      "tags": [
+        "API Tokens"
+      ],
+      "security": [
+        {
+          "xc-token": []
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "required": [
+                "title"
+              ],
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "description": "Title/description for the API token",
+                  "example": "Hello"
+                }
+              }
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Created API token",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiTokenWithTokenV3"
+              },
+              "examples": {
+                "created": {
+                  "value": {
+                    "id": 5,
+                    "title": "Hello",
+                    "token": "wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh",
+                    "created_at": "2025-12-30 15:17:24+00:00",
+                    "updated_at": "2025-12-30 15:17:24+00:00"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "400": {
+          "$ref": "#/components/responses/BadRequestV3"
+        },
+        "401": {
+          "$ref": "#/components/responses/UnauthorizedV3"
+        },
+        "403": {
+          "$ref": "#/components/responses/ForbiddenV3"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerErrorV3"
+        }
+      }
+    }
+  },
+  "/api/v3/meta/tokens/{tokenId}": {
+    "delete": {
+      "summary": "Delete API token",
+      "description": "Delete an API token by its ID.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+      "tags": [
+        "API Tokens"
+      ],
+      "security": [
+        {
+          "xc-token": []
+        }
+      ],
+      "parameters": [
+        {
+          "name": "tokenId",
+          "in": "path",
+          "required": true,
+          "description": "ID of the API token to delete",
+          "schema": {
+            "type": "string",
+            "example": "5"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Deleted API token",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ApiTokenV3"
+              }
+            }
+          }
+        },
+        "401": {
+          "$ref": "#/components/responses/UnauthorizedV3"
+        },
+        "403": {
+          "$ref": "#/components/responses/ForbiddenV3"
+        },
+        "404": {
+          "$ref": "#/components/responses/NotFoundV3"
+        },
+        "500": {
+          "$ref": "#/components/responses/InternalServerErrorV3"
+        }
+      }
+    }
+  },
   "components": {
     "schemas": {
       "Base": {
@@ -10624,6 +10785,115 @@
           }
         },
         "headers": {}
+      }
+    },
+    "ApiTokenV3": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "Token ID",
+          "example": 5
+        },
+        "title": {
+          "type": "string",
+          "description": "Token title/description",
+          "example": "Hello"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Token creation timestamp",
+          "example": "2025-12-30 15:17:24+00:00"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Token last update timestamp",
+          "example": "2025-12-30 15:17:24+00:00"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "created_at",
+        "updated_at"
+      ]
+    },
+    "ApiTokenWithTokenV3": {
+      "allOf": [
+        {
+          "$ref": "#/components/schemas/ApiTokenV3"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string",
+              "description": "The actual API token value (only returned on creation)",
+              "example": "wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh"
+            }
+          },
+          "required": [
+            "token"
+          ]
+        }
+      ]
+    },
+    "BadRequestV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "UnauthorizedV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "ForbiddenV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Accessing api token api require enterprise plan"
+        }
+      }
+    },
+    "NotFoundV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "InternalServerErrorV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
       }
     },
     "securitySchemes": {

@@ -9,7 +9,7 @@ interface Props {
   selectedUser?: User
 }
 
-const { show } = defineProps<Props>()
+const { show,selectedUser } = defineProps<Props>()
 
 const emit = defineEmits(['closed', 'reload'])
 
@@ -36,31 +36,63 @@ const validators = computed(() => {
 })
 
 const { validateInfos } = useForm(usersData.value, validators)
+// Refactored Helper for API handling (Optional but recommended)
+const handleUserAction = async (
+  actionType: 'invite' | 'update',
+  apiCall: () => Promise<any>
+) => {
+  try {
+    // 1. Validate Form First
+    await formRef.value?.validateFields();
+
+    // 2. Track Event
+    $e(`a:org-user:${actionType}`, { 
+      role: usersData.value.role, 
+      email: usersData.value.emails 
+    });
+
+    // 3. Execute API Call
+    const res = await apiCall();
+
+    // 4. Handle Success
+    if (res?.invite_token) {
+       usersData.value.invitationToken = res.invite_token;
+    }
+    
+    emit('reload');
+    const successKey = actionType === 'invite' ? 'msg.success.userAdded' : 'msg.success.userUpdatedEmail';
+    message.success(t(successKey));
+    clearBasesUser();
+
+  } catch (e: any) {
+    // If it's a validation error, usually formRef handles the UI automatically.
+    // Otherwise, handle API errors.
+    if (e.errorFields) return; // Ant Design/Form validation error ignore
+    
+    console.error(e);
+    message.error(await extractSdkResponseErrorMsg(e));
+  }
+};
+
+
 
 const saveUser = async () => {
-  $e('a:org-user:invite', { role: usersData.value.role })
-
-  await formRef.value?.validateFields()
-
-  try {
-    const res = await $api.orgUsers.add({
-      roles: usersData.value.role,
-      email: usersData.value.emails,
-    } as unknown as OrgUserReqType)
-
-    usersData.value.invitationToken = res.invite_token
-    emit('reload')
-
-    // Successfully updated the user details
-    message.success(t('msg.success.userAdded'))
-
-    clearBasesUser()
-  } catch (e: any) {
-    console.error(e)
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
+  await handleUserAction('invite', () => 
+  $api.orgUsers.orgUsersAdd({
+    roles: usersData.value.role,
+    email: usersData.value.emails,
+  })
+);
 }
 
+const updateUserEmail = async () => {
+   if (!selectedUser) return;
+  await handleUserAction('update', () => 
+    $api.orgUsers.orgUsersUpdateEmail(selectedUser.id, {
+      email: usersData.value.emails,
+    })
+  );
+}
 const inviteUrl = computed(() =>
   usersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${usersData.value.invitationToken}` : null,
 )
@@ -120,7 +152,7 @@ const userRoleOptions = [
   >
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title class="select-none" :level="4" data-rec="true"> {{ $t('activity.inviteUser') }}</a-typography-title>
+        <a-typography-title class="select-none" :level="4" data-rec="true"> {{ $t(selectedUser ? 'activity.updateUser' : 'activity.inviteUser') }}</a-typography-title>
 
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
@@ -130,7 +162,7 @@ const userRoleOptions = [
       </div>
 
       <div class="px-2 mt-1.5">
-        <template v-if="usersData.invitationToken">
+        <template v-if="usersData.invitationToken && !selectedUser">
           <div class="flex flex-col mt-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
               <component :is="iconMap.account" />
@@ -169,10 +201,24 @@ const userRoleOptions = [
             </div>
           </div>
         </template>
-
+        <template v-else-if="usersData.invitationToken && selectedUser">
+          <div class="flex flex-col mt-1 pb-5">
+            
+            <a-alert class="!mt-2" type="success" show-icon>
+              <template #message>
+                <div class="flex flex-row justify-between items-center py-1">
+                  <div class="flex pl-2 text-green-700 text-xs" data-rec="true">
+                    {{ $t('activity.updatedUserEmail') }}
+                  </div>
+                </div>
+              </template>
+            </a-alert>    
+          </div>
+        </template>
         <div v-else class="flex flex-col pb-4">
           <div class="border-1 py-3 px-4 rounded-md mt-1">
             <a-form
+            v-if="selectedUser==undefined"
               ref="formRef"
               :validate-on-rule-change="false"
               :model="usersData"
@@ -249,6 +295,61 @@ const userRoleOptions = [
                   <div class="flex flex-row justify-center items-center space-x-1.5">
                     <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
                     <div data-rec="true">{{ $t('activity.invite') }}</div>
+                  </div>
+                </a-button>
+              </div>
+            </a-form>
+            <a-form
+            v-else
+              ref="formRef"
+              :validate-on-rule-change="false"
+              :model="usersData"
+              validate-trigger="onBlur"
+              @finish="updateUserEmail"
+            >
+              <div class="flex flex-row space-x-4">
+                <div class="flex flex-col w-3/4">
+                  <a-form-item
+                    v-bind="validateInfos.emails"
+                    validate-trigger="onBlur"
+                    name="emails"
+                    :rules="[{ required: true, message: $t('msg.plsInputEmail') }]"
+                  >
+                    <div class="ml-1 mb-1 text-xs text-gray-500" data-rec="true">{{ $t('datatype.Email') }}:</div>
+
+                    <a-input
+                      :ref="emailInput"
+                      v-model:value="usersData.emails"
+                      size="middle"
+                      class="nc-input-sm"
+                      validate-trigger="onBlur"
+                      :placeholder="$t('labels.email')"
+                      @paste.prevent="onPaste"
+                    />
+                  </a-form-item>
+                </div>
+
+                <div v-show="!isEeUI" class="flex flex-col w-2/4">
+                  <a-form-item name="role" :rules="[{ required: true, message: $t('msg.roleRequired') }]">
+                    <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.OldEmail') }}</div>
+                      <a-input
+                      v-model:value="selectedUser.email"
+                      size="middle"
+                      class="nc-input-sm"
+                      validate-trigger="onBlur"
+                      :readonly="true"
+                    />
+                   
+                  </a-form-item>
+                </div>
+              </div>
+
+              <div class="flex flex-row justify-end">
+                <a-button type="primary" class="!rounded-md" html-type="submit">
+                  <div class="flex flex-row justify-center items-center space-x-1.5">
+                    <MaterialSymbolsEdit v-if="selectedUser" class="flex h-[0.8rem]"/>
+                  <MaterialSymbolsSendOutline v-else class="flex h-[0.8rem]" />
+                  <div data-rec="true">{{ $t(selectedUser ? 'activity.updateUser' : 'activity.inviteUser') }}</div>  
                   </div>
                 </a-button>
               </div>

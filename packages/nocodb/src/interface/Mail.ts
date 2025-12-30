@@ -26,6 +26,7 @@ enum MailEvent {
   WORKSPACE_INVITE = 'WORKSPACE_INVITE',
   WORKSPACE_ROLE_UPDATE = 'WORKSPACE_ROLE_UPDATE',
   WORKSPACE_REQUEST_UPGRADE = 'WORKSPACE_REQUEST_UPGRADE',
+  UPDATED_EMAIL= 'UPDATED_EMAIL'
 }
 
 interface CommentPayload {
@@ -92,7 +93,10 @@ interface FormSubmissionPayload {
     uidt: UITypes | string;
   }[];
 }
-
+interface UpdateEmailPayload {
+  req: NcRequest;
+  user: UserType;
+}
 type MailParams =
   | {
       mailEvent: MailEvent.COMMENT_CREATE | MailEvent.COMMENT_UPDATE;
@@ -129,6 +133,10 @@ type MailParams =
   | {
       mailEvent: MailEvent.FORM_SUBMISSION;
       payload: FormSubmissionPayload;
+    }
+    | {
+      mailEvent: MailEvent.UPDATED_EMAIL;
+      payload: UpdateEmailPayload;
     };
 
 interface RawMailParams {

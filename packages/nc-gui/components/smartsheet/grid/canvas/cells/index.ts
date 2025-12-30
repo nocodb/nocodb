@@ -350,7 +350,7 @@ export function useGridCellHandler(params: {
           text: t('labels.dropHere'),
           maxWidth: width - 10 * 2,
           fontFamily: `${pv ? 600 : 500} 18px Inter`,
-          fillStyle: '#FFFFFF',
+          fillStyle: '#ffffff',
           height,
           isTagLabel: true, // to render label center of cell
         })

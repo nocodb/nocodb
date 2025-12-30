@@ -243,6 +243,10 @@ const updateConfig = (updates: Partial<CronTriggerNodeConfig>) => {
         ...config.value,
         ...updates,
       },
+      testResult: {
+        ...(selectedNode.value?.data?.testResult || {}),
+        isStale: true,
+      },
     },
   })
 }
@@ -342,7 +346,7 @@ watch(
 
     <!-- Hourly Interval Configuration -->
     <template v-if="intervalType === 'hourly'">
-      <a-form-item label="Select the Minute">
+      <a-form-item label="Select minute">
         <NcSelect v-model:value="minuteOfHour" @change="updateIntervalConfig">
           <a-select-option v-for="minute in minutesOptions" :key="minute" :value="minute">
             <div class="flex items-center justify-between">
@@ -364,7 +368,7 @@ watch(
 
     <!-- Daily Interval Configuration -->
     <template v-if="intervalType === 'daily'">
-      <a-form-item label="Select Hour and Minute">
+      <a-form-item label="Select time of the day">
         <div class="flex gap-2">
           <NcSelect v-model:value="hourOfDay" @change="updateIntervalConfig">
             <a-select-option v-for="hour in hoursOptions" :key="hour" :value="hour">
@@ -397,7 +401,7 @@ watch(
 
     <!-- Weekly Interval Configuration -->
     <template v-if="intervalType === 'weekly'">
-      <a-form-item label="Select Day, Hour and Minute">
+      <a-form-item label="Select time and day of the week">
         <div class="space-y-2">
           <NcSelect v-model:value="dayOfWeek" @change="updateIntervalConfig">
             <a-select-option v-for="day in daysOfWeekOptions" :key="day.value" :value="day.value">
@@ -447,7 +451,7 @@ watch(
 
     <!-- Monthly Interval Configuration -->
     <template v-if="intervalType === 'monthly'">
-      <a-form-item label="Select Day of Month, Hour and Minute">
+      <a-form-item label="Select time and day of the month">
         <div class="space-y-2">
           <NcSelect v-model:value="dayOfMonth" @change="updateIntervalConfig">
             <a-select-option v-for="day in daysOfMonthOptions" :key="day" :value="day">

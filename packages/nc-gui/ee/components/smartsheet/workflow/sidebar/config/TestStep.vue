@@ -50,13 +50,17 @@ const canTestNode = computed(() => {
 
   const ancestorIds = findAllParentNodes(selectedNodeId.value, edges.value)
 
+  // If no ancestors, can test
   if (ancestorIds.length === 0) {
     return true
   }
 
+  // All ancestors must exist, have test results, be successful, and not stale
   return ancestorIds.every((ancestorId) => {
     const ancestorNode = nodes.value.find((n) => n.id === ancestorId)
-    return ancestorNode?.data?.testResult?.status === 'success'
+    const testResult = ancestorNode?.data?.testResult
+
+    return testResult?.status === 'success' && testResult.isStale !== true
   })
 })
 

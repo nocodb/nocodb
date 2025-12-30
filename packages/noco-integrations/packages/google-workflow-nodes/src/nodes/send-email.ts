@@ -143,7 +143,7 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
 
     return {
       id: 'google.send_email',
-      title: 'Send Email',
+      title: 'Send email',
       description: 'Send an email via Gmail',
       icon: 'gmail',
       category: WorkflowNodeCategory.ACTION,

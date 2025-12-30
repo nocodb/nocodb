@@ -58,7 +58,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - Form Submitted Trigger',
-      order: 4,
+      order: 6,
     },
   },
   {
@@ -69,7 +69,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - Record Enters View Trigger',
-      order: 5,
+      order: 4,
     },
   },
   {
@@ -80,7 +80,7 @@ export const entries: IntegrationEntry[] = [
     manifest: {
       ...manifest,
       title: 'NocoDB - Record Matches Condition Trigger',
-      order: 6,
+      order: 5,
     },
   },
   {

@@ -53,6 +53,10 @@ const updateConfig = (newConfig: IfNodeConfig) => {
     data: {
       ...selectedNode.value?.data,
       config: newConfig,
+      testResult: {
+        ...(selectedNode.value?.data?.testResult || {}),
+        isStale: true,
+      },
     },
   })
 }

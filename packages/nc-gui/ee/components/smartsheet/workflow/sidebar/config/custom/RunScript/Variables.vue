@@ -31,6 +31,10 @@ const updateConfig = (updates: Partial<ExecuteScriptNodeConfig>) => {
         ...config.value,
         ...updates,
       },
+      testResult: {
+        ...(selectedNode.value?.data?.testResult || {}),
+        isStale: true,
+      },
     },
   })
 }

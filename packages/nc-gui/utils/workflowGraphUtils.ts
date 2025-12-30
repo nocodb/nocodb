@@ -7,7 +7,7 @@ import { GeneralNodeID } from 'nocodb-sdk'
  * Used when viewing execution logs or workflow history
  */
 export function filterOutPlusNodes(sourceNodes: Array<Node>, sourceEdges: Array<Edge>) {
-  const filteredNodes = sourceNodes.filter((node: Node) => !Object.values(GeneralNodeID).includes(node.type as any))
+  const filteredNodes = sourceNodes.filter((node: Node) => ![GeneralNodeID.PLUS].includes(node.type as any))
 
   const removedNodeIds = new Set(
     sourceNodes.filter((node: Node) => Object.values(GeneralNodeID).includes(node.type as any)).map((node: Node) => node.id),
@@ -194,6 +194,7 @@ export function findParentNodesNeedingPlusNodes(
   outgoingEdges: Edge[],
   nodes: Node[],
   getNodeMetaByIdFn: (id?: string) => WorkflowNodeDefinition | null,
+  allEdges: Edge[],
 ): Map<string, Array<{ id: string; label?: string }>> {
   const parentNodesWithEmptyPorts = new Map<string, Array<{ id: string; label?: string }>>()
 
@@ -207,16 +208,23 @@ export function findParentNodesNeedingPlusNodes(
     // Only process multi-port nodes
     if (outputPorts.length <= 1) return
 
-    // Check if this deletion left this specific port empty
-    const hasOutgoingEdge = outgoingEdges.some((outEdge) => !deletedNodeIds.has(outEdge.target))
+    // Check if the parent node's specific port still has any remaining connections
+    // after this deletion (excluding edges to deleted nodes)
+    const portStillHasConnection = allEdges.some(
+      (edge) => edge.source === inEdge.source && edge.sourceHandle === inEdge.sourceHandle && !deletedNodeIds.has(edge.target),
+    )
 
-    if (!hasOutgoingEdge && inEdge.sourceHandle) {
+    if (!portStillHasConnection && inEdge.sourceHandle) {
       const port = outputPorts.find((p) => p.id === inEdge.sourceHandle)
       if (port) {
         if (!parentNodesWithEmptyPorts.has(inEdge.source)) {
           parentNodesWithEmptyPorts.set(inEdge.source, [])
         }
-        parentNodesWithEmptyPorts.get(inEdge.source)!.push({ id: port.id, label: port.label })
+        const existingPorts = parentNodesWithEmptyPorts.get(inEdge.source)!
+        // Only add if not already in the list (avoid duplicates)
+        if (!existingPorts.some((p) => p.id === port.id)) {
+          existingPorts.push({ id: port.id, label: port.label })
+        }
       }
     }
   })

@@ -48,6 +48,7 @@ export function useLayout() {
     }
 
     for (const edge of edges) {
+      edge.zIndex = 2
       dagreGraph.setEdge(edge.source, edge.target)
     }
 
@@ -58,6 +59,7 @@ export function useLayout() {
       if (node.type === GeneralNodeID.NOTE) {
         return {
           ...node,
+          zIndex: 1,
           position: node.position || { x: 0, y: 0 },
         }
       }
@@ -69,6 +71,7 @@ export function useLayout() {
 
       return {
         ...node,
+        zIndex: 2,
         targetPosition: isHorizontal ? Position.Left : Position.Top,
         sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
         position,

@@ -123,7 +123,7 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
 
     return {
       id: 'outlook.send_email',
-      title: 'Send Email',
+      title: 'Send email',
       description: 'Send an email via Outlook',
       icon: 'microsoftOutlook',
       category: WorkflowNodeCategory.ACTION,

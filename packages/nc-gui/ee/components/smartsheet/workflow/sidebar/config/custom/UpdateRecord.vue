@@ -52,6 +52,10 @@ const updateConfig = (updates: Partial<UpdateRecordNodeConfig>) => {
         ...config.value,
         ...updates,
       },
+      testResult: {
+        ...(selectedNode.value?.data?.testResult || {}),
+        isStale: true,
+      },
     },
   })
 }

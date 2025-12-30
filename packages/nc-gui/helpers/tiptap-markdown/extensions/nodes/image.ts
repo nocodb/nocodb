@@ -1,10 +1,10 @@
-import { Node } from '@tiptap/core'
 import { defaultMarkdownSerializer } from '@tiptap/pm/markdown'
 import type { MarkdownNodeSpec } from '../../types'
 import { mdImageAsText } from '../../../tiptap/functionality'
+import TiptapImage, { type ImageOptions } from '@tiptap/extension-image'
 
 // TODO: Extend from tiptap extension
-export const Image = Node.create<any, { markdown: MarkdownNodeSpec }>({
+export const Image = TiptapImage.extend<ImageOptions, { markdown: MarkdownNodeSpec }>({
   name: 'image',
   addStorage() {
     return {

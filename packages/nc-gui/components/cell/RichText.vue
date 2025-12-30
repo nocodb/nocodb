@@ -5,6 +5,7 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
 import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
+
 import {
   HardBreak,
   Italic,
@@ -15,6 +16,7 @@ import {
   Underline,
   UserMention,
   UserMentionList,
+  Image,
 } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
@@ -117,6 +119,15 @@ const getTiptapExtensions = () => {
     Italic,
 
     // Nodes
+    Image.configure({
+      resize: {
+        enabled: true,
+        directions: ['top', 'bottom', 'left', 'right'], // can be any direction or diagonal combination
+        minWidth: 50,
+        minHeight: 50,
+        alwaysPreserveAspectRatio: true,
+      },
+    }),
     Paragraph,
     HardBreak,
     TaskList,
@@ -127,7 +138,7 @@ const getTiptapExtensions = () => {
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
     }),
-    Markdown.configure({ breaks: true, transformPastedText: true }),
+    Markdown.configure({ breaks: true, transformPastedText: true, renderImagesAsLinks: false }),
   ]
 
   if (appInfo.value.ee && !props.hideMention) {

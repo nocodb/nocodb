@@ -90,6 +90,10 @@ const onToggleLink = () => {
 }
 
 const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
+  if (option === RichTextBubbleMenuOptions.image && editor.value?.storage?.markdown?.options?.renderImagesAsLinks) {
+    return false
+  }
+
   if (isFormField.value) return !hiddenOptions.value.includes(option)
 
   return true
@@ -417,6 +421,12 @@ const closeTextArea = () => {
         </div>
       </NcButton>
     </NcTooltip>
+    <CellRichTextImageMenu
+      v-if="isOptionVisible(RichTextBubbleMenuOptions.image)"
+      :placement="tooltipPlacement"
+      :editor="editor"
+      :tab-index="tabIndex"
+    />
 
     <div v-if="enableCloseButton" class="!sticky right-0 pr-0.5 bg-nc-bg-default">
       <NcButton type="text" size="small" @click="closeTextArea">
@@ -482,7 +492,7 @@ const closeTextArea = () => {
   }
 
   .nc-button.is-active {
-    @apply !hover:outline-nc-gray-200 bg-nc-bg-gray-light text-nc-content-brand;
+    @apply !hover:outline-nc-gray-200 bg-nc-bg-gray-light text-nc-content-brand hover:text-nc-content-brand;
     outline: 1px;
   }
   &:not(.nc-form-field-bubble-menu) {

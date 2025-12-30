@@ -94,6 +94,9 @@ export class WorkflowPostOperations
           context,
           payload.workflowId,
           req,
+          {
+            cancelPendingExecutions: payload.cancelPendingExecutions,
+          },
         );
     }
   }

@@ -348,7 +348,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
-  const publishWorkflow = async (workflowId: string) => {
+  const publishWorkflow = async (workflowId: string, params?: { cancelPendingExecutions?: boolean }) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return null
     try {
       const published = await $api.internal.postOperation(
@@ -359,6 +359,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
         },
         {
           workflowId,
+          ...params,
         },
       )
 
@@ -378,8 +379,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
       return published
     } catch (e) {
       console.error(e)
-      message.error(await extractSdkResponseErrorMsgv2(e as any))
-      return null
+      throw e
     }
   }
 

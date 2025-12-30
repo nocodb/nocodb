@@ -30,6 +30,8 @@ import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
 import { throttleWithLast } from '~/utils/functionUtils';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class WorkflowsService implements OnModuleInit {
@@ -50,6 +52,15 @@ export class WorkflowsService implements OnModuleInit {
       },
       {
         jobId: JobTypes.WorkflowCronSchedule,
+        repeat: { cron: '* * * * *' },
+      },
+    );
+    this.nocoJobsService.jobsQueue.add(
+      {
+        jobName: JobTypes.WorkflowResumeSchedule,
+      },
+      {
+        jobId: JobTypes.WorkflowResumeSchedule,
         repeat: { cron: '* * * * *' },
       },
     );
@@ -323,6 +334,8 @@ export class WorkflowsService implements OnModuleInit {
         'create',
       );
 
+      let isDone = false;
+
       const executionState =
         await this.workflowExecutionService.executeWorkflow(
           context,
@@ -330,6 +343,7 @@ export class WorkflowsService implements OnModuleInit {
           payload?.triggerData,
           payload?.triggerNodeTitle,
           throttleWithLast(async (state) => {
+            if (isDone) return;
             await WorkflowExecution.update(context, executionRecord.id, {
               execution_data: state,
             });
@@ -347,6 +361,8 @@ export class WorkflowsService implements OnModuleInit {
           }, 1000),
         );
 
+      isDone = true;
+
       const updatedExecution = await WorkflowExecution.update(
         context,
         executionRecord.id,
@@ -355,6 +371,10 @@ export class WorkflowsService implements OnModuleInit {
           finished: true,
           finished_at: new Date().toISOString(),
           status: executionState.status,
+          resume_at:
+            executionState.status === 'waiting' && executionState.resumeAt
+              ? new Date(executionState.resumeAt).toISOString()
+              : undefined,
         },
       );
 
@@ -473,6 +493,9 @@ export class WorkflowsService implements OnModuleInit {
     context: NcContext,
     workflowId: string,
     req: NcRequest,
+    params?: {
+      cancelPendingExecutions?: boolean;
+    },
   ) {
     const workflow = await Workflow.get(context, workflowId);
 
@@ -488,6 +511,74 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).badRequest(
         'No draft changes to publish. Please make changes first.',
       );
+    }
+
+    const pendingExecutionsCount = await WorkflowExecution.getWaitingDueCount(
+      context,
+      workflowId,
+    );
+
+    if (pendingExecutionsCount > 0) {
+      if (params?.cancelPendingExecutions === undefined) {
+        NcError.get(context).workflowWaitingExecutions(pendingExecutionsCount, {
+          details: {
+            count: pendingExecutionsCount,
+          },
+        });
+      }
+
+      if (params?.cancelPendingExecutions === true) {
+        const limit = 100;
+        let totalCancelled = 0;
+
+        while (true) {
+          const executions = await Noco.ncMeta
+            .knexConnection(MetaTable.AUTOMATION_EXECUTIONS)
+            .where('fk_workflow_id', workflowId)
+            .where('base_id', context.base_id)
+            .where('fk_workspace_id', context.workspace_id)
+            .where('status', 'waiting')
+            .limit(limit);
+
+          if (executions.length === 0) {
+            break;
+          }
+
+          for (const execution of executions) {
+            await WorkflowExecution.update(context, execution.id, {
+              status: 'cancelled',
+              finished: true,
+              finished_at: new Date().toISOString(),
+              resume_at: null,
+            });
+
+            NocoSocket.broadcastEvent(context, {
+              event: EventType.WORKFLOW_EXECUTION_EVENT,
+              payload: {
+                id: execution.id,
+                workflowId,
+                action: 'update',
+                payload: {
+                  ...execution,
+                  status: 'cancelled',
+                  finished: true,
+                },
+              },
+              scopes: [workflowId],
+            });
+
+            totalCancelled++;
+          }
+        }
+
+        this.logger.debug(
+          `Cancelled ${totalCancelled} pending execution(s) for workflow ${workflowId}`,
+        );
+      } else {
+        this.logger.debug(
+          `${pendingExecutionsCount} pending execution(s) will continue with previous workflow definition`,
+        );
+      }
     }
 
     const draftNodes = workflow.draft.nodes || [];

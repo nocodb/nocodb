@@ -389,4 +389,9 @@ export const presetErrorCodexMap: Partial<
     message: (id: string) => `Plan already exists with id ${id}`,
     code: 409,
   },
+  [NcErrorType.ERR_WORKFLOW_WAITING_EXECUTIONS]: {
+    message: (count: string) =>
+      `This workflow has ${count} pending execution(s) waiting to resume`,
+    code: 400,
+  },
 };

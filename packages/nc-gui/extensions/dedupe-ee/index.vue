@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useProvideDedupe } from './lib/useDedupe'
-import ConfigurationStep from './components/ConfigurationStep.vue'
 import ReviewStep from './components/ReviewStep.vue'
 import SidebarConfig from './components/SidebarConfig.vue'
 import DedupeGroupSets from './components/DedupeGroupSets.vue'

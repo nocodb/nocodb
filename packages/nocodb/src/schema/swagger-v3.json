@@ -5606,7 +5606,7 @@
     "/api/v3/meta/tokens": {
       "get": {
         "summary": "List API tokens",
-        "description": "Retrieve a list of all API tokens for the organization.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "description": "Retrieve a list of all API tokens for the organization.\n\n**Note**: \nAPI Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
         "tags": [
           "API Tokens"
         ],
@@ -5647,7 +5647,7 @@
       },
       "post": {
         "summary": "Create API token",
-        "description": "Create a new API token for the organization.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "description": "Create a new API token for the organization.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
         "tags": [
           "API Tokens"
         ],
@@ -5668,8 +5668,8 @@
                 "properties": {
                   "title": {
                     "type": "string",
-                    "description": "Title/description for the API token",
-                    "example": "Hello"
+                    "description": "Title / description for the API token",
+                    "example": "Github Integration"
                   }
                 }
               }
@@ -5688,7 +5688,7 @@
                   "created": {
                     "value": {
                       "id": 5,
-                      "title": "Hello",
+                      "title": "Github Integration",
                       "token": "wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh",
                       "created_at": "2025-12-30 15:17:24+00:00",
                       "updated_at": "2025-12-30 15:17:24+00:00"
@@ -5716,7 +5716,7 @@
     "/api/v3/meta/tokens/{tokenId}": {
       "delete": {
         "summary": "Delete API token",
-        "description": "Delete an API token by its ID.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "description": "Delete an API token by its ID.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
         "tags": [
           "API Tokens"
         ],
@@ -10764,8 +10764,8 @@
           },
           "title": {
             "type": "string",
-            "description": "Token title/description",
-            "example": "Hello"
+            "description": "Token title / description",
+            "example": "Github Integration"
           },
           "created_at": {
             "type": "string",

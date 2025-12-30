@@ -65,10 +65,11 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     const getData = async (params: {
       tableId: string
       viewId?: string
+      where?: string
       eachPage: (records: Record<string, any>[], nextPage: () => void) => Promise<void> | void
       done: () => Promise<void> | void
     }) => {
-      const { tableId, viewId, eachPage, done } = params
+      const { tableId, viewId, where, eachPage, done } = params
 
       let page = 1
 
@@ -81,6 +82,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
           {
             offset: (page - 1) * 100,
             limit: 100,
+            where,
           } as any,
         )
 

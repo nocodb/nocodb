@@ -1,8 +1,12 @@
-import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType, PaginatedType } from 'nocodb-sdk'
 import { ViewTypes, getFirstNonPersonalView, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { extensionUserPrefsManager } from '#imports'
 import type { DedupeConfig, DuplicateSet, MergeState } from './context'
 import axios from 'axios'
+
+const getDefaultPaginationData = (): PaginatedType => {
+  return { page: 1, pageSize: 50, totalRows: 0, isFirstPage: true, isLastPage: false }
+}
 
 const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const { $api } = useNuxtApp()
@@ -28,8 +32,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     selectedFieldId: undefined,
   })
 
-  const isLoadingGroupSets = ref(false)
-
   const currentStep = ref<'config' | 'review'>('config')
 
   const views = ref<ViewType[]>([])
@@ -39,7 +41,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const isFindingDuplicates = ref(false)
   const isMerging = ref(false)
   const isLoadingMoreSets = ref(false)
-  const totalDuplicateSets = ref(0)
   const hasMoreDuplicateSets = ref(false)
   const duplicateSetsPage = ref(1)
   const pageSize = 20
@@ -93,6 +94,10 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     return duplicateSets.value[currentSetIndex.value]
   })
 
+  watchEffect(() => {
+    console.log('currentDuplicateSet', currentDuplicateSet.value)
+  })
+
   const currentSetRecords = computed(() => {
     if (!currentDuplicateSet.value || !currentDuplicateSet.value.records) return []
     return currentDuplicateSet.value.records.filter((record) => !mergeState.value.excludedRecordIds.has(record.Id))
@@ -131,14 +136,12 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
     // Clear group sets (only when resetting completely, not when navigating between groups)
     groupSets.value = []
-    hasMoreGroupSets.value = false
-    groupSetsPage.value = 1
     totalGroupSets.value = 0
+    groupSetsPaginationData.value = { ...getDefaultPaginationData(), isLoading: false }
 
     // Clear duplicate sets
     duplicateSets.value = []
     currentSetIndex.value = 0
-    totalDuplicateSets.value = 0
     hasMoreDuplicateSets.value = false
     duplicateSetsPage.value = 1
 
@@ -303,8 +306,9 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   // Find duplicate groups (only metadata, not all records)
   const findDuplicates = async (reset = true) => {
-    if (!config.value.selectedTableId || !config.value.selectedFieldIds.length) {
-      message.error('Please select a table and at least one field for duplicate detection')
+    console.log('findDuplicates', currentDuplicateSet.value?.fieldValues, config.value)
+    if (!config.value.selectedTableId || !config.value.selectedFieldId) {
+      message.error('Please select a table and field for duplicate detection')
       return
     }
 
@@ -326,6 +330,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       await getData({
         tableId: config.value.selectedTableId!,
         viewId: config.value.selectedViewId,
+        where: buildWhereQueryForGroup(currentDuplicateSet.value?.fieldValues || {}),
         eachPage: async (records, nextPage) => {
           // Process this batch of records
           for (const record of records) {
@@ -369,14 +374,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
           if (reset) {
             duplicateSets.value = newSets.slice(0, pageSize)
-            totalDuplicateSets.value = newSets.length
             hasMoreDuplicateSets.value = newSets.length > pageSize
-
-            if (duplicateSets.value.length === 0) {
-              message.info('No duplicate records found')
-            } else {
-              message.success(`Found ${totalDuplicateSets.value} set(s) of duplicate records`)
-            }
           } else {
             // Append more sets for infinite scroll
             const startIndex = (duplicateSetsPage.value - 1) * pageSize
@@ -571,9 +569,9 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const groupSets = ref<Record<string, any>[]>([])
   const hasMoreGroupSets = ref(false)
-  const groupSetsPage = ref(1)
-  const groupSetsPageSize = 50
   const totalGroupSets = ref(0)
+
+  const groupSetsPaginationData = ref<PaginatedType & { isLoading: boolean }>({ ...getDefaultPaginationData(), isLoading: false })
 
   const loadGroupSetsController = ref() // A ref to manage the CancelToken source for Axios requests.
 
@@ -591,9 +589,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     loadGroupSetsController.value = CancelToken.source() // Create a new token source for the current request.
 
     if (reset) {
+      groupSetsPaginationData.value = { ...getDefaultPaginationData(), isLoading: true }
       groupSets.value = []
-      groupSetsPage.value = 1
-      isLoadingGroupSets.value = true
     }
 
     try {
@@ -603,14 +600,17 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         config.value.selectedTableId,
         config.value.selectedViewId,
         {
-          offset: (groupSetsPage.value - 1) * groupSetsPageSize,
-          limit: groupSetsPageSize,
+          offset: (groupSetsPaginationData.value.page! - 1) * groupSetsPaginationData.value.pageSize!,
+          limit: groupSetsPaginationData.value.pageSize!,
           sort: `+${selectedField.value?.title}` as any,
           column_name: selectedField.value?.title,
           minCount: 2, // Only return groups with count >= 2 (duplicates)
         } as any, // Type assertion needed until API types are updated
+
         loadGroupSetsController.value ? { cancelToken: loadGroupSetsController.value.token } : undefined,
       )
+
+      groupSetsPaginationData.value = { ...groupSetsPaginationData.value, ...res.pageInfo }
 
       if (reset) {
         groupSets.value = res.list || []
@@ -623,20 +623,18 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
           totalGroupSets.value = res.pageInfo.totalRows
         }
       }
-
-      hasMoreGroupSets.value = !res.pageInfo?.isLastPage && (res.list?.length || 0) >= groupSetsPageSize
     } catch (error: any) {
       if (!axios.isCancel(error)) {
         message.error(`Error loading group sets: ${error.message || 'Unknown error'}`)
       }
     } finally {
-      isLoadingGroupSets.value = false
+      groupSetsPaginationData.value.isLoading = false
     }
   }
 
   async function loadMoreGroupSets() {
-    if (!hasMoreGroupSets.value || isLoadingGroupSets.value) return
-    groupSetsPage.value++
+    if (groupSetsPaginationData.value.isLastPage || groupSetsPaginationData.value.isLoading) return
+    groupSetsPaginationData.value.page!++
     await loadGroupSets(false)
   }
 
@@ -671,8 +669,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
     // Set all duplicate sets
     duplicateSets.value = newDuplicateSets
-    // Use totalGroupSets (from API) as the total count, not just loaded groups
-    totalDuplicateSets.value = totalGroupSets.value || newDuplicateSets.length
+
     hasMoreDuplicateSets.value = hasMoreGroupSets.value
 
     // Find the index of the selected group, or default to 0
@@ -723,8 +720,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     hasPreviousSets,
     isLoadingCurrentSetRecords,
     isLoadingMoreSets,
-    totalDuplicateSets,
     hasMoreDuplicateSets,
+    groupSetsPaginationData,
 
     // Methods
     reloadViews,
@@ -748,11 +745,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     previousSet,
     mergeAndDelete,
     groupSets,
-    isLoadingGroupSets,
     loadGroupSets,
     loadMoreGroupSets,
-    hasMoreGroupSets,
-    totalGroupSets,
     navigateToReviewForGroup,
   }
 })

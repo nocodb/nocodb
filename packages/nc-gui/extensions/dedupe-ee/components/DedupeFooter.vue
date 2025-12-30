@@ -14,10 +14,8 @@ const {
   duplicateSets,
   hasMoreDuplicateSets,
   currentSetIndex,
-  totalDuplicateSets,
-  totalGroupSets,
   groupSets,
-  isLoadingGroupSets,
+  groupSetsPaginationData,
 } = useDedupeOrThrow()
 
 const { toggleFullScreen } = useExtensionHelperOrThrow()
@@ -76,8 +74,9 @@ const handleMerge = async () => {
         <NcButton size="small" type="secondary" @click="onCancel">
           {{ $t('general.cancel') }}
         </NcButton>
-        <NcButton size="small" :disabled="isLoadingGroupSets || !groupSets.length" @click="currentStep = 'review'">
-          Review {{ groupSets.length ?? '' }} set{{ groupSets.length !== 1 ? 's' : '' }} of duplicates
+        <NcButton size="small" :disabled="groupSetsPaginationData.isLoading || !groupSets.length" @click="currentStep = 'review'">
+          Review {{ groupSetsPaginationData.totalRows ?? '' }} set{{ groupSetsPaginationData.totalRows !== 1 ? 's' : '' }} of
+          duplicates
         </NcButton>
       </div>
     </template>
@@ -95,7 +94,7 @@ const handleMerge = async () => {
       <!-- Right side: Review step -->
       <div class="flex items-center gap-2">
         <span class="text-sm text-nc-content-gray-muted">
-          {{ currentSetIndex + 1 }} of {{ totalGroupSets || totalDuplicateSets || duplicateSets.length || groupSets.length }}
+          {{ currentSetIndex + 1 }} of {{ groupSetsPaginationData.totalRows }}
         </span>
         <NcButton size="small" type="secondary" @click="onCancel">
           {{ $t('general.cancel') }}

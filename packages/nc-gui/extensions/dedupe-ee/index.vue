@@ -6,15 +6,7 @@ import DedupeGroupSets from './components/DedupeGroupSets.vue'
 import DedupeFooter from './components/DedupeFooter.vue'
 
 // Provide dedupe instance to child components
-const {
-  loadSavedConfig,
-  config,
-  onTableSelect,
-  saveConfig,
-  isLoadingGroupSets,
-  scrollContainer,
-  currentStep,
-} = useProvideDedupe()
+const { loadSavedConfig, groupSetsPaginationData, scrollContainer, currentStep } = useProvideDedupe()
 
 const { fullscreen, toggleFullScreen } = useExtensionHelperOrThrow()
 
@@ -22,7 +14,6 @@ const { fullscreen, toggleFullScreen } = useExtensionHelperOrThrow()
 onMounted(async () => {
   await loadSavedConfig()
 })
-
 </script>
 
 <template>
@@ -46,7 +37,7 @@ onMounted(async () => {
               <DedupeGroupSets />
             </div>
 
-            <general-overlay :model-value="isLoadingGroupSets" inline transition class="!bg-opacity-15">
+            <general-overlay :model-value="groupSetsPaginationData.isLoading" inline transition class="!bg-opacity-15">
               <div class="flex items-center justify-center h-full w-full !bg-nc-bg-default !bg-opacity-85 z-1000">
                 <a-spin size="large" />
               </div>

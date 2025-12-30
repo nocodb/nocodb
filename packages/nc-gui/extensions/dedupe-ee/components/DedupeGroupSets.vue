@@ -2,17 +2,8 @@
 import { type TableType } from 'nocodb-sdk'
 import { useDedupeOrThrow } from '../lib/useDedupe'
 
-const {
-  selectedField,
-  isLoadingGroupSets,
-  groupSets,
-  meta,
-  loadMoreGroupSets,
-  hasMoreGroupSets,
-  totalGroupSets,
-  scrollContainer,
-  navigateToReviewForGroup,
-} = useDedupeOrThrow()
+const { selectedField, groupSets, meta, loadMoreGroupSets, groupSetsPaginationData, scrollContainer, navigateToReviewForGroup } =
+  useDedupeOrThrow()
 
 provide(MetaInj, ref(meta.value as TableType))
 
@@ -33,7 +24,7 @@ useInfiniteScroll(
   async () => {
     if (groupSets.value.length <= 0) return
 
-    if (hasMoreGroupSets.value && !isLoadingGroupSets.value) {
+    if (!groupSetsPaginationData.value.isLastPage && !groupSetsPaginationData.value.isLoading) {
       await loadMoreGroupSets()
     }
   },
@@ -47,13 +38,13 @@ useInfiniteScroll(
       <div>
         <h2 class="text-lg font-semibold">Duplicate Groups</h2>
         <p class="text-sm text-nc-content-gray-muted mt-2">
-          Found {{ totalGroupSets || groupSets.length }} group(s) with duplicates
-          {{ hasMoreGroupSets ? '+' : '' }}
+          Found {{ groupSetsPaginationData.totalRows || groupSets.length }} group(s) with duplicates
+          {{ groupSetsPaginationData.isLastPage ? '' : '+' }}
         </p>
       </div>
     </div>
 
-    <div v-if="groupSets.length === 0 && !isLoadingGroupSets" class="text-center py-12">
+    <div v-if="groupSets.length === 0 && !groupSetsPaginationData.isLoading" class="text-center py-12">
       <a-empty description="No duplicate groups found" :image="Empty.PRESENTED_IMAGE_SIMPLE">
         <template #description>
           <span class="text-nc-content-gray-muted">Select a table, view, and field to find duplicates</span>
@@ -90,7 +81,7 @@ useInfiniteScroll(
       </div>
 
       <!-- Loading indicator for infinite scroll -->
-      <div v-if="isLoadingGroupSets && groupSets.length > 0" class="flex justify-center py-4">
+      <div v-if="groupSetsPaginationData.isLoading && groupSets.length > 0" class="flex justify-center py-4">
         <a-spin size="small" />
       </div>
     </div>

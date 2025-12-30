@@ -25,6 +25,7 @@ const {
   selectFieldValue,
   hasMoreSets,
   hasPreviousSets,
+  findDuplicates,
 } = useDedupeOrThrow()
 
 const skipSet = async () => {
@@ -50,6 +51,10 @@ useInfiniteScroll(
   },
   { distance: 200 },
 )
+
+onMounted(() => {
+  findDuplicates()
+})
 </script>
 
 <template>
@@ -65,9 +70,7 @@ useInfiniteScroll(
           </p>
         </div>
         <div class="flex gap-2">
-          <NcButton size="small" :disabled="!hasPreviousSets" @click="previousSet">
-            Previous
-          </NcButton>
+          <NcButton size="small" :disabled="!hasPreviousSets" @click="previousSet"> Previous </NcButton>
           <NcButton size="small" :disabled="!hasMoreSets" @click="nextSet"> Next </NcButton>
         </div>
       </div>

@@ -16,7 +16,7 @@ const onSelectField = () => {
 onMounted(() => {
   if (!config.value.selectedFieldId) return
 
-  loadGroupSets()
+  loadGroupSets(false)
 })
 </script>
 

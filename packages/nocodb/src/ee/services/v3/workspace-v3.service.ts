@@ -1,25 +1,34 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import type { ApiV3DataTransformationBuilder } from '~/utils/api-v3-data-transformation.builder';
+import type {
+  WorkspaceV3Create,
+  WorkspaceV3Update,
+} from '~/ee/services/v3/workspace-v3.types';
+import { parseMetaProp } from '~/utils/modelUtils';
 import { builderGenerator } from '~/utils/api-v3-data-transformation.builder';
 import { NcError } from '~/helpers/catchError';
 import { Workspace, WorkspaceUser } from '~/models';
+import { WorkspacesService } from '~/services/workspaces.service';
 
 @Injectable()
 export class WorkspaceV3Service {
   protected readonly logger = new Logger(WorkspaceV3Service.name);
   protected builder: () => ApiV3DataTransformationBuilder<any, Partial<any>>;
 
-  constructor() {
+  constructor(private readonly workspaceService: WorkspacesService) {
     this.builder = builderGenerator({
       allowed: [
         'id',
         'title',
+        'fk_org_id',
         'created_at',
         'updated_at',
         'individual_members',
       ],
-      mappings: {},
+      mappings: {
+        fk_org_id: 'org_id',
+      },
       transformFn(data) {
         return data;
       },
@@ -64,5 +73,72 @@ export class WorkspaceV3Service {
     }
 
     return this.builder().build(result);
+  }
+
+  async workspaceList(
+    _context: NcContext,
+    param: {
+      cookie: any;
+    },
+  ) {
+    const workspaces = await this.workspaceService.list({
+      user: param.cookie.user,
+      req: param.cookie,
+    });
+    return { list: this.builder().build(workspaces.list) };
+  }
+
+  // placeholder to be overridden
+  async validateWorkspaceCreate(
+    _context: NcContext,
+    _param: { body: WorkspaceV3Create; cookie: any },
+  ) {
+    return true;
+  }
+
+  async workspaceCreate(
+    _context: NcContext,
+    { body, cookie }: { body: WorkspaceV3Create; cookie: any },
+  ) {
+    await this.validateWorkspaceCreate(_context, { body, cookie });
+    const workspace = await this.workspaceService.create({
+      user: cookie.user,
+      workspaces: {
+        title: body.title,
+        fk_org_id: body.org_id,
+      },
+      req: cookie,
+    });
+    return this.builder().build(workspace);
+  }
+
+  async workspaceUpdate(
+    _context: NcContext,
+    {
+      workspaceId,
+      body,
+      cookie,
+    }: { workspaceId: string; body: WorkspaceV3Update; cookie: any },
+  ) {
+    const workspace = await this.workspaceService.update({
+      user: cookie.user,
+      workspaceId,
+      workspace: {
+        title: body.title,
+      },
+      req: cookie,
+    });
+    return this.builder().build(workspace);
+  }
+  async workspaceDelete(
+    _context: NcContext,
+    { workspaceId, cookie }: { workspaceId: string; cookie: any },
+  ) {
+    const workspace = await this.workspaceService.delete({
+      user: cookie.user,
+      workspaceId,
+      req: cookie,
+    });
+    return this.builder().build(workspace);
   }
 }

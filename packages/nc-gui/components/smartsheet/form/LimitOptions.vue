@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import tinycolor from 'tinycolor2'
 import type { ColumnType, SelectOptionType, SelectOptionsType, UserFieldRecordType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { FormFieldsLimitOptionsType } from '~/lib/types'
@@ -17,6 +16,8 @@ const emits = defineEmits(['update:modelValue', 'update:formFieldState'])
 const meta = inject(MetaInj)!
 
 const { column, formFieldState } = toRefs(props)
+
+const { isDark, getColor } = useTheme()
 
 const basesStore = useBases()
 
@@ -152,7 +153,7 @@ const showOrHideAll = (showAll: boolean) => {
 </script>
 
 <template>
-  <div class="w-full h-full nc-col-select-option nc-form-scrollbar">
+  <div class="w-full h-full nc-col-select-option nc-scrollbar-thin">
     <div v-if="vModel.length > 12">
       <a-input
         v-model:value="searchQuery"
@@ -213,7 +214,7 @@ const showOrHideAll = (showAll: boolean) => {
       item-key="id"
       handle=".nc-child-draggable-icon"
       ghost-class="nc-form-field-limit-option-ghost"
-      class="rounded-b-lg border-1 border-gray-200 !max-h-[224px] overflow-y-auto nc-form-scrollbar"
+      class="rounded-b-lg border-1 border-nc-border-gray-medium !max-h-[224px] overflow-y-auto nc-scrollbar-thin"
       @change="onMove($event)"
       @start="drag = true"
       @end="drag = false"
@@ -255,12 +256,14 @@ const showOrHideAll = (showAll: boolean) => {
             </div>
           </NcTooltip>
 
-          <a-tag v-if="column.uidt === UITypes.User" class="rounded-tag max-w-[calc(100%_-_70px)] !pl-0" color="'#ccc'">
+          <a-tag
+            v-if="column.uidt === UITypes.User"
+            class="rounded-tag max-w-[calc(100%_-_70px)] !pl-0"
+            :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
+          >
             <span
               :style="{
-                'color': tinycolor.isReadable('#ccc' || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                  ? '#fff'
-                  : tinycolor.mostReadable('#ccc' || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                'color': getSelectTypeOptionTextColor(getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)'), getColor),
                 'font-size': '13px',
               }"
               class="flex items-stretch gap-2"
@@ -285,12 +288,14 @@ const showOrHideAll = (showAll: boolean) => {
               </NcTooltip>
             </span>
           </a-tag>
-          <a-tag v-else class="rounded-tag max-w-[calc(100%_-_70px)]" :color="element.color">
+          <a-tag
+            v-else
+            class="rounded-tag max-w-[calc(100%_-_70px)]"
+            :color="getSelectTypeFieldOptionBgColor({ color: element.color, isDark })"
+          >
             <span
               :style="{
-                'color': tinycolor.isReadable(element.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                  ? '#fff'
-                  : tinycolor.mostReadable(element.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                'color': getSelectTypeFieldOptionTextColor({ color: element.color, isDark, getColor }),
                 'font-size': '13px',
               }"
             >
@@ -335,12 +340,6 @@ const showOrHideAll = (showAll: boolean) => {
 </template>
 
 <style scoped lang="scss">
-.nc-form-scrollbar {
-  @apply scrollbar scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent;
-  &::-webkit-scrollbar-thumb:hover {
-    @apply !scrollbar-thumb-gray-300;
-  }
-}
 .rounded-tag {
   @apply py-0 px-[12px] rounded-[12px];
 }

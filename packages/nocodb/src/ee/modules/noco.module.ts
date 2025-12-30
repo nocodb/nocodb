@@ -49,6 +49,9 @@ import { WorkspaceMembersV3Controller } from '~/controllers/v3/workspace-members
 import { TeamsV3Controller } from '~/controllers/v3/teams-v3.controller';
 import { TeamsV3Service } from '~/services/v3/teams-v3.service';
 
+import { ApiTokensV3Controller } from '~/controllers/v3/api-tokens-v3.controller';
+import { ApiTokensV3Service } from '~/services/v3/api-tokens-v3.service';
+
 /* Workspace Teams V3 */
 // import { WorkspaceTeamsV3Controller } from '~/controllers/v3/workspace-teams-v3.controller';
 import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
@@ -112,6 +115,8 @@ export const nocoModuleEeMetadata = {
     /* Teams V3 */
     TeamsV3Service,
 
+    ApiTokensV3Service,
+
     /* Workspace Teams V3 */
     WorkspaceTeamsV3Service,
 
@@ -153,6 +158,8 @@ export const nocoModuleEeMetadata = {
     OrgsController,
 
     ViewsV3Controller,
+
+    ApiTokensV3Controller,
 
     /* Workspaces */
     WorkspacesController,
@@ -209,6 +216,8 @@ export const nocoModuleEeMetadata = {
 
     /* Workspace Teams V3 */
     WorkspaceTeamsV3Service,
+
+    ApiTokensV3Service,
 
     /* Base Teams V3 */
     BaseTeamsV3Service,

@@ -89,21 +89,6 @@ const onToggleLink = () => {
   }
 }
 
-const onAddImage = () => {
-  // if active node is an image, return
-  if (editor.value?.isActive('image')) return
-
-  // Initialize storage if it doesn't exist
-  if (!editor.value?.storage.image) {
-    editor.value!.storage.image = {}
-  }
-
-  // Set add image mode flag
-  editor.value!.storage.image.addImageMode = true
-
-  editor.value!.chain().focus().run()
-}
-
 const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
   if (isFormField.value) return !hiddenOptions.value.includes(option)
 
@@ -432,23 +417,12 @@ const closeTextArea = () => {
         </div>
       </NcButton>
     </NcTooltip>
-    <NcTooltip
+    <CellRichTextImageMenu
       v-if="isOptionVisible(RichTextBubbleMenuOptions.image)"
       :placement="tooltipPlacement"
-      :disabled="editor.isActive('codeBlock') || editor.isActive('image')"
-    >
-      <template #title> {{ $t('general.attachImage') }}</template>
-      <NcButton
-        size="small"
-        type="text"
-        :class="{ 'is-active': editor.isActive('image') }"
-        :disabled="editor.isActive('codeBlock')"
-        :tabindex="tabIndex"
-        @click="onAddImage"
-      >
-        <GeneralIcon icon="ncImage"></GeneralIcon>
-      </NcButton>
-    </NcTooltip>
+      :editor="editor"
+      :tab-index="tabIndex"
+    />
 
     <div v-if="enableCloseButton" class="!sticky right-0 pr-0.5 bg-nc-bg-default">
       <NcButton type="text" size="small" @click="closeTextArea">

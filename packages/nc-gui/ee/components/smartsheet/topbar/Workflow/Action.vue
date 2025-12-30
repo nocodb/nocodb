@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { WorkflowGeneralNode } from 'nocodb-sdk'
-import { GeneralNodeID } from 'nocodb-sdk'
+import { GeneralNodeID, NcErrorType } from 'nocodb-sdk'
 
 const workflowStore = useWorkflowStore()
 
@@ -9,6 +9,8 @@ const { activeWorkflowHasDraftChanges, activeWorkflow } = storeToRefs(workflowSt
 const { updateWorkflow, publishWorkflow } = useWorkflowStore()
 
 const isPublishing = ref(false)
+const showPendingExecutionsModal = ref(false)
+const pendingExecutionsCount = ref(0)
 
 const revertToPublished = async () => {
   if (!activeWorkflow.value?.id || !activeWorkflow.value?.base_id) return
@@ -44,15 +46,29 @@ const canPublish = computed(() => {
   return true
 })
 
-const handlePublish = async () => {
+const handlePublish = async (cancelPendingExecutions?: boolean) => {
   if (!canPublish.value || !activeWorkflow.value?.id) return
 
   isPublishing.value = true
   try {
-    await publishWorkflow(activeWorkflow.value?.id)
+    await publishWorkflow(activeWorkflow.value?.id, { cancelPendingExecutions })
+    showPendingExecutionsModal.value = false
+  } catch (e: any) {
+    const errorData = e?.response?.data
+    // Check if error is ERR_WORKFLOW_WAITING_EXECUTIONS
+    if (errorData?.error === NcErrorType.ERR_WORKFLOW_WAITING_EXECUTIONS) {
+      pendingExecutionsCount.value = errorData?.details?.count || 0
+      showPendingExecutionsModal.value = true
+    } else {
+      message.error(await extractSdkResponseErrorMsgv2(e as any))
+    }
   } finally {
     isPublishing.value = false
   }
+}
+
+const handlePendingExecutionsContinue = async (cancelPending: boolean) => {
+  await handlePublish(cancelPending)
 }
 </script>
 
@@ -75,7 +91,7 @@ const handlePublish = async () => {
           type="primary"
           :disabled="!canPublish || isPublishing"
           :loading="isPublishing"
-          @click="handlePublish"
+          @click="handlePublish()"
         >
           <template #icon>
             <GeneralIcon icon="ncUploadCloud" />
@@ -85,6 +101,12 @@ const handlePublish = async () => {
         <template #title> Please test all nodes before publishing </template>
       </NcTooltip>
     </div>
+
+    <DlgWorkflowPendingExecutions
+      v-model:visible="showPendingExecutionsModal"
+      :count="pendingExecutionsCount"
+      @continue="handlePendingExecutionsContinue"
+    />
   </div>
 </template>
 

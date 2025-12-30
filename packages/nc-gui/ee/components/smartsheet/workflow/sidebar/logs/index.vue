@@ -2,7 +2,7 @@
 import dayjs from 'dayjs'
 import { EventType } from 'nocodb-sdk'
 import type { WorkflowExecutionPayload } from 'nocodb-sdk'
-import List from './List.vue'
+import Container from './Container.vue'
 
 const { $ncSocket } = useNuxtApp()
 
@@ -167,7 +167,7 @@ onBeforeMount(async () => {
       <div class="text-subHeading2 py-2 px-2">Run history</div>
     </div>
     <template v-if="!viewingExecution || isLoading">
-      <List
+      <Container
         v-if="!isLoading"
         v-model:active-item="activeItem"
         :executions="executions"

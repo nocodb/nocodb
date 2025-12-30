@@ -110,6 +110,7 @@ export const LongTextCellRenderer: CellRenderer = {
         fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
         cellRenderStore: props.cellRenderStore,
+        renderAsPreTag: true,
       })
 
       if (!props.tag?.renderAsTag && selected) {

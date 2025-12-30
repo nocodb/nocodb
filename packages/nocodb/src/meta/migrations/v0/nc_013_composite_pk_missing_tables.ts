@@ -4,7 +4,7 @@ import { MetaTable } from '~/utils/globals';
 const up = async (knex: Knex) => {
   const migrationStart = Date.now();
   console.log(
-    '[nc_012_composite_pk_missing_tables] Starting composite primary key migration for missing tables...',
+    '[nc_013_composite_pk_missing_tables] Starting composite primary key migration for missing tables...',
   );
 
   // List of tables that were missing from nc_092 migration
@@ -21,7 +21,7 @@ const up = async (knex: Knex) => {
 
   const cleanupStart = Date.now();
   console.log(
-    '[nc_012_composite_pk_missing_tables] Cleaning up rows with null base_id values...',
+    '[nc_013_composite_pk_missing_tables] Cleaning up rows with null base_id values...',
   );
   let totalCleanedRows = 0;
 
@@ -33,27 +33,27 @@ const up = async (knex: Knex) => {
       .first();
     if (count && parseInt(`${count.count}`, 10) > 0) {
       console.log(
-        `[nc_012_composite_pk_missing_tables] Found ${count.count} rows in table ${table} with null base_id.`,
+        `[nc_013_composite_pk_missing_tables] Found ${count.count} rows in table ${table} with null base_id.`,
       );
 
       const deletedRows = await knex(table).whereNull('base_id').del();
       totalCleanedRows += deletedRows;
       console.log(
-        `[nc_012_composite_pk_missing_tables] Cleaned ${deletedRows} rows from ${table} in ${
+        `[nc_013_composite_pk_missing_tables] Cleaned ${deletedRows} rows from ${table} in ${
           Date.now() - tableCleanupStart
         }ms`,
       );
     }
   }
   console.log(
-    `[nc_012_composite_pk_missing_tables] Cleanup completed. Total rows cleaned: ${totalCleanedRows} in ${
+    `[nc_013_composite_pk_missing_tables] Cleanup completed. Total rows cleaned: ${totalCleanedRows} in ${
       Date.now() - cleanupStart
     }ms`,
   );
 
   const pkMigrationStart = Date.now();
   console.log(
-    `[nc_012_composite_pk_missing_tables] Starting primary key migration for ${
+    `[nc_013_composite_pk_missing_tables] Starting primary key migration for ${
       Object.keys(compositePkTables).length
     } tables...`,
   );
@@ -61,7 +61,7 @@ const up = async (knex: Knex) => {
   for (const [table, columns] of Object.entries(compositePkTables)) {
     const tableStart = Date.now();
     console.log(
-      `[nc_012_composite_pk_missing_tables] Processing table: ${table}`,
+      `[nc_013_composite_pk_missing_tables] Processing table: ${table}`,
     );
 
     const dropPkStart = Date.now();
@@ -69,7 +69,7 @@ const up = async (knex: Knex) => {
       t.dropPrimary(customPkTitles[table] ? customPkTitles[table] : undefined);
     });
     console.log(
-      `[nc_012_composite_pk_missing_tables] Dropped old PK for ${table} in ${
+      `[nc_013_composite_pk_missing_tables] Dropped old PK for ${table} in ${
         Date.now() - dropPkStart
       }ms`,
     );
@@ -79,7 +79,7 @@ const up = async (knex: Knex) => {
       t.primary(columns);
     });
     console.log(
-      `[nc_012_composite_pk_missing_tables] Added composite PK [${columns.join(
+      `[nc_013_composite_pk_missing_tables] Added composite PK [${columns.join(
         ', ',
       )}] for ${table} in ${Date.now() - addPkStart}ms`,
     );
@@ -91,26 +91,26 @@ const up = async (knex: Knex) => {
         t.index(indexColumns, `${table}_oldpk_idx`);
       });
       console.log(
-        `[nc_012_composite_pk_missing_tables] Added backward compatibility index [${indexColumns.join(
+        `[nc_013_composite_pk_missing_tables] Added backward compatibility index [${indexColumns.join(
           ', ',
         )}] for ${table} in ${Date.now() - indexStart}ms`,
       );
     }
 
     console.log(
-      `[nc_012_composite_pk_missing_tables] Completed ${table} in ${
+      `[nc_013_composite_pk_missing_tables] Completed ${table} in ${
         Date.now() - tableStart
       }ms`,
     );
   }
 
   console.log(
-    `[nc_012_composite_pk_missing_tables] Primary key migration completed for all tables in ${
+    `[nc_013_composite_pk_missing_tables] Primary key migration completed for all tables in ${
       Date.now() - pkMigrationStart
     }ms`,
   );
   console.log(
-    `[nc_012_composite_pk_missing_tables] Total migration time: ${
+    `[nc_013_composite_pk_missing_tables] Total migration time: ${
       Date.now() - migrationStart
     }ms`,
   );
@@ -119,7 +119,7 @@ const up = async (knex: Knex) => {
 const down = async (knex: Knex) => {
   const rollbackStart = Date.now();
   console.log(
-    '[nc_012_composite_pk_missing_tables] Starting rollback migration...',
+    '[nc_013_composite_pk_missing_tables] Starting rollback migration...',
   );
 
   // List of tables and their old PKs
@@ -136,7 +136,7 @@ const down = async (knex: Knex) => {
 
   const pkRollbackStart = Date.now();
   console.log(
-    `[nc_012_composite_pk_missing_tables] Starting rollback for ${
+    `[nc_013_composite_pk_missing_tables] Starting rollback for ${
       Object.keys(oldPkTables).length
     } tables...`,
   );
@@ -144,7 +144,7 @@ const down = async (knex: Knex) => {
   for (const [table, columns] of Object.entries(oldPkTables)) {
     const tableStart = Date.now();
     console.log(
-      `[nc_012_composite_pk_missing_tables] Rolling back table: ${table}`,
+      `[nc_013_composite_pk_missing_tables] Rolling back table: ${table}`,
     );
 
     const dropCompositePkStart = Date.now();
@@ -152,7 +152,7 @@ const down = async (knex: Knex) => {
       t.dropPrimary();
     });
     console.log(
-      `[nc_012_composite_pk_missing_tables] Dropped composite PK for ${table} in ${
+      `[nc_013_composite_pk_missing_tables] Dropped composite PK for ${table} in ${
         Date.now() - dropCompositePkStart
       }ms`,
       {
@@ -167,7 +167,7 @@ const down = async (knex: Knex) => {
       t.primary(columns);
     });
     console.log(
-      `[nc_012_composite_pk_missing_tables] Restored old PK [${columns.join(
+      `[nc_013_composite_pk_missing_tables] Restored old PK [${columns.join(
         ', ',
       )}] for ${table} in ${Date.now() - restoreOldPkStart}ms`,
     );
@@ -177,25 +177,25 @@ const down = async (knex: Knex) => {
       t.dropIndex([], `${table}_oldpk_idx`);
     });
     console.log(
-      `[nc_012_composite_pk_missing_tables] Dropped backward compatibility index for ${table} in ${
+      `[nc_013_composite_pk_missing_tables] Dropped backward compatibility index for ${table} in ${
         Date.now() - dropIndexStart
       }ms`,
     );
 
     console.log(
-      `[nc_012_composite_pk_missing_tables] Completed rollback for ${table} in ${
+      `[nc_013_composite_pk_missing_tables] Completed rollback for ${table} in ${
         Date.now() - tableStart
       }ms`,
     );
   }
 
   console.log(
-    `[nc_012_composite_pk_missing_tables] Rollback completed for all tables in ${
+    `[nc_013_composite_pk_missing_tables] Rollback completed for all tables in ${
       Date.now() - pkRollbackStart
     }ms`,
   );
   console.log(
-    `[nc_012_composite_pk_missing_tables] Total rollback time: ${
+    `[nc_013_composite_pk_missing_tables] Total rollback time: ${
       Date.now() - rollbackStart
     }ms`,
   );

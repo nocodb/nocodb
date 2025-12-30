@@ -5,7 +5,7 @@ import TestStep from '~/components/smartsheet/workflow/sidebar/config/TestStep.v
 import Result from '~/components/smartsheet/workflow/sidebar/config/Result.vue'
 import ExecutionResult from '~/components/smartsheet/workflow/sidebar/config/ExecutionResult.vue'
 import NodeDetails from '~/components/smartsheet/workflow/sidebar/NodeDetails.vue'
-import LogSidebar from '~/components/smartsheet/workflow/sidebar/logsList/index.vue'
+import LogSidebar from '~/components/smartsheet/workflow/sidebar/logs/index.vue'
 
 const { selectedNode, activeTab, viewingExecution } = useWorkflowOrThrow()
 </script>

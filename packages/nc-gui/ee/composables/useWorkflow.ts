@@ -7,6 +7,7 @@ import {
   ensurePortsConnected,
   filterOutPlusNodes,
   findParentNodesNeedingPlusNodes,
+  getNodeOutputPorts,
 } from '~/utils/workflowGraphUtils'
 
 const clone = rfdc()
@@ -131,7 +132,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       source: sourceNodeId,
       target: plusNode.id,
       animated: false,
-      type: 'smoothstep',
+      type: 'custom',
     }
 
     if (edgeLabel) {
@@ -160,6 +161,89 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
   const addNode = async (node: Node) => {
     nodes.value = [...nodes.value, node]
     debouncedWorkflowUpdate()
+  }
+
+  const insertNodeBetween = async (edgeId: string, nodeType: string, nodeMeta: UIWorkflowNodeDefinition | null) => {
+    if (!nodeMeta) return
+
+    // Find the edge to replace
+    const edge = edges.value.find((e) => e.id === edgeId)
+    if (!edge) return
+
+    // Create the new node
+    const newNodeId = generateUniqueNodeId(nodes.value)
+    const uniqueTitle = generateUniqueNodeTitle(nodeMeta, nodes.value)
+
+    const newNode: Node = {
+      id: newNodeId,
+      type: nodeType,
+      position: { x: 250, y: 200 },
+      data: {
+        title: uniqueTitle,
+      },
+    }
+
+    // Get output ports to determine which port to connect to the target
+    const outputPorts = getNodeOutputPorts(nodeMeta)
+    const firstOutputPort = outputPorts.length > 0 ? outputPorts[0] : null
+
+    // Remove the old edge
+    edges.value = edges.value.filter((e) => e.id !== edgeId)
+
+    // Create new edges: source -> new node -> target
+    const edgeToNewNode: Edge = {
+      id: `e:${edge.source}->${newNodeId}`,
+      source: edge.source,
+      target: newNodeId,
+      animated: false,
+      type: 'custom',
+    }
+
+    if (edge.label) {
+      edgeToNewNode.label = edge.label
+      edgeToNewNode.labelStyle = edge.labelStyle
+      edgeToNewNode.labelBgStyle = edge.labelBgStyle
+    }
+
+    if (edge.sourceHandle) {
+      edgeToNewNode.sourceHandle = edge.sourceHandle
+      edgeToNewNode.sourcePortId = edge.sourceHandle
+    }
+
+    const edgeFromNewNode: Edge = {
+      id: `e:${newNodeId}->${edge.target}`,
+      source: newNodeId,
+      target: edge.target,
+      animated: false,
+      type: 'custom',
+    }
+
+    // If the new node has multiple outputs, connect to the first port
+    if (firstOutputPort && outputPorts.length > 1) {
+      edgeFromNewNode.sourceHandle = firstOutputPort.id
+      edgeFromNewNode.sourcePortId = firstOutputPort.id
+
+      // Add label if the port has one
+      if (firstOutputPort.label) {
+        edgeFromNewNode.label = firstOutputPort.label
+        edgeFromNewNode.labelStyle = { fill: 'var(--nc-content-gray-muted)', fontWeight: 600, fontSize: 12 }
+        edgeFromNewNode.labelBgStyle = { fill: 'var(--nc-bg-default)' }
+      }
+    }
+
+    // Add the new node and edges
+    nodes.value = [...nodes.value, newNode]
+    edges.value = [...edges.value, edgeToNewNode, edgeFromNewNode]
+
+    debouncedWorkflowUpdate()
+
+    // Ensure the new node has proper port connections
+    // This will add Plus nodes for any unconnected output ports
+    await ensurePortsConnected(newNodeId, nodeMeta, edges.value, addPlusNode, false)
+
+    await triggerLayout()
+
+    return newNodeId
   }
 
   const updateNode = async (nodeId: string, updatedData: Partial<Node>) => {
@@ -311,7 +395,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
             source: inEdge.source,
             target: outEdge.target,
             animated: false, // Never animate edges
-            type: 'smoothstep',
+            type: 'custom',
           }
           if (inEdge.label) {
             newEdge.label = inEdge.label
@@ -537,6 +621,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     // Node utilities
     addNode,
     addPlusNode,
+    insertNodeBetween,
     updateNode,
     deleteNode,
     getNodeMetaById,

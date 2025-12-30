@@ -40,7 +40,7 @@ import { WorkspaceUsersController } from '~/controllers/workspace-users.controll
 import { ViewsV3Controller } from '~/ee/controllers/v3/views-v3.controller';
 
 /* Workspace V3 */
-import { WorkspaceV3Service } from '~/ee/services/v3/workspace-v3.service';
+import { WorkspaceV3Service } from '~/services/v3/workspace-v3.service';
 import { WorkspaceMembersV3Service } from '~/services/v3/workspace-members-v3.service';
 import { WorkspaceV3Controller } from '~/ee/controllers/v3/workspace-v3.controller';
 import { WorkspaceMembersV3Controller } from '~/controllers/v3/workspace-members-v3.controller';

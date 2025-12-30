@@ -8,6 +8,8 @@ import { CronTriggerNode } from './nodes/cron-trigger';
 import { IfNode } from './nodes/if';
 import { IterateNode } from './nodes/iterate';
 import { SendEmailAction } from './nodes/send-email';
+import { DelayNode } from './nodes/delay';
+import { WaitUntilNode } from './nodes/wait-until';
 
 export const entries: IntegrationEntry[] = [
   {
@@ -67,6 +69,30 @@ export const entries: IntegrationEntry[] = [
       title: 'Send Email',
       icon: 'ncMail',
       order: 12,
+    },
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'core.flow.delay',
+    wrapper: DelayNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'Delay',
+      icon: 'ncClock',
+      order: 7,
+    },
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'core.flow.wait-until',
+    wrapper: WaitUntilNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'Wait Until',
+      icon: 'ncCalendar',
+      order: 8,
     },
   },
 ];

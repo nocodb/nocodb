@@ -894,6 +894,16 @@ export class NcErrorBase {
     );
   }
 
+  workflowWaitingExecutions(count: number, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(
+      NcErrorType.ERR_WORKFLOW_WAITING_EXECUTIONS,
+      {
+        params: count.toString(),
+        ...args,
+      }
+    );
+  }
+
   workflowMaxIterationsExceeded(args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(
       NcErrorType.ERR_WORKFLOW_MAX_ITERATIONS_EXCEEDED,

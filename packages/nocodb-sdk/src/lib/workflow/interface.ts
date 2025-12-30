@@ -134,7 +134,13 @@ interface LoopData {
 interface WorkflowExecutionState {
   id: string;
   workflowId: string;
-  status: 'running' | 'completed' | 'error' | 'cancelled' | 'skipped';
+  status:
+    | 'running'
+    | 'waiting'
+    | 'completed'
+    | 'error'
+    | 'cancelled'
+    | 'skipped';
   startTime: number;
   endTime?: number;
   nodeResults: NodeExecutionResult[];
@@ -144,6 +150,11 @@ interface WorkflowExecutionState {
   loops?: {
     [loopNodeId: string]: LoopData;
   };
+
+  // Delay/pause support
+  pausedAt?: number; // When workflow was paused
+  resumeAt?: number; // When to resume (timestamp from delay node)
+  nextNodeId?: string; // Which node to execute after resume
 }
 
 interface IWorkflowExecution {
@@ -172,7 +183,16 @@ interface IWorkflowExecution {
   started_at?: string;
   finished?: boolean;
 
-  status: 'running' | 'completed' | 'error' | 'cancelled' | 'skipped';
+  status:
+    | 'running'
+    | 'waiting'
+    | 'completed'
+    | 'error'
+    | 'cancelled'
+    | 'skipped';
+
+  // When to resume if paused
+  resume_at?: string | Date;
 }
 
 interface NodeConfig {

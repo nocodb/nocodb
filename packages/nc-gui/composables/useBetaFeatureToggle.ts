@@ -37,8 +37,8 @@ const FEATURES = [
     title: 'Dark Mode',
     isEngineering: false,
     description: 'Keep your eyes healthy with dark mode.',
-    enabled: false,
-    version: 2,
+    enabled: true,
+    version: 3,
   },
   {
     id: 'canvas_group_grid_view',

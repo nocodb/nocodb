@@ -50,11 +50,14 @@ const getStatusIcon = (status: string) => {
     case 'completed':
       return 'ncCheck'
     case 'error':
+    case 'cancelled':
       return 'ncX'
     case 'running':
       return 'refresh'
     case 'skipped':
       return 'ncMinus'
+    case 'waiting':
+      return 'ncPause'
     case 'pending':
       return 'ncPending'
     default:
@@ -83,9 +86,10 @@ const getStatusIcon = (status: string) => {
           <div
             :class="{
               'bg-nc-green-700 dark:bg-nc-green-200': execution.status === 'completed',
-              'bg-nc-red-500 dark:bg-nc-red-500': execution.status === 'error',
+              'bg-nc-red-500 dark:bg-nc-red-500': execution.status === 'error' || execution.status === 'cancelled',
               'bg-nc-brand-500 dark:bg-nc-brand-500 animate-spin': execution.status === 'running',
               'bg-nc-gray-400 dark:bg-nc-gray-500': execution.status === 'skipped',
+              'bg-nc-orange-400 dark:bg-nc-orange-500': execution.status === 'waiting',
             }"
             class="w-5 h-5 rounded-full flex items-center justify-center flex-none"
           >

@@ -149,7 +149,7 @@ const editor = useEditor({
     markdown = markdown.replaceAll('<br/>', '\n')
     markdown = markdown.replaceAll('<br>', '\n')
 
-    vModel.value = markdown
+    vModel.value = markdown.trim()
   },
   editable: !readOnly.value,
   autofocus: false,

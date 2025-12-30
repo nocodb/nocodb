@@ -12,6 +12,7 @@
     {
       "name": "Meta APIs",
       "tags": [
+        "Workspaces",
         "Bases",
         "Tables",
         "Views",
@@ -35,6 +36,282 @@
     }
   ],
   "paths": {
+    "/api/v3/meta/workspaces": {
+      "get": {
+        "summary": "List workspaces",
+        "operationId": "workspace-list",
+        "description": "Retrieve a list of all workspaces accessible to the user.",
+        "tags": [
+          "Workspaces"
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspaces retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3ListResponse"
+                },
+                "examples": {
+                  "Workspaces List": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "w6dw3fo0",
+                          "title": "My Workspace",
+                          "org_id": "org123",
+                          "meta": {
+                            "icon": "ncTriangle"
+                          },
+                          "created_at": "2025-01-16T06:04:18.000Z",
+                          "updated_at": "2025-01-16T06:04:18.000Z"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create workspace",
+        "operationId": "workspace-create",
+        "description": "Create a new workspace with the specified title and optional organization ID.",
+        "tags": [
+          "Workspaces"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceV3Create"
+              },
+              "examples": {
+                "Create Workspace": {
+                  "value": {
+                    "title": "New Workspace",
+                    "org_id": "org123"
+                  }
+                },
+                "Create Workspace (On-prem)": {
+                  "value": {
+                    "title": "New Workspace"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3"
+                },
+                "examples": {
+                  "Created Workspace": {
+                    "value": {
+                      "id": "w7xyz123",
+                      "title": "New Workspace",
+                      "org_id": "org123",
+                      "meta": {
+                        "icon": "ncTriangle"
+                      },
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/workspaces/{workspaceId}": {
+      "get": {
+        "summary": "Get workspace",
+        "operationId": "workspace-read",
+        "description": "Retrieve details of a specific workspace.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Include additional data. Use 'members' to include workspace member information.",
+            "example": "members"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3"
+                },
+                "examples": {
+                  "Workspace": {
+                    "value": {
+                      "id": "w6dw3fo0",
+                      "title": "My Workspace",
+                      "org_id": "org123",
+                      "meta": {
+                        "icon": "ncTriangle"
+                      },
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update workspace",
+        "operationId": "workspace-update",
+        "description": "Update workspace details.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceV3Update"
+              },
+              "examples": {
+                "Update Workspace": {
+                  "value": {
+                    "title": "Updated Workspace Title"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3"
+                },
+                "examples": {
+                  "Updated Workspace": {
+                    "value": {
+                      "id": "w6dw3fo0",
+                      "title": "Updated Workspace Title",
+                      "org_id": "org123",
+                      "meta": {
+                        "icon": "ncTriangle"
+                      },
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-17T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "404": {
+            "description": "Workspace not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete workspace",
+        "operationId": "workspace-delete",
+        "description": "Delete a workspace.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace deleted successfully."
+          },
+          "404": {
+            "description": "Workspace not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
     "/api/v3/meta/workspaces/{workspaceId}/bases": {
       "get": {
         "summary": "List bases",
@@ -79,7 +356,7 @@
                           "id": "pgfqcp0ocloo1j3",
                           "title": "Getting Started",
                           "meta": {
-                            "icon_color": "#36BFFF"
+                            "icon": "ncTriangle"
                           },
                           "created_at": "2025-01-16 06:04:18+00:00",
                           "updated_at": "2025-01-16 06:04:18+00:00",
@@ -89,7 +366,7 @@
                           "id": "p1go4ju5jcwqf8v",
                           "title": "Base2",
                           "meta": {
-                            "icon_color": "#36BFFF"
+                            "icon": "ncTriangle"
                           },
                           "created_at": "2025-01-16 06:04:48+00:00",
                           "updated_at": "2025-01-16 06:04:48+00:00",
@@ -99,7 +376,7 @@
                           "id": "pho1grz3alkye0t",
                           "title": "Base3",
                           "meta": {
-                            "icon_color": "#FA8231"
+                            "icon": "ncTriangle"
                           },
                           "created_at": "2025-01-16 06:04:52+00:00",
                           "updated_at": "2025-01-16 06:04:52+00:00",
@@ -147,7 +424,7 @@
                   "value": {
                     "title": "New Base",
                     "meta": {
-                      "icon_color": "#36BFFF"
+                      "icon": "ncTriangle"
                     }
                   }
                 }
@@ -169,7 +446,7 @@
                       "id": "p7nwavd2gcdkzvd",
                       "title": "New Base",
                       "meta": {
-                        "icon_color": "#36BFFF"
+                        "icon": "ncTriangle"
                       },
                       "created_at": "2024-12-28 09:52:29+00:00",
                       "updated_at": "2024-12-28 09:52:29+00:00",
@@ -9245,6 +9522,100 @@
           "title",
           "created_at",
           "updated_at"
+        ]
+      },
+      "WorkspaceV3": {
+        "type": "object",
+        "description": "Workspace V3 information with meta data",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the workspace"
+          },
+          "org_id": {
+            "type": "string",
+            "description": "Organization identifier (required for cloud, absent for on-prem EE)"
+          },
+          "meta": {
+            "type": "object",
+            "description": "Workspace metadata",
+            "properties": {
+              "icon_color": {
+                "type": "string",
+                "description": "Icon color for the workspace"
+              }
+            },
+            "required": [
+              "icon_color"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workspace was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workspace was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "meta",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "WorkspaceV3Create": {
+        "type": "object",
+        "description": "Workspace creation request",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the workspace"
+          },
+          "org_id": {
+            "type": "string",
+            "description": "Organization identifier (required for cloud, absent for on-prem EE)"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "WorkspaceV3Update": {
+        "type": "object",
+        "description": "Workspace update request",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the workspace"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "WorkspaceV3ListResponse": {
+        "type": "object",
+        "description": "Workspace list response",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceV3"
+            },
+            "description": "List of workspaces"
+          }
+        },
+        "required": [
+          "list"
         ]
       },
       "WorkspaceWithMembers": {

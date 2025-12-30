@@ -337,7 +337,7 @@ onClickOutside(editorDom, (e) => {
       />
 
       <template v-if="shouldShowLinkOption">
-        <CellRichTextLinkOptions
+        <CellRichTextLinkOrImageOptions
           v-if="editor"
           ref="richTextLinkOptionRef"
           :editor="editor"

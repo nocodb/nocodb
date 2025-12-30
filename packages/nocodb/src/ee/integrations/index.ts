@@ -42,6 +42,8 @@ import NocodbAi from '@noco-local-integrations/nocodb-ai';
 import NocodbWorkflowNode from '@noco-local-integrations/nocodb-workflow-node';
 import OpenaiAi from '@noco-local-integrations/openai-ai';
 import OpenaiCompatibleAi from '@noco-local-integrations/openai-compatible-ai';
+import OutlookMailAuth from '@noco-local-integrations/outlook-mail-auth';
+import OutlookWorkflowNodes from '@noco-local-integrations/outlook-workflow-nodes';
 import PostgresAuth from '@noco-local-integrations/postgres-auth';
 import PostgresSync from '@noco-local-integrations/postgres-sync';
 import SlackAuth from '@noco-local-integrations/slack-auth';
@@ -92,6 +94,8 @@ export default [
   ...(Array.isArray(NocodbWorkflowNode) ? NocodbWorkflowNode : [NocodbWorkflowNode]),
   ...(Array.isArray(OpenaiAi) ? OpenaiAi : [OpenaiAi]),
   ...(Array.isArray(OpenaiCompatibleAi) ? OpenaiCompatibleAi : [OpenaiCompatibleAi]),
+  ...(Array.isArray(OutlookMailAuth) ? OutlookMailAuth : [OutlookMailAuth]),
+  ...(Array.isArray(OutlookWorkflowNodes) ? OutlookWorkflowNodes : [OutlookWorkflowNodes]),
   ...(Array.isArray(PostgresAuth) ? PostgresAuth : [PostgresAuth]),
   ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
   ...(Array.isArray(SlackAuth) ? SlackAuth : [SlackAuth]),

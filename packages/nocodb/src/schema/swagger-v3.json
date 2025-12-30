@@ -84,7 +84,7 @@
       "post": {
         "summary": "Create workspace",
         "operationId": "workspace-create",
-        "description": "Create a new workspace with the specified title and optional organization ID.",
+        "description": "Create a new workspace with the specified title and optional organization ID.\n\n**Note**: Workspace Create / Update / Delete APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
         "tags": [
           "Workspaces"
         ],
@@ -213,7 +213,7 @@
       "patch": {
         "summary": "Update workspace",
         "operationId": "workspace-update",
-        "description": "Update workspace details.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Update workspace details.\n\n**Note**: Workspace Create / Update / Delete APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
         "tags": [
           "Workspaces"
         ],
@@ -284,7 +284,7 @@
       "delete": {
         "summary": "Delete workspace",
         "operationId": "workspace-delete",
-        "description": "Delete a workspace.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Delete a workspace.\n\n**Note**: Workspace Create / Update / Delete APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
         "tags": [
           "Workspaces"
         ],

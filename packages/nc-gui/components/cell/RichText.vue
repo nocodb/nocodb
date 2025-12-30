@@ -391,16 +391,6 @@ onClickOutside(editorDom, (e) => {
 </template>
 
 <style lang="scss">
-.nc-rich-text-content {
-  img {
-    @apply relative;
-
-    &.ProseMirror-selectednode {
-      box-shadow: 0 0 0 1px var(--nc-border-brand);
-    }
-  }
-}
-
 .nc-text-rich-scroll {
   &::-webkit-scrollbar-thumb {
     @apply bg-transparent;

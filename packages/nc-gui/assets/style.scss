@@ -1367,6 +1367,10 @@ svg.nc-virtual-cell-icon {
     }
   }
 
+  img {
+    @apply max-w-full;
+  }
+
   em {
     font-synthesis: initial !important;
 

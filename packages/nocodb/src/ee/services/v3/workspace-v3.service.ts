@@ -80,24 +80,24 @@ export class WorkspaceV3Service {
   }
 
   async workspaceList(
-    context: NcContext,
+    _context: NcContext,
     param: {
       cookie: any;
     },
   ) {
     const workspaces = await this.workspaceService.list({
-      user: context.user,
+      user: param.cookie.user,
       req: param.cookie,
     });
     return { list: this.builder().build(workspaces.list) };
   }
 
   async workspaceCreate(
-    context: NcContext,
+    _context: NcContext,
     { body, cookie }: { body: WorkspaceV3Create; cookie: any },
   ) {
     const workspace = await this.workspaceService.create({
-      user: context.user,
+      user: cookie.user,
       workspaces: {
         title: body.title,
         fk_org_id: body.org_id,

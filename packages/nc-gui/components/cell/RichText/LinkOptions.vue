@@ -3,6 +3,7 @@ import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
 import { getMarkRange } from '@tiptap/core'
 import type { Mark } from '@tiptap/pm/model'
+import { nextTick } from 'vue'
 
 const props = defineProps<Props>()
 
@@ -21,13 +22,23 @@ const linkNodeMark = ref<Mark | undefined>()
 const href = ref('')
 const isLinkOptionsVisible = ref(false)
 
+// Image options state
+const imageWrapperRef = ref<HTMLElement>()
+const imageSrcInputRef = ref<HTMLInputElement>()
+const imageNode = ref<any>()
+const imageSrc = ref('')
+const imageAlt = ref('')
+const imagePreviewError = ref(false)
+const isImageOptionsVisible = ref(false)
+const isImageEditMode = ref(false) // Track if we're in edit mode
+
 // This is used to prevent the menu from showing up after a link is deleted, an edge case when the link with empty placeholder text is deleted.
 // This is because checkLinkMark is not called in that case
 const justDeleted = ref(false)
 
 // This function is called by BubbleMenu on selection change
-// It is used to check if the link mark is active and only show the menu if it is
-const checkLinkMark = (editor: Editor) => {
+// It checks if either a link mark is active or an image node is selected
+const checkLinkMarkOrImageNode = (editor: Editor) => {
   if (!editor.view.editable) return false
 
   if (justDeleted.value) {
@@ -37,6 +48,24 @@ const checkLinkMark = (editor: Editor) => {
     return false
   }
 
+  // Check for image node first
+  const selection = editor?.state?.selection
+  const selectedNode = selection && 'node' in selection ? (selection as any).node : null
+
+  if (selectedNode && selectedNode.type && selectedNode.type.name === 'image') {
+    if (imageNode.value !== selectedNode) {
+      isImageEditMode.value = false
+    }
+
+    imageNode.value = selectedNode
+    imageSrc.value = selectedNode.attrs?.src || ''
+    imageAlt.value = selectedNode.attrs?.alt || ''
+    isImageOptionsVisible.value = true
+    isLinkOptionsVisible.value = false
+    return true
+  }
+
+  // Check for link mark
   const activeNode = editor?.state?.selection?.$from?.nodeBefore || editor?.state?.selection?.$from?.nodeAfter
 
   const isLinkMarkedStoredInEditor = editor?.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
@@ -58,6 +87,8 @@ const checkLinkMark = (editor: Editor) => {
   // check if active node is a text node
   const showLinkOptions = isActiveNodeMarkActive && !isTextSelected
   isLinkOptionsVisible.value = !!showLinkOptions
+  isImageOptionsVisible.value = false
+  isImageEditMode.value = false // Reset edit mode
 
   return showLinkOptions
 }
@@ -71,6 +102,9 @@ function notStartingWithNetworkProtocol(inputString: string) {
 }
 
 const onChange = () => {
+  const linkMark = editor.value.schema.marks.link
+  if (!linkMark) return
+
   const isLinkMarkedStoredInEditor = editor.value.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
   let formatedHref = href.value
   if (
@@ -84,37 +118,72 @@ const onChange = () => {
 
   if (isLinkMarkedStoredInEditor) {
     editor.value.view.dispatch(
-      editor.value.view.state.tr
-        .removeStoredMark(editor.value.schema.marks.link)
-        .addStoredMark(editor.value.schema.marks.link.create({ href: formatedHref })),
+      editor.value.view.state.tr.removeStoredMark(linkMark).addStoredMark(linkMark.create({ href: formatedHref })),
     )
   } else if (linkNodeMark.value) {
     const selection = editor.value.state?.selection
-    const markSelection = getMarkRange(selection.$anchor, editor.value.schema.marks.link) as any
+    const markSelection = getMarkRange(selection.$anchor, linkMark) as any
 
     editor.value.view.dispatch(
       editor.value.view.state.tr
-        .removeMark(markSelection.from, markSelection.to, editor.value.schema.marks.link)
-        .addMark(markSelection.from, markSelection.to, editor.value.schema.marks.link.create({ href: formatedHref })),
+        .removeMark(markSelection.from, markSelection.to, linkMark)
+        .addMark(markSelection.from, markSelection.to, linkMark.create({ href: formatedHref })),
     )
   }
 }
 
 const onDelete = () => {
+  const linkMark = editor.value.schema.marks.link
+  if (!linkMark) return
+
   const isLinkMarkedStoredInEditor = editor.value.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
 
   if (isLinkMarkedStoredInEditor) {
-    editor.value.view.dispatch(editor.value.view.state.tr.removeStoredMark(editor.value.schema.marks.link))
+    editor.value.view.dispatch(editor.value.view.state.tr.removeStoredMark(linkMark))
   } else if (linkNodeMark.value) {
     const selection = editor.value.state.selection
-    const markSelection = getMarkRange(selection.$anchor, editor.value.schema.marks.link) as any
+    const markSelection = getMarkRange(selection.$anchor, linkMark) as any
 
-    editor.value.view.dispatch(
-      editor.value.view.state.tr.removeMark(markSelection.from, markSelection.to, editor.value.schema.marks.link),
-    )
+    editor.value.view.dispatch(editor.value.view.state.tr.removeMark(markSelection.from, markSelection.to, linkMark))
   }
 
   justDeleted.value = true
+}
+
+const updateImageAttributes = () => {
+  if (!imageNode.value) return
+
+  const { from, to } = editor.value.state.selection
+  const formatedSrc = imageSrc.value
+
+  editor.value.view.dispatch(
+    editor.value.view.state.tr.setNodeMarkup(from, undefined, {
+      src: formatedSrc,
+      alt: imageAlt.value,
+    }),
+  )
+}
+
+const deleteImage = () => {
+  if (!imageNode.value) return
+
+  const { from, to } = editor.value.state.selection
+  editor.value.view.dispatch(editor.value.view.state.tr.delete(from, to))
+}
+
+const previewImage = () => {
+  if (imageSrc.value) {
+    window.open(imageSrc.value, '_blank', 'noopener,noreferrer')
+  }
+}
+
+const toggleImageEditMode = () => {
+  isImageEditMode.value = !isImageEditMode.value
+}
+
+const applyImageChanges = () => {
+  updateImageAttributes()
+  isImageEditMode.value = false
 }
 
 const handleKeyDown = (e: any) => {
@@ -144,8 +213,18 @@ const handleInputBoxKeyDown = (e: any) => {
   }
 }
 
-watch(isLinkOptionsVisible, (value, oldValue) => {
-  if (value && !oldValue) {
+// Watch for edit mode changes to focus input
+watch(isImageEditMode, (editMode, oldEditMode) => {
+  if (editMode && !oldEditMode) {
+    // Entering edit mode - focus the URL input
+    nextTick(() => {
+      imageSrcInputRef.value?.focus()
+    })
+  }
+})
+
+watch([isLinkOptionsVisible, isImageOptionsVisible], ([linkVisible, imageVisible], [oldLinkVisible, oldImageVisible]) => {
+  if (linkVisible && !oldLinkVisible) {
     const isPlaceholderEmpty =
       !editor.value.state.selection.$from.nodeBefore?.textContent && !editor.value.state.selection.$from.nodeAfter?.textContent
 
@@ -155,6 +234,11 @@ watch(isLinkOptionsVisible, (value, oldValue) => {
       inputRef.value?.focus()
     }, 100)
   }
+
+  // Reset edit mode when image options are hidden
+  if (!imageVisible && oldImageVisible) {
+    isImageEditMode.value = false
+  }
 })
 
 const openLink = () => {
@@ -163,7 +247,7 @@ const openLink = () => {
   }
 }
 
-const onMountLinkOptions = (e) => {
+const onMountLinkOptions = (e: any) => {
   if (e?.popper?.style) {
     if (props.isComment) {
       e.popper.style.left = '-10%'
@@ -178,6 +262,7 @@ const tabIndex = computed(() => {
 </script>
 
 <template>
+  <!-- Link Options Bubble Menu -->
   <BubbleMenu
     :editor="editor"
     :tippy-options="{
@@ -185,10 +270,11 @@ const tabIndex = computed(() => {
       maxWidth: 400,
       onMount: onMountLinkOptions,
     }"
-    :should-show="(checkLinkMark as any)"
+    :should-show="(checkLinkMarkOrImageNode as any)"
   >
+    <!-- Link Options -->
     <div
-      v-if="!justDeleted"
+      v-if="!justDeleted && isLinkOptionsVisible && !isImageOptionsVisible"
       ref="wrapperRef"
       class="relative bubble-menu nc-text-area-rich-link-options bg-white flex flex-col border-1 border-gray-200 py-1 px-1 rounded-lg w-full"
       data-testid="nc-text-area-rich-link-options"
@@ -237,6 +323,88 @@ const tabIndex = computed(() => {
             <GeneralIcon icon="delete" />
           </NcButton>
         </NcTooltip>
+      </div>
+    </div>
+    <div
+      v-if="isImageOptionsVisible"
+      ref="imageWrapperRef"
+      class="relative bubble-menu nc-text-area-rich-image-options bg-nc-bg-default flex flex-col border-1 border-nc-border-gray-medium rounded-lg w-full"
+      :class="{
+        'p-3': isImageEditMode,
+        'py-1 pr-1 pl-3': !isImageEditMode,
+      }"
+      data-testid="nc-text-area-rich-image-options"
+      @keydown.stop="handleKeyDown"
+    >
+      <!-- Compact view (Google Sheets style) -->
+      <div v-if="!isImageEditMode" class="flex items-center gap-x-1">
+        <!-- Image URL text (truncated) -->
+        <div class="flex-1 min-w-0">
+          <div class="text-bodyDefaultSm text-nc-content-gray truncate">
+            <a v-if="imageSrc" :href="imageSrc" target="_blank" rel="noopener noreferrer"> {{ imageSrc }} </a>
+            <span v-else>No URL</span>
+          </div>
+        </div>
+
+        <!-- Action buttons -->
+        <NcTooltip v-if="imageSrc" overlay-class-name="nc-text-area-rich-image-options">
+          <template #title> Copy image URL </template>
+          <GeneralCopyButton :tabindex="tabIndex" :content="imageSrc" size="small" :show-toast="false"> </GeneralCopyButton>
+        </NcTooltip>
+
+        <NcTooltip overlay-class-name="nc-text-area-rich-image-options">
+          <template #title> Edit image </template>
+          <NcButton :tabindex="tabIndex" size="small" type="text" @click="toggleImageEditMode">
+            <GeneralIcon icon="edit" />
+          </NcButton>
+        </NcTooltip>
+
+        <NcTooltip overlay-class-name="nc-text-area-rich-image-options">
+          <template #title> Remove image </template>
+          <NcButton
+            :tabindex="tabIndex"
+            class="!duration-0 !hover:(text-nc-content-red-medium bg-nc-bg-red-light)"
+            size="small"
+            type="text"
+            @click="deleteImage"
+          >
+            <GeneralIcon icon="delete" />
+          </NcButton>
+        </NcTooltip>
+      </div>
+
+      <!-- Edit mode (expanded) -->
+      <div v-else class="space-y-3">
+        <!-- Image URL Input -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-bodyDefaultSm text-nc-content-gray-muted">Image URL</label>
+          <a-input
+            ref="imageSrcInputRef"
+            v-model:value="imageSrc"
+            :tabindex="tabIndex"
+            class="nc-input-sm"
+            placeholder="Enter image URL"
+            @press-enter="applyImageChanges"
+          />
+        </div>
+
+        <!-- Alt Text Input -->
+        <div class="flex flex-col gap-1.5">
+          <label class="text-bodyDefaultSm text-nc-content-gray-muted">Alt Text</label>
+          <a-input
+            v-model:value="imageAlt"
+            :tabindex="tabIndex"
+            class="nc-input-sm"
+            placeholder="Enter alt text"
+            @press-enter="applyImageChanges"
+          />
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex items-center justify-end gap-x-2 pt-2 border-t border-nc-border-gray-light">
+          <NcButton :tabindex="tabIndex" size="small" type="text" @click="toggleImageEditMode"> Cancel </NcButton>
+          <NcButton :tabindex="tabIndex" size="small" type="primary" @click="applyImageChanges"> Apply </NcButton>
+        </div>
       </div>
     </div>
   </BubbleMenu>

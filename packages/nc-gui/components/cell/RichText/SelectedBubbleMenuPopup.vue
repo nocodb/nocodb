@@ -18,7 +18,7 @@ const isSelectAllShortcut = ref(false)
 const showMenu = computed(() => {
   if (!editor || isSelectAllShortcut.value) return false
 
-  return !editor.value.state.selection.empty
+  return !editor.value.state.selection.empty && editor.value.state.selection.node?.type?.name !== 'image'
 })
 
 const showMenuDebounced = ref(false)

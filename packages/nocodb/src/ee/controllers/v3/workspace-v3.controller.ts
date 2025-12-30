@@ -55,6 +55,7 @@ export class WorkspaceV3Controller {
     context: NcContext,
     @Req() req: NcRequest,
   ) {
+    // we don't validate for canExecute here, since this operation is not workspace-specific
     return await this.workspaceV3Service.workspaceList(context, {
       cookie: req,
     });
@@ -70,6 +71,8 @@ export class WorkspaceV3Controller {
     @Body() body: WorkspaceV3Create,
     @Req() req: NcRequest,
   ) {
+    // we don't validate for canExecute here, since this operation is not workspace-specific
+    // on cloud the org_id will be mandatory instead
     return await this.workspaceV3Service.workspaceCreate(context, {
       body,
       cookie: req,

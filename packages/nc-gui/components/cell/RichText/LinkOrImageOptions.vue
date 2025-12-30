@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
-import { getMarkRange } from '@tiptap/core'
+import { getMarkRange, type Node } from '@tiptap/core'
 import type { Mark } from '@tiptap/pm/model'
 
 const props = defineProps<Props>()
@@ -26,7 +26,7 @@ const href = ref('')
 const isLinkOptionsVisible = ref(false)
 
 // Image options state
-const imageNode = ref<any>()
+const imageNode = ref<Node | null>(null)
 const isImageOptionsVisible = ref(false)
 const isImageEditMode = ref(false) // Track if we're in edit mode
 const isAddImageMode = ref(false) // Track if we're adding a new image
@@ -77,6 +77,7 @@ const checkLinkMarkOrImageNode = (editor: Editor) => {
       isAddImageMode.value = false
     }
 
+    console.log('nonde', selectedNode)
     imageNode.value = selectedNode
 
     isImageOptionsVisible.value = true

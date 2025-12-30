@@ -1,18 +1,18 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
+import { type Node } from '@tiptap/core'
 
 interface Props {
   editor: Editor
   tabIndex?: number
   isAddImageMode: boolean
   isImageEditMode: boolean
-  isImageOptionsVisible: boolean
-  imageNode: any
+  imageNode: Node
 }
 
 withDefaults(defineProps<Props>(), {})
 
-defineEmits(['blur', 'update:isAddImageMode', 'update:isImageEditMode', 'update:isImageOptionsVisible'])
+defineEmits(['update:isAddImageMode', 'update:isImageEditMode'])
 </script>
 
 <template>

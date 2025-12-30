@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
 import { type Node } from '@tiptap/core'
+import { isValidImageURL } from 'nocodb-sdk'
 
 interface Props {
   editor: Editor
@@ -20,21 +21,71 @@ const isAddImageMode = useVModel(props, 'isAddImageMode', emits)
 
 const { editor, imageNode } = toRefs(props)
 
+const useForm = Form.useForm
+
 // Image options state
 const imageSrcInputRef = ref<HTMLInputElement>()
-const imageSrc = ref('')
-const imageAlt = ref('')
+
+const formState = reactive<{
+  imageSrc: string
+  imageAlt: string
+}>({
+  imageSrc: '',
+  imageAlt: '',
+})
+
+// Get allowBase64 option from editor's image extension
+const allowBase64 = computed(() => {
+  const imageExtension = editor.value.extensionManager.extensions.find((ext) => ext.name === 'image')
+  return imageExtension?.options?.allowBase64 ?? false
+})
+
+const validators = computed(() => ({
+  imageSrc: [
+    {
+      required: true,
+      message: 'Image URL is required',
+      trigger: 'blur',
+    },
+    {
+      validator: async (_: any, value: string) => {
+        if (!value?.trim()) return Promise.resolve()
+
+        try {
+          const isValid = await isValidImageURL(value, {
+            allowDataUrl: allowBase64.value,
+          })
+
+          if (!isValid) {
+            if (value.startsWith('data:') && !allowBase64.value) {
+              return Promise.reject(new Error('Base64 image URLs are not allowed'))
+            } else {
+              return Promise.reject(new Error('Image URL is not valid'))
+            }
+          }
+
+          return Promise.resolve()
+        } catch (error) {
+          return Promise.reject(new Error('Failed to validate image URL'))
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
+}))
+
+const { validate, validateInfos } = useForm(formState, validators)
 
 const updateImageAttributes = () => {
   if (!imageNode.value) return
 
   const { from } = editor.value.state.selection
-  const formattedSrc = imageSrc.value
+  const formattedSrc = formState.imageSrc
 
   editor.value.view.dispatch(
     editor.value.view.state.tr.setNodeMarkup(from, undefined, {
       src: formattedSrc,
-      alt: imageAlt.value,
+      alt: formState.imageAlt,
     }),
   )
 
@@ -63,36 +114,58 @@ const cancelImageEdit = () => {
   editor.value!.chain().focus().run()
 }
 
-const applyImageChanges = () => {
-  if (isAddImageMode.value) {
-    // Adding a new image
-    if (imageSrc.value) {
-      // Insert new image at current cursor position
-      editor.value
-        ?.chain()
-        ?.setImage({
-          src: imageSrc.value,
-          alt: imageAlt.value || undefined,
-        })
-        ?.focus()
-        ?.run()
+const applyImageChanges = async () => {
+  try {
+    await validate()
+
+    if (isAddImageMode.value) {
+      // Adding a new image
+      if (formState.imageSrc) {
+        // Insert new image at current cursor position
+        editor.value
+          ?.chain()
+          ?.setImage({
+            src: formState.imageSrc,
+            alt: formState.imageAlt || undefined,
+          })
+          ?.focus()
+          ?.run()
+      } else {
+        editor.value?.chain().focus().run()
+      }
+
+      // If no URL provided, do nothing (just close the form)
     } else {
-      editor.value?.chain().focus().run()
+      // Editing existing image
+      if (!formState.imageSrc) {
+        // If no URL provided, remove the existing image
+        deleteImage()
+      } else {
+        updateImageAttributes()
+      }
     }
 
-    // If no URL provided, do nothing (just close the form)
-  } else {
-    // Editing existing image
-    if (!imageSrc.value) {
-      // If no URL provided, remove the existing image
-      deleteImage()
-    } else {
-      updateImageAttributes()
+    isImageEditMode.value = false
+    isAddImageMode.value = false
+  } catch (error: any) {
+    // no need to show toast as we show error in the form item
+
+    if (error?.errorFields?.length) {
+      console.error(error)
     }
   }
+}
 
-  isImageEditMode.value = false
-  isAddImageMode.value = false
+const validateImageUrl = async () => {
+  try {
+    await validate()
+  } catch (error: any) {
+    // no need to show toast as we show error in the form item
+
+    if (error?.errorFields?.length) {
+      console.error(error)
+    }
+  }
 }
 
 // Watch for edit mode changes to focus input
@@ -116,8 +189,8 @@ watch(
   (node, oldNode) => {
     if (!node || node === oldNode) return
 
-    imageSrc.value = node?.attrs?.src || ''
-    imageAlt.value = node?.attrs?.alt || ''
+    formState.imageSrc = node?.attrs?.src || ''
+    formState.imageAlt = node?.attrs?.alt || ''
   },
   {
     immediate: true,
@@ -139,15 +212,18 @@ watch(
       <!-- Image URL text (truncated) -->
       <div class="flex-1 min-w-0">
         <div class="text-bodyDefaultSm text-nc-content-gray truncate">
-          <a v-if="imageSrc" :href="imageSrc" target="_blank" rel="noopener noreferrer"> {{ imageSrc }} </a>
+          <a v-if="formState.imageSrc" :href="formState.imageSrc" target="_blank" rel="noopener noreferrer">
+            {{ formState.imageSrc }}
+          </a>
           <span v-else>No URL</span>
         </div>
       </div>
 
       <!-- Action buttons -->
-      <NcTooltip v-if="imageSrc" overlay-class-name="nc-text-area-rich-image-options">
+      <NcTooltip v-if="formState.imageSrc" overlay-class-name="nc-text-area-rich-image-options">
         <template #title> Copy image URL </template>
-        <GeneralCopyButton :tabindex="tabIndex" :content="imageSrc" size="small" :show-toast="false"> </GeneralCopyButton>
+        <GeneralCopyButton :tabindex="tabIndex" :content="formState.imageSrc" size="small" :show-toast="false">
+        </GeneralCopyButton>
       </NcTooltip>
 
       <NcTooltip overlay-class-name="nc-text-area-rich-image-options">
@@ -172,37 +248,53 @@ watch(
     </div>
 
     <!-- Edit mode (expanded) -->
-    <div v-else class="space-y-3">
+    <a-form v-else :model="formState" layout="vertical" class="space-y-2">
       <!-- Image URL Input -->
-      <div class="flex flex-col gap-1.5">
-        <label class="text-bodyDefaultSm text-nc-content-gray-muted">Image URL</label>
+      <a-form-item v-bind="validateInfos.imageSrc">
+        <template #label> Image URL </template>
         <a-input
           ref="imageSrcInputRef"
-          v-model:value="imageSrc"
+          v-model:value="formState.imageSrc"
+          @update:value="validateImageUrl"
+          @blur="validateImageUrl"
           :tabindex="tabIndex"
           class="nc-input-sm"
           placeholder="Enter image URL"
           @press-enter="applyImageChanges"
         />
-      </div>
+      </a-form-item>
 
       <!-- Alt Text Input -->
-      <div class="flex flex-col gap-1.5">
-        <label class="text-bodyDefaultSm text-nc-content-gray-muted">Alt Text</label>
+      <a-form-item>
+        <template #label> Alt Text </template>
         <a-input
-          v-model:value="imageAlt"
+          v-model:value="formState.imageAlt"
           :tabindex="tabIndex"
           class="nc-input-sm"
           placeholder="Enter alt text"
           @press-enter="applyImageChanges"
         />
-      </div>
+      </a-form-item>
 
       <!-- Action buttons -->
       <div class="flex items-center justify-end gap-x-2 pt-2 border-t border-nc-border-gray-light">
         <NcButton :tabindex="tabIndex" size="small" type="text" @click="cancelImageEdit"> Cancel </NcButton>
         <NcButton :tabindex="tabIndex" size="small" type="primary" @click="applyImageChanges"> Apply </NcButton>
       </div>
-    </div>
+    </a-form>
   </div>
 </template>
+
+<style scoped lang="scss">
+:deep(.ant-form-item-label > label) {
+  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray-subtle flex font-normal;
+
+  &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
+    @apply content-[''] m-0;
+  }
+}
+
+:deep(.ant-form-item) {
+  @apply my-0;
+}
+</style>

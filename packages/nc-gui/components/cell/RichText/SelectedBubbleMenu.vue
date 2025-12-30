@@ -93,8 +93,15 @@ const onAddImage = () => {
   // if active node is an image, return
   if (editor.value?.isActive('image')) return
 
-  // Insert a temporary image node to trigger the image options menu
-  editor.value?.chain()?.setImage({ src: '', alt: '', title: '' })?.focus()?.run()
+  // Initialize storage if it doesn't exist
+  if (!editor.value?.storage.image) {
+    editor.value!.storage.image = {}
+  }
+
+  // Set add image mode flag
+  editor.value!.storage.image.addImageMode = true
+
+  editor.value!.chain().focus().run()
 }
 
 const isOptionVisible = (option: RichTextBubbleMenuOptions) => {

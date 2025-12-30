@@ -89,6 +89,16 @@ const onToggleLink = () => {
   }
 }
 
+const onAddImage = () => {
+  // if active node is an image, return
+  if (editor.value?.isActive('image')) return
+
+  // Insert a temporary image node to trigger the image options menu
+  editor.value?.chain()?.focus()?.setImage({ src: '', alt: '', title: '' })?.run()
+
+  console.log('on add image')
+}
+
 const isOptionVisible = (option: RichTextBubbleMenuOptions) => {
   if (isFormField.value) return !hiddenOptions.value.includes(option)
 
@@ -417,6 +427,23 @@ const closeTextArea = () => {
         </div>
       </NcButton>
     </NcTooltip>
+    <NcTooltip
+      v-if="isOptionVisible(RichTextBubbleMenuOptions.image)"
+      :placement="tooltipPlacement"
+      :disabled="editor.isActive('codeBlock') || editor.isActive('image')"
+    >
+      <template #title> {{ $t('general.attachImage') }}</template>
+      <NcButton
+        size="small"
+        type="text"
+        :class="{ 'is-active': editor.isActive('image') }"
+        :disabled="editor.isActive('codeBlock')"
+        :tabindex="tabIndex"
+        @click="onAddImage"
+      >
+        <GeneralIcon icon="ncImage"></GeneralIcon>
+      </NcButton>
+    </NcTooltip>
 
     <div v-if="enableCloseButton" class="!sticky right-0 pr-0.5 bg-nc-bg-default">
       <NcButton type="text" size="small" @click="closeTextArea">
@@ -482,7 +509,7 @@ const closeTextArea = () => {
   }
 
   .nc-button.is-active {
-    @apply !hover:outline-nc-gray-200 bg-nc-bg-gray-light text-nc-content-brand;
+    @apply !hover:outline-nc-gray-200 bg-nc-bg-gray-light text-nc-content-brand hover:text-nc-content-brand;
     outline: 1px;
   }
   &:not(.nc-form-field-bubble-menu) {

@@ -446,7 +446,11 @@
     "baseType": "Base Type",
     "beta": "Beta",
     "selected": "selected",
-    "notice": "Notice"
+    "notice": "Notice",
+    "teams": "Teams",
+    "structure": "Structure",
+    "retry": "Retry",
+    "attachImage": "Attach Image"
   },
   "objects": {
     "script": "Script",

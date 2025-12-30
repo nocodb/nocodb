@@ -66,7 +66,7 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
           stream,
         });
         for (const accountId of updatedAccountIds) {
-          console.log(`Processing company ID: ${accountId}`);
+          this.logger(`Processing company ID: ${accountId}`);
           await this.fetchCompanyContacts(auth, {
             companyId: accountId,
             stream,
@@ -180,7 +180,7 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
     ];
 
     try {
-      console.log('Fetching accounts (companies)...');
+      this.logger('Fetching accounts (companies)...');
       await this.fetchAllRecords<HubSpotCompany>(auth, {
         endpoint: '/crm/v3/objects/companies/search',
         method: 'post',
@@ -209,7 +209,7 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
           })) {
             stream.push(formattedAccount);
           }
-          console.log(`Retrieved ${data.length} accounts`);
+          this.logger(`Retrieved ${data.length} accounts`);
           if (onResponse) {
             await onResponse(data);
           }
@@ -237,7 +237,7 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
     },
   ) {
     try {
-      console.log('Fetching users...');
+      this.logger('Fetching users...');
       await this.fetchAllRecords<HubSpotOwner>(auth, {
         endpoint: '/crm/v3/owners',
         method: 'get',
@@ -291,7 +291,7 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
     ];
 
     try {
-      console.log('Fetching contacts...');
+      this.logger('Fetching contacts...');
       await this.fetchAllRecords<HubSpotContact>(auth, {
         endpoint: '/crm/v3/objects/contacts/search',
         method: 'post',
@@ -319,7 +319,7 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
           })) {
             stream.push(formattedContact);
           }
-          console.log(`Retrieved ${data.length} contacts`);
+          this.logger(`Retrieved ${data.length} contacts`);
           if (onResponse) {
             await onResponse(data);
           }
@@ -347,7 +347,7 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
     }: { companyId: string; stream: DataObjectStream<SyncRecord> },
   ) {
     try {
-      console.log(`Fetching contacts for company ${companyId}...`);
+      this.logger(`Fetching contacts for company ${companyId}...`);
       let contactIds: string[] = [];
       let after: string | undefined;
 
@@ -378,7 +378,7 @@ export default class HubspotSyncIntegration extends SyncIntegration<HubspotSyncP
         after = response.data?.paging?.next?.after;
       } while (after);
 
-      console.log(
+      this.logger(
         `Found ${contactIds.length} contacts for company ${companyId}`,
       );
       if (contactIds.length) {

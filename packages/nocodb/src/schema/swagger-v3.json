@@ -40,7 +40,7 @@
       "get": {
         "summary": "List workspaces",
         "operationId": "workspace-list",
-        "description": "Retrieve a list of all workspaces accessible to the user.",
+        "description": "Retrieve a list of all workspaces accessible to the user.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
         "tags": [
           "Workspaces"
         ],
@@ -81,7 +81,7 @@
       "post": {
         "summary": "Create workspace",
         "operationId": "workspace-create",
-        "description": "Create a new workspace with the specified title and optional organization ID.\n\n**Note**: Workspace Create / Update / Delete APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "description": "Create a new workspace with the specified title and optional organization ID.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
         "tags": [
           "Workspaces"
         ],
@@ -143,7 +143,7 @@
       "get": {
         "summary": "Get workspace",
         "operationId": "workspace-read",
-        "description": "Retrieve details of a specific workspace.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Retrieve details of a specific workspace.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
         "tags": [
           "Workspaces"
         ],
@@ -204,7 +204,7 @@
       "patch": {
         "summary": "Update workspace",
         "operationId": "workspace-update",
-        "description": "Update workspace details.\n\n**Note**: Workspace Create / Update / Delete APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "description": "Update workspace details.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
         "tags": [
           "Workspaces"
         ],
@@ -272,7 +272,7 @@
       "delete": {
         "summary": "Delete workspace",
         "operationId": "workspace-delete",
-        "description": "Delete a workspace.\n\n**Note**: Workspace Create / Update / Delete APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "description": "Delete a workspace.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
         "tags": [
           "Workspaces"
         ],
@@ -458,7 +458,7 @@
       "get": {
         "summary": "List workspace members",
         "operationId": "workspace-members-read",
-        "description": "Retrieve details of a specific workspace, including its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Retrieve details of a specific workspace, including its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "tags": [
           "Workspace Members"
         ],
@@ -543,7 +543,7 @@
     "/api/v3/meta/workspaces/{workspaceId}/members": {
       "post": {
         "summary": "Add workspace members",
-        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "workspace-members-invite",
         "tags": [
           "Workspace Members"
@@ -615,7 +615,7 @@
       },
       "patch": {
         "summary": "Update workspace members",
-        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "workspace-members-update",
         "tags": [
           "Workspace Members"
@@ -687,7 +687,7 @@
       },
       "delete": {
         "summary": "Delete workspace members",
-        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "workspace-members-delete",
         "tags": [
           "Workspace Members"
@@ -3226,7 +3226,7 @@
     "/api/v3/meta/bases/{baseId}?include[]=members": {
       "get": {
         "summary": "List base members",
-        "description": "Retrieve all details of a specific base, including its members.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Retrieve all details of a specific base, including its members.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-list",
         "tags": [
           "Base Members"
@@ -3301,7 +3301,7 @@
     "/api/v3/meta/bases/{base_id}/members": {
       "post": {
         "summary": "Invite base members",
-        "description": "Invite new members to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Invite new members to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-invite",
         "parameters": [
           {
@@ -3355,7 +3355,7 @@
       },
       "patch": {
         "summary": "Update base members",
-        "description": "Update roles for existing members in a base.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Update roles for existing members in a base.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-update",
         "parameters": [
           {
@@ -3409,7 +3409,7 @@
       },
       "delete": {
         "summary": "Delete base members",
-        "description": "Remove members from a specific base using their IDs.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Remove members from a specific base using their IDs.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-delete",
         "parameters": [
           {

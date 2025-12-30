@@ -294,13 +294,29 @@ watch(
   (node) => {
     if (!node) return
     const nodeConfig = (node.data?.config || {}) as CronTriggerNodeConfig
+
+    const updates: Partial<CronTriggerNodeConfig> = {}
+    let hasUpdates = false
+
+    // Set default timezone if not present
     if (!nodeConfig.timezone && browserTzName) {
+      updates.timezone = browserTzName
+      hasUpdates = true
+    }
+
+    // Set default cronExpression if not present
+    if (!nodeConfig.cronExpression) {
+      updates.cronExpression = generateCronExpression()
+      hasUpdates = true
+    }
+
+    if (hasUpdates) {
       updateNode(selectedNodeId.value, {
         data: {
           ...node.data,
           config: {
             ...nodeConfig,
-            timezone: browserTzName,
+            ...updates,
           },
         },
       })

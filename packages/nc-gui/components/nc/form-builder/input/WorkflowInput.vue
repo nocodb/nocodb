@@ -202,20 +202,23 @@ onMounted(() => {
       const remainingPath = trimmedExpression.slice(variable.key.length)
 
       if (remainingPath) {
-        // Match either dot notation (.property) or bracket notation ['property'] or ["property"]
-        const dotMatch = remainingPath.match(/^\.(\w+)/)
-        const bracketMatch = remainingPath.match(/^\[['"]([^'"]+)['"]\]/)
+        // Parse the entire path to get all properties
+        const properties = []
+        const currentPath = remainingPath
 
-        if (dotMatch) {
-          // Dot notation: .timezone
-          displayLabel = dotMatch[1]
-        } else if (bracketMatch) {
-          // Bracket notation: ['timezone'] or ["timezone"]
-          displayLabel = bracketMatch[1]
-        } else if (remainingPath.startsWith('.')) {
-          // Complex path like .a.b.c - get the last property
-          const properties = remainingPath.slice(1).split('.')
-          displayLabel = properties[properties.length - 1] || variable.name
+        // Match alternating dot notation and bracket notation
+        // Supports: .prop, ['prop'], ["prop"], .prop['nested'], etc.
+        const pathRegex = /\.(\w+)|\[['"]([^'"]+)['"]\]/g
+        let pathMatch
+
+        while ((pathMatch = pathRegex.exec(currentPath)) !== null) {
+          // pathMatch[1] is dot notation capture, pathMatch[2] is bracket notation capture
+          properties.push(pathMatch[1] || pathMatch[2])
+        }
+
+        if (properties.length > 0) {
+          // Use the last property in the chain as the display label
+          displayLabel = properties[properties.length - 1]
         } else {
           displayLabel = variable.name
         }

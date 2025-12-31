@@ -12,11 +12,6 @@ import {
   VariableType,
   WorkflowExpressionParser,
 } from 'nocodb-sdk';
-import {
-  isNodeAvailableForPlan,
-  getPlanTitleFromContext,
-  WorkflowNodePlanRequirements,
-} from '~/helpers/workflowNodeHelpers';
 import rfdc from 'rfdc';
 import type {
   LoopContext,
@@ -35,6 +30,11 @@ import type {
   WorkflowNodeRunContext,
 } from '@noco-local-integrations/core';
 import type { Graph } from '~/services/workflows/graphHelpers';
+import {
+  getPlanTitleFromContext,
+  isNodeAvailableForPlan,
+  WorkflowNodePlanRequirements,
+} from '~/helpers/workflowNodeHelpers';
 import { Column, Integration } from '~/models';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { TablesService } from '~/services/tables.service';
@@ -197,14 +197,12 @@ export class WorkflowExecutionService {
             ? integration.packageManifest
             : null;
 
-
           // Check if node is available for user's plan
           const isAvailable = isNodeAvailableForPlan(
             definition.id,
             userPlanTitle,
           );
           const requiredPlan = WorkflowNodePlanRequirements[definition.id];
-
 
           nodes.push({
             ...definition,

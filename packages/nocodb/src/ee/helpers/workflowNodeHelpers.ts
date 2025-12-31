@@ -1,8 +1,9 @@
-import { PlanOrder, PlanTitles, OnPremPlanTitles } from 'nocodb-sdk';
+import { PlanOrder, PlanTitles } from 'nocodb-sdk';
+import type { OnPremPlanTitles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
-import { isDevOrTestEnvironment } from '~/utils'
+import { isDevOrTestEnvironment } from '~/utils';
 
 /**
  * Map of workflow node IDs to minimum required plan tier

@@ -26,10 +26,10 @@ import {
 } from '~/models';
 import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import {
-  isNodeAvailableForPlan,
-  getPlanTitleFromContext,
-  WorkflowNodePlanRequirements,
   getPlanDisplayName,
+  getPlanTitleFromContext,
+  isNodeAvailableForPlan,
+  WorkflowNodePlanRequirements,
 } from '~/helpers/workflowNodeHelpers';
 import NocoSocket from '~/socket/NocoSocket';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
@@ -92,7 +92,10 @@ export class WorkflowsService implements OnModuleInit {
       const nodeType = node.type; // e.g., 'core.action.send_email'
 
       // Skip special nodes like Plus node and Trigger placeholder
-      if (nodeType === GeneralNodeID.PLUS || nodeType === GeneralNodeID.TRIGGER) {
+      if (
+        nodeType === GeneralNodeID.PLUS ||
+        nodeType === GeneralNodeID.TRIGGER
+      ) {
         continue;
       }
 

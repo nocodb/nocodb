@@ -1,4 +1,4 @@
-import { PlanOrder, PlanTitles } from 'nocodb-sdk';
+import { PlanOrder, PlanTitles, OnPremPlanTitles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
@@ -53,7 +53,7 @@ export function isNodeAvailableForPlan(
 export async function getWorkspacePlanTitle(
   workspaceId: string,
   ncMeta = Noco.ncMeta,
-): Promise<string> {
+): Promise<OnPremPlanTitles | PlanTitles> {
   const { plan } = await getActivePlanAndSubscription(
     workspaceId,
     false,
@@ -69,7 +69,7 @@ export async function getWorkspacePlanTitle(
  */
 export async function getPlanTitleFromContext(
   context: NcContext,
-): Promise<string> {
+): Promise<PlanTitles | OnPremPlanTitles> {
   return getWorkspacePlanTitle(context.workspace_id);
 }
 

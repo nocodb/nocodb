@@ -103,8 +103,7 @@ export class WorkflowsService implements OnModuleInit {
         NcError.planLimitExceeded(
           `The workflow contains a node that requires the ${requiredPlanName} plan or higher. Please upgrade your plan to use this node.`,
           {
-            current: userPlanTitle,
-            higherPlan: requiredPlan,
+            plan: userPlanTitle,
           },
         );
       }

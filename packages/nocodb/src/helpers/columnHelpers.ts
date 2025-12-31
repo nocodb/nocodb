@@ -436,26 +436,6 @@ export async function validateLookupPayload(
     context,
   );
 
-  // check for circular reference
-  if (columnId) {
-    let lkCol: LookupColumn | LookupColumnReqType =
-      payload as LookupColumnReqType;
-    while (lkCol) {
-      // check if lookup column is same as column itself
-      if (columnId === lkCol.fk_lookup_column_id)
-        NcError.get(context).badRequest(
-          'Circular lookup reference not allowed',
-        );
-      lkCol = await Column.get(context, {
-        colId: lkCol.fk_lookup_column_id,
-      }).then((c: Column) => {
-        if (c.uidt === 'Lookup') {
-          return c.getColOptions<LookupColumn>(context);
-        }
-        return null;
-      });
-    }
-  }
   const column = await Column.get(context, {
     colId: (payload as LookupColumnReqType).fk_relation_column_id,
   });
@@ -470,6 +450,27 @@ export async function validateLookupPayload(
     context,
   );
   const { refContext } = relation.getRelContext(context);
+
+  // check for circular reference (must be done after getting refContext for cross-base)
+  if (columnId) {
+    let lkCol: LookupColumn | LookupColumnReqType =
+      payload as LookupColumnReqType;
+    while (lkCol) {
+      // check if lookup column is same as column itself
+      if (columnId === lkCol.fk_lookup_column_id)
+        NcError.get(context).badRequest(
+          'Circular lookup reference not allowed',
+        );
+      lkCol = await Column.get(refContext, {
+        colId: lkCol.fk_lookup_column_id,
+      }).then((c: Column) => {
+        if (c && c.uidt === 'Lookup') {
+          return c.getColOptions<LookupColumn>(refContext);
+        }
+        return null;
+      });
+    }
+  }
 
   if (!relation) {
     NcError.get(context).relationFieldNotFound(

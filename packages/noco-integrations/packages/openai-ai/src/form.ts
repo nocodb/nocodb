@@ -49,12 +49,7 @@ export const form: FormDefinition = [
     placeholder: 'Allowed models',
     category: 'Settings',
     selectMode: 'multipleWithInput',
-    options: [
-      { value: 'gpt-4o', label: 'GPT-4o' },
-      { value: 'gpt-4.1', label: 'GPT-4.1' },
-      { value: 'o3', label: 'o3' },
-      { value: 'o4-mini', label: 'o4-mini' },
-    ],
+    fetchOptionsKey: 'models',
     defaultValue: ['gpt-4o'],
     validators: [
       {

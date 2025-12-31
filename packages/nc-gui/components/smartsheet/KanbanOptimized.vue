@@ -1898,12 +1898,17 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                         </NcButton>
 
                         <div class="flex-1 flex max-w-[115px]">
-                          <a-tag class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
+                          <a-tag
+                            class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none"
+                            :color="getSelectTypeFieldOptionBgColor({ color: stack.color || '#ccc', isDark })"
+                          >
                             <span
                               :style="{
-                                color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                                  ? '#fff'
-                                  : tinycolor.mostReadable(stack.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                                color: getSelectTypeFieldOptionTextColor({
+                                  color: stack.color || '#ccc',
+                                  isDark,
+                                  getColor,
+                                }),
                               }"
                               class="text-sm font-semibold"
                             >

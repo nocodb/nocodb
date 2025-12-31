@@ -479,68 +479,94 @@ export const wrapTextToLines = (
     maxWidth,
     maxLines,
     firstLineMaxWidth,
-  }: { text: string; maxWidth: number; maxLines: number; firstLineMaxWidth?: number },
+    renderAsPreTag,
+  }: { text: string; maxWidth: number; maxLines: number; firstLineMaxWidth?: number; renderAsPreTag?: boolean },
 ): string[] => {
   if (maxLines === 0) return [] // If maxLines is 0, return an empty array
 
   const lines: string[] = [] // Stores the wrapped lines
-  let remainingText = text // Keep track of unprocessed text
+
+  // First, split the text by explicit newlines (\n)
+  const textSegments = renderAsPreTag ? text.split('\n') : [text]
 
   // Determine the max width for the first line
   let currentMaxWidth = firstLineMaxWidth ?? maxWidth
 
-  while (remainingText.length > 0 && lines.length < maxLines) {
-    let start = 0
-    let end = remainingText.length
-    let line = ''
-    let width = 0
+  for (let segmentIndex = 0; segmentIndex < textSegments.length && lines.length < maxLines; segmentIndex++) {
+    const segment = textSegments[segmentIndex] || ''
 
-    // Binary search to find the max substring that fits within currentMaxWidth
-    while (start < end) {
-      const mid = Math.floor((start + end) / 2)
-      const testText = remainingText.slice(0, mid + 1)
-      const testWidth = ctx.measureText(testText).width
-
-      if (testWidth <= currentMaxWidth) {
-        line = testText // Store the longest valid substring
-        width = testWidth
-        start = mid + 1 // Try a longer substring
+    // If the segment is empty (from consecutive \n\n), add a blank line
+    if (segment === '') {
+      // If this would be the last line, show ellipsis instead of blank line
+      if (lines.length >= maxLines - 1) {
+        lines.push('...')
       } else {
-        end = mid // Reduce the search space
+        lines.push('')
       }
+      continue
     }
 
-    // Handle word breaking: Prevent splitting words mid-way
-    const lastSpaceIndex = line.lastIndexOf(' ')
-    if (
-      lastSpaceIndex !== -1 && // There is at least one space in the line
-      remainingText[line.length] !== ' ' && // The line ends mid-word
-      remainingText.length > line.length && // There is more text left
-      lines.length < maxLines - 1 // We are not on the last line
-    ) {
-      // If the line ends mid-word, break at the last space
-      line = line.slice(0, lastSpaceIndex)
-      width = ctx.measureText(line).width
-    }
+    let remainingText = segment // Current text segment to process
 
-    // Handle truncation with ellipsis for the last line
-    if (lines.length === maxLines - 1 && remainingText.length > line.length) {
-      const ellipsis = '...'
-      const ellipsisWidth = ctx.measureText(ellipsis).width
+    while (remainingText.length > 0 && lines.length < maxLines) {
+      let start = 0
+      let end = remainingText.length
+      let line = ''
+      let width = 0
 
-      if (width + ellipsisWidth > currentMaxWidth && line.length > 0) {
-        line = truncateText(ctx, line, currentMaxWidth - ellipsisWidth, false, false) // Truncate the line to fit within maxWidth
+      // Binary search to find the max substring that fits within currentMaxWidth
+      while (start < end) {
+        const mid = Math.floor((start + end) / 2)
+        const testText = remainingText.slice(0, mid + 1)
+        const testWidth = ctx.measureText(testText).width
+
+        if (testWidth <= currentMaxWidth) {
+          line = testText // Store the longest valid substring
+          width = testWidth
+          start = mid + 1 // Try a longer substring
+        } else {
+          end = mid // Reduce the search space
+        }
+      }
+
+      // Handle word breaking: Prevent splitting words mid-way
+      const lastSpaceIndex = line.lastIndexOf(' ')
+      if (
+        lastSpaceIndex !== -1 && // There is at least one space in the line
+        remainingText[line.length] !== ' ' && // The line ends mid-word
+        remainingText.length > line.length && // There is more text left
+        lines.length < maxLines - 1 // We are not on the last line
+      ) {
+        // If the line ends mid-word, break at the last space
+        line = line.slice(0, lastSpaceIndex)
         width = ctx.measureText(line).width
       }
 
-      line += ellipsis // Add ellipsis to indicate truncation
+      // Handle truncation with ellipsis for the last line
+      if (lines.length === maxLines - 1 && remainingText.length > line.length) {
+        const ellipsis = '...'
+        const ellipsisWidth = ctx.measureText(ellipsis).width
+
+        if (width + ellipsisWidth > currentMaxWidth && line.length > 0) {
+          line = truncateText(ctx, line, currentMaxWidth - ellipsisWidth, false, false) // Truncate the line to fit within maxWidth
+          width = ctx.measureText(line).width
+        }
+
+        line += ellipsis // Add ellipsis to indicate truncation
+      }
+
+      lines.push(line) // Store the current line
+      remainingText = remainingText.slice(line.length).trimStart() // Remove the rendered part and trim leading spaces
+
+      // After the first line, all lines use maxWidth for consistency
+      currentMaxWidth = maxWidth
+
+      // If this is not the last segment and we haven't reached maxLines yet,
+      // move to the next segment to represent the explicit newline
+      if (segmentIndex < textSegments.length - 1 && lines.length < maxLines && remainingText.length === 0) {
+        break // Exit the inner while loop to process the next segment
+      }
     }
-
-    lines.push(line) // Store the current line
-    remainingText = remainingText.slice(line.length).trimStart() // Remove the rendered part and trim leading spaces
-
-    // After the first line, all lines use maxWidth for consistency
-    currentMaxWidth = maxWidth
   }
 
   return lines
@@ -869,10 +895,15 @@ export function renderMultiLineText(
     py = 10,
     firstLineMaxWidth, // Allows different width for the first line
   } = params
-  let { maxWidth = Infinity, maxLines } = params
+
+  let { maxWidth = Infinity, maxLines, renderAsPreTag = false } = params
 
   if (maxWidth < 0) {
     maxWidth = 0
+  }
+
+  if (rowHeightInPx['1'] === height) {
+    renderAsPreTag = false
   }
 
   if (ncIsUndefined(maxLines)) {
@@ -893,15 +924,17 @@ export function renderMultiLineText(
     ctx.font = fontFamily
   }
 
-  // Include `firstLineMaxWidth` in the cache key to avoid incorrect caching
-  const cacheKey = `${text}-${fontFamily}-${maxWidth}-${maxLines}-${firstLineMaxWidth ?? 'default'}`
+  // Include `firstLineMaxWidth` and `renderAsPreTag` in the cache key to avoid incorrect caching
+  const cacheKey = `${text}-${fontFamily}-${maxWidth}-${maxLines}-${firstLineMaxWidth ?? 'default'}-${
+    renderAsPreTag ? 'pre' : 'plain'
+  }`
   const cachedText = multiLineTextCache.get(cacheKey)
 
   if (cachedText) {
     lines = cachedText.lines
     width = cachedText.width
   } else {
-    lines = wrapTextToLines(ctx, { text, maxWidth, maxLines, firstLineMaxWidth })
+    lines = wrapTextToLines(ctx, { text, maxWidth, maxLines, firstLineMaxWidth, renderAsPreTag })
     width = Math.min(Math.max(...lines.map((line) => ctx.measureText(line).width)), maxWidth)
 
     multiLineTextCache.set(cacheKey, { lines, width })

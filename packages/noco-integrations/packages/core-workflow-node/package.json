@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
-    "cron-parser": "^5.4.0"
+    "cron-parser": "^5.4.0",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^20.17.46",

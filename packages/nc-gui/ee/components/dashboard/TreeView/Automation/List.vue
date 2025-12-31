@@ -202,18 +202,6 @@ watchEffect(() => {
         </div>
         <template #overlay>
           <NcMenu class="max-w-54" variant="medium">
-            <NcMenuItem @click="openNewWorkflowModal({ baseId })">
-              <div class="item">
-                <div class="item-inner">
-                  <GeneralIcon icon="ncAutomation" />
-                  <div>
-                    {{ $t('objects.workflow') }}
-                  </div>
-                  <NcBadgeBeta />
-                </div>
-                <GeneralIcon class="plus" icon="plus" />
-              </div>
-            </NcMenuItem>
             <NcMenuItem @click="openNewScriptModal({ baseId })">
               <div class="item">
                 <div class="item-inner">
@@ -223,6 +211,18 @@ watchEffect(() => {
                   </div>
                 </div>
 
+                <GeneralIcon class="plus" icon="plus" />
+              </div>
+            </NcMenuItem>
+            <NcMenuItem @click="openNewWorkflowModal({ baseId })">
+              <div class="item">
+                <div class="item-inner">
+                  <GeneralIcon icon="ncAutomation" />
+                  <div>
+                    {{ $t('objects.workflow') }}
+                  </div>
+                  <NcBadgeBeta />
+                </div>
                 <GeneralIcon class="plus" icon="plus" />
               </div>
             </NcMenuItem>

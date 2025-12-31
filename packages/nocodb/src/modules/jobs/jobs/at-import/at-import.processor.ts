@@ -562,6 +562,11 @@ export class AtImportProcessor {
         // check for duplicate and populate a unique name if already exist
         table.table_name = uniqueTableNameGen(sanitizedName);
 
+        // add description to table
+        if (tblSchema[i].description) {
+          table.description = tblSchema[i].description;
+        }
+
         table.columns = [];
 
         const source = await Source.get(context, syncDB.sourceId);
@@ -614,6 +619,11 @@ export class AtImportProcessor {
             column_name: ncName.column_name,
             uidt: getNocoType(col),
           };
+
+          // Add description to column
+          if (col?.description) {
+            ncCol.description = col.description;
+          }
 
           // not supported datatype: pure formula field
           // allow formula based computed fields (created time/ modified time to go through)
@@ -1735,9 +1745,12 @@ export class AtImportProcessor {
 
           // create view
           await getViewData(galleryViews[i].id);
-          const viewName = aTblSchema[idx].views.find(
+          const aView = aTblSchema[idx].views.find(
             (x) => x.id === galleryViews[i].id,
-          )?.name;
+          );
+
+          const viewName = aView?.name;
+          const viewDescription = aView?.description;
 
           logBasic(
             `:: [${configuredViews + i + 1}/${rtc.view.total}] Gallery : ${
@@ -1751,6 +1764,7 @@ export class AtImportProcessor {
             tableId: tblId,
             gallery: {
               title: viewName,
+              description: viewDescription,
             },
             user: syncDB.user,
             req,
@@ -1778,9 +1792,11 @@ export class AtImportProcessor {
 
           // create view
           const vData = await getViewData(formViews[i].id);
-          const viewName = aTblSchema[idx].views.find(
+          const aView = aTblSchema[idx].views.find(
             (x) => x.id === formViews[i].id,
-          )?.name;
+          );
+          const viewName = aView?.name;
+          const viewDescription = aView?.description;
 
           logBasic(
             `:: [${configuredViews + i + 1}/${rtc.view.total}] Form : ${
@@ -1807,6 +1823,7 @@ export class AtImportProcessor {
           const formData = {
             title: viewName,
             heading: viewName,
+            description: viewDescription,
             subheading: desc,
             success_msg: msg,
             submit_another_form: refreshMode.includes('REFRESH_BUTTON'),
@@ -1860,9 +1877,12 @@ export class AtImportProcessor {
           const vData = await getViewData(gridViews[i].id);
 
           // retrieve view name & associated NC-ID
-          const viewName = aTblSchema[idx].views.find(
+          const aView = aTblSchema[idx].views.find(
             (x) => x.id === gridViews[i].id,
-          )?.name;
+          );
+          const viewName = aView?.name;
+          const viewDescription = aView?.description;
+
           const _perfStart = recordPerfStart();
           // const viewList: any = await api.dbView.list(tblId);
           const viewList = { list: [] };
@@ -1895,6 +1915,7 @@ export class AtImportProcessor {
                 tableId: tblId,
                 grid: {
                   title: viewName,
+                  description: viewDescription,
                 },
                 req,
               },

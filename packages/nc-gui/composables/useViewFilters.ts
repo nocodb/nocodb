@@ -70,12 +70,43 @@ export function useViewFilters(
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
+  const meta = inject(MetaInj, ref())
+
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
   const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
 
   // Tracks if any filter has been updated - used for webhook save state management
   const isFilterUpdated = ref<boolean>(false)
+
+  // Get the correct base_id for API calls
+  // For link filters, we need to use the link column's base_id (from the origin table)
+  // not the related table's base_id
+  const apiBaseId = computed(() => {
+    // For lookup column filters: when editing a lookup, MetaInj is set to the related table
+    // but we need the origin table's base_id. The view object has the correct base_id.
+    if (view.value?.base_id) {
+      return view.value.base_id
+    }
+
+    if (linkColId?.value && fieldsToFilter?.value) {
+      // Find the link column to get its base_id
+      const linkColumn = fieldsToFilter.value.find((col) => col.id === linkColId.value)
+      if (linkColumn?.base_id) {
+        return linkColumn.base_id
+      }
+    }
+    // Fallback to meta's base_id (for webhooks, widgets, etc.)
+    return meta.value?.base_id
+  })
+
+  const apiWorkspaceId = computed(() => {
+    // Prefer view's workspace_id when available
+    if (view.value?.fk_workspace_id) {
+      return view.value.fk_workspace_id
+    }
+    return meta.value?.fk_workspace_id
+  })
 
   const filters = computed<ColumnFilterType[]>({
     get: () => {
@@ -116,8 +147,6 @@ export function useViewFilters(
   // when a filter is deleted with auto apply disabled, the status is marked as 'delete'
   // nonDeletedFilters are those filters that are not deleted physically & virtually
   const nonDeletedFilters = computed(() => filters.value.filter((f) => f.status !== 'delete'))
-
-  const meta = inject(MetaInj, ref())
 
   const activeView = inject(ActiveViewInj, ref())
 
@@ -306,7 +335,7 @@ export function useViewFilters(
       if (filter.id && filter.is_group) {
         // Load children filters from the backend
         const childFilterPromise = $api.internal
-          .getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+          .getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
             operation: 'filterChildrenList',
             filterId: filter.id,
           })
@@ -352,14 +381,14 @@ export function useViewFilters(
       if (isWebhook || hookId) {
         if (parentId.value) {
           filters.value = (
-            await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+            await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
               operation: 'filterChildrenList',
               filterId: parentId.value,
             })
           ).list as ColumnFilterType[]
         } else if (hookId && !isNestedRoot) {
           filters.value = (
-            await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+            await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
               operation: 'hookFilterList',
               hookId,
             })
@@ -369,14 +398,14 @@ export function useViewFilters(
         if (isLink || linkColId?.value) {
           if (parentId.value) {
             filters.value = (
-              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'filterChildrenList',
                 filterId: parentId.value,
               })
             ).list as ColumnFilterType[]
           } else if (linkColId?.value && !isNestedRoot) {
             filters.value = (
-              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'linkFilterList',
                 columnId: linkColId.value,
               })
@@ -385,14 +414,14 @@ export function useViewFilters(
         } else if (isWidget || widgetId) {
           if (parentId.value) {
             filters.value = (
-              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'filterChildrenList',
                 filterId: parentId.value,
               })
             ).list as ColumnFilterType[]
           } else if (widgetId && !isNestedRoot) {
             filters.value = (
-              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'widgetFilterList',
                 widgetId,
               })
@@ -401,14 +430,14 @@ export function useViewFilters(
         } else {
           if (parentId.value) {
             filters.value = (
-              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'filterChildrenList',
                 filterId: parentId.value,
               })
             ).list as ColumnFilterType[]
           } else {
             filters.value = (
-              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'filterList',
                 viewId: view.value!.id!,
               })
@@ -440,8 +469,8 @@ export function useViewFilters(
       for (const [i, filter] of Object.entries(filters.value)) {
         if (filter.status === 'delete') {
           await $api.internal.postOperation(
-            meta.value!.fk_workspace_id!,
-            meta.value!.base_id!,
+            apiWorkspaceId.value!,
+            apiBaseId.value!,
             {
               operation: 'filterDelete',
               filterId: filter.id as string,
@@ -455,8 +484,8 @@ export function useViewFilters(
           }
         } else if (filter.status === 'update') {
           await $api.internal.postOperation(
-            meta.value!.fk_workspace_id!,
-            meta.value!.base_id!,
+            apiWorkspaceId.value!,
+            apiBaseId.value!,
             {
               operation: 'filterUpdate',
               filterId: filter.id as string,
@@ -471,8 +500,8 @@ export function useViewFilters(
           const children = filters.value[+i]?.children
           if (hookId) {
             filters.value[+i] = (await $api.internal.postOperation(
-              (meta.value as any).fk_workspace_id!,
-              (meta.value as any).base_id!,
+              apiWorkspaceId.value!,
+              apiBaseId.value!,
               {
                 operation: 'hookFilterCreate',
                 hookId,
@@ -485,8 +514,8 @@ export function useViewFilters(
             )) as ColumnFilterType
           } else if (linkId || linkColId?.value) {
             filters.value[+i] = (await $api.internal.postOperation(
-              (meta.value as any).fk_workspace_id!,
-              (meta.value as any).base_id!,
+              apiWorkspaceId.value!,
+              apiBaseId.value!,
               {
                 operation: 'linkFilterCreate',
                 columnId: linkId || linkColId!.value,
@@ -499,8 +528,8 @@ export function useViewFilters(
             )) as ColumnFilterType
           } else if (widgetId) {
             filters.value[+i] = (await $api.internal.postOperation(
-              (meta.value as any).fk_workspace_id!,
-              (meta.value as any).base_id!,
+              apiWorkspaceId.value!,
+              apiBaseId.value!,
               {
                 operation: 'widgetFilterCreate',
                 widgetId,
@@ -513,8 +542,8 @@ export function useViewFilters(
             )) as ColumnFilterType
           } else {
             filters.value[+i] = (await $api.internal.postOperation(
-              meta.value!.fk_workspace_id!,
-              meta.value!.base_id!,
+              apiWorkspaceId.value!,
+              apiBaseId.value!,
               {
                 operation: 'filterCreate',
                 viewId: view?.value?.id as string,
@@ -629,8 +658,8 @@ export function useViewFilters(
         isFilterUpdated.value = true
       } else if (filters.value[i]?.id && filters.value[i]?.status !== 'create') {
         await $api.internal.postOperation(
-          meta.value!.fk_workspace_id!,
-          meta.value!.base_id!,
+          apiWorkspaceId.value!,
+          apiBaseId.value!,
           {
             operation: 'filterUpdate',
             filterId: filters.value[i].id!,
@@ -656,8 +685,8 @@ export function useViewFilters(
       } else {
         if (linkColId?.value) {
           const savedFilter = await $api.internal.postOperation(
-            (meta.value as any).fk_workspace_id!,
-            (meta.value as any).base_id!,
+            apiWorkspaceId.value!,
+            apiBaseId.value!,
             {
               operation: 'linkFilterCreate',
               columnId: linkColId.value,
@@ -677,8 +706,8 @@ export function useViewFilters(
           } as ColumnFilterType
         } else if (widgetId?.value) {
           const savedFilter = await $api.internal.postOperation(
-            (meta.value as any).fk_workspace_id!,
-            (meta.value as any).base_id!,
+            apiWorkspaceId.value!,
+            apiBaseId.value!,
             {
               operation: 'widgetFilterCreate',
               widgetId: widgetId.value,
@@ -698,8 +727,8 @@ export function useViewFilters(
           } as ColumnFilterType
         } else {
           const savedFilter = await $api.internal.postOperation(
-            meta.value!.fk_workspace_id!,
-            meta.value!.base_id!,
+            apiWorkspaceId.value!,
+            apiBaseId.value!,
             {
               operation: 'filterCreate',
               viewId: view.value!.id!,
@@ -795,8 +824,8 @@ export function useViewFilters(
         } else {
           try {
             await $api.internal.postOperation(
-              meta.value!.fk_workspace_id!,
-              meta.value!.base_id!,
+              apiWorkspaceId.value!,
+              apiBaseId.value!,
               {
                 operation: 'filterDelete',
                 filterId: filter.id,
@@ -999,11 +1028,12 @@ export function useViewFilters(
       for (const col of meta.value?.columns || []) {
         if (col.uidt !== UITypes.Lookup) continue
         let nextCol: ColumnType | undefined = col
+        let currentBaseId = meta.value!.base_id!
         // check all the relation of nested lookup columns is bt or not
         // include the column only if all only if all relations are bt
         while (nextCol && nextCol.uidt === UITypes.Lookup) {
           // extract the relation column meta
-          const lookupRelation = (await getMeta(meta.value!.base_id!, nextCol.fk_model_id!))?.columns?.find(
+          const lookupRelation = (await getMeta(currentBaseId, nextCol.fk_model_id!))?.columns?.find(
             (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
           )
 
@@ -1012,11 +1042,17 @@ export function useViewFilters(
             break
           }
 
+          // Get the related base_id from the link column options (for cross-base links)
+          const relatedBaseId = (lookupRelation?.colOptions as any)?.fk_related_base_id || currentBaseId
+
           const relatedTableMeta = await getMeta(
-            meta.value!.base_id!,
+            relatedBaseId,
             (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
           )
           nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
+
+          // Update currentBaseId for the next iteration
+          currentBaseId = relatedBaseId
 
           // if next column is same as root lookup column then break the loop
           // since it's going to be a circular loop

@@ -286,6 +286,38 @@ function formatUpdatePayloadOfOptions({
   updatedColumn.grouped_options = undefined;
 }
 
+async function getColumnContextForLinkFilter(
+  linkColumn: ColumnType | Column,
+  baseContext: NcContext,
+): Promise<NcContext> {
+  if (!linkColumn) {
+    return baseContext;
+  }
+
+  if (linkColumn.uidt === UITypes.LinkToAnotherRecord) {
+    // For link columns, use fk_related_base_id
+    const relatedBaseId = (linkColumn.colOptions as any)?.fk_related_base_id;
+    if (relatedBaseId && relatedBaseId !== baseContext.base_id) {
+      return { ...baseContext, base_id: relatedBaseId };
+    }
+  } else if (linkColumn.uidt === UITypes.Lookup) {
+    // For lookup columns, get the relation column and use its fk_related_base_id
+    const relationColId = (linkColumn.colOptions as any)?.fk_relation_column_id;
+    if (relationColId) {
+      const relationCol = await Column.get(baseContext, {
+        colId: relationColId,
+      });
+      const relatedBaseId = (relationCol?.colOptions as any)
+        ?.fk_related_base_id;
+      if (relatedBaseId && relatedBaseId !== baseContext.base_id) {
+        return { ...baseContext, base_id: relatedBaseId };
+      }
+    }
+  }
+
+  return baseContext;
+}
+
 @Injectable()
 export class AppHooksListenerService
   extends AppHooksListenerServiceCE
@@ -2121,6 +2153,7 @@ export class AppHooksListenerService
           let event = AuditV1OperationTypes.VIEW_FILTER_CREATE;
           let fk_model_id = param.column?.fk_model_id;
           let filterPayload: FilterPayload;
+          let columnContext = param.context;
 
           if (param['hook'] || param.filter.fk_hook_id) {
             event = AuditV1OperationTypes.HOOK_FILTER_CREATE;
@@ -2139,22 +2172,25 @@ export class AppHooksListenerService
             };
           } else if (param.filter.fk_link_col_id) {
             event = AuditV1OperationTypes.LINK_FILTER_CREATE;
+
+            const linkColumn =
+              param['linkColumn'] ||
+              (await Column.get(param.context, {
+                colId: param.filter.fk_link_col_id,
+              }));
+
             filterPayload = {
-              link_field_title:
-                param['linkColumn']?.title ||
-                (
-                  await Column.get(param.context, {
-                    colId: param.filter.fk_link_col_id,
-                  })
-                ).title,
-              link_field_id:
-                param['linkColumn']?.id ||
-                (
-                  await Column.get(param.context, {
-                    colId: param.filter.fk_link_col_id,
-                  })
-                )?.id,
+              link_field_title: linkColumn?.title,
+              link_field_id: linkColumn?.id,
             };
+
+            // Determine proper context for fetching the filter column
+            if (linkColumn && !param.column) {
+              columnContext = await getColumnContextForLinkFilter(
+                linkColumn,
+                param.context,
+              );
+            }
           } else if (param.filter.fk_widget_id) {
             event = AuditV1OperationTypes.WIDGET_FILTER_CREATE;
             filterPayload = {
@@ -2188,7 +2224,7 @@ export class AppHooksListenerService
                       filter_field_title:
                         param.column?.title ||
                         (
-                          await Column.get(param.context, {
+                          await Column.get(columnContext, {
                             colId: param.filter.fk_column_id,
                           })
                         ).title,
@@ -2209,6 +2245,7 @@ export class AppHooksListenerService
 
           let event = AuditV1OperationTypes.VIEW_FILTER_UPDATE;
           let filterPayload: FilterPayload;
+          let columnContext = param.context;
 
           if ('hook' in param && param.hook) {
             event = AuditV1OperationTypes.HOOK_FILTER_UPDATE;
@@ -2225,24 +2262,26 @@ export class AppHooksListenerService
             };
           } else if (param.filter.fk_link_col_id) {
             event = AuditV1OperationTypes.LINK_FILTER_UPDATE;
+
+            // Get link column to determine proper context
+            const linkColumn =
+              (param as unknown as { linkColumn: ColumnType }).linkColumn ||
+              (await Column.get(param.context, {
+                colId: param.filter.fk_link_col_id,
+              }));
+
             filterPayload = {
-              link_field_title:
-                (param as unknown as { linkColumn: ColumnType }).linkColumn
-                  ?.title ||
-                (
-                  await Column.get(param.context, {
-                    colId: param.filter.fk_link_col_id,
-                  })
-                )?.title,
-              link_field_id:
-                (param as unknown as { linkColumn: ColumnType }).linkColumn
-                  ?.id ||
-                (
-                  await Column.get(param.context, {
-                    colId: param.filter.fk_link_col_id,
-                  })
-                )?.id,
+              link_field_title: linkColumn?.title,
+              link_field_id: linkColumn?.id,
             };
+
+            // Determine proper context for fetching the filter column
+            if (linkColumn && !param.column) {
+              columnContext = await getColumnContextForLinkFilter(
+                linkColumn,
+                param.context,
+              );
+            }
           } else if (param.filter.fk_widget_id) {
             event = AuditV1OperationTypes.WIDGET_FILTER_UPDATE;
             filterPayload = {
@@ -2279,7 +2318,7 @@ export class AppHooksListenerService
                       filter_field_title:
                         param.column?.title ||
                         (
-                          await Column.get(param.context, {
+                          await Column.get(columnContext, {
                             colId: param.filter.fk_column_id,
                           })
                         ).title,
@@ -2316,8 +2355,8 @@ export class AppHooksListenerService
           const param = data as FilterEvent;
 
           let event = AuditV1OperationTypes.VIEW_FILTER_DELETE;
-
           let filterPayload: FilterPayload;
+          let columnContext = param.context;
 
           if ('hook' in param && param.hook) {
             event = AuditV1OperationTypes.HOOK_FILTER_DELETE;
@@ -2334,22 +2373,25 @@ export class AppHooksListenerService
             };
           } else if (param.filter.fk_link_col_id) {
             event = AuditV1OperationTypes.LINK_FILTER_DELETE;
+
+            const linkColumn =
+              ('linkColumn' in param && param.linkColumn) ||
+              (await Column.get(param.context, {
+                colId: param.filter.fk_link_col_id,
+              }));
+
             filterPayload = {
-              link_field_title:
-                ('linkColumn' in param && param.linkColumn?.title) ||
-                (
-                  await Column.get(param.context, {
-                    colId: param.filter.fk_link_col_id,
-                  })
-                )?.title,
-              link_field_id:
-                ('linkColumn' in param && param.linkColumn?.id) ||
-                (
-                  await Column.get(param.context, {
-                    colId: param.filter.fk_link_col_id,
-                  })
-                )?.id,
+              link_field_title: linkColumn?.title,
+              link_field_id: linkColumn?.id,
             };
+
+            // Determine proper context for fetching the filter column
+            if (linkColumn && !param.column) {
+              columnContext = await getColumnContextForLinkFilter(
+                linkColumn,
+                param.context,
+              );
+            }
           } else if (param.filter.fk_widget_id) {
             event = AuditV1OperationTypes.WIDGET_FILTER_DELETE;
             filterPayload = {
@@ -2366,7 +2408,7 @@ export class AppHooksListenerService
 
           const filterField =
             param.column ||
-            (await Column.get(param.context, {
+            (await Column.get(columnContext, {
               colId: param.filter.fk_column_id,
             }));
 

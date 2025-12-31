@@ -67,7 +67,8 @@ const form: FormDefinition = [
     span: 12,
     model: 'config.includeClosed',
     category: 'Options',
-    description: 'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
+    description:
+      'Sync both open and closed issues to maintain a complete record of project history and resolutions.',
     defaultValue: true,
     condition: [
       {
@@ -81,7 +82,8 @@ const form: FormDefinition = [
     label: 'Include pull requests',
     span: 12,
     model: 'config.includePRs',
-    description: "Sync pull requests along with issues to track code changes, reviews, and merges within your workspace.",
+    description:
+      'Sync pull requests along with issues to track code changes, reviews, and merges within your workspace.',
     category: 'Options',
     defaultValue: false,
     condition: [

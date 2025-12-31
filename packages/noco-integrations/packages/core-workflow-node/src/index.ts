@@ -8,6 +8,8 @@ import { CronTriggerNode } from './nodes/cron-trigger';
 import { IfNode } from './nodes/if';
 import { IterateNode } from './nodes/iterate';
 import { SendEmailAction } from './nodes/send-email';
+import { DelayNode } from './nodes/delay';
+import { WaitUntilNode } from './nodes/wait-until';
 
 export const entries: IntegrationEntry[] = [
   {
@@ -19,8 +21,9 @@ export const entries: IntegrationEntry[] = [
       ...manifest,
       title: 'When manually triggered',
       icon: 'ncPlay',
-      order: 4,
+      order: 8,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -31,7 +34,9 @@ export const entries: IntegrationEntry[] = [
       ...manifest,
       title: 'At scheduled time',
       icon: 'ncClock',
+      order: 7,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -44,6 +49,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncIfElse',
       order: 5,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -56,6 +62,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncRepeat',
       order: 6,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -68,6 +75,33 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncMail',
       order: 12,
     },
+    packageManifest: manifest,
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'core.flow.delay',
+    wrapper: DelayNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'Delay',
+      icon: 'ncClock',
+      order: 7,
+    },
+    packageManifest: manifest,
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'core.flow.wait-until',
+    wrapper: WaitUntilNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'Wait Until',
+      icon: 'ncCalendar',
+      order: 8,
+    },
+    packageManifest: manifest,
   },
 ];
 

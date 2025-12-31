@@ -13,9 +13,9 @@ const { integrations } = useProvideIntegrationViewStore()
 
 const basesStore = useBases()
 
-const { openedProject, bases } = storeToRefs(basesStore)
+const { openedProject, activeProjectId, basesUser, bases, basesTeams } = storeToRefs(basesStore)
 const { activeTable } = storeToRefs(useTablesStore())
-const { activeWorkspace } = storeToRefs(useWorkspace())
+const { activeWorkspace, isTeamsEnabled } = storeToRefs(useWorkspace())
 
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
@@ -49,6 +49,24 @@ const { projectPageTab: _projectPageTab } = storeToRefs(useConfigStore())
 const { isMobileMode } = useGlobal()
 
 const baseSettingsState = ref('')
+
+const userCount = computed(() => {
+  // if private base and don't have owner permission then return
+  if (base.value?.default_role && !baseRoles.value?.[ProjectRoles.OWNER]) {
+    return
+  }
+
+  if (activeProjectId.value) {
+    const teamsCount = !isAdminPanel.value && isTeamsEnabled.value ? basesTeams.value.get(activeProjectId.value)?.length ?? 0 : 0
+    const usersCount = activeProjectId.value
+      ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length ?? 0
+      : 0
+
+    return teamsCount + usersCount
+  }
+
+  return 0
+})
 
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
@@ -232,6 +250,16 @@ onMounted(() => {
             <div class="tab-title" data-testid="proj-view-tab__access-settings">
               <GeneralIcon icon="users" />
               <div>{{ $t('labels.members') }}</div>
+              <div
+                v-if="userCount"
+                class="tab-info"
+                :class="{
+                  'bg-primary-selected': projectPageTab === 'collaborator',
+                  'bg-nc-bg-gray-extralight': projectPageTab !== 'collaborator',
+                }"
+              >
+                {{ userCount }}
+              </div>
             </div>
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />

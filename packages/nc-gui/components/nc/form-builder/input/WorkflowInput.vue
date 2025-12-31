@@ -149,7 +149,7 @@ const editor = useEditor({
     markdown = markdown.replaceAll('<br/>', '\n')
     markdown = markdown.replaceAll('<br>', '\n')
 
-    vModel.value = markdown
+    vModel.value = markdown.trim()
   },
   editable: !readOnly.value,
   autofocus: false,
@@ -175,12 +175,12 @@ onMounted(() => {
   let lastIndex = 0
   let match
 
-  // eslint-disable-next-line no-cond-assign
   while ((match = expressionRegex.exec(vModel.value)) !== null) {
     const [fullMatch, expression] = match
 
     if (match.index > lastIndex) {
-      htmlContent += vModel.value.slice(lastIndex, match.index)
+      const textContent = vModel.value.slice(lastIndex, match.index)
+      htmlContent += textContent.replace(/\n/g, '<br>')
     }
 
     if (!expression) {
@@ -188,17 +188,55 @@ onMounted(() => {
       continue
     }
 
-    const variable = props.variables.find((v) => expression.trim().includes(v.key))
+    const trimmedExpression = expression.trim()
 
-    htmlContent += `<span data-type="workflowExpression" data-id="${variable?.key || expression.trim()}" data-label="${
-      variable?.name || expression.trim()
-    }" data-expression="${fullMatch}"></span>`
+    // Find the longest matching variable key
+    const variable = props.variables
+      .filter((v) => trimmedExpression.includes(v.key))
+      .sort((a, b) => b.key.length - a.key.length)[0]
+
+    let displayLabel = trimmedExpression
+
+    if (variable) {
+      // Extract the property path after the variable key
+      const remainingPath = trimmedExpression.slice(variable.key.length)
+
+      if (remainingPath) {
+        // Parse the entire path to get all properties
+        const properties = []
+        const currentPath = remainingPath
+
+        // Match alternating dot notation and bracket notation
+        // Supports: .prop, ['prop'], ["prop"], .prop['nested'], etc.
+        const pathRegex = /\.(\w+)|\[['"]([^'"]+)['"]\]/g
+        let pathMatch
+
+        while ((pathMatch = pathRegex.exec(currentPath)) !== null) {
+          // pathMatch[1] is dot notation capture, pathMatch[2] is bracket notation capture
+          properties.push(pathMatch[1] || pathMatch[2])
+        }
+
+        if (properties.length > 0) {
+          // Use the last property in the chain as the display label
+          displayLabel = properties[properties.length - 1]
+        } else {
+          displayLabel = variable.name
+        }
+      } else {
+        displayLabel = variable.name
+      }
+    }
+
+    htmlContent += `<span data-type="workflowExpression" data-id="${
+      variable?.key || trimmedExpression
+    }" data-label="${displayLabel}" data-expression="${fullMatch}"></span>`
 
     lastIndex = match.index + fullMatch.length
   }
 
   if (lastIndex < vModel.value.length) {
-    htmlContent += vModel.value.slice(lastIndex)
+    const textContent = vModel.value.slice(lastIndex)
+    htmlContent += textContent.replace(/\n/g, '<br>')
   }
 
   editor.value.commands.setContent(htmlContent || vModel.value)
@@ -238,7 +276,16 @@ watch(readOnly, (newValue) => {
       }"
     />
 
-    <NcTooltip v-if="!readOnly" class="absolute top-1 right-1" hide-on-click title="Insert variable">
+    <NcTooltip
+      v-if="!readOnly"
+      class="!absolute right-1.5"
+      :class="{
+        '!top-1': isMultiline,
+        '!top-1.5': !isMultiline,
+      }"
+      hide-on-click
+      title="Insert variable"
+    >
       <NcButton size="xs" type="text" class="nc-workflow-input-insert-btn !px-1.5" @click.stop="insertExpression">
         <GeneralIcon icon="ncPlusSquareSolid" class="text-nc-content-brand flex-none w-4 h-4" />
       </NcButton>
@@ -254,6 +301,10 @@ watch(readOnly, (newValue) => {
     &.multiline {
       .ProseMirror {
         @apply h-auto min-h-16;
+
+        p {
+          text-wrap: pretty !important;
+        }
       }
     }
 
@@ -265,7 +316,7 @@ watch(readOnly, (newValue) => {
   }
 
   .nc-workflow-expression {
-    @apply bg-nc-bg-brand text-nc-content-brand rounded px-1.5 py-0.5 mx-0.5 font-medium cursor-pointer;
+    @apply bg-nc-bg-brand text-nc-content-brand rounded px-1.5 py-0.25 mx-0.5 text-small cursor-pointer;
     @apply inline-flex items-center gap-1;
     @apply hover:bg-nc-brand-100 transition-colors;
     user-select: none;

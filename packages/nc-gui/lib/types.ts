@@ -33,6 +33,16 @@ import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabTy
 import type { rolePermissions } from './acl'
 import type Record from '~icons/*'
 
+export interface SchemaField {
+  name: string
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object' | 'enum'
+  description?: string
+  items?: SchemaField
+  properties?: SchemaField[]
+  enum?: string[]
+  required?: boolean
+}
+
 interface User {
   id: string
   email: string

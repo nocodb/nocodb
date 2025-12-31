@@ -25,8 +25,9 @@ import { DataExportCleanUpProcessor } from '~/modules/jobs/jobs/data-export-clea
 import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
 import { ActionExecutionProcessor } from '~/modules/jobs/jobs/action-execution.processor';
 import { ReseatSubscriptionProcessor } from '~/modules/jobs/jobs/reseat-subscription.processor';
-import { ExecuteWorkflowProcessor } from '~/modules/jobs/jobs/execute-workflow/execute-workflow.processor';
+import { WorkflowProcessor } from '~/modules/jobs/jobs/workflow/workflow.processor';
 import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow-schedule.processor';
+import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow-resume.processor';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {
@@ -56,8 +57,9 @@ export class JobsMap extends JobsMapCE {
     protected readonly attachmentUrlUploadProcessor: AttachmentUrlUploadProcessor,
     protected readonly actionExecutionProcessor: ActionExecutionProcessor,
     protected readonly reseatSubscriptionProcessor: ReseatSubscriptionProcessor,
-    protected readonly executeWorkflowProcessor: ExecuteWorkflowProcessor,
+    protected readonly workflowProcessor: WorkflowProcessor,
     protected readonly workflowScheduleProcessor: WorkflowScheduleProcessor,
+    protected readonly workflowResumeProcessor: WorkflowResumeProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -138,10 +140,18 @@ export class JobsMap extends JobsMapCE {
         this: this.reseatSubscriptionProcessor,
       },
       [JobTypes.ExecuteWorkflow]: {
-        this: this.executeWorkflowProcessor,
+        this: this.workflowProcessor,
+        fn: 'executeWorkflow',
+      },
+      [JobTypes.ResumeWorkflow]: {
+        this: this.workflowProcessor,
+        fn: 'resumeWorkflow',
       },
       [JobTypes.WorkflowCronSchedule]: {
         this: this.workflowScheduleProcessor,
+      },
+      [JobTypes.WorkflowResumeSchedule]: {
+        this: this.workflowResumeProcessor,
       },
     };
   }

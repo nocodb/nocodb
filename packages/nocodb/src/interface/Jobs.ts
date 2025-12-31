@@ -58,6 +58,8 @@ export enum JobTypes {
   ReseatSubscription = 'reseat-subscription',
   ExecuteWorkflow = 'execute-workflow',
   WorkflowCronSchedule = 'workflow-cron-schedule',
+  WorkflowResumeSchedule = 'workflow-resume-schedule',
+  ResumeWorkflow = 'resume-workflow',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -74,6 +76,8 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.SyncModuleSchedule,
   JobTypes.ReseatSubscription,
   JobTypes.WorkflowCronSchedule,
+  JobTypes.WorkflowResumeSchedule,
+  JobTypes.ResumeWorkflow,
 ];
 
 export enum JobStatus {
@@ -272,4 +276,8 @@ export interface ExecuteWorkflowJobData extends JobData {
   workflowId: string;
   triggerNodeId?: string; // Optional: specific trigger node to start from
   triggerInputs: any; // Data passed to the trigger node
+}
+
+export interface ResumeWorkflowJobData extends JobData {
+  executionId: string; // Workflow execution to resume
 }

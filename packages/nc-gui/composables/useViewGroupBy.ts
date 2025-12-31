@@ -640,9 +640,11 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           if (col.uidt !== UITypes.Lookup) continue
 
           let nextCol: ColumnType = col
+          let currentBaseId = meta.value?.base_id as string
           // Check if the lookup column is an unsupported type
           while (nextCol && nextCol.uidt === UITypes.Lookup) {
-            const lookupRelation = (await getMeta(base.value?.id as string, nextCol.fk_model_id as string))?.columns?.find(
+            // Use the tracked base_id for the current table where nextCol resides
+            const lookupRelation = (await getMeta(currentBaseId, nextCol.fk_model_id as string))?.columns?.find(
               (c) => c.id === (nextCol?.colOptions as LookupType).fk_relation_column_id,
             )
 
@@ -651,7 +653,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             let relatedTableMeta: TableType | null = null
             const lookupRelColOpts = lookupRelation.colOptions as LinkToAnotherRecordType
             const relatedTableId = lookupRelColOpts.fk_related_model_id as string
-            const relatedBaseId = lookupRelColOpts.fk_related_base_id || (base.value?.id as string)
+            const relatedBaseId = lookupRelColOpts.fk_related_base_id || currentBaseId
             try {
               relatedTableMeta = await getMeta(relatedBaseId, relatedTableId, undefined, undefined, undefined, true)
             } catch {
@@ -661,6 +663,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
             nextCol = relatedTableMeta?.columns?.find(
               (c) => c.id === ((nextCol?.colOptions as LookupType).fk_lookup_column_id as string),
             ) as ColumnType
+
+            // Update currentBaseId for next iteration
+            currentBaseId = relatedBaseId
 
             // if next column is same as root lookup column then break the loop
             // since it's going to be a circular loop, and ignore the column

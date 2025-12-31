@@ -41,16 +41,8 @@ export const form: FormDefinition = [
     placeholder: 'Allowed models',
     category: 'Settings',
     selectMode: 'multipleWithInput',
-    options: [
-      { value: 'claude-3-5-sonnet-20240620', label: 'Claude 3.5 Sonnet' },
-      { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' },
-      { value: 'claude-3-sonnet-20240229', label: 'Claude 3 Sonnet' },
-      { value: 'claude-3-haiku-20240307', label: 'Claude 3 Haiku' },
-      { value: 'claude-2.1', label: 'Claude 2.1' },
-      { value: 'claude-2.0', label: 'Claude 2.0' },
-      { value: 'claude-instant-1.2', label: 'Claude Instant 1.2' },
-    ],
-    defaultValue: ['claude-3-5-sonnet-20240620'],
+    fetchOptionsKey: 'models',
+    defaultValue: ['claude-sonnet-4-5'],
     validators: [
       {
         type: FormBuilderValidatorType.Required,

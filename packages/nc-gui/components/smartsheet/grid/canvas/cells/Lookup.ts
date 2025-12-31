@@ -142,13 +142,15 @@ export const LookupCellRenderer: CellRenderer = {
     const lkRelatedModelId = (lookupColumn.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
 
     if (isLinksOrLTAR(lookupColumn) && lkRelatedModelId) {
-      lkRelatedTableMeta = metas?.[lkRelatedModelId]
+      // Get the correct base ID for the lookup column's related table (handles cross-base links)
+      const lkRelatedBaseId = (lookupColumn.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || relatedBaseId
+      lkRelatedTableMeta = getMetaWithCompositeKey(metas, lkRelatedBaseId, lkRelatedModelId)
 
       // Load related table meta if not present
       if (!lkRelatedTableMeta) {
-        if (tableMetaLoader.isLoading(lkRelatedModelId)) return
+        if (tableMetaLoader.isLoading(lkRelatedModelId, lkRelatedBaseId)) return
 
-        tableMetaLoader.getTableMeta(lkRelatedModelId)
+        tableMetaLoader.getTableMeta(lkRelatedModelId, lkRelatedBaseId)
 
         return
       }

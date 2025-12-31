@@ -15,11 +15,12 @@ import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stat
 import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
 import { ActionExecutionProcessor } from '~/modules/jobs/jobs/action-execution.processor';
 import { ReseatSubscriptionProcessor } from '~/modules/jobs/jobs/reseat-subscription.processor';
-import { ExecuteWorkflowProcessor } from '~/modules/jobs/jobs/execute-workflow/execute-workflow.processor';
+import { WorkflowProcessor } from '~/modules/jobs/jobs/workflow/workflow.processor';
 import { NocoSyncModule } from '~/integrations/sync/module/sync.module';
 import { PaymentModule } from '~/modules/payment/payment.module';
 import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow-schedule.processor';
 import { SandboxExperimentController } from '~/modules/jobs/jobs/export-import/sandbox-experiment.controller';
+import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow-resume.processor';
 
 @Module({
   ...JobsModuleMetadata,
@@ -46,8 +47,9 @@ import { SandboxExperimentController } from '~/modules/jobs/jobs/export-import/s
     CloudDbMigrateProcessor,
     ActionExecutionProcessor,
     ReseatSubscriptionProcessor,
-    ExecuteWorkflowProcessor,
+    WorkflowProcessor,
     WorkflowScheduleProcessor,
+    WorkflowResumeProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

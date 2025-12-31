@@ -109,7 +109,7 @@ const columns = computed<ColumnType[]>(() => {
   if (!selectedTable.value?.id) {
     return []
   }
-  return getMetaByKey(meta.value?.base_id, selectedTable.value.id)?.columns.filter(
+  return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns.filter(
     (c: ColumnType) =>
       vModel.value.fk_lookup_column_id === c.id ||
       getValidLookupColumn({
@@ -137,7 +137,7 @@ provide(
   computed(() => {
     if (!selectedTable.value) return {}
 
-    return getMetaByKey(meta.value?.base_id, selectedTable.value.id) || {}
+    return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id) || {}
   }),
 )
 
@@ -166,7 +166,7 @@ const getNextColumnId = () => {
 
 const onRelationColChange = async () => {
   if (selectedTable.value) {
-    await getMeta(meta.value?.base_id, selectedTable.value.id)
+    await getMeta(selectedTable.value.base_id, selectedTable.value.id)
   }
   vModel.value.fk_lookup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()

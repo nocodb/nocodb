@@ -3,7 +3,6 @@ import StarterKit from '@tiptap/starter-kit'
 import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Underline from '@tiptap/extension-underline'
 import Placeholder from '@tiptap/extension-placeholder'
-import Image from '@tiptap/extension-image'
 import Table from '@tiptap/extension-table'
 import TableRow from '@tiptap/extension-table-row'
 import TableHeader from '@tiptap/extension-table-header'
@@ -11,7 +10,7 @@ import TableCell from '@tiptap/extension-table-cell'
 import TaskList from '@tiptap/extension-task-list'
 import { NcMarkdownParser } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
-import { HardBreak, Italic, Link, Paragraph, Strike, TaskItem } from '~/helpers/tiptap-markdown/extensions'
+import { HardBreak, Image, Italic, Link, Paragraph, Strike, TaskItem } from '~/helpers/tiptap-markdown/extensions'
 
 const props = withDefaults(
   defineProps<{
@@ -297,7 +296,7 @@ defineExpose({
       <span v-if="editor"> {{ editor?.getText() ?? '' }}</span>
     </div>
     <template v-else>
-      <CellRichTextLinkOptions
+      <CellRichTextLinkOrImageOptions
         v-if="editor"
         ref="richTextLinkOptionRef"
         :editor="editor"

@@ -44,6 +44,8 @@ const selectedFields = ref<Record<string, boolean>>({})
 
 const fkRelatedModelId = computed(() => (column.value.colOptions as any)?.fk_related_model_id)
 
+const fkRelatedBaseId = computed(() => (column.value.colOptions as any)?.fk_related_base_id || meta.value?.base_id)
+
 const relatedModel = ref<TableType | null>()
 
 const selectedFieldsCount = computed(() => Object.values(selectedFields.value).filter(Boolean).length)
@@ -66,7 +68,7 @@ const createLookups = async () => {
     const currIndex = meta.value?.columns?.length ?? 0
 
     for (const [k] of Object.entries(selectedFields.value).filter(([, v]) => v)) {
-      const lookupCol = getMetaByKey(meta.value?.base_id, relatedModel.value?.id)?.columns.find((c) => c.id === k)
+      const lookupCol = getMetaByKey(fkRelatedBaseId.value, relatedModel.value?.id)?.columns.find((c) => c.id === k)
       const index = filteredColumns.value.findIndex((c) => c.id === k)
       const tempCol = {
         uidt: UITypes.Lookup,
@@ -134,7 +136,7 @@ const createLookups = async () => {
 
 watch([relatedModel, searchField], async () => {
   if (relatedModel.value) {
-    const columns = getMetaByKey(meta.value?.base_id, relatedModel.value?.id)?.columns || []
+    const columns = getMetaByKey(fkRelatedBaseId.value, relatedModel.value?.id)?.columns || []
     filteredColumns.value = columns.filter(
       (c: any) =>
         getValidLookupColumn({
@@ -156,7 +158,7 @@ function switchToSearchMode() {
 
 watch(isOpened, async (val) => {
   if (val) {
-    relatedModel.value = await getMeta(meta?.value?.base_id as string, fkRelatedModelId.value)
+    relatedModel.value = await getMeta(fkRelatedBaseId.value as string, fkRelatedModelId.value)
     isInSearchMode.value = false
     searchField.value = ''
   } else {

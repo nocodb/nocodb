@@ -12,13 +12,15 @@
     {
       "name": "Meta APIs",
       "tags": [
+        "Workspaces",
         "Bases",
         "Tables",
         "Views",
         "Fields",
         "View Filters",
         "View Sorts",
-        "Scripts"
+        "Scripts",
+        "API Tokens"
       ]
     },
     {
@@ -35,6 +37,270 @@
     }
   ],
   "paths": {
+    "/api/v3/meta/workspaces": {
+      "get": {
+        "summary": "List workspaces",
+        "operationId": "workspace-list",
+        "description": "Retrieve a list of all workspaces accessible to the user.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspaces retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3ListResponse"
+                },
+                "examples": {
+                  "Workspaces List": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "w6dw3fo0",
+                          "title": "My Workspace",
+                          "org_id": "org123",
+                          "created_at": "2025-01-16T06:04:18.000Z",
+                          "updated_at": "2025-01-16T06:04:18.000Z"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create workspace",
+        "operationId": "workspace-create",
+        "description": "Create a new workspace with the specified title and optional organization ID.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceV3Create"
+              },
+              "examples": {
+                "Create Workspace": {
+                  "value": {
+                    "title": "New Workspace",
+                    "org_id": "org123"
+                  }
+                },
+                "Create Workspace (On-prem)": {
+                  "value": {
+                    "title": "New Workspace"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3"
+                },
+                "examples": {
+                  "Created Workspace": {
+                    "value": {
+                      "id": "w7xyz123",
+                      "title": "New Workspace",
+                      "org_id": "org123",
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/workspaces/{workspaceId}": {
+      "get": {
+        "summary": "Get workspace",
+        "operationId": "workspace-read",
+        "description": "Retrieve details of a specific workspace.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Include additional data. Use 'members' to include workspace member information.",
+            "example": "members"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3"
+                },
+                "examples": {
+                  "Workspace": {
+                    "value": {
+                      "id": "w6dw3fo0",
+                      "title": "My Workspace",
+                      "org_id": "org123",
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update workspace",
+        "operationId": "workspace-update",
+        "description": "Update workspace details.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceV3Update"
+              },
+              "examples": {
+                "Update Workspace": {
+                  "value": {
+                    "title": "Updated Workspace Title"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3"
+                },
+                "examples": {
+                  "Updated Workspace": {
+                    "value": {
+                      "id": "w6dw3fo0",
+                      "title": "Updated Workspace Title",
+                      "org_id": "org123",
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-17T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "404": {
+            "description": "Workspace not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete workspace",
+        "operationId": "workspace-delete",
+        "description": "Delete a workspace.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace deleted successfully."
+          },
+          "404": {
+            "description": "Workspace not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
     "/api/v3/meta/workspaces/{workspaceId}/bases": {
       "get": {
         "summary": "List bases",
@@ -193,7 +459,7 @@
       "get": {
         "summary": "List workspace members",
         "operationId": "workspace-members-read",
-        "description": "Retrieve details of a specific workspace, including its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Retrieve details of a specific workspace, including its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "tags": [
           "Workspace Members"
         ],
@@ -278,7 +544,7 @@
     "/api/v3/meta/workspaces/{workspaceId}/members": {
       "post": {
         "summary": "Add workspace members",
-        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "workspace-members-invite",
         "tags": [
           "Workspace Members"
@@ -350,7 +616,7 @@
       },
       "patch": {
         "summary": "Update workspace members",
-        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "workspace-members-update",
         "tags": [
           "Workspace Members"
@@ -422,7 +688,7 @@
       },
       "delete": {
         "summary": "Delete workspace members",
-        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "workspace-members-delete",
         "tags": [
           "Workspace Members"
@@ -2975,7 +3241,7 @@
     "/api/v3/meta/bases/{baseId}?include[]=members": {
       "get": {
         "summary": "List base members",
-        "description": "Retrieve all details of a specific base, including its members.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Retrieve all details of a specific base, including its members.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-list",
         "tags": [
           "Base Members"
@@ -3050,7 +3316,7 @@
     "/api/v3/meta/bases/{base_id}/members": {
       "post": {
         "summary": "Invite base members",
-        "description": "Invite new members to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Invite new members to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-invite",
         "parameters": [
           {
@@ -3104,7 +3370,7 @@
       },
       "patch": {
         "summary": "Update base members",
-        "description": "Update roles for existing members in a base.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Update roles for existing members in a base.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-update",
         "parameters": [
           {
@@ -3158,7 +3424,7 @@
       },
       "delete": {
         "summary": "Delete base members",
-        "description": "Remove members from a specific base using their IDs.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Remove members from a specific base using their IDs.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-delete",
         "parameters": [
           {
@@ -5333,6 +5599,166 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/tokens": {
+      "get": {
+        "summary": "List API tokens",
+        "description": "Retrieve a list of all API tokens for the organization.\n\n**Note**: \nAPI Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "tags": [
+          "API Tokens"
+        ],
+        "security": [
+          {
+            "xc-token": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of API tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ApiTokenV3"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create API token",
+        "description": "Create a new API token for the organization.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "tags": [
+          "API Tokens"
+        ],
+        "security": [
+          {
+            "xc-token": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Title / description for the API token",
+                    "example": "Github Integration"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created API token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenWithTokenV3"
+                },
+                "examples": {
+                  "created": {
+                    "value": {
+                      "id": 5,
+                      "title": "Github Integration",
+                      "token": "wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh",
+                      "created_at": "2025-12-30 15:17:24+00:00",
+                      "updated_at": "2025-12-30 15:17:24+00:00"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
+    },
+    "/api/v3/meta/tokens/{tokenId}": {
+      "delete": {
+        "summary": "Delete API token",
+        "description": "Delete an API token by its ID.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "tags": [
+          "API Tokens"
+        ],
+        "security": [
+          {
+            "xc-token": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the API token to delete",
+            "schema": {
+              "type": "string",
+              "example": "5"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted API token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenV3"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
           }
         }
       }
@@ -9265,6 +9691,86 @@
           "updated_at"
         ]
       },
+      "WorkspaceV3": {
+        "type": "object",
+        "description": "Workspace V3 information with meta data",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the workspace"
+          },
+          "org_id": {
+            "type": "string",
+            "description": "Organization identifier (required for cloud, absent for on-prem EE)"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workspace was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workspace was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "WorkspaceV3Create": {
+        "type": "object",
+        "description": "Workspace creation request",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the workspace"
+          },
+          "org_id": {
+            "type": "string",
+            "description": "Organization identifier (required for cloud, absent for on-prem EE)"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "WorkspaceV3Update": {
+        "type": "object",
+        "description": "Workspace update request",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the workspace"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "WorkspaceV3ListResponse": {
+        "type": "object",
+        "description": "Workspace list response",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceV3"
+            },
+            "description": "List of workspaces"
+          }
+        },
+        "required": [
+          "list"
+        ]
+      },
       "WorkspaceWithMembers": {
         "type": "object",
         "description": "Workspace information including member details",
@@ -10247,6 +10753,59 @@
           "created_at",
           "updated_at"
         ]
+      },
+      "ApiTokenV3": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Token ID",
+            "example": 5
+          },
+          "title": {
+            "type": "string",
+            "description": "Token title / description",
+            "example": "Github Integration"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Token creation timestamp",
+            "example": "2025-12-30 15:17:24+00:00"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Token last update timestamp",
+            "example": "2025-12-30 15:17:24+00:00"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "ApiTokenWithTokenV3": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiTokenV3"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "description": "The actual API token value (only returned on creation)",
+                "example": "wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh"
+              }
+            },
+            "required": [
+              "token"
+            ]
+          }
+        ]
       }
     },
     "responses": {
@@ -10279,6 +10838,62 @@
           }
         },
         "headers": {}
+      }
+    },
+    "BadRequestV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "UnauthorizedV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "ForbiddenV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Accessing api token api require enterprise plan"
+        }
+      }
+    },
+    "NotFoundV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "InternalServerErrorV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
       }
     },
     "securitySchemes": {

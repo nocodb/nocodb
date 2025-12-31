@@ -41,7 +41,6 @@ _site/
 *.tmp.md
 *.bak
 *.swp
-logs/
 build/
 uploads/
 

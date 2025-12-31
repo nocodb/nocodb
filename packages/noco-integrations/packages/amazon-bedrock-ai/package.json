@@ -11,10 +11,11 @@
     "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
-    "@ai-sdk/amazon-bedrock": "^2.2.9",
+    "@ai-sdk/amazon-bedrock": "^4.0.3",
     "@noco-integrations/core": "workspace:*",
-    "ai": "^4.3.16",
-    "zod": "^3.25.7"
+    "@ai-sdk/provider": "^3.0.0",
+    "ai": "^6.0.3",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^3.1.3",

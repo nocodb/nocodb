@@ -385,21 +385,17 @@ export const getTextAreaValue = (modelValue: string | null, col: ColumnType) => 
 export const getRollupValue = (modelValue: string | null | number, params: ParsePlainCellValueProps['params']) => {
   const { col, meta, metas } = params
 
-  // Helper to get meta with composite key or fallback to table ID only
-  const getMeta = (tableId: string) => {
-    const baseId = meta?.base_id
-    if (baseId) {
-      return metas?.[`${baseId}:${tableId}`] || metas?.[tableId]
-    }
-    return metas?.[tableId]
-  }
-
   const colOptions = col.colOptions as RollupType
   const relationColumnOptions = colOptions.fk_relation_column_id
     ? (meta?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions as LinkToAnotherRecordType)
     : null
-  const relatedTableMeta =
-    relationColumnOptions?.fk_related_model_id && getMeta(relationColumnOptions.fk_related_model_id as string)
+
+  // Use fk_related_base_id for cross-base relationships
+  const relatedBaseId = relationColumnOptions?.fk_related_base_id || meta?.base_id
+  const relatedTableMeta = relationColumnOptions?.fk_related_model_id
+    ? (relatedBaseId ? metas?.[`${relatedBaseId}:${relationColumnOptions.fk_related_model_id}`] : null) ||
+      metas?.[relationColumnOptions.fk_related_model_id as string]
+    : null
 
   let childColumn = relatedTableMeta?.columns.find((c: ColumnType) => c.id === colOptions.fk_rollup_column_id) as
     | ColumnType
@@ -427,22 +423,17 @@ export const getRollupValue = (modelValue: string | null | number, params: Parse
 export const getLookupValue = (modelValue: string | null | number | Array<any>, params: ParsePlainCellValueProps['params']) => {
   const { col, meta, metas } = params
 
-  // Helper to get meta with composite key or fallback to table ID only
-  const getMeta = (tableId: string) => {
-    const baseId = meta?.base_id
-    if (baseId) {
-      return metas?.[`${baseId}:${tableId}`] || metas?.[tableId]
-    }
-    return metas?.[tableId]
-  }
-
   const colOptions = col.colOptions as LookupType
   const relationColumnOptions = colOptions.fk_relation_column_id
     ? (meta?.value ?? meta)?.columns?.find((c) => c.id === colOptions.fk_relation_column_id)?.colOptions
     : col.colOptions
 
-  const relatedTableMeta =
-    relationColumnOptions?.fk_related_model_id && getMeta(relationColumnOptions.fk_related_model_id as string)
+  // Use fk_related_base_id for cross-base relationships
+  const relatedBaseId = (relationColumnOptions as LinkToAnotherRecordType)?.fk_related_base_id || (meta?.value ?? meta)?.base_id
+  const relatedTableMeta = relationColumnOptions?.fk_related_model_id
+    ? (relatedBaseId ? metas?.[`${relatedBaseId}:${relationColumnOptions.fk_related_model_id}`] : null) ||
+      metas?.[relationColumnOptions.fk_related_model_id as string]
+    : null
 
   const childColumn = relatedTableMeta?.columns.find(
     (c: ColumnType) => c.id === (colOptions?.fk_lookup_column_id ?? relatedTableMeta?.columns.find((c) => c.pv).id),

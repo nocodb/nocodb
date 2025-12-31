@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import type { WorkflowNodeCategory } from 'nocodb-sdk'
 import { IntegrationsType } from 'nocodb-sdk'
-import IfNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/if/index.vue'
-import ListRecordsNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/list-records.vue'
-import CronTriggerNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/cron-trigger.vue'
-import RecordMatchesConditionTriggerConfig from '~/components/smartsheet/workflow/sidebar/config/custom/record-matches-condition-trigger.vue'
-import CreateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/create-record.vue'
-import UpdateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/update-record.vue'
-import IterateNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/iterate.vue'
+import IfNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/If/index.vue'
+import ListRecordsNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/ListRecords.vue'
+import CronTriggerNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/CronTrigger.vue'
+import RecordMatchesConditionTriggerConfig from '~/components/smartsheet/workflow/sidebar/config/custom/RecordMatchesConditionTrigger.vue'
+import CreateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/CreateRecord.vue'
+import UpdateRecordNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/UpdateRecord.vue'
+import IterateNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/Iterate.vue'
+import WaitUntilNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/WaitUntil.vue'
+import RunScriptNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/RunScript/index.vue'
+import GenerateStructuredNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/GenerateStructured.vue'
 import { findIterateNodePortForPath } from '~/utils/workflowUtils'
 
 const {
@@ -110,6 +113,9 @@ const FormNodeMap = {
   'nocodb.create_record': CreateRecordNodeConfig,
   'nocodb.update_record': UpdateRecordNodeConfig,
   'core.flow.iterate': IterateNodeConfig,
+  'core.flow.wait-until': WaitUntilNodeConfig,
+  'nocodb.run_script': RunScriptNodeConfig,
+  'ai.action.generate-structured': GenerateStructuredNodeConfig,
 }
 
 const formSchema = computed(() => {

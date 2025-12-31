@@ -5,9 +5,10 @@ const { getNodeMetaById, selectedNode, selectedNodeId, edges, nodes, testExecute
 
 const { $e } = useNuxtApp()
 
-const localTestState = ref<'idle' | 'testing' | 'success' | 'error'>('idle')
+const localTestState = ref<'idle' | 'testing' | 'success' | 'error'>()
 
 const testState = computed(() => {
+  if (localTestState.value) return localTestState.value
   if (selectedNode.value?.data?.testResult && selectedNode.value.data.testResult?.isStale !== true) {
     return selectedNode.value.data.testResult.status === 'success' ? 'success' : 'error'
   }
@@ -49,13 +50,17 @@ const canTestNode = computed(() => {
 
   const ancestorIds = findAllParentNodes(selectedNodeId.value, edges.value)
 
+  // If no ancestors, can test
   if (ancestorIds.length === 0) {
     return true
   }
 
+  // All ancestors must exist, have test results, be successful, and not stale
   return ancestorIds.every((ancestorId) => {
     const ancestorNode = nodes.value.find((n) => n.id === ancestorId)
-    return ancestorNode?.data?.testResult?.status === 'success'
+    const testResult = ancestorNode?.data?.testResult
+
+    return testResult?.status === 'success' && testResult.isStale !== true
   })
 })
 
@@ -112,7 +117,7 @@ watch(selectedNode, () => {
         <NcButton
           type="secondary"
           size="small"
-          :disabled="!canTestNode"
+          :disabled="!canTestNode || testState === 'testing'"
           :loading="testState === 'testing'"
           icon-position="right"
           @click="handleTestNode"

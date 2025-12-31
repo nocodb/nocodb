@@ -120,6 +120,14 @@ const handleKeydown = (e: KeyboardEvent) => {
   }
 }
 
+onKeyStroke(async (e) => {
+  if (props.selected && !isEditMode.value && e.key.match(/^[a-zA-Z0-9]$/)) {
+    editor.value?.commands.insertContent(e.key)
+    await nextTick()
+    enableEditMode()
+  }
+})
+
 onMounted(() => {
   noteRef.value?.addEventListener('keydown', handleKeydown, true)
 })
@@ -133,11 +141,10 @@ onBeforeUnmount(() => {
 <template>
   <div
     ref="noteRef"
-    class="note-node"
+    class="note-node relative"
     :class="{
       'edit-mode': isEditMode,
       'nodrag': isEditMode,
-      'selected': props.selected,
     }"
     :style="{ backgroundColor: currentColor.bgVar, borderColor: currentColor.borderVar }"
     @dblclick="enableEditMode"
@@ -149,6 +156,18 @@ onBeforeUnmount(() => {
       :min-height="50"
       handle-class-name="custom-resize-handle"
     />
+
+    <div class="relative w-full z-2">
+      <NcButton
+        v-if="props.selected"
+        type="text"
+        size="xsmall"
+        class="toolbar-btn !text-nc-content-red-medium !absolute !-top-2 !-right-2 !hover:bg-nc-bg-red-light"
+        @click="deleteNote"
+      >
+        <GeneralIcon icon="delete" />
+      </NcButton>
+    </div>
 
     <div v-if="isEditMode && editor" class="note-toolbar">
       <NcDropdown placement="bottom">
@@ -199,17 +218,6 @@ onBeforeUnmount(() => {
       >
         <span class="underline">U</span>
       </NcButton>
-
-      <div class="w-[1px] h-5 bg-nc-bg-gray-dark mx-2" />
-
-      <NcButton
-        type="text"
-        size="xsmall"
-        class="toolbar-btn !text-nc-content-red-medium !hover:bg-nc-bg-red-light"
-        @click="deleteNote"
-      >
-        <GeneralIcon icon="delete" />
-      </NcButton>
     </div>
     <EditorContent :editor="editor" class="note-content" :class="[{ nodrag: isEditMode }]" />
   </div>
@@ -217,7 +225,7 @@ onBeforeUnmount(() => {
 
 <style scoped lang="scss">
 .note-node {
-  @apply w-full h-full min-w-[300px] min-h-[50px] border-2 rounded-lg p-3 flex relative flex-col shadow-default cursor-move;
+  @apply w-full h-full min-w-[300px] min-h-[50px] border-2 rounded-lg p-3 flex relative flex-col shadow-default;
 
   &:hover {
     @apply shadow-hover;
@@ -225,10 +233,6 @@ onBeforeUnmount(() => {
 
   &.edit-mode {
     cursor: default;
-  }
-
-  &.selected {
-    @apply ring ring-nc-brand-500 ring-offset-2.5 ring-1.5;
   }
 }
 

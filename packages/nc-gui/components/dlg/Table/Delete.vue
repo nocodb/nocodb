@@ -58,7 +58,12 @@ const onDelete = async () => {
     if (relationColumns?.length && !isXcdbBase(toBeDeletedTable.source_id)) {
       const refColMsgs = await Promise.all(
         relationColumns.map(async (c, i) => {
-          const refMeta = (await getMeta(toBeDeletedTable.base_id as string, (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string)) as TableType
+          // Use fk_related_base_id for cross-base relationships
+          const relatedBaseId = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || toBeDeletedTable.base_id
+          const refMeta = (await getMeta(
+            relatedBaseId as string,
+            (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
+          )) as TableType
           return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
         }),
       )

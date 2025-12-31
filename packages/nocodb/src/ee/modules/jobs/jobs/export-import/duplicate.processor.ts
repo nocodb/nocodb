@@ -151,21 +151,36 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
         );
 
         for (const filter of filters) {
-          const createdFilter = await this.filterService.widgetFilterCreate(
-            context,
-            {
-              filter: {
-                ...withoutId(filter),
-                fk_parent_id: identifierMap.get(filter.fk_parent_id),
-                fk_widget_id: createdWidget.id,
-              },
-              widgetId: createdWidget.id,
-              user: req.user,
-              req,
-            },
-          );
+          const fn = async (filter) => {
+            if (!filter) return;
 
-          identifierMap.set(filter.id, createdFilter.id);
+            const createdFilter = await this.filterService.widgetFilterCreate(
+              context,
+              {
+                filter: {
+                  ...withoutId(filter),
+                  fk_parent_id: identifierMap.get(filter.fk_parent_id),
+                  fk_widget_id: createdWidget.id,
+                },
+                widgetId: createdWidget.id,
+                user: req.user,
+                req,
+              },
+            );
+
+            identifierMap.set(filter.id, createdFilter.id);
+
+            if (filter.is_group)
+              await Promise.all(
+                ((await filter.getChildren(context)) || []).map(
+                  async (child) => {
+                    await fn(child);
+                  },
+                ),
+              );
+          };
+
+          await fn(filter);
         }
       }
 

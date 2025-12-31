@@ -136,7 +136,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
     // Clear group sets (only when resetting completely, not when navigating between groups)
     groupSets.value = []
-    totalGroupSets.value = 0
     groupSetsPaginationData.value = { ...getDefaultPaginationData(), isLoading: false }
 
     // Clear duplicate sets
@@ -569,7 +568,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const groupSets = ref<Record<string, any>[]>([])
   const hasMoreGroupSets = ref(false)
-  const totalGroupSets = ref(0)
 
   const groupSetsPaginationData = ref<PaginatedType & { isLoading: boolean }>({ ...getDefaultPaginationData(), isLoading: false })
 
@@ -614,14 +612,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
       if (reset) {
         groupSets.value = res.list || []
-        // Use totalRows from pageInfo (from API) - this is the accurate total count
-        totalGroupSets.value = res.pageInfo?.totalRows ?? 0
       } else {
         groupSets.value.push(...(res.list || []))
-        // Update totalGroupSets if pageInfo provides it (should be same, but ensure consistency)
-        if (res.pageInfo?.totalRows) {
-          totalGroupSets.value = res.pageInfo.totalRows
-        }
       }
     } catch (error: any) {
       if (!axios.isCancel(error)) {

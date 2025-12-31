@@ -4,6 +4,7 @@ import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
+  BaseVersion,
   EventType,
   IntegrationsType,
   NcBaseError,
@@ -72,7 +73,7 @@ export class BasesService extends BasesServiceCE {
   }
 
   async baseCreate(param: {
-    base: ProjectReqType;
+    base: ProjectReqType & { version?: BaseVersion };
     user: any;
     req: any;
     apiVersion?: NcApiVersion;
@@ -244,6 +245,8 @@ export class BasesService extends BasesServiceCE {
 
     baseBody.title = DOMPurify.sanitize(baseBody.title);
     baseBody.slug = baseBody.title;
+    // TODO: set default version to V3 after beta of v3 is over
+    baseBody.version = param.base.version || BaseVersion.V2;
 
     const base = await Base.createProject(baseBody);
 
@@ -391,7 +394,7 @@ export class BasesService extends BasesServiceCE {
     const transaction = await ncMeta.startTransaction();
 
     try {
-      await Base.softDelete(context, param.baseId, ncMeta);
+      await Base.delete(context, param.baseId, ncMeta);
 
       await transaction.commit();
     } catch (e) {
@@ -433,7 +436,7 @@ export class BasesService extends BasesServiceCE {
     context: NcContext,
     param: {
       baseId: string;
-      base: ProjectUpdateReqType;
+      base: ProjectUpdateReqType & { version?: BaseVersion };
       user: UserType;
       req: NcRequest;
       apiVersion?: NcApiVersion;

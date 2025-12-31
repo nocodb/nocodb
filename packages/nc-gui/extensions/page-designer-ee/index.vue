@@ -34,9 +34,16 @@ const { viewsByTable } = storeToRefs(useViewsStore())
 const row = ref<Row>()
 const meta = ref<TableType>()
 
-const viewMeta = computed(() =>
-  viewsByTable.value.get(savedPayload.value.selectedTableId ?? '')?.find((view) => view.id === savedPayload.value.selectedViewId),
-)
+const viewMeta = computed(() => {
+  const tableId = savedPayload.value.selectedTableId
+  if (!tableId || !base.value?.id) return undefined
+
+  const key = `${base.value.id}:${tableId}`
+  const views = viewsByTable.value.get(key)
+  if (!views) return undefined
+
+  return views.find((view) => view.id === savedPayload.value.selectedViewId)
+})
 const displayField = computed(() => meta.value?.columns?.find((c) => c?.pv) || meta.value?.columns?.[0] || null)
 const { cachedRows, loadData } = useInfiniteData({
   meta,

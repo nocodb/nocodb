@@ -10,6 +10,7 @@ import * as nc_009_dependency_tracker_timestamp from './v0/nc_009_dependency_tra
 import * as nc_010_add_constraints_col_in_column_table from './v0/nc_010_add_constraints_col_in_column_table';
 import * as nc_011_merge_workflows_scripts from './v0/nc_011_merge_workflows_scripts';
 import * as nc_012_workflow_delay from './v0/nc_012_workflow_delay';
+import * as nc_013_composite_pk_missing_tables from './v0/nc_013_composite_pk_missing_tables';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -31,6 +32,7 @@ export default class XcMigrationSourcev0 {
       'nc_010_add_constraints_col_in_column_table',
       'nc_011_merge_workflows_scripts',
       'nc_012_workflow_delay',
+      'nc_013_composite_pk_missing_tables',
     ]);
   }
 
@@ -64,6 +66,8 @@ export default class XcMigrationSourcev0 {
         return nc_011_merge_workflows_scripts;
       case 'nc_012_workflow_delay':
         return nc_012_workflow_delay;
+      case 'nc_013_composite_pk_missing_tables':
+        return nc_013_composite_pk_missing_tables;
     }
   }
 }

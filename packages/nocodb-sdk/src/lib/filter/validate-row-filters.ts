@@ -15,6 +15,7 @@ import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-
 import { getNodejsTimezone } from '~/lib/timezoneUtils';
 import { ColumnHelper } from '~/lib/columnHelper/column-helper';
 import { CURRENT_USER_TOKEN } from '~/lib/globals';
+import { getMetaWithCompositeKey } from '~/lib/helpers/metaHelpers';
 
 extend(utc);
 extend(timezone);
@@ -34,6 +35,7 @@ export function validateRowFilters(params: {
   columns: ColumnType[];
   client: any;
   metas: Record<string, any>;
+  baseId?: string;
   options?: {
     currentUser?: {
       id: string;
@@ -42,7 +44,7 @@ export function validateRowFilters(params: {
     timezone?: string;
   };
 }) {
-  const { filters: _filters, data = {}, columns, client, metas } = params;
+  const { filters: _filters, data = {}, columns, client, metas, baseId } = params;
   if (!_filters.length) {
     return true;
   }
@@ -59,6 +61,7 @@ export function validateRowFilters(params: {
         columns: columns,
         client: client,
         metas: metas,
+        baseId: baseId,
       });
     } else {
       const column = columns.find((c) => c.id === filter.fk_column_id);
@@ -266,8 +269,9 @@ export function validateRowFilters(params: {
             [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
               getLookupColumnType({
                 col: column,
-                meta: { columns },
+                meta: { columns, base_id: baseId },
                 metas: metas,
+                baseId: baseId,
               }) as UITypes
             ))
         ) {
@@ -320,7 +324,7 @@ export function validateRowFilters(params: {
 
           const relatedModelId = colOptions?.fk_related_model_id;
 
-          const relatedMeta = metas[relatedModelId];
+          const relatedMeta = getMetaWithCompositeKey(metas, baseId, relatedModelId);
 
           if (!relatedMeta?.columns) {
             res = false;

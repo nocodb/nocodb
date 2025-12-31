@@ -76,9 +76,17 @@ const setAsDisplayValue = async () => {
 
     isOpen.value = false
 
-    await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
+    await $api.internal.postOperation(
+      meta!.value!.fk_workspace_id!,
+      meta!.value!.base_id!,
+      {
+        operation: 'columnPrimarySet',
+        columnId: column?.value?.id as string,
+      },
+      {},
+    )
 
-    await getMeta(meta?.value?.id as string, true)
+    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     $e('a:column:set-primary')
@@ -86,9 +94,17 @@ const setAsDisplayValue = async () => {
     addUndo({
       redo: {
         fn: async (id: string) => {
-          await $api.dbTableColumn.primaryColumnSet(id)
+          await $api.internal.postOperation(
+            meta!.value!.fk_workspace_id!,
+            meta!.value!.base_id!,
+            {
+              operation: 'columnPrimarySet',
+              columnId: id,
+            },
+            {},
+          )
 
-          await getMeta(meta?.value?.id as string, true)
+          await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
         },
@@ -96,9 +112,17 @@ const setAsDisplayValue = async () => {
       },
       undo: {
         fn: async (id: string) => {
-          await $api.dbTableColumn.primaryColumnSet(id)
+          await $api.internal.postOperation(
+            meta!.value!.fk_workspace_id!,
+            meta!.value!.base_id!,
+            {
+              operation: 'columnPrimarySet',
+              columnId: id,
+            },
+            {},
+          )
 
-          await getMeta(meta?.value?.id as string, true)
+          await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
         },
@@ -150,7 +174,12 @@ const duplicateVirtualColumn = async () => {
   }
 
   try {
-    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder
@@ -160,16 +189,24 @@ const duplicateVirtualColumn = async () => {
       newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
     }
 
-    await $api.dbTableColumn.create(meta!.value!.id!, {
-      ...columnCreatePayload,
-      pv: false,
-      view_id: view.value!.id as string,
-      column_order: {
-        order: newColumnOrder,
-        view_id: view.value!.id as string,
+    await $api.internal.postOperation(
+      meta!.value!.fk_workspace_id!,
+      meta!.value!.base_id!,
+      {
+        operation: 'columnCreate',
+        tableId: meta!.value!.id!,
       },
-    } as ColumnReqType)
-    await getMeta(meta!.value!.id!, true)
+      {
+        ...columnCreatePayload,
+        pv: false,
+        view_id: view.value!.id as string,
+        column_order: {
+          order: newColumnOrder,
+          view_id: view.value!.id as string,
+        },
+      } as ColumnReqType,
+    )
+    await getMeta(meta!.value!.base_id!, meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     reloadDataHook?.trigger()
@@ -197,7 +234,12 @@ const openDuplicateDlg = async () => {
   ) {
     duplicateVirtualColumn()
   } else {
-    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder
@@ -230,7 +272,12 @@ const openDuplicateDlg = async () => {
 
 // add column before or after current column
 const addColumn = async (before = false) => {
-  const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+  const gridViewColumnList = (
+    await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+      operation: 'viewColumnList',
+      viewId: view.value?.id as string,
+    })
+  ).list
 
   const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
 
@@ -302,13 +349,28 @@ const hideOrShowField = async () => {
 
   try {
     const currentColumn =
-      currentViewColumn || (await $api.dbViewColumn.list(viewId)).list.find((f) => f.fk_column_id === column!.value.id)
+      currentViewColumn ||
+      (
+        await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'viewColumnList',
+          viewId,
+        })
+      ).list.find((f) => f.fk_column_id === column!.value.id)
 
-    await $api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: !currentColumn.show })
+    await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      {
+        operation: 'viewColumnUpdate',
+        viewId: view.value!.id!,
+        columnId: currentColumn!.id!,
+      },
+      { show: !currentColumn.show },
+    )
 
     if (!hidingViewColumnsMap.value[column.value.id!]) {
       if (isExpandedForm.value) {
-        await getMeta(meta?.value?.id as string, true)
+        await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
       } else {
         updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
       }
@@ -325,10 +387,19 @@ const hideOrShowField = async () => {
     addUndo({
       redo: {
         fn: async function redo(id: string, fk_column_id: string, show: boolean) {
-          await $api.dbViewColumn.update(viewId, id, { show: !show })
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnUpdate',
+              viewId,
+              columnId: id,
+            },
+            { show: !show },
+          )
 
           if (isExpandedForm.value) {
-            await getMeta(meta?.value?.id as string, true)
+            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
           } else {
             updateDefaultViewColVisibility(fk_column_id, !show)
           }
@@ -342,10 +413,19 @@ const hideOrShowField = async () => {
       },
       undo: {
         fn: async function undo(id: string, fk_column_id: string, show: boolean) {
-          await $api.dbViewColumn.update(viewId, id, { show })
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnUpdate',
+              viewId,
+              columnId: id,
+            },
+            { show },
+          )
 
           if (isExpandedForm.value) {
-            await getMeta(meta?.value?.id as string, true)
+            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
           } else {
             updateDefaultViewColVisibility(fk_column_id, show)
           }

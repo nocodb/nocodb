@@ -53,7 +53,7 @@ const { t } = useI18n()
 
 const { getPlanTitle } = useEeConfig()
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 if (!isEdit.value) {
   setAdditionalValidations({
@@ -126,9 +126,16 @@ const refTables = computed(() => {
     const refTableId = referenceTableChildId.value
     if (!refTableId) return []
 
+    // For cross-base links, use the related base ID, otherwise use current base ID
+    const relatedBaseId = crossBase.value
+      ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id
+      : meta.value?.base_id
+
+    if (!relatedBaseId) return []
+
     // Load meta if not already loaded
-    if (!metas.value[refTableId]) getMeta(refTableId)
-    const tableMeta = metas.value[refTableId]
+    if (!getMetaByKey(relatedBaseId, refTableId)) getMeta(relatedBaseId, refTableId)
+    const tableMeta = getMetaByKey(relatedBaseId, refTableId)
     // Check if table is private (from API response only)
     const isPrivate = tableMeta && (tableMeta as any).is_private
 
@@ -171,7 +178,20 @@ const refViews = computed(() => {
 
   if (!childId) return []
 
-  const views = viewsByTable.value.get(childId)
+  // For cross-base links, get the related base ID, otherwise use current base ID
+  const relatedBaseId = crossBase.value
+    ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+    : meta.value?.base_id
+
+  if (!relatedBaseId) return []
+
+  // Find the child table to get its actual base_id (should match relatedBaseId)
+  const childTable = baseTables.value.get(relatedBaseId)?.find((t) => t.id === childId)
+
+  if (!childTable) return []
+
+  const key = `${relatedBaseId}:${childId}`
+  const views = viewsByTable.value.get(key) || []
 
   // In edit mode, if view is not accessible, return a "Private view" object
   if (isEdit.value && vModel.value.childViewId && isLinkedViewPrivate.value) {
@@ -200,13 +220,21 @@ watch(
   () => (vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId),
   async (tableId) => {
     if (tableId) {
-      getMeta(tableId).catch(() => {
+      // For cross-base links, use the related base ID
+      const relatedBaseId = crossBase.value
+        ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+        : meta.value?.base_id
+
+      if (!relatedBaseId) return
+
+      getMeta(relatedBaseId, tableId).catch(() => {
         // ignore
       })
       viewsStore
         .loadViews({
           ignoreLoading: true,
           tableId,
+          baseId: relatedBaseId,
         })
         .catch(() => {
           // ignore
@@ -240,13 +268,19 @@ provide(
   MetaInj,
   computed(() => {
     const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
-    return metas.value[childId] || {}
+
+    // For cross-base links, use the related base ID
+    const relatedBaseId = crossBase.value
+      ? (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || vModel.value?.ref_base_id
+      : meta.value?.base_id
+
+    return (getMetaByKey(relatedBaseId, childId) as any) || {}
   }),
 )
 
 onMounted(() => {
   setPostSaveOrUpdateCbk(async ({ colId, column }) => {
-    await filterRef.value?.applyChanges(colId || column.id, false)
+    await filterRef.value?.applyChanges(colId || column?.id, false)
   })
 })
 
@@ -270,7 +304,8 @@ const isLinkedTablePrivate = computed(() => {
   if (!isEdit.value) return false
   const refTableId = referenceTableChildId.value
   if (!refTableId) return false
-  const tableMeta = metas.value[refTableId]
+  const baseId = meta.value?.base_id
+  const tableMeta = getMetaByKey(baseId, refTableId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
 })
@@ -280,7 +315,8 @@ const isLinkedViewPrivate = computed(() => {
   if (!vModel.value.childViewId) return false
   const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
   if (!childId) return false
-  const tableMeta = metas.value[childId]
+  const baseId = meta.value?.base_id
+  const tableMeta = getMetaByKey(baseId, childId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
 })

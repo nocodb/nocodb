@@ -54,7 +54,7 @@ const isAllowedToEditField = computed(() => {
   return isAllowed(PermissionEntity.FIELD, column.value.id, PermissionKey.RECORD_FIELD_EDIT)
 })
 
-const { metas } = useMetas()
+const { getMetaByKey } = useMetas()
 
 const { isUIAllowed, isMetaReadOnly } = useRoles()
 
@@ -85,10 +85,11 @@ const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
   return null
 })
 
-const relatedTableMeta = computed(
-  () =>
-    relationColumnOptions.value?.fk_related_model_id && metas.value?.[relationColumnOptions.value?.fk_related_model_id as string],
-)
+const relatedTableMeta = computed(() => {
+  if (!relationColumnOptions.value?.fk_related_model_id) return null
+  const relatedBaseId = (relationColumnOptions.value as any)?.fk_related_base_id || meta.value?.base_id
+  return getMetaByKey(relatedBaseId, relationColumnOptions.value?.fk_related_model_id as string)
+})
 
 const relatedTableTitle = computed(() => relatedTableMeta.value?.title)
 
@@ -100,12 +101,14 @@ const tooltipMsg = computed(() => {
   let suffix = ''
   if (isLinksOrLTAR(column.value) && relatedTableTitle.value && isExternalSource.value) {
     if (isMm(column.value)) {
+      const mmBaseId = (column.value?.colOptions as any)?.fk_mm_base_id || meta.value?.base_id
       const mmTableMeta =
         tables.value?.find((t) => t.id === column.value?.colOptions?.fk_mm_model_id) ||
-        metas.value?.[column.value?.colOptions?.fk_mm_model_id as string]
+        getMetaByKey(mmBaseId, column.value?.colOptions?.fk_mm_model_id as string)
       suffix = mmTableMeta ? `\nJunction Table: ${mmTableMeta.title}` : ''
     } else if (isHm(column.value)) {
-      const fkColumn = metas.value?.[column.value?.colOptions?.fk_related_model_id as string]?.columns?.find(
+      const relatedBaseId = (column.value?.colOptions as any)?.fk_related_base_id || meta.value?.base_id
+      const fkColumn = getMetaByKey(relatedBaseId, column.value?.colOptions?.fk_related_model_id as string)?.columns?.find(
         (c) => c.id === column.value?.colOptions?.fk_child_column_id,
       )
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`

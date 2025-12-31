@@ -363,3 +363,8 @@ export enum DependencyTableType {
   Widget = 'widget',
   Workflow = 'workflow',
 }
+
+export enum BaseVersion {
+  V2 = 2,
+  V3 = 3,
+}

@@ -78,13 +78,22 @@ const onDelete = async () => {
   isLoading.value = true
 
   try {
-    await $api.dbTableColumn.delete(column.value.id as string)
+    await $api.internal.postOperation(
+      meta!.value!.fk_workspace_id!,
+      meta!.value!.base_id!,
+      {
+        operation: 'columnDelete',
+        columnId: column.value.id as string,
+      },
+      {},
+    )
 
-    await getMeta(meta?.value?.id as string, true)
+    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
     /** force-reload related table meta if deleted column is a LTAR and not linked to same table */
     if (isLinksOrLTAR(column.value) && column.value?.colOptions) {
-      await getMeta((column.value.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
+      const relatedBaseId = (column.value.colOptions as LinkToAnotherRecordType).fk_related_base_id || meta?.value?.base_id
+      await getMeta(relatedBaseId as string, (column.value.colOptions as LinkToAnotherRecordType).fk_related_model_id!, true)
 
       // reload tables if deleted column is mm and include m2m is true
       if (includeM2M.value && (column.value.colOptions as LinkToAnotherRecordType).type === RelationTypes.MANY_TO_MANY) {
@@ -96,6 +105,7 @@ const onDelete = async () => {
 
     viewsStore.updateViewCoverImageColumnId({
       metaId: meta.value?.id as string,
+      baseId: meta.value?.base_id,
       columnIds: new Set([column.value.id as string]),
     })
     eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)

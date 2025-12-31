@@ -28,7 +28,7 @@ watch(selectedModelId, async () => {
   if (!selectedModelId.value) {
     return
   }
-  meta.value = await getMeta(selectedModelId.value)
+  meta.value = await getMeta(meta.value?.base_id || selectedWidget.value?.base_id, selectedModelId.value)
 })
 
 provide(MetaInj, meta)
@@ -97,7 +97,7 @@ watch(
 )
 
 onMounted(async () => {
-  meta.value = await getMeta(selectedModelId.value)
+  meta.value = await getMeta(meta.value?.base_id || selectedWidget.value?.base_id, selectedModelId.value)
   filters.value = selectedWidget.value?.filters || []
 })
 </script>

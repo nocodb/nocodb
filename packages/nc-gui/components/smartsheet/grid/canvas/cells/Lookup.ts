@@ -1,6 +1,6 @@
-import { RelationTypes, UITypes, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { RelationTypes, UITypes, getMetaWithCompositeKey, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, LookupType, TableType } from 'nocodb-sdk'
-import { getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
+import { getRelatedBaseId, getSingleMultiselectColOptions, getUserColOptions, renderAsCellLookupOrLtarValue } from '../utils/cell'
 import { renderSingleLineText } from '../utils/canvas'
 import { PlainCellRenderer } from './Plain'
 
@@ -17,6 +17,7 @@ export const LookupCellRenderer: CellRenderer = {
       value,
       renderCell,
       metas,
+      meta,
       height,
       width: _width,
       padding = 10,
@@ -33,19 +34,27 @@ export const LookupCellRenderer: CellRenderer = {
 
     const colOptions = column.colOptions as LookupType
 
-    const relatedColObj = metas?.[column.fk_model_id!]?.columns?.find(
-      (c) => c.id === column?.colOptions?.fk_relation_column_id,
+    const relatedColObj = getMetaWithCompositeKey(metas, meta?.base_id, column.fk_model_id)?.columns?.find(
+      (c: any) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
     ) as ColumnType
 
     if (!relatedColObj) return
 
-    const relatedTableMeta = metas?.[relatedColObj.colOptions?.fk_related_model_id]
+    const relatedColOptions = relatedColObj.colOptions as LinkToAnotherRecordType
+    if (!relatedColOptions) return
+
+    // Get the correct base ID for the related table (handles cross-base links)
+    const relatedBaseId = getRelatedBaseId(relatedColObj, meta?.base_id || '')
+    const relatedTableMeta = getMetaWithCompositeKey(metas, relatedBaseId, relatedColOptions.fk_related_model_id)
 
     // Load related table meta if not present
     if (!relatedTableMeta) {
-      if (tableMetaLoader.isLoading(relatedColObj.colOptions?.fk_related_model_id)) return
+      const relatedModelId = relatedColOptions.fk_related_model_id
+      if (!relatedModelId) return
 
-      tableMetaLoader.getTableMeta(relatedColObj.colOptions?.fk_related_model_id)
+      if (tableMetaLoader.isLoading(relatedModelId, relatedBaseId)) return
+
+      tableMetaLoader.getTableMeta(relatedModelId, relatedBaseId)
 
       return
     }
@@ -67,11 +76,14 @@ export const LookupCellRenderer: CellRenderer = {
     }
 
     const getArrValue = () => {
+      const relatedColType = (relatedColObj.colOptions as LinkToAnotherRecordType)?.type
+
       if (
         lookupColumn.uidt === UITypes.Checkbox &&
-        [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColObj?.colOptions?.type)
+        relatedColType &&
+        [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColType as RelationTypes)
       ) {
-        const hasLink = !!(row && row[relatedColObj?.title])
+        const hasLink = !!(row && relatedColObj?.title && row[relatedColObj.title])
 
         if (!value && !hasLink) return []
 
@@ -81,7 +93,7 @@ export const LookupCellRenderer: CellRenderer = {
       if (ncIsNullOrUndefined(value)) return []
 
       if (lookupColumn.uidt === UITypes.Attachment) {
-        if ([RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColObj?.colOptions?.type)) {
+        if (relatedColType && [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(relatedColType as RelationTypes)) {
           return ncIsArray(value) ? value : [value]
         }
 
@@ -130,13 +142,15 @@ export const LookupCellRenderer: CellRenderer = {
     const lkRelatedModelId = (lookupColumn.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
 
     if (isLinksOrLTAR(lookupColumn) && lkRelatedModelId) {
-      lkRelatedTableMeta = metas?.[lkRelatedModelId]
+      // Get the correct base ID for the lookup column's related table (handles cross-base links)
+      const lkRelatedBaseId = (lookupColumn.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || relatedBaseId
+      lkRelatedTableMeta = getMetaWithCompositeKey(metas, lkRelatedBaseId, lkRelatedModelId)
 
       // Load related table meta if not present
       if (!lkRelatedTableMeta) {
-        if (tableMetaLoader.isLoading(lkRelatedModelId)) return
+        if (tableMetaLoader.isLoading(lkRelatedModelId, lkRelatedBaseId)) return
 
-        tableMetaLoader.getTableMeta(lkRelatedModelId)
+        tableMetaLoader.getTableMeta(lkRelatedModelId, lkRelatedBaseId)
 
         return
       }

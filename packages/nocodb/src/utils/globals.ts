@@ -352,6 +352,8 @@ export enum RootScopes {
   BASE = 'base',
   // This scope only used for extract-ids middleware to get initial entity
   BYPASS = 'bypass',
+  // BYPASS only meant for v2 bases now, we will use FULL_BYPASS for other full bypass scenarios like shared base/view (get with uuid)
+  FULL_BYPASS = 'full_bypass',
 }
 
 export const RootScopeTables = {
@@ -407,11 +409,6 @@ export enum FilterCacheScope {
   LINK_COL = 'linkCol',
   WIDGET = 'widget',
   PARENT = 'parent',
-}
-
-export enum BaseVersion {
-  V2 = 2,
-  V3 = 3,
 }
 
 export const NC_STORE_DEFAULT_WORKSPACE_ID_KEY = 'NC_DEFAULT_WORKSPACE_ID';

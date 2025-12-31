@@ -3,6 +3,7 @@ import { CommonAggregations, UITypes, getAvailableAggregations } from 'nocodb-sd
 import type { ColumnType } from 'nocodb-sdk'
 
 interface Props {
+  baseId?: string
   tableId?: string
   columnId?: string
   value?: string
@@ -52,7 +53,7 @@ const loadAggregationList = async () => {
   try {
     isLoading.value = true
 
-    const tableMeta = await getMeta(props.tableId, undefined, undefined, undefined, true)
+    const tableMeta = await getMeta(props.baseId, props.tableId, undefined, true, true)
     if (!tableMeta) {
       aggregationList.value = []
       return

@@ -65,8 +65,14 @@ export default async function genRollupSelectv2(param: {
 
   const rollupColumn = columnOptions.getRollupColumn
     ? await columnOptions.getRollupColumn(refContext)
-    : await Column.get(context, { colId: columnOptions.fk_rollup_column_id });
+    : await Column.get(refContext, {
+        colId: columnOptions.fk_rollup_column_id,
+      });
   profiler.log('get relation (parent/child) columns');
+
+  if (!rollupColumn) {
+    NcError.get(context).fieldNotFound(columnOptions.fk_rollup_column_id);
+  }
 
   const childCol = await relationColumnOption.getChildColumn(childContext);
   const childModel = await childCol?.getModel(childContext);

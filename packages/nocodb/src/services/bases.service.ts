@@ -4,6 +4,7 @@ import * as DOMPurify from 'isomorphic-dompurify';
 import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
+  BaseVersion,
   EventType,
   extractRolesObj,
   IntegrationsType,
@@ -113,6 +114,7 @@ export class BasesService {
       'order',
       'description',
       'default_role',
+      'version',
     ]);
     await this.validateProjectTitle(context, data, base);
 
@@ -213,7 +215,7 @@ export class BasesService {
 
   async baseCreate(
     param: {
-      base: ProjectReqType;
+      base: ProjectReqType & { version?: BaseVersion };
       user: any;
       req: any;
       apiVersion?: NcApiVersion;
@@ -342,6 +344,8 @@ export class BasesService {
 
     baseBody.title = DOMPurify.sanitize(baseBody.title);
     baseBody.slug = baseBody.title;
+    // TODO: set default version to V3 after beta of v3 is over
+    baseBody.version = param.base.version || BaseVersion.V2;
 
     const base = await Base.createProject(baseBody, ncMeta);
 

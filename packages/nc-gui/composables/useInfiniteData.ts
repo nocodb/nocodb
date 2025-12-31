@@ -105,7 +105,7 @@ export function useInfiniteData(args: {
 
   const { getBaseType } = baseStore
 
-  const { getMeta, metas } = useMetas()
+  const { getMeta, metas, getMetaByKey } = useMetas()
 
   const { user } = useGlobal()
 
@@ -332,9 +332,10 @@ export function useInfiniteData(args: {
     if (allIds.length === 0) return
 
     try {
-      const aggCommentCount = await $api.utils.commentCount({
-        ids: allIds,
+      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentCount',
         fk_model_id: meta.value!.id as string,
+        ids: allIds,
       })
 
       aggCommentCount?.forEach((commentData: Record<string, any>) => {
@@ -402,7 +403,17 @@ export function useInfiniteData(args: {
       }
 
       const bulkResponse = !isPublic?.value
-        ? await $api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id!, { viewId: viewMeta.value?.id }, bulkRequests, {})
+        ? await $api.internal.postOperation(
+            (meta.value as any).fk_workspace_id!,
+            meta.value.base_id!,
+            {
+              operation: 'bulkDataList',
+              tableId: meta.value.id!,
+              viewId: viewMeta.value?.id,
+              baseId: meta.value.base_id!,
+            },
+            bulkRequests,
+          )
         : await fetchBulkListData({}, bulkRequests)
 
       const allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }> = []
@@ -570,9 +581,10 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     try {
-      const aggCommentCount = await $api.utils.commentCount({
-        ids,
+      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentCount',
         fk_model_id: meta.value!.id as string,
+        ids,
       })
 
       formattedData.forEach((row) => {
@@ -1226,7 +1238,8 @@ export function useInfiniteData(args: {
 
       const colOptions = column.colOptions as LinkToAnotherRecordType
 
-      const relatedTableMeta = metas.value?.[colOptions?.fk_related_model_id as string]
+      const relatedBaseId = (colOptions as any)?.fk_related_base_id || metaValue?.base_id
+      const relatedTableMeta = getMetaByKey(relatedBaseId, colOptions?.fk_related_model_id as string)
 
       if (isHm(column) || isMm(column)) {
         const relatedRows = (row[column.title!] ?? []) as Record<string, any>[]
@@ -1765,6 +1778,7 @@ export function useInfiniteData(args: {
       meta.value?.columns as ColumnType[],
       getBaseType(viewMeta.value?.view?.source_id),
       metas.value,
+      meta.value?.base_id,
       {
         currentUser: user.value,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -1784,6 +1798,7 @@ export function useInfiniteData(args: {
         meta.value?.columns as ColumnType[],
         getBaseType(viewMeta.value?.view?.source_id),
         metas.value,
+        meta.value?.base_id,
         {
           currentUser: user.value,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -2085,6 +2100,7 @@ export function useInfiniteData(args: {
           meta.value?.columns as ColumnType[],
           getBaseType(viewMeta.value?.view?.source_id),
           metas.value,
+          meta.value?.base_id,
           {
             currentUser: user.value,
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -2159,6 +2175,7 @@ export function useInfiniteData(args: {
               meta.value?.columns as ColumnType[],
               getBaseType(viewMeta.value?.view?.source_id),
               metas.value,
+              meta.value?.base_id,
               {
                 currentUser: user.value,
                 timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,

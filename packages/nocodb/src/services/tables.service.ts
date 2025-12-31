@@ -75,7 +75,7 @@ export class TablesService {
 
     const base = await Base.getWithInfo(
       context,
-      param.table.base_id || param.baseId,
+      param.table.base_id || model.base_id,
     );
     const source = base.sources.find((b) => b.id === model.source_id);
 

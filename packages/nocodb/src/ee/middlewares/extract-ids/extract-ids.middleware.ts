@@ -119,6 +119,387 @@ const getApiVersionFromUrl = (url: string) => {
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   async use(req, res, next): Promise<any> {
+    const { params, query } = req;
+
+    req.ncApiVersion = getApiVersionFromUrl(req.route.path);
+    req.ncSocketId = req.headers['xc-socket-id'];
+
+    const bypassContext = {
+      workspace_id: RootScopes.BYPASS,
+      base_id: RootScopes.BYPASS,
+      api_version: req.ncApiVersion,
+      socket_id: req.ncSocketId,
+    };
+
+    // this is a special route for ws operations we pass 'nc' as base id
+    const isInternalApi = !!req.path?.startsWith('/api/v2/internal');
+    const isInternalWorkspaceScope = isInternalApi && params.baseId === 'nc';
+
+    const baseId = params.baseId || params.baseName;
+
+    if (!isInternalWorkspaceScope && baseId) {
+      const base = await Base.get(bypassContext, baseId);
+      if (!base) {
+        NcError.get(bypassContext).baseNotFound(baseId);
+      }
+
+      const context = {
+        workspace_id: base.fk_workspace_id,
+        base_id: base.id,
+        api_version: req.ncApiVersion,
+        socket_id: req.ncSocketId,
+      };
+
+      req.ncBaseId = base.id;
+      req.ncWorkspaceId = base.fk_workspace_id;
+
+      const workspace = await Workspace.get(req.ncWorkspaceId);
+      if (!workspace) {
+        NcError.workspaceNotFound(req.ncWorkspaceId);
+      }
+
+      req.ncOrgId = workspace.fk_org_id;
+
+      req.context = {
+        org_id: req.ncOrgId,
+        workspace_id: req.ncWorkspaceId,
+        base_id: req.ncBaseId,
+        api_version: req.ncApiVersion,
+        socket_id: req.ncSocketId,
+        nc_site_url: req.ncSiteUrl,
+      };
+
+      const mcpTokenId = params.mcpTokenId || query.mcpTokenId;
+      const integrationId = params.integrationId || query.integrationId;
+      const tableId =
+        params.tableId || params.modelId || params.tableName || query.tableId;
+      const viewId = params.viewId || params.viewName || query.viewId;
+      const formViewId = params.formViewId || query.formViewId;
+      const gridViewId = params.gridViewId || query.gridViewId;
+      const kanbanViewId = params.kanbanViewId || query.kanbanViewId;
+      const galleryViewId = params.galleryViewId || query.galleryViewId;
+      const calendarViewId = params.calendarViewId || query.calendarViewId;
+      const publicDataUuid = params.publicDataUuid || query.publicDataUuid;
+      const sharedViewUuid = params.sharedViewUuid || query.sharedViewUuid;
+      const sharedBaseUuid = params.sharedBaseUuid || query.sharedBaseUuid;
+      const sharedDashboardUuid =
+        params.sharedDashboardUuid || query.sharedDashboardUuid;
+      const hookId = params.hookId || query.hookId;
+      const rowColorConditionId =
+        params.rowColorConditionId || query.rowColorConditionId;
+      const gridViewColumnId =
+        params.gridViewColumnId || query.gridViewColumnId;
+      const formViewColumnId =
+        params.formViewColumnId || query.formViewColumnId;
+      const galleryViewColumnId =
+        params.galleryViewColumnId || query.galleryViewColumnId;
+      const columnId = params.columnId || query.columnId;
+      const filterId = params.filterId || query.filterId;
+      const filterParentId = params.filterParentId || query.filterParentId;
+      const widgetId = params.widgetId || query.widgetId;
+      const sortId = params.sortId || query.sortId;
+      const syncId = params.syncId || query.syncId;
+      const extensionId = params.extensionId || query.extensionId;
+
+      if (mcpTokenId) {
+        const mcpToken = await MCPToken.get(
+          {
+            workspace_id: RootScopes.FULL_BYPASS,
+            base_id: RootScopes.FULL_BYPASS,
+          },
+          mcpTokenId,
+        );
+        if (!mcpToken) {
+          NcError.get(context).genericNotFound('MCPToken', mcpTokenId);
+        }
+        req.ncBaseId = mcpToken.base_id;
+        req.ncWorkspaceId = mcpToken.fk_workspace_id;
+      } else if (integrationId) {
+        const integration = await Integration.get(context, integrationId);
+        if (!integration) {
+          NcError.get(context).integrationNotFound(integrationId);
+        }
+      } else if (tableId) {
+        const model = await Model.get(context, tableId);
+
+        if (!model) {
+          NcError.get(context).tableNotFound(tableId);
+        }
+
+        req.ncSourceId = model.source_id;
+      } else if (viewId) {
+        const view =
+          (await View.get(context, viewId)) ||
+          (await Model.get(context, viewId));
+
+        if (!view) {
+          NcError.get(context).viewNotFound(viewId);
+        }
+
+        req.ncSourceId = view.source_id;
+      } else if (
+        formViewId ||
+        gridViewId ||
+        kanbanViewId ||
+        galleryViewId ||
+        calendarViewId
+      ) {
+        const view = await View.get(
+          context,
+          formViewId ||
+            gridViewId ||
+            kanbanViewId ||
+            galleryViewId ||
+            calendarViewId,
+        );
+
+        if (!view) {
+          NcError.get(context).viewNotFound(
+            formViewId ||
+              gridViewId ||
+              kanbanViewId ||
+              galleryViewId ||
+              calendarViewId,
+          );
+        }
+
+        req.ncSourceId = view.source_id;
+      } else if (publicDataUuid) {
+        const view = await View.getByUUID(context, publicDataUuid);
+
+        if (!view) {
+          NcError.get(context).viewNotFound(publicDataUuid);
+        }
+
+        req.ncSourceId = view?.source_id;
+      } else if (sharedViewUuid) {
+        const view = await View.getByUUID(context, sharedViewUuid);
+
+        if (!view) {
+          NcError.get(context).viewNotFound(sharedViewUuid);
+        }
+
+        req.ncSourceId = view.source_id;
+      } else if (sharedBaseUuid) {
+        const base = await Base.getByUuid(context, sharedBaseUuid);
+
+        if (!base) {
+          NcError.get(context).baseNotFound(sharedBaseUuid);
+        }
+      } else if (sharedDashboardUuid) {
+        const dashboard = await Dashboard.getByUUID(
+          context,
+          sharedDashboardUuid,
+        );
+
+        if (!dashboard) {
+          NcError.dashboardNotFound(sharedDashboardUuid);
+        }
+      } else if (hookId) {
+        const hook = await Hook.get(context, hookId);
+
+        if (!hook) {
+          NcError.get(context).genericNotFound('Webhook', hookId);
+        }
+
+        req.ncSourceId = hook.source_id;
+      } else if (rowColorConditionId) {
+        const rowColorCondition = await RowColorCondition.getById(
+          context,
+          rowColorConditionId,
+        );
+
+        if (!rowColorCondition) {
+          NcError.get(context).genericNotFound(
+            'Row color condition',
+            params.rowColorConditionId,
+          );
+        }
+
+        const view = await View.get(context, rowColorCondition.fk_view_id);
+
+        if (!view) {
+          NcError.get(context).viewNotFound(rowColorCondition.fk_view_id);
+        }
+
+        req.ncSourceId = view.source_id;
+      } else if (gridViewColumnId) {
+        const gridViewColumn = await GridViewColumn.get(
+          context,
+          gridViewColumnId,
+        );
+
+        if (!gridViewColumn) {
+          NcError.get(context).fieldNotFound(gridViewColumnId);
+        }
+
+        req.ncSourceId = gridViewColumn?.source_id;
+      } else if (formViewColumnId) {
+        const formViewColumn = await FormViewColumn.get(
+          context,
+          formViewColumnId,
+        );
+
+        if (!formViewColumn) {
+          NcError.get(context).fieldNotFound(formViewColumnId);
+        }
+
+        req.ncSourceId = formViewColumn.source_id;
+      } else if (galleryViewColumnId) {
+        const galleryViewColumn = await GalleryViewColumn.get(
+          context,
+          galleryViewColumnId,
+        );
+
+        if (!galleryViewColumn) {
+          NcError.get(context).fieldNotFound(galleryViewColumnId);
+        }
+
+        req.ncSourceId = galleryViewColumn.source_id;
+      } else if (columnId) {
+        const column = await Column.get(context, { colId: columnId });
+
+        if (!column) {
+          NcError.get(context).fieldNotFound(columnId);
+        }
+
+        req.ncSourceId = column.source_id;
+      } else if (filterId) {
+        const filter = await Filter.get(context, filterId);
+
+        if (!filter) {
+          NcError.genericNotFound('Filter', filterId);
+        }
+
+        req.ncSourceId = filter.source_id;
+      } else if (filterParentId) {
+        const filter = await Filter.get(context, filterParentId);
+
+        if (!filter) {
+          NcError.genericNotFound('Filter', filterParentId);
+        }
+
+        req.ncSourceId = filter.source_id;
+      } else if (widgetId) {
+        const widget = await Widget.get(context, widgetId);
+
+        if (!widget) {
+          NcError.genericNotFound('Widget', widgetId);
+        }
+      } else if (sortId) {
+        const sort = await Sort.get(context, sortId);
+
+        if (!sort) {
+          NcError.genericNotFound('Sort', sortId);
+        }
+
+        req.ncSourceId = sort.source_id;
+      } else if (syncId) {
+        const syncSource = await SyncSource.get(context, syncId);
+
+        if (!syncSource) {
+          NcError.genericNotFound('Sync Source', syncId);
+        }
+
+        req.ncSourceId = syncSource.source_id;
+      } else if (extensionId) {
+        const extension = await Extension.get(context, extensionId);
+
+        if (!extension) {
+          NcError.genericNotFound('Extension', extensionId);
+        }
+      }
+      /*
+      TODO: migrate after comments api
+      // extract fk_model_id from query params only if it's audit post or comments post, get, patch, delete endpoint
+      else if (
+        ['/api/v1/db/meta/comments', '/api/v2/meta/comments'].some(
+          (auditInsertOrUpdatePath) =>
+            req.route.path === auditInsertOrUpdatePath,
+        ) &&
+        req.method === 'POST' &&
+        req.body?.fk_model_id
+      ) {
+        const model = await Model.getByIdOrName(context, {
+          id: req.body.fk_model_id,
+        });
+
+        if (!model) {
+          NcError.get(context).tableNotFound(req.body.fk_model_id);
+        }
+
+        req.ncBaseId = model.base_id;
+        req.ncSourceId = model.source_id;
+      } else if (
+        [
+          '/api/v2/meta/comments/count',
+          '/api/v1/db/meta/comments/count',
+          '/api/v2/meta/comments',
+          '/api/v1/db/meta/comments',
+        ].some((auditReadPath) => req.route.path === auditReadPath) &&
+        req.method === 'GET' &&
+        req.query.fk_model_id
+      ) {
+        const model = await Model.getByIdOrName(context, {
+          id: req.query?.fk_model_id,
+        });
+
+        if (!model) {
+          NcError.get(context).tableNotFound(req.query?.fk_model_id);
+        }
+
+        req.ncBaseId = model.base_id;
+        req.ncSourceId = model.source_id;
+      } else if (
+        [
+          '/api/v1/db/meta/comment/:commentId',
+          '/api/v2/meta/comment/:commentId',
+          '/api/v1/db/meta/comment/:commentId/resolve',
+          '/api/v2/meta/comment/:commentId/resolve',
+        ].some((auditPatchPath) => req.route.path === auditPatchPath) &&
+        (req.method === 'PATCH' ||
+          req.method === 'DELETE' ||
+          req.method === 'POST') &&
+        req.params.commentId
+      ) {
+        const audit = await Comment.get(context, params.commentId);
+
+        if (!audit) {
+          NcError.genericNotFound('Comment', params.commentId);
+        }
+
+        req.ncBaseId = audit.base_id;
+        req.ncSourceId = audit.source_id;
+      }
+      */
+    } else {
+      await this.legacyExtractIds(req);
+    }
+
+    await this.additionalValidation({ req, res, next });
+
+    next();
+  }
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    await this.use(
+      context.switchToHttp().getRequest(),
+      context.switchToHttp().getResponse(),
+      () => {},
+    );
+    return true;
+  }
+
+  // additional validation logic which can be overridden
+  protected async additionalValidation(_param: {
+    next: any;
+    res: any;
+    req: any;
+  }) {
+    // do nothing
+  }
+
+  protected async legacyExtractIds(req) {
     const { params } = req;
     let view;
     let tableIdToCheck: string | null = null; // Store table ID for permission check at the end
@@ -171,7 +552,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
 
     if (params.mcpTokenId) {
-      const mcpToken = await MCPToken.get(context, params.mcpTokenId);
+      const mcpToken = await MCPToken.get(
+        {
+          workspace_id: RootScopes.FULL_BYPASS,
+          base_id: RootScopes.FULL_BYPASS,
+        },
+        params.mcpTokenId,
+      );
       if (!mcpToken) {
         NcError.get(context).genericNotFound('MCPToken', params.mcpTokenId);
       }
@@ -713,28 +1100,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     if (tableIdToCheck) {
       req.context.ncTableId = tableIdToCheck;
     }
-
-    await this.additionalValidation({ req, res, next });
-
-    next();
-  }
-
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    await this.use(
-      context.switchToHttp().getRequest(),
-      context.switchToHttp().getResponse(),
-      () => {},
-    );
-    return true;
-  }
-
-  // additional validation logic which can be overridden
-  protected async additionalValidation(_param: {
-    next: any;
-    res: any;
-    req: any;
-  }) {
-    // do nothing
   }
 }
 

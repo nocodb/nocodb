@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Inject,
   Param,
   Post,
@@ -36,6 +37,19 @@ import { PermissionsService } from '~/services/permissions.service';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { ActionsService } from '~/services/actions.service';
 import { MailService } from '~/services/mail/mail.service';
+import { TablesService } from '~/services/tables.service';
+import { ViewsService } from '~/services/views.service';
+import { ViewColumnsService } from '~/services/view-columns.service';
+import { ViewRowColorService } from '~/services/view-row-color.service';
+import { FiltersService } from '~/services/filters.service';
+import { SortsService } from '~/services/sorts.service';
+import { HooksService } from '~/services/hooks.service';
+import { GridsService } from '~/services/grids.service';
+import { FormsService } from '~/services/forms.service';
+import { GalleriesService } from '~/services/galleries.service';
+import { KanbansService } from '~/services/kanbans.service';
+import { MapsService } from '~/services/maps.service';
+import { CalendarsService } from '~/services/calendars.service';
 import { ViewSettingsOverrideService } from '~/services/view-settings-override.service';
 import { OauthClientService } from '~/modules/oauth/services/oauth-client.service';
 import { OauthTokenService } from '~/modules/oauth/services/oauth-token.service';
@@ -55,6 +69,20 @@ export class InternalController extends InternalControllerCE {
     protected readonly internalApiModules: InternalApiModule<any>[],
     protected readonly mcpService: McpTokenService,
     protected readonly auditsService: AuditsService,
+    protected readonly tablesService: TablesService,
+    protected readonly viewsService: ViewsService,
+    protected readonly viewColumnsService: ViewColumnsService,
+    protected readonly viewRowColorService: ViewRowColorService,
+    protected readonly filtersService: FiltersService,
+    protected readonly sortsService: SortsService,
+    protected readonly hooksService: HooksService,
+    protected readonly gridsService: GridsService,
+    protected readonly formsService: FormsService,
+    protected readonly galleriesService: GalleriesService,
+    protected readonly kanbansService: KanbansService,
+    protected readonly mapsService: MapsService,
+    protected readonly calendarsService: CalendarsService,
+
     private readonly dataReflectionService: DataReflectionService,
     private readonly remoteImportService: RemoteImportService,
     private readonly syncService: SyncModuleService,
@@ -220,6 +248,7 @@ export class InternalController extends InternalControllerCE {
   }
 
   @Post(['/api/v2/internal/:workspaceId/:baseId'])
+  @HttpCode(200)
   protected async internalAPIPost(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,

@@ -20,7 +20,7 @@ export const useRealtime = createSharedComposable(() => {
   const basesStore = useBases()
   const { bases, basesUser } = storeToRefs(basesStore)
 
-  const { setMeta, getMeta } = useMetas()
+  const { setMeta, getMeta, clearAllMeta } = useMetas()
   const { tables: _tables, baseId: activeBaseId, base } = storeToRefs(useBase())
 
   const tableStore = useTablesStore()
@@ -34,10 +34,14 @@ export const useRealtime = createSharedComposable(() => {
   const dashboardStore = useDashboardStore()
   const { dashboards, activeDashboardId } = storeToRefs(dashboardStore)
 
-  const { scripts, activeScriptId } = storeToRefs(useScriptStore())
-  const { widgets, selectedWidget } = storeToRefs(useWidgetStore())
+  const scriptStore = useScriptStore()
+  const { scripts, activeScriptId } = storeToRefs(scriptStore)
 
-  const { workflows, activeWorkflowId } = storeToRefs(useWorkflowStore())
+  const widgetStore = useWidgetStore()
+  const { widgets, selectedWidget } = storeToRefs(widgetStore)
+
+  const workflowStore = useWorkflowStore()
+  const { workflows, activeWorkflowId } = storeToRefs(workflowStore)
 
   const { baseExtensions, Extension } = useExtensions()
 
@@ -95,13 +99,44 @@ export const useRealtime = createSharedComposable(() => {
           const tables = baseTables.value.get(activeBaseId.value)
           for (const table of tables || []) {
             if (table.id && table.source_id === payload.source_id) {
-              getMeta(table.id, true)
+              getMeta(baseId, table.id, true)
               break
             }
           }
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
         })
+      }
+    } else if (event.action === 'base_full_reload') {
+      const { payload } = event
+      const baseId = payload.base_id
+      if (baseId && activeBaseId.value === baseId) {
+        // Clear all cached metadata first to ensure fresh data
+        clearAllMeta()
+
+        // Reload everything in the base
+        loadProjectTables(baseId, true).then(() => {
+          // Reload all table metadata
+          const tables = baseTables.value.get(baseId)
+          for (const table of tables || []) {
+            if (table.id) {
+              getMeta(baseId, table.id, true)
+            }
+          }
+          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
+          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+        })
+
+        // Reload scripts
+        scriptStore.loadScripts({ baseId, force: true })
+
+        // Reload workflows
+        workflowStore.loadWorkflows({ baseId, force: true })
+
+        // Reload dashboards
+        dashboardStore.loadDashboards({ baseId, force: true })
+
+        refreshCommandPalette()
       }
     } else if (event.action === 'table_create') {
       const tables = baseTables.value.get(activeBaseId.value)
@@ -170,7 +205,10 @@ export const useRealtime = createSharedComposable(() => {
         if (!skipDataReload) $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
       }
     } else if (event.action === 'view_create') {
-      const views = viewsByTable.value.get(event.payload.fk_model_id) || []
+      if (!event.payload.base_id || !event.payload.fk_model_id) return
+
+      const key = `${event.payload.base_id}:${event.payload.fk_model_id}`
+      const views = viewsByTable.value.get(key) || []
 
       // Check if there was a first collaborative grid view before
       const oldFirstCollabGridView = getFirstNonPersonalView(views, {
@@ -186,12 +224,15 @@ export const useRealtime = createSharedComposable(() => {
 
       // If the first collaborative grid view changed, trigger getMeta
       if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id) {
-        getMeta(event.payload.fk_model_id, true)
+        getMeta(event.payload.base_id, event.payload.fk_model_id, true)
       }
 
       refreshCommandPalette()
     } else if (event.action === 'view_update') {
-      const tableViews = viewsByTable.value.get(event.payload.fk_model_id)
+      if (!event.payload.base_id || !event.payload.fk_model_id) return
+
+      const key = `${event.payload.base_id}:${event.payload.fk_model_id}`
+      const tableViews = viewsByTable.value.get(key)
       const view = tableViews?.find((v) => v.id === event.payload.id)
       if (view) {
         const needReload = !view?.show_system_fields && event.payload?.show_system_fields
@@ -211,8 +252,8 @@ export const useRealtime = createSharedComposable(() => {
 
         // If the first collaborative grid view changed (e.g., view changed from personal to collaborative)
         // trigger getMeta to refresh table metadata
-        if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id) {
-          getMeta(event.payload.fk_model_id, true)
+        if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id && event.payload.base_id) {
+          getMeta(event.payload.base_id, event.payload.fk_model_id, true)
         }
 
         if (needReload) $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
@@ -221,7 +262,10 @@ export const useRealtime = createSharedComposable(() => {
       }
       refreshCommandPalette()
     } else if (event.action === 'view_delete') {
-      const views = viewsByTable.value.get(event.payload.fk_model_id)
+      if (!event.payload.base_id || !event.payload.fk_model_id) return
+
+      const key = `${event.payload.base_id}:${event.payload.fk_model_id}`
+      const views = viewsByTable.value.get(key)
       if (views) {
         // Check if there was a first collaborative grid view before delete
         const oldFirstCollabGridView = getFirstNonPersonalView(views, {
@@ -250,8 +294,8 @@ export const useRealtime = createSharedComposable(() => {
         })
 
         // If the first collaborative grid view changed after deletion, trigger getMeta
-        if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id) {
-          getMeta(event.payload.fk_model_id, true)
+        if (newFirstCollabGridView?.id !== oldFirstCollabGridView?.id && event.payload.fk_model_id && event.payload.base_id) {
+          getMeta(event.payload.base_id, event.payload.fk_model_id, true)
         }
       }
       refreshCommandPalette()

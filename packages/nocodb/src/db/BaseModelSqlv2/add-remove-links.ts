@@ -66,7 +66,10 @@ export const extractCorrespondingLinkColumn = async (
   for (const column of columnsInReferencedTable) {
     if (!isLinksOrLTAR(column)) continue;
 
-    const refColOptions = await column.getColOptions(refContext);
+    const passContext =
+      column.base_id === refContext.base_id ? refContext : context;
+
+    const refColOptions = await column.getColOptions(passContext);
 
     // Check if this column links back to the source table
     if (refColOptions.fk_related_model_id !== sourceTableId) continue;

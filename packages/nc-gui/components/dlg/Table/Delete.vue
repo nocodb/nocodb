@@ -52,13 +52,18 @@ const onDelete = async () => {
 
   isLoading.value = true
   try {
-    const meta = (await getMeta(toBeDeletedTable.id as string, true)) as TableType
+    const meta = (await getMeta(toBeDeletedTable.base_id as string, toBeDeletedTable.id as string, true)) as TableType
     const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
     if (relationColumns?.length && !isXcdbBase(toBeDeletedTable.source_id)) {
       const refColMsgs = await Promise.all(
         relationColumns.map(async (c, i) => {
-          const refMeta = (await getMeta((c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string)) as TableType
+          // Use fk_related_base_id for cross-base relationships
+          const relatedBaseId = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || toBeDeletedTable.base_id
+          const refMeta = (await getMeta(
+            relatedBaseId as string,
+            (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
+          )) as TableType
           return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
         }),
       )
@@ -72,14 +77,22 @@ const onDelete = async () => {
       return
     }
 
-    await $api.dbTable.delete(toBeDeletedTable.id as string)
+    await $api.internal.postOperation(
+      toBeDeletedTable.fk_workspace_id!,
+      toBeDeletedTable.base_id!,
+      {
+        operation: 'tableDelete',
+        tableId: toBeDeletedTable.id as string,
+      },
+      {},
+    )
 
     await loadTables()
 
     // Remove from recent views
     removeFromRecentViews({ baseId: props.baseId, tableId: toBeDeletedTable.id as string })
 
-    removeMeta(toBeDeletedTable.id as string, true)
+    removeMeta(toBeDeletedTable.base_id as string, toBeDeletedTable.id as string, true)
     refreshCommandPalette()
     // Deleted table successfully
     $e('a:table:delete')
@@ -98,10 +111,10 @@ const onDelete = async () => {
       }
     } else if (activeTable.value?.id) {
       // get cached meta for active table
-      const activeTableMeta = await getMeta(activeTable.value?.id as string)
+      const activeTableMeta = await getMeta(activeTable.value?.base_id as string, activeTable.value?.id as string)
       // if active table has any link to another record column, then force refetch the meta
       if (activeTableMeta && activeTableMeta.columns?.find((c) => isLinksOrLTAR(c))) {
-        await getMeta(activeTable.value?.id as string, true)
+        await getMeta(activeTable.value?.base_id as string, activeTable.value?.id as string, true)
       }
     }
 

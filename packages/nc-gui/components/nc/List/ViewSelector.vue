@@ -3,6 +3,7 @@ import type { ViewType } from 'nocodb-sdk'
 
 interface Props {
   tableId?: string
+  baseId?: string
   viewId?: string
   value?: string
   forceLayout?: 'vertical' | 'horizontal'
@@ -30,6 +31,7 @@ const { t } = useI18n()
 
 const viewsStore = useViewsStore()
 const { viewsByTable } = storeToRefs(viewsStore)
+const { activeProjectId } = storeToRefs(useBases())
 
 const modelValue = useVModel(props, 'value', emit)
 
@@ -44,8 +46,15 @@ const viewList = computedAsync(async () => {
   if (!props.tableId) return []
 
   try {
+    const effectiveBaseId = props.baseId || activeProjectId.value
+    if (!effectiveBaseId) {
+      console.error('[ViewSelector] baseId is required but was not provided')
+      return []
+    }
+
     await viewsStore.loadViews({
       tableId: props.tableId,
+      baseId: effectiveBaseId,
       ignoreLoading: props.ignoreLoading,
       force: props.forceFetchViews,
     })
@@ -54,7 +63,11 @@ const viewList = computedAsync(async () => {
     return []
   }
 
-  let viewsList: ViewType[] = viewsByTable.value.get(props.tableId) || []
+  // Use composite key (baseId:tableId) to get views
+  const effectiveBaseId = props.baseId || activeProjectId.value
+  const key = `${effectiveBaseId}:${props.tableId}`
+
+  let viewsList: ViewType[] = viewsByTable.value.get(key) || []
 
   if (props.filterView) {
     viewsList = viewsList.filter(props.filterView)

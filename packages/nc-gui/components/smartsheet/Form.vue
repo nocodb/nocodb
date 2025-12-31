@@ -50,7 +50,7 @@ const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
-const { metas, getMeta } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const { isDark } = useTheme()
 
@@ -289,12 +289,13 @@ const getPrefillValue = (c: ColumnType, value: any) => {
     case UITypes.Links: {
       const values = Array.isArray(value) ? value : [value]
       const fk_related_model_id = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+      const relatedBaseId = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || meta.value?.base_id
 
       if (!fk_related_model_id) return
 
       const rowIds = values
         .map((row) => {
-          return extractPkFromRow(row, metas.value[fk_related_model_id].columns || [])
+          return extractPkFromRow(row, getMetaByKey(relatedBaseId, fk_related_model_id)?.columns || [])
         })
         .filter((rowId) => !!rowId)
         .join(',')
@@ -473,7 +474,12 @@ async function onMove(event: any, isVisibleFormFields = false) {
     element.order = ((localColumns.value[newIndex - 1]?.order ?? 0) + (localColumns.value[newIndex + 1].order ?? 0)) / 2
   }
 
-  await $api.dbView.formColumnUpdate(element.id, element)
+  await $api.internal.postOperation(
+    view.value!.fk_workspace_id!,
+    view.value!.base_id!,
+    { operation: 'formColumnUpdate', formColumnId: element.id },
+    element,
+  )
 
   fields.value[fieldIndex] = element as any
 
@@ -501,7 +507,12 @@ async function showOrHideColumn(column: Record<string, any>, show: boolean, isFo
 
   if (fieldIndex !== -1 && fieldIndex !== undefined && fields.value?.[fieldIndex]) {
     column.show = show
-    await $api.dbView.formColumnUpdate(column.id, column)
+    await $api.internal.postOperation(
+      view.value!.fk_workspace_id!,
+      view.value!.base_id!,
+      { operation: 'formColumnUpdate', formColumnId: column.id },
+      column,
+    )
 
     fields.value[fieldIndex] = column as any
 
@@ -767,9 +778,10 @@ async function loadReleatedMetas() {
   await Promise.all(
     (localColumns.value || []).map(async (c: ColumnType) => {
       const fk_related_model_id = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+      const relatedBaseId = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || meta?.value?.base_id
 
       if (isVirtualCol(c) && isLinksOrLTAR(c) && fk_related_model_id) {
-        await getMeta(fk_related_model_id)
+        await getMeta(relatedBaseId as string, fk_related_model_id)
       }
       return c
     }),

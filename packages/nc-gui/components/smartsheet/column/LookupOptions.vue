@@ -34,7 +34,7 @@ const baseStore = useBase()
 
 const { tables } = storeToRefs(baseStore)
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const filterRef = ref()
 
@@ -58,13 +58,16 @@ const refTables = computed(() => {
 
   const _refTables = meta.value.columns
     .filter((column) => canUseForLookupLinkField(column, meta.value?.source_id))
-    .map((column) => ({
-      col: column.colOptions,
-      column,
-      ...(tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id) ||
-        metas.value[(column.colOptions as LinkToAnotherRecordType).fk_related_model_id!] ||
-        {}),
-    }))
+    .map((column) => {
+      const relatedBaseId = (column.colOptions as any)?.fk_related_base_id || meta.value?.base_id
+      return {
+        col: column.colOptions,
+        column,
+        ...(tables.value.find((table) => table.id === (column.colOptions as LinkToAnotherRecordType).fk_related_model_id) ||
+          getMetaByKey(relatedBaseId, (column.colOptions as LinkToAnotherRecordType).fk_related_model_id!) ||
+          {}),
+      }
+    })
     .filter((table) => (table.col as LinkToAnotherRecordType)?.fk_related_model_id === table.id && !table.mm)
   return _refTables as Required<TableType & { column: ColumnType; col: Required<LinkToAnotherRecordType> }>[]
 })
@@ -106,7 +109,7 @@ const columns = computed<ColumnType[]>(() => {
   if (!selectedTable.value?.id) {
     return []
   }
-  return metas.value[selectedTable.value.id]?.columns.filter(
+  return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns.filter(
     (c: ColumnType) =>
       vModel.value.fk_lookup_column_id === c.id ||
       getValidLookupColumn({
@@ -134,7 +137,7 @@ provide(
   computed(() => {
     if (!selectedTable.value) return {}
 
-    return metas.value[selectedTable.value.id] || {}
+    return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id) || {}
   }),
 )
 
@@ -163,7 +166,7 @@ const getNextColumnId = () => {
 
 const onRelationColChange = async () => {
   if (selectedTable.value) {
-    await getMeta(selectedTable.value.id)
+    await getMeta(selectedTable.value.base_id, selectedTable.value.id)
   }
   vModel.value.fk_lookup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()

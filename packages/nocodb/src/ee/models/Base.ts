@@ -1,5 +1,5 @@
 import BaseCE from 'src/models/Base';
-import { ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import { BaseVersion, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
@@ -146,6 +146,7 @@ export default class Base extends BaseCE {
       'order',
       'is_snapshot',
       'default_role',
+      'version',
     ]);
 
     // define base type as database if missing
@@ -236,7 +237,13 @@ export default class Base extends BaseCE {
       'is_snapshot',
       'fk_custom_url_id',
       'default_role',
+      'version',
     ]);
+
+    if (+updateObj.version !== BaseVersion.V3) {
+      // we do not allow downgrade from V3 to previous versions
+      delete updateObj.version;
+    }
 
     // stringify meta
     if (updateObj.meta) {

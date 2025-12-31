@@ -76,10 +76,18 @@ const updateDescription = async (undo = false) => {
 
   loading.value = true
   try {
-    await $api.dbTable.update(tableMeta.id as string, {
-      base_id: tableMeta.base_id,
-      description: formState.description,
-    })
+    await $api.internal.postOperation(
+      tableMeta.fk_workspace_id!,
+      tableMeta.base_id!,
+      {
+        operation: 'tableUpdate',
+        tableId: tableMeta.id as string,
+      },
+      {
+        base_id: tableMeta.base_id,
+        description: formState.description,
+      },
+    )
 
     dialogShow.value = false
 
@@ -108,7 +116,10 @@ const updateDescription = async (undo = false) => {
     await loadTables()
 
     // update metas
-    const newMeta = await $api.dbTable.read(tableMeta.id as string)
+    const newMeta = await $api.internal.getOperation(tableMeta.fk_workspace_id!, tableMeta.base_id!, {
+      operation: 'tableGet',
+      tableId: tableMeta.id as string,
+    })
     await setMeta(newMeta)
 
     $e('a:table:description:update')

@@ -34,7 +34,7 @@ const baseStore = useBase()
 
 const { tables } = storeToRefs(baseStore)
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const { t } = useI18n()
 
@@ -69,7 +69,8 @@ const refTables = computed(() => {
     .filter((c: ColumnType) => canUseForRollupLinkField(c))
     .map((c: ColumnType) => {
       const relTableId = (c.colOptions as any)?.fk_related_model_id
-      const table = metas.value[relTableId] ?? tables.value.find((t) => t.id === relTableId)
+      const relatedBaseId = (c.colOptions as any)?.fk_related_base_id || meta.value?.base_id
+      const table = getMetaByKey(relatedBaseId, relTableId) ?? tables.value.find((t) => t.id === relTableId)
       return {
         col: c.colOptions,
         column: c,
@@ -88,7 +89,9 @@ const columns = computed<ColumnType[]>(() => {
     return []
   }
 
-  return metas.value[selectedTable.value.id]?.columns.filter((c: ColumnType) => getValidRollupColumn(c))
+  return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id)?.columns?.filter((c: ColumnType) =>
+    getValidRollupColumn(c),
+  )
 })
 
 const limitRecToCond = computed({
@@ -108,7 +111,7 @@ provide(
   computed(() => {
     if (!selectedTable.value) return {}
 
-    return metas.value[selectedTable.value.id] || {}
+    return getMetaByKey(selectedTable.value.base_id, selectedTable.value.id) || {}
   }),
 )
 
@@ -138,7 +141,7 @@ const getNextColumnId = () => {
 
 const onRelationColChange = async () => {
   if (selectedTable.value) {
-    await getMeta(selectedTable.value.id)
+    await getMeta(selectedTable.value.base_id, selectedTable.value.id)
   }
   vModel.value.fk_rollup_column_id = getNextColumnId() || columns.value?.[0]?.id
   onDataTypeChange()

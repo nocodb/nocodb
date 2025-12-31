@@ -19,12 +19,14 @@ export function getCustomColumnTooltip({
   column,
   metas,
   getMeta,
+  baseId,
   isExternalLink = false,
 }: {
   column: CanvasGridColumn
   metas: Record<string, TableType>
+  baseId?: string
   isExternalLink: boolean
-  getMeta?: (tableId: string) => Promise<TableType>
+  getMeta?: (baseId: string, tableId: string) => Promise<TableType>
 }): string {
   if (!isLinksOrLTAR(column.columnObj)) {
     return
@@ -37,16 +39,29 @@ export function getCustomColumnTooltip({
 
   if (!relOptions) return
 
-  const currentTable = metas[column.columnObj.fk_model_id]
-  const refTable = metas[relOptions.fk_related_model_id]
+  // Get the related base ID for cross-base relationships
+  const relatedBaseId = relOptions.fk_related_base_id || baseId
+
+  // Helper to get meta by base and table ID
+  const getMetaByKey = (tableBaseId: string | undefined, tableId: string) => {
+    if (tableBaseId) {
+      return metas[`${tableBaseId}:${tableId}`] || metas[tableId]
+    }
+    return metas[tableId]
+  }
+
+  const currentTable = getMetaByKey(baseId, column.columnObj.fk_model_id)
+  const refTable = getMetaByKey(relatedBaseId, relOptions.fk_related_model_id)
   let mmTable: TableType
   if (relOptions.type === RelationTypes.MANY_TO_MANY) {
-    if (metas[relOptions.fk_mm_model_id]) {
+    // MM table is always in the same base as the related table
+    const mmMeta = getMetaByKey(relatedBaseId, relOptions.fk_mm_model_id)
+    if (mmMeta) {
       // skip if created by NocoDB
-      mmTable = metas[relOptions.fk_mm_model_id]?.title?.includes('nc_m2m_') ? null : metas[relOptions.fk_mm_model_id]
+      mmTable = mmMeta?.title?.includes('nc_m2m_') ? null : mmMeta
     } else {
-      // if metas not found in store, fetch it
-      getMeta?.(relOptions.fk_mm_model_id).catch((_e) => {
+      // if metas not found in store, fetch it with correct base_id
+      getMeta?.(relatedBaseId, relOptions.fk_mm_model_id).catch((_e) => {
         // do nothing
       })
     }

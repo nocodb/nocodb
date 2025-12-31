@@ -1,6 +1,7 @@
 import { Logger } from '@nestjs/common';
+import { BaseVersion } from 'nocodb-sdk';
 import type { BaseType, BoolType, MetaType } from 'nocodb-sdk';
-import type { BaseVersion, DB_TYPES } from '~/utils/globals';
+import type { DB_TYPES } from '~/utils/globals';
 import type { NcContext } from '~/interface/config';
 import {
   BaseUser,
@@ -75,6 +76,7 @@ export default class Base implements BaseType {
       'meta',
       'color',
       'order',
+      'version',
     ]);
 
     if (!insertObj.order) {
@@ -439,11 +441,17 @@ export default class Base implements BaseType {
       'uuid',
       'password',
       'roles',
+      'version',
     ]);
 
     // stringify meta
     if (updateObj.meta) {
       updateObj.meta = stringifyMetaProp(updateObj);
+    }
+
+    if (+updateObj.version !== BaseVersion.V3) {
+      // we do not allow downgrade from V3 to previous versions
+      delete updateObj.version;
     }
 
     // get existing cache
@@ -653,9 +661,9 @@ export default class Base implements BaseType {
       ));
     let baseData = null;
     if (!baseId) {
-      baseData = await Noco.ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
+      baseData = await ncMeta.metaGet2(
+        RootScopes.FULL_BYPASS,
+        RootScopes.FULL_BYPASS,
         MetaTable.PROJECT,
         {
           uuid,

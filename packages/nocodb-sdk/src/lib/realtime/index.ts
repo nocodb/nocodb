@@ -61,6 +61,7 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'source_update'
     | 'source_delete'
     | 'source_meta_sync'
+    | 'base_full_reload'
     | 'table_create'
     | 'table_update'
     | 'table_permission_update'

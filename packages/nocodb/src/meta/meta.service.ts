@@ -1,6 +1,7 @@
 import { Injectable, Optional } from '@nestjs/common';
 import { customAlphabet } from 'nanoid';
 import { v7 as uuidv7 } from 'uuid';
+import { BaseVersion } from 'nocodb-sdk';
 import CryptoJS from 'crypto-js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -15,7 +16,6 @@ import { XKnex } from '~/db/CustomKnex';
 import { NcConfig } from '~/utils/nc-config';
 import {
   BaseRelatedMetaTables,
-  BaseVersion,
   MetaTable,
   RootScopes,
   RootScopeTables,
@@ -516,7 +516,15 @@ export class MetaService {
       query.select(...fields);
     }
 
-    if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
+    if (
+      workspace_id === RootScopes.FULL_BYPASS &&
+      base_id === RootScopes.FULL_BYPASS
+    ) {
+      // With full bypass, no context condition is applied
+    } else if (
+      workspace_id === RootScopes.BYPASS &&
+      base_id === RootScopes.BYPASS
+    ) {
       // bypass is only allowed for v2 bases, so we join the base table to ensure the base is v2
       if (BaseRelatedMetaTables.includes(target as MetaTable)) {
         query.whereExists(function () {
@@ -853,7 +861,11 @@ export class MetaService {
   protected async logHelper(workspace_id, base_id, target, q) {
     const qStr = q.toQuery();
 
-    if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
+    if (
+      (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) ||
+      (workspace_id === RootScopes.FULL_BYPASS &&
+        base_id === RootScopes.FULL_BYPASS)
+    ) {
       return;
     }
 

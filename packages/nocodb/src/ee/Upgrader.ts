@@ -381,7 +381,11 @@ export default class Upgrader extends CEUpgrader {
   protected async logHelper(workspace_id, base_id, target, q) {
     const qStr = q.toQuery();
 
-    if (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) {
+    if (
+      (workspace_id === RootScopes.BYPASS && base_id === RootScopes.BYPASS) ||
+      (workspace_id === RootScopes.FULL_BYPASS &&
+        base_id === RootScopes.FULL_BYPASS)
+    ) {
       return;
     }
 

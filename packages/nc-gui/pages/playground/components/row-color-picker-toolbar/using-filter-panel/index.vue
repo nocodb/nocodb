@@ -5,10 +5,12 @@ import MockInjection from '../../MockInjection.vue'
 const vModel = ref([])
 const rootMeta = ref({})
 const { metas } = useMetas()
-const defaultTableId = 'mtWA9ZXvsuh'
 const columns = computedAsync(async () => {
   if (!metas.value || Object.keys(metas.value).length === 0) return []
-  return await composeColumnsForFilter({ rootMeta: rootMeta.value, getMeta: async (id) => metas.value[id] })
+  return await composeColumnsForFilter({
+    rootMeta: rootMeta.value,
+    getMeta: async (id) => metas.value[`${rootMeta.value?.base_id}:${id}`],
+  })
 }, [])
 const options1 = ref({
   filtersCount: 0,
@@ -19,8 +21,8 @@ const options1 = ref({
   dbClientType: ClientType.PG,
 })
 onMounted(async () => {
-  await mockSetupInit()
-  rootMeta.value = metas.value[defaultTableId]
+  const setup = await mockSetupInit()
+  rootMeta.value = setup.meta
 })
 </script>
 

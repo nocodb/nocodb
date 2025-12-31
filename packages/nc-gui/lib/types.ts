@@ -2,6 +2,7 @@ import type { CSSProperties } from '@vue/runtime-dom'
 
 import {
   type BaseType,
+  type BaseVersion,
   type ColumnType,
   type FilterType,
   type MetaType,
@@ -222,6 +223,7 @@ type NcProject = BaseType & {
   uuid?: string
   users?: User[]
   default_role?: ProjectRoles | string
+  version?: BaseVersion
 }
 
 interface UndoRedoAction {

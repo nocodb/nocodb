@@ -1,5 +1,6 @@
+import { BaseVersion } from 'nocodb-sdk';
 import type { Knex } from 'knex';
-import { BaseVersion, MetaTable, MetaTableOldV2 } from '~/utils/globals';
+import { MetaTable, MetaTableOldV2 } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   const migrationStart = Date.now();

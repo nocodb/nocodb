@@ -181,7 +181,16 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId!.value)
+      await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'hookTrigger',
+          hookId: cellValue.value?.fk_webhook_id,
+          rowId: rowId!.value,
+        },
+        {},
+      )
 
       afterActionStatus.value = { status: 'success' }
       ncDelay(2000).then(() => {

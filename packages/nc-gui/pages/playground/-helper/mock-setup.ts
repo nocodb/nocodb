@@ -46,7 +46,8 @@ const mockUsers = [
 export const mockSetupInit = () => {
   const { metas } = useMetas()
   for (const table of MOCK_TABLES_RAW) {
-    metas.value[table.id] = table
+    const compositeKey = `${table.base_id}:${table.id}`
+    metas.value[compositeKey] = table
   }
   const basesStore = useBases()
   for (const baseId of Object.keys(defaultBases)) {
@@ -61,7 +62,7 @@ export const mockSetupInit = () => {
 
   return {
     metas,
-    meta: metas.value.mtWA9ZXvsuh,
+    meta: metas.value[`${defaultBaseId}:mtWA9ZXvsuh`],
     rootMetaId: 'mtWA9ZXvsuh',
     bases: basesStore.bases,
     baseId: baseStore.forcedProjectId,

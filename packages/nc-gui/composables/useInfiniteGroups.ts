@@ -151,6 +151,7 @@ export const useInfiniteGroups = (
 
         if (groupCol.column.uidt === UITypes.LinkToAnotherRecord) {
           const relatedTableMeta = await getMeta(
+            base.value?.id as string,
             (groupCol.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
           )
           if (!relatedTableMeta) continue
@@ -166,7 +167,9 @@ export const useInfiniteGroups = (
           )
           if (!relationColumn) continue
 
-          const relatedTableMeta = await getMeta(relationColumn.colOptions.fk_related_model_id as string)
+          const relColOpts = relationColumn.colOptions as LinkToAnotherRecordType
+          const relatedBaseId = relColOpts?.fk_related_base_id || (base.value?.id as string)
+          const relatedTableMeta = await getMeta(relatedBaseId, relColOpts.fk_related_model_id as string)
           if (!relatedTableMeta) continue
 
           const lookupColumn = relatedTableMeta.columns?.find(
@@ -180,6 +183,7 @@ export const useInfiniteGroups = (
           // Check if the lookup column is a LinkToAnotherRecord
           if (lookupColumn.uidt === UITypes.LinkToAnotherRecord) {
             const targetTableMeta = await getMeta(
+              base.value?.id as string,
               (lookupColumn.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
             )
             if (targetTableMeta) {
@@ -285,10 +289,14 @@ export const useInfiniteGroups = (
 
         if (aggregation.length) {
           aggResponse = !isPublic.value
-            ? await $api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-                meta.value!.id,
+            ? await $api.internal.postOperation(
+                (meta.value as any)!.fk_workspace_id!,
+                meta.value!.base_id!,
                 {
+                  operation: 'bulkAggregate',
+                  tableId: meta.value!.id,
                   viewId: view.value!.id,
+                  baseId: meta.value!.base_id!,
                   aggregation,
                   filterArrJson: JSON.stringify(nestedFilters.value),
                 },
@@ -603,10 +611,14 @@ export const useInfiniteGroups = (
 
       try {
         const aggResponse = !isPublic.value
-          ? await $api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-              meta.value!.id,
+          ? await $api.internal.postOperation(
+              (meta.value as any)!.fk_workspace_id!,
+              meta.value!.base_id!,
               {
+                operation: 'bulkAggregate',
+                tableId: meta.value!.id,
                 viewId: view.value!.id,
+                baseId: meta.value!.base_id!,
                 aggregation,
                 filterArrJson: JSON.stringify(nestedFilters.value),
               },

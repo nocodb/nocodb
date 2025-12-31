@@ -77,9 +77,17 @@ const changeDisplayField = async () => {
   isLoading.value = true
 
   try {
-    await $api.dbTableColumn.primaryColumnSet(selectedFieldId.value)
+    await $api.internal.postOperation(
+      meta!.value!.fk_workspace_id!,
+      meta!.value!.base_id!,
+      {
+        operation: 'columnPrimarySet',
+        columnId: selectedFieldId.value,
+      },
+      {},
+    )
 
-    await getMeta(meta?.value?.id as string, true)
+    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     value.value = false

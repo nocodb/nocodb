@@ -34,8 +34,9 @@ const vModel = useVModel(props, 'value', emit)
 
 const { validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
 
-const { metas, getMeta } = useMetas()
 const { t } = useI18n()
+
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const isMm = computed(() => vModel.value.type === RelationTypes.MANY_TO_MANY)
 
@@ -70,10 +71,11 @@ const sourceColumn = computed(() => {
 // Check if linked table is private (for edit mode display)
 // Only check is_private flag from API response
 const isRefTablePrivate = computed(() => {
-  if (!isEdit.value) return false
+  if (!props.isEdit) return false
   const refTableId = vModel.value.custom?.ref_model_id
   if (!refTableId) return false
-  const tableMeta = metas.value[refTableId]
+  const baseId = vModel.value.custom?.base_id
+  const tableMeta = getMetaByKey(baseId, refTableId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
 })
@@ -81,22 +83,24 @@ const isRefTablePrivate = computed(() => {
 // Check if junction table is private
 // Only check is_private flag from API response
 const isJunctionTablePrivate = computed(() => {
-  if (!isEdit.value) return false
+  if (!props.isEdit) return false
   const juncTableId = vModel.value.custom?.junc_model_id
   if (!juncTableId) return false
-  const tableMeta = metas.value[juncTableId]
+  const baseId = vModel.value.custom?.junc_base_id
+  const tableMeta = getMetaByKey(baseId, juncTableId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
 })
 
 const refTables = computed(() => {
-  if (isEdit.value) {
+  if (props.isEdit) {
     const refTableId = vModel.value.custom?.ref_model_id
     if (!refTableId) return []
 
     // Load meta if not already loaded
-    if (!metas.value[refTableId]) getMeta(refTableId)
-    const tableMeta = metas.value[refTableId]
+    const baseId = vModel.value.custom?.base_id
+    if (!getMetaByKey(baseId, refTableId) && baseId) getMeta(baseId, refTableId)
+    const tableMeta = getMetaByKey(baseId, refTableId)
 
     // Check if table is private (from API response only)
     const isPrivate = tableMeta && (tableMeta as any).is_private
@@ -126,13 +130,14 @@ const refTables = computed(() => {
 })
 
 const junctionTables = computed(() => {
-  if (isEdit.value) {
+  if (props.isEdit) {
     const juncTableId = vModel.value.custom?.junc_model_id
     if (!juncTableId) return []
 
     // Load meta if not already loaded
-    if (!metas.value[juncTableId]) getMeta(juncTableId)
-    const tableMeta = metas.value[juncTableId]
+    const baseId = vModel.value.custom?.junc_base_id
+    if (!getMetaByKey(baseId, juncTableId) && baseId) getMeta(baseId, juncTableId)
+    const tableMeta = getMetaByKey(baseId, juncTableId)
 
     // Check if table is private (from API response only)
     const isPrivate = tableMeta && (tableMeta as any).is_private
@@ -180,19 +185,19 @@ const columns = computed(() => {
 })
 
 const refTableColumns = computed(() => {
-  if (!vModel.value.custom?.ref_model_id || !metas.value[vModel.value.custom?.ref_model_id]) {
+  if (!vModel.value.custom?.ref_model_id || !getMetaByKey(meta.value?.base_id, vModel.value.custom?.ref_model_id)) {
     return []
   }
 
-  return filterSupportedColumns(metas.value[vModel.value.custom?.ref_model_id]?.columns)
+  return filterSupportedColumns(getMetaByKey(meta.value?.base_id, vModel.value.custom?.ref_model_id)?.columns)
 })
 
 const juncTableColumns = computed(() => {
-  if (!vModel.value.custom?.junc_model_id || !metas.value[vModel.value.custom?.junc_model_id]) {
+  if (!vModel.value.custom?.junc_model_id || !getMetaByKey(meta.value?.base_id, vModel.value.custom?.junc_model_id)) {
     return []
   }
 
-  return filterSupportedColumns(metas.value[vModel.value.custom?.junc_model_id]?.columns)
+  return filterSupportedColumns(getMetaByKey(meta.value?.base_id, vModel.value.custom?.junc_model_id)?.columns)
 })
 
 const filterOption = (value: string, option: { key: string }) => option.key.toLowerCase().includes(value.toLowerCase())
@@ -232,8 +237,8 @@ const resetSelectedColumns = (isJunction = false, resetOnChangeDataType = false)
 }
 const onModelIdChange = async (modelId: string, isJunctionModel = false) => {
   // todo: optimise
-  await getMeta(modelId, false, false, vModel.value.custom.base_id)
-  await getMeta(modelId)
+  await getMeta(vModel.value.custom.base_id, modelId)
+  await getMeta(meta.value?.base_id, modelId)
   await onDataTypeChange()
   resetSelectedColumns(isJunctionModel)
 }
@@ -282,10 +287,10 @@ const sqlUi = computed(() => (meta.value?.source_id ? sqlUis.value[meta.value?.s
 
 onMounted(async () => {
   if (vModel.value?.custom?.junc_model_id) {
-    await getMeta(vModel.value.custom.junc_model_id)
+    await getMeta(vModel.value.custom.junc_base_id || meta.value?.base_id, vModel.value.custom.junc_model_id)
   }
   if (vModel.value?.custom?.ref_model_id) {
-    await getMeta(vModel.value.custom.ref_model_id)
+    await getMeta(vModel.value.custom.base_id || meta.value?.base_id, vModel.value.custom.ref_model_id)
   }
 })
 </script>

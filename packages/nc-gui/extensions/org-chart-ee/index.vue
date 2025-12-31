@@ -205,7 +205,12 @@ const loadChildren = async (rowIds: string[]) => {
   let newHierarchyDataFound = false
   if (rowIdsToFetch.length) {
     const fetchPromises = rowIdsToFetch.map((rid) =>
-      $api.dbDataTableRow.nestedList(selectedTable.value.id, correspondingReverseField.value!, rid),
+      $api.internal.getOperation(selectedTable.value.fk_workspace_id!, selectedTable.value.base_id!, {
+        operation: 'nestedDataList',
+        tableId: selectedTable.value.id,
+        columnId: correspondingReverseField.value!,
+        rowId: rid,
+      }),
     )
     const childRowList = await Promise.all(fetchPromises)
     // Unfiltered means, childIds that may or may not be in view.
@@ -247,7 +252,12 @@ const loadChildren = async (rowIds: string[]) => {
 
         const existingParentFetchPromises = finalChildrenDataFilteredByViews.length
           ? finalChildrenDataFilteredByViews.map((children: any) =>
-              $api.dbDataTableRow.nestedList(selectedTable.value.id, relationFieldId.value!, children[pkValueColTitle.value]),
+              $api.internal.getOperation(selectedTable.value.fk_workspace_id!, selectedTable.value.base_id!, {
+                operation: 'nestedDataList',
+                tableId: selectedTable.value.id,
+                columnId: relationFieldId.value!,
+                rowId: children[pkValueColTitle.value],
+              }),
             )
           : []
         const existingParents = await Promise.all(existingParentFetchPromises)

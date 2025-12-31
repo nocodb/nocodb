@@ -51,7 +51,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { api, isLoading } = useApi()
 
-  const { metas, setMeta, getMeta } = useMetas()
+  const { setMeta, getMeta, getMetaByKey } = useMetas()
 
   const { isDark, getColor } = useTheme()
 
@@ -143,6 +143,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         return ['mysql', ClientType.MYSQL].includes(sharedView.value?.client || ClientType.MYSQL)
       },
       getMeta,
+      baseId: meta.value?.base_id,
     })
   })
 
@@ -434,9 +435,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const attachment: Record<string, any> = {}
 
       /** find attachments in form data */
-      for (const col of metas.value?.[sharedView.value?.fk_model_id as string]?.columns) {
+      const formMeta = getMetaByKey(sharedView.value?.base_id, sharedView.value?.fk_model_id as string)
+      for (const col of formMeta?.columns ?? []) {
         if (col.uidt === UITypes.Attachment) {
-          if (data[col.title]) {
+          if (col.title && data[col.title]) {
             attachment[`_${col.title}`] = data[col.title].map((item: { file: File }) => item.file)
           }
         }
@@ -722,7 +724,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   async function loadLinkedRecords(column: ColumnType, ids: string[]) {
-    const relatedMeta = await getMeta((column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
+    const relatedBaseId = (column.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta.value?.base_id
+    const relatedMeta = await getMeta(relatedBaseId!, (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
 
     if (!relatedMeta) return []
 

@@ -189,7 +189,7 @@ const rolePermissions = {
       extensionDelete: true,
 
       workflowCreateOrEdit: true,
-      workflowExecutionList: true
+      workflowExecutionList: true,
     },
   },
   [ProjectRoles.EDITOR]: {

@@ -6,7 +6,7 @@ const route = useRoute()
 
 const workflowStore = useWorkflowStore()
 
-const { edges, nodes } = useWorkflowOrThrow()
+const { edges, nodes, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { loadWorkflow } = workflowStore
 
@@ -26,9 +26,9 @@ onMounted(async () => {
       return
     }
 
-    nodes.value = (workflow.draft?.nodes || workflow.nodes || []) as any
+    nodes.value = (isWorkflowEditAllowed.value ? workflow.draft?.nodes || workflow.nodes || [] : workflow.nodes || []) as any
 
-    edges.value = (workflow.draft?.edges || workflow.edges || []) as any
+    edges.value = (isWorkflowEditAllowed.value ? workflow.draft?.edges || workflow.edges || [] : workflow.edges || []) as any
 
     isLoading.value = false
   } else {

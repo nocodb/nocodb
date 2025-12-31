@@ -9,8 +9,9 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     onChange?: () => void
     fetchOptions?: (key: string) => Promise<any>
     initialState?: Ref<Record<string, any>>
+    disabled?: MaybeRef<boolean>
   }) => {
-    const { formSchema, onSubmit, onChange, fetchOptions, initialState = ref({}) } = props
+    const { formSchema, onSubmit, onChange, fetchOptions, initialState = ref({}), disabled = false } = props
 
     const useForm = Form.useForm
 
@@ -94,6 +95,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     }
 
     const setupDependencyWatchers = () => {
+      if (unref(disabled)) return
       dependencyWatcherCleanups.forEach((cleanup) => cleanup())
       dependencyWatcherCleanups.length = 0
 
@@ -257,6 +259,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     const { validate, clearValidate, validateInfos } = useForm(formState, validators)
 
     const submit = async () => {
+      if (unref(disabled)) return
       try {
         await validate()
       } catch (e) {
@@ -307,6 +310,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     watch(
       formState,
       () => {
+        if (unref(disabled)) return
         // Don't trigger onChange during programmatic updates (e.g., formSchema changes)
         if (!isUpdatingProgrammatically.value) {
           onChange?.()
@@ -368,6 +372,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       toggleGroup,
       isGroupCollapsed,
       getGroupInfo,
+      disabled,
     }
   },
   'form-builder-helper',

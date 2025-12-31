@@ -7,7 +7,7 @@ interface IfNodeConfig {
   conditions: WorkflowNodeConditionItem[]
 }
 
-const { selectedNodeId, updateNode, selectedNode } = useWorkflowOrThrow()
+const { selectedNodeId, updateNode, selectedNode, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { t } = useI18n()
 
@@ -206,34 +206,30 @@ const updateAllSiblings = (path: number[], logicalOp: 'and' | 'or') => {
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-nc-content-gray-emphasis">Conditions</label>
 
-      <NcDropdown v-model:visible="isConditionDropdownOpen" placement="bottomLeft" overlay-class-name="nc-if-conditions-dropdown">
+      <NcListDropdown
+        v-model:visible="isConditionDropdownOpen"
+        :disabled="!isWorkflowEditAllowed"
+        placement="bottomLeft"
+        overlay-class-name="nc-if-conditions-dropdown"
+      >
         <div
-          class="h-9 border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 transition-all cursor-pointer select-none text-sm"
+          class="nc-conditions-count flex-1"
           :class="{
-            '!border-nc-border-brand shadow-selected': isConditionDropdownOpen,
-            'border-nc-border-gray-medium': !isConditionDropdownOpen,
-            'bg-nc-bg-brand-light': conditionsCount > 0,
+            'text-nc-content-brand': conditionsCount > 0,
+            'text-nc-content-gray-muted': conditionsCount === 0,
           }"
         >
-          <div
-            class="nc-conditions-count flex-1"
-            :class="{
-              'text-nc-content-brand': conditionsCount > 0,
-              'text-nc-content-gray-muted': conditionsCount === 0,
-            }"
-          >
-            {{ conditionsCount > 0 ? `${conditionsCount} condition${conditionsCount !== 1 ? 's' : ''}` : 'No conditions' }}
-          </div>
-
-          <GeneralIcon
-            icon="ncChevronDown"
-            class="flex-none w-4 h-4"
-            :class="{
-              'text-nc-content-brand': conditionsCount > 0,
-              'text-nc-content-gray-muted': conditionsCount === 0,
-            }"
-          />
+          {{ conditionsCount > 0 ? `${conditionsCount} condition${conditionsCount !== 1 ? 's' : ''}` : 'No conditions' }}
         </div>
+
+        <GeneralIcon
+          icon="ncChevronDown"
+          class="flex-none w-4 h-4"
+          :class="{
+            'text-nc-content-brand': conditionsCount > 0,
+            'text-nc-content-gray-muted': conditionsCount === 0,
+          }"
+        />
 
         <template #overlay>
           <div class="nc-if-conditions-dropdown-container">
@@ -293,7 +289,7 @@ const updateAllSiblings = (path: number[], logicalOp: 'and' | 'or') => {
             </div>
           </div>
         </template>
-      </NcDropdown>
+      </NcListDropdown>
     </div>
   </div>
 </template>

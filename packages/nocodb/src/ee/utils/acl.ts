@@ -342,6 +342,12 @@ const permissionScopes = {
     'workflowDuplicate',
     'workflowUpdate',
     'workflowDelete',
+    'workflowExecutionList',
+    'workflowNodes',
+    'workflowExecute',
+    'workflowTestNode',
+    'workflowPublish',
+    'workflowNodeIntegrationFetchOptions'
   ],
 };
 
@@ -638,6 +644,13 @@ const rolePermissions:
 
       // Extensions
       extensionUpdate: true,
+
+
+      // workflows
+      workflowList: true,
+      workflowGet: true,
+      workflowNodes: true,
+      workflowNodeIntegrationFetchOptions: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -1076,6 +1089,15 @@ const permissionDescriptions: Record<string, string> = {
 
   viewRowColorInfo: 'view row colouring info',
   viewSettingOverride: 'copy view configuration from other view',
+
+
+  workflowList: 'view list of workflows',
+  workflowGet: 'view workflow details',
+  workflowCreate: 'create a new workflow',
+  workflowDuplicate: 'duplicate a workflow',
+  workflowUpdate: 'update workflow details',
+  workflowDelete: 'delete a workflow',
+  workflowExecutionList: 'view workflow execution logs'
 };
 
 // Human-readable descriptions for roles

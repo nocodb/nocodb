@@ -20,6 +20,7 @@ const {
   getIsLoadingFieldOptions,
   toggleGroup,
   isGroupCollapsed,
+  disabled,
 } = useFormBuilderHelperOrThrow()
 
 const { loadIntegrations, addIntegration, integrations, eventBus, pageMode, IntegrationsPageMode } =
@@ -305,6 +306,7 @@ watch(
                     <a-input
                       autocomplete="off"
                       class="!w-full"
+                      :disabled="disabled"
                       :value="deepReference(field.model)"
                       :placeholder="field.placeholder"
                       @update:value="setFormStateWithEmit(field.model, $event)"
@@ -315,6 +317,7 @@ watch(
                       autocomplete="off"
                       class="!w-full !rounded-lg"
                       :controls="false"
+                      :disabled="disabled"
                       :value="deepReference(field.model)"
                       :placeholder="field.placeholder"
                       @update:value="setFormStateWithEmit(field.model, $event)"
@@ -323,6 +326,7 @@ watch(
                   <template v-else-if="field.type === FormBuilderInputType.Password">
                     <a-input-password
                       readonly
+                      :disabled="disabled"
                       onfocus="this.removeAttribute('readonly');"
                       onblur="this.setAttribute('readonly', true);"
                       autocomplete="off"
@@ -334,6 +338,7 @@ watch(
                   <template v-else-if="field.type === FormBuilderInputType.Select">
                     <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
                       <NcSelect
+                        :disabled="disabled"
                         :value="getSelectValue(field)"
                         :options="field.fetchOptionsKey ? getFieldOptions(field.model) : field.options"
                         :mode="selectMode(field)"
@@ -349,6 +354,7 @@ watch(
                     <div class="flex flex-col px-2" :class="field.border ? 'border-1 rounded-lg shadow' : ''">
                       <div class="flex items-center aa">
                         <NcSwitch
+                          :disabled="disabled"
                           :checked="!!deepReference(field.model)"
                           @update:checked="setFormStateWithEmit(field.model, $event)"
                         />
@@ -375,6 +381,7 @@ watch(
                       class="nc-select nc-select-shadow"
                       placeholder="Select Integration"
                       allow-clear
+                      :disabled="disabled"
                       show-search
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     >
@@ -422,6 +429,7 @@ watch(
                   <template v-else-if="field.type === FormBuilderInputType.SelectBase">
                     <NcFormBuilderInputSelectBase
                       :value="deepReference(field.model)"
+                      :disabled="disabled"
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
@@ -430,6 +438,7 @@ watch(
                       <NcFormBuilderInputSelectTable
                         :multiple="field?.selectMode === 'multiple'"
                         :value="deepReference(field.model)"
+                        :disabled="disabled"
                         :options="getFieldOptions(field.model)"
                         @update:value="setFormStateWithEmit(field.model, $event)"
                       />
@@ -440,6 +449,7 @@ watch(
                       <NcFormBuilderInputSelectView
                         :multiple="field?.selectMode === 'multiple'"
                         :value="deepReference(field.model)"
+                        :disabled="disabled"
                         :options="getFieldOptions(field.model)"
                         @update:value="setFormStateWithEmit(field.model, $event)"
                       />
@@ -450,6 +460,7 @@ watch(
                       <NcFormBuilderInputSelectField
                         :multiple="field?.selectMode === 'multiple'"
                         :value="deepReference(field.model)"
+                        :disabled="disabled"
                         :options="getFieldOptions(field.model)"
                         @update:value="setFormStateWithEmit(field.model, $event)"
                       />
@@ -470,7 +481,7 @@ watch(
                       @click="setFormStateWithEmit(field.model, !deepReference(field.model))"
                     >
                       <div class="flex gap-3">
-                        <NcCheckbox :checked="deepReference(field.model)" />
+                        <NcCheckbox :disabled="disabled" :checked="deepReference(field.model)" />
                         <div class="text-nc-content-gray text-caption">
                           {{ field.label }}
                         </div>
@@ -485,6 +496,7 @@ watch(
                       :model-value="deepReference(field.model)"
                       :placeholder="field.placeholder"
                       :variables="workflowVariables"
+                      :read-only="disabled"
                       :plugins="field.plugins"
                       :grouped-variables="workflowVariablesGrouped"
                       @update:model-value="setFormStateWithEmit(field.model, $event)"
@@ -495,6 +507,7 @@ watch(
                       <NcFormBuilderInputFieldMapping
                         :model-value="deepReference(field.model)"
                         :element="field"
+                        :disabled="disabled"
                         @update:model-value="setFormStateWithEmit(field.model, $event)"
                       />
                     </NcFormBuilderInputMountedWrapper>

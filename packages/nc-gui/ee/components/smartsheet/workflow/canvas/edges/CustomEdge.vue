@@ -78,11 +78,11 @@ const props = defineProps({
   },
 })
 
-const { insertNodeBetween, getNodeMetaById, viewingExecution, activeTab } = useWorkflowOrThrow()
+const { insertNodeBetween, getNodeMetaById, viewingExecution, activeTab, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { $e } = useNuxtApp()
 
-const isEditMode = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
+const isEditMode = computed(() => activeTab.value === 'editor' && !viewingExecution.value && isWorkflowEditAllowed.value)
 
 const path = computed(() =>
   getSmoothStepPath({

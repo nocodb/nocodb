@@ -7,7 +7,7 @@ interface RecordMatchesConditionConfig {
   filters: FilterType[]
 }
 
-const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions } = useWorkflowOrThrow()
+const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { base } = storeToRefs(useBase())
 
@@ -125,6 +125,7 @@ onMounted(() => {
       <label class="text-sm font-medium text-nc-content-gray-emphasis">Table</label>
       <NcFormBuilderInputSelectTable
         :value="config.modelId"
+        :disabled="!isWorkflowEditAllowed"
         :base-id="base?.id"
         :multiple="false"
         :options="tableOptions"
@@ -135,38 +136,30 @@ onMounted(() => {
     <div v-if="config.modelId && columns.length > 0" class="flex flex-col gap-2">
       <label class="text-sm font-medium text-nc-content-gray-emphasis">Filter</label>
 
-      <NcDropdown
+      <NcListDropdown
         v-model:visible="isFilterDropdownOpen"
         placement="bottomLeft"
+        :disabled="!isWorkflowEditAllowed"
         overlay-class-name="nc-list-records-filter-dropdown"
       >
         <div
-          class="h-9 border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 transition-all cursor-pointer select-none text-sm"
+          class="nc-filters-count flex-1"
           :class="{
-            '!border-nc-border-brand shadow-selected': isFilterDropdownOpen,
-            'border-nc-border-gray-medium': !isFilterDropdownOpen,
-            'bg-nc-bg-brand-light': filtersCount > 0,
+            'text-nc-content-brand': filtersCount > 0,
+            'text-nc-content-gray-muted': filtersCount === 0,
           }"
         >
-          <div
-            class="nc-filters-count flex-1"
-            :class="{
-              'text-nc-content-brand': filtersCount > 0,
-              'text-nc-content-gray-muted': filtersCount === 0,
-            }"
-          >
-            {{ filtersCount > 0 ? `${filtersCount} filter${filtersCount !== 1 ? 's' : ''}` : 'No filters' }}
-          </div>
-
-          <GeneralIcon
-            icon="ncChevronDown"
-            class="flex-none w-4 h-4"
-            :class="{
-              'text-nc-content-brand': filtersCount > 0,
-              'text-nc-content-gray-muted': filtersCount === 0,
-            }"
-          />
+          {{ filtersCount > 0 ? `${filtersCount} filter${filtersCount !== 1 ? 's' : ''}` : 'No filters' }}
         </div>
+
+        <GeneralIcon
+          icon="ncChevronDown"
+          class="flex-none w-4 h-4"
+          :class="{
+            'text-nc-content-brand': filtersCount > 0,
+            'text-nc-content-gray-muted': filtersCount === 0,
+          }"
+        />
 
         <template #overlay>
           <div class="nc-list-records-filter-container p-3">
@@ -183,7 +176,7 @@ onMounted(() => {
             />
           </div>
         </template>
-      </NcDropdown>
+      </NcListDropdown>
     </div>
   </div>
 </template>

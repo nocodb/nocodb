@@ -353,6 +353,7 @@ export default defineNuxtConfig({
         'vue-fullscreen',
         'cronstrue',
         'plyr',
+        'cron-parser',
       ],
       esbuildOptions: {
         define: {

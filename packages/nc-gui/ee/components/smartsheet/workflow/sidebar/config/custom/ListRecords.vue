@@ -11,7 +11,7 @@ interface ListRecordsNodeConfig {
   sorts?: SortType[]
 }
 
-const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions } = useWorkflowOrThrow()
+const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { t } = useI18n()
 
@@ -220,6 +220,7 @@ onMounted(() => {
       <NcFormBuilderInputSelectTable
         :value="config.modelId"
         :base-id="base?.id"
+        :disabled="!isWorkflowEditAllowed"
         :multiple="false"
         :options="tableOptions"
         @update:value="onTableSelect"
@@ -231,6 +232,7 @@ onMounted(() => {
       <NcFormBuilderInputSelectView
         :value="config.viewId"
         :table-id="config.modelId"
+        :disabled="!isWorkflowEditAllowed"
         :options="viewOptions"
         @update:value="onViewSelect"
       />
@@ -244,6 +246,7 @@ onMounted(() => {
           :min="1"
           :max="1000"
           :controls="false"
+          :disabled="!isWorkflowEditAllowed"
           placeholder="25"
           class="w-full !rounded-lg"
           @update:value="onLimitChange"
@@ -255,6 +258,7 @@ onMounted(() => {
           :value="config.offset || 0"
           :min="0"
           :controls="false"
+          :disabled="!isWorkflowEditAllowed"
           placeholder="0"
           class="w-full !rounded-lg"
           @update:value="onOffsetChange"
@@ -265,38 +269,30 @@ onMounted(() => {
     <div v-if="config.modelId && columns.length > 0" class="flex flex-col gap-2">
       <label class="text-sm font-medium text-nc-content-gray-emphasis">Filter</label>
 
-      <NcDropdown
+      <NcListDropdown
         v-model:visible="isFilterDropdownOpen"
+        :disabled="!isWorkflowEditAllowed"
         placement="bottomLeft"
         overlay-class-name="nc-list-records-filter-dropdown"
       >
         <div
-          class="h-9 border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 transition-all cursor-pointer select-none text-sm"
+          class="nc-filters-count flex-1"
           :class="{
-            '!border-nc-border-brand shadow-selected': isFilterDropdownOpen,
-            'border-nc-border-gray-medium': !isFilterDropdownOpen,
-            'bg-nc-bg-brand-light': filtersCount > 0,
+            'text-nc-content-brand': filtersCount > 0,
+            'text-nc-content-gray-muted': filtersCount === 0,
           }"
         >
-          <div
-            class="nc-filters-count flex-1"
-            :class="{
-              'text-nc-content-brand': filtersCount > 0,
-              'text-nc-content-gray-muted': filtersCount === 0,
-            }"
-          >
-            {{ filtersCount > 0 ? `${filtersCount} filter${filtersCount !== 1 ? 's' : ''}` : 'No filters' }}
-          </div>
-
-          <GeneralIcon
-            icon="ncChevronDown"
-            class="flex-none w-4 h-4"
-            :class="{
-              'text-nc-content-brand': filtersCount > 0,
-              'text-nc-content-gray-muted': filtersCount === 0,
-            }"
-          />
+          {{ filtersCount > 0 ? `${filtersCount} filter${filtersCount !== 1 ? 's' : ''}` : 'No filters' }}
         </div>
+
+        <GeneralIcon
+          icon="ncChevronDown"
+          class="flex-none w-4 h-4"
+          :class="{
+            'text-nc-content-brand': filtersCount > 0,
+            'text-nc-content-gray-muted': filtersCount === 0,
+          }"
+        />
 
         <template #overlay>
           <div class="nc-list-records-filter-container p-3">
@@ -324,40 +320,36 @@ onMounted(() => {
             </SmartsheetToolbarColumnFilter>
           </div>
         </template>
-      </NcDropdown>
+      </NcListDropdown>
     </div>
 
     <div v-if="config.modelId && columns.length > 0" class="flex flex-col gap-2">
       <label class="text-sm font-medium text-nc-content-gray-emphasis">Sort</label>
 
-      <NcDropdown v-model:visible="isSortDropdownOpen" placement="bottomLeft" overlay-class-name="nc-list-records-sort-dropdown">
+      <NcListDropdown
+        v-model:visible="isSortDropdownOpen"
+        :disabled="!isWorkflowEditAllowed"
+        placement="bottomLeft"
+        overlay-class-name="nc-list-records-sort-dropdown"
+      >
         <div
-          class="h-9 border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 transition-all cursor-pointer select-none text-sm"
+          class="nc-sorts-count flex-1"
           :class="{
-            '!border-nc-border-brand shadow-selected': isSortDropdownOpen,
-            'border-nc-border-gray-medium': !isSortDropdownOpen,
-            'bg-nc-bg-brand-light': sortsCount > 0,
+            'text-nc-content-brand': sortsCount > 0,
+            'text-nc-content-gray-muted': sortsCount === 0,
           }"
         >
-          <div
-            class="nc-sorts-count flex-1"
-            :class="{
-              'text-nc-content-brand': sortsCount > 0,
-              'text-nc-content-gray-muted': sortsCount === 0,
-            }"
-          >
-            {{ sortsCount > 0 ? `${sortsCount} sort${sortsCount !== 1 ? 's' : ''}` : 'No sorting' }}
-          </div>
-
-          <GeneralIcon
-            icon="ncChevronDown"
-            class="flex-none w-4 h-4"
-            :class="{
-              'text-nc-content-brand': sortsCount > 0,
-              'text-nc-content-gray-muted': sortsCount === 0,
-            }"
-          />
+          {{ sortsCount > 0 ? `${sortsCount} sort${sortsCount !== 1 ? 's' : ''}` : 'No sorting' }}
         </div>
+
+        <GeneralIcon
+          icon="ncChevronDown"
+          class="flex-none w-4 h-4"
+          :class="{
+            'text-nc-content-brand': sortsCount > 0,
+            'text-nc-content-gray-muted': sortsCount === 0,
+          }"
+        />
 
         <template #overlay>
           <div class="nc-list-records-sort-container p-3">
@@ -417,7 +409,7 @@ onMounted(() => {
             </NcButton>
           </div>
         </template>
-      </NcDropdown>
+      </NcListDropdown>
     </div>
   </div>
 </template>

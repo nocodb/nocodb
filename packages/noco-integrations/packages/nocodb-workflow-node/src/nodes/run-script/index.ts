@@ -27,13 +27,14 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
   public async definition(): Promise<WorkflowNodeDefinition> {
     return {
       id: 'nocodb.run_script',
-      title: 'Run a Script',
+      title: 'Run script',
       description:
         'Execute custom script with access to Base, Table, View, Field, Record, and Collaborators',
       icon: 'ncScript',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form: [],
+      hidden: true,
       keywords: ['script', 'code', 'javascript', 'custom', 'execute'],
     };
   }

@@ -22,6 +22,7 @@ const {
   edges,
   fetchNodeIntegrationOptions,
   clearChildNodesTestResults,
+  isWorkflowEditAllowed,
 } = useWorkflowOrThrow()
 
 provide(isWorkflowInj, ref(true))
@@ -125,6 +126,7 @@ const formSchema = computed(() => {
 })
 
 const { formState } = useProvideFormBuilderHelper({
+  disabled: !isWorkflowEditAllowed.value,
   formSchema,
   initialState: computed(() => selectedNode.value?.data || {}),
   onChange: () => {

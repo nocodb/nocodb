@@ -16,6 +16,8 @@ const props = defineProps<NodeProps<NoteData>>()
 
 const { updateNode, deleteNode } = useWorkflowOrThrow()
 
+const { isDark, getColor } = useTheme()
+
 const isEditMode = ref(false)
 const noteRef = ref<HTMLElement>()
 
@@ -146,7 +148,18 @@ onBeforeUnmount(() => {
       'edit-mode': isEditMode,
       'nodrag': isEditMode,
     }"
-    :style="{ backgroundColor: currentColor.bgVar, borderColor: currentColor.borderVar }"
+    :style="{
+      backgroundColor: isDark
+        ? getAdaptiveTint(getColor(currentColor.bgVar), { isDarkMode: true, shade: -10 })
+        : currentColor.bgVar,
+      borderColor: isDark
+        ? getAdaptiveTint(getColor(currentColor.borderVar), {
+            brightnessMod: -10,
+            isDarkMode: true,
+            shade: -50,
+          })
+        : currentColor.borderVar,
+    }"
     @dblclick="enableEditMode"
   >
     <NodeResizer
@@ -180,10 +193,19 @@ onBeforeUnmount(() => {
               v-for="color in noteColors"
               :key="color.name"
               class="color-option"
-              :style="{ backgroundColor: color.bgVar, borderColor: color.borderVar }"
+              :style="{
+                backgroundColor: isDark ? getAdaptiveTint(getColor(color.bgVar), { isDarkMode: true, shade: -10 }) : color.bgVar,
+                borderColor: isDark
+                  ? getAdaptiveTint(getColor(color.borderVar), {
+                      brightnessMod: -10,
+                      isDarkMode: true,
+                      shade: -50,
+                    })
+                  : color.borderVar,
+              }"
               @click="changeColor(color.name)"
             >
-              <GeneralIcon v-if="currentColor.name === color.name" icon="check" class="text-gray-700" />
+              <GeneralIcon v-if="currentColor.name === color.name" icon="check" class="text-nc-content-gray" />
             </div>
           </div>
         </template>

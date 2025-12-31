@@ -3,7 +3,7 @@ interface IterateNodeConfig {
   array: string
 }
 
-const { selectedNodeId, updateNode, selectedNode } = useWorkflowOrThrow()
+const { selectedNodeId, updateNode, selectedNode, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const workflowContext = inject(WorkflowVariableInj, null)
 
@@ -52,6 +52,7 @@ const updateArray = (array: string) => {
       <NcFormBuilderInputWorkflowInput
         :model-value="config.array"
         :variables="flatVariables"
+        :read-only="!isWorkflowEditAllowed"
         :grouped-variables="groupedVariables"
         placeholder="Select an array to iterate over"
         @update:model-value="updateArray"

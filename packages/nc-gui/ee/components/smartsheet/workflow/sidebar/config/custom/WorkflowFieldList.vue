@@ -13,6 +13,7 @@ interface Props {
   modelValue: Record<string, any>
   columns: Array<ColumnOption>
   meta: any
+  disabled?: boolean
 }
 
 interface FieldInputMode {
@@ -215,8 +216,8 @@ watch(
   <div class="workflow-field-list flex flex-col gap-3">
     <div class="flex items-center justify-between">
       <label class="text-sm font-semibold text-nc-content-gray-emphasis">Fields</label>
-      <NcDropdown v-model:visible="isFieldSelectorOpen">
-        <NcButton size="xs" type="secondary">
+      <NcDropdown v-model:visible="isFieldSelectorOpen" :disabled="disabled">
+        <NcButton size="xs" :disabled="disabled" type="secondary">
           <div class="flex items-center gap-1">
             <GeneralIcon icon="plus" />
             <span>Add Field</span>
@@ -246,7 +247,7 @@ watch(
         <div class="flex items-center gap-2">
           <SmartsheetHeaderIcon :column="col.column" class="text-nc-content-gray-muted" />
           <span class="text-sm text-nc-content-gray-emphasis flex-1">{{ col.column.title }}</span>
-          <NcDropdown v-if="supportsBothModes(col)" :visible="settingsPanelOpen[col.column.id]">
+          <NcDropdown v-if="supportsBothModes(col)" :disabled="disabled" :visible="settingsPanelOpen[col.column.id]">
             <NcButton size="xs" type="text" class="!px-1.5" @click.stop="toggleSettingsPanel(col.column.id)">
               <GeneralIcon icon="settings" class="text-nc-content-gray-subtle w-4 h-4" />
             </NcButton>
@@ -279,7 +280,7 @@ watch(
               </NcMenu>
             </template>
           </NcDropdown>
-          <NcButton size="xs" type="text" class="!px-1.5" @click="removeField(col.column.id)">
+          <NcButton v-if="!disabled" size="xs" type="text" class="!px-1.5" @click="removeField(col.column.id)">
             <GeneralIcon icon="close" class="text-nc-content-gray-subtle w-4 h-4" />
           </NcButton>
         </div>
@@ -289,6 +290,7 @@ watch(
             :model-value="modelValue[col.column.id]"
             :variables="flatVariables"
             :grouped-variables="groupedVariables"
+            :read-only="disabled"
             :placeholder="`Enter ${col.column.title}`"
             @update:model-value="updateFieldValue(col.column.id, $event)"
           />
@@ -296,7 +298,7 @@ watch(
             <LazySmartsheetCell
               v-model="mockRow.row[col.column.title]"
               :column="col.column"
-              :edit-enabled="true"
+              :edit-enabled="!disabled"
               :active="true"
               @update:model-value="updateFieldValue(col.column.id, $event)"
             />

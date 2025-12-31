@@ -19,6 +19,14 @@ const FEATURES = [
     version: 1,
   },
   {
+    id: 'advanced_nodes',
+    title: 'Enabled advanced nodes',
+    description: 'Enabled advanced nodes like scripts, external trigger node, etc.',
+    enabled: false,
+    isEngineering: true,
+    version: 1,
+  },
+  {
     id: 'infinite_scrolling',
     title: 'Infinite scrolling',
     description: 'Effortlessly browse large datasets with infinite scrolling.',

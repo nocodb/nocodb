@@ -1,5 +1,44 @@
 import type { Edge, Node } from '@vue-flow/core'
-import type { WorkflowNodeDefinition } from 'nocodb-sdk'
+import type { WorkflowNodeDefinition, WorkflowType } from 'nocodb-sdk'
+import { GeneralNodeID, INIT_WORKFLOW_NODES } from 'nocodb-sdk'
+
+/**
+ * Filter nodes and edges based on edit permission
+ * Removes Plus and Trigger nodes when user doesn't have edit permission
+ */
+const filterNodesByPermission = (nodes: Array<Node>, edges: Array<Edge>, hasEditPermission: boolean) => {
+  if (hasEditPermission) {
+    return { nodes, edges }
+  }
+
+  // Filter out Plus and Trigger nodes when user doesn't have edit permission
+  const filteredNodes = nodes.filter((node) => node.type !== GeneralNodeID.PLUS && node.type !== GeneralNodeID.TRIGGER)
+
+  // Get IDs of filtered out nodes
+  const filteredNodeIds = new Set(
+    nodes.filter((node) => node.type === GeneralNodeID.PLUS || node.type === GeneralNodeID.TRIGGER).map((n) => n.id),
+  )
+
+  // Filter out edges connected to filtered nodes
+  const filteredEdges = edges.filter((edge) => !filteredNodeIds.has(edge.source) && !filteredNodeIds.has(edge.target))
+
+  return { nodes: filteredNodes, edges: filteredEdges }
+}
+
+/**
+ * Get source nodes/edges based on permission
+ * Don't use draft if user doesn't have edit permission
+ */
+const getSourceNodesAndEdges = (workflow: WorkflowType, hasEditPermission: boolean) => {
+  const sourceNodes = hasEditPermission
+    ? workflow?.draft?.nodes || workflow?.nodes || INIT_WORKFLOW_NODES
+    : workflow?.nodes || INIT_WORKFLOW_NODES
+
+  const sourceEdges = hasEditPermission ? workflow?.draft?.edges || workflow?.edges || [] : workflow?.edges || []
+
+  return { sourceNodes: sourceNodes as Array<Node>, sourceEdges: sourceEdges as Array<Edge> }
+}
+
 const generateUniqueNodeId = (nodes: Node[]): string => {
   let candidateId = crypto.randomUUID()
 
@@ -224,6 +263,8 @@ const updateVariableReferencesInObject = (obj: any, oldTitle: string, newTitle: 
 }
 
 export {
+  filterNodesByPermission,
+  getSourceNodesAndEdges,
   generateUniqueNodeId,
   transformNode,
   findAllParentNodes,

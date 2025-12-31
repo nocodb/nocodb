@@ -7,4 +7,5 @@ export const manifest: IntegrationManifest = {
   description: 'NocoDB AI Integration',
   author: 'NocoDB',
   hidden: true,
+  expose: ['fetchOptions'],
 };

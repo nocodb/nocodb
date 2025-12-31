@@ -194,7 +194,7 @@ export interface FormBuilderSelectElement extends FormBuilderElementBase {
   /** Options for the select dropdown */
   options?: FormBuilderSelectOption[];
   /** Select mode - single, multiple, or multiple with custom input */
-  selectMode?: 'single' | 'multiple' | 'multipleWithInput';
+  selectMode?: 'single' | 'multiple' | 'multipleWithInput' | 'singleWithInput';
   /** Key to fetch options dynamically */
   fetchOptionsKey?: string;
   /** Default value - string for single, array for multiple */

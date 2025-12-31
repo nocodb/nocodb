@@ -177,12 +177,31 @@ export class WorkflowExecutionService {
 
         if (typeof instance.definition === 'function') {
           const definition = await instance.definition();
+
+          const packagePrefix = integration.sub_type?.split('.')[0] || 'core';
+
+          const usePackageManifest =
+            integration.packageManifest &&
+            packagePrefix !== 'core' &&
+            packagePrefix !== 'nocodb';
+
+          const packageInfo = usePackageManifest
+            ? integration.packageManifest
+            : null;
+
           nodes.push({
             ...definition,
             source: {
               type: integration.type,
               subType: integration.sub_type,
             },
+            package: packageInfo
+              ? {
+                  name: packagePrefix,
+                  title: packageInfo.title,
+                  icon: packageInfo.icon,
+                }
+              : undefined,
           });
         }
       } catch (error) {
@@ -214,7 +233,7 @@ export class WorkflowExecutionService {
       return null;
     }
 
-    const getAuthIntegration = async (integrationId: string) => {
+    const getIntegration = async (integrationId: string) => {
       if (!integrationId) {
         NcError.get(context).badRequest('Integration ID is required');
       }
@@ -268,9 +287,9 @@ export class WorkflowExecutionService {
         {},
       ) as WorkflowNodeIntegration;
 
-      // Inject auth loader into node instance
-      if (typeof nodeWrapper.setAuthLoader === 'function') {
-        nodeWrapper.setAuthLoader(getAuthIntegration);
+      // Inject integration loader into node instance
+      if (typeof nodeWrapper.setIntegrationLoader === 'function') {
+        nodeWrapper.setIntegrationLoader(getIntegration);
       }
     } catch (e) {
       this.logger.error(`Failed to instantiate wrapper for ${nodeType}:`, e);

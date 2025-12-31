@@ -6,6 +6,7 @@ import {
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
+import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
 import type {
   FormDefinition,
   WorkflowActivationContext,
@@ -16,7 +17,6 @@ import type {
   WorkflowNodeResult,
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
-import type { Octokit } from '@octokit/rest';
 
 interface GitHubTriggerConfig extends WorkflowNodeConfig {
   authIntegrationId: string;
@@ -103,9 +103,11 @@ export class GitHubTriggerNode extends WorkflowNodeIntegration<GitHubTriggerConf
   public async onActivateHook(
     context: WorkflowActivationContext,
   ): Promise<WorkflowActivationState> {
-    const auth = await this.getAuthIntegration(this.config.authIntegrationId);
+    const auth = await this.getIntegration<GithubAuthIntegration>(
+      this.config.authIntegrationId,
+    );
 
-    return await auth.use(async (octokit: Octokit) => {
+    return await auth.use(async (octokit) => {
       const [owner, repo] = this.config.repo.split('/');
       const { events } = this.config;
 
@@ -138,9 +140,11 @@ export class GitHubTriggerNode extends WorkflowNodeIntegration<GitHubTriggerConf
   ): Promise<void> {
     if (!state?.webhookId) return;
 
-    const auth = await this.getAuthIntegration(this.config.authIntegrationId);
+    const auth = await this.getIntegration<GithubAuthIntegration>(
+      this.config.authIntegrationId,
+    );
 
-    await auth.use(async (octokit: Octokit) => {
+    await auth.use(async (octokit) => {
       const [owner, repo] = this.config.repo.split('/');
 
       await octokit.rest.repos.deleteWebhook({
@@ -184,14 +188,14 @@ export class GitHubTriggerNode extends WorkflowNodeIntegration<GitHubTriggerConf
   public async fetchOptions(key: string): Promise<unknown> {
     if (key === 'repos') {
       try {
-        const auth = await this.getAuthIntegration(
+        const auth = await this.getIntegration<GithubAuthIntegration>(
           this.config.authIntegrationId,
         );
 
         const options: { label: string; value: string }[] = [];
 
         // Fetch user's repositories with admin/write permissions
-        const reposIterator = await auth.use(async (octokit: Octokit) => {
+        const reposIterator = await auth.use(async (octokit) => {
           return octokit.paginate.iterator(
             octokit.rest.repos.listForAuthenticatedUser,
             {

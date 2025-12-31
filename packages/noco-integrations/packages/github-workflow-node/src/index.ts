@@ -16,6 +16,7 @@ export const entries: IntegrationEntry[] = [
       title: 'GitHub Webhook Trigger',
       icon: 'ncGithub',
     },
+    packageManifest: manifest,
   },
 ];
 

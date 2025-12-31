@@ -331,7 +331,7 @@ defineExpose({
       <span v-if="editor"> {{ editor?.getText() ?? '' }}</span>
     </div>
     <template v-else>
-      <CellRichTextLinkOptions
+      <CellRichTextLinkOrImageOptions
         v-if="editor"
         ref="richTextLinkOptionRef"
         :editor="editor"

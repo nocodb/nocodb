@@ -1,10 +1,13 @@
-import { generateObject, generateText, type LanguageModel } from 'ai';
+import { generateText, Output } from 'ai';
 import { createOpenAI } from '@ai-sdk/openai';
 import { AiIntegration } from '@noco-integrations/core';
 import type {
   AiGenerateObjectArgs,
   AiGenerateTextArgs,
+  AiGetModelArgs,
+  ModelCapability,
 } from '@noco-integrations/core';
+import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 const modelMap: Record<string, string> = {
   high: 'gpt-4o',
@@ -14,6 +17,24 @@ const modelMap: Record<string, string> = {
 
 export class NocodbAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
+
+  protected supportedModels = [
+    {
+      value: 'high',
+      label: 'High',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'medium',
+      label: 'Medium',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'low',
+      label: 'Low',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+  ];
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
     const { messages, schema } = args;
@@ -34,32 +55,31 @@ export class NocodbAiIntegration extends AiIntegration {
 
       const customOpenAi = createOpenAI({
         apiKey: apiKey,
-        compatibility: 'strict',
       });
 
       this.model = customOpenAi(model) as LanguageModel;
     }
 
-    const response = await generateObject({
+    const response = await generateText({
       model: this.model as LanguageModel,
-      schema,
+      output: Output.object({ schema }),
       messages,
       temperature: 0.5,
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object as T,
+      data: response.output as T,
     };
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { prompt, messages, customModel, system } = args;
+    const { customModel, system } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
@@ -81,7 +101,6 @@ export class NocodbAiIntegration extends AiIntegration {
 
       const customOpenAi = createOpenAI({
         apiKey: apiKey,
-        compatibility: 'strict',
       });
 
       this.model = customOpenAi(model);
@@ -89,16 +108,17 @@ export class NocodbAiIntegration extends AiIntegration {
 
     const response = await generateText({
       model: this.model,
-      prompt,
-      messages,
       temperature: 0.5,
       system,
+      ...('messages' in args
+        ? { messages: args.messages }
+        : { prompt: args.prompt }),
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -106,20 +126,24 @@ export class NocodbAiIntegration extends AiIntegration {
     };
   }
 
-  public getModelAlias(model: string): string {
-    const aliases: Record<string, string> = {
-      high: 'High',
-      medium: 'Medium',
-      low: 'Low',
-    };
+  public getModel(args?: AiGetModelArgs): LanguageModel {
+    const customModel = args?.customModel;
+    const config = this.config || {};
 
-    return aliases[model] || model;
-  }
+    const inputModel = customModel || config?.models?.[0];
+    const model =
+      modelMap[inputModel as keyof typeof modelMap] || modelMap.high;
 
-  public availableModels(): { value: string; label: string }[] {
-    return (this.config?.models || []).map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-    }));
+    const apiKey = config.apiKey;
+
+    if (!apiKey) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const openAI = createOpenAI({
+      apiKey,
+    });
+
+    return openAI(model);
   }
 }

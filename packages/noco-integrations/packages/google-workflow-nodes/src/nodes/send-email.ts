@@ -9,6 +9,7 @@ import {
   FormBuilderValidatorType,
   type FormDefinition,
 } from '@noco-integrations/core';
+import type { GmailAuthIntegration } from '@noco-integrations/google-mail-auth';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -160,9 +161,8 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
       return [];
     }
 
-    const auth = await this.getAuthIntegration<any, gmail_v1.Gmail>(
-      authIntegrationId,
-    );
+    const auth =
+      await this.getIntegration<GmailAuthIntegration>(authIntegrationId);
 
     switch (key) {
       case 'sendAsAddresses': {
@@ -433,9 +433,8 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
         ts: Date.now(),
       });
 
-      const auth = await this.getAuthIntegration<any, gmail_v1.Gmail>(
-        authIntegrationId,
-      );
+      const auth =
+        await this.getIntegration<GmailAuthIntegration>(authIntegrationId);
 
       const rawEmail = this.createRawEmail(config);
 

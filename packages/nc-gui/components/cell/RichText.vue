@@ -5,8 +5,10 @@ import { EditorContent, useEditor } from '@tiptap/vue-3'
 import Placeholder from '@tiptap/extension-placeholder'
 import { NcMarkdownParser, suggestion } from '~/helpers/tiptap'
 import { Markdown } from '~/helpers/tiptap-markdown'
+
 import {
   HardBreak,
+  Image,
   Italic,
   Link,
   Paragraph,
@@ -117,6 +119,7 @@ const getTiptapExtensions = () => {
     Italic,
 
     // Nodes
+    Image,
     Paragraph,
     HardBreak,
     TaskList,
@@ -127,7 +130,7 @@ const getTiptapExtensions = () => {
       emptyEditorClass: 'is-editor-empty',
       placeholder: props.placeholder,
     }),
-    Markdown.configure({ breaks: true, transformPastedText: true }),
+    Markdown.configure({ breaks: true, transformPastedText: true, renderImagesAsLinks: !isEeUI }),
   ]
 
   if (appInfo.value.ee && !props.hideMention) {
@@ -302,11 +305,11 @@ onClickOutside(editorDom, (e) => {
         :class="{
           'flex rounded-tr-2xl overflow-hidden w-full': fullMode || isForm,
           'max-w-[calc(100%_-_198px)]': fullMode,
-          'justify-start left-0.5': isForm,
-          'justify-end xs:hidden': !isForm,
+          'justify-start left-0.5 max-w-[calc(100%_-_8px)]': isForm,
+          'justify-end xs:hidden max-w-[calc(100%_-_2px)]': !isForm,
         }"
       >
-        <div class="scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent relative">
+        <div class="nc-scrollbar-thin relative">
           <CellRichTextSelectedBubbleMenu
             v-if="editor"
             :editor="editor"
@@ -326,7 +329,7 @@ onClickOutside(editorDom, (e) => {
       />
 
       <template v-if="shouldShowLinkOption">
-        <CellRichTextLinkOptions
+        <CellRichTextLinkOrImageOptions
           v-if="editor"
           ref="richTextLinkOptionRef"
           :editor="editor"
@@ -341,7 +344,7 @@ onClickOutside(editorDom, (e) => {
         class="nc-rich-text-content flex flex-col nc-textarea-rich-editor w-full"
         :class="{
           'mt-2.5 flex-grow': fullMode,
-          'scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent': !fullMode || (!fullMode && isExpandedFormOpen),
+          'nc-scrollbar-thin': !fullMode || (!fullMode && isExpandedFormOpen),
           'flex-grow': isExpandedFormOpen,
           [`!overflow-hidden nc-rich-truncate nc-line-clamp-${rowHeightTruncateLines(localRowHeight)}`]:
             !fullMode && readOnly && localRowHeight && !isExpandedFormOpen && !isForm,

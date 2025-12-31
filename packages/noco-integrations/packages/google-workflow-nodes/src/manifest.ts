@@ -1,9 +1,9 @@
 import type { IntegrationManifest } from '@noco-integrations/core';
 
 export const manifest: IntegrationManifest = {
-  title: 'Google',
+  title: 'Gmail',
   icon: 'gmail',
-  description: 'Send emails and interact with Google services',
+  description: 'Send emails and interact with Gmail',
   version: '0.1.0',
   author: 'NocoDB',
   website: 'https://www.google.com',

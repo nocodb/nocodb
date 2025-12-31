@@ -183,7 +183,7 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
 
       const result = await this.nocodb.dataService.dataUpdate(context, {
         modelId,
-        body: { id: rowId, fields: transformedFields },
+        body: { id: rowId.trim(), fields: transformedFields },
         cookie: {
           user: this.nocodb.user,
         },

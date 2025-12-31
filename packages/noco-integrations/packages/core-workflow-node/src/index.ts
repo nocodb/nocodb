@@ -23,6 +23,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncPlay',
       order: 4,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -34,6 +35,7 @@ export const entries: IntegrationEntry[] = [
       title: 'At scheduled time',
       icon: 'ncClock',
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -46,6 +48,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncIfElse',
       order: 5,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -58,6 +61,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncRepeat',
       order: 6,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -70,6 +74,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncMail',
       order: 12,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -82,6 +87,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncClock',
       order: 7,
     },
+    packageManifest: manifest,
   },
   {
     type: IntegrationType.WorkflowNode,
@@ -94,6 +100,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'ncCalendar',
       order: 8,
     },
+    packageManifest: manifest,
   },
 ];
 

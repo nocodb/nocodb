@@ -475,7 +475,8 @@
     "notice": "Notice",
     "teams": "Teams",
     "structure": "Structure",
-    "retry": "Retry"
+    "retry": "Retry",
+    "attachImage": "Attach Image"
   },
   "objects": {
     "script": "Script",

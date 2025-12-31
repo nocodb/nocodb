@@ -8,13 +8,13 @@ import {
   FormBuilderValidatorType,
   type FormDefinition,
 } from '@noco-integrations/core';
+import type { SlackAuthIntegration } from '@noco-integrations/slack-auth';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
   WorkflowNodeResult,
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
-import type { WebClient } from '@slack/web-api';
 
 interface SendMessageNodeConfig extends WorkflowNodeConfig {
   authIntegrationId: string;
@@ -153,9 +153,8 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
       return [];
     }
 
-    const auth = await this.getAuthIntegration<any, WebClient>(
-      authIntegrationId,
-    );
+    const auth =
+      await this.getIntegration<SlackAuthIntegration>(authIntegrationId);
 
     switch (key) {
       case 'channels': {
@@ -233,9 +232,8 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
         };
       }
 
-      const auth = await this.getAuthIntegration<any, WebClient>(
-        authIntegrationId,
-      );
+      const auth =
+        await this.getIntegration<SlackAuthIntegration>(authIntegrationId);
 
       const target = sendTo === 'channel' ? channelId : userId;
 

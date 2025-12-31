@@ -26,23 +26,28 @@ export interface WorkflowNodeRunContext<TConfig = any> {
     title?: string;
   };
   /**
-   * Load an auth integration by ID for making authenticated API calls.
-   * Returns an AuthIntegration instance with automatic token refresh.
+   * Load an integration by ID (AI, Auth, or any other integration type).
+   * Returns an Integration wrapper containing the integration.
    *
    * @param integrationId - The ID of the integration to load
-   * @returns Promise resolving to the AuthIntegration instance
+   * @returns Promise resolving to Integration wrapper
    *
    * @example
    * ```typescript
-   * const auth = await ctx.getAuthIntegration(config.authIntegrationId);
+   * // Loading an Auth integration
+   * const auth = await ctx.getIntegration(config.authIntegrationId);
    * const data = await auth.use(async (client) => {
    *   return client.api.getData();
    * });
+   *
+   * // Loading an AI integration with type
+   * const ai = await ctx.getIntegration<AiIntegration>(config.aiIntegrationId);
+   * const result = await integration.generateText({ prompt: 'Hello' });
    * ```
    */
-  getAuthIntegration?: <T = any, U = any>(
+  getIntegration?: <T = any>(
     integrationId: string
-  ) => Promise<AuthIntegration<T, U>>;
+  ) => Promise<T>;
 }
 
 /**
@@ -110,50 +115,57 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
   }
 
   /**
-   * Stored auth loader function from execution context.
+   * Stored integration loader function from execution context.
    * Set by the workflow executor before node execution.
    * @internal
    */
-  protected _authLoader?: <T = any, U = any>(
+  protected _integrationLoader?: <T = any>(
     integrationId: string
-  ) => Promise<AuthIntegration<T, U>>;
+  ) => Promise<T>;
 
   /**
-   * Set the auth loader function for this node instance.
+   * Set the integration loader function for this node instance.
    * Called by the workflow executor before node execution.
    * @internal
    */
-  public setAuthLoader(
-    loader: <T = any, U = any>(integrationId: string) => Promise<AuthIntegration<T, U>>
+  public setIntegrationLoader(
+    loader: <T = any>(integrationId: string) => Promise<T>
   ) {
-    this._authLoader = loader;
+    this._integrationLoader = loader;
   }
 
   /**
-   * Load an auth integration by ID for making authenticated API calls.
-   * Use this in run(), fetchOptions(), or other methods that need authentication.
+   * Load an integration by ID (AI, Auth, or any other integration type).
+   * Use this in run(), fetchOptions(), or other methods that need to access integrations.
    *
    * @param integrationId - The ID of the integration to load
-   * @returns Promise resolving to the AuthIntegration instance
-   * @throws Error if auth loader is not available
+   * @returns Promise resolving to AuthIntegration wrapper containing the integration
+   * @throws Error if integration loader is not available
    *
    * @example
    * ```typescript
+   * // Loading an Auth integration
    * async run(ctx: WorkflowNodeRunContext) {
-   *   const auth = await this.getAuthIntegration(this.config.authIntegrationId);
+   *   const auth = await this.getIntegration(this.config.authIntegrationId);
    *   const data = await auth.use(async (client) => {
    *     return client.api.getData();
    *   });
    * }
+   *
+   * // Loading an AI integration with type
+   * async run(ctx: WorkflowNodeRunContext) {
+   *   const ai = await this.getIntegration<AiIntegration>(this.config.aiIntegrationId);
+   *   const result = await ai.generateText({ prompt: 'Hello' });
+   * }
    * ```
    */
-  protected async getAuthIntegration<T = any, U = any>(
+  protected async getIntegration<T = any>(
     integrationId: string
-  ): Promise<AuthIntegration<T, U>> {
-    if (!this._authLoader) {
-      throw new Error('Auth loader not available. This node must be executed within a workflow context.');
+  ): Promise<T> {
+    if (!this._integrationLoader) {
+      throw new Error('Integration loader not available. This node must be executed within a workflow context.');
     }
-    return this._authLoader<T, U>(integrationId);
+    return this._integrationLoader<T>(integrationId);
   }
 
   public abstract definition(): Promise<WorkflowNodeDefinition>;
@@ -206,7 +218,7 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
    * @example GitHub webhook
    * ```typescript
    * async onActivateHook(context: WorkflowActivationContext) {
-   *   const auth = await this.getAuthIntegration(this.config.authIntegrationId);
+   *   const auth = await this.getIntegration<AuthIntegration>(this.config.authIntegrationId);
    *   const webhook = await auth.use(async (client) => {
    *     return client.repos.createWebhook({
    *       owner: this.config.owner,
@@ -234,7 +246,7 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
    * ```typescript
    * async onDeactivateHook(context: WorkflowActivationContext, state?: WorkflowActivationState) {
    *   if (!state?.webhookId) return;
-   *   const auth = await this.getAuthIntegration(this.config.authIntegrationId);
+   *   const auth = await this.getIntegration<AuthIntegration>(this.config.authIntegrationId);
    *   await auth.use(async (client) => {
    *     await client.repos.deleteWebhook({
    *       owner: this.config.owner,

@@ -9,8 +9,7 @@
     "lint": "eslint src --ext .ts"
   },
   "dependencies": {
-    "@noco-integrations/core": "workspace:*",
-    "@slack/web-api": "^7.11.0"
+    "@noco-integrations/core": "workspace:*"
   },
   "devDependencies": {
     "rimraf": "^5.0.10",

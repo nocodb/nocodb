@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Editor } from '@tiptap/vue-3'
 import { BubbleMenu } from '@tiptap/vue-3'
-import { getMarkRange } from '@tiptap/core'
+import { type Node, getMarkRange } from '@tiptap/core'
 import type { Mark } from '@tiptap/pm/model'
 
 const props = defineProps<Props>()
@@ -16,18 +16,30 @@ interface Props {
 
 const { editor, isFormField } = toRefs(props)
 
+const propsEditor = computed(() => editor.value)
+
+const isImageRenderEnabled = computed(() => !propsEditor.value?.storage?.markdown?.options?.renderImagesAsLinks)
+
 const inputRef = ref<HTMLInputElement>()
 const linkNodeMark = ref<Mark | undefined>()
 const href = ref('')
 const isLinkOptionsVisible = ref(false)
+
+// Image options state
+const imageNode = ref<Node | null>(null)
+const isImageOptionsVisible = ref(false)
+const isImageEditMode = ref(false) // Track if we're in edit mode
+const isAddImageMode = ref(false) // Track if we're adding a new image
+
+const revalidatePosition = ref(false)
 
 // This is used to prevent the menu from showing up after a link is deleted, an edge case when the link with empty placeholder text is deleted.
 // This is because checkLinkMark is not called in that case
 const justDeleted = ref(false)
 
 // This function is called by BubbleMenu on selection change
-// It is used to check if the link mark is active and only show the menu if it is
-const checkLinkMark = (editor: Editor) => {
+// It checks if either a link mark is active or an image node is selected
+const checkLinkMarkOrImageNode = (editor: Editor) => {
   if (!editor.view.editable) return false
 
   if (justDeleted.value) {
@@ -37,6 +49,43 @@ const checkLinkMark = (editor: Editor) => {
     return false
   }
 
+  // Check for image node first
+  const selection = editor?.state?.selection
+  const selectedNode = selection && 'node' in selection ? (selection as any).node : null
+
+  // Check if we're in add image mode (from SelectedBubbleMenu)
+  if (isImageRenderEnabled.value && propsEditor.value?.storage?.image?.addImageMode) {
+    // Reset the flag so it doesn't trigger again
+    propsEditor.value.storage.image.addImageMode = false
+
+    // Enter add image mode
+    isImageEditMode.value = true
+    isAddImageMode.value = true
+    isImageOptionsVisible.value = true
+    isLinkOptionsVisible.value = false
+
+    // Clear any existing values for new image
+    imageNode.value = null
+
+    return true
+  }
+
+  // Check for existing image node selection
+  if (isImageRenderEnabled.value && selectedNode && selectedNode.type && selectedNode.type.name === 'image') {
+    if (imageNode.value !== selectedNode && !revalidatePosition.value) {
+      isImageEditMode.value = false
+      isAddImageMode.value = false
+    }
+
+    console.log('nonde', selectedNode)
+    imageNode.value = selectedNode
+
+    isImageOptionsVisible.value = true
+    isLinkOptionsVisible.value = false
+    return true
+  }
+
+  // Check for link mark
   const activeNode = editor?.state?.selection?.$from?.nodeBefore || editor?.state?.selection?.$from?.nodeAfter
 
   const isLinkMarkedStoredInEditor = editor?.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
@@ -58,6 +107,8 @@ const checkLinkMark = (editor: Editor) => {
   // check if active node is a text node
   const showLinkOptions = isActiveNodeMarkActive && !isTextSelected
   isLinkOptionsVisible.value = !!showLinkOptions
+  isImageOptionsVisible.value = false
+  isImageEditMode.value = false // Reset edit mode
 
   return showLinkOptions
 }
@@ -71,6 +122,9 @@ function notStartingWithNetworkProtocol(inputString: string) {
 }
 
 const onChange = () => {
+  const linkMark = editor.value.schema.marks.link
+  if (!linkMark) return
+
   const isLinkMarkedStoredInEditor = editor.value.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
   let formatedHref = href.value
   if (
@@ -84,34 +138,33 @@ const onChange = () => {
 
   if (isLinkMarkedStoredInEditor) {
     editor.value.view.dispatch(
-      editor.value.view.state.tr
-        .removeStoredMark(editor.value.schema.marks.link)
-        .addStoredMark(editor.value.schema.marks.link.create({ href: formatedHref })),
+      editor.value.view.state.tr.removeStoredMark(linkMark).addStoredMark(linkMark.create({ href: formatedHref })),
     )
   } else if (linkNodeMark.value) {
     const selection = editor.value.state?.selection
-    const markSelection = getMarkRange(selection.$anchor, editor.value.schema.marks.link) as any
+    const markSelection = getMarkRange(selection.$anchor, linkMark) as any
 
     editor.value.view.dispatch(
       editor.value.view.state.tr
-        .removeMark(markSelection.from, markSelection.to, editor.value.schema.marks.link)
-        .addMark(markSelection.from, markSelection.to, editor.value.schema.marks.link.create({ href: formatedHref })),
+        .removeMark(markSelection.from, markSelection.to, linkMark)
+        .addMark(markSelection.from, markSelection.to, linkMark.create({ href: formatedHref })),
     )
   }
 }
 
 const onDelete = () => {
+  const linkMark = editor.value.schema.marks.link
+  if (!linkMark) return
+
   const isLinkMarkedStoredInEditor = editor.value.state?.storedMarks?.some((mark: Mark) => mark.type.name === 'link')
 
   if (isLinkMarkedStoredInEditor) {
-    editor.value.view.dispatch(editor.value.view.state.tr.removeStoredMark(editor.value.schema.marks.link))
+    editor.value.view.dispatch(editor.value.view.state.tr.removeStoredMark(linkMark))
   } else if (linkNodeMark.value) {
     const selection = editor.value.state.selection
-    const markSelection = getMarkRange(selection.$anchor, editor.value.schema.marks.link) as any
+    const markSelection = getMarkRange(selection.$anchor, linkMark) as any
 
-    editor.value.view.dispatch(
-      editor.value.view.state.tr.removeMark(markSelection.from, markSelection.to, editor.value.schema.marks.link),
-    )
+    editor.value.view.dispatch(editor.value.view.state.tr.removeMark(markSelection.from, markSelection.to, linkMark))
   }
 
   justDeleted.value = true
@@ -144,8 +197,8 @@ const handleInputBoxKeyDown = (e: any) => {
   }
 }
 
-watch(isLinkOptionsVisible, (value, oldValue) => {
-  if (value && !oldValue) {
+watch([isLinkOptionsVisible, isImageOptionsVisible], ([linkVisible, imageVisible], [oldLinkVisible, oldImageVisible]) => {
+  if (linkVisible && !oldLinkVisible) {
     const isPlaceholderEmpty =
       !editor.value.state.selection.$from.nodeBefore?.textContent && !editor.value.state.selection.$from.nodeAfter?.textContent
 
@@ -155,7 +208,26 @@ watch(isLinkOptionsVisible, (value, oldValue) => {
       inputRef.value?.focus()
     }, 100)
   }
+
+  // Reset edit mode when image options are hidden
+  if (!imageVisible && oldImageVisible) {
+    isImageEditMode.value = false
+    isAddImageMode.value = false
+  }
 })
+
+watch([isImageEditMode, isImageOptionsVisible], () => {
+  if (!isImageEditMode.value || !isImageOptionsVisible.value) {
+    revalidatePosition.value = false
+  }
+})
+
+const onImageEditModeUpdate = () => {
+  setTimeout(() => {
+    revalidatePosition.value = true
+    editor.value?.chain()?.focus().run()
+  }, 100)
+}
 
 const openLink = () => {
   if (href.value) {
@@ -163,7 +235,7 @@ const openLink = () => {
   }
 }
 
-const onMountLinkOptions = (e) => {
+const onMountLinkOptions = (e: any) => {
   if (e?.popper?.style) {
     if (props.isComment) {
       e.popper.style.left = '-10%'
@@ -178,18 +250,20 @@ const tabIndex = computed(() => {
 </script>
 
 <template>
+  <!-- Link Options Bubble Menu -->
   <BubbleMenu
     :editor="editor"
     :tippy-options="{
       duration: 100,
       maxWidth: 400,
+      placement: isImageOptionsVisible && isImageRenderEnabled && (isImageEditMode || isAddImageMode) ? 'auto-start' : 'auto',
       onMount: onMountLinkOptions,
     }"
-    :should-show="(checkLinkMark as any)"
+    :should-show="(checkLinkMarkOrImageNode as any)"
   >
+    <!-- Link Options -->
     <div
-      v-if="!justDeleted"
-      ref="wrapperRef"
+      v-if="!justDeleted && isLinkOptionsVisible && !isImageOptionsVisible"
       class="relative bubble-menu nc-text-area-rich-link-options bg-nc-bg-default flex flex-col border-1 border-nc-border-gray-medium py-1 px-1 rounded-lg w-full"
       data-testid="nc-text-area-rich-link-options"
       @keydown.stop="handleKeyDown"
@@ -239,6 +313,16 @@ const tabIndex = computed(() => {
         </NcTooltip>
       </div>
     </div>
+    <CellRichTextImageOptions
+      v-if="isImageOptionsVisible && isImageRenderEnabled"
+      v-model:is-add-image-mode="isAddImageMode"
+      v-model:is-image-edit-mode="isImageEditMode"
+      v-model:is-image-options-visible="isImageOptionsVisible"
+      :editor="editor"
+      :tab-index="tabIndex"
+      :image-node="imageNode"
+      @update:is-image-edit-mode="onImageEditModeUpdate"
+    />
   </BubbleMenu>
 </template>
 

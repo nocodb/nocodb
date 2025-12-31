@@ -13,3 +13,5 @@ export * from './envs';
 export const isEE = false;
 export const isOnPrem = false;
 export const isCloud = false;
+
+export const isDevOrTestEnvironment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';

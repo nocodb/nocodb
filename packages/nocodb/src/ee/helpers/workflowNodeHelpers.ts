@@ -2,6 +2,7 @@ import { PlanOrder, PlanTitles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import { getActivePlanAndSubscription } from '~/helpers/paymentHelpers';
+import { isDevOrTestEnvironment } from '~/utils'
 
 /**
  * Map of workflow node IDs to minimum required plan tier
@@ -31,6 +32,7 @@ export function isNodeAvailableForPlan(
   nodeId: string,
   userPlanTitle: string,
 ): boolean {
+  if (isDevOrTestEnvironment) return true;
   const requiredPlan = WorkflowNodePlanRequirements[nodeId];
 
   // If node not in requirements map, it's free

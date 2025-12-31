@@ -11,4 +11,5 @@ export const manifest = createManifest(IntegrationType.Ai, {
     width: '32px',
     height: '32px',
   },
+  expose: ['fetchOptions'],
 });

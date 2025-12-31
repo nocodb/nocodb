@@ -1,13 +1,52 @@
-import { generateObject, generateText, type LanguageModel } from 'ai';
+import { generateText, Output } from 'ai';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
+  type AiGetModelArgs,
   AiIntegration,
+  type ModelCapability,
 } from '@noco-integrations/core';
+import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 export class ClaudeIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
+
+  protected supportedModels = [
+    // Claude 4.5 series
+    {
+      value: 'claude-opus-4-5',
+      label: 'Claude Opus 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'claude-sonnet-4-5',
+      label: 'Claude Sonnet 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'claude-haiku-4-5',
+      label: 'Claude Haiku 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    // Claude 4.1 series
+    {
+      value: 'claude-opus-4-1',
+      label: 'Claude Opus 4.1',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    // Claude 4.0 series
+    {
+      value: 'claude-opus-4-0',
+      label: 'Claude Opus 4',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'claude-sonnet-4-0',
+      label: 'Claude Sonnet 4',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+  ];
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
     const { messages, schema } = args;
@@ -32,26 +71,26 @@ export class ClaudeIntegration extends AiIntegration {
       this.model = anthropic(model);
     }
 
-    const response = await generateObject({
+    const response = await generateText({
       model: this.model,
-      schema,
+      output: Output.object({ schema }),
       messages,
       temperature: 0.5,
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object as T,
+      data: response.output as T,
     };
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { prompt, messages, customModel, system } = args;
+    const { customModel, system } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
@@ -77,16 +116,17 @@ export class ClaudeIntegration extends AiIntegration {
 
     const response = await generateText({
       model: this.model,
-      prompt,
       system,
-      messages,
       temperature: 0.5,
+      ...('messages' in args
+        ? { messages: args.messages }
+        : { prompt: args.prompt }),
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -94,17 +134,24 @@ export class ClaudeIntegration extends AiIntegration {
     };
   }
 
-  public getModelAlias(model: string): string {
-    const aliases: Record<string, string> = {
-      'claude-3-5-sonnet-20240620': 'Claude 3.5 Sonnet',
-      'claude-3-opus-20240229': 'Claude 3 Opus',
-      'claude-3-sonnet-20240229': 'Claude 3 Sonnet',
-      'claude-3-haiku-20240307': 'Claude 3 Haiku',
-      'claude-2.1': 'Claude 2.1',
-      'claude-2.0': 'Claude 2.0',
-      'claude-instant-1.2': 'Claude Instant 1.2',
-    };
+  public getModel(args?: AiGetModelArgs): LanguageModel {
+    const customModel = args?.customModel;
+    const model = customModel || this.config.models[0];
 
-    return aliases[model] || model;
+    if (!model) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const apiKey = this.config.apiKey;
+
+    if (!apiKey) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const anthropic = createAnthropic({
+      apiKey,
+    });
+
+    return anthropic(model);
   }
 }

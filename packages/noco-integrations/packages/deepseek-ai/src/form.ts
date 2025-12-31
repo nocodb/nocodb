@@ -41,11 +41,8 @@ export const form: FormDefinition = [
     placeholder: 'Allowed models',
     category: 'Settings',
     selectMode: 'multipleWithInput',
-    options: [
-      { value: 'deepseek-v3', label: 'DeepSeek v3' },
-      { value: 'deepseek-r1', label: 'DeepSeek R1' },
-    ],
-    defaultValue: ['deepseek-v3'],
+    fetchOptionsKey: 'models',
+    defaultValue: ['deepseek-chat'],
     validators: [
       {
         type: FormBuilderValidatorType.Required,

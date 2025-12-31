@@ -1,13 +1,99 @@
-import { generateObject, generateText, type LanguageModel } from 'ai';
+import { generateText, Output } from 'ai';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
+  type AiGetModelArgs,
   AiIntegration,
+  type ModelCapability,
 } from '@noco-integrations/core';
+import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 export class AmazonBedrockAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
+
+  protected supportedModels = [
+    {
+      value: 'anthropic.claude-opus-4-5-20251101-v1:0',
+      label: 'Claude Opus 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'anthropic.claude-sonnet-4-5-20250929-v1:0',
+      label: 'Claude Sonnet 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'anthropic.claude-haiku-4-5-20251001-v1:0',
+      label: 'Claude Haiku 4.5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'anthropic.claude-opus-4-1-20250805-v1:0',
+      label: 'Claude Opus 4.1',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'anthropic.claude-sonnet-4-20250514-v1:0',
+      label: 'Claude Sonnet 4',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'amazon.nova-2-lite-v1:0',
+      label: 'Nova 2 Lite',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'amazon.nova-premier-v1:0',
+      label: 'Nova Premier',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'amazon.nova-pro-v1:0',
+      label: 'Nova Pro',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'amazon.nova-lite-v1:0',
+      label: 'Nova Lite',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'amazon.nova-micro-v1:0',
+      label: 'Nova Micro',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'meta.llama4-maverick-17b-instruct-v1:0',
+      label: 'Llama 4 Maverick',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'meta.llama4-scout-17b-instruct-v1:0',
+      label: 'Llama 4 Scout',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'meta.llama3-3-70b-instruct-v1:0',
+      label: 'Llama 3.3 70B',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'deepseek.r1-v1:0',
+      label: 'DeepSeek R1',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'deepseek.v3-v1:0',
+      label: 'DeepSeek V3.1',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'mistral.mistral-large-3-675b-instruct',
+      label: 'Mistral Large 3',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+  ];
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
     const { messages, schema } = args;
@@ -36,31 +122,31 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
       this.model = bedrockClient(model);
     }
 
-    const response = await generateObject({
+    const response = await generateText({
       model: this.model as LanguageModel,
-      schema,
+      output: Output.object({ schema }),
       messages,
       temperature: 0.5,
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object as T,
+      data: response.output as T,
     };
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { prompt, messages, customModel } = args;
+    const { customModel } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
 
-      const model = customModel || config?.models?.[0];
+      const model = customModel || config?.models[0];
 
       if (!model) {
         throw new Error('Integration not configured properly');
@@ -84,15 +170,16 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
 
     const response = await generateText({
       model: this.model,
-      prompt,
-      messages,
       temperature: 0.5,
+      ...('messages' in args
+        ? { messages: args.messages }
+        : { prompt: args.prompt }),
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -100,28 +187,29 @@ export class AmazonBedrockAiIntegration extends AiIntegration {
     };
   }
 
-  public getModelAlias(model: string): string {
-    const aliases: Record<string, string> = {
-      'anthropic.claude-3-sonnet-20240229-v1:0': 'Claude 3 Sonnet',
-      'anthropic.claude-3-haiku-20240307-v1:0': 'Claude 3 Haiku',
-      'anthropic.claude-3-opus-20240229-v1:0': 'Claude 3 Opus',
-      'meta.llama3-70b-instruct-v1:0': 'Llama 3 70B',
-      'meta.llama3-8b-instruct-v1:0': 'Llama 3 8B',
-      'mistral.mistral-7b-instruct-v0:2': 'Mistral 7B',
-      'mistral.mixtral-8x7b-instruct-v0:1': 'Mixtral 8x7B',
-      'amazon.titan-text-express-v1': 'Amazon Titan Text Express',
-      'amazon.nova-micro-v1:0': 'Amazon Nova Micro',
-      'amazon.nova-lite-v1:0': 'Amazon Nova Lite',
-      'amazon.nova-pro-v1:0': 'Amazon Nova Pro',
-    };
+  public getModel(args?: AiGetModelArgs): LanguageModel {
+    const customModel = args?.customModel;
+    const model = customModel || this.config.models[0];
 
-    return aliases[model] || model;
-  }
+    if (!model) {
+      throw new Error('Integration not configured properly');
+    }
 
-  public availableModels(): { value: string; label: string }[] {
-    return this.config.models.map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-    }));
+    const accessKeyId = this.config.accessKeyId;
+    const secretAccessKey = this.config.secretAccessKey;
+    const region = this.config.region;
+
+    if (!accessKeyId || !secretAccessKey || !region) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const bedrockClient = createAmazonBedrock({
+      region,
+      accessKeyId,
+      secretAccessKey,
+      sessionToken: this.config.sessionToken,
+    });
+
+    return bedrockClient(model);
   }
 }

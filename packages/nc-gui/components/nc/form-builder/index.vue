@@ -26,7 +26,11 @@ const { loadIntegrations, addIntegration, integrations, eventBus, pageMode, Inte
   useProvideIntegrationViewStore()
 
 const selectMode = (field: FormBuilderElement) => {
-  return field.selectMode === 'multipleWithInput' ? 'tags' : field.selectMode === 'multiple' ? 'multiple' : undefined
+  return field.selectMode === 'multipleWithInput' || field.selectMode === 'singleWithInput'
+    ? 'tags'
+    : field.selectMode === 'multiple'
+    ? 'multiple'
+    : undefined
 }
 
 const haveIntegrationInput = computed(() => {
@@ -151,6 +155,25 @@ const integegrationEventHandler = (event: IntegrationStoreEvents, payload: any) 
   if (event === IntegrationStoreEvents.INTEGRATION_ADD && payload?.id && activeModel.value) {
     setFormStateWithEmit(activeModel.value, payload.id)
     activeModel.value = null
+  }
+}
+
+const getSelectValue = (field: FormBuilderElement) => {
+  const value = deepReference(field.model)
+  if (field.selectMode === 'singleWithInput') {
+    // Convert single value to array for tags mode
+    return value ? [value] : []
+  }
+  return value
+}
+
+const handleSelectChange = (field: FormBuilderElement, value: any) => {
+  if (field.selectMode === 'singleWithInput') {
+    // Convert array back to single value
+    const singleValue = Array.isArray(value) ? value[value.length - 1] || null : value
+    setFormStateWithEmit(field.model, singleValue)
+  } else {
+    setFormStateWithEmit(field.model, value)
   }
 }
 
@@ -311,13 +334,14 @@ watch(
                   <template v-else-if="field.type === FormBuilderInputType.Select">
                     <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
                       <NcSelect
-                        :value="deepReference(field.model)"
+                        :value="getSelectValue(field)"
                         :options="field.fetchOptionsKey ? getFieldOptions(field.model) : field.options"
                         :mode="selectMode(field)"
+                        :max-tag-count="field.selectMode === 'singleWithInput' ? 1 : undefined"
                         show-search
                         :placeholder="field.placeholder"
                         :loading="field.fetchOptionsKey && getIsLoadingFieldOptions(field.model)"
-                        @update:value="setFormStateWithEmit(field.model, $event)"
+                        @update:value="handleSelectChange(field, $event)"
                       />
                     </NcFormBuilderInputMountedWrapper>
                   </template>

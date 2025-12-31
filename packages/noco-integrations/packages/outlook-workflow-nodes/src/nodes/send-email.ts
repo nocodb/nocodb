@@ -9,13 +9,13 @@ import {
   FormBuilderValidatorType,
   type FormDefinition,
 } from '@noco-integrations/core';
+import type { OutlookAuthIntegration } from '@noco-integrations/outlook-mail-auth';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
   WorkflowNodeResult,
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
-import type { Client } from '@microsoft/microsoft-graph-client';
 
 interface SendEmailNodeConfig extends WorkflowNodeConfig {
   authIntegrationId: string;
@@ -294,9 +294,8 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
         ts: Date.now(),
       });
 
-      const auth = await this.getAuthIntegration<any, Client>(
-        authIntegrationId,
-      );
+      const auth =
+        await this.getIntegration<OutlookAuthIntegration>(authIntegrationId);
 
       const message: any = {
         subject,

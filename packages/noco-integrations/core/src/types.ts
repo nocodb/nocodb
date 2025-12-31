@@ -32,6 +32,7 @@ export interface IntegrationEntry<T = any> {
   }) => IntegrationWrapper<T>;
   form: FormDefinition;
   manifest: IntegrationManifest;
+  packageManifest?: IntegrationManifest;
 }
 
 export {

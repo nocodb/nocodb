@@ -1,13 +1,110 @@
-import { generateObject, generateText, type LanguageModel } from 'ai';
+import { generateText, Output } from 'ai';
 import { createAzure } from '@ai-sdk/azure';
 import {
   type AiGenerateObjectArgs,
   type AiGenerateTextArgs,
+  type AiGetModelArgs,
   AiIntegration,
+  type ModelCapability,
 } from '@noco-integrations/core';
+import type { LanguageModelV3 as LanguageModel } from '@ai-sdk/provider';
 
 export class AzureAiIntegration extends AiIntegration {
   private model: LanguageModel | null = null;
+
+  protected supportedModels = [
+    // GPT-5.2 series
+    {
+      value: 'gpt-5.2',
+      label: 'GPT-5.2',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5.2-chat',
+      label: 'GPT-5.2 Chat',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // GPT-5.1 series
+    {
+      value: 'gpt-5.1',
+      label: 'GPT-5.1',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5.1-chat',
+      label: 'GPT-5.1 Chat',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // GPT-5 series
+    {
+      value: 'gpt-5',
+      label: 'GPT-5',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5-mini',
+      label: 'GPT-5 Mini',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5-nano',
+      label: 'GPT-5 Nano',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-5-chat',
+      label: 'GPT-5 Chat',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // GPT-4.1 series
+    {
+      value: 'gpt-4.1',
+      label: 'GPT-4.1',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-4.1-mini',
+      label: 'GPT-4.1 Mini',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-4.1-nano',
+      label: 'GPT-4.1 Nano',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // o-series
+    {
+      value: 'o3-pro',
+      label: 'o3 Pro',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'o4-mini',
+      label: 'o4-mini',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'o3',
+      label: 'o3',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'o3-mini',
+      label: 'o3 Mini',
+      capabilities: ['text', 'tools'] as ModelCapability[],
+    },
+    // GPT-4o series
+    {
+      value: 'gpt-4o',
+      label: 'GPT-4o',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+    {
+      value: 'gpt-4o-mini',
+      label: 'GPT-4o Mini',
+      capabilities: ['text', 'vision', 'tools'] as ModelCapability[],
+    },
+  ];
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
     const { messages, schema } = args;
@@ -36,26 +133,26 @@ export class AzureAiIntegration extends AiIntegration {
       this.model = azureClient(model);
     }
 
-    const response = await generateObject({
+    const response = await generateText({
       model: this.model as LanguageModel,
-      schema,
+      output: Output.object({ schema }),
       messages,
       temperature: 0.5,
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
-      data: response.object as T,
+      data: response.output as T,
     };
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { prompt, messages, customModel, system } = args;
+    const { customModel, system } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
@@ -83,15 +180,16 @@ export class AzureAiIntegration extends AiIntegration {
     const response = await generateText({
       system,
       model: this.model,
-      prompt,
-      messages,
       temperature: 0.5,
+      ...('messages' in args
+        ? { messages: args.messages }
+        : { prompt: args.prompt }),
     });
 
     return {
       usage: {
-        input_tokens: response.usage.promptTokens,
-        output_tokens: response.usage.completionTokens,
+        input_tokens: response.usage.inputTokens,
+        output_tokens: response.usage.outputTokens,
         total_tokens: response.usage.totalTokens,
         model: this.model.modelId,
       },
@@ -99,20 +197,28 @@ export class AzureAiIntegration extends AiIntegration {
     };
   }
 
-  public getModelAlias(model: string): string {
-    const aliases: Record<string, string> = {
-      'gpt-4o': 'GPT-4o',
-      'gpt-4.1': 'GPT-4.1',
-      o3: 'o3',
-      'o4-mini': 'o4-mini',
-    };
-    return aliases[model] || model;
-  }
+  public getModel(args?: AiGetModelArgs): LanguageModel {
+    const customModel = args?.customModel;
+    const model = customModel || this.config.models[0];
 
-  public availableModels(): { value: string; label: string }[] {
-    return this.config.models.map((model: string) => ({
-      value: model,
-      label: this.getModelAlias(model),
-    }));
+    if (!model) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const resourceName = this.config.resourceName;
+    const apiKey = this.config.apiKey;
+    const apiVersion = this.config.apiVersion;
+
+    if (!resourceName || !apiKey) {
+      throw new Error('Integration not configured properly');
+    }
+
+    const azureClient = createAzure({
+      resourceName,
+      apiKey,
+      apiVersion,
+    });
+
+    return azureClient(model);
   }
 }

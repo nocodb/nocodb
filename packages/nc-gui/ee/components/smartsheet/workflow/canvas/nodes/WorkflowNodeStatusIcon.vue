@@ -20,6 +20,10 @@ const testResult = computed(() => {
   return nodes.value.find((node) => node.id === props.nodeId)?.data?.testResult
 })
 
+const testResultIsStale = computed(() => {
+  return testResult.value?.isStale
+})
+
 const isTestMode = computed(() => !viewingExecution.value)
 
 const status = computed(() => {
@@ -64,7 +68,7 @@ const tooltip = computed(() => {
 </script>
 
 <template>
-  <div v-if="status" class="absolute -top-2 -right-2">
+  <div v-if="status && !testResultIsStale" class="absolute -top-2 -right-2">
     <NcTooltip>
       <template #title>
         {{ tooltip }}
@@ -73,7 +77,7 @@ const tooltip = computed(() => {
       <div
         :class="{
           'bg-nc-green-700 dark:bg-nc-green-200': status === 'success',
-          'bg-nc-red-500 dark:bg-nc-red-500': status === 'error',
+          'bg-nc-red-700 dark:bg-nc-red-300': status === 'error',
           'bg-nc-brand-500 dark:bg-nc-brand-500': status === 'running',
           'bg-nc-gray-400 dark:bg-nc-gray-500': status === 'skipped' || status === 'pending',
         }"

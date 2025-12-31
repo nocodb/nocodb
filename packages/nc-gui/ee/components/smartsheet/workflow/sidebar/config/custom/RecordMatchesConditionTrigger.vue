@@ -33,6 +33,10 @@ const updateConfig = (updates: Partial<RecordMatchesConditionConfig>) => {
         ...config.value,
         ...updates,
       },
+      testResult: {
+        ...(selectedNode.value?.data?.testResult || {}),
+        isStale: true,
+      },
     },
   })
 }

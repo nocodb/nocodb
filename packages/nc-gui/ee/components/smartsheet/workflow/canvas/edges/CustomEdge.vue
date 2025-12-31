@@ -133,7 +133,7 @@ export default {
         transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
         pointerEvents: 'all',
       }"
-      class="flex items-center justify-center"
+      class="flex items-center z-20 justify-center"
     >
       <Dropdown :category="[WorkflowNodeCategory.ACTION, WorkflowNodeCategory.FLOW]" @select="selectNodeType">
         <template #default="{ openDropdown }">

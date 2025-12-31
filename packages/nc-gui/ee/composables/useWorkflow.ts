@@ -133,6 +133,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       target: plusNode.id,
       animated: false,
       type: 'custom',
+      zIndex: 2,
     }
 
     if (edgeLabel) {
@@ -197,6 +198,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       target: newNodeId,
       animated: false,
       type: 'custom',
+      zIndex: 2,
     }
 
     if (edge.label) {
@@ -216,6 +218,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       target: edge.target,
       animated: false,
       type: 'custom',
+      zIndex: 2,
     }
 
     // If the new node has multiple outputs, connect to the first port
@@ -396,6 +399,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
             target: outEdge.target,
             animated: false, // Never animate edges
             type: 'custom',
+            zIndex: 2,
           }
           if (inEdge.label) {
             newEdge.label = inEdge.label
@@ -424,6 +428,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       outgoingEdges,
       nodes.value,
       getNodeMetaById,
+      edges.value,
     )
 
     debouncedWorkflowUpdate()
@@ -436,7 +441,15 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
     await nextTick()
     if (firstParentNode) {
-      await addPlusNode(firstParentNode.id, undefined, undefined, true)
+      // Only add a generic plus node if the parent is not a multi-output node
+      // Multi-output nodes will have their ports handled by the loop below
+      const parentMeta = getNodeMetaById(firstParentNode.type)
+      const parentOutputPorts = getNodeOutputPorts(parentMeta)
+      const isMultiOutput = parentOutputPorts.length > 1
+
+      if (!isMultiOutput) {
+        await addPlusNode(firstParentNode.id, undefined, undefined, true)
+      }
     }
 
     for (const [parentNodeId, emptyPorts] of parentNodesNeedingPlusNodes) {

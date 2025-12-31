@@ -115,16 +115,20 @@ onClickOutside(menuRef, () => {
 })
 
 useEventListener('keydown', (e: KeyboardEvent) => {
-  if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey) {
+  if (e.metaKey || e.ctrlKey) {
+    if (e.key === '0') {
+      e.preventDefault()
+      handleZoomReset()
+    }
+    return
+  }
+  if (!e.shiftKey && !e.altKey) {
     if (e.key === '=' || e.key === '+') {
       e.preventDefault()
       handleZoomIn()
     } else if (e.key === '-' || e.key === '_') {
       e.preventDefault()
       handleZoomOut()
-    } else if (e.key === '0') {
-      e.preventDefault()
-      handleZoomReset()
     }
   }
 })
@@ -149,7 +153,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
               <div class="flex-1" />
 
               <span class="text-small !leading-5 px-1 rounded-md border-1 bg-nc-bg-gray-medium border-nc-border-gray-medium">
-                {{ renderCmdOrCtrlKey() }} +
+                +
               </span>
             </NcMenuItem>
             <NcMenuItem inner-class="w-full" @click="handleZoomOut">
@@ -160,7 +164,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
               <div class="flex-1" />
 
               <span class="text-small !leading-5 px-1 rounded-md border-1 bg-nc-bg-gray-medium border-nc-border-gray-medium">
-                {{ renderCmdOrCtrlKey() }} -
+                -
               </span>
             </NcMenuItem>
             <NcMenuItem @click="handleZoomTo(50)">

@@ -13,7 +13,7 @@ export const entries: IntegrationEntry[] = [
     form: [],
     manifest: {
       ...manifest,
-      title: 'Send Email',
+      title: 'Send email',
       icon: 'gmail',
       order: 14,
     },

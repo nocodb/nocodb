@@ -81,6 +81,10 @@ const updateConfig = (updates: Partial<WaitUntilNodeConfig>) => {
         ...config.value,
         ...updates,
       },
+      testResult: {
+        ...(selectedNode.value?.data?.testResult || {}),
+        isStale: true,
+      },
     },
   })
 }
@@ -374,8 +378,8 @@ watch(
 
             <NcTimeSelector
               v-else
+              is12hr-format
               :selected-date="datetime ?? null"
-              :min-granularity="60"
               is-min-granularity-picker
               :is-open="isOpen"
               @update:selected-date="handleSelectTime"

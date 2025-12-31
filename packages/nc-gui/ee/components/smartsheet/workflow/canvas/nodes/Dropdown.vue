@@ -16,7 +16,11 @@ const { nodeTypes } = useWorkflowOrThrow()
 const showDropdown = ref(false)
 const dropdownRef = ref()
 
-const selectNodeOption = (option: WorkflowNodeDefinition) => {
+const selectNodeOption = (option: WorkflowNodeDefinition & { locked?: boolean; requiredPlan?: string }) => {
+  if (option.locked) {
+    return
+  }
+
   emit('select', option)
   showDropdown.value = false
 }
@@ -130,3 +134,26 @@ onClickOutside(
     </template>
   </NcDropdown>
 </template>
+
+<style scoped lang="scss">
+.locked-node {
+  &:hover {
+    background-color: rgba(251, 146, 60, 0.1) !important;
+    cursor: not-allowed !important;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(251, 146, 60, 0.03) 10px,
+      rgba(251, 146, 60, 0.03) 20px
+    );
+    pointer-events: none;
+  }
+}
+</style>

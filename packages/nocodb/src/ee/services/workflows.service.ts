@@ -25,6 +25,12 @@ import {
   Workspace,
 } from '~/models';
 import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import {
+  isNodeAvailableForPlan,
+  getPlanTitleFromContext,
+  WorkflowNodePlanRequirements,
+  getPlanDisplayName,
+} from '~/helpers/workflowNodeHelpers';
 import NocoSocket from '~/socket/NocoSocket';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
@@ -64,6 +70,45 @@ export class WorkflowsService implements OnModuleInit {
         repeat: { cron: '* * * * *' },
       },
     );
+  }
+
+  /**
+   * Validate that all nodes in a workflow are available for the user's plan
+   * @throws NcError.planLimitExceeded if any node requires a higher plan tier
+   */
+  private async validateWorkflowNodeAccess(
+    context: NcContext,
+    nodes: any[],
+  ): Promise<void> {
+    if (!nodes || nodes.length === 0) {
+      return;
+    }
+
+    // Get user's current plan title
+    const userPlanTitle = await getPlanTitleFromContext(context);
+
+    // Check each node for plan requirements
+    for (const node of nodes) {
+      const nodeType = node.type; // e.g., 'core.action.send_email'
+
+      // Skip special nodes like Plus node and Trigger placeholder
+      if (nodeType === GeneralNodeID.PLUS || nodeType === GeneralNodeID.TRIGGER) {
+        continue;
+      }
+
+      if (!isNodeAvailableForPlan(nodeType, userPlanTitle)) {
+        const requiredPlan = WorkflowNodePlanRequirements[nodeType];
+        const requiredPlanName = getPlanDisplayName(requiredPlan);
+
+        NcError.planLimitExceeded(
+          `The workflow contains a node that requires the ${requiredPlanName} plan or higher. Please upgrade your plan to use this node.`,
+          {
+            current: userPlanTitle,
+            higherPlan: requiredPlan,
+          },
+        );
+      }
+    }
   }
 
   async listWorkflows(context: NcContext) {
@@ -513,6 +558,9 @@ export class WorkflowsService implements OnModuleInit {
         'No draft changes to publish. Please make changes first.',
       );
     }
+
+    // Validate workflow draft nodes are accessible for user's plan before publishing
+    await this.validateWorkflowNodeAccess(context, workflow.draft.nodes);
 
     const pendingExecutionsCount = await WorkflowExecution.getWaitingDueCount(
       context,

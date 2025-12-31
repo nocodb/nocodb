@@ -12,6 +12,11 @@ import {
   VariableType,
   WorkflowExpressionParser,
 } from 'nocodb-sdk';
+import {
+  isNodeAvailableForPlan,
+  getPlanTitleFromContext,
+  WorkflowNodePlanRequirements,
+} from '~/helpers/workflowNodeHelpers';
 import rfdc from 'rfdc';
 import type {
   LoopContext,
@@ -158,6 +163,9 @@ export class WorkflowExecutionService {
   ) {}
 
   public async getWorkflowNodes(context: NcContext) {
+    // Get user's current plan title
+    const userPlanTitle = await getPlanTitleFromContext(context);
+
     const workflowNodeIntegrations = Integration.availableIntegrations
       .filter(
         (i) =>
@@ -189,8 +197,19 @@ export class WorkflowExecutionService {
             ? integration.packageManifest
             : null;
 
+
+          // Check if node is available for user's plan
+          const isAvailable = isNodeAvailableForPlan(
+            definition.id,
+            userPlanTitle,
+          );
+          const requiredPlan = WorkflowNodePlanRequirements[definition.id];
+
+
           nodes.push({
             ...definition,
+            locked: !isAvailable,
+            requiredPlan: !isAvailable ? requiredPlan : undefined,
             source: {
               type: integration.type,
               subType: integration.sub_type,

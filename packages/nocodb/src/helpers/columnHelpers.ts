@@ -12,7 +12,6 @@ import { NcError } from './ncError';
 import type {
   BoolType,
   ColumnReqType,
-  LinkToAnotherRecordType,
   LookupColumnReqType,
   NcRequest,
   RollupColumnReqType,
@@ -374,11 +373,14 @@ export async function validateRollupPayload(
     context,
   );
 
-  const relation = await (
-    await Column.get(context, {
-      colId: (payload as RollupColumnReqType).fk_relation_column_id,
-    })
-  ).getColOptions<LinkToAnotherRecordType>(context);
+  const column = await Column.get(context, {
+    colId: (payload as RollupColumnReqType).fk_relation_column_id,
+  });
+
+  const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
+    context,
+  );
+  const { refContext } = relation.getRelContext(context);
 
   if (!relation) {
     NcError.get(context).relationFieldNotFound(
@@ -389,21 +391,21 @@ export async function validateRollupPayload(
   let relatedColumn: Column;
   switch (relation.type) {
     case 'hm':
-      relatedColumn = await Column.get(context, {
+      relatedColumn = await Column.get(refContext, {
         colId: relation.fk_child_column_id,
       });
       break;
     case 'mm':
     case 'bt':
-      relatedColumn = await Column.get(context, {
+      relatedColumn = await Column.get(refContext, {
         colId: relation.fk_parent_column_id,
       });
       break;
   }
 
-  const relatedTable = await relatedColumn.getModel(context);
+  const relatedTable = await relatedColumn.getModel(refContext);
 
-  const rollupColumn = (await relatedTable.getColumns(context)).find(
+  const rollupColumn = (await relatedTable.getColumns(refContext)).find(
     (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
   );
 

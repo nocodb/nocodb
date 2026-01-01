@@ -31,14 +31,11 @@ export class IntegrationPostOperations
   ): InternalPOSTResponseType {
     switch (operation) {
       case 'integrationFetchOptions':
-        return await this.integrationsService.integrationFetchOptions(
-          context,
-          {
-            integration: payload.integration,
-            key: payload.key,
-            params: payload.params,
-          },
-        );
+        return await this.integrationsService.integrationFetchOptions(context, {
+          integration: payload.integration,
+          key: payload.key,
+          params: payload.params,
+        });
     }
   }
 }

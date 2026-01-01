@@ -17,6 +17,7 @@ export const entries: IntegrationEntry[] = [
       icon: 'microsoftOutlook',
       order: 15,
     },
+    packageManifest: manifest,
   },
 ];
 

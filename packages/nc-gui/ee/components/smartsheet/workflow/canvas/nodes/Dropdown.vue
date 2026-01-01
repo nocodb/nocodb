@@ -16,7 +16,11 @@ const { nodeTypes } = useWorkflowOrThrow()
 const showDropdown = ref(false)
 const dropdownRef = ref()
 
-const selectNodeOption = (option: WorkflowNodeDefinition) => {
+const selectNodeOption = (option: WorkflowNodeDefinition & { locked?: boolean; requiredPlan?: string }) => {
+  if (option.locked) {
+    return
+  }
+
   emit('select', option)
   showDropdown.value = false
 }
@@ -95,12 +99,30 @@ onClickOutside(
       <NcMenu class="w-77" variant="medium">
         <template v-for="(data, _category, index) in categorizedNodes" :key="_category">
           <NcMenuItemLabel class="!capitalize">{{ _category }}</NcMenuItemLabel>
-          <NcMenuItem v-for="node in data.core" :key="node.id" @click="selectNodeOption(node)">
-            <div class="flex gap-2 items-center">
-              <div :class="getNodeIconClass(node.category)" class="w-6 h-6 flex items-center justify-center rounded-md p-1">
-                <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
+          <NcMenuItem
+            v-for="node in data.core"
+            :key="node.id"
+            :class="{
+              'locked-node': (node as any).locked,
+              '!cursor-not-allowed': (node as any).locked,
+            }"
+            inner-class="w-full"
+            @click="selectNodeOption(node)"
+          >
+            <div class="flex gap-2 items-center justify-between w-full">
+              <div class="flex flex-1 gap-2 items-center">
+                <div :class="getNodeIconClass(node.category)" class="w-6 h-6 flex items-center justify-center rounded-md p-1">
+                  <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
+                </div>
+                <div :class="{'opacity-50': (node as any).locked,}" class="text-nc-content-gray text-caption">
+                  {{ node.title }}
+                </div>
               </div>
-              <div class="text-nc-content-gray text-caption">{{ node.title }}</div>
+              <PaymentUpgradeBadge
+                v-if="(node as any).locked"
+                :content="`Upgrade to ${(node as any).requiredPlan} plan to use ${node.title} node`"
+                :plan-title="(node as any).requiredPlan"
+              />
             </div>
           </NcMenuItem>
           <template v-if="Object.keys(data.packages).length">
@@ -113,12 +135,31 @@ onClickOutside(
                   <span>{{ pkg.title }}</span>
                 </div>
               </template>
-              <NcMenuItem v-for="node in pkg.nodes" :key="node.id" class="w-60" @click="selectNodeOption(node)">
-                <div class="flex gap-2 items-center">
-                  <div :class="getNodeIconClass(node.category)" class="w-6 h-6 flex items-center justify-center rounded-md p-1">
-                    <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
+              <NcMenuItem
+                v-for="node in pkg.nodes"
+                :key="node.id"
+                :class="{
+                  'locked-node': (node as any).locked,
+                  '!cursor-not-allowed': (node as any).locked,
+                }"
+                inner-class="w-full"
+                class="w-60"
+                @click="selectNodeOption(node)"
+              >
+                <div class="flex gap-2 items-center justify-between w-full">
+                  <div class="flex gap-2 flex-1 items-center">
+                    <div :class="getNodeIconClass(node.category)" class="w-6 h-6 flex items-center justify-center rounded-md p-1">
+                      <GeneralIcon :icon="node.icon" class="!w-5 !h-5 stroke-transparent" />
+                    </div>
+                    <div :class="{'opacity-50': (node as any).locked,}" class="text-nc-content-gray text-caption">
+                      {{ node.title }}
+                    </div>
                   </div>
-                  <div class="text-nc-content-gray text-caption">{{ node.title }}</div>
+                  <PaymentUpgradeBadge
+                    v-if="(node as any).locked"
+                    :content="`Upgrade to ${(node as any).requiredPlan} plan to use ${node.title} node`"
+                    :plan-title="(node as any).requiredPlan"
+                  />
                 </div>
               </NcMenuItem>
             </NcSubMenu>
@@ -130,3 +171,26 @@ onClickOutside(
     </template>
   </NcDropdown>
 </template>
+
+<style scoped lang="scss">
+.locked-node {
+  &:hover {
+    background-color: rgba(251, 146, 60, 0.1) !important;
+    cursor: not-allowed !important;
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(251, 146, 60, 0.03) 10px,
+      rgba(251, 146, 60, 0.03) 20px
+    );
+    pointer-events: none;
+  }
+}
+</style>

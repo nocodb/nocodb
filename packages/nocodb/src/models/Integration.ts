@@ -9,7 +9,10 @@ import {
 import { Logger } from '@nestjs/common';
 import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type { IntegrationManifest, IntegrationWrapper } from '@noco-local-integrations/core'
+import type {
+  IntegrationManifest,
+  IntegrationWrapper,
+} from '@noco-local-integrations/core';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';

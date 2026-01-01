@@ -9,6 +9,7 @@ import {
   findParentNodesNeedingPlusNodes,
   getNodeOutputPorts,
 } from '~/utils/workflowGraphUtils'
+import { filterNodesByPermission, getSourceNodesAndEdges } from '~/utils/workflowUtils'
 
 const clone = rfdc()
 
@@ -35,11 +36,16 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   const isSaving = ref(false)
 
+  const isWorkflowEditAllowed = computed(() => isUIAllowed('workflowCreateOrEdit'))
+
   const viewingExecution = ref<IWorkflowExecution | null>(null)
 
-  const nodes = ref<Array<Node>>((workflow.value?.draft?.nodes || workflow.value?.nodes || INIT_WORKFLOW_NODES) as Array<Node>)
+  const initialData = getSourceNodesAndEdges(workflow.value, isWorkflowEditAllowed.value)
+  const initialFiltered = filterNodesByPermission(initialData.sourceNodes, initialData.sourceEdges, isWorkflowEditAllowed.value)
 
-  const edges = ref<Array<Edge>>((workflow.value?.draft?.edges || workflow.value?.edges || []) as Array<Edge>)
+  const nodes = ref<Array<Node>>(initialFiltered.nodes)
+
+  const edges = ref<Array<Edge>>(initialFiltered.edges)
 
   const nodeTypes = computed<Array<UIWorkflowNodeDefinition>>(() => {
     return [...GENERAL_DEFAULT_NODES, ...activeBaseNodeSchemas.value.map(transformNode)]
@@ -555,16 +561,17 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
         await triggerLayout()
       }
     } else {
-      const sourceNodes = workflow.value?.draft?.nodes || workflow.value?.nodes || INIT_WORKFLOW_NODES
-      const sourceEdges = workflow.value?.draft?.edges || workflow.value?.edges || []
+      const { sourceNodes, sourceEdges } = getSourceNodesAndEdges(workflow.value, isWorkflowEditAllowed.value)
 
       if (activeTab.value === 'logs') {
-        const filtered = filterOutPlusNodes(sourceNodes as Array<Node>, sourceEdges as Array<Edge>)
-        nodes.value = filtered.nodes
-        edges.value = filtered.edges
+        const filtered = filterOutPlusNodes(sourceNodes, sourceEdges)
+        const permissionFiltered = filterNodesByPermission(filtered.nodes, filtered.edges, isWorkflowEditAllowed.value)
+        nodes.value = permissionFiltered.nodes
+        edges.value = permissionFiltered.edges
       } else {
-        nodes.value = sourceNodes as Array<Node>
-        edges.value = sourceEdges as Array<Edge>
+        const permissionFiltered = filterNodesByPermission(sourceNodes, sourceEdges, isWorkflowEditAllowed.value)
+        nodes.value = permissionFiltered.nodes
+        edges.value = permissionFiltered.edges
       }
       await triggerLayout()
     }
@@ -577,16 +584,17 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     }
 
     if (!viewingExecution.value) {
-      const sourceNodes = workflow.value?.draft?.nodes || workflow.value?.nodes || INIT_WORKFLOW_NODES
-      const sourceEdges = workflow.value?.draft?.edges || workflow.value?.edges || []
+      const { sourceNodes, sourceEdges } = getSourceNodesAndEdges(workflow.value, isWorkflowEditAllowed.value)
 
       if (tab === 'logs') {
-        const filtered = filterOutPlusNodes(sourceNodes as Array<Node>, sourceEdges as Array<Edge>)
-        nodes.value = filtered.nodes
-        edges.value = filtered.edges
+        const filtered = filterOutPlusNodes(sourceNodes, sourceEdges)
+        const permissionFiltered = filterNodesByPermission(filtered.nodes, filtered.edges, isWorkflowEditAllowed.value)
+        nodes.value = permissionFiltered.nodes
+        edges.value = permissionFiltered.edges
       } else {
-        nodes.value = sourceNodes as Array<Node>
-        edges.value = sourceEdges as Array<Edge>
+        const permissionFiltered = filterNodesByPermission(sourceNodes, sourceEdges, isWorkflowEditAllowed.value)
+        nodes.value = permissionFiltered.nodes
+        edges.value = permissionFiltered.edges
       }
       await triggerLayout()
     }
@@ -597,16 +605,17 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     async (newVal) => {
       if (!newVal) return
 
-      const updatedNodes = workflow.value?.draft?.nodes || workflow.value?.nodes || INIT_WORKFLOW_NODES
-      const updatedEdges = workflow.value?.draft?.edges || workflow.value?.edges || []
+      const { sourceNodes, sourceEdges } = getSourceNodesAndEdges(workflow.value, isWorkflowEditAllowed.value)
 
       if (activeTab.value === 'logs') {
-        const filtered = filterOutPlusNodes(updatedNodes as Array<Node>, updatedEdges as Array<Edge>)
-        nodes.value = filtered.nodes
-        edges.value = filtered.edges
+        const filtered = filterOutPlusNodes(sourceNodes, sourceEdges)
+        const permissionFiltered = filterNodesByPermission(filtered.nodes, filtered.edges, isWorkflowEditAllowed.value)
+        nodes.value = permissionFiltered.nodes
+        edges.value = permissionFiltered.edges
       } else {
-        nodes.value = updatedNodes as Array<Node>
-        edges.value = updatedEdges as Array<Edge>
+        const permissionFiltered = filterNodesByPermission(sourceNodes, sourceEdges, isWorkflowEditAllowed.value)
+        nodes.value = permissionFiltered.nodes
+        edges.value = permissionFiltered.edges
       }
 
       await triggerLayout()
@@ -624,6 +633,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     selectedNode,
     activeTab,
     viewingExecution,
+    isWorkflowEditAllowed,
 
     // Methods
     updateWorkflowData,

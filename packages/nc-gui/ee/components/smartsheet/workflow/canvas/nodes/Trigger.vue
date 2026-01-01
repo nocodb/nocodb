@@ -10,9 +10,9 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const { updateNode, getNodeMetaById, selectedNodeId, viewingExecution, activeTab } = useWorkflowOrThrow()
+const { updateNode, getNodeMetaById, selectedNodeId, viewingExecution, activeTab, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
-const enableEditableMenu = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
+const enableEditableMenu = computed(() => activeTab.value === 'editor' && !viewingExecution.value && isWorkflowEditAllowed.value)
 
 const wrappperRef = ref()
 

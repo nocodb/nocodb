@@ -9,7 +9,7 @@ const { activeWorkflowHasDraftChanges } = storeToRefs(workflowStore)
 
 const { executeWorkflow: _executeWorkflow } = workflowStore
 
-const { nodes, workflow, addNode } = useWorkflowOrThrow()
+const { nodes, workflow, addNode, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { zoomIn, zoomOut, getViewport, setViewport, panOnDrag, fitView, project } = useVueFlow()
 
@@ -215,7 +215,7 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       </NcTooltip>
 
       <div class="h-6 w-px bg-nc-border-gray-medium mx-1" />
-      <NcTooltip>
+      <NcTooltip v-if="isWorkflowEditAllowed">
         <template #title>Add Note</template>
         <NcButton type="text" size="small" @click="addNote">
           <GeneralIcon icon="ncFile" class="text-nc-content-gray" />
@@ -223,16 +223,18 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       </NcTooltip>
 
       <div v-if="hasManualTrigger" class="h-6 w-px bg-nc-border-gray-medium mx-1" />
-      <NcTooltip v-if="hasManualTrigger" :disabled="!activeWorkflowHasDraftChanges">
+      <NcTooltip v-if="hasManualTrigger" :disabled="!activeWorkflowHasDraftChanges && isWorkflowEditAllowed">
         <template #title>
           {{
-            activeWorkflowHasDraftChanges
+            !isWorkflowEditAllowed
+              ? 'Only creators and owners can trigger manual workflows'
+              : activeWorkflowHasDraftChanges
               ? 'Workflow has draft changes. Please publish the workflow before triggering.'
               : 'Trigger Workflow'
           }}
         </template>
         <NcButton
-          :disabled="isLoading || activeWorkflowHasDraftChanges"
+          :disabled="isLoading || activeWorkflowHasDraftChanges || !isWorkflowEditAllowed"
           :loading="isLoading"
           size="small"
           type="primary"

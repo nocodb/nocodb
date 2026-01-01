@@ -1,18 +1,24 @@
 <script setup lang="ts">
-const { activeTab } = useWorkflowOrThrow()
+const { activeTab, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
-const tabs = [
-  {
-    label: 'Editor',
-    value: 'editor',
-    icon: 'ncAutomation',
-  },
-  {
-    label: 'Logs',
-    value: 'logs',
-    icon: 'audit',
-  },
-]
+const tabs = computed(() => {
+  return [
+    {
+      label: 'Editor',
+      value: 'editor',
+      icon: 'ncAutomation',
+    },
+    ...(isWorkflowEditAllowed.value
+      ? [
+          {
+            label: 'Logs',
+            value: 'logs',
+            icon: 'audit',
+          },
+        ]
+      : []),
+  ]
+})
 
 const highlightStyle = ref({ left: '0px', width: '0px' })
 

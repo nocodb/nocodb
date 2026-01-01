@@ -123,16 +123,8 @@ watch(selectedNode, () => {
           @click="handleTestNode"
         >
           <template #icon>
-            <GeneralIcon
-              v-if="testState === 'success'"
-              icon="circleCheckSolid"
-              class="!text-nc-content-green-dark w-4 h-4 flex-none"
-            />
-            <GeneralIcon
-              v-else-if="testState === 'error'"
-              icon="alertTriangleSolid"
-              class="!text-nc-content-red-dark w-4 h-4 flex-none"
-            />
+            <GeneralIcon v-if="testState === 'success'" icon="circleCheckSolid" class="text-green-700 w-4 h-4 flex-none" />
+            <GeneralIcon v-else-if="testState === 'error'" icon="alertTriangleSolid" class="text-red-700 w-4 h-4 flex-none" />
           </template>
           <span>
             <template v-if="testState === 'success'"> Test successful </template>

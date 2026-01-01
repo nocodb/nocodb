@@ -30,7 +30,7 @@ interface CronTriggerNodeConfig {
   timezone?: string
 }
 
-const { selectedNodeId, updateNode, selectedNode } = useWorkflowOrThrow()
+const { selectedNodeId, updateNode, selectedNode, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const browserTzName = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -50,6 +50,9 @@ const dayOfWeek = ref(1)
 
 const dayOfMonth = ref(1)
 
+// Flag to prevent updates during parsing/initialization
+const isUpdating = ref(false)
+
 const isValidStepInterval = (values: readonly (number | string)[], expectedStep: number): boolean => {
   const numericValues = values.filter((v): v is number => typeof v === 'number').sort((a, b) => a - b)
   if (numericValues.length < 2) return false
@@ -64,6 +67,8 @@ const isValidStepInterval = (values: readonly (number | string)[], expectedStep:
 
 const parseCronExpression = (cronExpr: string) => {
   if (!cronExpr) return
+
+  isUpdating.value = true
 
   try {
     const interval = CronExpressionParser.parse(cronExpr)
@@ -80,6 +85,14 @@ const parseCronExpression = (cronExpr: string) => {
       return numericValues.length === max - min + 1 && numericValues.every((v, i) => v === min + i)
     }
 
+    const isAllDaysOfWeek = (values: readonly (number | string)[]) => {
+      const numericValues = values.filter((v): v is number => typeof v === 'number').sort((a, b) => a - b)
+      return (
+        (numericValues.length === 7 && numericValues.every((v, i) => v === i)) ||
+        (numericValues.length === 8 && numericValues.every((v, i) => v === i))
+      )
+    }
+
     // Check for minutes interval: */N * * * *
     if (
       minuteValues.length > 1 &&
@@ -89,7 +102,7 @@ const parseCronExpression = (cronExpr: string) => {
       isAllValues(hourValues, 0, 23) &&
       isAllValues(dayOfMonthValues, 1, 31) &&
       isAllValues(monthValues, 1, 12) &&
-      isAllValues(dayOfWeekValues, 0, 6)
+      isAllDaysOfWeek(dayOfWeekValues)
     ) {
       // Check if it's a regular interval (e.g., every 5 minutes: 0, 5, 10, 15...)
       const step = minuteValues[1] - minuteValues[0]
@@ -107,7 +120,7 @@ const parseCronExpression = (cronExpr: string) => {
       isAllValues(hourValues, 0, 23) &&
       isAllValues(dayOfMonthValues, 1, 31) &&
       isAllValues(monthValues, 1, 12) &&
-      isAllValues(dayOfWeekValues, 0, 6)
+      isAllDaysOfWeek(dayOfWeekValues)
     ) {
       intervalType.value = 'hourly'
       minuteOfHour.value = minuteValues[0]
@@ -141,7 +154,7 @@ const parseCronExpression = (cronExpr: string) => {
       dayOfMonthValues.length === 1 &&
       dayOfMonthValues[0] !== undefined &&
       isAllValues(monthValues, 1, 12) &&
-      isAllValues(dayOfWeekValues, 0, 6)
+      isAllDaysOfWeek(dayOfWeekValues)
     ) {
       intervalType.value = 'monthly'
       minuteOfHour.value = minuteValues[0]
@@ -158,7 +171,7 @@ const parseCronExpression = (cronExpr: string) => {
       hourValues[0] !== undefined &&
       isAllValues(dayOfMonthValues, 1, 31) &&
       isAllValues(monthValues, 1, 12) &&
-      isAllValues(dayOfWeekValues, 0, 6)
+      isAllDaysOfWeek(dayOfWeekValues)
     ) {
       intervalType.value = 'daily'
       minuteOfHour.value = minuteValues[0]
@@ -166,6 +179,8 @@ const parseCronExpression = (cronExpr: string) => {
     }
   } catch (error) {
     console.error('Invalid cron expression:', error)
+  } finally {
+    isUpdating.value = false
   }
 }
 
@@ -252,15 +267,26 @@ const updateConfig = (updates: Partial<CronTriggerNodeConfig>) => {
 }
 
 const updateIntervalConfig = () => {
+  // Don't update if we're currently parsing
+  if (isUpdating.value) return
+
   const cronExpr = generateCronExpression()
-  updateConfig({
-    cronExpression: cronExpr,
-  })
+
+  // Only update if the cron expression actually changed
+  if (cronExpr !== config.value.cronExpression) {
+    updateConfig({
+      cronExpression: cronExpr,
+    })
+  }
 }
 
-watch([intervalType, intervalMinutes, minuteOfHour, hourOfDay, dayOfWeek, dayOfMonth], () => {
-  updateIntervalConfig()
-})
+watch(
+  [intervalType, intervalMinutes, minuteOfHour, hourOfDay, dayOfWeek, dayOfMonth],
+  () => {
+    updateIntervalConfig()
+  },
+  { flush: 'post' },
+)
 
 const onTimezoneChange = (value: string) => {
   updateConfig({ timezone: value || undefined })
@@ -329,7 +355,7 @@ watch(
 <template>
   <a-form class="nc-cron-trigger-config" layout="vertical">
     <a-form-item label="Interval">
-      <NcSelect v-model:value="intervalType" @change="updateIntervalConfig">
+      <NcSelect v-model:value="intervalType" :disabled="!isWorkflowEditAllowed">
         <a-select-option v-for="interval in intervalOptions" :key="interval.value" :value="interval.value">
           <div class="flex justify-between items-center">
             {{ interval.label }}
@@ -349,12 +375,12 @@ watch(
       <a-form-item label="Every minutes">
         <a-input-number
           v-model:value="intervalMinutes"
+          :disabled="!isWorkflowEditAllowed"
           :min="1"
           type="number"
           :controls="false"
           :max="60"
           class="nc-input-shadow !rounded-lg w-full"
-          @change="updateIntervalConfig"
         />
         <div class="text-xs text-nc-content-gray-muted mt-1">Run every {{ intervalMinutes }} minutes</div>
       </a-form-item>
@@ -363,7 +389,7 @@ watch(
     <!-- Hourly Interval Configuration -->
     <template v-if="intervalType === 'hourly'">
       <a-form-item label="Select minute">
-        <NcSelect v-model:value="minuteOfHour" @change="updateIntervalConfig">
+        <NcSelect v-model:value="minuteOfHour" :disabled="!isWorkflowEditAllowed">
           <a-select-option v-for="minute in minutesOptions" :key="minute" :value="minute">
             <div class="flex items-center justify-between">
               {{ minute.toString().padStart(2, '0') }}
@@ -386,7 +412,7 @@ watch(
     <template v-if="intervalType === 'daily'">
       <a-form-item label="Select time of the day">
         <div class="flex gap-2">
-          <NcSelect v-model:value="hourOfDay" @change="updateIntervalConfig">
+          <NcSelect v-model:value="hourOfDay" :disabled="!isWorkflowEditAllowed">
             <a-select-option v-for="hour in hoursOptions" :key="hour" :value="hour">
               <div class="flex items-center justify-between">
                 {{ hour % 12 || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
@@ -394,7 +420,7 @@ watch(
               </div>
             </a-select-option>
           </NcSelect>
-          <NcSelect v-model:value="minuteOfHour" @change="updateIntervalConfig">
+          <NcSelect v-model:value="minuteOfHour" :disabled="!isWorkflowEditAllowed">
             <a-select-option v-for="minute in minutesOptions" :key="minute" :value="minute">
               <div class="flex items-center justify-between">
                 {{ minute.toString().padStart(2, '0') }}
@@ -419,7 +445,7 @@ watch(
     <template v-if="intervalType === 'weekly'">
       <a-form-item label="Select time and day of the week">
         <div class="space-y-2">
-          <NcSelect v-model:value="dayOfWeek" @change="updateIntervalConfig">
+          <NcSelect v-model:value="dayOfWeek" :disabled="!isWorkflowEditAllowed">
             <a-select-option v-for="day in daysOfWeekOptions" :key="day.value" :value="day.value">
               <div class="flex items-center justify-between">
                 {{ day.label }}
@@ -433,7 +459,7 @@ watch(
             </a-select-option>
           </NcSelect>
           <div class="flex gap-2">
-            <NcSelect v-model:value="hourOfDay" @change="updateIntervalConfig">
+            <NcSelect v-model:value="hourOfDay" :disabled="!isWorkflowEditAllowed">
               <a-select-option v-for="hour in hoursOptions" :key="hour" :value="hour">
                 <div class="flex items-center justify-between">
                   {{ hour % 12 || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
@@ -441,7 +467,7 @@ watch(
                 </div>
               </a-select-option>
             </NcSelect>
-            <NcSelect v-model:value="minuteOfHour" @change="updateIntervalConfig">
+            <NcSelect v-model:value="minuteOfHour" :disabled="!isWorkflowEditAllowed">
               <a-select-option v-for="minute in minutesOptions" :key="minute" :value="minute">
                 <div class="flex items-center justify-between">
                   {{ minute.toString().padStart(2, '0') }}
@@ -469,7 +495,7 @@ watch(
     <template v-if="intervalType === 'monthly'">
       <a-form-item label="Select time and day of the month">
         <div class="space-y-2">
-          <NcSelect v-model:value="dayOfMonth" @change="updateIntervalConfig">
+          <NcSelect v-model:value="dayOfMonth" :disabled="!isWorkflowEditAllowed">
             <a-select-option v-for="day in daysOfMonthOptions" :key="day" :value="day">
               <div class="flex items-center justify-between">
                 Day {{ day }}
@@ -478,7 +504,7 @@ watch(
             </a-select-option>
           </NcSelect>
           <div class="flex gap-2">
-            <NcSelect v-model:value="hourOfDay" @change="updateIntervalConfig">
+            <NcSelect v-model:value="hourOfDay" :disabled="!isWorkflowEditAllowed">
               <a-select-option v-for="hour in hoursOptions" :key="hour" :value="hour">
                 <div class="flex items-center justify-between">
                   {{ hour % 12 || 12 }} {{ hour >= 12 ? 'PM' : 'AM' }}
@@ -486,7 +512,7 @@ watch(
                 </div>
               </a-select-option>
             </NcSelect>
-            <NcSelect v-model:value="minuteOfHour" @change="updateIntervalConfig">
+            <NcSelect v-model:value="minuteOfHour" :disabled="!isWorkflowEditAllowed">
               <a-select-option v-for="minute in minutesOptions" :key="minute" :value="minute">
                 <div class="flex items-center justify-between">
                   {{ minute.toString().padStart(2, '0') }}
@@ -512,6 +538,7 @@ watch(
       <a-select
         :value="config.timezone"
         show-search
+        :disabled="!isWorkflowEditAllowed"
         allow-clear
         :filter-option="(input, option) => antSelectFilterOption(input, option, ['key', 'data-abbreviation'])"
         dropdown-class-name="nc-dropdown-timezone"

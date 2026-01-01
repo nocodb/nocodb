@@ -6249,7 +6249,7 @@ declare interface ConfigItem {}
     this.write('}')
   }
 
-  generateInputInterfaceForWorkflow(schema: any) {
+  generateInputInterfaceForWorkflow(_schema: any) {
     this.write(`declare var input: {`)
     this.indent_in()
     this.formatJSDoc([

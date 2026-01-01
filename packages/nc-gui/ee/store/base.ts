@@ -150,10 +150,12 @@ export const useBase = defineStore('baseStore', () => {
   // todo: add force parameter
   async function loadTables() {
     if (base.value.id) {
-      await tablesStore.loadProjectTables(base.value.id, true)
-      await loadScripts({ baseId: base.value.id || baseId.value })
-      await loadDashboards({ baseId: base.value.id || baseId.value })
-      await loadWorkflows({ baseId: base.value.id || baseId.value, force: true })
+      await Promise.allSettled([
+        tablesStore.loadProjectTables(base.value.id, true),
+        loadScripts({ baseId: base.value.id || baseId.value }),
+        loadDashboards({ baseId: base.value.id || baseId.value }),
+        loadWorkflows({ baseId: base.value.id || baseId.value }),
+      ])
 
       // tables.value = basesStore.baseTableList[base.value.id]
       //   await api.dbTable.list(base.value.id, {

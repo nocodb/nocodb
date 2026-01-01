@@ -167,10 +167,7 @@ export class WorkflowExecutionService {
     const userPlanTitle = await getPlanTitleFromContext(context);
 
     const workflowNodeIntegrations = Integration.availableIntegrations
-      .filter(
-        (i) =>
-          i && i.type === IntegrationsType.WorkflowNode && !i.manifest.hidden,
-      )
+      .filter((i) => i && i.type === IntegrationsType.WorkflowNode)
       .sort((a, b) => {
         if (a.manifest.order && b.manifest.order) {
           return a.manifest.order - b.manifest.order;

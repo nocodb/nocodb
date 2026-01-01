@@ -3,7 +3,7 @@ const props = defineProps<{
   readOnly?: boolean
 }>()
 
-const { selectedNode, selectedNodeId, getNodeMetaById, updateNode, nodes } = useWorkflowOrThrow()
+const { selectedNode, selectedNodeId, getNodeMetaById, updateNode, nodes, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { $e } = useNuxtApp()
 
@@ -45,6 +45,7 @@ const nodeTitle = computed({
 })
 
 function enableDescriptionEditMode() {
+  if (!isWorkflowEditAllowed.value) return
   isDescriptionInEditMode.value = true
   nextTick(() => {
     descriptionInputRef.value.focus()
@@ -60,6 +61,7 @@ function handleDescriptionBlur() {
 }
 
 function enableTitleEditMode() {
+  if (!isWorkflowEditAllowed.value) return
   isTitleInEditMode.value = true
   nextTick(() => {
     titleInputRef.value.focus()
@@ -145,7 +147,7 @@ function handleTitleBlur() {
         @keydown.enter="enableDescriptionEditMode"
         @keydown.space="enableDescriptionEditMode"
       >
-        <span v-if="!nodeDescription && !props.readOnly" class="text-nc-content-gray-muted">
+        <span v-if="!nodeDescription && !props.readOnly && isWorkflowEditAllowed" class="text-nc-content-gray-muted">
           {{ $t('labels.addDescription') }}
         </span>
         {{ nodeDescription }}

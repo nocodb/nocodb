@@ -7,6 +7,8 @@ const { updateWorkflow } = workflowStore
 
 const { activeWorkflow } = storeToRefs(workflowStore)
 
+const { isWorkflowEditAllowed } = useWorkflowOrThrow()
+
 const { $e } = useNuxtApp()
 
 const toggleWorkflow = async () => {
@@ -45,7 +47,10 @@ const toggleWorkflow = async () => {
         {{ activeWorkflow?.enabled ? 'Live' : 'Paused' }}
       </div>
 
-      <NcSwitch :checked="activeWorkflow?.enabled" @change="toggleWorkflow" />
+      <NcTooltip :disabled="isWorkflowEditAllowed">
+        <NcSwitch :disabled="!isWorkflowEditAllowed" :checked="activeWorkflow?.enabled" @change="toggleWorkflow" />
+        <template #title> You do not have permission to enable/disable workflow </template>
+      </NcTooltip>
     </div>
   </div>
 </template>

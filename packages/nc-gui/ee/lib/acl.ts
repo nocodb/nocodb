@@ -187,6 +187,9 @@ const rolePermissions = {
       // Extensions
       extensionCreate: true,
       extensionDelete: true,
+
+      workflowCreateOrEdit: true,
+      workflowExecutionList: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -207,7 +210,6 @@ const rolePermissions = {
 
       // Workflows
       workflowList: true,
-      workflowCreateOrEdit: true,
 
       // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
       viewOperations: true,

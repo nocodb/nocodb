@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { WorkflowNodeCategoryType, WorkflowNodeDefinition } from 'nocodb-sdk'
-import { WorkflowNodeCategory } from 'nocodb-sdk'
+import { GeneralNodeID, WorkflowNodeCategory } from 'nocodb-sdk'
 import { onClickOutside } from '@vueuse/core'
 
 interface Props {
@@ -28,7 +28,7 @@ const selectNodeOption = (option: WorkflowNodeDefinition & { locked?: boolean; r
 // Group nodes by category
 const nodesByCategory = computed(() => {
   return props.category.reduce((acc, category) => {
-    const nodes = nodeTypes.value.filter((node) => node.category === category && !node.hidden)
+    const nodes = nodeTypes.value.filter((node) => node.category === category && !Object.values(GeneralNodeID).includes(node.id))
     if (nodes.length > 0) acc[category] = nodes
     return acc
   }, {} as Record<WorkflowNodeCategoryType, WorkflowNodeDefinition[]>)

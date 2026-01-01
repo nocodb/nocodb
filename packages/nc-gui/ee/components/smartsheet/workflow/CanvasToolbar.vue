@@ -115,6 +115,9 @@ onClickOutside(menuRef, () => {
 })
 
 useEventListener('keydown', (e: KeyboardEvent) => {
+  if (isActiveInputElementExist(e)) {
+    return
+  }
   if (e.metaKey || e.ctrlKey) {
     if (e.key === '0') {
       e.preventDefault()

@@ -259,9 +259,19 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
+<style lang="scss">
+// Override Vue Flow's z-index for Note nodes
+.vue-flow__node[data-id] {
+  &:has(.note-node) {
+    z-index: 1 !important;
+  }
+}
+</style>
+
 <style scoped lang="scss">
 .note-node {
   @apply w-full h-full min-w-[300px] min-h-[50px] border-2 rounded-lg p-3 flex relative flex-col shadow-default;
+  z-index: 1 !important;
 
   &:hover {
     @apply shadow-hover;

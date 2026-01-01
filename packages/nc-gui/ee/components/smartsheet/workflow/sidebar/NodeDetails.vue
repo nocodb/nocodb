@@ -110,7 +110,6 @@ function handleTitleBlur() {
         <div
           v-if="!isTitleInEditMode || props.readOnly"
           class="text-subHeading2 line-clamp-2 max-w-70"
-          role="button"
           tabindex="0"
           @keydown.enter="enableTitleEditMode"
           @keydown.space="enableTitleEditMode"

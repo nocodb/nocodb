@@ -11,15 +11,15 @@ import { isDevOrTestEnvironment } from '~/utils';
  */
 export const WorkflowNodePlanRequirements: Record<string, PlanTitles> = {
   'core.trigger.cron': PlanTitles.PLUS,
-  'core.action.send_email': PlanTitles.PLUS,
+  'core.action.send-email': PlanTitles.PLUS,
   'core.flow.iterate': PlanTitles.PLUS,
   'core.flow.delay': PlanTitles.PLUS,
   'google.send_email': PlanTitles.PLUS,
   'outlook.send_email': PlanTitles.PLUS,
   'slack.send_message': PlanTitles.PLUS,
   'core.flow.wait-until': PlanTitles.PLUS,
-  'ai.action.generate_text': PlanTitles.PLUS,
-  'ai.action.generate_structured': PlanTitles.PLUS,
+  'ai.action.generate-text': PlanTitles.PLUS,
+  'ai.action.generate-structured': PlanTitles.PLUS,
   'nocodb.run_script': PlanTitles.BUSINESS,
 };
 

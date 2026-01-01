@@ -185,7 +185,21 @@ onBeforeUnmount(() => {
     <div v-if="isEditMode && editor" class="note-toolbar">
       <NcDropdown placement="bottom">
         <NcButton type="text" size="xsmall" class="toolbar-btn">
-          <div class="w-4 h-4 rounded-full border-2 border-nc-base-white" :style="{ backgroundColor: currentColor.bgVar }" />
+          <div
+            class="w-4 h-4 rounded-full border-2"
+            :style="{
+              backgroundColor: isDark
+                ? getAdaptiveTint(getColor(currentColor.bgVar), { isDarkMode: true, shade: -10 })
+                : currentColor.bgVar,
+              borderColor: isDark
+                ? getAdaptiveTint(getColor(currentColor.borderVar), {
+                    brightnessMod: -10,
+                    isDarkMode: true,
+                    shade: -50,
+                  })
+                : currentColor.borderVar,
+            }"
+          />
         </NcButton>
         <template #overlay>
           <div class="color-palette">

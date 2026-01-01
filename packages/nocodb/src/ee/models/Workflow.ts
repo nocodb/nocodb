@@ -1,7 +1,6 @@
 import {
   AutomationTypes,
   DependencyTableType,
-  PlanLimitTypes,
 } from 'nocodb-sdk';
 import { default as WorkflowCE } from 'src/models/Workflow';
 import { Logger } from '@nestjs/common';
@@ -183,13 +182,6 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       MetaTable.AUTOMATIONS,
       prepareForDb(insertObj, ['nodes', 'edges', 'meta', 'draft']),
     );
-
-    await NocoCache.incrHashField(
-      'root',
-      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
-      PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
-      1,
-    );
     cleanCommandPaletteCache(context.workspace_id).catch(() => {
       logger.error('Failed to clean command palette cache');
     });
@@ -260,13 +252,6 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       context,
       `${CacheScope.WORKFLOW}:${workflowId}`,
       CacheDelDirection.CHILD_TO_PARENT,
-    );
-
-    await NocoCache.incrHashField(
-      'root',
-      `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
-      PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
-      -1,
     );
 
     cleanCommandPaletteCache(context.workspace_id).catch(() => {

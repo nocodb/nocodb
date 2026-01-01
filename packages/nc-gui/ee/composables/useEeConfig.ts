@@ -169,13 +169,6 @@ export const useEeConfig = createSharedComposable(() => {
     )
   })
 
-  const blockAddNewWorkflow = computed(() => {
-    return (
-      isPaymentEnabled.value &&
-      getStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE) >= getLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE)
-    )
-  })
-
   const blockAddNewWebhook = computed(() => {
     return (
       isPaymentEnabled.value &&
@@ -906,23 +899,6 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
-  const showWorkflowPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
-    if (!blockAddNewWorkflow.value) return
-
-    handleUpgradePlan({
-      title: t('upgrade.upgradeToAddMoreWorkflows'),
-      content: t('upgrade.upgradeToAddMoreWorkflowsSubtitle', {
-        activePlan: activePlanTitle.value,
-        limit: getLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE),
-        plan: HigherPlan[activePlanTitle.value],
-      }),
-      callback,
-      limitOrFeature: PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
-    })
-
-    return true
-  }
-
   const showWebhookPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockAddNewWebhook.value) return
 
@@ -1358,9 +1334,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToAddMoreAttachmentsInCell,
     showDashboardPlanLimitExceededModal,
     showScriptPlanLimitExceededModal,
-    showWorkflowPlanLimitExceededModal,
     blockAddNewScript,
-    blockAddNewWorkflow,
     blockAddNewDashboard,
     blockCalendarRange,
     showUpgradeToUseCalendarRange,

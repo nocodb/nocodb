@@ -1,4 +1,4 @@
-import { PlanLimitTypes, hasWorkflowDraftChanges } from 'nocodb-sdk'
+import { hasWorkflowDraftChanges } from 'nocodb-sdk'
 import type { WorkflowNodeDefinition, WorkflowType } from 'nocodb-sdk'
 import { DlgWorkflowCreate } from '#components'
 
@@ -8,8 +8,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const { isUIAllowed } = useRoles()
 
   const { ncNavigateTo } = useGlobal()
-
-  const { showWorkflowPlanLimitExceededModal, updateStatLimit } = useEeConfig()
 
   const { refreshCommandPalette } = useCommandPalette()
 
@@ -175,8 +173,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
         workflowData,
       )
 
-      updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, 1)
-
       const baseWorkflows = workflows.value.get(baseId) || []
       baseWorkflows.push({
         ...created,
@@ -275,8 +271,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
         },
       )
 
-      updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, -1)
-
       await refreshCommandPalette()
 
       $e('a:workflow:delete')
@@ -316,10 +310,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const duplicateWorkflow = async (baseId: string, workflowId: string) => {
     if (!activeWorkspaceId.value) return null
 
-    if (showWorkflowPlanLimitExceededModal()) {
-      return null
-    }
-
     try {
       const created = await $api.internal.postOperation(
         activeWorkspaceId.value,
@@ -331,8 +321,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
           workflowId,
         },
       )
-
-      updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, 1)
 
       const baseWorkflows = workflows.value.get(baseId) || []
       baseWorkflows.push(created)
@@ -501,7 +489,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     loadWorkflowsOnClose?: boolean
     scrollOnCreate?: boolean
   }) {
-    if (!baseId || showWorkflowPlanLimitExceededModal()) return
+    if (!baseId) return
 
     const isDlgOpen = ref(true)
 

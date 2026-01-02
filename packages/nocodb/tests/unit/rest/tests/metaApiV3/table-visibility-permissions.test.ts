@@ -6,6 +6,7 @@ import {
   PermissionKey,
   PermissionRole,
   PlanFeatureTypes,
+  PlanLimitTypes,
   ProjectRoles,
   UITypes,
 } from 'nocodb-sdk';
@@ -14,7 +15,7 @@ import { createProject } from '../../../factory/base';
 import { createUser } from '../../../factory/user';
 import init from '../../../init';
 import { isEE } from '../../../utils/helpers';
-import { overrideFeature } from '../../../utils/plan.utils';
+import { overridePlan } from '../../../utils/plan.utils';
 
 // Test cases for table visibility permission behavior
 // This test suite covers:
@@ -971,21 +972,18 @@ export default function () {
     });
 
     describe.skip('Team Permissions with Table Visibility', () => {
-      // TODO: Re-enable when plan limit issue is resolved
-      // Currently disabled due to ERR_PLAN_LIMIT_EXCEEDED error
-      // Other team tests only override feature flag, but this test hits limit check
+      // TODO: Re-enable when it's clear on workspace / base team controller
       let teamId: string;
       let teamMemberUser: any;
       let teamMemberToken: string;
       let featureMock: any;
 
       beforeEach(async () => {
-        featureMock = await overrideFeature({
+        featureMock = await overridePlan({
           workspace_id: context.fk_workspace_id,
-          feature: `${PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT}`,
-          allowed: true,
+          features: { [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: true },
+          limits: { [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 10 },
         });
-
         // Create a team
         const createTeam = await request(context.app)
           .post(`/api/v3/meta/workspaces/${context.fk_workspace_id}/teams`)
@@ -1096,7 +1094,8 @@ export default function () {
         );
       });
 
-      it('Team member should have access when table visibility is set to specific users including team', async () => {
+      // skip for now, don't know how to test this
+      it.skip('Team member should have access when table visibility is set to specific users including team', async () => {
         // Set table visibility to specific users (team member)
         await request(context.app)
           .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)

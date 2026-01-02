@@ -3431,9 +3431,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } catch (e) {}
 
     const customConditions = column.meta?.enableConditions
-      ? (await Filter.rootFilterListByLink(this.context, {
-          columnId: column.id,
-        })) || []
+      ? (await Filter.rootFilterListByLink(
+          { ...this.context, base_id: column.base_id },
+          {
+            columnId: column.id,
+          },
+        )) || []
       : [];
 
     const row: any = null;

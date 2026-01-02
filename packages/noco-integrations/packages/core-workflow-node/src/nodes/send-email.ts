@@ -25,7 +25,7 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
   public async definition(): Promise<WorkflowNodeDefinition> {
     return {
       id: 'core.action.send-email',
-      title: 'Send an email',
+      title: 'Send email',
       description: 'Send an email',
       icon: 'ncMail',
       category: WorkflowNodeCategory.ACTION,

@@ -36,8 +36,6 @@ const { activeWorkflowId, activeBaseWorkflows } = storeToRefs(workflowStore)
 
 const { meta: metaKey, control } = useMagicKeys()
 
-const { showWorkflowPlanLimitExceededModal } = useEeConfig()
-
 const { openWorkflowDescriptionDialog: _openWorkflowDescriptionDialog } = inject(TreeViewInj)!
 
 const base = inject(ProjectInj, ref())
@@ -267,11 +265,6 @@ const isLoading = ref(false)
 
 const duplicateWorkflow = async (workflow: WorkflowType) => {
   if (!activeProjectId.value || !workflow.id) return
-
-  if (showWorkflowPlanLimitExceededModal()) {
-    isDropdownOpen.value = false
-    return
-  }
 
   try {
     isLoading.value = true

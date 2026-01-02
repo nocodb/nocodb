@@ -15,6 +15,10 @@ const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
+const isScriptsCreateOrEditAllowed = computed(() => isUIAllowed('scriptCreateOrEdit'))
+
+const isWorkflowsCreateOrEditAllowed = computed(() => isUIAllowed('workflowCreateOrEdit'))
+
 const scriptStore = useScriptStore()
 
 const workflowStore = useWorkflowStore()
@@ -183,8 +187,11 @@ watchEffect(() => {
 
 <template>
   <div>
-    <template v-if="!allEntities.length">
-      <NcDropdown v-if="isWorkflowsEnabled" overlay-class-name="nc-automation-create-dropdown">
+    <template v-if="!allEntities.length && isUIAllowed('workflowCreateOrEdit')">
+      <NcDropdown
+        v-if="isWorkflowsEnabled && (isWorkflowsCreateOrEditAllowed || isScriptsCreateOrEditAllowed)"
+        overlay-class-name="nc-automation-create-dropdown"
+      >
         <div
           class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
           role="button"
@@ -202,7 +209,7 @@ watchEffect(() => {
         </div>
         <template #overlay>
           <NcMenu class="max-w-54" variant="medium">
-            <NcMenuItem @click="openNewScriptModal({ baseId })">
+            <NcMenuItem v-if="isScriptsCreateOrEditAllowed" @click="openNewScriptModal({ baseId })">
               <div class="item">
                 <div class="item-inner">
                   <GeneralIcon icon="ncScript" />
@@ -214,7 +221,7 @@ watchEffect(() => {
                 <GeneralIcon class="plus" icon="plus" />
               </div>
             </NcMenuItem>
-            <NcMenuItem @click="openNewWorkflowModal({ baseId })">
+            <NcMenuItem v-if="isWorkflowsCreateOrEditAllowed" @click="openNewWorkflowModal({ baseId })">
               <div class="item">
                 <div class="item-inner">
                   <GeneralIcon icon="ncAutomation" />
@@ -230,7 +237,7 @@ watchEffect(() => {
         </template>
       </NcDropdown>
       <div
-        v-else
+        v-else-if="isScriptsCreateOrEditAllowed"
         class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
         role="button"
         @click="openNewScriptModal({ baseId })"
@@ -248,6 +255,12 @@ watchEffect(() => {
       </div>
     </template>
 
+    <div
+      v-else-if="!allEntities.length && !isUIAllowed('workflowCreateOrEdit')"
+      class="py-0.5 text-nc-content-gray-muted nc-project-home-section-item font-normal"
+    >
+      {{ $t('placeholder.noAutomations') }}
+    </div>
     <div
       v-else
       ref="menuRef"

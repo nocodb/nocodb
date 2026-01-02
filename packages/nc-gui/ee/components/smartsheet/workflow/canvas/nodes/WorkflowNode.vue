@@ -10,12 +10,20 @@ const props = defineProps<NodeProps>()
 
 const { $e } = useNuxtApp()
 
-const { getNodeMetaById, updateNode, triggerLayout, deleteNode, selectedNodeId, viewingExecution, activeTab } =
-  useWorkflowOrThrow()
+const {
+  getNodeMetaById,
+  updateNode,
+  triggerLayout,
+  deleteNode,
+  selectedNodeId,
+  viewingExecution,
+  activeTab,
+  isWorkflowEditAllowed,
+} = useWorkflowOrThrow()
 
 const { getCurrentIteration, goToPreviousIteration, goToNextIteration, isLoopNode } = useWorkflowExecutionLoop()
 
-const enableEditableMenu = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
+const enableEditableMenu = computed(() => activeTab.value === 'editor' && !viewingExecution.value && isWorkflowEditAllowed.value)
 
 const findLoopData = (loopsObj: any, loopNodeId: string, parentIterations: Record<string, number> = {}): any => {
   // Check top-level loops

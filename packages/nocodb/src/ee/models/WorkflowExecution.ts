@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import type { IWorkflowExecution, WorkflowExecutionState } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
@@ -56,10 +57,17 @@ export default class WorkflowExecution implements IWorkflowExecution {
       limit?: number;
       offset?: number;
       cursorId?: string;
+      retentionLimit?: number;
     },
     ncMeta = Noco.ncMeta,
   ) {
-    const { workflowId, limit = 25, offset = 0, cursorId } = params;
+    const {
+      workflowId,
+      limit = 25,
+      offset = 0,
+      cursorId,
+      retentionLimit,
+    } = params;
 
     const condition: any = {};
     let xcCondition: any = undefined;
@@ -77,12 +85,39 @@ export default class WorkflowExecution implements IWorkflowExecution {
       );
 
       if (cursorExecution) {
+        if (retentionLimit && Number.isFinite(retentionLimit)) {
+          const cursorDiff = dayjs(cursorExecution.created_at).diff(
+            dayjs(),
+            'days',
+          );
+
+          // cursorDiff is negative for past dates, so we check if it's less than negative retention limit
+          // e.g., if retention is 90 days, reject if cursorDiff < -90 (i.e., older than 90 days)
+          if (cursorDiff < -retentionLimit) {
+            return [];
+          }
+        }
+
         xcCondition = {
           created_at: {
             lt: cursorExecution.created_at,
           },
         };
       }
+    }
+
+    if (retentionLimit && Number.isFinite(retentionLimit)) {
+      const retentionDate = dayjs()
+        .subtract(retentionLimit, 'days')
+        .toISOString();
+
+      xcCondition = {
+        ...xcCondition,
+        created_at: {
+          ...xcCondition?.created_at,
+          gte: retentionDate,
+        },
+      };
     }
 
     const executionList = await ncMeta.metaList2(

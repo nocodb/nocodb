@@ -7,7 +7,7 @@ import ExecutionResult from '~/components/smartsheet/workflow/sidebar/config/Exe
 import NodeDetails from '~/components/smartsheet/workflow/sidebar/NodeDetails.vue'
 import LogSidebar from '~/components/smartsheet/workflow/sidebar/logs/index.vue'
 
-const { selectedNode, activeTab, viewingExecution } = useWorkflowOrThrow()
+const { selectedNode, activeTab, viewingExecution, isWorkflowEditAllowed } = useWorkflowOrThrow()
 </script>
 
 <template>
@@ -17,7 +17,7 @@ const { selectedNode, activeTab, viewingExecution } = useWorkflowOrThrow()
       <template v-else>
         <NodeDetails />
         <NodeConfig />
-        <TestStep />
+        <TestStep v-if="isWorkflowEditAllowed" />
         <Result v-if="selectedNode.data?.testResult" />
       </template>
     </template>

@@ -20,11 +20,17 @@ import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
   DependencyTracker,
+  UsageStat,
   Workflow,
   WorkflowExecution,
-  Workspace,
 } from '~/models';
-import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import { checkLimit, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import {
+  getPlanDisplayName,
+  getPlanTitleFromContext,
+  isNodeAvailableForPlan,
+  WorkflowNodePlanRequirements,
+} from '~/helpers/workflowNodeHelpers';
 import NocoSocket from '~/socket/NocoSocket';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
@@ -66,6 +72,47 @@ export class WorkflowsService implements OnModuleInit {
     );
   }
 
+  /**
+   * Validate that all nodes in a workflow are available for the user's plan
+   * @throws NcError.planLimitExceeded if any node requires a higher plan tier
+   */
+  private async validateWorkflowNodeAccess(
+    context: NcContext,
+    nodes: any[],
+  ): Promise<void> {
+    if (!nodes || nodes.length === 0) {
+      return;
+    }
+
+    // Get user's current plan title
+    const userPlanTitle = await getPlanTitleFromContext(context);
+
+    // Check each node for plan requirements
+    for (const node of nodes) {
+      const nodeType = node.type; // e.g., 'core.action.send_email'
+
+      // Skip special nodes like Plus node and Trigger placeholder
+      if (
+        nodeType === GeneralNodeID.PLUS ||
+        nodeType === GeneralNodeID.TRIGGER
+      ) {
+        continue;
+      }
+
+      if (!isNodeAvailableForPlan(nodeType, userPlanTitle)) {
+        const requiredPlan = WorkflowNodePlanRequirements[nodeType];
+        const requiredPlanName = getPlanDisplayName(requiredPlan);
+
+        NcError.planLimitExceeded(
+          `The workflow contains a node that requires the ${requiredPlanName} plan or higher. Please upgrade your plan to use this node.`,
+          {
+            plan: userPlanTitle,
+          },
+        );
+      }
+    }
+  }
+
   async listWorkflows(context: NcContext) {
     return await Workflow.list(context, context.base_id);
   }
@@ -85,15 +132,6 @@ export class WorkflowsService implements OnModuleInit {
     workflowBody: Partial<Workflow>,
     req: NcRequest,
   ) {
-    const workspace = await Workspace.get(context.workspace_id);
-
-    await checkLimit({
-      workspace,
-      type: PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
-      message: ({ limit }) =>
-        `You have reached the limit of ${limit} workflows for your plan.`,
-    });
-
     workflowBody.title = workflowBody.title?.trim();
 
     const workflow = await Workflow.insert(context, {
@@ -242,13 +280,6 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).workflowNotFound(workflowId);
     }
 
-    await checkLimit({
-      workspaceId: context.workspace_id,
-      type: PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
-      message: ({ limit }) =>
-        `You have reached the limit of ${limit} workflows for your plan.`,
-    });
-
     const existingWorkflow = await Workflow.list(context, workflow.base_id);
 
     const newTitle = generateUniqueCopyName(workflow.title, existingWorkflow, {
@@ -313,6 +344,13 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).workflowNotFound(workflowId);
     }
 
+    await checkLimit({
+      workspaceId: context.workspace_id,
+      type: PlanLimitTypes.LIMIT_WORKFLOW_RUN,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} workflow executions for your plan.`,
+    });
+
     let executionRecord: WorkflowExecution | null = null;
 
     try {
@@ -336,6 +374,12 @@ export class WorkflowsService implements OnModuleInit {
       );
 
       let isDone = false;
+
+      await UsageStat.incrby(
+        context.workspace_id,
+        PlanLimitTypes.LIMIT_WORKFLOW_RUN,
+        1,
+      );
 
       const executionState =
         await this.workflowExecutionService.executeWorkflow(
@@ -481,13 +525,21 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).badRequest('Workflow ID is required');
     }
 
+    const { limit } = await getLimit(
+      PlanLimitTypes.LIMIT_WORKFLOW_RETENTION,
+      context.workspace_id,
+    );
+
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {
       NcError.get(context).workflowNotFound(workflowId);
     }
 
-    return await WorkflowExecution.list(context, params);
+    return await WorkflowExecution.list(context, {
+      ...params,
+      retentionLimit: limit,
+    });
   }
 
   async publishWorkflow(
@@ -513,6 +565,9 @@ export class WorkflowsService implements OnModuleInit {
         'No draft changes to publish. Please make changes first.',
       );
     }
+
+    // Validate workflow draft nodes are accessible for user's plan before publishing
+    await this.validateWorkflowNodeAccess(context, workflow.draft.nodes);
 
     const pendingExecutionsCount = await WorkflowExecution.getWaitingDueCount(
       context,

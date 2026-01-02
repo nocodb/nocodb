@@ -90,10 +90,15 @@ const [useProvideMapViewStore, useMapViewStore] = useInjectionState(
 
     async function updateMapMeta(updateObj: Partial<MapType>) {
       if (!viewMeta?.value?.id || !isUIAllowed('dataEdit', { skipSourceCheck: true })) return
-      await $api.internal.postOperation(viewMeta.value.fk_workspace_id!, viewMeta.value.base_id!, {
-        operation: 'mapViewUpdate',
-        viewId: viewMeta.value.id,
-      }, updateObj)
+      await $api.internal.postOperation(
+        viewMeta.value.fk_workspace_id!,
+        viewMeta.value.base_id!,
+        {
+          operation: 'mapViewUpdate',
+          viewId: viewMeta.value.id,
+        },
+        updateObj,
+      )
     }
 
     const { getMeta } = useMetas()

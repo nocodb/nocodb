@@ -59,6 +59,8 @@ const handlePublish = async (cancelPendingExecutions?: boolean) => {
     if (errorData?.error === NcErrorType.ERR_WORKFLOW_WAITING_EXECUTIONS) {
       pendingExecutionsCount.value = errorData?.details?.count || 0
       showPendingExecutionsModal.value = true
+    } else if (errorData?.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
+      message.error(errorData?.message)
     } else {
       message.error(await extractSdkResponseErrorMsgv2(e as any))
     }

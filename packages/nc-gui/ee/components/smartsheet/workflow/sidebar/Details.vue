@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
 
-const { updateWorkflowData, debouncedWorkflowUpdate } = useWorkflowOrThrow()
+const { updateWorkflowData, debouncedWorkflowUpdate, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { workflow } = useWorkflowOrThrow()
 
@@ -43,6 +43,7 @@ const workflowDescription = computed({
 })
 
 function enableTitleEditMode() {
+  if (!isWorkflowEditAllowed.value) return
   isTitleInEditMode.value = true
   nextTick(() => {
     titleInputRef.value.focus()
@@ -50,6 +51,7 @@ function enableTitleEditMode() {
 }
 
 function enableDescriptionEditMode() {
+  if (!isWorkflowEditAllowed.value) return
   isDescriptionInEditMode.value = true
   nextTick(() => {
     descriptionInputRef.value.focus()
@@ -87,6 +89,7 @@ watch(
       <div class="flex gap-2 items-center">
         <LazyGeneralEmojiPicker
           :key="workflow?.meta?.icon"
+          :readonly="!isWorkflowEditAllowed"
           :clearable="true"
           :emoji="workflow?.meta?.icon"
           class="nc-workflow-icon"
@@ -124,7 +127,7 @@ watch(
           class="text-body text-nc-content-gray-subtle line-clamp-3 w-85 px-1"
           @click="enableDescriptionEditMode"
         >
-          <span v-if="!workflowDescription" class="text-nc-content-gray-muted">
+          <span v-if="!workflowDescription && isWorkflowEditAllowed" class="text-nc-content-gray-muted">
             {{ $t('labels.addDescription') }}
           </span>
           <template v-else>

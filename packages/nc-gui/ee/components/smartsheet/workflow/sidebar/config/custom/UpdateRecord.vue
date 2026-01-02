@@ -8,7 +8,7 @@ interface UpdateRecordNodeConfig {
   fields: Record<string, any>
 }
 
-const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions } = useWorkflowOrThrow()
+const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const workflowContext = inject(WorkflowVariableInj, null)
 
@@ -131,6 +131,7 @@ onMounted(() => {
       <NcFormBuilderInputSelectTable
         :value="config.modelId"
         :base-id="base?.id"
+        :disabled="!isWorkflowEditAllowed"
         :multiple="false"
         :options="tableOptions"
         @update:value="onTableSelect"
@@ -143,6 +144,7 @@ onMounted(() => {
         :model-value="config.rowId"
         :variables="flatVariables"
         :grouped-variables="groupedVariables"
+        :read-only="!isWorkflowEditAllowed"
         placeholder="Enter the record ID"
         @update:model-value="updateRowId"
       />
@@ -152,6 +154,7 @@ onMounted(() => {
       v-if="config.modelId && columns.length > 0"
       :model-value="config.fields"
       :columns="columns"
+      :disabled="!isWorkflowEditAllowed"
       :meta="meta"
       @update:model-value="updateFields"
     />

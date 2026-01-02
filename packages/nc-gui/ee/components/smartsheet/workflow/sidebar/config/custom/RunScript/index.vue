@@ -67,8 +67,11 @@ const updateVariable = (index: number, field: 'name' | 'value', value: any) => {
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-nc-content-gray-emphasis">Input Variables</label>
       <div v-if="variables.filter((v) => v.name).length === 0" class="text-xs text-nc-content-gray-subtle">
-        Add variables that will be accessible via <code class="px-1 py-0.5 bg-nc-bg-gray-light rounded">input.config()</code> in
-        your script
+        Add variables that will be accessible via input.config() in your script
+      </div>
+
+      <div v-if="variables.filter((v) => v.name).length !== 0" class="text-xs text-nc-content-gray-subtle">
+        Variables accessible via input.config() are listed here. Use Edit code to add more variables.
       </div>
 
       <template v-for="(variable, index) in variables.filter((v) => v.name)" :key="variable.name">

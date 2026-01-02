@@ -78,11 +78,11 @@ const props = defineProps({
   },
 })
 
-const { insertNodeBetween, getNodeMetaById, viewingExecution, activeTab } = useWorkflowOrThrow()
+const { insertNodeBetween, getNodeMetaById, viewingExecution, activeTab, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { $e } = useNuxtApp()
 
-const isEditMode = computed(() => activeTab.value === 'editor' && !viewingExecution.value)
+const isEditMode = computed(() => activeTab.value === 'editor' && !viewingExecution.value && isWorkflowEditAllowed.value)
 
 const path = computed(() =>
   getSmoothStepPath({
@@ -138,7 +138,7 @@ export default {
       <Dropdown :category="[WorkflowNodeCategory.ACTION, WorkflowNodeCategory.FLOW]" @select="selectNodeType">
         <template #default="{ openDropdown }">
           <button
-            class="edge-add-button group w-6 h-6 bg-nc-bg-default hover:bg-nc-bg-gray-light border-nc-border-brand hover:scale-110 border-nc-border-gray-medium border-1 rounded-full cursor-pointer flex items-center justify-center transition-all duration-200 transition-ease-in-out"
+            class="edge-add-button group w-6 h-6 bg-nc-bg-default hover:bg-nc-bg-gray-light border-nc-border-gray-medium hover:scale-110 hover:border-nc-border-brand border-1 rounded-full cursor-pointer flex items-center justify-center transition-all duration-200 transition-ease-in-out"
             title="Add node"
             @click="openDropdown"
           >

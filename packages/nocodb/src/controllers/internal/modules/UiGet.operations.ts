@@ -206,7 +206,8 @@ export class UiGetOperations
           query: req.query,
           modelId: req.query.tableId as string,
           viewId: req.query.viewId as string,
-          includeSortAndFilterColumns: req.query.includeSortAndFilterColumns === 'true',
+          includeSortAndFilterColumns:
+            req.query.includeSortAndFilterColumns === 'true',
           user: req.user,
         });
     }

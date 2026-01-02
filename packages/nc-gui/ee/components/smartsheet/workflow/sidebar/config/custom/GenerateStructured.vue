@@ -9,7 +9,7 @@ interface GenerateStructuredConfig {
   schema: SchemaField[]
 }
 
-const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions } = useWorkflowOrThrow()
+const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { loadIntegrations: loadIntegrationStore, integrations } = useProvideIntegrationViewStore()
 
@@ -193,6 +193,7 @@ const arrayItemTypeOptions = [
       <NcFormBuilderInputWorkflowInput
         :model-value="config.prompt"
         :variables="flatVariables"
+        :read-only="!isWorkflowEditAllowed"
         :plugins="['multiline']"
         :grouped-variables="groupedVariables"
         placeholder="Enter your prompt for AI generation"
@@ -204,6 +205,7 @@ const arrayItemTypeOptions = [
       <label class="text-sm font-medium text-nc-content-gray-emphasis">AI Integration</label>
       <a-select
         :value="config.integrationId"
+        :disabled="!isWorkflowEditAllowed"
         placeholder="Select AI integration"
         class="w-full"
         @update:value="onIntegrationChange"
@@ -229,6 +231,7 @@ const arrayItemTypeOptions = [
     <div v-if="config.integrationId" class="flex flex-col gap-2">
       <label class="text-sm font-medium text-nc-content-gray-emphasis">Model</label>
       <NcSelect
+        :disabled="!isWorkflowEditAllowed"
         :value="config.model"
         :options="modelOptions"
         placeholder="Select model"
@@ -255,34 +258,30 @@ const arrayItemTypeOptions = [
     <div class="flex flex-col gap-2">
       <label class="text-sm font-medium text-nc-content-gray-emphasis">Output Schema</label>
 
-      <NcDropdown v-model:visible="isSchemaDropdownOpen" placement="bottomLeft" overlay-class-name="nc-schema-dropdown">
+      <NcListDropdown
+        v-model:visible="isSchemaDropdownOpen"
+        :disabled="!isWorkflowEditAllowed"
+        placement="bottomLeft"
+        overlay-class-name="nc-schema-dropdown"
+      >
         <div
-          class="h-9 border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 transition-all cursor-pointer select-none text-sm"
+          class="nc-schema-count flex-1"
           :class="{
-            '!border-nc-border-brand shadow-selected': isSchemaDropdownOpen,
-            'border-nc-border-gray-medium': !isSchemaDropdownOpen,
-            'bg-nc-bg-brand-light': schemaCount > 0,
+            'text-nc-content-brand': schemaCount > 0,
+            'text-nc-content-gray-muted': schemaCount === 0,
           }"
         >
-          <div
-            class="nc-schema-count flex-1"
-            :class="{
-              'text-nc-content-brand': schemaCount > 0,
-              'text-nc-content-gray-muted': schemaCount === 0,
-            }"
-          >
-            {{ schemaCount > 0 ? `${schemaCount} field${schemaCount !== 1 ? 's' : ''}` : 'No fields defined' }}
-          </div>
-
-          <GeneralIcon
-            icon="ncChevronDown"
-            class="flex-none w-4 h-4"
-            :class="{
-              'text-nc-content-brand': schemaCount > 0,
-              'text-nc-content-gray-muted': schemaCount === 0,
-            }"
-          />
+          {{ schemaCount > 0 ? `${schemaCount} field${schemaCount !== 1 ? 's' : ''}` : 'No fields defined' }}
         </div>
+
+        <GeneralIcon
+          icon="ncChevronDown"
+          class="flex-none w-4 h-4"
+          :class="{
+            'text-nc-content-brand': schemaCount > 0,
+            'text-nc-content-gray-muted': schemaCount === 0,
+          }"
+        />
 
         <template #overlay>
           <div class="nc-schema-dropdown-container p-3">
@@ -303,7 +302,7 @@ const arrayItemTypeOptions = [
                   <NcSelect
                     :value="field.type"
                     :options="typeOptions"
-                    class="w-28 !rounded-r-lg !rounded-l-none"
+                    class="w-28 nc-type-select"
                     @update:value="updateField(fieldIndex, { type: $event as any })"
                   />
                   <NcButton size="xs" type="text" @click="removeField(fieldIndex)">
@@ -450,7 +449,7 @@ const arrayItemTypeOptions = [
             </NcButton>
           </div>
         </template>
-      </NcDropdown>
+      </NcListDropdown>
     </div>
   </div>
 </template>
@@ -473,6 +472,19 @@ const arrayItemTypeOptions = [
 .nc-schema-field {
   :deep(.ant-input-sm) {
     @apply !h-8;
+  }
+}
+
+:deep(.nc-select:not(.ant-select-disabled):hover) {
+  &,
+  .ant-select-selector {
+    @apply bg-nc-bg-gray-extralight;
+  }
+}
+
+:deep(.nc-type-select) {
+  .ant-select-selector {
+    @apply !rounded-l-none !border-nc-border-gray-medium !border-l-0 !shadow-none;
   }
 }
 </style>

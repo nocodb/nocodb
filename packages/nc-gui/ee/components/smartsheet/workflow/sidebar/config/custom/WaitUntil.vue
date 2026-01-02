@@ -25,7 +25,7 @@ interface WaitUntilNodeConfig {
   timezone?: string
 }
 
-const { selectedNodeId, updateNode, selectedNode } = useWorkflowOrThrow()
+const { selectedNodeId, updateNode, selectedNode, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const browserTzName: string = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
 
@@ -245,6 +245,7 @@ const onBlur = (e: Event, _isDatePicker: boolean) => {
 }
 
 const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false) => {
+  if (!isWorkflowEditAllowed.value) return
   if (e.key !== 'Enter') {
     e.stopPropagation()
   }
@@ -275,6 +276,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false)
 }
 
 const onFocus = (_isDatePicker: boolean) => {
+  if (!isWorkflowEditAllowed.value) return
   isDatePicker.value = _isDatePicker
   open.value = true
 }
@@ -291,6 +293,7 @@ onClickOutside(datePickerRef, (e) => {
 })
 
 const clickHandler = (_isDatePicker = false) => {
+  if (!isWorkflowEditAllowed.value) return
   isDatePicker.value = _isDatePicker
   open.value = true
 }
@@ -321,6 +324,7 @@ watch(
   <a-form class="nc-wait-until-config" layout="vertical">
     <a-form-item label="Date & Time">
       <NcDropdown
+        :disabled="!isWorkflowEditAllowed"
         :visible="isOpen"
         :placement="isDatePicker ? 'bottomLeft' : 'bottomRight'"
         :auto-close="false"
@@ -335,6 +339,7 @@ watch(
               ref="datePickerRef"
               :value="datetime?.format('YYYY-MM-DD') ?? ''"
               placeholder="YYYY-MM-DD"
+              :disabled="!isWorkflowEditAllowed"
               class="nc-date-input w-full border-none outline-none !text-current !bg-transparent focus:outline-none focus:ring-0"
               @focus="onFocus(true)"
               @blur="onBlur($event, true)"
@@ -348,6 +353,7 @@ watch(
               ref="timePickerRef"
               :value="datetime?.format('HH:mm:ss') ?? ''"
               placeholder="HH:mm:ss"
+              :disabled="!isWorkflowEditAllowed"
               class="nc-time-input w-full border-none outline-none !text-current !bg-transparent focus:outline-none focus:ring-0"
               @focus="onFocus(false)"
               @blur="onBlur($event, false)"
@@ -397,6 +403,7 @@ watch(
       <a-select
         :value="config.timezone"
         show-search
+        :disabled="!isWorkflowEditAllowed"
         allow-clear
         :filter-option="(input, option) => antSelectFilterOption(input, option, ['key', 'data-abbreviation'])"
         dropdown-class-name="nc-dropdown-timezone"

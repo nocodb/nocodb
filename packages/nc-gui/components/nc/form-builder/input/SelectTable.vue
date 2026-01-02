@@ -5,6 +5,7 @@ interface Props {
   baseId?: string
   options?: any[]
   multiple?: boolean
+  disabled?: boolean
 }
 
 const props = defineProps<Props>()
@@ -58,7 +59,7 @@ const handleValueUpdate = (value: any) => {
 </script>
 
 <template>
-  <NcListDropdown v-model:is-open="isOpenTableSelectDropdown" :has-error="!!selectedTable?.ncItemDisabled">
+  <NcListDropdown v-model:is-open="isOpenTableSelectDropdown" :disabled="disabled" :has-error="!!selectedTable?.ncItemDisabled">
     <div class="flex-1 flex items-center group gap-2 min-w-0">
       <div v-if="selectedTable && !Array.isArray(selectedTable)" class="min-w-5 flex items-center justify-center">
         <NcIconTable :table="selectedTable.table as TableType" class="text-nc-content-muted" />

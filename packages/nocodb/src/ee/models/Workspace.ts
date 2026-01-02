@@ -687,12 +687,6 @@ export default class Workspace extends WorkspaceCE implements WorkspaceType {
             .where('fk_workspace_id', id)
             .whereIn('base_id', activeBaseIds)
             .where('type', AutomationTypes.SCRIPT),
-          [PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE]: ncMeta
-            .knexConnection(MetaTable.AUTOMATIONS)
-            .count('*')
-            .where('fk_workspace_id', id)
-            .whereIn('base_id', activeBaseIds)
-            .where('type', AutomationTypes.WORKFLOW),
           [PlanLimitTypes.LIMIT_EXTERNAL_SOURCE_PER_WORKSPACE]: ncMeta
             .knexConnection(MetaTable.SOURCES)
             .count('*')

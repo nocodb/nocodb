@@ -5,6 +5,7 @@ interface Props {
   tableId?: string
   options?: any[]
   multiple?: boolean
+  disabled?: boolean
 }
 
 const props = defineProps<Props>()
@@ -56,7 +57,7 @@ const handleValueUpdate = (value: any) => {
 </script>
 
 <template>
-  <NcListDropdown v-model:is-open="isOpenColumnSelectDropdown" :has-error="!!selectedColumn?.ncItemDisabled">
+  <NcListDropdown v-model:is-open="isOpenColumnSelectDropdown" :disabled="disabled" :has-error="!!selectedColumn?.ncItemDisabled">
     <div class="flex-1 flex items-center gap-2 min-w-0">
       <div v-if="selectedColumn && !Array.isArray(selectedColumn)" class="min-w-5 flex items-center justify-center">
         <SmartsheetHeaderIcon :column="selectedColumn.column as ColumnType" color="text-nc-content-gray-muted" />
@@ -77,7 +78,7 @@ const handleValueUpdate = (value: any) => {
       </NcTooltip>
 
       <GeneralIcon
-        v-if="selectedColumn"
+        v-if="selectedColumn && !disabled"
         class="hidden text-nc-content-gray-muted transition group-hover:!block h-4 w-4 cursor-pointer"
         icon="ncXCircle"
         @click.stop="handleValueUpdate(null)"

@@ -1,13 +1,13 @@
-import { PlanLimitTypes, hasWorkflowDraftChanges } from 'nocodb-sdk'
+import { hasWorkflowDraftChanges } from 'nocodb-sdk'
 import type { WorkflowNodeDefinition, WorkflowType } from 'nocodb-sdk'
 import { DlgWorkflowCreate } from '#components'
 
 export const useWorkflowStore = defineStore('workflow', () => {
   const { $api, $e } = useNuxtApp()
 
-  const { ncNavigateTo } = useGlobal()
+  const { isUIAllowed } = useRoles()
 
-  const { showWorkflowPlanLimitExceededModal, updateStatLimit } = useEeConfig()
+  const { ncNavigateTo } = useGlobal()
 
   const { refreshCommandPalette } = useCommandPalette()
 
@@ -26,6 +26,10 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const isWorkflowsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.WORKFLOWS))
+
+  const isAdvancedNodesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.ADVANCED_NODES))
+
+  const isWorkflowEditAllowed = computed(() => isUIAllowed('workflowCreateOrEdit'))
 
   const baseUsers = computed(() => (activeProjectId.value ? basesUser.value.get(activeProjectId.value) || [] : []))
 
@@ -53,7 +57,9 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const activeBaseNodeSchemas = computed<Array<WorkflowNodeDefinition>>(() => {
     if (!activeProjectId.value) return []
-    return workflowNodes.value.get(activeProjectId.value) || []
+    return (workflowNodes.value.get(activeProjectId.value) || []).filter((node) =>
+      node.hidden ? isAdvancedNodesEnabled.value : true,
+    )
   })
 
   const activeWorkflowId = computed(() => route.params.workflowId as string)
@@ -75,6 +81,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const activeWorkflowHasDraftChanges = computed(() => {
     if (!activeWorkflow.value) return false
+    if (!isWorkflowEditAllowed.value) return false
     return hasWorkflowDraftChanges(activeWorkflow.value)
   })
 
@@ -165,8 +172,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
         },
         workflowData,
       )
-
-      updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, 1)
 
       const baseWorkflows = workflows.value.get(baseId) || []
       baseWorkflows.push({
@@ -266,8 +271,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
         },
       )
 
-      updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, -1)
-
       await refreshCommandPalette()
 
       $e('a:workflow:delete')
@@ -307,10 +310,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const duplicateWorkflow = async (baseId: string, workflowId: string) => {
     if (!activeWorkspaceId.value) return null
 
-    if (showWorkflowPlanLimitExceededModal()) {
-      return null
-    }
-
     try {
       const created = await $api.internal.postOperation(
         activeWorkspaceId.value,
@@ -322,8 +321,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
           workflowId,
         },
       )
-
-      updateStatLimit(PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE, 1)
 
       const baseWorkflows = workflows.value.get(baseId) || []
       baseWorkflows.push(created)
@@ -401,6 +398,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const loadWorkflowExecutions = async (params: { workflowId?: string; limit?: number; offset?: number; cursorId?: string }) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return []
+    if (!isUIAllowed('workflowExecutionList')) return []
     try {
       const response = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
         operation: 'workflowExecutionList',
@@ -491,7 +489,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     loadWorkflowsOnClose?: boolean
     scrollOnCreate?: boolean
   }) {
-    if (!baseId || showWorkflowPlanLimitExceededModal()) return
+    if (!baseId) return
 
     const isDlgOpen = ref(true)
 

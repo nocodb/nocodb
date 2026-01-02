@@ -8,7 +8,7 @@ interface CreateRecordNodeConfig {
   fields: Record<string, any>
 }
 
-const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions } = useWorkflowOrThrow()
+const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions, isWorkflowEditAllowed } = useWorkflowOrThrow()
 
 const { base } = storeToRefs(useBase())
 
@@ -113,6 +113,7 @@ onMounted(() => {
         :value="config.modelId"
         :base-id="base?.id"
         :multiple="false"
+        :disabled="!isWorkflowEditAllowed"
         :options="tableOptions"
         @update:value="onTableSelect"
       />
@@ -122,6 +123,7 @@ onMounted(() => {
       v-if="config.modelId && columns.length > 0"
       :model-value="config.fields"
       :columns="columns"
+      :disabled="!isWorkflowEditAllowed"
       :meta="meta"
       @update:model-value="updateFields"
     />

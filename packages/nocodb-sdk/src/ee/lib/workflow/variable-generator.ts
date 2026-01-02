@@ -550,7 +550,7 @@ export async function getFieldVariable(
     variable.children = [
       {
         key: `${variable.key}.length`,
-        name: 'length',
+        name: 'Length',
         type: VariableType.Number,
         groupKey: VariableGroupKey.Meta,
         extra: {

@@ -129,6 +129,9 @@ function formulaParsedTreeBuilderTests() {
           res.indexOf(`{"type":"Identifier","name":"col2"}`) >= 0
         );
       }, 'Col 1 & col 2 not found in args');
+      expect(resultJsonStr).to.satisfy((res: string) => {
+        return res.indexOf(`{"type":"Literal","value":5}`) >= 0;
+      }, 'Literal value 5 not found in args');
     });
 
     // Test cases for CONCAT

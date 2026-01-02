@@ -12,6 +12,7 @@ import type {
 } from '~/models';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
+import { swaggerGetSourcePrefix } from '~/helpers/dbHelpers';
 
 export interface SwaggerView {
   view: View;
@@ -50,9 +51,7 @@ export async function prepareSwaggerGenerationData({
 
   for (const model of models) {
     const source = sourcesMap.get(model.source_id);
-    const sourcePrefix = source?.isMeta()
-      ? ''
-      : `${swaggerSanitizeSchemaName(source?.alias || 'Source')}_`;
+    const sourcePrefix = swaggerGetSourcePrefix(source);
     const tableName = `${sourcePrefix}${model.title}`;
 
     // Handle duplicate table names by adding a number suffix

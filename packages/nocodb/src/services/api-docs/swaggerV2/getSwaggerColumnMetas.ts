@@ -46,7 +46,9 @@ async function processColumnToSwaggerField(
           field.type = undefined;
           // skip if refTable undefined or cross base link
           if (relTable && relTable.base_id === context.base_id) {
-            field.$ref = `#/components/schemas/${relTable.title}Request`;
+            field.$ref = `#/components/schemas/${swaggerGetSourcePrefix(
+              source,
+            )}${relTable.title}Request`;
           }
         }
       }

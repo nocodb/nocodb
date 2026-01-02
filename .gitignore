@@ -1,36 +1,42 @@
-# OS
-# ===========
+# Operating System Files
+# ======================
 .DS_Store
 ehthumbs.db
 Thumbs.db
-
+*~.nib
 
 # Node and related ecosystem
 # ==========================
+node_modules/
 .nodemonignore
 .sass-cache/
-node_modules/
-help/
-a
-public/lib/
-app/tests/coverage/
 .bower-*/
-.idea/
-coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# MEAN.js app and assets
-# ======================
-public/dist/
-uploads
-modules/users/client/img/profile/uploads
+# Environment and Secrets
+# =======================
 config/env/local.js
+local.properties
 *.pem
+/packages/nc-secret-mgr/dist/index.js
+/packages/nc-secret-mgr/dist/index.js.map
 
-# Ignoring MEAN.JS's gh-pages branch for documenation
+# Logs, Build and Coverage
+# ========================
+logs/
+build/
+coverage/
+public/dist/
 _site/
+app/tests/coverage/
+result
+httpbin
+mongod
 
-# General
-# =======
+# Temporary and General Files
+# ===========================
 *.log
 *.csv
 *.dat
@@ -41,62 +47,50 @@ _site/
 *.tmp.md
 *.bak
 *.swp
-logs/
-build/
+a
+.*.md.html
+
+# Uploads and Data
+# ================
+uploads
 uploads/
+public/lib/
+modules/users/client/img/profile/uploads
+nc_minimal_dbs/
+test_noco.db
+/packages/nocodb/noco_log.db
 
+# IDE and Editors
+# ===============
 # Visual Studio Code
-# =========
 .vscode
+.history
+.cursorignore
 
-# Sublime editor
-# ==============
+# IntelliJ / JetBrains
+.idea/
+*.iml
+.run/test-debug.run.xml
+
+# Sublime Text
 .sublime-project
 *.sublime-project
 *.sublime-workspace
 
-# Eclipse project files
-# =====================
+# Eclipse
 .project
 .settings/
-.*.md.html
 .metadata
-*~.nib
-local.properties
-
-# IntelliJ
-# ========
-*.iml
-
-# Cloud9 IDE
-# =========
-.c9/
-mongod
 
 # Visual Studio
-# =========
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 
-.history
+# Cloud9
+.c9/
+
+# Specific Project Files
+# ======================
 /packages/nocodb/docker/main.js.LICENSE.txt
-/packages/nocodb/noco_log.db
-
-# NC_DBs
-#=========
-nc_minimal_dbs/
-test_noco.db
-
-# ngrok config
-httpbin
-.run/test-debug.run.xml
-
-/packages/nc-secret-mgr/dist/index.js
-/packages/nc-secret-mgr/dist/index.js.map
-
-# nix
-result
-
-.cursorignore

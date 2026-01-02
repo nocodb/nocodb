@@ -19,8 +19,13 @@ export class ApiDocsService {
     if (!base) NcError.baseNotFound(param.baseId);
 
     const models = await this.extractVisibleModels(context, param);
+    // Fetch sources once for the entire base to avoid repeated queries
+    const sources = await base.getSources(false);
+    const sourcesMap: SourcesMap = new Map<string, Source>(
+      sources.map((source) => [source.id, source]),
+    );
     const swagger = await getSwaggerJSON(context, {
-      source: (await base.getSources())[0],
+      sourcesMap,
       base,
       models,
     });
@@ -51,8 +56,13 @@ export class ApiDocsService {
     if (!base) NcError.baseNotFound(param.baseId);
 
     const models = await this.extractVisibleModels(context, param);
+    // Fetch sources once for the entire base to avoid repeated queries
+    const sources = await base.getSources(false);
+    const sourcesMap: SourcesMap = new Map<string, Source>(
+      sources.map((source) => [source.id, source]),
+    );
     const swagger = await getSwaggerJSONV2(context, {
-      source: (await base.getSources())[0],
+      sourcesMap,
       base,
       models,
     });

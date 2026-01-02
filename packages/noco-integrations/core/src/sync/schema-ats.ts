@@ -10,7 +10,7 @@ export const SCHEMA_ATS: SyncSchema = {
       { title: 'Source', uidt: UITypes.SingleSelect },
       { title: 'Credited To', uidt: UITypes.SingleLineText },
       { title: 'Screening Question Answers', uidt: UITypes.SingleLineText },
-      { title: 'Current Stage', uidt: UITypes.SingleSelect },
+      { title: 'Current Stage', uidt: UITypes.SingleSelect, pv: true },
       { title: 'Reject Reason', uidt: UITypes.SingleLineText },
       { title: 'Tags', uidt: UITypes.MultiSelect },
     ],

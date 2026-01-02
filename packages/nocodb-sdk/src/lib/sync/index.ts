@@ -428,7 +428,7 @@ export const TARGET_TABLES_META = {
     icon: 'ncUserPlus',
     label: 'ATS_Application',
     description: 'Represents recruiting job application data.',
-    required: true,
+    required: false,
   },
   [TARGET_TABLES.ATS_CANDIDATE]: {
     category: SyncCategory.ATS,
@@ -444,7 +444,7 @@ export const TARGET_TABLES_META = {
     icon: 'ncDatabase',
     label: 'ncFileText',
     description: 'Represents jobs to fill data.',
-    required: false,
+    required: true,
   },
   [TARGET_TABLES.ATS_JOB_POSTING]: {
     category: SyncCategory.ATS,

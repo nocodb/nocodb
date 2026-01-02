@@ -258,8 +258,14 @@ const enableFormattingOptions = computed(() => {
 })
 
 const showAsLinksOption = computed(() => {
-  // Show "Show as links" option only for count rollup function
-  return vModel.value.rollup_function === 'count'
+  // Show "Show as links" option only for count rollup function on primary key columns
+  if (vModel.value.rollup_function !== 'count') {
+    return false
+  }
+
+  // Check if the selected rollup column is a primary key column
+  const selectedRollupColumn = columns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
+  return !!selectedRollupColumn?.pk
 })
 
 const onFilterLabelClick = () => {

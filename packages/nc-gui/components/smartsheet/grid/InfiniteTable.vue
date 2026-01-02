@@ -15,8 +15,9 @@ import {
   isSystemColumn,
   isVirtualCol,
 } from 'nocodb-sdk'
-
 import axios from 'axios'
+import { isRollupAsLink } from '../../../utils/virtualCell'
+
 import { useColumnDrag } from './useColumnDrag'
 import { useRowDragging } from './useRowDragging'
 import { type CellRange, NavigateDir, type Row, type ViewActionState } from '#imports'
@@ -467,7 +468,7 @@ provide(JsonExpandInj, isJsonExpand)
 const isKeyDown = ref(false)
 
 const isReadonly = (col: ColumnType) => {
-  return isReadonlyVirtualColumn(col) || col.readonly
+  return (isReadonlyVirtualColumn(col) && !(isRollup(col) && isRollupAsLink(col))) || col.readonly
 }
 
 const colMeta = computed(() => {

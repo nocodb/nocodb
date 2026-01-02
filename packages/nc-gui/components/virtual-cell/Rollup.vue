@@ -11,10 +11,14 @@ const column = inject(ColumnInj)!
 
 const meta = inject(MetaInj, ref())
 
-const row = inject(RowInj)!
+const showAsLinks = computed(() => {
+  return parseProp(column.value?.meta)?.showAsLinks || false
+})
 
 const { showEditNonEditableFieldWarning, showClearNonEditableFieldWarning, activateShowEditNonEditableFieldWarning } =
-  useShowNotEditableWarning()
+  useShowNotEditableWarning({
+    disable: showAsLinks,
+  })
 
 const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
   if ((column?.value?.colOptions as RollupType)?.fk_relation_column_id) {
@@ -44,10 +48,6 @@ const childColumn = computed(() => {
 
 const renderAsTextFun = computed(() => {
   return getRenderAsTextFunForUiType(childColumn.value?.uidt || UITypes.SingleLineText)
-})
-
-const showAsLinks = computed(() => {
-  return parseProp(column.value?.meta)?.showAsLinks || false
 })
 
 // Get the original readonly state - when showing as links, use the original readonly state
@@ -81,12 +81,12 @@ const relationColumn = computed(() => {
     <template v-else>
       <CellDecimal v-if="renderAsTextFun.includes((colOptions as RollupType).rollup_function!)" :model-value="value" />
       <LazySmartsheetCell v-else v-model="value" :column="childColumn" :edit-enabled="false" :read-only="true" />
+      <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+        {{ $t('msg.info.computedFieldEditWarning') }}
+      </div>
+      <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
+        {{ $t('msg.info.computedFieldDeleteWarning') }}
+      </div>
     </template>
-    <div v-if="showEditNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-      {{ $t('msg.info.computedFieldEditWarning') }}
-    </div>
-    <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
-      {{ $t('msg.info.computedFieldDeleteWarning') }}
-    </div>
   </div>
 </template>

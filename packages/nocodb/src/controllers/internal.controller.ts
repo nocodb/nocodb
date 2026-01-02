@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  Inject,
   Param,
   Post,
   Query,
@@ -78,6 +80,8 @@ export class InternalController {
   }
 
   @Post(['/api/v2/internal/:workspaceId/:baseId'])
+  // return 200 instead 201 for more generic operations
+  @HttpCode(200)
   protected async internalAPIPost(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,

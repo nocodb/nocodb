@@ -107,20 +107,20 @@ Diğer kurulum yöntemleri için [dokümanlarımızı](https://docs.nocodb.com/c
 
 # Özellikler
 
-### Zengin Hesap Tablosu Arayüzü
+### Zengin E-Tablo Arayüzü
 
 - ⚡ &nbsp;Temel İşlemler: Tablo, Sütun ve Satır Oluşturma, Okuma, Güncelleme ve Silme
 - ⚡ &nbsp;Veri İşlemleri: Sıralama, Filtreleme, Gruplama, Sütun Gizleme / Gösterme
 - ⚡ &nbsp;Çoklu Görünüm Türleri: Izgara (Varsayılan), Galeri, Form, Kanban ve Takvim Görünümü
-- ⚡ &nbsp;Görünüm İzin Türleri: Ortak Çalışma (Collaborative) ve Kilitli Görünümler
+- ⚡ &nbsp;Görünüm İzin Türleri: Ortak Çalışma Görünümleri ve Kilitli Görünümler
 - ⚡ &nbsp;Paylaşım Seçenekleri: Herkese Açık ya da Özel (Parola Korumalı)
 - ⚡ &nbsp;Zengin Veri Türleri: ID, Bağlantı, Lookup, Rollup, Tek Satırlı Metin, Dosya Eki, Para Birimi, Formül, Kullanıcı vb.
 - ⚡ &nbsp;Rol Tabanlı Erişim Kontrolü: Farklı seviyelerde detaylı erişim denetimi
 - ⚡ &nbsp;ve daha fazlası ...
 
-### İş Akışı Otomasyonları için Uygulama Mağzası
+### İş Akışı Otomasyonları için Uygulama Mağazası
 
-Üç ana kategoride çeşitli entegrasyonlar sunuyoruz. Detaylar için <a href="https://docs.nocodb.com/account-settings/oss-specific-details/#app-store" target="_blank">App Store</a>'a göz atabilirsiniz.
+Üç ana kategoride çeşitli entegrasyonlar sunuyoruz. Detaylar için <a href="https://docs.nocodb.com/account-settings/oss-specific-details/#app-store" target="_blank">Uygulama Mağazası</a>'na göz atabilirsiniz.
 
 - ⚡ &nbsp;Sohbet: Slack, Discord, Mattermost, and etc
 - ⚡ &nbsp;E-posta: AWS SES, SMTP, MailerSend, and etc
@@ -128,7 +128,7 @@ Diğer kurulum yöntemleri için [dokümanlarımızı](https://docs.nocodb.com/c
 
 ### Programatik Erişim
 
-Kullanıcıların işlemleri programatik olarak tetikleyebilmesi için aşağıdaki yöntemleri sunuyoruz. NocoDB yetkilendirme işlemlerinde, isteklerinizi bir token (JWT veya Sosyal Giriş) kullanarak imzalayabilirsiniz.
+Kullanıcıların işlemleri programatik olarak tetikleyebilmesi için aşağıdaki yöntemleri sunuyoruz. İsteklerinizi NocoDB’ye yetkilendirmek için bir token (JWT veya Sosyal Kimlik Doğrulama / Social Auth) kullanabilirsiniz.
 
 - ⚡ &nbsp;REST API'ler
 - ⚡ &nbsp;NocoDB SDK
@@ -139,7 +139,7 @@ Kullanıcıların işlemleri programatik olarak tetikleyebilmesi için aşağıd
 
 # Neden bunu geliştiriyoruz?
 
-Çoğu internet girişimi, ihtiyaçlarını çözmek için ya hesap tablolarını (spreadsheet) ya da veritabanlarını kullanıyor. Bu noktada hesap tabloları her gün bir milyardan fazla insan tarafından kullanılıyor. Ancak işlem gücü bakımından çok daha üstün olan veritabanlarında, maalesef aynı hız ve kolaylıkla çalışılamıyor.
+Çoğu internet girişimi, ihtiyaçlarını çözmek için ya E-Tablolarını (spreadsheet) ya da veritabanlarını kullanıyor. Bu noktada E-Tabloları her gün bir milyardan fazla insan tarafından kullanılıyor. Ancak işlem gücü bakımından çok daha üstün olan veritabanlarında, maalesef aynı hız ve kolaylıkla çalışılamıyor.
  
 Bu sorunu SaaS çözümleriyle aşma girişimleri; yetersiz erişim kontrolleri, sağlayıcıya bağımlılık, verilerin hapsedilmesi ve ani fiyat artışları gibi sorunlar yaratmakla kalmayıp, gelecekte yapılabileceklerin önüne çekilen 'görünmez bir duvar' olmaktan öteye gidemedi.
 
@@ -147,7 +147,7 @@ Bu sorunu SaaS çözümleriyle aşma girişimleri; yetersiz erişim kontrolleri,
 
 Misyonumuz, dünyadaki her bir internet girişimine, veritabanları için en güçlü açık kaynaklı no-code arayüzünü sunmaktır. 
 
-Bu sayede sadece güçlü bir teknolojik araca erişimi demokratikleştirmekle kalmayıp, aynı zamanda internet üzerinde köklü üretim ve geliştirme yeteneklerine sahip bir milyardan fazla insanın da önünü açıyoruz.
+Bu sayede sadece güçlü bir teknolojik araca erişimi demokratikleştirmekle kalmayıp, aynı zamanda internet üzerinde radikal üretim ve geliştirme yeteneklerine sahip milyarlarca insanın da önünü açıyoruz.
 
 # Lisans
 

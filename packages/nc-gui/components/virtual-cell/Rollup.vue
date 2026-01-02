@@ -83,12 +83,13 @@ const effectiveReadonly = computed(() => {
 
   // Check both general dataEdit permission AND column-specific permission
   const hasGeneralEditPermission = (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
-  
+
   // For rollup as links, we should check the RELATION column's permissions
   // since that's what the user is actually editing, not the rollup column itself
   const relationColId = (column.value?.colOptions as RollupType)?.fk_relation_column_id
   const relationCol = meta.value?.columns?.find((c) => c.id === relationColId)
-  const hasColumnEditPermission = !relationCol?.id || isAllowed(PermissionEntity.FIELD, relationCol.id, PermissionKey.RECORD_FIELD_EDIT)
+  const hasColumnEditPermission =
+    !relationCol?.id || isAllowed(PermissionEntity.FIELD, relationCol.id, PermissionKey.RECORD_FIELD_EDIT)
 
   const hasEditPermission = hasGeneralEditPermission && hasColumnEditPermission
   return !hasEditPermission // readonly is the inverse of hasEditPermission

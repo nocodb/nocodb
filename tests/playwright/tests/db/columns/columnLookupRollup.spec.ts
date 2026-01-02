@@ -72,7 +72,7 @@ test.describe('Virtual columns', () => {
     await dashboard.grid.column.openEdit({ title: 'RollupAsLinks' });
 
     // Click the toggle for "Show rolled up count as links"
-    await dashboard.rootPage.locator('text=Show rolled up count as links').click();
+    await dashboard.rootPage.locator('text=Show count as links').click();
 
     // Save the column changes
     await dashboard.grid.column.save({ isUpdated: true });
@@ -94,7 +94,7 @@ test.describe('Virtual columns', () => {
       columnHeader: 'RollupAsLinks',
       count: 3,
       verifyChildList: true, // This will click on the link text and verify child list opens
-      options: { singular: 'City', plural: 'Cities' },
+      options: { singular: 'Link', plural: 'Links' },
     });
   });
 });

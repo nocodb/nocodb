@@ -16,7 +16,7 @@ import {
   isVirtualCol,
 } from 'nocodb-sdk'
 import axios from 'axios'
-import { isRollupAsLink } from '../../../utils/virtualCell'
+import { isRollupAsLink } from 'nocodb-sdk'
 
 import { useColumnDrag } from './useColumnDrag'
 import { useRowDragging } from './useRowDragging'

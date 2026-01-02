@@ -6,7 +6,6 @@ import {
   getMetaWithCompositeKey,
   getRenderAsTextFunForUiType,
 } from 'nocodb-sdk'
-import type { LinkToAnotherRecordType } from 'nocodb-sdk'
 import rfdc from 'rfdc'
 import { getRelatedBaseId } from '../utils/cell'
 import { isBoxHovered } from '../utils/canvas'

@@ -11,7 +11,7 @@ import {
   ncHasProperties,
   parseProp,
 } from 'nocodb-sdk'
-import type { ButtonType, ColumnType, FormulaType, TableType, UserType, ViewType } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, FormulaType, RollupType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
@@ -405,10 +405,27 @@ export function useCanvasTable({
         })
         const sqlUi = sqlUis.value[f.source_id] ?? Object.values(sqlUis.value)[0]
 
-        const isCellEditable =
-          !showReadonlyColumnTooltip(f) &&
-          !showEditRestrictedColumnTooltip(f) &&
-          isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
+        // For rollup columns showing as links, check relation column permissions instead
+        let isCellEditable = showReadonlyColumnTooltip(f) || !showEditRestrictedColumnTooltip(f)
+
+        if (isRollupAsLink(f)) {
+          // For rollup showing as links, check the relation column's permissions instead of rollup column
+          // This ensures the Links component behavior is inherited (no plus icon when relation column is restricted)
+          const relationColId = (f.colOptions as RollupType)?.fk_relation_column_id
+          const relationCol = metas.value?.[f.fk_model_id!]?.columns?.find((c) => c.id === relationColId)
+          if (relationCol?.id) {
+            isCellEditable =
+              showReadonlyColumnTooltip(relationCol) ||
+              !showEditRestrictedColumnTooltip(relationCol) ||
+              isAllowed(PermissionEntity.FIELD, relationCol.id, PermissionKey.RECORD_FIELD_EDIT)
+          } else {
+            // Fallback to rollup column permissions if relation column not found
+            isCellEditable = isCellEditable || isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
+          }
+        } else {
+          // For all other column types, check their own permissions
+          isCellEditable = isCellEditable || isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
+        }
 
         const aggregation = getFormattedAggrationValue(gridViewCol.aggregation, aggregations.value[f.title!], f, [], {
           col: f,

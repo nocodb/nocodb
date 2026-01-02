@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, getRenderAsTextFunForUiType, PermissionEntity, PermissionKey } from 'nocodb-sdk'
+import { PermissionEntity, PermissionKey, UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
 import RollupLinksProvider from './RollupLinksProvider.vue'
 
@@ -80,11 +80,16 @@ const effectiveReadonly = computed(() => {
   // PLUS column-level permissions check
   const { isUIAllowed } = useRoles()
   const { isAllowed } = usePermissions()
-  
+
   // Check both general dataEdit permission AND column-specific permission
   const hasGeneralEditPermission = (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
-  const hasColumnEditPermission = !column.value?.id || isAllowed(PermissionEntity.FIELD, column.value.id, PermissionKey.RECORD_FIELD_EDIT)
   
+  // For rollup as links, we should check the RELATION column's permissions
+  // since that's what the user is actually editing, not the rollup column itself
+  const relationColId = (column.value?.colOptions as RollupType)?.fk_relation_column_id
+  const relationCol = meta.value?.columns?.find((c) => c.id === relationColId)
+  const hasColumnEditPermission = !relationCol?.id || isAllowed(PermissionEntity.FIELD, relationCol.id, PermissionKey.RECORD_FIELD_EDIT)
+
   const hasEditPermission = hasGeneralEditPermission && hasColumnEditPermission
   return !hasEditPermission // readonly is the inverse of hasEditPermission
 })

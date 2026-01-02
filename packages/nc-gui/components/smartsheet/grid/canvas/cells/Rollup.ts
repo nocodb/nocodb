@@ -22,19 +22,34 @@ export const RollupCellRenderer: CellRenderer = {
     const colOptions = column.colOptions as RollupType
     const columnMeta = parseProp(column.meta)
 
-    // Check if this rollup should be rendered as links
-    if (columnMeta?.showAsLinks) {
-      // Use the Links renderer - let the component handle readonly state
-      return LinksCellRenderer.render?.(ctx, props)
-    }
-
     const relatedColObj = getMetaWithCompositeKey(metas, meta?.base_id, column.fk_model_id)?.columns?.find(
       (c: ColumnType) => c.id === colOptions?.fk_relation_column_id,
     ) as ColumnType
 
     if (!relatedColObj) return
 
-    const relatedTableMeta = metas?.[relatedColObj.colOptions?.fk_related_model_id]
+    // Check if this rollup should be rendered as links
+    if (columnMeta?.showAsLinks) {
+      // Use the Links renderer - let the component handle readonly state
+      return LinksCellRenderer.render?.(ctx, {
+        ...props,
+        column: {
+          ...column,
+          uidt: UITypes.Links,
+          meta: {
+            ...parseProp(column?.meta),
+            ...parseProp(relatedColObj?.meta),
+          },
+        },
+      })
+    }
+
+    const relatedColOptions = relatedColObj.colOptions as LinkToAnotherRecordType
+    if (!relatedColOptions) return
+
+    // Get the correct base ID for the related table (handles cross-base links)
+    const relatedBaseId = getRelatedBaseId(relatedColObj, meta?.base_id || '')
+    const relatedTableMeta = getMetaWithCompositeKey(metas, relatedBaseId, relatedColOptions.fk_related_model_id)
 
     const childColumn = clone((relatedTableMeta?.columns || []).find((c: ColumnType) => c.id === colOptions?.fk_rollup_column_id))
 

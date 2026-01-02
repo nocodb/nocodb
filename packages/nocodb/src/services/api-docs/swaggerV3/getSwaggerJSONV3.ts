@@ -3,18 +3,25 @@ import swaggerBase from './swagger-base-v3.json';
 import getPathsV3 from './getPathsV3';
 import getSchemasV3 from './getSchemasV3';
 import getSwaggerColumnMetasV3 from './getSwaggerColumnMetasV3';
-import type { Base, Model } from '~/models';
+import type { Base, Model, Source } from '~/models';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 
 export default async function getSwaggerJSONV3(
   context: NcContext,
-  base: Base,
-  models: Model[],
+  {
+    base,
+    source,
+    models,
+  }: {
+    base: Base;
+    source: Source;
+    models: Model[];
+  },
   ncMeta = Noco.ncMeta,
 ) {
   return generateSwagger(
-    { context, base, models, ncMeta },
+    { context, base, models, source, ncMeta },
     swaggerBase,
     getSwaggerColumnMetasV3,
     getPathsV3,

@@ -1,21 +1,20 @@
-import 'mocha';
-import request from 'supertest';
 import { expect } from 'chai';
+import 'mocha';
 import {
-  PlanFeatureTypes,
   PermissionEntity,
   PermissionGrantedType,
   PermissionKey,
   PermissionRole,
+  PlanFeatureTypes,
   ProjectRoles,
   UITypes,
-  WorkspaceUserRoles,
 } from 'nocodb-sdk';
-import { isEE } from '../../../utils/helpers';
-import init from '../../../init';
-import { overrideFeature } from '../../../utils/plan.utils';
+import request from 'supertest';
 import { createProject } from '../../../factory/base';
 import { createUser } from '../../../factory/user';
+import init from '../../../init';
+import { isEE } from '../../../utils/helpers';
+import { overrideFeature } from '../../../utils/plan.utils';
 
 // Test cases for table visibility permission behavior
 // This test suite covers:
@@ -201,9 +200,7 @@ export default function () {
       it('Only base owner can set table visibility permission', async () => {
         // Owner should be able to set permission
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -213,13 +210,11 @@ export default function () {
             granted_type: PermissionGrantedType.ROLE,
             granted_role: PermissionRole.VIEWER,
           })
-          .expect(201);
+          .expect(200);
 
         // Creator should NOT be able to set permission
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', creatorToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -233,9 +228,7 @@ export default function () {
 
         // Editor should NOT be able to set permission
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', editorToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -251,9 +244,7 @@ export default function () {
       it('Only base owner can delete table visibility permission', async () => {
         // First set permission as owner
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -263,13 +254,11 @@ export default function () {
             granted_type: PermissionGrantedType.ROLE,
             granted_role: PermissionRole.VIEWER,
           })
-          .expect(201);
+          .expect(200);
 
         // Creator should NOT be able to delete permission
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', creatorToken)
           .query({ operation: 'dropPermission' })
           .send({
@@ -357,9 +346,7 @@ export default function () {
       beforeEach(async () => {
         // Set table visibility to Viewers & up
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -369,7 +356,7 @@ export default function () {
             granted_type: PermissionGrantedType.ROLE,
             granted_role: PermissionRole.VIEWER,
           })
-          .expect(201);
+          .expect(200);
       });
 
       it('Viewer role should have access to table', async () => {
@@ -448,9 +435,7 @@ export default function () {
       beforeEach(async () => {
         // Set table visibility to Editors & up
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -460,7 +445,7 @@ export default function () {
             granted_type: PermissionGrantedType.ROLE,
             granted_role: PermissionRole.EDITOR,
           })
-          .expect(201);
+          .expect(200);
       });
 
       it('Editor role should have access to table', async () => {
@@ -522,9 +507,7 @@ export default function () {
       beforeEach(async () => {
         // Set table visibility to Creators & up
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -534,7 +517,7 @@ export default function () {
             granted_type: PermissionGrantedType.ROLE,
             granted_role: PermissionRole.CREATOR,
           })
-          .expect(201);
+          .expect(200);
       });
 
       it('Creator role should have access to table', async () => {
@@ -580,9 +563,7 @@ export default function () {
       beforeEach(async () => {
         // Set table visibility to specific users (creator and editor)
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -601,7 +582,7 @@ export default function () {
               },
             ],
           })
-          .expect(201);
+          .expect(200);
       });
 
       it('Specified users should have access to table', async () => {
@@ -658,9 +639,7 @@ export default function () {
       beforeEach(async () => {
         // Set table visibility to Nobody
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -669,7 +648,7 @@ export default function () {
             permission: PermissionKey.TABLE_VISIBILITY,
             granted_type: PermissionGrantedType.NOBODY,
           })
-          .expect(201);
+          .expect(200);
       });
 
       it('No base users should have access except owner', async () => {
@@ -709,9 +688,7 @@ export default function () {
       it('Base owner should always have access regardless of permission', async () => {
         // Set permission to Nobody
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -720,7 +697,7 @@ export default function () {
             permission: PermissionKey.TABLE_VISIBILITY,
             granted_type: PermissionGrantedType.NOBODY,
           })
-          .expect(201);
+          .expect(200);
 
         // Owner should still have access
         const ownerTables = await request(context.app)
@@ -741,9 +718,7 @@ export default function () {
       it('Base owner should have access with specific users permission', async () => {
         // Set permission to specific users (not including owner)
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -758,7 +733,7 @@ export default function () {
               },
             ],
           })
-          .expect(201);
+          .expect(200);
 
         // Owner should still have access
         const ownerTables = await request(context.app)
@@ -776,9 +751,7 @@ export default function () {
       it('Should be able to update permission from Viewers & up to Editors & up', async () => {
         // Set to Viewers & up
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -788,7 +761,7 @@ export default function () {
             granted_type: PermissionGrantedType.ROLE,
             granted_role: PermissionRole.VIEWER,
           })
-          .expect(201);
+          .expect(200);
 
         // Viewer should have access
         let tables = await request(context.app)
@@ -802,9 +775,7 @@ export default function () {
 
         // Update to Editors & up
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -814,7 +785,7 @@ export default function () {
             granted_type: PermissionGrantedType.ROLE,
             granted_role: PermissionRole.EDITOR,
           })
-          .expect(201);
+          .expect(200);
 
         // Viewer should NOT have access now
         tables = await request(context.app)
@@ -841,9 +812,7 @@ export default function () {
         // First, ensure no permission exists by trying to delete it
         try {
           await request(context.app)
-            .post(
-              `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-            )
+            .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
             .set('xc-token', ownerToken)
             .query({ operation: 'dropPermission' })
             .send({
@@ -857,9 +826,7 @@ export default function () {
 
         // Set to Editors & up
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -869,7 +836,7 @@ export default function () {
             granted_type: PermissionGrantedType.ROLE,
             granted_role: PermissionRole.EDITOR,
           })
-          .expect(201);
+          .expect(200);
 
         // Viewer should NOT have access
         let tables = await request(context.app)
@@ -882,11 +849,9 @@ export default function () {
         );
 
         // Delete permission
-        // Note: POST endpoints return 201 by default in NestJS, even for delete operations
+        // Note: POST endpoints return 200 by default in NestJS, even for delete operations
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'dropPermission' })
           .send({
@@ -894,7 +859,7 @@ export default function () {
             entity_id: tableId,
             permission: PermissionKey.TABLE_VISIBILITY,
           })
-          .expect(201);
+          .expect(200);
 
         // Viewer should now have access (default to Everyone)
         tables = await request(context.app)
@@ -951,9 +916,7 @@ export default function () {
         // Set different permissions
         // Table 1: Viewers & up
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -963,13 +926,11 @@ export default function () {
             granted_type: PermissionGrantedType.ROLE,
             granted_role: PermissionRole.VIEWER,
           })
-          .expect(201);
+          .expect(200);
 
         // Table 2: Editors & up
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -979,7 +940,7 @@ export default function () {
             granted_type: PermissionGrantedType.ROLE,
             granted_role: PermissionRole.EDITOR,
           })
-          .expect(201);
+          .expect(200);
 
         // Table 3: Default (Everyone) - no permission set
       });
@@ -1088,9 +1049,7 @@ export default function () {
       it('Team member should respect table visibility permissions', async () => {
         // Set table visibility to Creators & up
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -1100,7 +1059,7 @@ export default function () {
             granted_type: PermissionGrantedType.ROLE,
             granted_role: PermissionRole.CREATOR,
           })
-          .expect(201);
+          .expect(200);
 
         // Team member with editor role should NOT see table (permission requires creator)
         const tables = await request(context.app)
@@ -1114,9 +1073,7 @@ export default function () {
 
         // Update table visibility to Editors & up
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -1142,9 +1099,7 @@ export default function () {
       it('Team member should have access when table visibility is set to specific users including team', async () => {
         // Set table visibility to specific users (team member)
         await request(context.app)
-          .post(
-            `/api/v2/internal/${context.fk_workspace_id}/${baseId}`,
-          )
+          .post(`/api/v2/internal/${context.fk_workspace_id}/${baseId}`)
           .set('xc-token', ownerToken)
           .query({ operation: 'setPermission' })
           .send({
@@ -1159,7 +1114,7 @@ export default function () {
               },
             ],
           })
-          .expect(201);
+          .expect(200);
 
         // Team member should have access
         const tables = await request(context.app)
@@ -1174,4 +1129,3 @@ export default function () {
     });
   });
 }
-

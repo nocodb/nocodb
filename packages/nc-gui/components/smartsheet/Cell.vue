@@ -129,6 +129,12 @@ const vModel = computed({
       emit('update:cdf', val)
     } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
+
+      // Clear error on value change
+      if (currentRow.value.rowMeta.errors?.[column.value.title]) {
+        delete currentRow.value.rowMeta.errors[column.value.title]
+      }
+
       emit('update:modelValue', val)
       if (column.value.pk || column.value.unique) {
         updateWhenEditCompleted()

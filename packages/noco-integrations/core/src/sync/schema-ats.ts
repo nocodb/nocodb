@@ -17,7 +17,7 @@ export const SCHEMA_ATS: SyncSchema = {
     relations: []
   },
   [TARGET_TABLES.ATS_CANDIDATE]: {
-    title: TARGET_TABLES_META.ats_candidate.label,
+    title: TARGET_TABLES_META[TARGET_TABLES.ATS_CANDIDATE].label,
     columns: [
       { title: 'First Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Last Name', uidt: UITypes.SingleLineText },
@@ -41,7 +41,7 @@ export const SCHEMA_ATS: SyncSchema = {
     ],
   },
   [TARGET_TABLES.ATS_JOB]: {
-    title: TARGET_TABLES_META.ats_job.label,
+    title: TARGET_TABLES_META[TARGET_TABLES.ATS_JOB].label,
     "columns": [
       { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Description', uidt: UITypes.LongText },

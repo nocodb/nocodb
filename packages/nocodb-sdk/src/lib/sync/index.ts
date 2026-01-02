@@ -421,6 +421,7 @@ export const TARGET_TABLES_META = {
     label: 'CRM_User',
     description: 'Represents crm user data.',
     required: true,
+  },
   [TARGET_TABLES.ATS_APPLICATION]: {
     category: SyncCategory.ATS,
     value: TARGET_TABLES.ATS_APPLICATION,

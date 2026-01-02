@@ -71,7 +71,7 @@ const relationColumn = computed(() => {
 </script>
 
 <template>
-  <div @dblclick="activateShowEditNonEditableFieldWarning">
+  <div :class="{ 'w-full': showAsLinks && relationColumn }" @dblclick="activateShowEditNonEditableFieldWarning">
     <!-- Show as links when showAsLinks is enabled -->
     <template v-if="showAsLinks && relationColumn">
       <!-- Use Links cell component with relation column context -->

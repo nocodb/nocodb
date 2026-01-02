@@ -21,7 +21,7 @@ export const SCHEMA_ATS: SyncSchema = {
     columns: [
       { title: 'First Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Last Name', uidt: UITypes.SingleLineText },
-      { title: 'Company', uidt: UITypes.SingleLineText },
+      { title: 'Company', uidt: UITypes.SingleSelect },
       { title: 'Title', uidt: UITypes.SingleLineText },
       { title: 'Last Interaction At', uidt: UITypes.DateTime },
       { title: 'Is Private', uidt: UITypes.Checkbox },

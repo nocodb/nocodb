@@ -45,9 +45,9 @@ const { getPlanTitle } = useEeConfig()
 const filterRef = ref()
 
 setAdditionalValidations({
-  fk_relation_column_id: [{ required: true, message: t('general.required') }],
-  fk_rollup_column_id: [{ required: true, message: t('general.required') }],
-  rollup_function: [{ required: true, message: t('general.required') }],
+  'fk_relation_column_id': [{ required: true, message: t('general.required') }],
+  'fk_rollup_column_id': [{ required: true, message: t('general.required') }],
+  'rollup_function': [{ required: true, message: t('general.required') }],
   'meta.singular': [
     {
       validator: (_, value: string) => {

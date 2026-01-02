@@ -159,7 +159,6 @@ export function useCopyPaste({
     )
   })
 
-  function isPasteable(row?: Row, col?: ColumnType, showInfo = false, avoidLtarRestrictions = false) {
   // Helper function to get the relation column from a rollup column
   const getRollupRelationColumn = (rollupCol: ColumnType) => {
     if (!isRollupAsLink(rollupCol)) return null
@@ -170,7 +169,7 @@ export function useCopyPaste({
     return fields.value.find((col) => col.id === relationColumnId) || null
   }
 
-  function isPasteable(row?: Row, col?: ColumnType, showInfo = false) {
+  function isPasteable(row?: Row, col?: ColumnType, showInfo = false, avoidLtarRestrictions = false) {
     if (!row || !col) {
       if (showInfo) {
         message.toast('Please select a cell to paste')
@@ -570,7 +569,13 @@ export function useCopyPaste({
               ? extractPkFromRow(pasteVal.value, (relatedTableMeta as any)!.columns!)
               : null
 
-            const result = await syncCellData?.({ ...activeCell.value, updatedColumnTitle: foreignKeyColumn.title }, groupPath)
+            const result = await syncCellData?.(
+              {
+                ...activeCell.value,
+                updatedColumnTitle: foreignKeyColumn.title,
+              },
+              groupPath,
+            )
 
             // If we pasted into a rollup column with showAsLinks, reload data to refresh rollup values
             if (isRollupAsLink(originalColumnObj)) {
@@ -987,8 +992,11 @@ export function useCopyPaste({
     }
 
     const res = await (navigator.clipboard?.write([
-      new ClipboardItem({ [blobHTML.type]: blobHTML, [blobPlainText.type]: blobPlainText }),
-    ]) ?? copy(copyPlainText))
+        new ClipboardItem({
+          [blobHTML.type]: blobHTML,
+          [blobPlainText.type]: blobPlainText,
+        }),
+      ]) ?? copy(copyPlainText))
 
     setCellClipboardDataItem(clipboardItem)
 
@@ -1363,6 +1371,7 @@ export function useCopyPaste({
       return [] as T
     }
   }
+
   useEventListener(document, 'paste', handlePaste)
   return { copyValue, clearCell, isPasteable, handleAttachmentCellDrop }
 }

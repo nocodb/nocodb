@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { UITypes, getRenderAsTextFunForUiType } from 'nocodb-sdk'
+import { UITypes, getRenderAsTextFunForUiType, PermissionEntity, PermissionKey } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RollupType } from 'nocodb-sdk'
 import RollupLinksProvider from './RollupLinksProvider.vue'
 
@@ -10,6 +10,11 @@ const value = inject(CellValueInj)
 const column = inject(ColumnInj)!
 
 const meta = inject(MetaInj, ref())
+
+// Inject permission-related context that affects showAsLinks behavior
+const readOnly = inject(ReadonlyInj, ref(false))
+const isForm = inject(IsFormInj, ref(false))
+const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
 const showAsLinks = computed(() => {
   return parseProp(column.value?.meta)?.showAsLinks || false
@@ -50,10 +55,6 @@ const renderAsTextFun = computed(() => {
   return getRenderAsTextFunForUiType(childColumn.value?.uidt || UITypes.SingleLineText)
 })
 
-// Get the original readonly state - when showing as links, use the original readonly state
-// (no special readonly logic needed since we want it to be editable by default)
-const originalReadonly = inject(ReadonlyInj, ref(false))
-
 const relationColumn = computed(() => {
   if (!showAsLinks.value) return null
 
@@ -68,14 +69,33 @@ const relationColumn = computed(() => {
 
   return null
 })
+
+// Determine the effective readonly state for showAsLinks
+// When showing as links, inherit the same permission logic as Links component
+const effectiveReadonly = computed(() => {
+  if (!showAsLinks.value) return true // Regular rollup is always readonly
+
+  // When showing as links, use the Links component's permission logic:
+  // hasEditPermission = (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+  // PLUS column-level permissions check
+  const { isUIAllowed } = useRoles()
+  const { isAllowed } = usePermissions()
+  
+  // Check both general dataEdit permission AND column-specific permission
+  const hasGeneralEditPermission = (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+  const hasColumnEditPermission = !column.value?.id || isAllowed(PermissionEntity.FIELD, column.value.id, PermissionKey.RECORD_FIELD_EDIT)
+  
+  const hasEditPermission = hasGeneralEditPermission && hasColumnEditPermission
+  return !hasEditPermission // readonly is the inverse of hasEditPermission
+})
 </script>
 
 <template>
   <div :class="{ 'w-full': showAsLinks && relationColumn }" @dblclick="activateShowEditNonEditableFieldWarning">
     <!-- Show as links when showAsLinks is enabled -->
     <template v-if="showAsLinks && relationColumn">
-      <!-- Use Links cell component with relation column context -->
-      <RollupLinksProvider :relation-column="relationColumn" :readonly="originalReadonly" />
+      <!-- Use Links cell component with relation column context and proper permission inheritance -->
+      <RollupLinksProvider :relation-column="relationColumn" :readonly="effectiveReadonly" />
     </template>
     <!-- Regular rollup display -->
     <template v-else>

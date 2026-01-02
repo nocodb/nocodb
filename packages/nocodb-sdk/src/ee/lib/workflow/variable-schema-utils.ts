@@ -57,15 +57,8 @@ export function prefixVariableKeys<
     children: variable.children
       ? prefixVariableKeys(variable.children, prefix)
       : undefined,
-    extra: variable.extra?.itemSchema
-      ? {
-        ...variable.extra,
-        itemSchema: prefixVariableKeys(
-          variable.extra.itemSchema,
-          prefix,
-        ),
-      }
-      : variable.extra,
+    // Don't prefix itemSchema keys - they are relative to the array items, not the parent
+    extra: variable.extra,
   }));
 
   return (isArray ? prefixed : prefixed[0]) as T;

@@ -9,7 +9,8 @@ export enum PlanLimitTypes {
   LIMIT_AUDIT_RETENTION = 'limit_audit_retention',
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
-
+  LIMIT_WORKFLOW_RUN = 'limit_workflow_run',
+  LIMIT_WORKFLOW_RETENTION = 'limit_workflow_retention',
   LIMIT_WEBHOOK_PER_WORKSPACE = 'limit_webhook',
   LIMIT_EXTENSION_PER_WORKSPACE = 'limit_extension',
   LIMIT_SNAPSHOT_PER_WORKSPACE = 'limit_snapshot',
@@ -27,7 +28,6 @@ export enum PlanLimitTypes {
   LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
-  LIMIT_WORKFLOW_PER_WORKSPACE = 'limit_workflow',
 }
 
 export enum PlanFeatureTypes {
@@ -225,8 +225,9 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
     'to add more dashboards in a workspace.',
   [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
-  [PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE]:
-    'to add more workflows in a workspace.',
+  [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 'to run more workflows.',
+  [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
+    'to increase workflow logs retention.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {

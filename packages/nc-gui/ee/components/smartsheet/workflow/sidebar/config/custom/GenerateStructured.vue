@@ -302,7 +302,7 @@ const arrayItemTypeOptions = [
                   <NcSelect
                     :value="field.type"
                     :options="typeOptions"
-                    class="w-28 !rounded-r-lg !rounded-l-none"
+                    class="w-28 nc-type-select"
                     @update:value="updateField(fieldIndex, { type: $event as any })"
                   />
                   <NcButton size="xs" type="text" @click="removeField(fieldIndex)">
@@ -472,6 +472,19 @@ const arrayItemTypeOptions = [
 .nc-schema-field {
   :deep(.ant-input-sm) {
     @apply !h-8;
+  }
+}
+
+:deep(.nc-select:not(.ant-select-disabled):hover) {
+  &,
+  .ant-select-selector {
+    @apply bg-nc-bg-gray-extralight;
+  }
+}
+
+:deep(.nc-type-select) {
+  .ant-select-selector {
+    @apply !rounded-l-none !border-nc-border-gray-medium !border-l-0 !shadow-none;
   }
 }
 </style>

@@ -20,11 +20,11 @@ import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
   DependencyTracker,
+  UsageStat,
   Workflow,
   WorkflowExecution,
-  Workspace,
 } from '~/models';
-import { checkLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
+import { checkLimit, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import {
   getPlanDisplayName,
   getPlanTitleFromContext,
@@ -132,15 +132,6 @@ export class WorkflowsService implements OnModuleInit {
     workflowBody: Partial<Workflow>,
     req: NcRequest,
   ) {
-    const workspace = await Workspace.get(context.workspace_id);
-
-    await checkLimit({
-      workspace,
-      type: PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
-      message: ({ limit }) =>
-        `You have reached the limit of ${limit} workflows for your plan.`,
-    });
-
     workflowBody.title = workflowBody.title?.trim();
 
     const workflow = await Workflow.insert(context, {
@@ -289,13 +280,6 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).workflowNotFound(workflowId);
     }
 
-    await checkLimit({
-      workspaceId: context.workspace_id,
-      type: PlanLimitTypes.LIMIT_WORKFLOW_PER_WORKSPACE,
-      message: ({ limit }) =>
-        `You have reached the limit of ${limit} workflows for your plan.`,
-    });
-
     const existingWorkflow = await Workflow.list(context, workflow.base_id);
 
     const newTitle = generateUniqueCopyName(workflow.title, existingWorkflow, {
@@ -360,6 +344,13 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).workflowNotFound(workflowId);
     }
 
+    await checkLimit({
+      workspaceId: context.workspace_id,
+      type: PlanLimitTypes.LIMIT_WORKFLOW_RUN,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} workflow executions for your plan.`,
+    });
+
     let executionRecord: WorkflowExecution | null = null;
 
     try {
@@ -383,6 +374,12 @@ export class WorkflowsService implements OnModuleInit {
       );
 
       let isDone = false;
+
+      await UsageStat.incrby(
+        context.workspace_id,
+        PlanLimitTypes.LIMIT_WORKFLOW_RUN,
+        1,
+      );
 
       const executionState =
         await this.workflowExecutionService.executeWorkflow(
@@ -528,13 +525,21 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).badRequest('Workflow ID is required');
     }
 
+    const { limit } = await getLimit(
+      PlanLimitTypes.LIMIT_WORKFLOW_RETENTION,
+      context.workspace_id,
+    );
+
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {
       NcError.get(context).workflowNotFound(workflowId);
     }
 
-    return await WorkflowExecution.list(context, params);
+    return await WorkflowExecution.list(context, {
+      ...params,
+      retentionLimit: limit,
+    });
   }
 
   async publishWorkflow(

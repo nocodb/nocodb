@@ -92,9 +92,9 @@ export class HookHandlerService extends HookHandlerServiceCE {
 
     await checkLimit({
       workspaceId: context.workspace_id,
-      type: PlanLimitTypes.LIMIT_AUTOMATION_RUN,
+      type: PlanLimitTypes.LIMIT_WORKFLOW_RUN,
       message: ({ limit }) =>
-        `You have reached the limit of ${limit} automations for your plan.`,
+        `You have reached the limit of ${limit} workflow executions for your plan.`,
     });
 
     // Trigger workflows for record events

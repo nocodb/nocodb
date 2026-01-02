@@ -185,7 +185,21 @@ onBeforeUnmount(() => {
     <div v-if="isEditMode && editor" class="note-toolbar">
       <NcDropdown placement="bottom">
         <NcButton type="text" size="xsmall" class="toolbar-btn">
-          <div class="w-4 h-4 rounded-full border-2 border-nc-base-white" :style="{ backgroundColor: currentColor.bgVar }" />
+          <div
+            class="w-4 h-4 rounded-full border-2"
+            :style="{
+              backgroundColor: isDark
+                ? getAdaptiveTint(getColor(currentColor.bgVar), { isDarkMode: true, shade: -10 })
+                : currentColor.bgVar,
+              borderColor: isDark
+                ? getAdaptiveTint(getColor(currentColor.borderVar), {
+                    brightnessMod: -10,
+                    isDarkMode: true,
+                    shade: -50,
+                  })
+                : currentColor.borderVar,
+            }"
+          />
         </NcButton>
         <template #overlay>
           <div class="color-palette">
@@ -245,9 +259,19 @@ onBeforeUnmount(() => {
   </div>
 </template>
 
+<style lang="scss">
+// Override Vue Flow's z-index for Note nodes
+.vue-flow__node[data-id] {
+  &:has(.note-node) {
+    z-index: 1 !important;
+  }
+}
+</style>
+
 <style scoped lang="scss">
 .note-node {
   @apply w-full h-full min-w-[300px] min-h-[50px] border-2 rounded-lg p-3 flex relative flex-col shadow-default;
+  z-index: 1 !important;
 
   &:hover {
     @apply shadow-hover;

@@ -4,6 +4,8 @@ import getSwaggerJSONV2 from './swaggerV2/getSwaggerJSONV2';
 import getSwaggerJSONV3 from './swaggerV3/getSwaggerJSONV3';
 import type { NcRequest } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { Source } from '~/models';
+import type { SourcesMap } from '~/services/api-docs/types';
 import { NcError } from '~/helpers/catchError';
 import { Base, Model } from '~/models';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
@@ -109,8 +111,13 @@ export class ApiDocsService {
 
     const models = await this.extractVisibleModels(context, param);
 
+    // Fetch sources once for the entire base to avoid repeated queries
+    const sources = await base.getSources(false);
+    const sourcesMap: SourcesMap = new Map<string, Source>(
+      sources.map((source) => [source.id, source]),
+    );
     const swagger = await getSwaggerJSONV3(context, {
-      source: (await base.getSources())[0],
+      sourcesMap,
       base,
       models,
     });

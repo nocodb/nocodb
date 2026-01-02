@@ -1,6 +1,7 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { FormulaDataTypes } from 'nocodb-sdk';
-import type { Column, LinkToAnotherRecordColumn, Source } from '~/models';
+import type { SourcesMap } from '~/services/api-docs/types';
+import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
 import type { DriverClient } from '~/utils/nc-config';
@@ -14,13 +15,13 @@ async function processColumnToSwaggerField(
   {
     column,
     base,
-    source,
+    sourcesMap,
     isLookupHelper = false,
     dbType,
   }: {
     column: Column;
     base: Base;
-    source: Source;
+    sourcesMap: SourcesMap;
     isLookupHelper?: boolean;
     dbType: DriverClient;
   },
@@ -95,7 +96,7 @@ async function processColumnToSwaggerField(
             {
               column: lookupCol,
               base,
-              source,
+              sourcesMap,
               isLookupHelper: true,
               dbType,
             },
@@ -132,7 +133,7 @@ async function processColumnToSwaggerField(
             {
               column: lookupCol,
               base: refBase,
-              source,
+              sourcesMap,
               isLookupHelper: true,
               dbType,
             },
@@ -214,11 +215,11 @@ export default async (
   {
     columns,
     base,
-    source,
+    sourcesMap,
   }: {
     columns: Column[];
     base: Base;
-    source: Source;
+    sourcesMap: SourcesMap;
   },
   ncMeta = Noco.ncMeta,
 ): Promise<SwaggerColumn[]> => {
@@ -234,7 +235,7 @@ export default async (
         context,
         {
           column: c,
-          source,
+          sourcesMap,
           base,
           dbType,
           isLookupHelper: false,

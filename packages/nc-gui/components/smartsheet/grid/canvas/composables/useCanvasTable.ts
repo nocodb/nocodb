@@ -9,7 +9,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   ncHasProperties,
-  parseProp
+  parseProp,
 } from 'nocodb-sdk'
 import type { ButtonType, ColumnType, FormulaType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'

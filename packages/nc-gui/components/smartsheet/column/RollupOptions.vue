@@ -252,15 +252,14 @@ const enableFormattingOptions = computed(() => {
       uidt = colMeta?.display_type
     }
   }
-  const validFunctions = getRenderAsTextFunForUiType((uidt as UITypes) || UITypes.SingleLineText)
+  const validFunctions = getRenderAsTextFunForUiType(uidt)
 
   return validFunctions.includes(vModel.value.rollup_function)
 })
 
 const showAsLinksOption = computed(() => {
-  // Show "Show as links" option only for count-based rollup functions
-  const countFunctions = ['count', 'countDistinct']
-  return countFunctions.includes(vModel.value.rollup_function)
+  // Show "Show as links" option only for count rollup function
+  return vModel.value.rollup_function === 'count'
 })
 
 const onFilterLabelClick = () => {
@@ -394,9 +393,9 @@ const handleScrollIntoView = () => {
       <a-select
         v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
         v-model:value="vModel.meta.precision"
-        :disabled="isMetaReadOnly"
+        :disabled="!!isMetaReadOnly"
         dropdown-class-name="nc-dropdown-decimal-format"
-        @change="(value: any) => onPrecisionChange(value as number)"
+        @change="onPrecisionChange"
       >
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-700" />

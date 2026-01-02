@@ -1472,6 +1472,8 @@
     "displayAsProgress": "Display as progress",
     "relationType": "Relation type",
     "showThousandsSeparator": "Show thousands separator",
+    "showRolledUpCountAsLinks": "Show rolled up count as links",
+    "enableLinkActions": "Enable link actions (attach/detach records)",
     "signUpForFree": "Sign up for free",
     "coverImageField": "Cover image",
     "fitImage": "Fit image",

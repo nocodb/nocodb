@@ -188,8 +188,8 @@ watch(
     if (aggFunctionsList.value.length && !aggFunctionsList.value.find((func) => func.value === vModel.value.rollup_function)) {
       // when the previous roll up function was numeric type and the current child field is non-numeric
       // reset rollup function with a non-numeric type
-      vModel.value.rollup_function = aggFunctionsList.value[0].value
-      vModel.value.rollup_function_name = aggFunctionsList.value[0].text
+      vModel.value.rollup_function = aggFunctionsList.value[0]?.value
+      vModel.value.rollup_function_name = aggFunctionsList.value[0]?.text
     }
 
     vModel.value.rollupColumnTitle = childFieldColumn?.title || childFieldColumn?.column_name
@@ -252,9 +252,15 @@ const enableFormattingOptions = computed(() => {
       uidt = colMeta?.display_type
     }
   }
-  const validFunctions = getRenderAsTextFunForUiType(uidt)
+  const validFunctions = getRenderAsTextFunForUiType((uidt as UITypes) || UITypes.SingleLineText)
 
   return validFunctions.includes(vModel.value.rollup_function)
+})
+
+const showAsLinksOption = computed(() => {
+  // Show "Show as links" option only for count-based rollup functions
+  const countFunctions = ['count', 'countDistinct']
+  return countFunctions.includes(vModel.value.rollup_function)
 })
 
 const onFilterLabelClick = () => {
@@ -390,7 +396,7 @@ const handleScrollIntoView = () => {
         v-model:value="vModel.meta.precision"
         :disabled="isMetaReadOnly"
         dropdown-class-name="nc-dropdown-decimal-format"
-        @change="onPrecisionChange"
+        @change="(value: any) => onPrecisionChange(value as number)"
       >
         <template #suffixIcon>
           <GeneralIcon icon="arrowDown" class="text-gray-700" />
@@ -412,6 +418,20 @@ const handleScrollIntoView = () => {
       <div class="flex items-center gap-1">
         <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
           <div class="text-sm text-gray-800 select-none">{{ $t('labels.showThousandsSeparator') }}</div>
+        </NcSwitch>
+      </div>
+    </a-form-item>
+    <a-form-item v-if="showAsLinksOption">
+      <div class="flex items-center gap-1">
+        <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.showAsLinks">
+          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.showRolledUpCountAsLinks') }}</div>
+        </NcSwitch>
+      </div>
+    </a-form-item>
+    <a-form-item v-if="showAsLinksOption && vModel.meta?.showAsLinks">
+      <div class="flex items-center gap-1">
+        <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.enableLinkActions">
+          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.enableLinkActions') }}</div>
         </NcSwitch>
       </div>
     </a-form-item>

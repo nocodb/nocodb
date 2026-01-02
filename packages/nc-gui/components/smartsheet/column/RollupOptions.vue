@@ -423,7 +423,15 @@ const handleScrollIntoView = () => {
     <a-form-item v-if="showAsLinksOption">
       <div class="flex items-center gap-1">
         <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.showAsLinks">
-          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.showRolledUpCountAsLinks') }}</div>
+          <div class="flex items-center gap-2 text-sm text-nc-content-gray select-none">
+            {{ $t('labels.showCountAsLinks') }}
+            <NcTooltip placement="top">
+              <template #title>
+                {{ $t('tooltip.enableCountClickableLinks') }}
+              </template>
+              <GeneralIcon icon="info" class="text-gray-500 w-4 h-4 cursor-help" />
+            </NcTooltip>
+          </div>
         </NcSwitch>
       </div>
     </a-form-item>

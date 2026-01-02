@@ -1472,7 +1472,7 @@
     "displayAsProgress": "Display as progress",
     "relationType": "Relation type",
     "showThousandsSeparator": "Show thousands separator",
-    "showRolledUpCountAsLinks": "Show rolled up count as links",
+    "showCountAsLinks": "Show count as links",
     "signUpForFree": "Sign up for free",
     "coverImageField": "Cover image",
     "fitImage": "Fit image",
@@ -1951,7 +1951,17 @@
     "extensionAccessRestrictionTooltip": "This extension is only available to users with \"{minAccessRole}\" or higher access. Your current base role is \"{currentRole}\".",
     "youDoNotHaveSufficientPermissionToAddExtension": "You do not have sufficient permission to add extension",
     "youDoNotHaveSufficientPermissionToConfigureThisExtension": "You do not have sufficient permission to configure this extension",
-    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action"
+    "youDoNotHaveSufficientPermissionToPerformThisAction": "You do not have sufficient permission to perform this action",
+    "basePermissionRole": "Base permission - {role}",
+    "workspacePermissionRole": "Workspace permission - {role}",
+    "missingSharedBaseUrl": "Missing shared base URL",
+    "requiredTablesCannotBeExcluded": "Required tables cannot be excluded",
+    "syncForThisCategoryAlreadyAdded": "Sync for this category already added, edit the existing sync.",
+    "selectSyncCategory": "Select a sync category",
+    "categoryNotEditableInEditMode": "Category not editable in edit mode",
+    "syncScopeNotEditableInEditMode": "Sync scope can't be modified"
+    "viewAndEditPermissionsForAllFieldsInThisTable": "View and edit permissions for all fields in this table",
+    "enableCountClickableLinks": "Enable this to make the count clickable, allowing you to view the linked records directly."
   },
   "placeholder": {
     "searchIcons": "Search icons",

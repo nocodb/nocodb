@@ -255,6 +255,7 @@ import NcTypeform from '~icons/nc-icons/typeform'
 import NcWorkday from '~icons/nc-icons/workday'
 import NcZendesk from '~icons/nc-icons/zendesk'
 import NcFreshdesk from '~icons/nc-icons/freshdesk'
+import NcBreezyHr from '~icons/nc-icons-v2/breezyhr'
 
 import NcBookOpen from '~icons/nc-icons/book-open'
 import NcCircleCheckSolid from '~icons/nc-icons/check-circle-solid'
@@ -1291,6 +1292,7 @@ export const iconMap = {
   'workday': NcWorkday,
   'zendesk': NcZendesk,
   'freshdesk': NcFreshdesk,
+  'breezyhr': NcBreezyHr,
   'bookOpen': NcBookOpen,
   'circleCheckSolid': NcCircleCheckSolid,
   'alertTriangleSolid': NcAlertTriangleSolid,

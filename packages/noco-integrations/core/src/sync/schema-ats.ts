@@ -14,13 +14,7 @@ export const SCHEMA_ATS: SyncSchema = {
       { title: 'Reject Reason', uidt: UITypes.SingleLineText },
       { title: 'Tags', uidt: UITypes.MultiSelect },
     ],
-    relations: [
-      {
-        columnTitle: 'Candidate',
-        relatedTable: TARGET_TABLES.ATS_CANDIDATE,
-        relatedTableColumnTitle: 'Applications',
-      },
-    ]
+    relations: []
   },
   [TARGET_TABLES.ATS_CANDIDATE]: {
     title: TARGET_TABLES_META.ats_candidate.label,
@@ -44,11 +38,6 @@ export const SCHEMA_ATS: SyncSchema = {
         relatedTable: TARGET_TABLES.ATS_APPLICATION,
         relatedTableColumnTitle: 'Candidate',
       },
-      {
-        columnTitle: 'Job',
-        relatedTable: TARGET_TABLES.ATS_JOB,
-        relatedTableColumnTitle: 'Candidates',
-      },
     ],
   },
   [TARGET_TABLES.ATS_JOB]: {
@@ -56,10 +45,10 @@ export const SCHEMA_ATS: SyncSchema = {
     "columns": [
       { title: 'Name', uidt: UITypes.SingleLineText, pv: true },
       { title: 'Description', uidt: UITypes.LongText },
-      { title: 'Code', uidt: UITypes.SingleSelect },
+      { title: 'Code', uidt: UITypes.SingleLineText },
       { title: 'Status', uidt: UITypes.SingleSelect },
       { title: 'Type', uidt: UITypes.SingleSelect },
-      { title: 'Job Posting Urls', uidt: UITypes.URL },
+      // { title: 'Job Posting Urls', uidt: UITypes.URL },
       { title: 'Confidential', uidt: UITypes.Checkbox },
       { title: 'Departments', uidt: UITypes.SingleSelect },
       { title: 'Offices', uidt: UITypes.SingleSelect },
@@ -75,38 +64,38 @@ export const SCHEMA_ATS: SyncSchema = {
       },
     ]
   },
-  [TARGET_TABLES.ATS_JOB_POSTING]: {
-    "title": TARGET_TABLES_META.ats_job_posting.label,
-    "columns": [
-      { title: 'Title', uidt: UITypes.SingleLineText, pv: true },
-      { title: 'Job Posting Urls', uidt: UITypes.URL },
-      { title: 'Status', uidt: UITypes.SingleSelect },
-      { title: 'Content', uidt: UITypes.LongText },
-      { title: 'Is Internal', uidt: UITypes.Checkbox },
-    ],
-    relations: [
-      {
-        columnTitle: 'Jobs',
-        relatedTable: TARGET_TABLES.ATS_JOB,
-        relatedTableColumnTitle: 'Job Postings',
-      },
-    ],
-  },
-  [TARGET_TABLES.ATS_OFFER]: {
-    "title": TARGET_TABLES_META.ats_offer.label,
-    "columns": [
-      { title: 'Creator', uidt: UITypes.SingleSelect },
-      { title: 'Closed At', uidt: UITypes.DateTime },
-      { title: 'Sent At', uidt: UITypes.DateTime },
-      { title: 'Start Date', uidt: UITypes.Date },
-      { title: 'Status', uidt: UITypes.SingleSelect },
-    ],
-    relations: [
-      {
-        columnTitle: 'Application',
-        relatedTable: TARGET_TABLES.ATS_APPLICATION,
-        relatedTableColumnTitle: 'Offers',
-      },
-    ]
-  },
+  // [TARGET_TABLES.ATS_JOB_POSTING]: {
+  //   "title": TARGET_TABLES_META.ats_job_posting.label,
+  //   "columns": [
+  //     { title: 'Title', uidt: UITypes.SingleLineText, pv: true },
+  //     { title: 'Job Posting Urls', uidt: UITypes.URL },
+  //     { title: 'Status', uidt: UITypes.SingleSelect },
+  //     { title: 'Content', uidt: UITypes.LongText },
+  //     { title: 'Is Internal', uidt: UITypes.Checkbox },
+  //   ],
+  //   relations: [
+  //     {
+  //       columnTitle: 'Jobs',
+  //       relatedTable: TARGET_TABLES.ATS_JOB,
+  //       relatedTableColumnTitle: 'Job Postings',
+  //     },
+  //   ],
+  // },
+  // [TARGET_TABLES.ATS_OFFER]: {
+  //   "title": TARGET_TABLES_META.ats_offer.label,
+  //   "columns": [
+  //     { title: 'Creator', uidt: UITypes.SingleSelect },
+  //     { title: 'Closed At', uidt: UITypes.DateTime },
+  //     { title: 'Sent At', uidt: UITypes.DateTime },
+  //     { title: 'Start Date', uidt: UITypes.Date },
+  //     { title: 'Status', uidt: UITypes.SingleSelect },
+  //   ],
+  //   relations: [
+  //     {
+  //       columnTitle: 'Application',
+  //       relatedTable: TARGET_TABLES.ATS_APPLICATION,
+  //       relatedTableColumnTitle: 'Offers',
+  //     },
+  //   ]
+  // },
 };

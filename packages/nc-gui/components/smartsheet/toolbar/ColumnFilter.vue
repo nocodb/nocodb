@@ -1122,7 +1122,7 @@ defineExpose({
                     @change="saveOrUpdate(filter, i)"
                   />
                 </div>
-                <template v-if="workflow && filter.dynamic">
+                <template v-else-if="workflow && filter.dynamic">
                   <slot
                     name="dynamic-filter"
                     :filter="filter"

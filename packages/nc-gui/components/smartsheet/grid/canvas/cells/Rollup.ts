@@ -7,6 +7,7 @@ import {
   getRenderAsTextFunForUiType,
 } from 'nocodb-sdk'
 import { LinksCellRenderer } from './Links'
+import { isBoxHovered } from '../utils/canvas'
 
 import rfdc from 'rfdc'
 
@@ -88,24 +89,69 @@ export const RollupCellRenderer: CellRenderer = {
   },
   async handleClick(props) {
     const { column } = props
-    const columnMeta = parseProp((column as any).meta)
+    const columnMeta = parseProp(column.columnObj?.meta)
 
-    // If this rollup should be rendered as links, always delegate to Links handler
-    // The readonly/editable behavior will be handled by the component itself
+    // If this rollup should be rendered as links, extract relation column and delegate to Links handler
     if (columnMeta?.showAsLinks) {
-      return LinksCellRenderer.handleClick?.(props) || false
+      const colOptions = column.columnObj?.colOptions as RollupType
+
+      // Find the relation column from fk_relation_column_id
+      // We need to access metas through props that have it available
+      const renderProps = props as any // Cast to access metas
+      const relatedColObj = renderProps.metas?.[column.columnObj?.fk_model_id!]?.columns?.find(
+        (c: any) => c.id === colOptions?.fk_relation_column_id,
+      ) as ColumnType
+
+      if (!relatedColObj) return false
+
+      // Create a CanvasGridColumn wrapper for the relation column
+      const relationCanvasColumn = {
+        ...column,
+        columnObj: relatedColObj,
+      }
+
+      // Create modified props with the relation column
+      const modifiedProps = {
+        ...props,
+        column: relationCanvasColumn,
+      }
+
+      // Delegate to Links cell renderer
+      return LinksCellRenderer.handleClick?.(modifiedProps) || false
     }
 
     return false
   },
   async handleKeyDown(props) {
     const { column } = props
-    const columnMeta = parseProp((column as any).meta)
+    const columnMeta = parseProp(column.columnObj?.meta)
 
-    // If this rollup should be rendered as links, always delegate to Links handler
-    // The readonly/editable behavior will be handled by the component itself
+    // If this rollup should be rendered as links, extract relation column and delegate to Links handler
     if (columnMeta?.showAsLinks) {
-      return LinksCellRenderer.handleKeyDown?.(props) || false
+      const colOptions = column.columnObj?.colOptions as RollupType
+
+      // Find the relation column from fk_relation_column_id
+      const renderProps = props as any // Cast to access metas
+      const relatedColObj = renderProps.metas?.[column.columnObj?.fk_model_id!]?.columns?.find(
+        (c: any) => c.id === colOptions?.fk_relation_column_id,
+      ) as ColumnType
+
+      if (!relatedColObj) return false
+
+      // Create a CanvasGridColumn wrapper for the relation column
+      const relationCanvasColumn = {
+        ...column,
+        columnObj: relatedColObj,
+      }
+
+      // Create modified props with the relation column
+      const modifiedProps = {
+        ...props,
+        column: relationCanvasColumn,
+      }
+
+      // Delegate to Links cell renderer
+      return LinksCellRenderer.handleKeyDown?.(modifiedProps) || false
     }
 
     return false

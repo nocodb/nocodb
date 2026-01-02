@@ -9,6 +9,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   ncHasProperties,
+  parseProp
 } from 'nocodb-sdk'
 import type { ButtonType, ColumnType, FormulaType, TableType, UserType, ViewType } from 'nocodb-sdk'
 import type { WritableComputedRef } from '@vue/reactivity'
@@ -1306,7 +1307,8 @@ export function useCanvasTable({
           UITypes.QrCode,
           UITypes.LinkToAnotherRecord,
           UITypes.Formula,
-        ].includes(column.uidt)
+        ].includes(column.uidt) ||
+        (column.uidt === UITypes.Rollup && parseProp(column.meta)?.showAsLinks)
       ) {
         makeEditable(row, clickedColumn)
         return

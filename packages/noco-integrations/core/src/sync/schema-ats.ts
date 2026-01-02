@@ -12,6 +12,7 @@ export const SCHEMA_ATS: SyncSchema = {
       { title: 'Screening Question Answers', uidt: UITypes.SingleLineText },
       { title: 'Current Stage', uidt: UITypes.SingleSelect },
       { title: 'Reject Reason', uidt: UITypes.SingleLineText },
+      { title: 'Tags', uidt: UITypes.MultiSelect },
     ],
     relations: [
       {
@@ -34,7 +35,8 @@ export const SCHEMA_ATS: SyncSchema = {
       { title: 'Locations', uidt: UITypes.SingleLineText },
       { title: 'Phone Numbers', uidt: UITypes.PhoneNumber },
       { title: 'Email Addresses', uidt: UITypes.Email },
-      { title: 'Urls', uidt: UITypes.URL },
+      { title: 'Urls', uidt: UITypes.JSON },
+      { title: 'Tags', uidt: UITypes.MultiSelect },
     ],
     relations: [
       {
@@ -43,8 +45,8 @@ export const SCHEMA_ATS: SyncSchema = {
         relatedTableColumnTitle: 'Candidate',
       },
       {
-        columnTitle: 'Tags',
-        relatedTable: TARGET_TABLES.ATS_TAG,
+        columnTitle: 'Job',
+        relatedTable: TARGET_TABLES.ATS_JOB,
         relatedTableColumnTitle: 'Candidates',
       },
     ],
@@ -63,6 +65,7 @@ export const SCHEMA_ATS: SyncSchema = {
       { title: 'Offices', uidt: UITypes.SingleSelect },
       { title: 'Hiring Managers', uidt: UITypes.SingleLineText },
       { title: 'Recruiters', uidt: UITypes.SingleLineText },
+      { title: 'Tags', uidt: UITypes.MultiSelect },
     ],
     relations: [
       {

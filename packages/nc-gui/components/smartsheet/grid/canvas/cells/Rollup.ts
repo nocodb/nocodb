@@ -37,8 +37,8 @@ export const RollupCellRenderer: CellRenderer = {
           ...column,
           uidt: UITypes.Links,
           meta: {
-            ...parseProp(column?.meta),
             ...parseProp(relatedColObj?.meta),
+            ...parseProp(column?.meta),
           },
         },
       })

@@ -48,6 +48,30 @@ setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: t('general.required') }],
   fk_rollup_column_id: [{ required: true, message: t('general.required') }],
   rollup_function: [{ required: true, message: t('general.required') }],
+  'meta.singular': [
+    {
+      validator: (_, value: string) => {
+        return new Promise((resolve, reject) => {
+          if (value?.length > 59) {
+            return reject(t('msg.length59Required'))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  'meta.plural': [
+    {
+      validator: (_, value: string) => {
+        return new Promise((resolve, reject) => {
+          if (value?.length > 59) {
+            return reject(t('msg.length59Required'))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
 })
 
 setAvoidShowingToastMsgForValidations({
@@ -231,6 +255,8 @@ const onPrecisionChange = (value: number) => {
 // set default value
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
+  singular: '',
+  plural: '',
   ...(vModel.value.meta || {}),
 }
 
@@ -440,6 +466,29 @@ const handleScrollIntoView = () => {
           </div>
         </NcSwitch>
       </div>
+    </a-form-item>
+    <a-form-item v-if="showAsLinksOption && vModel.meta?.showAsLinks">
+      <a-row :gutter="8">
+        <a-col :span="12">
+          <a-form-item v-bind="validateInfos['meta.singular']" :label="$t('labels.singularLabel')">
+            <a-input
+              v-model:value="vModel.meta.singular"
+              :placeholder="$t('general.link')"
+              class="!w-full nc-rollup-singular !rounded-md"
+            />
+          </a-form-item>
+        </a-col>
+
+        <a-col :span="12">
+          <a-form-item v-bind="validateInfos['meta.plural']" :label="$t('labels.pluralLabel')">
+            <a-input
+              v-model:value="vModel.meta.plural"
+              :placeholder="$t('general.links')"
+              class="!w-full nc-rollup-plural !rounded-md"
+            />
+          </a-form-item>
+        </a-col>
+      </a-row>
     </a-form-item>
     <a-form-item v-if="showAsLinksOption && vModel.meta?.showAsLinks">
       <div class="flex items-center gap-1">

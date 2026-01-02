@@ -17,8 +17,13 @@ export class ApiDocsService {
     const base = await Base.get(context, param.baseId);
 
     if (!base) NcError.baseNotFound(param.baseId);
+
     const models = await this.extractVisibleModels(context, param);
-    const swagger = await getSwaggerJSON(context, base, models);
+    const swagger = await getSwaggerJSON(context, {
+      source: (await base.getSources())[0],
+      base,
+      models,
+    });
 
     swagger.servers = [
       {
@@ -70,7 +75,11 @@ export class ApiDocsService {
     if (!base) NcError.baseNotFound(param.baseId);
 
     const models = await this.extractVisibleModels(context, param);
-    const swagger = await getSwaggerJSONV2(context, base, models);
+    const swagger = await getSwaggerJSONV2(context, {
+      source: (await base.getSources())[0],
+      base,
+      models,
+    });
 
     swagger.servers = [
       {
@@ -100,7 +109,11 @@ export class ApiDocsService {
 
     const models = await this.extractVisibleModels(context, param);
 
-    const swagger = await getSwaggerJSONV3(context, base, models);
+    const swagger = await getSwaggerJSONV3(context, {
+      source: (await base.getSources())[0],
+      base,
+      models,
+    });
 
     swagger.servers = [
       {

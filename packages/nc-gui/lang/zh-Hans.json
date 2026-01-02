@@ -446,7 +446,7 @@
     "baseType": "项目类型",
     "beta": "测试版",
     "selected": "selected",
-    "notice": "Notice"
+    "notice": "通知"
   },
   "objects": {
     "script": "脚本",
@@ -516,11 +516,11 @@
       "workspace-level-owner": "Has full control over all workspace bases, settings, and billing",
       "workspace-level-creator": "Can create, configure, and edit all bases within the workspace",
       "workspace-level-editor": "Can add, edit, and delete records, but cannot modify base configurations",
-      "workspace-level-commenter": "Can view and comment on records within workspace bases",
+      "workspace-level-commenter": "可以查看和评论工作区内的记录",
       "workspace-level-viewer": "Can only view records within workspace bases",
-      "workspace-level-no-access": "No access to this workspace",
-      "owner": "Has full control over the base, including configuration and deletion rights",
-      "creator": "Can fully configure the base but cannot delete it",
+      "workspace-level-no-access": "无权访问此工作区",
+      "owner": "对该库拥有完全控制权，包括配置和删除权限",
+      "creator": "可以完全配置该库，但不能删除它",
       "editor": "Can add, edit, and delete records, but cannot modify base configurations",
       "commenter": "Can view and comment on records within the base",
       "viewer": "Can only view records within the base",
@@ -678,14 +678,14 @@
       "columnWidth": "列宽",
       "rowHeight": "行高",
       "filterCondition": "Filter condition",
-      "group": "Group",
+      "group": "分组",
       "sort": "排序",
       "rowColoring": "Row coloring",
       "copyAnotherViewConfig": "Copy another view's configuration",
       "selectConfigurationToCopy": "Select configuration(s) to copy",
       "selectViewToCopyFrom": "Select view to copy from",
-      "copyConfigurationFromAnotherView": "Copy configuration from another view",
-      "notSupportedByViewType": "Not supported by {view} view type",
+      "copyConfigurationFromAnotherView": "从另一个视图复制配置",
+      "notSupportedByViewType": "{view} 视图类型不支持",
       "viewConfigurationCopied": "View configuration copied successfully",
       "errorOccuredWhileCopyingViewConfiguration": "An error occurred while copying view configuration",
       "copyFromAnotherView": "Copy from another view",
@@ -1551,7 +1551,7 @@
     "enterFullscreen": "Enter fullscreen",
     "exitFullscreen": "Exit fullscreen",
     "selectRole": "Select Role",
-    "copyConfiguration": "Copy configuration"
+    "copyConfiguration": "复制配置"
   },
   "activity": {
     "clickToResolve": "点击解决",

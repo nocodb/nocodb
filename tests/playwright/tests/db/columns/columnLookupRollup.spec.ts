@@ -53,7 +53,7 @@ test.describe('Virtual columns', () => {
     }
   });
 
-  tes('Rollup as Links', async () => {
+  test('Rollup as Links', async () => {
     const countryList = ['Spain', 'Saudi Arabia', 'United Arab Emirates', 'Mexico', 'Turkey'];
     const cityCount = ['1', '3', '1', '2', '1'];
 

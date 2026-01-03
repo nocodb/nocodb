@@ -334,12 +334,12 @@ export const generateTablesPrompt = (
 ${existingSchema}
 \`\`\`
 Your job is to extend schema with provided tables.
-Design following tables with following titles ${tableNames
+Design following tables with EXACTLY these titles (do not modify or add emojis): ${tableNames
     .map((i) => `"${i}"`)
-    .join(',')}
+    .join(', ')}
 Be comprehensive with columns and relationships.
 Make sure schema is production ready.
-You must preserve the provided titles${
+IMPORTANT: You must use EXACTLY the table titles provided above. Do not create additional tables. Do not modify the table names in any way.${
     instructions ? `\n\n${instructions}` : ''
   }`;
 

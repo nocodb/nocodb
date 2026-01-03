@@ -218,8 +218,8 @@ export class AiUtilsService {
           z.object({
             title: z.string(),
             type: z.string(),
-            options: z.array(z.string()).optional().default([]),
-            description: z.string().nullable().optional(),
+            options: z.array(z.string()).nullable(),
+            description: z.string().nullable(),
           }),
         ),
       }),
@@ -370,7 +370,7 @@ export class AiUtilsService {
           z.object({
             title: z.string(),
             formula: z.string(),
-            description: z.string().nullable().optional(),
+            description: z.string().nullable(),
           }),
         ),
       }),

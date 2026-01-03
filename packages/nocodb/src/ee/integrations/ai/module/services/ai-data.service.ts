@@ -80,27 +80,26 @@ const schemaHelpers: {
     return {
       schema: z
         .enum(col.colOptions.options.map((o) => o.title))
-        .nullable()
-        .optional(),
+        .nullable(),
       helperMessage: `must be one and only one of the following options or null. options:${options}`,
     };
   },
   [UITypes.MultiSelect]: (col) => {
     const options = col.colOptions.options.map((o) => `"${o.title}"`).join(',');
     return {
-      schema: z.string().nullable().optional(),
+      schema: z.string().nullable(),
       helperMessage: `must be a comma separated string only using options (like:opt1,opt2,opt3) or null. options:${options}`,
     };
   },
   [UITypes.Checkbox]: (_col) => {
     return {
-      schema: z.boolean().nullable().optional(),
+      schema: z.boolean().nullable(),
       helperMessage: 'must be a boolean or null',
     };
   },
   [UITypes.Number]: (_col) => {
     return {
-      schema: z.number().nullable().optional(),
+      schema: z.number().nullable(),
       helperMessage:
         'must be a number (no thousand separator & "," as decimal separator) or null',
     };
@@ -108,50 +107,50 @@ const schemaHelpers: {
   [UITypes.Currency]: (col) => {
     const currency_code = col.meta?.currency_code || 'USD';
     return {
-      schema: z.number().nullable().optional(),
+      schema: z.number().nullable(),
       helperMessage: `must be a number or null representing value in ${currency_code}`,
     };
   },
   [UITypes.URL]: (_col) => {
     return {
-      schema: z.string().nullable().optional(),
+      schema: z.string().nullable(),
       helperMessage: 'must be a valid URL or null',
     };
   },
   [UITypes.Date]: (_col) => {
     return {
-      schema: z.string().nullable().optional(),
+      schema: z.string().nullable(),
       helperMessage: 'must be a valid date in format YYYY-MM-DD or null',
     };
   },
   [UITypes.DateTime]: (_col) => {
     return {
-      schema: z.string().nullable().optional(),
+      schema: z.string().nullable(),
       helperMessage:
         'must be a valid date-time in format YYYY-MM-DD HH:mm:ss or null',
     };
   },
   [UITypes.SingleLineText]: (_col) => {
     return {
-      schema: z.string().nullable().optional(),
+      schema: z.string().nullable(),
       helperMessage: '',
     };
   },
   [UITypes.Email]: (_col) => {
     return {
-      schema: z.string().nullable().optional(),
+      schema: z.string().nullable(),
       helperMessage: 'must be a valid email or null',
     };
   },
   [UITypes.PhoneNumber]: (_col) => {
     return {
-      schema: z.string().nullable().optional(),
+      schema: z.string().nullable(),
       helperMessage: 'must be a valid phone number or null',
     };
   },
   [UITypes.LongText]: (_col) => {
     return {
-      schema: z.string().nullable().optional(),
+      schema: z.string().nullable(),
       helperMessage: 'must be a string with rich text support or null',
     };
   },
@@ -184,7 +183,7 @@ const uidtHelper = (cols: Column[]) => {
       userMessageAddition += `\n"${colTitle}" description: ${colDescription}`;
     }
 
-    return [colTitle, z.any().optional()];
+    return [colTitle, z.any().nullable()];
   });
 
   return { schema, userMessageAddition };

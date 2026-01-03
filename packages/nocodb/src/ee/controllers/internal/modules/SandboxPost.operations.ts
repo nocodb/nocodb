@@ -8,11 +8,13 @@ import type {
 } from '~/utils/internal-type';
 import { NcError } from '~/helpers/catchError';
 import Sandbox, { SandboxStatus, SandboxVisibility } from '~/ee/models/Sandbox';
+import SandboxVersion from '~/ee/models/SandboxVersion';
 import { Base } from '~/models';
 import { BasesService } from '~/services/bases.service';
 import { SandboxService } from '~/ee/services/sandbox.service';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
+import { serializeMeta } from '~/helpers/baseMetaHelpers';
 
 @Injectable()
 export class SandboxPostOperations
@@ -24,7 +26,6 @@ export class SandboxPostOperations
     'sandboxUpdate',
     'sandboxDelete',
     'sandboxPublish',
-    'sandboxUnpublish',
     'sandboxInstall',
     'sandboxApplyUpdates',
   ] as (keyof typeof OPERATION_SCOPES)[];
@@ -59,8 +60,6 @@ export class SandboxPostOperations
         return await this.delete(context, payload, req);
       case 'sandboxPublish':
         return await this.publish(context, payload, req);
-      case 'sandboxUnpublish':
-        return await this.unpublish(context, payload, req);
       case 'sandboxInstall':
         return await this.install(context, payload, req);
       case 'sandboxApplyUpdates':
@@ -131,16 +130,21 @@ export class SandboxPostOperations
       );
     }
 
+    // Allow updating: title, description, category, tags, visibility
     const updatedSandbox = await Sandbox.update(context, sandboxId, updateData);
 
     return updatedSandbox;
   }
 
   private async publish(context: NcContext, body: any, req: NcRequest) {
-    const { sandboxId, version } = body;
+    const { sandboxId, version, releaseNotes } = body;
 
     if (!sandboxId) {
       NcError.get(context).badRequest('sandboxId is required');
+    }
+
+    if (!version) {
+      NcError.get(context).badRequest('version is required');
     }
 
     const sandbox = await Sandbox.get(context, sandboxId);
@@ -156,42 +160,94 @@ export class SandboxPostOperations
       );
     }
 
-    // Update to published status
-    const updatedSandbox = await Sandbox.update(context, sandboxId, {
-      status: SandboxStatus.PUBLISHED,
-      version: version || sandbox.version,
-      published_at: new Date().toISOString(),
-    });
-
-    return updatedSandbox;
-  }
-
-  private async unpublish(context: NcContext, body: any, req: NcRequest) {
-    const { sandboxId } = body;
-
-    if (!sandboxId) {
-      NcError.get(context).badRequest('sandboxId is required');
+    const baseToPublish = await Base.get(context, sandbox.base_id);
+    if (!baseToPublish) {
+      NcError.get(context).baseNotFound(sandbox.base_id);
     }
 
-    const sandbox = await Sandbox.get(context, sandboxId);
-
-    if (!sandbox) {
-      NcError.get(context).notFound('Sandbox not found');
-    }
-
-    // Only owner can unpublish
-    if (sandbox.created_by !== req.user.id) {
-      NcError.get(context).unauthorized(
-        'Only the owner can unpublish this sandbox',
+    if (baseToPublish.version !== BaseVersion.V3) {
+      NcError.get(context).badRequest(
+        'Only V3 bases can be published as sandboxes',
       );
     }
 
-    // Update to draft status
-    const updatedSandbox = await Sandbox.update(context, sandboxId, {
-      status: SandboxStatus.DRAFT,
+    // Check if this version already exists
+    const existingVersion = await SandboxVersion.getByVersion(
+      context,
+      sandboxId,
+      version,
+    );
+    if (existingVersion) {
+      NcError.get(context).badRequest(
+        `Version ${version} already exists for this sandbox`,
+      );
+    }
+
+    // Get the next version number for ordering
+    const versionNumber = await SandboxVersion.getNextVersionNumber(
+      context,
+      sandboxId,
+    );
+
+    // Create source context for serialization
+    const sourceContext: NcContext = {
+      workspace_id: baseToPublish.fk_workspace_id,
+      base_id: baseToPublish.id,
+    };
+
+    // Serialize the base metadata for this version
+    const serializedSchema = await serializeMeta(sourceContext);
+
+    // Create a version record with the serialized schema
+    await SandboxVersion.insert(context, {
+      fk_sandbox_id: sandboxId,
+      version: version,
+      version_number: versionNumber,
+      fk_workspace_id: context.workspace_id,
+      schema: JSON.stringify(serializedSchema),
+      release_notes: releaseNotes,
     });
 
-    return updatedSandbox;
+    // Determine if this is initial publish or subsequent publish
+    const isInitialPublish = sandbox.status !== SandboxStatus.PUBLISHED;
+
+    // Update sandbox to published status with new version
+    const updatedSandbox = await Sandbox.update(context, sandboxId, {
+      status: SandboxStatus.PUBLISHED,
+      version: version,
+      published_at: isInitialPublish
+        ? new Date().toISOString()
+        : sandbox.published_at,
+    });
+
+    let updateResults = null;
+
+    // If this is a subsequent publish, automatically update all installations
+    if (!isInitialPublish) {
+      try {
+        updateResults = await this.updateAllInstallations(
+          context,
+          sandboxId,
+          baseToPublish,
+          req,
+        );
+      } catch (error) {
+        console.error(
+          `Failed to update installations after publish: ${error.message}`,
+        );
+        // Don't fail the publish if updates fail - return partial results
+        updateResults = {
+          error: error.message,
+          message: 'Version published but failed to update installations',
+        };
+      }
+    }
+
+    return {
+      ...updatedSandbox,
+      isInitialPublish,
+      updateResults,
+    } as any;
   }
 
   private async install(context: NcContext, body: any, req: NcRequest) {
@@ -214,13 +270,17 @@ export class SandboxPostOperations
       );
     }
 
-    const sourceBase = await Base.get(context, sandbox.base_id);
-    if (!sourceBase) {
-      NcError.get(context).baseNotFound(sandbox.base_id);
-    }
+    // Get the published version schema
+    const sandboxVersion = await SandboxVersion.getByVersion(
+      context,
+      sandboxId,
+      sandbox.version,
+    );
 
-    if (sourceBase.version !== BaseVersion.V3) {
-      NcError.get(context).badRequest('Only V3 bases can be installed');
+    if (!sandboxVersion) {
+      NcError.get(context).notFound(
+        `Published version ${sandbox.version} not found for this sandbox`,
+      );
     }
 
     // 1. Create new base in target workspace using BasesService
@@ -241,31 +301,15 @@ export class SandboxPostOperations
       req: { user: { id: req.user.id } } as any,
     });
 
-    // Create proper contexts for source and target bases
-    const sourceContext: NcContext = {
-      workspace_id: sourceBase.fk_workspace_id,
-      base_id: sourceBase.id,
-    };
-
     const targetContext: NcContext = {
       workspace_id: target_workspace_id,
       base_id: targetBase.id,
     };
 
-    const dataSource = (await sourceBase.getSources())?.[0];
-
-    if (!dataSource) {
-      throw new Error(`No data source found in source base ${sourceBase.id}`);
-    }
-
     try {
-      // 2. Use SandboxService to handle the complete duplication with sandbox-specific options
-      await this.sandboxService.installSandbox({
-        sourceBase,
+      // 2. Use SandboxService to install from serialized schema
+      await this.sandboxService.installFromSandbox({
         targetBase,
-        dataSource,
-        req,
-        context: sourceContext,
         targetContext,
         sandboxId,
       });
@@ -273,6 +317,7 @@ export class SandboxPostOperations
       return {
         message: 'Sandbox installed successfully',
         sandboxId,
+        version: sandbox.version,
         sourceBaseId: sandbox.base_id,
         targetWorkspaceId: target_workspace_id,
         installedBaseId: targetBase.id,
@@ -298,46 +343,28 @@ export class SandboxPostOperations
     }
   }
 
-  private async applyUpdates(context: NcContext, body: any, req: NcRequest) {
-    const { sandboxId } = body;
-
-    if (!sandboxId) {
-      NcError.get(context).badRequest('sandboxId is required');
-    }
-
-    const sandbox = await Sandbox.get(context, sandboxId);
-
-    if (!sandbox) {
-      NcError.get(context).notFound('Sandbox not found');
-    }
-
-    // Can only apply updates to published sandboxes
-    if (sandbox.status !== SandboxStatus.PUBLISHED) {
-      NcError.get(context).badRequest(
-        'Only published sandboxes can have updates applied',
-      );
-    }
-
-    const masterBase = await Base.get(context, sandbox.base_id);
-    if (!masterBase) {
-      NcError.get(context).baseNotFound(sandbox.base_id);
-    }
-
-    if (masterBase.version !== BaseVersion.V3) {
-      NcError.get(context).badRequest('Only V3 bases can be used as sandboxes');
-    }
-
+  /**
+   * Isolated method to update all installations of a sandbox
+   * Can be called manually or automatically during publish
+   * In the future, this can be replaced with a pull-based approach
+   */
+  private async updateAllInstallations(
+    context: NcContext,
+    sandboxId: string,
+    masterBase: Base,
+    req: NcRequest,
+  ) {
     // Find all bases that were installed from this sandbox
     const installedBases = await Noco.ncMeta
       .knexConnection(MetaTable.PROJECT)
-      .where('sandbox_source_id', sandbox.base_id);
+      .where('sandbox_source_id', masterBase.id);
 
     if (!installedBases || installedBases.length === 0) {
       return {
         message: 'No installations found',
         sandboxId,
         updatedCount: 0,
-      } as any;
+      };
     }
 
     const results = [];
@@ -393,9 +420,6 @@ export class SandboxPostOperations
       }
     }
 
-    // Increment version
-    await Sandbox.incrementVersion(context, sandboxId);
-
     return {
       message: 'Updates applied to all installations',
       sandboxId,
@@ -404,7 +428,47 @@ export class SandboxPostOperations
       failedUpdates: errors.length,
       results,
       errors,
-    } as any;
+    };
+  }
+
+  private async applyUpdates(context: NcContext, body: any, req: NcRequest) {
+    const { sandboxId } = body;
+
+    if (!sandboxId) {
+      NcError.get(context).badRequest('sandboxId is required');
+    }
+
+    const sandbox = await Sandbox.get(context, sandboxId);
+
+    if (!sandbox) {
+      NcError.get(context).notFound('Sandbox not found');
+    }
+
+    // Can only apply updates to published sandboxes
+    if (sandbox.status !== SandboxStatus.PUBLISHED) {
+      NcError.get(context).badRequest(
+        'Only published sandboxes can have updates applied',
+      );
+    }
+
+    const masterBase = await Base.get(context, sandbox.base_id);
+    if (!masterBase) {
+      NcError.get(context).baseNotFound(sandbox.base_id);
+    }
+
+    if (masterBase.version !== BaseVersion.V3) {
+      NcError.get(context).badRequest('Only V3 bases can be used as sandboxes');
+    }
+
+    // Use the isolated method to update all installations
+    const results = await this.updateAllInstallations(
+      context,
+      sandboxId,
+      masterBase,
+      req,
+    );
+
+    return results as any;
   }
 
   private async delete(context: NcContext, body: any, req: NcRequest) {
@@ -427,7 +491,7 @@ export class SandboxPostOperations
       );
     }
 
-    await Sandbox.delete(context, sandboxId);
+    await Sandbox.softDelete(context, sandboxId);
 
     return {
       message: 'Sandbox deleted successfully',

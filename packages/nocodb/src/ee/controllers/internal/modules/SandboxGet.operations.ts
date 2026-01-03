@@ -8,8 +8,11 @@ import type {
 import type { SandboxStatus } from '~/ee/models/Sandbox';
 import { NcError } from '~/helpers/catchError';
 import Sandbox from '~/ee/models/Sandbox';
+import SandboxVersion from '~/ee/models/SandboxVersion';
 import { Base } from '~/models';
 import { diffMeta, serializeMeta } from '~/helpers/baseMetaHelpers';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class SandboxGetOperations
@@ -21,6 +24,7 @@ export class SandboxGetOperations
     'sandboxList',
     'sandboxGet',
     'sandboxGetUpdates',
+    'sandboxVersionsList',
   ] as (keyof typeof OPERATION_SCOPES)[];
 
   async handle(
@@ -45,6 +49,8 @@ export class SandboxGetOperations
         return await this.get(context, req);
       case 'sandboxGetUpdates':
         return await this.getUpdates(context, req);
+      case 'sandboxVersionsList':
+        return await this.listVersions(context, req);
       default:
         return NcError.notFound('Operation');
     }
@@ -174,6 +180,40 @@ export class SandboxGetOperations
       },
       diff,
       hasUpdates: diff && Object.keys(diff).length > 0,
+    } as any;
+  }
+
+  private async listVersions(context: NcContext, req: NcRequest) {
+    const { sandboxId } = req.query;
+
+    if (!sandboxId) {
+      NcError.get(context).badRequest('sandboxId is required');
+    }
+
+    const sandbox = await Sandbox.get(context, sandboxId as string);
+
+    if (!sandbox) {
+      NcError.get(context).notFound('Sandbox not found');
+    }
+
+    // Only owner can view version history
+    if (sandbox.created_by !== req.user.id) {
+      NcError.get(context).unauthorized(
+        'Only the owner can view version history',
+      );
+    }
+
+    const versions = await SandboxVersion.list(context, sandboxId as string);
+
+    return {
+      list: versions.map((v) => ({
+        id: v.id,
+        version: v.version,
+        version_number: v.version_number,
+        release_notes: v.release_notes,
+        created_at: v.created_at,
+      })),
+      pageInfo: {},
     } as any;
   }
 }

@@ -115,16 +115,13 @@ const permissionScopes = {
 
     'getUserProfile',
 
-    // Sandbox
+    // Sandbox (public operations)
     'sandboxStoreList',
     'sandboxGet',
-    'sandboxUpdate',
-    'sandboxDelete',
-    'sandboxPublish',
-    'sandboxUnpublish',
-    'sandboxInstall',
   ],
   workspace: [
+    // Sandbox (install operation)
+    'sandboxInstall',
     'workspaceBaseList',
     'workspaceGet',
     'workspaceUpdate',
@@ -362,9 +359,14 @@ const permissionScopes = {
     'workflowPublish',
     'workflowNodeIntegrationFetchOptions',
 
-    // Sandbox
+    // Sandbox (management operations)
     'sandboxGetUpdates',
     'sandboxApplyUpdates',
+    'sandboxUpdate',
+    'sandboxDelete',
+    'sandboxPublish',
+    'sandboxUnpublish',
+    'sandboxVersionsList',
   ],
 };
 
@@ -412,6 +414,10 @@ const rolePermissions:
       mcpRootList: true,
 
       getUserProfile: true,
+
+      // Sandbox (public operations - available to everyone)
+      sandboxStoreList: true,
+      sandboxGet: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {
@@ -423,15 +429,6 @@ const rolePermissions:
       uploadViaURL: true,
       isPluginActive: true,
       genericGPT: true,
-
-      // Sandbox
-      sandboxStoreList: true,
-      sandboxGet: true,
-      sandboxUpdate: true,
-      sandboxDelete: true,
-      sandboxPublish: true,
-      sandboxUnpublish: true,
-      sandboxInstall: true,
     },
   },
   [WorkspaceUserRoles.NO_ACCESS]: {

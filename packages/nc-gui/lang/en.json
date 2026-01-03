@@ -1728,7 +1728,9 @@
     "showFieldHeader": "Show field header",
     "cellsSelected": "cells selected",
     "recordSelected": "record selected",
-    "recordsSelected": "records selected"
+    "recordsSelected": "records selected",
+    "saveChanges": "Save changes",
+    "publishing": "Publishing"
   },
   "activity": {
     "clickToResolve": "Click to resolve",

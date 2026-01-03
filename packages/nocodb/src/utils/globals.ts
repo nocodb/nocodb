@@ -103,6 +103,7 @@ export enum MetaTable {
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATIONS = 'nc_installations',
   SANDBOXES = 'nc_sandboxes',
+  SANDBOX_VERSIONS = 'nc_sandbox_versions',
 }
 
 export const BaseRelatedMetaTables = [
@@ -324,6 +325,7 @@ export enum CacheScope {
   INSTALLATION = 'installation',
   INSTALLATION_ALIAS = 'installationAlias',
   SANDBOX = 'sandbox',
+  SANDBOX_VERSION = 'sandboxVersion',
   SUBSCRIPTIONS_ALIAS = 'subscriptionsAlias',
 }
 
@@ -372,12 +374,13 @@ export const RootScopeTables = {
     MetaTable.JOBS,
     MetaTable.FILE_REFERENCES,
     MetaTable.DATA_REFLECTION,
+    MetaTable.SANDBOXES,
+    MetaTable.SANDBOX_VERSIONS,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
     MetaTable.TEAMS,
-    MetaTable.SANDBOXES,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

@@ -20,7 +20,7 @@ const up = async (knex: Knex) => {
     // Visibility in app store: 'public', 'private', 'unlisted'
     table.string('visibility', 20).notNullable().defaultTo('private');
 
-    // Version information
+    // Version information - current published version
     table.string('version', 20).notNullable().defaultTo('1.0.0');
 
     // Category for filtering in app store
@@ -31,6 +31,9 @@ const up = async (knex: Knex) => {
 
     table.text('meta');
 
+    // Soft delete support
+    table.boolean('deleted').defaultTo(false);
+
     // Timestamps
     table.timestamps(true, true);
     table.timestamp('published_at');
@@ -40,6 +43,40 @@ const up = async (knex: Knex) => {
     table.index(['created_by'], 'nc_sandboxes_created_by_idx');
     table.index(['base_id'], 'nc_sandboxes_base_id_idx');
     table.index(['status', 'visibility'], 'nc_sandboxes_status_visibility_idx');
+  });
+
+  // Create sandbox_versions table to store serialized schemas for each published version
+  await knex.schema.createTable(MetaTable.SANDBOX_VERSIONS, (table) => {
+    table.string('id', 20).primary();
+    table.string('fk_sandbox_id', 20).notNullable();
+    table.string('version', 20).notNullable();
+    table.integer('version_number').unsigned().notNullable();
+    table.string('fk_workspace_id', 20).notNullable();
+
+    // Serialized schema snapshot for this version
+    table.text('schema').notNullable();
+
+    // Optional release notes for this version
+    table.text('release_notes');
+
+    // Timestamps
+    table.timestamps(true, true);
+
+    // Composite unique constraint: one schema per version per sandbox
+    table.unique(['fk_sandbox_id', 'version'], {
+      indexName: 'nc_sandbox_versions_unique_idx',
+    });
+    table.unique(['fk_sandbox_id', 'version_number'], {
+      indexName: 'nc_sandbox_versions_number_unique_idx',
+    });
+
+    // Indexes for performance
+    table.index(['fk_sandbox_id'], 'nc_sandbox_versions_sandbox_id_idx');
+    table.index(['fk_workspace_id'], 'nc_sandbox_versions_workspace_id_idx');
+    table.index(
+      ['fk_sandbox_id', 'version_number'],
+      'nc_sandbox_versions_ordering_idx',
+    );
   });
 
   // Add sandbox-related columns to bases table
@@ -62,6 +99,9 @@ const up = async (knex: Knex) => {
 };
 
 const down = async (knex: Knex) => {
+  // Drop sandbox_versions table
+  await knex.schema.dropTable(MetaTable.SANDBOX_VERSIONS);
+
   // Drop indexes from bases table
   await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
     table.dropIndex(['sandbox_source_id'], 'nc_bases_sandbox_source_id_idx');

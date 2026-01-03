@@ -49,6 +49,7 @@ import {
   View,
   Workspace,
 } from '~/models';
+import Sandbox from '~/ee/models/Sandbox';
 import rolePermissions, {
   generateReadablePermissionErr,
   sourceRestrictions,
@@ -923,6 +924,23 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       // Extract table ID for permission check at the end
       tableIdToCheck = audit.fk_model_id;
+    }
+    // extract base id and workspace id from sandbox id if provided
+    else if (req.query.sandboxId) {
+      const sandbox = await Sandbox.get(context, req.query.sandboxId);
+
+      if (!sandbox) {
+        NcError.genericNotFound('Sandbox', req.query.sandboxId);
+      }
+
+      const base = await Base.get(context, sandbox.base_id);
+
+      if (!base) {
+        NcError.baseNotFound(sandbox.base_id);
+      }
+
+      req.ncBaseId = base.id;
+      req.ncWorkspaceId = (base as Base).fk_workspace_id;
     }
     // extract base id from query params only if it's userMe endpoint
     else if (

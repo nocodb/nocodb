@@ -58,6 +58,9 @@ export default class Sandbox {
   // Metadata (screenshots, documentation, etc.)
   meta?: Record<string, any> | string;
 
+  // Soft delete
+  deleted: boolean;
+
   // Timestamps
   created_at: string;
   updated_at: string;
@@ -93,6 +96,11 @@ export default class Sandbox {
                 eq: context.workspace_id,
               },
             },
+            {
+              deleted: {
+                eq: false,
+              },
+            },
           ],
         },
       );
@@ -125,6 +133,7 @@ export default class Sandbox {
           _and: [
             { base_id: { eq: baseId } },
             { fk_workspace_id: { eq: context.workspace_id } },
+            { deleted: { eq: false } },
           ],
         },
       },
@@ -150,6 +159,7 @@ export default class Sandbox {
   ): Promise<Sandbox[]> {
     const conditions: any[] = [
       { fk_workspace_id: { eq: args?.workspaceId || context.workspace_id } },
+      { deleted: { eq: false } },
     ];
 
     if (args?.userId) {
@@ -203,6 +213,7 @@ export default class Sandbox {
       _and: [
         { status: { eq: SandboxStatus.PUBLISHED } },
         { fk_workspace_id: { eq: context.workspace_id } },
+        { deleted: { eq: false } },
       ],
     };
 
@@ -335,11 +346,30 @@ export default class Sandbox {
     return this.get(context, sandboxId, ncMeta);
   }
 
+  public static async softDelete(
+    context: NcContext,
+    sandboxId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.SANDBOXES,
+      { deleted: true },
+      sandboxId,
+    );
+
+    await NocoCache.del(context, `${CacheScope.SANDBOX}:${sandboxId}`);
+
+    return true;
+  }
+
   public static async delete(
     context: NcContext,
     sandboxId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
+    // Hard delete - use softDelete instead for normal operations
     await ncMeta.metaDelete(
       RootScopes.ROOT,
       RootScopes.ROOT,
@@ -363,40 +393,6 @@ export default class Sandbox {
       MetaTable.SANDBOXES,
       {
         install_count: ncMeta.knex.raw('install_count + 1'),
-      },
-      sandboxId,
-    );
-
-    await NocoCache.del(context, `${CacheScope.SANDBOX}:${sandboxId}`);
-  }
-
-  public static async incrementVersion(
-    context: NcContext,
-    sandboxId: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<void> {
-    const sandbox = await this.get(context, sandboxId);
-
-    if (!sandbox) {
-      throw new Error('Sandbox not found');
-    }
-
-    // Parse current version and increment
-    const currentVersion = sandbox.version || '1.0.0';
-    const versionParts = currentVersion.split('.');
-    const major = parseInt(versionParts[0] || '1', 10);
-    const minor = parseInt(versionParts[1] || '0', 10);
-    const patch = parseInt(versionParts[2] || '0', 10);
-
-    // Increment minor version for updates
-    const newVersion = `${major}.${minor + 1}.0`;
-
-    await ncMeta.metaUpdate(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.SANDBOXES,
-      {
-        version: newVersion,
       },
       sandboxId,
     );

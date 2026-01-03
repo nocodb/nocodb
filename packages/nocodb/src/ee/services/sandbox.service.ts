@@ -2,80 +2,93 @@ import { Injectable } from '@nestjs/common';
 import { BaseVersion } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base } from '~/models';
-import { DuplicateProcessor } from '~/ee/modules/jobs/jobs/export-import/duplicate.processor';
-import { JobTypes } from '~/interface/Jobs';
-import Sandbox from '~/ee/models/Sandbox';
+import Sandbox from '~/models/Sandbox';
+import SandboxVersion from '~/models/SandboxVersion';
 import Noco from '~/Noco';
-import { applyMeta, diffMeta, serializeMeta } from '~/helpers/baseMetaHelpers';
+import {
+  applyMeta,
+  type BaseMetaSchema,
+  diffMeta,
+  serializeMeta,
+} from '~/helpers/baseMetaHelpers';
 
 @Injectable()
 export class SandboxService {
-  constructor(private readonly duplicateProcessor: DuplicateProcessor) {}
+  constructor() {}
 
   /**
-   * Install a sandbox by duplicating the source base to a target workspace
-   * This is similar to duplicateBaseJob but excludes data and comments,
-   * and marks the installed base with sandbox metadata
+   * Install a sandbox from a serialized schema (published version)
+   * This uses the stored snapshot instead of the live base
    */
-  async installSandbox({
-    sourceBase,
-    targetBase,
-    dataSource,
-    req,
-    context,
+  async installFromSandbox({
     targetContext,
+    targetBase,
     sandboxId,
   }: {
-    sourceBase: Base;
-    targetBase: Base;
-    dataSource: any;
-    req: NcRequest;
-    context: NcContext;
     targetContext: NcContext;
+    targetBase: Base;
     sandboxId: string;
   }) {
-    // Validate that source and target are V3 bases
-    if (sourceBase.version !== BaseVersion.V3) {
-      throw new Error('Only V3 bases can be used as sandbox sources');
-    }
-
+    // Validate that target is V3 base
     if (targetBase.version !== BaseVersion.V3) {
       throw new Error('Target base must be V3');
     }
 
-    // Note: We don't validate sandbox markers on targetBase here because
-    // the Base object returned from basesService.baseCreate() may not include
-    // the custom fields. The markers are validated at the database level
-    // and in the controller before calling this service.
-
-    // Use DuplicateProcessor with sandbox-specific options
-    await this.duplicateProcessor.duplicateBaseJob({
-      sourceBase,
-      targetBase,
-      dataSource,
-      req,
-      context,
+    const sandboxVersion = await SandboxVersion.getLatest(
       targetContext,
-      options: {
-        excludeData: true, // Skip data for sandbox installations
-        excludeHooks: false, // Include hooks
-        excludeViews: false, // Include views
-        excludeComments: true, // Skip comments for sandbox installations
-        excludeUsers: true, // Skip users for sandbox installations
-        excludeScripts: false, // Include scripts
-        excludeDashboards: false, // Include dashboards
-      },
-      operation: JobTypes.DuplicateBase,
-    });
-
-    // Increment the install count for the sandbox
-    await Sandbox.incrementInstallCount(context, sandboxId);
-
-    return {
-      success: true,
-      installedBaseId: targetBase.id,
       sandboxId,
-    };
+    );
+
+    if (!sandboxVersion) {
+      throw new Error('Published sandbox version not found');
+    }
+
+    const serializedSchema = sandboxVersion.getParsedSchema();
+
+    // Get the target base's primary source (where tables will be created)
+    const targetSources = await targetBase.getSources();
+    if (!targetSources || targetSources.length === 0) {
+      throw new Error('Target base has no sources');
+    }
+    const targetSourceId = targetSources[0].id; // Use primary source
+
+    // Apply the serialized schema to the target base
+    let trx;
+    try {
+      trx = await Noco.ncMeta.startTransaction();
+
+      // Remap source_id in the schema to target base's source
+      const remappedSchema = this.remapSourceId(
+        serializedSchema,
+        targetSourceId,
+      );
+
+      // For a fresh install, create a diff where everything is in the "add" section
+      // The target base is empty, so we're adding all schema from the published version
+      const metaDiff = {
+        add: remappedSchema,
+        delete: {},
+        update: {},
+      };
+
+      await applyMeta(targetContext, metaDiff, trx);
+
+      await trx.commit();
+
+      // Increment the install count for the sandbox
+      await Sandbox.incrementInstallCount(targetContext, sandboxId);
+
+      return {
+        success: true,
+        installedBaseId: targetBase.id,
+        sandboxId,
+      };
+    } catch (error) {
+      if (trx) {
+        await trx.rollback();
+      }
+      throw error;
+    }
   }
 
   /**
@@ -153,5 +166,34 @@ export class SandboxService {
       }
       throw error;
     }
+  }
+
+  /**
+   * Remap source_id in a serialized schema to a different source
+   * This is needed when installing a sandbox to a different base
+   * Similar to the override logic in serializeMeta
+   */
+  private remapSourceId(
+    schema: BaseMetaSchema,
+    newSourceId: string,
+  ): BaseMetaSchema {
+    const remapped = {} as BaseMetaSchema;
+
+    for (const [tableName, records] of Object.entries(schema)) {
+      if (!Array.isArray(records)) {
+        remapped[tableName] = records;
+        continue;
+      }
+
+      // Remap source_id for records that have it
+      remapped[tableName] = records.map((record: any) => {
+        if (record.source_id !== undefined) {
+          return { ...record, source_id: newSourceId };
+        }
+        return record;
+      });
+    }
+
+    return remapped;
   }
 }

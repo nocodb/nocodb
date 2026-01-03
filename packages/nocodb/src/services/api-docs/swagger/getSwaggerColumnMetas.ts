@@ -48,14 +48,18 @@ async function processColumnToSwaggerField(
 
             // skip if refTable undefined or cross base link
             if (relTable && relTable.base_id === context.base_id) {
-              field.$ref = `#/components/schemas/${relTable.title}Request`;
+              field.$ref = `#/components/schemas/${swaggerGetSourcePrefix(
+                source,
+              )}${relTable.title}Request`;
             }
           } else {
             field.type = 'array';
             // skip if refTable undefined or cross base link
             if (relTable && relTable.base_id === context.base_id) {
               field.items = {
-                $ref: `#/components/schemas/${relTable.title}Request`,
+                $ref: `#/components/schemas/${swaggerGetSourcePrefix(source)}${
+                  relTable.title
+                }Request`,
               };
             }
           }

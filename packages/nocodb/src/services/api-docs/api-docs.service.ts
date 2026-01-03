@@ -4,6 +4,8 @@ import getSwaggerJSONV2 from './swaggerV2/getSwaggerJSONV2';
 import getSwaggerJSONV3 from './swaggerV3/getSwaggerJSONV3';
 import type { NcRequest } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { Source } from '~/models';
+import type { SourcesMap } from '~/services/api-docs/types';
 import { NcError } from '~/helpers/catchError';
 import { Base, Model } from '~/models';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
@@ -17,8 +19,18 @@ export class ApiDocsService {
     const base = await Base.get(context, param.baseId);
 
     if (!base) NcError.baseNotFound(param.baseId);
+
     const models = await this.extractVisibleModels(context, param);
-    const swagger = await getSwaggerJSON(context, base, models);
+    // Fetch sources once for the entire base to avoid repeated queries
+    const sources = await base.getSources(false);
+    const sourcesMap: SourcesMap = new Map<string, Source>(
+      sources.map((source) => [source.id, source]),
+    );
+    const swagger = await getSwaggerJSON(context, {
+      sourcesMap,
+      base,
+      models,
+    });
 
     swagger.servers = [
       {
@@ -70,7 +82,16 @@ export class ApiDocsService {
     if (!base) NcError.baseNotFound(param.baseId);
 
     const models = await this.extractVisibleModels(context, param);
-    const swagger = await getSwaggerJSONV2(context, base, models);
+    // Fetch sources once for the entire base to avoid repeated queries
+    const sources = await base.getSources(false);
+    const sourcesMap: SourcesMap = new Map<string, Source>(
+      sources.map((source) => [source.id, source]),
+    );
+    const swagger = await getSwaggerJSONV2(context, {
+      sourcesMap,
+      base,
+      models,
+    });
 
     swagger.servers = [
       {
@@ -100,7 +121,16 @@ export class ApiDocsService {
 
     const models = await this.extractVisibleModels(context, param);
 
-    const swagger = await getSwaggerJSONV3(context, base, models);
+    // Fetch sources once for the entire base to avoid repeated queries
+    const sources = await base.getSources(false);
+    const sourcesMap: SourcesMap = new Map<string, Source>(
+      sources.map((source) => [source.id, source]),
+    );
+    const swagger = await getSwaggerJSONV3(context, {
+      sourcesMap,
+      base,
+      models,
+    });
 
     swagger.servers = [
       {

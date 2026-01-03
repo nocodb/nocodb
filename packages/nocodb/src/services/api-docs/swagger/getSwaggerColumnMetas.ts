@@ -1,21 +1,34 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { FormulaDataTypes } from 'nocodb-sdk';
-import type { Column, LinkToAnotherRecordColumn } from '~/models';
+import type { Column, LinkToAnotherRecordColumn, Model } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
 import type { DriverClient } from '~/utils/nc-config';
+import type { SourcesMap } from '~/services/api-docs/types';
 import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
+import { swaggerGetSourcePrefix } from '~/helpers/dbHelpers';
 
 // Helper function to process a single column and return its swagger field definition
 async function processColumnToSwaggerField(
   context: NcContext,
-  column: Column,
-  base: Base,
+  {
+    column,
+    base,
+    model,
+    sourcesMap,
+    isLookupHelper = false,
+    dbType,
+  }: {
+    column: Column;
+    base: Base;
+    model: Model;
+    sourcesMap: SourcesMap;
+    isLookupHelper?: boolean;
+    dbType: DriverClient;
+  },
   ncMeta = Noco.ncMeta,
-  isLookupHelper = false,
-  dbType: DriverClient,
 ): Promise<SwaggerColumn> {
   const field: SwaggerColumn = {
     title: column.title,
@@ -23,6 +36,7 @@ async function processColumnToSwaggerField(
     virtual: true,
     column,
   };
+  const source = sourcesMap.get(model.source_id);
 
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
@@ -38,14 +52,18 @@ async function processColumnToSwaggerField(
 
             // skip if refTable undefined or cross base link
             if (relTable && relTable.base_id === context.base_id) {
-              field.$ref = `#/components/schemas/${relTable.title}Request`;
+              field.$ref = `#/components/schemas/${swaggerGetSourcePrefix(
+                source,
+              )}${relTable.title}Request`;
             }
           } else {
             field.type = 'array';
             // skip if refTable undefined or cross base link
             if (relTable && relTable.base_id === context.base_id) {
               field.items = {
-                $ref: `#/components/schemas/${relTable.title}Request`,
+                $ref: `#/components/schemas/${swaggerGetSourcePrefix(source)}${
+                  relTable.title
+                }Request`,
               };
             }
           }
@@ -94,11 +112,15 @@ async function processColumnToSwaggerField(
           const lookupCol = await colOpt.getLookupColumn(context);
           return await processColumnToSwaggerField(
             context,
-            lookupCol,
-            base,
+            {
+              column: lookupCol,
+              base,
+              model,
+              sourcesMap,
+              isLookupHelper: true,
+              dbType,
+            },
             ncMeta,
-            true,
-            dbType,
           );
         }
         field.type = 'object';
@@ -128,11 +150,15 @@ async function processColumnToSwaggerField(
           // Get the type of the lookup column by recursively processing it
           const lookupField = await processColumnToSwaggerField(
             refContext,
-            lookupCol,
-            refBase,
+            {
+              column: lookupCol,
+              base: refBase,
+              sourcesMap,
+              model,
+              isLookupHelper: true,
+              dbType,
+            },
             ncMeta,
-            true,
-            dbType,
           );
 
           // Determine if this is a single value or array based on relation type
@@ -206,8 +232,17 @@ async function processColumnToSwaggerField(
 
 export default async (
   context: NcContext,
-  columns: Column[],
-  base: Base,
+  {
+    columns,
+    base,
+    model,
+    sourcesMap,
+  }: {
+    columns: Column[];
+    base: Base;
+    model: Model;
+    sourcesMap: SourcesMap;
+  },
   ncMeta = Noco.ncMeta,
 ): Promise<SwaggerColumn[]> => {
   // Extract dbtype based on column source
@@ -219,11 +254,15 @@ export default async (
     columns.map(async (c) => {
       return await processColumnToSwaggerField(
         context,
-        c,
-        base,
+        {
+          column: c,
+          sourcesMap,
+          base,
+          model,
+          dbType,
+          isLookupHelper: false,
+        },
         ncMeta,
-        false,
-        dbType,
       );
     }),
   );

@@ -1736,8 +1736,10 @@ function viewRowTests() {
         .expect(200);
 
       // Check file content
-      expect(fileResponse.headers['content-disposition']).to.include(
-        `${customerTable.title} (${view.title}).csv`,
+      expect(fileResponse.headers['content-disposition']).to.match(
+        new RegExp(
+          `${sakilaProject.title} - ${customerTable.title} \\(${view.title}\\) \\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}.csv`,
+        ),
       );
       expect(fileResponse.headers['content-type']).to.include('text/csv');
       expect(fileResponse.text).to.be.a('string').and.not.empty;

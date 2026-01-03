@@ -2,12 +2,17 @@ import { Readable } from 'stream';
 import path from 'path';
 import iconv from 'iconv-lite';
 import { Injectable, Logger } from '@nestjs/common';
-import moment from 'moment';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+import timezone from 'dayjs/plugin/timezone';
 import type { Job } from 'bull';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 import { type DataExportJobData } from '~/interface/Jobs';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
-import { Model, PresignedUrl, View } from '~/models';
+import { Base, Model, PresignedUrl, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 
@@ -45,13 +50,19 @@ export class DataExportProcessor {
     if (!view) NcError.viewNotFound(viewId);
 
     // date time as containing folder YYYY-MM-DD/HH
-    const dateFolder = moment().format('YYYY-MM-DD/HH');
+    const dateFolder = dayjs().format('YYYY-MM-DD/HH');
 
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
 
-    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${
-      model.title
-    } (${getViewTitle(view)}) - ${Date.now()}.csv`;
+    const base = await Base.get(context, model.base_id);
+    const date = dayjs()
+      .tz(options?.filenameTimeZone || 'Etc/UTC')
+      .format('YYYY-MM-DD_HH-mm');
+    const filename = `${base.title} - ${model.title} (${getViewTitle(
+      view,
+    )}) ${date}`;
+
+    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}.csv`;
 
     let url = null;
 
@@ -110,7 +121,7 @@ export class DataExportProcessor {
       if (!url) {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: path.join(destPath.replace('nc/uploads/', '')),
-          filename: `${model.title} (${getViewTitle(view)}).csv`,
+          filename: `${filename}.csv`,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype: 'text/csv',
@@ -119,7 +130,7 @@ export class DataExportProcessor {
       } else {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: url,
-          filename: `${model.title} (${getViewTitle(view)}).csv`,
+          filename: `${filename}.csv`,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype: 'text/csv',
@@ -140,7 +151,7 @@ export class DataExportProcessor {
       throw {
         data: {
           extension_id: options?.extension_id,
-          title: `${model.title} (${getViewTitle(view)})`,
+          title: filename,
         },
         message: e.message,
       };
@@ -150,7 +161,7 @@ export class DataExportProcessor {
       timestamp: new Date(),
       extension_id: options?.extension_id,
       type: exportAs,
-      title: `${model.title} (${getViewTitle(view)})`,
+      title: filename,
       url,
     };
   }

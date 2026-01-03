@@ -217,6 +217,7 @@ export interface DataExportJobData extends JobData {
     // if true and encoding is utf-8, it'll add \ufeff (utf8 byte order mark) at start of the file
     // false by default, only use when triggered from controller
     includeByteOrderMark?: boolean;
+    filenameTimeZone?: string;
   };
   modelId: string;
   viewId: string;

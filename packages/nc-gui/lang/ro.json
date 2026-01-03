@@ -445,7 +445,7 @@
     "overview": "Prezentare generală",
     "baseType": "Tip bază",
     "beta": "Beta",
-    "selected": "selected",
+    "selected": "selectat",
     "notice": "Notice"
   },
   "objects": {
@@ -505,12 +505,12 @@
       "creator": "Creator",
       "editor": "Editor",
       "commenter": "Comentarator",
-      "viewer": "Vizualizator",
+      "viewer": "Vizualizare",
       "noaccess": "Fără acces",
       "superAdmin": "Super Admin",
       "orgLevelOwner": "Proprietar de nivel organizațional",
       "orgLevelCreator": "Creator la Nivel de Organizație",
-      "orgLevelViewer": "Vizualizator la Nivel de Organizație"
+      "orgLevelViewer": "Vizualizator la nivel de organizație"
     },
     "roleDescription": {
       "workspace-level-owner": "Has full control over all workspace bases, settings, and billing",
@@ -566,7 +566,7 @@
       "tableau": "Tableau",
       "trello": "Trello",
       "typeform": "Typeform",
-      "workday": "Workday",
+      "workday": "Zi de lucru",
       "zendesk": "Zendesk",
       "mysql": "MySQL",
       "postgreSQL": "PostgreSQL",

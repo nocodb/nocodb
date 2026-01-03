@@ -60,9 +60,9 @@ export class DataExportProcessor {
       .format('YYYY-MM-DD_HH-mm');
     const filename = `${base.title} - ${model.title} (${getViewTitle(
       view,
-    )}) ${date}.csv`;
+    )}) ${date}`;
 
-    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}`;
+    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}.csv`;
 
     let url = null;
 
@@ -121,7 +121,7 @@ export class DataExportProcessor {
       if (!url) {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: path.join(destPath.replace('nc/uploads/', '')),
-          filename,
+          filename: `${filename}.csv`,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype: 'text/csv',
@@ -130,7 +130,7 @@ export class DataExportProcessor {
       } else {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: url,
-          filename,
+          filename: `${filename}.csv`,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype: 'text/csv',
@@ -151,7 +151,7 @@ export class DataExportProcessor {
       throw {
         data: {
           extension_id: options?.extension_id,
-          title: filename.replace('.csv', ''),
+          title: filename,
         },
         message: e.message,
       };
@@ -161,7 +161,7 @@ export class DataExportProcessor {
       timestamp: new Date(),
       extension_id: options?.extension_id,
       type: exportAs,
-      title: filename.replace('.csv', ''),
+      title: filename,
       url,
     };
   }

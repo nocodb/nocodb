@@ -55,3 +55,20 @@ export function deepReplaceStrings<T>(
 
   return result as T;
 }
+
+// get base 64 file string size, without buffer
+export function getBase64FileSize(base64String: string) {
+  const len = base64String.length;
+
+  // Count padding at the end
+  let padding = 0;
+  if (len > 0 && base64String[len - 1] === '=') {
+    padding++;
+    if (len > 1 && base64String[len - 2] === '=') {
+      padding++;
+    }
+  }
+
+  // Calculate actual file size in bytes
+  return (len * 3) / 4 - padding;
+}

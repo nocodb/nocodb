@@ -6,6 +6,7 @@ import { nanoid } from 'nanoid';
 import { AuditV1OperationTypes, EventType, ncIsNull } from 'nocodb-sdk';
 import slash from 'slash';
 import { useAgent } from 'request-filtering-agent';
+import { getBase64FileSize } from 'src/helpers/stringHelpers';
 import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
 import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
 import type {
@@ -188,10 +189,8 @@ export class DataAttachmentV3Service {
     const { context, modelId, columnId, recordId, scope, attachment, req } =
       param;
 
-    const buffer = Buffer.from(attachment.file, 'base64');
-
     // Calculate file size from base64 value
-    const fileSize = buffer.length;
+    const fileSize = getBase64FileSize(attachment.file);
 
     if (fileSize > NC_ATTACHMENT_FIELD_SIZE) {
       NcError.get(context).invalidRequestBody(
@@ -264,7 +263,7 @@ export class DataAttachmentV3Service {
 
       const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
         slash(path.join(destPath, filename)),
-        new PassThrough().end(buffer),
+        new PassThrough().end(attachment.file, 'base64'),
       );
 
       const attachmentId = await FileReference.insert(context, {

@@ -1,5 +1,5 @@
-import { isEE } from './helpers';
 import { nanoid } from 'nanoid';
+import { isEE } from './helpers';
 import { CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
 
@@ -11,6 +11,27 @@ export const overrideFeature = async ({
   workspace_id: string;
   feature: string;
   allowed: boolean;
+}) => {
+  return overridePlan({
+    workspace_id,
+    features: {
+      [feature]: allowed,
+    },
+  });
+};
+
+export const overridePlan = async ({
+  workspace_id,
+  features,
+  limits,
+}: {
+  workspace_id: string;
+  features?: {
+    [key: string]: boolean;
+  };
+  limits?: {
+    [key: string]: number;
+  };
 }) => {
   if (isEE()) {
     const subscriptionAliasKey = `${CacheScope.SUBSCRIPTIONS_ALIAS}:${workspace_id}`;
@@ -33,7 +54,8 @@ export const overrideFeature = async ({
       ...basePlan,
       meta: {
         ...basePlan.meta,
-        [feature]: allowed,
+        ...(features ?? {}),
+        ...(limits ?? {}),
       },
     };
     await NocoCache.set('root', planCacheKey, overriddenPlan);

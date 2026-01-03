@@ -28,6 +28,7 @@ import type {
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { Filter, GridViewColumn } from '~/models';
+import { swaggerSanitizeSchemaName } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import {
@@ -856,4 +857,10 @@ export function getArrayAggExpression(
 
   // fallback to mysql2 query
   return knex.raw(exprMap[client] || exprMap.mysql2);
+}
+
+export function swaggerGetSourcePrefix(source?: Source) {
+  return source?.isMeta()
+    ? ''
+    : `${swaggerSanitizeSchemaName(source?.alias || 'Source')}_`;
 }

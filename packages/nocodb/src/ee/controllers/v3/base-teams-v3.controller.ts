@@ -47,7 +47,7 @@ export class BaseTeamsV3Controller {
 
   @Post('/api/v3/meta/bases/:baseId/invites')
   @HttpCode(200)
-  @Acl('baseTeamCreate', {
+  @Acl('baseTeamAdd', {
     scope: 'base',
   })
   async teamAdd(

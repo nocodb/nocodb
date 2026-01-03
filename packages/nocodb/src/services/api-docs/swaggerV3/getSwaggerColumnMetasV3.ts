@@ -1,5 +1,6 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { FormulaDataTypes } from 'nocodb-sdk';
+import type { SourcesMap } from '~/services/api-docs/types';
 import type { Column, LinkToAnotherRecordColumn, RollupColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
@@ -25,11 +26,20 @@ const setAsAnyType = (field: SwaggerColumn, nullable = true) => {
 // Helper function to process a single column and return its swagger field definition
 async function processColumnToSwaggerField(
   context: NcContext,
-  column: Column,
-  base: Base,
+  {
+    column,
+    base,
+    sourcesMap,
+    isLookupHelper = false,
+    dbType,
+  }: {
+    column: Column;
+    base: Base;
+    sourcesMap: SourcesMap;
+    isLookupHelper?: boolean;
+    dbType: DriverClient;
+  },
   ncMeta = Noco.ncMeta,
-  isLookupHelper = false,
-  dbType: DriverClient,
 ): Promise<SwaggerColumn> {
   const field: SwaggerColumn = {
     title: column.title,
@@ -118,11 +128,14 @@ async function processColumnToSwaggerField(
           const lookupCol = await colOpt.getLookupColumn(context);
           return await processColumnToSwaggerField(
             context,
-            lookupCol,
-            base,
+            {
+              column: lookupCol,
+              base,
+              dbType,
+              sourcesMap,
+              isLookupHelper: true,
+            },
             ncMeta,
-            true,
-            dbType,
           );
         }
         setAsAnyType(field);
@@ -152,11 +165,14 @@ async function processColumnToSwaggerField(
           // Get the type of the lookup column by recursively processing it
           const lookupField = await processColumnToSwaggerField(
             refContext,
-            lookupCol,
-            refBase,
+            {
+              column: lookupCol,
+              base: refBase,
+              sourcesMap,
+              isLookupHelper: true,
+              dbType,
+            },
             ncMeta,
-            true,
-            dbType,
           );
 
           // Determine if this is a single value or array based on relation type
@@ -276,8 +292,15 @@ async function processColumnToSwaggerField(
 
 export default async (
   context: NcContext,
-  columns: Column[],
-  base: Base,
+  {
+    columns,
+    base,
+    sourcesMap,
+  }: {
+    columns: Column[];
+    base: Base;
+    sourcesMap: SourcesMap;
+  },
   ncMeta = Noco.ncMeta,
 ): Promise<SwaggerColumn[]> => {
   // Extract dbtype based on column source
@@ -290,11 +313,14 @@ export default async (
     columns.map(async (c) => {
       return await processColumnToSwaggerField(
         context,
-        c,
-        base,
+        {
+          column: c,
+          base,
+          sourcesMap,
+          isLookupHelper: false,
+          dbType,
+        },
         ncMeta,
-        false,
-        dbType,
       );
     }),
   );

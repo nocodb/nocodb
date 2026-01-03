@@ -118,7 +118,7 @@ export class AiSchemaService {
                   'DateTime',
                   'JSON',
                 ]),
-                options: z.array(z.string()).optional(),
+                options: z.array(z.string()).nullable(),
               }),
             ),
           }),
@@ -140,11 +140,11 @@ export class AiSchemaService {
                 z.object({
                   comparison_op: z.string(),
                   logical_op: z.string(),
-                  value: z.string().nullable().optional(),
+                  value: z.string().nullable(),
                   column: z.string(),
                 }),
               )
-              .optional(),
+              .nullable(),
             sorts: z
               .array(
                 z.object({
@@ -152,7 +152,7 @@ export class AiSchemaService {
                   order: z.enum(['asc', 'desc']),
                 }),
               )
-              .optional(),
+              .nullable(),
             calendar_range: z
               .array(
                 z.object({
@@ -164,9 +164,9 @@ export class AiSchemaService {
                   from_column: z.string(),
                 }),
               )
-              .optional(),
-            gridGroupBy: z.string().or(z.array(z.string())).optional(),
-            kanbanGroupBy: z.string().optional(),
+              .nullable(),
+            gridGroupBy: z.string().or(z.array(z.string())).nullable(),
+            kanbanGroupBy: z.string().nullable(),
           }),
         ),
       }),
@@ -251,7 +251,7 @@ export class AiSchemaService {
             .array(
               z.object({
                 title: z.string(),
-                description: z.string().nullable().optional(),
+                description: z.string().nullable(),
                 columns: z.array(
                   z.object({
                     title: z.string(),
@@ -277,22 +277,19 @@ export class AiSchemaService {
                       'DateTime',
                       'JSON',
                     ]),
-                    options: z.array(z.string()).optional(),
+                    options: z.array(z.string()).nullable(),
                   }),
                 ),
               }),
             )
-            .optional(),
-          relationships: z
-            .array(
-              z.object({
-                from: z.string(),
-                to: z.string(),
-                type: z.enum(['oo', 'hm', 'mm']),
-              }),
-            )
-            .optional()
-            .default([]), // Ensure default empty array if relationships are not provided
+            .nullable(),
+          relationships: z.array(
+            z.object({
+              from: z.string(),
+              to: z.string(),
+              type: z.enum(['oo', 'hm', 'mm']),
+            }),
+          ),
         }),
         messages: [
           {
@@ -501,17 +498,17 @@ export class AiSchemaService {
             type: z.string(),
             table: z.string(),
             title: z.string(),
-            description: z.string().optional(),
+            description: z.string().nullable(),
             filters: z
               .array(
                 z.object({
                   comparison_op: z.string(),
                   logical_op: z.string(),
-                  value: z.string().nullable().optional(),
+                  value: z.string().nullable(),
                   column: z.string(),
                 }),
               )
-              .optional(),
+              .nullable(),
             sorts: z
               .array(
                 z.object({
@@ -519,7 +516,7 @@ export class AiSchemaService {
                   order: z.enum(['asc', 'desc']),
                 }),
               )
-              .optional(),
+              .nullable(),
             calendar_range: z
               .array(
                 z.object({
@@ -531,9 +528,9 @@ export class AiSchemaService {
                   from_column: z.string(),
                 }),
               )
-              .optional(),
-            gridGroupBy: z.string().or(z.array(z.string())).optional(),
-            kanbanGroupBy: z.string().optional(),
+              .nullable(),
+            gridGroupBy: z.string().or(z.array(z.string())).nullable(),
+            kanbanGroupBy: z.string().nullable(),
           }),
         ),
       }),

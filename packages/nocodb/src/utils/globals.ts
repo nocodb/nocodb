@@ -102,6 +102,7 @@ export enum MetaTable {
   AUTOMATION_EXECUTIONS = 'nc_automation_executions',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATIONS = 'nc_installations',
+  SANDBOXES = 'nc_sandboxes',
 }
 
 export const BaseRelatedMetaTables = [
@@ -322,6 +323,8 @@ export enum CacheScope {
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATION = 'installation',
   INSTALLATION_ALIAS = 'installationAlias',
+  SANDBOX = 'sandbox',
+  SUBSCRIPTIONS_ALIAS = 'subscriptionsAlias',
 }
 
 export enum CacheGetType {
@@ -374,6 +377,7 @@ export const RootScopeTables = {
     MetaTable.CUSTOM_URLS,
     MetaTable.MCP_TOKENS,
     MetaTable.TEAMS,
+    MetaTable.SANDBOXES,
   ],
   [RootScopes.ORG]: [
     MetaTable.ORG,

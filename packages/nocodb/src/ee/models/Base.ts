@@ -147,6 +147,9 @@ export default class Base extends BaseCE {
       'is_snapshot',
       'default_role',
       'version',
+      'sandbox_id',
+      'sandbox_source_id',
+      'schema_locked',
     ]);
 
     // define base type as database if missing
@@ -238,6 +241,9 @@ export default class Base extends BaseCE {
       'fk_custom_url_id',
       'default_role',
       'version',
+      'sandbox_id',
+      'sandbox_source_id',
+      'schema_locked',
     ]);
 
     if (+updateObj.version !== BaseVersion.V3) {

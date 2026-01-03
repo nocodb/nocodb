@@ -2,16 +2,62 @@
 import NcCreateBasePlaceholder from '~icons/nc-icons/create-base-placeholder'
 import NcCreateBaseWithAiPlaceholder from '~icons/nc-icons/create-base-with-ai-placeholder'
 
+type CreateMode = 'scratch' | 'ai' | 'market' | null
+
 interface Props {
   aiMode: boolean | null
+  workspaceId?: string
 }
+
 const props = withDefaults(defineProps<Props>(), {})
 
-const emit = defineEmits(['update:aiMode'])
+const emit = defineEmits(['update:aiMode', 'update:mode', 'sandboxInstalled', 'close'])
+
+// Debug log to see what we're receiving
+watchEffect(() => {
+  console.log('CreateMode props.workspaceId:', props.workspaceId, typeof props.workspaceId)
+})
 
 const aiMode = useVModel(props, 'aiMode', emit)
 
 const { isAiFeaturesEnabled } = useNocoAi()
+
+const showAppMarket = ref(false)
+
+// Reset showAppMarket when aiMode changes back to null (dialog reopened)
+watch(() => props.aiMode, (newVal) => {
+  if (newVal === null) {
+    showAppMarket.value = false
+  }
+})
+
+const selectMode = (mode: CreateMode) => {
+  console.log('selectMode:', mode, 'workspaceId:', props.workspaceId, typeof props.workspaceId)
+  if (mode === 'ai') {
+    aiMode.value = true
+  } else if (mode === 'scratch') {
+    aiMode.value = false
+  } else if (mode === 'market') {
+    if (!props.workspaceId) {
+      console.error('Cannot open market without workspaceId')
+      message.error('Workspace not available')
+      return
+    }
+    showAppMarket.value = true
+    return
+  }
+  emit('update:mode', mode)
+}
+
+const onSandboxInstalled = (sandbox: any) => {
+  showAppMarket.value = false
+  emit('sandboxInstalled', sandbox)
+}
+
+const onAppMarketClose = () => {
+  showAppMarket.value = false
+  emit('close')
+}
 
 onMounted(() => {
   if (!isAiFeaturesEnabled.value) {
@@ -21,31 +67,52 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="isAiFeaturesEnabled" class="nc-create-base-wrapper">
-    <div v-e="['c:base:create:scratch']" class="nc-create-base" @click="aiMode = false">
-      <div class="nc-placeholder-icon-wrapper">
-        <component :is="NcCreateBasePlaceholder" class="nc-placeholder-icon stroke-transparent" />
-      </div>
-      <div class="nc-create-base-content">
-        <div class="nc-create-base-content-title">
-          <GeneralIcon icon="plus" class="h-4 w-4 !text-nc-content-gray-subtle" />
-          Start from scratch
+  <div>
+    <div v-if="isAiFeaturesEnabled" class="nc-create-base-wrapper">
+      <div v-e="['c:base:create:scratch']" class="nc-create-base" @click="selectMode('scratch')">
+        <div class="nc-placeholder-icon-wrapper">
+          <component :is="NcCreateBasePlaceholder" class="nc-placeholder-icon stroke-transparent" />
         </div>
-        <div class="nc-create-base-content-subtitle">Build your Base according to your specific requirements.</div>
+        <div class="nc-create-base-content">
+          <div class="nc-create-base-content-title">
+            <GeneralIcon icon="plus" class="h-4 w-4 !text-nc-content-gray-subtle" />
+            Start from scratch
+          </div>
+          <div class="nc-create-base-content-subtitle">Build your Base according to your specific requirements.</div>
+        </div>
+      </div>
+      <div v-e="['c:base:ai:create']" class="nc-create-base-ai" @click="selectMode('ai')">
+        <div class="nc-placeholder-icon-wrapper">
+          <component :is="NcCreateBaseWithAiPlaceholder" class="nc-placeholder-icon stroke-transparent" />
+        </div>
+        <div class="nc-create-base-content">
+          <div class="nc-create-base-content-title">
+            <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 !text-nc-fill-purple-dark" />
+            Build Base with AI
+          </div>
+          <div class="nc-create-base-content-subtitle">Quickly build your ideal Base with all tables, views and fields.</div>
+        </div>
+      </div>
+      <div v-e="['c:base:market:create']" class="nc-create-base-market" @click="selectMode('market')">
+        <div class="nc-placeholder-icon-wrapper">
+          <GeneralIcon icon="ncStore" class="nc-placeholder-icon !h-20 !w-20" />
+        </div>
+        <div class="nc-create-base-content">
+          <div class="nc-create-base-content-title">
+            <GeneralIcon icon="ncStore" class="h-4 w-4 !text-nc-content-gray-subtle" />
+            Install from App Market
+          </div>
+          <div class="nc-create-base-content-subtitle">Browse and install pre-built Bases from the App Market.</div>
+        </div>
       </div>
     </div>
-    <div v-e="['c:base:ai:create']" class="nc-create-base-ai" @click="aiMode = true">
-      <div class="nc-placeholder-icon-wrapper">
-        <component :is="NcCreateBaseWithAiPlaceholder" class="nc-placeholder-icon stroke-transparent" />
-      </div>
-      <div class="nc-create-base-content">
-        <div class="nc-create-base-content-title">
-          <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4 !text-nc-fill-purple-dark" />
-          Build Base with AI
-        </div>
-        <div class="nc-create-base-content-subtitle">Quickly build your ideal Base with all tables, views and fields.</div>
-      </div>
-    </div>
+
+    <WorkspaceProjectAppMarket
+      v-if="showAppMarket && workspaceId"
+      :workspace-id="workspaceId"
+      @close="onAppMarketClose"
+      @installed="onSandboxInstalled"
+    />
   </div>
 </template>
 
@@ -73,6 +140,18 @@ onMounted(() => {
 
       .nc-placeholder-icon-wrapper {
         @apply border-nc-border-brand-medium bg-nc-bg-brand;
+      }
+    }
+
+    &.nc-create-base-market {
+      @apply border-nc-border-gray-medium;
+
+      &:hover {
+        box-shadow: 0px 12px 16px -4px rgba(107, 114, 128, 0.12), 0px 4px 6px -2px rgba(107, 114, 128, 0.08);
+      }
+
+      .nc-placeholder-icon-wrapper {
+        @apply border-nc-border-gray-medium bg-nc-bg-gray-light;
       }
     }
 

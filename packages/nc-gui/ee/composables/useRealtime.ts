@@ -115,7 +115,7 @@ export const useRealtime = createSharedComposable(() => {
         clearAllMeta()
 
         // Reload everything in the base
-        loadProjectTables(baseId, true).then(() => {
+        loadProjectTables(baseId, true).then(async () => {
           // Reload all table metadata
           const tables = baseTables.value.get(baseId)
           for (const table of tables || []) {
@@ -123,20 +123,19 @@ export const useRealtime = createSharedComposable(() => {
               getMeta(baseId, table.id, true)
             }
           }
+
+          // Reload scripts, workflows, and dashboards with force flag
+          await Promise.all([
+            scriptStore.loadScripts({ baseId, force: true }),
+            workflowStore.loadWorkflows({ baseId, force: true }),
+            dashboardStore.loadDashboards({ baseId, force: true }),
+          ])
+
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+
+          refreshCommandPalette()
         })
-
-        // Reload scripts
-        scriptStore.loadScripts({ baseId, force: true })
-
-        // Reload workflows
-        workflowStore.loadWorkflows({ baseId, force: true })
-
-        // Reload dashboards
-        dashboardStore.loadDashboards({ baseId, force: true })
-
-        refreshCommandPalette()
       }
     } else if (event.action === 'table_create') {
       const tables = baseTables.value.get(activeBaseId.value)

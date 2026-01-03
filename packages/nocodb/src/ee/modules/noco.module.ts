@@ -71,6 +71,9 @@ import { SnapshotService } from '~/services/snapshot.service';
 /* Scripts */
 import { ScriptsService } from '~/services/scripts.service';
 
+/* Sandbox */
+import { SandboxService } from '~/ee/services/sandbox.service';
+
 /* Workflows */
 import { WorkflowsService } from '~/services/workflows.service';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
@@ -129,6 +132,9 @@ export const nocoModuleEeMetadata = {
     /* Scripts */
     ScriptsService,
     ScriptsV3Service,
+
+    /* Sandbox */
+    SandboxService,
 
     /* Workflows */
     WorkflowsService,
@@ -199,6 +205,9 @@ export const nocoModuleEeMetadata = {
     DashboardsService,
     PermissionsService,
     ActionsService,
+
+    /* Sandbox */
+    SandboxService,
 
     /* Generic */
     CustomUrlsService,

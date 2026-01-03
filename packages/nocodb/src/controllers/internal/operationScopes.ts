@@ -104,4 +104,17 @@ export const OPERATION_SCOPES = {
   dataList: 'base',
   dataDelete: 'base',
   dataDeleteAll: 'base',
+
+  // Sandbox Operations
+  sandboxStoreList: 'org',
+  sandboxList: 'workspace',
+  sandboxGet: 'org',
+  sandboxCreate: 'workspace',
+  sandboxUpdate: 'org',
+  sandboxDelete: 'org',
+  sandboxPublish: 'org',
+  sandboxUnpublish: 'org',
+  sandboxInstall: 'org',
+  sandboxGetUpdates: 'base',
+  sandboxApplyUpdates: 'base',
 } as const;

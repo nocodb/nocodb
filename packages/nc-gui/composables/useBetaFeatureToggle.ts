@@ -5,8 +5,7 @@ const FEATURES = [
   {
     id: 'bases_v3',
     title: 'Bases V3',
-    description:
-      'Experience the next generation of NocoDB with Bases V3, allowing duplicates with same id and enhanced performance.',
+    description: 'Experience the next generation of NocoDB with Bases V3 with and enhanced performance and optimizations.',
     enabled: false,
     version: 1,
   },

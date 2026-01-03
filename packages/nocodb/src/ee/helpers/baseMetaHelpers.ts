@@ -497,6 +497,8 @@ export async function applyMeta(
     progressCallback?.('Clearing caches', 98);
     await clearRelatedCaches(targetContext);
 
+    await NocoCache.destroy();
+
     // Step 9: Broadcast realtime event to trigger UI reload
     progressCallback?.('Broadcasting changes', 99);
     NocoSocket.broadcastEvent(
@@ -1113,7 +1115,7 @@ async function handleTableUpdates(
       }
 
       // Update the table metadata using composite key
-      const { id, ...updateData } = tableRecord;
+      const { id, pgSerialLastVal, ...updateData } = tableRecord;
       await ncMeta
         .knex(MetaTable.MODELS)
         .where('id', id)
@@ -1296,7 +1298,16 @@ async function handleNonDDLChanges(
       for (const record of toUpdate) {
         try {
           const pkFields = tablePrimaryKeys[metaTable] || 'id';
-          const updateData = { ...record };
+          let updateData = { ...record };
+
+          // For MODELS table, exclude pgSerialLastVal as it's not a real column
+          if (
+            metaTable === MetaTable.MODELS &&
+            'pgSerialLastVal' in updateData
+          ) {
+            const { pgSerialLastVal, ...rest } = updateData;
+            updateData = rest;
+          }
 
           // Build the where clause based on primary key type
           let whereClause: any;

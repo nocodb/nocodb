@@ -112,6 +112,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.INSTALLATIONS]: 'inst',
       [MetaTable.AUTOMATIONS]: 'aut',
       [MetaTable.AUTOMATION_EXECUTIONS]: 'auex',
+      [MetaTable.SANDBOXES]: 'sb',
     };
 
     const prefix = prefixMap[target] || 'nc';

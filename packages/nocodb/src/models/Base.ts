@@ -54,6 +54,11 @@ export default class Base implements BaseType {
   roles?: string;
   fk_custom_url_id?: string;
 
+  // sandbox props
+  sandbox_id?: string; // If this base is a sandbox master (template)
+  sandbox_source_id?: string; // If this base is an installed instance from a sandbox
+  schema_locked?: boolean; // Schema locked flag - prevents modifications on installed sandboxes
+
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
   }
@@ -77,6 +82,9 @@ export default class Base implements BaseType {
       'color',
       'order',
       'version',
+      'sandbox_id',
+      'sandbox_source_id',
+      'schema_locked',
     ]);
 
     if (!insertObj.order) {
@@ -442,6 +450,9 @@ export default class Base implements BaseType {
       'password',
       'roles',
       'version',
+      'sandbox_id',
+      'sandbox_source_id',
+      'schema_locked',
     ]);
 
     // stringify meta

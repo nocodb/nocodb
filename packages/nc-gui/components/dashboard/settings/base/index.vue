@@ -22,15 +22,20 @@ const hasPermissionForMigrateToV3 = computed(
   () => isFeatureEnabled(FEATURE_FLAG.BASES_V3) && base.value?.version === BaseVersion.V2 && isUIAllowed('baseMiscSettings'),
 )
 
+const hasPermissionForSandbox = computed(
+  () => isEeUI && base.value?.version === BaseVersion.V3 && isUIAllowed('baseMiscSettings'),
+)
+
 const router = useRouter()
 
-const allTabs = ['baseType', 'snapshots', 'visibility', 'migrateToV3', 'mcp', 'migrate']
+const allTabs = ['baseType', 'snapshots', 'visibility', 'migrateToV3', 'sandbox', 'mcp', 'migrate']
 
 const getDefaultTab = () => {
   if (hasPermissionForBaseAccess.value) return 'baseType'
   if (hasPermissionForSnapshots.value) return 'snapshots'
   if (hasPermissionForVisibility.value) return 'visibility'
   if (hasPermissionForMigrateToV3.value) return 'migrateToV3'
+  if (hasPermissionForSandbox.value) return 'sandbox'
   if (hasPermissionForMigrate.value) return 'migrate'
   return 'mcp'
 }
@@ -55,6 +60,10 @@ const selectMenu = (option: string, updateQuery = true) => {
   }
 
   if (!hasPermissionForMigrateToV3.value && option === 'migrateToV3') {
+    return
+  }
+
+  if (!hasPermissionForSandbox.value && option === 'sandbox') {
     return
   }
 
@@ -155,6 +164,20 @@ watch(
           </span>
         </div>
         <div
+          v-if="hasPermissionForSandbox"
+          :class="{
+            'active-menu': activeMenu === 'sandbox',
+          }"
+          class="gap-3 hover:bg-nc-bg-gray-light transition-all text-nc-content-gray flex rounded-lg items-center cursor-pointer py-1.5 px-3"
+          data-testid="sandbox-tab"
+          @click="selectMenu('sandbox')"
+        >
+          <GeneralIcon icon="ncBox" />
+          <span>
+            {{ $t('labels.sandbox') }}
+          </span>
+        </div>
+        <div
           v-if="hasPermissionForMCP"
           :class="{
             'active-menu': activeMenu === 'mcp',
@@ -190,6 +213,7 @@ watch(
       <DashboardSettingsBaseSnapshots v-if="activeMenu === 'snapshots'" />
       <DashboardSettingsBaseVisibility v-if="activeMenu === 'visibility'" />
       <DashboardSettingsBaseMigrateToV3 v-if="activeMenu === 'migrateToV3'" />
+      <DashboardSettingsBaseSandbox v-if="activeMenu === 'sandbox'" />
       <DashboardSettingsBaseMigrate v-if="activeMenu === 'migrate'" />
       <DashboardSettingsBaseMCP v-if="activeMenu === 'mcp'" />
     </div>

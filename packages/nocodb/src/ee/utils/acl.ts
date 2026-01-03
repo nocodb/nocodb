@@ -114,6 +114,15 @@ const permissionScopes = {
     'mcpRootList',
 
     'getUserProfile',
+
+    // Sandbox
+    'sandboxStoreList',
+    'sandboxGet',
+    'sandboxUpdate',
+    'sandboxDelete',
+    'sandboxPublish',
+    'sandboxUnpublish',
+    'sandboxInstall',
   ],
   workspace: [
     'workspaceBaseList',
@@ -173,6 +182,10 @@ const permissionScopes = {
     'workspaceTeamGet',
     'workspaceTeamUpdate',
     'workspaceTeamRemove',
+
+    // Sandbox
+    'sandboxList',
+    'sandboxCreate',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -348,6 +361,10 @@ const permissionScopes = {
     'workflowTestNode',
     'workflowPublish',
     'workflowNodeIntegrationFetchOptions',
+
+    // Sandbox
+    'sandboxGetUpdates',
+    'sandboxApplyUpdates',
   ],
 };
 
@@ -406,6 +423,15 @@ const rolePermissions:
       uploadViaURL: true,
       isPluginActive: true,
       genericGPT: true,
+
+      // Sandbox
+      sandboxStoreList: true,
+      sandboxGet: true,
+      sandboxUpdate: true,
+      sandboxDelete: true,
+      sandboxPublish: true,
+      sandboxUnpublish: true,
+      sandboxInstall: true,
     },
   },
   [WorkspaceUserRoles.NO_ACCESS]: {
@@ -1085,6 +1111,19 @@ const permissionDescriptions: Record<string, string> = {
   baseTeamDelete: 'delete a team from the base',
 
   globalAuditList: 'view list of audits',
+
+  // Sandbox permissions
+  sandboxStoreList: 'browse public sandboxes in the app store',
+  sandboxList: 'view list of sandboxes in the workspace',
+  sandboxGet: 'view sandbox details',
+  sandboxCreate: 'create a new sandbox',
+  sandboxUpdate: 'update sandbox details',
+  sandboxDelete: 'delete a sandbox',
+  sandboxPublish: 'publish a sandbox to the app store',
+  sandboxUnpublish: 'unpublish a sandbox from the app store',
+  sandboxInstall: 'install a sandbox as a new base',
+  sandboxGetUpdates: 'check for updates to an installed sandbox',
+  sandboxApplyUpdates: 'apply updates to an installed sandbox',
 
   viewRowColorInfo: 'view row colouring info',
   viewSettingOverride: 'copy view configuration from other view',

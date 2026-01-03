@@ -56,13 +56,22 @@ const closeModal = () => {
   modalVisible.value = false
 }
 
-const activeTab = ref<'claude' | 'cursor' | 'windsurf'>('claude')
+const activeTab = ref<'claude' | 'cursor' | 'windsurf' | 'antigravity'>('claude')
 
 const serverName = computed(() => {
+  let title = ''
+
   if (props.showWorkspaceBaseInfo) {
-    return `NocoDB - ${token.value.workspace?.title || 'Workspace'} - ${token.value.base?.title || 'Base'}`
+    title = `NocoDB - ${token.value.workspace?.title || 'Workspace'} - ${token.value.base?.title || 'Base'}`
+  } else {
+    title = `NocoDB Base - ${openedProject.value?.title}`
   }
-  return `NocoDB Base - ${openedProject.value?.title}`
+
+  if (activeTab.value === 'antigravity') {
+    title = title.replaceAll(' ', '_').replaceAll('-', '')
+  }
+
+  return title
 })
 
 const code = computed(
@@ -221,6 +230,42 @@ const code = computed(
                 <ol class="list-decimal pl-5">
                   <li>Access Windsurf settings and Select Cascade Tab in the left sidebar</li>
                   <li>Click on Manage MCP.</li>
+                  <li>Now click on View raw config.</li>
+                  <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
+                </ol>
+
+                <NcButton
+                  v-if="showRegenerateButton"
+                  type="secondary"
+                  class="w-44"
+                  size="small"
+                  :loading="token.loading"
+                  @click="regenerateToken(token)"
+                >
+                  {{ $t('labels.regenerateToken') }}
+                </NcButton>
+
+                <DashboardSettingsBaseMCPCode :code="code" />
+              </div>
+            </a-tab-pane>
+            <a-tab-pane key="antigravity" class="!h-full">
+              <template #tab>
+                <span
+                  :class="{
+                    'text-nc-content-brand font-medium': activeTab === 'antigravity',
+                    'text-nc-content-gray-subtle': activeTab !== 'antigravity',
+                  }"
+                  class="text-sm"
+                >
+                  AntiGravity
+                </span>
+              </template>
+              <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
+                Get started with the NocoDB MCP with AntiGravity in 4 simple steps
+
+                <ol class="list-decimal pl-5">
+                  <li>Click on the three dots in the top right of the agent window, and click on "MCP Servers"</li>
+                  <li>Click on Manage MCP Servers.</li>
                   <li>Now click on View raw config.</li>
                   <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
                 </ol>

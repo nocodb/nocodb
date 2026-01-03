@@ -56,7 +56,7 @@ export class DataExportProcessor {
 
     const base = await Base.get(context, model.base_id);
     const date = dayjs()
-      .tz(options?.filenameTimeZone || 'UTC')
+      .tz(options?.filenameTimeZone || 'Etc/UTC')
       .format('YYYY-MM-DD_HH-mm');
     const filename = `${base.title} - ${model.title} (${getViewTitle(
       view,

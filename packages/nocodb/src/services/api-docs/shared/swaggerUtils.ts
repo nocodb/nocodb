@@ -1,5 +1,4 @@
 import { ViewTypes } from 'nocodb-sdk';
-import { swaggerSanitizeSchemaName } from 'src/helpers/stringHelpers';
 import type { SourcesMap } from '~/services/api-docs/types';
 import type {
   Base,
@@ -12,6 +11,7 @@ import type {
 } from '~/models';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
+import { swaggerGetSourcePrefix } from '~/helpers/dbHelpers';
 
 export interface SwaggerView {
   view: View;
@@ -50,9 +50,7 @@ export async function prepareSwaggerGenerationData({
 
   for (const model of models) {
     const source = sourcesMap.get(model.source_id);
-    const sourcePrefix = source?.isMeta()
-      ? ''
-      : `${swaggerSanitizeSchemaName(source?.alias || 'Source')}_`;
+    const sourcePrefix = swaggerGetSourcePrefix(source);
     const tableName = `${sourcePrefix}${model.title}`;
 
     // Handle duplicate table names by adding a number suffix
@@ -101,6 +99,7 @@ export async function generateSwagger<TSwaggerColumn, TSwaggerView>(
     context: NcContext,
     param: {
       columns: any[];
+      model: Model;
       base: Base;
       sourcesMap: SourcesMap;
     },
@@ -163,6 +162,7 @@ export async function generateSwagger<TSwaggerColumn, TSwaggerView>(
       context,
       {
         columns: await model.getColumns(context, ncMeta),
+        model,
         sourcesMap,
         base,
       },

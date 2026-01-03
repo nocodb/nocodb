@@ -1,6 +1,6 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 import { FormulaDataTypes } from 'nocodb-sdk';
-import type { Column, LinkToAnotherRecordColumn } from '~/models';
+import type { Column, LinkToAnotherRecordColumn, Model } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type LookupColumn from '~/models/LookupColumn';
 import type { DriverClient } from '~/utils/nc-config';
@@ -8,6 +8,7 @@ import type { SourcesMap } from '~/services/api-docs/types';
 import { Base } from '~/models';
 import SwaggerTypes from '~/db/sql-mgr/code/routers/xc-ts/SwaggerTypes';
 import Noco from '~/Noco';
+import { swaggerGetSourcePrefix } from '~/helpers/dbHelpers';
 
 // Helper function to process a single column and return its swagger field definition
 async function processColumnToSwaggerField(
@@ -15,12 +16,14 @@ async function processColumnToSwaggerField(
   {
     column,
     base,
+    model,
     sourcesMap,
     isLookupHelper = false,
     dbType,
   }: {
     column: Column;
     base: Base;
+    model: Model;
     sourcesMap: SourcesMap;
     isLookupHelper?: boolean;
     dbType: DriverClient;
@@ -33,6 +36,7 @@ async function processColumnToSwaggerField(
     virtual: true,
     column,
   };
+  const source = sourcesMap.get(model.source_id);
 
   switch (column.uidt) {
     case UITypes.LinkToAnotherRecord:
@@ -48,14 +52,18 @@ async function processColumnToSwaggerField(
 
             // skip if refTable undefined or cross base link
             if (relTable && relTable.base_id === context.base_id) {
-              field.$ref = `#/components/schemas/${relTable.title}Request`;
+              field.$ref = `#/components/schemas/${swaggerGetSourcePrefix(
+                source,
+              )}${relTable.title}Request`;
             }
           } else {
             field.type = 'array';
             // skip if refTable undefined or cross base link
             if (relTable && relTable.base_id === context.base_id) {
               field.items = {
-                $ref: `#/components/schemas/${relTable.title}Request`,
+                $ref: `#/components/schemas/${swaggerGetSourcePrefix(source)}${
+                  relTable.title
+                }Request`,
               };
             }
           }
@@ -107,6 +115,7 @@ async function processColumnToSwaggerField(
             {
               column: lookupCol,
               base,
+              model,
               sourcesMap,
               isLookupHelper: true,
               dbType,
@@ -145,6 +154,7 @@ async function processColumnToSwaggerField(
               column: lookupCol,
               base: refBase,
               sourcesMap,
+              model,
               isLookupHelper: true,
               dbType,
             },
@@ -225,10 +235,12 @@ export default async (
   {
     columns,
     base,
+    model,
     sourcesMap,
   }: {
     columns: Column[];
     base: Base;
+    model: Model;
     sourcesMap: SourcesMap;
   },
   ncMeta = Noco.ncMeta,
@@ -246,6 +258,7 @@ export default async (
           column: c,
           sourcesMap,
           base,
+          model,
           dbType,
           isLookupHelper: false,
         },

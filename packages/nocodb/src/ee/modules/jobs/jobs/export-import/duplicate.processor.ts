@@ -27,6 +27,7 @@ import { applyMeta, diffMeta, serializeMeta } from '~/helpers/baseMetaHelpers';
 import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
+import { processConcurrently } from '~/utils';
 
 @Injectable()
 export class DuplicateProcessor extends DuplicateProcessorCE {
@@ -170,14 +171,17 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
 
             identifierMap.set(filter.id, createdFilter.id);
 
-            if (filter.is_group)
-              await Promise.all(
-                ((await filter.getChildren(context)) || []).map(
-                  async (child) => {
-                    await fn(child);
-                  },
-                ),
+            if (filter.is_group) {
+              const children = (await filter.getChildren(context)) || [];
+
+              await processConcurrently(
+                children,
+                async (child) => {
+                  await fn(child);
+                },
+                10,
               );
+            }
           };
 
           await fn(filter);

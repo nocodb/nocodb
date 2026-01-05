@@ -605,8 +605,6 @@ export default class Filter implements FilterType {
       }
 
       childrenMap.get(parentId)!.push(filter);
-
-      filter.column = await new Filter(filter).getColumn(context, ncMeta);
     }
 
     // 2️⃣ Sort siblings by order

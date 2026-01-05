@@ -68,6 +68,23 @@ const code = computed(
 }
 `,
 )
+const antigravityCode = computed(
+  () => `
+{
+  "mcpServers": {
+    "${serverName.value.replace(/[^a-zA-Z0-9_-]/g, '_')}": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "${appInfo.value.ncSiteUrl}/mcp/${token.value.id}",
+        "--header",
+        "xc-mcp-token: ${token.value?.token ?? 'xxxxxxxxxxxxxxxxxxxxxxxxxxx'}"
+      ]
+    }
+  }
+}
+`,
+);
 </script>
 
 <template>
@@ -189,6 +206,41 @@ const code = computed(
                 </NcButton>
 
                 <DashboardSettingsBaseMCPCode :code="code" />
+              </div>
+            </a-tab-pane>
+            <a-tab-pane key="antigravity" class="!h-full">
+              <template #tab>
+                <span
+                  :class="{
+                    'text-nc-content-brand font-medium': activeTab === 'antigravity',
+                    'text-nc-content-gray-subtle': activeTab !== 'antigravity',
+                  }"
+                  class="text-sm"
+                >
+                  Antigravity
+                </span>
+              </template>
+              <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
+                Get started with the NocoDB MCP with Google Antigravity in 4 simple steps
+
+                <ol class="list-decimal pl-5">
+                  <li>On the agent tab, click the triple dot icon (Additional options) and select "MCP Servers"</li>
+                  <li>Click on "View raw config"</li>
+                  <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
+                </ol>
+
+                <NcButton
+                  v-if="showRegenerateButton"
+                  type="secondary"
+                  class="w-44"
+                  size="small"
+                  :loading="token.loading"
+                  @click="regenerateToken(token)"
+                >
+                  {{ $t('labels.regenerateToken') }}
+                </NcButton>
+
+                <DashboardSettingsBaseMCPCode key="antigravityCode" :code="antigravityCode" />
               </div>
             </a-tab-pane>
           </NcTabs>

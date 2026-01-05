@@ -63,6 +63,8 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
       category: WorkflowNodeCategory.TRIGGER,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/trigger-nodes/record-updated',
       keywords: ['trigger', 'update', 'edit', 'modify', 'record', 'webhook'],
     };
   }

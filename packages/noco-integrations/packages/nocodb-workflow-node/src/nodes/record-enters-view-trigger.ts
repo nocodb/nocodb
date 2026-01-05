@@ -66,6 +66,8 @@ export class RecordEntersViewTriggerNode extends WorkflowNodeIntegration<RecordE
       category: WorkflowNodeCategory.TRIGGER,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/trigger-nodes/record-enters-view',
       keywords: ['trigger', 'view', 'filter', 'enters', 'condition', 'matches'],
     };
   }

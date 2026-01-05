@@ -143,7 +143,7 @@ onClickOutside(
                   '!cursor-not-allowed': (node as any).locked,
                 }"
                 inner-class="w-full"
-                class="w-60"
+                class="w-65"
                 @click="selectNodeOption(node)"
               >
                 <div class="flex gap-2 items-center justify-between w-full">

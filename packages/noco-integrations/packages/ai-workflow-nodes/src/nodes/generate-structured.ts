@@ -41,6 +41,8 @@ export class GenerateStructuredAction extends WorkflowNodeIntegration<GenerateSt
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form: [],
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/integration-nodes/ai#generate-structured-data',
       keywords: [
         'ai',
         'generate',

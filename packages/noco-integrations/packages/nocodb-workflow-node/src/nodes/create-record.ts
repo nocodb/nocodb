@@ -27,6 +27,8 @@ export class CreateRecordNode extends WorkflowNodeIntegration<CreateRecordNodeCo
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form: [],
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/action-nodes/create-record',
       keywords: ['nocodb', 'database', 'create', 'insert', 'record'],
     };
   }

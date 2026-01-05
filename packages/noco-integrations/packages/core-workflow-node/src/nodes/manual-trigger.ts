@@ -27,6 +27,8 @@ export class ManualTriggerNode extends WorkflowNodeIntegration<ManualTriggerConf
       activationType: TriggerActivationType.NONE,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form: [],
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/trigger-nodes/manual',
       keywords: ['manual', 'trigger', 'start', 'run'],
     };
   }

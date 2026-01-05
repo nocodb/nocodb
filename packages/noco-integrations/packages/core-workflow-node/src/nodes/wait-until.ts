@@ -49,6 +49,8 @@ export class WaitUntilNode extends WorkflowNodeIntegration<WaitUntilNodeConfig> 
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
       keywords: ['wait', 'until', 'schedule', 'date', 'time', 'pause'],
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/flow-nodes/wait-until',
     };
   }
 

@@ -30,6 +30,8 @@ export class CronTriggerNode extends WorkflowNodeIntegration<CronTriggerConfig> 
       category: WorkflowNodeCategory.TRIGGER,
       activationType: TriggerActivationType.CRON,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/trigger-nodes/scheduled',
       form: [],
       keywords: [
         'cron',

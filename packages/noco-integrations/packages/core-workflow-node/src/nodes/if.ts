@@ -44,6 +44,8 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
         { id: 'false', direction: 'output', order: 1, label: 'False' },
       ],
       form,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/flow-nodes/if-else',
       keywords: ['if', 'condition', 'branch', 'decision', 'flow', 'filter'],
     };
   }

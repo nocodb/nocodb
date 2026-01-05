@@ -142,6 +142,8 @@ export class SendMessageNode extends WorkflowNodeIntegration<SendMessageNodeConf
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/integration-nodes/slack',
       keywords: ['slack', 'message', 'send', 'chat', 'notification'],
     };
   }

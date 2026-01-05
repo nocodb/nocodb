@@ -30,6 +30,8 @@ export class SendEmailAction extends WorkflowNodeIntegration<SendEmailActionConf
       icon: 'ncMail',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/action-nodes/send-email',
       form: [
         {
           type: FormBuilderInputType.WorkflowInput,

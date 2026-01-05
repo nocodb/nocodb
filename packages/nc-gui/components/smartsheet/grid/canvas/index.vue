@@ -3159,12 +3159,15 @@ watch(
 
   :deep(.nc-cell-longtext) {
     @apply !px-[2px];
-    .nc-text-area-clamped-text {
-      @apply !px-[7px] !pt-[5px];
-    }
 
-    .nc-readonly-rich-text-wrapper {
-      @apply !pl-2 pt-0.5;
+    &:not(.nc-under-ltar) {
+      .nc-text-area-clamped-text {
+        @apply !px-[7px] !pt-[5px];
+      }
+
+      .nc-readonly-rich-text-wrapper {
+        @apply !pl-2 pt-0.5;
+      }
     }
   }
 

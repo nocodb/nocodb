@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { marked } from 'marked'
 import { PlanFeatureTypes } from 'nocodb-sdk'
-import DOMPurify from 'isomorphic-dompurify'
 
 interface Prop {
   modelValue: boolean
@@ -73,17 +72,7 @@ const detailsBody = computed(() => {
     return '<p></p>'
   }
 
-  const rendered = marked.parse(getModifiedContent(markdown))
-
-  // Sanitize the rendered HTML to prevent XSS attacks
-  return DOMPurify.sanitize(rendered, {
-    ALLOWED_TAGS: [
-      'p', 'br', 'strong', 'em', 'u', 's', 'a', 'ul', 'ol', 'li',
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre',
-      'img', 'div', 'span',
-    ],
-    ALLOWED_ATTR: ['href', 'target', 'rel', 'class', 'src', 'alt', 'title'],
-  })
+  return marked.parse(getModifiedContent(markdown))
 })
 </script>
 

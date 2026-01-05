@@ -84,7 +84,6 @@ const handleOpenUrl = (url: string) => {
     <template v-if="['Github', 'Cloud'].includes(source)">
       <div class="pb-5">
         <img v-if="Image" :src="Image" class="cursor-pointer" @click="handleOpenUrl(Url)" />
-        <!-- Content is sanitized via rehype-sanitize in processing pipeline -->
         <div class="prose px-5 mt-5" v-html="renderedText"></div>
 
         <NcButton v-if="truncate" size="small" class="w-29 mx-5" type="text" @click="expand">

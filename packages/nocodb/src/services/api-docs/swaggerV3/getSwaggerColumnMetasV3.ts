@@ -143,6 +143,8 @@ async function processColumnToSwaggerField(
             field.format = lookupField.format;
             field.$ref = lookupField.$ref;
             field.items = lookupField.items;
+            field.anyOf = lookupField.anyOf;
+            field.nullable = lookupField.nullable;
           } else {
             // Array lookup (HAS_MANY or MANY_TO_MANY)
             field.type = 'array';

@@ -228,6 +228,8 @@ export function useViewFilters(
           return !isSystemColumn(col)
         })?.[0]?.id ?? undefined,
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
+      ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
+      order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
     }
   }
 
@@ -239,6 +241,8 @@ export function useViewFilters(
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value, children: [] } : {}),
+      ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
+      order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
     }
   }
 

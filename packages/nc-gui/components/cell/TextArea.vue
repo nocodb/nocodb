@@ -50,6 +50,7 @@ const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEv
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const isUnderLTAR = inject(IsUnderLTARInj, ref(false))
 const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const { showNull, user } = useGlobal()
@@ -331,7 +332,17 @@ const onCellEvent = (event?: Event, isCanvasEvent?: boolean) => {
 onMounted(() => {
   cellEventHook?.on(onCellEvent)
 
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value || isEditColumn.value) return
+  if (
+    isUnderLookup.value ||
+    isUnderLTAR.value ||
+    !isCanvasInjected ||
+    !clientMousePosition ||
+    isExpandedFormOpen.value ||
+    isEditColumn.value
+  ) {
+    return
+  }
+
   const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
   forcedNextTick(() => {
     if (onCellEvent(canvasCellEventData.event, true)) return
@@ -526,7 +537,7 @@ useResizeObserver(inputWrapperRef, () => {
       <div
         v-else-if="
           (editEnabled && !isVisible) ||
-          isForm ||
+          (isForm && !isUnderLTAR) ||
           (isUnderFormula && isVisible) ||
           (isCanvasInjected && isUnderFormula) ||
           (isUnderFormula && isExpandedFormOpen && !isUnderLookup)

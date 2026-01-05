@@ -348,26 +348,54 @@ export default class Filter {
       logical_op: 'and',
     };
 
-    const grouped = {};
-    const idFilterMapping = {};
+    /**
+     * NOTE:
+     * Earlier implementation relied on filter creation order when attaching children.
+     * Now that filters support reordering, creation order is no longer reliable.
+     *
+     * This caused flattened filters to appear in the wrong sequence, leading to
+     * incorrect parent–child relationships during import / duplicate base flows.
+     *
+     * The new approach explicitly groups by `fk_parent_id`, sorts by `order`,
+     * and flattens the tree deterministically to preserve correct hierarchy.
+     */
 
+    // parentId -> children
+    const childrenMap = new Map<string, FilterType[]>();
+
+    // 1️⃣ Group by fk_parent_id
     for (const filter of filters) {
-      if (!filter._fk_parent_id) {
-        result.children.push(filter);
-        idFilterMapping[result.id] = result;
-      } else {
-        grouped[filter._fk_parent_id] = grouped[filter._fk_parent_id] || [];
-        grouped[filter._fk_parent_id].push(filter);
-        idFilterMapping[filter.id] = filter;
-        filter.column = await new Filter(filter).getColumn(context, ncMeta);
-        if (filter.column?.uidt === UITypes.LinkToAnotherRecord) {
-        }
+      const parentId = filter.fk_parent_id ?? 'root';
+
+      if (!childrenMap.has(parentId)) {
+        childrenMap.set(parentId, []);
       }
+
+      childrenMap.get(parentId)!.push(filter);
     }
 
-    for (const [id, children] of Object.entries(grouped)) {
-      if (idFilterMapping?.[id]) idFilterMapping[id].children = children;
+    // 2️⃣ Sort siblings by order
+    for (const [, list] of childrenMap) {
+      list.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity));
     }
+
+    // 3️⃣ DFS → FLAT push (parent first, then children)
+    const flat: FilterType[] = [];
+
+    const walk = (parentId: string) => {
+      const children = childrenMap.get(parentId);
+      if (!children) return;
+
+      for (const child of children) {
+        flat.push(child);
+        walk(child.id!);
+      }
+    };
+
+    walk('root');
+
+    // 4️⃣ Assign flat ordered result
+    result.children = flat;
 
     // if (!result) {
     //   return (await Filter.insert({

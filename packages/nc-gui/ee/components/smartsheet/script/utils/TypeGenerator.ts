@@ -1,4 +1,12 @@
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import {
+  UITypes,
+  type VariableDefinition,
+  VariableType,
+  WorkflowNodeFilterDataType,
+  extractDataTypeFromWorkflowNodeExpression,
+  findVariableForExpression,
+  isVirtualCol,
+} from 'nocodb-sdk'
 
 export class TypeGenerator {
   public tables = []
@@ -5275,6 +5283,120 @@ declare interface ConfigItem {}
     this.output.push('  '.repeat(this.indent) + line)
   }
 
+  private mapDataTypeToTypeScript(dataType?: WorkflowNodeFilterDataType): string {
+    if (!dataType) return 'any'
+
+    switch (dataType) {
+      case WorkflowNodeFilterDataType.TEXT:
+        return 'string'
+      case WorkflowNodeFilterDataType.NUMBER:
+        return 'number'
+      case WorkflowNodeFilterDataType.BOOLEAN:
+        return 'boolean'
+      case WorkflowNodeFilterDataType.DATE:
+      case WorkflowNodeFilterDataType.DATETIME:
+        return 'Date'
+      case WorkflowNodeFilterDataType.MULTI_SELECT:
+      case WorkflowNodeFilterDataType.SELECT:
+        return 'string[]'
+      case WorkflowNodeFilterDataType.JSON:
+        return 'any'
+      default:
+        return 'any'
+    }
+  }
+
+  private detectPlainValueType(value: any): string {
+    // Detect type from plain literal values (non-expression values)
+    if (value === null || value === undefined) return 'any'
+
+    // Check for boolean
+    if (value === 'true' || value === 'false' || typeof value === 'boolean') {
+      return 'boolean'
+    }
+
+    // Check for number
+    if (typeof value === 'number' || (!isNaN(Number(value)) && value.toString().trim() !== '')) {
+      const numValue = typeof value === 'number' ? value : Number(value)
+      if (!isNaN(numValue) && isFinite(numValue)) {
+        return 'number'
+      }
+    }
+
+    // Check for array
+    if (Array.isArray(value)) {
+      return 'any[]'
+    }
+
+    // Check for object
+    if (typeof value === 'object') {
+      return 'any'
+    }
+
+    // Default to string for everything else
+    return 'string'
+  }
+
+  private generateTypeFromVariableDefinition(variable: VariableDefinition, inline = false): string {
+    // Handle arrays with itemSchema
+    if (variable.type === VariableType.Array || variable.isArray) {
+      const itemSchema = variable.extra?.itemSchema
+      if (itemSchema && itemSchema.length > 0) {
+        // Generate interface for array items
+        const itemType = this.generateObjectTypeFromSchema(itemSchema, inline)
+        return `Array<${itemType}>`
+      }
+      // Fallback to string[] for arrays without itemSchema
+      return 'string[]'
+    }
+
+    // Handle objects with children
+    if (variable.type === VariableType.Object && variable.children && variable.children.length > 0) {
+      return this.generateObjectTypeFromSchema(variable.children, inline)
+    }
+
+    // Handle primitive types
+    switch (variable.type) {
+      case VariableType.String:
+        return 'string'
+      case VariableType.Number:
+      case VariableType.Integer:
+        return 'number'
+      case VariableType.Boolean:
+        return 'boolean'
+      case VariableType.Date:
+      case VariableType.DateTime:
+        return 'Date'
+      case VariableType.Object:
+        return 'any'
+      default:
+        return 'any'
+    }
+  }
+
+  private generateObjectTypeFromSchema(schema: VariableDefinition[], inline = false): string {
+    if (!schema || schema.length === 0) return 'any'
+
+    const properties: string[] = []
+
+    for (const field of schema) {
+      const fieldName = field.key.split('.').pop() || 'unknown'
+      // Sanitize field name for TypeScript (handle special characters)
+      const safeName = /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(fieldName) ? fieldName : `"${fieldName}"`
+      const fieldType = this.generateTypeFromVariableDefinition(field, true)
+
+      if (field.extra?.description) {
+        properties.push(`  /** ${field.extra.description} */`)
+      }
+      properties.push(`  ${safeName}: ${fieldType};`)
+    }
+
+    if (inline) {
+      return `{\n${properties.join('\n')}\n  }`
+    }
+    return `{\n${properties.join('\n')}\n}`
+  }
+
   private indent_in() {
     this.indent++
   }
@@ -6249,7 +6371,11 @@ declare interface ConfigItem {}
     this.write('}')
   }
 
-  generateInputInterfaceForWorkflow(_schema: any) {
+  generateInputInterfaceForWorkflow(
+    _schema: any,
+    variables?: Record<string, any>,
+    flatVariables?: VariableDefinition[],
+  ) {
     this.write(`declare var input: {`)
     this.indent_in()
     this.formatJSDoc([
@@ -6257,7 +6383,42 @@ declare interface ConfigItem {}
       `It returns an object with all input keys mapped to their corresponding values.`,
     ])
 
-    this.write(`config: () => any`)
+    // Generate typed config return type if variables are provided
+    if (variables && Object.keys(variables).length > 0 && flatVariables) {
+      this.write(`config: () => {`)
+      this.indent_in()
+
+      // Detect types for each variable and generate interface properties
+      Object.entries(variables).forEach(([variableName, variableValue]) => {
+        // Try to find the actual variable definition from the expression
+        const variableDef = findVariableForExpression(variableValue, flatVariables)
+        let tsType: string
+
+        if (variableDef) {
+          // Generate proper type from variable definition (handles arrays with itemSchema, objects with children)
+          tsType = this.generateTypeFromVariableDefinition(variableDef, true)
+        } else {
+          // Try to detect type from workflow expression
+          const detectedType = extractDataTypeFromWorkflowNodeExpression(variableValue, flatVariables)
+          if (detectedType) {
+            // Use detected type from workflow expression
+            tsType = this.mapDataTypeToTypeScript(detectedType)
+          } else {
+            // Fallback: detect type from plain literal value
+            tsType = this.detectPlainValueType(variableValue)
+          }
+        }
+
+        this.formatJSDoc([`Variable: ${variableName}`])
+        this.write(`${variableName}: ${tsType};`)
+      })
+
+      this.indent_out()
+      this.write(`}`)
+    } else {
+      this.write(`config: () => any`)
+    }
+
     this.indent_out()
     this.write(`}`)
     this.indent_out()
@@ -6679,7 +6840,7 @@ declare interface ConfigItem {}
     this.write(`}`)
   }
 
-  generateTypes(schema: any): string {
+  generateTypes(schema: any, variables?: Record<string, any>, flatVariables?: VariableDefinition[]): string {
     this.tables = schema.tables
     for (const table of schema.tables) {
       this.write(`// Field interfaces for table: ${table.name}`)
@@ -6711,7 +6872,7 @@ declare interface ConfigItem {}
       this.generateInputInterface(schema)
     } else {
       this.write(`// Input Interface`)
-      this.generateInputInterfaceForWorkflow(schema)
+      this.generateInputInterfaceForWorkflow(schema, variables, flatVariables)
     }
 
     return this.output.join('\n')

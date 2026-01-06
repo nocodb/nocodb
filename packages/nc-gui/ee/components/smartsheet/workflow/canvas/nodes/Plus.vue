@@ -30,7 +30,7 @@ const selectNodeType = async (option: WorkflowNodeDefinition) => {
 
 <template>
   <div ref="wrappperRef" class="plus-node-wrapper">
-    <Handle type="target" :position="Position.Top" class="!w-3 !h-3 !bg-blue-500 !border-2 !border-white" />
+    <Handle type="target" :position="Position.Top" class="!w-3 !h-3 !bg-blue-500 !border-2 !border-white !-top-1.5" />
     <Dropdown
       :selected-id="props.type === GeneralNodeID.TRIGGER ? undefined : props.type"
       :category="[WorkflowNodeCategory.ACTION, WorkflowNodeCategory.FLOW]"

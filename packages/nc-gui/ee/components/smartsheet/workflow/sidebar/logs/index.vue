@@ -216,7 +216,7 @@ onBeforeMount(async () => {
     </div>
     <template v-if="viewingExecution">
       <NcDivider />
-      <div class="flex items-center text-center p-4 text-nc-content-gray-muted">
+      <div class="flex items-center text-center p-4 text-nc-content-gray-emphasis">
         Click on a node in the canvas to view its execution details
       </div>
     </template>

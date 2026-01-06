@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import type { ExecuteScriptNodeConfig, ScriptVariable } from './types'
+import type { ExecuteScriptNodeConfig } from './types'
+
+interface VariableEntry {
+  index: number
+  key: string
+  value: any
+}
 
 const { selectedNodeId, updateNode, selectedNode } = useWorkflowOrThrow()
 
@@ -18,7 +24,7 @@ const flatVariables = computed(() => {
 const config = computed<ExecuteScriptNodeConfig>(() => {
   return (selectedNode.value?.data?.config || {
     script: '',
-    variables: [],
+    variables: {},
   }) as ExecuteScriptNodeConfig
 })
 
@@ -40,33 +46,62 @@ const updateConfig = (updates: Partial<ExecuteScriptNodeConfig>) => {
 }
 
 const variables = computed({
-  get: () => config.value.variables || [],
-  set: (value: ScriptVariable[]) => {
+  get: () => config.value.variables || {},
+  set: (value: Record<string, any>) => {
     updateConfig({ variables: value })
   },
 })
 
-const updateVariable = (index: number, field: 'name' | 'value', value: any) => {
-  const newVariables = [...variables.value]
-  newVariables[index] = {
-    ...newVariables[index],
-    [field]: value,
-  }
+const variableEntries = computed<VariableEntry[]>(() => {
+  return Object.entries(variables.value).map(([key, value], index) => ({
+    index,
+    key,
+    value,
+  }))
+})
+
+const updateVariableEntry = (index: number, newKey: string, newValue: any) => {
+  const entries = Object.entries(variables.value)
+  if (index < 0 || index >= entries.length) return
+
+  const newVariables: Record<string, any> = {}
+
+  entries.forEach(([key, value], i) => {
+    if (i === index) {
+      newVariables[newKey] = newValue
+    } else {
+      newVariables[key] = value
+    }
+  })
+
   variables.value = newVariables
 }
 
 const removeVariable = (index: number) => {
-  const newVariables = [...variables.value]
-  newVariables.splice(index, 1)
+  const entries = Object.entries(variables.value)
+  if (index < 0 || index >= entries.length) return
+
+  const newVariables: Record<string, any> = {}
+
+  entries.forEach(([key, value], i) => {
+    if (i !== index) {
+      newVariables[key] = value
+    }
+  })
+
   variables.value = newVariables
 }
 
 const addVariable = () => {
-  const newUniqueName = ''
-  variables.value.push({
-    name: newUniqueName,
-    value: '',
-  })
+  const newVariables = { ...variables.value }
+  let counter = 1
+  let newKey = `variable${counter}`
+  while (newKey in newVariables) {
+    counter++
+    newKey = `variable${counter}`
+  }
+  newVariables[newKey] = ''
+  variables.value = newVariables
 }
 </script>
 
@@ -80,27 +115,31 @@ const addVariable = () => {
       </div>
 
       <div
-        v-for="(variable, index) in variables"
-        :key="index"
+        v-for="entry in variableEntries"
+        :key="entry.index"
         class="border-1 relative border-nc-border-gray-light flex flex-col gap-2 p-2"
       >
         <div class="flex gap-2 flex-col">
           <div class="flex items-center justify-between">
             <span class="text-nc-content-gray-emphasis">Name</span>
-            <NcButton size="xxsmall" class="!hover:bg-nc-bg-red-light" type="text" @click="removeVariable(index)">
+            <NcButton size="xxsmall" class="!hover:bg-nc-bg-red-light" type="text" @click="removeVariable(entry.index)">
               <GeneralIcon icon="ncTrash" class="text-nc-content-red-medium" />
             </NcButton>
           </div>
-          <a-input v-model:value="variable.name" class="nc-input-sm" />
+          <a-input
+            :value="entry.key"
+            class="nc-input-sm"
+            @update:value="(newKey) => updateVariableEntry(entry.index, newKey, entry.value)"
+          />
         </div>
         <div class="flex gap-2 flex-col">
           <label>Value</label>
           <NcFormBuilderInputWorkflowInput
-            :model-value="variable.value"
+            :model-value="entry.value"
             :variables="flatVariables"
             :grouped-variables="groupedVariables"
             placeholder="Variable value"
-            @update:model-value="(val) => updateVariable(index, 'value', val)"
+            @update:model-value="(val) => updateVariableEntry(entry.index, entry.key, val)"
           />
         </div>
       </div>

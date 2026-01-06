@@ -123,10 +123,17 @@ const handleKeydown = (e: KeyboardEvent) => {
 }
 
 onKeyStroke(async (e) => {
-  if (props.selected && !isEditMode.value && e.key.match(/^[a-zA-Z0-9]$/)) {
-    editor.value?.commands.insertContent(e.key)
-    await nextTick()
-    enableEditMode()
+  if (props.selected && !isEditMode.value) {
+    if (e.key.match(/^[a-zA-Z0-9]$/)) {
+      editor.value?.commands.insertContent(e.key)
+      await nextTick()
+      enableEditMode()
+    } else if (e.key === 'Backspace') {
+      if (isActiveInputElementExist()) {
+        return
+      }
+      deleteNote()
+    }
   }
 })
 

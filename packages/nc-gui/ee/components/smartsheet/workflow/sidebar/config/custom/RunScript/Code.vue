@@ -23,10 +23,17 @@ const { isDark } = useTheme()
 
 const { selectedNodeId, updateNode, selectedNode } = useWorkflowOrThrow()
 
+const workflowContext = inject(WorkflowVariableInj, null)
+
+const flatVariables = computed(() => {
+  if (!selectedNodeId.value || !workflowContext?.getAvailableVariablesFlat) return []
+  return workflowContext.getAvailableVariablesFlat(selectedNodeId.value)
+})
+
 const config = computed<ExecuteScriptNodeConfig>(() => {
   return (selectedNode.value?.data?.config || {
     script: '',
-    variables: [],
+    variables: {},
   }) as ExecuteScriptNodeConfig
 })
 
@@ -60,7 +67,9 @@ const updateTypes = async () => {
   const monaco = await loadMonacoEditor()
 
   monaco.languages.typescript.typescriptDefaults.setExtraLibs([
-    { content: typeGenerator.generateTypes(activeBaseSchema.value) },
+    {
+      content: typeGenerator.generateTypes(activeBaseSchema.value, config.value.variables, flatVariables.value),
+    },
     { content: '' },
   ])
 }
@@ -148,6 +157,14 @@ watch(activeBaseSchema, async (newVal) => {
     await updateTypes()
   }
 })
+
+watch(
+  () => config.value.variables,
+  async () => {
+    await updateTypes()
+  },
+  { deep: true },
+)
 
 watch(isDark, async () => {
   await updateTheme()

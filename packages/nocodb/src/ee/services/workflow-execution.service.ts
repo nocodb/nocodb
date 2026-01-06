@@ -1191,56 +1191,6 @@ export class WorkflowExecutionService {
         ts: Date.now(),
       });
     }
-
-    let inputVariables: VariableDefinition[] = [];
-    if (
-      nodeWrapper &&
-      typeof nodeWrapper.generateInputVariables === 'function'
-    ) {
-      try {
-        inputVariables = await nodeWrapper.generateInputVariables(
-          this.getVariableGeneratorContext(context, nodes),
-          { config: targetNode.data?.config, output: result.output },
-        );
-      } catch (error) {
-        this.logger.warn(
-          `Failed to generate input variables for ${targetNodeId}:`,
-          error,
-        );
-      }
-    }
-
-    let outputVariables: VariableDefinition[] = [];
-    if (
-      nodeWrapper &&
-      typeof nodeWrapper.generateOutputVariables === 'function'
-    ) {
-      try {
-        outputVariables = await nodeWrapper.generateOutputVariables(
-          this.getVariableGeneratorContext(context, nodes),
-          { config: targetNode.data?.config, output: result.output },
-        );
-      } catch (error) {
-        this.logger.warn(
-          `Failed to generate output variables for ${targetNodeId}:`,
-          error,
-        );
-      }
-    } else if (result.output) {
-      try {
-        outputVariables = genGeneralVariables(result.output);
-      } catch (error) {
-        this.logger.warn(
-          `Failed to auto-generate variables from output for ${targetNodeId}:`,
-          error,
-        );
-      }
-    }
-
-    return {
-      ...result,
-      inputVariables,
-      outputVariables,
-    };
+    return result
   }
 }

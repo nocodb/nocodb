@@ -54,29 +54,74 @@ export function useLayout() {
 
     dagre.layout(dagreGraph)
 
-    return nodes.map((node) => {
-      // Note nodes keep their manual positions
-      if (node.type === GeneralNodeID.NOTE) {
-        return {
-          ...node,
-          zIndex: 1,
-          position: node.position || { x: 0, y: 0 },
+    // Post-process to ensure consistent edge-to-edge spacing between ranks
+    const edgeGap = 80
+    const rankGroups = new Map<number, Array<{ node: Node; dagreNode: dagre.Node }>>()
+
+    // Group nodes by their rank (position along the flow direction)
+    workflowNodes.forEach((node) => {
+      const dagreNode = dagreGraph.node(node.id)
+      if (!dagreNode) return
+
+      const rankPos = isHorizontal ? dagreNode.x : dagreNode.y
+      if (!rankGroups.has(rankPos)) rankGroups.set(rankPos, [])
+      rankGroups.get(rankPos)!.push({ node, dagreNode })
+    })
+
+    // Process each rank to ensure consistent spacing
+    const sortedRanks = Array.from(rankGroups.keys()).sort((a, b) => a - b)
+    let currentPos = 0
+
+    const processedNodes = sortedRanks.flatMap((rankKey, i) => {
+      const nodesInRank = rankGroups.get(rankKey)
+
+      if (!nodesInRank || nodesInRank.length === 0) return []
+
+      // First rank: use dagre's position
+      // Subsequent ranks: position = previous bottom + gap + current node half-height
+      if (i === 0) {
+        const firstNode = nodesInRank[0]
+        if (firstNode) {
+          currentPos = isHorizontal ? firstNode.dagreNode.x : firstNode.dagreNode.y
         }
+      } else {
+        const prevRankKey = sortedRanks[i - 1]
+        if (prevRankKey === undefined) return []
+
+        const prevRank = rankGroups.get(prevRankKey)
+        if (!prevRank || prevRank.length === 0) return []
+
+        const prevMaxSize = Math.max(...prevRank.map((n) => (isHorizontal ? n.dagreNode.width : n.dagreNode.height)))
+
+        const firstNode = nodesInRank[0]
+        if (!firstNode) return []
+
+        const currentSize = isHorizontal ? firstNode.dagreNode.width : firstNode.dagreNode.height
+
+        currentPos += prevMaxSize / 2 + edgeGap + currentSize / 2
       }
 
-      const nodeWithPosition = dagreGraph.node(node.id)
-
-      // Fallback to existing position if dagre didn't compute position
-      const position = nodeWithPosition ? { x: nodeWithPosition.x, y: nodeWithPosition.y } : node.position || { x: 0, y: 0 }
-
-      return {
+      // Apply position to all nodes in this rank
+      return nodesInRank.map(({ node, dagreNode }) => ({
         ...node,
         zIndex: 2,
         targetPosition: isHorizontal ? Position.Left : Position.Top,
         sourcePosition: isHorizontal ? Position.Right : Position.Bottom,
-        position,
-      }
+        position: isHorizontal ? { x: currentPos, y: dagreNode.y } : { x: dagreNode.x, y: currentPos },
+      }))
     })
+
+    // Include note nodes with their manual positions
+    return [
+      ...processedNodes,
+      ...nodes
+        .filter((n) => n.type === GeneralNodeID.NOTE)
+        .map((n) => ({
+          ...n,
+          zIndex: 1,
+          position: n.position || { x: 0, y: 0 },
+        })),
+    ]
   }
 
   return { graph, layout, previousDirection }

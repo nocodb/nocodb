@@ -127,7 +127,12 @@ function handleTitleBlur() {
             @keydown.esc="handleTitleBlur"
           />
         </div>
-        <a v-if="!isTitleInEditMode && nodeMeta.documentation" :href="nodeMeta.documentation" target="_blank">Documentation</a>
+        <a v-if="!isTitleInEditMode && nodeMeta.documentation" :href="nodeMeta.documentation" target="_blank">
+          <div class="flex gap-1 items-center">
+            Docs
+            <GeneralIcon icon="ncExternalLink" />
+          </div>
+        </a>
       </div>
     </div>
 

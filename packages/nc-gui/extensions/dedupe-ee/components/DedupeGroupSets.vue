@@ -14,10 +14,6 @@ const getFieldValue = (group: Record<string, any>) => {
   return group[fieldTitle]
 }
 
-const handleGroupClick = async (group: Record<string, any>) => {
-  await navigateToReviewForGroup(group)
-}
-
 // Infinite scroll for loading more group sets
 useInfiniteScroll(
   scrollContainer,
@@ -56,8 +52,7 @@ useInfiniteScroll(
       <div
         v-for="(group, index) in groupSets"
         :key="index"
-        class="flex items-center justify-between px-3 py-2 border-1 border-nc-border-gray-medium rounded-lg hover:border-nc-border-gray-medium hover:shadow-sm transition-all cursor-pointer"
-        @click="handleGroupClick(group)"
+        class="flex items-center justify-between px-3 py-2 border-1 border-nc-border-gray-medium rounded-lg hover:border-nc-border-gray-medium hover:shadow-sm transition-all"
       >
         <div class="flex items-center gap-3 flex-1 justify-between">
           <NcTooltip v-if="selectedField" class="truncate leading-[20px]" show-on-truncate-only>
@@ -87,5 +82,3 @@ useInfiniteScroll(
     </div>
   </div>
 </template>
-
-<style lang="scss" scoped></style>

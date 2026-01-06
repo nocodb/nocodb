@@ -6,13 +6,28 @@ import DedupeGroupSets from './components/DedupeGroupSets.vue'
 import DedupeFooter from './components/DedupeFooter.vue'
 
 // Provide dedupe instance to child components
-const { loadSavedConfig, groupSetsPaginationData, scrollContainer, currentStep } = useProvideDedupe()
+const {
+  loadSavedConfig,
+  groupSetsPaginationData,
+  scrollContainer,
+  currentStep,
+  currentGroup,
+  currentGroupRecordsPaginationData,
+  mergeState,
+  findDuplicates,
+} = useProvideDedupe()
 
 const { fullscreen, toggleFullScreen } = useExtensionHelperOrThrow()
 
 // Load saved configuration on mount
 onMounted(async () => {
   await loadSavedConfig()
+})
+
+watch(currentStep, () => {
+  if (currentStep.value === 'review') {
+    findDuplicates()
+  }
 })
 </script>
 
@@ -27,7 +42,33 @@ onMounted(async () => {
     </div>
 
     <div v-else class="h-full">
-      <div class="h-[calc(100%_-_56px)] w-full flex">
+      <div v-if="currentStep === 'review'" class="p-4 border-b">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-lg font-semibold">Resolve duplicate records</h2>
+
+            <NcTooltip show-on-truncate-only :line-clamp="2" class="text-bodyDefaultSm text-nc-content-gray-muted line-clamp-2">
+              <template #title>
+                For each set of duplicates, pick a primary record. All other records in the set will be deleted when you merge.
+                Click a field to merge it into the primary record. If a record isn't a duplicate, exclude it from the set and it
+                won't be deleted.
+              </template>
+
+              For each set of duplicates, pick a primary record. All other records in the set will be deleted when you merge.
+              Click a field to merge it into the primary record. If a record isn't a duplicate, exclude it from the set and it
+              won't be deleted.
+            </NcTooltip>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="w-full flex"
+        :class="{
+          'h-[calc(100%_-_164px)]': currentStep === 'review',
+          'h-[calc(100%_-_56px)]': currentStep !== 'review',
+        }"
+      >
         <template v-if="currentStep === 'config'">
           <div class="h-full min-w-xs border-r border-nc-border-gray-medium nc-scrollbar-thin px-4">
             <SidebarConfig />
@@ -46,9 +87,35 @@ onMounted(async () => {
         </template>
         <template v-else>
           <!-- Review step - full width, no sidebar -->
-          <div class="flex-1 w-full h-full">
-            <ReviewStep />
+
+          <div class="flex-1 relative nc-scrollbar-thin h-full">
+            <div v-if="!currentGroup" class="flex-1 flex items-center justify-center">
+              <a-empty description="No duplicate set selected" :image="Empty.PRESENTED_IMAGE_SIMPLE">
+                <template #description>
+                  <span class="text-nc-content-gray-muted">Select a duplicate group to review</span>
+                </template>
+              </a-empty>
+            </div>
+
+            <div v-else-if="currentGroupRecordsPaginationData.isLoading" class="text-center py-8 px-4"></div>
+
+            <div
+              v-else-if="currentGroup.count && mergeState.excludedRecordIds.size === currentGroup.count"
+              class="text-center py-8 px-4 text-nc-content-gray-muted"
+            >
+              All records in this set have been excluded.
+            </div>
+
+            <ReviewStep v-else />
+
+            <general-overlay :model-value="currentGroupRecordsPaginationData.isLoading" inline transition class="!bg-opacity-15">
+              <div class="flex flex-col items-center justify-center h-full w-full !bg-nc-bg-default !bg-opacity-85 z-1000">
+                <a-spin size="large" />
+                <p class="text-nc-content-gray-muted mt-2">Loading records for this duplicate set...</p>
+              </div>
+            </general-overlay>
           </div>
+          <div class="h-full min-w-xs border-l border-nc-border-gray-medium nc-scrollbar-thin px-4">some config</div>
         </template>
       </div>
       <DedupeFooter />

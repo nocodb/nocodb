@@ -15,6 +15,8 @@ const {
   groupSets,
   groupSetsPaginationData,
   currentGroup,
+  currentGroupIndex,
+  findDuplicates,
 } = useDedupeOrThrow()
 
 const { toggleFullScreen } = useExtensionHelperOrThrow()
@@ -68,6 +70,12 @@ const handleMerge = async () => {
     currentStep.value = 'config'
   }
 }
+
+const handleReview = async () => {
+  currentGroupIndex.value = 0
+  currentStep.value = 'review'
+  await findDuplicates()
+}
 </script>
 
 <template>
@@ -79,7 +87,7 @@ const handleMerge = async () => {
         <NcButton size="small" type="secondary" @click="onCancel">
           {{ $t('general.cancel') }}
         </NcButton>
-        <NcButton size="small" :disabled="groupSetsPaginationData.isLoading || !groupSets.length" @click="currentStep = 'review'">
+        <NcButton size="small" :disabled="groupSetsPaginationData.isLoading || !groupSets.length" @click="handleReview">
           Review {{ groupSetsPaginationData.totalRows ?? '' }} set{{ groupSetsPaginationData.totalRows !== 1 ? 's' : '' }} of
           duplicates
         </NcButton>

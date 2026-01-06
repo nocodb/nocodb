@@ -4,6 +4,8 @@ import { extensionUserPrefsManager } from '#imports'
 import type { DedupeConfig, DuplicateSet, MergeState } from './context'
 import axios from 'axios'
 
+import type { Row } from '#imports'
+
 const getDefaultPaginationData = (pageSize = 50): PaginatedType => {
   return { page: 1, pageSize, totalRows: 0, isFirstPage: true, isLastPage: false }
 }
@@ -81,6 +83,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const mergeState = ref<MergeState>({ ...getDefaultMergeState() })
 
+  const contextMenuTarget = ref<{ row: Row; index: number } | null>(null)
+
   // Computed
   const tableList = computed(() => {
     return tables.value.map((table) => ({
@@ -109,12 +113,19 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     return meta.value?.columns?.find((col) => col.id === config.value.selectedFieldId)
   })
 
+  const selectedView = computed(() => {
+    if (!config.value.selectedViewId) return null
+    return views.value.find((view) => view.id === config.value.selectedViewId)
+  })
+
   const availableFields = computed(() => {
     if (!meta.value?.columns) return []
-    return meta.value.columns.filter((col) => {
-      if (isSystemColumn(col) || isVirtualCol(col)) return false
-      return ![UITypes.Attachment, UITypes.Links, UITypes.Rollup, UITypes.Lookup, UITypes.Formula].includes(col.uidt as UITypes)
-    })
+    return meta.value.columns
+      .filter((col) => {
+        if (isSystemColumn(col) || isVirtualCol(col)) return false
+        return ![UITypes.Attachment, UITypes.Links, UITypes.Rollup, UITypes.Lookup, UITypes.Formula].includes(col.uidt as UITypes)
+      })
+      .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
   })
 
   const currentDuplicateSet = computed(() => {
@@ -135,6 +146,28 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const hasPreviousSets = computed(() => {
     return currentSetIndex.value > 0
+  })
+
+  const computedWhere = computed(() => {
+    if (!selectedField.value?.id || !currentGroup.value) return ''
+
+    return buildWhereQueryForGroup({
+      [selectedField.value?.id!]: currentGroup.value?.[selectedField.value?.title!],
+    })
+  })
+
+  const { cachedRows, loadData, syncCount, totalRows, chunkStates, clearCache } = useInfiniteData({
+    meta,
+    viewMeta: selectedView,
+    where: computedWhere,
+    callbacks: {
+      getWhereFilter: async (_path, ignoreWhereFilter) => (ignoreWhereFilter ? '' : computedWhere.value),
+    },
+    disableSmartsheet: true,
+  })
+
+  watchEffect(() => {
+    console.log('loadData', computedWhere.value, cachedRows.value, totalRows.value)
   })
 
   // Methods
@@ -245,7 +278,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   }
 
   // Build where query for a duplicate group
-  const buildWhereQueryForGroup = (fieldValues: Record<string, any>): string => {
+  function buildWhereQueryForGroup(fieldValues: Record<string, any>): string {
     const conditions: string[] = []
     for (const [fieldId, value] of Object.entries(fieldValues)) {
       const field = meta.value?.columns?.find((col) => col.id === fieldId)
@@ -341,16 +374,26 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }
 
     try {
-      await getData({
-        tableId: config.value.selectedTableId!,
-        viewId: config.value.selectedViewId,
-        where: whereQuery,
-        eachPage: async (records, nextPage) => {
-          currentGroupRecords.value.push(...records)
-          nextPage()
-        },
-        done: async () => {},
+      await syncCount()
+
+      const records = await loadData()
+
+      records.forEach((record) => {
+        cachedRows.value.set(record.rowMeta.rowIndex!, record)
       })
+
+      console.log('records', cachedRows.value)
+
+      // await getData({
+      //   tableId: config.value.selectedTableId!,
+      //   viewId: config.value.selectedViewId,
+      //   where: whereQuery,
+      //   eachPage: async (records, nextPage) => {
+      //     currentGroupRecords.value.push(...records)
+      //     nextPage()
+      //   },
+      //   done: async () => {},
+      // })
     } catch (error: any) {
       message.error(`Error finding duplicates: ${error.message || 'Unknown error'}`)
     } finally {
@@ -662,10 +705,11 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     isLoadingMoreSets,
     hasMoreDuplicateSets,
     groupSetsPaginationData,
+    currentGroupIndex,
     currentGroup,
     hasNextGroup,
     currentGroupRecords,
-
+    currentGroupRecordsPaginationData,
     // Methods
     reloadViews,
     loadTableMeta,
@@ -690,6 +734,15 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     loadGroupSets,
     loadMoreGroupSets,
     navigateToReviewForGroup,
+
+    // record loading
+    loadData,
+    syncCount,
+    cachedRows,
+    totalRows,
+    chunkStates,
+    clearCache,
+    contextMenuTarget,
   }
 })
 

@@ -55,6 +55,8 @@ export class RecordMatchesConditionTriggerNode extends WorkflowNodeIntegration<R
       category: WorkflowNodeCategory.TRIGGER,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/trigger-nodes/record-matches-condition',
       keywords: ['trigger', 'filter', 'condition', 'matches', 'custom'],
     };
   }

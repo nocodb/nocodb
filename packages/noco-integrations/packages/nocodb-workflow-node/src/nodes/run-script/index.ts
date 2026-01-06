@@ -35,6 +35,8 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form: [],
       hidden: true,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/action-nodes/run-script',
       keywords: ['script', 'code', 'javascript', 'custom', 'execute'],
     };
   }

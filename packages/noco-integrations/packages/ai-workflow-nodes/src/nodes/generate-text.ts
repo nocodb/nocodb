@@ -30,6 +30,8 @@ export class GenerateTextAction extends WorkflowNodeIntegration<GenerateTextActi
       icon: 'openai',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/integration-nodes/ai#generate-text',
       form: [
         {
           type: FormBuilderInputType.WorkflowInput,

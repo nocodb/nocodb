@@ -65,6 +65,8 @@ export class FormSubmittedTriggerNode extends WorkflowNodeIntegration<FormSubmit
       category: WorkflowNodeCategory.TRIGGER,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/trigger-nodes/record-created-form',
       keywords: ['trigger', 'form', 'submit', 'submission', 'entry'],
     };
   }

@@ -212,6 +212,7 @@ function viewRowLocalStaticTests() {
             UITypes.LastModifiedBy,
             UITypes.LastModifiedTime,
             UITypes.Order,
+            UITypes.Meta,
           ].includes(c.uidt as UITypes),
       )
       .filter((_: any, index: number) => index < 2);
@@ -231,6 +232,7 @@ function viewRowLocalStaticTests() {
     }
 
     if (!isColumnsCorrectInResponse(response.body.list[0], requiredColumns)) {
+      console.log(response.body.list[0], requiredColumns);
       console.log(
         response.body.list[0],
         requiredColumns.map((c: ColumnType) => ({
@@ -264,6 +266,7 @@ function viewRowLocalStaticTests() {
             UITypes.LastModifiedBy,
             UITypes.LastModifiedTime,
             UITypes.Order,
+            UITypes.Meta,
           ].includes(c.uidt as UITypes),
       )
       .filter((_: any, index: number) => index < 3);

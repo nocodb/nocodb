@@ -17,6 +17,10 @@ export interface DuplicateSet {
   records?: Record<string, any>[] // loaded records (only when viewing this set)
 }
 
+export interface SelectedField {
+  sourceRecordId: string
+  value: any
+}
 export interface MergeState {
   primaryRecordId: string | null
   excludedRecordIds: Set<string>

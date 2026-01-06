@@ -4,8 +4,8 @@ import { extensionUserPrefsManager } from '#imports'
 import type { DedupeConfig, DuplicateSet, MergeState } from './context'
 import axios from 'axios'
 
-const getDefaultPaginationData = (): PaginatedType => {
-  return { page: 1, pageSize: 50, totalRows: 0, isFirstPage: true, isLastPage: false }
+const getDefaultPaginationData = (pageSize = 50): PaginatedType => {
+  return { page: 1, pageSize, totalRows: 0, isFirstPage: true, isLastPage: false }
 }
 
 const getDefaultMergeState = (): MergeState => {
@@ -33,6 +33,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   } = useExtensionHelperOrThrow()
 
   // State
+  const scrollContainer = ref<HTMLElement>()
+
   const config = ref<DedupeConfig>({
     selectedTableId: undefined,
     selectedViewId: undefined,
@@ -46,14 +48,36 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const meta = ref<TableType>()
   const duplicateSets = ref<DuplicateSet[]>([])
   const currentSetIndex = ref(0)
-  const isFindingDuplicates = ref(false)
   const isMerging = ref(false)
   const isLoadingMoreSets = ref(false)
   const hasMoreDuplicateSets = ref(false)
   const duplicateSetsPage = ref(1)
   const pageSize = 20
 
-  const scrollContainer = ref<HTMLElement>()
+  const groupSets = ref<Record<string, any>[]>([])
+
+  const hasMoreGroupSets = ref(false)
+
+  const groupSetsPaginationData = ref<PaginatedType & { isLoading: boolean }>({ ...getDefaultPaginationData(), isLoading: false })
+
+  const loadGroupSetsController = ref() // A ref to manage the CancelToken source for Axios requests.
+
+  const currentGroupIndex = ref(0)
+
+  const currentGroup = computed(() => {
+    return groupSets.value[currentGroupIndex.value] ?? null
+  })
+
+  const hasNextGroup = computed(() => {
+    return currentGroupIndex.value < groupSets.value.length - 1
+  })
+
+  const currentGroupRecords = ref<Record<string, any>[]>([])
+
+  const currentGroupRecordsPaginationData = ref<PaginatedType & { isLoading: boolean }>({
+    ...getDefaultPaginationData(20),
+    isLoading: false,
+  })
 
   const mergeState = ref<MergeState>({ ...getDefaultMergeState() })
 
@@ -305,14 +329,18 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   // Find duplicate groups (only metadata, not all records)
   const findDuplicates = async (reset = true) => {
-    console.log('findDuplicates', currentDuplicateSet.value?.fieldValues, config.value)
-    if (!config.value.selectedTableId || !config.value.selectedFieldId) {
+    if (!config.value.selectedTableId || !config.value.selectedFieldId || !selectedField.value) {
       message.error('Please select a table and field for duplicate detection')
       return
     }
 
+    const whereQuery = buildWhereQueryForGroup({
+      [selectedField.value.id!]: currentGroup.value?.[selectedField.value.title!],
+    })
+
     if (reset) {
-      isFindingDuplicates.value = true
+      currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: true }
+
       duplicateSets.value = []
       currentSetIndex.value = 0
       duplicateSetsPage.value = 1
@@ -322,72 +350,20 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }
 
     try {
-      // Use a Map to track groups as we process records in batches
-      const groupMap = new Map<string, { fieldValues: Record<string, any>; count: number }>()
-      let processedRecords = 0
-
       await getData({
         tableId: config.value.selectedTableId!,
         viewId: config.value.selectedViewId,
-        where: buildWhereQueryForGroup(currentDuplicateSet.value?.fieldValues || {}),
+        where: whereQuery,
         eachPage: async (records, nextPage) => {
-          // Process this batch of records
-          for (const record of records) {
-            processedRecords++
-            const fieldValues: Record<string, any> = {}
-            const keyParts: string[] = []
-
-            for (const fieldId of config.value.selectedFieldIds) {
-              const field = meta.value?.columns?.find((col) => col.id === fieldId)
-              if (!field) continue
-
-              const fieldKey = field.title || field.id
-              if (!fieldKey) continue
-              const value = record[fieldKey]
-              const normalizedValue = value != null ? String(value).trim() : ''
-              fieldValues[fieldId] = normalizedValue
-              keyParts.push(`${fieldId}:${normalizedValue}`)
-            }
-
-            const key = keyParts.join('||')
-            if (!groupMap.has(key)) {
-              groupMap.set(key, { fieldValues, count: 0 })
-            }
-            groupMap.get(key)!.count++
-          }
-
+          currentGroupRecords.value.push(...records)
           nextPage()
         },
-        done: async () => {
-          // Convert groups to duplicate sets (only groups with count > 1)
-          const newSets: DuplicateSet[] = []
-          for (const [key, { fieldValues, count }] of groupMap.entries()) {
-            if (count > 1) {
-              newSets.push({
-                key,
-                fieldValues,
-                recordCount: count,
-              })
-            }
-          }
-
-          if (reset) {
-            duplicateSets.value = newSets.slice(0, pageSize)
-            hasMoreDuplicateSets.value = newSets.length > pageSize
-          } else {
-            // Append more sets for infinite scroll
-            const startIndex = (duplicateSetsPage.value - 1) * pageSize
-            const endIndex = startIndex + pageSize
-            duplicateSets.value.push(...newSets.slice(startIndex, endIndex))
-            hasMoreDuplicateSets.value = endIndex < newSets.length
-          }
-        },
+        done: async () => {},
       })
     } catch (error: any) {
       message.error(`Error finding duplicates: ${error.message || 'Unknown error'}`)
     } finally {
-      isFindingDuplicates.value = false
-      isLoadingMoreSets.value = false
+      currentGroupRecordsPaginationData.value.isLoading = false
     }
   }
 
@@ -566,13 +542,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }
   }
 
-  const groupSets = ref<Record<string, any>[]>([])
-  const hasMoreGroupSets = ref(false)
-
-  const groupSetsPaginationData = ref<PaginatedType & { isLoading: boolean }>({ ...getDefaultPaginationData(), isLoading: false })
-
-  const loadGroupSetsController = ref() // A ref to manage the CancelToken source for Axios requests.
-
   async function loadGroupSets(reset = true) {
     if (!config.value.selectedTableId || !config.value.selectedViewId || !config.value.selectedFieldId) {
       return
@@ -614,6 +583,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         groupSets.value = res.list || []
       } else {
         groupSets.value.push(...(res.list || []))
+
+        groupSets.value = [...groupSets.value]
       }
     } catch (error: any) {
       if (!axios.isCancel(error)) {
@@ -695,7 +666,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     meta,
     duplicateSets,
     currentSetIndex,
-    isFindingDuplicates,
     isMerging,
     mergeState,
     currentStep,
@@ -714,6 +684,9 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     isLoadingMoreSets,
     hasMoreDuplicateSets,
     groupSetsPaginationData,
+    currentGroup,
+    hasNextGroup,
+    currentGroupRecords,
 
     // Methods
     reloadViews,

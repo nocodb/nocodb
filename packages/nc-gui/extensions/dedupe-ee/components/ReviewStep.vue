@@ -4,19 +4,11 @@ import DuplicateRecordCard from './DuplicateRecordCard.vue'
 import MergePreview from './MergePreview.vue'
 
 const {
-  currentStep,
   currentDuplicateSet,
   currentSetRecords,
   isLoadingCurrentSetRecords,
   availableFields,
   mergeState,
-  duplicateSets,
-  hasMoreDuplicateSets,
-  isLoadingMoreSets,
-  nextSet,
-  previousSet,
-  mergeAndDelete,
-  loadMoreDuplicateSets,
   getFieldValue,
   getSelectedFieldValue,
   setPrimaryRecord,
@@ -27,30 +19,6 @@ const {
   hasPreviousSets,
   findDuplicates,
 } = useDedupeOrThrow()
-
-const skipSet = async () => {
-  await nextSet()
-  if (duplicateSets.value.length === 0 && !hasMoreDuplicateSets.value) {
-    currentStep.value = 'config'
-  }
-}
-
-const handleBackToConfig = () => {
-  currentStep.value = 'config'
-}
-
-const scrollContainer = ref<HTMLElement>()
-
-// Infinite scroll for loading more duplicate sets
-useInfiniteScroll(
-  scrollContainer,
-  async () => {
-    if (hasMoreDuplicateSets.value && !isLoadingMoreSets.value) {
-      await loadMoreDuplicateSets()
-    }
-  },
-  { distance: 200 },
-)
 
 onMounted(() => {
   findDuplicates()
@@ -69,10 +37,6 @@ onMounted(() => {
             deleted.
           </p>
         </div>
-        <div class="flex gap-2">
-          <NcButton size="small" :disabled="!hasPreviousSets" @click="previousSet"> Previous </NcButton>
-          <NcButton size="small" :disabled="!hasMoreSets" @click="nextSet"> Next </NcButton>
-        </div>
       </div>
     </div>
 
@@ -84,7 +48,7 @@ onMounted(() => {
       </a-empty>
     </div>
 
-    <div v-else ref="scrollContainer" class="flex-1 overflow-y-auto p-4 nc-scrollbar-thin">
+    <div v-else class="flex-1 overflow-y-auto p-4 nc-scrollbar-thin">
       <div v-if="isLoadingCurrentSetRecords" class="text-center py-8">
         <a-spin />
         <p class="text-gray-500 mt-2">Loading records for this duplicate set...</p>

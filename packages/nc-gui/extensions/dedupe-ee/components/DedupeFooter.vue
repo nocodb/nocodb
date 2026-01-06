@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { computed } from 'vue'
 import { useDedupeOrThrow } from '../lib/useDedupe'
 
 const {
@@ -16,6 +15,7 @@ const {
   currentSetIndex,
   groupSets,
   groupSetsPaginationData,
+  currentGroup,
 } = useDedupeOrThrow()
 
 const { toggleFullScreen } = useExtensionHelperOrThrow()
@@ -63,6 +63,10 @@ const handleMerge = async () => {
     currentStep.value = 'config'
   }
 }
+
+watchEffect(() => {
+  console.log('group set', groupSets.value)
+})
 </script>
 
 <template>
@@ -86,7 +90,7 @@ const handleMerge = async () => {
       <!-- Left side: Review step -->
       <div class="flex items-center gap-3">
         <span class="text-sm text-nc-content-gray-muted">
-          {{ totalDuplicateRecords }} duplicated record{{ totalDuplicateRecords !== 1 ? 's' : '' }}
+          {{ currentGroup?.count || 0 }} duplicated record{{ currentGroup?.count !== 1 ? 's' : '' }}
         </span>
         <NcButton size="small" type="secondary" :disabled="!hasSelectedFieldsToMerge" @click="handleReset"> Reset </NcButton>
       </div>

@@ -1113,7 +1113,60 @@ function viewRowLocalTests() {
   const testFindOneSortedDataWithRequiredColumns = async (
     _viewType: ViewTypes,
   ) => {
-    // TODO: Implement test logic
+    const table =
+      _viewType === ViewTypes.CALENDAR ? rentalTable : customerTable;
+    const view = await createView(context, {
+      title: 'View',
+      table: table,
+      type: _viewType,
+    });
+
+    const firstNameColumn = customerColumns.find(
+      (col: ColumnType) => col.title === 'FirstName',
+    );
+    const visibleColumns = [firstNameColumn];
+
+    let response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}/find-one`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: '-FirstName',
+      })
+      .expect(200);
+
+    if (!isColumnsCorrectInResponse(response.body, visibleColumns)) {
+      console.log(response.body.list);
+      throw new Error('Wrong columns');
+    }
+
+    if (response.body[firstNameColumn.title] !== 'SUSAN') {
+      console.log(response.body);
+      throw new Error('Wrong sort');
+    }
+
+    response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}/find-one`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: 'FirstName',
+      })
+      .expect(200);
+
+    if (!isColumnsCorrectInResponse(response.body, visibleColumns)) {
+      console.log(response.body.list);
+      throw new Error('Wrong columns');
+    }
+
+    if (response.body[firstNameColumn.title] !== 'AARON') {
+      console.log(response.body);
+      throw new Error('Wrong sort');
+    }
   };
 
   it('Find one sorted data list with required columns gallery', async function () {

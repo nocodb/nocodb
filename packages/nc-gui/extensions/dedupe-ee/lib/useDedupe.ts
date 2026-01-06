@@ -13,6 +13,8 @@ const getDefaultPaginationData = (pageSize = 50): PaginatedType => {
 const getDefaultMergeState = (): MergeState => {
   return {
     primaryRecordId: null,
+    primaryRecordIndex: null,
+    excludedRecordIndexes: new Set(),
     excludedRecordIds: new Set(),
     selectedFields: {},
   }
@@ -407,31 +409,40 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }
   }
 
-  const setPrimaryRecord = (recordId: string) => {
-    mergeState.value.primaryRecordId = recordId
+  const setPrimaryRecord = (recordIndex: number) => {
+    mergeState.value.primaryRecordIndex = recordIndex
     mergeState.value.selectedFields = {}
+
+    // mergeState.value = { ...mergeState.value }
   }
 
-  const excludeRecord = (recordId: string) => {
-    mergeState.value.excludedRecordIds.add(recordId)
+  const excludeRecord = (recordIndex: number) => {
+    mergeState.value.excludedRecordIndexes.add(recordIndex)
+
     Object.keys(mergeState.value.selectedFields).forEach((fieldId) => {
-      if (mergeState.value.selectedFields[fieldId] === recordId) {
+      if (mergeState.value.selectedFields[fieldId] === recordIndex) {
         delete mergeState.value.selectedFields[fieldId]
       }
     })
+
+    // mergeState.value = { ...mergeState.value }
   }
 
-  const includeRecord = (recordId: string) => {
-    mergeState.value.excludedRecordIds.delete(recordId)
+  const includeRecord = (recordIndex: number) => {
+    mergeState.value.excludedRecordIndexes.delete(recordIndex)
+
+    // mergeState.value = { ...mergeState.value }
   }
 
-  const selectFieldValue = (fieldId: string, recordId: string) => {
+  const selectFieldValue = (fieldId: string, recordIndex: number) => {
     if (!fieldId) return
-    mergeState.value.selectedFields[fieldId] = recordId
+    mergeState.value.selectedFields[fieldId] = recordIndex
+
+    // mergeState.value = { ...mergeState.value }
   }
 
-  const getFieldValue = (fieldId: string, recordId: string) => {
-    const record = currentSetRecords.value.find((r) => r.Id === recordId)
+  const getFieldValue = (fieldId: string, recordIndex: number) => {
+    const record = cachedRows.value.get(recordIndex)
     if (!record) return null
 
     const field = meta.value?.columns?.find((col) => col.id === fieldId)
@@ -440,14 +451,14 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     const fieldKey = field.title || field.id
     if (!fieldKey) return null
 
-    return record[fieldKey]
+    return record.row[fieldKey]
   }
 
   const getSelectedFieldValue = (fieldId: string) => {
-    const selectedRecordId = mergeState.value.selectedFields[fieldId]
-    if (!selectedRecordId) return null
+    const selectedRecordIndex = mergeState.value.selectedFields[fieldId]
+    if (!selectedRecordIndex) return null
 
-    return getFieldValue(fieldId, selectedRecordId)
+    return getFieldValue(fieldId, selectedRecordIndex)
   }
 
   const nextSet = async () => {
@@ -471,11 +482,12 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   }
 
   const mergeAndDelete = async () => {
-    if (!mergeState.value.primaryRecordId || !currentDuplicateSet.value) {
+    if (!ncIsNumber(mergeState.value.primaryRecordIndex) || !currentDuplicateSet.value) {
       message.error('Please select a primary record')
       return
     }
 
+    // TODO: update according to record index
     const recordsToDelete = currentSetRecords.value.filter((r) => r.Id !== mergeState.value.primaryRecordId).map((r) => r.Id)
 
     if (recordsToDelete.length === 0) {

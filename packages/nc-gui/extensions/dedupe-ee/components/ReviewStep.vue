@@ -31,8 +31,10 @@ const visibleRows = computed<Row[]>(() => {
   return Array.from({ length: totalRows.value }, (_, i) => {
     const rowIndex = i
     return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
-  })
+  }).filter((row) => !mergeState.value.excludedRecordIndexes.has(row.rowMeta.rowIndex!))
 })
+
+const contextMenu = ref(false)
 </script>
 
 <template>
@@ -50,14 +52,41 @@ const visibleRows = computed<Row[]>(() => {
 
       <div
         v-else-if="currentGroup.count && mergeState.excludedRecordIds.size === currentGroup.count"
-        class="text-center py-8 text-gray-500"
+        class="text-center py-8 text-nc-content-gray-muted"
       >
         All records in this set have been excluded.
       </div>
 
-      <div class="nc-review-records-container nc-scollbar-thin">
-        <RecordCard v-for="record of visibleRows" :key="`record-${record.rowMeta.rowIndex}`" :record="record" />
-      </div>
+      <NcDropdown
+        v-model:visible="contextMenu"
+        :disabled="contextMenuTarget === null"
+        :trigger="['contextmenu']"
+        overlay-class-name="nc-dropdown-dedupe-context-menu"
+      >
+        <template #overlay>
+          <NcMenu variant="small" @click="contextMenu = false">
+            <NcMenuItem
+              @click="setPrimaryRecord(contextMenuTarget!.index)"
+              :disabled="mergeState.primaryRecordIndex === contextMenuTarget!.index"
+            >
+              <GeneralIcon icon="check" />
+
+              Use as primary record
+            </NcMenuItem>
+            <NcMenuItem
+              @click="excludeRecord(contextMenuTarget!.index)"
+              :disabled="mergeState.primaryRecordIndex === contextMenuTarget!.index"
+            >
+              <GeneralIcon icon="close" />
+
+              Exclude record from set
+            </NcMenuItem>
+          </NcMenu>
+        </template>
+        <div class="nc-review-records-container nc-scollbar-thin">
+          <RecordCard v-for="record of visibleRows" :key="`record-${record.rowMeta.rowIndex}`" :record="record" />
+        </div>
+      </NcDropdown>
     </div>
   </div>
 </template>

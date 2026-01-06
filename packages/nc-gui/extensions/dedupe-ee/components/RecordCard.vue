@@ -2,6 +2,7 @@
 import type { Row as RowType } from '#imports'
 import { type ColumnType, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { useDedupeOrThrow } from '../lib/useDedupe'
+import type { NumberDecimal } from 'ant-design-vue/lib/input-number/src/utils/MiniDecimal'
 
 interface Props {
   record: RowType
@@ -11,7 +12,17 @@ const props = withDefaults(defineProps<Props>(), {})
 
 const { record } = toRefs(props)
 
-const { currentGroupRecords, currentGroupIndex, currentGroup, selectedField, contextMenuTarget, meta } = useDedupeOrThrow()
+const {
+  currentGroupRecords,
+  currentGroupIndex,
+  currentGroup,
+  selectedField,
+  contextMenuTarget,
+  meta,
+  mergeState,
+  setPrimaryRecord,
+  selectFieldValue,
+} = useDedupeOrThrow()
 
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
@@ -38,6 +49,47 @@ const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }
 const resetPointerEvent = (record: RowType, col: ColumnType) => {
   return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col))
 }
+
+const handleClick = () => {
+  if (!ncIsNumber(mergeState.value.primaryRecordIndex)) {
+    setPrimaryRecord(record.value.rowMeta.rowIndex!)
+  }
+}
+
+const handleClickField = (col: ColumnType) => {
+  if (!ncIsNumber(mergeState.value.primaryRecordIndex)) {
+    setPrimaryRecord(record.value.rowMeta.rowIndex!)
+
+    return
+  }
+
+  if (
+    mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex! &&
+    !ncIsUndefined(mergeState.value.selectedFields[col.id!])
+  ) {
+    delete mergeState.value.selectedFields[col.id!]
+
+    // mergeState.value = { ...mergeState.value }
+
+    return
+  }
+
+  console.log('select field', col.id!, record.value.rowMeta.rowIndex!)
+
+  selectFieldValue(col.id!, record.value.rowMeta.rowIndex!)
+}
+
+const isFieldSelected = (col: ColumnType) => {
+  if (ncIsUndefined(mergeState.value.selectedFields[col.id!])) {
+    return mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex!
+  }
+
+  return mergeState.value.selectedFields[col.id!] === record.value.rowMeta.rowIndex!
+}
+
+watchEffect(() => {
+  console.log('merge ', mergeState.value)
+})
 </script>
 
 <template>
@@ -50,31 +102,47 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
         ...extractRowBackgroundColorStyle(record).rowBgColor,
         ...extractRowBackgroundColorStyle(record).rowBorderColor,
       }"
+      @click="handleClick"
       @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
     >
       <template #cover>
-        <div v-if="selectedField" class="sticky top-0 z-10 p-2 border-b border-b-nc-border-gray-medium">
-          <NcTooltip class="truncate leading-[20px]" show-on-truncate-only>
-            <template #title>
+        <div v-if="selectedField" class="sticky top-0 z-10 px-2 py-3 border-b border-b-nc-border-gray-medium">
+          <div class="flex items-center gap-3">
+            <div
+              class="border-1 rounded-md inline-flex items-center justify-center text-bodySm px-1 min-w-5 h-5 text-nc-content-gray-muted shadow-sm"
+            >
+              {{ record.rowMeta.rowIndex! + 1 }}
+            </div>
+            <NcTooltip class="truncate leading-[20px]" show-on-truncate-only>
+              <template #title>
+                <SmartsheetPlainCell
+                  :model-value="currentGroup?.[selectedField.title!] ?? null"
+                  :column="selectedField"
+                  class="font-semibold leading-[20px]"
+                />
+              </template>
+
               <SmartsheetPlainCell
                 :model-value="currentGroup?.[selectedField.title!] ?? null"
                 :column="selectedField"
-                class="font-semibold leading-[20px]"
+                class="font-semibold text-nc-content-brand leading-[20px]"
               />
-            </template>
-
-            <SmartsheetPlainCell
-              :model-value="currentGroup?.[selectedField.title!] ?? null"
-              :column="selectedField"
-              class="font-semibold text-nc-content-brand leading-[20px]"
-            />
-          </NcTooltip>
+            </NcTooltip>
+          </div>
         </div>
       </template>
 
       <div class="flex-1 flex content-stretch gap-3 w-full">
         <div class="flex-1 flex flex-col">
-          <div v-for="col in fields" :key="`record-${record.rowMeta.rowIndex}-${col.id}`" class="nc-card-col-wrapper p-2">
+          <div
+            v-for="col in fields"
+            :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
+            class="nc-card-col-wrapper p-2 !border-none"
+            :class="{
+              'nc-field-selected ant-alert-success': isFieldSelected(col),
+            }"
+            @click="handleClickField(col)"
+          >
             <NcTooltip
               hide-on-click
               :disabled="!isVirtualCol(col)"
@@ -163,6 +231,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 
 .nc-card-col-wrapper {
   @apply !text-small !leading-[18px];
+
+  &:not(.nc-field-selected) {
+    @apply hover:bg-nc-bg-gray-extralight;
+  }
 
   .nc-cell,
   .nc-virtual-cell {

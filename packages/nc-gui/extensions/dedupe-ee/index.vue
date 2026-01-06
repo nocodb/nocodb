@@ -115,7 +115,8 @@ watch(currentStep, () => {
               </div>
             </general-overlay>
           </div>
-          <div class="h-full min-w-xs border-l border-nc-border-gray-medium nc-scrollbar-thin px-4">some config</div>
+          <!-- <div
+            class="h-full min-w-xs border-l border-nc-border-gray-medium nc-scrollbar-thin px-4">some config</div> -->
         </template>
       </div>
       <DedupeFooter />

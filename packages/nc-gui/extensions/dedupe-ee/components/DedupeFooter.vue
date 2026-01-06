@@ -34,11 +34,11 @@ const onCancel = () => {
 // Computed for review step footer
 
 const hasPrimaryRecord = computed(() => {
-  return mergeState.value.primaryRecordId !== null
+  return ncIsNumber(mergeState.value.primaryRecordIndex)
 })
 
 const canMerge = computed(() => {
-  return hasPrimaryRecord.value && currentSetRecords.value.length > 1 && !isMerging.value
+  return hasPrimaryRecord.value
 })
 
 const handleReset = async () => {

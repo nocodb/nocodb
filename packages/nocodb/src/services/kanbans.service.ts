@@ -55,6 +55,12 @@ export class KanbansService {
       param.kanban,
     );
 
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const model = await Model.get(context, param.tableId, ncMeta);
 
     let fk_cover_image_col_id =

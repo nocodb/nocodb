@@ -23,7 +23,7 @@ const hasPermissionForMigrateToV3 = computed(
 )
 
 const hasPermissionForSandbox = computed(
-  () => isEeUI && base.value?.version === BaseVersion.V3 && isUIAllowed('baseMiscSettings'),
+  () => isEeUI && base.value?.version === BaseVersion.V3 && isUIAllowed('baseMiscSettings') && !base.value?.schema_locked,
 )
 
 const router = useRouter()

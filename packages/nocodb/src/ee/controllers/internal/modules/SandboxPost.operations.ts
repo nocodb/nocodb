@@ -76,6 +76,13 @@ export class SandboxPostOperations
     body: any,
     req: NcRequest,
   ) {
+    // Check if base is schema locked (installed sandbox)
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Sandbox management operations are not allowed on installed sandbox bases',
+      );
+    }
+
     // Validate base exists and belongs to workspace
     const base = await Base.get(context, baseId);
     if (!base) {
@@ -117,6 +124,13 @@ export class SandboxPostOperations
       NcError.get(context).badRequest('sandboxId is required');
     }
 
+    // Check if base is schema locked (installed sandbox)
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Sandbox management operations are not allowed on installed sandbox bases',
+      );
+    }
+
     const sandbox = await Sandbox.get(context, sandboxId);
 
     if (!sandbox) {
@@ -145,6 +159,13 @@ export class SandboxPostOperations
 
     if (!version) {
       NcError.get(context).badRequest('version is required');
+    }
+
+    // Check if base is schema locked (installed sandbox)
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Sandbox management operations are not allowed on installed sandbox bases',
+      );
     }
 
     const sandbox = await Sandbox.get(context, sandboxId);
@@ -476,6 +497,13 @@ export class SandboxPostOperations
 
     if (!sandboxId) {
       NcError.get(context).badRequest('sandboxId is required');
+    }
+
+    // Check if base is schema locked (installed sandbox)
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Sandbox management operations are not allowed on installed sandbox bases',
+      );
     }
 
     const sandbox = await Sandbox.get(context, sandboxId);

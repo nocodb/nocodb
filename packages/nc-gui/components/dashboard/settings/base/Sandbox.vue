@@ -36,6 +36,26 @@ const publishForm = reactive({
 
 const isPublished = computed(() => sandbox.value?.status === 'published')
 const isInitialPublish = computed(() => !isPublished.value)
+const isInstalledSandbox = computed(() => base.value?.schema_locked === true)
+
+const loadVersions = async () => {
+  if (!sandbox.value?.id || !base.value?.fk_workspace_id) return
+
+  isLoadingVersions.value = true
+  try {
+    const response = await $api.internal.getOperation(base.value.fk_workspace_id, baseId.value, {
+      operation: 'sandboxVersionsList',
+      sandboxId: sandbox.value.id,
+    } as any)
+    if (response?.list) {
+      versions.value = response.list
+    }
+  } catch (e: any) {
+    console.error('Failed to load versions:', e)
+  } finally {
+    isLoadingVersions.value = false
+  }
+}
 
 const loadSandbox = async () => {
   if (!baseId.value || !base.value?.fk_workspace_id) return
@@ -55,25 +75,6 @@ const loadSandbox = async () => {
   } catch (e) {
     // Sandbox doesn't exist yet
     sandbox.value = null
-  }
-}
-
-const loadVersions = async () => {
-  if (!sandbox.value?.id || !base.value?.fk_workspace_id) return
-
-  isLoadingVersions.value = true
-  try {
-    const response = await $api.internal.getOperation(base.value.fk_workspace_id, baseId.value, {
-      operation: 'sandboxVersionsList',
-      sandboxId: sandbox.value.id,
-    } as any)
-    if (response?.list) {
-      versions.value = response.list
-    }
-  } catch (e: any) {
-    console.error('Failed to load versions:', e)
-  } finally {
-    isLoadingVersions.value = false
   }
 }
 
@@ -250,6 +251,26 @@ onMounted(async () => {
 
 <template>
   <div data-testid="nc-settings-subtab-sandbox" class="item-card flex flex-col w-full">
+    <!-- Installed Sandbox Warning -->
+    <div v-if="isInstalledSandbox" class="mb-6">
+      <div class="bg-nc-bg-orange-light border border-nc-border-orange rounded-lg p-4">
+        <div class="flex items-start gap-3">
+          <div class="flex-shrink-0">
+            <div class="w-10 h-10 rounded-full bg-nc-bg-orange-dark flex items-center justify-center">
+              <GeneralIcon icon="lock" class="text-nc-content-orange-dark w-5 h-5" />
+            </div>
+          </div>
+          <div class="flex-1">
+            <div class="text-nc-content-gray-emphasis font-semibold mb-1">{{ $t('labels.installedSandboxReadOnly') }}</div>
+            <div class="text-nc-content-gray text-sm">
+              This is an installed application from the App Store. You cannot publish or modify the sandbox configuration. Only
+              the original base owner can manage publishing and updates.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Header -->
     <div class="flex items-start justify-between mb-6">
       <div>
@@ -291,7 +312,7 @@ onMounted(async () => {
     </div>
 
     <!-- No Sandbox Created Yet -->
-    <div v-else-if="!sandbox" class="mt-2">
+    <div v-else-if="!sandbox && !isInstalledSandbox" class="mt-2">
       <div class="bg-nc-bg-blue-light border border-nc-border-blue rounded-lg p-6">
         <div class="text-nc-content-gray-emphasis font-semibold text-base mb-4">Publish to the Agentic App Store</div>
         <div class="grid gap-3 mb-6">
@@ -330,7 +351,13 @@ onMounted(async () => {
           </div>
         </div>
 
-        <NcButton size="medium" type="primary" data-testid="nc-create-sandbox-button" @click="openCreateModal">
+        <NcButton
+          size="medium"
+          type="primary"
+          data-testid="nc-create-sandbox-button"
+          :disabled="isInstalledSandbox"
+          @click="openCreateModal"
+        >
           <template #icon>
             <GeneralIcon icon="plus" />
           </template>
@@ -413,6 +440,7 @@ onMounted(async () => {
               :rows="4"
               size="large"
               class="rounded-lg"
+              :disabled="isInstalledSandbox"
             />
           </div>
 
@@ -426,6 +454,7 @@ onMounted(async () => {
                 placeholder="e.g., CRM, Inventory, HR"
                 size="large"
                 class="rounded-lg"
+                :disabled="isInstalledSandbox"
               />
             </div>
 
@@ -466,11 +495,12 @@ onMounted(async () => {
               placeholder="Add tags to help users discover this template"
               size="large"
               class="w-full rounded-lg"
+              :disabled="isInstalledSandbox"
             />
           </div>
 
           <div class="flex justify-end pt-2">
-            <NcButton size="medium" type="primary" :loading="isLoading" @click="updateSandbox">
+            <NcButton size="medium" type="primary" :loading="isLoading" :disabled="isInstalledSandbox" @click="updateSandbox">
               <template #icon>
                 <GeneralIcon icon="save" />
               </template>
@@ -516,6 +546,7 @@ onMounted(async () => {
               <NcButton
                 size="medium"
                 :type="isPublished ? 'primary' : 'primary'"
+                :disabled="isInstalledSandbox"
                 data-testid="nc-publish-sandbox-button"
                 @click="openPublishModal"
               >
@@ -583,9 +614,6 @@ onMounted(async () => {
     <GeneralModal v-model:visible="isCreateModalVisible" size="medium" centered>
       <div class="flex flex-col p-6">
         <div class="flex items-center gap-3 pb-4 mb-4 border-b border-nc-border-gray-medium">
-          <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
-            <GeneralIcon icon="box" class="w-5 h-5 text-white" />
-          </div>
           <div>
             <div class="font-semibold text-lg text-nc-content-gray-emphasis">{{ $t('labels.createSandbox') }}</div>
             <div class="text-xs text-nc-content-gray-subtle2">Configure your application for the App Store</div>

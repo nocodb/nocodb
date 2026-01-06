@@ -11,8 +11,6 @@ import Sandbox from '~/ee/models/Sandbox';
 import SandboxVersion from '~/ee/models/SandboxVersion';
 import { Base } from '~/models';
 import { diffMeta, serializeMeta } from '~/helpers/baseMetaHelpers';
-import Noco from '~/Noco';
-import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class SandboxGetOperations

@@ -8,6 +8,10 @@ import { dataApiV3Test } from './rest/tests/dataApiV3/index.test';
 import { processorTests } from './processor/index.test';
 import { errorTests } from './error/index.test';
 import { rollupTests } from './rollup/index.test';
+import { linksTests } from './links/index.test';
+import { dbQueryClientTests } from './dbQueryClient/index.test';
+import { helperTests } from './helpersTest/index.test';
+import { rateLimitUtilTests } from './rate-limit-utils/index.test';
 
 process.env.NODE_ENV = 'test';
 process.env.TEST = 'true';
@@ -28,6 +32,7 @@ dotenv.config({
   errorTests();
   restTests();
   processorTests();
+  rateLimitUtilTests();
   await dataApiV3Test();
 
   run();

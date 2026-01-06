@@ -153,7 +153,7 @@ export class NcErrorBase {
         )} second(s)`;
       }
     }
-    throw this.errorCodex.generateError(NcErrorType.ERR_DUPLICATE_RECORD, {
+    throw this.errorCodex.generateError(NcErrorType.ERR_RATE_LIMIT_REACHED, {
       params: message,
       ...args,
     });

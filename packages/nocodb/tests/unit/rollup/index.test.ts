@@ -7,7 +7,6 @@ function _rollupTests() {
   rollupErrorTest();
 }
 
-// FIXME: run on set 2
-export function rollupTests() {
+export const rollupTests = runOnSet(2, () => {
   describe('Rollup', _rollupTests);
 }

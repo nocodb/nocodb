@@ -8,6 +8,14 @@ const getDefaultPaginationData = (): PaginatedType => {
   return { page: 1, pageSize: 50, totalRows: 0, isFirstPage: true, isLastPage: false }
 }
 
+const getDefaultMergeState = (): MergeState => {
+  return {
+    primaryRecordId: null,
+    excludedRecordIds: new Set(),
+    selectedFields: {},
+  }
+}
+
 const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const { $api } = useNuxtApp()
   const { user } = useGlobal()
@@ -47,11 +55,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const scrollContainer = ref<HTMLElement>()
 
-  const mergeState = ref<MergeState>({
-    primaryRecordId: null,
-    excludedRecordIds: new Set(),
-    selectedFields: {},
-  })
+  const mergeState = ref<MergeState>({ ...getDefaultMergeState() })
 
   // Computed
   const tableList = computed(() => {
@@ -92,10 +96,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const currentDuplicateSet = computed(() => {
     if (currentSetIndex.value >= duplicateSets.value.length) return null
     return duplicateSets.value[currentSetIndex.value]
-  })
-
-  watchEffect(() => {
-    console.log('currentDuplicateSet', currentDuplicateSet.value)
   })
 
   const currentSetRecords = computed(() => {

@@ -27,7 +27,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject, loadProjects } = basesStore
 
-const { openTable } = useTablesStore()
+const { openTable, loadProjectTables } = useTablesStore()
 
 const baseStore = useBase()
 
@@ -183,6 +183,12 @@ const _duplicate = async () => {
 
               openTable(newTable!)
             } else {
+              // Load target base tables if target workspace is the same as active workspace
+              if (targetWorkspace.value?.id === activeWorkspace?.id) {
+                await loadProjectTables(targetBase.value.id!, true)
+                refreshCommandPalette()
+              }
+
               // TODO: navigating to specified base?
               message.success(t(`msg.success.tableDuplicatedInOtherBase`))
             }

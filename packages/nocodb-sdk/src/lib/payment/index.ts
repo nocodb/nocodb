@@ -63,6 +63,10 @@ export enum PlanFeatureTypes {
   FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
   FEATURE_COPY_VIEW_SETTING_FROM_OTHER = 'feature_copy_view_setting_other',
+  FEATURE_CARD_FIELD_HEADER_VISIBILITY = 'feature_card_field_header_visibility',
+  FEATURE_SYNC = 'feature_sync',
+  FEATURE_UNIQUE = 'feature_unique',
+  FEATURE_UNRATED_INVITE = 'feature_unrated_invite',
 }
 
 // todo: separate as a new enum
@@ -261,6 +265,12 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to target different workspace when duplicate table.',
   [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]:
     'to copy view configuration from another view.',
+  [PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY]:
+    'to hide field headers in Gallery and Kanban views.',
+  [PlanFeatureTypes.FEATURE_SYNC]: 'to use sync feature.',
+  [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
+  [PlanFeatureTypes.FEATURE_UNRATED_INVITE]:
+    'to send invites without rate limited.',
 };
 
 export const getUpgradeMessage = (

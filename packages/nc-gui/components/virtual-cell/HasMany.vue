@@ -264,6 +264,7 @@ onUnmounted(() => {
         v-model="childListDlg"
         :cell-value="localCellValue"
         :column="hasManyColumn"
+        :items="cells.length"
         @attach-record="onAttachRecord"
         @escape="isOpen = false"
       />

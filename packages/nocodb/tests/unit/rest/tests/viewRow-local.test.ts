@@ -1108,6 +1108,172 @@ function viewRowLocalTests() {
     await testDeleteViewRowWithForeignKeyConstraint(ViewTypes.CALENDAR);
   });
   //#endregion Delete row view WithForeignKeyConstraint
+
+  //#region Find one tests
+  const testFindOneSortedDataWithRequiredColumns = async (
+    _viewType: ViewTypes,
+  ) => {
+    // TODO: Implement test logic
+  };
+
+  it('Find one sorted data list with required columns gallery', async function () {
+    await testFindOneSortedDataWithRequiredColumns(ViewTypes.GALLERY);
+  });
+
+  it('Find one sorted data list with required columns form', async function () {
+    await testFindOneSortedDataWithRequiredColumns(ViewTypes.FORM);
+  });
+
+  it('Find one sorted data list with required columns grid', async function () {
+    await testFindOneSortedDataWithRequiredColumns(ViewTypes.GRID);
+  });
+
+  const testFindOneSortedFilteredNestedFieldsDataWithRollup = async (
+    _viewType: ViewTypes,
+  ) => {
+    // TODO: Implement test logic
+  };
+
+  it('Find one view sorted filtered view with nested fields data list with a rollup column in customer table GRID', async function () {
+    await testFindOneSortedFilteredNestedFieldsDataWithRollup(ViewTypes.GRID);
+  });
+  //#endregion Find one tests
+
+  //#region Group by tests
+  const testGroupDescSorted = async (_viewType: ViewTypes) => {
+    // TODO: Implement test logic
+  };
+
+  it('Groupby desc sorted and with rollup view data list with required columns GRID', async function () {
+    await testGroupDescSorted(ViewTypes.GRID);
+  });
+
+  it('Groupby desc sorted and with rollup view data list with required columns FORM', async function () {
+    await testGroupDescSorted(ViewTypes.FORM);
+  });
+
+  it('Groupby desc sorted and with rollup view data list with required columns GALLERY', async function () {
+    await testGroupDescSorted(ViewTypes.GALLERY);
+  });
+
+  it('Groupby desc sorted and with rollup view data list with required columns CALENDAR', async function () {
+    await testGroupDescSorted(ViewTypes.CALENDAR);
+  });
+
+  const testGroupWithOffset = async (_viewType: ViewTypes) => {
+    // TODO: Implement test logic
+  };
+
+  it('Groupby desc sorted and with rollup view data list with required columns GALLERY', async function () {
+    await testGroupWithOffset(ViewTypes.GALLERY);
+  });
+
+  it('Groupby desc sorted and with rollup view data list with required columns FORM', async function () {
+    await testGroupWithOffset(ViewTypes.FORM);
+  });
+
+  it('Groupby desc sorted and with rollup view data list with required columns GRID', async function () {
+    await testGroupWithOffset(ViewTypes.GRID);
+  });
+
+  it('Groupby desc sorted and with rollup view data list with required columns CALENDAR', async function () {
+    await testGroupWithOffset(ViewTypes.CALENDAR);
+  });
+  //#endregion Group by tests
+
+  //#region Count tests
+  const testCount = async (_viewType: ViewTypes) => {
+    // TODO: Implement test logic
+  };
+
+  it('Count view data list with required columns', async function () {
+    await testCount(ViewTypes.GRID);
+    await testCount(ViewTypes.FORM);
+    await testCount(ViewTypes.GALLERY);
+    await testCount(ViewTypes.CALENDAR);
+  });
+  //#endregion Count tests
+
+  //#region Read/Exist tests
+  const testReadViewRow = async (_viewType: ViewTypes) => {
+    // TODO: Implement test logic
+  };
+
+  it('Read view row', async function () {
+    await testReadViewRow(ViewTypes.GALLERY);
+    await testReadViewRow(ViewTypes.FORM);
+    await testReadViewRow(ViewTypes.GRID);
+    await testReadViewRow(ViewTypes.CALENDAR);
+  });
+
+  const testViewRowExists = async (_viewType: ViewTypes) => {
+    // TODO: Implement test logic
+  };
+
+  it('Exist view row : should return true when row exists in view', async function () {
+    await testViewRowExists(ViewTypes.GALLERY);
+    await testViewRowExists(ViewTypes.GRID);
+    await testViewRowExists(ViewTypes.FORM);
+    await testViewRowExists(ViewTypes.CALENDAR);
+  });
+
+  const testViewRowNotExists = async (_viewType: ViewTypes) => {
+    // TODO: Implement test logic
+  };
+
+  it("Exist view row : should return false when row doesn't exist in view", async function () {
+    await testViewRowNotExists(ViewTypes.GALLERY);
+    await testViewRowNotExists(ViewTypes.GRID);
+    await testViewRowNotExists(ViewTypes.FORM);
+    await testViewRowNotExists(ViewTypes.CALENDAR);
+  });
+  //#endregion Read/Exist tests
+
+  //#region Calendar-specific tests
+  const testCalendarDataApi = async () => {
+    // TODO: Implement test logic
+  };
+
+  it('Calendar data', async function () {
+    await testCalendarDataApi();
+  });
+
+  const testCountDatesByRange = async (_viewType: ViewTypes) => {
+    // TODO: Implement test logic
+  };
+
+  it('Count dates by range Calendar', async () => {
+    await testCountDatesByRange(ViewTypes.CALENDAR);
+  });
+
+  it('Count dates by range GRID', async () => {
+    await testCountDatesByRange(ViewTypes.GRID);
+  });
+
+  it('Count dates by range KANBAN', async () => {
+    await testCountDatesByRange(ViewTypes.KANBAN);
+  });
+
+  it('Count dates by range FORM', async () => {
+    await testCountDatesByRange(ViewTypes.FORM);
+  });
+
+  it('Count dates by range GALLERY', async () => {
+    await testCountDatesByRange(ViewTypes.GALLERY);
+  });
+  //#endregion Calendar-specific tests
+
+  //#region Export tests
+  it('Export csv GRID', async function () {
+    // TODO: Implement test logic
+  });
+  //#endregion Export tests
+
+  //#region View column API tests
+  it('Test view column v3 apis', async function () {
+    // TODO: Implement test logic
+  });
+  //#endregion View column API tests
 }
 
 export default function () {

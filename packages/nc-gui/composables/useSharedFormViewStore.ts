@@ -195,6 +195,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       // if base is not defined then set it with an object containing source
       if (!base.value?.sources)
         baseStore.setProject({
+          id: viewMeta.base_id,
           sources: [
             {
               id: viewMeta.source_id,

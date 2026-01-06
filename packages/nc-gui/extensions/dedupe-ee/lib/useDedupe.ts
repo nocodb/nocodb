@@ -187,11 +187,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   // Reset merge state only (for navigating between groups)
   const resetMergeStateOnly = () => {
-    mergeState.value = {
-      primaryRecordId: null,
-      excludedRecordIds: new Set(),
-      selectedFields: {},
-    }
+    mergeState.value = { ...getDefaultMergeState() }
   }
 
   const onTableSelect = async (tableId?: string) => {
@@ -340,13 +336,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
     if (reset) {
       currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: true }
-
-      duplicateSets.value = []
-      currentSetIndex.value = 0
-      duplicateSetsPage.value = 1
+      currentGroupRecords.value = []
       resetMergeState()
-    } else {
-      isLoadingMoreSets.value = true
     }
 
     try {
@@ -367,18 +358,9 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }
   }
 
-  // Load more duplicate sets (infinite scroll)
-  const loadMoreDuplicateSets = async () => {
-    if (!hasMoreDuplicateSets.value || isLoadingMoreSets.value) return
-    duplicateSetsPage.value++
-    await findDuplicates(false)
-  }
-
-  const resetMergeState = () => {
+  function resetMergeState() {
     mergeState.value = {
-      primaryRecordId: null,
-      excludedRecordIds: new Set(),
-      selectedFields: {},
+      ...getDefaultMergeState(),
     }
   }
 
@@ -426,14 +408,10 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   }
 
   const nextSet = async () => {
-    if (hasMoreSets.value) {
-      currentSetIndex.value++
-      resetMergeStateOnly()
-      // Load records for the new current set if not already loaded
-      const currentSet = duplicateSets.value[currentSetIndex.value]
-      if (currentSet && !currentSet.records) {
-        await loadRecordsForGroup(currentSet)
-      }
+    if (hasNextGroup.value) {
+      currentGroupIndex.value++
+
+      await findDuplicates(true)
     }
   }
 
@@ -696,7 +674,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     saveConfig,
     loadSavedConfig,
     findDuplicates,
-    loadMoreDuplicateSets,
     loadRecordsForGroup,
     resetMergeState,
     resetMergeStateOnly,

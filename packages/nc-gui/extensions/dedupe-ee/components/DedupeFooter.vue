@@ -6,7 +6,6 @@ const {
   resetMergeState,
   nextSet,
   mergeAndDelete,
-  currentDuplicateSet,
   currentSetRecords,
   mergeState,
   isMerging,
@@ -20,6 +19,8 @@ const {
 
 const { toggleFullScreen } = useExtensionHelperOrThrow()
 
+const { showInfoModal } = useNcConfirmModal()
+
 const onCancel = () => {
   if (currentStep.value === 'review') {
     currentStep.value = 'config'
@@ -29,14 +30,6 @@ const onCancel = () => {
 }
 
 // Computed for review step footer
-const totalDuplicateRecords = computed(() => {
-  if (!currentDuplicateSet.value) return 0
-  return currentDuplicateSet.value.recordCount || currentSetRecords.value.length
-})
-
-const hasSelectedFieldsToMerge = computed(() => {
-  return Object.keys(mergeState.value.selectedFields).length > 0
-})
 
 const hasPrimaryRecord = computed(() => {
   return mergeState.value.primaryRecordId !== null
@@ -46,8 +39,20 @@ const canMerge = computed(() => {
   return hasPrimaryRecord.value && currentSetRecords.value.length > 1 && !isMerging.value
 })
 
-const handleReset = () => {
-  resetMergeState()
+const handleReset = async () => {
+  showInfoModal({
+    title: 'Are you sure you want to reset your changes for this set set of duplicates?',
+    content: 'Any records excluded from the set will be restored and all field selections will be reverted.',
+    showCancelBtn: true,
+    showIcon: false,
+    okProps: {
+      type: 'danger',
+    },
+    okText: 'Reset',
+    okCallback: async () => {
+      resetMergeState()
+    },
+  })
 }
 
 const handleSkip = async () => {
@@ -63,10 +68,6 @@ const handleMerge = async () => {
     currentStep.value = 'config'
   }
 }
-
-watchEffect(() => {
-  console.log('group set', groupSets.value)
-})
 </script>
 
 <template>
@@ -92,7 +93,7 @@ watchEffect(() => {
         <span class="text-sm text-nc-content-gray-muted">
           {{ currentGroup?.count || 0 }} duplicated record{{ currentGroup?.count !== 1 ? 's' : '' }}
         </span>
-        <NcButton size="small" type="secondary" :disabled="!hasSelectedFieldsToMerge" @click="handleReset"> Reset </NcButton>
+        <NcButton size="small" type="secondary" :disabled="!hasPrimaryRecord" @click="handleReset"> Reset </NcButton>
       </div>
 
       <!-- Right side: Review step -->

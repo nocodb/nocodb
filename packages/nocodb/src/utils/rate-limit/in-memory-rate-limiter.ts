@@ -9,10 +9,10 @@ type RateLimitState = {
 };
 
 const rateLimitMap: Record<string, RateLimitState> = {};
+let lastCleanupTime = 0;
 
 export class InMemoryRateLimiter extends AbstractRateLimiter {
   protected config: RateLimitConfig;
-  private lastCleanupTime = 0;
   private readonly cleanupIntervalMs = 60000; // Cleanup every minute
 
   // keep this simple for now, in memory should not be used
@@ -21,11 +21,11 @@ export class InMemoryRateLimiter extends AbstractRateLimiter {
     const { intervalMs } = this.config;
 
     // Only run cleanup periodically to avoid performance impact
-    if (now - this.lastCleanupTime < this.cleanupIntervalMs) {
+    if (now - lastCleanupTime < this.cleanupIntervalMs) {
       return;
     }
 
-    this.lastCleanupTime = now;
+    lastCleanupTime = now;
 
     Object.keys(rateLimitMap).forEach((key) => {
       const state = rateLimitMap[key];

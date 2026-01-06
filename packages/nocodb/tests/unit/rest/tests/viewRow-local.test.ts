@@ -330,7 +330,7 @@ function viewRowLocalStaticTests() {
     }
 
     // local test do not bring all data from sekila
-    if (response.body.list[0][firstNameColumn.title] !== 'SUSAN') {
+    if (response.body.list[0][firstNameColumn.title] !== 'WILLIE') {
       console.log(response.body.list);
       throw new Error('Wrong sort');
     }
@@ -454,7 +454,7 @@ function viewRowLocalStaticTests() {
     if (
       lastPageResponse.body.list[lastPageResponse.body.list.length - 1][
         firstNameColumn.title
-      ] !== 'SUSAN'
+      ] !== 'WILLIE'
     ) {
       console.log(lastPageOffset, lastPageResponse.body.list);
       throw new Error('Wrong sort on last page');
@@ -599,7 +599,9 @@ function viewRowLocalTests() {
       })
       .expect(200);
     expect(ascResponse.body.pageInfo.totalRows).greaterThan(0);
-    expect(ascResponse.body.list[0][lookupColumn.title]).equal('BARBARA');
+    expect(JSON.stringify(ascResponse.body.list[0][lookupColumn.title])).equal(
+      JSON.stringify(['ANGELA']),
+    );
 
     const descResponse = await request(context.app)
       .get(`/api/v1/db/data/noco/${base.id}/${rentalTable.id}/views/${view.id}`)
@@ -616,7 +618,9 @@ function viewRowLocalTests() {
       .expect(200);
 
     expect(descResponse.body.pageInfo.totalRows).greaterThan(0);
-    expect(descResponse.body.list[0][lookupColumn.title]).equal('SUSAN');
+    expect(JSON.stringify(descResponse.body.list[0][lookupColumn.title])).equal(
+      JSON.stringify(['SUSAN']),
+    );
   };
 
   it('Get nested sorted filtered table data list with a lookup column gallery', async function () {
@@ -1142,7 +1146,7 @@ function viewRowLocalTests() {
       throw new Error('Wrong columns');
     }
 
-    if (response.body[firstNameColumn.title] !== 'SUSAN') {
+    if (response.body[firstNameColumn.title] !== 'WILLIE') {
       console.log(response.body);
       throw new Error('Wrong sort');
     }
@@ -1194,7 +1198,44 @@ function viewRowLocalTests() {
 
   //#region Group by tests
   const testGroupDescSorted = async (_viewType: ViewTypes) => {
-    // TODO: Implement test logic
+    const view = await createView(context, {
+      title: 'View',
+      table: customerTable,
+      type: _viewType,
+    });
+    const firstNameColumn = customerColumns.find(
+      (col: ColumnType) => col.title === 'FirstName',
+    );
+
+    const rollupColumn = await createRollupColumn(context, {
+      base: base,
+      title: 'Rollup',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: rentalTable.table_name,
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const visibleColumns = [firstNameColumn];
+    const sortInfo = `-FirstName, +${rollupColumn.title}`;
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}/groupby`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: sortInfo,
+        column_name: firstNameColumn.column_name,
+      })
+      .expect(200);
+
+    if (
+      response.body.list[0]['FirstName'] !== 'WILLIE' ||
+      parseInt(response.body.list[0]['count']) !== 2
+    )
+      throw new Error('Wrong groupby');
   };
 
   it('Groupby desc sorted and with rollup view data list with required columns GRID', async function () {

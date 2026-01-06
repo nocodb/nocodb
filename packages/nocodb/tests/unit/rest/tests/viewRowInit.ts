@@ -281,6 +281,22 @@ const data = {
       AddressId: 380,
       Active: 1,
     },
+    {
+      StoreId: 2,
+      FirstName: 'WILLIE',
+      LastName: 'HOWEL',
+      Email: 'WILLY.HOWEL@sakilacustomer.org',
+      AddressId: 380,
+      Active: 1,
+    },
+    {
+      StoreId: 2,
+      FirstName: 'WILLIE',
+      LastName: 'ARKHAM',
+      Email: 'WILLY.ARKHAM@sakilacustomer.org',
+      AddressId: 380,
+      Active: 1,
+    },
   ],
   Films: [
     {
@@ -1295,11 +1311,11 @@ export const linkInitTables = async (context: any, base: any) => {
   const allTables = await getAllTables({ base });
   const customerTable = allTables.find((tbl) => tbl.title === 'Customer');
   const rentalTable = allTables.find((tbl) => tbl.title === 'Rental');
-  const Customer_HM_Rental_LTAR = await createLtarColumn2(context, {
+  const Customer_MM_Rental_LTAR = await createLtarColumn2(context, {
     title: 'Rentals',
     parentTable: customerTable!,
     childTable: rentalTable!,
-    type: 'hm',
+    type: 'mm',
   });
 
   const rentalCustomerLink = [
@@ -1423,9 +1439,33 @@ export const linkInitTables = async (context: any, base: any) => {
       id: '1',
       customerId: '1',
     },
+    {
+      id: '4',
+      customerId: '7',
+    },
+    {
+      id: '4',
+      customerId: '8',
+    },
+    {
+      id: '4',
+      customerId: '9',
+    },
+    {
+      id: '4',
+      customerId: '10',
+    },
+    {
+      id: '5',
+      customerId: '11',
+    },
+    {
+      id: '5',
+      customerId: '12',
+    },
   ];
 
-  const linkTo_Customer_HM_Rental_LTAR = (rowId: string, body: any[]) => {
+  const linkTo_Customer_MM_Rental_LTAR = (rowId: string, body: any[]) => {
     return ncAxiosLinkAdd({
       context: {
         context,
@@ -1433,7 +1473,7 @@ export const linkInitTables = async (context: any, base: any) => {
       },
       urlParams: {
         tableId: customerTable!.id,
-        linkId: Customer_HM_Rental_LTAR.id,
+        linkId: Customer_MM_Rental_LTAR.id,
         rowId: rowId,
       },
       body: body,
@@ -1442,8 +1482,8 @@ export const linkInitTables = async (context: any, base: any) => {
   };
   await Promise.all(
     rentalCustomerLink.map((link) =>
-      linkTo_Customer_HM_Rental_LTAR(link.id, [
-        { id: Number(link.customerId) },
+      linkTo_Customer_MM_Rental_LTAR(link.customerId, [
+        { id: Number(link.id) },
       ]),
     ),
   );

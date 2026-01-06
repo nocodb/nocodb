@@ -138,6 +138,26 @@ export class NcErrorBase {
       ...args,
     });
   }
+  rateLimitReached(
+    param?: string | { operation?: string; waitForSecond: number },
+    args?: NcErrorArgs
+  ): never {
+    let message: string | undefined;
+    if (param) {
+      if (typeof param === 'string') {
+        message = param;
+      } else {
+        const operation = param.operation ?? 'this operation';
+        message = `Rate limit reached for ${operation}, try again after ${param.waitForSecond.toFixed(
+          2
+        )} second(s)`;
+      }
+    }
+    throw this.errorCodex.generateError(NcErrorType.ERR_DUPLICATE_RECORD, {
+      params: message,
+      ...args,
+    });
+  }
 
   fieldNotFound(id: string, args?: NcErrorArgs): never {
     throw this.errorCodex.generateError(NcErrorType.FIELD_NOT_FOUND, {

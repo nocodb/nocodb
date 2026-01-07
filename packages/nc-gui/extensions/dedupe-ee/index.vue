@@ -57,7 +57,11 @@ watchEffect(() => {
           <div>
             <h2 class="text-lg font-semibold">Resolve duplicate records</h2>
 
-            <NcTooltip show-on-truncate-only :line-clamp="2" class="text-bodyDefaultSm text-nc-content-gray-muted line-clamp-2 max-w-[80%]">
+            <NcTooltip
+              show-on-truncate-only
+              :line-clamp="2"
+              class="text-bodyDefaultSm text-nc-content-gray-muted line-clamp-2 max-w-[80%]"
+            >
               <template #title>
                 For each set of duplicates, pick a primary record. All other records in the set will be deleted when you merge.
                 Click a field to merge it into the primary record. If a record isn't a duplicate, exclude it from the set and it
@@ -75,7 +79,7 @@ watchEffect(() => {
       <div
         class="w-full flex"
         :style="{
-          height: currentStep === 'review' ? `calc(100% - ${height ? 56 + height : 164}px)` : 'calc(100% - 56px)',
+          height: currentStep === 'review' ? `calc(100% - ${height ? 56 + height + 2 : 164}px)` : 'calc(100% - 56px)',
         }"
       >
         <template v-if="currentStep === 'config'">

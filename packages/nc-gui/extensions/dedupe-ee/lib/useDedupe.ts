@@ -40,6 +40,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   // State
   const scrollContainer = ref<HTMLElement>()
+  const scrollTop = ref(0)
 
   const config = ref<DedupeConfig>({
     selectedTableId: undefined,
@@ -649,6 +650,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     mergeState,
     currentStep,
     scrollContainer,
+    scrollTop,
 
     // Computed
     tableList,
@@ -702,6 +704,9 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     contextMenuTarget,
     fields,
     primaryRecordRowInfo,
+    syncScrollTop: (newScrollTop: number) => {
+      scrollTop.value = newScrollTop
+    },
   }
 })
 

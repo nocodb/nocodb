@@ -13,6 +13,8 @@ const {
   primaryRecordRowInfo,
   setPrimaryRecord,
   excludeRecord,
+  scrollTop,
+  syncScrollTop,
 } = useDedupeOrThrow()
 
 const visibleRows = computed<Row[]>(() => {
@@ -23,6 +25,22 @@ const visibleRows = computed<Row[]>(() => {
 })
 
 const contextMenu = ref(false)
+const scrollContainer = ref<HTMLElement>()
+
+// Synchronize scroll with MergePreview component
+const handleScroll = (event: Event) => {
+  const target = event.target as HTMLElement
+  if (target) {
+    syncScrollTop(target.scrollTop)
+  }
+}
+
+// Watch for scroll changes from the other component
+watch(scrollTop, (newScrollTop) => {
+  if (scrollContainer.value) {
+    scrollContainer.value.scrollTop = newScrollTop
+  }
+})
 </script>
 
 <template>
@@ -36,7 +54,7 @@ const contextMenu = ref(false)
       <h3 class="font-semibold m-0">Review records</h3>
     </div>
 
-    <div class="w-full h-[calc(100%_-_38px)] relative nc-scrollbar-thin">
+    <div ref="scrollContainer" class="w-full h-[calc(100%_-_38px)] relative nc-scrollbar-thin" @scroll="handleScroll">
       <div v-if="!currentGroup" class="flex-1 flex items-center justify-center">
         <a-empty description="No duplicate set selected" :image="Empty.PRESENTED_IMAGE_SIMPLE">
           <template #description>

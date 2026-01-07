@@ -106,9 +106,7 @@ const handleReview = async () => {
           {{ $t('general.cancel') }}
         </NcButton>
         <NcButton v-if="!canMerge" size="small" @click="handleSkip"> Skip </NcButton>
-        <NcButton v-else size="small" type="primary" :loading="isMerging" :disabled="isMerging" @click="handleMerge">
-          Merge Records
-        </NcButton>
+        <NcButton v-else size="small" type="primary" :loading="isMerging" @click="handleMerge"> Merge Records </NcButton>
       </div>
     </template>
   </div>

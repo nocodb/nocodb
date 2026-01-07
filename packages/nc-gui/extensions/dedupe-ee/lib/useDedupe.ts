@@ -53,12 +53,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const views = ref<ViewType[]>([])
   const meta = ref<TableType>()
-  const duplicateSets = ref<DuplicateSet[]>([])
-  const currentSetIndex = ref(0)
   const isMerging = ref(false)
-  const isLoadingMoreSets = ref(false)
-  const hasMoreDuplicateSets = ref(false)
-  const duplicateSetsPage = ref(1)
 
   const groupSets = ref<Record<string, any>[]>([])
 
@@ -140,15 +135,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
   })
 
-  const currentDuplicateSet = computed(() => {
-    if (currentSetIndex.value >= duplicateSets.value.length) return null
-    return duplicateSets.value[currentSetIndex.value]
-  })
-
-  const hasMoreSets = computed(() => {
-    return hasMoreDuplicateSets.value || currentSetIndex.value < duplicateSets.value.length - 1
-  })
-
   const computedWhere = computed(() => {
     if (!selectedField.value?.id || !currentGroup.value) return ''
 
@@ -192,18 +178,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     groupSets.value = []
     groupSetsPaginationData.value = { ...getDefaultPaginationData(), isLoading: false }
 
-    // Clear duplicate sets
-    duplicateSets.value = []
-    currentSetIndex.value = 0
-    hasMoreDuplicateSets.value = false
-    duplicateSetsPage.value = 1
-
     // Reset merge state
-    mergeState.value = {
-      primaryRecordId: null,
-      excludedRecordIds: new Set(),
-      selectedFields: {},
-    }
+    resetMergeState()
 
     // Reset step to config
     currentStep.value = 'config'
@@ -213,11 +189,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       loadGroupSetsController.value.cancel()
       loadGroupSetsController.value = undefined
     }
-  }
-
-  // Reset merge state only (for navigating between groups)
-  const resetMergeStateOnly = () => {
-    mergeState.value = { ...getDefaultMergeState() }
   }
 
   const onTableSelect = async (tableId?: string) => {
@@ -407,6 +378,10 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       currentGroupIndex.value++
 
       await findDuplicates(true)
+    } else {
+      message.info('No more sets to review')
+      currentGroupIndex.value = 0
+      currentStep.value = 'config'
     }
   }
 
@@ -563,8 +538,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     config,
     views,
     meta,
-    duplicateSets,
-    currentSetIndex,
+
     isMerging,
     mergeState,
     currentStep,
@@ -576,10 +550,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     viewList,
     availableFields,
     selectedField,
-    currentDuplicateSet,
-    hasMoreSets,
-    isLoadingMoreSets,
-    hasMoreDuplicateSets,
     groupSetsPaginationData,
     currentGroupIndex,
     currentGroup,
@@ -596,7 +566,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     loadSavedConfig,
     findDuplicates,
     resetMergeState,
-    resetMergeStateOnly,
     setPrimaryRecord,
     excludeRecord,
     includeRecord,

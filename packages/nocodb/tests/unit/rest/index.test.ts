@@ -6,6 +6,7 @@ import baseTests from './tests/base.test';
 import columnTypeSpecificTests from './tests/columnTypeSpecific.test';
 import tableRowTests from './tests/tableRow.test';
 import viewRowTests from './tests/viewRow.test';
+import viewRowLocalTests from './tests/viewRow-local.test';
 import attachmentTests from './tests/attachment.test';
 import filterTest from './tests/filter.test';
 import groupByTest from './tests/groupby.test';
@@ -46,7 +47,7 @@ function restTests() {
     orgTests();
     baseTests();
     tableRowTests();
-    viewRowTests();
+    viewRowLocalTests();
     columnTypeSpecificTests();
     attachmentTests();
     filterTest();
@@ -66,7 +67,9 @@ function restTests() {
     bulkV1Test();
     oauthDCRTest();
   }
-
+  if (willRunOnSet(2)) {
+    viewRowTests();
+  }
   if (testVersion.includes('v1')) tableTests('v1');
   if (testVersion.includes('v2')) dataAPIsV3Test('v2');
 

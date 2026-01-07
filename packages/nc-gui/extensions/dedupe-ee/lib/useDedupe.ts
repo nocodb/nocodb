@@ -392,24 +392,83 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const hasMergedAnyRecords = ref(false)
 
+  const deleteRecordsAfterMerge = async (recordIndices: number[]) => {
+    const CHUNK_SIZE = 50
+
+    // Load all required chunks first
+    const chunksToLoad = new Set<number>()
+    recordIndices.forEach((index) => {
+      const chunkIndex = Math.floor(index / CHUNK_SIZE)
+      if (chunkStates.value[chunkIndex] !== 'loaded') {
+        chunksToLoad.add(chunkIndex)
+      }
+    })
+
+    // Load missing chunks
+    if (chunksToLoad.size > 0) {
+      await Promise.all(
+        Array.from(chunksToLoad).map(async (chunkIndex) => {
+          try {
+            await loadData({
+              limit: CHUNK_SIZE,
+              offset: chunkIndex * CHUNK_SIZE,
+            })
+          } catch (error) {
+            console.error(`Error loading chunk ${chunkIndex}:`, error)
+          }
+        }),
+      )
+    }
+
+    // Collect all records to delete, excluding the primary record
+    const primaryRecordPk = extractPkFromRow(primaryRecordRowInfo.value.row, meta.value?.columns as ColumnType[])
+    const recordsToDelete = recordIndices
+      .map((index) => {
+        const row = cachedRows.value.get(index)
+        if (!row) return null
+
+        const recordPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+        // Don't delete the primary record that we merged into
+        if (recordPk === primaryRecordPk) return null
+
+        return rowPkData(row.row, meta.value?.columns as ColumnType[])
+      })
+      .filter(Boolean) as Array<Record<string, any>>
+
+    // Delete all records in one operation
+    if (recordsToDelete.length > 0) {
+      try {
+        await $api.internal.postOperation(
+          (meta.value as any).fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'dataDelete',
+            tableId: meta.value?.id as string,
+            viewId: config.value.selectedViewId || '',
+          },
+          recordsToDelete.length === 1 ? recordsToDelete[0]! : recordsToDelete,
+        )
+      } catch (error: any) {
+        console.error('Error deleting merged records:', error)
+      }
+    }
+  }
+
   const mergeAndDelete = async () => {
     if (!ncIsNumber(mergeState.value.primaryRecordIndex) || !primaryRecordRowInfo.value.row) {
       message.error('Please select a primary record')
       return
     }
 
-    const recordsToDelete = Array.from({ length: totalRows.value }, (_, i) => {
-      if (!cachedRows.value.get(i) || mergeState.value.primaryRecordIndex === i) return null
-
-      const row = cachedRows.value.get(i)!
-
+    // Collect indices of records to delete instead of loading all records upfront
+    const recordIndicesToDelete = Array.from({ length: totalRows.value }, (_, i) => {
+      if (mergeState.value.primaryRecordIndex === i) return null
       // If record is excluded, don't delete it
       if (mergeState.value.excludedRecordIndexes.has(i)) return null
+      return i
+    }).filter((i): i is number => i !== null)
 
-      return rowPkData(row.row, meta.value?.columns as ColumnType[])
-    }).filter(Boolean) as Array<Record<string, any>>
-
-    if (recordsToDelete.length === 0) {
+    if (recordIndicesToDelete.length === 0) {
       message.info('No records to delete')
       return
     }
@@ -440,16 +499,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         ],
       })
 
-      await $api.internal.postOperation(
-        (meta.value as any).fk_workspace_id!,
-        meta.value!.base_id!,
-        {
-          operation: 'dataDelete',
-          tableId: meta.value?.id as string,
-          viewId: config.value.selectedViewId || '',
-        },
-        recordsToDelete.length === 1 ? recordsToDelete[0]! : recordsToDelete,
-      )
+      await deleteRecordsAfterMerge(recordIndicesToDelete)
 
       if (hasNextGroup.value) {
         currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: true }
@@ -464,7 +514,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         message.success('All duplicates have been merged and deleted')
         return true
       } else {
-        message.success(`Merged and deleted ${recordsToDelete.length} record(s)`)
+        message.success(`Merged and deleted ${recordIndicesToDelete.length} record(s)`)
 
         return false
       }

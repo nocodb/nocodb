@@ -66,9 +66,13 @@ const loadedPages = ref(new Set<number>())
 // Page size from dedupe system
 const PAGE_SIZE = currentGroupRecordsPaginationData.value.pageSize || 20
 
-// Calculate container width for all visible records
+// Calculate container width based on loaded content + buffer
 const containerWidth = computed(() => {
-  return allRowIndexes.value.length * RECORD_CARD_WIDTH
+  // Include all visible records plus a buffer for smooth scrolling
+  const minWidth = (visibleEndIndex.value + 10) * RECORD_CARD_WIDTH
+  // But don't exceed the total available records
+  const maxWidth = allRowIndexes.value.length * RECORD_CARD_WIDTH
+  return Math.min(minWidth, maxWidth)
 })
 
 // Reset loaded pages when switching groups and preload initial data
@@ -108,9 +112,9 @@ watch(
 const visibleRows = computed(() => {
   const start = visibleStartIndex.value
   const end = Math.min(visibleEndIndex.value, allRowIndexes.value.length)
-  return allRowIndexes.value.slice(start, end).map(rowIndex => ({
+  return allRowIndexes.value.slice(start, end).map((rowIndex) => ({
     rowIndex,
-    record: cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+    record: cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } },
   }))
 })
 
@@ -183,7 +187,6 @@ const handleScroll = (event: Event) => {
   }
 }
 
-
 // Watch for visible range changes to load data
 watch([visibleStartIndex, visibleEndIndex], loadVisibleData, { immediate: true })
 
@@ -193,7 +196,6 @@ watch(scrollTop, (newScrollTop) => {
     scrollContainer.value.scrollTop = newScrollTop
   }
 })
-
 </script>
 
 <template>
@@ -208,11 +210,7 @@ watch(scrollTop, (newScrollTop) => {
       <h3 class="font-semibold m-0">Review records</h3>
     </div>
 
-    <div
-      ref="scrollContainer"
-      class="w-full h-[calc(100%_-_38px)] relative nc-scrollbar-thin overflow-x-auto overflow-y-auto"
-      @scroll="handleScroll"
-    >
+    <div ref="scrollContainer" class="w-full h-[calc(100%_-_38px)] relative nc-scrollbar-thin" @scroll="handleScroll">
       <div v-if="!currentGroup" class="flex-1 h-full flex items-center justify-center">
         <a-empty description="No duplicate set selected" :image="Empty.PRESENTED_IMAGE_SIMPLE">
           <template #description>
@@ -257,17 +255,10 @@ watch(scrollTop, (newScrollTop) => {
             </NcMenuItem>
           </NcMenu>
         </template>
-        <!-- Virtual scrolling container like Gallery.vue -->
+        <!-- Virtual scrolling container with absolute positioning -->
         <div :style="{ width: `${containerWidth}px`, height: '100%', position: 'relative' }">
-          <div
-            class="nc-review-records-container"
-            :style="{ transform: `translateX(${transformOffset}px)` }"
-          >
-            <RecordCard
-              v-for="{ rowIndex, record } in visibleRows"
-              :key="`record-${rowIndex}`"
-              :record="record"
-            />
+          <div class="nc-review-records-container absolute top-0" :style="{ left: `${transformOffset}px` }">
+            <RecordCard v-for="{ rowIndex, record } in visibleRows" :key="`record-${rowIndex}`" :record="record" />
           </div>
         </div>
       </NcDropdown>

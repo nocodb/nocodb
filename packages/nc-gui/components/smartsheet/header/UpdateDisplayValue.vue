@@ -81,7 +81,7 @@ const changeDisplayField = async () => {
       meta!.value!.fk_workspace_id!,
       meta!.value!.base_id!,
       {
-        operation: 'columnPrimarySet',
+        operation: 'columnSetAsPrimary',
         columnId: selectedFieldId.value,
       },
       {},

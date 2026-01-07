@@ -216,13 +216,13 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       if (view?.value?.id) {
         if (ignoreIds) {
           await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
-            operation: 'viewShowAll',
+            operation: 'showAllColumns',
             viewId: view.value.id,
             ignoreIds,
           })
         } else {
           await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
-            operation: 'viewShowAll',
+            operation: 'showAllColumns',
             viewId: view.value.id,
           })
         }
@@ -273,13 +273,13 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       if (view?.value?.id) {
         if (ignoreIds) {
           await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
-            operation: 'viewHideAll',
+            operation: 'hideAllColumns',
             viewId: view.value.id,
             ignoreIds,
           })
         } else {
           await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
-            operation: 'viewHideAll',
+            operation: 'hideAllColumns',
             viewId: view.value.id,
           })
         }
@@ -582,7 +582,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
             view.value!.fk_workspace_id!,
             view.value!.base_id!,
             {
-              operation: 'gridViewColumnUpdate',
+              operation: 'gridColumnUpdate',
               gridViewColumnId: gridViewCols.value[id].id,
             },
             props,

@@ -116,14 +116,6 @@ const isFieldSelected = (col: ColumnType) => {
       @click="handleClick"
       @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
     >
-      <!-- Loading overlay for virtual scrolling placeholders -->
-      <div
-        v-if="record.rowMeta.isLoading"
-        class="absolute inset-0 bg-nc-bg-gray-extralight bg-opacity-80 flex items-center justify-center z-10 rounded-xl"
-      >
-        <a-spin size="small" />
-      </div>
-      <!-- No loading overlay - render with placeholder data instead -->
       <template #cover>
         <div v-if="selectedField" class="p-2 rounded-t-xl border-1 bg-nc-bg-default">
           <div class="flex items-center gap-3">
@@ -174,7 +166,15 @@ const isFieldSelected = (col: ColumnType) => {
         </div>
       </template>
 
-      <div class="nc-dedupe-record-card-content flex-1 flex content-stretch gap-3 w-full overflow-hidden rounded-b-xl">
+      <div class="nc-dedupe-record-card-content flex-1 flex content-stretch gap-3 w-full overflow-hidden rounded-b-xl relative">
+        <!-- Loading overlay for virtual scrolling placeholders -->
+        <div
+          v-if="record.rowMeta.isLoading"
+          class="absolute inset-0 bg-nc-bg-default bg-opacity-90 z-10 rounded-xl"
+        >
+          <a-spin size="small" />
+        </div>
+
         <div class="flex-1 flex flex-col">
           <div
             v-for="col of fields"

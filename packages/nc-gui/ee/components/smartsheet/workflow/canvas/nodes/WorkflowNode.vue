@@ -195,7 +195,7 @@ onClickOutside(
       </NcButton>
     </div>
 
-    <Handle type="target" :position="Position.Top" class="!w-3 !h-3 !bg-blue-500 !border-2 !border-white" />
+    <Handle type="target" :position="Position.Top" class="!w-3 !h-3 !bg-blue-500 !border-2 !border-white !-top-1.5" />
     <Dropdown
       :disabled="disableDropdown"
       :selected-id="type === GeneralNodeID.PLUS ? undefined : type"
@@ -274,6 +274,11 @@ onClickOutside(
         </div>
       </template>
     </Dropdown>
-    <Handle v-if="hasOutput" type="source" :position="Position.Bottom" class="!w-3 !h-3 !border-none !bg-transparent" />
+    <Handle
+      v-if="hasOutput"
+      type="source"
+      :position="Position.Bottom"
+      class="!w-3 !h-3 !border-none !bg-transparent !-bottom-1.5"
+    />
   </div>
 </template>

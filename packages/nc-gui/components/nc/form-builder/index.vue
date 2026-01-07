@@ -163,7 +163,7 @@ const getSelectValue = (field: FormBuilderElement) => {
   const value = deepReference(field.model)
   if (field.selectMode === 'singleWithInput') {
     // Convert single value to array for tags mode
-    return value ? [value] : []
+    return value && !ncIsArray(value) ? [value] : []
   }
   return value
 }

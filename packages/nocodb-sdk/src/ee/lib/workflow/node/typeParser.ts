@@ -544,6 +544,38 @@ export interface ParsedVariableInfo {
 }
 
 /**
+ * Finds the variable definition for a workflow expression
+ * @param expression - The expression string (e.g., "{{ $('Node').records }}")
+ * @param flatVariables - Array of available variable definitions
+ * @returns The variable definition or null if not found
+ */
+export function findVariableForExpression(
+  expression: string,
+  flatVariables: VariableDefinition[]
+): VariableDefinition | null {
+  if (!expression || !expression.includes('{{')) return null
+
+  try {
+    const trimmed = expression.trim()
+    const match = trimmed.match(/\{\{\s*([^}]+?)\s*}}/)
+    if (!match || !match[1]) return null
+
+    const expr = match[1]
+    const parsed = workflowJsep(expr)
+
+    // Try to extract variable from the parsed expression
+    const varNode = parseWorkflowVariable(parsed, flatVariables)
+    if (varNode && varNode.name) {
+      return findVariable(varNode.name, flatVariables) || null
+    }
+
+    return null
+  } catch {
+    return null
+  }
+}
+
+/**
  * Extracts node reference and variable path from a workflow expression
  * Handles simple variable references like:
  * - {{ $('NodeName').path.to.variable }}

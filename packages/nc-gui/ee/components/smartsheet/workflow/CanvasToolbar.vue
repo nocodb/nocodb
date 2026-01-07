@@ -138,8 +138,10 @@ useEventListener('keydown', (e: KeyboardEvent) => {
 </script>
 
 <template>
-  <div class="absolute w-[calc(100%-379px)] bottom-4 flex justify-center items-center right-0 left-0 z-10">
-    <div class="flex items-center gap-2 bg-nc-base-white shadow-default rounded-lg border border-nc-border-gray-medium px-3 py-2">
+  <div class="absolute pointer-events-none w-[calc(100%-379px)] bottom-4 flex justify-center items-center right-0 left-0 z-10">
+    <div
+      class="flex items-center gap-2 pointer-events-auto bg-nc-base-white shadow-default rounded-lg border border-nc-border-gray-medium px-3 py-2"
+    >
       <NcDropdown v-model:visible="showDropdown">
         <NcButton type="text" size="small" class="!px-2">
           <span class="text-sm font-medium min-w-[45px] text-center">{{ zoomLevel }}%</span>

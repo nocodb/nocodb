@@ -7,7 +7,7 @@ import DedupeFooter from './components/DedupeFooter.vue'
 import MergePreview from './components/MergePreview.vue'
 
 // Provide dedupe instance to child components
-const { loadSavedConfig, groupSetsPaginationData, currentStep, findDuplicates } = useProvideDedupe()
+const { loadSavedConfig, groupSetsPaginationData, currentStep } = useProvideDedupe()
 
 const { fullscreen, toggleFullScreen } = useExtensionHelperOrThrow()
 
@@ -18,12 +18,6 @@ const { height } = useElementSize(topSectionRef)
 // Load saved configuration on mount
 onMounted(async () => {
   await loadSavedConfig()
-})
-
-watch(currentStep, () => {
-  if (currentStep.value === 'review') {
-    findDuplicates()
-  }
 })
 </script>
 

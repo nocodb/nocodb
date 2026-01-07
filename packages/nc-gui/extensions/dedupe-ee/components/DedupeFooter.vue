@@ -12,7 +12,6 @@ const {
   groupSetsPaginationData,
   currentGroup,
   currentGroupIndex,
-  findDuplicates,
 } = useDedupeOrThrow()
 
 const { toggleFullScreen } = useExtensionHelperOrThrow()
@@ -65,7 +64,6 @@ const handleMerge = async () => {
 const handleReview = async () => {
   currentGroupIndex.value = 0
   currentStep.value = 'review'
-  await findDuplicates()
 }
 </script>
 

@@ -16,6 +16,7 @@ const {
   scrollTop,
   syncScrollTop,
   loadData,
+  syncCount,
   chunkStates,
   clearCache,
 } = useDedupeOrThrow()
@@ -30,24 +31,6 @@ const allRowIndexes = computed<number[]>(() => {
   }
   return indexes
 })
-
-// Get loaded rows for the visible range
-const getLoadedRowsInRange = (start: number, end: number): Row[] => {
-  const rows: Row[] = []
-  const indexes = allRowIndexes.value.slice(start, end)
-
-  for (const index of indexes) {
-    const cachedRow = cachedRows.value.get(index)
-    if (cachedRow) {
-      rows.push(cachedRow)
-    } else {
-      // Add placeholder for missing rows
-      rows.push({ row: {}, oldRow: {}, rowMeta: { rowIndex: index, isLoading: true } })
-    }
-  }
-
-  return rows
-}
 
 const contextMenu = ref(false)
 const scrollContainer = ref<HTMLElement>()
@@ -79,12 +62,23 @@ const containerWidth = computed(() => {
 watch(
   currentGroup,
   async () => {
+    clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+
     loadedPages.value.clear()
     visibleStartIndex.value = 0
     visibleEndIndex.value = 20
 
     // Preload first few pages for better initial experience
     if (currentGroup.value) {
+      currentGroupRecordsPaginationData.value.isLoading = true
+
+      try {
+        await syncCount()
+      } catch (error) {
+        totalRows.value = currentGroup.value.count || 0
+        console.error('Failed to sync count:', error)
+      }
+
       const initialPages = [0, 1, 2] // Load first 3 pages (60 records) initially
       const loadPromises = initialPages.map(async (pageIndex) => {
         if (pageIndex * PAGE_SIZE < totalRows.value) {
@@ -103,6 +97,8 @@ watch(
         }
       })
       await Promise.all(loadPromises)
+
+      currentGroupRecordsPaginationData.value.isLoading = false
     }
   },
   { immediate: true },
@@ -136,7 +132,7 @@ const loadVisibleData = async () => {
   }
 
   // Load required pages
-  if (pagesToLoad.size > 0) {
+  if (pagesToLoad.size > 0 && loadedPages.value.size) {
     const loadPromises = Array.from(pagesToLoad).map(async (pageIndex) => {
       try {
         const records = await loadData({
@@ -178,6 +174,7 @@ const handleScroll = (event: Event) => {
       visibleStartIndex.value = start
       visibleEndIndex.value = end
 
+      console.log('loading visible data', start, end)
       loadVisibleData()
 
       // Synchronize scroll with MergePreview component
@@ -188,7 +185,7 @@ const handleScroll = (event: Event) => {
 }
 
 // Watch for visible range changes to load data
-watch([visibleStartIndex, visibleEndIndex], loadVisibleData, { immediate: true })
+watch([visibleStartIndex, visibleEndIndex], loadVisibleData)
 
 // Watch for scroll changes from the other component
 watch(scrollTop, (newScrollTop) => {

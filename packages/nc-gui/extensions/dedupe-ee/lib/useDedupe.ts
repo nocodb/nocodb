@@ -61,8 +61,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     return currentGroupIndex.value < groupSets.value.length - 1
   })
 
-  const currentGroupRecords = ref<Record<string, any>[]>([])
-
   const currentGroupRecordsPaginationData = ref<PaginatedType & { isLoading: boolean }>({
     ...getDefaultPaginationData(20),
     isLoading: false,
@@ -266,12 +264,13 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
     if (reset) {
       currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: true }
-      currentGroupRecords.value = []
       resetMergeState()
     }
 
     try {
-      await syncCount()
+      if (currentGroupRecordsPaginationData.value.page === 1) {
+        await syncCount()
+      }
 
       const records = await loadData({
         limit: currentGroupRecordsPaginationData.value.pageSize!,
@@ -368,9 +367,10 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const nextSet = async () => {
     if (hasNextGroup.value) {
-      currentGroupIndex.value++
+      currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: true }
+      resetMergeState()
 
-      await findDuplicates(true)
+      currentGroupIndex.value++
     } else {
       message.info('No more sets to review')
       currentGroupIndex.value = 0
@@ -440,6 +440,9 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       )
 
       if (hasNextGroup.value) {
+        currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: true }
+        resetMergeState()
+
         currentGroupIndex.value++
       }
 
@@ -450,7 +453,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         return true
       } else {
         message.success(`Merged and deleted ${recordsToDelete.length} record(s)`)
-        findDuplicates(true)
+
         return false
       }
     } catch (error: any) {
@@ -547,7 +550,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     currentGroupIndex,
     currentGroup,
     hasNextGroup,
-    currentGroupRecords,
     currentGroupRecordsPaginationData,
     hasMergedAnyRecords,
     // Methods

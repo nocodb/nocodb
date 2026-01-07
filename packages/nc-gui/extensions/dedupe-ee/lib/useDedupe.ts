@@ -395,48 +395,69 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const deleteRecordsAfterMerge = async (recordIndices: number[]) => {
     const CHUNK_SIZE = 50
 
-    // Load all required chunks first
+    // Separate already loaded records from records that need loading
+    const alreadyLoadedIndices: number[] = []
     const chunksToLoad = new Set<number>()
+
     recordIndices.forEach((index) => {
-      const chunkIndex = Math.floor(index / CHUNK_SIZE)
-      if (chunkStates.value[chunkIndex] !== 'loaded') {
-        chunksToLoad.add(chunkIndex)
+      // Check if record is already in cache OR if chunk is marked as loaded
+      if (cachedRows.value.has(index) || chunkStates.value[Math.floor(index / CHUNK_SIZE)] === 'loaded') {
+        alreadyLoadedIndices.push(index)
+      } else {
+        chunksToLoad.add(Math.floor(index / CHUNK_SIZE))
       }
     })
 
-    // Load missing chunks
+    // Track which records we've already processed to avoid duplicates
+    const processedIndices = new Set<number>()
+
+    // First, collect PK data from already cached records
+    const recordsToDelete: Array<Record<string, any>> = []
+
+    alreadyLoadedIndices.forEach((index) => {
+      const row = cachedRows.value.get(index)
+      if (row) {
+        recordsToDelete.push(rowPkData(row.row, meta.value?.columns as ColumnType[]))
+        processedIndices.add(index)
+      }
+    })
+
+    // Then load missing chunks and extract PK data directly (without caching)
     if (chunksToLoad.size > 0) {
       await Promise.all(
         Array.from(chunksToLoad).map(async (chunkIndex) => {
           try {
-            await loadData({
+            const loadedRecords = await loadData({
               limit: CHUNK_SIZE,
               offset: chunkIndex * CHUNK_SIZE,
             })
+
+            // Extract PK data directly from loaded records
+            loadedRecords.forEach((record) => {
+              const rowIndex = record.rowMeta.rowIndex!
+              // Only add PK data for records that are in our deletion list and not already processed
+              if (recordIndices.includes(rowIndex) && !processedIndices.has(rowIndex)) {
+                recordsToDelete.push(rowPkData(record.row, meta.value?.columns as ColumnType[]))
+                processedIndices.add(rowIndex)
+              }
+            })
+
+            // Update chunk state to prevent future unnecessary loads
+            chunkStates.value[chunkIndex] = 'loaded'
           } catch (error) {
             console.error(`Error loading chunk ${chunkIndex}:`, error)
+            chunkStates.value[chunkIndex] = undefined
           }
         }),
       )
     }
 
-    // Collect all records to delete, excluding the primary record
-    const primaryRecordPk = extractPkFromRow(primaryRecordRowInfo.value.row, meta.value?.columns as ColumnType[])
-    const recordsToDelete = recordIndices
-      .map((index) => {
-        const row = cachedRows.value.get(index)
-        if (!row) return null
+    // Delete records in batches to avoid overwhelming the API
+    const DELETE_BATCH_SIZE = 200
 
-        const recordPk = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-        // Don't delete the primary record that we merged into
-        if (recordPk === primaryRecordPk) return null
+    for (let i = 0; i < recordsToDelete.length; i += DELETE_BATCH_SIZE) {
+      const batch = recordsToDelete.slice(i, i + DELETE_BATCH_SIZE)
 
-        return rowPkData(row.row, meta.value?.columns as ColumnType[])
-      })
-      .filter(Boolean) as Array<Record<string, any>>
-
-    // Delete all records in one operation
-    if (recordsToDelete.length > 0) {
       try {
         await $api.internal.postOperation(
           (meta.value as any).fk_workspace_id!,
@@ -446,10 +467,16 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
             tableId: meta.value?.id as string,
             viewId: config.value.selectedViewId || '',
           },
-          recordsToDelete.length === 1 ? recordsToDelete[0]! : recordsToDelete,
+          batch.length === 1 ? batch[0]! : batch,
         )
       } catch (error: any) {
-        console.error('Error deleting merged records:', error)
+        console.error(`Error deleting batch ${Math.floor(i / DELETE_BATCH_SIZE) + 1}:`, error)
+        // Continue with next batch even if this one fails
+      }
+
+      // Small delay between batches to avoid overwhelming the API
+      if (i + DELETE_BATCH_SIZE < recordsToDelete.length) {
+        await new Promise(resolve => setTimeout(resolve, 50))
       }
     }
   }

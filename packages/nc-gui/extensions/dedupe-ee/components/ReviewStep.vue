@@ -41,7 +41,7 @@ const RECORD_CARD_WIDTH = 320 + 16 // 320px card + 16px gap (gap-4)
 // Virtual scrolling state
 const scrollLeft = ref(0)
 const visibleStartIndex = ref(0)
-const visibleEndIndex = ref(20)
+const visibleEndIndex = ref(16)
 
 // Track loaded pages to avoid duplicate loading
 const loadedPages = ref(new Set<number>())

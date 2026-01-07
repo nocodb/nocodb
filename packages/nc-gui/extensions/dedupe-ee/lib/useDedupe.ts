@@ -394,89 +394,108 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const deleteRecordsAfterMerge = async (recordIndices: number[]) => {
     const CHUNK_SIZE = 50
+    const PROCESSING_BATCH_SIZE = 1000 // Process records in chunks to reduce memory usage
 
-    // Separate already loaded records from records that need loading
-    const alreadyLoadedIndices: number[] = []
-    const chunksToLoad = new Set<number>()
+    const processedPkValues = new Set<string>()
 
-    recordIndices.forEach((index) => {
-      // Check if record is already in cache OR if chunk is marked as loaded
-      if (cachedRows.value.has(index) || chunkStates.value[Math.floor(index / CHUNK_SIZE)] === 'loaded') {
-        alreadyLoadedIndices.push(index)
-      } else {
-        chunksToLoad.add(Math.floor(index / CHUNK_SIZE))
-      }
-    })
+    // Process records in smaller batches to reduce memory footprint
+    for (let batchStart = 0; batchStart < recordIndices.length; batchStart += PROCESSING_BATCH_SIZE) {
+      const batchIndices = recordIndices.slice(batchStart, batchStart + PROCESSING_BATCH_SIZE)
 
-    // Track which records we've already processed to avoid duplicates
-    const processedIndices = new Set<number>()
+      // Separate already loaded records from records that need loading for this batch
+      const alreadyLoadedIndices: number[] = []
+      const chunksToLoad = new Set<number>()
 
-    // First, collect PK data from already cached records
-    const recordsToDelete: Array<Record<string, any>> = []
+      batchIndices.forEach((index) => {
+        // Check if record is already in cache OR if chunk is marked as loaded
+        if (cachedRows.value.has(index) || chunkStates.value[Math.floor(index / CHUNK_SIZE)] === 'loaded') {
+          alreadyLoadedIndices.push(index)
+        } else {
+          chunksToLoad.add(Math.floor(index / CHUNK_SIZE))
+        }
+      })
 
-    alreadyLoadedIndices.forEach((index) => {
-      const row = cachedRows.value.get(index)
-      if (row) {
-        recordsToDelete.push(rowPkData(row.row, meta.value?.columns as ColumnType[]))
-        processedIndices.add(index)
-      }
-    })
+      // Collect PK data for this batch only
+      const batchRecordsToDelete: Array<Record<string, any>> = []
 
-    // Then load missing chunks and extract PK data directly (without caching)
-    if (chunksToLoad.size > 0) {
-      await Promise.all(
-        Array.from(chunksToLoad).map(async (chunkIndex) => {
-          try {
-            const loadedRecords = await loadData({
-              limit: CHUNK_SIZE,
-              offset: chunkIndex * CHUNK_SIZE,
-            })
+      // First, collect PK data from already cached records
+      alreadyLoadedIndices.forEach((index) => {
+        const row = cachedRows.value.get(index)
+        if (row) {
+          processedPkValues.add(extractPkFromRow(row.row, (meta.value?.columns as ColumnType[]) || []) ?? '')
+          batchRecordsToDelete.push(rowPkData(row.row, (meta.value?.columns as ColumnType[]) || []))
+        }
+      })
 
-            // Extract PK data directly from loaded records
-            loadedRecords.forEach((record) => {
-              const rowIndex = record.rowMeta.rowIndex!
-              // Only add PK data for records that are in our deletion list and not already processed
-              if (recordIndices.includes(rowIndex) && !processedIndices.has(rowIndex)) {
-                recordsToDelete.push(rowPkData(record.row, meta.value?.columns as ColumnType[]))
-                processedIndices.add(rowIndex)
-              }
-            })
+      // Then load missing chunks and extract PK data directly (without caching)
+      if (chunksToLoad.size > 0) {
+        await Promise.all(
+          Array.from(chunksToLoad).map(async (chunkIndex) => {
+            try {
+              const loadedRecords = await loadData({
+                limit: CHUNK_SIZE,
+                offset: chunkIndex * CHUNK_SIZE,
+              })
 
-            // Update chunk state to prevent future unnecessary loads
-            chunkStates.value[chunkIndex] = 'loaded'
-          } catch (error) {
-            console.error(`Error loading chunk ${chunkIndex}:`, error)
-            chunkStates.value[chunkIndex] = undefined
-          }
-        }),
-      )
-    }
+              // Extract PK data directly from loaded records for this batch
+              loadedRecords.forEach((record) => {
+                const rowIndex = record.rowMeta.rowIndex!
+                // Only add PK data for records that are in our current batch
+                if (batchIndices.includes(rowIndex)) {
+                  const pkValue = extractPkFromRow(record.row, (meta.value?.columns as ColumnType[]) || []) ?? ''
+                  if (!processedPkValues.has(pkValue)) {
+                    processedPkValues.add(pkValue)
+                    batchRecordsToDelete.push(rowPkData(record.row, (meta.value?.columns as ColumnType[]) || []))
+                  }
+                }
+              })
 
-    // Delete records in batches to avoid overwhelming the API
-    const DELETE_BATCH_SIZE = 200
-
-    for (let i = 0; i < recordsToDelete.length; i += DELETE_BATCH_SIZE) {
-      const batch = recordsToDelete.slice(i, i + DELETE_BATCH_SIZE)
-
-      try {
-        await $api.internal.postOperation(
-          (meta.value as any).fk_workspace_id!,
-          meta.value!.base_id!,
-          {
-            operation: 'dataDelete',
-            tableId: meta.value?.id as string,
-            viewId: config.value.selectedViewId || '',
-          },
-          batch.length === 1 ? batch[0]! : batch,
+              // Update chunk state to prevent future unnecessary loads
+              chunkStates.value[chunkIndex] = 'loaded'
+            } catch (error) {
+              console.error(`Error loading chunk ${chunkIndex}:`, error)
+              chunkStates.value[chunkIndex] = undefined
+            }
+          }),
         )
-      } catch (error: any) {
-        console.error(`Error deleting batch ${Math.floor(i / DELETE_BATCH_SIZE) + 1}:`, error)
-        // Continue with next batch even if this one fails
       }
 
-      // Small delay between batches to avoid overwhelming the API
-      if (i + DELETE_BATCH_SIZE < recordsToDelete.length) {
-        await new Promise(resolve => setTimeout(resolve, 50))
+      // Delete this batch immediately
+      const DELETE_BATCH_SIZE = 500
+
+      for (let i = 0; i < batchRecordsToDelete.length; i += DELETE_BATCH_SIZE) {
+        const deleteBatch = batchRecordsToDelete.slice(i, i + DELETE_BATCH_SIZE)
+
+        try {
+          await $api.internal.postOperation(
+            (meta.value as any).fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'dataDelete',
+              tableId: meta.value?.id as string,
+              viewId: config.value.selectedViewId || '',
+            },
+            deleteBatch.length === 1 ? deleteBatch[0]! : deleteBatch,
+          )
+        } catch (error: any) {
+          console.error(
+            `Error deleting batch ${Math.floor(i / DELETE_BATCH_SIZE) + 1} in processing batch ${
+              Math.floor(batchStart / PROCESSING_BATCH_SIZE) + 1
+            }:`,
+            error,
+          )
+          // Continue with next batch even if this one fails
+        }
+
+        // Small delay between delete batches
+        if (i + DELETE_BATCH_SIZE < batchRecordsToDelete.length) {
+          await ncDelay(50)
+        }
+      }
+
+      // Small delay between processing batches to avoid overwhelming the system
+      if (batchStart + PROCESSING_BATCH_SIZE < recordIndices.length) {
+        await ncDelay(100)
       }
     }
   }

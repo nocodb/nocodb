@@ -1,7 +1,7 @@
 import type { ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import { UITypes, ViewTypes, getFirstNonPersonalView, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import axios from 'axios'
-import type { DedupeConfig, DuplicateSet, MergeState } from './context'
+import type { DedupeConfig, MergeState } from './context'
 import { extensionUserPrefsManager } from '#imports'
 
 import type { Row } from '#imports'
@@ -23,18 +23,8 @@ const getDefaultMergeState = (): MergeState => {
 const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const { $api } = useNuxtApp()
   const { user } = useGlobal()
-  const {
-    extension,
-    tables,
-    getViewsForTable,
-    getTableMeta,
-    getData,
-    updateData,
-    reloadData,
-    activeBaseId,
-    activeTableId,
-    activeViewId,
-  } = useExtensionHelperOrThrow()
+  const { extension, tables, getViewsForTable, getTableMeta, updateData, reloadData, activeBaseId, activeTableId, activeViewId } =
+    useExtensionHelperOrThrow()
 
   const { clone } = useUndoRedo()
 
@@ -82,6 +72,11 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const contextMenuTarget = ref<{ row: Row; index: number } | null>(null)
 
+  const saveConfig = async () => {
+    if (!user.value?.id) return
+    extensionUserPrefsManager.set(user.value.id, extension.value.id, config.value, extension.value.baseId)
+  }
+
   // Computed
   const tableList = computed(() => {
     return tables.value.map((table) => ({
@@ -105,16 +100,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       }))
   })
 
-  // fields to render
-  const fields = computed(() => {
-    return (meta.value?.columns || [])
-      .filter((col) => {
-        if (isSystemColumn(col) || col.id === selectedField.value?.id) return false
-        return true
-      })
-      .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
-  })
-
   const selectedField = computed(() => {
     if (!config.value.selectedFieldId) return null
     return meta.value?.columns?.find((col) => col.id === config.value.selectedFieldId)
@@ -123,6 +108,16 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const selectedView = computed(() => {
     if (!config.value.selectedViewId) return null
     return views.value.find((view) => view.id === config.value.selectedViewId)
+  })
+
+  // fields to render
+  const fields = computed(() => {
+    return (meta.value?.columns || [])
+      .filter((col) => {
+        if (isSystemColumn(col) || col.id === selectedField.value?.id) return false
+        return true
+      })
+      .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
   })
 
   const availableFields = computed(() => {
@@ -139,7 +134,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     if (!selectedField.value?.id || !currentGroup.value) return ''
 
     return buildWhereQueryForGroup({
-      [selectedField.value?.id!]: currentGroup.value?.[selectedField.value?.title!],
+      [selectedField.value.id!]: currentGroup.value[selectedField.value.title!],
     })
   })
 
@@ -216,11 +211,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     resetDedupeState()
     config.value.selectedViewId = viewId
     await saveConfig()
-  }
-
-  const saveConfig = async () => {
-    if (!user.value?.id) return
-    extensionUserPrefsManager.set(user.value.id, extension.value.id, config.value, extension.value.baseId)
   }
 
   const loadSavedConfig = async () => {

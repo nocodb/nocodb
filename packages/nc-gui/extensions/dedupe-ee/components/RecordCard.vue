@@ -168,7 +168,7 @@ const isFieldSelected = (col: ColumnType) => {
       <div class="flex-1 flex content-stretch gap-3 w-full overflow-hidden rounded-b-xl">
         <div class="flex-1 flex flex-col">
           <div
-            v-for="(col, colIndex) of fields"
+            v-for="col of fields"
             :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
             class="nc-card-col-wrapper p-2 !border-none min-h-15"
             :class="{
@@ -282,7 +282,7 @@ const isFieldSelected = (col: ColumnType) => {
   }
 
   &.nc-field-selected {
-    @apply bg-nc-green-100 dark:bg-nc-green-50 hover:bg-opacity-80;
+    @apply bg-nc-green-100 dark:bg-nc-green-20 hover:bg-opacity-80;
   }
 
   .nc-cell,

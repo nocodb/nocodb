@@ -7,17 +7,7 @@ import DedupeFooter from './components/DedupeFooter.vue'
 import MergePreview from './components/MergePreview.vue'
 
 // Provide dedupe instance to child components
-const {
-  loadSavedConfig,
-  groupSetsPaginationData,
-  scrollContainer,
-  currentStep,
-  currentGroup,
-  currentGroupRecordsPaginationData,
-  mergeState,
-  findDuplicates,
-  primaryRecordRowInfo,
-} = useProvideDedupe()
+const { loadSavedConfig, groupSetsPaginationData, currentStep, findDuplicates } = useProvideDedupe()
 
 const { fullscreen, toggleFullScreen } = useExtensionHelperOrThrow()
 
@@ -34,10 +24,6 @@ watch(currentStep, () => {
   if (currentStep.value === 'review') {
     findDuplicates()
   }
-})
-
-watchEffect(() => {
-  console.log('height', height.value)
 })
 </script>
 

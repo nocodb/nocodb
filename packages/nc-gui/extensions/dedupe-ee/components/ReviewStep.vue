@@ -55,7 +55,7 @@ watch(scrollTop, (newScrollTop) => {
     </div>
 
     <div ref="scrollContainer" class="w-full h-[calc(100%_-_38px)] relative nc-scrollbar-thin" @scroll="handleScroll">
-      <div v-if="!currentGroup" class="flex-1 flex items-center justify-center">
+      <div v-if="!currentGroup" class="flex-1 h-full flex items-center justify-center">
         <a-empty description="No duplicate set selected" :image="Empty.PRESENTED_IMAGE_SIMPLE">
           <template #description>
             <span class="text-nc-content-gray-muted">Select a duplicate group to review</span>
@@ -67,12 +67,13 @@ watch(scrollTop, (newScrollTop) => {
 
       <div
         v-else-if="currentGroup.count && mergeState.excludedRecordIds.size === currentGroup.count"
-        class="text-center py-8 px-4 text-nc-content-gray-muted"
+        class="h-full flex items-center justify-center py-8 px-4 text-nc-content-gray-muted text-bodyLg"
       >
         All records in this set have been excluded.
       </div>
 
       <NcDropdown
+        v-else
         v-model:visible="contextMenu"
         :disabled="contextMenuTarget === null"
         :trigger="['contextmenu']"
@@ -103,7 +104,7 @@ watch(scrollTop, (newScrollTop) => {
 
           <div>
             <!-- Just for spacing  -->
-            &nbsp
+            &nbsp;
           </div>
         </div>
       </NcDropdown>

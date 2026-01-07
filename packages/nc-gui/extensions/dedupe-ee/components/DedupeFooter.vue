@@ -6,12 +6,8 @@ const {
   resetMergeState,
   nextSet,
   mergeAndDelete,
-  currentSetRecords,
   mergeState,
   isMerging,
-  duplicateSets,
-  hasMoreDuplicateSets,
-  currentSetIndex,
   groupSets,
   groupSetsPaginationData,
   currentGroup,
@@ -30,8 +26,6 @@ const onCancel = () => {
     toggleFullScreen()
   }
 }
-
-// Computed for review step footer
 
 const hasPrimaryRecord = computed(() => {
   return ncIsNumber(mergeState.value.primaryRecordIndex)
@@ -76,7 +70,9 @@ const handleReview = async () => {
 </script>
 
 <template>
-  <div class="w-full flex items-center justify-between gap-3 px-4 pt-[11px] pb-3 border-t-1 border-nc-border-gray-medium">
+  <div
+    class="w-full sticky bottom-0 bg-nc-bg-default flex items-center justify-between gap-3 px-4 pt-[11px] pb-3 border-t-1 border-nc-border-gray-medium"
+  >
     <!-- Config step footer -->
     <template v-if="currentStep === 'config'">
       <div></div>

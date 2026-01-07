@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { Row as RowType } from '#imports'
-import { type ColumnType, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
 import { useDedupeOrThrow } from '../lib/useDedupe'
 
 interface Props {
@@ -12,24 +12,18 @@ const props = withDefaults(defineProps<Props>(), {})
 
 const { record } = toRefs(props)
 
-const {
-  currentGroupRecords,
-  currentGroupIndex,
-  currentGroup,
-  selectedField,
-  contextMenuTarget,
-  meta,
-  mergeState,
-  setPrimaryRecord,
-  selectFieldValue,
-  fields,
-} = useDedupeOrThrow()
+const { currentGroup, selectedField, contextMenuTarget, mergeState, setPrimaryRecord, selectFieldValue, fields } =
+  useDedupeOrThrow()
 
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
 provide(IsCalendarInj, ref(false))
 provide(RowHeightInj, ref(1 as const))
+
+const isPrimaryRecord = computed(() => {
+  return mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex!
+})
 
 const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }) => {
   if (props.isMergeRecord) return
@@ -76,7 +70,7 @@ const handleClick = () => {
 }
 
 const handleClickField = (col: ColumnType) => {
-  if (props.isMergeRecord || isVirtualCol(col)) return
+  if (props.isMergeRecord) return
 
   if (!ncIsNumber(mergeState.value.primaryRecordIndex)) {
     setPrimaryRecord(record.value.rowMeta.rowIndex!)
@@ -84,13 +78,10 @@ const handleClickField = (col: ColumnType) => {
     return
   }
 
-  if (
-    mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex! &&
-    !ncIsUndefined(mergeState.value.selectedFields[col.id!])
-  ) {
-    delete mergeState.value.selectedFields[col.id!]
+  if (isVirtualCol(col)) return
 
-    // mergeState.value = { ...mergeState.value }
+  if (isPrimaryRecord.value && !ncIsUndefined(mergeState.value.selectedFields[col.id!])) {
+    delete mergeState.value.selectedFields[col.id!]
 
     return
   }
@@ -107,21 +98,20 @@ const isFieldSelected = (col: ColumnType) => {
 
   return mergeState.value.selectedFields[col.id!] === record.value.rowMeta.rowIndex!
 }
-
-const isPrimaryRecord = computed(() => {
-  return mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex!
-})
 </script>
 
 <template>
   <LazySmartsheetRow :row="record">
     <a-card
-      class="!rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group break-all w-[320px] max-w-[320px] flex-none cursor-pointer flex flex-col relative"
+      class="!rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group break-all w-[320px] max-w-[320px] flex-none flex flex-col relative"
       :body-style="{ padding: '0px !important', flex: 1, display: 'flex' }"
       :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
       :style="{
         ...extractRowBackgroundColorStyle(record).rowBgColor,
         ...extractRowBackgroundColorStyle(record).rowBorderColor,
+      }"
+      :class="{
+        'cursor-pointer': !isMergeRecord,
       }"
       @click="handleClick"
       @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
@@ -180,9 +170,10 @@ const isPrimaryRecord = computed(() => {
           <div
             v-for="(col, colIndex) of fields"
             :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
-            class="nc-card-col-wrapper p-2 !border-none"
+            class="nc-card-col-wrapper p-2 !border-none min-h-15"
             :class="{
               'nc-field-selected': isFieldSelected(col) && !isMergeRecord && !isVirtualCol(col),
+              '!cursor-not-allowed': isVirtualCol(col),
             }"
             @click="handleClickField(col)"
           >
@@ -291,7 +282,7 @@ const isPrimaryRecord = computed(() => {
   }
 
   &.nc-field-selected {
-    @apply bg-nc-green-100 dark:bg-nc-green-20 hover:bg-opacity-80;
+    @apply bg-nc-green-100 dark:bg-nc-green-50 hover:bg-opacity-80;
   }
 
   .nc-cell,

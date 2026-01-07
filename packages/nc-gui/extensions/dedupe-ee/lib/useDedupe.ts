@@ -36,6 +36,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     activeViewId,
   } = useExtensionHelperOrThrow()
 
+  const { clone } = useUndoRedo()
+
   // State
   const scrollContainer = ref<HTMLElement>()
 
@@ -412,37 +414,31 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const setPrimaryRecord = (recordIndex: number) => {
     mergeState.value.primaryRecordIndex = recordIndex
     mergeState.value.selectedFields = {}
-
-    // mergeState.value = { ...mergeState.value }
   }
 
   const excludeRecord = (recordIndex: number) => {
-    mergeState.value.excludedRecordIndexes.add(recordIndex)
-
     Object.keys(mergeState.value.selectedFields).forEach((fieldId) => {
       if (mergeState.value.selectedFields[fieldId] === recordIndex) {
         delete mergeState.value.selectedFields[fieldId]
       }
     })
 
-    // mergeState.value = { ...mergeState.value }
+    mergeState.value.excludedRecordIndexes.add(recordIndex)
+
+    mergeState.value = { ...mergeState.value }
   }
 
   const includeRecord = (recordIndex: number) => {
     mergeState.value.excludedRecordIndexes.delete(recordIndex)
-
-    // mergeState.value = { ...mergeState.value }
   }
 
   const selectFieldValue = (fieldId: string, recordIndex: number) => {
     if (!fieldId) return
     mergeState.value.selectedFields[fieldId] = recordIndex
-
-    // mergeState.value = { ...mergeState.value }
   }
 
   const getFieldValue = (fieldId: string, recordIndex: number) => {
-    const record = cachedRows.value.get(recordIndex)
+    const record = cachedRows.value.get(recordIndex) ? clone(cachedRows.value.get(recordIndex)!) : null
     if (!record) return null
 
     const field = meta.value?.columns?.find((col) => col.id === fieldId)
@@ -463,7 +459,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
     if (!ncIsNumber(mergeState.value.primaryRecordIndex)) return row
 
-    const primaryRecord = cachedRows.value.get(mergeState.value.primaryRecordIndex!)
+    const primaryRecord = clone(cachedRows.value.get(mergeState.value.primaryRecordIndex!))
 
     row.row = primaryRecord?.row ?? {}
     row.oldRow = primaryRecord?.oldRow ?? {}
@@ -495,6 +491,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }
   }
 
+  const hasMergedAnyRecords = ref(false)
+
   const mergeAndDelete = async () => {
     if (!ncIsNumber(mergeState.value.primaryRecordIndex) || !primaryRecordRowInfo.value.row) {
       message.error('Please select a primary record')
@@ -505,6 +503,9 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       if (!cachedRows.value.get(i) || mergeState.value.primaryRecordIndex === i) return null
 
       const row = cachedRows.value.get(i)!
+
+      // If record is excluded, don't delete it
+      if (mergeState.value.excludedRecordIndexes.has(i)) return null
 
       return rowPkData(row.row, meta.value?.columns as ColumnType[])
     }).filter(Boolean) as Array<Record<string, any>>
@@ -548,14 +549,14 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
           tableId: meta.value?.id as string,
           viewId: config.value.selectedViewId || '',
         },
-        recordsToDelete.length === 1 ? recordsToDelete[0] : recordsToDelete,
+        recordsToDelete.length === 1 ? recordsToDelete[0]! : recordsToDelete,
       )
 
       currentGroupIndex.value++
 
       resetMergeState()
 
-      if (currentGroupIndex.value >= groupSets.value.length - 1) {
+      if (currentGroupIndex.value >= groupSets.value.length) {
         message.success('All duplicates have been merged and deleted')
         await reloadData()
         return true
@@ -573,6 +574,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       return false
     } finally {
       isMerging.value = false
+      hasMergedAnyRecords.value = true
       reloadData()
     }
   }
@@ -636,64 +638,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     await loadGroupSets(false)
   }
 
-  // Navigate to review step - convert all groupSets to duplicateSets
-  async function navigateToReviewForGroup(group?: Record<string, any>) {
-    if (!config.value.selectedFieldId || !selectedField.value) return
-
-    const fieldTitle = selectedField.value.title
-    if (!fieldTitle) return
-
-    // Ensure we have groups loaded
-    if (groupSets.value.length === 0) {
-      await loadGroupSets(true)
-    }
-
-    // Convert all currently loaded groupSets to duplicateSets
-    const newDuplicateSets: DuplicateSet[] = []
-    for (const groupItem of groupSets.value) {
-      const fieldValues: Record<string, any> = {}
-      if (groupItem[fieldTitle] !== undefined) {
-        fieldValues[config.value.selectedFieldId] = groupItem[fieldTitle]
-      }
-
-      const duplicateSet: DuplicateSet = {
-        key: `${config.value.selectedFieldId}:${groupItem[fieldTitle] || 'null'}`,
-        fieldValues,
-        recordCount: groupItem.count || 0,
-        records: undefined, // Will be loaded on demand
-      }
-      newDuplicateSets.push(duplicateSet)
-    }
-
-    // Set all duplicate sets
-    duplicateSets.value = newDuplicateSets
-
-    hasMoreDuplicateSets.value = hasMoreGroupSets.value
-
-    // Find the index of the selected group, or default to 0
-    let initialIndex = 0
-    if (group && fieldTitle && config.value.selectedFieldId) {
-      const selectedValue = group[fieldTitle]
-      const selectedFieldId = config.value.selectedFieldId
-      initialIndex = newDuplicateSets.findIndex((ds) => ds.fieldValues[selectedFieldId] === selectedValue)
-      if (initialIndex === -1) initialIndex = 0
-    }
-
-    currentSetIndex.value = initialIndex
-
-    // Reset merge state only (don't clear groupSets)
-    resetMergeStateOnly()
-
-    // Navigate to review step
-    currentStep.value = 'review'
-
-    // Load records for the initial group
-    const initialDuplicateSet = duplicateSets.value[currentSetIndex.value]
-    if (initialDuplicateSet) {
-      await loadRecordsForGroup(initialDuplicateSet)
-    }
-  }
-
   return {
     // State
     config,
@@ -723,6 +667,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     hasNextGroup,
     currentGroupRecords,
     currentGroupRecordsPaginationData,
+    hasMergedAnyRecords,
     // Methods
     reloadViews,
     loadTableMeta,
@@ -746,7 +691,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     groupSets,
     loadGroupSets,
     loadMoreGroupSets,
-    navigateToReviewForGroup,
 
     // record loading
     loadData,

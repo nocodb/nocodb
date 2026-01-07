@@ -2,8 +2,7 @@
 import { type TableType } from 'nocodb-sdk'
 import { useDedupeOrThrow } from '../lib/useDedupe'
 
-const { selectedField, groupSets, meta, loadMoreGroupSets, groupSetsPaginationData, scrollContainer, navigateToReviewForGroup } =
-  useDedupeOrThrow()
+const { selectedField, groupSets, meta, loadMoreGroupSets, groupSetsPaginationData, scrollContainer } = useDedupeOrThrow()
 
 provide(MetaInj, ref(meta.value as TableType))
 

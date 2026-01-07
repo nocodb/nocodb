@@ -1,32 +1,22 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
+import { useDedupeOrThrow } from '../lib/useDedupe'
+import RecordCard from './RecordCard.vue'
 
-interface Props {
-  fields: ColumnType[]
-  primaryRecordId: string
-  selectedFields: Record<string, string>
-  getSelectedFieldValue: (fieldId: string) => any
-  getFieldValue: (fieldId: string, recordId: string) => any
-}
-
-defineProps<Props>()
+const { mergeState, primaryRecordRowInfo } = useDedupeOrThrow()
 </script>
 
 <template>
-  <div class="border-2 border-dashed border-primary rounded-lg p-4 bg-primary/5">
-    <h3 class="font-semibold mb-3">Merge Preview</h3>
-    <div class="space-y-2">
-      <div v-for="field of fields" :key="field.id" class="flex items-start gap-2">
-        <div class="flex-1">
-          <div class="text-xs font-medium text-gray-600">{{ field.title }}</div>
-          <div class="text-sm">
-            {{
-              field.id
-                ? getSelectedFieldValue(field.id) ?? getFieldValue(field.id, primaryRecordId) ?? '(empty)'
-                : '(empty)'
-            }}
-          </div>
-        </div>
+  <div
+    v-if="ncIsNumber(mergeState.primaryRecordIndex) && primaryRecordRowInfo"
+    class="border-l border-nc-border-gray-medium bg-nc-bg-gray-extralight"
+  >
+    <div class="px-4 py-2 min-h-[38px]">
+      <h3 class="font-semibold m-0">Merge Preview</h3>
+    </div>
+
+    <div class="h-[calc(100%_-_38px)] nc-scrollbar-thin">
+      <div class="flex flex-col gap-4 children:flex-none px-4 pb-4 nc-scollbar-thin relative">
+        <RecordCard :record="primaryRecordRowInfo" is-merge-record />
       </div>
     </div>
   </div>

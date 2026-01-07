@@ -198,7 +198,7 @@ const rolePermissions = {
       dataEdit: true,
       sortSync: true,
       filterSync: true,
-      filterChildrenRead: true,
+      filterChildrenList: true,
       viewFieldEdit: true,
       csvTableImport: true,
       excelTableImport: true,

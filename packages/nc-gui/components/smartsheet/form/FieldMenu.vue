@@ -78,7 +78,7 @@ const duplicateVirtualColumn = async () => {
       meta.value!.fk_workspace_id!,
       meta.value!.base_id!,
       {
-        operation: 'columnCreate',
+        operation: 'columnAdd',
         tableId: meta!.value!.id!,
       },
       {

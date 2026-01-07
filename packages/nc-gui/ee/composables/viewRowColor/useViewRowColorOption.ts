@@ -93,7 +93,7 @@ export function useViewRowColorOption(params: {
       meta.value!.fk_workspace_id!,
       meta.value!.base_id!,
       {
-        operation: 'viewRowColorDelete',
+        operation: 'viewRowColorInfoDelete',
         viewId: params.view.value.id,
       },
       {},

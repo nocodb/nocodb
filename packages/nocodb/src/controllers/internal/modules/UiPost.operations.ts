@@ -54,26 +54,26 @@ export class UiPostOperations
     'tableUpdate' as const,
     'tableDelete' as const,
     'tableReorder' as const,
-    'columnCreate' as const,
+    'columnAdd' as const,
     'columnUpdate' as const,
     'columnDelete' as const,
-    'columnPrimarySet' as const,
+    'columnSetAsPrimary' as const,
     'columnsBulk' as const,
     'viewUpdate' as const,
     'viewDelete' as const,
-    'viewShare' as const,
-    'viewShareUpdate' as const,
-    'viewShareDelete' as const,
-    'viewShowAll' as const,
-    'viewHideAll' as const,
+    'shareView' as const,
+    'shareViewUpdate' as const,
+    'shareViewDelete' as const,
+    'showAllColumns' as const,
+    'hideAllColumns' as const,
     'viewColumnUpdate' as const,
     'viewColumnCreate' as const,
-    'gridViewColumnUpdate' as const,
+    'gridColumnUpdate' as const,
     'viewRowColorConditionAdd' as const,
     'viewRowColorConditionUpdate' as const,
     'viewRowColorConditionDelete' as const,
     'viewRowColorSelectAdd' as const,
-    'viewRowColorDelete' as const,
+    'viewRowColorInfoDelete' as const,
     'filterCreate' as const,
     'filterUpdate' as const,
     'filterDelete' as const,
@@ -112,7 +112,7 @@ export class UiPostOperations
     'commentDelete' as const,
     'commentResolve' as const,
     'dataDelete' as const,
-    'dataDeleteAll' as const,
+    'bulkDataDeleteAll' as const,
   ] satisfies ReadonlyArray<keyof typeof OPERATION_SCOPES>;
   httpMethod = 'POST' as const;
 
@@ -151,7 +151,7 @@ export class UiPostOperations
           order: payload.order,
           req,
         });
-      case 'columnCreate':
+      case 'columnAdd':
         return await this.columnsService.columnAdd(context, {
           tableId: req.query.tableId,
           column: payload,
@@ -171,7 +171,7 @@ export class UiPostOperations
           user: req.user,
           req,
         });
-      case 'columnPrimarySet':
+      case 'columnSetAsPrimary':
         return await this.columnsService.columnSetAsPrimary(context, {
           columnId: req.query.columnId,
           req,
@@ -196,31 +196,31 @@ export class UiPostOperations
           user: req.user,
           req,
         });
-      case 'viewShare':
+      case 'shareView':
         return await this.viewsService.shareView(context, {
           viewId: req.query.viewId,
           user: req.user,
           req,
         });
-      case 'viewShareUpdate':
+      case 'shareViewUpdate':
         return await this.viewsService.shareViewUpdate(context, {
           viewId: req.query.viewId,
           sharedView: payload,
           user: req.user,
           req,
         });
-      case 'viewShareDelete':
+      case 'shareViewDelete':
         return await this.viewsService.shareViewDelete(context, {
           viewId: req.query.viewId,
           user: req.user,
           req,
         });
-      case 'viewShowAll':
+      case 'showAllColumns':
         return await this.viewsService.showAllColumns(context, {
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
         });
-      case 'viewHideAll':
+      case 'hideAllColumns':
         return await this.viewsService.hideAllColumns(context, {
           viewId: req.query.viewId,
           ignoreIds: req.query.ignoreIds,
@@ -232,7 +232,7 @@ export class UiPostOperations
           column: payload,
           req,
         });
-      case 'gridViewColumnUpdate':
+      case 'gridColumnUpdate':
         return await this.gridColumnsService.gridColumnUpdate(context, {
           gridViewColumnId: req.query.gridViewColumnId,
           grid: payload,
@@ -275,7 +275,7 @@ export class UiPostOperations
           fk_column_id: payload.fk_column_id,
           is_set_as_background: payload.is_set_as_background,
         });
-      case 'viewRowColorDelete':
+      case 'viewRowColorInfoDelete':
         return await this.viewRowColorService.removeRowColorInfo({
           context,
           fk_view_id: req.query.viewId,
@@ -512,7 +512,7 @@ export class UiPostOperations
           body: payload,
           user: req.user,
         });
-      case 'dataDeleteAll':
+      case 'bulkDataDeleteAll':
         return await this.bulkDataAliasService.bulkDataDeleteAll(context, {
           baseName: context.base_id,
           tableName: req.query.tableId!,

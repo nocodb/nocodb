@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ViewTypes, type ColumnType, isVirtualCol, isSystemColumn } from 'nocodb-sdk'
+import { type ColumnType, ViewTypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { useDedupeOrThrow } from '../lib/useDedupe'
 
 const { config, onTableSelect, saveConfig, loadGroupSets, hasMergedAnyRecords } = useDedupeOrThrow()

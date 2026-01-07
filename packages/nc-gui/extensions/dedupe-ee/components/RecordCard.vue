@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import type { Row as RowType } from '#imports'
 import { type ColumnType, isVirtualCol } from 'nocodb-sdk'
 import { useDedupeOrThrow } from '../lib/useDedupe'
+import type { Row as RowType } from '#imports'
 
 interface Props {
   record: RowType

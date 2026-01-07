@@ -81,16 +81,16 @@ watch(scrollTop, (newScrollTop) => {
         <template #overlay>
           <NcMenu variant="small" @click="contextMenu = false">
             <NcMenuItem
-              @click="setPrimaryRecord(contextMenuTarget!.index)"
               :disabled="mergeState.primaryRecordIndex === contextMenuTarget!.index"
+              @click="setPrimaryRecord(contextMenuTarget!.index)"
             >
               <GeneralIcon icon="check" />
 
               Use as primary record
             </NcMenuItem>
             <NcMenuItem
-              @click="excludeRecord(contextMenuTarget!.index)"
               :disabled="mergeState.primaryRecordIndex === contextMenuTarget!.index"
+              @click="excludeRecord(contextMenuTarget!.index)"
             >
               <GeneralIcon icon="close" />
 

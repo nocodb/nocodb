@@ -1,8 +1,8 @@
-import type { ColumnType, TableType, ViewType, PaginatedType } from 'nocodb-sdk'
-import { ViewTypes, getFirstNonPersonalView, UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { extensionUserPrefsManager } from '#imports'
-import type { DedupeConfig, DuplicateSet, MergeState } from './context'
+import type { ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import { UITypes, ViewTypes, getFirstNonPersonalView, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import axios from 'axios'
+import type { DedupeConfig, DuplicateSet, MergeState } from './context'
+import { extensionUserPrefsManager } from '#imports'
 
 import type { Row } from '#imports'
 
@@ -59,11 +59,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const isLoadingMoreSets = ref(false)
   const hasMoreDuplicateSets = ref(false)
   const duplicateSetsPage = ref(1)
-  const pageSize = 20
 
   const groupSets = ref<Record<string, any>[]>([])
-
-  const hasMoreGroupSets = ref(false)
 
   const groupSetsPaginationData = ref<PaginatedType & { isLoading: boolean }>({ ...getDefaultPaginationData(), isLoading: false })
 
@@ -147,13 +144,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     if (currentSetIndex.value >= duplicateSets.value.length) return null
     return duplicateSets.value[currentSetIndex.value]
   })
-
-  const currentSetRecords = computed(() => {
-    if (!currentDuplicateSet.value || !currentDuplicateSet.value.records) return []
-    return currentDuplicateSet.value.records.filter((record) => !mergeState.value.excludedRecordIds.has(record.Id))
-  })
-
-  const isLoadingCurrentSetRecords = ref(false)
 
   const hasMoreSets = computed(() => {
     return hasMoreDuplicateSets.value || currentSetIndex.value < duplicateSets.value.length - 1
@@ -306,73 +296,12 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     return conditions.join('~and')
   }
 
-  // Load records for a specific duplicate group using where query
-  const loadRecordsForGroup = async (duplicateSet: DuplicateSet) => {
-    if (duplicateSet.records) return // Already loaded
-
-    isLoadingCurrentSetRecords.value = true
-    try {
-      if (!config.value.selectedTableId || !extension.value.baseId) {
-        throw new Error('Table ID or base ID is missing')
-      }
-
-      const whereQuery = buildWhereQueryForGroup(duplicateSet.fieldValues)
-      const allRecords: Record<string, any>[] = []
-
-      // Use API directly with where query to fetch only records matching this group
-      let page = 1
-      const pageSize = 100
-
-      const fetchPage = async () => {
-        const response = await $api.dbViewRow.list(
-          'noco',
-          extension.value.baseId,
-          config.value.selectedTableId!,
-          config.value.selectedViewId || '',
-          {
-            offset: (page - 1) * pageSize,
-            limit: pageSize,
-            where: whereQuery,
-          } as any,
-        )
-
-        allRecords.push(...(response.list || []))
-
-        if (response.pageInfo?.isLastPage) {
-          // Update the duplicateSet in the array to ensure reactivity
-          const setIndex = duplicateSets.value.findIndex((ds) => ds.key === duplicateSet.key)
-          if (setIndex !== -1 && duplicateSets.value[setIndex]) {
-            duplicateSets.value[setIndex] = {
-              ...duplicateSets.value[setIndex],
-              records: allRecords,
-            }
-          } else {
-            duplicateSet.records = allRecords
-          }
-        } else {
-          page++
-          await fetchPage()
-        }
-      }
-
-      await fetchPage()
-    } catch (error: any) {
-      message.error(`Error loading records for duplicate group: ${error.message || 'Unknown error'}`)
-    } finally {
-      isLoadingCurrentSetRecords.value = false
-    }
-  }
-
   // Find duplicate groups (only metadata, not all records)
   const findDuplicates = async (reset = true) => {
     if (!config.value.selectedTableId || !config.value.selectedFieldId || !selectedField.value) {
       message.error('Please select a table and field for duplicate detection')
       return
     }
-
-    const whereQuery = buildWhereQueryForGroup({
-      [selectedField.value.id!]: currentGroup.value?.[selectedField.value.title!],
-    })
 
     if (reset) {
       currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: true }
@@ -388,17 +317,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       records.forEach((record) => {
         cachedRows.value.set(record.rowMeta.rowIndex!, record)
       })
-
-      // await getData({
-      //   tableId: config.value.selectedTableId!,
-      //   viewId: config.value.selectedViewId,
-      //   where: whereQuery,
-      //   eachPage: async (records, nextPage) => {
-      //     currentGroupRecords.value.push(...records)
-      //     nextPage()
-      //   },
-      //   done: async () => {},
-      // })
     } catch (error: any) {
       message.error(`Error finding duplicates: ${error.message || 'Unknown error'}`)
     } finally {
@@ -469,7 +387,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     for (const [fieldId, otherFieldIndex] of Object.entries(mergeState.value.selectedFields)) {
       const field = (fields.value || []).find((col) => col.id === fieldId)
 
-      if (!field) continue
+      if (!field || mergeState.value.excludedRecordIndexes.has(otherFieldIndex)) continue
 
       row.row[field.title || field.id!] = getFieldValue(fieldId, otherFieldIndex)
     }
@@ -553,13 +471,14 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         recordsToDelete.length === 1 ? recordsToDelete[0]! : recordsToDelete,
       )
 
-      currentGroupIndex.value++
+      if (hasNextGroup.value) {
+        currentGroupIndex.value++
+      }
 
       resetMergeState()
 
-      if (currentGroupIndex.value >= groupSets.value.length) {
+      if (!hasNextGroup.value) {
         message.success('All duplicates have been merged and deleted')
-        await reloadData()
         return true
       } else {
         message.success(`Merged and deleted ${recordsToDelete.length} record(s)`)
@@ -658,9 +577,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     availableFields,
     selectedField,
     currentDuplicateSet,
-    currentSetRecords,
     hasMoreSets,
-    isLoadingCurrentSetRecords,
     isLoadingMoreSets,
     hasMoreDuplicateSets,
     groupSetsPaginationData,
@@ -678,7 +595,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     saveConfig,
     loadSavedConfig,
     findDuplicates,
-    loadRecordsForGroup,
     resetMergeState,
     resetMergeStateOnly,
     setPrimaryRecord,

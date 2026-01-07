@@ -4,6 +4,7 @@ import ReviewStep from './components/ReviewStep.vue'
 import SidebarConfig from './components/SidebarConfig.vue'
 import DedupeGroupSets from './components/DedupeGroupSets.vue'
 import DedupeFooter from './components/DedupeFooter.vue'
+import RecordCard from './components/RecordCard.vue'
 
 // Provide dedupe instance to child components
 const {
@@ -15,6 +16,7 @@ const {
   currentGroupRecordsPaginationData,
   mergeState,
   findDuplicates,
+  primaryRecordRowInfo,
 } = useProvideDedupe()
 
 const { fullscreen, toggleFullScreen } = useExtensionHelperOrThrow()
@@ -88,7 +90,7 @@ watch(currentStep, () => {
         <template v-else>
           <!-- Review step - full width, no sidebar -->
 
-          <div class="flex-1 relative nc-scrollbar-thin h-full">
+          <div class="flex-1 relative nc-scrollbar-thin h-full bg-nc-bg-gray-extralight">
             <div v-if="!currentGroup" class="flex-1 flex items-center justify-center">
               <a-empty description="No duplicate set selected" :image="Empty.PRESENTED_IMAGE_SIMPLE">
                 <template #description>
@@ -115,8 +117,14 @@ watch(currentStep, () => {
               </div>
             </general-overlay>
           </div>
-          <!-- <div
-            class="h-full min-w-xs border-l border-nc-border-gray-medium nc-scrollbar-thin px-4">some config</div> -->
+          <div
+            v-if="ncIsNumber(mergeState.primaryRecordIndex) && primaryRecordRowInfo"
+            class="h-full min-w-xs border-l border-nc-border-gray-medium nc-scrollbar-thin bg-nc-bg-gray-extralight"
+          >
+            <div class="flex gap-4 children:flex-none p-4 nc-scollbar-thin relative">
+              <RecordCard :record="primaryRecordRowInfo" is-merge-record />
+            </div>
+          </div>
         </template>
       </div>
       <DedupeFooter />

@@ -47,12 +47,12 @@ const contextMenu = ref(false)
       </a-empty>
     </div>
 
-    <div v-else class="p-4 h-full">
-      <div v-if="currentGroupRecordsPaginationData.isLoading" class="text-center py-8"></div>
+    <div v-else class="h-full bg-nc-bg-gray-extralight">
+      <div v-if="currentGroupRecordsPaginationData.isLoading" class="text-center px-4 py-12"></div>
 
       <div
         v-else-if="currentGroup.count && mergeState.excludedRecordIds.size === currentGroup.count"
-        class="text-center py-8 text-nc-content-gray-muted"
+        class="text-center px-4 py-12 text-nc-content-gray-muted"
       >
         All records in this set have been excluded.
       </div>
@@ -83,7 +83,7 @@ const contextMenu = ref(false)
             </NcMenuItem>
           </NcMenu>
         </template>
-        <div class="nc-review-records-container nc-scollbar-thin">
+        <div class="nc-review-records-container nc-scollbar-thin relative">
           <RecordCard v-for="record of visibleRows" :key="`record-${record.rowMeta.rowIndex}`" :record="record" />
         </div>
       </NcDropdown>
@@ -93,6 +93,6 @@ const contextMenu = ref(false)
 
 <style lang="scss" scoped>
 .nc-review-records-container {
-  @apply flex gap-4 children:flex-none;
+  @apply flex gap-4 children:flex-none p-4;
 }
 </style>

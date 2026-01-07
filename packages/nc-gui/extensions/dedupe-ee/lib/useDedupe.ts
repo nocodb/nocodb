@@ -110,6 +110,16 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       }))
   })
 
+  // fields to render
+  const fields = computed(() => {
+    return meta.value?.columns
+      ?.filter((col) => {
+        if (isSystemColumn(col) || col.id === selectedField.value?.id) return false
+        return true
+      })
+      .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
+  })
+
   const selectedField = computed(() => {
     if (!config.value.selectedFieldId) return null
     return meta.value?.columns?.find((col) => col.id === config.value.selectedFieldId)
@@ -166,10 +176,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       getWhereFilter: async (_path, ignoreWhereFilter) => (ignoreWhereFilter ? '' : computedWhere.value),
     },
     disableSmartsheet: true,
-  })
-
-  watchEffect(() => {
-    console.log('loadData', computedWhere.value, cachedRows.value, totalRows.value)
   })
 
   // Methods
@@ -384,8 +390,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         cachedRows.value.set(record.rowMeta.rowIndex!, record)
       })
 
-      console.log('records', cachedRows.value)
-
       // await getData({
       //   tableId: config.value.selectedTableId!,
       //   viewId: config.value.selectedViewId,
@@ -453,6 +457,32 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
     return record.row[fieldKey]
   }
+
+  const primaryRecordRowInfo = computed(() => {
+    const row: Row = {
+      row: {},
+      oldRow: {},
+      rowMeta: {},
+    }
+
+    if (!ncIsNumber(mergeState.value.primaryRecordIndex)) return row
+
+    const primaryRecord = cachedRows.value.get(mergeState.value.primaryRecordIndex!)
+
+    row.row = primaryRecord?.row ?? {}
+    row.oldRow = primaryRecord?.oldRow ?? {}
+    row.rowMeta = primaryRecord?.rowMeta ?? {}
+
+    for (const [fieldId, otherFieldIndex] of Object.entries(mergeState.value.selectedFields)) {
+      const field = (fields.value || []).find((col) => col.id === fieldId)
+
+      if (!field) continue
+
+      row.row[field.title || field.id!] = getFieldValue(fieldId, otherFieldIndex)
+    }
+
+    return row
+  })
 
   const getSelectedFieldValue = (fieldId: string) => {
     const selectedRecordIndex = mergeState.value.selectedFields[fieldId]
@@ -755,6 +785,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     chunkStates,
     clearCache,
     contextMenuTarget,
+    fields,
+    primaryRecordRowInfo,
   }
 })
 

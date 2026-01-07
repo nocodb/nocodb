@@ -6,6 +6,7 @@ import type { NumberDecimal } from 'ant-design-vue/lib/input-number/src/utils/Mi
 
 interface Props {
   record: RowType
+  isMergeRecord?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {})
@@ -22,6 +23,7 @@ const {
   mergeState,
   setPrimaryRecord,
   selectFieldValue,
+  fields,
 } = useDedupeOrThrow()
 
 provide(IsFormInj, ref(false))
@@ -30,20 +32,36 @@ provide(IsGridInj, ref(false))
 provide(IsCalendarInj, ref(false))
 provide(RowHeightInj, ref(1 as const))
 
-const fields = computed(() => {
-  return meta.value?.columns
-    ?.filter((col) => {
-      if (isSystemColumn(col) || col.id === selectedField.value?.id) return false
-      return true
-    })
-    .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
-})
-
 const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }) => {
+  if (props.isMergeRecord) return
+
   e.preventDefault()
   if (target) {
     contextMenuTarget.value = target
   }
+}
+
+const onClickMoreOption = (e: MouseEvent) => {
+  if (props.isMergeRecord) return
+
+  e.preventDefault()
+  e.stopPropagation()
+
+  const target = e.target as HTMLElement
+  const rect = target.getBoundingClientRect()
+
+  const clientX = rect.left
+  const clientY = rect.bottom
+
+  const contextEvent = new MouseEvent('contextmenu', {
+    bubbles: true,
+    cancelable: true,
+    view: window,
+    clientX,
+    clientY,
+  })
+
+  e.target?.dispatchEvent(contextEvent)
 }
 
 const resetPointerEvent = (record: RowType, col: ColumnType) => {
@@ -51,12 +69,16 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 }
 
 const handleClick = () => {
+  if (props.isMergeRecord) return
+
   if (!ncIsNumber(mergeState.value.primaryRecordIndex)) {
     setPrimaryRecord(record.value.rowMeta.rowIndex!)
   }
 }
 
 const handleClickField = (col: ColumnType) => {
+  if (props.isMergeRecord) return
+
   if (!ncIsNumber(mergeState.value.primaryRecordIndex)) {
     setPrimaryRecord(record.value.rowMeta.rowIndex!)
 
@@ -74,12 +96,12 @@ const handleClickField = (col: ColumnType) => {
     return
   }
 
-  console.log('select field', col.id!, record.value.rowMeta.rowIndex!)
-
   selectFieldValue(col.id!, record.value.rowMeta.rowIndex!)
 }
 
 const isFieldSelected = (col: ColumnType) => {
+  if (props.isMergeRecord) return false
+
   if (ncIsUndefined(mergeState.value.selectedFields[col.id!])) {
     return mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex!
   }
@@ -87,15 +109,15 @@ const isFieldSelected = (col: ColumnType) => {
   return mergeState.value.selectedFields[col.id!] === record.value.rowMeta.rowIndex!
 }
 
-watchEffect(() => {
-  console.log('merge ', mergeState.value)
+const isPrimaryRecord = computed(() => {
+  return mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex!
 })
 </script>
 
 <template>
   <LazySmartsheetRow :row="record">
     <a-card
-      class="!rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group break-all w-[320px] max-w-[320px] flex-none cursor-pointer flex flex-col"
+      class="!rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group break-all w-[320px] max-w-[320px] flex-none cursor-pointer flex flex-col relative"
       :body-style="{ padding: '0px !important', flex: 1, display: 'flex' }"
       :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
       :style="{
@@ -106,14 +128,24 @@ watchEffect(() => {
       @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
     >
       <template #cover>
-        <div v-if="selectedField" class="sticky top-0 z-10 px-2 py-3 border-b border-b-nc-border-gray-medium">
+        <div v-if="selectedField" class="p-2 rounded-t-xl border-1 bg-nc-bg-default">
           <div class="flex items-center gap-3">
             <div
+              v-if="!ncIsNumber(mergeState.primaryRecordIndex)"
               class="border-1 rounded-md inline-flex items-center justify-center text-bodySm px-1 min-w-5 h-5 text-nc-content-gray-muted shadow-sm"
             >
               {{ record.rowMeta.rowIndex! + 1 }}
             </div>
-            <NcTooltip class="truncate leading-[20px]" show-on-truncate-only>
+            <div
+              class="h-5 w-5 flex items-center justify-center children:flex-none"
+              :class="{
+                'text-green-700': isPrimaryRecord || isMergeRecord,
+                'text-red-700': !isPrimaryRecord && !isMergeRecord,
+              }"
+            >
+              <GeneralIcon :icon="isPrimaryRecord || isMergeRecord ? 'circleCheckSolid' : 'close'" />
+            </div>
+            <NcTooltip class="truncate leading-[20px] flex-1" show-on-truncate-only>
               <template #title>
                 <SmartsheetPlainCell
                   :model-value="currentGroup?.[selectedField.title!] ?? null"
@@ -126,20 +158,30 @@ watchEffect(() => {
                 :model-value="currentGroup?.[selectedField.title!] ?? null"
                 :column="selectedField"
                 class="font-semibold text-nc-content-brand leading-[20px]"
+                :class="{
+                  'line-through decoration-red-700': !isPrimaryRecord && !isMergeRecord,
+                }"
               />
             </NcTooltip>
+            <NcButton v-if="!isMergeRecord" icon-only type="text" size="small" @click="onClickMoreOption($event)">
+              <template #icon>
+                <GeneralIcon icon="threeDotVertical" />
+              </template>
+            </NcButton>
+
+            <div v-else class="h-8 w-8">&nbsp;</div>
           </div>
         </div>
       </template>
 
-      <div class="flex-1 flex content-stretch gap-3 w-full">
+      <div class="flex-1 flex content-stretch gap-3 w-full overflow-hidden rounded-b-xl">
         <div class="flex-1 flex flex-col">
           <div
-            v-for="col in fields"
+            v-for="(col, colIndex) of fields"
             :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
             class="nc-card-col-wrapper p-2 !border-none"
             :class="{
-              'nc-field-selected ant-alert-success': isFieldSelected(col),
+              'nc-field-selected': isFieldSelected(col) && !isMergeRecord,
             }"
             @click="handleClickField(col)"
           >
@@ -183,7 +225,16 @@ watchEffect(() => {
                     class="!text-nc-content-gray"
                   />
                 </div>
-                <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
+                <div
+                  v-else
+                  class="flex flex-row w-full items-center justify-start"
+                  :class="{
+                    'h-8': isVirtualCol(col),
+                    'h-7': !isVirtualCol(col),
+                  }"
+                >
+                  -
+                </div>
               </div>
             </NcTooltip>
           </div>
@@ -207,6 +258,10 @@ watchEffect(() => {
       @apply invisible;
     }
   }
+}
+
+:deep(.ant-card-cover) {
+  @apply sticky top-0 z-100 bg-nc-bg-gray-extralight;
 }
 
 .nc-card-display-value-wrapper {
@@ -234,6 +289,10 @@ watchEffect(() => {
 
   &:not(.nc-field-selected) {
     @apply hover:bg-nc-bg-gray-extralight;
+  }
+
+  &.nc-field-selected {
+    @apply bg-nc-green-100 dark:bg-nc-green-20 hover:bg-opacity-80;
   }
 
   .nc-cell,

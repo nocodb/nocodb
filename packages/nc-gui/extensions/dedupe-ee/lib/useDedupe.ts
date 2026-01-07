@@ -58,7 +58,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   })
 
   const hasNextGroup = computed(() => {
-    return currentGroupIndex.value < groupSets.value.length - 1
+    return currentGroupIndex.value < (groupSetsPaginationData.value.totalRows || 0) - 1
   })
 
   const currentGroupRecordsPaginationData = ref<PaginatedType & { isLoading: boolean }>({
@@ -371,6 +371,18 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       resetMergeState()
 
       currentGroupIndex.value++
+
+      // If next set of groups not loaded then load it
+      if (!groupSetsPaginationData.value.isLastPage && groupSetsPaginationData.value.totalRows) {
+        const hasNextBufferIndex = Math.min(
+          currentGroupIndex.value + 4,
+          groupSetsPaginationData.value.totalRows ? groupSetsPaginationData.value.totalRows - 1 : 0,
+        )
+
+        if (!groupSets.value[hasNextBufferIndex]) {
+          loadMoreGroupSets()
+        }
+      }
     } else {
       message.info('No more sets to review')
       currentGroupIndex.value = 0

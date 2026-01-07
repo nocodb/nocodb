@@ -101,7 +101,7 @@ const isFieldSelected = (col: ColumnType) => {
 </script>
 
 <template>
-  <LazySmartsheetRow :row="record">
+  <SmartsheetRow :row="record">
     <a-card
       class="!rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group break-all w-[320px] max-w-[320px] flex-none flex flex-col relative"
       :body-style="{ padding: '0px !important', flex: 1, display: 'flex' }"
@@ -168,10 +168,7 @@ const isFieldSelected = (col: ColumnType) => {
 
       <div class="nc-dedupe-record-card-content flex-1 flex content-stretch gap-3 w-full overflow-hidden rounded-b-xl relative">
         <!-- Loading overlay for virtual scrolling placeholders -->
-        <div
-          v-if="record.rowMeta.isLoading"
-          class="absolute inset-0 bg-nc-bg-default bg-opacity-90 z-10 rounded-xl"
-        >
+        <div v-if="record.rowMeta.isLoading" class="absolute inset-0 bg-nc-bg-default bg-opacity-90 z-10 rounded-xl">
           <a-spin size="small" />
         </div>
 
@@ -241,7 +238,7 @@ const isFieldSelected = (col: ColumnType) => {
         </div>
       </div>
     </a-card>
-  </LazySmartsheetRow>
+  </SmartsheetRow>
 </template>
 
 <style lang="scss" scoped>

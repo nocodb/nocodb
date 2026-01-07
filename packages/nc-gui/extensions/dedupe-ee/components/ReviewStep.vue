@@ -49,13 +49,9 @@ const loadedPages = ref(new Set<number>())
 // Page size from dedupe system
 const PAGE_SIZE = currentGroupRecordsPaginationData.value.pageSize || 20
 
-// Calculate container width based on loaded content + buffer
+// Calculate container width based on total records to allow full scrolling range
 const containerWidth = computed(() => {
-  // Include all visible records plus a buffer for smooth scrolling
-  const minWidth = (visibleEndIndex.value + 10) * RECORD_CARD_WIDTH
-  // But don't exceed the total available records
-  const maxWidth = allRowIndexes.value.length * RECORD_CARD_WIDTH
-  return Math.min(minWidth, maxWidth)
+  return allRowIndexes.value.length * RECORD_CARD_WIDTH
 })
 
 // Reset loaded pages when switching groups and preload initial data
@@ -117,10 +113,10 @@ const visibleRows = computed(() => {
 // Calculate transform offset for virtual scrolling
 const transformOffset = computed(() => visibleStartIndex.value * RECORD_CARD_WIDTH)
 
-// Load data for visible range
+// Load data for visible range with buffer
 const loadVisibleData = async () => {
-  const start = visibleStartIndex.value
-  const end = Math.min(visibleEndIndex.value, allRowIndexes.value.length)
+  const start = Math.max(0, visibleStartIndex.value) // Add buffer before visible range
+  const end = Math.min(visibleEndIndex.value, allRowIndexes.value.length) // Add buffer after visible range
   const rowIndexes = allRowIndexes.value.slice(start, end)
 
   const pagesToLoad = new Set<number>()
@@ -165,10 +161,10 @@ const handleScroll = (event: Event) => {
       const newScrollLeft = target.scrollLeft
       scrollLeft.value = newScrollLeft
 
-      // Calculate visible range based on scroll position
-      const start = Math.max(0, Math.floor(newScrollLeft / RECORD_CARD_WIDTH))
+      // Calculate visible range based on scroll position (actual visible + left 4 + right 4 buffer)
+      const start = Math.max(0, Math.floor(newScrollLeft / RECORD_CARD_WIDTH) - 4)
       const containerWidth = target.clientWidth
-      const visibleCount = Math.ceil(containerWidth / RECORD_CARD_WIDTH) + 4 // + buffer
+      const visibleCount = Math.ceil(containerWidth / RECORD_CARD_WIDTH) + 8  // +4 for actual visible + 4 for right buffer
       const end = Math.min(start + visibleCount, allRowIndexes.value.length)
 
       visibleStartIndex.value = start

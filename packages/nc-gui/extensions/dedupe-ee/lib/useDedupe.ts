@@ -112,8 +112,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   // fields to render
   const fields = computed(() => {
-    return meta.value?.columns
-      ?.filter((col) => {
+    return (meta.value?.columns || [])
+      .filter((col) => {
         if (isSystemColumn(col) || col.id === selectedField.value?.id) return false
         return true
       })
@@ -512,13 +512,19 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   }
 
   const mergeAndDelete = async () => {
-    if (!ncIsNumber(mergeState.value.primaryRecordIndex) || !currentDuplicateSet.value) {
+    if (!ncIsNumber(mergeState.value.primaryRecordIndex) || !primaryRecordRowInfo.value.row) {
       message.error('Please select a primary record')
       return
     }
 
     // TODO: update according to record index
-    const recordsToDelete = currentSetRecords.value.filter((r) => r.Id !== mergeState.value.primaryRecordId).map((r) => r.Id)
+    const recordsToDelete = Array.from({ length: totalRows.value }, (_, i) => {
+      if (!cachedRows.value.get(i) || mergeState.value.primaryRecordIndex === i) return null
+
+      const row = cachedRows.value.get(i)!
+
+      return extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
+    }).filter(Boolean)
 
     if (recordsToDelete.length === 0) {
       message.info('No records to delete')
@@ -529,72 +535,56 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
     try {
       const mergedData: Record<string, any> = {}
-      const primaryRecord = currentSetRecords.value.find((r) => r.Id === mergeState.value.primaryRecordId)
 
-      if (!primaryRecord) {
-        throw new Error('Primary record not found')
-      }
+      const primaryRecord = cachedRows.value.get(mergeState.value.primaryRecordIndex!)
 
-      for (const field of availableFields.value) {
-        const fieldKey = field.title || field.id
-        if (!fieldKey) continue
-        mergedData[fieldKey] = primaryRecord[fieldKey]
-      }
-
-      for (const [fieldId, recordId] of Object.entries(mergeState.value.selectedFields)) {
-        const field = meta.value?.columns?.find((col) => col.id === fieldId)
-        if (!field) continue
+      for (const field of fields.value) {
+        if (isVirtualCol(field)) continue
 
         const fieldKey = field.title || field.id
         if (!fieldKey) continue
-        const value = getFieldValue(fieldId, recordId)
-        if (value != null) {
-          mergedData[fieldKey] = value
-        }
-      }
 
-      if (!config.value.selectedTableId || !extension.value.baseId) {
-        throw new Error('Table ID or base ID is missing')
+        mergedData[fieldKey] = primaryRecordRowInfo.value.row[fieldKey]
       }
 
       await updateData({
-        tableId: config.value.selectedTableId,
+        tableId: config.value.selectedTableId!,
         data: [
           {
-            Id: mergeState.value.primaryRecordId,
             ...mergedData,
+            ...rowPkData(primaryRecord?.row ?? {}, meta.value?.columns as ColumnType[]),
           },
         ],
       })
 
-      for (const recordId of recordsToDelete) {
-        try {
-          await $api.dbViewRow.delete(
-            'noco',
-            extension.value.baseId,
-            config.value.selectedTableId,
-            config.value.selectedViewId || '',
-            encodeURIComponent(recordId),
-          )
-        } catch (error: any) {
-          console.error(`Failed to delete record ${recordId}:`, error)
-        }
-      }
+      // for (const recordId of recordsToDelete) {
+      //   try {
+      //     const bulkDeletedRowsData = await $api.internal.postOperation(
+      //       (meta.value as any).fk_workspace_id!,
+      //       meta.value!.base_id!,
+      //       {
+      //         operation: 'dataDelete',
+      //         tableId: meta.value?.id as string,
+      //         viewId: config.value.selectedViewId || '',
+      //       },
+      //       recordId,
+      //     )
+      //   } catch (error: any) {
+      //     console.error(`Failed to delete record ${recordId}:`, error)
+      //   }
+      // }
 
-      duplicateSets.value.splice(currentSetIndex.value, 1)
-
-      if (currentSetIndex.value >= duplicateSets.value.length && duplicateSets.value.length > 0) {
-        currentSetIndex.value = duplicateSets.value.length - 1
-      }
+      currentGroupIndex.value++
 
       resetMergeState()
 
-      if (duplicateSets.value.length === 0) {
+      if (currentGroupIndex.value >= groupSets.value.length - 1) {
         message.success('All duplicates have been merged and deleted')
         await reloadData()
         return true
       } else {
         message.success(`Merged and deleted ${recordsToDelete.length} record(s)`)
+        findDuplicates(true)
         return false
       }
     } catch (error: any) {

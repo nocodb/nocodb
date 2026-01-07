@@ -59,9 +59,6 @@ const handleReset = async () => {
 
 const handleSkip = async () => {
   await nextSet()
-  if (duplicateSets.value.length === 0 && !hasMoreDuplicateSets.value) {
-    currentStep.value = 'config'
-  }
 }
 
 const handleMerge = async () => {
@@ -107,7 +104,7 @@ const handleReview = async () => {
       <!-- Right side: Review step -->
       <div class="flex items-center gap-2">
         <span class="text-sm text-nc-content-gray-muted">
-          {{ currentSetIndex + 1 }} of {{ groupSetsPaginationData.totalRows }}
+          {{ currentGroupIndex + 1 }} of {{ groupSetsPaginationData.totalRows }}
         </span>
         <NcButton size="small" type="secondary" @click="onCancel">
           {{ $t('general.cancel') }}

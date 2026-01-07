@@ -2,7 +2,6 @@
 import type { Row as RowType } from '#imports'
 import { type ColumnType, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { useDedupeOrThrow } from '../lib/useDedupe'
-import type { NumberDecimal } from 'ant-design-vue/lib/input-number/src/utils/MiniDecimal'
 
 interface Props {
   record: RowType
@@ -65,7 +64,7 @@ const onClickMoreOption = (e: MouseEvent) => {
 }
 
 const resetPointerEvent = (record: RowType, col: ColumnType) => {
-  return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col))
+  return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)) || isVirtualCol(col)
 }
 
 const handleClick = () => {
@@ -77,7 +76,7 @@ const handleClick = () => {
 }
 
 const handleClickField = (col: ColumnType) => {
-  if (props.isMergeRecord) return
+  if (props.isMergeRecord || isVirtualCol(col)) return
 
   if (!ncIsNumber(mergeState.value.primaryRecordIndex)) {
     setPrimaryRecord(record.value.rowMeta.rowIndex!)
@@ -137,6 +136,7 @@ const isPrimaryRecord = computed(() => {
               {{ record.rowMeta.rowIndex! + 1 }}
             </div>
             <div
+              v-else
               class="h-5 w-5 flex items-center justify-center children:flex-none"
               :class="{
                 'text-green-700': isPrimaryRecord || isMergeRecord,
@@ -159,7 +159,8 @@ const isPrimaryRecord = computed(() => {
                 :column="selectedField"
                 class="font-semibold text-nc-content-brand leading-[20px]"
                 :class="{
-                  'line-through decoration-red-700': !isPrimaryRecord && !isMergeRecord,
+                  'line-through decoration-red-700':
+                    ncIsNumber(mergeState.primaryRecordIndex) && !isPrimaryRecord && !isMergeRecord,
                 }"
               />
             </NcTooltip>
@@ -181,24 +182,22 @@ const isPrimaryRecord = computed(() => {
             :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
             class="nc-card-col-wrapper p-2 !border-none"
             :class="{
-              'nc-field-selected': isFieldSelected(col) && !isMergeRecord,
+              'nc-field-selected': isFieldSelected(col) && !isMergeRecord && !isVirtualCol(col),
             }"
             @click="handleClickField(col)"
           >
             <NcTooltip
               hide-on-click
               :disabled="!isVirtualCol(col)"
-              class="w-full z-10 flex pointer-events-none"
+              class="w-full z-10 flex"
+              :class="{
+                'pointer-events-none': !resetPointerEvent(record, col),
+              }"
               placement="left"
               :arrow="false"
             >
               <template #title> Computed field can't be merged </template>
-              <div
-                class="flex flex-col rounded-lg w-full"
-                :class="{
-                  'pointer-events-none': !resetPointerEvent(record, col),
-                }"
-              >
+              <div class="flex flex-col rounded-lg w-full pointer-events-none">
                 <div class="flex flex-row w-full justify-start">
                   <div class="nc-card-col-header w-full !children:text-gray-500">
                     <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />

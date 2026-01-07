@@ -657,12 +657,6 @@ const rolePermissions:
 
       // Extensions
       extensionUpdate: true,
-
-      // workflows
-      workflowList: true,
-      workflowGet: true,
-      workflowNodes: true,
-      workflowNodeIntegrationFetchOptions: true,
     },
   },
   [ProjectRoles.CREATOR]: {

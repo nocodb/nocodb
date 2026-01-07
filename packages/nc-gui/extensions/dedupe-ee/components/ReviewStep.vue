@@ -1,31 +1,10 @@
 <script setup lang="ts">
 import { useDedupeOrThrow } from '../lib/useDedupe'
-import DuplicateRecordCard from './DuplicateRecordCard.vue'
 import RecordCard from './RecordCard.vue'
-import MergePreview from './MergePreview.vue'
 import type { Row } from '#imports'
 
-const {
-  currentDuplicateSet,
-  currentSetRecords,
-  isLoadingCurrentSetRecords,
-  availableFields,
-  mergeState,
-  getFieldValue,
-  getSelectedFieldValue,
-  setPrimaryRecord,
-  excludeRecord,
-  includeRecord,
-  selectFieldValue,
-  hasMoreSets,
-  hasPreviousSets,
-  findDuplicates,
-  contextMenuTarget,
-  cachedRows,
-  totalRows,
-  currentGroupRecordsPaginationData,
-  currentGroup,
-} = useDedupeOrThrow()
+const { mergeState, findDuplicates, contextMenuTarget, cachedRows, currentGroupRecordsPaginationData, currentGroup, totalRows } =
+  useDedupeOrThrow()
 
 const visibleRows = computed<Row[]>(() => {
   return Array.from({ length: totalRows.value }, (_, i) => {

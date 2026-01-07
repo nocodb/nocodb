@@ -156,10 +156,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     return hasMoreDuplicateSets.value || currentSetIndex.value < duplicateSets.value.length - 1
   })
 
-  const hasPreviousSets = computed(() => {
-    return currentSetIndex.value > 0
-  })
-
   const computedWhere = computed(() => {
     if (!selectedField.value?.id || !currentGroup.value) return ''
 
@@ -499,32 +495,19 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }
   }
 
-  const previousSet = async () => {
-    if (hasPreviousSets.value) {
-      currentSetIndex.value--
-      resetMergeStateOnly()
-      // Load records for the new current set if not already loaded
-      const currentSet = duplicateSets.value[currentSetIndex.value]
-      if (currentSet && !currentSet.records) {
-        await loadRecordsForGroup(currentSet)
-      }
-    }
-  }
-
   const mergeAndDelete = async () => {
     if (!ncIsNumber(mergeState.value.primaryRecordIndex) || !primaryRecordRowInfo.value.row) {
       message.error('Please select a primary record')
       return
     }
 
-    // TODO: update according to record index
     const recordsToDelete = Array.from({ length: totalRows.value }, (_, i) => {
       if (!cachedRows.value.get(i) || mergeState.value.primaryRecordIndex === i) return null
 
       const row = cachedRows.value.get(i)!
 
-      return extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-    }).filter(Boolean)
+      return rowPkData(row.row, meta.value?.columns as ColumnType[])
+    }).filter(Boolean) as Array<Record<string, any>>
 
     if (recordsToDelete.length === 0) {
       message.info('No records to delete')
@@ -557,22 +540,16 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         ],
       })
 
-      // for (const recordId of recordsToDelete) {
-      //   try {
-      //     const bulkDeletedRowsData = await $api.internal.postOperation(
-      //       (meta.value as any).fk_workspace_id!,
-      //       meta.value!.base_id!,
-      //       {
-      //         operation: 'dataDelete',
-      //         tableId: meta.value?.id as string,
-      //         viewId: config.value.selectedViewId || '',
-      //       },
-      //       recordId,
-      //     )
-      //   } catch (error: any) {
-      //     console.error(`Failed to delete record ${recordId}:`, error)
-      //   }
-      // }
+      await $api.internal.postOperation(
+        (meta.value as any).fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'dataDelete',
+          tableId: meta.value?.id as string,
+          viewId: config.value.selectedViewId || '',
+        },
+        recordsToDelete.length === 1 ? recordsToDelete[0] : recordsToDelete,
+      )
 
       currentGroupIndex.value++
 
@@ -588,10 +565,15 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         return false
       }
     } catch (error: any) {
-      message.error(`Error merging records: ${error.message || 'Unknown error'}`)
+      const errorMessage = await extractSdkResponseErrorMsg(error)
+
+      message.error(`Error merging records`, undefined, {
+        copyText: errorMessage,
+      })
       return false
     } finally {
       isMerging.value = false
+      reloadData()
     }
   }
 
@@ -732,7 +714,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     currentDuplicateSet,
     currentSetRecords,
     hasMoreSets,
-    hasPreviousSets,
     isLoadingCurrentSetRecords,
     isLoadingMoreSets,
     hasMoreDuplicateSets,
@@ -760,7 +741,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     getFieldValue,
     getSelectedFieldValue,
     nextSet,
-    previousSet,
+
     mergeAndDelete,
     groupSets,
     loadGroupSets,

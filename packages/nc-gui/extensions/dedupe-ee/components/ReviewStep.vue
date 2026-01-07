@@ -15,25 +15,177 @@ const {
   excludeRecord,
   scrollTop,
   syncScrollTop,
+  loadData,
+  chunkStates,
+  clearCache,
 } = useDedupeOrThrow()
 
-const visibleRows = computed<Row[]>(() => {
-  return Array.from({ length: totalRows.value }, (_, i) => {
-    const rowIndex = i
-    return cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
-  }).filter((row) => !mergeState.value.excludedRecordIndexes.has(row.rowMeta.rowIndex!))
+// Calculate all non-excluded rows (loaded or not)
+const allRowIndexes = computed<number[]>(() => {
+  const indexes: number[] = []
+  for (let i = 0; i < totalRows.value; i++) {
+    if (!mergeState.value.excludedRecordIndexes.has(i)) {
+      indexes.push(i)
+    }
+  }
+  return indexes
 })
+
+// Get loaded rows for the visible range
+const getLoadedRowsInRange = (start: number, end: number): Row[] => {
+  const rows: Row[] = []
+  const indexes = allRowIndexes.value.slice(start, end)
+
+  for (const index of indexes) {
+    const cachedRow = cachedRows.value.get(index)
+    if (cachedRow) {
+      rows.push(cachedRow)
+    } else {
+      // Add placeholder for missing rows
+      rows.push({ row: {}, oldRow: {}, rowMeta: { rowIndex: index, isLoading: true } })
+    }
+  }
+
+  return rows
+}
 
 const contextMenu = ref(false)
 const scrollContainer = ref<HTMLElement>()
 
-// Synchronize scroll with MergePreview component
-const handleScroll = (event: Event) => {
-  const target = event.target as HTMLElement
-  if (target) {
-    syncScrollTop(target.scrollTop)
+// Record card width approximation (card width + gap between cards)
+const RECORD_CARD_WIDTH = 320 + 16 // 320px card + 16px gap (gap-4)
+
+// Virtual scrolling state
+const scrollLeft = ref(0)
+const visibleStartIndex = ref(0)
+const visibleEndIndex = ref(20)
+
+// Track loaded pages to avoid duplicate loading
+const loadedPages = ref(new Set<number>())
+
+// Page size from dedupe system
+const PAGE_SIZE = currentGroupRecordsPaginationData.value.pageSize || 20
+
+// Calculate container width for all visible records
+const containerWidth = computed(() => {
+  return allRowIndexes.value.length * RECORD_CARD_WIDTH
+})
+
+// Reset loaded pages when switching groups and preload initial data
+watch(
+  currentGroup,
+  async () => {
+    loadedPages.value.clear()
+    visibleStartIndex.value = 0
+    visibleEndIndex.value = 20
+
+    // Preload first few pages for better initial experience
+    if (currentGroup.value) {
+      const initialPages = [0, 1, 2] // Load first 3 pages (60 records) initially
+      const loadPromises = initialPages.map(async (pageIndex) => {
+        if (pageIndex * PAGE_SIZE < totalRows.value) {
+          try {
+            const records = await loadData({
+              limit: PAGE_SIZE,
+              offset: pageIndex * PAGE_SIZE,
+            })
+            records.forEach((record) => {
+              cachedRows.value.set(record.rowMeta.rowIndex!, record)
+            })
+            loadedPages.value.add(pageIndex)
+          } catch (error) {
+            console.error(`Failed to preload page ${pageIndex}:`, error)
+          }
+        }
+      })
+      await Promise.all(loadPromises)
+    }
+  },
+  { immediate: true },
+)
+
+// Calculate visible records based on scroll position
+const visibleRows = computed(() => {
+  const start = visibleStartIndex.value
+  const end = Math.min(visibleEndIndex.value, allRowIndexes.value.length)
+  return allRowIndexes.value.slice(start, end).map(rowIndex => ({
+    rowIndex,
+    record: cachedRows.value.get(rowIndex) || { row: {}, oldRow: {}, rowMeta: { rowIndex, isLoading: true } }
+  }))
+})
+
+// Calculate transform offset for virtual scrolling
+const transformOffset = computed(() => visibleStartIndex.value * RECORD_CARD_WIDTH)
+
+// Load data for visible range
+const loadVisibleData = async () => {
+  const start = visibleStartIndex.value
+  const end = Math.min(visibleEndIndex.value, allRowIndexes.value.length)
+  const rowIndexes = allRowIndexes.value.slice(start, end)
+
+  const pagesToLoad = new Set<number>()
+  for (const rowIndex of rowIndexes) {
+    const pageIndex = Math.floor(rowIndex / PAGE_SIZE)
+    if (!loadedPages.value.has(pageIndex)) {
+      pagesToLoad.add(pageIndex)
+    }
+  }
+
+  // Load required pages
+  if (pagesToLoad.size > 0) {
+    const loadPromises = Array.from(pagesToLoad).map(async (pageIndex) => {
+      try {
+        const records = await loadData({
+          limit: PAGE_SIZE,
+          offset: pageIndex * PAGE_SIZE,
+        })
+
+        // Store records in cache
+        records.forEach((record) => {
+          cachedRows.value.set(record.rowMeta.rowIndex!, record)
+        })
+
+        loadedPages.value.add(pageIndex)
+      } catch (error) {
+        console.error(`Failed to load page ${pageIndex}:`, error)
+      }
+    })
+
+    await Promise.all(loadPromises)
   }
 }
+
+// Handle horizontal scroll
+let scrollRaf = false
+const handleScroll = (event: Event) => {
+  const target = event.target as HTMLElement
+  if (target && !scrollRaf) {
+    scrollRaf = true
+    requestAnimationFrame(() => {
+      const newScrollLeft = target.scrollLeft
+      scrollLeft.value = newScrollLeft
+
+      // Calculate visible range based on scroll position
+      const start = Math.max(0, Math.floor(newScrollLeft / RECORD_CARD_WIDTH))
+      const containerWidth = target.clientWidth
+      const visibleCount = Math.ceil(containerWidth / RECORD_CARD_WIDTH) + 4 // + buffer
+      const end = Math.min(start + visibleCount, allRowIndexes.value.length)
+
+      visibleStartIndex.value = start
+      visibleEndIndex.value = end
+
+      loadVisibleData()
+
+      // Synchronize scroll with MergePreview component
+      syncScrollTop(target.scrollTop)
+      scrollRaf = false
+    })
+  }
+}
+
+
+// Watch for visible range changes to load data
+watch([visibleStartIndex, visibleEndIndex], loadVisibleData, { immediate: true })
 
 // Watch for scroll changes from the other component
 watch(scrollTop, (newScrollTop) => {
@@ -41,20 +193,26 @@ watch(scrollTop, (newScrollTop) => {
     scrollContainer.value.scrollTop = newScrollTop
   }
 })
+
 </script>
 
 <template>
   <div
-    class="flex-1 w-full bg-nc-bg-gray-extralight"
+    class="flex-1 bg-nc-bg-gray-extralight"
     :class="{
-      '!w-[calc(100%_-_354px)]': ncIsNumber(mergeState.primaryRecordIndex) && primaryRecordRowInfo,
+      'w-[calc(100%_-_354px)]': ncIsNumber(mergeState.primaryRecordIndex) && primaryRecordRowInfo,
+      'w-full': !(ncIsNumber(mergeState.primaryRecordIndex) && primaryRecordRowInfo),
     }"
   >
     <div class="px-4 py-2 min-h-[38px]">
       <h3 class="font-semibold m-0">Review records</h3>
     </div>
 
-    <div ref="scrollContainer" class="w-full h-[calc(100%_-_38px)] relative nc-scrollbar-thin" @scroll="handleScroll">
+    <div
+      ref="scrollContainer"
+      class="w-full h-[calc(100%_-_38px)] relative nc-scrollbar-thin overflow-x-auto overflow-y-auto"
+      @scroll="handleScroll"
+    >
       <div v-if="!currentGroup" class="flex-1 h-full flex items-center justify-center">
         <a-empty description="No duplicate set selected" :image="Empty.PRESENTED_IMAGE_SIMPLE">
           <template #description>
@@ -99,12 +257,17 @@ watch(scrollTop, (newScrollTop) => {
             </NcMenuItem>
           </NcMenu>
         </template>
-        <div class="nc-review-records-container nc-scollbar-thin relative">
-          <RecordCard v-for="(record, idx) of visibleRows" :key="`record-${idx}`" :record="record" />
-
-          <div>
-            <!-- Just for spacing  -->
-            &nbsp;
+        <!-- Virtual scrolling container like Gallery.vue -->
+        <div :style="{ width: `${containerWidth}px`, height: '100%', position: 'relative' }">
+          <div
+            class="nc-review-records-container"
+            :style="{ transform: `translateX(${transformOffset}px)` }"
+          >
+            <RecordCard
+              v-for="{ rowIndex, record } in visibleRows"
+              :key="`record-${rowIndex}`"
+              :record="record"
+            />
           </div>
         </div>
       </NcDropdown>
@@ -121,6 +284,6 @@ watch(scrollTop, (newScrollTop) => {
 
 <style lang="scss" scoped>
 .nc-review-records-container {
-  @apply flex gap-4 children:flex-none px-4 pb-4;
+  @apply flex gap-4 items-stretch children:flex-none px-4 pb-4;
 }
 </style>

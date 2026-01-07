@@ -273,7 +273,10 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     try {
       await syncCount()
 
-      const records = await loadData()
+      const records = await loadData({
+        limit: currentGroupRecordsPaginationData.value.pageSize!,
+        offset: (currentGroupRecordsPaginationData.value.page! - 1) * currentGroupRecordsPaginationData.value.pageSize!,
+      })
 
       records.forEach((record) => {
         cachedRows.value.set(record.rowMeta.rowIndex!, record)

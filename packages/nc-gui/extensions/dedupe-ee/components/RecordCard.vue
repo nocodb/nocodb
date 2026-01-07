@@ -35,7 +35,7 @@ const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }
 }
 
 const onClickMoreOption = (e: MouseEvent) => {
-  if (props.isMergeRecord) return
+  if (props.isMergeRecord || record.value.rowMeta.isLoading) return
 
   e.preventDefault()
   e.stopPropagation()
@@ -62,7 +62,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 }
 
 const handleClick = () => {
-  if (props.isMergeRecord) return
+  if (props.isMergeRecord || record.value.rowMeta.isLoading) return
 
   if (!ncIsNumber(mergeState.value.primaryRecordIndex)) {
     setPrimaryRecord(record.value.rowMeta.rowIndex!)
@@ -70,7 +70,7 @@ const handleClick = () => {
 }
 
 const handleClickField = (col: ColumnType) => {
-  if (props.isMergeRecord) return
+  if (props.isMergeRecord || record.value.rowMeta.isLoading) return
 
   if (!ncIsNumber(mergeState.value.primaryRecordIndex)) {
     setPrimaryRecord(record.value.rowMeta.rowIndex!)
@@ -90,7 +90,7 @@ const handleClickField = (col: ColumnType) => {
 }
 
 const isFieldSelected = (col: ColumnType) => {
-  if (props.isMergeRecord) return false
+  if (props.isMergeRecord || record.value.rowMeta.isLoading) return false
 
   if (ncIsUndefined(mergeState.value.selectedFields[col.id!])) {
     return mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex!
@@ -116,6 +116,14 @@ const isFieldSelected = (col: ColumnType) => {
       @click="handleClick"
       @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
     >
+      <!-- Loading overlay for virtual scrolling placeholders -->
+      <div
+        v-if="record.rowMeta.isLoading"
+        class="absolute inset-0 bg-nc-bg-gray-extralight bg-opacity-80 flex items-center justify-center z-10 rounded-xl"
+      >
+        <a-spin size="small" />
+      </div>
+      <!-- No loading overlay - render with placeholder data instead -->
       <template #cover>
         <div v-if="selectedField" class="p-2 rounded-t-xl border-1 bg-nc-bg-default">
           <div class="flex items-center gap-3">
@@ -156,7 +164,8 @@ const isFieldSelected = (col: ColumnType) => {
             </NcTooltip>
             <NcButton v-if="!isMergeRecord" icon-only type="text" size="small" @click="onClickMoreOption($event)">
               <template #icon>
-                <GeneralIcon icon="threeDotVertical" />
+                <GeneralIcon v-if="!record.rowMeta.isLoading" icon="threeDotVertical" />
+                <GeneralLoader v-else size="regular" class="!text-nc-content-gray-muted" />
               </template>
             </NcButton>
 
@@ -165,7 +174,7 @@ const isFieldSelected = (col: ColumnType) => {
         </div>
       </template>
 
-      <div class="flex-1 flex content-stretch gap-3 w-full overflow-hidden rounded-b-xl">
+      <div class="nc-dedupe-record-card-content flex-1 flex content-stretch gap-3 w-full overflow-hidden rounded-b-xl">
         <div class="flex-1 flex flex-col">
           <div
             v-for="col of fields"
@@ -179,7 +188,7 @@ const isFieldSelected = (col: ColumnType) => {
           >
             <NcTooltip
               hide-on-click
-              :disabled="!isVirtualCol(col)"
+              :disabled="!isVirtualCol(col) || record.rowMeta.isLoading"
               class="w-full z-10 flex"
               :class="{
                 'pointer-events-none': !resetPointerEvent(record, col),
@@ -195,6 +204,7 @@ const isFieldSelected = (col: ColumnType) => {
                     <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
                   </div>
                 </div>
+
                 <div
                   v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col)"
                   class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"

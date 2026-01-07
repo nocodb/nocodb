@@ -31,7 +31,7 @@ watch(scrollContainer, () => {
 <template>
   <div
     v-if="ncIsNumber(mergeState.primaryRecordIndex) && primaryRecordRowInfo"
-    class="border-l border-nc-border-gray-medium bg-nc-bg-gray-extralight"
+    class="border-l border-nc-border-gray-medium bg-nc-bg-gray-extralight min-w-[354px] flex-none"
   >
     <div class="px-4 py-2 min-h-[38px]">
       <h3 class="font-semibold m-0">Merge Preview</h3>

@@ -380,12 +380,8 @@ export class DataAttachmentV3Service {
       responseType: 'stream',
       maxRedirects: NC_ATTACHMENT_URL_MAX_REDIRECT,
       maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
-      httpAgent: useAgent(url, {
-        stopPortScanningByUrlRedirection: true,
-      }),
-      httpsAgent: useAgent(url, {
-        stopPortScanningByUrlRedirection: true,
-      }),
+      httpAgent: useAgent(url, {}),
+      httpsAgent: useAgent(url, {}),
     });
 
     // Extract file information from response headers

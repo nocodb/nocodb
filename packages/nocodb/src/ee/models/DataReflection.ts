@@ -137,14 +137,23 @@ class DataReflectionSession {
     if (this.closed) return;
     this.closed = true;
 
-    if (this.pgSocket) {
-      this.pgSocket.removeAllListeners();
-      this.pgSocket.destroy();
-      this.pgSocket = null;
+    if (this.pgSocket && !this.pgSocket.destroyed) {
+      try {
+        this.pgSocket.removeAllListeners();
+        this.pgSocket.destroy();
+        this.pgSocket = null;
+      } catch (e) {
+        logger.error(e);
+      }
     }
 
-    if (clientSocket) {
-      clientSocket.destroy();
+    if (clientSocket && !clientSocket.destroyed) {
+      try {
+        clientSocket.removeAllListeners();
+        clientSocket.destroy();
+      } catch (e) {
+        logger.error(e);
+      }
     }
 
     clientSessions.delete(this.clientId);

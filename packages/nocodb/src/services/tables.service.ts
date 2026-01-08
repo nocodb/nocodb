@@ -138,7 +138,7 @@ export class TablesService {
 
     if (source.isMeta(true) && base.prefix && !source.isMeta(true, 1)) {
       if (!param.table.table_name.startsWith(base.prefix)) {
-        param.table.table_name = `${base.prefix}${param.table.table_name}`;
+        param.table.table_name = `${base.prefix}_${param.table.table_name}`;
       }
     }
 

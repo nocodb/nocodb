@@ -47,16 +47,16 @@ export function isNodeAvailableForPlan(
 
 /**
  * Get the current plan title for a workspace
- * @param workspaceId - The workspace ID
+ * @param workspaceOrOrgId - The workspace or organization ID
  * @param ncMeta - NocoDB metadata instance
  * @returns The plan title (e.g., 'Free', 'Plus', 'Business', 'Enterprise')
  */
-export async function getWorkspacePlanTitle(
-  workspaceId: string,
+export async function getActivePlanTitle(
+  workspaceOrOrgId: string,
   ncMeta = Noco.ncMeta,
 ): Promise<OnPremPlanTitles | PlanTitles> {
   const { plan } = await getActivePlanAndSubscription(
-    workspaceId,
+    workspaceOrOrgId,
     false,
     ncMeta,
   );
@@ -71,7 +71,7 @@ export async function getWorkspacePlanTitle(
 export async function getPlanTitleFromContext(
   context: NcContext,
 ): Promise<PlanTitles | OnPremPlanTitles> {
-  return getWorkspacePlanTitle(context.workspace_id);
+  return getActivePlanTitle(context.org_id || context.workspace_id);
 }
 
 /**

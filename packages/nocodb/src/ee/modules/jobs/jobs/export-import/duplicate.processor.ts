@@ -27,6 +27,7 @@ import { applyMeta, diffMeta, serializeMeta } from '~/helpers/baseMetaHelpers';
 import { CacheDelDirection, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
+import { processConcurrently } from '~/utils';
 
 @Injectable()
 export class DuplicateProcessor extends DuplicateProcessorCE {
@@ -151,21 +152,39 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
         );
 
         for (const filter of filters) {
-          const createdFilter = await this.filterService.widgetFilterCreate(
-            context,
-            {
-              filter: {
-                ...withoutId(filter),
-                fk_parent_id: identifierMap.get(filter.fk_parent_id),
-                fk_widget_id: createdWidget.id,
-              },
-              widgetId: createdWidget.id,
-              user: req.user,
-              req,
-            },
-          );
+          const fn = async (filter) => {
+            if (!filter) return;
 
-          identifierMap.set(filter.id, createdFilter.id);
+            const createdFilter = await this.filterService.widgetFilterCreate(
+              context,
+              {
+                filter: {
+                  ...withoutId(filter),
+                  fk_parent_id: identifierMap.get(filter.fk_parent_id),
+                  fk_widget_id: createdWidget.id,
+                },
+                widgetId: createdWidget.id,
+                user: req.user,
+                req,
+              },
+            );
+
+            identifierMap.set(filter.id, createdFilter.id);
+
+            if (filter.is_group) {
+              const children = (await filter.getChildren(context)) || [];
+
+              await processConcurrently(
+                children,
+                async (child) => {
+                  await fn(child);
+                },
+                10,
+              );
+            }
+          };
+
+          await fn(filter);
         }
       }
 

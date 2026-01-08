@@ -275,7 +275,7 @@ const toggleViewShare = async () => {
       meta!.fk_workspace_id!,
       meta!.base_id!,
       {
-        operation: 'viewShareDelete',
+        operation: 'shareViewDelete',
         viewId: activeView.value.id,
       },
       {},
@@ -289,7 +289,7 @@ const toggleViewShare = async () => {
       meta!.fk_workspace_id!,
       meta!.base_id!,
       {
-        operation: 'viewShare',
+        operation: 'shareView',
         viewId: activeView.value.id,
       },
       {},
@@ -354,7 +354,7 @@ async function updateSharedView(custUrl = undefined) {
       metaInfo!.fk_workspace_id!,
       metaInfo!.base_id!,
       {
-        operation: 'viewShareUpdate',
+        operation: 'shareViewUpdate',
         viewId: activeView.value.id!,
       },
       {

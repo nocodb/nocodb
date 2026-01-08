@@ -31,6 +31,8 @@ export class IterateNode extends WorkflowNodeIntegration<IterateNodeConfig> {
         { id: 'output', direction: 'output', order: 1, label: 'After Iterate' },
       ],
       form,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/flow-nodes/iterate',
       keywords: ['loop', 'iterate', 'for', 'each', 'array', 'repeat', 'map'],
     };
   }

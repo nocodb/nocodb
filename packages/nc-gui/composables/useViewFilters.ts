@@ -74,7 +74,7 @@ export function useViewFilters(
 
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
-  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenRead'))
+  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenList'))
 
   // Tracks if any filter has been updated - used for webhook save state management
   const isFilterUpdated = ref<boolean>(false)
@@ -277,6 +277,7 @@ export function useViewFilters(
       // set the default column to the first column in the list, excluding system columns
       fk_column_id: defaultColumn?.id ?? undefined,
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
+      ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
       order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
     }
 
@@ -304,6 +305,7 @@ export function useViewFilters(
       status: 'create',
       logical_op: logicalOps.size === 1 ? logicalOps.values().next().value : 'and',
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value, children: [] } : {}),
+      ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
       order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
     }
   }

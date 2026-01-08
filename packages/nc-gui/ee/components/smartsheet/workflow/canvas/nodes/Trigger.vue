@@ -161,6 +161,6 @@ onClickOutside(
         </div>
       </template>
     </Dropdown>
-    <Handle type="source" :position="Position.Bottom" class="!w-3 !h-3 !border-none !bg-transparent" />
+    <Handle type="source" :position="Position.Bottom" class="!w-3 !h-3 !border-none !bg-transparent !-bottom-1.5" />
   </div>
 </template>

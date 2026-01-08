@@ -100,16 +100,16 @@ function handleTitleBlur() {
 
 <template>
   <div class="px-4 py-5 relative">
-    <div v-if="nodeMeta" class="flex gap-3 items-center">
+    <div v-if="nodeMeta" class="flex gap-3">
       <div
         class="flex items-center justify-center rounded-lg p-3 border-1 border-nc-brand-100 bg-nc-bg-brand text-nc-content-brand"
       >
         <GeneralIcon :icon="nodeMeta.icon" class="w-6 h-6 stroke-transparent" />
       </div>
-      <div>
+      <div class="flex flex-col">
         <div
           v-if="!isTitleInEditMode || props.readOnly"
-          class="text-subHeading2 line-clamp-2 max-w-70"
+          class="text-subHeading2 line-clamp-2 h-7 max-w-70"
           tabindex="0"
           @keydown.enter="enableTitleEditMode"
           @keydown.space="enableTitleEditMode"
@@ -127,6 +127,12 @@ function handleTitleBlur() {
             @keydown.esc="handleTitleBlur"
           />
         </div>
+        <a v-if="!isTitleInEditMode && nodeMeta.documentation" :href="nodeMeta.documentation" target="_blank">
+          <div class="flex gap-1 items-center">
+            Docs
+            <GeneralIcon icon="ncExternalLink" />
+          </div>
+        </a>
       </div>
     </div>
 

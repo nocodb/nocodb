@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ExecuteScriptNodeConfig, ScriptVariable } from './types'
+import type { ExecuteScriptNodeConfig } from './types'
 import EditModal from '~/components/smartsheet/workflow/sidebar/config/custom/RunScript/EditModal.vue'
 
 const { selectedNodeId, updateNode, selectedNode } = useWorkflowOrThrow()
@@ -21,7 +21,7 @@ const flatVariables = computed(() => {
 const config = computed<ExecuteScriptNodeConfig>(() => {
   return (selectedNode.value?.data?.config || {
     script: '',
-    variables: [],
+    variables: {},
   }) as ExecuteScriptNodeConfig
 })
 
@@ -38,53 +38,43 @@ const updateConfig = (updates: Partial<ExecuteScriptNodeConfig>) => {
   })
 }
 
-const scriptCode = computed({
-  get: () => config.value.script || '',
-  set: (value: string) => {
-    updateConfig({ script: value })
-  },
-})
-
 const variables = computed({
-  get: () => config.value.variables || [],
-  set: (value: ScriptVariable[]) => {
+  get: () => config.value.variables || {},
+  set: (value: Record<string, any>) => {
     updateConfig({ variables: value })
   },
 })
 
-const updateVariable = (index: number, field: 'name' | 'value', value: any) => {
-  const newVariables = [...variables.value]
-  newVariables[index] = {
-    ...newVariables[index],
-    [field]: value,
-  }
+const updateVariable = (key: string, value: any) => {
+  const newVariables = { ...variables.value }
+  newVariables[key] = value
   variables.value = newVariables
 }
 </script>
 
 <template>
   <div class="execute-script-config flex flex-col gap-4">
-    <div class="flex flex-col gap-2">
+    <div :key="editModal" class="flex flex-col gap-2">
       <label class="text-sm font-medium text-nc-content-gray-emphasis">Input Variables</label>
-      <div v-if="variables.filter((v) => v.name).length === 0" class="text-xs text-nc-content-gray-subtle">
+      <div v-if="Object.keys(variables).length === 0" class="text-xs text-nc-content-gray-subtle">
         Add variables that will be accessible via input.config() in your script
       </div>
 
-      <div v-if="variables.filter((v) => v.name).length !== 0" class="text-xs text-nc-content-gray-subtle">
+      <div v-if="Object.keys(variables).length !== 0" class="text-xs text-nc-content-gray-subtle">
         Variables accessible via input.config() are listed here. Use Edit code to add more variables.
       </div>
 
-      <template v-for="(variable, index) in variables.filter((v) => v.name)" :key="variable.name">
+      <template v-for="(value, key) in variables" :key="key">
         <div class="flex gap-2 flex-col">
           <div>
-            {{ variable.name }}
+            {{ key }}
           </div>
           <NcFormBuilderInputWorkflowInput
-            :model-value="variable.value"
+            :model-value="value"
             :variables="flatVariables"
             :grouped-variables="groupedVariables"
             placeholder="Variable value"
-            @update:model-value="(val) => updateVariable(index, 'value', val)"
+            @update:model-value="(val) => updateVariable(key, val)"
           />
         </div>
       </template>
@@ -100,13 +90,6 @@ const updateVariable = (index: number, field: 'name' | 'value', value: any) => {
             Edit code
           </div>
         </NcButton>
-      </div>
-
-      <div class="font-mono bg-nc-bg-gray-extralight px-3 py-2">
-        <template v-if="scriptCode">
-          {{ scriptCode }}
-        </template>
-        <span v-else class="text-nc-content-gray-muted font-mono"> No script provided </span>
       </div>
     </div>
 

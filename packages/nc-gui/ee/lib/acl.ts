@@ -187,9 +187,10 @@ const rolePermissions = {
       // Extensions
       extensionCreate: true,
       extensionDelete: true,
-
+      // Workflows
       workflowCreateOrEdit: true,
       workflowExecutionList: true,
+      workflowList: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -198,7 +199,7 @@ const rolePermissions = {
       dataEdit: true,
       sortSync: true,
       filterSync: true,
-      filterChildrenRead: true,
+      filterChildrenList: true,
       viewFieldEdit: true,
       csvTableImport: true,
       excelTableImport: true,
@@ -207,9 +208,6 @@ const rolePermissions = {
       // Scripts
       scriptExecute: true,
       scriptList: true,
-
-      // Workflows
-      workflowList: true,
 
       // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
       viewOperations: true,

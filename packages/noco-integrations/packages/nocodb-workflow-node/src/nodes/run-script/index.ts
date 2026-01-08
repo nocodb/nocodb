@@ -13,14 +13,9 @@ import type {
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 
-interface ScriptVariable {
-  name: string;
-  value: any;
-}
-
 interface RunScriptNodeConfig extends WorkflowNodeConfig {
   script: string;
-  variables: ScriptVariable[];
+  variables: Record<string, any>;
 }
 
 export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> {
@@ -34,7 +29,8 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form: [],
-      hidden: true,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/action-nodes/run-script',
       keywords: ['script', 'code', 'javascript', 'custom', 'execute'],
     };
   }
@@ -49,10 +45,10 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
       });
     }
 
-    if (config.variables && !Array.isArray(config.variables)) {
+    if (config.variables && typeof config.variables !== 'object') {
       errors.push({
         path: 'config.variables',
-        message: 'Variables must be an array',
+        message: 'Variables must be an object',
       });
     }
 
@@ -68,7 +64,7 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
     let sandbox: Sandbox | null = null;
 
     try {
-      const { script, variables = [] } = ctx.inputs.config;
+      const { script, variables = {} } = ctx.inputs.config;
 
       logs.push({
         level: 'info',
@@ -76,12 +72,7 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
         ts: Date.now(),
       });
 
-      const variableContext: Record<string, any> = {};
-      variables.forEach((v) => {
-        if (v.name) {
-          variableContext[v.name] = v.value;
-        }
-      });
+      const variableContext: Record<string, any> = variables;
 
       const baseSchema = await this.nocodb.getBaseSchema();
 
@@ -276,50 +267,20 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
     return null;
   }
 
-  public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
-    const variables: NocoSDK.VariableDefinition[] = [];
-
-    variables.push({
-      key: 'config.variables',
-      name: 'Variables',
-      type: NocoSDK.VariableType.Array,
-      groupKey: NocoSDK.VariableGroupKey.Fields,
-      extra: {
-        icon: 'cellJson',
-        description: 'Input variables for the script',
-        itemSchema: [
-          {
-            key: 'name',
-            name: 'Name',
-            type: NocoSDK.VariableType.String,
-            groupKey: NocoSDK.VariableGroupKey.Fields,
-            extra: {
-              icon: 'cellText',
-              description: 'Variable name',
-            },
-          },
-          {
-            key: 'value',
-            name: 'Value',
-            type: NocoSDK.VariableType.String,
-            groupKey: NocoSDK.VariableGroupKey.Fields,
-            extra: {
-              icon: 'cellText',
-              description: 'Variable value',
-            },
-          },
-        ],
-      },
-    });
-
-    return variables;
+  public async generateInputVariables(
+    _context: NocoSDK.VariableGeneratorContext,
+    runtimeInputs?: any,
+  ): Promise<NocoSDK.VariableDefinition[]> {
+    return NocoSDK.genGeneralVariables(
+      runtimeInputs.config?.config?.variables,
+      'config.variables',
+    );
   }
 
   public async generateOutputVariables(
     context: NocoSDK.VariableGeneratorContext,
     runtimeInputs?: any,
   ): Promise<NocoSDK.VariableDefinition[]> {
-    // Look at runtimeInputs.output (the actual output from the script execution)
     return NocoSDK.genGeneralVariables(runtimeInputs.output, '');
   }
 }

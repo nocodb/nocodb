@@ -149,7 +149,10 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
       icon: 'gmail',
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
+      hidden: true,
       form,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/integration-nodes/gmail',
       keywords: ['gmail', 'email', 'send', 'mail', 'message'],
     };
   }

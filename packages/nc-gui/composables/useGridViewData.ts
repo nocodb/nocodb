@@ -984,7 +984,7 @@ export function useGridViewData(
         (meta.value as any).fk_workspace_id!,
         meta.value!.base_id!,
         {
-          operation: 'dataDeleteAll',
+          operation: 'bulkDataDeleteAll',
           tableId: meta.value.id!,
           where: where?.value,
           viewId: viewMeta.value?.id,

@@ -2,6 +2,7 @@ import { Logger } from '@nestjs/common';
 import {
   EventType,
   extractRolesObj,
+  hasMinimumRoleAccess,
   type PayloadForEvent,
   ProjectRoles,
   WorkspaceRolesToProjectRoles,
@@ -82,6 +83,18 @@ export default class NocoSocket {
           baseId,
         },
       );
+
+      if (
+        [
+          EventType.WORKFLOW_EVENT,
+        ].includes(eventType as EventType) &&
+        !hasMinimumRoleAccess(userWithRole, ProjectRoles.CREATOR)
+      ) {
+        this.logger.warn(
+          `User ${user.id} has no access to base ${baseId} in workspace ${workspaceId}`,
+        );
+        return;
+      }
 
       // Check permissions based on event type
       if (

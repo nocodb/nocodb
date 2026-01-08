@@ -13,9 +13,9 @@ const FEATURES = [
     id: 'workflows',
     title: 'Workflows',
     description: 'Automate tasks with visual workflows - connect triggers, actions, and data transformations without code.',
-    enabled: false,
-    isEngineering: true,
-    version: 1,
+    enabled: true,
+    isEngineering: false,
+    version: 2,
   },
   {
     id: 'advanced_nodes',
@@ -82,8 +82,8 @@ const FEATURES = [
     id: 'integrations',
     title: 'Integrations',
     description: 'Enable dynamic integrations.',
-    enabled: false,
-    version: 1,
+    enabled: true,
+    version: 2,
     isEngineering: true,
   },
   {

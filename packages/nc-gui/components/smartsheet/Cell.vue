@@ -309,7 +309,7 @@ const cellClassName = computed(() => {
     className += ' nc-grid-numeric-cell-left'
   }
 
-  if (cellType.value === 'textarea' && (isForm.value || isSurveyForm.value)) {
+  if (cellType.value === 'textarea' && (isForm.value || isSurveyForm.value) && !isUnderLTAR.value && !isUnderLookup.value) {
     className += ' !min-h-30'
   }
 

@@ -76,6 +76,8 @@ export class FindRecordNode extends WorkflowNodeIntegration<FindRecordNodeConfig
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/action-nodes/find-record',
       keywords: ['nocodb', 'database', 'read', 'find', 'get', 'record'],
     };
   }

@@ -129,6 +129,8 @@ export class SendEmailNode extends WorkflowNodeIntegration<SendEmailNodeConfig> 
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      documentation:
+        'https://nocodb.com/docs/workflows/nodes/integration-nodes/outlook',
       keywords: ['outlook', 'email', 'send', 'mail', 'message', 'microsoft'],
     };
   }

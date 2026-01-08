@@ -42,6 +42,8 @@ export interface WorkflowNodeDefinition {
 
   hidden?: boolean;
 
+  documentation?: string;
+
   /**
    * Trigger activation type (only for trigger nodes)
    * - NONE: No activation needed (e.g., manual triggers, internal NocoDB triggers)

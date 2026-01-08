@@ -5,15 +5,23 @@ on:
     inputs:
       test_set:
         description: 'Test set number'
-        required: true
+        required: false
         type: string
+      no_prefix:
+        description: 'Do not use prefix (use schema) during test'
+        required: false
+        type: boolean
   # Triggered manually
   workflow_dispatch:
     inputs:
       test_set:
         description: 'Test set number'
-        required: true
+        required: false
         type: string
+      no_prefix:
+        description: 'Do not use prefix (use schema) during test'
+        required: false
+        type: boolean
 
 jobs:
   unit-tests-pg:
@@ -58,4 +66,5 @@ jobs:
           pnpm run dev &
       - name: run unit tests
         working-directory: ./packages/nocodb
-        run: pnpm run test:unit:pg:ee --forbid-only --test-set-${{ inputs.test_set }}
+        run: |
+          pnpm run test:unit:pg:ee${{ inputs.no_prefix && '-no-prefix' || '' }} --forbid-only ${{ inputs.test_set && '--test-set-' || '' }}${{ inputs.test_set }}

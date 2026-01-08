@@ -370,6 +370,13 @@ function formulaLookupLtarTests() {
     expect(rowsTable2.length).to.be.greaterThan(0);
     expect(rowsTable2[0]).to.have.property('FormulaDisplayValueTable2');
     expect(rowsTable2[0].FormulaDisplayValueTable2).to.exist;
+
+    // Get the data for table 2 to verify the formula is working correctly
+    await chunkListRow({
+      base: _base,
+      table: _tables.table1,
+      pks: [1, 2, 3, 4, 5, 6].map((k) => `${k}`),
+    });
   });
 }
 

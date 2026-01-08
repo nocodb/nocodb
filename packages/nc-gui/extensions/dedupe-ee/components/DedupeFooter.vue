@@ -60,7 +60,7 @@ const duplicateRecordCount = computed(() => {
 })
 
 const handleMerge = async () => {
-  const deleteRecordCount = Math.max(duplicateRecordCount.value, 0)
+  const deleteRecordCount = Math.max(duplicateRecordCount.value - 1, 0)
 
   showInfoModal({
     title: 'Are you sure you want to merge these records?',
@@ -129,8 +129,14 @@ const handleReview = async () => {
         <NcButton size="small" type="secondary" @click="onCancel">
           {{ $t('general.cancel') }}
         </NcButton>
-        <NcButton v-if="!canMerge" size="small" @click="handleSkip"> Skip </NcButton>
-        <NcButton v-else size="small" type="primary" :loading="isMerging" @click="handleMerge"> Merge Records </NcButton>
+        <NcButton v-if="!canMerge" size="small" @click="handleSkip"> Skip record </NcButton>
+        <NcButton v-else size="small" type="danger" :loading="isMerging" @click="handleMerge">
+          {{
+            ncIsNumber(mergeState.primaryRecordIndex)
+              ? `Merge and delete ${duplicateRecordCount - 1} record${duplicateRecordCount - 1 !== 1 ? 's' : ''}`
+              : 'Merge records'
+          }}</NcButton
+        >
       </div>
     </template>
   </div>

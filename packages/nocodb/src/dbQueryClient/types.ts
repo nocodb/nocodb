@@ -1,4 +1,4 @@
-import type { XKnex } from '~/db/CustomKnex';
+import type { Knex, XKnex } from '~/db/CustomKnex';
 
 export interface DBQueryClient {
   temporaryTable(payload: {
@@ -6,8 +6,14 @@ export interface DBQueryClient {
     fields: string[];
     alias: string;
     knex: XKnex;
-    asKnexFrom?: boolean;
-  });
+  }): Knex.QueryInterface;
+
+  temporaryTableRaw(payload: {
+    data: Record<string, any>[];
+    fields: string[];
+    alias: string;
+    knex: XKnex;
+  }): Knex.Raw;
 
   concat(fields: string[]);
   simpleCast(field: string, asType: string);

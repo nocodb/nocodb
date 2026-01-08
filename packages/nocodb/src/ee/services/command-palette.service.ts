@@ -9,7 +9,7 @@ import {
 import type { NcContext } from '~/interface/config';
 import type { CommandPaletteResult } from '~/helpers/commandPaletteHelpers';
 import { deserializeJSON } from '~/utils/serialize';
-import { getCommandPaletteForUserWorkspaceV2 } from '~/helpers/commandPaletteHelpers';
+import { getCommandPaletteForUserWorkspace } from '~/helpers/commandPaletteHelpers';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
 import { Permission } from '~/models';
 
@@ -26,7 +26,7 @@ export class CommandPaletteService {
 
       if (scope.startsWith('ws-')) {
         const commandPaletteData: CommandPaletteResult =
-          await getCommandPaletteForUserWorkspaceV2(
+          await getCommandPaletteForUserWorkspace(
             param.user?.id,
             data.workspace_id,
           );

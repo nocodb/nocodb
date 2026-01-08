@@ -12,6 +12,7 @@ const {
   groupSetsPaginationData,
   currentGroup,
   currentGroupIndex,
+  totalRows,
 } = useDedupeOrThrow()
 
 const { toggleFullScreen } = useExtensionHelperOrThrow()
@@ -54,11 +55,29 @@ const handleSkip = async () => {
   await nextSet()
 }
 
+const duplicateRecordCount = computed(() => {
+  return Math.max((currentGroup.value?.count ?? totalRows.value ?? 0) - mergeState.value.excludedRecordIndexes.size, 0)
+})
+
 const handleMerge = async () => {
-  const allResolved = await mergeAndDelete()
-  if (allResolved) {
-    currentStep.value = 'config'
-  }
+  const deleteRecordCount = Math.max(duplicateRecordCount.value, 0)
+
+  showInfoModal({
+    title: 'Are you sure you want to merge these records?',
+    content: `${deleteRecordCount} record${deleteRecordCount !== 1 ? 's' : ''} will be deleted.`,
+    showCancelBtn: true,
+    showIcon: false,
+    okProps: {
+      type: 'danger',
+    },
+    okText: 'Merge',
+    okCallback: async () => {
+      const allResolved = await mergeAndDelete()
+      if (allResolved) {
+        currentStep.value = 'config'
+      }
+    },
+  })
 }
 
 const handleReview = async () => {
@@ -90,9 +109,16 @@ const handleReview = async () => {
       <!-- Left side: Review step -->
       <div class="flex items-center gap-3">
         <span class="text-sm text-nc-content-gray-muted">
-          {{ currentGroup?.count || 0 }} duplicated record{{ currentGroup?.count !== 1 ? 's' : '' }}
+          {{ duplicateRecordCount }} duplicated record{{ duplicateRecordCount !== 1 ? 's' : '' }}
         </span>
-        <NcButton size="small" type="secondary" :disabled="!hasPrimaryRecord" @click="handleReset"> Reset </NcButton>
+        <NcButton
+          size="small"
+          type="secondary"
+          :disabled="!hasPrimaryRecord && !mergeState.excludedRecordIndexes.size"
+          @click="handleReset"
+        >
+          Reset
+        </NcButton>
       </div>
 
       <!-- Right side: Review step -->

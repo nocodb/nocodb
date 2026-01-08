@@ -212,7 +212,7 @@ watch(scrollTop, (newScrollTop) => {
       <div v-else-if="currentGroupRecordsPaginationData.isLoading" class="text-center py-8 px-4"></div>
 
       <div
-        v-else-if="currentGroup.count && mergeState.excludedRecordIds.size === currentGroup.count"
+        v-else-if="currentGroup.count && mergeState.excludedRecordIndexes.size === currentGroup.count"
         class="h-full flex items-center justify-center py-8 px-4 text-nc-content-gray-muted text-bodyLg"
       >
         All records in this set have been excluded.

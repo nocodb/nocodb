@@ -22,9 +22,7 @@ export interface SelectedField {
   value: any
 }
 export interface MergeState {
-  primaryRecordId: string | null
   primaryRecordIndex: number | null
   excludedRecordIndexes: Set<number>
-  excludedRecordIds: Set<string>
   selectedFields: Record<string, number> // fieldId -> record index mapping
 }

@@ -22,10 +22,8 @@ const getDefaultPaginationData = (pageSize = 50): PaginatedType => {
 
 const getDefaultMergeState = (): MergeState => {
   return {
-    primaryRecordId: null,
     primaryRecordIndex: null,
     excludedRecordIndexes: new Set(),
-    excludedRecordIds: new Set(),
     selectedFields: {},
   }
 }

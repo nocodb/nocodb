@@ -139,6 +139,9 @@ const rolePermissions = {
   },
   [ProjectRoles.CREATOR]: {
     include: {
+      sortSync: true,
+      filterSync: true,
+      viewFieldEdit: true,
       fieldUpdate: true,
       hookList: true,
       hookCreate: true,
@@ -197,10 +200,7 @@ const rolePermissions = {
     include: {
       dataInsert: true,
       dataEdit: true,
-      sortSync: true,
-      filterSync: true,
       filterChildrenList: true,
-      viewFieldEdit: true,
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,

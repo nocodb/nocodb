@@ -101,6 +101,8 @@ class DataReflectionSession {
   public recordQueryStart(): void {
     this.queryTimestamps.unshift(Date.now());
     this.totalQueries++;
+
+    logger.log(`Query started for workspace ${this.fk_workspace_id}.`);
   }
 
   public recordQueryEnd(): void {
@@ -108,8 +110,13 @@ class DataReflectionSession {
     const start = this.queryTimestamps[0];
     if (!start) return;
 
-    this.totalQueryTime += now - start;
+    const queryDuration = now - start;
+    this.totalQueryTime += queryDuration;
     this.cleanupOldTimestamps();
+
+    logger.log(
+      `Query completed for workspace ${this.fk_workspace_id}. Duration: ${queryDuration}ms`,
+    );
   }
 
   private cleanupOldTimestamps(): void {
@@ -126,16 +133,41 @@ class DataReflectionSession {
     return this.totalQueryTime;
   }
 
-  public close(): void {
+  public close(clientSocket?: Socket): void {
     if (this.closed) return;
     this.closed = true;
 
-    logger.debug(
-      `Session closed for ${this.clientId} (${
-        this.fk_workspace_id
-      }). Total query time: ${this.totalQueryTime}ms, Total queries: ${
+    if (this.pgSocket) {
+      try {
+        this.pgSocket.removeAllListeners();
+        if (!this.pgSocket.destroyed) {
+          this.pgSocket.destroy();
+        }
+        this.pgSocket = null;
+      } catch (e) {
+        logger.error(e);
+      }
+    }
+
+    if (clientSocket) {
+      try {
+        clientSocket.removeAllListeners();
+        if (!clientSocket.destroyed) {
+          clientSocket.destroy();
+        }
+      } catch (e) {
+        logger.error(e);
+      }
+    }
+
+    clientSessions.delete(this.clientId);
+
+    logger.log(
+      `Session closed for ${this.fk_workspace_id}. Queries: ${
         this.totalQueries
-      }. Total session time: ${Date.now() - this.sessionStartTime}ms.`,
+      } (${this.totalQueryTime}ms). Session: ${
+        Date.now() - this.sessionStartTime
+      }ms.`,
     );
   }
 }
@@ -176,8 +208,7 @@ export default class DataReflection extends DataReflectionCE {
               logger.warn(
                 `Too many queries for workspace ${session.fk_workspace_id}. Closing connection.`,
               );
-              clientSocket.end();
-              session.pgSocket?.end();
+              session.close(clientSocket);
               return;
             }
 
@@ -210,20 +241,18 @@ export default class DataReflection extends DataReflectionCE {
         logger.error(`Client socket error: ${err.message}`);
         const session = clientSessions.get(clientId);
         if (!session) {
-          clientSocket.end();
+          clientSocket.destroy();
           return;
         }
-        clientSocket.end();
-        session.pgSocket?.end();
+        session.close(clientSocket);
       });
 
       clientSocket.on('end', () => {
-        clientSessions.get(clientId)?.close();
         const session = clientSessions.get(clientId);
         if (!session) {
           return;
         }
-        session.pgSocket?.end();
+        session.close(clientSocket);
       });
     });
 
@@ -588,6 +617,7 @@ async function handleStartupMessage(
       if (!reflection) {
         // No reflection: terminate connection
         clientSocket.write(Buffer.from([0x58, 0, 0, 0, 4]));
+        session.close(clientSocket);
         return;
       }
 
@@ -673,16 +703,22 @@ async function handleStartupMessage(
 
         pgSocket.on('error', (err) => {
           logger.error(`Postgres socket error: ${err.message}`);
-          clientSocket.end();
+          const session = clientSessions.get(clientId);
+          if (session) {
+            session.close(clientSocket);
+          }
         });
 
         pgSocket.on('end', () => {
-          clientSessions.get(clientId)?.close();
-          clientSocket.end();
+          const session = clientSessions.get(clientId);
+          if (session) {
+            session.close(clientSocket);
+          }
         });
       } catch (error) {
         logger.error(`Failed to establish secure connection: ${error.message}`);
         clientSocket.write(Buffer.from([0x58, 0, 0, 0, 4])); // Terminate
+        session.close(clientSocket);
         return;
       }
     }

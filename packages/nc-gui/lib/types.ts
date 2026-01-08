@@ -224,6 +224,12 @@ type NcProject = BaseType & {
   users?: User[]
   default_role?: ProjectRoles | string
   version?: BaseVersion
+  // Sandbox fields
+  sandbox_master?: boolean
+  sandbox_id?: string
+  sandbox_version_id?: string
+  auto_update?: boolean
+  sandbox_schema_locked?: boolean
 }
 
 interface UndoRedoAction {

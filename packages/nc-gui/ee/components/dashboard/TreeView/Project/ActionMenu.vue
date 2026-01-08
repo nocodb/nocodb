@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { SourceType } from 'nocodb-sdk'
+import { BaseVersion, type SourceType } from 'nocodb-sdk'
 
 interface Props {
   showBaseOption: (source: SourceType) => boolean
@@ -21,6 +21,7 @@ interface Emits {
   (e: 'openMcpServer', id: string): void
   (e: 'delete'): void
   (e: 'toggleStarred', id: string): void
+  (e: 'convertToSandbox'): void
 }
 
 const { dataReflectionState, dataReflectionText } = toRefs(props)
@@ -38,6 +39,7 @@ const { isUIAllowed } = useRoles()
 const isOptionVisible = computed(() => {
   return {
     baseDuplicate: isUIAllowed('baseDuplicate', { roles: baseRole.value }),
+    convertToSandbox: base.value?.version === BaseVersion.V3 && !base.value?.sandbox_id && isUIAllowed('baseMiscSettings'),
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&
@@ -94,6 +96,15 @@ const isOptionVisible = computed(() => {
     >
       <GeneralIcon icon="duplicate" />
       {{ $t('general.duplicate') }} {{ $t('objects.project').toLowerCase() }}
+    </NcMenuItem>
+
+    <NcMenuItem
+      v-if="isOptionVisible.convertToSandbox"
+      data-testid="nc-sidebar-base-convert-to-sandbox"
+      @click="emits('convertToSandbox')"
+    >
+      <GeneralIcon icon="ncBox" />
+      Convert to sandbox
     </NcMenuItem>
 
     <NcDivider />

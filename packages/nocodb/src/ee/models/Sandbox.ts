@@ -1,4 +1,4 @@
-import { BaseVersion } from 'nocodb-sdk';
+import { BaseVersion, SandboxVisibility } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
@@ -17,18 +17,6 @@ import {
 } from '~/utils/modelUtils';
 import { Base } from '~/models';
 
-export enum SandboxStatus {
-  PUBLISHED = 'published',
-  DRAFT = 'draft',
-  ARCHIVED = 'archived',
-}
-
-export enum SandboxVisibility {
-  PUBLIC = 'public',
-  PRIVATE = 'private',
-  UNLISTED = 'unlisted',
-}
-
 export default class Sandbox {
   id: string;
   base_id: string;
@@ -40,14 +28,8 @@ export default class Sandbox {
   // Owner of the sandbox app
   created_by: string;
 
-  // Sandbox status
-  status: SandboxStatus;
-
   // Visibility in app store
   visibility: SandboxVisibility;
-
-  // Version information
-  version: string;
 
   // Category for filtering in app store
   category?: string;
@@ -149,7 +131,6 @@ export default class Sandbox {
     args?: {
       workspaceId?: string;
       userId?: string;
-      status?: SandboxStatus;
       visibility?: SandboxVisibility;
       category?: string;
       limit?: number;
@@ -164,10 +145,6 @@ export default class Sandbox {
 
     if (args?.userId) {
       conditions.push({ created_by: { eq: args.userId } });
-    }
-
-    if (args?.status) {
-      conditions.push({ status: { eq: args.status } });
     }
 
     if (args?.visibility) {
@@ -206,19 +183,45 @@ export default class Sandbox {
       search?: string;
       limit?: number;
       offset?: number;
+      userId?: string;
+      workspaceId?: string;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<Sandbox[]> {
     const xcCondition: any = {
       _and: [
-        { status: { eq: SandboxStatus.PUBLISHED } },
-        { fk_workspace_id: { eq: context.workspace_id } },
+        { published_at: { neq: null } }, // Has been published
         { deleted: { eq: false } },
       ],
     };
 
-    // For now, only list sandboxes from the same workspace (private/internal)
-    // Later we can add visibility: PUBLIC for cross-workspace sharing
+    // Visibility filtering:
+    // - Public: visible to everyone
+    // - Private: visible to users in the same workspace
+    // - Unlisted: visible only to the owner
+    const visibilityConditions: any[] = [
+      { visibility: { eq: SandboxVisibility.PUBLIC } },
+    ];
+
+    if (args?.workspaceId) {
+      visibilityConditions.push({
+        _and: [
+          { visibility: { eq: SandboxVisibility.PRIVATE } },
+          { fk_workspace_id: { eq: args.workspaceId } },
+        ],
+      });
+    }
+
+    if (args?.userId) {
+      visibilityConditions.push({
+        _and: [
+          { visibility: { eq: SandboxVisibility.UNLISTED } },
+          { created_by: { eq: args.userId } },
+        ],
+      });
+    }
+
+    xcCondition._and.push({ _or: visibilityConditions });
 
     if (args?.category) {
       xcCondition._and.push({ category: { eq: args.category } });
@@ -277,17 +280,13 @@ export default class Sandbox {
       'base_id',
       'created_by',
       'fk_workspace_id',
-      'status',
       'visibility',
-      'version',
       'category',
       'meta',
     ]);
 
     // Set defaults
-    insertObj.status = insertObj.status || SandboxStatus.DRAFT;
     insertObj.visibility = insertObj.visibility || SandboxVisibility.PRIVATE;
-    insertObj.version = insertObj.version || '1.0.0';
     insertObj.install_count = 0;
 
     if (insertObj.meta && typeof insertObj.meta === 'object') {
@@ -313,9 +312,7 @@ export default class Sandbox {
     const updateObj = extractProps(sandbox, [
       'title',
       'description',
-      'status',
       'visibility',
-      'version',
       'category',
       'meta',
       'published_at',
@@ -323,14 +320,6 @@ export default class Sandbox {
 
     if (updateObj.meta && typeof updateObj.meta === 'object') {
       updateObj.meta = stringifyMetaProp(updateObj);
-    }
-
-    // Auto-update published_at when status changes to published
-    if (
-      updateObj.status === SandboxStatus.PUBLISHED &&
-      !updateObj.published_at
-    ) {
-      updateObj.published_at = new Date().toISOString();
     }
 
     await ncMeta.metaUpdate(

@@ -20,6 +20,9 @@ const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
 
+// Hide share button for sandbox masters that are not in draft mode
+const isSandboxMaster = computed(() => !!base.value?.sandbox_id && !base.value?.is_draft)
+
 const route = useRoute()
 
 useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
@@ -46,7 +49,7 @@ const copySharedBase = async () => {
 
 <template>
   <div
-    v-if="!isSharedBase && isUIAllowed('baseShare') && visibility !== 'hidden' && (activeTable || base)"
+    v-if="!isSharedBase && !isSandboxMaster && isUIAllowed('baseShare') && visibility !== 'hidden' && (activeTable || base)"
     class="nc-share-base-button flex flex-col justify-center"
     data-testid="share-base-button"
     :data-sharetype="visibility"

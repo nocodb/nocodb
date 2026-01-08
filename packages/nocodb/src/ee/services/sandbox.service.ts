@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { BaseVersion } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base } from '~/models';
+import type { MetaService } from '~/meta/meta.service';
 import Sandbox from '~/models/Sandbox';
 import SandboxVersion from '~/models/SandboxVersion';
 import Noco from '~/Noco';
@@ -11,6 +12,7 @@ import {
   diffMeta,
   serializeMeta,
 } from '~/helpers/baseMetaHelpers';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class SandboxService {
@@ -94,18 +96,21 @@ export class SandboxService {
   /**
    * Apply metadata updates from master sandbox to an installed base
    * Uses meta diff/apply approach to synchronize schema changes
+   * Also updates the installed base's sandbox_version_id to reflect the new version
    */
   async applyUpdatesToInstallation({
     masterBase,
     installedBase,
     masterContext,
     installedContext,
+    newVersionId,
   }: {
     masterBase: Base;
     installedBase: Base;
     req: NcRequest;
     masterContext: NcContext;
     installedContext: NcContext;
+    newVersionId?: string; // The new version ID to update to
   }) {
     // Validate that both are V3 bases
     if (masterBase.version !== BaseVersion.V3) {
@@ -147,17 +152,32 @@ export class SandboxService {
     const diff = await diffMeta(installedMeta, masterMeta);
 
     // Apply the diff in a transaction
-    let trx;
+    let trx: MetaService;
     try {
       trx = await Noco.ncMeta.startTransaction();
 
       await applyMeta(installedContext, diff, trx);
+
+      // If a new version ID is provided, update the installed base's sandbox_version_id
+      if (newVersionId) {
+        await trx.metaUpdate(
+          installedContext.workspace_id,
+          installedContext.base_id,
+          MetaTable.PROJECT,
+          {
+            sandbox_version_id: newVersionId,
+          },
+          installedBase.id,
+        );
+      }
 
       await trx.commit();
 
       return {
         success: true,
         baseId: installedBase.id,
+        fromVersionId: installedBase.sandbox_version_id,
+        toVersionId: newVersionId,
         diff,
       };
     } catch (error) {

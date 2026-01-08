@@ -480,7 +480,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     await this.additionalValidation({ req, res, next });
 
     if (req.ncBase) {
-      req.context.schema_locked = !!(req.ncBase as Base).schema_locked;
+      req.context.schema_locked = !!(req.ncBase as Base).sandbox_schema_locked;
     }
 
     next();
@@ -1001,8 +1001,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBase = await Base.get(context, req.ncBaseId);
       if (req.ncBase) {
         req.ncWorkspaceId = (req.ncBase as Base).fk_workspace_id;
-        // Store schema_locked flag for schema modification checks
-        req.ncSchemaLocked = (req.ncBase as Base).schema_locked;
+        // Read computed schema_locked property
+        req.ncSchemaLocked = !!(req.ncBase as Base).sandbox_schema_locked;
       } else {
         NcError.baseNotFound(req.ncBaseId);
       }

@@ -13,11 +13,6 @@ const props = withDefaults(defineProps<Props>(), {})
 
 const emit = defineEmits(['update:aiMode', 'update:mode', 'sandboxInstalled', 'close'])
 
-// Debug log to see what we're receiving
-watchEffect(() => {
-  console.log('CreateMode props.workspaceId:', props.workspaceId, typeof props.workspaceId)
-})
-
 const aiMode = useVModel(props, 'aiMode', emit)
 
 const { isAiFeaturesEnabled } = useNocoAi()
@@ -25,14 +20,16 @@ const { isAiFeaturesEnabled } = useNocoAi()
 const showAppMarket = ref(false)
 
 // Reset showAppMarket when aiMode changes back to null (dialog reopened)
-watch(() => props.aiMode, (newVal) => {
-  if (newVal === null) {
-    showAppMarket.value = false
-  }
-})
+watch(
+  () => props.aiMode,
+  (newVal) => {
+    if (newVal === null) {
+      showAppMarket.value = false
+    }
+  },
+)
 
 const selectMode = (mode: CreateMode) => {
-  console.log('selectMode:', mode, 'workspaceId:', props.workspaceId, typeof props.workspaceId)
   if (mode === 'ai') {
     aiMode.value = true
   } else if (mode === 'scratch') {

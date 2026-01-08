@@ -1,5 +1,10 @@
 import BaseCE from 'src/models/Base';
-import { BaseVersion, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk';
+import {
+  BaseVersion,
+  ProjectRoles,
+  SandboxVersionStatus,
+  WorkspaceUserRoles,
+} from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { BaseType } from 'nocodb-sdk';
 import type { DB_TYPES } from '~/utils/globals';
@@ -25,6 +30,7 @@ import {
   MCPToken,
   ModelStat,
   Permission,
+  SandboxVersion,
   Source,
   Workspace,
 } from '~/models';
@@ -46,6 +52,39 @@ export default class Base extends BaseCE {
 
   public static castType(base: Base): Base {
     return base && new Base(base);
+  }
+
+  /**
+   * Compute and set sandbox_schema_locked property
+   * - Not locked: non-sandbox bases
+   * - Always locked: installed sandbox instances (sandbox_master=false)
+   * - Conditionally locked: sandbox masters with published version
+   */
+  public static async computeSchemaLocked(
+    base: Base,
+    context: NcContext,
+  ): Promise<boolean> {
+    // Not a sandbox - schema is not locked
+    if (!base.sandbox_id) {
+      return false;
+    }
+
+    // Installed instance (non-master) - always locked
+    if (!base.sandbox_master) {
+      return true;
+    }
+
+    // Master base - check if current version is published
+    if (base.sandbox_version_id) {
+      const version = await SandboxVersion.get(
+        context,
+        base.sandbox_version_id,
+      );
+      return version?.status === SandboxVersionStatus.PUBLISHED;
+    }
+
+    // No version set - not locked
+    return false;
   }
 
   static async list(
@@ -147,9 +186,10 @@ export default class Base extends BaseCE {
       'is_snapshot',
       'default_role',
       'version',
+      'sandbox_master',
       'sandbox_id',
-      'sandbox_source_id',
-      'schema_locked',
+      'sandbox_version_id',
+      'auto_update',
     ]);
 
     // define base type as database if missing
@@ -241,9 +281,10 @@ export default class Base extends BaseCE {
       'fk_custom_url_id',
       'default_role',
       'version',
+      'sandbox_master',
       'sandbox_id',
-      'sandbox_source_id',
-      'schema_locked',
+      'sandbox_version_id',
+      'auto_update',
     ]);
 
     if (+updateObj.version !== BaseVersion.V3) {

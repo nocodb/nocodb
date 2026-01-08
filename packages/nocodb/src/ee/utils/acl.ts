@@ -361,7 +361,6 @@ const permissionScopes = {
 
     // Sandbox (management operations)
     'sandboxGetUpdates',
-    'sandboxApplyUpdates',
     'sandboxUpdate',
     'sandboxDelete',
     'sandboxPublish',
@@ -1120,7 +1119,6 @@ const permissionDescriptions: Record<string, string> = {
   sandboxUnpublish: 'unpublish a sandbox from the app store',
   sandboxInstall: 'install a sandbox as a new base',
   sandboxGetUpdates: 'check for updates to an installed sandbox',
-  sandboxApplyUpdates: 'apply updates to an installed sandbox',
 
   viewRowColorInfo: 'view row colouring info',
   viewSettingOverride: 'copy view configuration from other view',

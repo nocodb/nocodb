@@ -114,6 +114,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.AUTOMATION_EXECUTIONS]: 'auex',
       [MetaTable.SANDBOXES]: 'sb',
       [MetaTable.SANDBOX_VERSIONS]: 'sbv',
+      [MetaTable.SANDBOX_DEPLOYMENT_LOGS]: 'sbdl',
     };
 
     const prefix = prefixMap[target] || 'nc';

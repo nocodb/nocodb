@@ -20,6 +20,7 @@ interface Emits {
   (e: 'openMcpServer', id: string): void
   (e: 'copyProjectInfo'): void
   (e: 'delete'): void
+  (e: 'convertToSandbox'): void
 }
 
 const base = inject(ProjectInj)!
@@ -34,6 +35,7 @@ const isOptionVisible = computed(() => {
   return {
     rename: isUIAllowed('baseRename'),
     baseDuplicate: isUIAllowed('baseDuplicate', { roles: [stringifyRolesObj(orgRoles.value), baseRole.value].join() }),
+    convertToSandbox: base.value?.version === 'v3' && !base.value?.sandbox_id && isUIAllowed('baseMiscSettings'),
     baseOptions:
       (base.value?.sources?.[0]?.enabled || (base.value?.sources || []).length > 1) &&
       props.showBaseOption(base.value.sources[0]),
@@ -81,6 +83,17 @@ const isOptionVisible = computed(() => {
       <div v-e="['c:base:duplicate']" class="flex gap-2 items-center">
         <GeneralIcon icon="duplicate" />
         {{ $t('general.duplicate') }}
+      </div>
+    </NcMenuItem>
+
+    <NcMenuItem
+      v-if="isOptionVisible.convertToSandbox"
+      data-testid="nc-sidebar-base-convert-to-sandbox"
+      @click="emits('convertToSandbox')"
+    >
+      <div v-e="['c:base:convert-to-sandbox']" class="flex gap-2 items-center">
+        <GeneralIcon icon="ncBox" />
+        Convert to sandbox
       </div>
     </NcMenuItem>
 

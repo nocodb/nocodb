@@ -1,16 +1,18 @@
 <script lang="ts" setup>
-import type { SandboxType } from 'nocodb-sdk'
+interface SandboxType {
+  id: string
+  title: string
+  description?: string
+  category?: string
+  version?: string
+  install_count?: number
+}
 
 interface Props {
   workspaceId: string
 }
 
 const props = defineProps<Props>()
-
-// Debug log to see what we receive
-watchEffect(() => {
-  console.log('AppMarket props.workspaceId:', props.workspaceId, typeof props.workspaceId)
-})
 
 const emit = defineEmits(['close', 'installed'])
 
@@ -60,31 +62,22 @@ const filteredSandboxes = computed(() => {
 })
 
 const loadSandboxes = async () => {
-  console.log('loadSandboxes called with workspaceId:', props.workspaceId, typeof props.workspaceId)
-  
   if (!props.workspaceId) {
     console.error('WorkspaceId is required')
     return
   }
-  
+
   if (typeof props.workspaceId !== 'string') {
     console.error('WorkspaceId must be a string, got:', typeof props.workspaceId, props.workspaceId)
     return
   }
-  
+
   loading.value = true
   try {
-    console.log('Making API call with:', {
-      workspaceId: props.workspaceId,
-      baseId: NO_SCOPE,
-      operation: 'sandboxStoreList',
-    })
-    
     const response = await $api.internal.getOperation(props.workspaceId, NO_SCOPE, {
       operation: 'sandboxStoreList',
     })
-    
-    console.log('API response:', response)
+
     sandboxes.value = response?.list || []
   } catch (e) {
     console.error('API error:', e)
@@ -97,12 +90,17 @@ const loadSandboxes = async () => {
 const installSandbox = async (sandbox: SandboxType) => {
   installing.value = sandbox.id
   try {
-    await $api.internal.postOperation(props.workspaceId, NO_SCOPE, {
-      operation: 'sandboxInstall',
-    }, {
-      sandboxId: sandbox.id,
-      target_workspace_id: props.workspaceId,
-    })
+    await $api.internal.postOperation(
+      props.workspaceId,
+      NO_SCOPE,
+      {
+        operation: 'sandboxInstall',
+      },
+      {
+        sandboxId: sandbox.id,
+        target_workspace_id: props.workspaceId,
+      },
+    )
 
     message.success(t('msg.success.baseInstalled'))
     emit('installed', sandbox)
@@ -114,20 +112,18 @@ const installSandbox = async (sandbox: SandboxType) => {
   }
 }
 
-watch(() => props.workspaceId, (newVal) => {
-  console.log('WorkspaceId changed:', newVal, typeof newVal)
-  if (newVal) {
-    console.log('About to call loadSandboxes from watch')
-    loadSandboxes()
-  } else {
-    console.log('WorkspaceId is falsy, not calling loadSandboxes')
-  }
-}, { immediate: true })
+watch(
+  () => props.workspaceId,
+  (newVal) => {
+    if (newVal) {
+      loadSandboxes()
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(() => {
-  console.log('AppMarket onMounted, workspaceId:', props.workspaceId)
   if (props.workspaceId) {
-    console.log('About to call loadSandboxes from onMounted')
     loadSandboxes()
   }
 })
@@ -145,23 +141,13 @@ onMounted(() => {
     <div class="flex flex-col gap-4 h-[600px]">
       <!-- Search and Filter Bar -->
       <div class="flex gap-3">
-        <a-input
-          v-model:value="searchQuery"
-          class="flex-1"
-          :placeholder="t('placeholder.searchByTitle')"
-          allow-clear
-        >
+        <a-input v-model:value="searchQuery" class="flex-1" :placeholder="t('placeholder.searchByTitle')" allow-clear>
           <template #prefix>
             <GeneralIcon icon="search" class="h-4 w-4 text-gray-500" />
           </template>
         </a-input>
 
-        <a-select
-          v-model:value="selectedCategory"
-          class="w-48"
-          :placeholder="t('labels.category')"
-          allow-clear
-        >
+        <a-select v-model:value="selectedCategory" class="w-48" :placeholder="t('labels.category')" allow-clear>
           <a-select-option v-for="cat in categories" :key="cat" :value="cat">
             {{ cat }}
           </a-select-option>

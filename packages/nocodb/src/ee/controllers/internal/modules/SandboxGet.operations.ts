@@ -1,16 +1,18 @@
 import { Injectable } from '@nestjs/common';
+import { DeploymentStatus, type NcContext, type NcRequest } from 'nocodb-sdk';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
-import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type {
   InternalApiModule,
   InternalGETResponseType,
 } from '~/utils/internal-type';
-import type { SandboxStatus } from '~/ee/models/Sandbox';
 import { NcError } from '~/helpers/catchError';
-import Sandbox from '~/ee/models/Sandbox';
-import SandboxVersion from '~/ee/models/SandboxVersion';
+import Sandbox from '~/models/Sandbox';
+import SandboxVersion from '~/models/SandboxVersion';
+import SandboxDeploymentLog from '~/models/SandboxDeploymentLog';
 import { Base } from '~/models';
 import { diffMeta, serializeMeta } from '~/helpers/baseMetaHelpers';
+import Noco from '~/Noco';
+import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class SandboxGetOperations
@@ -23,6 +25,9 @@ export class SandboxGetOperations
     'sandboxGet',
     'sandboxGetUpdates',
     'sandboxVersionsList',
+    'sandboxDeployments',
+    'sandboxVersionDeployments',
+    'sandboxDeploymentLogs',
   ] as (keyof typeof OPERATION_SCOPES)[];
 
   async handle(
@@ -49,6 +54,12 @@ export class SandboxGetOperations
         return await this.getUpdates(context, req);
       case 'sandboxVersionsList':
         return await this.listVersions(context, req);
+      case 'sandboxDeployments':
+        return await this.getDeployments(context, req);
+      case 'sandboxVersionDeployments':
+        return await this.getVersionDeployments(context, req);
+      case 'sandboxDeploymentLogs':
+        return await this.getDeploymentLogs(context, req);
       default:
         return NcError.notFound('Operation');
     }
@@ -62,6 +73,8 @@ export class SandboxGetOperations
       search: search as string,
       limit: limit ? parseInt(limit as string, 10) : 50,
       offset: offset ? parseInt(offset as string, 10) : 0,
+      userId: req.user?.id,
+      workspaceId: context.workspace_id,
     });
 
     return {
@@ -71,12 +84,11 @@ export class SandboxGetOperations
   }
 
   private async list(context: NcContext, workspaceId: string, req: NcRequest) {
-    const { status, limit, offset } = req.query;
+    const { limit, offset } = req.query;
 
     const sandboxes = await Sandbox.list(context, {
       workspaceId,
       userId: req.user.id,
-      status: status as SandboxStatus,
       limit: limit ? parseInt(limit as string, 10) : 50,
       offset: offset ? parseInt(offset as string, 10) : 0,
     });
@@ -102,6 +114,16 @@ export class SandboxGetOperations
       NcError.get(context).notFound('Sandbox not found');
     }
 
+    // Check visibility permissions
+    const canView = this.canViewSandbox(
+      sandbox,
+      req.user?.id,
+      context.workspace_id,
+    );
+    if (!canView) {
+      NcError.get(context).notFound('Sandbox not found');
+    }
+
     return sandbox;
   }
 
@@ -111,6 +133,16 @@ export class SandboxGetOperations
     const sandbox = await Sandbox.get(context, sandboxId as string);
 
     if (!sandbox) {
+      NcError.get(context).notFound('Sandbox not found');
+    }
+
+    // Check visibility permissions
+    const canView = this.canViewSandbox(
+      sandbox,
+      req.user?.id,
+      context.workspace_id,
+    );
+    if (!canView) {
       NcError.get(context).notFound('Sandbox not found');
     }
 
@@ -208,10 +240,365 @@ export class SandboxGetOperations
         id: v.id,
         version: v.version,
         version_number: v.version_number,
+        status: v.status,
         release_notes: v.release_notes,
         created_at: v.created_at,
+        published_at: v.published_at,
       })),
       pageInfo: {},
     } as any;
+  }
+
+  private async getDeployments(context: NcContext, req: NcRequest) {
+    const { sandboxId } = req.query;
+
+    if (!sandboxId) {
+      NcError.get(context).badRequest('sandboxId is required');
+    }
+
+    const sandbox = await Sandbox.get(context, sandboxId as string);
+
+    if (!sandbox) {
+      NcError.get(context).notFound('Sandbox not found');
+    }
+
+    // Only owner can view deployment statistics
+    if (sandbox.created_by !== req.user.id) {
+      NcError.get(context).unauthorized(
+        'Only the owner can view deployment statistics',
+      );
+    }
+
+    // Get all bases that have this sandbox installed with latest deployment log status
+    const installedBases = await Noco.ncMeta
+      .knexConnection(MetaTable.PROJECT)
+      .leftJoin(
+        Noco.ncMeta.knexConnection.raw(
+          `(
+            SELECT DISTINCT ON (base_id) base_id, status
+            FROM ${MetaTable.SANDBOX_DEPLOYMENT_LOGS}
+            ORDER BY base_id, created_at DESC
+          ) as latest_log`,
+        ),
+        `${MetaTable.PROJECT}.id`,
+        'latest_log.base_id',
+      )
+      .where(`${MetaTable.PROJECT}.sandbox_id`, sandboxId)
+      .where(`${MetaTable.PROJECT}.sandbox_master`, false)
+      .where(`${MetaTable.PROJECT}.deleted`, false)
+      .select(
+        `${MetaTable.PROJECT}.id`,
+        `${MetaTable.PROJECT}.title`,
+        `${MetaTable.PROJECT}.sandbox_version_id`,
+        `${MetaTable.PROJECT}.updated_at`,
+        `${MetaTable.PROJECT}.created_at`,
+        'latest_log.status as deployment_status',
+      );
+
+    // Get version information for each installation
+    const versions = await SandboxVersion.list(context, sandboxId);
+    const versionMap = new Map(
+      versions.map((v) => [v.id, { version: v.version, status: v.status }]),
+    );
+
+    // Build deployment list with version info and deployment status
+    const deploymentsList = installedBases.map((base) => {
+      const versionInfo = versionMap.get(base.sandbox_version_id);
+      return {
+        baseId: base.id,
+        baseTitle: base.title,
+        version: versionInfo?.version || 'unknown',
+        versionId: base.sandbox_version_id,
+        installedAt: base.created_at,
+        lastUpdated: base.updated_at,
+        status: base.deployment_status || 'unknown',
+      };
+    });
+
+    // Calculate statistics by version
+    const versionStats = versions.map((version) => {
+      const deploymentsForVersion = deploymentsList.filter(
+        (d) => d.versionId === version.id,
+      );
+      return {
+        versionId: version.id,
+        version: version.version,
+        versionNumber: version.version_number,
+        status: version.status,
+        deploymentCount: deploymentsForVersion.length,
+        publishedAt: version.published_at,
+      };
+    });
+
+    // Calculate overall statistics
+    const totalDeployments = deploymentsList.length;
+    const activeDeployments = deploymentsList.filter(
+      (d) => d.status !== DeploymentStatus.FAILED,
+    ).length;
+    const failedDeployments = deploymentsList.filter(
+      (d) => d.status === DeploymentStatus.FAILED,
+    ).length;
+
+    return {
+      sandbox: {
+        id: sandbox.id,
+        title: sandbox.title,
+        installCount: sandbox.install_count || 0,
+      },
+      statistics: {
+        totalDeployments,
+        activeDeployments,
+        failedDeployments: failedDeployments,
+        totalVersions: versions.length,
+      },
+      versionStats,
+      deployments: deploymentsList,
+      pageInfo: {},
+    } as any;
+  }
+
+  /**
+   * Get deployments for a specific version (paginated)
+   * Only accessible by sandbox owner
+   */
+  private async getVersionDeployments(context: NcContext, req: NcRequest) {
+    const { sandboxId, versionId, limit, offset } = req.query;
+
+    if (!sandboxId) {
+      NcError.get(context).badRequest('sandboxId is required');
+    }
+
+    if (!versionId) {
+      NcError.get(context).badRequest('versionId is required');
+    }
+
+    const sandbox = await Sandbox.get(context, sandboxId as string);
+
+    if (!sandbox) {
+      NcError.get(context).notFound('Sandbox not found');
+    }
+
+    // Only owner can view version deployments
+    if (sandbox.created_by !== req.user.id) {
+      NcError.get(context).unauthorized(
+        'Only the owner can view version deployments',
+      );
+    }
+
+    // Get version info
+    const version = await SandboxVersion.get(context, versionId as string);
+    if (!version || version.fk_sandbox_id !== sandboxId) {
+      NcError.get(context).notFound('Version not found');
+    }
+
+    const pageLimit = limit ? parseInt(limit as string, 10) : 10;
+    const pageOffset = offset ? parseInt(offset as string, 10) : 0;
+
+    // Get total count
+    const [{ count: totalCount }] = await Noco.ncMeta
+      .knexConnection(MetaTable.PROJECT)
+      .where('sandbox_id', sandboxId)
+      .where('sandbox_version_id', versionId)
+      .where('sandbox_master', false)
+      .where('deleted', false)
+      .count('* as count');
+
+    // Get paginated results with latest deployment log status
+    const deployments = await Noco.ncMeta
+      .knexConnection(MetaTable.PROJECT)
+      .leftJoin(
+        Noco.ncMeta.knexConnection.raw(
+          `(
+            SELECT DISTINCT ON (base_id) base_id, status
+            FROM ${MetaTable.SANDBOX_DEPLOYMENT_LOGS}
+            ORDER BY base_id, created_at DESC
+          ) as latest_log`,
+        ),
+        `${MetaTable.PROJECT}.id`,
+        'latest_log.base_id',
+      )
+      .where(`${MetaTable.PROJECT}.sandbox_id`, sandboxId)
+      .where(`${MetaTable.PROJECT}.sandbox_version_id`, versionId)
+      .where(`${MetaTable.PROJECT}.sandbox_master`, false)
+      .where(`${MetaTable.PROJECT}.deleted`, false)
+      .select(
+        `${MetaTable.PROJECT}.id`,
+        `${MetaTable.PROJECT}.title`,
+        `${MetaTable.PROJECT}.fk_workspace_id`,
+        `${MetaTable.PROJECT}.sandbox_version_id`,
+        `${MetaTable.PROJECT}.updated_at`,
+        `${MetaTable.PROJECT}.created_at`,
+        'latest_log.status as deployment_status',
+      )
+      .orderBy(`${MetaTable.PROJECT}.updated_at`, 'desc')
+      .limit(pageLimit)
+      .offset(pageOffset);
+
+    // Enrich with workspace info if needed
+    const enrichedDeployments = deployments.map((base) => ({
+      baseId: base.id,
+      baseTitle: base.title,
+      workspaceId: base.fk_workspace_id,
+      versionId: base.sandbox_version_id,
+      installedAt: base.created_at,
+      lastUpdated: base.updated_at,
+      status: base.deployment_status || 'unknown',
+    }));
+
+    return {
+      sandbox: {
+        id: sandbox.id,
+        title: sandbox.title,
+      },
+      version: {
+        id: version.id,
+        version: version.version,
+        versionNumber: version.version_number,
+      },
+      list: enrichedDeployments,
+      pageInfo: {
+        totalRows: Number(totalCount),
+        page: Math.floor(pageOffset / pageLimit) + 1,
+        pageSize: pageLimit,
+        isFirstPage: pageOffset === 0,
+        isLastPage: pageOffset + pageLimit >= Number(totalCount),
+      },
+    } as any;
+  }
+
+  /**
+   * Get deployment logs for a specific base installation
+   * Shows version history and deployment status
+   */
+  private async getDeploymentLogs(context: NcContext, req: NcRequest) {
+    const { baseId, limit, offset } = req.query;
+
+    if (!baseId) {
+      NcError.get(context).badRequest('baseId is required');
+    }
+
+    // Get the base
+    const base = await Base.get(context, baseId as string);
+
+    if (!base) {
+      NcError.get(context).notFound('Base not found');
+    }
+
+    // Verify this is a sandbox installation
+    if (!base.sandbox_id || base.sandbox_master) {
+      NcError.get(context).badRequest(
+        'This base is not a sandbox installation',
+      );
+    }
+
+    // Get the sandbox and verify ownership
+    const sandbox = await Sandbox.get(context, base.sandbox_id);
+    if (!sandbox) {
+      NcError.get(context).notFound('Sandbox not found');
+    }
+
+    // Only owner can view deployment logs
+    if (sandbox.created_by !== req.user.id) {
+      NcError.get(context).unauthorized(
+        'Only the owner can view deployment logs',
+      );
+    }
+
+    const pageLimit = limit ? parseInt(limit as string, 10) : 10;
+    const pageOffset = offset ? parseInt(offset as string, 10) : 0;
+
+    // Get deployment logs for this installation with pagination
+    const allLogs = await SandboxDeploymentLog.list(baseId as string);
+    const totalCount = allLogs.length;
+    const logs = allLogs.slice(pageOffset, pageOffset + pageLimit);
+
+    // Get version information to enrich the logs
+    const versionIds = [
+      ...new Set([
+        ...logs.map((log) => log.from_version_id).filter(Boolean),
+        ...logs.map((log) => log.to_version_id),
+      ]),
+    ];
+
+    const versions = await Promise.all(
+      versionIds.map((vId) => SandboxVersion.get(context, vId)),
+    );
+
+    const versionMap = new Map(versions.filter(Boolean).map((v) => [v.id, v]));
+
+    // Enrich logs with version information
+    const enrichedLogs = logs.map((log) => {
+      const fromVersion = log.from_version_id
+        ? versionMap.get(log.from_version_id)
+        : null;
+      const toVersion = versionMap.get(log.to_version_id);
+
+      return {
+        id: log.id,
+        deploymentType: log.deployment_type,
+        status: log.status,
+        fromVersion: fromVersion
+          ? {
+              id: fromVersion.id,
+              version: fromVersion.version,
+            }
+          : null,
+        toVersion: toVersion
+          ? {
+              id: toVersion.id,
+              version: toVersion.version,
+            }
+          : null,
+        errorMessage: log.error_message,
+        deploymentLog: log.deployment_log,
+        createdAt: log.created_at,
+        startedAt: log.started_at,
+        completedAt: log.completed_at,
+      };
+    });
+
+    return {
+      base: {
+        id: base.id,
+        title: base.title,
+        sandboxId: base.sandbox_id,
+        currentVersionId: base.sandbox_version_id,
+      },
+      logs: enrichedLogs,
+      pageInfo: {
+        totalRows: totalCount,
+        page: Math.floor(pageOffset / pageLimit) + 1,
+        pageSize: pageLimit,
+        isFirstPage: pageOffset === 0,
+        isLastPage: pageOffset + pageLimit >= totalCount,
+      },
+    } as any;
+  }
+
+  /**
+   * Check if user can view a sandbox based on visibility rules:
+   * - Public: visible to everyone
+   * - Private: visible to users in the same workspace
+   * - Unlisted: visible only to the owner
+   */
+  private canViewSandbox(
+    sandbox: Sandbox,
+    userId?: string,
+    workspaceId?: string,
+  ): boolean {
+    if (sandbox.visibility === 'public') {
+      return true;
+    }
+
+    if (sandbox.visibility === 'private') {
+      return sandbox.fk_workspace_id === workspaceId;
+    }
+
+    if (sandbox.visibility === 'unlisted') {
+      return sandbox.created_by === userId;
+    }
+
+    // Default deny
+    return false;
   }
 }

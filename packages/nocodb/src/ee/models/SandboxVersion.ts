@@ -1,3 +1,4 @@
+import { SandboxVersionStatus } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import {
@@ -15,11 +16,13 @@ export default class SandboxVersion {
   fk_sandbox_id: string;
   version: string;
   version_number: number;
+  status: SandboxVersionStatus;
   fk_workspace_id: string;
   schema: string; // Serialized schema JSON
   release_notes?: string;
   created_at?: string;
   updated_at?: string;
+  published_at?: string;
 
   constructor(data: Partial<SandboxVersion>) {
     Object.assign(this, data);
@@ -173,10 +176,14 @@ export default class SandboxVersion {
       'id',
       'fk_sandbox_id',
       'version',
+      'status',
       'fk_workspace_id',
       'schema',
       'release_notes',
     ]);
+
+    // Default to draft if not specified
+    insertObj.status = insertObj.status || SandboxVersionStatus.DRAFT;
 
     insertObj.version_number = await this.getNextVersionNumber(
       context,

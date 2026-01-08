@@ -137,20 +137,24 @@ class DataReflectionSession {
     if (this.closed) return;
     this.closed = true;
 
-    if (this.pgSocket && !this.pgSocket.destroyed) {
+    if (this.pgSocket) {
       try {
         this.pgSocket.removeAllListeners();
-        this.pgSocket.destroy();
+        if (!this.pgSocket.destroyed) {
+          this.pgSocket.destroy();
+        }
         this.pgSocket = null;
       } catch (e) {
         logger.error(e);
       }
     }
 
-    if (clientSocket && !clientSocket.destroyed) {
+    if (clientSocket) {
       try {
         clientSocket.removeAllListeners();
-        clientSocket.destroy();
+        if (!clientSocket.destroyed) {
+          clientSocket.destroy();
+        }
       } catch (e) {
         logger.error(e);
       }
@@ -248,7 +252,7 @@ export default class DataReflection extends DataReflectionCE {
         if (!session) {
           return;
         }
-        session.close();
+        session.close(clientSocket);
       });
     });
 

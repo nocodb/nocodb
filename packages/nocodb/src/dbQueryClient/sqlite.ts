@@ -2,7 +2,7 @@ import { arrFlatMap } from 'nocodb-sdk';
 import type { DBQueryClient } from '~/dbQueryClient/types';
 import type { XKnex } from '~/db/CustomKnex';
 
-export class PGDBQueryClient implements DBQueryClient {
+export class SqliteDBQueryClient implements DBQueryClient {
   temporaryTable({
     knex,
     data,
@@ -38,10 +38,9 @@ export class PGDBQueryClient implements DBQueryClient {
   }
 
   concat(fields: string[]) {
-    return `CONCAT(${fields.join(', ')})`;
+    return `${fields.join(' || ')}`;
   }
-
   simpleCast(field: string, asType: string) {
-    return `${field}::${asType}`;
+    return `CAST(${field} as ${asType})`;
   }
 }

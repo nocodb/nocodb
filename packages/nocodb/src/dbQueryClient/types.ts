@@ -6,5 +6,9 @@ export interface DBQueryClient {
     fields: string[];
     alias: string;
     knex: XKnex;
+    asKnexFrom?: boolean;
   });
+
+  concat(fields: string[]);
+  simpleCast(field: string, asType: string);
 }

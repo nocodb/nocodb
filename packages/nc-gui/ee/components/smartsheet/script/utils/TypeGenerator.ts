@@ -6371,11 +6371,7 @@ declare interface ConfigItem {}
     this.write('}')
   }
 
-  generateInputInterfaceForWorkflow(
-    _schema: any,
-    variables?: Record<string, any>,
-    flatVariables?: VariableDefinition[],
-  ) {
+  generateInputInterfaceForWorkflow(_schema: any, variables?: Record<string, any>, flatVariables?: VariableDefinition[]) {
     this.write(`declare var input: {`)
     this.indent_in()
     this.formatJSDoc([

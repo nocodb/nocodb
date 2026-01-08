@@ -3,12 +3,12 @@ import {
   UITypes,
   ViewTypes,
   getFirstNonPersonalView,
+  isDateOrDateTimeCol,
   isSystemColumn,
   isVirtualCol,
-  parseUserValue,
-  parseJsonValue,
-  isDateOrDateTimeCol,
   parseCheckboxValue,
+  parseJsonValue,
+  parseUserValue,
 } from 'nocodb-sdk'
 import axios from 'axios'
 import type { DedupeConfig, MergeState } from './context'
@@ -263,7 +263,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   // Build where query for a duplicate group
   function buildWhereQueryForGroup(fieldValues: Record<string, any>): string {
     const conditions: string[] = []
-    for (let [fieldId, value] of Object.entries(fieldValues)) {
+    for (const [fieldId, value] of Object.entries(fieldValues)) {
       const field = meta.value?.columns?.find((col) => col.id === fieldId)
       if (!field) continue
 

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useDedupeOrThrow } from '../lib/useDedupe'
 import RecordCard from './RecordCard.vue'
-import type { Row } from '#imports'
 
 const {
   mergeState,
@@ -17,7 +16,6 @@ const {
   syncScrollTop,
   loadData,
   syncCount,
-  chunkStates,
   clearCache,
 } = useDedupeOrThrow()
 

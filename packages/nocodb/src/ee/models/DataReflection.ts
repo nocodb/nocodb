@@ -115,7 +115,7 @@ class DataReflectionSession {
     this.cleanupOldTimestamps();
 
     logger.log(
-      `Query completed for workspace ${this.fk_workspace_id}. Duration: ${queryDuration}ms, Total queries: ${this.totalQueries}`,
+      `Query completed for workspace ${this.fk_workspace_id}. Duration: ${queryDuration}ms`,
     );
   }
 
@@ -149,12 +149,12 @@ class DataReflectionSession {
 
     clientSessions.delete(this.clientId);
 
-    logger.debug(
-      `Session closed for ${this.clientId} (${
-        this.fk_workspace_id
-      }). Total query time: ${this.totalQueryTime}ms, Total queries: ${
+    logger.log(
+      `Session closed for ${this.fk_workspace_id}. Queries: ${
         this.totalQueries
-      }. Total session time: ${Date.now() - this.sessionStartTime}ms.`,
+      } (${this.totalQueryTime}ms). Session: ${
+        Date.now() - this.sessionStartTime
+      }ms.`,
     );
   }
 }

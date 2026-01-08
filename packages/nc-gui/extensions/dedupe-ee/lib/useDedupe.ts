@@ -662,7 +662,11 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       }
     } catch (error: any) {
       if (!axios.isCancel(error)) {
-        message.error(`Error loading group sets: ${error.message || 'Unknown error'}`)
+        const errorMessage = await extractSdkResponseErrorMsg(error)
+
+        message.error('Error loading group sets', undefined, {
+          copyText: errorMessage,
+        })
       }
     } finally {
       groupSetsPaginationData.value.isLoading = false

@@ -103,7 +103,7 @@ const isFieldSelected = (col: ColumnType) => {
 <template>
   <SmartsheetRow :row="record">
     <a-card
-      class="!rounded-xl h-full !border-nc-border-gray-medium !bg-nc-bg-default border-1 group break-all w-[320px] max-w-[320px] flex-none flex flex-col relative"
+      class="!rounded-xl !border-nc-border-gray-medium !bg-nc-bg-default border-1 group break-all w-[320px] max-w-[320px] flex-none flex flex-col relative"
       :body-style="{ padding: '0px !important', flex: 1, display: 'flex' }"
       :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
       :style="{
@@ -112,6 +112,7 @@ const isFieldSelected = (col: ColumnType) => {
       }"
       :class="{
         'cursor-pointer': !isMergeRecord,
+        'nc-is-active-card': isPrimaryRecord && !isMergeRecord,
       }"
       @click="handleClick"
       @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"
@@ -260,6 +261,14 @@ const isFieldSelected = (col: ColumnType) => {
   }
 }
 
+.ant-card.ant-card-bordered.nc-is-active-card {
+  @apply !border-nc-border-brand;
+
+  .ant-card-cover > div {
+    @apply !border-t-nc-border-brand !border-l-nc-border-brand !border-r-nc-border-brand;
+  }
+}
+
 :deep(.ant-card-cover) {
   @apply sticky top-0 z-100 bg-nc-bg-gray-extralight;
 }
@@ -285,14 +294,14 @@ const isFieldSelected = (col: ColumnType) => {
 }
 
 .nc-card-col-wrapper {
-  @apply !text-small !leading-[18px];
+  @apply !text-small !leading-[18px] transition-colors;
 
   &:not(.nc-field-selected) {
     @apply hover:bg-nc-bg-gray-extralight;
   }
 
   &.nc-field-selected {
-    @apply bg-nc-green-100 dark:bg-nc-green-20 hover:bg-opacity-80;
+    @apply bg-nc-green-100 dark:bg-nc-green-20 hover:bg-opacity-50;
   }
 
   .nc-cell,

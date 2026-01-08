@@ -1,7 +1,7 @@
 {
   "id": "nc-dedupe",
   "title": "Dedupe",
-  "subTitle": "Dedupe records in a table",
+  "subTitle": "Review duplicate records and merge them into a consolidated record.",
   "description": "dedupe-ee/description.md",
   "entry": "dedupe-ee",
   "version": "0.1",

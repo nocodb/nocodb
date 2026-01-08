@@ -43,14 +43,14 @@ onMounted(async () => {
               class="text-bodyDefaultSm text-nc-content-gray-muted line-clamp-2 max-w-[80%]"
             >
               <template #title>
-                For each set of duplicates, pick a primary record. All other records in the set will be deleted when you merge.
-                Click a field to merge it into the primary record. If a record isn't a duplicate, exclude it from the set and it
-                won't be deleted.
+                Select one primary record to keep for each duplicate group. When you merge, all other records in that group are
+                are permanently deleted. For each field, click a value from any record to copy it into the primary record. If a a
+                shown is not actually a duplicate, exclude it—excluded records are neither merged nor deleted.
               </template>
 
-              For each set of duplicates, pick a primary record. All other records in the set will be deleted when you merge.
-              Click a field to merge it into the primary record. If a record isn't a duplicate, exclude it from the set and it
-              won't be deleted.
+              Select one primary record to keep for each duplicate group. When you merge, all other records in that group are
+              permanently deleted. For each field, click a value from any record to copy it into the primary record. If a record
+              shown is not actually a duplicate, exclude it—excluded records are neither merged nor deleted.
             </NcTooltip>
           </div>
         </div>

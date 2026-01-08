@@ -1,5 +1,5 @@
 import type { ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, getFirstNonPersonalView, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
+import { UITypes, ViewTypes, getFirstNonPersonalView, isSystemColumn, isVirtualCol, parseUserValue } from 'nocodb-sdk'
 import axios from 'axios'
 import type { DedupeConfig, MergeState } from './context'
 import { extensionUserPrefsManager } from '#imports'
@@ -58,7 +58,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   })
 
   const hasNextGroup = computed(() => {
-    return currentGroupIndex.value < (groupSetsPaginationData.value.totalRows || 0) - 1
+    return currentGroupIndex.value < (groupSetsPaginationData.value.totalRows || 0)
   })
 
   const currentGroupRecordsPaginationData = ref<PaginatedType & { isLoading: boolean }>({
@@ -131,8 +131,16 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const computedWhere = computed(() => {
     if (!selectedField.value?.id || !currentGroup.value) return ''
 
+    console.log('currentGroup.value[selectedField.value.title!]', currentGroup.value[selectedField.value.title!])
+
+    let value = currentGroup.value[selectedField.value.title!]
+
+    if (selectedField.value.uidt === UITypes.User) {
+      value = parseUserValue(value)
+    }
+
     return buildWhereQueryForGroup({
-      [selectedField.value.id!]: currentGroup.value[selectedField.value.title!],
+      [selectedField.value.id!]: value,
     })
   })
 

@@ -168,8 +168,8 @@ const isFieldSelected = (col: ColumnType) => {
 
       <div class="nc-dedupe-record-card-content flex-1 flex content-stretch gap-3 w-full overflow-hidden rounded-b-xl relative">
         <!-- Loading overlay for virtual scrolling placeholders -->
-        <div v-if="record.rowMeta.isLoading" class="absolute inset-0 bg-nc-bg-default bg-opacity-90 z-10 rounded-xl">
-          <a-spin size="small" />
+        <div v-if="record.rowMeta.isLoading" class="absolute inset-0 bg-nc-bg-default bg-opacity-90 z-10 rounded-xl flex justify-center pt-[35dvh]">
+          <a-spin size="large" />
         </div>
 
         <div class="flex-1 flex flex-col">

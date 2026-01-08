@@ -1,13 +1,55 @@
 <!-- Description  -->
 
-Dedupe helps you quickly identify and merge duplicate records in your tables.
+Dedupe helps you quickly identify and merge duplicate records in your tables using a single field for grouping.
+
+**Current Limitations:**
+- Supports duplicate detection based on **one field only** (single field grouping)
+- **Undo/Redo functionality is not currently supported** - merged records cannot be reverted
+- **Minimum 2 matching records required** - groups with only 1 record are not shown as duplicates
+
+### Supported Field Types for Grouping
+
+**✅ Supported for duplicate detection:**
+- Text, LongText, SingleLineText
+- Number, Decimal, Currency, Percent, Duration, Rating
+- Date, DateTime, Time, Year
+- Phone, Email, URL
+- SingleSelect, MultiSelect
+- Checkbox, 
+- JSON, Geometry
+- User
+
+**❌ Not supported for grouping:**
+- System columns (created_at, updated_at, id, etc.)
+- Virtual columns (Barcode, QRCode, Formula, Rollup, Lookup, Links, LTAR)
+- Attachment 
+
+### Field Behavior During Merge
+
+**Fields shown in merge interface:**
+- All fields except the grouping field itself and system columns
+- You can select values from different duplicate records for each field
+- Virtual columns (Formula, Lookup, Rollup) are displayed but **cannot be modified** during merge
+
+**Merge process notes:**
+- Primary record retains its structure and primary key
+- Selected field values from other records are copied to the primary record
+- Duplicate records are permanently deleted after merge
+- Excluded records are preserved and not merged or deleted
+
+**Group review options:**
+- **Skip**: Move to the next duplicate group without making any changes to the current group
+- **Reset**: Clear all selections for the current group (primary record, field selections, and exclusions) and start fresh
+- You can skip groups before selecting a primary record, or reset your selections even after making choices
 
 With just a few steps, you can:
-- Select any table you want to scan for duplicates.
-- Choose one or more fields to determine how duplicates are detected (e.g., email, phone number, etc.).
-- (Optionally) Filter records using a specific view before running dedupe.
-- Review a list of detected duplicate groups.
-- Easily merge, update, or remove duplicates directly from the interface.
+- Select any Table you want to scan for duplicates.
+- Filter records using a specific view.
+- Choose **a single field** to determine how duplicates are detected (e.g., email, phone number, etc.).
+- Review detected duplicate groups where the selected field has matching values.
+- **Skip groups** you don't want to merge, or **reset** your selections for the current group if needed.
+- Select a primary record and pick the best field values from other duplicates.
+- Merge selected values into the primary record and automatically delete the duplicate records.
 
 This makes it easy to keep your data clean, accurate, and up-to-date—no manual comparison needed.
 </br></br>

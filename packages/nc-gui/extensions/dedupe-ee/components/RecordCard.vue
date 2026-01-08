@@ -33,10 +33,19 @@ const isPrimaryRecord = computed(() => {
   return mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex!
 })
 
+const setActiveRecord = (recordIndex: number) => {
+  if (mergeState.value.activeRecordIndex === recordIndex) return
+
+  mergeState.value.activeRecordIndex = recordIndex
+}
+
 const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }) => {
   if (props.isMergeRecord) return
 
   e.preventDefault()
+
+  setActiveRecord(record.value.rowMeta.rowIndex!)
+
   if (target) {
     contextMenuTarget.value = target
   }
@@ -72,6 +81,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 const handleClick = () => {
   if (props.isMergeRecord || record.value.rowMeta.isLoading) return
 
+  setActiveRecord(record.value.rowMeta.rowIndex!)
+
   if (!ncIsNumber(mergeState.value.primaryRecordIndex)) {
     setPrimaryRecord(record.value.rowMeta.rowIndex!)
   }
@@ -79,6 +90,8 @@ const handleClick = () => {
 
 const handleClickField = (col: ColumnType) => {
   if (props.isMergeRecord || record.value.rowMeta.isLoading) return
+
+  setActiveRecord(record.value.rowMeta.rowIndex!)
 
   if (!ncIsNumber(mergeState.value.primaryRecordIndex)) {
     setPrimaryRecord(record.value.rowMeta.rowIndex!)
@@ -111,16 +124,15 @@ const isFieldSelected = (col: ColumnType) => {
 <template>
   <SmartsheetRow :row="record">
     <a-card
-      class="!rounded-xl !border-nc-border-gray-medium !bg-nc-bg-default border-1 group break-all w-[320px] max-w-[320px] flex-none flex flex-col relative"
+      class="nc-dedupe-review-record-card !rounded-xl !border-nc-border-gray-medium !bg-nc-bg-default border-1 group break-all w-[320px] max-w-[320px] flex-none flex flex-col relative nc-dedupe-review-record-card"
       :body-style="{ padding: '0px !important', flex: 1, display: 'flex' }"
-      :data-testid="`nc-gallery-card-${record.rowMeta.rowIndex}`"
       :style="{
         ...extractRowBackgroundColorStyle(record).rowBgColor,
         ...extractRowBackgroundColorStyle(record).rowBorderColor,
       }"
       :class="{
-        'cursor-pointer': !isMergeRecord,
-        'nc-is-active-card': isPrimaryRecord && !isMergeRecord,
+        'nc-dedupe-review-record-selection-card cursor-pointer': !isMergeRecord,
+        'nc-is-active-card': !isMergeRecord && mergeState.activeRecordIndex === record.rowMeta.rowIndex,
       }"
       @click="handleClick"
       @contextmenu="showContextMenu($event, { row: record, index: record.rowMeta.rowIndex })"

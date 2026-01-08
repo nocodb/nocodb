@@ -25,6 +25,7 @@ const getDefaultMergeState = (): MergeState => {
     primaryRecordIndex: null,
     excludedRecordIndexes: new Set(),
     selectedFields: {},
+    activeRecordIndex: null,
   }
 }
 

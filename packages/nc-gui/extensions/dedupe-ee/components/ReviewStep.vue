@@ -187,6 +187,18 @@ watch(scrollTop, (newScrollTop) => {
     scrollContainer.value.scrollTop = newScrollTop
   }
 })
+
+useEventListener('click', (event) => {
+  const isSelectionCard = (event?.target as HTMLElement)?.closest(
+    '.nc-dedupe-review-record-selection-card, .nc-dropdown-dedupe-context-menu',
+  )
+
+  if (isSelectionCard || mergeState.value.activeRecordIndex === null) {
+    return
+  }
+
+  mergeState.value.activeRecordIndex = null
+})
 </script>
 
 <template>

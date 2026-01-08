@@ -25,4 +25,5 @@ export interface MergeState {
   primaryRecordIndex: number | null
   excludedRecordIndexes: Set<number>
   selectedFields: Record<string, number> // fieldId -> record index mapping
+  activeRecordIndex: number | null
 }

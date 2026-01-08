@@ -49,6 +49,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const currentStep = ref<'config' | 'review'>('config')
 
+  const hideComputedFields = ref(false)
+
   const views = ref<ViewType[]>([])
   const meta = ref<TableType>()
   const isMerging = ref(false)
@@ -688,6 +690,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     currentStep,
     scrollContainer,
     scrollTop,
+    hideComputedFields,
 
     // Computed
     tableList,
@@ -700,6 +703,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     hasNextGroup,
     currentGroupRecordsPaginationData,
     hasMergedAnyRecords,
+
     // Methods
     reloadViews,
     loadTableMeta,

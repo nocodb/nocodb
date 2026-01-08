@@ -12,8 +12,16 @@ const props = withDefaults(defineProps<Props>(), {})
 
 const { record } = toRefs(props)
 
-const { currentGroup, selectedField, contextMenuTarget, mergeState, setPrimaryRecord, selectFieldValue, fields } =
-  useDedupeOrThrow()
+const {
+  currentGroup,
+  selectedField,
+  contextMenuTarget,
+  mergeState,
+  hideComputedFields,
+  fields,
+  setPrimaryRecord,
+  selectFieldValue,
+} = useDedupeOrThrow()
 
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
@@ -184,6 +192,7 @@ const isFieldSelected = (col: ColumnType) => {
             :class="{
               'nc-field-selected': isFieldSelected(col) && !isMergeRecord && !isVirtualCol(col),
               '!cursor-not-allowed': isVirtualCol(col),
+              'hidden': isVirtualCol(col) && hideComputedFields,
             }"
             @click="handleClickField(col)"
           >

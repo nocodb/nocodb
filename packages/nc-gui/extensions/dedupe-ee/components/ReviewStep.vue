@@ -10,9 +10,10 @@ const {
   currentGroup,
   totalRows,
   primaryRecordRowInfo,
+  hideComputedFields,
+  scrollTop,
   setPrimaryRecord,
   excludeRecord,
-  scrollTop,
   syncScrollTop,
   loadData,
   syncCount,
@@ -196,8 +197,13 @@ watch(scrollTop, (newScrollTop) => {
       'w-full': !(ncIsNumber(mergeState.primaryRecordIndex) && primaryRecordRowInfo),
     }"
   >
-    <div class="px-4 py-2 min-h-[38px]">
+    <div class="px-4 py-2 min-h-[38px] flex items-center">
       <h3 class="font-semibold m-0">Review records</h3>
+      <div class="flex-1"></div>
+
+      <div class="flex items-center gap-1">
+        <NcSwitch v-model:checked="hideComputedFields"> Hide computed fields </NcSwitch>
+      </div>
     </div>
 
     <div ref="scrollContainer" class="w-full h-[calc(100%_-_38px)] relative nc-scrollbar-thin" @scroll="handleScroll">

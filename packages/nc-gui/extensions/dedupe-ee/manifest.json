@@ -18,7 +18,7 @@
   },
   "links": [],
   "config": {
-    "modalSize": "fullscreen",
+    "modalSize": "extensionFullscreen",
     "contentMinHeight": "320px"
   },
   "order": 9,

@@ -266,7 +266,6 @@ export async function getCommandPaletteForUserWorkspace(
     const items = workspaceAndBases.length
       ? await ncMeta.knexConnection.fromRaw(`(${itemQuery}) as t`).select('*')
       : [];
-    console.log(items);
     cmdData = {
       wsAndBases: workspaceAndBases,
       items,

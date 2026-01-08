@@ -140,7 +140,7 @@ export class CommandPaletteService {
           if (!baseTableIdsMap.has(item.base_id)) {
             baseTableIdsMap.set(item.base_id, new Set<string>());
             baseContextMap.set(item.base_id, {
-              workspace_id: item.workspace_id,
+              workspace_id: item.fk_workspace_id,
               base_id: item.base_id,
             } as NcContext);
           }
@@ -219,7 +219,7 @@ export class CommandPaletteService {
                   id: item.item_id,
                   title: item.item_title,
                   meta: deserializeJSON(item.item_meta),
-                  workspace_id: item.workspace_id,
+                  workspace_id: item.fk_workspace_id,
                   base_id: item.base_id,
                   type: item.item_type,
                   synced: item.item_sync,
@@ -235,9 +235,9 @@ export class CommandPaletteService {
                   id: item.item_id,
                   title: item.item_title,
                   meta: deserializeJSON(item.item_meta),
-                  workspace_id: item.workspace_id,
+                  workspace_id: item.fk_workspace_id,
                   base_id: item.base_id,
-                  table_id: item.item_id,
+                  table_id: item.item_parent_id,
                   type: item.item_type,
                 });
               }
@@ -251,7 +251,7 @@ export class CommandPaletteService {
                   id: item.item_id,
                   title: item.item_title,
                   meta: deserializeJSON(item.item_meta),
-                  workspace_id: item.workspace_id,
+                  workspace_id: item.fk_workspace_id,
                   base_id: item.base_id,
                   order: item.item_order,
                 });
@@ -265,7 +265,7 @@ export class CommandPaletteService {
                   id: item.item_id,
                   title: item.item_title,
                   meta: deserializeJSON(item.item_meta),
-                  workspace_id: item.workspace_id,
+                  workspace_id: item.fk_workspace_id,
                   base_id: item.base_id,
                   order: item.item_order,
                 });
@@ -279,7 +279,7 @@ export class CommandPaletteService {
                   id: item.item_id,
                   title: item.item_title,
                   meta: deserializeJSON(item.item_meta),
-                  workspace_id: item.workspace_id,
+                  workspace_id: item.fk_workspace_id,
                   base_id: item.base_id,
                   order: item.item_order,
                 });

@@ -208,7 +208,7 @@ export interface CommandPaletteResult {
   }[];
   items: {
     kind: string;
-    workspace_id: string;
+    fk_workspace_id: string;
     base_id: string;
     item_id: string;
     item_title: string;

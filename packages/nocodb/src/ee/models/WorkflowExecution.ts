@@ -115,7 +115,7 @@ export default class WorkflowExecution implements IWorkflowExecution {
         ...xcCondition,
         created_at: {
           ...xcCondition?.created_at,
-          gte: retentionDate,
+          ge: retentionDate,
         },
       };
     }

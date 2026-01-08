@@ -254,6 +254,9 @@ export async function getCommandPaletteForUserWorkspace(
               ON w.base_id = _base_tbl.base_id
               AND w.fk_workspace_id = _base_tbl.workspace_id
           WHERE w.type = :type_workflow
+            and _base_tbl.base_role IN ('${ProjectRoles.CREATOR}', '${
+        ProjectRoles.OWNER
+      }')
         `,
       {
         type_dashboard: ModelTypes.DASHBOARD,

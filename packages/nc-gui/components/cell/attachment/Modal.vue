@@ -137,9 +137,9 @@ const isNewAttachmentModalOpen = ref(false)
           'border-nc-border-brand': !visibleItems.length,
         }"
       >
-        <component :is="iconMap.upload" class="w-8 h-8 text-brand-500" />
+        <component :is="iconMap.upload" class="w-8 h-8 text-nc-content-brand" />
         <div class="p-4">
-          <h1 class="text-brand-500 font-bold">{{ $t('labels.dropHere') }}</h1>
+          <h1 class="text-nc-content-brand font-bold">{{ $t('labels.dropHere') }}</h1>
         </div>
       </div>
 
@@ -177,11 +177,11 @@ const isNewAttachmentModalOpen = ref(false)
           @click="onFileDialogOpen"
         >
           <template v-if="!(isSharedForm || (!readOnly && !dragging && isOverDropZone))">
-            <component :is="iconMap.upload" class="w-8 h-8 text-gray-500" />
+            <component :is="iconMap.upload" class="w-8 h-8 text-nc-content-gray-muted" />
             <span class="p-4">
               {{ $t('labels.clickTo') }}
 
-              <span class="font-semibold text-brand-500"> {{ $t('labels.browseFiles') }} </span>
+              <span class="font-semibold text-nc-content-brand"> {{ $t('labels.browseFiles') }} </span>
               {{ $t('general.or') }}
               <span class="font-semibold"> {{ $t('labels.dragFilesHere') }} </span>
 

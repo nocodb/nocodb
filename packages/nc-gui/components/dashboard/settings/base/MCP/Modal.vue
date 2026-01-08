@@ -2,9 +2,16 @@
 interface Props {
   value: boolean
   token: MCPTokenExtendedType
+  showRegenerateButton?: boolean
+  showWorkspaceBaseInfo?: boolean
+  isAccountLevel?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  showRegenerateButton: true,
+  showWorkspaceBaseInfo: false,
+  isAccountLevel: false,
+})
 
 const emits = defineEmits(['close', 'update:value', 'update:token'])
 
@@ -16,7 +23,7 @@ const { openedProject } = storeToRefs(useBases())
 
 const token = useVModel(props, 'token')
 
-const supportedDocs = [
+const supportedDocs: SupportedDocsType[] = [
   {
     title: 'Getting Started with MCP Server',
     href: 'https://nocodb.com/docs/product-docs/mcp',
@@ -38,7 +45,7 @@ const supportedDocs = [
 const { updateMcpToken } = useMcpSettings()
 
 const regenerateToken = async () => {
-  const newToken = await updateMcpToken(token.value)
+  const newToken = await updateMcpToken(token.value, props.isAccountLevel)
   if (newToken) {
     token.value = newToken
   }
@@ -49,13 +56,29 @@ const closeModal = () => {
   modalVisible.value = false
 }
 
-const activeTab = ref<'claude' | 'cursor' | 'windsurf'>('claude')
+const activeTab = ref<'claude' | 'cursor' | 'windsurf' | 'antigravity'>('claude')
+
+const serverName = computed(() => {
+  let title = ''
+
+  if (props.showWorkspaceBaseInfo) {
+    title = `NocoDB - ${token.value.workspace?.title || 'Workspace'} - ${token.value.base?.title || 'Base'}`
+  } else {
+    title = `NocoDB Base - ${openedProject.value?.title}`
+  }
+
+  if (activeTab.value === 'antigravity') {
+    title = title.replaceAll(' ', '_').replaceAll('-', '')
+  }
+
+  return title
+})
 
 const code = computed(
   () => `
 {
   "mcpServers": {
-    "NocoDB Base - ${openedProject.value?.title}": {
+    "${serverName.value}": {
       "command": "npx",
       "args": [
         "mcp-remote",
@@ -75,8 +98,8 @@ const code = computed(
     <template #header>
       <div class="flex w-full items-center p-2 justify-between">
         <div class="flex items-center gap-3 pl-1 flex-1">
-          <GeneralIcon class="text-gray-900 h-5 w-5" icon="mcp" />
-          <span class="text-gray-900 truncate font-semibold text-xl">
+          <GeneralIcon class="text-nc-content-gray-emphasis h-5 w-5" icon="mcp" />
+          <span class="text-nc-content-gray-emphasis truncate font-semibold text-xl">
             {{ token.title }}
           </span>
         </div>
@@ -88,7 +111,7 @@ const code = computed(
         </div>
       </div>
     </template>
-    <div class="flex bg-white rounded-b-2xl h-[calc(100%_-_66px)]">
+    <div class="flex bg-nc-bg-default rounded-b-2xl h-[calc(100%_-_66px)]">
       <div
         ref="containerElem"
         class="h-full flex-1 flex flex-col overflow-y-auto scroll-smooth nc-scrollbar-thin px-24 py-6 mx-auto"
@@ -97,6 +120,19 @@ const code = computed(
           <div class="text-nc-content-gray font-bold leading-6">
             {{ $t('labels.mcpSetup') }}
           </div>
+
+          <!-- Workspace/Base Info (for account-level view) -->
+          <div v-if="showWorkspaceBaseInfo" class="flex flex-col gap-2 p-4 bg-nc-bg-gray-extralight rounded-lg">
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-nc-content-gray-subtle">{{ $t('objects.workspace') }}:</span>
+              <span class="text-sm text-nc-content-gray-subtle2">{{ token.workspace?.title || '-' }}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-sm font-semibold text-nc-content-gray-subtle">{{ $t('objects.project') }}:</span>
+              <span class="text-sm text-nc-content-gray-subtle2">{{ token.base?.title || '-' }}</span>
+            </div>
+          </div>
+
           <NcAlert type="info" class="mt-3 max-w-[640px] w-full mx-auto">
             <template #message>
               {{ $t('labels.mcpTokenVisibilityInfo') }}
@@ -111,8 +147,8 @@ const code = computed(
               <template #tab>
                 <span
                   :class="{
-                    'text-brand-500 font-medium': activeTab === 'claude',
-                    'text-gray-700': activeTab !== 'claude',
+                    'text-nc-content-brand font-medium': activeTab === 'claude',
+                    'text-nc-content-gray-subtle': activeTab !== 'claude',
                   }"
                   class="text-sm"
                 >
@@ -128,7 +164,14 @@ const code = computed(
                   <li>Add the JSON configuration that’s provided after creating a token in claude_desktop_config.json</li>
                 </ol>
 
-                <NcButton type="secondary" class="w-39" size="small" :loading="token.loading" @click="regenerateToken(token)">
+                <NcButton
+                  v-if="showRegenerateButton"
+                  type="secondary"
+                  class="w-39"
+                  size="small"
+                  :loading="token.loading"
+                  @click="regenerateToken(token)"
+                >
                   {{ $t('labels.regenerateToken') }}
                 </NcButton>
 
@@ -139,8 +182,8 @@ const code = computed(
               <template #tab>
                 <span
                   :class="{
-                    'text-brand-500 font-medium': activeTab === 'cursor',
-                    'text-gray-700': activeTab !== 'cursor',
+                    'text-nc-content-brand font-medium': activeTab === 'cursor',
+                    'text-nc-content-gray-subtle': activeTab !== 'cursor',
                   }"
                   class="text-sm"
                 >
@@ -156,7 +199,14 @@ const code = computed(
                   <li>Add the JSON configuration that’s provided after creating a token.</li>
                 </ol>
 
-                <NcButton type="secondary" class="w-44" size="small" :loading="token.loading" @click="regenerateToken(token)">
+                <NcButton
+                  v-if="showRegenerateButton"
+                  type="secondary"
+                  class="w-44"
+                  size="small"
+                  :loading="token.loading"
+                  @click="regenerateToken(token)"
+                >
                   {{ $t('labels.regenerateToken') }}
                 </NcButton>
                 <DashboardSettingsBaseMCPCode :key="code" :code="code" />
@@ -166,8 +216,8 @@ const code = computed(
               <template #tab>
                 <span
                   :class="{
-                    'text-brand-500 font-medium': activeTab === 'windsurf',
-                    'text-gray-700': activeTab !== 'windsurf',
+                    'text-nc-content-brand font-medium': activeTab === 'windsurf',
+                    'text-nc-content-gray-subtle': activeTab !== 'windsurf',
                   }"
                   class="text-sm"
                 >
@@ -184,7 +234,50 @@ const code = computed(
                   <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
                 </ol>
 
-                <NcButton type="secondary" class="w-44" size="small" :loading="token.loading" @click="regenerateToken(token)">
+                <NcButton
+                  v-if="showRegenerateButton"
+                  type="secondary"
+                  class="w-44"
+                  size="small"
+                  :loading="token.loading"
+                  @click="regenerateToken(token)"
+                >
+                  {{ $t('labels.regenerateToken') }}
+                </NcButton>
+
+                <DashboardSettingsBaseMCPCode :code="code" />
+              </div>
+            </a-tab-pane>
+            <a-tab-pane key="antigravity" class="!h-full">
+              <template #tab>
+                <span
+                  :class="{
+                    'text-nc-content-brand font-medium': activeTab === 'antigravity',
+                    'text-nc-content-gray-subtle': activeTab !== 'antigravity',
+                  }"
+                  class="text-sm"
+                >
+                  AntiGravity
+                </span>
+              </template>
+              <div class="relative flex flex-col leading-6 text-nc-content-gray-subtle2 gap-3 my-3">
+                Get started with the NocoDB MCP with AntiGravity in 4 simple steps
+
+                <ol class="list-decimal pl-5">
+                  <li>Click on the three dots in the top right of the agent window, and click on "MCP Servers"</li>
+                  <li>Click on Manage MCP Servers.</li>
+                  <li>Now click on View raw config.</li>
+                  <li>Paste the JSON configuration that’s provided after creating a token in the opened file</li>
+                </ol>
+
+                <NcButton
+                  v-if="showRegenerateButton"
+                  type="secondary"
+                  class="w-44"
+                  size="small"
+                  :loading="token.loading"
+                  @click="regenerateToken(token)"
+                >
                   {{ $t('labels.regenerateToken') }}
                 </NcButton>
 
@@ -194,26 +287,10 @@ const code = computed(
           </NcTabs>
         </div>
       </div>
-      <div class="h-full bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
-        <div class="w-full flex flex-col gap-3">
-          <h2 class="text-sm text-gray-700 font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
-          <div>
-            <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-1">
-              <div class="h-7 w-7 flex items-center justify-center">
-                <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-500" />
-              </div>
-              <NuxtLink
-                :href="doc.href"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="!text-gray-500 text-sm !no-underline !hover:underline"
-              >
-                {{ doc.title }}
-              </NuxtLink>
-            </div>
-          </div>
-        </div>
-      </div>
+
+      <NcModalSupportedDocsSidebar>
+        <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
+      </NcModalSupportedDocsSidebar>
     </div>
   </NcModal>
 </template>
@@ -222,7 +299,7 @@ const code = computed(
 .nc-modal-mcp-token-create-edit {
   z-index: 1050;
   a {
-    @apply !no-underline !text-gray-700 !hover:text-primary;
+    @apply !no-underline !text-nc-content-gray-subtle !hover:text-primary;
   }
   .nc-modal {
     @apply !p-0;

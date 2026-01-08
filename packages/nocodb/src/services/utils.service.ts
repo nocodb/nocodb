@@ -9,13 +9,12 @@ import dayjs from 'dayjs';
 import type { ErrorReportReqType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import {
-  NC_APP_SETTINGS,
   NC_ATTACHMENT_FIELD_SIZE,
   NC_MAX_ATTACHMENTS_ALLOWED,
 } from '~/constants';
 import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
-import { Base, Store, User } from '~/models';
+import { Base, User } from '~/models';
 import Noco from '~/Noco';
 import { isCloud, isOnPrem, T } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -27,7 +26,11 @@ import {
   defaultGroupByLimitConfig,
   defaultLimitConfig,
 } from '~/helpers/extractLimitAndOffset';
-import { DriverClient, NC_DISABLE_SUPPORT_CHAT } from '~/utils/nc-config';
+import {
+  DriverClient,
+  NC_DISABLE_GROUP_BY_AGG,
+  NC_DISABLE_SUPPORT_CHAT,
+} from '~/utils/nc-config';
 import NocoCache from '~/cache/NocoCache';
 import { getCircularReplacer } from '~/utils';
 
@@ -413,10 +416,7 @@ export class UtilsService {
     const baseHasAdmin = !(await User.isFirst());
     const instance = await getInstance();
 
-    let settings: { invite_only_signup?: boolean } = {};
-    try {
-      settings = JSON.parse((await Store.get(NC_APP_SETTINGS, true))?.value);
-    } catch {}
+    const settings = await Noco.getAppSettings();
 
     const oidcAuthEnabled = ['openid', 'oidc'].includes(
       process.env.NC_SSO?.toLowerCase(),
@@ -483,6 +483,7 @@ export class UtilsService {
       mainSubDomain: this.configService.get('mainSubDomain', { infer: true }),
       dashboardPath: this.configService.get('dashboardPath', { infer: true }),
       inviteOnlySignup: settings.invite_only_signup,
+      restrictWorkspaceCreation: settings.restrict_workspace_creation,
       samlProviderName,
       samlAuthEnabled,
       giftUrl,
@@ -490,6 +491,7 @@ export class UtilsService {
       allowLocalUrl: process.env.NC_ALLOW_LOCAL_HOOKS === 'true',
       isOnPrem,
       disableSupportChat: NC_DISABLE_SUPPORT_CHAT,
+      disableGroupByAggregation: NC_DISABLE_GROUP_BY_AGG,
       /**
        * Allow disabling onboarding flow based on env variable or development mode
        *
@@ -533,14 +535,14 @@ export class UtilsService {
 
     const cacheKey = `${CacheScope.PRODUCT_FEED}:${type}:${pageNum}:${perPage}`;
 
-    const cachedData = await NocoCache.get(cacheKey, 'json');
+    const cachedData = await NocoCache.get('root', cacheKey, 'json');
 
     if (cachedData) {
       try {
         return JSON.parse(cachedData);
       } catch (e) {
         this.logger.error(e?.message, e);
-        await NocoCache.del(cacheKey);
+        await NocoCache.del('root', cacheKey);
       }
     }
 
@@ -575,6 +577,7 @@ export class UtilsService {
     // The feed includes the attachments, which has the presigned URL
     // So the cache should match the presigned URL cache
     await NocoCache.setExpiring(
+      'root',
       cacheKey,
       JSON.stringify(response.data, getCircularReplacer),
       Number.isNaN(parseInt(process.env.NC_ATTACHMENT_EXPIRE_SECONDS))
@@ -588,14 +591,14 @@ export class UtilsService {
   async cloudFeatures(_req: NcRequest) {
     const cacheKey = `${CacheScope.CLOUD_FEATURES}`;
 
-    const cachedData = await NocoCache.get(cacheKey, 'json');
+    const cachedData = await NocoCache.get('root', cacheKey, 'json');
 
     if (cachedData) {
       try {
         return JSON.parse(cachedData);
       } catch (e) {
         this.logger.error(e?.message, e);
-        await NocoCache.del(cacheKey);
+        await NocoCache.del('root', cacheKey);
       }
     }
 
@@ -621,6 +624,7 @@ export class UtilsService {
     }
 
     await NocoCache.setExpiring(
+      'root',
       cacheKey,
       JSON.stringify(response.data, getCircularReplacer),
       3 * 60 * 60,

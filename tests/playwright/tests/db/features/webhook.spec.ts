@@ -688,10 +688,10 @@ test.describe.serial('Webhook', () => {
 
     try {
       // Create links
-      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.title, 1, 'hm', 'CityList', '1');
-      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.title, 1, 'hm', 'CityList', '2');
-      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.title, 2, 'hm', 'CityList', '3');
-      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.title, 3, 'hm', 'CityList', '4');
+      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.id, 1, 'hm', 'CityList', '1');
+      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.id, 1, 'hm', 'CityList', '2');
+      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.id, 2, 'hm', 'CityList', '3');
+      await api.dbTableRow.nestedAdd('noco', context.base.id, countryTable.id, 3, 'hm', 'CityList', '4');
       //
       // create formula column
       await api.dbTableColumn.create(countryTable.id, {

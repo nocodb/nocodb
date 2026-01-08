@@ -38,12 +38,14 @@ export class DataTableController {
     @Query('includeSortAndFilterColumns')
     includeSortAndFilterColumns: string,
   ) {
+    context.cache = true;
     const startTime = process.hrtime();
     const responseData = await this.dataTableService.dataList(context, {
       query: req.query,
       modelId: modelId,
       viewId: viewId,
       includeSortAndFilterColumns: includeSortAndFilterColumns === 'true',
+      user: req.user,
     });
     const elapsedSeconds = parseHrtimeToMilliSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
@@ -59,10 +61,12 @@ export class DataTableController {
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
+    context.cache = true;
     const countResult = await this.dataTableService.dataCount(context, {
       query: req.query,
       modelId,
       viewId,
+      user: req.user,
     });
 
     res.json(countResult);
@@ -85,6 +89,7 @@ export class DataTableController {
       viewId,
       cookie: req,
       undo: undo === 'true',
+      user: req.user,
     });
   }
 
@@ -102,6 +107,7 @@ export class DataTableController {
       body: req.body,
       cookie: req,
       viewId,
+      user: req.user,
     });
   }
 
@@ -119,6 +125,7 @@ export class DataTableController {
       cookie: req,
       viewId,
       body: req.body,
+      user: req.user,
     });
   }
 
@@ -130,10 +137,12 @@ export class DataTableController {
     @Param('modelId') modelId: string,
     @Query('viewId') viewId: string,
   ) {
+    context.cache = true;
     return await this.dataTableService.dataAggregate(context, {
       query: req.query,
       modelId,
       viewId,
+      user: req.user,
     });
   }
 
@@ -150,6 +159,7 @@ export class DataTableController {
       modelId,
       viewId,
       body: req.body,
+      user: req.user,
     });
   }
 
@@ -166,6 +176,7 @@ export class DataTableController {
       modelId,
       viewId,
       body: req.body,
+      user: req.user,
     });
   }
 
@@ -178,11 +189,13 @@ export class DataTableController {
     @Query('viewId') viewId: string,
     @Param('rowId') rowId: string,
   ) {
+    context.cache = true;
     return await this.dataTableService.dataRead(context, {
       modelId,
       rowId: rowId,
       query: req.query,
       viewId,
+      user: req.user,
     });
   }
 
@@ -200,6 +213,7 @@ export class DataTableController {
       rowId: rowId,
       beforeRowId: before,
       cookie: req,
+      user: req.user,
     });
   }
 
@@ -213,12 +227,14 @@ export class DataTableController {
     @Param('columnId') columnId: string,
     @Param('rowId') rowId: string,
   ) {
+    context.cache = true;
     return await this.dataTableService.nestedDataList(context, {
       modelId,
       rowId: rowId,
       query: req.query,
       viewId,
       columnId,
+      user: req.user,
     });
   }
 
@@ -248,6 +264,7 @@ export class DataTableController {
       columnId,
       refRowIds,
       cookie: req,
+      user: req.user,
     });
   }
 
@@ -271,6 +288,7 @@ export class DataTableController {
       columnId,
       refRowIds,
       cookie: req,
+      user: req.user,
     });
   }
 
@@ -298,6 +316,7 @@ export class DataTableController {
       columnId,
       data,
       cookie: req,
+      user: req.user,
     });
   }
 }

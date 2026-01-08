@@ -1,7 +1,5 @@
-import jsep from 'jsep';
-
 import { ColumnType } from './Api';
-import { jsepCurlyHook } from './formula/hooks';
+import { formulaJsep } from './formula/jsepInstances';
 
 export * from './formula/enums';
 export * from './formula/error';
@@ -11,6 +9,7 @@ export * from './formula/hooks';
 export * from './formula/operators';
 export * from './formula/types';
 export * from './formula/validate-extract-tree';
+export * from './formula/jsepInstances';
 
 export async function substituteColumnAliasWithIdInFormula(
   formula,
@@ -37,9 +36,7 @@ export async function substituteColumnAliasWithIdInFormula(
       await substituteId(pt.right);
     }
   };
-  // register jsep curly hook
-  jsep.plugins.register(jsepCurlyHook);
-  const parsedFormula = jsep(formula);
+  const parsedFormula = formulaJsep(formula);
   await substituteId(parsedFormula);
   return jsepTreeToFormula(parsedFormula);
 }
@@ -72,10 +69,8 @@ export function substituteColumnIdWithAliasInFormula(
     }
   };
 
-  // register jsep curly hook
-  jsep.plugins.register(jsepCurlyHook);
-  const parsedFormula = jsep(formula);
-  const parsedRawFormula = rawFormula && jsep(rawFormula);
+  const parsedFormula = formulaJsep(formula);
+  const parsedRawFormula = rawFormula && formulaJsep(rawFormula);
   substituteId(parsedFormula, parsedRawFormula);
   return jsepTreeToFormula(parsedFormula);
 }

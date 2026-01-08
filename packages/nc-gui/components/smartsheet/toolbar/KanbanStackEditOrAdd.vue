@@ -23,7 +23,7 @@ provide(IsKanbanInj, ref(true))
     v-if="!IsPublic && isUIAllowed('fieldEdit')"
     v-model:visible="open"
     :trigger="['click']"
-    overlay-class-name="nc-dropdown-kanban-add-edit-stack-menu"
+    overlay-class-name="nc-dropdown-kanban-add-edit-stack-menu rounded-2xl"
   >
     <div class="nc-kanban-btn">
       <a-button

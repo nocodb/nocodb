@@ -5,10 +5,12 @@ import MockInjection from '../../MockInjection.vue'
 const vModel = ref([])
 const rootMeta = ref({})
 const { metas } = useMetas()
-const defaultTableId = 'mtWA9ZXvsuh'
 const columns = computedAsync(async () => {
   if (!metas.value || Object.keys(metas.value).length === 0) return []
-  return await composeColumnsForFilter({ rootMeta: rootMeta.value, getMeta: async (id) => metas.value[id] })
+  return await composeColumnsForFilter({
+    rootMeta: rootMeta.value,
+    getMeta: async (id) => metas.value[`${rootMeta.value?.base_id}:${id}`],
+  })
 }, [])
 const options1 = ref({
   filtersCount: 0,
@@ -19,14 +21,14 @@ const options1 = ref({
   dbClientType: ClientType.PG,
 })
 onMounted(async () => {
-  await mockSetupInit()
-  rootMeta.value = metas.value[defaultTableId]
+  const setup = await mockSetupInit()
+  rootMeta.value = setup.meta
 })
 </script>
 
 <template>
   <MockInjection>
-    <div class="bg-gray-100 overflow-auto pb-8">
+    <div class="bg-nc-bg-gray-light overflow-auto pb-8">
       <a-card>
         <h4>Simple</h4>
         <div class="flex gap-4">
@@ -47,16 +49,21 @@ onMounted(async () => {
               </div>
               <div>
                 filterPerViewLimit:
-                <input v-model="options1.filterPerViewLimit" type="number" class="text-xs p-1 border-gray-200" /><br />
+                <input
+                  v-model="options1.filterPerViewLimit"
+                  type="number"
+                  class="text-xs p-1 border-nc-border-gray-medium"
+                /><br />
               </div>
               <div>
-                filtersCount: <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-gray-200" /><br />
+                filtersCount:
+                <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
               </div>
             </div>
           </div>
           <div class="flex-col flex-grow space-y-2">
             vModel:
-            <div class="min-w-[300px] max-h-[200px] overflow-wrap bg-gray-300 overflow-y-scroll">
+            <div class="min-w-[300px] max-h-[200px] overflow-wrap bg-nc-bg-gray-dark overflow-y-scroll">
               <pre>{{ JSON.stringify(vModel, null, 2) }}</pre>
             </div>
           </div>

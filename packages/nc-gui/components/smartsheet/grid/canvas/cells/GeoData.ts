@@ -2,7 +2,10 @@ import { isBoxHovered, renderMultiLineText, roundedRect } from '../utils/canvas'
 import { pxToRowHeight } from '../../../../../utils/cell'
 
 export const GeoDataCellRenderer: CellRenderer = {
-  render: (ctx, { value, x, y, width, height, spriteLoader, pv, readonly, padding, mousePosition, selected, setCursor }) => {
+  render: (
+    ctx,
+    { value, x, y, width, height, spriteLoader, pv, readonly, padding, mousePosition, selected, setCursor, getColor },
+  ) => {
     ctx.font = `${pv ? 600 : 500} 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
@@ -27,8 +30,8 @@ export const GeoDataCellRenderer: CellRenderer = {
       }
 
       roundedRect(ctx, buttonX, buttonY, buttonWidth, buttonHeight, 6, {
-        backgroundColor: isButtonHovered ? '#f4f4f5' : 'white',
-        borderColor: '#E7E7E9',
+        backgroundColor: isButtonHovered ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.base.white),
+        borderColor: getColor(themeV4Colors.gray['200']),
         borderWidth: 2,
       })
 
@@ -37,10 +40,10 @@ export const GeoDataCellRenderer: CellRenderer = {
         x: buttonX + 8,
         y: buttonY + (buttonHeight - 16) / 2,
         size: 14,
-        color: '#6a7184',
+        color: getColor(themeV4Colors.gray['500']),
       })
 
-      ctx.fillStyle = '#374151'
+      ctx.fillStyle = getColor(themeV4Colors.gray['700'])
       ctx.font = '10px Inter'
       ctx.textBaseline = 'middle'
       ctx.fillText('Set location', buttonX + 28, buttonY + (buttonHeight + 2) / 2)
@@ -54,7 +57,7 @@ export const GeoDataCellRenderer: CellRenderer = {
         text: displayText,
         maxWidth,
         lineHeight: 16,
-        fillStyle: pv ? '#3366FF' : '#4a5268',
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(themeV4Colors.gray['600']),
       })
     }
   },

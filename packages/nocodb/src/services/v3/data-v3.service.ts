@@ -1,5 +1,11 @@
-import { NcApiVersion, RelationTypes, UITypes } from 'nocodb-sdk';
-import { Injectable } from '@nestjs/common';
+import {
+  isLinksOrLTAR,
+  NcApiVersion,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
+import { Injectable, Logger } from '@nestjs/common';
+import { LTARColsUpdater } from 'src/db/BaseModelSqlv2/ltar-cols-updater';
 import type {
   DataDeleteParams,
   DataInsertParams,
@@ -14,7 +20,7 @@ import type {
 import type { NcContext } from '~/interface/config';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { ReusableParams } from '~/utils';
-import { getCompositePkValue } from '~/helpers/dbHelpers';
+import { dataWrapper, getCompositePkValue } from '~/helpers/dbHelpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Model, Source } from '~/models';
 import { PagedResponseV3Impl } from '~/helpers/PagedResponse';
@@ -24,9 +30,10 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   MAX_NESTING_DEPTH,
   QUERY_STRING_FIELD_ID_ON_RESULT,
-  V3_INSERT_LIMIT,
+  V3_DATA_PAYLOAD_LIMIT,
 } from '~/constants';
 import { processConcurrently, reuseOrSave } from '~/utils';
+import { Profiler } from '~/helpers/profiler';
 
 interface ModelInfo {
   model: Model;
@@ -44,16 +51,18 @@ interface RelatedModelInfo {
 @Injectable()
 export class DataV3Service {
   constructor(protected dataTableService: DataTableService) {}
-
+  logger = new Logger(DataV3Service.name);
   /**
    * Get model information including primary key and columns
    */
   private async getModelInfo(
     context: NcContext,
     modelId: string,
+    user?: any,
   ): Promise<ModelInfo> {
     const { model } = await this.dataTableService.getModelAndView(context, {
       modelId,
+      user,
     });
     const columns = await model.getColumns(context);
     const primaryKey = model.primaryKey;
@@ -74,10 +83,14 @@ export class DataV3Service {
     context: NcContext,
     column: Column,
   ): Promise<RelatedModelInfo> {
+    const { refContext } = (
+      column.colOptions as LinkToAnotherRecordColumn
+    ).getRelContext(context);
+
     const relatedModel = await (
       column.colOptions as LinkToAnotherRecordColumn
-    ).getRelatedTable(context);
-    await relatedModel.getColumns(context);
+    ).getRelatedTable(refContext);
+    await relatedModel.getColumns(refContext);
     const relatedPrimaryKey = relatedModel.primaryKey;
     const primaryKeys = relatedModel.primaryKeys;
 
@@ -301,11 +314,104 @@ export class DataV3Service {
     );
   }
 
+  async validateDataListQueryParams(
+    context: NcContext,
+    param: DataListParams & { modelInfo: ModelInfo },
+  ) {
+    const columns = param.modelInfo.columns;
+    if (param.query.sort) {
+      let fieldsArr: string[] = [];
+      if (typeof param.query.sort !== 'string') {
+        NcError.get(context).invalidRequestBody(
+          `Query parameter 'sort' needs to be a single string`,
+        );
+      }
+      let parsedSort: any | any[];
+      try {
+        const parsedSortJSON = JSON.parse(param.query.sort);
+        parsedSort = Array.isArray(parsedSortJSON)
+          ? parsedSortJSON
+          : [parsedSortJSON];
+        fieldsArr = parsedSort.map((s) => s.field);
+      } catch {
+        NcError.get(context).invalidRequestBody(
+          `Query parameter 'sort' needs to a JSON string in format of [{"field": "fieldId", "direction": "asc"}]`,
+        );
+      }
+      if (
+        parsedSort.some(
+          (s) => s.direction && !['asc', 'desc'].includes(s.direction),
+        )
+      ) {
+        NcError.get(context).invalidRequestBody(
+          `Query parameter 'sort' direction value can only be 'asc' or 'desc'`,
+        );
+      }
+
+      fieldsArr = parsedSort.map((s) => s.field);
+      const idList = columns.map((col) => col.id);
+      const titleList = columns.map((col) => col.title);
+      const columnNameList = columns.map((col) => col.column_name);
+      const hayStack = [...idList, ...titleList, ...columnNameList];
+      const notFoundField = fieldsArr.find(
+        (field) => !hayStack.includes(field),
+      );
+      if (notFoundField) {
+        NcError.get(context).fieldNotFound({
+          field: notFoundField,
+          onSection: `'sort' query parameter`,
+        });
+      }
+    }
+    if (param.query.fields) {
+      let fieldsArr: string[] = [];
+      if (typeof param.query.fields !== 'string') {
+        if (Array.isArray(param.query.fields)) {
+          fieldsArr = param.query.fields;
+        } else {
+          NcError.get(context).invalidRequestBody(
+            `Query parameter 'fields' needs to be a single string`,
+          );
+        }
+      }
+      // in array format
+      else if (param.query.fields.startsWith('[')) {
+        try {
+          fieldsArr = JSON.parse(param.query.fields);
+          param.query.fields = fieldsArr;
+        } catch {
+          NcError.get(context).invalidRequestBody(
+            `Query parameter fields need to be an array of string, or a comma separated`,
+          );
+        }
+      } else {
+        fieldsArr = param.query.fields.split(',');
+      }
+      const idList = columns.map((col) => col.id);
+      const titleList = columns.map((col) => col.title);
+      const columnNameList = columns.map((col) => col.column_name);
+      const hayStack = [...idList, ...titleList, ...columnNameList];
+      const notFoundField = fieldsArr.find(
+        (field) => !hayStack.includes(field),
+      );
+      if (notFoundField) {
+        NcError.get(context).fieldNotFound({
+          field: notFoundField,
+          onSection: `'fields' query parameter`,
+        });
+      }
+    }
+  }
+
   async dataList<T extends boolean>(
     context: NcContext,
     param: DataListParams,
     pagination: T = true as T,
   ): Promise<T extends true ? DataListResponse : DataRecord[]> {
+    const modelInfo = await this.getModelInfo(context, param.modelId);
+    const { primaryKey, primaryKeys, columns } = modelInfo;
+    await this.validateDataListQueryParams(context, { ...param, modelInfo });
+
     const pagedData = await this.dataTableService.dataList(context, {
       ...(param as Omit<DataListParams, 'req'>),
       query: {
@@ -314,11 +420,6 @@ export class DataV3Service {
       },
       apiVersion: NcApiVersion.V3,
     });
-
-    const { primaryKey, primaryKeys, columns } = await this.getModelInfo(
-      context,
-      param.modelId,
-    );
 
     // Extract requested fields from query parameters
     const requestedFields = this.getRequestedFields(param.query);
@@ -396,19 +497,21 @@ export class DataV3Service {
     };
 
     for (const column of ltarColumns) {
-      if (fields[column.title]) {
+      const key = dataWrapper(fields).getColumnKeyName(column);
+      if (fields[key]) {
         const {
           primaryKey: relatedPrimaryKey,
           primaryKeys: relatedPrimaryKeys,
         } = await this.getRelatedModelInfo(context, column);
 
-        const fieldValue = fields[column.title];
+        const fieldValue = fields[key];
 
         // Handle v3 format consistently for all relation types
         if (Array.isArray(fieldValue)) {
           // Array of records - each should have id property
-          transformedFields[column.title] = fieldValue.map((nestedRecord) =>
+          transformedFields[key] = fieldValue.map((nestedRecord) =>
             this.convertRecordIdToInternal(
+              context,
               nestedRecord,
               relatedPrimaryKey,
               relatedPrimaryKeys,
@@ -421,14 +524,15 @@ export class DataV3Service {
           fieldValue.id
         ) {
           // Single record with id property (v3 format)
-          transformedFields[column.title] = this.convertRecordIdToInternal(
+          transformedFields[key] = this.convertRecordIdToInternal(
+            context,
             fieldValue,
             relatedPrimaryKey,
             relatedPrimaryKeys,
             getPrimaryKey,
           );
         } else if (fieldValue === null) {
-          transformedFields[column.title] = null;
+          transformedFields[key] = null;
         }
       }
     }
@@ -440,6 +544,7 @@ export class DataV3Service {
    * Convert a record ID from v3 format to internal format
    */
   private convertRecordIdToInternal(
+    context: NcContext,
     nestedRecord: any,
     relatedPrimaryKey: Column,
     relatedPrimaryKeys: Column[],
@@ -452,7 +557,7 @@ export class DataV3Service {
 
       // Validate that we have the correct number of parts
       if (idParts.length !== relatedPrimaryKeys.length) {
-        NcError.unprocessableEntity(
+        NcError.get(context).unprocessableEntity(
           `Invalid composite key: expected ${relatedPrimaryKeys.length} parts but got ${idParts.length} in "${idString}"`,
         );
       }
@@ -463,7 +568,7 @@ export class DataV3Service {
 
         // Validate that the part exists and is not empty
         if (part === undefined || part === null) {
-          NcError.unprocessableEntity(
+          NcError.get(context).unprocessableEntity(
             `Invalid composite key part at index ${index}: got ${part} in "${idString}"`,
           );
         }
@@ -473,7 +578,7 @@ export class DataV3Service {
 
         // Don't allow completely empty string primary keys (after cleaning)
         if (cleanedPart === '') {
-          NcError.unprocessableEntity(
+          NcError.get(context).unprocessableEntity(
             `Empty primary key part at index ${index} after cleaning in "${idString}"`,
           );
         }
@@ -485,7 +590,9 @@ export class DataV3Service {
       // Single primary key - validate it's not empty
       const pkValue = String(nestedRecord.id);
       if (pkValue === '' || pkValue === 'undefined' || pkValue === 'null') {
-        NcError.unprocessableEntity(`Invalid primary key value: "${pkValue}"`);
+        NcError.get(context).unprocessableEntity(
+          `Invalid primary key value: "${pkValue}"`,
+        );
       }
 
       return {
@@ -498,14 +605,18 @@ export class DataV3Service {
     context: NcContext,
     param: DataInsertParams,
   ): Promise<{ records: DataRecord[] }> {
+    // validate insert
+    this.validateRequestFormat(context, {
+      body: param.body,
+      validateAdditionalProp: true,
+    });
+
     const { model, primaryKey, primaryKeys, columns } = await this.getModelInfo(
       context,
       param.modelId,
     );
 
-    const ltarColumns = columns.filter(
-      (col) => col.uidt === UITypes.LinkToAnotherRecord,
-    );
+    const ltarColumns = columns.filter((col) => isLinksOrLTAR(col));
 
     // Transform the request body to match internal format
     const transformedBody = Array.isArray(param.body)
@@ -526,8 +637,8 @@ export class DataV3Service {
           ),
         ];
 
-    if (transformedBody.length > V3_INSERT_LIMIT) {
-      NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+    if (transformedBody.length > V3_DATA_PAYLOAD_LIMIT) {
+      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
     }
 
     const result = await this.dataTableService.dataInsert(context, {
@@ -613,6 +724,12 @@ export class DataV3Service {
     context: NcContext,
     param: DataDeleteParams,
   ): Promise<{ records: DataRecordWithDeleted[] }> {
+    // validate update
+    this.validateRequestFormat(context, {
+      body: param.body,
+      validateId: true,
+    });
+
     // Merge the request body with the records in query params
     param.body = [
       ...(Array.isArray(param.body)
@@ -634,8 +751,8 @@ export class DataV3Service {
       [primaryKey.title]: record.id,
     }));
 
-    if (recordIds.length > V3_INSERT_LIMIT) {
-      NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+    if (recordIds.length > V3_DATA_PAYLOAD_LIMIT) {
+      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
     }
     await this.dataTableService.dataDelete(context, {
       ...param,
@@ -655,14 +772,20 @@ export class DataV3Service {
     context: NcContext,
     param: DataUpdateParams,
   ): Promise<{ records: DataRecord[] }> {
+    // validate update
+    this.validateRequestFormat(context, {
+      body: param.body,
+      validateAdditionalProp: true,
+      validateId: true,
+    });
+
+    const profiler = Profiler.start(`data-v3/dataUpdate`);
     const { model, primaryKey, primaryKeys, columns } = await this.getModelInfo(
       context,
       param.modelId,
     );
-
-    const ltarColumns = columns.filter(
-      (col) => col.uidt === UITypes.LinkToAnotherRecord,
-    );
+    profiler.log(`getModelInfo done`);
+    const ltarColumns = columns.filter((col) => isLinksOrLTAR(col));
 
     // Transform the request body to match internal format
     const transformedBody = Array.isArray(param.body)
@@ -686,9 +809,10 @@ export class DataV3Service {
             )),
           },
         ];
+    profiler.log(`transformLTARFieldsToInternal done`);
 
-    if (transformedBody.length > V3_INSERT_LIMIT) {
-      NcError.maxInsertLimitExceeded(V3_INSERT_LIMIT);
+    if (transformedBody.length > V3_DATA_PAYLOAD_LIMIT) {
+      NcError.get(context).maxPayloadLimitExceeded(V3_DATA_PAYLOAD_LIMIT);
     }
 
     await this.dataTableService.dataUpdate(context, {
@@ -696,6 +820,7 @@ export class DataV3Service {
       body: transformedBody,
       apiVersion: NcApiVersion.V3,
     });
+    profiler.log(`dataTableService.dataUpdate done`);
 
     // Extract updated record IDs
     const updatedIds = Array.isArray(param.body)
@@ -703,6 +828,7 @@ export class DataV3Service {
       : [param.body.id];
 
     if (updatedIds.length === 0) {
+      profiler.end();
       return { records: [] };
     }
 
@@ -722,6 +848,7 @@ export class DataV3Service {
       pks: idsAsStrings,
       apiVersion: context.api_version,
     });
+    profiler.log(`baseModel.chunkList done`);
 
     // Create a map for quick lookup by ID
     const recordMap = new Map();
@@ -738,23 +865,61 @@ export class DataV3Service {
         orderedRecords.push(record);
       }
     }
+    const resultRecords = await this.transformRecordsToV3Format({
+      context: context,
+      records: orderedRecords,
+      primaryKey: primaryKey,
+      primaryKeys: primaryKeys,
+      requestedFields: undefined,
+      columns: columns,
+      nestedLimit: undefined,
+      skipSubstitutingColumnIds:
+        param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
+      reuse: {}, // Create reuse cache for this data update operation
+      depth: 0, // Start at depth 0 for main records
+    });
+    profiler.end();
 
     // Transform and return full records in V3 format
     return {
-      records: await this.transformRecordsToV3Format({
-        context: context,
-        records: orderedRecords,
-        primaryKey: primaryKey,
-        primaryKeys: primaryKeys,
-        requestedFields: undefined,
-        columns: columns,
-        nestedLimit: undefined,
-        skipSubstitutingColumnIds:
-          param.cookie.query?.[QUERY_STRING_FIELD_ID_ON_RESULT],
-        reuse: {}, // Create reuse cache for this data update operation
-        depth: 0, // Start at depth 0 for main records
-      }),
+      records: resultRecords,
     };
+  }
+
+  validateRequestFormat(
+    context: NcContext,
+    param: {
+      body: any;
+      validateAdditionalProp?: boolean;
+      validateId?: boolean;
+    },
+  ) {
+    for (const [index, row] of (Array.isArray(param.body)
+      ? param.body
+      : [param.body]
+    ).entries()) {
+      if (param.validateId) {
+        if (!row.id) {
+          NcError.get(context).invalidRequestBody(
+            `Property 'id' is required on index ${index}`,
+          );
+        }
+      }
+      if (param.validateAdditionalProp) {
+        const otherProps = Object.keys(row).filter(
+          (prop) => !['id', 'fields'].includes(prop),
+        );
+        if (otherProps.length) {
+          NcError.get(context).invalidRequestBody(
+            `Properties ${otherProps
+              .map((field) => `'${field}'`)
+              .join(
+                ',',
+              )} on index ${index} is not allowed. All record parameters need to be put inside 'fields' property`,
+          );
+        }
+      }
+    }
   }
 
   async nestedDataList(
@@ -1016,14 +1181,40 @@ export class DataV3Service {
     // Normalize the input to the expected format
     const normalizedRefRowIds = this.normalizeRefRowIds(param.refRowIds);
 
-    await this.dataTableService.nestedLink(context, {
-      modelId: param.modelId,
-      rowId: param.rowId,
-      columnId: param.columnId,
-      refRowIds: normalizedRefRowIds,
-      query: param.query || {},
+    this.dataTableService.validateIds(context, param.refRowIds);
+    const { model, view } = await this.dataTableService.getModelAndView(
+      context,
+      param,
+    );
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const column = await this.dataTableService.getColumn(context, param);
+
+    await baseModel.model.getColumns(baseModel.context);
+
+    await LTARColsUpdater({
+      baseModel,
+      logger: this.logger,
+    }).updateLTARCol({
+      linkDataPayload: {
+        data: [
+          {
+            rowId: param.rowId,
+            links: Array.isArray(normalizedRefRowIds)
+              ? normalizedRefRowIds
+              : [normalizedRefRowIds],
+          },
+        ],
+      },
+      col: column,
       cookie: param.cookie,
-      viewId: param.viewId,
+      trx: baseModel.dbDriver,
     });
 
     return { success: true };

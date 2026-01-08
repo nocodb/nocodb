@@ -114,7 +114,7 @@ onScopeDispose($destroy)
       <Panel
         v-if="showSkeleton && config.showAllColumns"
         :position="PanelPosition.BottomCenter"
-        class="color-transition z-5 cursor-pointer rounded shadow-sm text-slate-400 font-semibold px-4 py-2 bg-slate-100/50 hover:(text-slate-900 ring ring-accent ring-opacity-100 bg-slate-100/90)"
+        class="color-transition z-5 cursor-pointer rounded shadow-sm text-nc-content-gray-muted font-semibold px-4 py-2 bg-nc-bg-gray-extralight hover:(text-nc-content-gray-emphasis ring ring-accent ring-opacity-100 bg-nc-bg-gray-light)"
         @click="zoomIn"
       >
         {{ $t('labels.zoomInToViewColumns') }}

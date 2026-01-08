@@ -59,6 +59,7 @@ export default class BarcodeColumn {
     let column =
       columnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.COL_BARCODE}:${columnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -69,7 +70,11 @@ export default class BarcodeColumn {
         MetaTable.COL_BARCODE,
         { fk_column_id: columnId },
       );
-      await NocoCache.set(`${CacheScope.COL_BARCODE}:${columnId}`, column);
+      await NocoCache.set(
+        context,
+        `${CacheScope.COL_BARCODE}:${columnId}`,
+        column,
+      );
     }
 
     return column ? new BarcodeColumn(column) : null;

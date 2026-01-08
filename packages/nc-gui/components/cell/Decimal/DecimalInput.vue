@@ -230,7 +230,7 @@ watch(vModel, (newValue) => {
   <!-- eslint-disable vue/use-v-on-exact -->
   <input
     ref="input-ref"
-    class="nc-cell-field outline-none rounded-md"
+    class="nc-cell-field outline-none rounded-md w-full"
     :placeholder="placeholder"
     style="letter-spacing: 0.06rem; height: 24px !important"
     :style="inputStyle"

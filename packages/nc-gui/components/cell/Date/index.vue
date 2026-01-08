@@ -85,7 +85,7 @@ const savingValue = ref()
 
 function saveChanges(val?: dayjs.Dayjs) {
   if (!val) {
-    if (savingValue.value === val) {
+    if (savingValue.value === val && !ncIsUndefined(val)) {
       return
     }
 
@@ -246,7 +246,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean) => {
       if (isSurveyForm.value) {
         e.stopPropagation()
       }
-      localState.value = tempDate.value
+      localState.value = tempDate.value ?? dayjs(new Date())
       open.value = !_open
 
       if (!open.value) {

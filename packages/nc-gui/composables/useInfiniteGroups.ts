@@ -151,6 +151,7 @@ export const useInfiniteGroups = (
 
         if (groupCol.column.uidt === UITypes.LinkToAnotherRecord) {
           const relatedTableMeta = await getMeta(
+            base.value?.id as string,
             (groupCol.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
           )
           if (!relatedTableMeta) continue
@@ -166,7 +167,9 @@ export const useInfiniteGroups = (
           )
           if (!relationColumn) continue
 
-          const relatedTableMeta = await getMeta(relationColumn.colOptions.fk_related_model_id as string)
+          const relColOpts = relationColumn.colOptions as LinkToAnotherRecordType
+          const relatedBaseId = relColOpts?.fk_related_base_id || (base.value?.id as string)
+          const relatedTableMeta = await getMeta(relatedBaseId, relColOpts.fk_related_model_id as string)
           if (!relatedTableMeta) continue
 
           const lookupColumn = relatedTableMeta.columns?.find(
@@ -180,6 +183,7 @@ export const useInfiniteGroups = (
           // Check if the lookup column is a LinkToAnotherRecord
           if (lookupColumn.uidt === UITypes.LinkToAnotherRecord) {
             const targetTableMeta = await getMeta(
+              base.value?.id as string,
               (lookupColumn.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
             )
             if (targetTableMeta) {
@@ -266,7 +270,7 @@ export const useInfiniteGroups = (
         groups.push(group)
       }
 
-      if (appInfo.value?.ee && groups.length) {
+      if (appInfo.value?.ee && groups.length && !appInfo.value.disableGroupByAggregation) {
         const aggregationAliasMapper = new AliasMapper()
 
         const aggregation = Object.values(gridViewCols.value)
@@ -285,10 +289,14 @@ export const useInfiniteGroups = (
 
         if (aggregation.length) {
           aggResponse = !isPublic.value
-            ? await $api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-                meta.value!.id,
+            ? await $api.internal.postOperation(
+                (meta.value as any)!.fk_workspace_id!,
+                meta.value!.base_id!,
                 {
+                  operation: 'bulkAggregate',
+                  tableId: meta.value!.id,
                   viewId: view.value!.id,
+                  baseId: meta.value!.base_id!,
                   aggregation,
                   filterArrJson: JSON.stringify(nestedFilters.value),
                 },
@@ -484,57 +492,68 @@ export const useInfiniteGroups = (
     }
   }
 
-  async function syncCount(group?: CanvasGroup) {
+  async function syncCount(group?: CanvasGroup, throwError = false, showToastMessage = false) {
     if (!view.value || !meta.value?.columns?.length) return
 
-    if (!group) {
-      const groupCol = groupByColumns.value?.[0]
-      if (!groupCol) return
+    try {
+      if (!group) {
+        const groupCol = groupByColumns.value?.[0]
+        if (!groupCol) return
 
-      totalGroups.value = isPublic.value
-        ? await $api.public.dataGroupByCount(
-            sharedView.value!.uuid!,
-            {
+        totalGroups.value = isPublic.value
+          ? await $api.public.dataGroupByCount(
+              sharedView.value!.uuid!,
+              {
+                where: where?.value,
+                column_name: groupCol.column.title,
+                filterArrJson: JSON.stringify(nestedFilters.value),
+              },
+              {
+                headers: {
+                  'xc-password': sharedViewPassword.value,
+                },
+              },
+            )
+          : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
               where: where?.value,
               column_name: groupCol.column.title,
-              filterArrJson: JSON.stringify(nestedFilters.value),
-            },
-            {
-              headers: {
-                'xc-password': sharedViewPassword.value,
+            })
+      } else {
+        const groupCol = groupByColumns.value?.[group.nestedIn.length]
+
+        if (!groupCol) return
+
+        const groupFilterArr = buildNestedFilterArr(group) ?? []
+
+        group.groupCount = isPublic.value
+          ? await $api.public.dataGroupByCount(
+              sharedView.value!.uuid!,
+              {
+                where: where?.value,
+                column_name: groupCol.column.title,
+                filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...groupFilterArr]),
               },
-            },
-          )
-        : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
-            where: where?.value,
-            column_name: groupCol.column.title,
-          })
-    } else {
-      const groupCol = groupByColumns.value?.[group.nestedIn.length]
-
-      if (!groupCol) return
-
-      const groupFilterArr = buildNestedFilterArr(group) ?? []
-
-      group.groupCount = isPublic.value
-        ? await $api.public.dataGroupByCount(
-            sharedView.value!.uuid!,
-            {
+              {
+                headers: {
+                  'xc-password': sharedViewPassword.value,
+                },
+              },
+            )
+          : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
               where: where?.value,
               column_name: groupCol.column.title,
-              filterArrJson: JSON.stringify([...(nestedFilters.value || []), ...groupFilterArr]),
-            },
-            {
-              headers: {
-                'xc-password': sharedViewPassword.value,
-              },
-            },
-          )
-        : await $api.dbViewRow.groupByCount('noco', base.value.id!, view.value.fk_model_id, view.value.id!, {
-            where: where?.value,
-            column_name: groupCol.column.title,
-            filterArrJson: JSON.stringify(groupFilterArr),
-          })
+              filterArrJson: JSON.stringify(groupFilterArr),
+            })
+      }
+    } catch (e: any) {
+      if (showToastMessage) {
+        const errorMessage = await extractSdkResponseErrorMsg(e)
+        message.error(`Failed to sync count: ${errorMessage}`)
+      }
+
+      if (throwError) {
+        throw e
+      }
     }
   }
 
@@ -545,7 +564,7 @@ export const useInfiniteGroups = (
       aggregation?: string
     }>,
   ) {
-    if (!appInfo.value?.ee) return
+    if (!appInfo.value?.ee || appInfo.value.disableGroupByAggregation) return
 
     const BATCH_SIZE = 100
     const aggregationAliasMapper = new AliasMapper()
@@ -592,10 +611,14 @@ export const useInfiniteGroups = (
 
       try {
         const aggResponse = !isPublic.value
-          ? await $api.dbDataTableBulkAggregate.dbDataTableBulkAggregate(
-              meta.value!.id,
+          ? await $api.internal.postOperation(
+              (meta.value as any)!.fk_workspace_id!,
+              meta.value!.base_id!,
               {
+                operation: 'bulkAggregate',
+                tableId: meta.value!.id,
                 viewId: view.value!.id,
+                baseId: meta.value!.base_id!,
                 aggregation,
                 filterArrJson: JSON.stringify(nestedFilters.value),
               },

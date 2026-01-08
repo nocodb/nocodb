@@ -152,6 +152,7 @@ export class GridColumnsService {
     }
 
     await NocoCache.deepDel(
+      context,
       `${CacheScope.GRID_VIEW_COLUMN}:${param.viewId}`,
       CacheDelDirection.PARENT_TO_CHILD,
     );

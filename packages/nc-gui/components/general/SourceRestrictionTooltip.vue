@@ -24,17 +24,19 @@ defineProps<{
     trigger="hover"
   >
     <template #title>
-      {{ isSqlView ? $t('tooltip.schemaChangeDisabledFormSqlView') : $t('tooltip.schemaChangeDisabled') }} <br />
-      {{ message }}
-      <br v-if="message" />
-      <a
-        v-if="!isSqlView"
-        class="!text-current"
-        href="https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source#configuring-permissions"
-        target="_blank"
-      >
-        Learn more
-      </a>
+      <slot name="title">
+        {{ isSqlView ? $t('tooltip.schemaChangeDisabledFormSqlView') : $t('tooltip.schemaChangeDisabled') }} <br />
+        {{ message }}
+        <br v-if="message" />
+        <a
+          v-if="!isSqlView"
+          class="!text-current"
+          href="https://nocodb.com/docs/product-docs/data-sources/connect-to-data-source#configuring-permissions"
+          target="_blank"
+        >
+          Learn more
+        </a>
+      </slot>
     </template>
     <slot />
   </NcTooltip>

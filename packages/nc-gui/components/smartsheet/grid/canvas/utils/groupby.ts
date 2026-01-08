@@ -1,16 +1,16 @@
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
 import { GROUP_EXPANDED_BOTTOM_PADDING, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
-export function getGroupColors(depth: number, maxDepth: number) {
+export function getGroupColors(depth: number, maxDepth: number, getColor: (color: string) => string) {
   depth = depth + 1
   if (maxDepth === 1) {
     return {
-      border: '#E7E7E9',
-      background: '#FFF',
+      border: getColor(themeV4Colors.gray['200']),
+      background: getColor(themeV4Colors.base.white),
       aggregation: {
-        hover: '#F9F9FA', // Hover State
-        default: '#FFF', // Default Bg State
-        border: '#F4F4F5',
+        hover: getColor(themeV4Colors.gray['50']), // Hover State
+        default: getColor(themeV4Colors.base.white), // Default Bg State
+        border: getColor(themeV4Colors.gray['100']),
       },
     }
   }
@@ -19,23 +19,23 @@ export function getGroupColors(depth: number, maxDepth: number) {
     switch (depth) {
       case 2: {
         return {
-          background: '#FFF',
-          border: '#E7E7E9',
+          background: getColor(themeV4Colors.base.white),
+          border: getColor(themeV4Colors.gray['200']),
           aggregation: {
-            hover: '#F9F9FA', // Hover State
-            default: '#FFF', // Default Bg State
-            border: '#F4F4F5',
+            hover: getColor(themeV4Colors.gray['50']), // Hover State
+            default: getColor(themeV4Colors.base.white), // Default Bg State
+            border: getColor(themeV4Colors.gray['100']),
           },
         }
       }
       case 1: {
         return {
-          background: '#F9F9FA',
-          border: '#d5d5d9',
+          background: getColor(themeV4Colors.gray['50']),
+          border: getColor(themeV4Colors.gray['300']),
           aggregation: {
-            hover: '#F4F4F5', // Hover State
-            default: '#F9F9FA', // Default Bg State
-            border: '#E7E7E8',
+            hover: getColor(themeV4Colors.gray['100']), // Hover State
+            default: getColor(themeV4Colors.gray['50']), // Default Bg State
+            border: getColor(themeV4Colors.gray['200']),
           },
         }
       }
@@ -46,34 +46,34 @@ export function getGroupColors(depth: number, maxDepth: number) {
     switch (depth) {
       case 3: {
         return {
-          background: '#FFF',
-          border: '#E7E7E9',
+          background: getColor(themeV4Colors.base.white),
+          border: getColor(themeV4Colors.gray['200']),
           aggregation: {
-            hover: '#F9F9FA', // Hover State
-            default: '#FFF', // Default Bg State
-            border: '#F4F4F5',
+            hover: getColor(themeV4Colors.gray['50']), // Hover State
+            default: getColor(themeV4Colors.base.white), // Default Bg State
+            border: getColor(themeV4Colors.gray['100']),
           },
         }
       }
       case 2: {
         return {
-          background: '#F9F9FA',
-          border: '#d5d5d9',
+          background: getColor(themeV4Colors.gray['50']),
+          border: getColor(themeV4Colors.gray['300']),
           aggregation: {
-            hover: '#F4F4F5', // Hover State
-            default: '#F9F9FA', // Default Bg State
-            border: '#E7E7E8',
+            hover: getColor(themeV4Colors.gray['100']), // Hover State
+            default: getColor(themeV4Colors.gray['50']), // Default Bg State
+            border: getColor(themeV4Colors.gray['200']),
           },
         }
       }
       case 1: {
         return {
-          background: '#F4F4F5',
-          border: '#9AA2AF',
+          background: getColor(themeV4Colors.gray['100']),
+          border: getColor(themeV4Colors.gray['400']),
           aggregation: {
-            hover: '#E7E7E8', // Hover State
-            default: '#F4F4F5', // Default Bg State
-            border: '#E7E7E9',
+            hover: getColor(themeV4Colors.gray['200']), // Hover State
+            default: getColor(themeV4Colors.gray['100']), // Default Bg State
+            border: getColor(themeV4Colors.gray['200']),
           },
         }
       }
@@ -81,12 +81,12 @@ export function getGroupColors(depth: number, maxDepth: number) {
   }
 
   return {
-    background: '#FFF',
-    border: '#E7E7E9',
+    background: getColor(themeV4Colors.base.white),
+    border: getColor(themeV4Colors.gray['200']),
     aggregation: {
-      hover: '#F9F9FA', // Hover State
-      default: '#FFF', // Default Bg State
-      border: '#F4F4F5',
+      hover: getColor(themeV4Colors.gray['50']), // Hover State
+      default: getColor(themeV4Colors.base.white), // Default Bg State
+      border: getColor(themeV4Colors.gray['100']),
     },
   }
 }

@@ -14,6 +14,8 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 const { base, isSharedBase } = storeToRefs(useBase())
 
+const { hideSharedBaseBtn } = storeToRefs(useConfigStore())
+
 const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
@@ -70,7 +72,7 @@ const copySharedBase = async () => {
     </NcButton>
   </div>
 
-  <template v-else-if="isSharedBase">
+  <template v-else-if="isSharedBase && !hideSharedBaseBtn">
     <div class="flex-1"></div>
     <div class="flex flex-col justify-center h-full">
       <div class="flex flex-row items-center w-full">

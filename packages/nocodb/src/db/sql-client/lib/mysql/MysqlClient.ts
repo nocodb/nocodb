@@ -2107,6 +2107,60 @@ class MysqlClient extends KnexClient {
           cn: args.columns[i].cno,
         });
 
+        // If dropping unique constraint and constraint name is missing, query database
+        if (
+          oldColumn &&
+          (args.columns[i].altered & 2 || args.columns[i].altered & 8)
+        ) {
+          const nIsUnique = !!args.columns[i].unique;
+          const oIsUnique = !!oldColumn.unique;
+
+          // Dropping unique constraint (was unique, now not unique)
+          if (oIsUnique && !nIsUnique) {
+            // Check if constraint name exists in internal_meta
+            let constraintName: string | null = null;
+            if (oldColumn.internal_meta) {
+              let internalMeta = oldColumn.internal_meta;
+              if (typeof internalMeta === 'string') {
+                try {
+                  internalMeta = JSON.parse(internalMeta);
+                } catch {
+                  internalMeta = {};
+                }
+              }
+              constraintName = internalMeta?.unique_constraint_name || null;
+            }
+
+            // If constraint name is missing, query database
+            if (!constraintName) {
+              const columnName = oldColumn.cn || oldColumn.cno;
+              if (columnName) {
+                const queriedName = await this.queryUniqueConstraintName(
+                  args.table,
+                  columnName,
+                  this.connectionConfig?.database,
+                );
+                if (queriedName) {
+                  // Store in oldColumn.internal_meta for use in alterTableColumn
+                  if (!oldColumn.internal_meta) {
+                    oldColumn.internal_meta = {};
+                  }
+                  if (typeof oldColumn.internal_meta === 'string') {
+                    try {
+                      oldColumn.internal_meta = JSON.parse(
+                        oldColumn.internal_meta,
+                      );
+                    } catch {
+                      oldColumn.internal_meta = {};
+                    }
+                  }
+                  oldColumn.internal_meta.unique_constraint_name = queriedName;
+                }
+              }
+            }
+          }
+        }
+
         if (args.columns[i].altered & 4) {
           // col remove
           upQuery += this.alterTableRemoveColumn(
@@ -2466,6 +2520,144 @@ class MysqlClient extends KnexClient {
     return query;
   }
 
+  /**
+   * Queries MySQL to find unique index name by table and column name
+   * @param tableName - Table name
+   * @param columnName - Column name
+   * @param databaseName - Database name (optional, will use connection config if not provided)
+   * @returns Index/constraint name or null if not found
+   */
+  private async queryUniqueConstraintName(
+    tableName: string,
+    columnName: string,
+    databaseName?: string,
+  ): Promise<string | null> {
+    try {
+      const dbName = databaseName || this.connectionConfig?.database;
+      if (!dbName) {
+        return null;
+      }
+
+      const result = await this.sqlClient.raw(
+        `
+        SELECT INDEX_NAME
+        FROM INFORMATION_SCHEMA.STATISTICS
+        WHERE TABLE_SCHEMA = ?
+          AND TABLE_NAME = ?
+          AND COLUMN_NAME = ?
+          AND NON_UNIQUE = 0
+        LIMIT 1
+        `,
+        [dbName, tableName, columnName],
+      );
+
+      if (result && result[0] && result[0].length > 0) {
+        return result[0][0].INDEX_NAME;
+      }
+      return null;
+    } catch (e) {
+      log.api('Error querying unique constraint name:', e);
+      return null;
+    }
+  }
+
+  /**
+   * Generates a unique constraint name from column metadata or generates a random one
+   * @param n - Column object
+   * @param tableName - Optional table name (can be extracted from n.tn)
+   * @returns Constraint name
+   */
+  private getUniqueConstraintName(n: any, tableName?: string): string {
+    // Try to get constraint name from internal_meta first
+    if (n.internal_meta) {
+      let internalMeta = n.internal_meta;
+      if (typeof internalMeta === 'string') {
+        try {
+          internalMeta = JSON.parse(internalMeta);
+        } catch {
+          internalMeta = {};
+        }
+      }
+      if (internalMeta?.unique_constraint_name) {
+        return internalMeta.unique_constraint_name;
+      }
+    }
+
+    // Generate constraint name using IDs if available
+    if (n.base_id && n.fk_model_id && n.id) {
+      return `uk_${n.base_id}_${n.fk_model_id}_${n.id}`;
+    }
+
+    // Fallback: use table and column name, or generate random name
+    const columnName = n.cn || n.cno || 'col';
+    const tName = tableName || n.tn || 'table';
+    const baseName = `uk_${tName}_${columnName}`
+      .replace(/[^a-zA-Z0-9_]/g, '_')
+      .slice(0, 50); // Leave room for random suffix
+
+    // Generate random suffix to ensure uniqueness
+    const randomSuffix = Math.random().toString(36).substring(2, 8);
+    return `${baseName}_${randomSuffix}`.slice(0, 64); // MySQL index name limit is 64 characters
+  }
+
+  /**
+   * Stores constraint name in column's internal_meta
+   * @param n - Column object
+   * @param constraintName - Constraint name to store
+   */
+  private storeUniqueConstraintName(n: any, constraintName: string): void {
+    if (!n.internal_meta || !n.internal_meta.unique_constraint_name) {
+      if (!n.internal_meta) n.internal_meta = {};
+      if (typeof n.internal_meta === 'string') {
+        try {
+          n.internal_meta = JSON.parse(n.internal_meta);
+        } catch {
+          n.internal_meta = {};
+        }
+      }
+      n.internal_meta.unique_constraint_name = constraintName;
+    }
+  }
+
+  /**
+   * Adds unique constraint SQL to the query
+   * @param n - Column object
+   * @param tableName - Optional table name
+   * @param query - Existing query string
+   * @returns Updated query string
+   */
+  private addUniqueConstraintToQuery(
+    n: any,
+    tableName?: string,
+    query: string = '',
+  ): string {
+    // Check n.unique for unique constraint
+    if (!n.unique) {
+      return query;
+    }
+
+    const columnName = n.cn || n.cno;
+    if (!columnName) {
+      throw new Error('Column name is required to add unique constraint');
+    }
+
+    // Generate or get constraint name
+    const constraintName = this.getUniqueConstraintName(n, tableName);
+
+    // Store constraint name in internal_meta
+    this.storeUniqueConstraintName(n, constraintName);
+
+    // Add DROP INDEX and ADD CONSTRAINT to query
+    // Note: MySQL uses DROP INDEX for unique constraints
+    query += this.genQuery(`, DROP INDEX ??`, [constraintName]);
+    query += this.genQuery(`, ADD CONSTRAINT ?? UNIQUE (??)`, [
+      constraintName,
+      columnName,
+    ]);
+
+    return query;
+  }
+
   alterTableColumn(n, o, existingQuery, change = 2) {
     let query = existingQuery ? ',' : '';
 
@@ -2495,12 +2687,54 @@ class MysqlClient extends KnexClient {
     query += n.un ? ' UNSIGNED' : '';
     query += n.rqd ? ' NOT NULL' : ' NULL';
     query += n.ai ? ' auto_increment' : '';
-    query += n.unique ? ` UNIQUE` : '';
+
+    // For change === 0 (CREATE TABLE), add UNIQUE inline
+    if (change === 0) {
+      if (n.unique) {
+        query += ` UNIQUE`;
+      }
+    }
+
     const defaultValue = this.sanitiseDefaultValue(n.cdf);
     query += defaultValue
       ? `
     DEFAULT ${defaultValue}`
       : '';
+
+    // For change === 1 (ADD COLUMN), handle unique constraint separately
+    if (change === 1) {
+      const tableName = n.tn || o?.tn;
+      query = this.addUniqueConstraintToQuery(n, tableName, query);
+    }
+
+    // For change === 2 (CHANGE COLUMN), handle unique constraint changes
+    if (change === 2) {
+      const nIsUnique = !!n.unique;
+      const oIsUnique = !!o.unique;
+      if (nIsUnique !== oIsUnique) {
+        if (nIsUnique) {
+          // Adding unique constraint
+          const columnName = n.cn || o.cn || n.cno || o.cno;
+          if (!columnName) {
+            throw new Error('Column name is required to add unique constraint');
+          }
+          if (!n.cn) {
+            n.cn = columnName;
+          }
+
+          const tableName = n.tn || o?.tn;
+          query = this.addUniqueConstraintToQuery(n, tableName, query);
+        } else {
+          // Dropping unique constraint
+          const tableName = n.tn || o?.tn;
+          const constraintName = this.getUniqueConstraintName(o, tableName);
+
+          // Use DROP INDEX to drop the unique constraint
+          // MySQL stores unique constraints as indexes
+          query += this.genQuery(`, DROP INDEX ??`, [constraintName]);
+        }
+      }
+    }
 
     return query;
   }

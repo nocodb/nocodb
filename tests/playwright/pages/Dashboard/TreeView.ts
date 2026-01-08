@@ -189,43 +189,53 @@ export class TreeViewPage extends BasePage {
     mode?: string;
     baseTitle: string;
   }) {
-    if (skipOpeningModal) return;
+    if (type === 'script') {
+      await this.createNewButton.click();
+      await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
+      await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
+    } else {
+      if (skipOpeningModal) return;
 
-    await this.dashboard.leftSidebar.miniSidebarActionClick({ type: 'base' });
-    await this.rootPage.waitForTimeout(500);
+      await this.dashboard.leftSidebar.miniSidebarActionClick({ type: 'base' });
+      await this.rootPage.waitForTimeout(500);
 
-    await this.dashboard.leftSidebar.verifyBaseListOpen(true);
-    const verifyBaseListOpen = true;
+      await this.dashboard.leftSidebar.verifyBaseListOpen(true);
+      const verifyBaseListOpen = true;
 
-    switch (type) {
-      case 'table': {
-        if (verifyBaseListOpen) {
-          await this.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
+      switch (type) {
+        case 'table': {
+          if (verifyBaseListOpen) {
+            await this.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).hover();
 
-          await this.get()
-            .getByTestId(`nc-sidebar-base-${baseTitle}`)
-            .getByTestId('nc-sidebar-add-base-entity')
-            .click();
-        } else {
-          const isCreateNewDropdown = (await this.createNewButton.getAttribute('class')).includes(
-            'nc-home-create-new-dropdown-btn'
-          );
-
-          if (!isCreateNewDropdown) {
-            return await this.createNewButton.click();
+            await this.get()
+              .getByTestId(`nc-sidebar-base-${baseTitle}`)
+              .getByTestId('nc-sidebar-add-base-entity')
+              .click();
           } else {
-            await this.createNewButton.click();
-            await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
+            const isCreateNewDropdown = (await this.createNewButton.getAttribute('class')).includes(
+              'nc-home-create-new-dropdown-btn'
+            );
 
-            await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
+            if (!isCreateNewDropdown) {
+              return await this.createNewButton.click();
+            } else {
+              await this.createNewButton.click();
+              await this.dashboard.get().locator('.nc-dropdown.active').waitFor();
+
+              await this.dashboard.get().locator('.nc-dropdown.active').getByTestId(`create-new-${type}`).click();
+            }
           }
+          break;
         }
-        break;
-      }
-      case 'script': {
-        // Todo:
       }
     }
+  }
+
+  async createScript({ title, baseTitle }: { title: string; baseTitle: string }) {
+    await this.createEntity({ type: 'script', skipOpeningModal: false, baseTitle });
+    await this.dashboard.get().locator('.ant-modal.active').locator('.ant-modal-body').waitFor();
+    await this.dashboard.get().getByPlaceholder('Enter script name').fill(title);
+    await this.dashboard.get().locator('.ant-modal.active').locator('button:has-text("Create Script")').click();
   }
 
   async createTable({
@@ -254,6 +264,15 @@ export class TreeViewPage extends BasePage {
 
     // After table create we navigate to that table and sidebar will be base homepage instead of baselist, so we have to wait for that
     await this.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
+
+    const searchTitle = title.replace(/ /g, '');
+
+    // wait for table to be visible in treeview
+    await this.get().locator(`.nc-base-tree-tbl-${searchTitle}`).waitFor({ state: 'visible' });
+
+    const tableId = await this.get().locator(`.nc-base-tree-tbl-${searchTitle}`).getAttribute('data-table-id');
+
+    return tableId;
   }
 
   async verifyTable({
@@ -310,8 +329,8 @@ export class TreeViewPage extends BasePage {
         await delay(100);
         return await this.dashboard.get().locator('button:has-text("Delete Table")').click();
       },
-      httpMethodsToMatch: ['DELETE'],
-      requestUrlPathToMatch: `/api/v1/db/meta/tables/`,
+      httpMethodsToMatch: ['POST'],
+      requestUrlPathToMatch: `tableDelete`,
     });
 
     await (await this.rootPage.locator('.nc-container').last().elementHandle())?.waitForElementState('stable');
@@ -361,13 +380,13 @@ export class TreeViewPage extends BasePage {
   async changeTableIcon({ title, icon, iconDisplay }: { title: string; icon: string; iconDisplay?: string }) {
     const tableTitle = title.replace(/ /g, '');
 
-    await this.get().locator(`.nc-base-tree-tbl-${tableTitle} .nc-table-icon`).click();
+    await this.get().locator(`.nc-base-tree-tbl-${tableTitle} .nc-table-icon-wrapper`).click();
 
     await this.rootPage.locator('.emoji-mart-search > input').fill(icon);
     const emojiList = this.rootPage.locator('[id="emoji-mart-list"]');
     await emojiList.locator('button').first().click();
     await expect(
-      this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator(`.nc-table-icon-wrapper:has-text("${iconDisplay}")`)
     ).toHaveCount(1);
   }
 
@@ -408,7 +427,7 @@ export class TreeViewPage extends BasePage {
 
     await this.rootPage.locator(`.nc-base-tree-tbl-${tableTitle}`).waitFor({ state: 'visible' });
     await expect(
-      this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator(`.nc-table-icon:has-text("${iconDisplay}")`)
+      this.get().locator(`.nc-base-tree-tbl-${tableTitle}`).locator(`.nc-table-icon-wrapper:has-text("${iconDisplay}")`)
     ).toHaveCount(1);
   }
 

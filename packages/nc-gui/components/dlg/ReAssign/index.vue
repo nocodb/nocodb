@@ -153,8 +153,8 @@ const inputEl = (el: HTMLInputElement) => {
           <UserItem
             v-for="user of filterdBaseUsers"
             :key="user.id"
-            class="cursor-pointer hover:(bg-gray-100) px-3 nc-list-user-item"
-            :class="{ 'bg-gray-100': selectedUser === user }"
+            class="cursor-pointer hover:(bg-nc-bg-gray-light) px-3 nc-list-user-item"
+            :class="{ 'bg-nc-bg-gray-light': selectedUser === user }"
             :user="user"
             @click="selectUser(user)"
           >

@@ -54,7 +54,7 @@ const isAllowedToEditField = computed(() => {
   return isAllowed(PermissionEntity.FIELD, column.value.id, PermissionKey.RECORD_FIELD_EDIT)
 })
 
-const { metas } = useMetas()
+const { getMetaByKey } = useMetas()
 
 const { isUIAllowed, isMetaReadOnly } = useRoles()
 
@@ -85,10 +85,11 @@ const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
   return null
 })
 
-const relatedTableMeta = computed(
-  () =>
-    relationColumnOptions.value?.fk_related_model_id && metas.value?.[relationColumnOptions.value?.fk_related_model_id as string],
-)
+const relatedTableMeta = computed(() => {
+  if (!relationColumnOptions.value?.fk_related_model_id) return null
+  const relatedBaseId = (relationColumnOptions.value as any)?.fk_related_base_id || meta.value?.base_id
+  return getMetaByKey(relatedBaseId, relationColumnOptions.value?.fk_related_model_id as string)
+})
 
 const relatedTableTitle = computed(() => relatedTableMeta.value?.title)
 
@@ -100,12 +101,14 @@ const tooltipMsg = computed(() => {
   let suffix = ''
   if (isLinksOrLTAR(column.value) && relatedTableTitle.value && isExternalSource.value) {
     if (isMm(column.value)) {
+      const mmBaseId = (column.value?.colOptions as any)?.fk_mm_base_id || meta.value?.base_id
       const mmTableMeta =
         tables.value?.find((t) => t.id === column.value?.colOptions?.fk_mm_model_id) ||
-        metas.value?.[column.value?.colOptions?.fk_mm_model_id as string]
+        getMetaByKey(mmBaseId, column.value?.colOptions?.fk_mm_model_id as string)
       suffix = mmTableMeta ? `\nJunction Table: ${mmTableMeta.title}` : ''
     } else if (isHm(column.value)) {
-      const fkColumn = metas.value?.[column.value?.colOptions?.fk_related_model_id as string]?.columns?.find(
+      const relatedBaseId = (column.value?.colOptions as any)?.fk_related_base_id || meta.value?.base_id
+      const fkColumn = getMetaByKey(relatedBaseId, column.value?.colOptions?.fk_related_model_id as string)?.columns?.find(
         (c) => c.id === column.value?.colOptions?.fk_child_column_id,
       )
       suffix = fkColumn?.title?.startsWith('nc_') ? '' : `\nForeign Key Column: ${fkColumn.title}`
@@ -171,7 +174,12 @@ watch(editColumnDropdown, (val) => {
 })
 
 const openHeaderMenu = (e?: MouseEvent, description = false) => {
-  if ((isExpandedForm.value && e?.type === 'dblclick') || isExpandedBulkUpdateForm.value || isSqlView.value) {
+  if (
+    (isExpandedForm.value && e?.type === 'dblclick') ||
+    isExpandedBulkUpdateForm.value ||
+    isSqlView.value ||
+    props.hideIconTooltip
+  ) {
     return
   }
 
@@ -189,7 +197,7 @@ const openHeaderMenu = (e?: MouseEvent, description = false) => {
 }
 
 const openDropDown = (e: Event) => {
-  if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value)) return
+  if (isForm.value || (!isUIAllowed('fieldEdit') && !isMobileMode.value) || props.hideIconTooltip) return
 
   e.preventDefault()
   e.stopPropagation()
@@ -206,7 +214,7 @@ const onVisibleChange = () => {
 }
 
 const onClick = (e: Event) => {
-  if (isMobileMode.value || !isUIAllowed('fieldEdit')) return
+  if (isMobileMode.value || !isUIAllowed('fieldEdit') || props.hideIconTooltip) return
 
   if (isDropDownOpen.value) {
     e.preventDefault()
@@ -224,11 +232,11 @@ const onClick = (e: Event) => {
 
 <template>
   <div
-    class="flex items-center w-full h-full text-small text-gray-500 font-weight-medium group"
+    class="flex items-center w-full h-full text-small text-nc-content-gray-muted font-weight-medium group"
     :class="{
       'flex-col !items-start justify-center pt-0.5': isExpandedForm && !isMobileMode && !isExpandedBulkUpdateForm,
-      'bg-gray-100': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
-      'nc-cell-expanded-form-header cursor-pointer hover:bg-gray-100':
+      'bg-nc-bg-gray-light': isExpandedForm && !isExpandedBulkUpdateForm ? editColumnDropdown || isDropDownOpen : false,
+      'nc-cell-expanded-form-header cursor-pointer hover:bg-nc-bg-gray-light':
         isExpandedForm && !isMobileMode && isUIAllowed('fieldEdit') && !isExpandedBulkUpdateForm,
     }"
     @dblclick="openHeaderMenu"
@@ -236,7 +244,7 @@ const onClick = (e: Event) => {
     @click="onClick"
   >
     <div
-      class="nc-virtual-cell-name-wrapper flex-1 flex items-center"
+      class="nc-virtual-cell-name-wrapper w-full flex-1 flex items-center"
       :class="{
         'max-w-[calc(100%_-_23px)]': !isExpandedForm && !column.description?.length,
         'max-w-[calc(100%_-_44px)]': !isExpandedForm && column.description?.length,
@@ -266,7 +274,7 @@ const onClick = (e: Event) => {
         </span>
       </NcTooltip>
 
-      <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-red-500">&nbsp;*</span>
+      <span v-if="isVirtualColRequired(column, meta?.columns || []) || required" class="text-nc-content-red-medium">&nbsp;*</span>
 
       <PermissionsTooltip
         v-if="!isAllowedToEditField"
@@ -289,6 +297,16 @@ const onClick = (e: Event) => {
           invisible: !(editColumnDropdown || isDropDownOpen),
         }"
       />
+
+      <div class="flex-1" />
+      <NcTooltip
+        v-if="meta?.synced && column?.readonly && isExpandedForm && !isPublic"
+        class="flex items-center"
+        placement="bottom"
+      >
+        <template #title> {{ $t('tooltip.fieldIsExternallySynced') }} </template>
+        <GeneralIcon icon="ncZap" class="flex-none !w-3.5 !h-3.5 !text-nc-content-gray-disabled" />
+      </NcTooltip>
     </div>
 
     <NcTooltip v-if="column.description?.length && isPublic && isGrid && !isExpandedForm && !hideMenu">
@@ -296,7 +314,7 @@ const onClick = (e: Event) => {
         <div class="whitespace-pre-wrap break-words">{{ column.description }}</div>
       </template>
       <div>
-        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-nc-content-gray-muted flex-none" />
       </div>
     </NcTooltip>
 
@@ -318,7 +336,7 @@ const onClick = (e: Event) => {
       class="h-full"
       :trigger="['click']"
       :placement="isExpandedForm && !isExpandedBulkUpdateForm ? 'bottomLeft' : 'bottomRight'"
-      :overlay-class-name="`nc-dropdown-edit-column ${editColumnDropdown ? 'active' : ''}`"
+      :overlay-class-name="`nc-dropdown-edit-column ${editColumnDropdown ? 'active rounded-2xl' : ''}`"
       @visible-change="onVisibleChange"
     >
       <div v-if="isExpandedForm && !isExpandedBulkUpdateForm" class="h-[1px]" @dblclick.stop>&nbsp;</div>

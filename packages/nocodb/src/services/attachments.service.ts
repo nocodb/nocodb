@@ -10,6 +10,7 @@ import PQueue from 'p-queue';
 import axios from 'axios';
 import hash from 'object-hash';
 import moment from 'moment';
+import { useAgent } from 'request-filtering-agent';
 import type { AttachmentReqType, FileType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -17,7 +18,7 @@ import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
 import { mimeIcons } from '~/utils/mimeTypes';
 import { FileReference, PresignedUrl } from '~/models';
 import { utf8ify } from '~/helpers/stringHelpers';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { RootScopes } from '~/utils/globals';
@@ -186,10 +187,15 @@ export class AttachmentsService {
     await queue.onIdle();
 
     if (errors.length) {
-      for (const error of errors) {
-        this.logger.error(error);
+      errors.forEach((error) => this.logger.error(error));
+
+      const firstError = errors[0].error;
+
+      if (firstError instanceof NcError || firstError instanceof NcBaseError) {
+        throw firstError;
       }
-      throw errors[0];
+
+      NcError.internalServerError('Failed to upload attachment');
     }
 
     const generateThumbnail = attachments.filter((attachment) =>
@@ -284,7 +290,15 @@ export class AttachmentsService {
           let base64Buffer: Buffer;
 
           if (!url.startsWith('data:')) {
-            response = await axios.head(url, { maxRedirects: 5 });
+            response = await axios.head(url, {
+              maxRedirects: 5,
+              httpAgent: useAgent(url, {
+                stopPortScanningByUrlRedirection: true,
+              }),
+              httpsAgent: useAgent(url, {
+                stopPortScanningByUrlRedirection: true,
+              }),
+            });
             mimeType = response.headers['content-type']?.split(';')[0];
             size = response.headers['content-length'];
             finalUrl = response.request.res.responseUrl;
@@ -418,7 +432,14 @@ export class AttachmentsService {
 
     if (errors.length) {
       errors.forEach((error) => this.logger.error(error));
-      throw errors[0];
+
+      const firstError = errors[0].error;
+
+      if (firstError instanceof NcError || firstError instanceof NcBaseError) {
+        throw firstError;
+      }
+
+      NcError.internalServerError('Failed to upload attachment');
     }
 
     const generateThumbnail = attachments.filter((attachment) =>

@@ -82,7 +82,7 @@ const { $e } = useNuxtApp()
 
 const { isMobileMode } = useGlobal()
 
-const { metas, getMeta } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const workspaceStore = useWorkspace()
 
@@ -115,7 +115,12 @@ const { t } = useI18n()
 
 const isViewCreating = ref(false)
 
-const views = computed(() => viewsByTable.value.get(tableId.value) ?? [])
+const views = computed(() => {
+  if (!tableId.value || !baseId.value) return []
+
+  const key = `${baseId.value}:${tableId.value}`
+  return viewsByTable.value.get(key) ?? []
+})
 
 const isNecessaryColumnsPresent = ref(true)
 
@@ -338,7 +343,7 @@ onMounted(async () => {
   ) {
     isMetaLoading.value = true
     try {
-      meta.value = (await getMeta(tableId.value))!
+      meta.value = (await getMeta(baseId.value, tableId.value))!
 
       if (props.type === ViewTypes.MAP) {
         viewSelectFieldOptions.value = meta
@@ -386,15 +391,15 @@ onMounted(async () => {
         const loadLookupMeta = async (originalCol: ColumnType, column: ColumnType, metaId?: string): Promise<void> => {
           const relationColumn =
             metaId || meta.value?.id
-              ? metas.value[metaId || meta.value?.id]?.columns?.find(
+              ? getMetaByKey(baseId.value, metaId || meta.value?.id)?.columns?.find(
                   (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
                 )
               : undefined
 
           if (relationColumn?.colOptions?.fk_related_model_id) {
-            await getMeta(relationColumn.colOptions.fk_related_model_id!)
+            await getMeta(baseId.value, relationColumn.colOptions.fk_related_model_id!)
 
-            const lookupColumn = metas.value[relationColumn.colOptions.fk_related_model_id]?.columns?.find(
+            const lookupColumn = getMetaByKey(baseId.value, relationColumn.colOptions.fk_related_model_id)?.columns?.find(
               (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,
             ) as ColumnType | undefined
 
@@ -1170,7 +1175,7 @@ watch(activeBaseId, () => {
             <template #AutoSuggestedContent>
               <div class="px-5 pt-5 pb-2 w-full">
                 <div v-if="aiError" class="w-full flex items-center gap-3">
-                  <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+                  <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-4 h-4" />
 
                   <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
                     <template #title>
@@ -1328,7 +1333,7 @@ watch(activeBaseId, () => {
                     "
                   >
                     <template #loadingIcon>
-                      <GeneralLoader class="!text-purple-700" size="medium" />
+                      <GeneralLoader class="!text-nc-content-purple-dark" size="medium" />
                     </template>
                     <template #icon>
                       <GeneralIcon icon="send" class="flex-none h-4 w-4" />
@@ -1337,7 +1342,7 @@ watch(activeBaseId, () => {
                 </div>
 
                 <div v-if="aiError" class="w-full flex items-center gap-3">
-                  <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+                  <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-4 h-4" />
 
                   <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
                     <template #title>

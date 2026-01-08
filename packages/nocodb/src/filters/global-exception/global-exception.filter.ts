@@ -28,6 +28,7 @@ import {
   SsoError,
   TestConnectionError,
   Unauthorized,
+  UniqueConstraintViolationError,
   UnprocessableEntity,
 } from '~/helpers/catchError';
 
@@ -51,7 +52,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception.message,
       )
     ) {
-      exception = NcError._.errorCodex.generateError(NcErrorType.BAD_JSON);
+      exception = NcError._.errorCodex.generateError(
+        NcErrorType.ERR_INVALID_JSON,
+      );
     }
 
     // try to extract db error for unknown errors
@@ -78,9 +81,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         exception instanceof NcSDKError ||
         (exception instanceof NcBaseErrorv2 &&
           ![
-            NcErrorType.INTERNAL_SERVER_ERROR,
-            NcErrorType.DATABASE_ERROR,
-            NcErrorType.UNKNOWN_ERROR,
+            NcErrorType.ERR_INTERNAL_SERVER,
+            NcErrorType.ERR_DATABASE_OP_FAILED,
+            NcErrorType.ERR_UNKNOWN,
           ].includes(exception.error))
       )
     )
@@ -96,7 +99,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
 
       const cacheKey = `throttler:${key}`;
 
-      NocoCache.get(cacheKey, CacheGetType.TYPE_OBJECT)
+      NocoCache.get('root', cacheKey, CacheGetType.TYPE_OBJECT)
         .then((data) => {
           if (!data) {
             this.logger.warn(
@@ -108,6 +111,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             );
 
             NocoCache.setExpiring(
+              'root',
               cacheKey,
               { value: true, count: 1, timestamp: Date.now() },
               300,
@@ -122,7 +126,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
             );
 
             if (ttlInSeconds > 0) {
-              NocoCache.setExpiring(cacheKey, data, ttlInSeconds).catch(
+              NocoCache.setExpiring('root', cacheKey, data, ttlInSeconds).catch(
                 (err) => {
                   this.logger.error(err);
                 },
@@ -189,7 +193,34 @@ export class GlobalExceptionFilter implements ExceptionFilter {
         message: `Invalid option(s) "${exception.options.join(
           ', ',
         )}" provided for column "${exception.columnTitle}"`,
-        error: 'INVALID_VALUE_FOR_FIELD',
+        error: 'ERR_INVALID_VALUE_FOR_FIELD',
+      });
+    } else if (
+      UniqueConstraintViolationError &&
+      typeof UniqueConstraintViolationError === 'function' &&
+      exception instanceof UniqueConstraintViolationError
+    ) {
+      const httpStatus = apiVersion === NcApiVersion.V3 ? 409 : 400;
+      return response.status(httpStatus).json({
+        error: 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
+        message: exception.message,
+        fieldName: exception.fieldName,
+        value: exception.value,
+      });
+    } else if (
+      exception &&
+      typeof exception === 'object' &&
+      'fieldName' in exception &&
+      'value' in exception &&
+      exception.constructor?.name === 'UniqueConstraintViolationError'
+    ) {
+      // Fallback check in case the class is not properly imported
+      const httpStatus = apiVersion === NcApiVersion.V3 ? 409 : 400;
+      return response.status(httpStatus).json({
+        error: 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
+        message: exception.message,
+        fieldName: (exception as any).fieldName,
+        value: (exception as any).value,
       });
     } else if (
       exception instanceof BadRequest ||
@@ -245,16 +276,22 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     }
 
     // handle different types of exceptions
-    // todo: temporary hack, need to fix
     if (exception.getStatus?.()) {
       response.status(exception.getStatus()).json(exception.getResponse());
     } else {
       this.captureException(exception, request);
 
-      // todo: change the response code
-      response.status(400).json({
-        msg: exception.message,
-      });
+      const responsePayload: any = {
+        msg: 'Internal server error',
+      };
+
+      // Include actual error message only in development
+      if (process.env.NODE_ENV !== 'production') {
+        responsePayload.__msg =
+          exception?.message || 'An unexpected error occurred';
+      }
+
+      response.status(500).json(responsePayload);
     }
   }
 

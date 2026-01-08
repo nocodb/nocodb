@@ -21,6 +21,7 @@ import {
 import NocoCache from '~/cache/NocoCache';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 
 export default class Filter implements FilterType {
   id: string;
@@ -48,9 +49,11 @@ export default class Filter implements FilterType {
   source_id?: string;
   column?: Column;
   order?: number;
+  meta?: any;
 
   constructor(data: Filter | FilterType) {
     Object.assign(this, data);
+    this.meta = parseMetaProp(this);
   }
 
   public static castType(filter: Filter): Filter {
@@ -81,7 +84,7 @@ export default class Filter implements FilterType {
 
   public static async insert(
     context: NcContext,
-    filter: Partial<FilterType>,
+    filter: Partial<FilterType & { meta?: any | string }>,
     ncMeta = Noco.ncMeta,
   ) {
     const insertObj = extractProps(filter, [
@@ -102,6 +105,7 @@ export default class Filter implements FilterType {
       'base_id',
       'source_id',
       'order',
+      'meta',
     ]);
 
     const referencedModelColName = [
@@ -147,6 +151,10 @@ export default class Filter implements FilterType {
         insertObj.source_id = model.source_id;
       }
     }
+    if (!insertObj.meta) {
+      insertObj.meta = {};
+    }
+    insertObj.meta = stringifyMetaProp(insertObj);
 
     const row = await ncMeta.metaInsert2(
       context.workspace_id,
@@ -184,12 +192,12 @@ export default class Filter implements FilterType {
         (filter.fk_view_id || filter.fk_hook_id || filter.fk_parent_column_id)
       )
     ) {
-      throw new Error(
+      NcError.get(context).badRequest(
         `Mandatory fields missing in FILTER_EXP cache population : id(${id}), fk_view_id(${filter.fk_view_id}), fk_hook_id(${filter.fk_hook_id}), fk_parent_column_id(${filter.fk_parent_column_id})`,
       );
     }
     const key = `${CacheScope.FILTER_EXP}:${id}`;
-    let value = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+    let value = await NocoCache.get(context, key, CacheGetType.TYPE_OBJECT);
     if (!value) {
       /* get from db */
       value = await ncMeta.metaGet2(
@@ -200,12 +208,13 @@ export default class Filter implements FilterType {
       );
 
       /* store in redis */
-      await NocoCache.set(key, value).then(async () => {
+      await NocoCache.set(context, key, value).then(async () => {
         /* append key to relevant lists */
         const p = [];
         if (filter.fk_view_id) {
           p.push(
             NocoCache.appendToList(
+              context,
               CacheScope.FILTER_EXP,
               [FilterCacheScope.VIEW, filter.fk_view_id],
               key,
@@ -215,6 +224,7 @@ export default class Filter implements FilterType {
         if (filter.fk_hook_id) {
           p.push(
             NocoCache.appendToList(
+              context,
               CacheScope.FILTER_EXP,
               [FilterCacheScope.HOOK, filter.fk_hook_id],
               key,
@@ -224,6 +234,7 @@ export default class Filter implements FilterType {
         if (filter.fk_parent_column_id) {
           p.push(
             NocoCache.appendToList(
+              context,
               CacheScope.FILTER_EXP,
               [FilterCacheScope.PARENT_COLUMN, filter.fk_parent_column_id],
               key,
@@ -234,6 +245,7 @@ export default class Filter implements FilterType {
           if (filter.fk_view_id) {
             p.push(
               NocoCache.appendToList(
+                context,
                 CacheScope.FILTER_EXP,
                 [FilterCacheScope.VIEW, filter.fk_view_id, filter.fk_parent_id],
                 key,
@@ -243,6 +255,7 @@ export default class Filter implements FilterType {
           if (filter.fk_hook_id) {
             p.push(
               NocoCache.appendToList(
+                context,
                 CacheScope.FILTER_EXP,
                 [FilterCacheScope.HOOK, filter.fk_hook_id, filter.fk_parent_id],
                 key,
@@ -252,6 +265,7 @@ export default class Filter implements FilterType {
           if (filter.fk_parent_column_id) {
             p.push(
               NocoCache.appendToList(
+                context,
                 CacheScope.FILTER_EXP,
                 [
                   FilterCacheScope.PARENT_COLUMN,
@@ -264,6 +278,7 @@ export default class Filter implements FilterType {
           }
           p.push(
             NocoCache.appendToList(
+              context,
               CacheScope.FILTER_EXP,
               [FilterCacheScope.PARENT, filter.fk_parent_id],
               key,
@@ -273,6 +288,7 @@ export default class Filter implements FilterType {
         if (filter.fk_column_id) {
           p.push(
             NocoCache.appendToList(
+              context,
               CacheScope.FILTER_EXP,
               [FilterCacheScope.COLUMN, filter.fk_column_id],
               key,
@@ -316,11 +332,18 @@ export default class Filter implements FilterType {
       'is_group',
       'logical_op',
       'fk_value_col_id',
+      'meta',
+      'order',
     ]);
 
-    if (typeof updateObj.value === 'string')
+    if (typeof updateObj.value === 'string') {
       updateObj.value = updateObj.value.slice(0, 255);
+    }
 
+    if (!updateObj.meta) {
+      updateObj.meta = {};
+    }
+    updateObj.meta = stringifyMetaProp(updateObj);
     // set meta
     const res = await ncMeta.metaUpdate(
       context.workspace_id,
@@ -330,7 +353,13 @@ export default class Filter implements FilterType {
       id,
     );
 
-    await NocoCache.update(`${CacheScope.FILTER_EXP}:${id}`, updateObj);
+    ncMeta.knex.attachToTransaction(async () => {
+      await NocoCache.update(
+        context,
+        `${CacheScope.FILTER_EXP}:${id}`,
+        updateObj,
+      );
+    });
 
     // on update delete any optimised single query cache
     {
@@ -364,6 +393,7 @@ export default class Filter implements FilterType {
         filter.id,
       );
       await NocoCache.deepDel(
+        context,
         `${CacheScope.FILTER_EXP}:${filter.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -424,6 +454,7 @@ export default class Filter implements FilterType {
   ): Promise<Filter> {
     if (!this.fk_parent_id) return null;
     let filterObj = await NocoCache.get(
+      context,
       `${CacheScope.FILTER_EXP}:${this.fk_parent_id}`,
       2,
     );
@@ -437,6 +468,7 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.set(
+        context,
         `${CacheScope.FILTER_EXP}:${this.fk_parent_id}`,
         filterObj,
       );
@@ -451,6 +483,7 @@ export default class Filter implements FilterType {
     if (this.children) return this.children;
     if (!this.is_group || !this.id) return null;
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.FILTER_EXP,
       [FilterCacheScope.PARENT, this.id],
       {
@@ -474,6 +507,7 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.PARENT, this.id],
         childFilters,
@@ -516,6 +550,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ): Promise<FilterType> {
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.FILTER_EXP,
       [parentColId || viewId || hookId || linkColId || widgetId],
       {
@@ -566,6 +601,7 @@ export default class Filter implements FilterType {
       }
 
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [
           filterCacheScope,
@@ -652,6 +688,7 @@ export default class Filter implements FilterType {
           filter.id,
         );
         await NocoCache.deepDel(
+          context,
           `${CacheScope.FILTER_EXP}:${filter.id}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -689,6 +726,7 @@ export default class Filter implements FilterType {
           filter.id,
         );
         await NocoCache.deepDel(
+          context,
           `${CacheScope.FILTER_EXP}:${filter.id}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -715,6 +753,7 @@ export default class Filter implements FilterType {
           filter.id,
         );
         await NocoCache.deepDel(
+          context,
           `${CacheScope.FILTER_EXP}:${filter.id}`,
           CacheDelDirection.CHILD_TO_PARENT,
         );
@@ -731,6 +770,7 @@ export default class Filter implements FilterType {
     let filterObj =
       id &&
       (await NocoCache.get(
+        context,
         `${CacheScope.FILTER_EXP}:${id}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -743,7 +783,7 @@ export default class Filter implements FilterType {
           id,
         },
       );
-      await NocoCache.set(`${CacheScope.FILTER_EXP}:${id}`, filterObj);
+      await NocoCache.set(context, `${CacheScope.FILTER_EXP}:${id}`, filterObj);
     }
     return this.castType(filterObj);
   }
@@ -753,7 +793,7 @@ export default class Filter implements FilterType {
     { viewId }: { viewId: string },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
+    const cachedList = await NocoCache.getList(context, CacheScope.FILTER_EXP, [
       FilterCacheScope.VIEW,
       viewId,
     ]);
@@ -770,6 +810,7 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.VIEW, viewId],
         filterObjs,
@@ -784,7 +825,7 @@ export default class Filter implements FilterType {
     { hookId }: { hookId: string },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
+    const cachedList = await NocoCache.getList(context, CacheScope.FILTER_EXP, [
       FilterCacheScope.HOOK,
       hookId,
     ]);
@@ -801,6 +842,7 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.HOOK, hookId],
         filterObjs,
@@ -816,6 +858,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.FILTER_EXP,
       [FilterCacheScope.VIEW, viewId],
       {
@@ -838,6 +881,7 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.VIEW, viewId],
         filterObjs,
@@ -855,6 +899,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.FILTER_EXP,
       [FilterCacheScope.VIEW, hookId],
       { key: 'order' },
@@ -874,6 +919,7 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.HOOK, hookId],
         filterObjs,
@@ -890,6 +936,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.FILTER_EXP,
       [FilterCacheScope.PARENT_COLUMN, parentColId],
       { key: 'order' },
@@ -909,6 +956,7 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.PARENT_COLUMN, parentColId],
         filterObjs,
@@ -929,6 +977,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.FILTER_EXP,
       [FilterCacheScope.PARENT, parentId],
       { key: 'order' },
@@ -951,6 +1000,7 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.PARENT, parentId],
         filterObjs,
@@ -971,6 +1021,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.FILTER_EXP,
       [FilterCacheScope.HOOK, hookId, parentId],
       {
@@ -995,6 +1046,7 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.HOOK, hookId, parentId],
         filterObjs,
@@ -1015,6 +1067,7 @@ export default class Filter implements FilterType {
     ncMeta = Noco.ncMeta,
   ) {
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.FILTER_EXP,
       [FilterCacheScope.PARENT_COLUMN, parentColId, parentId],
       {
@@ -1039,6 +1092,7 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.PARENT_COLUMN, parentColId, parentId],
         filterObjs,
@@ -1102,7 +1156,7 @@ export default class Filter implements FilterType {
     { linkColumnId }: { linkColumnId: string },
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.FILTER_EXP, [
+    const cachedList = await NocoCache.getList(context, CacheScope.FILTER_EXP, [
       FilterCacheScope.LINK_COL,
       linkColumnId,
     ]);
@@ -1119,6 +1173,7 @@ export default class Filter implements FilterType {
         },
       );
       await NocoCache.setList(
+        context,
         CacheScope.FILTER_EXP,
         [FilterCacheScope.LINK_COL, linkColumnId],
         filterObjs,

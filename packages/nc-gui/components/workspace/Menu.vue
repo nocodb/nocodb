@@ -16,7 +16,6 @@ const { appInfo } = useGlobal()
               id: 'nc',
               meta: {},
             }"
-            icon-bg-color="#F4F4F5"
             show-nocodb-icon
             class="flex-none border-1 border-nc-border-gray-medium"
             size="mini-sidebar"
@@ -50,6 +49,6 @@ const { appInfo } = useGlobal()
 
 <style scoped lang="scss">
 .nc-workspace-menu-item {
-  @apply flex items-center pl-2 py-2 gap-2 text-sm hover:text-black;
+  @apply flex items-center pl-2 py-2 gap-2 text-sm hover:text-nc-content-gray-extreme;
 }
 </style>

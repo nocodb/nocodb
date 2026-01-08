@@ -9,7 +9,9 @@ import type { UsersSortType } from '~/lib/types'
  * @param {string} roleType - The type of role for which user sorts are managed ('Workspace', 'Org', or 'Project').
  * @returns {object} An object containing reactive values and functions related to user sorts.
  */
-export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organization' | 'Webhook') {
+export function useUserSorts(
+  roleType: 'Workspace' | 'Org' | 'Project' | 'Organization' | 'Webhook' | 'Teams' | 'OAuthAuthorization' | 'OAuthClients',
+) {
   const clone = rfdc()
 
   const { user } = useGlobal()
@@ -102,7 +104,16 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organi
    * @returns A new array containing sorted objects.
    * @template T - The type of objects in the input array.
    */
-  function handleGetSortedData<T extends Record<string, any>>(data: T[], sortsConfig: UsersSortType = sorts.value): T[] {
+  function handleGetSortedData<T extends Record<string, any>>(
+    data: T[],
+    sortsConfig: UsersSortType = sorts.value,
+    defaultSortConfig?: UsersSortType,
+  ): T[] {
+    // Apply default sort if sortConfig is not present
+    if (ncIsEmptyObject(sortsConfig) && defaultSortConfig) {
+      sortsConfig = defaultSortConfig
+    }
+
     let userRoleOrder: string[] = []
     if (roleType === 'Workspace') {
       userRoleOrder = Object.values(OrderedWorkspaceRoles)
@@ -132,7 +143,9 @@ export function useUserSorts(roleType: 'Workspace' | 'Org' | 'Project' | 'Organi
           }
         }
         case 'email':
-        case 'title': {
+        case 'title':
+        case 'name':
+        case 'created_by': {
           if (sortsConfig.direction === 'asc') {
             return a[sortsConfig.field]?.localeCompare(b[sortsConfig.field])
           } else {

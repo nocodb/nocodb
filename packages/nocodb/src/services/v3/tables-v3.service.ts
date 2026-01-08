@@ -118,6 +118,12 @@ export class TablesV3Service {
       sourceId?: string;
       includeM2M?: boolean;
       roles: Record<string, boolean>;
+      allSources?: boolean;
+      user: (User | UserType) & {
+        base_roles?: Record<string, boolean>;
+        workspace_roles?: Record<string, boolean>;
+      };
+      isPublicBase?: boolean;
     },
   ) {
     const tables = await this.tablesService.getAccessibleTables(context, param);

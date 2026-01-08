@@ -65,7 +65,7 @@ const props = defineProps<{
   rowSortRequiredRows: Row[]
   applySorting?: (newRows?: Row | Row[]) => void
   clearCache: (visibleStartIndex: number, visibleEndIndex: number) => void
-  syncCount: () => Promise<void>
+  syncCount: (path?: Array<number>, throwError?: boolean, showToastMessage?: boolean) => Promise<void>
   selectedRows: Array<Row>
   chunkStates: Array<'loading' | 'loaded' | undefined>
   isBulkOperationInProgress: boolean
@@ -541,10 +541,15 @@ async function clearCell(ctx: { row: number; col: number } | null, skipUpdate = 
               await addLTARRef(rowObj, rowObj.row[columnObj.title], columnObj)
               await syncLTARRefs(rowObj, rowObj.row)
             } else if (isMm(columnObj)) {
-              await $api.dbDataTableRow.nestedLink(
-                meta.value?.id as string,
-                columnObj.id as string,
-                encodeURIComponent(rowId as string),
+              await $api.internal.postOperation(
+                meta.value?.fk_workspace_id as string,
+                meta.value?.base_id as string,
+                {
+                  operation: 'nestedDataLink',
+                  tableId: meta.value?.id as string,
+                  columnId: columnObj.id as string,
+                  rowId: encodeURIComponent(rowId as string),
+                },
                 mmClearResult,
               )
               rowObj.row[columnObj.title] = mmOldResult ?? null
@@ -1962,7 +1967,7 @@ onBeforeUnmount(async () => {
   const viewMetaValue = view.value
   const dataValue = cachedRows.value.values()
   if (viewMetaValue) {
-    getMeta(viewMetaValue.fk_model_id, false, true).then((res) => {
+    getMeta(viewMetaValue.base_id as string, viewMetaValue.fk_model_id, false, true).then((res) => {
       const metaValue = res
       if (!metaValue) return
       saveOrUpdateRecords({
@@ -2005,7 +2010,7 @@ watch(
         switchingTab.value = true
         // whenever tab changes or view changes save any unsaved data
         if (old?.id) {
-          const oldMeta = await getMeta(old.fk_model_id!, false, true)
+          const oldMeta = await getMeta(base.value?.id as string, old.fk_model_id!, false, true)
           if (oldMeta) {
             await saveOrUpdateRecords({
               viewMetaValue: old,
@@ -2016,7 +2021,7 @@ watch(
         }
         try {
           // Sync the count
-          await syncCount()
+          await syncCount(undefined, false, false)
           // Calculate the slices and load the view aggregate and data
           calculateSlices()
 
@@ -2228,7 +2233,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
       :class="{
         'hidden w-0 !h-0 left-0 !max-h-0 !max-w-0': !draggedCol,
       }"
-      class="absolute flex items-center z-40 top-0 h-full bg-gray-50 pointer-events-none opacity-60"
+      class="absolute flex items-center z-40 top-0 h-full bg-nc-bg-gray-extralight pointer-events-none opacity-60"
     >
       <div
         v-if="draggedCol"
@@ -2237,12 +2242,12 @@ const headerFilteredOrSortedClass = (colId: string) => {
         'max-width': gridViewCols[draggedCol.id!]?.width || '200px',
         'width': gridViewCols[draggedCol.id!]?.width || '200px',
       }"
-        class="border-r-1 border-l-1 border-gray-200 h-full"
+        class="border-r-1 border-l-1 border-nc-border-gray-medium h-full"
       ></div>
     </div>
     <div
       v-if="isBulkOperationInProgress || tableState.viewProgress"
-      class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-white/50"
+      class="absolute h-full flex items-center justify-center z-70 w-full inset-0 bg-nc-bg-default/50"
     >
       <div class="flex gap-2 items-center">
         {{ tableState.viewProgress?.progress }}
@@ -2263,14 +2268,14 @@ const headerFilteredOrSortedClass = (colId: string) => {
               mobile: isMobileMode,
               desktop: !isMobileMode,
             }"
-            class="nc-grid backgroundColorDefault !h-auto bg-white sticky top-0 z-5"
+            class="nc-grid backgroundColorDefault !h-auto bg-nc-bg-default sticky top-0 z-5"
           >
             <thead>
               <tr v-if="isViewColumnsLoading">
                 <td
                   v-for="(_col, colIndex) of dummyColumnDataForLoading"
                   :key="colIndex"
-                  class="!bg-gray-50 h-full border-b-1 border-r-1"
+                  class="!bg-nc-bg-gray-extralight h-full border-b-1 border-r-1"
                   :class="{ 'min-w-45': colIndex !== 0, 'min-w-16': colIndex === 0 }"
                 >
                   <a-skeleton
@@ -2288,7 +2293,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
               <tr v-show="!isViewColumnsLoading" class="nc-grid-header transform">
                 <th ref="numColHeader" class="w-[80px] min-w-[80px]" data-testid="grid-id-column">
                   <div v-if="!readOnly" data-testid="nc-check-all" class="flex items-center pl-2 pr-1 w-full h-full">
-                    <div class="nc-no-label text-gray-500" :class="{ hidden: vSelectedAllRecords }">#</div>
+                    <div class="nc-no-label text-nc-content-gray-muted" :class="{ hidden: vSelectedAllRecords }">#</div>
                     <div
                       :class="{
                         'hidden': !vSelectedAllRecords,
@@ -2304,7 +2309,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                     </div>
                   </div>
                   <template v-else>
-                    <div class="w-full h-full text-gray-500 flex pl-2 pr-1" data-testid="nc-check-all">#</div>
+                    <div class="w-full h-full text-nc-content-gray-muted flex pl-2 pr-1" data-testid="nc-check-all">#</div>
                   </template>
                 </th>
                 <th
@@ -2335,7 +2340,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   @xcresizing="onXcResizing(fields[0].id, $event)"
                 >
                   <div
-                    class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
+                    class="w-full h-full flex items-center text-nc-content-gray-muted pl-2 pr-1"
                     draggable="false"
                     @dragstart.stop="onDragStart(fields[0].id!, $event)"
                     @drag.stop="onDrag($event)"
@@ -2387,7 +2392,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   @xcresizing="onXcResizing(col.id, $event)"
                 >
                   <div
-                    class="w-full h-full flex items-center text-gray-500 pl-2 pr-1"
+                    class="w-full h-full flex items-center text-nc-content-gray-muted pl-2 pr-1"
                     :draggable="isMobileMode || index === 0 || readOnly || !hasEditPermission || isLocked ? 'false' : 'true'"
                     @dragstart.stop="onDragStart(col.id!, $event)"
                     @drag.stop="onDrag($event)"
@@ -2420,7 +2425,9 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   }"
                   @click.stop="addColumnDropdown = true"
                 >
-                  <div class="absolute top-0 left-0 h-8 border-b-1 border-r-1 border-gray-200 nc-grid-add-edit-column group">
+                  <div
+                    class="absolute top-0 left-0 h-8 border-b-1 border-r-1 border-nc-border-gray-medium nc-grid-add-edit-column group"
+                  >
                     <a-dropdown
                       v-model:visible="addColumnDropdown"
                       :trigger="['click']"
@@ -2428,7 +2435,10 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       @visible-change="onVisibilityChange"
                     >
                       <div class="h-full w-[60px] flex items-center justify-center">
-                        <component :is="iconMap.plus" class="text-base nc-column-add text-gray-500 !group-hover:text-black" />
+                        <component
+                          :is="iconMap.plus"
+                          class="text-base nc-column-add text-nc-content-gray-muted !group-hover:text-nc-content-gray-extreme"
+                        />
                       </div>
                       <template #overlay>
                         <div class="nc-edit-or-add-provider-wrapper">
@@ -2479,7 +2489,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
             }"
           >
             <table
-              class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-white relative"
+              class="xc-row-table nc-grid backgroundColorDefault !h-auto bg-nc-bg-default relative"
               :class="{
                 'mobile': isMobileMode,
                 'desktop': !isMobileMode,
@@ -2489,7 +2499,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
             >
               <tbody
                 ref="tableBodyEl"
-                class="xc-row-table !bg-red-100"
+                class="xc-row-table !bg-nc-bg-red-dark"
                 :style="{
                   transform: `translateY(${topOffset}px)`,
                 }"
@@ -2516,7 +2526,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       class="absolute z-30 left-0 w-full flex"
                     >
                       <div
-                        class="sticky left-0 flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
+                        class="sticky left-0 flex items-center gap-2 transform bg-nc-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-nc-content-gray"
                       >
                         Row filtered
 
@@ -2525,7 +2535,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                             This record will be hidden as it does not match the filters applied to this view.
                           </template>
 
-                          <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
+                          <GeneralIcon icon="info" class="w-4 h-4 text-nc-content-gray" />
                         </NcTooltip>
                       </div>
                     </div>
@@ -2538,14 +2548,14 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       class="absolute transform z-30 left-0 w-full flex"
                     >
                       <div
-                        class="sticky left-0 flex items-center gap-2 transform bg-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-gray-800"
+                        class="sticky left-0 flex items-center gap-2 transform bg-nc-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-nc-content-gray"
                       >
                         Row moved
 
                         <NcTooltip>
                           <template #title> This record will move to a new position when you click outside of it. </template>
 
-                          <GeneralIcon icon="info" class="w-4 h-4 text-gray-800" />
+                          <GeneralIcon icon="info" class="w-4 h-4 text-nc-content-gray" />
                         </NcTooltip>
                       </div>
                     </div>
@@ -2577,7 +2587,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                       >
                         <div class="w-full flex items-center h-full px-1 gap-0.5">
                           <div
-                            class="nc-row-no min-w-4 h-4 flex items-center justify-between text-gray-500 pl-1.5 w-full"
+                            class="nc-row-no min-w-4 h-4 flex items-center justify-between text-nc-content-gray-muted pl-1.5 w-full"
                             :class="{
                               'toggle': !readOnly,
                               'hidden': row.rowMeta?.selected || vSelectedAllRecords,
@@ -2648,14 +2658,14 @@ const headerFilteredOrSortedClass = (colId: string) => {
                                   'text-[10px] font-600 px-0.5': row.rowMeta.commentCount > 99,
                                   'text-small font-500 px-0.8': row.rowMeta.commentCount <= 99,
                                 }"
-                                class="text-center rounded-md rounded-bl-none transition-all border-1 border-brand-200 cursor-pointer font-sembold select-none leading-5 text-brand-500 bg-brand-50 hover:bg-brand-100 !min-h-4.5 !min-w-5 !leading-5 inline-block"
+                                class="text-center rounded-md rounded-bl-none transition-all border-1 border-brand-200 cursor-pointer font-sembold select-none leading-5 text-nc-content-brand bg-nc-bg-brand hover:bg-brand-100 !min-h-4.5 !min-w-5 !leading-5 inline-block"
                                 @click="expandAndLooseFocus(row, state)"
                               >
                                 {{ row.rowMeta.commentCount > 99 ? '99+' : row.rowMeta.commentCount }}
                               </span>
                               <div
                                 v-else
-                                class="cursor-pointer nc-expand flex items-center border-1 border-gray-100 active:ring rounded-md p-0.75 hover:(bg-white border-nc-border-gray-medium)"
+                                class="cursor-pointer nc-expand flex items-center border-1 border-nc-border-gray-light active:ring rounded-md p-0.75 hover:(bg-nc-bg-default border-nc-border-gray-medium)"
                               >
                                 <component
                                   :is="iconMap.maximize"
@@ -2896,15 +2906,15 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   @click="addEmptyRow()"
                 >
                   <td
-                    class="nc-grid-add-new-cell-item h-8 border-b-1 border-gray-100 bg-white group-hover:bg-gray-50 absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-gray-500"
+                    class="nc-grid-add-new-cell-item h-8 border-b-1 border-nc-border-gray-light bg-nc-bg-default group-hover:bg-nc-bg-gray-extralight absolute left-0 bottom-0 px-2 sticky z-40 w-full flex items-center text-nc-content-gray-muted"
                   >
                     <component
                       :is="iconMap.plus"
                       v-if="!isViewColumnsLoading"
-                      class="text-pint-500 text-base ml-2 mt-0 text-gray-600 group-hover:text-black"
+                      class="text-pint-500 text-base ml-2 mt-0 text-nc-content-gray-subtle2 group-hover:text-nc-content-gray-extreme"
                     />
                   </td>
-                  <td :colspan="visibleColLength" class="!border-gray-100"></td>
+                  <td :colspan="visibleColLength" class="!border-nc-border-gray-light"></td>
                 </tr>
               </tbody>
             </table>
@@ -3089,7 +3099,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
               @click="clearSelectedRangeOfCells()"
             >
               <div v-e="['a:row:clear-range']" class="flex gap-2 items-center">
-                <GeneralIcon icon="closeBox" class="text-gray-500" />
+                <GeneralIcon icon="closeBox" class="text-nc-content-gray-muted" />
                 {{ $t('general.clear') }} {{ $t('objects.cell').toLowerCase() }}
               </div>
             </NcMenuItem>
@@ -3248,6 +3258,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
       :total-rows="Math.max(props.totalRows, props.actualTotalRows)"
       :scroll-left="scrollLeft"
       :disable-pagination="true"
+      :selected-cell-count="selectedRange.cellCount"
     />
   </div>
 </template>
@@ -3255,7 +3266,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
 <style lang="scss">
 .dragging-record {
   @apply h-0.5 absolute z-4;
-  background-color: #3366ff;
+  background-color: var(--color-brand-500);
 }
 
 .is-dragging {
@@ -3286,23 +3297,23 @@ const headerFilteredOrSortedClass = (colId: string) => {
   @apply h-full w-full;
 
   .nc-grid-add-edit-column {
-    @apply bg-gray-50;
+    @apply bg-nc-bg-gray-extralight;
   }
 
   .nc-grid-add-new-cell:hover td {
-    @apply text-black !bg-gray-50;
+    @apply text-nc-content-gray-extreme !bg-nc-bg-gray-extralight;
   }
 
   td:not(.nc-grid-add-new-cell-item),
   th {
-    @apply border-gray-100 border-solid border-r bg-gray-100 p-0;
+    @apply border-nc-border-gray-light border-solid border-r bg-nc-bg-gray-light p-0;
     min-height: 32px !important;
     height: 32px !important;
     position: relative;
   }
 
   th {
-    @apply border-b-1 border-gray-200;
+    @apply border-b-1 border-nc-border-gray-medium;
 
     :deep(.name) {
       @apply text-small;
@@ -3319,7 +3330,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
   }
 
   td:not(.nc-grid-add-new-cell-item) {
-    @apply bg-white border-b;
+    @apply bg-nc-bg-default border-b;
   }
 
   td:not(:first-child):not(.nc-grid-add-new-cell-item) {
@@ -3348,11 +3359,11 @@ const headerFilteredOrSortedClass = (colId: string) => {
     &.active-cell {
       :deep(.nc-cell) {
         a.nc-cell-field-link {
-          @apply !text-brand-500;
+          @apply !text-nc-content-brand;
 
           &:hover,
           .nc-cell-field {
-            @apply !text-brand-500;
+            @apply !text-nc-content-brand;
           }
         }
       }
@@ -3368,13 +3379,13 @@ const headerFilteredOrSortedClass = (colId: string) => {
       }
 
       &:not(.nc-display-value-cell) {
-        @apply text-gray-600;
+        @apply text-nc-content-gray-subtle2;
         font-weight: 500;
 
         .nc-cell-field:not(.nc-null),
         input:not(.nc-null),
         textarea:not(.nc-null) {
-          @apply text-gray-600;
+          @apply text-nc-content-gray-subtle2;
           font-weight: 500;
         }
       }
@@ -3447,7 +3458,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
   }
 
   table {
-    background-color: var(--nc-grid-bg);
+    background-color: var(--nc-bg-gray-extralight);
 
     border-collapse: separate;
     border-spacing: 0;
@@ -3474,7 +3485,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
   }
 
   td.active.readonly::after {
-    @apply text-primary bg-gray-50 bg-opacity-5 !border-gray-200;
+    @apply text-primary bg-nc-bg-gray-extralight bg-opacity-5 !border-nc-border-gray-medium;
   }
 
   td.active-cell::after {
@@ -3484,7 +3495,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
     top: 0;
     left: 0;
     width: 100%;
-    box-shadow: 0 0 0 1.5px #3366ff !important;
+    box-shadow: 0 0 0 1.5px var(--color-brand-500) !important;
     border-radius: 2px;
   }
 
@@ -3501,7 +3512,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
 
   // todo: replace with css variable
   td.filling::after {
-    @apply border-1 border-dashed text-primary border-current bg-gray-100 bg-opacity-50;
+    @apply border-1 border-dashed text-primary border-current bg-nc-bg-gray-light bg-opacity-50;
   }
 
   //td.active::before {
@@ -3520,7 +3531,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
     position: sticky !important;
     left: 0;
     z-index: 4;
-    background: white;
+    background: var(--color-base-white);
   }
 
   .desktop {
@@ -3528,7 +3539,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
       position: sticky !important;
       z-index: 5;
       left: 80px;
-      @apply border-r-1 border-r-gray-200;
+      @apply border-r-1 border-r-nc-border-gray-medium;
     }
 
     tbody tr:not(.nc-grid-add-new-cell):not(.placeholder) td:not(.placeholder-column):nth-child(2) {
@@ -3536,7 +3547,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
       z-index: 4;
       left: 80px;
       // background: white;
-      @apply border-r-1 border-r-gray-100;
+      @apply border-r-1 border-r-nc-border-gray-light;
     }
 
     tbody {
@@ -3571,11 +3582,11 @@ const headerFilteredOrSortedClass = (colId: string) => {
 
   .nc-grid-skeleton-loader {
     thead th:nth-child(2) {
-      @apply border-r-1 !border-r-gray-50;
+      @apply border-r-1 !border-r-nc-border-gray-extralight;
     }
 
     tbody td:not(.placeholder-column):not(.nc-grid-add-new-cell-item):nth-child(2) {
-      @apply border-r-1 !border-r-gray-50;
+      @apply border-r-1 !border-r-nc-border-gray-extralight;
     }
   }
 }
@@ -3589,14 +3600,14 @@ const headerFilteredOrSortedClass = (colId: string) => {
   :deep(.resizer:active),
   :deep(.resizer:focus) {
     // todo: replace with primary color
-    @apply bg-blue-500/50;
+    @apply bg-nc-blue-500/50;
     cursor: col-resize;
   }
 }
 
 .nc-grid-row {
   td.nc-grid-cell.column-filtered.active {
-    @apply !bg-green-100;
+    @apply !bg-nc-bg-green-dark;
 
     :deep(input),
     :deep(textarea) {
@@ -3604,7 +3615,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
     }
   }
   td.nc-grid-cell.column-sorted.active {
-    @apply !bg-orange-100;
+    @apply !bg-nc-bg-orange-dark;
 
     :deep(input),
     :deep(textarea) {
@@ -3655,14 +3666,14 @@ const headerFilteredOrSortedClass = (colId: string) => {
     &:not(.selected-row) {
       td.nc-grid-cell:not(.active),
       td:nth-child(2):not(.active) {
-        @apply !bg-gray-50 border-b-gray-200 border-r-gray-200;
+        @apply !bg-nc-bg-gray-extralight border-b-nc-border-gray-medium border-r-nc-border-gray-medium;
 
         &.column-filtered {
-          @apply !bg-green-100;
+          @apply !bg-nc-bg-green-dark;
         }
 
         &.column-sorted {
-          @apply !bg-orange-100;
+          @apply !bg-nc-bg-orange-dark;
         }
       }
     }
@@ -3671,14 +3682,14 @@ const headerFilteredOrSortedClass = (colId: string) => {
   &.selected-row {
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active) {
-      @apply !bg-[#F0F3FF] border-b-gray-200 border-r-gray-200;
+      @apply !bg-nc-bg-brand border-b-nc-border-gray-medium border-r-nc-border-gray-medium border-b-nc-border-gray-medium;
 
       &.column-filtered {
-        @apply !bg-green-100;
+        @apply !bg-nc-bg-green-dark;
       }
 
       &.column-sorted {
-        @apply !bg-orange-100;
+        @apply !bg-nc-bg-orange-dark;
       }
     }
   }
@@ -3686,7 +3697,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
   &:not(.selected-row):has(+ .selected-row) {
     td.nc-grid-cell:not(.active),
     td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
-      @apply border-b-gray-200;
+      @apply border-b-nc-border-gray-medium;
     }
   }
 
@@ -3695,11 +3706,11 @@ const headerFilteredOrSortedClass = (colId: string) => {
     td:nth-child(2):not(.active) {
       &.column-filtered,
       &.column-sorted {
-        @apply border-b-gray-200 border-r-gray-200;
+        @apply border-b-nc-border-gray-medium border-r-nc-border-gray-medium;
       }
       &:has(+ .column-filtered),
       &:has(+ .column-sorted) {
-        @apply border-r-gray-200;
+        @apply border-r-nc-border-gray-medium;
       }
     }
   }
@@ -3709,7 +3720,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
     &:not(.selected-row) {
       td.nc-grid-cell:not(.active),
       td:nth-child(2):not(.active):not(.nc-grid-add-new-cell-item) {
-        @apply border-b-gray-200;
+        @apply border-b-nc-border-gray-medium;
       }
     }
   }
@@ -3739,17 +3750,17 @@ const headerFilteredOrSortedClass = (colId: string) => {
     left: 0;
     width: 100%;
     height: 97%;
-    box-shadow: 0 0 0 2px #fcbe3a !important;
+    box-shadow: 0 0 0 2px var(--color-yellow-500) !important;
     pointer-events: none;
   }
 }
 
 .nc-required-cell {
-  box-shadow: inset 0 0 2px #f00;
+  box-shadow: inset 0 0 2px var(--color-red-500);
 }
 
 .nc-fill-handle {
-  @apply w-[6px] h-[6px] absolute rounded-full bg-red-500 !pointer-events-auto mt-[-4px] ml-[-4px];
+  @apply w-[6px] h-[6px] absolute rounded-full bg-nc-red-500 !pointer-events-auto mt-[-4px] ml-[-4px];
 }
 
 .nc-fill-handle:hover,
@@ -3759,7 +3770,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
 }
 
 :deep(.ant-skeleton-input) {
-  @apply rounded text-gray-100 !bg-gray-100 !bg-opacity-65;
+  @apply rounded text-nc-gray-100 !bg-nc-bg-gray-light !bg-opacity-65;
   animation: slow-show-1 5s ease 5s forwards;
 }
 
@@ -3770,8 +3781,17 @@ const headerFilteredOrSortedClass = (colId: string) => {
 }
 
 .placeholder {
-  background-color: #ffffff;
-  background-image: linear-gradient(0deg, #f4f4f5 1.52%, #fff 0, #fff 50%, #f4f4f5 0, #f4f4f5 51.52%, #fff 0, #fff);
+  background-color: var(--color-base-white);
+  background-image: linear-gradient(
+    0deg,
+    var(--color-gray-100) 1.52%,
+    var(--color-base-white) 0,
+    var(--color-base-white) 50%,
+    var(--color-gray-100) 0,
+    var(--color-gray-100) 51.52%,
+    var(--color-base-white) 0,
+    var(--color-base-white)
+  );
   background-size: 66px 66px;
   position: absolute;
   left: 0;
@@ -3780,7 +3800,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
 }
 
 .placeholder-column {
-  border-right: 1px solid #f4f4f5;
+  border-right: 1px solid var(--color-gray-100);
   bottom: 0;
   position: absolute;
   top: 0;

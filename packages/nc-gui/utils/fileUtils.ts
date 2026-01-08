@@ -63,9 +63,9 @@ const officeExt = [
   'pages',
   'ai',
   'psd',
-  'tiff',
+  // 'tiff',
   'dxf',
-  'svg',
+  // 'svg',
   'eps',
   'ps',
   'ttf',
@@ -81,6 +81,9 @@ const isVideo = (name: string, mimetype?: string) => {
 }
 
 const isImage = (name: string, mimetype?: string) => {
+  if (mimetype && (mimetype?.startsWith('image/vnd.') || ['image/svg+xml'].includes(mimetype))) {
+    return false
+  }
   return imageExt.some((e) => name?.toLowerCase().endsWith(`.${e}`)) || mimetype?.startsWith('image/')
 }
 

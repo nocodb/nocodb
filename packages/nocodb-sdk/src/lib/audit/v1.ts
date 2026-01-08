@@ -8,6 +8,9 @@ enum AuditV1OperationTypes {
   WORKSPACE_USER_INVITE = 'WORKSPACE_USER_INVITE',
   WORKSPACE_USER_UPDATE = 'WORKSPACE_USER_UPDATE',
   WORKSPACE_USER_DELETE = 'WORKSPACE_USER_DELETE',
+  WORKSPACE_TEAM_INVITE = 'WORKSPACE_TEAM_INVITE',
+  WORKSPACE_TEAM_UPDATE = 'WORKSPACE_TEAM_UPDATE',
+  WORKSPACE_TEAM_DELETE = 'WORKSPACE_TEAM_DELETE',
 
   USER_PASSWORD_CHANGE = 'USER_PASSWORD_CHANGE',
   USER_PASSWORD_RESET = 'USER_PASSWORD_RESET',
@@ -17,6 +20,9 @@ enum AuditV1OperationTypes {
   BASE_USER_INVITE = 'BASE_USER_INVITE',
   BASE_USER_UPDATE = 'BASE_USER_UPDATE',
   BASE_USER_INVITE_RESEND = 'BASE_USER_INVITE_RESEND',
+  BASE_TEAM_INVITE = 'BASE_TEAM_INVITE',
+  BASE_TEAM_UPDATE = 'BASE_TEAM_UPDATE',
+  BASE_TEAM_DELETE = 'BASE_TEAM_DELETE',
 
   TABLE_CREATE = 'TABLE_CREATE',
   TABLE_DELETE = 'TABLE_DELETE',
@@ -154,6 +160,19 @@ enum AuditV1OperationTypes {
   PERMISSION_CREATE = 'PERMISSION_CREATE',
   PERMISSION_UPDATE = 'PERMISSION_UPDATE',
   PERMISSION_DELETE = 'PERMISSION_DELETE',
+
+  TEAM_CREATE = 'TEAM_CREATE',
+  TEAM_UPDATE = 'TEAM_UPDATE',
+  TEAM_DELETE = 'TEAM_DELETE',
+  TEAM_MEMBER_ADD = 'TEAM_MEMBER_ADD',
+  TEAM_MEMBER_UPDATE = 'TEAM_MEMBER_UPDATE',
+  TEAM_MEMBER_DELETE = 'TEAM_MEMBER_DELETE',
+
+  WORKFLOW_CREATE = 'WORKFLOW_CREATE',
+  WORKFLOW_UPDATE = 'WORKFLOW_UPDATE',
+  WORKFLOW_DELETE = 'WORKFLOW_DELETE',
+
+  WORKFLOW_DUPLICATE = 'WORKFLOW_DUPLICATE',
 }
 
 export const auditV1OperationTypesAlias = Object.values(
@@ -254,6 +273,13 @@ export const auditV1OperationsCategory: Record<
       key.startsWith('WORKSPACE_')
     ),
   },
+  TEAM: {
+    label: 'objects.team',
+    value: 'TEAM',
+    types: Object.values(AuditV1OperationTypes).filter((key) =>
+      key.startsWith('TEAM_')
+    ),
+  },
   HOOK: {
     label: 'objects.webhook',
     value: 'HOOK',
@@ -292,15 +318,15 @@ export const auditV1OperationsCategory: Record<
   DASHBOARD: {
     label: 'objects.dashboard',
     value: 'DASHBOARD',
-    types: Object.values(AuditV1OperationTypes).filter((key) =>
-      key.startsWith('DASHBOARD_')
+    types: Object.values(AuditV1OperationTypes).filter(
+      (key) => key.startsWith('DASHBOARD_') || key.startsWith('WIDGET_')
     ),
   },
-  WIDGET: {
-    label: 'objects.widget',
-    value: 'WIDGET',
+  WORKFLOW: {
+    label: 'objects.workflow',
+    value: 'WORKFLOW',
     types: Object.values(AuditV1OperationTypes).filter((key) =>
-      key.startsWith('WIDGET_')
+      key.startsWith('WORKFLOW_')
     ),
   },
 };
@@ -358,6 +384,27 @@ export interface BaseUserRoleUpdatePayload extends UpdatePayload {
   base_role: string;
   user_name?: string;
   base_title: string;
+}
+
+export interface BaseTeamInvitePayload {
+  base_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
+}
+
+export interface BaseTeamUpdatePayload extends UpdatePayload {
+  base_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
+}
+
+export interface BaseTeamDeletePayload {
+  base_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
 }
 
 export interface UserProfileUpdatePayload extends UpdatePayload {
@@ -580,6 +627,27 @@ export interface WorkspaceUserDeletePayload {
   user_name?: string;
   user_id: string;
   user_role: string;
+}
+
+export interface WorkspaceTeamInvitePayload {
+  workspace_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
+}
+
+export interface WorkspaceTeamUpdatePayload extends UpdatePayload {
+  workspace_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
+}
+
+export interface WorkspaceTeamDeletePayload {
+  workspace_title: string;
+  team_id: string;
+  team_title: string;
+  team_role: string;
 }
 
 export interface BaseDuplicatePayload {
@@ -1022,7 +1090,7 @@ export interface PermissionCreatePayload {
   granted_role?: string;
   enforce_for_form?: boolean;
   enforce_for_automation?: boolean;
-  subjects?: Array<{ type: 'user' | 'group'; id: string }>;
+  subjects?: Array<{ type: 'user' | 'team'; id: string }>;
 }
 
 export interface PermissionUpdatePayload {
@@ -1034,7 +1102,7 @@ export interface PermissionUpdatePayload {
   granted_role?: string;
   enforce_for_form?: boolean;
   enforce_for_automation?: boolean;
-  subjects?: Array<{ type: 'user' | 'group'; id: string }>;
+  subjects?: Array<{ type: 'user' | 'team'; id: string }>;
 }
 
 export interface PermissionDeletePayload {
@@ -1042,6 +1110,88 @@ export interface PermissionDeletePayload {
   permission: string;
   entity: string;
   entity_id: string;
+}
+
+export interface TeamCreatePayload {
+  team_id: string;
+  team_title: string;
+  workspace_title?: string;
+  base_title?: string;
+  meta?: any;
+}
+
+export interface TeamUpdatePayload extends UpdatePayload {
+  team_id: string;
+  team_title: string;
+  workspace_title?: string;
+  base_title?: string;
+  meta?: any;
+}
+
+export interface TeamDeletePayload {
+  team_id: string;
+  team_title: string;
+  workspace_title?: string;
+  base_title?: string;
+  meta?: any;
+}
+
+export interface TeamMemberAddPayload {
+  team_id: string;
+  team_title: string;
+  user_id: string;
+  user_email: string;
+  user_name?: string;
+  team_role: string;
+  workspace_title?: string;
+  base_title?: string;
+}
+
+export interface TeamMemberUpdatePayload extends UpdatePayload {
+  team_id: string;
+  team_title: string;
+  user_id: string;
+  user_email: string;
+  user_name?: string;
+  team_role: string;
+  workspace_title?: string;
+  base_title?: string;
+}
+
+export interface TeamMemberDeletePayload {
+  team_id: string;
+  team_title: string;
+  user_id: string;
+  user_email: string;
+  user_name?: string;
+  team_role: string;
+  workspace_title?: string;
+  base_title?: string;
+}
+
+export interface WorkflowCreatePayload {
+  workflow_title: string;
+  workflow_id: string;
+  workflow_description: string;
+}
+
+export interface WorkflowUpdatePayload extends UpdatePayload {
+  workflow_title: string;
+  workflow_id: string;
+  workflow_description: string;
+}
+
+export interface WorkflowDeletePayload {
+  workflow_title: string;
+  workflow_id: string;
+}
+
+export interface WorkflowDuplicatePayload {
+  duplicated_workflow_title: string;
+  duplicated_workflow_id: string;
+  source_workflow_title: string;
+  source_workflow_id: string;
+  error?: string;
 }
 
 export interface AuditV1<T = any> {
@@ -1257,6 +1407,19 @@ const descriptionTemplates = {
     audit: AuditV1<PermissionDeletePayload>
   ) =>
     `Permission '${audit.details.permission}' has been deleted for entity '${audit.details.entity}' with ID '${audit.details.entity_id}'`,
+  [AuditV1OperationTypes.WORKFLOW_CREATE]: (
+    audit: AuditV1<WorkflowCreatePayload>
+  ) => `Workflow '${audit.details.workflow_title}' has been created`,
+  [AuditV1OperationTypes.WORKFLOW_UPDATE]: (
+    audit: AuditV1<WorkflowUpdatePayload>
+  ) => `Workflow '${audit.details.workflow_title}' has been updated`,
+  [AuditV1OperationTypes.WORKFLOW_DELETE]: (
+    audit: AuditV1<WorkflowDeletePayload>
+  ) => `Workflow '${audit.details.workflow_title}' has been deleted`,
+  [AuditV1OperationTypes.WORKFLOW_DUPLICATE]: (
+    audit: AuditV1<WorkflowDuplicatePayload>
+  ) =>
+    `Workflow '${audit.details.duplicated_workflow_title}' has been duplicated`,
 };
 
 function auditDescription(audit: AuditV1) {

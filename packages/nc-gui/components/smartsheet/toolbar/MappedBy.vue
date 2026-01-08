@@ -70,14 +70,14 @@ const handleChange = () => {
             {{ $t('activity.map.mappedBy') }}
             <span class="font-bold">{{ geoDataFieldColumn?.title }}</span>
           </span>
-          <component :is="iconMap.arrowDown" class="text-grey" />
+          <component :is="iconMap.arrowDown" class="text-nc-content-gray-muted" />
         </div>
       </a-button>
     </div>
     <template #overlay>
       <div
         v-if="mappedByDropdown"
-        class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
+        class="p-3 min-w-[280px] bg-nc-bg-gray-extralight shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
         @click.stop
       >
         <div>

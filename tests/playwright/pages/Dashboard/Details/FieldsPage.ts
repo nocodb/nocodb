@@ -282,7 +282,7 @@ export class FieldsPage extends BasePage {
 
     await this.waitForResponse({
       uiAction: async () => await this.saveChangesButton.click(),
-      requestUrlPathToMatch: 'api/v1/db/meta/tables/',
+      requestUrlPathToMatch: 'columnsHash',
       httpMethodsToMatch: ['GET'],
       responseJsonMatcher: json => json['hash'],
     });

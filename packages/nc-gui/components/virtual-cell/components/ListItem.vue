@@ -21,7 +21,7 @@ const props = withDefaults(
 
 defineEmits(['expand', 'linkOrUnlink'])
 
-const { showExtraFields, relatedTableMeta } = useLTARStoreOrThrow()!
+const { showExtraFields, relatedTableMeta, meta, isLinkedTableAccessible } = useLTARStoreOrThrow()!
 
 provide(IsExpandedFormOpenInj, ref(true))
 
@@ -32,6 +32,8 @@ provide(IsUnderLookupInj, ref(true))
 provide(IsLinkRecordDropdownInj, ref(true))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const column = inject(ColumnInj)!
 
 provide(IsFormInj, ref(false))
 
@@ -69,13 +71,15 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
 </script>
 
 <template>
-  <div class="nc-list-item-wrapper group px-[1px] hover:bg-gray-50 border-y-1 border-gray-200 border-t-transparent">
+  <div
+    class="nc-list-item-wrapper group px-[1px] hover:bg-nc-bg-gray-extralight border-y-1 border-nc-border-gray-medium border-t-transparent"
+  >
     <a-card
       tabindex="0"
-      class="nc-list-item !outline-none transition-all relative group-hover:bg-gray-50 cursor-auto"
+      class="nc-list-item !outline-none transition-all relative group-hover:!bg-nc-bg-gray-extralight cursor-auto !border-transparent"
       :class="{
-        '!bg-white': isLoading,
-        '!hover:bg-white': readOnly,
+        '!bg-nc-bg-default': isLoading,
+        '!hover:bg-nc-bg-default': readOnly,
         'nc-is-selected': isSelected,
       }"
       :body-style="{ padding: '6px 10px !important', borderRadius: 0 }"
@@ -107,14 +111,15 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
           <div class="flex justify-start">
             <SmartsheetPlainCell
               v-if="displayValueColumn"
-              class="font-semibold text-brand-500 nc-display-value truncate leading-[20px]"
+              class="font-semibold text-nc-content-brand nc-display-value truncate leading-[20px]"
               :column="displayValueColumn"
               :model-value="row[displayValueColumn.title]"
             />
           </div>
 
+          <!-- Only show sub-fields if linked table is accessible -->
           <div
-            v-if="fields.length > 0 && showExtraFields"
+            v-if="isLinkedTableAccessible && fields.length > 0 && showExtraFields"
             class="flex ml-[-0.25rem] sm:flex-row xs:(flex-col mt-2) gap-4 min-h-5"
           >
             <div v-for="field in fields" :key="field.id" class="sm:(w-1/3 max-w-1/3 overflow-hidden)">
@@ -159,7 +164,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
             </div>
           </div>
         </div>
-        <div v-if="!isForm && !isPublic" class="flex-none flex items-center w-7" @click.stop>
+        <div v-if="!isForm && !isPublic && isLinkedTableAccessible" class="flex-none flex items-center w-7" @click.stop>
           <NcTooltip class="flex" hide-on-click>
             <template #title>{{ $t('title.expand') }}</template>
 
@@ -173,7 +178,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
             </button>
           </NcTooltip>
         </div>
-        <template v-if="(!isPublic && !readOnly) || (isForm && !readOnly)">
+        <template v-if="((!isPublic && !readOnly) || (isForm && !readOnly)) && !(meta?.synced && column?.readonly)">
           <PermissionsTooltip
             class="z-10 flex"
             :entity="PermissionEntity.FIELD"
@@ -186,14 +191,14 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
                 tabindex="-1"
                 class="nc-list-item-link-unlink-btn p-1.5 flex rounded-lg transition-all"
                 :class="{
-                  'bg-gray-200 text-gray-800 hover:(bg-red-100 text-red-500)': isLinked,
+                  'bg-nc-bg-gray-medium text-nc-content-gray hover:(bg-nc-bg-red-dark text-nc-content-red-medium)': isLinked,
                   'bg-green-[#D4F7E0] text-[#17803D] hover:bg-green-200': !isLinked,
                 }"
                 :disabled="!isAllowed"
                 @click="$emit('linkOrUnlink')"
               >
                 <div v-if="isLoading" class="flex">
-                  <MdiLoading class="flex-none w-4 h-4 !text-brand-500 animate-spin" />
+                  <MdiLoading class="flex-none w-4 h-4 !text-nc-content-brand animate-spin" />
                 </div>
                 <GeneralIcon v-else :icon="isLinked ? 'minus' : 'plus'" class="flex-none w-4 h-4 !font-extrabold" />
               </button>
@@ -216,7 +221,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
 .nc-link-record-cell {
   :deep(.nc-cell),
   :deep(.nc-virtual-cell) {
-    @apply !text-small !text-gray-600 ml-1;
+    @apply !text-small !text-nc-content-gray-subtle2 ml-1;
 
     .nc-cell-field,
     .nc-cell-field-link,
@@ -226,13 +231,13 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     }
 
     &:not(.nc-display-value-cell) {
-      @apply text-gray-600;
+      @apply text-nc-content-gray-subtle2;
       font-weight: 500;
 
       .nc-cell-field,
       input,
       textarea {
-        @apply text-gray-600;
+        @apply text-nc-content-gray-subtle2;
         font-weight: 500;
       }
     }
@@ -299,8 +304,8 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
 
   &:focus-visible,
   &.nc-is-selected {
-    @apply border-brand-500;
-    box-shadow: 0 0 0 1px #3366ff;
+    @apply border-nc-border-brand;
+    box-shadow: 0 0 0 1px var(--nc-border-brand);
   }
   &:hover {
     .nc-text-area-expand-btn {

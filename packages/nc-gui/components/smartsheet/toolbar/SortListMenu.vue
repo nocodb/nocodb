@@ -242,7 +242,7 @@ onMounted(() => {
                   v-if="sorts.length < getPlanLimit(PlanLimitTypes.LIMIT_SORT_PER_VIEW)"
                   v-e="['c:sort:add']"
                   :class="{
-                    '!text-brand-500': !isLocked,
+                    '!text-nc-content-brand': !isLocked,
                   }"
                   type="text"
                   size="small"
@@ -261,7 +261,7 @@ onMounted(() => {
                 <NcButton
                   v-e="['c:sort:add']"
                   :class="{
-                    '!text-brand-500': !isLocked,
+                    '!text-nc-content-brand': !isLocked,
                   }"
                   type="text"
                   size="small"
@@ -313,7 +313,7 @@ onMounted(() => {
 :deep(.nc-sort-field-select) {
   @apply !w-44;
   .ant-select-selector {
-    @apply !rounded-none !rounded-l-lg !border-r-0 !border-gray-200 !shadow-none !w-44;
+    @apply !rounded-none !rounded-l-lg !border-r-0 !border-nc-border-gray-medium !shadow-none !w-44;
 
     &.ant-select-focused:not(.ant-select-disabled) {
       @apply !border-r-transparent;
@@ -328,13 +328,13 @@ onMounted(() => {
 :deep(.nc-select:not(.ant-select-disabled):hover) {
   &,
   .ant-select-selector {
-    @apply bg-gray-50;
+    @apply bg-nc-bg-gray-extralight;
   }
 }
 
 :deep(.nc-sort-dir-select) {
   .ant-select-selector {
-    @apply !rounded-none !border-gray-200 !shadow-none;
+    @apply !rounded-none !border-nc-border-gray-medium !shadow-none;
   }
 }
 </style>

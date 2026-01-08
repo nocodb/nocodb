@@ -17,13 +17,16 @@ import type http from 'http';
 import type Sharp from 'sharp';
 import type { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import type { AuditService } from '~/meta/audit.service';
+import type { AppSettings } from '~/interface/AppSettings';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import { AppModule } from '~/app.module';
 import { isEE, T } from '~/utils';
 import { getAppUrl } from '~/utils/appUrl';
-import { DataReflection, Integration } from '~/models';
+import { DataReflection, Integration, Store } from '~/models';
 import { getRedisURL } from '~/helpers/redisHelpers';
 import { RedisIoAdapter } from '~/gateways/RedisIoAdapter';
+import { DEFAULT_APP_SETTINGS } from '~/interface/AppSettings';
+import { NC_APP_SETTINGS } from '~/constants';
 
 dotenv.config();
 declare const module: any;
@@ -58,9 +61,15 @@ export default class Noco {
   protected config: any;
   protected requestContext: any;
 
+  public static ncDefaultWorkspaceId: string;
+
   public static sharp: typeof Sharp;
   public static canvas: any;
   public static isPdfjsInitialized: boolean;
+
+  public static firstEeLoad: boolean;
+
+  private static _appSettings: AppSettings | null = null;
 
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
@@ -276,4 +285,59 @@ export default class Noco {
   }
 
   public static async prepareAuditService() {}
+
+  public static async getAppSettings(refresh = false): Promise<AppSettings> {
+    // Force refresh or first load
+    if (refresh || !this._appSettings) {
+      await this.loadAppSettings();
+    }
+
+    return { ...this._appSettings };
+  }
+
+  private static async loadAppSettings(): Promise<void> {
+    try {
+      const storeData = await Store.get(NC_APP_SETTINGS, false, this._ncMeta);
+
+      if (storeData?.value) {
+        this._appSettings = {
+          ...DEFAULT_APP_SETTINGS,
+          ...JSON.parse(storeData.value),
+        };
+      } else {
+        this._appSettings = { ...DEFAULT_APP_SETTINGS };
+      }
+    } catch (error) {
+      // Log error but don't fail - use defaults
+      console.error('Failed to load app settings, using defaults:', error);
+      this._appSettings = { ...DEFAULT_APP_SETTINGS };
+    }
+  }
+
+  public static async updateAppSettings(
+    settings: Partial<AppSettings>,
+  ): Promise<AppSettings> {
+    const currentSettings = await this.getAppSettings();
+    const newSettings = {
+      ...currentSettings,
+      ...settings,
+    };
+
+    await Store.saveOrUpdate(
+      {
+        key: NC_APP_SETTINGS,
+        value: JSON.stringify(newSettings),
+      },
+      this._ncMeta,
+    );
+
+    // Update cache
+    this._appSettings = newSettings;
+
+    return { ...newSettings };
+  }
+
+  public static resetAppSettingsCache(): void {
+    this._appSettings = null;
+  }
 }

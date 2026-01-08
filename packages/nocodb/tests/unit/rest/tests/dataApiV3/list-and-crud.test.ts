@@ -534,6 +534,7 @@ describe('dataApiV3', () => {
           delete r.CreatedBy;
           delete r.UpdatedBy;
         });
+        records[1]['DateTime'] = '';
         rsp = await ncAxiosPost({
           url: `${urlPrefix}/${table.id}/records`,
           body: records.map((record) => ({ fields: record })),
@@ -610,6 +611,25 @@ describe('dataApiV3', () => {
             deleted: true,
           })),
         );
+      });
+
+      it('Date based- Group by eq', async function () {
+        // list 10 records
+        const rsp = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}/records`,
+          query: {
+            limit: 10,
+          },
+        });
+        const record0 = rsp.body.records[0];
+        // will filter record per minute scale
+        const filteredRsp = await ncAxiosGet({
+          url: `${urlPrefix}/${table.id}/records`,
+          query: {
+            filter: `(DateTime,gb_eq,exactDate,"${record0.fields.DateTime}")`,
+          },
+        });
+        expect(filteredRsp.body.records.length).to.eq(1);
       });
     });
 
@@ -1358,7 +1378,7 @@ describe('dataApiV3', () => {
         await ncAxiosLinkAdd({
           ...validParams,
           urlParams: { ...validParams.urlParams, linkId: 9999 },
-          status: 404,
+          status: 422,
           msg: "Field '9999' not found",
         });
 
@@ -1430,7 +1450,7 @@ describe('dataApiV3', () => {
         await ncAxiosLinkRemove({
           ...validParams,
           urlParams: { ...validParams.urlParams, linkId: 9999 },
-          status: 404,
+          status: 422,
           msg: "Field '9999' not found",
         });
 
@@ -1506,7 +1526,7 @@ describe('dataApiV3', () => {
         await ncAxiosLinkGet({
           ...validParams,
           urlParams: { ...validParams.urlParams, linkId: 9999 },
-          status: 404,
+          status: 422,
           msg: "Field '9999' not found",
         });
 

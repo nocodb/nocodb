@@ -279,7 +279,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         console.error(e)
         const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-        if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+        if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
           const details = errorInfo.details as PlanLimitExceededDetailsType
 
           handleUpgradePlan({

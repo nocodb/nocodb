@@ -31,7 +31,7 @@ const emit = defineEmits<Emit>()
         @click="emit('update:activeItem', log)"
       >
         <div class="icon-wrapper flex children:flex-none">
-          <GeneralIcon v-if="log.error" icon="alertTriangleSolid" class="h-5 w-5 text-nc-content-red-dark"></GeneralIcon>
+          <GeneralIcon v-if="log.error" icon="alertTriangleSolid" class="h-5 w-5 text-red-700"></GeneralIcon>
           <GeneralIcon v-else icon="checkFill" class="text-white h-5 w-5"></GeneralIcon>
         </div>
         <div class="flex flex-col">
@@ -75,7 +75,7 @@ const emit = defineEmits<Emit>()
       @apply bg-nc-bg-brand;
 
       h4 {
-        @apply text-brand-600;
+        @apply text-nc-content-brand-disabled;
         font-weight: bold;
       }
     }

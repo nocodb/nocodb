@@ -73,6 +73,8 @@ export function useGridCellHandler(params: {
 
   const { isRowColouringEnabled } = useViewRowColorRender()
 
+  const { getColor, isDark } = useTheme()
+
   const baseStore = useBase()
   const { showNull, appInfo } = useGlobal()
   const { isMysql, isXcdbBase, isPg } = baseStore
@@ -180,6 +182,7 @@ export function useGridCellHandler(params: {
       fontFamily,
       isRowHovered = false,
       isRowChecked = false,
+      isRowCellSelected = false,
       isCellInSelectionRange = false,
       isGroupHeader = false,
       rowMeta = {},
@@ -201,8 +204,8 @@ export function useGridCellHandler(params: {
         }
 
         roundedRect(ctx, x, y, width, height, 0, {
-          backgroundColor: filteredOrSortedAppearanceConfig[columnState][bgColorProps],
-          borderColor: filteredOrSortedAppearanceConfig[columnState][borderColorProps],
+          backgroundColor: getColor(filteredOrSortedAppearanceConfig[columnState].canvas[bgColorProps]),
+          borderColor: getColor(filteredOrSortedAppearanceConfig[columnState].canvas[borderColorProps]),
           borderWidth: 0.4,
           borders: {
             top: rowMeta.rowIndex !== 0,
@@ -213,14 +216,15 @@ export function useGridCellHandler(params: {
         })
       } else if (!rowMeta?.isValidationFailed && isRootCell) {
         const rowColor =
-          rowMeta?.is_set_as_background && (selected || isRowHovered || isRowChecked || isCellInSelectionRange)
+          rowMeta?.is_set_as_background &&
+          (selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected)
             ? rowMeta?.rowHoverColor
             : rowMeta?.rowBgColor
 
         if (rowColor) {
           roundedRect(ctx, x, y, width, height, 0, {
             backgroundColor: rowColor,
-            borderColor: themeV3Colors.gray['200'],
+            borderColor: getColor(themeV4Colors.gray['200']),
             borderWidth: 0.4,
             borders: {
               top: rowMeta.rowIndex !== 0,
@@ -242,7 +246,7 @@ export function useGridCellHandler(params: {
         y,
         text: 'Updating ...',
         fontFamily: `500 13px Inter`,
-        fillStyle: '#374151',
+        fillStyle: getColor(themeV4Colors.gray['700']),
         height,
         py: padding,
         cellRenderStore,
@@ -252,7 +256,7 @@ export function useGridCellHandler(params: {
     if (actionManager?.isLoading(pk, column.id!) && !isAIPromptCol(column) && !isButton(column)) {
       const loadingStartTime = actionManager?.getLoadingStartTime(pk, column.id!)
       if (loadingStartTime) {
-        renderSpinner(ctx, x + width / 2, y + 8, 16, '#3366FF', loadingStartTime, 1.5)
+        renderSpinner(ctx, x + width / 2, y + 8, 16, getColor(themeV4Colors.brand['500']), loadingStartTime, 1.5)
         return
       }
     }
@@ -314,6 +318,8 @@ export function useGridCellHandler(params: {
         disabled,
         sqlUis: sqlUis.value,
         setCursor,
+        getColor,
+        isDark: isDark.value,
         cellRenderStore,
         baseUsers: baseUsers.value,
         user: user.value,
@@ -339,7 +345,7 @@ export function useGridCellHandler(params: {
       ) {
         roundedRect(ctx, x, y, width, height, 0, {
           backgroundColor: '#4A5268BF', // gray-600/75
-          borderColor: themeV3Colors.gray['200'],
+          borderColor: getColor(themeV4Colors.gray['200']),
           borderWidth: 0.4,
         })
 
@@ -350,7 +356,7 @@ export function useGridCellHandler(params: {
           text: t('labels.dropHere'),
           maxWidth: width - 10 * 2,
           fontFamily: `${pv ? 600 : 500} 18px Inter`,
-          fillStyle: '#FFFFFF',
+          fillStyle: '#ffffff',
           height,
           isTagLabel: true, // to render label center of cell
         })
@@ -363,7 +369,7 @@ export function useGridCellHandler(params: {
         y,
         text: value?.toString() ?? '',
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: pv ? '#3366FF' : textColor,
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor ?? themeV4Colors.gray['600']),
         height,
         py: padding,
         cellRenderStore,
@@ -407,6 +413,7 @@ export function useGridCellHandler(params: {
         allowLocalUrl: appInfo.value?.allowLocalUrl,
         baseRoles: baseRoles.value,
         t,
+        getColor,
       })
     }
     return false

@@ -4,6 +4,7 @@ import type { S3ClientConfig } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import GenericS3 from '~/plugins/GenericS3/GenericS3';
 import { S3_PATCH_KEYS } from '~/constants';
+import { NcError } from '~/helpers/ncError';
 
 interface S3Input {
   bucket: string;
@@ -85,11 +86,10 @@ export default class S3 extends GenericS3 implements IStorageAdapterV2 {
 
         return `https://${this.input.bucket}.${endpoint}/${uploadParams.Key}`;
       } else {
-        throw new Error('Upload failed or no data returned.');
+        NcError._.storageFileCreateError('Upload failed or no data returned.');
       }
     } catch (error) {
-      console.error(error);
-      throw error;
+      NcError._.storageFileCreateError(error.message);
     }
   }
 

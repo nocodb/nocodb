@@ -14,8 +14,6 @@ const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
 const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
 
-const { isTableAndFieldPermissionsEnabled } = usePermissions()
-
 const { base } = storeToRefs(useBase())
 const meta = inject(MetaInj, ref())
 const view = inject(ActiveViewInj, ref())
@@ -32,7 +30,7 @@ const indicator = h(LoadingOutlined, {
 const shouldShowTab = computed(() => {
   return {
     field: isUIAllowed('fieldAdd') && !isSqlView.value,
-    permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value && isTableAndFieldPermissionsEnabled.value,
+    permissions: isEeUI && isUIAllowed('fieldAdd') && !isSqlView.value,
     webhook: isUIAllowed('hookList') && !isSqlView.value,
   }
 })
@@ -42,7 +40,7 @@ const openedSubTab = computed({
     return openedViewsTab.value
   },
   set(val) {
-    if (val === 'permissions' && isTableAndFieldPermissionsEnabled.value && showUpgradeToUseTableAndFieldPermissions()) {
+    if (val === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) {
       return
     }
 

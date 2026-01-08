@@ -6,6 +6,7 @@ import { NocoModule } from '~/modules/noco.module';
 import { BasicStrategy } from '~/strategies/basic.strategy/basic.strategy';
 import { LocalStrategy } from '~/strategies/local.strategy';
 import { AuthTokenStrategy } from '~/strategies/authtoken.strategy/authtoken.strategy';
+import { OAuthTokenStrategy } from '~/strategies/oauth-token.strategy';
 import { BaseViewStrategy } from '~/strategies/base-view.strategy/base-view.strategy';
 import { GoogleStrategyProvider } from '~/strategies/google.strategy/google.strategy';
 import { AuthService } from '~/modules/auth/auth.service';
@@ -20,6 +21,7 @@ export const authModuleMetadata = {
     AuthService,
     LocalStrategy,
     AuthTokenStrategy,
+    OAuthTokenStrategy,
     BaseViewStrategy,
     BasicStrategy,
     GoogleStrategyProvider,

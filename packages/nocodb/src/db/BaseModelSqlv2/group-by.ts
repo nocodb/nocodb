@@ -1,4 +1,10 @@
-import { extractFilterFromXwhere, FormulaDataTypes, UITypes } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  FormulaDataTypes,
+  isLinksOrLTAR,
+  isSystemColumn,
+  UITypes,
+} from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -9,6 +15,7 @@ import type {
   RollupColumn,
   View,
 } from '~/models';
+import applyAggregation from '~/db/aggregation';
 import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
 import { sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
@@ -21,9 +28,10 @@ import {
   getAs,
   getColumnName,
 } from '~/helpers/dbHelpers';
-import { BaseUser, Column, Filter, Sort } from '~/models';
-import { getAliasGenerator, isOnPrem } from '~/utils';
+import { BaseUser, Column, Filter, GridViewColumn, Sort } from '~/models';
+import { getAliasGenerator } from '~/utils';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
+import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
 
 // Returns a SQL expression that converts blank (null or '') values to NULL
 const sqlNullIfBlank = ({
@@ -84,7 +92,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         (c) => c.column_name === col || c.title === col,
       );
       if (!column) {
-        throw NcError.fieldNotFound(col);
+        NcError.get(baseModel.context).fieldNotFound(col);
       }
       // if qrCode or Barcode replace it with value column nd keep the alias
       if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
@@ -105,12 +113,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       let columnQuery;
       switch (column.uidt) {
         case UITypes.Attachment:
-          NcError.badRequest(
+          NcError.get(baseModel.context).badRequest(
             'Group by using attachment column is not supported',
           );
           break;
         case UITypes.Button:
-          NcError.badRequest('Group by using Button column is not supported');
+          NcError.get(baseModel.context).badRequest(
+            'Group by using Button column is not supported',
+          );
           break;
         case UITypes.Links:
         case UITypes.Rollup:
@@ -345,7 +355,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       .select('*')
       .from({ g: 'grouped' });
 
-    if (!isOnPrem) {
+    if (!NC_DISABLE_GROUP_BY_LIMIT) {
       applyPaginate(outerQb, rest);
     }
 
@@ -469,7 +479,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           (c) => c.column_name === col || c.title === col,
         );
         if (!column) {
-          throw NcError.fieldNotFound(col);
+          NcError.get(baseModel.context).fieldNotFound(col);
         }
 
         // if qrCode or Barcode replace it with value column nd keep the alias
@@ -483,12 +493,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
         switch (column.uidt) {
           case UITypes.Attachment:
-            NcError.badRequest(
+            NcError.get(baseModel.context).badRequest(
               'Group by using attachment column is not supported',
             );
             break;
           case UITypes.Button: {
-            NcError.badRequest('Group by using Button column is not supported');
+            NcError.get(baseModel.context).badRequest(
+              'Group by using Button column is not supported',
+            );
             break;
           }
           case UITypes.Rollup:
@@ -735,7 +747,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       });
 
       if (!bulkFilterList?.length) {
-        return NcError.badRequest('bulkFilterList is required');
+        return NcError.get(baseModel.context).badRequest(
+          'bulkFilterList is required',
+        );
       }
 
       for (const f of bulkFilterList) {
@@ -775,12 +789,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using attachment column is not supported',
                 );
                 break;
               case UITypes.Button: {
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using Button column is not supported',
                 );
                 break;
@@ -1006,7 +1020,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             );
             break;
           default:
-            NcError.notImplemented(
+            NcError.get(baseModel.context).notImplemented(
               'This database does not support bulk groupBy count',
             );
         }
@@ -1053,7 +1067,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     try {
       if (!bulkFilterList?.length) {
-        return NcError.badRequest('bulkFilterList is required');
+        return NcError.get(baseModel.context).badRequest(
+          'bulkFilterList is required',
+        );
       }
 
       for (const f of bulkFilterList) {
@@ -1082,7 +1098,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               (c) => c.column_name === col || c.title === col,
             );
             if (!column) {
-              throw NcError.fieldNotFound(col);
+              NcError.get(baseModel.context).fieldNotFound(col);
             }
             return column?.id;
           })
@@ -1110,12 +1126,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using attachment column is not supported',
                 );
                 break;
               case UITypes.Button: {
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using Button column is not supported',
                 );
                 break;
@@ -1420,7 +1436,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             );
             break;
           default:
-            NcError.notImplemented(
+            NcError.get(baseModel.context).notImplemented(
               'This database does not support bulk groupBy',
             );
         }
@@ -1439,10 +1455,237 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     }
   };
 
+  const bulkAggregate = async (
+    args: {
+      filterArr?: Filter[];
+    },
+    bulkFilterList: Array<{
+      alias: string;
+      where?: string;
+      filterArrJson?: string | Filter[];
+    }>,
+    view?: View,
+  ) => {
+    try {
+      if (!bulkFilterList?.length) {
+        return {};
+      }
+
+      const { where, aggregation } = baseModel._getListArgs(args as any);
+
+      const columns = await baseModel.model.getColumns(baseModel.context);
+
+      let viewColumns: any[];
+      if (baseModel.viewId) {
+        viewColumns = (
+          await GridViewColumn.list(baseModel.context, baseModel.viewId)
+        ).filter((c) => {
+          const col = baseModel.model.columnsById[c.fk_column_id];
+          return c.show && (view?.show_system_fields || !isSystemColumn(col));
+        });
+
+        // By default, the aggregation is done based on the columns configured in the view
+        // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
+        // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
+        if (aggregation?.length) {
+          viewColumns = viewColumns
+            .map((c) => {
+              const agg = aggregation.find((a) => a.field === c.fk_column_id);
+              return new GridViewColumn({
+                ...c,
+                show: !!agg,
+                aggregation: agg ? agg.type : c.aggregation,
+              });
+            })
+            .filter((c) => c.show);
+        }
+      } else {
+        // If no viewId, use all model columns or those specified in aggregation
+        if (aggregation?.length) {
+          viewColumns = aggregation
+            .map((agg) => {
+              const col = baseModel.model.columnsById[agg.field];
+              if (!col) return null;
+              return {
+                fk_column_id: col.id,
+                aggregation: agg.type,
+                show: true,
+              };
+            })
+            .filter(Boolean);
+        } else {
+          viewColumns = [];
+        }
+      }
+
+      const aliasColObjMap = await baseModel.model.getAliasColObjMap(
+        baseModel.context,
+        columns,
+      );
+
+      const qb = baseModel.dbDriver(baseModel.tnPath);
+
+      const aggregateExpressions = {};
+
+      // Construct aggregate expressions for each view column
+      for (const viewColumn of viewColumns) {
+        const col = baseModel.model.columnsById[viewColumn.fk_column_id];
+        if (
+          !col ||
+          !viewColumn.aggregation ||
+          (isLinksOrLTAR(col) && col.system)
+        )
+          continue;
+
+        const aliasFieldName = col.id;
+        const aggSql = await applyAggregation({
+          baseModelSqlv2: baseModel,
+          aggregation: viewColumn.aggregation,
+          column: col,
+        });
+
+        if (aggSql) {
+          aggregateExpressions[aliasFieldName] = aggSql;
+        }
+      }
+
+      if (!Object.keys(aggregateExpressions).length) {
+        return {};
+      }
+
+      let viewFilterList = [];
+      if (baseModel.viewId) {
+        viewFilterList = await Filter.rootFilterList(baseModel.context, {
+          viewId: baseModel.viewId,
+        });
+      }
+
+      const selectors = [] as Array<Knex.Raw>;
+      // Generate a knex raw query for each filter in the bulkFilterList
+      for (const f of bulkFilterList) {
+        const tQb = baseModel.dbDriver(baseModel.tnPath);
+        const { filters: aggFilter } = extractFilterFromXwhere(
+          baseModel.context,
+          f.where,
+          aliasColObjMap,
+        );
+        let aggFilterJson = f.filterArrJson;
+        try {
+          aggFilterJson = JSON.parse(aggFilterJson as any);
+        } catch (_e) {}
+
+        await conditionV2(
+          baseModel,
+          [
+            ...(baseModel.viewId
+              ? [
+                  new Filter({
+                    children: viewFilterList || [],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: extractFilterFromXwhere(
+                baseModel.context,
+                where,
+                aliasColObjMap,
+              ).filters,
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: aggFilter,
+              is_group: true,
+              logical_op: 'and',
+            }),
+            ...(aggFilterJson
+              ? [
+                  new Filter({
+                    children: aggFilterJson as Filter[],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+          ],
+          tQb,
+        );
+
+        let jsonBuildObject;
+
+        switch (baseModel.dbDriver.client.config.client) {
+          case 'pg': {
+            jsonBuildObject = baseModel.dbDriver.raw(
+              `JSON_BUILD_OBJECT(${Object.keys(aggregateExpressions)
+                .map((key) => {
+                  return `'${key}', ${aggregateExpressions[key]}`;
+                })
+                .join(', ')})`,
+            );
+
+            break;
+          }
+          case 'mysql2': {
+            jsonBuildObject = baseModel.dbDriver.raw(`JSON_OBJECT(
+                  ${Object.keys(aggregateExpressions)
+                    .map((key) => `'${key}', ${aggregateExpressions[key]}`)
+                    .join(', ')})`);
+            break;
+          }
+
+          case 'sqlite3': {
+            jsonBuildObject = baseModel.dbDriver.raw(`json_object(
+                    ${Object.keys(aggregateExpressions)
+                      .map((key) => `'${key}', ${aggregateExpressions[key]}`)
+                      .join(', ')})`);
+            break;
+          }
+          default:
+            NcError.get(baseModel.context).notImplemented(
+              'This database is not supported for bulk aggregation',
+            );
+        }
+
+        tQb.select(jsonBuildObject);
+
+        if (baseModel.dbDriver.client.config.client === 'mysql2') {
+          selectors.push(
+            baseModel.dbDriver.raw('JSON_UNQUOTE(??) as ??', [
+              jsonBuildObject,
+              `${f.alias}`,
+            ]),
+          );
+        } else {
+          selectors.push(
+            baseModel.dbDriver.raw('(??) as ??', [tQb, `${f.alias}`]),
+          );
+        }
+      }
+
+      qb.select(...selectors);
+
+      qb.limit(1);
+
+      return await baseModel.execAndParse(qb, null, {
+        first: true,
+        bulkAggregate: true,
+      });
+    } catch (err) {
+      logger.log(err);
+      return [];
+    }
+  };
+
   return {
     count,
     list,
     bulkCount,
     bulkList,
+    bulkAggregate,
   };
 };

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type LinkToAnotherRecordType, type TableType, isLinksOrLTAR } from 'nocodb-sdk'
+import { DependencyTableType, type LinkToAnotherRecordType, type TableType, isLinksOrLTAR } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -29,6 +29,19 @@ const table = computed(() => tables.value.find((t) => t.id === props.tableId))
 
 const isLoading = ref(false)
 
+const { status, dependency, checkDependency } = useDependencies()
+
+// Check dependencies when modal opens
+watch(
+  () => props.visible,
+  async (newVal) => {
+    if (newVal && props.tableId) {
+      await checkDependency(DependencyTableType.Model, props.tableId)
+    }
+  },
+  { immediate: true },
+)
+
 const onDelete = async () => {
   if (!table.value) return
 
@@ -39,13 +52,18 @@ const onDelete = async () => {
 
   isLoading.value = true
   try {
-    const meta = (await getMeta(toBeDeletedTable.id as string, true)) as TableType
+    const meta = (await getMeta(toBeDeletedTable.base_id as string, toBeDeletedTable.id as string, true)) as TableType
     const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord && !isSystemColumn(c))
 
     if (relationColumns?.length && !isXcdbBase(toBeDeletedTable.source_id)) {
       const refColMsgs = await Promise.all(
         relationColumns.map(async (c, i) => {
-          const refMeta = (await getMeta((c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string)) as TableType
+          // Use fk_related_base_id for cross-base relationships
+          const relatedBaseId = (c?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id || toBeDeletedTable.base_id
+          const refMeta = (await getMeta(
+            relatedBaseId as string,
+            (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
+          )) as TableType
           return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
         }),
       )
@@ -59,14 +77,22 @@ const onDelete = async () => {
       return
     }
 
-    await $api.dbTable.delete(toBeDeletedTable.id as string)
+    await $api.internal.postOperation(
+      toBeDeletedTable.fk_workspace_id!,
+      toBeDeletedTable.base_id!,
+      {
+        operation: 'tableDelete',
+        tableId: toBeDeletedTable.id as string,
+      },
+      {},
+    )
 
     await loadTables()
 
     // Remove from recent views
     removeFromRecentViews({ baseId: props.baseId, tableId: toBeDeletedTable.id as string })
 
-    removeMeta(toBeDeletedTable.id as string)
+    removeMeta(toBeDeletedTable.base_id as string, toBeDeletedTable.id as string, true)
     refreshCommandPalette()
     // Deleted table successfully
     $e('a:table:delete')
@@ -85,10 +111,10 @@ const onDelete = async () => {
       }
     } else if (activeTable.value?.id) {
       // get cached meta for active table
-      const activeTableMeta = await getMeta(activeTable.value?.id as string)
+      const activeTableMeta = await getMeta(activeTable.value?.base_id as string, activeTable.value?.id as string)
       // if active table has any link to another record column, then force refetch the meta
       if (activeTableMeta && activeTableMeta.columns?.find((c) => isLinksOrLTAR(c))) {
-        await getMeta(activeTable.value?.id as string, true)
+        await getMeta(activeTable.value?.base_id as string, activeTable.value?.id as string, true)
       }
     }
 
@@ -107,16 +133,33 @@ const onDelete = async () => {
 </script>
 
 <template>
-  <GeneralDeleteModal v-model:visible="visible" :entity-name="$t('objects.table')" :on-delete="onDelete">
+  <GeneralDeleteModal
+    v-model:visible="visible"
+    :entity-name="$t('objects.table')"
+    :on-delete="onDelete"
+    :disable-delete-btn="status === 'loading'"
+  >
     <template #entity-preview>
-      <div v-if="table" class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700">
-        <GeneralTableIcon :meta="table" class="nc-view-icon" />
+      <div
+        v-if="table"
+        class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle"
+      >
+        <GeneralTableIcon :meta="table" class="nc-view-icon text-nc-content-gray-subtle" />
         <div
           class="capitalize text-ellipsis overflow-hidden select-none w-full pl-1.75"
           :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
         >
           {{ table.title }}
         </div>
+      </div>
+      <div class="mt-4">
+        <NcDependencyList
+          :status="status"
+          :has-breaking-changes="dependency.hasBreakingChanges"
+          :entities="dependency.entities"
+          action="delete"
+          entity-type="table"
+        />
       </div>
     </template>
   </GeneralDeleteModal>

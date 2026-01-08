@@ -6,6 +6,7 @@ const props = withDefaults(
     onDelete: () => Promise<void>
     deleteLabel?: string | undefined
     showDefaultDeleteMsg?: boolean
+    disableDeleteBtn?: boolean
   }>(),
   {
     showDefaultDeleteMsg: true,
@@ -87,6 +88,7 @@ watch(visible, (value) => {
         <NcButton
           key="submit"
           type="danger"
+          :disabled="disableDeleteBtn"
           size="small"
           html-type="submit"
           :loading="isLoading"

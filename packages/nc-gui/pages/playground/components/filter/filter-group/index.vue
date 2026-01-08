@@ -7,7 +7,10 @@ const defaultTableId = 'mtWA9ZXvsuh'
 const rootMeta = ref({})
 const columns = computedAsync(async () => {
   if (!metas.value || Object.keys(metas.value).length === 0) return []
-  return await composeColumnsForFilter({ rootMeta: rootMeta.value, getMeta: async (id) => metas.value[id] })
+  return await composeColumnsForFilter({
+    rootMeta: rootMeta.value,
+    getMeta: async (id) => metas.value[`${rootMeta.value?.base_id}:${id}`],
+  })
 }, [])
 const filterMap = ref({})
 const filters = ref([])
@@ -95,14 +98,14 @@ const onRowChange = (event) => {
   lastRowChangeEvent1.value = event
 }
 onMounted(async () => {
-  await mockSetupInit()
-  rootMeta.value = metas.value[defaultTableId]
+  const setup = await mockSetupInit()
+  rootMeta.value = setup.meta
 })
 </script>
 
 <template>
   <MockInjection>
-    <div class="bg-gray-100 pb-8 overflow-y-auto">
+    <div class="bg-nc-bg-gray-light pb-8 overflow-y-auto">
       <a-card>
         <h4>Simple</h4>
 
@@ -131,25 +134,33 @@ onMounted(async () => {
                 </NcSelect>
               </div>
 
-              <div>Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-gray-200" /><br /></div>
               <div>
-                NestedLevel: <input v-model="options1.nestedLevel" type="number" class="text-xs p-1 border-gray-200" /><br />
+                Index: <input v-model="options1.index" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
+              </div>
+              <div>
+                NestedLevel:
+                <input v-model="options1.nestedLevel" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
               </div>
               <div>
                 filterPerViewLimit:
-                <input v-model="options1.filterPerViewLimit" type="number" class="text-xs p-1 border-gray-200" /><br />
+                <input
+                  v-model="options1.filterPerViewLimit"
+                  type="number"
+                  class="text-xs p-1 border-nc-border-gray-medium"
+                /><br />
               </div>
               <div>
-                filtersCount: <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-gray-200" /><br />
+                filtersCount:
+                <input v-model="options1.filtersCount" type="number" class="text-xs p-1 border-nc-border-gray-medium" /><br />
               </div>
             </div>
           </div>
           <div class="flex-col flex-grow space-y-2">
             Last event:
-            <div class="min-w-[300px] max-h-[200px] overflow-wrap bg-gray-300 overflow-y-scroll">
+            <div class="min-w-[300px] max-h-[200px] overflow-wrap bg-nc-bg-gray-dark overflow-y-scroll">
               <pre>{{ JSON.stringify(lastRowChangeEvent1, null, 2) }}</pre>
             </div>
-            <div class="min-w-[300px] max-h-[200px] overflow-wrap bg-gray-300 overflow-y-scroll">
+            <div class="min-w-[300px] max-h-[200px] overflow-wrap bg-nc-bg-gray-dark overflow-y-scroll">
               <pre>{{ JSON.stringify(lastChangeEvent1, null, 2) }}</pre>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import 'mocha';
 // @ts-ignore
 import request from 'supertest';
-import { UITypes } from 'nocodb-sdk';
+import { UITypes, ViewTypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import init from '../../init';
 import { createProject, createSakilaProject } from '../../factory/base';
@@ -69,7 +69,7 @@ function tableStaticTest() {
     });
 
     customerView = (await customerTable.getViews(sakilaCtx)).find(
-      (v) => v.is_default,
+      (v) => v.type === ViewTypes.GRID,
     )!;
 
     customerColumns = await customerTable.getColumns(sakilaCtx);
@@ -162,7 +162,7 @@ function tableStaticTest() {
 
     if (
       lastPageResponse.body.list[lastPageResponse.body.list.length - 1][
-        firstNameColumn.title
+      firstNameColumn.title
       ] !== 'AARON'
     ) {
       console.log(lastPageOffset, lastPageResponse.body.list);
@@ -215,7 +215,7 @@ function tableStaticTest() {
 
     if (
       lastPageResponse.body.list[lastPageResponse.body.list.length - 1][
-        firstNameColumn.title
+      firstNameColumn.title
       ] !== 'ZACHARY'
     ) {
       console.log(lastPageOffset, lastPageResponse.body.list);
@@ -393,8 +393,10 @@ function tableStaticTest() {
         .expect(200);
 
       // Check file content
-      expect(fileResponse.headers['content-disposition']).to.include(
-        `${customerTable.title} (Default View).csv`,
+      expect(fileResponse.headers['content-disposition']).to.match(
+        new RegExp(
+          `${sakilaProject.title} - ${customerTable.title} \\(Customer\\) \\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}.csv`,
+        ),
       );
       expect(fileResponse.headers['content-type']).to.include('text/csv');
       expect(fileResponse.text).to.be.a('string').and.not.empty;
@@ -769,7 +771,7 @@ function tableStaticTest() {
 
     const response = await request(context.app)
       .get(
-        `/api/v1/db/data/noco/${sakilaProject.id}/Film/group/${ratingColumn.id}`,
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/group/${ratingColumn.id}`,
       )
       .set('xc-auth', context.token)
       .expect(200);

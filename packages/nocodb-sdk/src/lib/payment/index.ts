@@ -9,7 +9,8 @@ export enum PlanLimitTypes {
   LIMIT_AUDIT_RETENTION = 'limit_audit_retention',
   LIMIT_AUTOMATION_RUN = 'limit_automation_run',
   LIMIT_AUTOMATION_RETENTION = 'limit_automation_retention',
-
+  LIMIT_WORKFLOW_RUN = 'limit_workflow_run',
+  LIMIT_WORKFLOW_RETENTION = 'limit_workflow_retention',
   LIMIT_WEBHOOK_PER_WORKSPACE = 'limit_webhook',
   LIMIT_EXTENSION_PER_WORKSPACE = 'limit_extension',
   LIMIT_SNAPSHOT_PER_WORKSPACE = 'limit_snapshot',
@@ -26,6 +27,7 @@ export enum PlanLimitTypes {
   LIMIT_ATTACHMENTS_IN_CELL = 'limit_attachments_in_cell',
   LIMIT_SCRIPT_PER_WORKSPACE = 'limit_script',
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
+  LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
 }
 
 export enum PlanFeatureTypes {
@@ -56,6 +58,8 @@ export enum PlanFeatureTypes {
   FEATURE_TABLE_AND_FIELD_PERMISSIONS = 'feature_table_and_field_permissions',
   FEATURE_PRIVATE_BASES = 'feature_private_bases',
   FEATURE_API_MEMBER_MANAGEMENT = 'feature_api_member_management',
+  FEATURE_TEAM_MANAGEMENT = 'feature_team_management',
+  FEATURE_API_SCRIPT_MANAGEMENT = 'feature_api_script_management',
   FEATURE_API_VIEW_V3 = 'feature_api_view_v3',
   FEATURE_CALENDAR_RANGE = 'feature_calendar_range',
   FEATURE_AI_PROMPT_FIELD = 'feature_ai_prompt_field',
@@ -63,17 +67,21 @@ export enum PlanFeatureTypes {
   FEATURE_DUPLICATE_TABLE_TO_OTHER_BASE = 'feature_duplicate_table_to_other_base',
   FEATURE_DUPLICATE_TABLE_TO_OTHER_WS = 'feature_duplicate_table_to_other_ws',
   FEATURE_COPY_VIEW_SETTING_FROM_OTHER = 'feature_copy_view_setting_other',
+  FEATURE_CARD_FIELD_HEADER_VISIBILITY = 'feature_card_field_header_visibility',
+  FEATURE_SYNC = 'feature_sync',
+  FEATURE_UNIQUE = 'feature_unique',
 }
 
-// todo: separate as a new enum
 export enum PlanTitles {
   FREE = 'Free',
   PLUS = 'Plus',
   BUSINESS = 'Business',
   ENTERPRISE = 'Enterprise',
+}
 
-  // on-prem
+export enum OnPremPlanTitles {
   ENTERPRISE_STARTER = 'EnterpriseStarter',
+  ENTERPRISE = 'Enterprise',
 }
 
 export enum PlanPriceLookupKeys {
@@ -104,43 +112,51 @@ export const LoyaltyPriceReverseLookupKeyMap = {
 export const PlanMeta = {
   [PlanTitles.FREE]: {
     title: PlanTitles.FREE,
-    color: '#F9F9FA',
-    accent: '#E7E7E9',
-    primary: '#1F293A',
-    bgLight: '#F9F9FA',
-    bgDark: '#F4F4F5',
-    border: '#E7E7E9',
-    chartFillColor: '#6A7184',
+    color: 'var(--free-plan-color, #F9F9FA)',
+    accent: 'var(--free-plan-accent, #E7E7E9)',
+    primary: 'var(--free-plan-primary, #1F293A)',
+    bgLight: 'var(--free-plan-bg-light, #F9F9FA)',
+    bgDark: 'var(--free-plan-bg-dark, #F4F4F5)',
+    border: 'var(--free-plan-border, #E7E7E9)',
+    chartFillColor: 'var(--color-gray-500, #6A7184)',
+    badgeBgColor: 'var(--free-plan-badge-bg-color, #F4F4F5)',
+    badgeTextColor: 'var(--free-plan-badge-text-color, #1F293A)',
   },
   [PlanTitles.PLUS]: {
     title: PlanTitles.PLUS,
-    color: '#EDF9FF',
-    accent: '#AFE5FF',
-    primary: '#207399',
-    bgLight: '#EDF9FF',
-    bgDark: '#D7F2FF',
-    border: '#AFE5FF',
-    chartFillColor: '#207399',
+    color: 'var(--plus-plan-color, #EDF9FF)',
+    accent: 'var(--plus-plan-accent, #AFE5FF)',
+    primary: 'var(--plus-plan-primary, #207399)',
+    bgLight: 'var(--plus-plan-bg-light, #EDF9FF)',
+    bgDark: 'var(--plus-plan-bg-dark, #D7F2FF)',
+    border: 'var(--plus-plan-border, #AFE5FF)',
+    chartFillColor: 'var(--plus-plan-chart-fill-color, #207399)',
+    badgeBgColor: 'var(--plus-plan-badge-bg-color, #D7F2FF)',
+    badgeTextColor: 'var(--plus-plan-badge-text-color, #207399)',
   },
   [PlanTitles.BUSINESS]: {
     title: PlanTitles.BUSINESS,
-    color: '#FAF5FF',
-    accent: '#FEB0E8',
-    primary: '#972377',
-    bgLight: '#FFEEFB',
-    bgDark: '#FED8F4',
-    border: '#FEB0E8',
-    chartFillColor: '#972377',
+    color: 'var(--business-plan-color, #FAF5FF)',
+    accent: 'var(--business-plan-accent, #FEB0E8)',
+    primary: 'var(--business-plan-primary, #972377)',
+    bgLight: 'var(--business-plan-bg-light, #FFEEFB)',
+    bgDark: 'var(--business-plan-bg-dark, #FED8F4)',
+    border: 'var(--business-plan-border, #FEB0E8)',
+    chartFillColor: 'var(--business-plan-chart-fill-color, #972377)',
+    badgeBgColor: 'var(--business-plan-badge-bg-color, #FED8F4)',
+    badgeTextColor: 'var(--business-plan-badge-text-color, #972377)',
   },
   [PlanTitles.ENTERPRISE]: {
     title: PlanTitles.ENTERPRISE,
-    color: '#0D1117',
-    accent: '#663B1F',
-    primary: '#C86827',
-    bgLight: '#FFF5EF',
-    bgDark: '#FEE6D6',
-    border: '#FDCDAD',
-    chartFillColor: '#C86827',
+    color: 'var(--enterprise-plan-color, #FFF5EF)',
+    accent: 'var(--enterprise-plan-accent, #663B1F)',
+    primary: 'var(--enterprise-plan-primary, #C86827)',
+    bgLight: 'var(--enterprise-plan-bg-light, #FFF5EF)',
+    bgDark: 'var(--enterprise-plan-bg-dark, #FEE6D6)',
+    border: 'var(--enterprise-plan-border, #FDCDAD)',
+    chartFillColor: 'var(--enterprise-plan-chart-fill-color, #C86827)',
+    badgeBgColor: 'var(--enterprise-plan-badge-bg-color, #FEE6D6)',
+    badgeTextColor: 'var(--enterprise-plan-badge-text-color, #C86827)',
   },
 } as const;
 
@@ -208,6 +224,10 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
     'to add more scripts in a workspace.',
   [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
     'to add more dashboards in a workspace.',
+  [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
+  [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 'to run more workflows.',
+  [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
+    'to increase workflow logs retention.',
 };
 
 export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
@@ -250,7 +270,9 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_PRIVATE_BASES]: 'to use private bases.',
   [PlanFeatureTypes.FEATURE_API_MEMBER_MANAGEMENT]:
     'to use member management api.',
+  [PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT]: 'to use team management.',
   [PlanFeatureTypes.FEATURE_API_VIEW_V3]: 'to use view api.',
+  [PlanFeatureTypes.FEATURE_API_SCRIPT_MANAGEMENT]: 'to use script api.',
   [PlanFeatureTypes.FEATURE_CALENDAR_RANGE]:
     'to visualize records in a calendar range.',
   [PlanFeatureTypes.FEATURE_AI_PROMPT_FIELD]: 'to use AI text fields.',
@@ -261,6 +283,10 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to target different workspace when duplicate table.',
   [PlanFeatureTypes.FEATURE_COPY_VIEW_SETTING_FROM_OTHER]:
     'to copy view configuration from another view.',
+  [PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY]:
+    'to hide field headers in Gallery and Kanban views.',
+  [PlanFeatureTypes.FEATURE_SYNC]: 'to use sync feature.',
+  [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
 };
 
 export const getUpgradeMessage = (

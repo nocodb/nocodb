@@ -7,29 +7,31 @@ const { activeCalendarView, paginateCalendarView } = useCalendarViewStoreOrThrow
     <NcTooltip hide-on-click>
       <template #title> {{ $t('labels.previous') }}</template>
 
-      <a-button
+      <NcButton
         v-e="`['c:calendar:calendar-${activeCalendarView}-prev-btn']`"
-        class="!w-7 !h-7 prev-next-btn !hover:text-nc-content-gray-subtle transition-all !rounded-lg flex items-center justify-center !border-0"
+        class="!w-7 !h-7 !rounded-lg prev-next-btn !hover:(text-nc-content-gray-subtle)"
+        inner-class="flex items-center justify-center"
         data-testid="nc-calendar-prev-btn"
-        size="small"
+        size="xs"
+        type="text"
         @click="paginateCalendarView('prev')"
       >
-        <component :is="iconMap.ncChevronLeft" class="h-4 !mb-0.9 !-ml-0.5 w-4" />
-      </a-button>
+        <GeneralIcon icon="ncChevronLeft" class="h-4 !-ml-0.5 w-4" />
+      </NcButton>
     </NcTooltip>
     <NcTooltip hide-on-click>
       <template #title> {{ $t('labels.next') }}</template>
-      <a-button
+      <NcButton
         v-e="`['c:calendar:calendar-${activeCalendarView}-next-btn']`"
-        class="!w-7 !h-7 !rounded-lg flex items-center !hover:text-nc-content-gray-subtle prev-next-btn !border-0 justify-center"
+        class="!w-7 !h-7 !rounded-lg !hover:(text-nc-content-gray-subtle) prev-next-btn"
+        inner-class="flex items-center justify-center"
         data-testid="nc-calendar-next-btn"
-        size="small"
+        size="xs"
+        type="text"
         @click="paginateCalendarView('next')"
       >
-        <component :is="iconMap.ncChevronRight" class="h-4 !mb-0.8 !-ml-0.2 w-4" />
-      </a-button>
+        <GeneralIcon icon="ncChevronRight" class="h-4 !-ml-0.2 w-4" />
+      </NcButton>
     </NcTooltip>
   </div>
 </template>
-
-<style scoped lang="scss"></style>

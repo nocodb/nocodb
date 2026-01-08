@@ -32,7 +32,7 @@ const onFinish = async () => {
     const error = await extractSdkResponseErrorMsgv2(e)
     console.error(error.message)
 
-    if (error.error === NcErrorType.INVALID_SHARED_VIEW_PASSWORD) {
+    if (error.error === NcErrorType.ERR_INVALID_SHARED_VIEW_PASSWORD) {
       passwordError.value = error.message
     } else {
       message.error(error.message)
@@ -73,7 +73,7 @@ const bgImageName = computed(() => {
     }"
   >
     <div class="flex flex-col gap-5">
-      <div class="flex flex-row items-center gap-x-2 text-base font-weight-700 text-gray-800">
+      <div class="flex flex-row items-center gap-x-2 text-base font-weight-700 text-nc-content-gray">
         <GeneralIcon icon="ncKey" class="!text-base w-5 h-5" />
         {{ $t('msg.thisSharedViewIsProtected') }}
       </div>
@@ -93,7 +93,7 @@ const bgImageName = computed(() => {
             @input="passwordError = null"
           />
           <Transition name="layout">
-            <div v-if="passwordError" class="mb-2 text-sm text-red-500">{{ passwordError }}</div>
+            <div v-if="passwordError" class="mb-2 text-sm text-nc-content-red-medium">{{ passwordError }}</div>
           </Transition>
         </a-form-item>
       </a-form>

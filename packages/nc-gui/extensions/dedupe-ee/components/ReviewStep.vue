@@ -164,13 +164,12 @@ const handleScroll = (event: Event) => {
       // Calculate visible range based on scroll position (actual visible + left 4 + right 4 buffer)
       const start = Math.max(0, Math.floor(newScrollLeft / RECORD_CARD_WIDTH) - 4)
       const containerWidth = target.clientWidth
-      const visibleCount = Math.ceil(containerWidth / RECORD_CARD_WIDTH) + 8  // +4 for actual visible + 4 for right buffer
+      const visibleCount = Math.ceil(containerWidth / RECORD_CARD_WIDTH) + 8 // +4 for actual visible + 4 for right buffer
       const end = Math.min(start + visibleCount, allRowIndexes.value.length)
 
       visibleStartIndex.value = start
       visibleEndIndex.value = end
 
-      console.log('loading visible data', start, end)
       loadVisibleData()
 
       // Synchronize scroll with MergePreview component

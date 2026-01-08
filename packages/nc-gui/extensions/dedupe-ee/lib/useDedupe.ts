@@ -1,5 +1,15 @@
 import type { ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, getFirstNonPersonalView, isSystemColumn, isVirtualCol, parseUserValue } from 'nocodb-sdk'
+import {
+  UITypes,
+  ViewTypes,
+  getFirstNonPersonalView,
+  isSystemColumn,
+  isVirtualCol,
+  parseUserValue,
+  parseJsonValue,
+  isDateOrDateTimeCol,
+  parseCheckboxValue,
+} from 'nocodb-sdk'
 import axios from 'axios'
 import type { DedupeConfig, MergeState } from './context'
 import { extensionUserPrefsManager } from '#imports'
@@ -58,7 +68,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   })
 
   const hasNextGroup = computed(() => {
-    return currentGroupIndex.value < (groupSetsPaginationData.value.totalRows || 0)
+    return currentGroupIndex.value < (groupSetsPaginationData.value.totalRows || 0) - 1
   })
 
   const currentGroupRecordsPaginationData = ref<PaginatedType & { isLoading: boolean }>({
@@ -131,12 +141,21 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   const computedWhere = computed(() => {
     if (!selectedField.value?.id || !currentGroup.value) return ''
 
-    console.log('currentGroup.value[selectedField.value.title!]', currentGroup.value[selectedField.value.title!])
-
     let value = currentGroup.value[selectedField.value.title!]
 
     if (selectedField.value.uidt === UITypes.User) {
-      value = parseUserValue(value)
+      value = parseUserValue(value, false, true)
+
+      if (ncIsString(value)) {
+        value = value
+          .split(',')
+          .map((id: string) => id.trim())
+          .join(',')
+      }
+    } else if (selectedField.value.uidt === UITypes.JSON) {
+      value = parseJsonValue(value)
+    } else if (selectedField.value.uidt === UITypes.Checkbox) {
+      value = parseCheckboxValue(value)
     }
 
     return buildWhereQueryForGroup({
@@ -244,20 +263,32 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
   // Build where query for a duplicate group
   function buildWhereQueryForGroup(fieldValues: Record<string, any>): string {
     const conditions: string[] = []
-    for (const [fieldId, value] of Object.entries(fieldValues)) {
+    for (let [fieldId, value] of Object.entries(fieldValues)) {
       const field = meta.value?.columns?.find((col) => col.id === fieldId)
       if (!field) continue
 
       const fieldKey = field.title || field.id
       if (!fieldKey) continue
 
+      let operator = 'eq'
+
+      if (field.uidt === UITypes.MultiSelect || field.uidt === UITypes.User) {
+        operator = 'allof'
+      }
+
+      if (field.uidt === UITypes.Checkbox) {
+        operator = value === true ? 'checked' : value === false ? 'notchecked' : 'eq'
+      }
+
       // Handle null/empty values
-      if (value == null || value === '') {
+      if (ncIsNull(value) || ncIsUndefined(value) || value === '') {
         conditions.push(`(${fieldKey},is,blank)`)
+      } else if (isDateOrDateTimeCol(field)) {
+        conditions.push(`(${fieldKey},eq,exactDate,${value})`)
       } else {
         // Escape value for where query
         const escapedValue = String(value).replace(/'/g, "''")
-        conditions.push(`(${fieldKey},eq,${escapedValue})`)
+        conditions.push(`(${fieldKey},${operator},${field.uidt === UITypes.Checkbox ? null : escapedValue})`)
       }
     }
     return conditions.join('~and')
@@ -557,9 +588,6 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
       if (hasNextGroup.value) {
         currentGroupRecordsPaginationData.value = { ...getDefaultPaginationData(20), isLoading: true }
-        resetMergeState()
-
-        currentGroupIndex.value++
       }
 
       resetMergeState()
@@ -568,6 +596,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         message.success('All duplicates have been merged and deleted')
         return true
       } else {
+        currentGroupIndex.value++
+
         message.success(`Merged and deleted ${recordIndicesToDelete.length} record(s)`)
 
         return false

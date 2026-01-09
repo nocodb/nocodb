@@ -253,10 +253,7 @@ useEventListener('click', (event) => {
 
               Use as primary record
             </NcMenuItem>
-            <NcMenuItem
-              :disabled="mergeState.primaryRecordIndex === contextMenuTarget!.index"
-              @click="excludeRecord(contextMenuTarget!.index)"
-            >
+            <NcMenuItem @click="excludeRecord(contextMenuTarget!.index)">
               <GeneralIcon icon="close" />
 
               Exclude record from set

@@ -348,7 +348,12 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const setPrimaryRecord = (recordIndex: number) => {
     mergeState.value.primaryRecordIndex = recordIndex
-    mergeState.value.selectedFields = {}
+
+    Object.keys(mergeState.value.selectedFields).forEach((fieldId) => {
+      if (mergeState.value.selectedFields[fieldId] === recordIndex) {
+        delete mergeState.value.selectedFields[fieldId]
+      }
+    })
   }
 
   const excludeRecord = (recordIndex: number) => {
@@ -359,6 +364,10 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     })
 
     mergeState.value.excludedRecordIndexes.add(recordIndex)
+
+    if (mergeState.value.primaryRecordIndex === recordIndex) {
+      mergeState.value.primaryRecordIndex = null
+    }
 
     mergeState.value = { ...mergeState.value }
   }

@@ -7,13 +7,17 @@ import DedupeFooter from './components/DedupeFooter.vue'
 import MergePreview from './components/MergePreview.vue'
 
 // Provide dedupe instance to child components
-const { loadSavedConfig, groupSetsPaginationData, currentStep } = useProvideDedupe()
+const { loadSavedConfig, groupSetsPaginationData, currentStep, scrollContainer } = useProvideDedupe()
 
 const { fullscreen, toggleFullScreen } = useExtensionHelperOrThrow()
 
 const topSectionRef = ref<HTMLElement>()
 
 const { height } = useElementSize(topSectionRef)
+
+const setScrollContainer = (el: any) => {
+  scrollContainer.value = el as HTMLElement
+}
 
 // Load saved configuration on mount
 onMounted(async () => {
@@ -66,7 +70,7 @@ onMounted(async () => {
           <div class="h-full min-w-xs border-r border-nc-border-gray-medium nc-scrollbar-thin px-4">
             <SidebarConfig />
           </div>
-          <div ref="scrollContainer" class="flex-1 p-6 nc-scrollbar-thin relative">
+          <div :ref="setScrollContainer" class="flex-1 p-6 nc-scrollbar-thin relative">
             <div class="max-w-[768px] mx-auto">
               <DedupeGroupSets />
             </div>

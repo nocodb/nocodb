@@ -34,7 +34,6 @@ useInfiniteScroll(
         <h2 class="text-lg font-semibold">Duplicate Groups</h2>
         <p class="text-sm text-nc-content-gray-muted mt-2">
           Found {{ groupSetsPaginationData.totalRows || groupSets.length }} group(s) with duplicates
-          {{ groupSetsPaginationData.isLastPage ? '' : '+' }}
         </p>
       </div>
     </div>

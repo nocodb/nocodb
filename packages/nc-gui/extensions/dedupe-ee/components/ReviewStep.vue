@@ -57,6 +57,8 @@ const containerWidth = computed(() => {
 watch(
   currentGroup,
   async () => {
+    if (currentGroupRecordsPaginationData.value.isLoading) return
+
     clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
 
     loadedPages.value.clear()

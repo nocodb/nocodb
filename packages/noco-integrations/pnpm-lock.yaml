@@ -2286,9 +2286,6 @@ packages:
     resolution: {integrity: sha512-BS8PfmtDGnrgYdOonGZQdLZslWIeCGFP9tpan0hi1Co2Zr2NKADsvGYA8XxuG/4UWgJ6Cjtv+YJnB6MM69QGlQ==}
     engines: {node: '>= 0.4'}
 
-  dayjs@1.11.13:
-    resolution: {integrity: sha512-oaMBel6gjolK862uaPQOVTA7q3TZhuSvuMQAAglQDOWYO9A91IrAOUJEyKVlqJlHE0vq5p5UXxzdPfMH/x6xNg==}
-
   dayjs@1.11.19:
     resolution: {integrity: sha512-t5EcLVS6QPBNqM2z8fakk/NKel+Xzshgt8FFKAn+qwlD1pzZWxh0nVCrvFK7ZDb6XucZeF9z8C7CBWTRIVApAw==}
 
@@ -5333,8 +5330,6 @@ snapshots:
       es-errors: 1.3.0
       is-data-view: 1.0.2
 
-  dayjs@1.11.13: {}
-
   dayjs@1.11.19: {}
 
   debug@3.2.7:
@@ -6406,7 +6401,7 @@ snapshots:
       acorn-walk: 8.3.4
       axios: 1.13.2
       chevrotain: 10.5.0
-      dayjs: 1.11.13
+      dayjs: 1.11.19
       fast-deep-equal: 3.1.3
       nc-jsep: 1.7.5
       nc-jsep-plugin-arrow: 1.7.5(nc-jsep@1.7.5)

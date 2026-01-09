@@ -48,7 +48,7 @@
     "acorn-walk": "^8.3.4",
     "axios": "^1.9.0",
     "chevrotain": "^10.5.0",
-    "dayjs": "^1.11.13",
+    "dayjs": "^1.11.19",
     "fast-deep-equal": "^3.1.3",
     "nc-jsep": "^1.7.5",
     "nc-jsep-plugin-arrow": "^1.7.5",

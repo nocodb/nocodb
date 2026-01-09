@@ -8,7 +8,7 @@ import dotenv from 'dotenv';
 import requestIp from 'request-ip';
 import cookieParser from 'cookie-parser';
 import { NcDebug } from 'nc-gui/utils/debug';
-import { definePDFJSModule } from 'unpdf';
+// import { definePDFJSModule } from 'unpdf';
 import type { INestApplication } from '@nestjs/common';
 import type { MetaService } from '~/meta/meta.service';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
@@ -162,9 +162,10 @@ export default class Noco {
     }
 
     try {
-      this.canvas = await import('@napi-rs/canvas');
-      await definePDFJSModule(() => import('pdfjs-dist/legacy/build/pdf.mjs'));
-      this.isPdfjsInitialized = true;
+      // TODO: enable later cc @DarkPhoenix2704
+      // this.canvas = await import('@napi-rs/canvas');
+      // await definePDFJSModule(() => import('pdfjs-dist/legacy/build/pdf.mjs'));
+      // this.isPdfjsInitialized = true;
     } catch (e) {
       console.error(e);
       console.error(

@@ -23,7 +23,7 @@ useInfiniteScroll(
       await loadMoreGroupSets()
     }
   },
-  { distance: 200 },
+  { distance: 200, interval: 1000 },
 )
 </script>
 

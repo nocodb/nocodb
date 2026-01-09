@@ -155,7 +155,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
                   <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
                   <span class="flex-grow" />
-                  <NcToolti>
+                  <NcTooltip>
                     <template #title>
                       <span>
                         App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of
@@ -163,7 +163,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                       </span>
                     </template>
                     <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-4 h-4 nc-pending" />
-                  </NcToolti>
+                  </NcTooltip>
                 </div>
               </NcMenuItem>
               <a-sub-menu key="users" class="!bg-nc-bg-gray-sidebar !my-0">

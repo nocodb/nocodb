@@ -25,6 +25,16 @@ export default plugin(({ addUtilities }) => {
     addScreenUtil('min-w-screen', 'min-width', 'vw', 'dvw', 'svw', i)
   }
 
+  utils['.nc-max-h-screen'] = {
+    'max-height': '100vh',
+    '@supports (max-height: 100dvh)': {
+      'max-height': '100dvh',
+    },
+    '@supports (max-height: 100svh)': {
+      'max-height': '100svh',
+    },
+  }
+
   // Scroll fade masks — apply on scrollable containers
   // nc-scroll-fade       → fade top & bottom
   // nc-scroll-fade-top   → fade top only
@@ -44,6 +54,16 @@ export default plugin(({ addUtilities }) => {
   utils['.nc-scroll-fade-bottom'] = {
     'mask-image': `linear-gradient(black 0%, black calc(100% - ${fadeSize}), transparent 100%)`,
     '-webkit-mask-image': `linear-gradient(black 0%, black calc(100% - ${fadeSize}), transparent 100%)`,
+  }
+
+  utils['.nc-max-w-screen'] = {
+    'max-width': '100vw',
+    '@supports (width: 100dvw)': {
+      'max-width': '100dvw',
+    },
+    '@supports (max-width: 100svw)': {
+      'max-width': '100svw',
+    },
   }
 
   addUtilities(utils, {

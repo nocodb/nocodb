@@ -214,7 +214,7 @@ useEventListener('click', (event) => {
       <div class="flex-1"></div>
 
       <div class="flex items-center gap-1">
-        <NcSwitch v-model:checked="hideComputedFields"> Hide computed fields </NcSwitch>
+        <NcSwitch v-model:checked="hideComputedFields"> Hide unsupported merge fields </NcSwitch>
       </div>
     </div>
 

@@ -122,7 +122,7 @@ export function useGridViewData(
 
     reloadAggregate?.trigger(params)
 
-    if (!isGroupBy.value || !appInfo.value?.ee) {
+    if (!isGroupBy.value) {
       return
     }
 

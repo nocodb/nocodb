@@ -994,4 +994,47 @@ export class DataTableService {
 
     return data;
   }
+
+  async bulkAggregate(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      query: any;
+      body: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    if (view && view.type !== ViewTypes.GRID) {
+      NcError.badRequest('Aggregation is only supported on grid views');
+    }
+
+    const listArgs: any = { ...param.query };
+
+    let bulkFilterList = param.body;
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.aggregation = JSON.parse(listArgs.aggregation);
+    } catch (e) {}
+
+    try {
+      bulkFilterList = JSON.parse(bulkFilterList);
+    } catch (e) {}
+
+    return await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
+  }
 }

@@ -1475,7 +1475,7 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
     if (clickType === MouseClickType.SINGLE_CLICK) {
       const { column: clickedColumn, xOffset } = findClickedColumn(x, scrollLeft.value)
 
-      if ((clickedColumn && clickedColumn?.fixed) || !appInfo.value.ee) {
+      if (clickedColumn && clickedColumn?.fixed) {
         const columnWidth = parseCellWidth(clickedColumn.width)
 
         const diff = x - columnWidth

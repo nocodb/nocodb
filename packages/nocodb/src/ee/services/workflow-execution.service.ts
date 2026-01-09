@@ -862,10 +862,13 @@ export class WorkflowExecutionService {
       node.type,
       node.data?.config || {},
     );
+    if (!nodeWrapper.heartbeat) {
+      return;
+    }
     const trigger = (
       await Workflow.getExternalTriggers(context, workflow.id)
     )[0];
-    const heartbeatState = await nodeWrapper.heartbeat(
+    const heartbeatState = await nodeWrapper.heartbeat.handler(
       {
         workflowId: workflow.id,
         nodeId: trigger.nodeId,

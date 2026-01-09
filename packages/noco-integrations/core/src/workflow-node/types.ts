@@ -2,7 +2,7 @@ import { IntegrationWrapper } from '../integration';
 import { AuthIntegration } from '../auth';
 import { NocoSDK } from '../sdk';
 import { IDataV3Service, ITablesService, IMailService } from './nocodb.interface';
-import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType, LoopContext } from 'nocodb-sdk'
+import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType, LoopContext, PollingIntervals } from 'nocodb-sdk'
 
 
 export interface WorkflowNodeLog {
@@ -262,13 +262,11 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
     state?: WorkflowActivationState
   ): Promise<void>;
 
-  /**
-   * Triggers a heartbeat for the trigger node in a workflow, signaling liveness to external triggers.
-   * 
-   * @param context - Same context from activation
-   * @param state - The state object returned from onActivateHook()
-   */ 
-  public async heartbeat?(
-    context: WorkflowActivationContext,
-    state?: WorkflowActivationState): Promise<WorkflowActivationState>;
+  heartbeat?: {
+    interval: PollingIntervals;
+    /**
+     * Triggers a heartbeat for the trigger node in a workflow, signaling liveness to external triggers.
+     */
+    handler: (context: WorkflowActivationContext, state?: WorkflowActivationState) => Promise<WorkflowActivationState>;
+  }
 }

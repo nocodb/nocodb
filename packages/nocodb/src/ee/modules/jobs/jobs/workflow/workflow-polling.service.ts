@@ -36,7 +36,10 @@ export class WorkflowPollingService {
         },
         workflow.id,
         {
-          wf_next_polling_at: executionTime + workflow.wf_polling_interval,
+          wf_next_polling_at: dayjs
+            .unix(executionTime)
+            .add(workflow.wf_polling_interval, 'seconds')
+            .unix(),
         },
       );
     }

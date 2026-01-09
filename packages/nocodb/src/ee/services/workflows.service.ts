@@ -11,6 +11,7 @@ import {
 } from 'nocodb-sdk';
 import { nanoid } from 'nanoid';
 import { CronExpressionParser } from 'cron-parser';
+import dayjs from 'dayjs';
 import type { OnModuleInit } from '@nestjs/common';
 import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -829,6 +830,18 @@ export class WorkflowsService implements OnModuleInit {
       triggerId,
       activationState,
     });
+
+    if (wrapper.heartbeat?.interval) {
+      await Workflow.update(context, workflow.id, {
+        wf_is_polling: true,
+        wf_is_polling_heartbeat: true,
+        wf_polling_interval: wrapper.heartbeat?.interval,
+        wf_next_polling_at: dayjs()
+          .startOf('minute')
+          .add(wrapper.heartbeat?.interval, 'seconds')
+          .unix(),
+      });
+    }
   }
 
   /**
@@ -905,6 +918,12 @@ export class WorkflowsService implements OnModuleInit {
           },
           trigger.activationState,
         );
+        await Workflow.update(context, workflow.id, {
+          wf_is_polling: false,
+          wf_is_polling_heartbeat: false,
+          wf_polling_interval: null,
+          wf_next_polling_at: null,
+        });
       } catch (error) {
         console.error(
           `[Workflow] Failed to deactivate trigger for node ${trigger.nodeId}:`,

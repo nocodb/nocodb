@@ -8516,6 +8516,39 @@
               "formula": {
                 "type": "string",
                 "description": "Formula to execute"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
+                "description": "Color of the button"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
+                "description": "Theme of the button"
               }
             },
             "required": [
@@ -8538,6 +8571,39 @@
               "button_hook_id": {
                 "type": "string",
                 "description": "ID of the webhook to trigger"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
+                "description": "Color of the button"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
+                "description": "Theme of the button"
               }
             },
             "required": [
@@ -8567,6 +8633,11 @@
               },
               "theme": {
                 "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
                 "description": "Theme of the button"
               },
               "output_column_ids": {
@@ -8583,6 +8654,18 @@
               },
               "color": {
                 "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
                 "description": "Color of the button"
               }
             },
@@ -8607,6 +8690,39 @@
               "script_id": {
                 "type": "string",
                 "description": "ID of the script to trigger"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
+                "description": "Color of the button"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
+                "description": "Theme of the button"
               }
             },
             "required": [

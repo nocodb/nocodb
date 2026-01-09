@@ -45,6 +45,9 @@ const visibleEndIndex = ref(16)
 // Track loaded pages to avoid duplicate loading
 const loadedPages = ref(new Set<number>())
 
+// Track pages currently being loaded to avoid duplicate API calls
+const loadingPages = ref(new Set<number>())
+
 // Page size from dedupe system
 const PAGE_SIZE = currentGroupRecordsPaginationData.value.pageSize || 20
 
@@ -62,6 +65,7 @@ watch(
     clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
 
     loadedPages.value.clear()
+    loadingPages.value.clear()
     visibleStartIndex.value = 0
     visibleEndIndex.value = 20
 
@@ -123,14 +127,17 @@ const loadVisibleData = async () => {
   const pagesToLoad = new Set<number>()
   for (const rowIndex of rowIndexes) {
     const pageIndex = Math.floor(rowIndex / PAGE_SIZE)
-    if (!loadedPages.value.has(pageIndex)) {
+    if (!loadedPages.value.has(pageIndex) && !loadingPages.value.has(pageIndex)) {
       pagesToLoad.add(pageIndex)
     }
   }
 
   // Load required pages
-  if (pagesToLoad.size > 0 && loadedPages.value.size) {
+  if (pagesToLoad.size > 0) {
     const loadPromises = Array.from(pagesToLoad).map(async (pageIndex) => {
+      // Mark page as loading
+      loadingPages.value.add(pageIndex)
+
       try {
         const records = await loadData({
           limit: PAGE_SIZE,
@@ -145,6 +152,9 @@ const loadVisibleData = async () => {
         loadedPages.value.add(pageIndex)
       } catch (error) {
         console.error(`Failed to load page ${pageIndex}:`, error)
+      } finally {
+        // Remove from loading set regardless of success/failure
+        loadingPages.value.delete(pageIndex)
       }
     })
 

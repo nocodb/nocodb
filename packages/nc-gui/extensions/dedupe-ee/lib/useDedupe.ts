@@ -1,4 +1,4 @@
-import type { ColumnType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
   UITypes,
   ViewTypes,
@@ -9,6 +9,8 @@ import {
   parseCheckboxValue,
   parseJsonValue,
   parseUserValue,
+  PermissionEntity,
+  PermissionKey,
 } from 'nocodb-sdk'
 import axios from 'axios'
 import type { DedupeConfig, MergeState } from './context'
@@ -36,6 +38,10 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     useExtensionHelperOrThrow()
 
   const { clone } = useUndoRedo()
+
+  const { isAllowed } = usePermissions()
+
+  const { getMeta } = useMetas()
 
   // State
   const scrollContainer = ref<HTMLElement>()
@@ -126,6 +132,13 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         if (isSystemColumn(col) || col.id === selectedField.value?.id) return false
         return true
       })
+      .map((col) => ({
+        ...col,
+        permission: {
+          supported: isColumnMergeSupported(col).supported,
+          tooltip: isColumnMergeSupported(col).tooltip,
+        },
+      }))
       .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
   })
 
@@ -564,15 +577,69 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     try {
       const mergedData: Record<string, any> = {}
 
-      const primaryRecord = cachedRows.value.get(mergeState.value.primaryRecordIndex!)
+      const primaryRecord = clone(cachedRows.value.get(mergeState.value.primaryRecordIndex!))
+
+      const linkPromises = []
 
       for (const field of fields.value) {
-        if (isVirtualCol(field)) continue
+        if (!field.permission.supported) continue
 
         const fieldKey = field.title || field.id
         if (!fieldKey) continue
 
-        mergedData[fieldKey] = primaryRecordRowInfo.value.row[fieldKey]
+        if (isBt(field)) {
+          if (mergeState.value.selectedFields[field.id!] === undefined) continue
+
+          const foreignKeyColumn = meta.value?.columns?.find(
+            (column: ColumnType) => column.id === (field.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+          )!
+
+          const relatedBaseId = (field.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta?.value?.base_id
+
+          const relatedTableMeta = await getMeta(
+            relatedBaseId as string,
+            (field.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+          )
+
+          mergedData[foreignKeyColumn.title!] = primaryRecordRowInfo.value.row[fieldKey]
+            ? extractPkFromRow(primaryRecordRowInfo.value.row[fieldKey], (relatedTableMeta as any)!.columns || [])
+            : null
+
+          mergedData[fieldKey] = primaryRecordRowInfo.value.row[fieldKey]
+        } else if (isMm(field)) {
+          const copyFromRow = clone(cachedRows.value.get(mergeState.value.selectedFields[field.id!]!))
+
+          if (!copyFromRow || !primaryRecord || mergeState.value.selectedFields[field.id!] === undefined) continue
+
+          linkPromises.push(
+            $api.internal.postOperation(
+              meta.value?.fk_workspace_id as string,
+              meta.value?.base_id as string,
+              {
+                operation: 'nestedDataListCopyPasteOrDeleteAll',
+                tableId: meta.value?.id as string,
+                columnId: field.id as string,
+                viewId: config.value.selectedViewId || '',
+              },
+              [
+                {
+                  operation: 'copy',
+                  rowId: extractPkFromRow(copyFromRow.row, meta.value?.columns as ColumnType[]),
+                  columnId: field.id,
+                  fk_related_model_id: (field.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+                },
+                {
+                  operation: 'paste',
+                  rowId: extractPkFromRow(primaryRecord.row, meta.value?.columns as ColumnType[]),
+                  columnId: field.id,
+                  fk_related_model_id: (field.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
+                },
+              ],
+            ),
+          )
+        } else {
+          mergedData[fieldKey] = primaryRecordRowInfo.value.row[fieldKey]
+        }
       }
 
       await updateData({
@@ -584,6 +651,8 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
           },
         ],
       })
+
+      await Promise.all(linkPromises)
 
       await deleteRecordsAfterMerge(recordIndicesToDelete)
 
@@ -680,6 +749,81 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     await loadGroupSets(false)
   }
 
+  function isColumnMergeSupported(col: ColumnType) {
+    const result = {
+      supported: true,
+      tooltip: '',
+    }
+
+    const isAllowToEdit = isAllowed(PermissionEntity.FIELD, col.id!, PermissionKey.RECORD_FIELD_EDIT)
+
+    if (col.readonly && meta.value?.synced) {
+      result.supported = false
+      result.tooltip = "Synced fields can't be merged"
+
+      return result
+    }
+
+    if (col.ai) {
+      result.supported = false
+      result.tooltip = "Auto increment column can't be merged"
+
+      return result
+    }
+
+    if (col.pk) {
+      result.supported = false
+      result.tooltip = "Primary key column can't be merged"
+
+      return result
+    }
+
+    if (isSystemColumn(col)) {
+      result.supported = false
+      result.tooltip = "System column can't be merged"
+
+      return result
+    }
+
+    if (isVirtualCol(col) && !isMm(col) && !isBt(col)) {
+      result.supported = false
+      result.tooltip = "Computed field can't be merged"
+
+      return result
+    }
+
+    if (isBt(col)) {
+      if (col?.meta?.custom) {
+        result.supported = false
+        result.tooltip = "Belongs to column with custom link can't be merged"
+
+        return result
+      }
+
+      const foreignKeyColumn = meta.value?.columns?.find(
+        (column: ColumnType) => column.id === (col.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
+      )
+
+      if (!foreignKeyColumn) {
+        result.supported = false
+        result.tooltip = "This belongs to column can't be merged"
+
+        return result
+      }
+    }
+
+    if (!isAllowToEdit) {
+      result.supported = false
+      result.tooltip = "You don't have permission to merge this field"
+
+      return result
+    }
+
+    result.supported = true
+
+    return result
+  }
+
   return {
     // State
     config,
@@ -740,6 +884,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     syncScrollTop: (newScrollTop: number) => {
       scrollTop.value = newScrollTop
     },
+    isColumnMergeSupported,
   }
 })
 

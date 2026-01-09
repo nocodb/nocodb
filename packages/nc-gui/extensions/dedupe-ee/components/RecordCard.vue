@@ -99,7 +99,7 @@ const handleClickField = (col: ColumnType) => {
     return
   }
 
-  if (isVirtualCol(col)) return
+  if (!col.permission.supported) return
 
   if (isPrimaryRecord.value && !ncIsUndefined(mergeState.value.selectedFields[col.id!])) {
     delete mergeState.value.selectedFields[col.id!]
@@ -202,23 +202,23 @@ const isFieldSelected = (col: ColumnType) => {
             :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
             class="nc-card-col-wrapper p-2 !border-none min-h-15"
             :class="{
-              'nc-field-selected': isFieldSelected(col) && !isMergeRecord && !isVirtualCol(col),
-              '!cursor-not-allowed': isVirtualCol(col),
-              'hidden': isVirtualCol(col) && hideComputedFields,
+              'nc-field-selected': isFieldSelected(col) && !isMergeRecord && col.permission.supported,
+              '!cursor-not-allowed': !col.permission.supported && !isMergeRecord,
+              'hidden': !col.permission.supported && hideComputedFields,
             }"
             @click="handleClickField(col)"
           >
             <NcTooltip
               hide-on-click
-              :disabled="!isVirtualCol(col) || record.rowMeta.isLoading"
+              :disabled="col.permission.supported || record.rowMeta.isLoading || isMergeRecord"
               class="w-full z-10 flex"
               :class="{
-                'pointer-events-none': !resetPointerEvent(record, col),
+                'pointer-events-none': col.permission.supported || isMergeRecord,
               }"
               placement="left"
               :arrow="false"
             >
-              <template #title> Computed field can't be merged </template>
+              <template #title> {{ col.permission.tooltip }} </template>
               <div class="flex flex-col rounded-lg w-full pointer-events-none">
                 <div class="flex flex-row w-full justify-start">
                   <div class="nc-card-col-header w-full !children:text-gray-500">

@@ -205,7 +205,7 @@ export const AILongTextCellRenderer: CellRenderer = {
     const { x: xOffset, y: yOffset } = renderMultiLineText(ctx, {
       x: x + padding,
       y,
-      text: value?.value || '',
+      text: value?.value?.toString() || '',
       maxWidth: width - padding * 2,
       fillStyle: getColor(themeV4Colors.gray['600']),
       height,

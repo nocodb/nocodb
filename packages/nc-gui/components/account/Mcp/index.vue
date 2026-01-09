@@ -43,12 +43,16 @@ const columns = [
     showOrderBy: true,
     dataIndex: 'title',
   },
-  {
-    key: 'workspace',
-    title: t('objects.workspace'),
-    minWidth: 200,
-    showOrderBy: false,
-  },
+  ...(isEeUI
+    ? [
+        {
+          key: 'workspace',
+          title: t('objects.workspace'),
+          minWidth: 200,
+          showOrderBy: false,
+        },
+      ]
+    : []),
   {
     key: 'base',
     title: t('objects.project'),

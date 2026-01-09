@@ -5,20 +5,49 @@ import {
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
+import { DBQueryClient } from 'src/dbQueryClient';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 
+export interface CommandPaletteResult {
+  wsAndBases: {
+    workspace_id: string;
+    workspace_title: string;
+    workspace_meta: string;
+    base_id: string;
+    base_title: string;
+    base_meta: string;
+    base_role: string;
+    base_order: string;
+  }[];
+  items: {
+    kind: string;
+    fk_workspace_id: string;
+    base_id: string;
+    item_id: string;
+    item_title: string;
+    item_type: string;
+    item_meta: string;
+    item_order: number;
+    item_sync: boolean | null;
+    item_parent_id: string;
+    result_order: string;
+    visibility_role: string;
+    visibility_disabled: string;
+  }[];
+}
 export async function getCommandPaletteForUserWorkspace(
   userId: string,
   workspaceId: string,
   ncMeta = Noco.ncMeta,
-) {
+): Promise<CommandPaletteResult> {
   const key = `${CacheScope.CMD_PALETTE}:${userId}:${workspaceId}`;
 
   let cmdData = await NocoCache.get('root', key, CacheGetType.TYPE_OBJECT);
 
   if (!cmdData) {
+    const dbQueryClient = DBQueryClient.get(ncMeta.knex.clientType());
     const rootQb = ncMeta
       .knexConnection(`${MetaTable.WORKSPACE} as ws`)
       .select(
@@ -60,115 +89,190 @@ export async function getCommandPaletteForUserWorkspace(
       })
       .andWhere(function () {
         this.where('b.deleted', false).orWhereNull('b.deleted');
-      });
+        this.andWhere('b.is_snapshot', false).orWhereNull('b.is_snapshot');
+      })
+      .orderBy([
+        { column: 'ws.title', order: 'asc' },
+        { column: 'b.order', order: 'asc' },
+      ]);
 
-    const qb = ncMeta.knexConnection
-      .select(
-        'root.workspace_id as workspace_id',
-        'root.workspace_title as workspace_title',
-        'root.workspace_meta as workspace_meta',
-        'root.base_id as base_id',
-        'root.base_title as base_title',
-        'root.base_meta as base_meta',
-        'root.base_role as base_role',
-        'root.base_order as base_order',
-        't.id as table_id',
-        't.title as table_title',
-        't.type as table_type',
-        't.meta as table_meta',
-        't.order as table_order',
-        't.synced as table_synced',
-        'v.id as view_id',
-        'v.title as view_title',
-        'v.type as view_type',
-        'v.meta as view_meta',
-        'v.order as view_order',
+    // Query 1: Get workspace and bases
+    const workspaceAndBases = (await rootQb).filter(
+      (wbs) => wbs.base_role !== ProjectRoles.NO_ACCESS,
+    );
 
-        's.id as script_id',
-        's.title as script_title',
-        's.meta as script_meta',
-        's.order as script_order',
+    const baseTables = dbQueryClient.temporaryTableRaw({
+      knex: ncMeta.knex,
+      data: workspaceAndBases,
+      alias: '_base_tbl',
+      fields: ['workspace_id', 'base_id', 'base_order', 'base_role'],
+    });
 
-        'd.id as dashboard_id',
-        'd.title as dashboard_title',
-        'd.meta as dashboard_meta',
-        'd.order as dashboard_order',
-
-        'w.id as workflow_id',
-        'w.title as workflow_title',
-        'w.meta as workflow_meta',
-        'w.order as workflow_order',
-      )
-      .from(rootQb.as('root'))
-      .innerJoin(`${MetaTable.MODELS} as t`, `t.base_id`, `root.base_id`)
-      .innerJoin(`${MetaTable.VIEWS} as v`, `v.fk_model_id`, `t.id`)
-      .leftJoin(`${MetaTable.MODEL_ROLE_VISIBILITY} as dm`, function () {
-        this.on(`dm.fk_view_id`, `=`, `v.id`).andOn(
-          `dm.role`,
-          `=`,
-          `root.base_role`,
-        );
-      })
-      .leftJoin(`${MetaTable.AUTOMATIONS} as s`, function () {
-        this.on(`s.base_id`, `=`, `root.base_id`)
-          .andOn(
-            ncMeta.knexConnection.raw(
-              `CASE
-            WHEN root.base_role IN ('${ProjectRoles.EDITOR}', '${ProjectRoles.CREATOR}', '${ProjectRoles.OWNER}') THEN 1
-            ELSE 0
-          END = 1`,
-            ),
-          )
-          .andOn(
-            `s.type`,
-            `=`,
-            ncMeta.knexConnection.raw('?', [AutomationTypes.SCRIPT]),
-          );
-      })
-      .leftJoin(`${MetaTable.AUTOMATIONS} as w`, function () {
-        this.on(`w.base_id`, `=`, `root.base_id`)
-          .andOn(
-            ncMeta.knexConnection.raw(
-              `CASE
-            WHEN root.base_role IN ('${ProjectRoles.CREATOR}', '${ProjectRoles.OWNER}') THEN 1
-            ELSE 0
-          END = 1`,
-            ),
-          )
-          .andOn(
-            `w.type`,
-            `=`,
-            ncMeta.knexConnection.raw('?', [AutomationTypes.WORKFLOW]),
-          );
-      })
-      .leftJoin(`${MetaTable.MODELS} as d`, function (qb) {
-        qb.on(`d.base_id`, `=`, `root.base_id`);
-        qb.andOn(
-          `d.type`,
-          `=`,
-          ncMeta.knexConnection.raw('?', [ModelTypes.DASHBOARD]),
-        );
-      })
-      .where(function () {
-        this.where('t.mm', false).orWhereNull('t.mm');
-        this.whereNotIn('t.type', [ModelTypes.DASHBOARD]);
-      })
-      .andWhere(function () {
-        this.where('t.deleted', false).orWhereNull('t.deleted');
-      })
-      .andWhere(function () {
-        this.where('dm.disabled', false).orWhereNull('dm.disabled');
-      })
-      .andWhereNot(function () {
-        this.where('root.base_role', ProjectRoles.NO_ACCESS).orWhereNull(
-          'root.base_role',
-        );
-      });
-
-    cmdData = {
-      data: await qb,
+    const itemOrder = (itemField: string[]) => {
+      const itemFieldWithSeparator = [];
+      let isFirst = true;
+      for (const item of itemField) {
+        if (!isFirst) {
+          itemFieldWithSeparator.push("'_'");
+        }
+        itemFieldWithSeparator.push(item);
+        isFirst = false;
+      }
+      return dbQueryClient.concat([
+        '_base_tbl.base_order',
+        "'_'",
+        ...itemFieldWithSeparator,
+      ]);
     };
 
+    const itemQuery = ncMeta.knexConnection.raw(
+      `
+          -- Tables
+          SELECT
+            'model' as kind,
+            t.base_id,
+            t.fk_workspace_id,
+            t.id as item_id,
+            t.title as item_title,
+            t.type as item_type,
+            t.meta as item_meta,
+            t.order as item_order,
+            t.synced as item_sync,
+            NULL as item_parent_id,
+            ${itemOrder(['t.order'])} as result_order,
+            NULL as visibility_role,
+            NULL as visibility_disabled
+          FROM ${MetaTable.MODELS} as t
+            INNER JOIN ${baseTables}
+              ON t.base_id = _base_tbl.base_id
+              AND t.fk_workspace_id = _base_tbl.workspace_id
+          WHERE (t.mm = false OR t.mm IS NULL)
+            AND t.type NOT IN (:type_dashboard)
+            AND (t.deleted = false OR t.deleted IS NULL)
+          
+          UNION ALL
+
+          -- Views
+          SELECT 
+            'view' as kind,
+            t.base_id,
+            t.fk_workspace_id,
+            v.id as item_id,
+            v.title as item_title,
+            ${dbQueryClient.simpleCast('v.type', 'TEXT')} as item_type,
+            v.meta as item_meta,
+            v.order as item_order,
+            NULL as item_sync,
+            v.fk_model_id as item_parent_id,
+            ${itemOrder(['t.order', 'v.order'])} as result_order,
+            dm.role as visibility_role,
+            dm.disabled as visibility_disabled
+          FROM ${MetaTable.MODELS} as t
+            INNER JOIN ${baseTables}
+              ON t.base_id = _base_tbl.base_id
+              AND t.fk_workspace_id = _base_tbl.workspace_id
+            INNER JOIN ${MetaTable.VIEWS} as v 
+              ON v.fk_model_id = t.id
+              AND v.base_id = t.base_id
+              AND v.fk_workspace_id = t.fk_workspace_id
+            LEFT JOIN ${
+              MetaTable.MODEL_ROLE_VISIBILITY
+            } as dm ON dm.fk_view_id = v.id
+          WHERE (t.mm = false OR t.mm IS NULL)
+            AND t.type NOT IN (:type_dashboard)
+            AND (t.deleted = false OR t.deleted IS NULL)
+            AND (dm.disabled = false OR dm.disabled IS NULL)
+          
+          UNION ALL
+          
+          -- Scripts
+          SELECT 
+            'script' as kind,
+            s.base_id,
+            s.fk_workspace_id,
+            s.id as item_id,
+            s.title as item_title,
+            NULL as item_type,
+            s.meta as item_meta,
+            s.order as item_order,
+            NULL as item_sync,
+            NULL as item_parent_id,
+            ${itemOrder(['s.order'])} as result_order,
+            NULL as visibility_role,
+            NULL as visibility_disabled
+          FROM ${MetaTable.AUTOMATIONS} as s
+            INNER JOIN ${baseTables}
+              ON s.base_id = _base_tbl.base_id
+              AND s.fk_workspace_id = _base_tbl.workspace_id
+          WHERE s.type = :type_script
+            and _base_tbl.base_role IN ('${ProjectRoles.EDITOR}', '${
+        ProjectRoles.CREATOR
+      }', '${ProjectRoles.OWNER}')
+          
+          UNION ALL
+          
+          -- Dashboards
+          SELECT 
+            'dashboard' as kind,
+            d.base_id,
+            d.fk_workspace_id,
+            d.id as item_id,
+            d.title as item_title,
+            d.type as item_type,
+            d.meta as item_meta,
+            d.order as item_order,
+            NULL as item_sync,
+            NULL as item_parent_id,
+            ${itemOrder(['d.order'])} as result_order,
+            NULL as visibility_role,
+            NULL as visibility_disabled
+          FROM ${MetaTable.MODELS} as d
+            INNER JOIN ${baseTables}
+              ON d.base_id = _base_tbl.base_id
+              AND d.fk_workspace_id = _base_tbl.workspace_id
+          WHERE d.type = :type_dashboard
+          
+          UNION ALL
+          
+          -- Workflows
+          SELECT 
+            'workflow' as kind,
+            w.base_id,
+            w.fk_workspace_id,
+            w.id as item_id,
+            w.title as item_title,
+            NULL as item_type,
+            w.meta as item_meta,
+            w.order as item_order,
+            NULL as item_sync,
+            NULL as item_parent_id,
+            ${itemOrder(['w.order'])} as result_order,
+            NULL as visibility_role,
+            NULL as visibility_disabled
+          FROM ${MetaTable.AUTOMATIONS} as w
+            INNER JOIN ${baseTables}
+              ON w.base_id = _base_tbl.base_id
+              AND w.fk_workspace_id = _base_tbl.workspace_id
+          WHERE w.type = :type_workflow
+            and _base_tbl.base_role IN ('${ProjectRoles.CREATOR}', '${
+        ProjectRoles.OWNER
+      }')
+        `,
+      {
+        type_dashboard: ModelTypes.DASHBOARD,
+        type_workflow: AutomationTypes.WORKFLOW,
+        type_script: AutomationTypes.SCRIPT,
+      },
+    );
+    // Query 2: Get all items using UNION ALL
+    // we can improve further with object types but this should sufficient for now
+    const items = workspaceAndBases.length
+      ? await ncMeta.knexConnection.fromRaw(`(${itemQuery}) as t`).select('*')
+      : [];
+    cmdData = {
+      wsAndBases: workspaceAndBases,
+      items,
+    };
     await NocoCache.set('root', key, cmdData);
     // append to lists for later cleanup
     await NocoCache.set('root', `${CacheScope.CMD_PALETTE}:ws:${workspaceId}`, [
@@ -179,19 +283,15 @@ export async function getCommandPaletteForUserWorkspace(
     ]);
   }
 
-  // order by base_order, table_order, view_order
-  return cmdData?.data?.sort((a, b) => {
-    if (a.base_order !== b.base_order) {
-      return (a.base_order ?? Infinity) - (b.base_order ?? Infinity);
-    }
-    if (a.table_order !== b.table_order) {
-      return (a.table_order ?? Infinity) - (b.table_order ?? Infinity);
-    }
-    if (a.view_order !== b.view_order) {
-      return (a.view_order ?? Infinity) - (b.view_order ?? Infinity);
-    }
-    return 0;
-  });
+  // order by kind, result_order
+  return {
+    wsAndBases: cmdData?.wsAndBases,
+    items: cmdData?.items?.sort((a, b) =>
+      `${a.kind}_${a.result_order}`.localeCompare(
+        `${b.kind}_${b.result_order}`,
+      ),
+    ),
+  };
 }
 
 export async function cleanCommandPaletteCache(workspaceId: string) {

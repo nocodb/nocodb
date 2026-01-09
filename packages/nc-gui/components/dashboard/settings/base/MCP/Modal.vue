@@ -62,7 +62,9 @@ const serverName = computed(() => {
   let title = ''
 
   if (props.showWorkspaceBaseInfo) {
-    title = `NocoDB - ${token.value.workspace?.title || 'Workspace'} - ${token.value.base?.title || 'Base'}`
+    title = isEeUI
+      ? `NocoDB ${token.value.workspace?.title || 'Workspace'} - ${token.value.base?.title || 'Base'}`
+      : `NocoDB - ${token.value.base?.title || 'Base'}`
   } else {
     title = `NocoDB Base - ${openedProject.value?.title}`
   }
@@ -123,7 +125,7 @@ const code = computed(
 
           <!-- Workspace/Base Info (for account-level view) -->
           <div v-if="showWorkspaceBaseInfo" class="flex flex-col gap-2 p-4 bg-nc-bg-gray-extralight rounded-lg">
-            <div class="flex items-center gap-2">
+            <div v-if="isEeUI" class="flex items-center gap-2">
               <span class="text-sm font-semibold text-nc-content-gray-subtle">{{ $t('objects.workspace') }}:</span>
               <span class="text-sm text-nc-content-gray-subtle2">{{ token.workspace?.title || '-' }}</span>
             </div>

@@ -2978,7 +2978,7 @@ export function useCanvasRender({
           },
         )
 
-        if (appInfo.value?.ee && !appInfo.value.disableGroupByAggregation) {
+        if (!appInfo.value.disableGroupByAggregation) {
           const { start: startColIndex, end: endColIndex } = colSlice.value
           const visibleCols = columns.value.slice(startColIndex, endColIndex)
 

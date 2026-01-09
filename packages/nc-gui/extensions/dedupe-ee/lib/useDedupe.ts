@@ -1,5 +1,7 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import {
+  PermissionEntity,
+  PermissionKey,
   UITypes,
   ViewTypes,
   getFirstNonPersonalView,
@@ -9,8 +11,6 @@ import {
   parseCheckboxValue,
   parseJsonValue,
   parseUserValue,
-  PermissionEntity,
-  PermissionKey,
 } from 'nocodb-sdk'
 import axios from 'axios'
 import type { DedupeConfig, MergeState } from './context'
@@ -590,7 +590,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
         if (isBt(field)) {
           if (mergeState.value.selectedFields[field.id!] === undefined) continue
 
-          const foreignKeyColumn = meta.value?.columns?.find(
+          const foreignKeyColumn = (meta.value?.columns || []).find(
             (column: ColumnType) => column.id === (field.colOptions as LinkToAnotherRecordType)?.fk_child_column_id,
           )!
 

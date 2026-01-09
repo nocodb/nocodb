@@ -74,10 +74,6 @@ const onClickMoreOption = (e: MouseEvent) => {
   e.target?.dispatchEvent(contextEvent)
 }
 
-const resetPointerEvent = (record: RowType, col: ColumnType) => {
-  return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)) || isVirtualCol(col)
-}
-
 const handleClick = () => {
   if (props.isMergeRecord || record.value.rowMeta.isLoading) return
 

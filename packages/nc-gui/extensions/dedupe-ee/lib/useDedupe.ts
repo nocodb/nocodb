@@ -117,7 +117,19 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
 
   const selectedField = computed(() => {
     if (!config.value.selectedFieldId) return null
-    return meta.value?.columns?.find((col) => col.id === config.value.selectedFieldId)
+    const field = meta.value?.columns?.find((col) => col.id === config.value.selectedFieldId)
+
+    if (!field) return field
+    ;(
+      field as ColumnType & {
+        permission: {
+          supported: boolean
+          tooltip: string
+        }
+      }
+    ).permission = { ...isColumnMergeSupported(field) }
+
+    return field
   })
 
   const selectedView = computed(() => {
@@ -134,10 +146,7 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
       })
       .map((col) => ({
         ...col,
-        permission: {
-          supported: isColumnMergeSupported(col).supported,
-          tooltip: isColumnMergeSupported(col).tooltip,
-        },
+        permission: { ...isColumnMergeSupported(col) },
       }))
       .sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
   })

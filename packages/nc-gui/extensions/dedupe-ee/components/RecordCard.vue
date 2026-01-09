@@ -18,7 +18,7 @@ const {
   contextMenuTarget,
   mergeState,
   hideComputedFields,
-  fields,
+  fields: _fields,
   setPrimaryRecord,
   selectFieldValue,
 } = useDedupeOrThrow()
@@ -28,6 +28,12 @@ provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
 provide(IsCalendarInj, ref(false))
 provide(RowHeightInj, ref(1 as const))
+
+const fields = computed(() => {
+  if (_fields.value.length === 0 && selectedField.value) return [selectedField.value]
+
+  return _fields.value
+})
 
 const isPrimaryRecord = computed(() => {
   return mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex!
@@ -95,7 +101,7 @@ const handleClickField = (col: ColumnType) => {
     return
   }
 
-  if (!col.permission.supported) return
+  if (!col.permission.supported || col.id === selectedField.value?.id) return
 
   if (isPrimaryRecord.value && !ncIsUndefined(mergeState.value.selectedFields[col.id!])) {
     delete mergeState.value.selectedFields[col.id!]
@@ -109,7 +115,7 @@ const handleClickField = (col: ColumnType) => {
 const isFieldSelected = (col: ColumnType) => {
   if (props.isMergeRecord || record.value.rowMeta.isLoading) return false
 
-  if (ncIsUndefined(mergeState.value.selectedFields[col.id!])) {
+  if (ncIsUndefined(mergeState.value.selectedFields[col.id!]) || col.id === selectedField.value?.id) {
     return mergeState.value.primaryRecordIndex === record.value.rowMeta.rowIndex!
   }
 
@@ -199,17 +205,17 @@ const isFieldSelected = (col: ColumnType) => {
             class="nc-card-col-wrapper p-2 !border-none min-h-15"
             :class="{
               'nc-field-selected': isFieldSelected(col) && !isMergeRecord && col.permission.supported,
-              '!cursor-not-allowed': !col.permission.supported && !isMergeRecord,
-              'hidden': !col.permission.supported && hideComputedFields,
+              '!cursor-not-allowed': !col.permission.supported && !isMergeRecord && col.id !== selectedField?.id,
+              'hidden': !col.permission.supported && hideComputedFields && col.id !== selectedField?.id,
             }"
             @click="handleClickField(col)"
           >
             <NcTooltip
               hide-on-click
-              :disabled="col.permission.supported || record.rowMeta.isLoading || isMergeRecord"
+              :disabled="col.permission.supported || record.rowMeta.isLoading || isMergeRecord || col.id === selectedField?.id"
               class="w-full z-10 flex"
               :class="{
-                'pointer-events-none': col.permission.supported || isMergeRecord,
+                'pointer-events-none': col.permission.supported || isMergeRecord || col.id === selectedField?.id,
               }"
               placement="left"
               :arrow="false"

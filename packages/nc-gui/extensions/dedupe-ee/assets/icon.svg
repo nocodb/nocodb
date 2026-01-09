@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="56" height="56" viewBox="0 0 56 56" fill="none">
+  
+  <!-- Duplicate cards stacked -->
+  <!-- Card 1 (back) -->
+  <rect x="12" y="16" width="18" height="24" rx="2"
+        fill="#DBEAFE" stroke="#93C5FD" stroke-width="1.5"/>
+  <rect x="15" y="20" width="12" height="2" rx="1" fill="#93C5FD" opacity="0.6"/>
+  <rect x="15" y="24" width="8" height="2" rx="1" fill="#93C5FD" opacity="0.6"/>
+  <rect x="15" y="28" width="10" height="2" rx="1" fill="#93C5FD" opacity="0.6"/>
+
+  <!-- Card 2 (front) -->
+  <rect x="16" y="14" width="18" height="24" rx="2"
+        fill="#BFDBFE" stroke="#60A5FA" stroke-width="1.5"/>
+  <rect x="19" y="18" width="12" height="2" rx="1" fill="#60A5FA" opacity="0.7"/>
+  <rect x="19" y="22" width="8" height="2" rx="1" fill="#60A5FA" opacity="0.7"/>
+  <rect x="19" y="26" width="10" height="2" rx="1" fill="#60A5FA" opacity="0.7"/>
+
+  <!-- Merge arrow (lighter) -->
+  <path d="M26 26H30"
+        stroke="#3B82F6" stroke-width="1.33"
+        stroke-linecap="round"/>
+  <path d="M28 24L30 26L28 28"
+        stroke="#3B82F6" stroke-width="1.33"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Result card -->
+  <rect x="32" y="12" width="18" height="24" rx="2"
+        fill="#3B82F6" stroke="#2563EB" stroke-width="1.5"/>
+  <rect x="35" y="16" width="12" height="2" rx="1" fill="white" opacity="0.7"/>
+  <rect x="35" y="20" width="8" height="2" rx="1" fill="white" opacity="0.7"/>
+  <rect x="35" y="24" width="10" height="2" rx="1" fill="white" opacity="0.7"/>
+
+  <!-- Small green success tick (top-right) -->
+  <circle cx="49" cy="12" r="3.5" fill="#22C55E"/>
+  <path d="M47.8 12L48.8 13L50.8 10.8"
+        stroke="white" stroke-width="1.33"
+        stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

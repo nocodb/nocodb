@@ -278,7 +278,7 @@ export function useViewData(
       if (error?.response?.data?.error === 'FORMULA_ERROR') {
         message.error(await extractSdkResponseErrorMsg(error))
 
-        await tablesStore.reloadTableMeta(metaId.value as string)
+        await tablesStore.reloadTableMeta(metaId.value as string, meta.value?.base_id)
 
         return loadData(params, shouldShowLoading)
       }

@@ -261,4 +261,14 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
     context: WorkflowActivationContext,
     state?: WorkflowActivationState
   ): Promise<void>;
+
+  /**
+   * Triggers a heartbeat for the trigger node in a workflow, signaling liveness to external triggers.
+   * 
+   * @param context - Same context from activation
+   * @param state - The state object returned from onActivateHook()
+   */ 
+  public async heartbeat?(
+    context: WorkflowActivationContext,
+    state?: WorkflowActivationState): Promise<WorkflowActivationState>;
 }

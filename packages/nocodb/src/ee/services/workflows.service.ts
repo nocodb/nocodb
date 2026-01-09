@@ -820,6 +820,7 @@ export class WorkflowsService implements OnModuleInit {
     });
 
     if (!activationState) return;
+    activationState._webhookUrl = webhookUrl;
 
     // Track trigger in Workflow model with triggerId for routing
     await Workflow.trackExternalTrigger(context, workflow.id, {

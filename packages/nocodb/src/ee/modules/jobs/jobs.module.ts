@@ -3,24 +3,24 @@ import {
   JobsModule as JobsModuleCE,
   JobsModuleMetadata,
 } from 'src/modules/jobs/jobs.module';
-import { UpdateStatsProcessor } from '~/modules/jobs/jobs/update-stats/update-stats.processor';
-import { CleanUpProcessor } from '~/modules/jobs/jobs/clean-up/clean-up.processor';
+import { NocoSyncModule } from '~/integrations/sync/module/sync.module';
+import { ActionExecutionProcessor } from '~/modules/jobs/jobs/action-execution.processor';
 import { CleanUpController } from '~/modules/jobs/jobs/clean-up/clean-up.controller';
-import { WorkerController } from '~/modules/jobs/worker/worker.controller';
+import { CleanUpProcessor } from '~/modules/jobs/jobs/clean-up/clean-up.processor';
+import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
+import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
+import { SandboxExperimentController } from '~/modules/jobs/jobs/export-import/sandbox-experiment.controller';
 import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor';
+import { ReseatSubscriptionProcessor } from '~/modules/jobs/jobs/reseat-subscription.processor';
 import { SnapshotController } from '~/modules/jobs/jobs/snapshot/snapshot.controller';
 import { SnapshotProcessor } from '~/modules/jobs/jobs/snapshot/snapshot.processor';
-import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
+import { UpdateStatsProcessor } from '~/modules/jobs/jobs/update-stats/update-stats.processor';
 import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stats.processor';
-import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
-import { ActionExecutionProcessor } from '~/modules/jobs/jobs/action-execution.processor';
-import { ReseatSubscriptionProcessor } from '~/modules/jobs/jobs/reseat-subscription.processor';
+import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow/workflow-resume.processor';
+import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow/workflow-schedule.processor';
 import { WorkflowProcessor } from '~/modules/jobs/jobs/workflow/workflow.processor';
-import { NocoSyncModule } from '~/integrations/sync/module/sync.module';
+import { WorkerController } from '~/modules/jobs/worker/worker.controller';
 import { PaymentModule } from '~/modules/payment/payment.module';
-import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow-schedule.processor';
-import { SandboxExperimentController } from '~/modules/jobs/jobs/export-import/sandbox-experiment.controller';
-import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow-resume.processor';
 
 @Module({
   ...JobsModuleMetadata,

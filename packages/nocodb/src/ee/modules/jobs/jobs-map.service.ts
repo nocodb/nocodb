@@ -26,8 +26,8 @@ import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.pr
 import { ActionExecutionProcessor } from '~/modules/jobs/jobs/action-execution.processor';
 import { ReseatSubscriptionProcessor } from '~/modules/jobs/jobs/reseat-subscription.processor';
 import { WorkflowProcessor } from '~/modules/jobs/jobs/workflow/workflow.processor';
-import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow-schedule.processor';
-import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow-resume.processor';
+import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow/workflow-schedule.processor';
+import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow/workflow-resume.processor';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {

@@ -10,6 +10,7 @@ import { MetaTable } from '~/utils/globals';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { Base } from '~/models';
+import { WorkflowPollingService } from '~/modules/jobs/jobs/workflow/workflow-polling.service';
 
 @Injectable()
 export class WorkflowScheduleProcessor {
@@ -17,11 +18,21 @@ export class WorkflowScheduleProcessor {
 
   constructor(
     @Inject('JobsService') private readonly jobsService: IJobsService,
+    private readonly workflowPollingService: WorkflowPollingService,
   ) {}
 
   async job() {
     this.logger.log('WorkflowScheduleProcessor job started');
 
+    await Promise.all([
+      this.scheduleCronTrigger(),
+      this.workflowPollingService.executePolling(),
+    ]);
+
+    this.logger.debug('WorkflowScheduleProcessor job completed');
+  }
+
+  async scheduleCronTrigger() {
     const ncMeta = Noco.ncMeta;
 
     const dueTriggers = await ncMeta
@@ -109,7 +120,5 @@ export class WorkflowScheduleProcessor {
         // Continue with other triggers
       }
     }
-
-    this.logger.debug('WorkflowCronScheduleProcessor job completed');
   }
 }

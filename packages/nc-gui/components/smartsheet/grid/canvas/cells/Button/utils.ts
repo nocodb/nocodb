@@ -194,7 +194,9 @@ export const getButtonColors = (
   color: 'brand' | 'red' | 'green' | 'maroon' | 'blue' | 'orange' | 'pink' | 'purple' | 'yellow' | 'gray',
   isHovered: boolean,
   isDisabled: boolean,
+  _getColor: GetColorType,
 ) => {
+  // Todo: dark mode colors
   const themeColors = buttonColorMap[theme]?.[color]
   if (!themeColors) {
     return isHovered && !isDisabled

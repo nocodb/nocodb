@@ -795,6 +795,13 @@ const [useProvideDedupe, useDedupe] = createInjectionState(() => {
     }
 
     if (isVirtualCol(col) && !isMm(col) && !isBt(col)) {
+      if (isOo(col) || isHm(col)) {
+        result.supported = false
+        result.tooltip = `Merge ${isOo(col) ? 'one to one' : 'has many'} fields is not supported yet`
+
+        return result
+      }
+
       result.supported = false
       result.tooltip = "Computed field can't be merged"
 

@@ -445,17 +445,7 @@ export default class BaseUser {
     // TODO implement CacheScope.USER_BASE
     const qb = ncMeta
       .knex(MetaTable.PROJECT)
-      .select(`${MetaTable.PROJECT}.id`)
-      .select(`${MetaTable.PROJECT}.title`)
-      .select(`${MetaTable.PROJECT}.prefix`)
-      .select(`${MetaTable.PROJECT}.status`)
-      .select(`${MetaTable.PROJECT}.description`)
-      .select(`${MetaTable.PROJECT}.meta`)
-      .select(`${MetaTable.PROJECT}.order`)
-      .select(`${MetaTable.PROJECT}.color`)
-      .select(`${MetaTable.PROJECT}.is_meta`)
-      .select(`${MetaTable.PROJECT}.created_at`)
-      .select(`${MetaTable.PROJECT}.updated_at`)
+      .select(`${MetaTable.PROJECT}.*`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)
       .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
       .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)

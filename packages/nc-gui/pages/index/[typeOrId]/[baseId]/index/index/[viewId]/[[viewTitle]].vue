@@ -16,9 +16,11 @@ watch(
   (viewId) => {
     /** wait until table list loads since meta load requires table list **/
     until(tables)
-      .toMatch((tables) => tables.length > 0)
+      .toMatch((tables) => {
+        return tables.length > 0
+      })
       .then(() => {
-        getMeta(route.params.baseId as string, viewId as string, undefined, undefined, undefined, true)
+        getMeta(baseStore.baseId as string, viewId as string, undefined, undefined, undefined, true)
       })
   },
   { immediate: true },

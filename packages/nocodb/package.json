@@ -147,7 +147,7 @@
     "react-dom": "^19.0.0",
     "redlock": "^5.0.0-beta.2",
     "reflect-metadata": "^0.2.2",
-    "request-filtering-agent": "^1.1.2",
+    "request-filtering-agent": "^2.0.0",
     "request-ip": "^3.3.0",
     "rfdc": "^1.4.1",
     "rxjs": "^7.8.1",

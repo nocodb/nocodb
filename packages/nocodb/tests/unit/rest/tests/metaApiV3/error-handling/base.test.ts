@@ -59,13 +59,11 @@ export default function () {
           })
           .expect(403);
 
+        expect(result.body.error).to.eq('ERR_FORBIDDEN');
         if (isEE) {
-          expect(result.body.error).to.eq('ERR_FORBIDDEN');
           expect(
             result.body.message.startsWith('Forbidden - Unauthorized access'),
           ).to.eq(true);
-        } else {
-          expect(result.body.error).to.eq('ERR_PERMISSION_DENIED');
         }
       });
 

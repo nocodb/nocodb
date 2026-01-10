@@ -9,6 +9,7 @@ import errorHandlingMetaTestsV3 from './error-handling/index.test';
 import workspaceUsersTest from './workspaceUsers.test';
 import scriptsTestV3 from './scripts.test';
 import tableVisibilityPermissionsTestV3 from './table-visibility-permissions.test';
+import { isEE } from '../../../utils/helpers';
 // import teamPermissionsTestV3 from './team-permissions.test';
 // import teamPermissionBehaviorTestV3 from './team-permission-behavior.test';
 // import teamsTestV3 from './teams.test';
@@ -21,7 +22,9 @@ export default runOnSet(2, function () {
   tableTestV3();
   viewTestV3();
   columnTestV3();
-  uniqueConstraintTestV3();
+  if (isEE()) {
+    uniqueConstraintTestV3();
+  }
   errorHandlingMetaTestsV3();
   workspaceUsersTest();
   scriptsTestV3();

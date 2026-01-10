@@ -327,7 +327,7 @@ onBeforeUnmount(() => {
             commentItem.id,
           ]"
           class="nc-comment-item"
-          @mouseover="handleResetHoverEffect"
+          @pointerover="handleResetHoverEffect"
         >
           <div
             :class="{

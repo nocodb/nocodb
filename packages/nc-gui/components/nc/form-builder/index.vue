@@ -239,7 +239,7 @@ watch(
                         <a-divider style="margin: 4px 0" />
                         <div
                           class="px-1.5 flex items-center text-brand-500 text-sm cursor-pointer"
-                          @mousedown.prevent
+                          @pointerdown.prevent
                           @click="handleAddNewConnection(field.model)"
                         >
                           <div class="w-full flex items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">

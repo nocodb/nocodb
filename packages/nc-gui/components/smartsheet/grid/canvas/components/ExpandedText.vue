@@ -46,7 +46,7 @@ const onMouseMove = (e: MouseEvent) => {
   }
 }
 
-const onMouseUp = (e: MouseEvent) => {
+const onPointerUp = (e: MouseEvent | PointerEvent) => {
   if (!isDragging.value) return
 
   e.stopPropagation()
@@ -55,11 +55,12 @@ const onMouseUp = (e: MouseEvent) => {
   position.value = undefined
   mousePosition.value = undefined
 
-  document.removeEventListener('mousemove', onMouseMove)
-  document.removeEventListener('mouseup', onMouseUp)
+  document.removeEventListener('pointermove', onMouseMove)
+  document.removeEventListener('pointerup', onPointerUp)
+  document.removeEventListener('pointercancel', onPointerUp)
 }
 
-const dragStart = (e: MouseEvent) => {
+const dragStart = (e: MouseEvent | PointerEvent) => {
   const dom = document.querySelector('.nc-long-text-expanded .ant-modal-content') as HTMLElement
   if (!dom) return
 
@@ -68,8 +69,9 @@ const dragStart = (e: MouseEvent) => {
     left: e.clientX - dom.getBoundingClientRect().left + 16,
   }
 
-  document.addEventListener('mousemove', onMouseMove)
-  document.addEventListener('mouseup', onMouseUp)
+  document.addEventListener('pointermove', onMouseMove)
+  document.addEventListener('pointerup', onPointerUp)
+  document.addEventListener('pointercancel', onPointerUp)
   isDragging.value = true
 }
 
@@ -208,7 +210,7 @@ const urls = replaceUrlsWithLink(result)
       <div
         v-if="column"
         class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-gray-100 overflow-hidden cursor-move select-none"
-        @mousedown="dragStart"
+        @pointerdown="dragStart"
       >
         <SmartsheetHeaderIcon :column="column" class="flex" />
 

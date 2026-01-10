@@ -720,18 +720,20 @@ const onResize = (event: MouseEvent) => {
 const onResizeEnd = () => {
   resizeDirection.value = null
   resizeRecord.value = null
-  document.removeEventListener('mousemove', onResize)
-  document.removeEventListener('mouseup', onResizeEnd)
+  document.removeEventListener('pointermove', onResize)
+  document.removeEventListener('pointerup', onResizeEnd)
+  document.removeEventListener('pointercancel', onResizeEnd)
 }
 
-const onResizeStart = (direction: 'right' | 'left', _event: MouseEvent, record: Row) => {
+const onResizeStart = (direction: 'right' | 'left', _event: MouseEvent | PointerEvent, record: Row) => {
   if (!isUIAllowed('dataEdit')) return
   if (record.rowMeta.range?.is_readonly) return
 
   resizeDirection.value = direction
   resizeRecord.value = record
-  document.addEventListener('mousemove', onResize)
-  document.addEventListener('mouseup', onResizeEnd)
+  document.addEventListener('pointermove', onResize)
+  document.addEventListener('pointerup', onResizeEnd)
+  document.addEventListener('pointercancel', onResizeEnd)
 }
 
 const onDrag = (event: MouseEvent) => {
@@ -746,7 +748,7 @@ const onDrag = (event: MouseEvent) => {
   calculateNewRow(event)
 }
 
-const stopDrag = (event: MouseEvent) => {
+const stopDrag = (event: MouseEvent | PointerEvent) => {
   event.preventDefault()
   clearTimeout(dragTimeout.value!)
   if (!isUIAllowed('dataEdit') || !isDragging.value || !container.value || !dragRecord.value) return
@@ -768,11 +770,12 @@ const stopDrag = (event: MouseEvent) => {
 
   $e('c:calendar:day:drag-record')
 
-  document.removeEventListener('mousemove', onDrag)
-  document.removeEventListener('mouseup', stopDrag)
+  document.removeEventListener('pointermove', onDrag)
+  document.removeEventListener('pointerup', stopDrag)
+  document.removeEventListener('pointercancel', stopDrag)
 }
 
-const dragStart = (event: MouseEvent, record: Row) => {
+const dragStart = (event: MouseEvent | PointerEvent, record: Row) => {
   if (isSyncedFromColumn.value) return
 
   let target = event.target as HTMLElement
@@ -792,19 +795,20 @@ const dragStart = (event: MouseEvent, record: Row) => {
     dragRecord.value = record
     dragElement.value = target
 
-    document.addEventListener('mousemove', onDrag)
-    document.addEventListener('mouseup', stopDrag)
+    document.addEventListener('pointermove', onDrag)
+    document.addEventListener('pointerup', stopDrag)
+    document.addEventListener('pointercancel', stopDrag)
   }, 200)
 
-  const onMouseUp = () => {
+  const onPointerUp = () => {
     clearTimeout(dragTimeout.value!)
-    document.removeEventListener('mouseup', onMouseUp)
+    document.removeEventListener('pointerup', onPointerUp)
     if (!isDragging.value) {
       emit('expandRecord', record)
     }
   }
 
-  document.addEventListener('mouseup', onMouseUp)
+  document.addEventListener('pointerup', onPointerUp)
 }
 
 // We support drag and drop from the sidebar to the day view of the date field
@@ -1196,9 +1200,9 @@ const expandRecord = (record: Row) => {
                     : 0.3,
               }"
               class="absolute draggable-record transition group cursor-pointer pointer-events-auto"
-              @mousedown="dragStart($event, record)"
-              @mouseleave="hoverRecord = null"
-              @mouseover="hoverRecord = record.rowMeta.id as string"
+              @pointerdown="dragStart($event, record)"
+              @pointerleave="hoverRecord = null"
+              @pointerover="hoverRecord = record.rowMeta.id as string"
               @dragover.prevent
             >
               <LazySmartsheetRow :row="record">

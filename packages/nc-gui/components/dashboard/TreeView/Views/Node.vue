@@ -334,8 +334,8 @@ watch(isDropdownOpen, async () => {
           v-e="['c:view:emoji-picker']"
           class="flex min-w-6"
           :data-testid="`view-sidebar-drag-handle-${vModel.alias || vModel.title}`"
-          @mouseenter="showViewNodeTooltip = false"
-          @mouseleave="showViewNodeTooltip = true"
+          @pointerenter="showViewNodeTooltip = false"
+          @pointerleave="showViewNodeTooltip = true"
         >
           <LazyGeneralEmojiPicker
             class="nc-table-icon"
@@ -418,8 +418,8 @@ watch(isDropdownOpen, async () => {
           <NcTooltip
             v-if="vModel.description?.length"
             placement="bottom"
-            @mouseenter="showViewNodeTooltip = false"
-            @mouseleave="showViewNodeTooltip = true"
+            @pointerenter="showViewNodeTooltip = false"
+            @pointerleave="showViewNodeTooltip = true"
           >
             <template #title>
               <div class="whitespace-pre-wrap break-words">{{ vModel.description }}</div>
@@ -442,8 +442,8 @@ watch(isDropdownOpen, async () => {
               }"
               @click.stop="isDropdownOpen = !isDropdownOpen"
               @dblclick.stop
-              @mouseenter="showViewNodeTooltip = false"
-              @mouseleave="showViewNodeTooltip = true"
+              @pointerenter="showViewNodeTooltip = false"
+              @pointerleave="showViewNodeTooltip = true"
             >
               <GeneralIcon icon="threeDotHorizontal" class="text-xl w-4.75" />
             </NcButton>

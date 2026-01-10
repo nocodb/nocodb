@@ -350,6 +350,7 @@ watch(
           handle=".base-title-node"
           ghost-class="ghost"
           :filter="isTouchEvent"
+          :prevent-on-filter="false"
           @change="onMove($event)"
         >
           <template #item="{ element: baseItem }">

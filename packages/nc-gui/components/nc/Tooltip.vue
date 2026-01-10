@@ -231,7 +231,7 @@ const onClick = () => {
         ...divStyles,
         ...attributes,
       }"
-      @mousedown="onClick"
+      @pointerdown="onClick"
     >
       <slot />
     </component>

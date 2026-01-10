@@ -67,7 +67,7 @@ watch(flipped, () => {
 </script>
 
 <template>
-  <div class="flip-card" @click="onClick" @mouseover="onHover(true)" @mouseleave="onHover(false)">
+  <div class="flip-card" @click="onClick" @pointerover="onHover(true)" @pointerleave="onHover(false)">
     <div
       class="flipper"
       :style="{ '--flip-duration': `${props.duration || 800}ms`, 'transform': flipped ? 'rotateY(180deg)' : '' }"

@@ -198,6 +198,7 @@ const initSortable = (el: HTMLElement) => {
     onStart: onSortStart,
     onEnd: onSortEnd,
     filter: isTouchEvent,
+    preventOnFilter: false,
     ...getDraggableAutoScrollOptions({ scrollSensitivity: 50 }),
   })
 }

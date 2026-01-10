@@ -353,8 +353,8 @@ const cellValue = computed(() => localState.value?.format(parseProp(column.value
         @blur="onBlur"
         @focus="onFocus"
         @keydown="handleKeydown($event, isOpen)"
-        @mouseup.stop
-        @mousedown.stop
+        @pointerup.stop
+        @pointerdown.stop
         @click="clickHandler"
         @input="handleUpdateValue"
       />

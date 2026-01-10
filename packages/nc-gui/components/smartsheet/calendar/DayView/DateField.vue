@@ -216,9 +216,9 @@ const newRecord = () => {
           class="mt-2"
           style="line-height: 18px"
           data-testid="nc-calendar-day-record-card"
-          @mouseleave="hoverRecord = null"
+          @pointerleave="hoverRecord = null"
           @click.prevent="emit('expandRecord', record)"
-          @mouseover="hoverRecord = record.rowMeta.id as string"
+          @pointerover="hoverRecord = record.rowMeta.id as string"
         >
           <LazySmartsheetRow :row="record">
             <LazySmartsheetCalendarRecordCard

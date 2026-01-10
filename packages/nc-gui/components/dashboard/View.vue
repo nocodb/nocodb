@@ -152,12 +152,12 @@ function onWindowResize(e?: any): void {
 }
 
 onMounted(() => {
-  document.addEventListener('mousemove', handleMouseMove)
+  document.addEventListener('pointermove', handleMouseMove)
   window.addEventListener('resize', onWindowResize)
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('mousemove', handleMouseMove)
+  document.removeEventListener('pointermove', handleMouseMove)
   window.removeEventListener('resize', onWindowResize)
 })
 

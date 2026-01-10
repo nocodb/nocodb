@@ -1015,8 +1015,8 @@ export function useCanvasTable({
   }
 
   const {
-    handleMouseMove: resizeMouseMove,
-    handleMouseDown: startResize,
+    handlePointerMove: resizePointerMove,
+    handlePointerDown: startResize,
     resizeableColumn,
     isResizing,
   } = useColumnResize(
@@ -1461,7 +1461,7 @@ export function useCanvasTable({
     elementMap,
     makeCellEditable,
     // Handler
-    resizeMouseMove,
+    resizePointerMove,
     startResize,
 
     // Mouse Selection

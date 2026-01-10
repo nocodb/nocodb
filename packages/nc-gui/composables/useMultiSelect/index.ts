@@ -309,7 +309,7 @@ export function useMultiSelect(
     return map
   })
 
-  function handleMouseOver(event: MouseEvent, row: number, col: number) {
+  function handleMouseOver(event: MouseEvent | PointerEvent, row: number, col: number) {
     if (isFillMode.value) {
       const rw = isArrayStructure ? (unref(data) as Row[])[row] : (unref(data) as Map<number, Row>).get(row)
 
@@ -344,7 +344,7 @@ export function useMultiSelect(
     event.preventDefault()
   }
 
-  function handleMouseDown(event: MouseEvent, row: number, col: number) {
+  function handleMouseDown(event: MouseEvent | PointerEvent, row: number, col: number) {
     // if there was a right click on selected range, don't restart the selection
     if (
       (event?.button !== MAIN_MOUSE_PRESSED || (event?.button === MAIN_MOUSE_PRESSED && event.ctrlKey)) &&
@@ -382,7 +382,7 @@ export function useMultiSelect(
     }
   }
 
-  const handleCellClick = (event: MouseEvent, row: number, col: number) => {
+  const handleCellClick = (event: MouseEvent | PointerEvent, row: number, col: number) => {
     // if shift key is pressed, don't change the active cell (unless there is no active cell)
     if (!event.shiftKey || activeCell.col === null || activeCell.row === null) {
       makeActive(row, col)
@@ -508,7 +508,7 @@ export function useMultiSelect(
     )
   }
 
-  const handleMouseUp = (_event: MouseEvent) => {
+  const handleMouseUp = (_event: MouseEvent | PointerEvent) => {
     if (isFillMode.value) {
       try {
         const localAiMode = Boolean(aiMode.value)
@@ -1815,7 +1815,7 @@ export function useMultiSelect(
     }
   }
 
-  function fillHandleMouseDown(event: MouseEvent) {
+  function fillHandleMouseDown(event: MouseEvent | PointerEvent) {
     if (event?.button !== MAIN_MOUSE_PRESSED) {
       return
     }
@@ -1867,10 +1867,10 @@ export function useMultiSelect(
   }
 
   useEventListener(document, 'keydown', handleKeyDown)
-  useEventListener(document, 'mouseup', handleMouseUp)
+  useEventListener(document, 'pointerup', handleMouseUp)
   useEventListener(document, 'paste', handlePaste)
 
-  useEventListener(fillHandle, 'mousedown', fillHandleMouseDown)
+  useEventListener(fillHandle, 'pointerdown', fillHandleMouseDown)
 
   return {
     isCellActive,

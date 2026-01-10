@@ -510,8 +510,8 @@ const minimizeMaxWidth = computed(() => {
             @focus="onFocus(true)"
             @blur="onBlur($event, true)"
             @keydown="handleKeydown($event, isOpen, true)"
-            @mouseup.stop
-            @mousedown.stop
+            @pointerup.stop
+            @pointerdown.stop
             @click.stop="clickHandler($event, true)"
             @input="handleUpdateValue($event, true)"
           />
@@ -541,8 +541,8 @@ const minimizeMaxWidth = computed(() => {
             @focus="onFocus(false)"
             @blur="onBlur($event, false)"
             @keydown="handleKeydown($event, open)"
-            @mouseup.stop
-            @mousedown.stop
+            @pointerup.stop
+            @pointerdown.stop
             @click.stop="clickHandler($event, false)"
             @input="handleUpdateValue($event, false)"
           />

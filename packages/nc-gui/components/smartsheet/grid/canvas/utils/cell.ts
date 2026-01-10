@@ -149,14 +149,21 @@ export const MouseClickType = {
   RIGHT_CLICK: 'right',
 } as const
 
-export function getMouseClickType(e: MouseEvent) {
+export function getMouseClickType(e: MouseEvent | PointerEvent) {
   if (e.button === 2) return MouseClickType.RIGHT_CLICK
 
-  if (e.ctrlKey && e.button === 0 && e.detail === 1) {
+  // For touch events (pointerType === 'touch'), detail might be 0 or undefined
+  const isTouch = 'pointerType' in e && e.pointerType === 'touch'
+
+  if (e.ctrlKey && e.button === 0 && (e.detail === 1 || (isTouch && e.detail === 0))) {
     return MouseClickType.RIGHT_CLICK
   }
 
   if (e.button === 0) {
+    // For touch events, treat detail=0 as single click since touch doesn't have native double-tap detection
+    if (isTouch && (e.detail === 0 || e.detail === undefined)) {
+      return MouseClickType.SINGLE_CLICK
+    }
     return e.detail === 1 ? MouseClickType.SINGLE_CLICK : MouseClickType.DOUBLE_CLICK
   }
 

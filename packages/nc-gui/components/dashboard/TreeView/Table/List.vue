@@ -120,6 +120,7 @@ const initSortable = (el: Element) => {
     },
     revertOnSpill: true,
     filter: isTouchEvent,
+    preventOnFilter: false,
     ...getDraggableAutoScrollOptions({ scrollSensitivity: 50 }),
   })
 }

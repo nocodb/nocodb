@@ -884,7 +884,7 @@ const validationErrorDisplay = computed(() => {
               'cursor-not-allowed': item.unsupported,
             }"
             @click.prevent.stop="!item.unsupported && appendText(item)"
-            @mouseenter="suggestionPreviewed = item"
+            @pointerenter="suggestionPreviewed = item"
           >
             <a-list-item-meta>
               <template #title>

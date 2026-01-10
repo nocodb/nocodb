@@ -138,8 +138,8 @@ const onTabPress = (e: KeyboardEvent) => {
     :tabindex="readOnly ? -1 : 0"
     class="nc-filter-value-select w-full focus:outline-transparent"
     :class="readOnly ? 'cursor-not-allowed pointer-events-none' : ''"
-    @mouseover="onMouseover"
-    @mouseleave="onMouseleave"
+    @pointerover="onMouseover"
+    @pointerleave="onMouseleave"
     @focus="onWrapperFocus"
   >
     <!-- eslint-disable vue/use-v-on-exact -->
@@ -160,7 +160,7 @@ const onTabPress = (e: KeyboardEvent) => {
       @keydown.tab="onTabPress"
       @keydown.alt.stop
       @selectstart.capture.stop
-      @mousedown.stop
+      @pointerdown.stop
     />
     <span v-else-if="vModel === null && showNull" class="nc-cell-field nc-null uppercase">{{ $t('general.null') }}</span>
     <div v-else-if="percentMeta.is_progress === true && vModel !== null && vModel !== undefined" class="px-2">

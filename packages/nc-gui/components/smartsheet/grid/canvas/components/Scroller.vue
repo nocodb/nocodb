@@ -197,35 +197,27 @@ const handleWheel = (e: WheelEvent) => {
   updateScroll(scrollTop.value + (canScrollVertically ? deltaY : 0), scrollLeft.value + (canScrollHorizontally ? deltaX : 0))
 }
 
-const startDragging = (axis: 'vertical' | 'horizontal', event: DragEvent | TouchEvent) => {
+const startDragging = (axis: 'vertical' | 'horizontal', event: PointerEvent) => {
   event.preventDefault()
   event.stopPropagation()
 
   isDragging.value = true
   currentDragAxis.value = axis
 
-  // normalize touch vs mouse
-  const clientY = (event as TouchEvent).touches ? (event as TouchEvent).touches[0].clientY : (event as MouseEvent).clientY
-  const clientX = (event as TouchEvent).touches ? (event as TouchEvent).touches[0].clientX : (event as MouseEvent).clientX
-
-  dragStartPosition.value = axis === 'vertical' ? clientY : clientX
+  dragStartPosition.value = axis === 'vertical' ? event.clientY : event.clientX
   dragStartScroll.value = axis === 'vertical' ? scrollTop.value : scrollLeft.value
 
-  // add both mouse + touch listeners
-  document.addEventListener('mousemove', handleDrag)
-  document.addEventListener('mouseup', stopDragging)
-  document.addEventListener('touchmove', handleDrag, { passive: false })
-  document.addEventListener('touchend', stopDragging)
+  // Use pointer events for unified input handling
+  document.addEventListener('pointermove', handleDrag)
+  document.addEventListener('pointerup', stopDragging)
+  document.addEventListener('pointercancel', stopDragging)
 }
 
-function handleDrag(event: MouseEvent | TouchEvent) {
+function handleDrag(event: PointerEvent) {
   if (!isDragging.value) return
 
-  // normalize again
-  const clientY = (event as TouchEvent).touches ? (event as TouchEvent).touches[0].clientY : (event as MouseEvent).clientY
-  const clientX = (event as TouchEvent).touches ? (event as TouchEvent).touches[0].clientX : (event as MouseEvent).clientX
-
-  const delta = currentDragAxis.value === 'vertical' ? clientY - dragStartPosition.value : clientX - dragStartPosition.value
+  const delta =
+    currentDragAxis.value === 'vertical' ? event.clientY - dragStartPosition.value : event.clientX - dragStartPosition.value
 
   const scrollRatio =
     currentDragAxis.value === 'vertical'
@@ -242,13 +234,13 @@ function handleDrag(event: MouseEvent | TouchEvent) {
     updateScroll(undefined, newScroll)
   }
 }
+
 function stopDragging() {
   isDragging.value = false
   currentDragAxis.value = null
-  document.removeEventListener('mousemove', handleDrag)
-  document.removeEventListener('mouseup', stopDragging)
-  document.removeEventListener('touchmove', handleDrag)
-  document.removeEventListener('touchend', stopDragging)
+  document.removeEventListener('pointermove', handleDrag)
+  document.removeEventListener('pointerup', stopDragging)
+  document.removeEventListener('pointercancel', stopDragging)
 }
 
 const handleTrackClick = (axis: 'vertical' | 'horizontal', event: any) => {
@@ -448,8 +440,9 @@ onUnmounted(() => {
   }
 })
 onBeforeUnmount(() => {
-  document.removeEventListener('mousemove', handleDrag)
-  document.removeEventListener('mouseup', stopDragging)
+  document.removeEventListener('pointermove', handleDrag)
+  document.removeEventListener('pointerup', stopDragging)
+  document.removeEventListener('pointercancel', stopDragging)
 })
 
 defineExpose({
@@ -488,8 +481,7 @@ defineExpose({
         ref="verticalScrollbar"
         class="custom-scrollbar-thumb vertical"
         :style="{ height: `${verticalThumbHeight}%`, transform: `translateY(${verticalThumbPosition}px)` }"
-        @mousedown="startDragging('vertical', $event)"
-        @touchstart.prevent="startDragging('vertical', $event)"
+        @pointerdown="startDragging('vertical', $event)"
       ></div>
     </div>
 
@@ -503,8 +495,7 @@ defineExpose({
         ref="horizontalScrollbar"
         class="custom-scrollbar-thumb horizontal"
         :style="{ width: `${horizontalThumbWidth}%`, transform: `translateX(${horizontalThumbPosition}px)` }"
-        @mousedown="startDragging('horizontal', $event)"
-        @touchstart.prevent="startDragging('horizontal', $event)"
+        @pointerdown="startDragging('horizontal', $event)"
       ></div>
     </div>
   </div>

@@ -246,7 +246,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                   @blur="handleBlur"
                   @keydown.stop
                   @selectstart.capture.stop
-                  @mousedown.stop
+                  @pointerdown.stop
                 />
               </a-form-item>
 
@@ -265,7 +265,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
                   @blur="handleBlur"
                   @keydown.stop
                   @selectstart.capture.stop
-                  @mousedown.stop
+                  @pointerdown.stop
                 />
               </a-form-item>
             </a-row>

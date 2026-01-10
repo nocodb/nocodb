@@ -111,7 +111,7 @@
     "fflate": "^0.8.2",
     "file-saver": "^2.0.5",
     "fuse.js": "^6.6.2",
-    "glob": "^10.4.5",
+    "glob": "^10.5.0",
     "grapheme-splitter": "^1.0.4",
     "grid-layout-plus": "^1.1.0",
     "html-entities": "^2.5.2",

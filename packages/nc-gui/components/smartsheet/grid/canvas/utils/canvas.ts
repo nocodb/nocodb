@@ -1506,6 +1506,7 @@ export function renderIconButton(
     borderColor = '#e7e7e9',
     setCursor,
     shadow = false,
+    spin,
   }: {
     buttonX: number
     buttonY: number
@@ -1520,6 +1521,10 @@ export function renderIconButton(
     borderColor?: string
     setCursor?: SetCursorType
     shadow?: boolean
+    spin?: {
+      startTime: number
+      speed?: number // 1 = 1 rotation per second
+    }
   },
 ) {
   const hovered = mousePosition && isBoxHovered({ x: buttonX, y: buttonY, height: buttonSize, width: buttonSize }, mousePosition)
@@ -1548,13 +1553,37 @@ export function renderIconButton(
 
   const { color = '#374151', xOffset = 4, yOffset = 4, size: iconSize = 16 } = iconData
 
-  spriteLoader.renderIcon(ctx, {
-    icon,
-    x: buttonX + xOffset,
-    y: buttonY + yOffset,
-    size: iconSize,
-    color,
-  })
+  const iconX = buttonX + xOffset
+  const iconY = buttonY + yOffset
+
+  if (spin) {
+    const { startTime, speed = 1 } = spin
+    const elapsed = (Date.now() - startTime) * speed
+    const rotation = ((elapsed % 1000) / 1000) * Math.PI * 2
+
+    ctx.save()
+    ctx.translate(iconX + iconSize / 2, iconY + iconSize / 2)
+    ctx.rotate(rotation)
+    ctx.translate(-iconSize / 2, -iconSize / 2)
+
+    spriteLoader.renderIcon(ctx, {
+      icon,
+      x: 0,
+      y: 0,
+      size: iconSize,
+      color,
+    })
+
+    ctx.restore()
+  } else {
+    spriteLoader.renderIcon(ctx, {
+      icon,
+      x: iconX,
+      y: iconY,
+      size: iconSize,
+      color,
+    })
+  }
 
   if (hovered) {
     setCursor?.('pointer')

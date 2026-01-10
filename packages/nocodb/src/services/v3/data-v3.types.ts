@@ -35,6 +35,24 @@ export interface DataUpdateRequest {
   fields: RecordField;
 }
 
+export interface DataUpsertRequest {
+  id?: string | number;
+  fields: RecordField;
+  matchBy?: string[];
+}
+
+export interface DataUpsertResponseRecord extends DataRecord {
+  operation: 'created' | 'updated';
+}
+
+export interface DataUpsertParams {
+  baseId?: string;
+  modelId: string;
+  viewId?: string;
+  body: DataUpsertRequest | DataUpsertRequest[];
+  cookie: any;
+}
+
 export interface DataDeleteRequest {
   id: string | number;
 }

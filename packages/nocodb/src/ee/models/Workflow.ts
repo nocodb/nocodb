@@ -49,7 +49,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
   order?: number;
 
   wf_is_polling?: boolean;
-  wf_polling_interval?: number;
+  wf_polling_cron?: string;
   wf_next_polling_at?: number;
   wf_is_polling_heartbeat?: boolean;
 
@@ -153,8 +153,8 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
   public static async getNextPollingWorkflows(ncMeta = Noco.ncMeta) {
     const workflows = await ncMeta
       .knexConnection(MetaTable.AUTOMATIONS)
-      .whereNotNull('wf_polling_interval')
-      .andWhere('wf_polling_interval', '>', 0)
+      .whereNotNull('wf_polling_cron')
+      .andWhere('wf_polling_cron', '!=', '')
       .andWhere('wf_is_polling', true)
       .andWhere('enabled', true)
       .andWhere((subQb) => {
@@ -232,7 +232,7 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       'updated_by',
       'wf_is_polling',
       'wf_is_polling_heartbeat',
-      'wf_polling_interval',
+      'wf_polling_cron',
       'wf_next_polling_at',
     ]);
 

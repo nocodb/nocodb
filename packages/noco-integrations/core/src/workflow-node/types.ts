@@ -2,7 +2,7 @@ import { IntegrationWrapper } from '../integration';
 import { AuthIntegration } from '../auth';
 import { NocoSDK } from '../sdk';
 import { IDataV3Service, ITablesService, IMailService } from './nocodb.interface';
-import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType, LoopContext, PollingIntervals } from 'nocodb-sdk'
+import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType, LoopContext } from 'nocodb-sdk'
 
 
 export interface WorkflowNodeLog {
@@ -263,7 +263,10 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
   ): Promise<void>;
 
   heartbeat?: {
-    interval: PollingIntervals;
+    /**
+     * Heartbeat interval, in a format of cron
+     */
+    cronExpression: string;
     /**
      * Triggers a heartbeat for the trigger node in a workflow, signaling liveness to external triggers.
      */

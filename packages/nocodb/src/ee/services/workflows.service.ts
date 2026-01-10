@@ -11,7 +11,6 @@ import {
 } from 'nocodb-sdk';
 import { nanoid } from 'nanoid';
 import { CronExpressionParser } from 'cron-parser';
-import dayjs from 'dayjs';
 import type { OnModuleInit } from '@nestjs/common';
 import type { IntegrationReqType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -831,15 +830,19 @@ export class WorkflowsService implements OnModuleInit {
       activationState,
     });
 
-    if (wrapper.heartbeat?.interval) {
+    if (wrapper.heartbeat?.cronExpression) {
+      // get nextPollingAt using cron expression
+      const nextPollingAt = Math.floor(
+        CronExpressionParser.parse(wrapper.heartbeat?.cronExpression)
+          .next()
+          .getTime() / 1000,
+      );
+
       await Workflow.update(context, workflow.id, {
         wf_is_polling: true,
         wf_is_polling_heartbeat: true,
-        wf_polling_interval: wrapper.heartbeat?.interval,
-        wf_next_polling_at: dayjs()
-          .startOf('minute')
-          .add(wrapper.heartbeat?.interval, 'seconds')
-          .unix(),
+        wf_polling_cron: wrapper.heartbeat?.cronExpression,
+        wf_next_polling_at: nextPollingAt,
       });
     }
   }
@@ -868,14 +871,23 @@ export class WorkflowsService implements OnModuleInit {
         currentDate: new Date(),
       },
     );
-    const nextSyncAt = interval.next().toISOString();
+    const nextSyncAt = interval.next();
 
-    await Workflow.trackExternalTrigger(context, workflow.id, {
-      nodeId: triggerNode.id,
-      nodeType: triggerNode.type,
-      nextSyncAt,
-      activationState,
-    });
+    if (triggerNode.type === 'core.trigger.cron') {
+      await Workflow.trackExternalTrigger(context, workflow.id, {
+        nodeId: triggerNode.id,
+        nodeType: triggerNode.type,
+        nextSyncAt: nextSyncAt.toISOString(),
+        activationState,
+      });
+    } else {
+      await Workflow.update(context, workflow.id, {
+        wf_is_polling: true,
+        wf_is_polling_heartbeat: false,
+        wf_polling_cron: activationState.cronExpression,
+        wf_next_polling_at: nextSyncAt.getTime(),
+      });
+    }
   }
 
   /**
@@ -921,7 +933,7 @@ export class WorkflowsService implements OnModuleInit {
         await Workflow.update(context, workflow.id, {
           wf_is_polling: false,
           wf_is_polling_heartbeat: false,
-          wf_polling_interval: null,
+          wf_polling_cron: null,
           wf_next_polling_at: null,
         });
       } catch (error) {

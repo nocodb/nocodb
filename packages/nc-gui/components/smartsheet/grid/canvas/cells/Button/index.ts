@@ -1,6 +1,5 @@
 import { ButtonActionsType, type ButtonType } from 'nocodb-sdk'
 import { defaultOffscreen2DContext, renderSpinner, truncateText } from '../../utils/canvas'
-import { getButtonColors } from './utils'
 
 const horizontalPadding = 12
 const buttonHeight = 24

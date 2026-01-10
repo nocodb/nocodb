@@ -32,7 +32,6 @@ import {
   Hook,
   Integration,
   Model,
-  Permission,
   Sort,
   Source,
   SyncSource,
@@ -133,6 +132,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         api_version: req.ncApiVersion,
         socket_id: req.ncSocketId,
         nc_site_url: req.ncSiteUrl,
+        permissions: [],
       };
 
       const mcpTokenId = params.mcpTokenId || query.mcpTokenId;
@@ -896,12 +896,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       nc_site_url: req.ncSiteUrl,
       timezone: context.timezone,
       is_api_token: req.user?.is_api_token,
+      permissions: [],
     };
-
-    // Load and cache permissions in context to avoid multiple fetches
-    if (req.ncBaseId && !isInternalWorkspaceScope) {
-      req.permissions = await Permission.list(req.context, req.ncBaseId);
-    }
 
     // Store table ID to check in context for ACL middleware to perform table visibility check
     if (tableIdToCheck) {

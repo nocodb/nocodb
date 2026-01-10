@@ -835,7 +835,7 @@ export class WorkflowsService implements OnModuleInit {
       const nextPollingAt = Math.floor(
         CronExpressionParser.parse(wrapper.heartbeat?.cronExpression)
           .next()
-          .getTime() / 1000,
+          .getTime(),
       );
 
       await Workflow.update(context, workflow.id, {

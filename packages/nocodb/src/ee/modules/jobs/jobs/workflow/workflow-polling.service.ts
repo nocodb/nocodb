@@ -33,8 +33,7 @@ export class WorkflowPollingService {
       }
       // get nextPollingAt using cron expression
       const nextPollingAt = Math.floor(
-        CronExpressionParser.parse(workflow.wf_polling_cron).next().getTime() /
-          1000,
+        CronExpressionParser.parse(workflow.wf_polling_cron).next().getTime(),
       );
 
       // update next polling time

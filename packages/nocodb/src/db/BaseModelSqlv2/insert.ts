@@ -92,11 +92,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
         let id;
         if (response?.length) {
           id = response[0];
-        } else {
-          const res = await baseModel.execAndParse(query, null, {
-            raw: true,
-          });
-          id = res?.id ?? res[0]?.insertId ?? res;
         }
 
         if (ai) {

@@ -120,16 +120,27 @@ jobs:
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
-      - name: Set CI env
-        run: export CI=true
       - name: setup pg
         working-directory: ./
-        run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d &
+        run: docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml up -d
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          echo "Waiting for PostgreSQL to be ready..."
+          for i in {1..30}; do
+            if docker-compose -f ./tests/playwright/scripts/docker-compose-playwright-pg.yml exec -T pg147 pg_isready -U postgres; then
+              echo "PostgreSQL is ready!"
+              break
+            fi
+            echo "Waiting for PostgreSQL... ($i/30)"
+            sleep 2
+          done
       - name: install dependencies
         run: pnpm bootstrap
       - name: run unit tests
         working-directory: ./packages/nocodb
         run: pnpm run test:unit:pg
+        env:
+          CI: true
 
   pre-build-for-playwright:
     uses: ./.github/workflows/pre-build-for-playwright.yml

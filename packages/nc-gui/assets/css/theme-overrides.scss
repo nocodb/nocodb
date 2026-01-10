@@ -266,6 +266,13 @@ body {
 
 // Dark theme specific style
 [theme='dark'] {
+  ::-moz-selection {
+    background-color: #3366ff40;
+  }
+  ::selection {
+    background-color: #3366ff40;
+  }
+
   /* Change autocomplete styles in WebKit */
   input:-webkit-autofill:not([type='checkbox']):not([type='radio']),
   input:-webkit-autofill:hover:not([type='checkbox']):not([type='radio']),

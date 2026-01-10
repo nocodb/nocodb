@@ -230,6 +230,10 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       'draft',
       'order',
       'updated_by',
+      'wf_is_polling',
+      'wf_is_polling_heartbeat',
+      'wf_polling_interval',
+      'wf_next_polling_at',
     ]);
 
     await ncMeta.metaUpdate(

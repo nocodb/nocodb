@@ -37,6 +37,43 @@ export const enumColors = {
   },
 };
 
+/**
+ * Colorblind-friendly color palettes optimized for users with color vision deficiencies.
+ * Based on Material Design colorblind-safe colors verified at davidmathlogic.com/colorblind
+ * Core colors: #D81B60 (Pink), #1E88E5 (Blue), #FFC107 (Yellow), #004D40 (Teal)
+ * These colors are distinguishable for deuteranopia, protanopia, and tritanopia.
+ */
+export const enumColorsColorblind = {
+  light: [
+    '#E3F2FD', // Light blue (tint of #1E88E5)
+    '#FFF9C4', // Light yellow (tint of #FFC107)
+    '#F8BBD0', // Light pink (tint of #D81B60)
+    '#E0F2F1', // Light teal (tint of #004D40)
+    '#FFECB3', // Light amber (variant of yellow)
+    '#ECEFF1', // Light grey (neutral)
+    '#FCE4EC', // Light rose (variant of pink)
+    '#B2EBF2', // Light cyan (variant of blue)
+    '#C8E6C9', // Light green (safe shade)
+    '#F5F5F5', // Neutral light grey
+  ],
+  dark: [
+    '#1E88E5', // Blue (core colorblind-safe)
+    '#FFC107', // Yellow (core colorblind-safe)
+    '#D81B60', // Pink/Magenta (core colorblind-safe)
+    '#004D40', // Dark Teal (core colorblind-safe)
+    '#F57C00', // Orange (complementary safe color)
+    '#999999', // Grey (neutral)
+    '#FDD835', // Bright yellow (variant)
+    '#0288D1', // Deep blue (variant)
+    '#C2185B', // Deep pink (variant)
+    '#00695C', // Teal green (variant)
+  ],
+  get: (theme: 'light' | 'dark', index: number) => {
+    index = Math.abs(index) % enumColorsColorblind[theme].length;
+    return enumColorsColorblind[theme][index];
+  },
+};
+
 export enum ViewTypes {
   FORM = 1,
   GALLERY = 2,

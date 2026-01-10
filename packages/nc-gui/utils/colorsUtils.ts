@@ -1,7 +1,7 @@
 import colors from 'windicss/colors'
-import { enumColors as enumColor } from 'nocodb-sdk'
+import { enumColors as enumColor, enumColorsColorblind } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
-export { enumColors as enumColor } from 'nocodb-sdk'
+export { enumColors as enumColor, enumColorsColorblind } from 'nocodb-sdk'
 
 export const theme = {
   light: ['#ffdce5', '#fee2d5', '#ffeab6', '#d1f7c4', '#ede2fe', '#eee', '#cfdffe', '#d0f1fd', '#c2f5e8', '#ffdaf6'],
@@ -379,6 +379,20 @@ export function isColorDark(hexColor: string) {
 
 export function getEnumColorByIndex(i: number, mode: 'light' | 'dark' = 'light') {
   return enumColor[mode][i % enumColor[mode].length]
+}
+
+export function getEnumColorByIndexColorblind(i: number, mode: 'light' | 'dark' = 'light') {
+  return enumColorsColorblind[mode][i % enumColorsColorblind[mode].length]
+}
+
+/**
+ * Get color palette based on colorblind mode preference
+ * @param colorblindMode - Whether to use colorblind-friendly colors
+ * @param mode - 'light' or 'dark' theme
+ * @returns Array of colors from the appropriate palette
+ */
+export function getColorPalette(colorblindMode: boolean, mode: 'light' | 'dark' = 'light') {
+  return colorblindMode ? enumColorsColorblind[mode] : enumColor[mode]
 }
 
 export const themeV4Colors = {

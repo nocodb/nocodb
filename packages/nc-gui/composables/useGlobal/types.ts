@@ -54,6 +54,7 @@ export interface StoredState {
   token: string | null
   lang: keyof typeof Language
   darkMode: boolean
+  colorblindMode: boolean
   filterAutoSave: boolean
   includeM2M: boolean
   showNull: boolean

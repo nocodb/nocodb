@@ -14,6 +14,10 @@ export class WorkflowPollingService {
     // get all workflows that have polling enabled
     const workflowWithPollings = await Workflow.getNextPollingWorkflows();
     for (const workflow of workflowWithPollings) {
+      const context = {
+        base_id: workflow.base_id,
+        workspace_id: workflow.fk_workspace_id,
+      };
       if (workflow.wf_is_polling_heartbeat) {
         // some trigger need heartbeat
         await this.jobsService.add(JobTypes.HeartbeatWorkflow, {
@@ -34,16 +38,9 @@ export class WorkflowPollingService {
       );
 
       // update next polling time
-      await Workflow.update(
-        {
-          base_id: workflow.base_id,
-          workspace_id: workflow.fk_workspace_id,
-        },
-        workflow.id,
-        {
-          wf_next_polling_at: nextPollingAt,
-        },
-      );
+      await Workflow.update(context, workflow.id, {
+        wf_next_polling_at: nextPollingAt,
+      });
     }
   }
 }

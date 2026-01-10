@@ -2969,6 +2969,7 @@ export class ColumnsService implements IColumnsService {
         context,
         existingColumn: column,
         action: 'delete',
+        ncMeta,
       });
 
     if ((column.system || isSystemColumn(column)) && !param.forceDeleteSystem) {

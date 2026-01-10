@@ -37,6 +37,7 @@ const isOpen = ref(false)
 
 const searchText = ref<string>('')
 
+const selectedUser =ref<User>()
 const pagination = reactive({
   total: 0,
   pageSize: 10,
@@ -46,7 +47,7 @@ const pagination = reactive({
 const loadUsers = useDebounceFn(async (page = currentPage.value, limit = currentLimit.value) => {
   currentPage.value = page
   try {
-    const response: any = await api.orgUsers.list({
+    const response: any = await api.orgUsers.orgUsersList({
       query: {
         limit,
         offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
@@ -73,7 +74,7 @@ onMounted(() => {
 
 const updateRole = async (userId: string, roles: string) => {
   try {
-    await api.orgUsers.update(userId, {
+    await api.orgUsers.orgUsersUpdate(userId, {
       roles,
     } as OrgUserReqType)
     message.success(t('msg.success.roleUpdated'))
@@ -157,11 +158,18 @@ const copyPasswordResetUrl = async (user: UserType) => {
 const openInviteModal = () => {
   showUserModal.value = true
   userMadalKey.value++
+  selectedUser.value=undefined
 }
 
 const openDeleteModal = (user: UserType) => {
   deleteModalInfo.value = user
   isOpen.value = true
+}
+const openUpdateModal = (user: User) => {
+    showUserModal.value = true
+    userMadalKey.value++
+    selectedUser.value=user
+    console.log('Editing user:', user)
 }
 
 const orderBy = computed<Record<string, SordDirectionType>>({
@@ -366,11 +374,19 @@ const userRoleOptions = [
                         </NcMenuItem>
                         <template v-if="el.id !== loggedInUser?.id">
                           <NcDivider v-if="!el.roles?.includes('super')" />
+                          <NcMenuItem data-rec="true"  @click="openUpdateModal(el)">
+                            <MaterialSymbolsEdit />
+                            {{ $t('general.update') }} {{ $t('objects.user') }}
+                          </NcMenuItem>
+                        </template>
+                        <template v-if="el.id !== loggedInUser?.id">
+                          <NcDivider v-if="!el.roles?.includes('super')" />
                           <NcMenuItem data-rec="true" danger @click="openDeleteModal(el)">
                             <MaterialSymbolsDeleteOutlineRounded />
                             {{ $t('general.remove') }} {{ $t('objects.user') }}
                           </NcMenuItem>
                         </template>
+                        
                       </template>
                     </NcMenu>
                   </template>
@@ -420,7 +436,7 @@ const userRoleOptions = [
             </template>
           </GeneralDeleteModal>
 
-          <AccountUsersModal :key="userMadalKey" :show="showUserModal" @closed="showUserModal = false" @reload="loadUsers" />
+          <AccountUsersModal :key="userMadalKey" :show="showUserModal" :selected-user="selectedUser" @closed="showUserModal = false" @reload="loadUsers" />
         </div>
       </div>
     </div>

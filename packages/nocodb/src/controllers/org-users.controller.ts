@@ -64,6 +64,23 @@ export class OrgUsersController {
     });
   }
 
+  @Patch('/api/v1/users/:userId/email')
+  @Acl('userEmailUpdate', {
+    scope: 'org',
+    allowedRoles: [OrgUserRoles.SUPER_ADMIN],
+    blockApiTokenAccess: true,
+  })
+  async userEmailUpdate(
+    @Body() body,
+    @Param('userId') userId: string,
+    @Request() req: NcRequest,
+  ) {
+    return await this.orgUsersService.updateUserEmail({
+      user: body,
+      userId,
+      req,
+    });
+  }
   @Delete('/api/v1/users/:userId')
   @Acl('userDelete', {
     scope: 'org',

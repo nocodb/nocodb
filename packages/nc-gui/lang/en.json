@@ -1373,6 +1373,7 @@
     "twitter": "Twitter",
     "docReference": "Document Reference",
     "selectUserRole": "Select User Role",
+    "OldEmail": "Old Email",
     "childTable": "Child table",
     "childColumn": "Child field",
     "childField": "Child field",
@@ -1682,6 +1683,8 @@
     "inviteMore": "Invite more",
     "inviteTeam": "Invite Team",
     "inviteUser": "Invite User",
+    "updateUser": "Update User",
+    "updatedUserEmail": "Update User Email",
     "inviteToken": "Invite Token",
     "linkedRecords": "Linked Records",
     "addNewLink": "Add New Link",
@@ -2392,7 +2395,8 @@
       "leaveWithoutFinishingConfirmation": "Your changes are automatically saved, but you're still in edit mode.",
       "matchedByButtonLabel": "Matched by button label",
       "matchedByFieldDescription": "Matched by field description",
-      "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles."
+      "workspaceRoleUpdateNotice": "Changing a user’s workspace role will also update user’s access to bases where they do not have explict roles.",
+      "maxFileSizeInMB": "Max File Size in MB"
     },
     "error": {
       "failedToDeleteMcpToken": "Failed to delete MCP token",
@@ -2563,6 +2567,7 @@
       "tokenDeleted": "Token deleted successfully",
       "userAddedToProject": "Successfully added user to base",
       "userAdded": "Successfully added user",
+      "userUpdatedEmail": "Successfully updated user email",
       "userDeletedFromProject": "Successfully deleted user from base",
       "inviteEmailSent": "Invite Email sent successfully",
       "inviteURLCopied": "Invite URL copied to clipboard",

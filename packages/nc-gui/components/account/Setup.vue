@@ -64,7 +64,7 @@ onMounted(async () => {
         <div
           v-for="config of configs"
           :key="config.key"
-          class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-2 hover:(shadow bg-gray-10)"
+          class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-2 hover:(shadow bg-gray-10 dark:bg-nc-bg-gray-extralight)"
           :class="{
             'cursor-pointer': config.itemClick,
           }"

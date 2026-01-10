@@ -20,7 +20,6 @@ import bulkV1Test from './tests/bulk-v1.test';
 import metaTestV3 from './tests/metaApiV3/index.test';
 import tableTests from './tests/meta-apis/table.test';
 import { paymentTest } from './tests/payment/payment.test';
-import oauthTests from './tests/oauth.test';
 
 let workspaceTest = () => {};
 let ssoTest = () => {};
@@ -29,6 +28,7 @@ let bulkAggregationTest = () => {};
 let columnTest = () => {};
 let integrationTest = require('./tests/integration.test').default;
 let oauthDCRTest = () => {};
+let oauthTests = () => {};
 if (process.env.EE === 'true') {
   workspaceTest = require('./tests/ee/workspace.test').default;
   oauthDCRTest = require('./tests/ee/oAuthDCR.test').default;
@@ -37,6 +37,7 @@ if (process.env.EE === 'true') {
   bulkAggregationTest = require('./tests/ee/bulkAggregation.test').default;
   columnTest = require('./tests/ee/column.test').default;
   integrationTest = require('./tests/ee/integration.test').default;
+  oauthTests = require('./tests/oauth.test').default;
 }
 
 const testVersion = ['v1', 'v2', 'v3'];

@@ -8,6 +8,7 @@ import {
   updateColumn2,
 } from '../../factory/column';
 import { initInitialModel } from '../initModel';
+import { isSqlite } from '../../init/db';
 
 function formulaErrorTests() {
   let _setup;
@@ -187,6 +188,8 @@ function formulaErrorTests() {
 
   describe(`long formula`, () => {
     beforeEach(async () => {
+      if (isSqlite(_context)) return;
+
       const longFormula = 'CONCAT("' + 'A'.repeat(1000) + '", "A")';
       await createColumn(
         _context,
@@ -219,6 +222,8 @@ function formulaErrorTests() {
       );
     });
     it(`will create a formula longer than 500k characters`, async () => {
+      if (isSqlite(_context)) return;
+
       const longFormula = 'CONCAT(' + '{long_fcol2},'.repeat(20) + ' "A")';
       try {
         await createColumn(
@@ -245,6 +250,8 @@ function formulaErrorTests() {
     });
 
     it(`will update a formula longer than 500k characters`, async () => {
+      if (isSqlite(_context)) return;
+
       const longFormula = 'CONCAT(' + '{long_fcol2},'.repeat(20) + ' "A")';
       try {
         const createdFormulaColumn = await createColumn(

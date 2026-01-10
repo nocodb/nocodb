@@ -15,14 +15,16 @@ const up = async (knex: Knex) => {
 
   // Add indexes only on queryable fields
   await knex.schema.alterTable(MetaTable.DEPENDENCY_TRACKER, (table) => {
-    table.index(
-      'queryable_field_0',
-      'nc_dependency_tracker_queryable_field_0_idx',
-    );
-    table.index(
-      'queryable_field_1',
-      'nc_dependency_tracker_queryable_field_1_idx',
-    );
+    if (!['mysql', 'mysql2'].includes(knex.client.config.client)) {
+      table.index(
+        'queryable_field_0',
+        'nc_dependency_tracker_queryable_field_0_idx',
+      );
+      table.index(
+        'queryable_field_1',
+        'nc_dependency_tracker_queryable_field_1_idx',
+      );
+    }
   });
 };
 

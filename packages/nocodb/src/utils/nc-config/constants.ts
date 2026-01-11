@@ -89,3 +89,5 @@ export const NC_DISABLE_SUPPORT_CHAT =
 
 export const NC_IFRAME_WHITELIST_DOMAINS =
   process.env.NC_IFRAME_WHITELIST_DOMAINS || '';
+
+export const NC_ALLOWED_ORIGINS = process.env.NC_ALLOWED_ORIGINS || '';

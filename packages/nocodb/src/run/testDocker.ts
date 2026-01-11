@@ -5,6 +5,7 @@ import express from 'express';
 import Noco from '~/Noco';
 import { User } from '~/models';
 import { handleUncaughtErrors } from '~/utils';
+import { getCorsOptions } from '~/utils/nc-config/cors';
 handleUncaughtErrors(process);
 
 process.env.NC_VERSION = '0009044';
@@ -16,11 +17,7 @@ const server = express();
 server.enable('trust proxy');
 server.disable('etag');
 server.disable('x-powered-by');
-server.use(
-  cors({
-    exposedHeaders: 'xc-db-response',
-  }),
-);
+server.use(cors(getCorsOptions()));
 
 server.set('view engine', 'ejs');
 

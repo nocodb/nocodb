@@ -1,9 +1,11 @@
 import debug from 'debug';
 import { Injectable } from '@nestjs/common';
+import { EventType } from 'nocodb-sdk';
 import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class MetaSyncProcessor {
@@ -46,6 +48,21 @@ export class MetaSyncProcessor {
         req: info.req,
       });
     }
+
+    NocoSocket.broadcastEvent(
+      context,
+      {
+        event: EventType.META_EVENT,
+        payload: {
+          action: 'source_meta_sync',
+          payload: {
+            base_id: baseId,
+            source_id: info.sourceId,
+          },
+        },
+      },
+      context.socket_id,
+    );
 
     this.debugLog(`job completed for ${job.id}`);
   }

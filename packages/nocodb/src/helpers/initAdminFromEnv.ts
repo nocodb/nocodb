@@ -1,5 +1,5 @@
 import { promisify } from 'util';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import bcrypt from 'bcryptjs';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
@@ -61,7 +61,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         process.env.NC_ADMIN_PASSWORD,
         salt,
       );
-      const email_verification_token = uuidv4();
+      const email_verification_token = randomUUID();
       const roles = 'org-level-creator,super';
 
       // if super admin not present
@@ -89,7 +89,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           process.env.NC_ADMIN_PASSWORD,
           salt,
         );
-        const email_verification_token = uuidv4();
+        const email_verification_token = randomUUID();
         // TODO improve this
         const superUsers = await ncMeta.metaList2(
           RootScopes.ROOT,

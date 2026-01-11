@@ -1,7 +1,7 @@
 import 'mocha';
 import { expect } from 'chai';
 import request from 'supertest';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 
 import { OrgUserRoles, ProjectRoles } from 'nocodb-sdk';
 
@@ -141,7 +141,7 @@ export default function (API_VERSION: 'v3' | 'v2') {
       const testData = [...Array(30).keys()].map((i) => ({
         displayName: `Test User${i}`,
         email: `test-user${i}@nocotest.com`,
-        invite_token: uuidv4(),
+        invite_token: randomUUID(),
       }));
 
       const User = (

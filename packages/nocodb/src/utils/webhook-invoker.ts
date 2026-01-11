@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { hasInputCalls, NOCO_SERVICE_USERS } from 'nocodb-sdk';
 import { useAgent } from 'request-filtering-agent';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import type { AxiosResponse } from 'axios';
 import type {
   HookLogType,
@@ -235,7 +235,7 @@ export class WebhookInvoker {
         flattenedFilters.push(filter);
         // this is to group the filters
         if (!filter.id) {
-          filter.id = uuidv4();
+          filter.id = randomUUID();
         }
         this.flattenFilter(filter.children, flattenedFilters, filter.id);
       } else {

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import { ConfigService } from '@nestjs/config';
 import type { AppConfig, NcContext, NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -49,7 +49,7 @@ export class SharedBasesService {
     }
 
     const data: any = {
-      uuid: uuidv4(),
+      uuid: randomUUID(),
       password: param?.password,
       roles,
     };

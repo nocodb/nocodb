@@ -1,5 +1,5 @@
 import { ncIsString, RelationTypes, UITypes } from 'nocodb-sdk';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'crypto';
 import type {
   LinkToAnotherRecordColumn,
   LookupColumn,
@@ -99,7 +99,7 @@ export async function populateSamplePayloadView(
 
   const samplePayload = {
     type: `view.after.${operation}`,
-    id: uuidv4(),
+    id: randomUUID(),
     ...(includeUser && isEE && sampleUser
       ? { user: sanitizeUserForHook(sampleUser) }
       : {}),
@@ -163,7 +163,7 @@ export async function populateSamplePayloadV2(
 
   const samplePayload = {
     type: `${scope}.after.${operation}`,
-    id: uuidv4(),
+    id: randomUUID(),
     ...(includeUser && isEE && sampleUser
       ? { user: sanitizeUserForHook(sampleUser) }
       : {}),

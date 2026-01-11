@@ -56,7 +56,7 @@ import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { isEE } from '~/utils';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
 
-const { v4: uuidv4 } = require('uuid');
+import { randomUUID } from 'crypto';
 
 const logger = new Logger('View');
 
@@ -1280,7 +1280,7 @@ export default class View implements ViewType {
   static async share(context: NcContext, viewId, ncMeta = Noco.ncMeta) {
     const view = await this.get(context, viewId);
     if (!view.uuid) {
-      const uuid = uuidv4();
+      const uuid = randomUUID();
       view.uuid = uuid;
 
       // set meta

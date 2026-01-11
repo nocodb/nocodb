@@ -182,6 +182,7 @@ export enum RichTextBubbleMenuOptions {
   numberedList = 'numberedList',
   taskList = 'taskList',
   link = 'link',
+  media = 'media',
 }
 
 export enum CoverImageObjectFit {

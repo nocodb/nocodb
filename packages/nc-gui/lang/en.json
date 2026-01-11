@@ -93,6 +93,17 @@
     "attachment_size": "Attachment Size",
     "none": "None"
   },
+  "richText": {
+    "insertMedia": "Insert media",
+    "media": "Media",
+    "uploadSection": "Upload",
+    "uploadFiles": "Upload files",
+    "uploadDescription": "Add images, videos, audio, or PDFs to embed them inline.",
+    "fromAttachments": "From attachment fields",
+    "noAttachments": "No attachments found for this record.",
+    "unnamedFile": "Untitled file",
+    "mediaUploadUnavailable": "Media uploads are unavailable for this field."
+  },
   "upgrade": {
     "UpgradeToInviteMore": "Invite more members",
     "UpgradeToInviteMoreSubtitle": "The {activePlan} plan allows up to {editors} editors & {commenters} commenters per workspace. Upgrade to the {plan} plan for unlimited users.",

@@ -23,6 +23,7 @@ export interface NcMarkdownParserConstructorType {
   breaks?: boolean
   extensions?: NcMarkdownExtension[]
   maxBlockTokens?: number // Add this to limit block tokens
+  renderImagesAsLinks?: boolean
 }
 
 // Precompiled regex patterns
@@ -34,6 +35,7 @@ export class NcMarkdownParser {
   private md: MarkdownIt
   private openLinkOnClick = true
   private maxBlockTokens?: number
+  private renderImagesAsLinks = false
 
   private constructor({
     openLinkOnClick = true,
@@ -45,9 +47,11 @@ export class NcMarkdownParser {
     breaks = false,
     extensions = [],
     maxBlockTokens,
+    renderImagesAsLinks = false,
   }: NcMarkdownParserConstructorType = {}) {
     this.openLinkOnClick = openLinkOnClick
     this.maxBlockTokens = maxBlockTokens
+    this.renderImagesAsLinks = renderImagesAsLinks
 
     this.md = this.withPatchedRenderer(new MarkdownIt({ html, linkify, breaks }))
 
@@ -59,13 +63,9 @@ export class NcMarkdownParser {
       this.md.use(this.mentionExt, { users, currentUser })
     }
 
-    /**
-     * Todo: Remove this once we enable proper image support in the rich text editor.
-     * Also, replace its usage in other places such as:
-     * 1. packages/nc-gui/helpers/tiptap-markdown/parse/MarkdownParser.ts
-     * 2. packages/nc-gui/helpers/tiptap-markdown/extensions/nodes/image.ts
-     */
-    this.md.use(mdImageAsText)
+    if (this.renderImagesAsLinks) {
+      this.md.use(mdImageAsText)
+    }
 
     // Apply custom extensions passed during instantiation
     this.applyCustomExtensions(extensions)
@@ -97,6 +97,13 @@ export class NcMarkdownParser {
       this.openLinkOnClick = options.openLinkOnClick || false
 
       this.md.use(this.setupLinkRules, { openLinkOnClick: this.openLinkOnClick })
+    }
+
+    if (!ncIsUndefined(options.renderImagesAsLinks)) {
+      this.renderImagesAsLinks = options.renderImagesAsLinks || false
+      if (this.renderImagesAsLinks) {
+        this.md.use(mdImageAsText)
+      }
     }
   }
 

@@ -1230,6 +1230,37 @@ svg.nc-virtual-cell-icon {
     @apply !mb-1;
   }
 
+  img,
+  video,
+  audio,
+  iframe,
+  object {
+    @apply max-w-full my-2 rounded-lg;
+  }
+
+  video,
+  audio,
+  iframe,
+  object {
+    @apply w-full;
+  }
+
+  .nc-rich-text-media-block {
+    @apply my-2;
+  }
+
+  .nc-rich-text-media-label {
+    @apply text-xs text-gray-500 mt-1;
+  }
+
+  .nc-rich-text-video {
+    @apply w-full rounded-lg;
+  }
+
+  .nc-rich-text-pdf {
+    @apply w-full h-64 rounded-lg border border-gray-200;
+  }
+
   ul {
     li {
       @apply ml-4;

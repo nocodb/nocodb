@@ -110,6 +110,7 @@
     "ioredis-mock": "8.9.0",
     "is-docker": "^2.2.1",
     "isomorphic-dompurify": "^2.25.0",
+    "jsdom": "^27.1.0",
     "jsep": "^1.4.0",
     "json5": "^2.2.3",
     "jsonfile": "^6.1.0",

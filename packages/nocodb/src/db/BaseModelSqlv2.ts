@@ -35,7 +35,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -50,6 +49,7 @@ import type {
   NcRequest,
   UpdatePayload,
 } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -134,6 +134,7 @@ import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
+import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 
 dayjs.extend(utc);
@@ -1051,7 +1052,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           }
           default:
-            NcError.notImplemented(
+            NcError.get(this.context).notImplemented(
               'This database is not supported for bulk aggregation',
             );
         }
@@ -4300,12 +4301,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (Array.isArray(columnValue)) {
         columnValueArr = columnValue;
       } else {
-        columnValueArr = `${columnValue}`.split(',').map((v) => v.trim());
-        // update the original object with trimmed values
-        if (insertOrUpdateObject[columnTitle])
-          insertOrUpdateObject[columnTitle] = columnValueArr.join(',');
-        else if (insertOrUpdateObject[columnName])
-          insertOrUpdateObject[columnName] = columnValueArr.join(',');
+        columnValueArr = `${columnValue}`.split(',').map((val) => val.trim());
       }
     } else {
       columnValueArr = [columnValue];
@@ -4772,6 +4768,47 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
   }
 
+  /**
+   * Extract distinct group column values for grouping operations
+   * Handles options parameter, SingleSelect columns, and other column types
+   */
+  public async extractGroupingValues(
+    column: Column,
+    options?: (string | number | null | boolean)[],
+  ): Promise<Set<any>> {
+    // TODO: Add virtual column support
+    if (isVirtualCol(column)) {
+      NcError.get(this.context).notImplemented('Grouping for virtual columns');
+    }
+
+    let groupingValues: Set<any>;
+
+    if (options?.length) {
+      groupingValues = new Set(options);
+    } else if (column.uidt === UITypes.SingleSelect) {
+      const colOptions = await column.getColOptions<{
+        options: SelectOption[];
+      }>(this.context);
+      groupingValues = new Set(
+        (colOptions?.options ?? []).map((opt) => opt.title),
+      );
+      groupingValues.add(null);
+    } else {
+      groupingValues = new Set(
+        (
+          await this.execAndParse(
+            this.dbDriver(this.tnPath).select(column.column_name).distinct(),
+            null,
+            { raw: true },
+          )
+        ).map((row) => row[column.column_name]),
+      );
+      groupingValues.add(null);
+    }
+
+    return groupingValues;
+  }
+
   public async groupedList(
     args: {
       groupColumnId: string;
@@ -4794,29 +4831,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         NcError.notImplemented('Grouping for virtual columns');
 
       // extract distinct group column values
-      let groupingValues: Set<any>;
-      if (args.options?.length) {
-        groupingValues = new Set(args.options);
-      } else if (column.uidt === UITypes.SingleSelect) {
-        const colOptions = await column.getColOptions<{
-          options: SelectOption[];
-        }>(this.context);
-        groupingValues = new Set(
-          (colOptions?.options ?? []).map((opt) => opt.title),
-        );
-        groupingValues.add(null);
-      } else {
-        groupingValues = new Set(
-          (
-            await this.execAndParse(
-              this.dbDriver(this.tnPath).select(column.column_name).distinct(),
-              null,
-              { raw: true },
-            )
-          ).map((row) => row[column.column_name]),
-        );
-        groupingValues.add(null);
-      }
+      const groupingValues = await this.extractGroupingValues(
+        column,
+        args.options,
+      );
 
       const qb = this.dbDriver(this.tnPath);
       qb.limit(+rest?.limit || 25);
@@ -6156,12 +6174,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     model = this.model,
     knex = this.dbDriver,
     baseModel = this,
+    updatedColIds,
   }: {
     rowIds: any | any[];
     cookie?: { user?: any };
     model?: Model;
     knex?: XKnex;
     baseModel?: BaseModelSqlv2;
+    updatedColIds: string[];
   }) {
     const columns = await model.getColumns(this.context);
 
@@ -6175,12 +6195,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       (c) => c.uidt === UITypes.LastModifiedBy && c.system,
     );
 
+    const metaColumn = columns.find((c) => c.uidt === UITypes.Meta);
+
     if (lastModifiedTimeColumn) {
       updateObject[lastModifiedTimeColumn.column_name] = this.now();
     }
 
     if (lastModifiedByColumn) {
       updateObject[lastModifiedByColumn.column_name] = cookie?.user?.id;
+    }
+
+    if (metaColumn && updatedColIds.length > 0) {
+      updateObject[metaColumn.column_name] = prepareMetaUpdateQuery({
+        knex: this.dbDriver,
+        colIds: updatedColIds,
+        props: {
+          modifiedBy: cookie?.user?.id,
+          modifiedTime: this.now(),
+        },
+        metaColumn,
+      });
     }
 
     if (Object.keys(updateObject).length === 0) return;
@@ -6369,6 +6403,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo?: boolean;
     },
   ): Promise<void> {
+    const runAfterForLoop = [];
+    const updatedColIds = [];
+
     // Handle autoincrement primary key columns for insert operations
     if (isInsertData && !extra?.undo) {
       // Handle primary key
@@ -6387,6 +6424,29 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     for (const column of this.model.columns) {
+      if (column.uidt === UITypes.Meta && this.isPg) {
+        if (!isInsertData)
+          runAfterForLoop.push(() => {
+            if (!updatedColIds.length) return;
+
+            data[column.column_name] = prepareMetaUpdateQuery({
+              knex: this.dbDriver,
+              colIds: updatedColIds,
+              props: {
+                modifiedBy: cookie?.user?.id,
+                modifiedTime: this.now(),
+              },
+              metaColumn: column,
+            });
+          });
+
+        continue;
+      }
+
+      if (!ncIsUndefined(data[column.column_name]) && !isInsertData) {
+        updatedColIds.push(column.id);
+      }
+
       if (
         !ncIsUndefined(data[column.column_name]) &&
         !ncIsNull(data[column.column_name]) &&
@@ -6818,6 +6878,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           data[column.column_name] = JSON.stringify(obj);
         }
+      }
+    }
+
+    if (runAfterForLoop.length) {
+      for (const fn of runAfterForLoop) {
+        await fn();
       }
     }
   }

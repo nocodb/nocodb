@@ -8,15 +8,26 @@ import {
   getUniqueColumnAliasName,
   getUniqueColumnName,
 } from '~/helpers/getUniqueName';
+import { DriverClient } from '~/utils/nc-config';
+import { isEE } from '~/utils';
 
 export const repopulateCreateTableSystemColumns = (
   _context: NcContext,
-  { columns }: { columns: (ColumnType & { cn?: string })[] },
+  {
+    columns,
+    clientType,
+  }: { columns: (ColumnType & { cn?: string })[]; clientType: DriverClient },
 ) => {
-  const tableSystemColumns = TableSystemColumns();
+  const tableSystemColumns = TableSystemColumns(
+    isEE && clientType === DriverClient.PG,
+  );
+
+  // check meta column support and filter out
+
   const strictOneColumnUidt = tableSystemColumns
     .filter((col) => !col.allowNonSystem)
     .map((col) => col.uidt);
+
   const result = [
     ...tableSystemColumns.map((col) => {
       delete col.allowNonSystem;

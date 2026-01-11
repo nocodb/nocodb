@@ -29,6 +29,7 @@ import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import Column from '~/models/Column';
 import { DriverClient } from '~/utils/nc-config';
 import Noco from '~/Noco';
+import { META_COL_NAME } from '~/constants';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',
@@ -646,7 +647,7 @@ export const getMMColumnNames = (parent: Model, child: Model) => {
   };
 };
 
-export const TableSystemColumns = () => [
+export const TableSystemColumns = (isMetaColSupport = false) => [
   {
     column_name: 'id',
     title: 'Id',
@@ -689,6 +690,17 @@ export const TableSystemColumns = () => [
     allowNonSystem: false,
     system: true,
   },
+  ...(isMetaColSupport
+    ? [
+        {
+          column_name: META_COL_NAME,
+          title: META_COL_NAME,
+          uidt: UITypes.Meta,
+          allowNonSystem: false,
+          system: true,
+        },
+      ]
+    : []),
 ];
 
 export const deleteColumnSystemPropsFromRequest = (col: any) => {

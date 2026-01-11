@@ -71,6 +71,14 @@ export class DataExportProcessor {
               .pipe(iconv.encodeStream(options?.encoding || 'utf-8'))
           : dataStream;
 
+      if (
+        (!options?.encoding || options.encoding === 'utf-8') &&
+        options.includeByteOrderMark
+      ) {
+        // Push UTF-8 BOM at the start
+        dataStream.push('\uFEFF');
+      }
+
       let error = null;
 
       const uploadFilePromise = (storageAdapter as any)

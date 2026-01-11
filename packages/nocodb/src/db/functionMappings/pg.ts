@@ -493,4 +493,33 @@ END`,
   },
 };
 
+  CHECKSUM_MD5: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `CASE WHEN ? IS NULL THEN NULL ELSE MD5(CAST(? AS TEXT)) END`,
+        [value, value],
+      ),
+    };
+  },
+  CHECKSUM_SHA1: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `CASE WHEN ? IS NULL THEN NULL ELSE ENCODE(DIGEST(CAST(? AS TEXT), 'sha1'), 'hex') END`,
+        [value, value],
+      ),
+    };
+  },
+  CHECKSUM_SHA256: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `CASE WHEN ? IS NULL THEN NULL ELSE ENCODE(DIGEST(CAST(? AS TEXT), 'sha256'), 'hex') END`,
+        [value, value],
+      ),
+    };
+  },
+};
+
 export default pg;

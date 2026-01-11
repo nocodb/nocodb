@@ -694,6 +694,54 @@ export const formulas: Record<string, FormulaMeta> = {
     examples: ['ISNOTBLANK({column1}) => true', 'ISNOTBLANK("") => false'],
     returnType: FormulaDataTypes.BOOLEAN,
   },
+  CHECKSUM_MD5: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#checksum_md5`,
+
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Computes MD5 checksum of the input parameter. Returns null if input is null or undefined.',
+    syntax: 'CHECKSUM_MD5(value)',
+    examples: [
+      'CHECKSUM_MD5("hello") => "5d41402abc4b2a76b9719d911017c592"',
+      'CHECKSUM_MD5({column1})',
+    ],
+    returnType: FormulaDataTypes.STRING,
+  },
+  CHECKSUM_SHA1: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#checksum_sha1`,
+
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Computes SHA-1 checksum of the input parameter. Returns null if input is null or undefined.',
+    syntax: 'CHECKSUM_SHA1(value)',
+    examples: [
+      'CHECKSUM_SHA1("hello") => "aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d"',
+      'CHECKSUM_SHA1({column1})',
+    ],
+    returnType: FormulaDataTypes.STRING,
+  },
+  CHECKSUM_SHA256: {
+    docsUrl: `${API_DOC_PREFIX}/field-types/formula/string-functions#checksum_sha256`,
+
+    validation: {
+      args: {
+        rqd: 1,
+      },
+    },
+    description: 'Computes SHA-256 checksum of the input parameter. Returns null if input is null or undefined.',
+    syntax: 'CHECKSUM_SHA256(value)',
+    examples: [
+      'CHECKSUM_SHA256("hello") => "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"',
+      'CHECKSUM_SHA256({column1})',
+    ],
+    returnType: FormulaDataTypes.STRING,
+  },
   IF: {
     docsUrl: `${API_DOC_PREFIX}/field-types/formula/conditional-expressions#if`,
 

@@ -4,6 +4,7 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
 import { AuditV1OperationTypes, EventType, ncIsNull } from 'nocodb-sdk';
+import { useAgent } from 'request-filtering-agent';
 import slash from 'slash';
 import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
 import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
@@ -376,6 +377,17 @@ export class DataAttachmentV3Service {
       responseType: 'stream',
       maxRedirects: NC_ATTACHMENT_URL_MAX_REDIRECT,
       maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
+      ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true'
+        ? {
+            httpAgent: useAgent(url, {
+              stopPortScanningByUrlRedirection: true,
+            }),
+            httpsAgent: useAgent(url, {
+              stopPortScanningByUrlRedirection: true,
+            }),
+          }
+        : {}),
+      timeout: 30 * 1000,
     });
 
     // Extract file information from response headers

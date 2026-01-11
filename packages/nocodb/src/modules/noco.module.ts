@@ -4,6 +4,7 @@ import { Module } from '@nestjs/common';
 import { MulterModule } from '@nestjs/platform-express';
 import multer from 'multer';
 import { NotFoundHandlerModule } from './not-found-handler.module';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 import { ViewsV3Service } from '~/services/v3/views-v3.service';
 import { EventEmitterModule } from '~/modules/event-emitter/event-emitter.module';
 import { JobsModule } from '~/modules/jobs/jobs.module';
@@ -154,6 +155,15 @@ import { AttachmentUrlUploadHandler } from '~/services/emit-handler/attachment-u
 /* ACL */
 import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { DataAttachmentV3Service } from '~/services/v3/data-attachment-v3.service';
+import { OAuthModule } from '~/modules/oauth/oauth.module';
+import {
+  InternalApiModuleProvider,
+  InternalApiModules,
+} from '~/controllers/internal/provider';
+import {
+  MetaDependencyModuleProvider,
+  MetaDependencyServices,
+} from '~/services/meta-dependency/meta-dependency.provider';
 
 export const nocoModuleMetadata = {
   imports: [
@@ -345,6 +355,14 @@ export const nocoModuleMetadata = {
 
     /* emit handlers */
     AttachmentUrlUploadHandler,
+
+    ...InternalApiModules,
+    InternalApiModuleProvider,
+
+    /* Dependency handler */
+    MetaDependencyEventHandler,
+    ...MetaDependencyServices,
+    MetaDependencyModuleProvider,
   ],
   exports: [
     /* Generic */
@@ -392,6 +410,10 @@ export const nocoModuleMetadata = {
     'IViewsV3Service',
 
     AttachmentUrlUploadHandler,
+
+    ...InternalApiModules,
+    MetaDependencyEventHandler,
+    ...MetaDependencyServices,
   ],
 };
 

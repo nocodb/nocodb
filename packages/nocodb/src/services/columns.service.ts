@@ -12,6 +12,7 @@ import {
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
+  MetaEventType,
   NcApiVersion,
   ncIsNull,
   ncIsUndefined,
@@ -100,6 +101,8 @@ import {
 import { MetaTable } from '~/utils/globals';
 import { parseMetaProp } from '~/utils/modelUtils';
 import NocoSocket from '~/socket/NocoSocket';
+import { DBErrorExtractor } from '~/helpers/db-error/extractor';
+import { MetaDependencyEventHandler } from '~/services/meta-dependency/event-handler.service';
 
 export type { ReusableParams } from '~/services/columns.service.type';
 
@@ -250,6 +253,7 @@ export class ColumnsService implements IColumnsService {
     protected readonly formulaColumnTypeChanger: IFormulaColumnTypeChanger,
     protected readonly viewRowColorService: ViewRowColorService,
     protected readonly filtersService: FiltersService,
+    protected readonly metaDependencyEventHandler: MetaDependencyEventHandler,
   ) {}
 
   async updateFormulas(
@@ -2047,6 +2051,15 @@ export class ColumnsService implements IColumnsService {
       context,
       columns: table.columns,
     });
+    await this.metaDependencyEventHandler.handleEvent(
+      context,
+      {
+        eventType: MetaEventType.COLUMN_UPDATED,
+        oldEntity: oldColumn,
+        newEntity: updatedColumn,
+      },
+      ncMeta,
+    );
 
     NocoSocket.broadcastEvent(
       context,

@@ -547,3 +547,19 @@ export enum ViewSettingOverrideOptions {
   GROUP = 'group',
   ROW_COLORING = 'rowColoring',
 }
+
+export enum MetaEventType {
+  COLUMN_ADDED = 'COLUMN_ADDED',
+  COLUMN_UPDATED = 'COLUMN_UPDATED',
+  COLUMN_DELETED = 'COLUMN_DELETED',
+}
+
+export enum MetaEntityType {
+  BASE = 'BASE',
+  TABLE = 'TABLE',
+  COLUMN = 'COLUMN',
+  VIEW = 'VIEW',
+  FILTER = 'FILTER',
+  SORT = 'SORT',
+  VIEW_ROW_COLOR = 'VIEW_ROW_COLOR',
+}

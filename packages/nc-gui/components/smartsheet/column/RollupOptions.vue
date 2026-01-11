@@ -45,9 +45,33 @@ const { getPlanTitle } = useEeConfig()
 const filterRef = ref()
 
 setAdditionalValidations({
-  fk_relation_column_id: [{ required: true, message: t('general.required') }],
-  fk_rollup_column_id: [{ required: true, message: t('general.required') }],
-  rollup_function: [{ required: true, message: t('general.required') }],
+  'fk_relation_column_id': [{ required: true, message: t('general.required') }],
+  'fk_rollup_column_id': [{ required: true, message: t('general.required') }],
+  'rollup_function': [{ required: true, message: t('general.required') }],
+  'meta.singular': [
+    {
+      validator: (_, value: string) => {
+        return new Promise((resolve, reject) => {
+          if (value?.length > 59) {
+            return reject(t('msg.length59Required'))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
+  'meta.plural': [
+    {
+      validator: (_, value: string) => {
+        return new Promise((resolve, reject) => {
+          if (value?.length > 59) {
+            return reject(t('msg.length59Required'))
+          }
+          resolve()
+        })
+      },
+    },
+  ],
 })
 
 setAvoidShowingToastMsgForValidations({
@@ -188,8 +212,8 @@ watch(
     if (aggFunctionsList.value.length && !aggFunctionsList.value.find((func) => func.value === vModel.value.rollup_function)) {
       // when the previous roll up function was numeric type and the current child field is non-numeric
       // reset rollup function with a non-numeric type
-      vModel.value.rollup_function = aggFunctionsList.value[0].value
-      vModel.value.rollup_function_name = aggFunctionsList.value[0].text
+      vModel.value.rollup_function = aggFunctionsList.value[0]?.value
+      vModel.value.rollup_function_name = aggFunctionsList.value[0]?.text
     }
 
     vModel.value.rollupColumnTitle = childFieldColumn?.title || childFieldColumn?.column_name
@@ -231,6 +255,8 @@ const onPrecisionChange = (value: number) => {
 // set default value
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
+  singular: '',
+  plural: '',
   ...(vModel.value.meta || {}),
 }
 
@@ -255,6 +281,17 @@ const enableFormattingOptions = computed(() => {
   const validFunctions = getRenderAsTextFunForUiType(uidt)
 
   return validFunctions.includes(vModel.value.rollup_function)
+})
+
+const showAsLinksOption = computed(() => {
+  // Show "Show as links" option only for count rollup function on primary key columns
+  if (vModel.value.rollup_function !== 'count') {
+    return false
+  }
+
+  // Check if the selected rollup column is a primary key column
+  const selectedRollupColumn = columns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
+  return !!selectedRollupColumn?.pk
 })
 
 const onFilterLabelClick = () => {
@@ -388,7 +425,7 @@ const handleScrollIntoView = () => {
       <a-select
         v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
         v-model:value="vModel.meta.precision"
-        :disabled="isMetaReadOnly"
+        :disabled="!!isMetaReadOnly"
         dropdown-class-name="nc-dropdown-decimal-format"
         @change="onPrecisionChange"
       >
@@ -412,6 +449,51 @@ const handleScrollIntoView = () => {
       <div class="flex items-center gap-1">
         <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
           <div class="text-sm text-gray-800 select-none">{{ $t('labels.showThousandsSeparator') }}</div>
+        </NcSwitch>
+      </div>
+    </a-form-item>
+    <a-form-item v-if="showAsLinksOption">
+      <div class="flex items-center gap-1">
+        <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.showAsLinks">
+          <div class="flex items-center gap-2 text-sm text-nc-content-gray select-none">
+            {{ $t('labels.showCountAsLinks') }}
+            <NcTooltip placement="top">
+              <template #title>
+                {{ $t('tooltip.enableCountClickableLinks') }}
+              </template>
+              <GeneralIcon icon="info" class="text-gray-500 w-4 h-4 cursor-help" />
+            </NcTooltip>
+          </div>
+        </NcSwitch>
+      </div>
+    </a-form-item>
+    <a-form-item v-if="showAsLinksOption && vModel.meta?.showAsLinks">
+      <a-row :gutter="8">
+        <a-col :span="12">
+          <a-form-item v-bind="validateInfos['meta.singular']" :label="$t('labels.singularLabel')">
+            <a-input
+              v-model:value="vModel.meta.singular"
+              :placeholder="$t('general.link')"
+              class="!w-full nc-rollup-singular !rounded-md"
+            />
+          </a-form-item>
+        </a-col>
+
+        <a-col :span="12">
+          <a-form-item v-bind="validateInfos['meta.plural']" :label="$t('labels.pluralLabel')">
+            <a-input
+              v-model:value="vModel.meta.plural"
+              :placeholder="$t('general.links')"
+              class="!w-full nc-rollup-plural !rounded-md"
+            />
+          </a-form-item>
+        </a-col>
+      </a-row>
+    </a-form-item>
+    <a-form-item v-if="showAsLinksOption && vModel.meta?.showAsLinks">
+      <div class="flex items-center gap-1">
+        <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.enableLinkActions">
+          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.enableLinkActions') }}</div>
         </NcSwitch>
       </div>
     </a-form-item>

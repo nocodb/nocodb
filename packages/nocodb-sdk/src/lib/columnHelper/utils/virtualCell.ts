@@ -37,6 +37,15 @@ export const isLookup = (column: ColumnType) => column.uidt === UITypes.Lookup;
 
 export const isRollup = (column: ColumnType) => column.uidt === UITypes.Rollup;
 
+export const isRollupAsLink = (column: ColumnType) => {
+  if (!isRollup(column)) return false;
+  const colMeta = typeof column.meta === 'object' ? column.meta : {};
+  return (
+    (colMeta as any)?.showAsLinks &&
+    (column.colOptions as any)?.rollup_function === 'count'
+  );
+};
+
 export const isFormula = (column: ColumnType) =>
   column.uidt === UITypes.Formula;
 
@@ -51,7 +60,7 @@ export const isLink = (column: ColumnType) => column.uidt === UITypes.Links;
 
 export function isReadOnlyVirtualCell(col: ColumnType) {
   return (
-    isRollup(col) ||
+    (isRollup(col) && !isRollupAsLink(col)) ||
     isFormula(col) ||
     isBarcode(col) ||
     isLookup(col) ||
@@ -66,7 +75,7 @@ export const isReadonlyVirtualColumn = (col: ColumnType) => {
   return (
     isSystemColumn(col) ||
     isLookup(col) ||
-    isRollup(col) ||
+    (isRollup(col) && !isRollupAsLink(col)) ||
     isFormula(col) ||
     isButton(col) ||
     isVirtualCol(col) ||

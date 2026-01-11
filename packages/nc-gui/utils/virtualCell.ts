@@ -6,6 +6,7 @@ export {
   isOo,
   isLookup,
   isRollup,
+  isRollupAsLink,
   isFormula,
   isQrCode,
   isBarcode,

@@ -10,6 +10,7 @@ import {
   type ViewType,
   isVirtualCol,
   ncHasProperties,
+  parseProp,
   readonlyMetaAllowedTypes,
 } from 'nocodb-sdk'
 import { flip, offset, shift, useFloating } from '@floating-ui/vue'
@@ -1695,6 +1696,15 @@ async function handleMouseUp(e: MouseEvent, _elementMap: CanvasElement) {
   // If the cell is editable, make the cell editable
   // Virtual Cells BARCODE, QRCode, Lookup, we need to render the actual cell if double clicked
   if (clickType === MouseClickType.DOUBLE_CLICK) {
+    // Special case for Rollup columns that should behave as links
+    if (columnUIType === UITypes.Rollup) {
+      const columnMeta = parseProp(clickedColumn.columnObj?.meta)
+      if (columnMeta?.showAsLinks) {
+        makeCellEditable(row, clickedColumn)
+        return
+      }
+    }
+
     if (NO_EDITABLE_CELL.includes(columnUIType)) return
 
     const supportedVirtualColumns = [UITypes.Barcode, UITypes.QrCode, UITypes.Lookup]

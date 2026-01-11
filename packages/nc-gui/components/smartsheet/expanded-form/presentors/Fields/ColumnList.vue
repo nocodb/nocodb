@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { type ColumnType, PermissionEntity, PermissionKey, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
-
 const props = defineProps<{
   fields: ColumnType[]
   forceVerticalMode?: boolean

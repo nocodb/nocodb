@@ -501,6 +501,7 @@ const showReadonlyColumnTooltip = (col: ColumnType) => {
 const showEditRestrictedColumnTooltip = (col: ColumnType) => {
   return (
     !isReadOnlyVirtualCell(col) &&
+    UITypes.Rollup !== col.uidt &&
     ![UITypes.Button, UITypes.Count, UITypes.Order, UITypes.ForeignKey].includes(col.uidt as UITypes)
   )
 }

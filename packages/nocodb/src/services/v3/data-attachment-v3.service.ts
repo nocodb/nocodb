@@ -1,6 +1,6 @@
 import path from 'path';
 import { PassThrough } from 'stream';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
 import { AuditV1OperationTypes, EventType, ncIsNull } from 'nocodb-sdk';
@@ -40,6 +40,8 @@ const mb = 1024 * 1024;
 
 @Injectable()
 export class DataAttachmentV3Service {
+  protected logger = new Logger(DataAttachmentV3Service.name);
+
   constructor(
     @Inject(forwardRef(() => 'JobsService'))
     private readonly jobsService: IJobsService,
@@ -291,8 +293,14 @@ export class DataAttachmentV3Service {
         generateThumbnailAttachments.push(processedAttachment);
       }
     } catch (error) {
+      // Log full error internally for debugging
+      this.logger.error(
+        'Failed to process base64 attachment:',
+        error?.message || 'Unknown error',
+      );
+      // Throw sanitized error to user
       NcError.unprocessableEntity(
-        `Failed to process base64 attachment: ${error}`,
+        `Failed to process base64 attachment: ${error?.message || 'Unable to process attachment file'}`,
       );
     }
 

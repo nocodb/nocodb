@@ -31,5 +31,5 @@
     "typeRoots": ["src/types", "node_modules/@types"]
   },
   "include": ["src/**/*"],
-  "exclude": ["src/ee", "src/ee-on-prem", "src/ee-cloud", "**/*.spec.ts"]
+  "exclude": ["src/ee", "src/ee-on-prem", "src/ee-cloud"]
 }

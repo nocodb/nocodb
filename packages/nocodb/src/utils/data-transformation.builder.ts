@@ -302,6 +302,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, unknown>({
       'icon',
       'iconIdx',
       'duration',
+      'columnColor',
     ],
   },
   transformFn: (data) => {

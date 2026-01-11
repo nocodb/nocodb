@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 
 import { SendRawEmailCommand, SES as SESClient } from '@aws-sdk/client-ses';
@@ -6,6 +7,7 @@ import type Mail from 'nodemailer/lib/mailer';
 import type { XcEmail } from '~/interface/IEmailAdapter';
 
 export default class SES implements IEmailAdapter {
+  private logger = new Logger(SES.name);
   private transporter: Mail;
   private input: any;
 
@@ -37,7 +39,10 @@ export default class SES implements IEmailAdapter {
         { ...mail, from: this.input.from },
         (err, info) => {
           if (err) {
-            console.log(err);
+            this.logger.error({
+              message: err.message,
+              code: err.code,
+            });
           } else {
             console.log('Message sent: ' + info.response);
           }

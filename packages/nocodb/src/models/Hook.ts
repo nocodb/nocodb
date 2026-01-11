@@ -9,6 +9,7 @@ import {
   operationArrToCode,
   operationCodeToArr,
 } from 'src/helpers/webhookHelpers';
+import { nanoid } from 'nanoid';
 import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import Filter from '~/models/Filter';
@@ -23,6 +24,11 @@ import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { NcError } from '~/helpers/catchError';
+import {
+  decryptPropIfRequired,
+  encryptPropIfRequired,
+  isEncryptionRequired,
+} from '~/utils/encryptDecrypt';
 
 export default class Hook implements HookType {
   id?: string;
@@ -50,6 +56,8 @@ export default class Hook implements HookType {
   version?: 'v1' | 'v2' | 'v3';
   trigger_field?: boolean;
   trigger_fields?: string[];
+  signing_secret?: string;
+  signing_secret_updated_at?: Date;
 
   constructor(
     hook: Partial<Hook | HookReqType> & {
@@ -94,6 +102,21 @@ export default class Hook implements HookType {
       }
       await NocoCache.set(`${CacheScope.HOOK}:${hookId}`, hook);
     }
+
+    // Decrypt signing secret if encryption is enabled
+    if (hook && hook.signing_secret && isEncryptionRequired()) {
+      try {
+        hook.signing_secret = decryptPropIfRequired({
+          data: { value: hook.signing_secret },
+          prop: 'value',
+        });
+      } catch (e) {
+        // Log error but don't fail - webhook can still work without signature
+        console.error('Failed to decrypt webhook signing secret:', e.message);
+        hook.signing_secret = null;
+      }
+    }
+
     return hook && new Hook(hook);
   }
 
@@ -219,10 +242,25 @@ export default class Hook implements HookType {
         'base_id',
         'source_id',
         'trigger_field',
+        'signing_secret',
       ]);
 
     if (insertObj.notification && typeof insertObj.notification === 'object') {
       insertObj.notification = JSON.stringify(insertObj.notification);
+    }
+
+    // Generate signing secret if not provided (auto-generate for new webhooks)
+    if (!insertObj.signing_secret) {
+      insertObj.signing_secret = nanoid(32);
+      insertObj.signing_secret_updated_at = new Date() as any;
+    }
+
+    // Encrypt the signing secret before storing
+    if (insertObj.signing_secret && isEncryptionRequired()) {
+      insertObj.signing_secret = encryptPropIfRequired({
+        data: { value: insertObj.signing_secret },
+        prop: 'value',
+      });
     }
 
     const model = await Model.getByIdOrName(
@@ -384,6 +422,7 @@ export default class Hook implements HookType {
         'active',
         'version',
         'trigger_field',
+        'signing_secret',
       ]);
 
     if (
@@ -399,6 +438,19 @@ export default class Hook implements HookType {
 
     if (updateObj.notification && typeof updateObj.notification === 'object') {
       updateObj.notification = JSON.stringify(updateObj.notification);
+    }
+
+    // If regenerating secret, encrypt and update timestamp
+    if (updateObj.signing_secret) {
+      (updateObj as any).signing_secret_updated_at = new Date();
+
+      // Encrypt the new secret
+      if (isEncryptionRequired()) {
+        updateObj.signing_secret = encryptPropIfRequired({
+          data: { value: updateObj.signing_secret },
+          prop: 'value',
+        });
+      }
     }
 
     // [DEPRECATED]: should not need to check for v3

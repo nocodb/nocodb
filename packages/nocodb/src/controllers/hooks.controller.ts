@@ -86,6 +86,23 @@ export class HooksController {
   }
 
   @Post([
+    '/api/v1/db/meta/hooks/:hookId/regenerate-secret',
+    '/api/v2/meta/hooks/:hookId/regenerate-secret',
+  ])
+  @HttpCode(200)
+  @Acl('hookUpdate')
+  async hookRegenerateSecret(
+    @TenantContext() context: NcContext,
+    @Param('hookId') hookId: string,
+    @Req() req: NcRequest,
+  ) {
+    return await this.hooksService.hookRegenerateSecret(context, {
+      hookId,
+      req,
+    });
+  }
+
+  @Post([
     '/api/v1/db/meta/tables/:tableId/hooks/test',
     '/api/v2/meta/tables/:tableId/hooks/test',
   ])

@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AppEvents, WebhookEvents } from 'nocodb-sdk';
+import { nanoid } from 'nanoid';
 import View from '../models/View';
 import type { HookReqType, HookTestReqType, HookType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
@@ -46,7 +47,17 @@ export class HooksService {
   }
 
   async hookList(context: NcContext, param: { tableId: string }) {
-    return await Hook.list(context, { fk_model_id: param.tableId });
+    const hooks = await Hook.list(context, { fk_model_id: param.tableId });
+
+    // Sanitize hooks to not expose signing secrets in list response
+    return hooks.map((hook) => {
+      const { signing_secret, ...hookWithoutSecret } = hook;
+      return {
+        ...hookWithoutSecret,
+        has_signing_secret: !!signing_secret,
+        signing_secret_updated_at: hook.signing_secret_updated_at,
+      };
+    });
   }
 
   async hookLogList(context: NcContext, param: { query: any; hookId: string }) {
@@ -200,6 +211,42 @@ export class HooksService {
     });
 
     return res;
+  }
+
+  async hookRegenerateSecret(
+    context: NcContext,
+    param: {
+      hookId: string;
+      req: NcRequest;
+    },
+  ) {
+    const hook = await Hook.get(context, param.hookId);
+
+    if (!hook) {
+      NcError.hookNotFound(param.hookId);
+    }
+
+    // Generate new secret
+    const newSecret = nanoid(32);
+
+    // Update hook with new secret
+    const updatedHook = await Hook.update(context, param.hookId, {
+      signing_secret: newSecret,
+    } as any);
+
+    this.appHooksService.emit(AppEvents.WEBHOOK_UPDATE, {
+      hook: updatedHook,
+      oldHook: hook,
+      tableId: hook.fk_model_id,
+      req: param.req,
+      context,
+    });
+
+    // Return only the new secret (not the full hook)
+    return {
+      signing_secret: newSecret,
+      signing_secret_updated_at: updatedHook.signing_secret_updated_at,
+    };
   }
 
   async hookTrigger(

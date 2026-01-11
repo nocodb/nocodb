@@ -1,4 +1,9 @@
-import { CircularRefContext, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  CircularRefContext,
+  ClientType,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
@@ -581,6 +586,52 @@ export const lookupOrLtarBuilder =
           } else {
             selectQb.select(`${prevAlias}.${refCol.column_name}`);
           }
+          break;
+        }
+        case UITypes.Attachment: {
+          {
+            if (isArray) {
+              const qb = selectQb;
+              const cn = `${prevAlias}.${lookupColumn.column_name}`;
+              selectQb = (fn) => {
+                console.log('fn', fn, knex.clientType());
+                if (
+                  knex.clientType() === ClientType.PG &&
+                  (!fn || fn.toLowerCase?.() === 'concat')
+                ) {
+                  return knex
+                    .raw(
+                      [
+                        `select jsonb_agg(__elem)::text`,
+                        `from (`,
+                        `  ??`,
+                        `) t`,
+                        `cross join lateral jsonb_array_elements(__val::jsonb) as __elem`,
+                      ].join(' '),
+                      [
+                        qb
+                          .clear('select')
+                          .select(knex.raw('?? as __val', [cn])),
+                      ],
+                    )
+                    .wrap('(', ')');
+                } else {
+                  return knex
+                    .raw(
+                      getAggregateFn(fn)({
+                        qb,
+                        knex,
+                        cn: `${prevAlias}.${lookupColumn.column_name}`,
+                      }),
+                    )
+                    .wrap('(', ')');
+                }
+              };
+            } else {
+              selectQb.select(`${prevAlias}.${lookupColumn.column_name}`);
+            }
+          }
+
           break;
         }
         default:

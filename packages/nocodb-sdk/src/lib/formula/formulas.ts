@@ -1,8 +1,31 @@
 import { validateDateWithUnknownFormat } from '../dateTimeHelper';
 import { FormulaDataTypes, FormulaErrorType, JSEPNode } from './enums';
 import { FormulaError } from './error';
-import { FormulaMeta } from './types';
+import {
+  CallExpressionNode,
+  FormulaMeta,
+  FormulaMetaCustomValidation,
+} from './types';
 export const API_DOC_PREFIX = 'https://nocodb.com/docs/product-docs/fields';
+
+const customValidationArray: FormulaMetaCustomValidation = (
+  _argTypes: FormulaDataTypes[],
+  parsedTree: CallExpressionNode
+) => {
+  if (
+    // check if first parameter exists
+    !parsedTree.arguments?.[0] ||
+    (!parsedTree.arguments?.[0]?.isDataArray &&
+      // data type array is backward compatibility
+      parsedTree.arguments?.[0]?.dataType !== FormulaDataTypes.ARRAY)
+  ) {
+    throw new FormulaError(
+      FormulaErrorType.TYPE_MISMATCH,
+      { key: 'msg.formula.firstParamArray' },
+      'First parameter need to be array. Either it is a link with Has Many / Many to Many relation, or either a Formula or Lookup that reference the link'
+    );
+  }
+};
 
 export const formulas: Record<string, FormulaMeta> = {
   AVG: {
@@ -903,8 +926,8 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 1,
-        type: FormulaDataTypes.ARRAY,
       },
+      custom: customValidationArray,
     },
     description: 'Return unique items from the given array',
     syntax: 'ARRAYUNIQUE(value)',
@@ -919,6 +942,7 @@ export const formulas: Record<string, FormulaMeta> = {
         min: 1,
         max: 2,
       },
+      custom: customValidationArray,
     },
     description: 'Sort an array result',
     syntax: 'ARRAYSORT(value, [direction])',
@@ -931,8 +955,8 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 1,
-        type: FormulaDataTypes.ARRAY,
       },
+      custom: customValidationArray,
     },
     description: 'Removes empty strings and null values from the array',
     syntax: 'ARRAYCOMPACT(value)',
@@ -947,6 +971,7 @@ export const formulas: Record<string, FormulaMeta> = {
         min: 2,
         max: 3,
       },
+      custom: customValidationArray,
     },
     description: 'Removes empty strings and null values from the array',
     syntax: 'ARRAYSLICE(value, start, [end])',

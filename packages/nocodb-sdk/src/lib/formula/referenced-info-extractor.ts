@@ -5,7 +5,7 @@ import {
   BinaryExpressionNode,
   CallExpressionNode,
   ParsedFormulaNode,
-} from './operators';
+} from './types';
 import { ReferencedInfo } from './types';
 import { arrFlatMap } from '../arrayHelpers';
 
@@ -50,21 +50,22 @@ const filterReferencedInfoByUidt = ({
   defaultUidt: UITypes;
   isPureOperation?: boolean;
 }): ReferencedInfo => {
-  const referencedColumn =
-    referencedInfo.referencedColumn &&
-    allowedUidts.includes(referencedInfo.referencedColumn.uidt as UITypes) &&
-    (isPureOperation ||
-      !IMPURE_OPR_UIDT_MAP.has(referencedInfo.referencedColumn.uidt as UITypes))
-      ? referencedInfo.referencedColumn
-      : undefined;
+  let referencedColumn = referencedInfo.referencedColumn;
+  if (referencedColumn && !isPureOperation) {
+    referencedColumn =
+      allowedUidts.includes(referencedInfo.referencedColumn.uidt as UITypes) &&
+      !IMPURE_OPR_UIDT_MAP.has(referencedInfo.referencedColumn.uidt as UITypes)
+        ? referencedInfo.referencedColumn
+        : undefined;
+  }
   let uidtCandidates =
     referencedInfo.uidtCandidates?.filter((uidt) =>
       allowedUidts.includes(uidt)
     ) ?? [];
   if (!isPureOperation) {
-    uidtCandidates = uidtCandidates.map((c) =>
-      IMPURE_OPR_UIDT_MAP.get(c as UITypes) ?? c
-    ).filter(k => k);
+    uidtCandidates = uidtCandidates
+      .map((c) => IMPURE_OPR_UIDT_MAP.get(c as UITypes) ?? c)
+      .filter((k) => k);
   }
   return {
     ...referencedInfo,
@@ -108,8 +109,9 @@ export const getReferencedInfoFromArgs = (
   } = { isPureOperation: false }
 ): ReferencedInfo => {
   let referencedColumn: { id: string; uidt: string };
-  let invalidForReferenceColumn = nodes
-    .some(c => c.invalidForReferenceColumn);
+  let invalidForReferenceColumn = nodes.some(
+    (c) => c.invalidForReferenceColumn
+  );
   const referencedColumns = invalidForReferenceColumn
     ? []
     : nodes.map((k) => k.referencedColumn).filter((k) => k);
@@ -119,8 +121,7 @@ export const getReferencedInfoFromArgs = (
   } else if (uniqueLength > 1) {
     invalidForReferenceColumn = true;
   }
-  const uidtCandidates = arrFlatMap(nodes
-    .map((k) => k.uidtCandidates));
+  const uidtCandidates = arrFlatMap(nodes.map((k) => k.uidtCandidates));
   const referencedInfo = {
     referencedColumn,
     uidtCandidates,

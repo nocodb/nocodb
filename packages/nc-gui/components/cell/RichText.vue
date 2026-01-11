@@ -9,6 +9,8 @@ import {
   HardBreak,
   Italic,
   Link,
+  NcSubscript,
+  NcSuperscript,
   Paragraph,
   Strike,
   TaskItem,
@@ -128,6 +130,9 @@ const getTiptapExtensions = () => {
       placeholder: props.placeholder,
     }),
     Markdown.configure({ breaks: true, transformPastedText: true }),
+
+    NcSuperscript,
+    NcSubscript,
   ]
 
   if (appInfo.value.ee && !props.hideMention) {

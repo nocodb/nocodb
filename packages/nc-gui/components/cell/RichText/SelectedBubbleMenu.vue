@@ -384,6 +384,62 @@ const closeTextArea = () => {
       </NcButton>
     </NcTooltip>
 
+    <NcDropdown>
+      <template #default>
+        <NcButton size="small" type="text">
+          <GeneralIcon icon="ncMoreVertical" />
+        </NcButton>
+      </template>
+
+      <template #overlay>
+        <NcMenu variant="small">
+          <!-- Superscript -->
+          <NcMenuItem>
+            <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
+              <template #title>
+                <div class="flex flex-col items-center">
+                  <div>{{ $t('labels.superscript') }}</div>
+                  <div>{{ cmdOrCtrlKey }} .</div>
+                </div>
+              </template>
+              <NcButton
+                size="small"
+                type="text"
+                :class="{ 'is-active-no-bg': editor.isActive('superscript') }"
+                :disabled="editor.isActive('codeBlock')"
+                :tabindex="tabIndex"
+                @click="editor!.chain().focus().toggleSuperscript().run()"
+              >
+                x<sup>2</sup>
+              </NcButton>
+            </NcTooltip>
+          </NcMenuItem>
+
+          <!-- Subscript -->
+          <NcMenuItem>
+            <NcTooltip :placement="tooltipPlacement" :disabled="editor.isActive('codeBlock')">
+              <template #title>
+                <div class="flex flex-col items-center">
+                  <div>{{ $t('labels.subscript') }}</div>
+                  <div>{{ cmdOrCtrlKey }} ,</div>
+                </div>
+              </template>
+              <NcButton
+                size="small"
+                type="text"
+                :class="{ 'is-active': editor.isActive('subscript') }"
+                :disabled="editor.isActive('codeBlock')"
+                :tabindex="tabIndex"
+                @click="editor!.chain().focus().toggleSubscript().run()"
+              >
+                H<sub>2</sub>O
+              </NcButton>
+            </NcTooltip>
+          </NcMenuItem>
+        </NcMenu>
+      </template>
+    </NcDropdown>
+
     <div
       v-if="
         showDivider([

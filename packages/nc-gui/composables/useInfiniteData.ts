@@ -196,7 +196,7 @@ export function useInfiniteData(args: {
 
   const computedWhereFilter = computed(() => {
     const { filters: filter } = extractFilterFromXwhere(
-      { api_version: NcApiVersion.V1 },
+      { api_version: NcApiVersion.V1, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
       where?.value ?? '',
       columnsByAlias.value,
     )
@@ -1742,6 +1742,7 @@ export function useInfiniteData(args: {
       metas.value,
       {
         currentUser: user.value,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
     )
     const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
@@ -1760,6 +1761,7 @@ export function useInfiniteData(args: {
         metas.value,
         {
           currentUser: user.value,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       )
       row.rowMeta.changedGroupIndex = index

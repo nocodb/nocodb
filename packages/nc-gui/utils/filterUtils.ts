@@ -239,8 +239,21 @@ export const adjustFilterWhenColumnChange = ({
     } else {
       filter.comparison_sub_op = 'exactDate'
     }
+
+    // Initialize filter.meta if it doesn't exist
+    if (!filter.meta) {
+      filter.meta = {}
+    }
+    if (!filter.meta.timezone) {
+      filter.meta.timezone = getTimezoneFromColumn(column)
+    }
   } else {
     // reset
     filter.comparison_sub_op = null
   }
+}
+
+export function getTimezoneFromColumn(col: ColumnType, defaultValue = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+  const columnMeta = parseProp(col.meta)
+  return columnMeta.timezone || defaultValue
 }

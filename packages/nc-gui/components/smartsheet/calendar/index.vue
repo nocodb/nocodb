@@ -113,7 +113,7 @@ const newRecord = (row: RowType) => {
 }
 
 onMounted(async () => {
-  await loadCalendarData()
+  await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
   if (!activeCalendarView.value) {
     activeCalendarView.value = 'month'
   }

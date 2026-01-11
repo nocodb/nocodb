@@ -171,6 +171,7 @@ export function validateRowFilters(
       id: string
       email: string
     }
+    timezone?: string
   },
 ) {
   return sdkValidateRowFilters({

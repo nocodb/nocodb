@@ -154,7 +154,7 @@ onMounted(async () => {
         </div>
 
         <div class="absolute -right-2 -top-0.5">
-          <NcButton type="text" size="small" @click="emits('close')" icon-only>
+          <NcButton type="text" size="small" icon-only @click="emits('close')">
             <template #icon>
               <GeneralIcon icon="close" />
             </template>

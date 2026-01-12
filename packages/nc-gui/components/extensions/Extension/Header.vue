@@ -14,8 +14,6 @@ withDefaults(defineProps<Props>(), {
   isFullscreen: true,
 })
 
-const { $e } = useNuxtApp()
-
 const { eventBus, getExtensionAssetsUrl, duplicateExtension, showExtensionDetails, extensionAccess } = useExtensions()
 
 const {
@@ -28,7 +26,6 @@ const {
   disableToggleFullscreenBtn,
   toggleFullScreen,
 } = useExtensionHelperOrThrow()
-const EXTENSION_ID = extension.value.extensionId
 
 const titleInput = ref<HTMLInputElement | null>(null)
 

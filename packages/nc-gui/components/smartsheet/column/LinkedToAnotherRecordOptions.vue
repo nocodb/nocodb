@@ -27,7 +27,10 @@ const meta = inject(MetaInj, ref())
 
 const filterRef = ref()
 
-const crossBase = ref((vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id !== vModel.value?.base_id)
+const crossBase = ref(
+  (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id &&
+    (vModel.value?.colOptions as LinkToAnotherRecordType).fk_related_base_id !== vModel.value?.base_id,
+)
 
 const { basesList } = storeToRefs(useBases())
 
@@ -121,6 +124,7 @@ const { baseTables } = storeToRefs(tablesStore)
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const refTables = computed(() => {
+  debugger
   if (isEdit.value) {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const refTableId = referenceTableChildId.value

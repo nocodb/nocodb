@@ -9,6 +9,9 @@ import UITypes from '~/lib/UITypes';
 import { ComputedTypePasteError } from '~/lib/error';
 import { precisionFormats } from '../utils';
 import { isValidValue } from '~/lib/is';
+import rfdc from 'rfdc';
+
+const clone = rfdc();
 
 export class RollupHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -43,13 +46,19 @@ export class RollupHelper extends AbstractColumnHelper {
       : null;
     const relatedTableMeta =
       relationColumnOptions?.fk_related_model_id &&
-      getMetaWithCompositeKey(metas, baseId, relationColumnOptions.fk_related_model_id as string);
+      getMetaWithCompositeKey(
+        metas,
+        baseId,
+        relationColumnOptions.fk_related_model_id as string
+      );
 
-    const childColumn = relatedTableMeta?.columns.find(
+    let childColumn = relatedTableMeta?.columns.find(
       (c: ColumnType) => c.id === colOptions.fk_rollup_column_id
     ) as ColumnType | undefined;
 
     if (!childColumn) return value;
+
+    childColumn = clone(childColumn);
 
     const renderAsTextFun = getRenderAsTextFunForUiType(
       (childColumn.uidt ?? UITypes.SingleLineText) as UITypes

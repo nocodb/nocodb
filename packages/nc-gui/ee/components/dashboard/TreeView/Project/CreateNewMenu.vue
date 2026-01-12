@@ -114,10 +114,6 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
         </NcMenuItem>
       </template>
     </ProjectSyncCreateProvider>
-
-    <NcMenuItemLabel>
-      <span class="normal-case"> {{ $t('general.automations') }} </span>
-    </NcMenuItemLabel>
     <NcMenuItem
       v-if="isWorkflowsEnabled"
       class="nc-menu-item-integration"

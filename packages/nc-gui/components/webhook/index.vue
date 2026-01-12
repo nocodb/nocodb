@@ -1830,7 +1830,6 @@ const webhookV2AndV3Diff = computed(() => {
   vertical-align: 0px !important;
 }
 
-
 .tab {
   @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-nc-content-gray-subtle2 hover:text-nc-content-gray-extreme cursor-pointer transition-all duration-300 select-none;
 }

@@ -50,6 +50,11 @@ export interface NcAlertProps extends Pick<AlertProps, 'showIcon' | 'message' | 
   copyText?: any
 
   /**
+   * Show toast msg after copying the text
+   */
+  copyTextToastMessage?: string
+
+  /**
    * Tooltip text for the copy button.
    * @default 'tooltip.copyErrorCode' (from i18n)
    */
@@ -164,6 +169,10 @@ const onClickCopy = async () => {
     await copy(copyText.value)
 
     isCopied.value = true
+
+    if (props.copyTextToastMessage) {
+      message.toast(props.copyTextToastMessage)
+    }
 
     copiedTimeoutId = setTimeout(() => {
       isCopied.value = false

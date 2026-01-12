@@ -23,6 +23,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     )
       return jwtPayload;
 
+
+    console.log(jwtPayload)
+
+    console.log('isWorkflow/AuromationUser',  [
+      NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER].email,
+      NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER].email,
+    ].includes(jwtPayload?.email))
+
     if (
       [
         NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER].email,
@@ -34,12 +42,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         !jwtPayload?.context?.workspace_id ||
         req.context.workspace_id !== jwtPayload.context.workspace_id
       ) {
+        console.log('User access limited to Workspace')
         NcError.forbidden('User access limited to Workspace');
       }
       if (
         !jwtPayload?.context?.base_id ||
         req.context.base_id !== jwtPayload.context.base_id
       ) {
+        console.log('User access limited to Base')
         NcError.forbidden('User access limited to Base');
       }
 

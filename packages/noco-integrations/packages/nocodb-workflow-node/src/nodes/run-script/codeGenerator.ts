@@ -1176,6 +1176,8 @@ Object.freeze(UITypes);
         this.fields = this.#all_fields.filter(f => !f.is_system_field);
         return newField;
       } catch (e) {
+        console.log(e?.response)
+        console.log(e?.message)
         console.log(e)
         console.log(JSON.stringify(e))
         throw new Error(\`Failed to create field \${field.title} in table \${this.name}\`)

@@ -267,11 +267,11 @@ export const useTablesStore = defineStore('tablesStore', () => {
     return url.href
   }
 
-  const reloadTableMeta = async (tableId: string) => {
+  const reloadTableMeta = async (tableId: string, baseId?: string) => {
     const { getMeta } = useMetas()
-    const baseId = activeTable.value?.base_id ?? basesStore.activeProjectId
+    const _baseId = baseId ?? activeTable.value?.base_id ?? basesStore.activeProjectId
 
-    await getMeta(baseId!, tableId, true)
+    await getMeta(_baseId!, tableId, true)
   }
 
   function openTableCreateDialog({

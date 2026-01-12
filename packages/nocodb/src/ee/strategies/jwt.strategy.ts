@@ -34,18 +34,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         !jwtPayload?.context?.workspace_id ||
         req.context.workspace_id !== jwtPayload.context.workspace_id
       ) {
-        console.log('User access limited to Workspace')
         NcError.forbidden('User access limited to Workspace');
       }
       if (
         !jwtPayload?.context?.base_id ||
         req.context.base_id !== jwtPayload.context.base_id
       ) {
-        console.log('User access limited to Base')
         NcError.forbidden('User access limited to Base');
       }
-
-      console.log(jwtPayload)
 
       return {
         ...jwtPayload,

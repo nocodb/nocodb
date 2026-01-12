@@ -101,7 +101,6 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
       await sandbox.runCode(executableCode, {
         language: 'javascript',
         onStdout: (output) => {
-          console.log('onStdOut', output);
           const error = this.parseScriptOutput(
             output.line,
             scriptLogs,
@@ -112,7 +111,6 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
           }
         },
         onStderr: (output) => {
-          console.log('onStderr', output);
           const error = this.parseScriptOutput(
             output.line,
             scriptLogs,
@@ -123,7 +121,6 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
           }
         },
         onError: (error) => {
-          console.log('onError', error);
           logs.push({
             level: 'error',
             message: error?.toString() || 'Script execution error',
@@ -167,7 +164,6 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
         },
       };
     } catch (error: any) {
-      console.log('catch', error);
       const executionTime = Date.now() - startTime;
 
       logs.push({

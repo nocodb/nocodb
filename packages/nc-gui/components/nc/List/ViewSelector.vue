@@ -152,7 +152,7 @@ defineExpose({
   >
     <template v-if="!disableLabel" #label>
       <div>
-        <slot name="label">{{ t('objects.view') }}</slot>
+        <slot name="label">{{ t('general.view') }}</slot>
       </div>
     </template>
     <NcListDropdown v-model:is-open="isOpenViewSelectDropdown" :disabled="disabled" :has-error="!!selectedView?.ncItemDisabled">

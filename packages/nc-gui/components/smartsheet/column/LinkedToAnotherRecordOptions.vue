@@ -27,7 +27,10 @@ const meta = inject(MetaInj, ref())
 
 const filterRef = ref()
 
-const crossBase = ref((vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id !== vModel.value?.base_id)
+const crossBase = ref(
+  (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id &&
+    (vModel.value?.colOptions as LinkToAnotherRecordType).fk_related_base_id !== vModel.value?.base_id,
+)
 
 const { basesList } = storeToRefs(useBases())
 

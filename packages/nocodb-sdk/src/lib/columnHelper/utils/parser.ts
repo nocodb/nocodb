@@ -206,11 +206,7 @@ export const parseYearValue = (value: any) => {
   return value ? +value : value;
 };
 
-export const parseUserValue = (
-  value: any,
-  withDisplayName = false,
-  useUserId = false
-) => {
+export const parseUserValue = (value: any, withDisplayName = false) => {
   let data = value;
   try {
     if (typeof value === 'string') {
@@ -222,8 +218,6 @@ export const parseUserValue = (
     .map((user) =>
       withDisplayName && user.display_name
         ? `${user.display_name}<${user.email}>`
-        : useUserId
-        ? `${user.id}`
         : `${user.email}`
     )
     .join(', ');

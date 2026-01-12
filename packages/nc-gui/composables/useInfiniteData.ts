@@ -666,9 +666,7 @@ export function useInfiniteData(args: {
 
       const data = formatData(response.list, response.pageInfo, params, path, getEvaluatedRowMetaRowColorInfo)
 
-      if (!disableSmartsheet) {
-        loadAggCommentsCount(data, path)
-      }
+      loadAggCommentsCount(data, path)
 
       return data
     } catch (error: any) {
@@ -676,7 +674,7 @@ export function useInfiniteData(args: {
         return []
       }
       if (error?.response?.data?.error === 'FORMULA_ERROR') {
-        await tablesStore.reloadTableMeta(meta.value!.id! as string, meta.value?.base_id)
+        await tablesStore.reloadTableMeta(meta.value!.id! as string)
         return loadData(params)
       }
 

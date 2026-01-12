@@ -31,11 +31,21 @@ const up = async (knex: Knex) => {
 
   // find super user
   const superUser = await knex(MetaTable.USERS)
-    .whereLike('roles', '%super%')
+    .where('roles', 'like', '%super%')
     .first();
 
+  // if no super user exists (no users created yet), skip workspace creation
+  // workspace will be created when first user is created
   if (!superUser) {
-    throw new Error('Super user not found');
+    const userCount = await knex(MetaTable.USERS)
+      .count('id', { as: 'count' })
+      .first();
+    if (!userCount || +userCount.count === 0) {
+      return;
+    }
+    throw new Error(
+      'No super user found in the system, cannot create default workspace',
+    );
   }
 
   const defaultWorkspaceId = `w${nanoidWorkspace()}`;

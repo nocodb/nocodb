@@ -70,7 +70,6 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     sort?: string | string[];
     filterArr?: Filter[];
     sortArr?: Sort[];
-    minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) => {
     const { where, ...rest } = baseModel._getListArgs(args as any);
 
@@ -349,14 +348,6 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     // group by using the column aliases
     qb.groupBy(...groupBySelectors);
 
-    // Add HAVING clause to filter groups by minimum count (e.g., count > 1 for duplicates only)
-    if (args.minCount !== undefined && args.minCount > 0) {
-      qb.havingRaw('COUNT(??) >= ?', [
-        baseModel.model.primaryKey?.column_name || '*',
-        args.minCount,
-      ]);
-    }
-
     // Wrap in a CTE to allow referencing grouped/aliased columns in subqueries (esp. for Postgres)
     // We'll use: WITH grouped AS (<qb>) SELECT ... FROM grouped g
     const outerQb = baseModel.dbDriver
@@ -470,7 +461,6 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     limit?;
     offset?;
     filterArr?: Filter[];
-    minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) => {
     const { where } = baseModel._getListArgs(args as any);
 
@@ -716,14 +706,6 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     );
 
     qb.groupBy(...groupBySelectors);
-
-    // Add HAVING clause to filter groups by minimum count (e.g., count > 1 for duplicates only)
-    if (args.minCount !== undefined && args.minCount > 0) {
-      qb.havingRaw('COUNT(??) >= ?', [
-        baseModel.model.primaryKey?.column_name || '*',
-        args.minCount,
-      ]);
-    }
 
     // Wrap in a CTE so that we can reference grouped columns safely in all engines
     // SELECT COUNT(*) FROM (WITH grouped AS (<qb>) SELECT * FROM grouped g) sub

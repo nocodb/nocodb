@@ -18,16 +18,8 @@ const { $e } = useNuxtApp()
 
 const { eventBus, getExtensionAssetsUrl, duplicateExtension, showExtensionDetails, extensionAccess } = useExtensions()
 
-const {
-  fullscreen,
-  collapsed,
-  extension,
-  extensionManifest,
-  activeError,
-  showExpandBtn,
-  disableToggleFullscreenBtn,
-  toggleFullScreen,
-} = useExtensionHelperOrThrow()
+const { fullscreen, collapsed, extension, extensionManifest, activeError, showExpandBtn, disableToggleFullscreenBtn } =
+  useExtensionHelperOrThrow()
 const EXTENSION_ID = extension.value.extensionId
 
 const titleInput = ref<HTMLInputElement | null>(null)
@@ -78,6 +70,11 @@ const handleDuplicateExtension = async (id: string, open = false) => {
       eventBus.emit(ExtensionsEvents.DUPLICATE, duplicatedExt.id)
     })
   }
+}
+
+const toggleFullScreen = () => {
+  fullscreen.value = true
+  $e(`c:extensions:${EXTENSION_ID}:full-screen`)
 }
 </script>
 

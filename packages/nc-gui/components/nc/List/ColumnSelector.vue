@@ -137,7 +137,7 @@ defineExpose({
   >
     <template v-if="!disableLabel" #label>
       <div>
-        <slot name="label">{{ t('objects.column') }}</slot>
+        <slot name="label">{{ t('general.column') }}</slot>
       </div>
     </template>
     <NcListDropdown

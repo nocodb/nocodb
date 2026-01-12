@@ -1,3 +1,4 @@
+import { defaultConnectionOptions } from '~/utils/nc-config';
 import { XKnex } from '~/db/CustomKnex';
 import { DbServer, Org, Workspace } from '~/models';
 import SimpleLRUCache from '~/utils/cache';
@@ -44,7 +45,7 @@ export const getWorkspaceDbConnection = async (
     if (dbServer) {
       return XKnex({
         ...dbServer.config,
-        pool: { min: 0, max: 10 },
+        ...defaultConnectionOptions,
       });
     }
     return null;

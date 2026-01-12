@@ -38,6 +38,8 @@ const openMarketPlace = () => {
 }
 
 const syncIcons = [SyncDataType.GITHUB, SyncDataType.JIRA, SyncDataType.ZENDESK]
+
+const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OPENAI]
 </script>
 
 <template>
@@ -91,7 +93,7 @@ const syncIcons = [SyncDataType.GITHUB, SyncDataType.JIRA, SyncDataType.ZENDESK]
     <ProjectSyncCreateProvider>
       <template #default="{ createSyncClick }">
         <NcMenuItem
-          class="nc-menu-item-sync"
+          class="nc-menu-item-integration"
           inner-class="w-full"
           data-testid="create-new-sync"
           @click="
@@ -104,10 +106,10 @@ const syncIcons = [SyncDataType.GITHUB, SyncDataType.JIRA, SyncDataType.ZENDESK]
           {{ $t('labels.sync') }}
           <div class="flex-1 w-full" />
           <div class="flex items-center">
-            <div v-for="icon in syncIcons" :key="icon" class="nc-sync-icon-wrapper">
-              <GeneralIntegrationIcon :type="icon" size="sx" class="nc-sync-icon" />
+            <div v-for="icon in syncIcons" :key="icon" class="nc-integration-icon-wrapper">
+              <GeneralIntegrationIcon :type="icon" size="sx" class="nc-integration-icon" />
             </div>
-            <div class="nc-sync-icon-wrapper text-nc-content-gray-muted text-bodySm">+10</div>
+            <div class="nc-integration-icon-wrapper text-nc-content-gray-muted text-bodySm">+10</div>
           </div>
         </NcMenuItem>
       </template>
@@ -116,6 +118,24 @@ const syncIcons = [SyncDataType.GITHUB, SyncDataType.JIRA, SyncDataType.ZENDESK]
     <NcMenuItemLabel>
       <span class="normal-case"> {{ $t('general.automations') }} </span>
     </NcMenuItemLabel>
+    <NcMenuItem
+      v-if="isWorkflowsEnabled"
+      class="nc-menu-item-integration"
+      inner-class="w-full"
+      data-testid="create-new-workflow"
+      @click="emits('emptyWorkflow')"
+    >
+      <GeneralIcon icon="ncAutomation" />
+      {{ $t('general.workflow') }}
+      <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
+      <div class="flex-1 w-full" />
+      <div class="flex items-center">
+        <div v-for="icon in automationIcons" :key="icon" class="nc-integration-icon-wrapper">
+          <GeneralIntegrationIcon :type="icon" size="sx" class="nc-integration-icon" />
+        </div>
+        <div class="nc-integration-icon-wrapper text-nc-content-gray-muted text-bodySm">+4</div>
+      </div>
+    </NcMenuItem>
     <NcMenuItem inner-class="w-full" class="nc-menu-item-combo" data-testid="create-new-script" @click="emits('emptyScript')">
       <div class="w-full flex items-center">
         <div class="flex-1 flex items-center gap-2 cursor-pointer">
@@ -155,28 +175,21 @@ const syncIcons = [SyncDataType.GITHUB, SyncDataType.JIRA, SyncDataType.ZENDESK]
         </NcSubMenu>
       </div>
     </NcMenuItem>
-
-    <NcMenuItem v-if="isWorkflowsEnabled" inner-class="w-full" data-testid="create-new-workflow" @click="emits('emptyWorkflow')">
-      <GeneralIcon icon="ncAutomation" />
-      {{ $t('general.workflow') }}
-      <div class="flex-1 w-full" />
-      <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
-    </NcMenuItem>
   </NcMenu>
 </template>
 
 <style scoped lang="scss">
-.nc-menu-item-sync {
-  .nc-sync-icon-wrapper {
+.nc-menu-item-integration {
+  .nc-integration-icon-wrapper {
     @apply flex items-center justify-center children:flex-none w-6;
   }
 
-  .nc-sync-icon {
+  .nc-integration-icon {
     transition: fill 0.2s ease;
   }
 
   &:not(:hover) {
-    .nc-sync-icon {
+    .nc-integration-icon {
       @apply text-nc-content-gray-muted;
 
       & * {

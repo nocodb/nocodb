@@ -288,7 +288,13 @@ export class WorkflowExecutionService {
                 {
                   ...NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
                   extra: {
-                    context: context,
+                    context: {
+                      base_id: context.base_id,
+                      workspace_id: context.workspace_id,
+                      org_id: context.org_id,
+                      nc_site_url: context.nc_site_url,
+                      user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+                    },
                   },
                 },
                 Noco.getConfig(),

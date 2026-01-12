@@ -84,8 +84,10 @@ const up = async (knex: Knex) => {
     // Indexes for performance
     table.index('fk_client_id');
     table.index('fk_user_id');
-    table.index('access_token');
-    table.index('refresh_token');
+    if (!['mysql', 'mysql2'].includes(knex.client.config.client)) {
+      table.index('access_token');
+      table.index('refresh_token');
+    }
     table.index('access_token_expires_at');
     table.index('refresh_token_expires_at');
     table.index('is_revoked');

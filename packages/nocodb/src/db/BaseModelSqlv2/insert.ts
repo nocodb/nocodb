@@ -60,8 +60,6 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
           `${baseModel.model.primaryKey.column_name} as ${baseModel.model.primaryKey.id}`,
         );
         response = await baseModel.execAndParse(query, null, { raw: true });
-      } else {
-        await baseModel.execAndParse(query, null, { raw: true });
       }
 
       const ai = baseModel.model.columns.find((c) => c.ai);

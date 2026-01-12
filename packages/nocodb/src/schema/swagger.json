@@ -26243,7 +26243,7 @@
             "status": "install",
             "status_details": null,
             "logo": "plugins/s3.png",
-            "icon": null,
+            "icon": "ncMail",
             "tags": "Storage",
             "category": "Storage",
             "input_schema": "{\"title\":\"Configure Amazon S3\",\"items\":[{\"key\":\"bucket\",\"label\":\"Bucket Name\",\"placeholder\":\"Bucket Name\",\"type\":\"SingleLineText\",\"required\":true},{\"key\":\"region\",\"label\":\"Region\",\"placeholder\":\"Region\",\"type\":\"SingleLineText\",\"required\":true},{\"key\":\"access_key\",\"label\":\"Access Key\",\"placeholder\":\"Access Key\",\"type\":\"SingleLineText\",\"required\":true},{\"key\":\"access_secret\",\"label\":\"Access Secret\",\"placeholder\":\"Access Secret\",\"type\":\"Password\",\"required\":true}],\"actions\":[{\"label\":\"Test\",\"placeholder\":\"Test\",\"key\":\"test\",\"actionType\":\"TEST\",\"type\":\"Button\"},{\"label\":\"Save\",\"placeholder\":\"Save\",\"key\":\"save\",\"actionType\":\"SUBMIT\",\"type\":\"Button\"}],\"msgOnInstall\":\"Successfully installed and attachment will be stored in AWS S3\",\"msgOnUninstall\":\"\"}",
@@ -26284,7 +26284,7 @@
           },
           "icon": {
             "type": "string",
-            "description": "Plugin Icon (Not in use)"
+            "description": "Plugin Icon - IconMapKey. Takes priority over 'logo' if both are provided."
           },
           "id": {
             "$ref": "#/components/schemas/Id",

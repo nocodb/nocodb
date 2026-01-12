@@ -12,6 +12,8 @@ useSidebar('nc-left-sidebar', { hasSidebar: false })
 
 const route = useRoute()
 
+const { isDark } = useTheme()
+
 const { loadSharedView, sharedView, sharedViewMeta, meta, notFound, password, passwordDlg, passwordError } =
   useProvideSharedFormStore(route.params.viewId as string)
 
@@ -67,7 +69,7 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
         :mask-closable="false"
         wrap-class-name="nc-modal-shared-form-password-dlg"
         :mask-style="{
-          backgroundColor: 'rgba(255, 255, 255, 0.64)',
+          backgroundColor: 'rgba(var(--color-base-white), 0.64)',
           backdropFilter: 'blur(8px)',
         }"
         @close="passwordDlg = false"
@@ -112,12 +114,22 @@ const focus: VNodeRef = (el: typeof InputPassword) => {
         </div>
       </a-modal>
 
-      <img v-if="passwordDlg" alt="view image" src="~/assets/img/views/form.png" class="fixed inset-0 w-full h-full" />
+      <img
+        v-if="passwordDlg"
+        alt="view image"
+        src="~/assets/img/views/form.png"
+        class="fixed inset-0 w-full h-full"
+        :class="{ 'bg-view-image--dark': isDark }"
+      />
     </NuxtLayout>
   </div>
 </template>
 
 <style lang="scss" scoped>
+.bg-view-image--dark {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 :deep(.nc-cell-attachment) {
   @apply p-0;
 

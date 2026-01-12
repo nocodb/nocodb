@@ -20,6 +20,8 @@ const route = useRoute()
 
 const { loadSharedView } = useSharedView()
 
+const { isDark } = useTheme()
+
 const formState = ref({ password: undefined })
 
 const passwordError = ref<string | null>(null)
@@ -68,7 +70,7 @@ const bgImageName = computed(() => {
     :class="{ active: vModel }"
     :mask-closable="false"
     :mask-style="{
-      backgroundColor: 'rgba(255, 255, 255, 0.64)',
+      backgroundColor: 'rgba(var(--color-base-white), 0.64)',
       backdropFilter: 'blur(8px)',
     }"
   >
@@ -114,5 +116,11 @@ const bgImageName = computed(() => {
     </div>
   </NcModal>
 
-  <img alt="view image" :src="bgImageName" class="fixed inset-0 w-full h-full" />
+  <img alt="view image" :src="bgImageName" class="fixed inset-0 w-full h-full" :class="{ 'bg-view-image--dark': isDark }" />
 </template>
+
+<style lang="scss" scoped>
+.bg-view-image--dark {
+  filter: invert(1) hue-rotate(180deg);
+}
+</style>

@@ -65,7 +65,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="h-9 border-t-1 flex items-center border-nc-border-gray-medium px-2 py-1">
+  <div class="h-[var(--footer-height)] border-t-1 flex items-center border-nc-border-gray-medium px-2 py-1">
     <NcTooltip v-if="isCreateEditScriptAllowed">
       <NcButton
         v-e="['a:script:editor:toggle', { visible: !isEditorOpen }]"

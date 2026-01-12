@@ -1,12 +1,3 @@
-export interface ButtonColorStateType {
-  background: string;
-  text: string;
-}
-
-export interface ButtonColorMapType {
-
-}
-
 export const buttonColorMap = {
   solid: {
     brand: {
@@ -120,10 +111,10 @@ export const buttonColorMap = {
       loader: 'var(--color-purple-600)',
     },
     yellow: {
-      base: { background: '#fffbf2', text: '#ca982e' },
-      hover: { background: '#fff0d1', text: '#ca982e' },
+      base: { background: 'var(--color-yellow-50)', text: 'var(--color-yellow-600)' },
+      hover: { background: 'var(--color-yellow-100)', text: 'var(--color-yellow-600)' },
       disabled: { background: 'var(--nc-bg-gray-light)', text: 'var(--nc-content-gray-disabled)' },
-      loader: '#ca982e',
+      loader: 'var(--color-yellow-600)',
     },
     gray: {
       base: { background: 'var(--nc-bg-gray-extralight)', text: 'var(--nc-content-gray-subtle2)' },
@@ -204,7 +195,6 @@ export const getButtonColors = (
   isDisabled: boolean,
   getColor: GetColorType,
 ) => {
-  // Todo: dark mode colors
   const themeColors = buttonColorMap[theme]?.[color]
   if (!themeColors) {
     return isHovered && !isDisabled
@@ -219,5 +209,28 @@ export const getButtonColors = (
     background: getColor(colors.background),
     text: getColor(colors.text),
     loader: getColor(themeColors.loader),
+  }
+}
+
+export const getButtonColorsCssVariables = (
+  theme: 'solid' | 'light' | 'text',
+  color: 'brand' | 'red' | 'green' | 'maroon' | 'blue' | 'orange' | 'pink' | 'purple' | 'yellow' | 'gray',
+  getColor: GetColorType,
+) => {
+  const defaultColors = getButtonColors(theme, color, false, false, getColor)
+
+  const hoverColors = getButtonColors(theme, color, true, false, getColor)
+
+  const disabledColors = getButtonColors(theme, color, false, true, getColor)
+
+  return {
+    '--btn-cell-bg': defaultColors.background,
+    '--btn-cell-text': defaultColors.text,
+
+    '--btn-cell-bg-hover': hoverColors.background,
+    '--btn-cell-text-hover': hoverColors.text,
+
+    '--btn-cell-disabled-bg': disabledColors.background,
+    '--btn-cell-disabled-text': disabledColors.text,
   }
 }

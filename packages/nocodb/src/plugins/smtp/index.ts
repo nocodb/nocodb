@@ -8,7 +8,7 @@ const config: XcPluginConfig = {
   builder: SMTPPlugin,
   id: 'smtp',
   title: 'SMTP',
-  version: '0.0.5',
+  version: '0.0.6',
   icon: 'ncMail',
   description: 'SMTP email client',
   price: 'Free',

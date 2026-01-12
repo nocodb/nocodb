@@ -4541,7 +4541,7 @@ export interface PluginType {
   description?: string;
   /** Documentation of plugin (Not in use) */
   docs?: string;
-  /** Plugin Icon (Not in use) */
+  /** Plugin Icon - IconMapKey. Takes priority over 'logo' if both are provided. */
   icon?: string;
   /** Unique ID */
   id?: IdType;

@@ -206,6 +206,7 @@ watch(
                 'extension-modal-content': fullscreen,
                 'h-full': !fullscreen,
                 '!nc-h-screen !nc-w-screen': fullscreen && currentExtensionModalSize === 'fullscreen',
+                'nc-extension-fullscreen': fullscreen && currentExtensionModalSize === 'extensionFullscreen',
               }"
               :style="
                 fullscreen
@@ -260,7 +261,19 @@ watch(
   @apply absolute top-0 left-0 z-1000 w-full h-full bg-black/50 flex items-center justify-center;
 
   .extension-modal-content {
-    @apply bg-nc-bg-default rounded-2xl w-[90%] h-[90vh]  mx-auto flex flex-col overflow-hidden dark:(border-1 border-nc-border-gray-medium);
+    @apply bg-nc-bg-default rounded-2xl mx-auto flex flex-col overflow-hidden dark:(border-1 border-nc-border-gray-medium);
+
+    &:not(.nc-extension-fullscreen) {
+      @apply w-[90%] h-[90vh];
+    }
+
+    &.nc-extension-fullscreen {
+      @apply w-[calc(100vw-32px)] h-[calc(100vh-var(--topbar-height)-16px)];
+    }
+  }
+
+  &:has(.nc-extension-fullscreen) {
+    @apply pt-[var(--topbar-height)] !items-start;
   }
 }
 

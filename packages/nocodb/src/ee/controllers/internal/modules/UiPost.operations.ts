@@ -111,15 +111,6 @@ export class UiPostOperations
           rowColorConditionsId: req.query.rowColorConditionId,
           filter: payload,
         });
-      case 'bulkAggregate':
-        context.cache = true;
-        return await this.dataTableService.bulkAggregate(context, {
-          query: req.query,
-          modelId: req.query.tableId as string,
-          viewId: req.query.viewId as string,
-          baseId: req.query.baseId as string,
-          body: payload,
-        });
       case 'commentResolve':
         return await this.commentsService.commentResolve(context, {
           commentId: payload.commentId,

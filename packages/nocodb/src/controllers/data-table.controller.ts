@@ -319,4 +319,21 @@ export class DataTableController {
       user: req.user,
     });
   }
+
+  @Post(['/api/v2/tables/:modelId/bulk/aggregate'])
+  @Acl('dataAggregate')
+  async bulkAggregate(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('modelId') modelId: string,
+    @Query('viewId') viewId: string,
+  ) {
+    context.cache = true;
+    return await this.dataTableService.bulkAggregate(context, {
+      query: req.query,
+      modelId,
+      viewId,
+      body: req.body,
+    });
+  }
 }

@@ -120,7 +120,9 @@ const userRoleOptions = [
   >
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title class="select-none" :level="4" data-rec="true"> {{ $t('activity.inviteUser') }}</a-typography-title>
+        <h4 class="select-none text-nc-content-gray text-subHeading1" data-rec="true">
+          {{ $t('activity.inviteUser') }}
+        </h4>
 
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
@@ -137,21 +139,14 @@ const userRoleOptions = [
               <div class="text-xs ml-0.5 mt-0.5" data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
             </div>
 
-            <a-alert class="!mt-2" type="success" show-icon>
-              <template #message>
-                <div class="flex flex-row justify-between items-center py-1">
-                  <div class="flex pl-2 text-green-700 text-xs" data-rec="true">
-                    {{ inviteUrl }}
-                  </div>
-
-                  <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
-                    <template #icon>
-                      <component :is="iconMap.circleCheckSolid" class="flex mx-auto text-green-700 h-[1rem]" />
-                    </template>
-                  </a-button>
-                </div>
-              </template>
-            </a-alert>
+            <NcAlert
+              type="success"
+              :message="inviteUrl"
+              message-class="!text-green-700 !text-bodyDefaultSm"
+              background
+              :copyText="inviteUrl"
+              class="mt-2 !p-3"
+            />
 
             <div class="flex text-xs text-nc-content-gray-muted mt-2 justify-start ml-2" data-rec="true">
               {{ $t('msg.info.userInviteNoSMTP') }}
@@ -159,13 +154,13 @@ const userRoleOptions = [
             </div>
 
             <div class="flex flex-row justify-end mt-4 ml-2">
-              <a-button size="middle" outlined @click="clickInviteMore">
+              <NcButton size="small" type="secondary" text-color="primary" @click="clickInviteMore">
                 <div class="flex flex-row justify-center items-center space-x-0.5">
-                  <MaterialSymbolsSendOutline class="flex mx-auto text-nc-content-gray-subtle2 h-[0.8rem]" />
+                  <MaterialSymbolsSendOutline class="flex mx-auto h-[0.8rem]" />
 
-                  <div class="text-xs text-nc-content-gray-subtle2" data-rec="true">{{ $t('activity.inviteMore') }}</div>
+                  <div class="text-xs" data-rec="true">{{ $t('activity.inviteMore') }}</div>
                 </div>
-              </a-button>
+              </NcButton>
             </div>
           </div>
         </template>
@@ -245,12 +240,12 @@ const userRoleOptions = [
               </div>
 
               <div class="flex flex-row justify-end">
-                <a-button type="primary" class="!rounded-md" html-type="submit">
+                <NcButton type="primary" size="small" html-type="submit">
                   <div class="flex flex-row justify-center items-center space-x-1.5">
                     <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
                     <div data-rec="true">{{ $t('activity.invite') }}</div>
                   </div>
-                </a-button>
+                </NcButton>
               </div>
             </a-form>
           </div>

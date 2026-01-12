@@ -16,7 +16,7 @@ import SqlMgrv2 from '~/db/sql-mgr/v2/SqlMgrv2';
 import { NcError } from '~/helpers/catchError';
 import { Base, User } from '~/models';
 import Noco from '~/Noco';
-import { isCloud, isOnPrem, T } from '~/utils';
+import { isCloud, isEE, isOnPrem, T } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import getInstance from '~/utils/getInstance';
 import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
@@ -501,6 +501,11 @@ export class UtilsService {
         process.env.NC_DISABLE_ONBOARDING_FLOW === 'true' ||
         process.env.NODE_ENV === 'development' ||
         process.env.NODE_ENV === 'test',
+      ...(isEE === false
+        ? {
+            ncDefaultWorkspaceId: Noco.ncDefaultWorkspaceId || null,
+          }
+        : {}),
     };
 
     return result;

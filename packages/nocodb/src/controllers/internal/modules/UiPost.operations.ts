@@ -520,6 +520,15 @@ export class UiPostOperations
           viewName: req.query.viewId,
           req,
         });
+      case 'bulkAggregate':
+        context.cache = true;
+        return await this.dataTableService.bulkAggregate(context, {
+          query: req.query,
+          modelId: req.query.tableId as string,
+          viewId: req.query.viewId as string,
+          baseId: req.query.baseId as string,
+          body: payload,
+        });
     }
   }
 }

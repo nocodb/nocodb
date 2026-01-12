@@ -5076,7 +5076,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       apiVersion: NcApiVersion.V2,
     },
   ) {
-    if (options.raw) {
+    if (options.raw || options.bulkAggregate) {
       options.skipDateConversion = true;
       options.skipAttachmentConversion = true;
       options.skipSubstitutingColumnIds = true;
@@ -5098,6 +5098,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (!this.model?.columns) {
       await this.model.getColumns(this.context);
+    }
+
+    // we need to post process lookup fields based on the looked up column instead of the lookup column
+    const aliasColumns = {};
+
+    if (!dependencyColumns) {
+      const nestedColumns = this.model?.columns.filter(
+        (col) => col.uidt === UITypes.Lookup,
+      );
+
+      for (const col of nestedColumns) {
+        const nestedColumn = await this.getNestedColumn(col);
+        if (
+          nestedColumn &&
+          [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+            nestedColumn.colOptions?.type,
+          )
+        ) {
+          aliasColumns[col.id] = nestedColumn;
+        }
+      }
     }
 
     // update attachment fields
@@ -5122,6 +5143,33 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (!options.skipJsonConversion) {
       data = await this.convertJsonTypes(data, dependencyColumns);
     }
+
+    if (options.bulkAggregate) {
+      data = data.map(async (d) => {
+        for (const key in d) {
+          let data = d[key];
+
+          if (typeof data === 'string' && data.startsWith('{')) {
+            try {
+              data = JSON.parse(data);
+            } catch (e) {
+              // do nothing
+            }
+          }
+
+          d[key] =
+            (
+              await this.substituteColumnIdsWithColumnTitles(
+                [data],
+                dependencyColumns,
+                aliasColumns,
+              )
+            )[0] ?? {};
+        }
+        return d;
+      });
+    }
+
     if (options.apiVersion === NcApiVersion.V3) {
       data = await this.convertMultiSelectTypes(data, dependencyColumns);
       await FieldHandler.fromBaseModel(this).parseDataDbValue({
@@ -5136,6 +5184,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       data = await this.substituteColumnIdsWithColumnTitles(
         data,
         dependencyColumns,
+        aliasColumns,
       );
     }
 

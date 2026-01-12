@@ -51,6 +51,8 @@ const isUnderLTAR = inject(IsUnderLTARInj, ref(false))
 
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
 
+const isLinkRecordDropdown = inject(IsLinkRecordDropdownInj, ref(false))
+
 const isGrid = inject(IsGridInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
@@ -127,6 +129,12 @@ const vModel = computed({
       emit('update:cdf', val)
     } else if (val !== props.modelValue) {
       currentRow.value.rowMeta.changed = true
+
+      // Clear error on value change
+      if (currentRow.value.rowMeta.errors?.[column.value.title]) {
+        delete currentRow.value.rowMeta.errors[column.value.title]
+      }
+
       emit('update:modelValue', val)
       if (column.value.pk || column.value.unique) {
         updateWhenEditCompleted()
@@ -219,6 +227,8 @@ const showReadonlyField = computed(() => {
     }
 
     case 'percent': {
+      if (isUnderLookup.value && !isLinkRecordDropdown.value) return true
+
       return !(
         (!readOnly.value && editEnabled.value) ||
         (isExpandedFormOpen.value && (localEditEnabled.value || parseProp(column.value?.meta).is_progress))
@@ -299,7 +309,7 @@ const cellClassName = computed(() => {
     className += ' nc-grid-numeric-cell-left'
   }
 
-  if (cellType.value === 'textarea' && (isForm.value || isSurveyForm.value)) {
+  if (cellType.value === 'textarea' && (isForm.value || isSurveyForm.value) && !isUnderLTAR.value && !isUnderLookup.value) {
     className += ' !min-h-30'
   }
 
@@ -482,7 +492,7 @@ const cellClassName = computed(() => {
 }
 
 .nc-cell {
-  @apply text-sm text-gray-600;
+  @apply text-sm text-nc-content-gray-subtle2;
   font-weight: 500;
 
   :deep(.nc-cell-field),
@@ -497,12 +507,12 @@ const cellClassName = computed(() => {
 
   :deep(input::placeholder),
   :deep(textarea::placeholder) {
-    @apply text-gray-400;
+    @apply text-nc-content-gray-disabled;
     font-weight: 300;
   }
 
   &.nc-display-value-cell {
-    @apply !text-brand-500 !font-semibold;
+    @apply !text-nc-content-brand !font-semibold;
 
     :deep(.nc-cell-field),
     :deep(input),

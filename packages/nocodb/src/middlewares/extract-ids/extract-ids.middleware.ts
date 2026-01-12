@@ -1,13 +1,17 @@
 import { Injectable, SetMetadata, UseInterceptors } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import {
+  CloudOrgUserRoles,
   extractRolesObj,
   NcApiVersion,
   OrgUserRoles,
   ProjectRoles,
   SourceRestriction,
+  ViewLockType,
+  WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
+import RowColorCondition from 'src/models/RowColorCondition';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -26,31 +30,46 @@ import {
   GalleryViewColumn,
   GridViewColumn,
   Hook,
+  Integration,
   Model,
   Sort,
+  Source,
   SyncSource,
   View,
+  Widget,
+  Workspace,
 } from '~/models';
-import rolePermissions from '~/utils/acl';
+import rolePermissions, {
+  generateReadablePermissionErr,
+  sourceRestrictions,
+} from '~/utils/acl';
 import { NcError } from '~/helpers/catchError';
+import { GlobalGuard } from '~/guards/global/global.guard';
+import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { RootScopes } from '~/utils/globals';
-import { sourceRestrictions } from '~/utils/acl';
-import { MCPToken, Source } from '~/models';
+import MCPToken from '~/models/MCPToken';
+import Noco from '~/Noco';
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
   [OrgUserRoles.CREATOR]: 'Org Creator',
   [OrgUserRoles.VIEWER]: 'Org Viewer',
+  [WorkspaceUserRoles.OWNER]: 'Workspace Owner',
+  [WorkspaceUserRoles.CREATOR]: 'Workspace Creator',
+  [WorkspaceUserRoles.VIEWER]: 'Workspace Viewer',
+  [WorkspaceUserRoles.EDITOR]: 'Workspace Editor',
+  [WorkspaceUserRoles.COMMENTER]: 'Workspace Commenter',
   [ProjectRoles.OWNER]: 'Base Owner',
   [ProjectRoles.CREATOR]: 'Base Creator',
   [ProjectRoles.VIEWER]: 'Base Viewer',
   [ProjectRoles.EDITOR]: 'Base Editor',
   [ProjectRoles.COMMENTER]: 'Base Commenter',
-  [ProjectRoles.NO_ACCESS]: 'No Access',
 };
 
+const VIEW_KEY = Symbol('view');
+
 export function getRolesLabels(
-  roles: (OrgUserRoles | ProjectRoles | string)[],
+  roles: (OrgUserRoles | WorkspaceUserRoles | ProjectRoles | string)[],
 ) {
   return roles
     .filter(
@@ -73,65 +92,368 @@ const getApiVersionFromUrl = (url: string) => {
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
   async use(req, res, next): Promise<any> {
+    const { params, query } = req;
+
+    req.ncApiVersion = getApiVersionFromUrl(req.route.path);
+    req.ncSocketId = req.headers['xc-socket-id'];
+
+    const bypassContext = {
+      workspace_id: RootScopes.BYPASS,
+      base_id: RootScopes.BYPASS,
+      api_version: req.ncApiVersion,
+      socket_id: req.ncSocketId,
+    };
+
+    // this is a special route for ws operations we pass 'nc' as base id
+    const isInternalApi = !!req.path?.startsWith('/api/v2/internal');
+    const isInternalWorkspaceScope = isInternalApi && params.baseId === 'nc';
+
+    const baseId = params.baseId || params.baseName;
+
+    if (!isInternalWorkspaceScope && baseId) {
+      const base = await Base.get(bypassContext, baseId);
+      if (!base) {
+        NcError.get(bypassContext).baseNotFound(baseId);
+      }
+
+      const context = {
+        workspace_id: base.fk_workspace_id,
+        base_id: base.id,
+        api_version: req.ncApiVersion,
+        socket_id: req.ncSocketId,
+      };
+
+      req.ncBaseId = base.id;
+      req.ncWorkspaceId = base.fk_workspace_id;
+
+      req.context = {
+        workspace_id: req.ncWorkspaceId,
+        base_id: req.ncBaseId,
+        api_version: req.ncApiVersion,
+        socket_id: req.ncSocketId,
+        nc_site_url: req.ncSiteUrl,
+        permissions: [],
+      };
+
+      const mcpTokenId = params.mcpTokenId || query.mcpTokenId;
+      const integrationId = params.integrationId || query.integrationId;
+      const tableId =
+        params.tableId || params.modelId || params.tableName || query.tableId;
+      const viewId = params.viewId || params.viewName || query.viewId;
+      const formViewId = params.formViewId || query.formViewId;
+      const gridViewId = params.gridViewId || query.gridViewId;
+      const kanbanViewId = params.kanbanViewId || query.kanbanViewId;
+      const galleryViewId = params.galleryViewId || query.galleryViewId;
+      const calendarViewId = params.calendarViewId || query.calendarViewId;
+      const publicDataUuid = params.publicDataUuid || query.publicDataUuid;
+      const sharedViewUuid = params.sharedViewUuid || query.sharedViewUuid;
+      const sharedBaseUuid = params.sharedBaseUuid || query.sharedBaseUuid;
+      const hookId = params.hookId || query.hookId;
+      const rowColorConditionId =
+        params.rowColorConditionId || query.rowColorConditionId;
+      const gridViewColumnId =
+        params.gridViewColumnId || query.gridViewColumnId;
+      const formViewColumnId =
+        params.formViewColumnId || query.formViewColumnId;
+      const galleryViewColumnId =
+        params.galleryViewColumnId || query.galleryViewColumnId;
+      const columnId = params.columnId || query.columnId;
+      const filterId = params.filterId || query.filterId;
+      const filterParentId = params.filterParentId || query.filterParentId;
+      const widgetId = params.widgetId || query.widgetId;
+      const sortId = params.sortId || query.sortId;
+      const syncId = params.syncId || query.syncId;
+      const extensionId = params.extensionId || query.extensionId;
+
+      if (mcpTokenId) {
+        const mcpToken = await MCPToken.get(
+          {
+            workspace_id: RootScopes.FULL_BYPASS,
+            base_id: RootScopes.FULL_BYPASS,
+          },
+          mcpTokenId,
+        );
+        if (!mcpToken) {
+          NcError.get(context).genericNotFound('MCPToken', mcpTokenId);
+        }
+        req.ncBaseId = mcpToken.base_id;
+        req.ncWorkspaceId = mcpToken.fk_workspace_id;
+      } else if (integrationId) {
+        const integration = await Integration.get(context, integrationId);
+        if (!integration) {
+          NcError.get(context).integrationNotFound(integrationId);
+        }
+      } else if (tableId) {
+        const model = await Model.get(context, tableId);
+
+        if (!model) {
+          NcError.get(context).tableNotFound(tableId);
+        }
+
+        req.ncSourceId = model.source_id;
+      } else if (viewId) {
+        const view =
+          (await View.get(context, viewId)) ||
+          (await Model.get(context, viewId));
+
+        if (!view) {
+          NcError.get(context).viewNotFound(viewId);
+        }
+
+        req.ncSourceId = view.source_id;
+      } else if (
+        formViewId ||
+        gridViewId ||
+        kanbanViewId ||
+        galleryViewId ||
+        calendarViewId
+      ) {
+        const view = await View.get(
+          context,
+          formViewId ||
+            gridViewId ||
+            kanbanViewId ||
+            galleryViewId ||
+            calendarViewId,
+        );
+
+        if (!view) {
+          NcError.get(context).viewNotFound(
+            formViewId ||
+              gridViewId ||
+              kanbanViewId ||
+              galleryViewId ||
+              calendarViewId,
+          );
+        }
+
+        req.ncSourceId = view.source_id;
+      } else if (publicDataUuid) {
+        const view = await View.getByUUID(context, publicDataUuid);
+
+        if (!view) {
+          NcError.get(context).viewNotFound(publicDataUuid);
+        }
+
+        req.ncSourceId = view?.source_id;
+      } else if (sharedViewUuid) {
+        const view = await View.getByUUID(context, sharedViewUuid);
+
+        if (!view) {
+          NcError.get(context).viewNotFound(sharedViewUuid);
+        }
+
+        req.ncSourceId = view.source_id;
+      } else if (sharedBaseUuid) {
+        const base = await Base.getByUuid(context, sharedBaseUuid);
+
+        if (!base) {
+          NcError.get(context).baseNotFound(sharedBaseUuid);
+        }
+      } else if (hookId) {
+        const hook = await Hook.get(context, hookId);
+
+        if (!hook) {
+          NcError.get(context).genericNotFound('Webhook', hookId);
+        }
+
+        req.ncSourceId = hook.source_id;
+      } else if (rowColorConditionId) {
+        const rowColorCondition = await RowColorCondition.getById(
+          context,
+          rowColorConditionId,
+        );
+
+        if (!rowColorCondition) {
+          NcError.get(context).genericNotFound(
+            'Row color condition',
+            rowColorConditionId,
+          );
+        }
+
+        const view = await View.get(context, rowColorCondition.fk_view_id);
+        req.ncSourceId = view.source_id;
+      } else if (gridViewColumnId) {
+        const gridViewColumn = await GridViewColumn.get(
+          context,
+          gridViewColumnId,
+        );
+
+        if (!gridViewColumn) {
+          NcError.get(context).fieldNotFound(gridViewColumnId);
+        }
+
+        req.ncSourceId = gridViewColumn?.source_id;
+      } else if (formViewColumnId) {
+        const formViewColumn = await FormViewColumn.get(
+          context,
+          formViewColumnId,
+        );
+
+        if (!formViewColumn) {
+          NcError.get(context).fieldNotFound(formViewColumnId);
+        }
+
+        req.ncSourceId = formViewColumn.source_id;
+      } else if (galleryViewColumnId) {
+        const galleryViewColumn = await GalleryViewColumn.get(
+          context,
+          galleryViewColumnId,
+        );
+
+        if (!galleryViewColumn) {
+          NcError.get(context).fieldNotFound(galleryViewColumnId);
+        }
+
+        req.ncSourceId = galleryViewColumn.source_id;
+      } else if (columnId) {
+        const column = await Column.get(context, { colId: columnId });
+
+        if (!column) {
+          NcError.get(context).fieldNotFound(columnId);
+        }
+
+        req.ncSourceId = column.source_id;
+      } else if (filterId) {
+        const filter = await Filter.get(context, filterId);
+
+        if (!filter) {
+          NcError.genericNotFound('Filter', filterId);
+        }
+
+        req.ncSourceId = filter.source_id;
+      } else if (filterParentId) {
+        const filter = await Filter.get(context, filterParentId);
+
+        if (!filter) {
+          NcError.genericNotFound('Filter', filterParentId);
+        }
+
+        req.ncSourceId = filter.source_id;
+      } else if (widgetId) {
+        const widget = await Widget.get(context, widgetId);
+
+        if (!widget) {
+          NcError.genericNotFound('Widget', widgetId);
+        }
+      } else if (sortId) {
+        const sort = await Sort.get(context, sortId);
+
+        if (!sort) {
+          NcError.genericNotFound('Sort', sortId);
+        }
+
+        req.ncSourceId = sort.source_id;
+      } else if (syncId) {
+        const syncSource = await SyncSource.get(context, syncId);
+
+        if (!syncSource) {
+          NcError.genericNotFound('Sync Source', syncId);
+        }
+
+        req.ncSourceId = syncSource.source_id;
+      } else if (extensionId) {
+        const extension = await Extension.get(context, extensionId);
+
+        if (!extension) {
+          NcError.genericNotFound('Extension', extensionId);
+        }
+      }
+    } else {
+      await this.legacyExtractIds(req);
+    }
+
+    await this.additionalValidation({ req, res, next });
+
+    next();
+  }
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    await this.use(
+      context.switchToHttp().getRequest(),
+      context.switchToHttp().getResponse(),
+      () => {},
+    );
+    return true;
+  }
+
+  // additional validation logic which can be overridden
+  protected async additionalValidation(_param: {
+    next: any;
+    res: any;
+    req: any;
+  }) {
+    // do nothing
+  }
+
+  protected async legacyExtractIds(req) {
     const { params } = req;
+    let view;
+    let tableIdToCheck: string | null = null; // Store table ID for permission check at the end
 
     const context = {
       workspace_id: RootScopes.BYPASS,
       base_id: RootScopes.BYPASS,
       api_version: getApiVersionFromUrl(req.route.path),
+      socket_id: req.headers['xc-socket-id'],
+      timezone: req.query?.whereTz,
     };
     req.ncApiVersion = context.api_version;
+    req.ncSocketId = context.socket_id;
 
-    // extract base id based on request path params
+    // this is a special route for ws operations we pass 'nc' as base id
+    const isInternalApi = !!req.path?.startsWith('/api/v2/internal');
+    const isInternalWorkspaceScope = isInternalApi && params.baseId === 'nc';
+    const isInternalOrgScope = isInternalApi && params.workspaceId === 'nc';
 
-    if (params.mcpTokenId) {
-      const mcpToken = await MCPToken.get(context, params.mcpTokenId);
-
-      if (!mcpToken) {
-        NcError.genericNotFound('MCPToken', params.mcpTokenId);
-      }
-
-      req.ncBaseId = mcpToken.base_id;
-    }
-
-    if (params.baseId || params.baseName) {
-      // We allow title for backward compatibility - TODO: we should get rid of it in future
-      const base = await Base.getByTitleOrId(
-        context,
-        params.baseId ?? params.baseName,
-      );
+    // We don't extract ncBaseId here intentionally to keep single source of truth
+    if (
+      !(isInternalWorkspaceScope || isInternalOrgScope) &&
+      (params.baseId || params.baseName)
+    ) {
+      // We only allow base id to be used for EE edition
+      const base = await Base.get(context, params.baseId ?? params.baseName);
 
       if (!base) {
         NcError.get(context).baseNotFound(params.baseId ?? params.baseName);
       }
-      if (base) {
-        req.ncBaseId = base.id;
-        if (params.tableId || params.tableName || params.modelId) {
-          // extract model and then source id from model
-          const model = await Model.getByAliasOrId(
-            {
-              workspace_id: base.fk_workspace_id,
-              base_id: base.id,
-            },
-            {
-              base_id: base.id,
-              aliasOrId: params.tableId || params.tableName || params.modelId,
-            },
-          );
-          if (!model) {
-            NcError.get(context).tableNotFound(
-              params.tableId || req.params.tableName || params.modelId,
-            );
-          }
 
-          req.ncSourceId = model?.source_id;
+      if (params.tableId || params.modelId) {
+        const model = await Model.getByIdOrName(
+          {
+            workspace_id: base.fk_workspace_id,
+            base_id: base.id,
+          },
+          {
+            id: params.tableId || params.modelId,
+            base_id: base.id,
+          },
+        );
+        if (!model) {
+          NcError.get(context).tableNotFound(params.tableId || params.modelId);
         }
       }
     }
-    if (params.baseId) {
+
+    if (params.mcpTokenId) {
+      const mcpToken = await MCPToken.get(context, params.mcpTokenId);
+      if (!mcpToken) {
+        NcError.get(context).genericNotFound('MCPToken', params.mcpTokenId);
+      }
+
+      req.ncBaseId = mcpToken.base_id;
+      req.ncWorkspaceId = mcpToken.fk_workspace_id;
+    } else if (
+      params.baseId &&
+      !(isInternalWorkspaceScope || isInternalOrgScope)
+    ) {
       req.ncBaseId = params.baseId;
-    } else if (params.dashboardId) {
-      req.ncBaseId = params.dashboardId;
+    } else if (params.integrationId) {
+      const integration = await Integration.get(context, params.integrationId);
+      if (!integration) {
+        NcError.get(context).integrationNotFound(params.integrationId);
+      }
+      req.ncWorkspaceId = integration.fk_workspace_id;
     } else if (params.tableId || params.modelId) {
       const model = await Model.getByIdOrName(context, {
         id: params.tableId || params.modelId,
@@ -143,17 +465,23 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = model.base_id;
       req.ncSourceId = model.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = model.id;
     } else if (params.viewId) {
-      const view =
+      view =
         (await View.get(context, params.viewId)) ||
         (await Model.get(context, params.viewId));
 
       if (!view) {
-        NcError.viewNotFound(params.viewId);
+        NcError.get(context).viewNotFound(params.viewId);
       }
 
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = view?.fk_model_id;
     } else if (
       params.formViewId ||
       params.gridViewId ||
@@ -161,7 +489,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       params.galleryViewId ||
       params.calendarViewId
     ) {
-      const view = await View.get(
+      view = await View.get(
         context,
         params.formViewId ||
           params.gridViewId ||
@@ -171,7 +499,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       );
 
       if (!view) {
-        NcError.viewNotFound(
+        NcError.get(context).viewNotFound(
           params.formViewId ||
             params.gridViewId ||
             params.kanbanViewId ||
@@ -186,16 +514,16 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const view = await View.getByUUID(context, req.params.publicDataUuid);
 
       if (!view) {
-        NcError.viewNotFound(params.publicDataUuid);
+        NcError.get(context).viewNotFound(req.params.publicDataUuid);
       }
 
-      req.ncBaseId = view.base_id;
-      req.ncSourceId = view.source_id;
+      req.ncBaseId = view?.base_id;
+      req.ncSourceId = view?.source_id;
     } else if (params.sharedViewUuid) {
       const view = await View.getByUUID(context, req.params.sharedViewUuid);
 
       if (!view) {
-        NcError.viewNotFound(req.params.sharedViewUuid);
+        NcError.get(context).viewNotFound(req.params.sharedViewUuid);
       }
 
       req.ncBaseId = view.base_id;
@@ -204,19 +532,40 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const base = await Base.getByUuid(context, req.params.sharedBaseUuid);
 
       if (!base) {
-        NcError.baseNotFound(req.params.sharedBaseUuid);
+        NcError.get(context).baseNotFound(req.params.sharedBaseUuid);
       }
-
       req.ncBaseId = base?.id;
     } else if (params.hookId) {
       const hook = await Hook.get(context, params.hookId);
 
       if (!hook) {
-        NcError.get(context).hookNotFound(params.hookId);
+        NcError.get(context).genericNotFound('Webhook', params.hookId);
       }
 
       req.ncBaseId = hook.base_id;
       req.ncSourceId = hook.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = hook.fk_model_id;
+    } else if (params.rowColorConditionId) {
+      const rowColorCondition = await RowColorCondition.getById(
+        context,
+        params.rowColorConditionId,
+      );
+
+      if (!rowColorCondition) {
+        NcError.get(context).genericNotFound(
+          'Row color condition',
+          params.rowColorConditionId,
+        );
+      }
+      req.ncBaseId = rowColorCondition.base_id;
+
+      view = await View.get(context, rowColorCondition.fk_view_id);
+      req.ncSourceId = view.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = view?.fk_model_id;
     } else if (params.gridViewColumnId) {
       const gridViewColumn = await GridViewColumn.get(
         context,
@@ -227,8 +576,17 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.get(context).fieldNotFound(params.gridViewColumnId);
       }
 
-      req.ncBaseId = gridViewColumn.base_id;
-      req.ncSourceId = gridViewColumn.source_id;
+      if (gridViewColumn.fk_view_id) {
+        view = await View.get(context, gridViewColumn.fk_view_id);
+      }
+
+      req.ncBaseId = gridViewColumn?.base_id;
+      req.ncSourceId = gridViewColumn?.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
     } else if (params.formViewColumnId) {
       const formViewColumn = await FormViewColumn.get(
         context,
@@ -239,8 +597,17 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.get(context).fieldNotFound(params.formViewColumnId);
       }
 
+      if (formViewColumn.fk_view_id) {
+        view = await View.get(context, formViewColumn.fk_view_id);
+      }
+
       req.ncBaseId = formViewColumn.base_id;
       req.ncSourceId = formViewColumn.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
     } else if (params.galleryViewColumnId) {
       const galleryViewColumn = await GalleryViewColumn.get(
         context,
@@ -251,8 +618,17 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.get(context).fieldNotFound(params.galleryViewColumnId);
       }
 
+      if (galleryViewColumn.fk_view_id) {
+        view = await View.get(context, galleryViewColumn.fk_view_id);
+      }
+
       req.ncBaseId = galleryViewColumn.base_id;
       req.ncSourceId = galleryViewColumn.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
     } else if (params.columnId) {
       const column = await Column.get(context, { colId: params.columnId });
 
@@ -262,6 +638,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = column.base_id;
       req.ncSourceId = column.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = column.fk_model_id;
     } else if (params.filterId) {
       const filter = await Filter.get(context, params.filterId);
 
@@ -269,8 +648,17 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Filter', params.filterId);
       }
 
+      if (filter.fk_view_id) {
+        view = await View.get(context, filter.fk_view_id);
+      }
+
       req.ncBaseId = filter.base_id;
       req.ncSourceId = filter.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
     } else if (params.filterParentId) {
       const filter = await Filter.get(context, params.filterParentId);
 
@@ -278,8 +666,25 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Filter', params.filterParentId);
       }
 
+      if (filter.fk_view_id) {
+        view = await View.get(context, filter.fk_view_id);
+      }
+
       req.ncBaseId = filter.base_id;
       req.ncSourceId = filter.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
+    } else if (params.widgetId) {
+      const widget = await Widget.get(context, params.widgetId);
+
+      if (!widget) {
+        NcError.genericNotFound('Widget', params.widgetId);
+      }
+
+      req.ncBaseId = widget.base_id;
     } else if (params.sortId) {
       const sort = await Sort.get(context, params.sortId);
 
@@ -287,13 +692,22 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         NcError.genericNotFound('Sort', params.sortId);
       }
 
+      if (sort.fk_view_id) {
+        view = await View.get(context, sort.fk_view_id);
+      }
+
       req.ncBaseId = sort.base_id;
       req.ncSourceId = sort.source_id;
+
+      // Extract table ID for permission check at the end
+      if (view?.fk_model_id) {
+        tableIdToCheck = view.fk_model_id;
+      }
     } else if (params.syncId) {
       const syncSource = await SyncSource.get(context, req.params.syncId);
 
       if (!syncSource) {
-        NcError.genericNotFound('Sync Source', params.syncId);
+        NcError.genericNotFound('Sync Source', req.params.syncId);
       }
 
       req.ncBaseId = syncSource.base_id;
@@ -302,12 +716,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const extension = await Extension.get(context, req.params.extensionId);
 
       if (!extension) {
-        NcError.genericNotFound('Extension', params.extensionId);
+        NcError.genericNotFound('Extension', req.params.extensionId);
       }
 
       req.ncBaseId = extension.base_id;
     }
-    // extract fk_model_id from query params only if it's audit post endpoint
+    // extract fk_model_id from query params only if it's audit post or comments post, get, patch, delete endpoint
     else if (
       ['/api/v1/db/meta/comments', '/api/v2/meta/comments'].some(
         (auditInsertOrUpdatePath) => req.route.path === auditInsertOrUpdatePath,
@@ -325,9 +739,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = model.base_id;
       req.ncSourceId = model.source_id;
-    }
-    // extract fk_model_id from query params only if it's audit get endpoint
-    else if (
+    } else if (
       [
         '/api/v2/meta/comments/count',
         '/api/v1/db/meta/comments/count',
@@ -347,73 +759,161 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
       req.ncBaseId = model.base_id;
       req.ncSourceId = model.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = model.id;
     } else if (
       [
         '/api/v1/db/meta/comment/:commentId',
         '/api/v2/meta/comment/:commentId',
-      ].some((commentPatchPath) => req.route.path === commentPatchPath) &&
-      (req.method === 'PATCH' || req.method === 'DELETE') &&
+        '/api/v1/db/meta/comment/:commentId/resolve',
+        '/api/v2/meta/comment/:commentId/resolve',
+      ].some((auditPatchPath) => req.route.path === auditPatchPath) &&
+      (req.method === 'PATCH' ||
+        req.method === 'DELETE' ||
+        req.method === 'POST') &&
       req.params.commentId
     ) {
-      const comment = await Comment.get(context, params.commentId);
+      const audit = await Comment.get(context, params.commentId);
 
-      if (!comment) {
+      if (!audit) {
         NcError.genericNotFound('Comment', params.commentId);
       }
 
-      req.ncBaseId = comment.base_id;
-      req.ncSourceId = comment.source_id;
+      req.ncBaseId = audit.base_id;
+      req.ncSourceId = audit.source_id;
+
+      // Extract table ID for permission check at the end
+      tableIdToCheck = audit.fk_model_id;
     }
-    // extract base id from query params only if it's userMe endpoint or webhook plugin list
+    // extract base id from query params only if it's userMe endpoint
     else if (
-      [
-        '/auth/user/me',
-        '/api/v1/db/auth/user/me',
-        '/api/v1/auth/user/me',
-        '/api/v1/db/meta/plugins/webhook',
-        '/api/v2/meta/plugins/webhook',
-      ].some((userMePath) => req.route.path === userMePath) &&
-      req.query.base_id
+      ['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'].some(
+        (userMePath) => req.route.path === userMePath,
+      ) &&
+      (req.query.base_id || req.query.workspace_id)
     ) {
-      req.ncBaseId = req.query.base_id;
+      // use base to get workspace id if base id is provided
+      if (req.query.base_id) {
+        req.ncBaseId = req.query.base_id;
+      } else {
+        req.ncWorkspaceId = req.query.workspace_id;
+      }
+    }
+
+    // todo:  verify all scenarios
+    // extract workspace id based on request path params or
+    // extract base id based on request path params
+    if (
+      (params.baseId || params.baseName) &&
+      !req.ncBaseId &&
+      !(isInternalWorkspaceScope || isInternalOrgScope)
+    ) {
+      // we expect project_name to be id for EE
+      const base = await Base.get(context, params.baseId ?? params.baseName);
+      if (base) {
+        req.ncBaseId = base.id;
+        req.ncWorkspaceId = (base as Base).fk_workspace_id;
+
+        if (req.params.tableName) {
+          // extract model and then source id from model
+          const model = await Model.getByAliasOrId(context, {
+            base_id: base.id,
+            aliasOrId: req.params.tableName,
+          });
+
+          if (!model) {
+            NcError.get(context).tableNotFound(req.params.tableName);
+          }
+
+          req.ncSourceId = model?.source_id;
+        }
+      } else {
+        NcError.baseNotFound(params.baseId ?? params.baseName);
+      }
+    } else if (
+      req.ncBaseId &&
+      !(isInternalWorkspaceScope || isInternalOrgScope)
+    ) {
+      const base = await Base.get(context, req.ncBaseId);
+      if (base) {
+        req.ncWorkspaceId = (base as Base).fk_workspace_id;
+      } else {
+        NcError.baseNotFound(req.ncBaseId);
+      }
+    } else if (req.params.workspaceId && !isInternalOrgScope) {
+      req.ncWorkspaceId = req.params.workspaceId;
+    } else if (req.params.workspaceOrOrgId) {
+      const workspace = await Workspace.get(req.params.workspaceOrOrgId);
+
+      if (workspace) {
+        req.ncWorkspaceId = workspace.id;
+        req.ncWorkspace = workspace;
+      } else {
+        req.ncOrgId = req.params.workspaceOrOrgId;
+      }
+    }
+    // extract workspace id from body only if it's base create endpoint
+    else if (
+      ['/api/v2/meta/bases', '/api/v1/db/meta/projects'].some(
+        (baseCreatePath) => req.route.path === baseCreatePath,
+      ) &&
+      req.method === 'POST' &&
+      req.body.fk_workspace_id
+    ) {
+      req.ncWorkspaceId = req.body.fk_workspace_id;
     }
 
     // if integration list endpoint is called with baseId, then extract baseId if it's valid
     if (
-      req.route.path === '/api/v2/meta/integrations' &&
+      req.route.path === '/api/v2/meta/workspaces/:workspaceId/integrations' &&
       req.method === 'GET' &&
       req.query.baseId
     ) {
       // check if baseId is valid and under the workspace
       const base = await Base.get(context, req.query.baseId);
-      if (!base) {
+      if (!base || base.fk_workspace_id !== req.ncWorkspaceId) {
         NcError.baseNotFound(req.query.baseId);
       }
       req.ncBaseId = base.id;
     }
 
+    // if view API and view is pesonal view then check if user has access to view
+    if (view && view.lock_type === ViewLockType.Personal) {
+      req[VIEW_KEY] = view;
+    }
+
+    if (!req.ncWorkspaceId) {
+      req.ncWorkspaceId = Noco.ncDefaultWorkspaceId;
+    }
+
     req.context = {
-      workspace_id: null,
+      org_id: req.ncOrgId,
+      workspace_id: req.ncWorkspaceId,
       base_id: req.ncBaseId,
       api_version: context.api_version,
+      socket_id: req.headers['xc-socket-id'],
+      nc_site_url: req.ncSiteUrl,
+      timezone: context.timezone,
+      is_api_token: req.user?.is_api_token,
+      permissions: [],
     };
 
-    next();
-  }
-
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    await this.use(
-      context.switchToHttp().getRequest(),
-      context.switchToHttp().getResponse(),
-      () => {},
-    );
-    return true;
+    // Store table ID to check in context for ACL middleware to perform table visibility check
+    if (tableIdToCheck) {
+      req.context.ncTableId = tableIdToCheck;
+    }
   }
 }
 
+// todo: refactor and move scope name to enum
 function getUserRoleForScope(user: any, scope: string) {
-  if (scope === 'base') {
+  if (scope === 'workspace') {
+    return user?.workspace_roles;
+  } else if (scope === 'base') {
     return user?.base_roles;
+  } else if (scope === 'cloud-org') {
+    return user?.org_roles;
   } else if (scope === 'org') {
     return user?.roles;
   }
@@ -421,7 +921,7 @@ function getUserRoleForScope(user: any, scope: string) {
 
 @Injectable()
 export class AclMiddleware implements NestInterceptor {
-  constructor(private reflector: Reflector) {}
+  constructor(private reflector: Reflector, private jwtStrategy: JwtStrategy) {}
 
   async aclFn(
     permissionName: string,
@@ -439,89 +939,122 @@ export class AclMiddleware implements NestInterceptor {
     context: ExecutionContext,
     req,
   ) {
-    if (!req.user?.isAuthorized) {
-      NcError.unauthorized('Invalid token');
-    }
-    const userScopeRole =
-      req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true
-        ? OrgUserRoles.SUPER_ADMIN
-        : getUserRoleForScope(req.user, scope);
-
-    if (!userScopeRole) {
-      if (req.ncApiVersion === NcApiVersion.V3) {
-        NcError.forbidden('Unauthorized access');
-      } else {
-        NcError.forbidden("You don't have permission to access this resource");
+    // if user is not defined then run GlobalGuard
+    // it's to take care if we are missing @UseGuards(GlobalGuard) in controller
+    // todo: later we can move guard part to this middleware or add where it's missing
+    if (!req.user) {
+      try {
+        const guard = new GlobalGuard(this.jwtStrategy);
+        await guard.canActivate(context);
+      } catch (e) {
+        console.log(e);
       }
     }
 
-    // assign owner role to super admin for all bases
-    if (userScopeRole === OrgUserRoles.SUPER_ADMIN) {
-      req.user.base_roles = {
-        [ProjectRoles.OWNER]: true,
-      };
+    if (!req.user?.isAuthorized) {
+      NcError.unauthorized('Invalid token');
+    }
+
+    // if view API and view is personal view then check if user has access to view
+    // if user is not owner of view then restrict write operations
+    if (
+      req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
+      req[VIEW_KEY].owned_by !== req.user?.id &&
+      ['POST', 'PATCH', 'DELETE', 'PUT'].includes(req.method) &&
+      !['viewUpdate', 'viewDelete', 'dataList'].includes(permissionName)
+    ) {
+      NcError.forbidden('Unauthorized access');
+    }
+
+    const userScopeRole = getUserRoleForScope(req.user, scope);
+    // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
+    const extendedScopeRoles =
+      extendedScope && getUserRoleForScope(req.user, extendedScope);
+    if (!userScopeRole && !extendedScopeRoles) {
+      NcError.forbidden('Unauthorized access');
     }
 
     const roles: Record<string, boolean> = extractRolesObj(userScopeRole);
 
-    // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
-    const extendedScopeRoles =
-      extendedScope && getUserRoleForScope(req.user, extendedScope);
-
     if (req?.user?.is_api_token && blockApiTokenAccess) {
       NcError.apiTokenNotAllowed();
     }
+
     if (
       (!allowedRoles || allowedRoles.some((role) => roles?.[role])) &&
-      !(
-        roles?.creator ||
-        roles?.owner ||
-        roles?.editor ||
-        roles?.viewer ||
-        roles?.commenter ||
-        roles?.[OrgUserRoles.SUPER_ADMIN] ||
-        roles?.[OrgUserRoles.CREATOR] ||
-        roles?.[OrgUserRoles.VIEWER]
+      ![extendedScopeRoles, roles].some(
+        (roles) =>
+          roles &&
+          (roles?.creator ||
+            roles?.owner ||
+            roles?.editor ||
+            roles?.viewer ||
+            roles?.commenter ||
+            roles?.['no-access'] ||
+            roles?.[WorkspaceUserRoles.OWNER] ||
+            roles?.[WorkspaceUserRoles.CREATOR] ||
+            roles?.[WorkspaceUserRoles.EDITOR] ||
+            roles?.[WorkspaceUserRoles.VIEWER] ||
+            roles?.[WorkspaceUserRoles.COMMENTER] ||
+            roles?.[WorkspaceUserRoles.NO_ACCESS] ||
+            roles?.[OrgUserRoles.SUPER_ADMIN] ||
+            roles?.[OrgUserRoles.CREATOR] ||
+            roles?.[OrgUserRoles.VIEWER] ||
+            roles?.[CloudOrgUserRoles.CREATOR] ||
+            roles?.[CloudOrgUserRoles.VIEWER] ||
+            roles?.[CloudOrgUserRoles.OWNER]),
       )
     ) {
       NcError.unauthorized('Unauthorized access');
     }
     // todo : verify user have access to base or not
 
+    // if user have no access role and trying to remove self from workspace then allow it
+    const isUserWithNoAccessLeavingWorkspace =
+      permissionName === 'workspaceUserDelete' &&
+      req.method === 'DELETE' &&
+      req.user?.workspace_roles?.[WorkspaceUserRoles.NO_ACCESS] &&
+      req.params?.workspaceId &&
+      req.params?.workspaceUserId &&
+      req.params?.workspaceUserId === req.user?.id;
+
     const isAllowed =
-      roles &&
-      (Object.entries(roles).some(([name, hasRole]) => {
-        return (
-          hasRole &&
-          rolePermissions[name] &&
-          (rolePermissions[name] === '*' ||
-            (rolePermissions[name].exclude &&
-              !rolePermissions[name].exclude[permissionName]) ||
-            (rolePermissions[name].include &&
-              rolePermissions[name].include[permissionName]))
-        );
-      }) ||
-        // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
-        (extendedScopeRoles &&
-          Object.entries(extendedScopeRoles).some(([name, hasRole]) => {
-            return (
-              hasRole &&
-              rolePermissions[name] &&
-              (rolePermissions[name] === '*' ||
-                (rolePermissions[name].exclude &&
-                  !rolePermissions[name].exclude[
-                    scope + '_' + permissionName
-                  ]) ||
-                (rolePermissions[name].include &&
-                  rolePermissions[name].include[scope + '_' + permissionName]))
-            );
-          })));
+      (roles &&
+        Object.entries(roles).some(([name, hasRole]) => {
+          return (
+            hasRole &&
+            rolePermissions[name] &&
+            (rolePermissions[name] === '*' ||
+              (rolePermissions[name].exclude &&
+                !rolePermissions[name].exclude[permissionName]) ||
+              (rolePermissions[name].include &&
+                rolePermissions[name].include[permissionName]))
+          );
+        })) ||
+      // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
+      (extendedScopeRoles &&
+        Object.entries(extendedScopeRoles).some(([name, hasRole]) => {
+          return (
+            hasRole &&
+            rolePermissions[name] &&
+            (rolePermissions[name] === '*' ||
+              (rolePermissions[name].exclude &&
+                !rolePermissions[name].exclude[scope + '_' + permissionName]) ||
+              (rolePermissions[name].include &&
+                rolePermissions[name].include[scope + '_' + permissionName]))
+          );
+        })) ||
+      isUserWithNoAccessLeavingWorkspace;
     if (!isAllowed) {
-      NcError.permissionDenied(permissionName, roles, extendedScopeRoles);
+      NcError.forbidden(
+        generateReadablePermissionErr(
+          permissionName,
+          roles ?? extendedScopeRoles,
+          scope,
+        ),
+      );
 
       // NcError.forbidden(
-      //
-      //
       //   `${permissionName} - ${getRolesLabels(
       //     Object.keys(roles).filter((k) => roles[k]),
       //   )} : Not allowed`,
@@ -588,7 +1121,6 @@ export class AclMiddleware implements NestInterceptor {
       'blockApiTokenAccess',
       context.getHandler(),
     );
-
     const scope = this.reflector.get<string>('scope', context.getHandler());
     const extendedScope = this.reflector.get<string>(
       'extendedScope',

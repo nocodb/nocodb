@@ -22,11 +22,13 @@ import type { Knex } from 'knex';
 import type { SortType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type CustomKnex from '~/db/CustomKnex';
+import type { XKnex } from '~/db/CustomKnex';
 import type {
   XcFilter,
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { Filter, GridViewColumn } from '~/models';
+import { swaggerSanitizeSchemaName } from '~/helpers/stringHelpers';
 import { NcError } from '~/helpers/catchError';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import {
@@ -191,15 +193,22 @@ export function getOppositeRelationType(
 export async function getBaseModelSqlFromModelId({
   modelId,
   context,
+  options = {},
 }: {
   context: NcContext;
   modelId: string;
+  options?: {
+    transaction?: XKnex | Knex.Transaction;
+    viewId?: string;
+  };
 }) {
   const model = await Model.get(context, modelId);
   const source = await Source.get(context, model.source_id);
   return await Model.getBaseModelSQL(context, {
     id: model.id,
     dbDriver: await NcConnectionMgrv2.get(source),
+    transaction: options?.transaction,
+    viewId: options?.viewId,
     source,
   });
 }
@@ -441,6 +450,8 @@ export function shouldSkipField(
   extractPkAndPv,
   pkAndPvOnly = false,
 ) {
+  // skip row meta column
+  if (column.uidt === UITypes.Meta) return true;
   if (fieldsSet && !pkAndPvOnly) {
     return !fieldsSet.has(column.title) && !fieldsSet.has(column.id);
   } else {
@@ -465,6 +476,10 @@ export function shouldSkipField(
           return true;
       }
     }
+
+    // skip all other columns if pkAndPvOnly passed as true
+    if (pkAndPvOnly && !column.pk && !column.pv) return true;
+
     return false;
   }
 }
@@ -812,4 +827,40 @@ export function transformObjectKeys(
     result[alias || key] = value;
   });
   return result;
+}
+
+/**
+ * Get database-specific array aggregation expression for team roles or similar use cases
+ * Returns a Knex raw expression that aggregates distinct values into an array/JSON array
+ * based on the database client (PostgreSQL, MySQL, SQLite)
+ *
+ * @param knex - Knex instance
+ * @param knexConnection - Knex connection instance (to get client type)
+ * @param columnName - Column name to aggregate (e.g., 'wta.roles')
+ * @param alias - Alias for the aggregated column
+ * @returns Knex raw expression for array aggregation
+ */
+export function getArrayAggExpression(
+  knex: CustomKnex,
+  knexConnection: any,
+  columnName: string,
+  alias: string,
+): Knex.Raw {
+  const client = knexConnection.client.config.client;
+
+  // Note: columnName and alias are controlled by our code, so it's safe to use directly
+  const exprMap: Record<string, string> = {
+    pg: `ARRAY_AGG(DISTINCT ${columnName}) FILTER (WHERE ${columnName} IS NOT NULL) AS ${alias}`,
+    mysql2: `JSON_ARRAYAGG(DISTINCT ${columnName}) AS ${alias}`,
+    sqlite3: `json_group_array(DISTINCT ${columnName}) AS ${alias}`,
+  };
+
+  // fallback to mysql2 query
+  return knex.raw(exprMap[client] || exprMap.mysql2);
+}
+
+export function swaggerGetSourcePrefix(source?: Source) {
+  return source?.isMeta()
+    ? ''
+    : `${swaggerSanitizeSchemaName(source?.alias || 'Source')}_`;
 }

@@ -13,7 +13,7 @@ const tablesStore = useTablesStore()
 const { openTableCreateDialog: _openTableCreateDialog } = tablesStore
 const { activeTable } = storeToRefs(tablesStore)
 
-const { openNewScriptModal } = useAutomationStore()
+const { openNewScriptModal } = useScriptStore()
 
 const { openNewDashboardModal } = useDashboardStore()
 
@@ -120,7 +120,7 @@ const hasViewCreateAccess = computed(() => {
   return isUIAllowed('viewCreateOrEdit')
 })
 
-const hasAutomationCreateAccess = computed(() => {
+const hasScriptCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
   return isUIAllowed('scriptCreateOrEdit')
@@ -259,16 +259,16 @@ const hasDashboardCreateAccess = computed(() => {
             <NcDivider />
             <NcTooltip
               :title="
-                hasAutomationCreateAccess
-                  ? $t('tooltip.navigateToBaseToCreateAutomation')
-                  : $t('tooltip.youDontHaveAccessToCreateNewAutomation')
+                hasScriptCreateAccess
+                  ? $t('tooltip.navigateToBaseToCreateScript')
+                  : $t('tooltip.youDontHaveAccessToCreateNewScript')
               "
-              :disabled="!(!isBaseHomePage || !hasAutomationCreateAccess)"
+              :disabled="!(!isBaseHomePage || !hasScriptCreateAccess)"
               placement="right"
             >
               <NcMenuItem
                 data-testid="mini-sidebar--script-create"
-                :disabled="!isBaseHomePage || !hasAutomationCreateAccess"
+                :disabled="!isBaseHomePage || !hasScriptCreateAccess"
                 @click="openNewScriptModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="ncScript" />

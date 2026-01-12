@@ -67,7 +67,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
             </span>
           </NcSwitch>
         </div>
-        <span class="text-gray-500 pl-10">{{ $t('msg.info.showM2mTablesDesc') }}</span>
+        <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showM2mTablesDesc') }}</span>
       </div>
 
       <div class="flex w-full px-3 border-t-1 border-nc-border-gray-medium py-2 gap-2 flex-col">
@@ -78,7 +78,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
             </span>
           </NcSwitch>
         </div>
-        <span class="text-gray-500 pl-10">{{ $t('msg.info.showNullInCellsDesc') }}</span>
+        <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showNullInCellsDesc') }}</span>
       </div>
 
       <div class="flex w-full px-3 py-2 border-t-1 border-nc-border-gray-medium gap-2 flex-col">
@@ -94,7 +94,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
             </span>
           </NcSwitch>
         </div>
-        <span class="text-gray-500 pl-10">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>
+        <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>
       </div>
     </div>
   </div>

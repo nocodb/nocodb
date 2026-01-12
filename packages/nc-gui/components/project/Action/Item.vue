@@ -32,6 +32,9 @@ defineProps<{
         <slot v-else name="subtext">{{ subtext }}</slot>
       </div>
     </div>
+    <div v-if="$slots.srOnly" class="sr-only">
+      <slot name="srOnly" />
+    </div>
   </div>
 </template>
 

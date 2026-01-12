@@ -137,7 +137,7 @@ const savingValue = ref()
 
 function saveChanges(val?: dayjs.Dayjs, saveOnChange = false) {
   if (!val) {
-    if (savingValue.value === null) {
+    if (savingValue.value === val && !ncIsUndefined(val)) {
       return
     }
 
@@ -330,7 +330,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false)
         e.stopPropagation()
       }
 
-      localState.value = tempDate.value
+      localState.value = tempDate.value ?? dayjs(new Date())
       if (!_isDatePicker) {
         e.stopPropagation()
         timePickerRef.value?.blur?.()
@@ -496,8 +496,8 @@ const minimizeMaxWidth = computed(() => {
           :class="{
             'py-0': isForm,
             'py-0.5': !isForm && !isColDisabled,
-            'bg-gray-100': isDatePicker && isOpen,
-            'hover:bg-gray-100 px-1': !isColDisabled,
+            'bg-nc-bg-gray-light': isDatePicker && isOpen,
+            'hover:bg-nc-bg-gray-light px-1': !isColDisabled,
           }"
         >
           <input
@@ -526,8 +526,8 @@ const minimizeMaxWidth = computed(() => {
             {
               'py-0': isForm,
               'py-0.5': !isForm && !isColDisabled,
-              'bg-gray-100': !isDatePicker && isOpen,
-              'hover:bg-gray-100 px-1': !isColDisabled,
+              'bg-nc-bg-gray-light': !isDatePicker && isOpen,
+              'hover:bg-nc-bg-gray-light px-1': !isColDisabled,
             },
           ]"
         >

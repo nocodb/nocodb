@@ -15,9 +15,7 @@ export default defineNuxtConfig({
     compatibilityVersion: 4,
   },
 
-  ignore: [
-    // 'pages/playground/**/*'
-  ],
+  ignore: [...(process.env.NODE_ENV === 'production' ? ['pages/playground/**/*'] : [])],
 
   modules: ['@vueuse/nuxt', 'nuxt-windicss', '@nuxt/image', '@pinia/nuxt', '@productdevbook/chatwoot'],
   ssr: false,
@@ -254,6 +252,7 @@ export default defineNuxtConfig({
         '@tiptap/vue-3',
         '@vue-flow/additional-components',
         '@vue-flow/core',
+        '@vue-flow/minimap',
         '@vuelidate/core',
         '@vuelidate/validators',
         '@vueuse/integrations/useQRCode',
@@ -264,6 +263,7 @@ export default defineNuxtConfig({
         'dagre',
         'dayjs/plugin/utc',
         'dayjs/plugin/timezone',
+        'dayjs/plugin/relativeTime',
         'deep-object-diff',
         'diff',
         'embla-carousel-vue',
@@ -311,6 +311,8 @@ export default defineNuxtConfig({
         'typesense',
         'vue3-moveable',
         'vue-fullscreen',
+        'cronstrue',
+        'plyr',
       ],
       esbuildOptions: {
         define: {

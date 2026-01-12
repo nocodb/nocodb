@@ -137,7 +137,7 @@ iwr http://get.nocodb.com/win-arm64.exe -o Noco-win-arm64.exe
 git clone https://github.com/nocodb/nocodb
 # для PostgreSQL
 cd nocodb/docker-compose/2_pg
-docker-compose up -d
+docker compose up -d
 ```
 
 > Щоб зберегти дані в Docker, ви можете змонтувати том в /usr/app/data/ з версії 0.10.6. В іншому випадку ваші дані будуть втрачені після перестворення контейнера.

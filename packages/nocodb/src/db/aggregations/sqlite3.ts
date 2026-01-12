@@ -9,10 +9,10 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { Column } from '~/models';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Knex } from 'knex';
 
 import type CustomKnex from '~/db/CustomKnex';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 
 export function genSqlite3AggregateQuery({
   column,
@@ -24,7 +24,7 @@ export function genSqlite3AggregateQuery({
   alias,
 }: {
   column: Column;
-  baseModelSqlv2: BaseModelSqlv2;
+  baseModelSqlv2: IBaseModelSqlV2;
   aggregation: string;
   column_query: string | Knex.QueryBuilder;
   parsedFormulaType?: FormulaDataTypes;

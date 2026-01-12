@@ -241,11 +241,7 @@ export class ExpandedFormPage extends BasePage {
       await expect(this.rootPage.getByTestId('nc-expanded-form-duplicate')).toBeVisible();
       await expect(this.rootPage.getByTestId('nc-expanded-form-delete')).toBeVisible();
     } else {
-      if (!isEE()) {
-        await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toBeVisible();
-      } else {
-        await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toHaveCount(0);
-      }
+      await expect(this.rootPage.getByTestId('nc-expanded-form-reload')).toHaveCount(0);
       await expect(this.rootPage.getByTestId('nc-expanded-form-duplicate')).toHaveCount(0);
       await expect(this.rootPage.getByTestId('nc-expanded-form-delete')).toHaveCount(0);
     }

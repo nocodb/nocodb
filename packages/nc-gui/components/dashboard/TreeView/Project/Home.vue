@@ -19,6 +19,8 @@ const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
+const { isDark } = useTheme()
+
 const { meta: metaKey, control } = useMagicKeys()
 
 const projectNodeRef = ref()
@@ -83,7 +85,8 @@ const hasTableCreatePermission = computed(() => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <img alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
+              <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png" />
+              <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" />
             </a>
 
             <div class="flex flex-grow"></div>

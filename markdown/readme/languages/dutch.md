@@ -158,7 +158,7 @@ git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
 cd pg
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Environment variables

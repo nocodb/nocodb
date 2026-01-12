@@ -42,7 +42,12 @@ export class ToolbarViewMenuPage extends BasePage {
 
     // verify downloaded content against expected content
     const expectedData = fs.readFileSync(expectedDataFile, 'utf8').replace(/\r/g, '').split('\n');
-    const file = fs.readFileSync('./output/test.txt', 'utf8').replace(/\r/g, '').split('\n');
+    let fileContent = fs.readFileSync('./output/test.txt', 'utf8').replace(/\r/g, '');
+    // remove BOM
+    if (fileContent.startsWith('\ufeff')) {
+      fileContent = fileContent.replace('\ufeff', '');
+    }
+    const file = fileContent.split('\n');
     expect(file).toEqual(expectedData);
   }
 

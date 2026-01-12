@@ -1,10 +1,12 @@
 import path from 'path';
 import { PassThrough } from 'stream';
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import axios from 'axios';
 import { nanoid } from 'nanoid';
 import { AuditV1OperationTypes, EventType, ncIsNull } from 'nocodb-sdk';
 import slash from 'slash';
+import { useAgent } from 'request-filtering-agent';
+import { getBase64FileSize } from 'src/helpers/stringHelpers';
 import type { DataUpdatePayload, NcContext } from 'nocodb-sdk';
 import type { AttachmentFilePathConstructed } from '~/helpers/attachmentHelpers';
 import type {
@@ -45,6 +47,8 @@ export class DataAttachmentV3Service {
     private readonly jobsService: IJobsService,
     private readonly dataV3Service: DataV3Service,
   ) {}
+  logger = new Logger(DataAttachmentV3Service.name);
+
   async handleUrlUploadCellUpdate(param: AttachmentUrlUploadParam) {
     const { context, modelId, column, recordId, scope, req, attachments } =
       param;
@@ -185,16 +189,14 @@ export class DataAttachmentV3Service {
     const { context, modelId, columnId, recordId, scope, attachment, req } =
       param;
 
-    const buffer = Buffer.from(attachment.file, 'base64');
-
     // Calculate file size from base64 value
-    const fileSize = buffer.length;
+    const fileSize = getBase64FileSize(attachment.file);
 
     if (fileSize > NC_ATTACHMENT_FIELD_SIZE) {
       NcError.get(context).invalidRequestBody(
-        `Attachment is larger than maximum allowed size at ${Math.floor(
-          NC_ATTACHMENT_FIELD_SIZE / mb,
-        )} mb`,
+        `Attachment is larger than maximum allowed size at ${(
+          NC_ATTACHMENT_FIELD_SIZE / mb
+        ).toFixed(2)} mb`,
       );
     }
 
@@ -261,7 +263,7 @@ export class DataAttachmentV3Service {
 
       const resultAttachmentUrl = await storageAdapter.fileCreateByStream(
         slash(path.join(destPath, filename)),
-        new PassThrough().end(buffer),
+        new PassThrough().end(attachment.file, 'base64'),
       );
 
       const attachmentId = await FileReference.insert(context, {
@@ -291,8 +293,9 @@ export class DataAttachmentV3Service {
         generateThumbnailAttachments.push(processedAttachment);
       }
     } catch (error) {
-      NcError.unprocessableEntity(
-        `Failed to process base64 attachment: ${error}`,
+      this.logger.error(`${error?.constructor?.name}: ${error?.message}`);
+      NcError.get(context).unprocessableEntity(
+        `Failed to process base64 attachment`,
       );
     }
 
@@ -303,7 +306,7 @@ export class DataAttachmentV3Service {
       .update({
         [column.column_name]: JSON.stringify(updatedAttachments),
       })
-      .where(await _wherePk(baseModel.model.primaryKeys, recordId, true));
+      .where(_wherePk(baseModel.model.primaryKeys, recordId, true));
 
     if (generateThumbnailAttachments.length > 0) {
       await this.jobsService.add(JobTypes.ThumbnailGenerator, {
@@ -322,6 +325,7 @@ export class DataAttachmentV3Service {
       baseModel,
       knex: baseModel.dbDriver,
       model: baseModel.model,
+      updatedColIds: [column.id],
     });
 
     await Audit.insert(
@@ -376,6 +380,12 @@ export class DataAttachmentV3Service {
       responseType: 'stream',
       maxRedirects: NC_ATTACHMENT_URL_MAX_REDIRECT,
       maxContentLength: NC_ATTACHMENT_FIELD_SIZE,
+      httpAgent: useAgent(url, {
+        stopPortScanningByUrlRedirection: true,
+      }),
+      httpsAgent: useAgent(url, {
+        stopPortScanningByUrlRedirection: true,
+      }),
     });
 
     // Extract file information from response headers

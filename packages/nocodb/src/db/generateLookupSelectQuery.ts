@@ -70,7 +70,7 @@ export default async function generateLookupSelectQuery({
     if (column.uidt === UITypes.Lookup) {
       lookupColOpt = await column.getColOptions<LookupColumn>(context);
     } else if (column.uidt !== UITypes.LinkToAnotherRecord) {
-      NcError.badRequest('Invalid field type');
+      NcError.get(context).badRequest('Invalid field type');
     }
 
     await column.getColOptions<LookupColumn>(context);
@@ -413,7 +413,7 @@ export default async function generateLookupSelectQuery({
             break;
           case UITypes.Attachment:
             if (!isAggregation) {
-              NcError.badRequest(
+              NcError.get(context).badRequest(
                 'Group by using attachment column is not supported',
               );
               break;
@@ -502,7 +502,9 @@ export default async function generateLookupSelectQuery({
         };
       }
 
-      NcError.notImplemented('This operation on Lookup/LTAR for this database');
+      NcError.get(context).notImplemented(
+        'This operation on Lookup/LTAR for this database',
+      );
     }
   }
 }

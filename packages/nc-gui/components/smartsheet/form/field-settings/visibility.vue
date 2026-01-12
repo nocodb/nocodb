@@ -58,7 +58,7 @@ const filterOption = (column: ColumnType) => {
   <div v-if="activeField" class="flex flex-col">
     <div class="flex flex-col gap-3">
       <div class="flex items-center justify-between">
-        <div class="text-gray-800 font-medium">{{ $t('labels.showOnConditions') }}</div>
+        <div class="text-nc-content-gray font-medium">{{ $t('labels.showOnConditions') }}</div>
 
         <div class="flex flex-col">
           <NcDropdown
@@ -73,9 +73,9 @@ const filterOption = (column: ColumnType) => {
               <div
                 class="nc-form-field-visibility-btn border-1 rounded-lg py-1 px-3 flex items-center justify-between gap-2 !min-w-[170px] transition-all cursor-pointer select-none text-sm"
                 :class="{
-                  '!border-brand-500 shadow-selected': isOpen,
-                  'border-gray-200': !isOpen,
-                  'bg-[#F0F3FF]': visibilityFilters.length,
+                  '!border-nc-border-brand shadow-selected': isOpen,
+                  'border-nc-border-gray-medium': !isOpen,
+                  'bg-nc-bg-brand dark:bg-nc-bg-gray-light': visibilityFilters.length,
                   'opacity-70 cursor-default nc-disabled': isFirstField && !visibilityFilters.length,
                 }"
                 data-testid="nc-form-field-visibility-btn"
@@ -83,7 +83,7 @@ const filterOption = (column: ColumnType) => {
                 <div
                   class="nc-form-field-visibility-conditions-count flex-1"
                   :class="{
-                    'text-brand-500 ': visibilityFilters.length,
+                    'text-nc-content-brand ': visibilityFilters.length,
                   }"
                 >
                   {{
@@ -93,13 +93,13 @@ const filterOption = (column: ColumnType) => {
                   }}
                 </div>
 
-                <GeneralIcon v-if="hasvisibilityError" icon="alertTriangle" class="flex-none !text-red-500" />
+                <GeneralIcon v-if="hasvisibilityError" icon="alertTriangle" class="flex-none !text-nc-content-red-medium" />
 
                 <GeneralIcon
                   icon="settings"
                   class="flex-none w-4 h-4"
                   :class="{
-                    'text-brand-500 ': visibilityFilters.length,
+                    'text-nc-content-brand ': visibilityFilters.length,
                   }"
                 />
               </div>
@@ -130,8 +130,8 @@ const filterOption = (column: ColumnType) => {
         </div>
       </div>
       <div>
-        <div class="text-sm text-gray-500">{{ $t('labels.showFieldOnConditionsMet') }}</div>
-        <div v-if="hasvisibilityError" class="mt-2 visibility-condition-input-error text-red-500">
+        <div class="text-sm text-nc-content-gray-muted">{{ $t('labels.showFieldOnConditionsMet') }}</div>
+        <div v-if="hasvisibilityError" class="mt-2 visibility-condition-input-error text-nc-content-red-medium">
           Error conditions will not be used for determining field visibility.
         </div>
       </div>
@@ -141,7 +141,7 @@ const filterOption = (column: ColumnType) => {
 
 <style lang="scss">
 .nc-form-field-visibility-dropdown {
-  @apply rounded-2xl border-gray-200;
+  @apply rounded-2xl border-nc-border-gray-medium;
   box-shadow: 0px 20px 24px -4px rgba(0, 0, 0, 0.1), 0px 8px 8px -4px rgba(0, 0, 0, 0.04);
 }
 </style>

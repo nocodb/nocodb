@@ -2,6 +2,8 @@ import { acceptHMRUpdate, defineStore } from 'pinia'
 import { MAX_WIDTH_FOR_MOBILE_MODE } from '~/lib/constants'
 
 export const useConfigStore = defineStore('configStore', () => {
+  const router = useRouter()
+
   const { isMobileMode: globalIsMobile } = useGlobal()
   const { width } = useWindowSize()
 
@@ -19,6 +21,8 @@ export const useConfigStore = defineStore('configStore', () => {
   const isMobileMode = ref(isViewPortMobile())
 
   const projectPageTab = ref<ProjectPageType>('overview')
+
+  const hideSharedBaseBtn = ref(router.currentRoute.value.query.hideSharedBaseBtn === 'true')
 
   const onViewPortResize = () => {
     isMobileMode.value = isViewPortMobile()
@@ -71,6 +75,7 @@ export const useConfigStore = defineStore('configStore', () => {
     handleSidebarOpenOnMobileForNonViews,
     projectPageTab,
     isExpandedFormCommentMode,
+    hideSharedBaseBtn,
   }
 })
 

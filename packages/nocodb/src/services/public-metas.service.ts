@@ -27,6 +27,7 @@ import {
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 
 @Injectable()
 export class PublicMetasService {
@@ -41,10 +42,10 @@ export class PublicMetasService {
       source?: Pick<Source, 'id' | 'type' | 'is_meta' | 'is_local'>;
     } = await View.getByUUID(context, param.sharedViewUuid);
 
-    if (!view) NcError.viewNotFound(param.sharedViewUuid);
+    if (!view) NcError.get(context).viewNotFound(param.sharedViewUuid);
 
     if (view.password && view.password !== param.password) {
-      NcError.invalidSharedViewPassword();
+      NcError.get(context).invalidSharedViewPassword();
     }
 
     const base = await Base.get(context, view.base_id);
@@ -209,11 +210,40 @@ export class PublicMetasService {
         id: ltarColOption.fk_related_model_id,
       },
     );
+    this.filterIfLimitedAccess(
+      context,
+      relatedMetas,
+      ltarColOption.fk_related_model_id,
+    );
     if (ltarColOption.type === 'mm') {
       relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo(
         mmContext,
         {
           id: ltarColOption.fk_mm_model_id,
+        },
+      );
+      this.filterIfLimitedAccess(
+        context,
+        relatedMetas,
+        ltarColOption.fk_mm_model_id,
+      );
+    }
+  }
+
+  private filterIfLimitedAccess(
+    context: NcContext,
+    relatedMetas: {
+      [p: string]: Model;
+    },
+    tableId: string,
+  ) {
+    if (
+      relatedMetas[tableId]?.columns &&
+      !hasDefaultTableVisibility(tableId, context.permissions)
+    ) {
+      relatedMetas[tableId].columns = relatedMetas[tableId].columns.filter(
+        (col) => {
+          return col.pk || col.pv;
         },
       );
     }
@@ -248,6 +278,12 @@ export class PublicMetasService {
       relatedMetas[relationCol.fk_model_id] = await Model.getWithInfo(context, {
         id: relationCol.fk_model_id,
       });
+
+      this.filterIfLimitedAccess(
+        context,
+        relatedMetas,
+        relationCol.fk_model_id,
+      );
     }
 
     // extract meta for table in which looked up column belongs
@@ -258,6 +294,11 @@ export class PublicMetasService {
         {
           id: lookedUpCol.fk_model_id,
         },
+      );
+      this.filterIfLimitedAccess(
+        context,
+        relatedMetas,
+        lookedUpCol.fk_model_id,
       );
     }
 
@@ -280,7 +321,7 @@ export class PublicMetasService {
 
     this.checkBaseType(base);
 
-    return { base_id: base.id };
+    return { base_id: base.id, base_title: base.title };
   }
 
   public checkBaseType(_base: Base) {

@@ -122,7 +122,7 @@ export function useGridViewData(
 
     reloadAggregate?.trigger(params)
 
-    if (!isGroupBy.value || !appInfo.value?.ee) {
+    if (!isGroupBy.value) {
       return
     }
 
@@ -292,7 +292,9 @@ export function useGridViewData(
     if (!removedRowsData.length) return
 
     try {
-      const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
+      const { list } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'dataList',
+        tableId: meta.value?.id as string,
         pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
         getHiddenColumns: true,
         limit: removedRowsData.length,
@@ -462,7 +464,7 @@ export function useGridViewData(
 
       dataCache.totalRows.value += validRowsToInsert.length
 
-      await syncCount(path)
+      await syncCount(path, true, false)
       syncVisibleData()
 
       return bulkInsertedIds
@@ -478,7 +480,7 @@ export function useGridViewData(
   async function bulkUpdateRows(
     rows: Row[],
     props: string[],
-    { metaValue = meta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
+    { metaValue = meta.value, onError }: { metaValue?: TableType; viewMetaValue?: ViewType; onError?: (e: any) => void } = {},
     undo = false,
     path: Array<number> = [],
   ): Promise<void> {
@@ -535,6 +537,7 @@ export function useGridViewData(
       })
     } catch (e) {
       console.error(e)
+      onError?.(e)
       message.error(await extractSdkResponseErrorMsg(e as any))
       isBulkOperationInProgress.value = false
       return
@@ -694,15 +697,25 @@ export function useGridViewData(
                 )
                 isBulkOperationInProgress.value = true
 
-                const columnsHash = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+                const columnsHash = (
+                  await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                    operation: 'columnsHash',
+                    tableId: meta.value?.id!,
+                  })
+                ).hash
 
-                await $api.dbTableColumn.bulk(meta.value?.id, {
-                  hash: columnsHash,
-                  ops: newCols.map((col: ColumnType) => ({
-                    op: 'delete',
-                    column: col,
-                  })),
-                })
+                await $api.internal.postOperation(
+                  meta.value!.fk_workspace_id!,
+                  meta.value!.base_id!,
+                  { operation: 'columnsBulk', tableId: meta.value?.id! },
+                  {
+                    hash: columnsHash,
+                    ops: newCols.map((col: ColumnType) => ({
+                      op: 'delete',
+                      column: col,
+                    })),
+                  },
+                )
 
                 insertedRows.forEach((row) => {
                   dataCache.cachedRows.value.delete(row.rowMeta.rowIndex!)
@@ -712,7 +725,7 @@ export function useGridViewData(
 
                 syncVisibleData()
 
-                await getMeta(meta.value?.id as string, true)
+                await getMeta(meta.value!.base_id!, meta.value?.id as string, true)
               } catch (e) {
               } finally {
                 isBulkOperationInProgress.value = false
@@ -724,20 +737,30 @@ export function useGridViewData(
             fn: async (insertRows: Row[], updateRows: Row[], path: Array<number>) => {
               try {
                 isBulkOperationInProgress.value = true
-                const columnsHash = (await $api.dbTableColumn.hash(meta.value?.id)).hash
+                const columnsHash = (
+                  await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                    operation: 'columnsHash',
+                    tableId: meta.value?.id!,
+                  })
+                ).hash
 
-                await $api.dbTableColumn.bulk(meta.value?.id, {
-                  hash: columnsHash,
-                  ops: newCols.map((col: ColumnType) => ({
-                    op: 'add',
-                    column: col,
-                  })),
-                })
+                await $api.internal.postOperation(
+                  meta.value!.fk_workspace_id!,
+                  meta.value!.base_id!,
+                  { operation: 'columnsBulk', tableId: meta.value?.id! },
+                  {
+                    hash: columnsHash,
+                    ops: newCols.map((col: ColumnType) => ({
+                      op: 'add',
+                      column: col,
+                    })),
+                  },
+                )
 
                 await bulkUpsertRows(insertRows, updateRows, props, { metaValue, viewMetaValue }, columns, true, path)
                 isBulkOperationInProgress.value = true
 
-                await getMeta(meta.value?.id as string, true)
+                await getMeta(meta.value!.base_id!, meta.value?.id as string, true)
 
                 syncVisibleData()
               } finally {
@@ -752,7 +775,7 @@ export function useGridViewData(
       }
       reloadViewDataHook?.trigger()
       syncVisibleData()
-      await syncCount(path)
+      await syncCount(path, true, false)
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
     } finally {
@@ -863,7 +886,9 @@ export function useGridViewData(
 
     if (!rowsToDelete.length) return
 
-    const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
+    const { list } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+      operation: 'dataList',
+      tableId: meta.value?.id as string,
       pks: rowsToDelete.map((row) => row[compositePrimaryKey]).join(','),
       getHiddenColumns: 'true',
       limit: rowsToDelete.length,
@@ -931,9 +956,16 @@ export function useGridViewData(
     } = {},
   ): Promise<any> {
     try {
-      const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows.length === 1 ? rows[0] : rows, {
-        viewId: viewMetaValue?.id as string,
-      })
+      const bulkDeletedRowsData = await $api.internal.postOperation(
+        (metaValue as any).fk_workspace_id!,
+        metaValue!.base_id!,
+        {
+          operation: 'dataDelete',
+          tableId: metaValue?.id as string,
+          viewId: viewMetaValue?.id as string,
+        },
+        rows.length === 1 ? rows[0] : rows,
+      )
 
       triggerAggregateReload({ path: [] })
 
@@ -948,11 +980,18 @@ export function useGridViewData(
     try {
       isBulkOperationInProgress.value = true
 
-      await $api.dbTableRow.bulkDeleteAll('noco', base.value.id!, meta.value.id!, {
-        where: where?.value,
-        viewId: viewMeta.value?.id,
-        skipPks: Object.values(selectedAllRecordsSkipPks.value).join(','),
-      })
+      await $api.internal.postOperation(
+        (meta.value as any).fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'bulkDataDeleteAll',
+          tableId: meta.value.id!,
+          where: where?.value,
+          viewId: viewMeta.value?.id,
+          skipPks: Object.values(selectedAllRecordsSkipPks.value).join(','),
+        },
+        {},
+      )
     } catch (error) {
     } finally {
       clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, path)

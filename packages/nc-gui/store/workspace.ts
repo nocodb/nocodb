@@ -9,6 +9,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
 
   const collaborators = ref<any[] | null>()
 
+  const collaboratorsMap = computed(() => {
+    return {}
+  })
+
   const allCollaborators = ref<any[] | null>()
 
   const router = useRouter()
@@ -31,6 +35,10 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const isWorkspaceSettingsPageOpened = computed(() => route.value.name === 'index-typeOrId-settings')
 
   const isIntegrationsPageOpened = computed(() => route.value.name === 'index-typeOrId-integrations')
+
+  const isTemplatesPageOpened = computed(() => false)
+
+  const isTemplatesFeatureEnabled = computed(() => false)
 
   const isFeedPageOpened = computed(() => route.value.name === 'index-typeOrId-feed')
 
@@ -251,6 +259,8 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     }
   }
 
+  const navigateToTemplates = async (..._args: any[]) => {}
+
   function setLoadingState(isLoading = false) {
     isWorkspaceLoading.value = isLoading
   }
@@ -258,6 +268,57 @@ export const useWorkspace = defineStore('workspaceStore', () => {
   const getPlanLimit = (_arg: any) => {
     return Infinity
   }
+
+  /**
+   * Teams section start here
+   */
+
+  const isTeamsEnabled = computed(() => false)
+
+  const teams = ref([])
+
+  const teamsMap = computed(() => {})
+
+  const isTeamsLoading = ref(false)
+
+  const editTeamDetails = ref(null)
+
+  const createTeam = async (..._args: any[]) => {}
+
+  const deleteTeam = async (..._args: any[]) => {}
+
+  const updateTeam = async (..._args: any[]) => {}
+
+  const loadTeams = async (..._args: any[]) => {}
+
+  const getTeamById = async (..._args: any[]) => {}
+
+  const addTeamMembers = async (..._args: any[]) => {}
+
+  const removeTeamMembers = async (..._args: any[]) => {}
+
+  const updateTeamMembers = async (..._args: any[]) => {}
+
+  /**
+   * Workspace teams
+   */
+  const isLoadingWorkspaceTeams = ref(true)
+
+  const workspaceTeams = ref<any[]>([])
+
+  const workspaceTeamList = async (..._args: any[]) => {}
+
+  const workspaceTeamGet = async (..._args: any[]) => {}
+
+  const workspaceTeamAdd = async (..._args: any[]) => {}
+
+  const workspaceTeamUpdate = async (..._args: any[]) => {}
+
+  const workspaceTeamRemove = async (..._args: any[]) => {}
+
+  /**
+   * Teams section end here
+   */
 
   return {
     loadWorkspaces,
@@ -272,6 +333,7 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     removeCollaborator,
     updateCollaborator,
     collaborators,
+    collaboratorsMap,
     allCollaborators,
     isInvitingCollaborators,
     isCollaboratorsLoading,
@@ -307,6 +369,35 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     upgradeWsDlg,
     upgradeWsJobId,
     removingCollaboratorMap,
+
+    // Teams
+    teams,
+    teamsMap,
+    isTeamsEnabled,
+    isTeamsLoading,
+    editTeamDetails,
+    createTeam,
+    deleteTeam,
+    updateTeam,
+    loadTeams,
+    getTeamById,
+    addTeamMembers,
+    removeTeamMembers,
+    updateTeamMembers,
+
+    // Workspace Teams
+    isLoadingWorkspaceTeams,
+    workspaceTeams,
+    workspaceTeamList,
+    workspaceTeamGet,
+    workspaceTeamAdd,
+    workspaceTeamUpdate,
+    workspaceTeamRemove,
+
+    // Templates
+    navigateToTemplates,
+    isTemplatesPageOpened,
+    isTemplatesFeatureEnabled,
   }
 })
 

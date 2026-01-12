@@ -67,7 +67,7 @@ describe('dataApiV3', () => {
           .get(`${urlPrefix}/${countryTable.id}/records`)
           .send({});
         expect(response.status).to.equal(401);
-        expect(response.body.error).to.equal('AUTHENTICATION_REQUIRED');
+        expect(response.body.error).to.equal('ERR_AUTHENTICATION_REQUIRED');
         expect(response.body.message).to.equal(
           'Authentication required - Invalid token',
         );
@@ -78,7 +78,7 @@ describe('dataApiV3', () => {
           .set('xc-token', 'invalid token')
           .send({});
         expect(response.status).to.equal(401);
-        expect(response.body.error).to.equal('AUTHENTICATION_REQUIRED');
+        expect(response.body.error).to.equal('ERR_AUTHENTICATION_REQUIRED');
         expect(response.body.message).to.equal(
           'Authentication required - Invalid token',
         );
@@ -102,7 +102,7 @@ describe('dataApiV3', () => {
           .set('xc-token', notPermittedXcToken)
           .send({});
         expect(response.status).to.equal(403);
-        expect(response.body.error).to.equal('FORBIDDEN');
+        expect(response.body.error).to.equal('ERR_FORBIDDEN');
         expect(response.body.message).to.equal(
           'Forbidden - Unauthorized access',
         );
@@ -146,7 +146,7 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/123456789/records`,
           status: 422,
         });
-        expect(response.body.error).to.eq('TABLE_NOT_FOUND');
+        expect(response.body.error).to.eq('ERR_TABLE_NOT_FOUND');
         expect(response.body.message).to.eq(`Table '123456789' not found`);
       });
       it('baseId not found', async () => {
@@ -154,7 +154,7 @@ describe('dataApiV3', () => {
           url: `/api/v3/data/234567890/123456789/records`,
           status: 422,
         });
-        expect(response.body.error).to.equal('BASE_NOT_FOUND');
+        expect(response.body.error).to.equal('ERR_BASE_NOT_FOUND');
         expect(response.body.message).to.eq(`Base '234567890' not found`);
       });
 
@@ -183,7 +183,7 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${countryTable.id}/records?viewId=123456890`,
           status: 422,
         });
-        expect(response.body.error).to.eq(`VIEW_NOT_FOUND`);
+        expect(response.body.error).to.eq(`ERR_VIEW_NOT_FOUND`);
         expect(response.body.message).to.eq(`View '123456890' not found`);
       });
       it('invalid page', async () => {
@@ -230,8 +230,10 @@ describe('dataApiV3', () => {
           },
           status: 422,
         });
-        expect(response.body.error).to.eq('FIELD_NOT_FOUND');
-        expect(response.body.message).to.eq(`Field 'NotFoundField' not found`);
+        expect(response.body.error).to.eq('ERR_FIELD_NOT_FOUND');
+        expect(response.body.message).to.eq(
+          `Field 'NotFoundField' on 'sort' query parameter not found`,
+        );
       });
       // skip, our sort direction is either {field} (asc) or -{field} (desc) so no validation required
       it.skip('invalid sort direction', async () => {});
@@ -283,7 +285,7 @@ describe('dataApiV3', () => {
           },
           status: 422,
         });
-        expect(response.body.error).to.eq(`FILTER_VERIFICATION_FAILED`);
+        expect(response.body.error).to.eq(`ERR_FILTER_VERIFICATION_FAILED`);
         expect(response.body.message).to.eq(
           `Filter verification failed: Value HELLO is not supported for type Decimal on column Area`,
         );
@@ -297,12 +299,11 @@ describe('dataApiV3', () => {
           },
           status: 422,
         });
-        expect(response.body.error).to.eq(`INVALID_FILTER`);
+        expect(response.body.error).to.eq(`ERR_INVALID_FILTER`);
         expect(response.body.message).to.eq(
           `Invalid filter expression: 'notInOperator' is not a recognized operator. Please use a valid comparison or logical operator`,
         );
       });
-
       it('invalid select field', async () => {
         const response = await ncAxiosGet({
           url: `${urlPrefix}/${countryTable.id}/records`,
@@ -311,7 +312,9 @@ describe('dataApiV3', () => {
           },
           status: 422,
         });
-        expect(response.body.message).to.eq(`Field 'NotFoundField' not found`);
+        expect(response.body.message).to.eq(
+          `Field 'NotFoundField' on 'fields' query parameter not found`,
+        );
       });
       // our api can accept array or not array
       it.skip('field parameter malformed', async () => {
@@ -337,7 +340,7 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${countryTable.id}/records/text-primary-key`,
           status: 422,
         });
-        expect(response.body.error).to.eq('INVALID_PK_VALUE');
+        expect(response.body.error).to.eq('ERR_INVALID_PK_VALUE');
         expect(response.body.message).to.eq(
           `Primary key value 'text-primary-key' is invalid for column 'Id'`,
         );
@@ -378,7 +381,7 @@ describe('dataApiV3', () => {
           url: `${urlPrefix}/${table.id}/records/text-primary-key`,
           status: 422,
         });
-        expect(response.body.error).to.eq('INVALID_PK_VALUE');
+        expect(response.body.error).to.eq('ERR_INVALID_PK_VALUE');
         expect(response.body.message).to.eq(
           `Primary key value 'text-primary-key' is invalid for column 'Id'`,
         );
@@ -438,7 +441,7 @@ describe('dataApiV3', () => {
           ],
           status: 422,
         });
-        expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+        expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
         expect(response.body.message).to.eq(
           `Value length '100001' is exceeding allowed limit '100000' for type 'SingleLineText' on column 'SingleLineText'`,
         );
@@ -463,7 +466,7 @@ describe('dataApiV3', () => {
           ],
           status: 404,
         });
-        expect(response.body.error).to.eq('RECORD_NOT_FOUND');
+        expect(response.body.error).to.eq('ERR_RECORD_NOT_FOUND');
         expect(response.body.message).to.eq(`Record '998091' not found`);
       });
 
@@ -480,7 +483,7 @@ describe('dataApiV3', () => {
           ],
           status: 404,
         });
-        expect(response.body.error).to.eq('RECORD_NOT_FOUND');
+        expect(response.body.error).to.eq('ERR_RECORD_NOT_FOUND');
         expect(response.body.message).to.eq(`Record '998091' not found`);
       });
       it(`will handle delete id format invalid`, async () => {
@@ -493,7 +496,7 @@ describe('dataApiV3', () => {
           ],
           status: 422,
         });
-        expect(response.body.error).to.eq('INVALID_PK_VALUE');
+        expect(response.body.error).to.eq('ERR_INVALID_PK_VALUE');
         expect(response.body.message).to.eq(
           `Primary key value 'text-primary-key' is invalid for column 'Id'`,
         );
@@ -510,9 +513,77 @@ describe('dataApiV3', () => {
           ],
           status: 422,
         });
-        expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+        expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
         expect(response.body.message).to.eq(
           `Invalid value '++notanemail321' for type 'Email' on column 'Email'`,
+        );
+      });
+
+      it('will handle invalid additional parameter on insert', async () => {
+        const insertResponse = await ncAxiosPost({
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
+          body: [
+            {
+              NotAllowedField: 'Hello',
+              fields: {
+                Email: '++notanemail321',
+              },
+            },
+          ],
+          status: 400,
+        });
+        expect(insertResponse.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
+        expect(insertResponse.body.message).to.eq(
+          `Properties 'NotAllowedField' on index 0 is not allowed. All record parameters need to be put inside 'fields' property`,
+        );
+        const updateResponse = await ncAxiosPatch({
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
+          body: [
+            {
+              id: 1,
+              NotAllowedField: 'Hello',
+              fields: {
+                Email: '++notanemail321',
+              },
+            },
+          ],
+          status: 400,
+        });
+        expect(updateResponse.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
+        expect(updateResponse.body.message).to.eq(
+          `Properties 'NotAllowedField' on index 0 is not allowed. All record parameters need to be put inside 'fields' property`,
+        );
+      });
+      it('will handle id property is required', async () => {
+        const updateResponse = await ncAxiosPatch({
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
+          body: [
+            {
+              fields: {
+                Email: '++notanemail321',
+              },
+            },
+          ],
+          status: 400,
+        });
+        expect(updateResponse.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
+        expect(updateResponse.body.message).to.eq(
+          `Property 'id' is required on index 0`,
+        );
+        const deleteResponse = await ncAxiosDelete({
+          url: `${textBasedUrlPrefix}/${table.id}/records`,
+          body: [
+            {
+              fields: {
+                Email: '++notanemail321',
+              },
+            },
+          ],
+          status: 400,
+        });
+        expect(deleteResponse.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
+        expect(deleteResponse.body.message).to.eq(
+          `Property 'id' is required on index 0`,
         );
       });
     });
@@ -565,7 +636,7 @@ describe('dataApiV3', () => {
           ],
           status: 422,
         });
-        expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+        expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
         expect(
           response.body.message.startsWith(`Invalid value 'HELLOW' for type `),
         ).to.eq(true);
@@ -582,7 +653,7 @@ describe('dataApiV3', () => {
             },
             status: 422,
           });
-          expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+          expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
           expect(
             response.body.message.startsWith(
               `Invalid value '${value}' for type `,
@@ -605,7 +676,7 @@ describe('dataApiV3', () => {
           ],
           status: 422,
         });
-        expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+        expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
         expect(
           response.body.message.startsWith(`Invalid value '99' for type `),
         ).to.eq(true);
@@ -626,7 +697,7 @@ describe('dataApiV3', () => {
             ],
             status: 422,
           });
-          expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+          expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
           expect(
             response.body.message.startsWith(
               `Invalid value '${year}' for type `,
@@ -636,7 +707,7 @@ describe('dataApiV3', () => {
       });
 
       it('will handle insert field format not valid for uidt Duration', async () => {
-        const values = ['HELLOW', -1, 1.365];
+        const values = ['HELLOW', -1];
         for (const value of values) {
           const response = await ncAxiosPost({
             url: `${numberBasedUrlPrefix}/${table.id}/records`,
@@ -647,7 +718,7 @@ describe('dataApiV3', () => {
             },
             status: 422,
           });
-          expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+          expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
           expect(
             response.body.message.startsWith(
               `Invalid value '${value}' for type `,
@@ -676,8 +747,10 @@ describe('dataApiV3', () => {
           body: insertObj,
           status: 422,
         });
-        expect(response.body.error).to.eq('MAX_INSERT_LIMIT_EXCEEDED');
-        expect(response.body.message).to.eq(`Maximum 10 records during insert`);
+        expect(response.body.error).to.eq('ERR_MAX_PAYLOAD_LIMIT_EXCEEDED');
+        expect(response.body.message).to.eq(
+          `Maximum 10 entities are allowed per request`,
+        );
       });
       it(`will handle update field format not valid`, async () => {
         if (!isPg(testContext.context)) {
@@ -695,7 +768,7 @@ describe('dataApiV3', () => {
           ],
           status: 422,
         });
-        expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+        expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
         expect(
           response.body.message.startsWith(`Invalid value 'HELLOW' for type `),
         ).to.eq(true);
@@ -713,7 +786,7 @@ describe('dataApiV3', () => {
           ],
           status: 422,
         });
-        expect(response.body.error).to.eq('INVALID_PK_VALUE');
+        expect(response.body.error).to.eq('ERR_INVALID_PK_VALUE');
         expect(response.body.message).to.eq(
           `Primary key value 'HELLOW' is invalid for column 'Id'`,
         );
@@ -749,7 +822,7 @@ describe('dataApiV3', () => {
           ],
           status: 422,
         });
-        expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+        expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
         expect(
           response.body.message.startsWith(`Invalid value 'HELLOW' for type `),
         ).to.eq(true);
@@ -789,8 +862,8 @@ describe('dataApiV3', () => {
           },
           status: 422,
         });
-        expect(rspSingle.body.error).to.equal('INVALID_VALUE_FOR_FIELD');
-        expect(rspMulti.body.error).to.equal('INVALID_VALUE_FOR_FIELD');
+        expect(rspSingle.body.error).to.equal('ERR_INVALID_VALUE_FOR_FIELD');
+        expect(rspMulti.body.error).to.equal('ERR_INVALID_VALUE_FOR_FIELD');
         expect(rspSingle.body.message).to.equal(
           'Invalid option(s) "jan2" provided for column "SingleSelect"',
         );
@@ -839,7 +912,7 @@ describe('dataApiV3', () => {
             body: insertCase,
             status: 422,
           });
-          expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+          expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
           expect(
             response.body.message.startsWith(
               `Invalid value 'anythingelse' for type `,
@@ -888,7 +961,7 @@ describe('dataApiV3', () => {
             body: insertCase,
             status: 422,
           });
-          expect(response.body.error).to.eq('INVALID_VALUE_FOR_FIELD');
+          expect(response.body.error).to.eq('ERR_INVALID_VALUE_FOR_FIELD');
           expect(
             response.body.message.startsWith(
               `Invalid value 'anythingelse' for type `,

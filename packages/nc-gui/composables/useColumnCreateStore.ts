@@ -68,6 +68,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const isSystem = computed(() => isSystemColumn(column.value))
 
+    const isSyncedField = computed(() => meta.value?.synced && column?.value?.readonly)
+
     const isXcdbBase = computed(() =>
       isXcdbBaseFunc(meta.value?.source_id ? meta.value?.source_id : Object.keys(sqlUis.value)[0]),
     )
@@ -406,7 +408,15 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           try {
             oldCol = column.value
-            await $api.dbTableColumn.update(column.value?.id as string, updateData)
+            await $api.internal.postOperation(
+              meta.value!.fk_workspace_id!,
+              meta.value!.base_id!,
+              {
+                operation: 'columnUpdate',
+                columnId: column.value?.id as string,
+              },
+              updateData,
+            )
 
             if (oldCol && [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(oldCol.uidt)) {
               viewsStore.loadViews({ tableId: oldCol?.fk_model_id, ignoreLoading: true, force: true })
@@ -429,6 +439,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
           if (meta.value?.id && column.value.uidt === UITypes.Attachment && column.value.uidt !== formState.value.uidt) {
             viewsStore.updateViewCoverImageColumnId({
               metaId: meta.value.id as string,
+              baseId: meta.value.base_id,
               columnIds: new Set([column.value.id as string]),
             })
           }
@@ -455,11 +466,19 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             //   };
             // }
           }
-          const tableMeta = await $api.dbTableColumn.create(meta.value?.id as string, {
-            ...formState.value,
-            ...columnPosition,
-            view_id: activeView.value!.id as string,
-          })
+          const tableMeta = await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'columnAdd',
+              tableId: meta.value?.id as string,
+            },
+            {
+              ...formState.value,
+              ...columnPosition,
+              view_id: activeView.value!.id as string,
+            },
+          )
 
           savedColumn = tableMeta.columns?.find(
             (c) => c.title === formState.value.title || c.column_name === formState.value.column_name,
@@ -469,10 +488,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           /** if LTAR column then force reload related table meta */
           if (isLinksOrLTAR(formState.value) && meta.value?.id !== formState.value.childId) {
+            const relatedBaseId = (savedColumn?.colOptions as any)?.fk_related_base_id || meta.value!.base_id
             if (refModelId) {
-              getMeta(refModelId, true).then(() => {})
+              getMeta(relatedBaseId!, refModelId, true).then(() => {})
             } else {
-              getMeta(formState.value.childId, true).then(() => {})
+              getMeta(relatedBaseId!, formState.value.childId, true).then(() => {})
             }
           }
 
@@ -553,6 +573,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       defaultFormState,
       isScriptCreateModalOpen,
       isSaving,
+      isSyncedField,
     }
   },
 )

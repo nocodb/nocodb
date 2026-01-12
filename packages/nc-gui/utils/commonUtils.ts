@@ -1,6 +1,9 @@
 import type { DefaultOptionType } from 'ant-design-vue/lib/select'
 import type { SortableOptions } from 'sortablejs'
 import type { AutoScrollOptions } from 'sortablejs/plugins'
+import type { UserType } from 'nocodb-sdk'
+import { ncIsArray } from 'nocodb-sdk'
+import GraphemeSplitter from 'grapheme-splitter'
 
 export const modalSizes = {
   xs: {
@@ -78,6 +81,48 @@ export const ncArrayFrom = <T>(
  */
 export const isUnicodeEmoji = (emoji: string) => {
   return !!emoji?.match(/(\p{Emoji}|\p{Extended_Pictographic})/gu)
+}
+
+/**
+ * Get safe initials, emoji-safe & surrogate-safe.
+ *
+ * Rules: if limitEmojiToOne is true, then:
+ * - Emoji + Letter → keep both
+ * - Emoji + Emoji → keep only first emoji
+ */
+export const getSafeInitials = (title?: string, initialsLength: number = 2, limitEmojiToOne: boolean = false): string => {
+  if (!title?.trim()) return ''
+
+  const splitter = new GraphemeSplitter()
+  const splitGraphemes = (str: string) => splitter.splitGraphemes(str)
+
+  const words = title.trim().split(/\s+/).filter(Boolean)
+  const initials: string[] = []
+
+  // First take initials from each word
+  for (const word of words) {
+    if (initials.length >= initialsLength) break
+    const g = splitGraphemes(word)
+    if (g.length > 0) initials.push(g[0]!)
+  }
+
+  // If only 1 word or initialsLength > words.length
+  if (initials.length < initialsLength && words.length > 0) {
+    const g = splitGraphemes(words[0] ?? '')
+    const remaining = initialsLength - initials.length
+    initials.push(...g.slice(1, 1 + remaining)) // continue slicing same word
+  }
+
+  // Final slice by allowed length
+  const resultClusters = splitGraphemes(initials.join('')).slice(0, initialsLength)
+
+  // ✅ Smart emoji limit:
+  // If ALL characters are emoji & more than 1 → limit to 1
+  if (limitEmojiToOne && resultClusters.length > 1 && resultClusters.every((ch) => isUnicodeEmoji(ch))) {
+    return resultClusters[0] ?? '' // only first emoji
+  }
+
+  return resultClusters.join('')
 }
 
 /**
@@ -171,6 +216,25 @@ export const extractNameFromEmail = (email?: string) => {
 }
 
 /**
+ * Extracts the display name or email from a user object.
+ *
+ * @param user - The user object to extract the display name or email from.
+ * @returns The display name or email extracted from the user object.
+ *
+ * @example
+ * ```typescript
+ * const name = extractUserDisplayNameOrEmail({ display_name: 'John Doe', email: 'john.doe@example.com' });
+ * console.log(name); // Output: 'John Doe'
+ */
+export const extractUserDisplayNameOrEmail = (user?: UserType | Record<string, string>) => {
+  if (!user) return ''
+
+  if (user?.display_name) return user.display_name.trim()
+
+  return extractNameFromEmail(user.email)
+}
+
+/**
  * Wait for a condition to be truthy
  * @param conditionFn - Function that returns the condition to check
  * @param interval - Polling interval in milliseconds (default: 100)
@@ -227,5 +291,54 @@ export const getDraggableAutoScrollOptions = (
     scrollSensitivity: 50,
     direction: 'vertical',
     ...params,
+  }
+}
+
+/**
+ * Sorts two objects based on the provided sorting options.
+ * @param a - The first object to sort.
+ * @param b - The second object to sort.
+ * @param sortOption - The sorting options to apply.
+ * @returns The sorted objects.
+ */
+export const ncArrSortCallback = <T>(
+  a: T,
+  b: T,
+  sortOption: {
+    /** The key of the object being used for sorting. */
+    key: keyof T & string
+    /**
+     * The type of sorting to apply (e.g., string, number).
+     * @default 'number'
+     */
+    sortType?: 'string' | 'number' | 'boolean' | 'count'
+    /** Optional formatter to preprocess the value before sorting. */
+    format?: (value: any) => any
+  },
+) => {
+  const { key, sortType = 'number', format } = sortOption || {}
+
+  const valueA = format ? format(a[key]) : a[key]
+  const valueB = format ? format(b[key]) : b[key]
+
+  switch (sortType) {
+    case 'number':
+      return (valueA ?? Infinity) - (valueB ?? Infinity)
+    case 'string': {
+      return String(valueA).localeCompare(String(valueB))
+    }
+    case 'boolean': {
+      return valueA === valueB ? 0 : valueA ? 1 : -1
+    }
+    case 'count': {
+      const lengthA = ncIsString(valueA) || ncIsArray(valueA) ? valueA.length : Infinity
+      const lengthB = ncIsString(valueB) || ncIsArray(valueB) ? valueB.length : Infinity
+
+      return lengthA === lengthB ? 0 : lengthA > lengthB ? 1 : -1
+    }
+
+    default: {
+      return 0
+    }
   }
 }

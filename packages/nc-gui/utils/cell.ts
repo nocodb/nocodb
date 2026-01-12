@@ -1,5 +1,5 @@
 import type { ColumnType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, ncIsNaN, roundUpToPrecision } from 'nocodb-sdk'
 import tinycolor from 'tinycolor2'
 import type { HTMLAttributes } from 'vue'
 
@@ -100,12 +100,47 @@ export const isShowNullField = (column: ColumnType) => {
   ].includes(column.uidt as UITypes)
 }
 
-export const getSelectTypeOptionTextColor = (color?: string | null): string => {
-  color = color ?? '#ccc' // Set default only if color is null or undefined
+export const getSelectTypeOptionTextColor = (
+  color: string | null | undefined,
+  getColor: GetColorType,
+  disableGetColor = false,
+): string => {
+  color = color ?? disableGetColor ? color || '#ccc' : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)') // Set default only if color is null or undefined
 
   return tinycolor.isReadable(color, '#fff', { level: 'AA', size: 'large' })
     ? '#fff'
-    : tinycolor.mostReadable(color, ['#0b1d05', '#fff']).toHex8String()
+    : tinycolor
+        .mostReadable(color, [
+          disableGetColor ? '#0b1d05' : getColor('var(--nc-content-gray)', 'var(--nc-content-gray-subtle2)'),
+          '#fff',
+        ])
+        .toHex8String()
+}
+
+export const getSelectTypeFieldOptionBgColor = ({
+  color,
+  isDark,
+  shade,
+}: {
+  color?: string
+  isDark: boolean
+  shade?: number
+}) => {
+  return !isDark ? color : getAdaptiveTint(color || '#e7e7e9', { isDarkMode: isDark, shade: shade ?? -10 })
+}
+
+export const getSelectTypeFieldOptionTextColor = ({
+  color,
+  isDark,
+  getColor,
+}: {
+  color?: string
+  isDark: boolean
+  getColor: GetColorType
+}) => {
+  return !isDark
+    ? getSelectTypeOptionTextColor(color, getColor, true)
+    : getOppositeColorOfBackground(getSelectTypeFieldOptionBgColor({ color, isDark }), color)
 }
 
 export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmode'] => {
@@ -128,4 +163,10 @@ export const getInputModeFromUITypes = (uidt: UITypes): HTMLAttributes['inputmod
   if (uidt === UITypes.URL) {
     return 'url'
   }
+}
+
+export const formatPercentage = (n: number, precision = 2) => {
+  if (ncIsNaN(n)) return '0%'
+
+  return n % 1 === 0 ? `${n}%` : `${roundUpToPrecision(n, precision)}%`
 }

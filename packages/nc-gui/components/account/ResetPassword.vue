@@ -74,7 +74,7 @@ const resetError = () => {
     </NcPageHeader>
     <div class="nc-content-max-w p-6 h-[calc(100vh_-_100px)] flex flex-col gap-6 overflow-auto nc-scrollbar-thin">
       <div class="flex flex-col gap-6 w-150 mx-auto">
-        <div class="mt-5 flex flex-col border-1 rounded-2xl border-gray-200 p-6 gap-y-2">
+        <div class="mt-5 flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-2">
           <div class="relative flex flex-col justify-start gap-2 w-full">
             <a-form
               ref="formValidator"
@@ -170,7 +170,7 @@ const resetError = () => {
   }
 
   :deep(.ant-form-item-label > label) {
-    @apply !text-sm font-default mb-2 text-gray-700 flex;
+    @apply !text-sm font-default mb-2 text-nc-content-gray-subtle flex;
 
     &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
       @apply content-[''] m-0;
@@ -178,7 +178,7 @@ const resetError = () => {
   }
 
   :deep(.ant-form-item-label) {
-    @apply !pb-0 text-small leading-[18px] text-gray-700;
+    @apply !pb-0 text-small leading-[18px] text-nc-content-gray-subtle;
   }
 
   :deep(.ant-form-item-control-input) {

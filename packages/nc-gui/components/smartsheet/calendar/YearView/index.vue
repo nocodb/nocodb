@@ -164,7 +164,7 @@ watch(width, handleResize)
 <style lang="scss" scoped>
 .nc-year-view-calendar {
   :deep(.nc-date-week-header) {
-    @apply border-gray-200 h-8 py-2;
+    @apply border-nc-border-gray-medium h-8 py-2;
   }
 }
 </style>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { NcBadgeProps } from './index.vue'
 
-const props = withDefaults(defineProps<NcBadgeProps>(), {
+withDefaults(defineProps<NcBadgeProps>(), {
   border: false,
   color: 'brand',
   size: 'xs',
@@ -9,7 +9,7 @@ const props = withDefaults(defineProps<NcBadgeProps>(), {
 </script>
 
 <template>
-  <NcBadge v-bind="props" class="text-bodyDefaultSm">
+  <NcBadge :border="border" :color="color" :size="size" class="text-bodyDefaultSm">
     <slot>
       {{ $t('general.beta') }}
     </slot>

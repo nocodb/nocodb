@@ -12,6 +12,9 @@ export enum EventType {
   DASHBOARD_EVENT = 'event-dashboard',
   WIDGET_EVENT = 'event-widget',
   SCRIPT_EVENT = 'event-script',
+  TEAM_EVENT = 'event-team',
+  WORKFLOW_EVENT = 'event-workflow',
+  WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
 }
 
 // Base payload interface for all socket events
@@ -57,8 +60,11 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'source_create'
     | 'source_update'
     | 'source_delete'
+    | 'source_meta_sync'
+    | 'base_full_reload'
     | 'table_create'
     | 'table_update'
+    | 'table_permission_update'
     | 'table_delete'
     | 'column_add'
     | 'column_update'
@@ -75,7 +81,10 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'sort_delete'
     | 'view_column_update'
     | 'view_column_refresh' // hide/show all
-    | 'row_color_update';
+    | 'row_color_update'
+    | 'extension_update'
+    | 'extension_create'
+    | 'extension_delete';
   payload: T;
   baseId?: string;
 }

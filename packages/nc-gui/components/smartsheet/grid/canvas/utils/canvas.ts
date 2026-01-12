@@ -22,7 +22,7 @@ const abstractTypeCache: LRUCache<string, string> = new LRUCache({
   max: 1000,
 })
 
-const barcodeCache: LRUCache<string, any> = new LRUCache({
+export const barcodeCache: LRUCache<string, any> = new LRUCache({
   max: 1000,
 })
 
@@ -39,6 +39,14 @@ export const rowColouringCache: LRUCache<string, RowColouringEvaluatedResultType
 })
 
 export const aggregationCache: LRUCache<string, any> = new LRUCache({
+  max: 1000,
+})
+
+export const selectOptionBgColorCache: LRUCache<string, string> = new LRUCache({
+  max: 1000,
+})
+
+export const selectOptionTextColorCache: LRUCache<string, string> = new LRUCache({
   max: 1000,
 })
 
@@ -257,6 +265,7 @@ export const renderCheckbox = (
   isDisabled: boolean,
   spriteLoader: SpriteLoader,
   strokeColor = '#E5E7EB',
+  getColor: GetColorType,
 ) => {
   const size = 16
   const radius = 4
@@ -265,7 +274,7 @@ export const renderCheckbox = (
   ctx.roundRect(x, y, size, size, radius)
 
   if (isDisabled) {
-    ctx.fillStyle = '#F5F5F5'
+    ctx.fillStyle = getColor('#F5F5F5', 'var(--nc-bg-gray-medium)')
     ctx.fill()
 
     if (isChecked) {
@@ -274,15 +283,15 @@ export const renderCheckbox = (
         size: 12,
         x: x + 2,
         y: y + 2,
-        color: '#B8B8B8',
+        color: getColor('#B8B8B8', 'var(--nc-bg-gray-extra-dark)'),
       })
     }
 
-    ctx.strokeStyle = strokeColor ?? '#D9D9D9'
+    ctx.strokeStyle = strokeColor ?? getColor('#D9D9D9', 'var(--nc-bg-gray-dark)')
     ctx.lineWidth = 1
     ctx.stroke()
   } else if (isChecked) {
-    ctx.fillStyle = '#3366FF'
+    ctx.fillStyle = getColor('--rgb-color-brand-500')
     ctx.fill()
 
     const checkX = x + 3.5
@@ -298,10 +307,10 @@ export const renderCheckbox = (
     ctx.lineTo(checkX + checkSize + 2, checkY)
     ctx.stroke()
   } else {
-    ctx.fillStyle = '#FFFFFF'
+    ctx.fillStyle = getColor('#FFFFFF', themeV4Colors.base.white)
     ctx.fill()
 
-    ctx.strokeStyle = strokeColor ?? '#D1D5DB'
+    ctx.strokeStyle = strokeColor ?? getColor('#D1D5DB')
     ctx.lineWidth = 1
     ctx.stroke()
   }
@@ -623,6 +632,7 @@ export const renderMarkdownBlocks = (
     fontFamily,
     height,
     selected = false,
+    getColor,
   }: {
     blocks: Block[]
     x: number
@@ -638,6 +648,7 @@ export const renderMarkdownBlocks = (
     mousePosition?: { x: number; y: number }
     height?: number
     selected?: boolean
+    getColor: GetColorType
   },
 ) => {
   if (fillStyle) {
@@ -698,7 +709,7 @@ export const renderMarkdownBlocks = (
 
       const tokenWidth = ctx.measureText(tokenText)?.width
 
-      let mentionTextColor = '#3366FF'
+      let mentionTextColor = getColor(themeV4Colors.brand['500'])
 
       // Handle mentions with background color and rounded rectangle
       if (isMention && token.mentionData) {
@@ -723,11 +734,11 @@ export const renderMarkdownBlocks = (
 
         let bgColor
         if (token.mentionData.isSameUser) {
-          mentionTextColor = '#17803D' // Current user text color
-          bgColor = '#D4F7E0' // Current user background
+          mentionTextColor = getColor('#17803D', themeV4Colors.green['500']) // Current user text color
+          bgColor = getColor('#D4F7E0', 'var(--nc-bg-brand-inverted)') // Current user background
         } else {
-          mentionTextColor = '#3366FF' // Other user text color
-          bgColor = '#EBF0FF' // Other user background
+          mentionTextColor = getColor(themeV4Colors.brand['500']) // Other user text color
+          bgColor = getColor('#EBF0FF', 'var(--nc-bg-brand-inverted)') // Other user background
         }
 
         // Draw rounded rectangle background
@@ -752,7 +763,8 @@ export const renderMarkdownBlocks = (
         text: tokenText,
         maxWidth,
         height,
-        fillStyle: isUrl && selected ? '#3366FF' : isMention ? mentionTextColor : (defaultFillStyle as string),
+        fillStyle:
+          isUrl && selected ? getColor(themeV4Colors.brand['500']) : isMention ? mentionTextColor : (defaultFillStyle as string),
         fontFamily: ctx.font,
         maxLines: isMention ? 1 : maxLinesToRender,
         underline: token.styles.includes('underline') || isUrl,
@@ -783,9 +795,9 @@ export const renderMarkdownBlocks = (
         const isHovered = isBoxHovered(linkBox, mousePosition)
 
         if (isHovered && selected) {
-          multilineTextFnProps.fillStyle = '#000'
-          ctx.fillStyle = '#000'
-          ctx.strokeStyle = '#000'
+          multilineTextFnProps.fillStyle = getColor(themeV4Colors.base.black)
+          ctx.fillStyle = getColor(themeV4Colors.base.black)
+          ctx.strokeStyle = getColor(themeV4Colors.base.black)
         }
 
         links.push({
@@ -985,6 +997,8 @@ export function renderBarcode(
     value,
     renderAsTag = false,
     spriteLoader,
+    isDark = false,
+    getColor,
   }: {
     x: number
     y: number
@@ -994,6 +1008,8 @@ export function renderBarcode(
     value: string
     renderAsTag?: boolean
     spriteLoader: SpriteLoader
+    isDark?: boolean
+    getColor: GetColorType
   },
 ) {
   if (!value) return
@@ -1031,9 +1047,9 @@ export function renderBarcode(
         // height: height - padding * 2,
         displayValue: false,
         lineColor: '#000000',
-        margin: 0,
         fontSize: 12,
         font: 'Inter',
+        ...(isDark ? { marginTop: 4, marginBottom: 4, marginLeft: 8, marginRight: 8 } : { margin: 0 }),
       })
     }
 
@@ -1070,7 +1086,7 @@ export function renderBarcode(
     ctx.font = `500 13px Inter`
     ctx.textBaseline = 'middle'
     ctx.textAlign = 'left'
-    ctx.fillStyle = '#4a5268'
+    ctx.fillStyle = getColor(themeV4Colors.gray['600'])
 
     const { text, width: textWidth } = truncateText(ctx, value.toString(), width - padding * 2, true)
 
@@ -1082,7 +1098,7 @@ export function renderBarcode(
       height,
       fontSize: 13,
       fontFamily: '500 13px Inter',
-      fillStyle: '#4a5268',
+      fillStyle: getColor(themeV4Colors.gray['600']),
       textAlign: 'left',
     })
 
@@ -1105,6 +1121,7 @@ export const renderMarkdown = (
   params: RenderMultiLineTextProps & {
     baseUsers?: (Partial<UserType> | Partial<User>)[]
     user?: Partial<UserType> | Partial<User>
+    getColor: GetColorType
   },
 ): {
   width: number
@@ -1131,6 +1148,7 @@ export const renderMarkdown = (
     selected = false,
     baseUsers,
     user,
+    getColor,
   } = params
   let { maxWidth = Infinity, maxLines } = params
 
@@ -1208,6 +1226,7 @@ export const renderMarkdown = (
       fontFamily,
       height,
       selected,
+      getColor,
     })
   } else {
     /**
@@ -1246,13 +1265,25 @@ export const renderTagLabel = (
   ctx: CanvasRenderingContext2D,
   props: CellRendererOptions & { text: string; renderAsMarkdown?: boolean },
 ) => {
-  const { x, y, height, width, padding, textColor = '#4a5268', mousePosition, spriteLoader, text, renderAsMarkdown } = props
+  const {
+    x,
+    y,
+    height,
+    width,
+    padding,
+    textColor = props.getColor ? props.getColor(themeV4Colors.gray['600']) : '#4a5268',
+    mousePosition,
+    spriteLoader,
+    text,
+    renderAsMarkdown,
+    getColor = (color) => color,
+  } = props
   const {
     tagPaddingX = 8,
     tagPaddingY = 0,
     tagHeight = 20,
     tagRadius = 6,
-    tagBgColor = '#f4f4f0',
+    tagBgColor = getColor('#f4f4f0', themeV4Colors.base.white),
     tagSpacing = 4,
     tagFontFamily = '500 13px Inter',
     tagBorderColor,
@@ -1290,6 +1321,7 @@ export const renderTagLabel = (
       spriteLoader,
       cellRenderStore: props.cellRenderStore,
       render: false,
+      getColor,
     })
 
     _renderTag(textWidth)
@@ -1306,6 +1338,7 @@ export const renderTagLabel = (
       mousePosition,
       spriteLoader,
       cellRenderStore: props.cellRenderStore,
+      getColor,
     })
 
     return {
@@ -1481,9 +1514,19 @@ export function renderFormulaURL(
     fontSize?: number
     textAlign?: CanvasTextAlign
     verticalAlign?: CanvasTextBaseline
+    getColor: GetColorType
   },
 ): { x: number; y: number; width: number; height: number; url?: string }[] {
-  const { htmlText, x, y, maxWidth, height, lineHeight, fillStyle = '#4a5268' } = params
+  const {
+    htmlText,
+    x,
+    y,
+    maxWidth,
+    height,
+    lineHeight,
+    fillStyle = params.getColor(themeV4Colors.gray['600']),
+    getColor,
+  } = params
 
   let maxLines = 1
   if (rowHeightInPx['1'] === height) {
@@ -1596,12 +1639,12 @@ export function renderFormulaURL(
     }
 
     ctx.textBaseline = 'middle'
-    ctx.fillStyle = url ? '#3366FF' : fillStyle
+    ctx.fillStyle = url ? getColor(themeV4Colors.brand['500']) : fillStyle
     ctx.fillText(finalText, currentX, lineY)
 
     if (url) {
       const underlineY = lineY + 8
-      ctx.strokeStyle = '#3366FF'
+      ctx.strokeStyle = getColor(themeV4Colors.brand['500'])
       ctx.beginPath()
       ctx.moveTo(currentX, underlineY)
       ctx.lineTo(currentX + ctx.measureText(finalText).width, underlineY)

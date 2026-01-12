@@ -8,7 +8,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     {
       type: FormBuilderInputType.Input,
       label: 'Sample Input',
-      width: 100,
+      span: 24,
       model: 'title',
       placeholder: 'Some placeholder',
       category: 'General',
@@ -17,7 +17,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     {
       type: FormBuilderInputType.Input,
       label: 'Input To Nested Path',
-      width: 50,
+      span: 12,
       model: 'config.sample',
       placeholder: 'This is added to config.sample',
       category: 'Sample Category',
@@ -25,14 +25,9 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
       required: true,
     },
     {
-      type: FormBuilderInputType.Space,
-      width: 50,
-      category: 'Sample Category',
-    },
-    {
       type: FormBuilderInputType.Input,
       label: 'Multiple Elements in Category',
-      width: 50,
+      span: 12,
       model: 'config.sample2',
       placeholder: 'This is added to config.sample2',
       category: 'Sample Category',
@@ -41,7 +36,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     {
       type: FormBuilderInputType.Select,
       label: 'Sample Select',
-      width: 100,
+      span: 24,
       model: 'config.select',
       category: 'Settings',
       options: [
@@ -55,7 +50,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     {
       type: FormBuilderInputType.Switch,
       label: 'Sample Switch',
-      width: 100,
+      span: 24,
       model: 'config.switch',
       category: 'Misc',
       helpText: 'This is a sample switch',

@@ -41,7 +41,6 @@ _site/
 *.tmp.md
 *.bak
 *.swp
-logs/
 build/
 uploads/
 
@@ -100,3 +99,9 @@ httpbin
 result
 
 .cursorignore
+
+
+
+# Temp
+migrate-colors.js
+antd.variable.css

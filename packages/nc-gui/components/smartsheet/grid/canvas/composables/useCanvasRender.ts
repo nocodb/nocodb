@@ -1,7 +1,6 @@
 import type { WritableComputedRef } from '@vue/reactivity'
 import { AllAggregations, type ColumnType, PlanTitles, type TableType, UITypes, isCreatedOrLastModifiedByCol } from 'nocodb-sdk'
 import type { Composer } from 'vue-i18n'
-import tinycolor from 'tinycolor2'
 import {
   isBoxHovered,
   renderCheckbox,
@@ -190,6 +189,9 @@ export function useCanvasRender({
   const { isWsOwner } = useEeConfig()
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
   const isLocked = inject(IsLockedInj, ref(false))
+  const isPublic = inject(IsPublicInj, ref(false))
+
+  const { isDark, getColor } = useTheme()
 
   const { isRowColouringEnabled } = useViewRowColorRender()
 
@@ -206,12 +208,34 @@ export function useCanvasRender({
 
     ctx.beginPath()
     ctx.roundRect(x + 12, y + 7.5, width, 16, 10)
-    ctx.fillStyle = '#E7E7E9'
+    ctx.fillStyle = getColor(themeV4Colors.gray['200'])
     ctx.fill()
 
     ctx.clip()
 
     ctx.restore()
+  }
+
+  function extractGroupPaths(
+    groups: Map<number, CanvasGroup>,
+    parentPath: any[] = [],
+    result: GroupNestedIn[][] = [],
+  ): GroupNestedIn[][] {
+    for (const [, group] of groups) {
+      const currentPath = [...parentPath, ...(group.path ?? [])]
+
+      if (currentPath.length) {
+        // push current group path
+        result.push(currentPath)
+      }
+
+      // recurse into children
+      if (group.groups && group.groups.size > 0) {
+        extractGroupPaths(group.groups, currentPath, result)
+      }
+    }
+
+    return result
   }
 
   function renderHeader(
@@ -237,11 +261,11 @@ export function useCanvasRender({
       scrollLeft.value
 
     // Header background
-    ctx.fillStyle = '#f4f4f5'
+    ctx.fillStyle = getColor(themeV4Colors.gray['100'])
     ctx.fillRect(0, 0, columnsWidth, headerRowHeight.value)
 
     // Header borders
-    ctx.strokeStyle = '#e7e7e9'
+    ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
     ctx.lineWidth = 1
 
     // Bottom border
@@ -265,7 +289,7 @@ export function useCanvasRender({
     }
 
     // Regular columns
-    ctx.fillStyle = '#6a7184'
+    ctx.fillStyle = getColor(themeV4Colors.gray['500'])
     ctx.font = '600 12px Inter'
     ctx.textBaseline = 'middle'
     ctx.imageSmoothingEnabled = false
@@ -300,7 +324,7 @@ export function useCanvasRender({
             x: xOffset - scrollLeft.value,
             y: 0,
             radius: 0,
-            fillStyle: '#ffffff88',
+            fillStyle: getColor(themeV4Colors.base.white, undefined, 0.533),
           })
           renderTag(ctx, {
             height: headerRowHeight.value,
@@ -308,12 +332,12 @@ export function useCanvasRender({
             x: xOffset - scrollLeft.value,
             y: 0,
             radius: 0,
-            fillStyle: filteredOrSortedAppearanceConfig[columnState].headerBgColor,
+            fillStyle: getColor(filteredOrSortedAppearanceConfig[columnState].canvas.headerBgColor),
           })
         }
       }
 
-      ctx.fillStyle = '#6a7184'
+      ctx.fillStyle = getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
 
       const rightPadding = 8
       let iconSpace = rightPadding
@@ -335,7 +359,7 @@ export function useCanvasRender({
         spriteLoader.renderIcon(ctx, {
           icon: column?.virtual ? iconConfig?.icon : iconConfig,
           size: 13,
-          color: iconConfig?.hex ?? '#6a7184',
+          color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600']),
           x: xOffset + 8 - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
@@ -348,7 +372,7 @@ export function useCanvasRender({
       ctx.fillText(truncatedText, xOffset + 26 - scrollLeft.value, headerRowHeight.value / 2)
       if (isRequired) {
         ctx.save()
-        ctx.fillStyle = '#EF4444'
+        ctx.fillStyle = getColor(themeV4Colors.red['500'])
         ctx.fillText('*', xOffset + 28 - scrollLeft.value + ctx.measureText(truncatedText).width, headerRowHeight.value / 2)
         ctx.restore()
       }
@@ -360,16 +384,16 @@ export function useCanvasRender({
         spriteLoader.renderIcon(ctx, {
           icon: 'chevronDown',
           size: 14,
-          color: '#6a7184',
+          color: getColor(themeV4Colors.gray['500']),
           x: rightOffset - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
-      } else if (meta.value?.synced && colObj?.readonly) {
+      } else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
         rightOffset -= 16
         spriteLoader.renderIcon(ctx, {
           icon: 'ncZap',
           size: 14,
-          color: '#6a7184',
+          color: getColor(themeV4Colors.gray['500']),
           x: rightOffset - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
@@ -380,7 +404,7 @@ export function useCanvasRender({
         spriteLoader.renderIcon(ctx, {
           icon: 'alertTriangle',
           size: 14,
-          color: '#FF928C',
+          color: getColor(themeV4Colors.red['300']),
           x: rightOffset - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7 + 1,
         })
@@ -391,7 +415,7 @@ export function useCanvasRender({
         spriteLoader.renderIcon(ctx, {
           icon: 'ncInfo',
           size: 13,
-          color: '#6B7280',
+          color: getColor(themeV4Colors.gray['500']),
           x: rightOffset - scrollLeft.value,
           y: headerRowHeight.value / 2 - 7,
         })
@@ -406,7 +430,7 @@ export function useCanvasRender({
 
       if (isNearEdge && !isLocked.value && isViewOperationsAllowed.value) {
         colResizeHoveredColIds.value.add(column.id)
-        ctx.strokeStyle = '#9CDAFA'
+        ctx.strokeStyle = getColor(themeV4Colors.blue['400'])
         ctx.lineWidth = 2
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, 0)
@@ -414,7 +438,7 @@ export function useCanvasRender({
         ctx.stroke()
 
         // Reset for regular column separator
-        ctx.strokeStyle = '#e7e7e9'
+        ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
         ctx.lineWidth = 1
       } else {
         colResizeHoveredColIds.value.delete(column.id)
@@ -426,12 +450,12 @@ export function useCanvasRender({
     }
 
     if (isAddingColumnAllowed.value && !isMobileMode.value) {
-      ctx.fillStyle = '#F9F9FA'
+      ctx.fillStyle = getColor(themeV4Colors.gray['50'])
       ctx.fillRect(xOffset - scrollLeft.value, 0, plusColumnWidth, headerRowHeight.value)
       spriteLoader.renderIcon(ctx, {
         icon: 'ncPlus',
         size: 16,
-        color: '#6a7184',
+        color: getColor(themeV4Colors.gray['500']),
         x: xOffset + plusColumnWidth / 2 - 8 - scrollLeft.value,
         y: headerRowHeight.value / 2 - 8,
       })
@@ -459,7 +483,7 @@ export function useCanvasRender({
         (fillHandler && xOffset - scrollLeft.value + 1 >= fillHandler.x && xOffset - scrollLeft.value - 1 <= fillHandler.x)
       ) {
         // Draw line above active state
-        ctx.strokeStyle = '#f4f4f5'
+        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
         if (fillHandler && activeState?.y) {
           ctx.beginPath()
           ctx.moveTo(xOffset - scrollLeft.value, headerRowHeight.value)
@@ -507,7 +531,7 @@ export function useCanvasRender({
         // Draw full line if not intersecting with active state
         // To avoid rendering the line inside fixed columns, set the xOffset to the right of fixed columns if xOffset is less than fixedColsWidth
         const verticalLineXOffset = Math.max(fixedColsWidth.value, xOffset - scrollLeft.value)
-        ctx.strokeStyle = '#f4f4f5'
+        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
         ctx.beginPath()
         ctx.moveTo(verticalLineXOffset, headerRowHeight.value)
         ctx.lineTo(
@@ -538,7 +562,7 @@ export function useCanvasRender({
         }
 
         // Background
-        ctx.fillStyle = '#f4f4f5'
+        ctx.fillStyle = getColor(themeV4Colors.gray['100'])
         ctx.fillRect(xOffset, 0, width, headerRowHeight.value)
 
         if (column.columnObj?.id) {
@@ -551,7 +575,7 @@ export function useCanvasRender({
               x: xOffset,
               y: 0,
               radius: 0,
-              fillStyle: '#ffffff88',
+              fillStyle: getColor(themeV4Colors.base.white, undefined, 0.533),
             })
 
             renderTag(ctx, {
@@ -560,12 +584,12 @@ export function useCanvasRender({
               x: xOffset,
               y: 0,
               radius: 0,
-              fillStyle: filteredOrSortedAppearanceConfig[columnState].headerBgColor,
+              fillStyle: filteredOrSortedAppearanceConfig[columnState].canvas.headerBgColor,
             })
           }
         }
 
-        ctx.fillStyle = '#6a7184'
+        ctx.fillStyle = getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600'])
         const iconConfig = (
           column?.virtual
             ? renderVIcon(column.columnObj, column.relatedColObj)
@@ -575,7 +599,7 @@ export function useCanvasRender({
           spriteLoader.renderIcon(ctx, {
             icon: column?.virtual ? iconConfig?.icon : iconConfig,
             size: 13,
-            color: iconConfig?.hex ?? '#6a7184',
+            color: iconConfig?.hex ?? getColor(themeV4Colors.gray['500'], themeV4Colors.gray['600']),
             x: xOffset + 8,
             y: headerRowHeight.value / 2 - 7,
           })
@@ -607,7 +631,8 @@ export function useCanvasRender({
               isSelectedAllRecords.value,
               false,
               spriteLoader,
-              isCheckboxHovered ? '#3366FF' : '#D9D9D9',
+              isCheckboxHovered ? getColor(themeV4Colors.brand['500']) : getColor('#D9D9D9', '--rgb-color-gray-200'),
+              getColor,
             )
           } else {
             ctx.fillText(truncatedText, x, y)
@@ -631,16 +656,16 @@ export function useCanvasRender({
           spriteLoader.renderIcon(ctx, {
             icon: 'chevronDown',
             size: 14,
-            color: '#6a7184',
+            color: getColor(themeV4Colors.gray['500']),
             x: rightOffset,
             y: y - 7,
           })
-        } else if (meta.value?.synced && colObj?.readonly) {
+        } else if (meta.value?.synced && colObj?.readonly && !isPublic.value) {
           rightOffset -= 16
           spriteLoader.renderIcon(ctx, {
             icon: 'ncZap',
             size: 14,
-            color: '#6a7184',
+            color: getColor(themeV4Colors.gray['500']),
             x: rightOffset,
             y: y - 7,
           })
@@ -652,7 +677,7 @@ export function useCanvasRender({
           spriteLoader.renderIcon(ctx, {
             icon: 'alertTriangle',
             size: 14,
-            color: '#FF928C',
+            color: getColor(themeV4Colors.red['300']),
             x: rightOffset,
             y: y - 7,
           })
@@ -664,7 +689,7 @@ export function useCanvasRender({
           spriteLoader.renderIcon(ctx, {
             icon: 'ncInfo',
             size: 13,
-            color: '#6B7280',
+            color: getColor(themeV4Colors.gray['500']),
             x: rightOffset,
             y: y - 7,
           })
@@ -678,7 +703,7 @@ export function useCanvasRender({
 
         // Right border for row number field
         if (column.id === 'row_number') {
-          ctx.strokeStyle = '#e7e7e9'
+          ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
           ctx.lineWidth = 2
           ctx.beginPath()
           ctx.moveTo(xOffset, 0)
@@ -688,7 +713,7 @@ export function useCanvasRender({
 
         if (isNearEdge && column.id !== 'row_number' && !isLocked.value && isViewOperationsAllowed.value) {
           colResizeHoveredColIds.value.add(column.id)
-          ctx.strokeStyle = '#9CDAFA'
+          ctx.strokeStyle = getColor(themeV4Colors.blue['400'])
           ctx.lineWidth = 2
           ctx.beginPath()
           ctx.moveTo(xOffset, 0)
@@ -696,7 +721,7 @@ export function useCanvasRender({
           ctx.stroke()
 
           // Reset for regular column separator
-          ctx.strokeStyle = '#e7e7e9'
+          ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
           ctx.lineWidth = 1
         } else {
           colResizeHoveredColIds.value.delete(column.id)
@@ -704,7 +729,7 @@ export function useCanvasRender({
       })
 
       if (scrollLeft.value) {
-        ctx.strokeStyle = '#D5D5D9'
+        ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
         ctx.beginPath()
         ctx.lineWidth = 1
         ctx.moveTo(xOffset, 0)
@@ -715,7 +740,7 @@ export function useCanvasRender({
         ctx.rect(xOffset, 0, 4, isGroupBy.value ? height.value : headerRowHeight.value)
         ctx.fill()
       } else {
-        ctx.strokeStyle = '#E7E7E9'
+        ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
         ctx.beginPath()
         ctx.lineWidth = 1
         ctx.moveTo(xOffset, 0)
@@ -744,10 +769,35 @@ export function useCanvasRender({
     const fixedWidth = columns.value.filter((col) => col.fixed).reduce((sum, col) => sum + parseCellWidth(col.width), 0)
     const isInFixedArea = activeState.x <= fixedWidth
 
-    let borderColor = '#3366ff'
+    let borderColor = getColor(themeV4Colors.brand['500'])
+
+    if (activeState.col.isSyncedColumn && !isPublic.value) {
+      borderColor = getColor(themeV4Colors.gray['400'])
+
+      const boxRect = {
+        x: activeState.x,
+        y: activeState.y,
+        height: activeState.height,
+        width: activeState.width,
+      }
+
+      const isHovered = isBoxHovered(boxRect, mousePosition)
+
+      if (isHovered && activeState.col.id !== editEnabled.value?.column?.id) {
+        tryShowTooltip({
+          mousePosition,
+          text: t('objects.permissions.editFieldTooltipTitle'),
+          description: t('msg.info.syncedFieldsAreNotEditable'),
+          rect: {
+            ...boxRect,
+          },
+          placement: 'bottom',
+        })
+      }
+    }
 
     if (!activeState.col.isCellEditable) {
-      borderColor = '#9AA2AF'
+      borderColor = getColor(themeV4Colors.gray['400'])
 
       const boxRect = {
         x: activeState.x,
@@ -855,7 +905,7 @@ export function useCanvasRender({
         headerRowHeight.value
 
       ctx.setLineDash([2, 2])
-      ctx.strokeStyle = isAiFillMode.value ? '#9751d7' : '#3366ff'
+      ctx.strokeStyle = isAiFillMode.value ? getColor(themeV4Colors.purple['400']) : getColor(themeV4Colors.brand['500'])
       ctx.strokeRect(
         calculateXPosition(selection.value.start.col) - scrollLeft.value,
         startY,
@@ -865,7 +915,7 @@ export function useCanvasRender({
       ctx.setLineDash([])
     }
 
-    ctx.fillStyle = isAiFillMode.value ? '#9751d7' : '#ff4a3f'
+    ctx.fillStyle = isAiFillMode.value ? getColor(themeV4Colors.purple['400']) : getColor(themeV4Colors.red['500'])
     ctx.beginPath()
     ctx.arc(fillHandler.x + (fillHandler.fixedCol ? 0 : 1), fillHandler.y, fillHandler.size / 2, 0, Math.PI * 2)
     ctx.fill()
@@ -908,9 +958,9 @@ export function useCanvasRender({
     if (rowColor) {
       ctx.fillStyle = rowColor
     } else {
-      ctx.fillStyle = isHover || isRowCellSelected ? '#F9F9FA' : '#ffffff'
+      ctx.fillStyle = isHover || isRowCellSelected ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white)
 
-      if (isChecked) ctx.fillStyle = '#F6F7FE'
+      if (isChecked) ctx.fillStyle = getColor('#F6F7FE', themeV4Colors.brand['50'])
     }
 
     ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
@@ -942,7 +992,7 @@ export function useCanvasRender({
         maxWidth: rowMetaColumnWidth.value - 28 - rowColouringBoxTotalWidth,
         fontFamily: `500 ${rowIndexFontSize} Inter`,
         isTagLabel: true,
-        fillStyle: '#6B7280',
+        fillStyle: getColor(themeV4Colors.gray['500']),
       })
 
       currentX += Math.max(24, rowIndexWidth + 16)
@@ -960,7 +1010,7 @@ export function useCanvasRender({
 
       if (isHovered && !selectedRows.value.length && !vSelectedAllRecords.value) {
         roundedRect(ctx, currentX, yOffset + (rowHeight.value - 24) / 2, 24, 24, 4, {
-          backgroundColor: isHovered ? themeV3Colors.gray['200'] : 'transparent',
+          backgroundColor: isHovered ? getColor(themeV4Colors.gray['200']) : 'transparent',
         })
       } else if (isHovered) {
         // For now we support on single row reorder if rows are not selected so we have to set cursor
@@ -976,8 +1026,8 @@ export function useCanvasRender({
           isHovered && !selectedRows.value.length && !vSelectedAllRecords.value
             ? '#3265FF'
             : selectedRows.value.length
-            ? themeV3Colors.gray['400']
-            : '#6B7280',
+            ? getColor(themeV4Colors.gray['400'])
+            : getColor(themeV4Colors.gray['500']),
       })
       currentX += 26
     } else {
@@ -997,7 +1047,8 @@ export function useCanvasRender({
         isChecked,
         isDisabled,
         spriteLoader,
-        isCheckboxHovered ? '#3366FF' : '#D9D9D9',
+        isCheckboxHovered ? getColor(themeV4Colors.brand['500']) : getColor('#D9D9D9', '--rgb-color-gray-200'),
+        getColor,
       )
       currentX += 24
     }
@@ -1012,7 +1063,7 @@ export function useCanvasRender({
       const bubbleHeight = 18
       const y = yOffset + (rowHeight.value - bubbleHeight) / 2
 
-      const _renderSingleLineText = (xOffset: number, render: boolean = false) => {
+      const _renderSingleLineText = (xOffset: number, render = false) => {
         return renderSingleLineText(ctx, {
           x: xOffset,
           y,
@@ -1022,7 +1073,7 @@ export function useCanvasRender({
           fontFamily: `${reduceFontSize ? '600 10px' : '500 13px'} Inter`,
           textAlign: 'center',
           isTagLabel: true,
-          fillStyle: '#3366FF',
+          fillStyle: getColor(themeV4Colors.brand['500']),
           height: bubbleHeight + 2,
         })
       }
@@ -1056,8 +1107,8 @@ export function useCanvasRender({
           bottomRight: 6,
         },
         {
-          backgroundColor: isExpandHovered ? themeV3Colors.brand['100'] : '#F0F3FF',
-          borderColor: themeV3Colors.brand['200'],
+          backgroundColor: isExpandHovered ? getColor(themeV4Colors.brand['100']) : getColor(themeV4Colors.brand['50']),
+          borderColor: getColor(themeV4Colors.brand['200']),
         },
       )
 
@@ -1093,12 +1144,13 @@ export function useCanvasRender({
           size: 14,
           xOffset: 3,
           yOffset: 3,
-          color: isExpandHovered ? themeV3Colors.gray['600'] : themeV3Colors.gray['500'],
+          color: isExpandHovered ? getColor(themeV4Colors.gray['600']) : getColor(themeV4Colors.gray['500']),
         },
         borderRadius: 6,
         spriteLoader,
-        borderColor: !isExpandHovered ? 'transparent' : undefined,
-        background: !isExpandHovered ? 'transparent' : undefined,
+        background: !isExpandHovered ? 'transparent' : getColor(themeV4Colors.base.white),
+        borderColor: !isExpandHovered ? 'transparent' : getColor(themeV4Colors.gray['200']),
+        hoveredBackground: getColor(themeV4Colors.gray['100']),
         setCursor,
       })
     }
@@ -1131,7 +1183,7 @@ export function useCanvasRender({
       y: yOffset,
       text: t('upgrade.upgradeToSeeMoreRecordInline'),
       maxWidth: Math.min(width.value, 520),
-      fillStyle: '#101015',
+      fillStyle: getColor(themeV4Colors.gray['900']),
       fontFamily: `700 16px Inter`,
       height: 100,
       lineHeight: 24,
@@ -1153,7 +1205,7 @@ export function useCanvasRender({
         remaining: totalRecords - 100,
       }),
       maxWidth: Math.min(width.value, 520),
-      fillStyle: '#4A5268',
+      fillStyle: getColor(themeV4Colors.gray['600']),
       fontFamily: `500 14px Inter`,
       height: 100,
       lineHeight: 20,
@@ -1172,7 +1224,7 @@ export function useCanvasRender({
         height: 32,
         verticalAlign: 'middle',
         fontFamily: '600 14px Inter',
-        fillStyle: '#374151',
+        fillStyle: getColor(themeV4Colors.gray['700']),
         isTagLabel: true,
         render,
       })
@@ -1224,9 +1276,9 @@ export function useCanvasRender({
     _renderTag({
       x: xOffSet,
       width: learnMoreBtnInfo.width + 10 * 2,
-      borderColor: '#E7E7E9',
+      borderColor: getColor(themeV4Colors.gray['200']),
       borderWidth: 1,
-      fillStyle: isLearnMoreBtnHovered ? themeV3Colors.gray['100'] : 'white',
+      fillStyle: isLearnMoreBtnHovered ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.base.white),
     })
 
     renderLearnMoreBtn(true, xOffSet)
@@ -1239,7 +1291,7 @@ export function useCanvasRender({
     _renderTag({
       x: xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12,
       width: UpgradeBtnInfo.width + 10 * 2,
-      fillStyle: isUpgradeBtnHovered ? themeV3Colors.brand['600'] : themeV3Colors.brand['500'],
+      fillStyle: isUpgradeBtnHovered ? getColor(themeV3Colors.brand['600']) : getColor(themeV3Colors.brand['500']),
     })
 
     renderUpgradeBtn(true, xOffSet + learnMoreBtnInfo.width + 10 * 2 + 12)
@@ -1339,7 +1391,7 @@ export function useCanvasRender({
           recordSelected ||
           (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup)
         ) {
-          ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
+          ctx.fillStyle = rowColor ? '#3366ff0d' : getColor('#F6F7FE', themeV4Colors.brand['50'])
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         } else if (isRowCellSelected) {
           ctx.fillStyle = 'red'
@@ -1353,15 +1405,15 @@ export function useCanvasRender({
         // Vertical cell lines
         ctx.strokeStyle =
           isHovered || recordSelected || isColumnInSelection || isRowCellSelected || columnState || prevColumnState
-            ? themeV3Colors.gray['200']
-            : themeV3Colors.gray['100']
+            ? getColor(themeV4Colors.gray['200'])
+            : getColor(themeV4Colors.gray['100'])
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, yOffset)
         ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
         ctx.stroke()
         // add white background color for active cell
         if (startColIndex + colIdx === activeCell.value.column && rowIdx === activeCell.value.row && isActiveCellInCurrentGroup) {
-          ctx.fillStyle = '#FFFFFF'
+          ctx.fillStyle = getColor(themeV4Colors.base.white)
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         }
 
@@ -1408,6 +1460,7 @@ export function useCanvasRender({
           skipRender: isCellEditEnabled,
           isRowHovered: isHovered,
           isRowChecked: recordSelected,
+          isRowCellSelected,
           isCellInSelectionRange:
             selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx }) && isActiveCellInCurrentGroup,
           isRootCell: true,
@@ -1430,17 +1483,18 @@ export function useCanvasRender({
             isActiveCellInCurrentGroup
 
           if (recordSelected || (selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup)) {
-            ctx.fillStyle = rowColor ? '#3366ff0d' : '#F6F7FE'
+            ctx.fillStyle = rowColor ? '#3366ff0d' : getColor('#F6F7FE', themeV4Colors.brand['50'])
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
-            ctx.fillStyle = isHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
+            ctx.fillStyle =
+              isHovered || isRowCellSelected ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white)
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
           // add white background color for active cell
           // For Fixed columns, do not need to add startColIndex
           if (colIdx === activeCell.value.column && rowIdx === activeCell.value.row && isActiveCellInCurrentGroup) {
-            ctx.fillStyle = '#FFFFFF'
+            ctx.fillStyle = getColor(themeV4Colors.base.white)
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
@@ -1490,6 +1544,7 @@ export function useCanvasRender({
               path: groupPath,
               isRowHovered: isHovered,
               isRowChecked: recordSelected,
+              isRowCellSelected,
               isCellInSelectionRange: selection.value.isCellInRange({ row: rowIdx, col: colIdx }) && isActiveCellInCurrentGroup,
               isRootCell: true,
             })
@@ -1503,8 +1558,8 @@ export function useCanvasRender({
 
           ctx.strokeStyle =
             idx !== 0 && (isHovered || recordSelected || isColumnInSelection || isRowCellSelected || rowColor)
-              ? themeV3Colors.gray['200']
-              : themeV3Colors.gray['100']
+              ? getColor(themeV4Colors.gray['200'])
+              : getColor(themeV4Colors.gray['100'])
           ctx.lineWidth = 1
 
           ctx.beginPath()
@@ -1519,7 +1574,7 @@ export function useCanvasRender({
           ctx.fillStyle = 'rgba(0, 0, 0, 0.04)'
           ctx.rect(xOffset, yOffset, 4, rowHeight.value)
           ctx.fill()
-          ctx.strokeStyle = '#D5D5D9'
+          ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
           ctx.beginPath()
           ctx.moveTo(xOffset, yOffset)
           ctx.lineTo(xOffset, yOffset + rowHeight.value)
@@ -1527,7 +1582,7 @@ export function useCanvasRender({
         }
 
         if (!visibleCols.filter((f) => !f.fixed).length) {
-          ctx.strokeStyle = '#f4f4f5'
+          ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
           ctx.beginPath()
           ctx.moveTo(xOffset, yOffset)
           ctx.lineTo(xOffset, yOffset + rowHeight.value)
@@ -1535,7 +1590,7 @@ export function useCanvasRender({
         }
 
         ctx.fillStyle = 'transparent'
-        ctx.strokeStyle = 'white'
+        ctx.strokeStyle = getColor(themeV4Colors.base.white)
         ctx.shadowColor = 'transparent'
         ctx.shadowBlur = 0
         ctx.shadowOffsetX = 0
@@ -1577,11 +1632,11 @@ export function useCanvasRender({
         }
 
         if (selection.value.isCellInRange({ row: rowIdx, col: absoluteColIdx })) {
-          ctx.fillStyle = '#F6F7FE'
+          ctx.fillStyle = getColor(themeV4Colors.brand['50'])
           ctx.fillRect(xOffset - scrollLeft.value, yOffset, width, rowHeight.value)
         }
 
-        ctx.strokeStyle = '#f4f4f5'
+        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
         ctx.beginPath()
         ctx.moveTo(xOffset - scrollLeft.value, yOffset)
         ctx.lineTo(xOffset - scrollLeft.value, yOffset + rowHeight.value)
@@ -1609,10 +1664,11 @@ export function useCanvasRender({
 
           const colIdx = columns.value.findIndex((col) => col.id === column.id)
           if (selection.value.isCellInRange({ row: rowIdx, col: colIdx })) {
-            ctx.fillStyle = '#F6F7FE'
+            ctx.fillStyle = getColor(themeV4Colors.brand['50'])
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           } else {
-            ctx.fillStyle = isHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
+            ctx.fillStyle =
+              isHovered || isRowCellSelected ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white)
             ctx.fillRect(xOffset, yOffset, width, rowHeight.value)
           }
 
@@ -1634,7 +1690,7 @@ export function useCanvasRender({
             drawShimmerEffect(ctx, xOffset, yOffset, width, rowIdx)
           }
 
-          ctx.strokeStyle = '#f4f4f5'
+          ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
           ctx.beginPath()
 
           ctx.moveTo(xOffset, yOffset)
@@ -1644,7 +1700,7 @@ export function useCanvasRender({
           xOffset += width
         })
 
-        ctx.strokeStyle = '#f4f4f5'
+        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
         ctx.beginPath()
         ctx.moveTo(xOffset, yOffset)
         ctx.lineTo(xOffset, yOffset + rowHeight.value)
@@ -1720,7 +1776,8 @@ export function useCanvasRender({
           activeCell.value.row === rowIdx + 1 && comparePath(activeCell.value.path, row?.rowMeta?.path)
         const isNextRowSelected = nextRow && nextRow.rowMeta.selected
 
-        ctx.fillStyle = isRowHovered || isRowCellSelected ? '#F9F9FA' : '#ffffff'
+        ctx.fillStyle =
+          isRowHovered || isRowCellSelected ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white)
         ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
         const renderedProp = renderRow(ctx, {
           row,
@@ -1753,8 +1810,8 @@ export function useCanvasRender({
           isNextRowCellSelected ||
           isNextRowSelected ||
           rowColor
-            ? themeV3Colors.gray['300']
-            : themeV3Colors.gray['200']
+            ? getColor(themeV4Colors.gray['300'])
+            : getColor(themeV4Colors.gray['200'])
         ctx.lineWidth = 1
         ctx.beginPath()
         ctx.moveTo(0, yOffset + rowHeight.value)
@@ -1763,7 +1820,7 @@ export function useCanvasRender({
 
         // Since blur is not working we can use just fill rect
         if (removeInlineAddRecord.value && rowIdx >= EXTERNAL_SOURCE_VISIBLE_ROWS) {
-          ctx.fillStyle = 'rgba(231, 231, 233, 0.8)'
+          ctx.fillStyle = getColor('#e7e7e9', '#171717', 0.8)
           ctx.fillRect(0, yOffset, adjustedWidth, rowHeight.value)
 
           ctx.fill()
@@ -1788,10 +1845,13 @@ export function useCanvasRender({
         },
         mousePosition,
       )
-      ctx.fillStyle = isNewRowHovered && isAddingEmptyRowPermitted.value ? '#F9F9FA' : '#ffffff'
+      ctx.fillStyle =
+        isNewRowHovered && isAddingEmptyRowPermitted.value
+          ? getColor(themeV4Colors.gray['50'])
+          : getColor(themeV4Colors.base.white)
       ctx.fillRect(0, yOffset, adjustedWidth, headerRowHeight.value)
       // Bottom border for new row
-      ctx.strokeStyle = '#f4f4f5'
+      ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
       ctx.beginPath()
       ctx.moveTo(0, yOffset + headerRowHeight.value)
       ctx.lineTo(adjustedWidth, yOffset + headerRowHeight.value)
@@ -1799,7 +1859,10 @@ export function useCanvasRender({
 
       spriteLoader.renderIcon(ctx, {
         icon: 'ncPlus',
-        color: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#000000' : '#4a5268',
+        color:
+          isNewRowHovered && isAddingEmptyRowPermitted.value
+            ? getColor(themeV4Colors.base.black)
+            : getColor(themeV4Colors.gray['600']),
         x: 16,
         y: yOffset + 9,
         size: 14,
@@ -1832,7 +1895,7 @@ export function useCanvasRender({
     }
 
     if (warningRow) {
-      const orange = '#fcbe3a'
+      const orange = getColor(themeV4Colors.yellow['500'])
       // Warning top border
       ctx.strokeStyle = 'orange'
       ctx.beginPath()
@@ -1855,7 +1918,7 @@ export function useCanvasRender({
         x: 10,
         y: warningRow.yOffset + rowHeight.value,
         py: 7,
-        fillStyle: '#1f293a',
+        fillStyle: getColor(themeV4Colors.gray['800']),
         fontSize: 12,
         fontFamily: '600 12px Inter',
       })
@@ -1872,11 +1935,11 @@ export function useCanvasRender({
 
       const isInFixedArea = xOffset - scrollLeft.value <= fixedWidth
 
-      ctx.strokeStyle = '#ff4a3f'
+      ctx.strokeStyle = getColor(themeV4Colors.red['500'])
       ctx.lineWidth = 2
       if (column.fixed || !isInFixedArea) {
         roundedRect(ctx, column.fixed ? xOffset : xOffset - scrollLeft.value, yOffset, width, rowHeight.value, 2, {
-          borderColor: '#ff4a3f',
+          borderColor: getColor(themeV4Colors.red['500']),
           borderWidth: 2,
         })
       } else if (isInFixedArea) {
@@ -1888,7 +1951,7 @@ export function useCanvasRender({
         const adjustedWidth = xOffset + width - fixedWidth - scrollLeft.value
 
         roundedRect(ctx, adjustedX + 1, yOffset, adjustedWidth, rowHeight.value, 2, {
-          borderColor: '#ff4a3f',
+          borderColor: getColor(themeV4Colors.red['500']),
           borderWidth: 2,
         })
       }
@@ -1912,13 +1975,13 @@ export function useCanvasRender({
     const width = parseCellWidth(columns.value[dragOver.value.index - 1]?.width)
 
     // Draw a Ghost Column
-    ctx.fillStyle = '#f4f4f5'
+    ctx.fillStyle = getColor(themeV4Colors.gray['100'])
     ctx.globalAlpha = 0.6
 
     ctx.fillRect(xPosition - scrollLeft.value, 0, width, height.value)
     ctx.globalAlpha = 1
 
-    ctx.strokeStyle = '#3366ff'
+    ctx.strokeStyle = getColor(themeV4Colors.brand['500'])
     ctx.lineWidth = 2
     ctx.beginPath()
     ctx.moveTo(xPosition - scrollLeft.value, 0)
@@ -1931,13 +1994,13 @@ export function useCanvasRender({
 
     // Top border
     ctx.beginPath()
-    ctx.strokeStyle = '#E7E7E9'
+    ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
     ctx.moveTo(0, height.value - AGGREGATION_HEIGHT - 0.5)
     ctx.lineTo(width.value, height.value - AGGREGATION_HEIGHT - 0.5)
     ctx.stroke()
 
     // Background
-    ctx.fillStyle = '#F9F9FA'
+    ctx.fillStyle = getColor(themeV4Colors.gray['50'])
     ctx.fillRect(0, height.value - AGGREGATION_HEIGHT, width.value, AGGREGATION_HEIGHT)
 
     let initialOffset = 0
@@ -1969,7 +2032,7 @@ export function useCanvasRender({
           },
           mousePosition,
         ) && isViewOperationsAllowed.value
-      ctx.fillStyle = isHovered ? '#F4F4F5' : '#F9F9FA'
+      ctx.fillStyle = isHovered ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.gray['50'])
       if (column.agg_fn && ![AllAggregations.None].includes(column.agg_fn as any)) {
         ctx.save()
         ctx.beginPath()
@@ -1985,7 +2048,7 @@ export function useCanvasRender({
         const aggWidth = ctx.measureText(aggregationValue ?? '').width
         if (column.agg_prefix) {
           ctx.font = '400 12px Inter'
-          ctx.fillStyle = '#6a7184'
+          ctx.fillStyle = getColor(themeV4Colors.gray['500'])
           ctx.fillText(
             column.agg_prefix,
             xOffset + width - aggWidth - 16 - scrollLeft.value,
@@ -1994,7 +2057,7 @@ export function useCanvasRender({
         }
 
         ctx.font = '600 12px Inter'
-        ctx.fillStyle = '#4a5268'
+        ctx.fillStyle = getColor(themeV4Colors.gray['600'])
         ctx.fillText(aggregationValue ?? ' - ', xOffset + width - 8 - scrollLeft.value, height.value - AGGREGATION_HEIGHT / 2)
 
         if (isLocked.value && isHovered) {
@@ -2021,7 +2084,7 @@ export function useCanvasRender({
           ctx.clip()
 
           ctx.font = '600 10px Inter'
-          ctx.fillStyle = '#6a7184'
+          ctx.fillStyle = getColor(themeV4Colors.gray['500'])
           ctx.textAlign = 'right'
           ctx.textBaseline = 'middle'
 
@@ -2035,7 +2098,7 @@ export function useCanvasRender({
           spriteLoader.renderIcon(ctx, {
             icon: 'chevronDown',
             size: 14,
-            color: '#6a7184',
+            color: getColor(themeV4Colors.gray['500']),
             x: rightEdge - textLen - 18,
             y: textY - 7,
           })
@@ -2055,7 +2118,7 @@ export function useCanvasRender({
       }
 
       ctx.beginPath()
-      ctx.strokeStyle = '#f4f4f5'
+      ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
       ctx.moveTo(xOffset - scrollLeft.value, height.value - AGGREGATION_HEIGHT)
       ctx.lineTo(xOffset - scrollLeft.value, height.value)
       ctx.stroke()
@@ -2080,10 +2143,11 @@ export function useCanvasRender({
           mousePosition,
         )
 
-        ctx.fillStyle = isHovered && isViewOperationsAllowed.value ? '#F4F4F5' : '#F9F9FA'
+        ctx.fillStyle =
+          isHovered && isViewOperationsAllowed.value ? getColor(themeV4Colors.gray['100']) : getColor(themeV4Colors.gray['50'])
         ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, mergedWidth, AGGREGATION_HEIGHT)
 
-        ctx.fillStyle = '#6a7184'
+        ctx.fillStyle = getColor(themeV4Colors.gray['500'])
         ctx.textBaseline = 'middle'
         let availWidth = mergedWidth - 16
 
@@ -2102,14 +2166,14 @@ export function useCanvasRender({
 
           if (firstFixedCol.agg_prefix) {
             ctx.font = '400 12px Inter'
-            ctx.fillStyle = '#6a7184'
+            ctx.fillStyle = getColor(themeV4Colors.gray['500'])
             ctx.fillText(firstFixedCol.agg_prefix, mergedWidth - aggWidth - 16, height.value - AGGREGATION_HEIGHT / 2)
             const w = ctx.measureText(firstFixedCol.agg_prefix).width
             availWidth -= w
           }
 
           ctx.font = '600 12px Inter'
-          ctx.fillStyle = '#4a5268'
+          ctx.fillStyle = getColor(themeV4Colors.gray['600'])
           ctx.fillText(aggregationValue ?? ' - ', mergedWidth - 8, height.value - AGGREGATION_HEIGHT / 2)
 
           if (isLocked.value && isHovered) {
@@ -2150,7 +2214,7 @@ export function useCanvasRender({
             spriteLoader.renderIcon(ctx, {
               icon: 'chevronDown',
               size: 14,
-              color: '#6a7184',
+              color: getColor(themeV4Colors.gray['500']),
               x: rightEdge - textLen - 18,
               y: textY - 7,
             })
@@ -2170,20 +2234,45 @@ export function useCanvasRender({
           ctx.restore()
         }
 
-        const count = isGroupBy.value ? totalGroups.value : Math.max(totalRows.value, actualTotalRows.value ?? 0)
-        const label = isGroupBy.value
-          ? count !== 1
-            ? t('objects.groups')
-            : t('objects.group')
-          : count !== 1
-          ? t('objects.records')
-          : t('objects.record')
+        const selectedGroupRecords = isGroupBy.value
+          ? extractGroupPaths(cachedGroups.value).reduce((acc, path) => {
+              const dataCache = getDataCache(path)
+              const selectedRowsCount = dataCache.selectedRows.value?.length ?? 0
+
+              return acc + selectedRowsCount
+            }, 0)
+          : vSelectedAllRecords.value
+          ? Math.max(totalRows.value, actualTotalRows.value ?? 0)
+          : selectedRows.value?.length ?? 0
+
+        const count =
+          selectedGroupRecords > 0
+            ? selectedGroupRecords
+            : selection.value.cellCount > 1
+            ? selection.value.cellCount
+            : isGroupBy.value
+            ? totalGroups.value
+            : Math.max(totalRows.value, actualTotalRows.value ?? 0)
+        const label =
+          selectedGroupRecords > 0
+            ? selectedGroupRecords === 1
+              ? t('labels.recordSelected')
+              : t('labels.recordsSelected')
+            : selection.value.cellCount > 1
+            ? t('labels.cellsSelected')
+            : isGroupBy.value
+            ? count !== 1
+              ? t('objects.groups')
+              : t('objects.group')
+            : count !== 1
+            ? t('objects.records')
+            : t('objects.record')
 
         renderSingleLineText(ctx, {
           text: `${Intl.NumberFormat('en', { notation: 'compact' }).format(count)} ${label}`,
           x: xOffset + 8,
           y: height.value - AGGREGATION_HEIGHT + 2,
-          fillStyle: '#6a7184',
+          fillStyle: getColor(themeV4Colors.gray['500']),
           textAlign: 'left',
           fontSize: 12,
           maxWidth: availWidth - 16,
@@ -2203,7 +2292,7 @@ export function useCanvasRender({
           })
         }
 
-        ctx.strokeStyle = '#e7e7e9'
+        ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
         ctx.beginPath()
         ctx.moveTo(xOffset, height.value - AGGREGATION_HEIGHT)
         ctx.lineTo(xOffset, height.value)
@@ -2224,7 +2313,7 @@ export function useCanvasRender({
             mousePosition,
           )
 
-          ctx.fillStyle = '#F9F9FA'
+          ctx.fillStyle = getColor(themeV4Colors.gray['50'])
           ctx.fillRect(xOffset, height.value - AGGREGATION_HEIGHT, width, AGGREGATION_HEIGHT)
 
           const aggregationValue = firstFixedCol.aggregation?.toString()
@@ -2240,12 +2329,12 @@ export function useCanvasRender({
 
             if (column.agg_prefix) {
               ctx.font = '400 12px Inter'
-              ctx.fillStyle = '#6a7184'
+              ctx.fillStyle = getColor(themeV4Colors.gray['500'])
               ctx.fillText(column.agg_prefix, xOffset + width - aggWidth - 16, height.value - AGGREGATION_HEIGHT / 2)
             }
 
             ctx.font = '600 12px Inter'
-            ctx.fillStyle = '#4a5268'
+            ctx.fillStyle = getColor(themeV4Colors.gray['600'])
             ctx.fillText(aggregationValue, xOffset + width - 8, height.value - AGGREGATION_HEIGHT / 2)
 
             ctx.restore()
@@ -2256,7 +2345,7 @@ export function useCanvasRender({
             ctx.clip()
 
             ctx.font = '600 10px Inter'
-            ctx.fillStyle = '#6a7184'
+            ctx.fillStyle = getColor(themeV4Colors.gray['500'])
             ctx.textAlign = 'right'
             ctx.textBaseline = 'middle'
 
@@ -2270,7 +2359,7 @@ export function useCanvasRender({
               spriteLoader.renderIcon(ctx, {
                 icon: 'chevronDown',
                 size: 14,
-                color: '#6a7184',
+                color: getColor(themeV4Colors.gray['500']),
                 x: rightEdge - textLen - 18,
                 y: textY - 7,
               })
@@ -2278,7 +2367,7 @@ export function useCanvasRender({
             ctx.restore()
           }
 
-          ctx.strokeStyle = '#e7e7e9'
+          ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
           ctx.beginPath()
           ctx.moveTo(xOffset, height.value - AGGREGATION_HEIGHT)
           ctx.lineTo(xOffset, height.value)
@@ -2287,7 +2376,7 @@ export function useCanvasRender({
           xOffset += width
         })
 
-        ctx.strokeStyle = '#f4f4f5'
+        ctx.strokeStyle = getColor(themeV4Colors.gray['100'])
         ctx.beginPath()
         ctx.moveTo(xOffset, height.value - AGGREGATION_HEIGHT)
         ctx.lineTo(xOffset, height.value)
@@ -2324,7 +2413,7 @@ export function useCanvasRender({
     }
 
     // First render the blue line indicator
-    ctx.strokeStyle = '#3366ff'
+    ctx.strokeStyle = getColor(themeV4Colors.brand['500'])
     ctx.lineWidth = 2
     ctx.beginPath()
     // pass x offset based on number of group level(8px padding and 1px border)
@@ -2359,12 +2448,12 @@ export function useCanvasRender({
     ctx.shadowBlur = 6
     ctx.shadowOffsetY = 4
 
-    ctx.fillStyle = '#ffffff'
+    ctx.fillStyle = getColor(themeV4Colors.base.white)
     ctx.fill()
 
     ctx.restore()
 
-    ctx.strokeStyle = '#D5D5D9'
+    ctx.strokeStyle = getColor(themeV4Colors.gray['300'])
     ctx.lineWidth = 1
     ctx.stroke()
 
@@ -2452,7 +2541,7 @@ export function useCanvasRender({
       const isHovered = hoverRow.value?.rowIndex === i && comparePath(hoverRow.value?.path, row?.rowMeta?.path ?? group.path)
 
       roundedRect(ctx, indent, yOffset, adjustedWidth, rowHeight.value, 0, {
-        backgroundColor: isHovered ? '#F9F9FA' : '#fff',
+        backgroundColor: isHovered ? getColor(themeV4Colors.gray['50']) : getColor(themeV4Colors.base.white),
       })
       ctx.save()
       ctx.rect(indent, yOffset, adjustedWidth, rowHeight.value)
@@ -2483,7 +2572,7 @@ export function useCanvasRender({
       renderRedBorders = [...renderRedBorders, ...renderedProp.renderRedBorders]
 
       // Bottom border for each row
-      ctx.strokeStyle = '#e7e7e9'
+      ctx.strokeStyle = getColor(themeV4Colors.gray['200'])
       ctx.beginPath()
       ctx.moveTo(indent, yOffset + rowHeight.value)
       ctx.lineTo(adjustedWidth + indent, yOffset + rowHeight.value)
@@ -2519,17 +2608,23 @@ export function useCanvasRender({
           topLeft: 0,
         },
         {
-          backgroundColor: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#F9F9FA' : '#ffffff',
+          backgroundColor:
+            isNewRowHovered && isAddingEmptyRowPermitted.value
+              ? getColor(themeV4Colors.gray['50'])
+              : getColor(themeV4Colors.base.white),
           borders: {
             bottom: true,
           },
-          borderColor: '#e7e7e9',
+          borderColor: getColor(themeV4Colors.gray['200']),
           borderWidth: 1,
         },
       )
       spriteLoader.renderIcon(ctx, {
         icon: isAddNewRecordGridMode.value ? 'ncPlus' : 'form',
-        color: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#000000' : '#4a5268',
+        color:
+          isNewRowHovered && isAddingEmptyRowPermitted.value
+            ? getColor(themeV4Colors.base.black)
+            : getColor(themeV4Colors.gray['600']),
         x: 16 + level * 13,
         y: yOffset + 9,
         size: 14,
@@ -2540,13 +2635,16 @@ export function useCanvasRender({
         y: yOffset + 2,
         fontFamily: '600 13px Inter',
         height: headerRowHeight.value,
-        fillStyle: '#374151',
+        fillStyle: getColor(themeV4Colors.gray['700']),
         text: `${t('activity.newRecord')}`,
       })
 
       spriteLoader.renderIcon(ctx, {
         icon: 'chevronDown',
-        color: isNewRowHovered && isAddingEmptyRowPermitted.value ? '#000000' : '#4a5268',
+        color:
+          isNewRowHovered && isAddingEmptyRowPermitted.value
+            ? getColor(themeV4Colors.base.black)
+            : getColor(themeV4Colors.gray['600']),
         x: 16 + 20 + level * 13 + renderedWidth + 12,
         y: yOffset + 10,
         size: 14,
@@ -2596,7 +2694,7 @@ export function useCanvasRender({
     }
 
     if (warningRow) {
-      const orange = '#fcbe3a'
+      const orange = getColor(themeV4Colors.yellow['500'])
       // Group level x axis offset
       const gXOffset = level * 13
 
@@ -2622,7 +2720,7 @@ export function useCanvasRender({
         x: 10 + gXOffset,
         y: warningRow.yOffset + rowHeight.value,
         py: 7,
-        fillStyle: '#1f293a',
+        fillStyle: getColor(themeV4Colors.gray['800']),
         fontSize: 12,
         fontFamily: '600 12px Inter',
       })
@@ -2646,11 +2744,11 @@ export function useCanvasRender({
 
         const isInFixedArea = xOffset - scrollLeft.value <= fixedWidth
 
-        ctx.strokeStyle = '#ff4a3f'
+        ctx.strokeStyle = getColor(themeV4Colors.red['500'])
         ctx.lineWidth = 2
         if (column.fixed || !isInFixedArea) {
           roundedRect(ctx, column.fixed ? xOffset : xOffset - scrollLeft.value, yOffset, width, rowHeight.value, 2, {
-            borderColor: '#ff4a3f',
+            borderColor: getColor(themeV4Colors.red['500']),
             borderWidth: 2,
           })
         } else if (isInFixedArea) {
@@ -2662,7 +2760,7 @@ export function useCanvasRender({
           const adjustedWidth = xOffset + width - fixedWidth - scrollLeft.value
 
           roundedRect(ctx, adjustedX + 1, yOffset, adjustedWidth, rowHeight.value, 2, {
-            borderColor: '#ff4a3f',
+            borderColor: getColor(themeV4Colors.red['500']),
             borderWidth: 2,
           })
         }
@@ -2754,7 +2852,7 @@ export function useCanvasRender({
         background: groupBackgroundColor,
         border: groupBorderColor,
         aggregation: { hover: aggregationHoverBg, default: aggregationDefaultBg, border: aggregationBorderColor },
-      } = getGroupColors(level, groupByColumns.value.length)
+      } = getGroupColors(level, groupByColumns.value.length, getColor)
 
       if (groupHeaderY + groupHeight >= 0 && groupHeaderY < height.value) {
         let tempCurrentOffset = currentOffset + GROUP_HEADER_HEIGHT
@@ -2880,7 +2978,7 @@ export function useCanvasRender({
           },
         )
 
-        if (appInfo.value?.ee) {
+        if (!appInfo.value.disableGroupByAggregation) {
           const { start: startColIndex, end: endColIndex } = colSlice.value
           const visibleCols = columns.value.slice(startColIndex, endColIndex)
 
@@ -2958,7 +3056,7 @@ export function useCanvasRender({
               const aggWidth = ctx.measureText(group?.aggregations[column.title] ?? ' - ').width
               if (column.agg_prefix) {
                 ctx.font = '400 12px Inter'
-                ctx.fillStyle = '#6a7184'
+                ctx.fillStyle = getColor(themeV4Colors.gray['500'])
                 ctx.fillText(
                   column.agg_prefix,
                   aggXOffset + width - aggWidth - 16 - scrollLeft.value,
@@ -2966,7 +3064,7 @@ export function useCanvasRender({
                     (GROUP_HEADER_HEIGHT + (group?.isExpanded && !group?.path ? GROUP_EXPANDED_BOTTOM_PADDING : 0)) / 2,
                 )
               }
-              ctx.fillStyle = '#374151'
+              ctx.fillStyle = getColor(themeV4Colors.gray['700'])
               ctx.font = '600 12px Inter'
               ctx.fillText(
                 group?.aggregations[column.title] ?? ' - ',
@@ -3000,7 +3098,7 @@ export function useCanvasRender({
                 ctx.clip()
 
                 ctx.font = '600 10px Inter'
-                ctx.fillStyle = '#6a7184'
+                ctx.fillStyle = getColor(themeV4Colors.gray['500'])
                 ctx.textAlign = 'right'
                 ctx.textBaseline = 'middle'
 
@@ -3016,7 +3114,7 @@ export function useCanvasRender({
                 spriteLoader.renderIcon(ctx, {
                   icon: 'chevronDown',
                   size: 14,
-                  color: '#6a7184',
+                  color: getColor(themeV4Colors.gray['500']),
                   x: rightEdge - textLen - 18,
                   y: textY - 7,
                 })
@@ -3049,7 +3147,7 @@ export function useCanvasRender({
         spriteLoader.renderIcon(ctx, {
           icon: group?.isExpanded ? 'ncChevronDown' : 'ncChevronRight',
           size: 16,
-          color: '#374150',
+          color: getColor(themeV4Colors.gray['700']),
           x: xOffset + 12,
           y: groupHeaderY + (GROUP_HEADER_HEIGHT - 16) / 2,
         })
@@ -3083,7 +3181,7 @@ export function useCanvasRender({
             height: GROUP_HEADER_HEIGHT,
             verticalAlign: 'middle',
             fontFamily: '600 12px Inter',
-            fillStyle: '#374151',
+            fillStyle: getColor(themeV4Colors.gray['700']),
             textAlign: 'right',
           })
           countWidth = countRender.width
@@ -3096,7 +3194,7 @@ export function useCanvasRender({
             verticalAlign: 'middle',
             textAlign: 'right',
             fontFamily: '400 12px Inter',
-            fillStyle: '#6A7184',
+            fillStyle: getColor(themeV4Colors.gray['500']),
           })
 
           contentWidth = contentRender.width
@@ -3110,12 +3208,12 @@ export function useCanvasRender({
               size: 16,
               xOffset: 6,
               yOffset: 6,
-              color: '#374151',
+              color: getColor(themeV4Colors.gray['700']),
             },
             borderRadius: 8,
-            borderColor: '#ffffff',
-            background: '#ffffff',
-            hoveredBackground: '#f4f4f5',
+            borderColor: getColor(themeV4Colors.base.white),
+            background: getColor(themeV4Colors.base.white),
+            hoveredBackground: getColor(themeV4Colors.gray['100']),
             mousePosition,
             spriteLoader,
             setCursor,
@@ -3127,7 +3225,7 @@ export function useCanvasRender({
         ctx.letterSpacing = '1px'
         const { isTruncated } = renderSingleLineText(ctx, {
           text: (group?.column?.title ?? '').toUpperCase(),
-          fillStyle: '#4A5268',
+          fillStyle: getColor(themeV4Colors.gray['600']),
           x: contentX,
           maxWidth: availableWidth - 20 - countWidth,
           fontFamily: '600 10px Inter',
@@ -3190,14 +3288,14 @@ export function useCanvasRender({
       for (let i = 0; i < tags.length; i++) {
         const tag = tags[i] || ''
         const color = colors[i] || '#ccc'
+
+        const opBgColor = !isDark.value ? color : getAdaptiveTint(color, { isDarkMode: isDark.value, shade: -10 })
+
         const displayText = tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag
 
-        const textColor = tinycolor.isReadable(color, '#fff', {
-          level: 'AA',
-          size: 'large',
-        })
-          ? '#fff'
-          : tinycolor.mostReadable(color, ['#1f293a', '#fff']).toHex8String()
+        const textColor = !isDark.value
+          ? getSelectTypeOptionTextColor(color, getColor, true)
+          : getOppositeColorOfBackground(opBgColor, color)
 
         ctx.save()
         ctx.font = '700 13px Inter'
@@ -3210,7 +3308,7 @@ export function useCanvasRender({
         const estimatedTagWidth = textMetrics.width + tagPaddingX * 2 + tagSpacing
 
         if (xPosition > x && (estimatedTagWidth > remainingWidth - 30 || remainingWidth < 50)) {
-          ctx.fillStyle = '#6a7184'
+          ctx.fillStyle = getColor(themeV4Colors.gray['500'])
           ctx.font = '400 12px Inter'
 
           const indicatorX = Math.min(xPosition, x + maxWidth - 24)
@@ -3233,10 +3331,11 @@ export function useCanvasRender({
             tagPaddingY: 2,
             tagHeight: 22,
             tagRadius: 12,
-            tagBgColor: color,
+            tagBgColor: opBgColor,
             tagSpacing: 0,
             tagFontFamily: '700 13px Inter',
           },
+          getColor,
         } as any)
 
         ctx.restore()
@@ -3247,7 +3346,7 @@ export function useCanvasRender({
         if (xPosition + 30 >= x + maxWidth) {
           if (i < tags.length - 1) {
             ctx.save()
-            ctx.fillStyle = '#6a7184'
+            ctx.fillStyle = getColor(themeV4Colors.gray['500'])
             ctx.font = '400 12px Inter'
             ctx.textBaseline = 'middle'
 
@@ -3269,7 +3368,7 @@ export function useCanvasRender({
 
       renderSingleLineText(ctx, {
         text: displayText,
-        fillStyle: isCheckBox ? '#1f293a' : '#6A7184',
+        fillStyle: isCheckBox ? getColor(themeV4Colors.gray['800']) : getColor(themeV4Colors.gray['500']),
         fontFamily: '700 13px Inter',
         x,
         y: y - GROUP_HEADER_HEIGHT / 2 + 8,
@@ -3295,7 +3394,7 @@ export function useCanvasRender({
         pv: false,
         spriteLoader,
         readonly: true,
-        textColor: '#1f293a', // gray-800
+        textColor: getColor(themeV4Colors.gray['800']), // gray-800
         imageLoader,
         tableMetaLoader,
         relatedColObj: group.relatedColumn,
@@ -3326,7 +3425,7 @@ export function useCanvasRender({
         pv: false,
         spriteLoader,
         readonly: true,
-        textColor: '#1f293a', // gray-800
+        textColor: getColor(themeV4Colors.gray['800']), // gray-800
         imageLoader,
         meta,
         tableMetaLoader,
@@ -3357,6 +3456,8 @@ export function useCanvasRender({
     ctx.scale(dpr, dpr)
 
     ctx.clearRect(0, 0, width.value, canvas.height)
+    ctx.fillStyle = getColor(themeV4Colors.gray['50'])
+    ctx.fillRect(0, 0, width.value, canvas.height)
 
     let activeState
 

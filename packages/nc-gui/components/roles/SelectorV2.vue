@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { RoleColors, RoleIcons, RoleLabels } from 'nocodb-sdk'
+import { ProjectRoles, RoleColors, RoleIcons, RoleLabels } from 'nocodb-sdk'
 import type { SelectValue } from 'ant-design-vue/es/select'
 import type { IconMapKey } from '#imports'
 
@@ -8,6 +8,7 @@ const props = withDefaults(
     role: keyof typeof RoleLabels
     roles: (keyof typeof RoleLabels)[]
     disabledRoles?: (keyof typeof RoleLabels)[]
+    disabledRolesTooltip?: Record<keyof typeof RoleLabels, string>
     onRoleChange: (role: keyof typeof RoleLabels) => void | Promise<any>
     border?: boolean
     description?: boolean
@@ -15,6 +16,9 @@ const props = withDefaults(
     size?: 'sm' | 'md' | 'lg'
     showInherit?: boolean
     placement?: 'bottomRight' | 'bottomLeft'
+    inheritedRoleIcon?: string
+    inheritSource?: 'workspace' | 'team'
+    effectiveRole?: string
   }>(),
   {
     border: true,
@@ -22,6 +26,9 @@ const props = withDefaults(
     size: 'sm',
     showInherit: false,
     placement: 'bottomLeft',
+    inheritedRoleIcon: undefined,
+    inheritSource: undefined,
+    effectiveRole: undefined,
   },
 )
 
@@ -52,6 +59,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
       icon: RoleIcons[role],
       color: RoleColors[role],
       ncItemDisabled: props.disabledRoles?.includes(role),
+      ncItemTooltip: props.disabledRoles?.includes(role) ? props.disabledRolesTooltip?.[role] ?? '' : '',
     }),
   )
 })
@@ -67,7 +75,7 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
     >
       <RolesBadge
         :border="false"
-        :inherit="inherit === role"
+        :inherit="!!inherit && role === ProjectRoles.INHERIT"
         :role="role"
         :size="size"
         clickable
@@ -75,15 +83,25 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
         class="flex-none"
       />
       <NcTooltip
-        v-if="showInherit && isEeUI && inherit === role"
+        v-if="showInherit && isEeUI && !!inherit && role === ProjectRoles.INHERIT"
         class="uppercase text-[10px] leading-4 text-nc-content-gray-muted"
         placement="bottom"
         :disabled="isDropdownOpen"
       >
         <template #title>
-          {{ $t('tooltip.roleInheritedFromWorkspace') }}
+          <div class="flex flex-col gap-1">
+            <div>
+              {{ inheritSource === 'team' ? $t('tooltip.roleInheritedFromTeam') : $t('tooltip.roleInheritedFromWorkspace') }}
+            </div>
+            <div v-if="effectiveRole" class="text-xs font-normal">
+              {{ $t('tooltip.effectiveRole', { role: $t(`objects.roleType.${effectiveRole}`) }) }}
+            </div>
+          </div>
         </template>
-        {{ $t('objects.workspace') }}
+        <div class="flex items-center gap-1">
+          <RolesBadge v-if="effectiveRole" :border="false" :role="effectiveRole" icon-only nc-badge-class="!px-1" />
+          <span>{{ inheritSource === 'team' ? $t('objects.team') : $t('objects.workspace') }}</span>
+        </div>
       </NcTooltip>
 
       <template #overlay="{ onEsc }">
@@ -91,32 +109,32 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
           v-model:open="isDropdownOpen"
           :value="role"
           :list="roleSelectorOptions"
-          :item-height="48"
+          :item-height="!description ? 48 : 72"
           class="!w-auto max-w-80"
           :class="{
             'min-w-50': !description,
             'min-w-80': description,
           }"
-          :isLocked="!!newRole"
+          :is-locked="!!newRole"
           variant="default"
-          item-class-name="nc-role-select-dropdown"
+          item-class-name="nc-role-select-dropdown !px-3"
           :wrapper-class-name="`!h-auto nc-role-selector-dropdown ${!!newRole ? '!cursor-wait' : ''}`"
           @update:value="onChangeRole"
           @escape="onEsc"
         >
           <template #listItem="{ option }">
-            <div class="w-full flex flex-col" :class="`nc-role-select-${option.value}`">
+            <div class="w-full flex flex-col rounded-md" :class="[`nc-role-select-${option.value}`]">
               <div class="w-full flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <GeneralIcon
                     :icon="(option.icon as IconMapKey)"
                     class="flex-none h-4 w-4"
-                    :class="roleColorsMapping[option.color]?.content ?? 'text-gray-300'"
+                    :class="roleColorsMapping[option.color]?.content ?? 'text-nc-content-brand-hover'"
                   />
                   <span
                     class="text-captionDropdownDefault"
                     :class="[
-                      roleColorsMapping[option.color]?.content ?? 'text-gray-300',
+                      roleColorsMapping[option.color]?.content ?? 'text-nc-content-brand-hover',
                       {
                         '!font-semibold': !description,
                       },
@@ -126,9 +144,17 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
                   </span>
                 </div>
                 <GeneralLoader v-if="option.value === newRole" size="medium" />
-                <GeneralIcon v-else-if="!newRole && option.value === role" icon="check" class="text-primary h-4 w-4" />
+                <GeneralIcon v-else-if="!newRole && option.value === role" icon="check" class="text-nc-content-brand h-4 w-4" />
               </div>
-              <div v-if="description" class="text-bodySm !font-light text-nc-content-gray-muted ml-6">
+              <div
+                v-if="description"
+                class="text-bodySm !font-light ml-6"
+                :class="
+                  option.value === ProjectRoles.INHERIT
+                    ? 'text-nc-content-gray-muted dark:text-nc-content-gray-light'
+                    : 'text-nc-content-gray-muted'
+                "
+              >
                 {{ option.description }}
               </div>
             </div>

@@ -1,5 +1,13 @@
 <script lang="ts" setup>
-import { type ColumnReqType, type ColumnType, UITypesSearchTerms, isAIPromptCol, isSupportedDisplayValueColumn } from 'nocodb-sdk'
+import {
+  type ColumnReqType,
+  type ColumnType,
+  PlanFeatureTypes,
+  PlanTitles,
+  UITypesSearchTerms,
+  isAIPromptCol,
+  isSupportedDisplayValueColumn,
+} from 'nocodb-sdk'
 import {
   ButtonActionsType,
   UITypes,
@@ -49,6 +57,7 @@ const {
   disableSubmitBtn,
   column,
   isAiMode,
+  isSyncedField,
   defaultFormState,
 } = useColumnCreateStoreOrThrow()
 
@@ -99,7 +108,14 @@ const { t } = useI18n()
 
 const { isMetaReadOnly } = useRoles()
 
-const { showUpgradeToUseAiPromptField, blockAiPromptField, showUpgradeToUseAiButtonField, blockAiButtonField } = useEeConfig()
+const {
+  showUpgradeToUseAiPromptField,
+  showUpgradeToUseUnique,
+  blockAiPromptField,
+  showUpgradeToUseAiButtonField,
+  blockAiButtonField,
+  blockUnique,
+} = useEeConfig()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
 
@@ -125,6 +141,8 @@ const readOnly = computed(() => props.readonly)
 
 const { isMysql, isDatabricks, isXcdbBase } = useBase()
 
+const { canEnableUniqueConstraint, isUniqueConstraintSupportedType } = useUniqueConstraintHelpers()
+
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
@@ -134,6 +152,8 @@ const mounted = ref(false)
 const showDefaultValueInput = ref(false)
 
 const showHoverEffectOnSelectedType = ref(true)
+
+const onMouseOverUniqueValuesInfoIcon = ref(false)
 
 const columnUidt = computed({
   get: () => formState.value.uidt,
@@ -152,6 +172,10 @@ const columnUidt = computed({
 
 const isVisibleDefaultValueInput = computed({
   get: () => {
+    if (column.value?.uidt === UITypes.Checkbox && isSyncedField.value) {
+      return false
+    }
+
     if (isValidValue(formState.value.cdf) && !showDefaultValueInput.value) {
       showDefaultValueInput.value = true
     }
@@ -341,7 +365,7 @@ const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSea
 }
 
 const reloadMetaAndData = async () => {
-  await getMeta(meta.value?.id as string, true)
+  await getMeta(meta.value?.base_id, meta.value?.id as string, true)
 
   eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
 
@@ -498,6 +522,29 @@ onMounted(() => {
         emit('add', formState.value)
       }
     }
+
+    // Watch for mutual exclusivity between unique constraint and default value
+    watch(
+      () => formState.value.unique,
+      (newUnique) => {
+        if (newUnique) {
+          // If enabling unique constraint, clear default value
+          if (formState.value.cdf) {
+            formState.value.cdf = null
+          }
+        }
+      },
+    )
+
+    watch(
+      () => formState.value.cdf,
+      (newCdf) => {
+        if (newCdf && formState.value.unique) {
+          // If setting default value, disable unique constraint
+          formState.value.unique = false
+        }
+      },
+    )
 
     if (isForm.value && !props.fromTableExplorer && !enableDescription.value) {
       setTimeout(() => {
@@ -720,6 +767,19 @@ const lookupRollupFilterEnabled = computed(() => {
 
 const easterEggCount = ref(0)
 const easterEgg = computed(() => easterEggCount.value >= 2)
+
+const unique = computed({
+  get: () => formState.value?.unique,
+  set: (value) => {
+    if (!!value && showUpgradeToUseUnique()) {
+      return
+    }
+
+    if (formState.value) {
+      formState.value.unique = value
+    }
+  },
+})
 </script>
 
 <template>
@@ -728,12 +788,12 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
     ref="editOrAddRef"
     class="overflow-auto nc-scrollbar-md"
     :class="{
-      'bg-white max-h-[max(80vh,500px)]': !props.fromTableExplorer,
+      'bg-nc-bg-default max-h-[max(80vh,500px)]': !props.fromTableExplorer,
       'w-[416px]': !props.embedMode,
       '!w-[600px]': isLinksOrLTAR(formState.uidt),
       '!min-w-[560px]': lookupRollupFilterEnabled,
       'min-w-[500px] !w-full': isLinksOrLTAR(formState.uidt) || isLookupOrRollup,
-      'shadow-lg shadow-gray-300 border-1 border-gray-200 rounded-2xl p-5': !embedMode,
+      'shadow-lg shadow-gray-300 dark:shadow-black/40 border-1 border-nc-border-gray-medium rounded-2xl p-5': !embedMode,
       'nc-ai-mode': isAiMode,
       'h-full': props.fromTableExplorer,
       '!bg-nc-bg-gray-extralight': aiAutoSuggestMode && formState.uidt && !props.fromTableExplorer,
@@ -756,7 +816,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
         <div
           class="flex flex-col gap-4"
           :class="{
-            'bg-white -mx-5 -mt-5 px-5 pt-5': aiAutoSuggestMode,
+            'bg-nc-bg-default -mx-5 -mt-5 px-5 pt-5': aiAutoSuggestMode,
           }"
         >
           <div class="flex items-center gap-3">
@@ -930,7 +990,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                       @click="predictFromPrompt(onSelectedTagClick)"
                     >
                       <template #loadingIcon>
-                        <GeneralLoader class="!text-purple-700" size="medium" />
+                        <GeneralLoader class="!text-nc-content-pink-dark" size="medium" />
                       </template>
                       <template #icon>
                         <GeneralIcon icon="send" class="flex-none h-4 w-4" />
@@ -1016,14 +1076,14 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                 </div>
               </div>
               <NcButton size="xsmall" type="text" class="!px-1" @click.stop="failedToSaveFields = false">
-                <GeneralIcon icon="close" class="text-gray-600" />
+                <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
               </NcButton>
             </div>
           </template>
         </div>
         <div
           v-if="aiAutoSuggestMode"
-          class="sticky -top-5 z-100 bg-white -mx-5 -mt-5 pt-5 px-5"
+          class="sticky -top-5 z-100 bg-nc-bg-default -mx-5 -mt-5 pt-5 px-5"
           :class="{
             'pb-5 border-b-1 border-b-nc-border-gray-medium': formState.uidt,
           }"
@@ -1066,13 +1126,16 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
       </template>
       <a-form-item v-if="isFieldsTab" v-bind="validateInfos.title" class="flex">
         <div
-          class="flex flex-grow px-2 py-1 items-center rounded-md bg-gray-100 focus:bg-gray-100 outline-none"
+          :class="{
+            '!bg-nc-bg-gray-light text-nc-content-gray-disabled': isSyncedField,
+          }"
+          class="flex flex-grow px-2 py-1 items-center rounded-md bg-nc-bg-gray-light focus:bg-nc-bg-gray-light outline-none"
           style="outline-style: solid; outline-width: thin"
         >
           <input
             ref="antInput"
             v-model="formState.title"
-            :disabled="readOnly || !isFullUpdateAllowed || isSystem"
+            :disabled="readOnly || !isFullUpdateAllowed || isSystem || isSyncedField"
             :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
             class="flex flex-grow nc-fields-input nc-input-shadow text-sm font-semibold outline-none bg-inherit min-h-6"
             :class="{
@@ -1090,18 +1153,23 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
         :required="false"
         class="!mb-0"
       >
-        <a-input
-          ref="antInput"
-          v-model:value="formState.title"
-          class="nc-column-name-input nc-input-shadow !rounded-lg"
-          :class="{
-            'nc-ai-input': isAiMode,
-          }"
-          :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
-          :disabled="isKanban || readOnly || !isFullUpdateAllowed"
-          @change="debouncedOnPredictFieldType"
-          @input="onAlter(8)"
-        />
+        <NcTooltip :disabled="!isSyncedField" placement="right">
+          <template #title>
+            {{ $t('msg.info.updateTitleSyncedCol') }}
+          </template>
+          <a-input
+            ref="antInput"
+            v-model:value="formState.title"
+            class="nc-column-name-input nc-input-shadow !rounded-lg"
+            :class="{
+              'nc-ai-input': isAiMode,
+            }"
+            :placeholder="`${$t('objects.field')} ${$t('general.name').toLowerCase()} ${isEdit ? '' : $t('labels.optional')}`"
+            :disabled="isKanban || readOnly || !isFullUpdateAllowed || isSyncedField"
+            @change="debouncedOnPredictFieldType"
+            @input="onAlter(8)"
+          />
+        </NcTooltip>
       </a-form-item>
 
       <div class="flex items-center gap-1 empty:hidden">
@@ -1120,10 +1188,14 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
           @keydown.up.stop="handleResetHoverEffect"
           @keydown.down.stop="handleResetHoverEffect"
         >
-          <NcTooltip :disabled="!(!isEdit && formState.uidt && !!formState?.ai_temp_id)">
+          <NcTooltip placement="right" :disabled="!isSyncedField && !(!isEdit && formState.uidt && !!formState?.ai_temp_id)">
             <template #title>
-              You cannot edit field types of AI-generated fields. Edits can be made after the field is created.</template
-            >
+              {{
+                isSyncedField
+                  ? $t('msg.info.updateTypeSyncedCol')
+                  : 'You cannot edit field types of AI-generated fields. Edits can be made after the field is created.'
+              }}
+            </template>
             <a-select
               v-model:open="isColumnTypeOpen"
               v-model:value="columnUidt"
@@ -1139,16 +1211,17 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                 readOnly ||
                 (isEdit && !!onlyNameUpdateOnEditColumns.includes(column?.uidt)) ||
                 (isEdit && !isFullUpdateAllowed) ||
-                isSystem
+                isSystem ||
+                isSyncedField
               "
-              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg border-gray-200"
+              dropdown-class-name="nc-dropdown-column-type border-1 !rounded-lg !border-nc-border-gray-medium"
               :filter-option="filterOption"
               @dropdown-visible-change="onDropdownChange"
               @change="onSelectType($event)"
               @dblclick="showDeprecated = !showDeprecated"
             >
               <template #suffixIcon>
-                <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
               </template>
               <a-select-option
                 v-for="opt of uiTypesOptions"
@@ -1196,10 +1269,12 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
                       </NcTooltip>
                     </div>
 
-                    <span v-if="opt.deprecated" class="!text-xs !text-gray-300">({{ $t('general.deprecated') }})</span>
+                    <span v-if="opt.deprecated" class="!text-xs !text-nc-content-brand-hover"
+                      >({{ $t('general.deprecated') }})</span
+                    >
                     <span
                       v-if="opt.isNew || (isAiButtonSelectOption(opt.name) && !isColumnTypeOpen)"
-                      class="nc-new-field-badge text-sm text-nc-content-purple-dark bg-purple-50 px-2 rounded-md font-normal"
+                      class="nc-new-field-badge text-sm text-nc-content-purple-dark bg-nc-bg-purple-light px-2 rounded-md font-normal"
                       >{{ $t('general.new') }}</span
                     >
                   </div>
@@ -1220,13 +1295,13 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
         </a-form-item>
       </div>
       <a-form-item v-if="enableDescription && aiAutoSuggestMode">
-        <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
+        <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center justify-between">
           <span class="text-[13px]">
             {{ $t('labels.description') }}
           </span>
 
           <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
-            <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
+            <GeneralIcon icon="delete" class="text-nc-content-gray-subtle w-3.5 h-3.5" />
           </NcButton>
         </div>
 
@@ -1238,7 +1313,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
             'h-[150px] !min-h-[100px]': !props.fromTableExplorer,
             'nc-ai-input': isAiMode,
           }"
-          class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 !max-h-[300px]"
+          class="nc-input-sm nc-input-text-area nc-input-shadow !text-nc-content-gray px-3 !max-h-[300px]"
           hide-details
           data-testid="create-field-description-input"
           :placeholder="$t('msg.info.enterFieldDescription')"
@@ -1300,7 +1375,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
       <template v-if="formState.uidt">
         <div v-if="formState.meta && columnToValidate.includes(formState.uidt)" class="flex items-center gap-1">
           <NcSwitch v-model:checked="formState.meta.validate" size="small" class="nc-switch">
-            <div class="text-sm text-gray-800">
+            <div class="text-sm text-nc-content-gray">
               {{
                 `${$t('msg.acceptOnlyValid', {
                   type:
@@ -1315,39 +1390,114 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 
         <template v-if="!readOnly && isFullUpdateAllowed">
           <div class="nc-column-options-wrapper flex flex-col gap-4">
+            <!-- Unique Constraint Toggle -->
+            <div
+              v-if="
+                isXcdbBase(meta!.source_id) &&
+                !isVirtualCol(formState) &&
+                isUniqueConstraintSupportedType(formState.uidt, formState.meta) && isEeUI"
+              class="flex"
+            >
+              <NcTooltip
+                :disabled="canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable || onMouseOverUniqueValuesInfoIcon"
+                placement="right"
+                class="flex gap-1 items-center"
+              >
+                <template #title>
+                  <div class="max-w-xs">
+                    {{ canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).reason }}
+                  </div>
+                </template>
+                <NcSwitch
+                  v-model:checked="unique"
+                  size="small"
+                  class="nc-switch"
+                  :disabled="!canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
+                >
+                  <div class="text-sm text-nc-content-gray inline-flex items-center gap-1">
+                    <span>{{ $t('labels.uniqueValuesOnly') }}</span>
+                    <NcTooltip placement="right">
+                      <template #title>
+                        <div class="max-w-xs">
+                          {{ $t('msg.info.uniqueConstraintTooltip') }}
+                        </div>
+                      </template>
+                      <GeneralIcon
+                        icon="info"
+                        class="h-3.5 w-3.5 text-nc-content-gray-muted"
+                        @mouseover="onMouseOverUniqueValuesInfoIcon = true"
+                        @mouseleave="onMouseOverUniqueValuesInfoIcon = false"
+                      />
+                    </NcTooltip>
+
+                    <PaymentUpgradeBadge
+                      v-if="blockUnique && !unique"
+                      :feature="PlanFeatureTypes.FEATURE_UNIQUE"
+                      :plan-title="PlanTitles.BUSINESS"
+                      size="sm"
+                      remove-click
+                      class="!font-normal !text-bodyDefaultSm"
+                    />
+                  </div>
+                </NcSwitch>
+              </NcTooltip>
+            </div>
+
             <!--
             Default Value for JSON & LongText is not supported in MySQL  -->
+            <NcTooltip
+              v-if="isTextArea(formState) && formState.meta?.richMode && formState.unique"
+              title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
+              placement="right"
+            >
+              <div class="pointer-events-none opacity-60">
+                <LazySmartsheetColumnRichLongTextDefaultValue
+                  v-model:value="formState"
+                  v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
+                />
+              </div>
+            </NcTooltip>
             <LazySmartsheetColumnRichLongTextDefaultValue
-              v-if="isTextArea(formState) && formState.meta?.richMode"
+              v-else-if="isTextArea(formState) && formState.meta?.richMode"
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
             />
+            <NcTooltip
+              v-else-if="
+                !isVirtualCol(formState) &&
+                !isAttachment(formState) &&
+                !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
+                !isDatabricks(meta!.source_id) &&
+                formState.unique &&
+                !isAI(formState)
+              "
+              title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
+              placement="right"
+            >
+              <div class="pointer-events-none opacity-60">
+                <LazySmartsheetColumnDefaultValue
+                  v-model:value="formState"
+                  v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
+                />
+              </div>
+            </NcTooltip>
             <LazySmartsheetColumnDefaultValue
               v-else-if="
           !isVirtualCol(formState) &&
           !isAttachment(formState) &&
           !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
-          !(isDatabricks(meta!.source_id) && formState.unique) &&
+          !isDatabricks(meta!.source_id) &&
           !isAI(formState)
           "
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
             />
-
-            <div
-              v-if="isDatabricks(meta!.source_id) && !formState.cdf && ![UITypes.MultiSelect, UITypes.Checkbox, UITypes.Rating, UITypes.Attachment, UITypes.Lookup, UITypes.Rollup, UITypes.Formula, UITypes.Barcode, UITypes.QrCode, UITypes.CreatedTime, UITypes.LastModifiedTime, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(formState.uidt)"
-              class="flex gap-1"
-            >
-              <NcSwitch v-model:checked="formState.unique" size="small" class="nc-switch">
-                <div class="text-sm text-gray-800">Set as Unique</div>
-              </NcSwitch>
-            </div>
           </div>
           <template v-if="easterEgg || (appInfo.ee && isAttachment(formState))">
             <!-- TODO: Refactor the if condition and verify AttachmentOption -->
             <div
               v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
-              class="text-xs text-gray-400 flex items-center justify-end"
+              class="text-xs text-nc-content-gray-disabled flex items-center justify-end"
             >
               <div
                 class="nc-more-options flex items-center gap-1 cursor-pointer select-none"
@@ -1378,13 +1528,13 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
             '!pb-4': embedMode,
           }"
         >
-          <div class="flex gap-3 text-gray-800 h-7 mb-1 items-center justify-between">
+          <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center justify-between">
             <span class="text-[13px]">
               {{ $t('labels.description') }}
             </span>
 
             <NcButton type="text" class="!h-6 !w-5" size="xsmall" @click="removeDescription">
-              <GeneralIcon icon="delete" class="text-gray-700 w-3.5 h-3.5" />
+              <GeneralIcon icon="delete" class="text-nc-content-gray-subtle w-3.5 h-3.5" />
             </NcButton>
           </div>
 
@@ -1396,7 +1546,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
               'h-[150px] !min-h-[100px]': !props.fromTableExplorer,
               'nc-ai-input': isAiMode,
             }"
-            class="nc-input-sm nc-input-text-area nc-input-shadow !text-gray-800 px-3 !max-h-[300px]"
+            class="nc-input-sm nc-input-text-area nc-input-shadow !text-nc-content-gray px-3 !max-h-[300px]"
             hide-details
             data-testid="create-field-description-input"
             :placeholder="$t('msg.info.enterFieldDescription')"
@@ -1411,7 +1561,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
             }"
           >
             <NcButton v-if="!isSystem" size="small" type="text" @click.stop="triggerDescriptionEnable">
-              <div class="flex !text-gray-700 items-center gap-2">
+              <div class="flex !text-nc-content-gray-subtle items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 
                 <span class="first-letter:capitalize">
@@ -1424,13 +1574,13 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 
         <template v-else>
           <div
-            class="flex items-center justify-between gap-2 empty:hidden sticky bottom-0 z-10 bg-white px-5 pb-5 -mx-5"
+            class="flex items-center justify-between gap-2 empty:hidden sticky bottom-0 z-10 bg-nc-bg-default px-5 pb-5 -mx-5"
             :class="{
               'border-t-1 border-nc-border-gray-medium pt-3': isScrollEnabled,
             }"
           >
             <NcButton v-if="!enableDescription && !isSystem" size="small" type="text" @click.stop="triggerDescriptionEnable">
-              <div class="flex !text-gray-700 items-center gap-2">
+              <div class="flex !text-nc-content-gray-subtle items-center gap-2">
                 <GeneralIcon icon="plus" class="h-4 w-4" />
 
                 <span class="first-letter:capitalize">
@@ -1482,7 +1632,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 <style lang="scss">
 .nc-dropdown-column-type {
   .ant-select-item-option-active-selected {
-    @apply !bg-gray-100;
+    @apply !bg-nc-bg-gray-light;
   }
 }
 
@@ -1495,7 +1645,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 
 <style lang="scss" scoped>
 .nc-input-text-area {
-  @apply !text-gray-800;
+  @apply !text-nc-content-gray;
   padding-block: 8px !important;
 }
 
@@ -1515,12 +1665,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 :deep(.nc-formula-input),
 :deep(.ant-form-item-control-input-content > input.ant-input) {
   &:not(:hover):not(:focus) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
-  }
-
-  &:hover:not(:focus) {
-    @apply border-gray-300;
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
   }
 }
 
@@ -1529,11 +1674,11 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
   @apply transition-all duration-0.3s;
 
   &:not(:hover):not(:focus-within):not(.shadow-selected) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
   }
 
   &:hover:not(:focus-within):not(.shadow-selected) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
   }
 }
 
@@ -1545,7 +1690,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
   }
 
   &.ant-radio-wrapper-disabled {
-    @apply pointer-events-none !bg-[#f5f5f5];
+    @apply pointer-events-none !bg-nc-bg-gray-light dark:!bg-nc-bg-gray-medium;
     box-shadow: none;
 
     &:hover {
@@ -1554,23 +1699,23 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
   }
 
   &:not(.ant-radio-wrapper-disabled):not(:hover):not(:focus-within):not(.shadow-selected) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
   }
 
   &:hover:not(:focus-within):not(.ant-radio-wrapper-disabled) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
   }
 }
 
 :deep(.ant-select) {
-  &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
-  &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+  &:not(.ant-select-borderless):not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
+  &:not(.ant-select-borderless):not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
+    @apply !border-nc-border-gray-medium;
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
   }
 
   &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
-    @apply border-gray-300;
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
   }
 
   &.ant-select-disabled .ant-select-selector {
@@ -1579,7 +1724,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !text-small !leading-[18px] mb-2 text-gray-700 flex;
+  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray-subtle flex font-normal;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;
@@ -1587,7 +1732,7 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 }
 
 :deep(.ant-form-item-label) {
-  @apply !pb-0 text-small leading-[18px] text-gray-700;
+  @apply !pb-0 text-small leading-[18px] text-nc-content-gray-subtle font-normal;
 }
 
 :deep(.ant-form-item-control-input) {
@@ -1618,11 +1763,11 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
   @apply !rounded-lg !bg-transparent !border-none !p-0;
 
   .ant-alert-message {
-    @apply text-sm text-gray-800 font-weight-600;
+    @apply text-sm text-nc-content-gray font-weight-600;
   }
 
   .ant-alert-description {
-    @apply text-small text-gray-500 font-weight-500;
+    @apply text-small text-nc-content-gray-muted font-weight-500;
   }
 }
 
@@ -1634,23 +1779,12 @@ const easterEgg = computed(() => easterEggCount.value >= 2)
 
 :deep(input::placeholder),
 :deep(textarea::placeholder) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .nc-column-options-wrapper {
   &:empty {
     @apply hidden;
-  }
-}
-
-.nc-field-modal-ai-toggle-btn {
-  @apply rounded-l-none -ml-[1px] border-transparent;
-
-  &.nc-ai-mode {
-    @apply bg-purple-600 hover:bg-purple-500;
-  }
-  &:not(.nc-ai-mode) {
-    @apply !border-purple-100;
   }
 }
 </style>

@@ -29,6 +29,7 @@ export enum JobTypes {
   DuplicateDashboard = 'duplicate-dashboard',
   AtImport = 'at-import',
   MetaSync = 'meta-sync',
+  MetaDiff = 'meta-diff',
   SourceCreate = 'source-create',
   SourceDelete = 'source-delete',
   UpdateModelStat = 'update-model-stat',
@@ -54,6 +55,11 @@ export enum JobTypes {
   CloudDbMigrate = 'cloud-db-migrate',
   AttachmentUrlUpload = 'attachment-url-upload',
   ExecuteAction = 'execute-action',
+  ReseatSubscription = 'reseat-subscription',
+  ExecuteWorkflow = 'execute-workflow',
+  WorkflowCronSchedule = 'workflow-cron-schedule',
+  WorkflowResumeSchedule = 'workflow-resume-schedule',
+  ResumeWorkflow = 'resume-workflow',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -61,12 +67,17 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.ThumbnailGenerator,
   JobTypes.UseWorker,
   JobTypes.HandleWebhook,
+  JobTypes.ExecuteWorkflow,
   JobTypes.InitMigrationJobs,
   JobTypes.UpdateModelStat,
   JobTypes.UpdateWsStat,
   JobTypes.UpdateSrcStat,
   JobTypes.UpdateUsageStats,
   JobTypes.SyncModuleSchedule,
+  JobTypes.ReseatSubscription,
+  JobTypes.WorkflowCronSchedule,
+  JobTypes.WorkflowResumeSchedule,
+  JobTypes.ResumeWorkflow,
 ];
 
 export enum JobStatus {
@@ -141,6 +152,7 @@ export interface AtImportJobData extends JobData {
 
 export interface DuplicateBaseJobData extends JobData {
   sourceId: string;
+  dupWorkspaceId: string;
   dupProjectId: string;
   req: NcRequest;
   options: {
@@ -151,6 +163,7 @@ export interface DuplicateBaseJobData extends JobData {
     excludeUsers?: boolean;
     excludeScripts?: boolean;
     excludeDashboards?: boolean;
+    excludeWorkflows?: boolean;
   };
 }
 
@@ -201,6 +214,10 @@ export interface DataExportJobData extends JobData {
     delimiter?: string;
     extension_id?: string;
     encoding?: SupportedExportCharset;
+    // if true and encoding is utf-8, it'll add \ufeff (utf8 byte order mark) at start of the file
+    // false by default, only use when triggered from controller
+    includeByteOrderMark?: boolean;
+    filenameTimeZone?: string;
   };
   modelId: string;
   viewId: string;
@@ -248,4 +265,20 @@ export interface ExecuteActionJobData extends JobData {
   modelId?: string;
   viewId?: string;
   scriptId: string;
+}
+
+export interface ReseatSubscriptionJobData extends JobData {
+  workspaceOrOrgId: string;
+  initiator?: string;
+  timestamp: number;
+}
+
+export interface ExecuteWorkflowJobData extends JobData {
+  workflowId: string;
+  triggerNodeId?: string; // Optional: specific trigger node to start from
+  triggerInputs: any; // Data passed to the trigger node
+}
+
+export interface ResumeWorkflowJobData extends JobData {
+  executionId: string; // Workflow execution to resume
 }

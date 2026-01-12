@@ -46,12 +46,20 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     })
 
     const getViewsForTable = async (tableId: string) => {
-      if (viewsByTable.value.has(tableId)) {
-        return viewsByTable.value.get(tableId) as ViewType[]
+      // Find the table to get its base_id
+      const table = tables.value.find((t) => t.id === tableId)
+      if (!table?.base_id) {
+        console.warn('Could not find base_id for table:', tableId)
+        return []
+      }
+
+      const key = `${table.base_id}:${tableId}`
+      if (viewsByTable.value.has(key)) {
+        return viewsByTable.value.get(key) as ViewType[]
       }
 
       await viewStore.loadViews({ tableId, ignoreLoading: true })
-      return viewsByTable.value.get(tableId) as ViewType[]
+      return viewsByTable.value.get(key) as ViewType[]
     }
 
     const getData = async (params: {
@@ -89,7 +97,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     }
 
     const getTableMeta = async (tableId: string) => {
-      return getMeta(tableId)
+      return getMeta(baseId.value!, tableId)
     }
 
     const insertData = async (params: { tableId: string; data: Record<string, any>[]; autoInsertOption?: boolean }) => {
@@ -146,7 +154,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       const chunkSize = 100
 
-      const tableMeta = await getMeta(tableId)
+      const tableMeta = await getMeta(baseId.value!, tableId)
 
       if (!tableMeta?.columns) throw new Error('Table not found')
 

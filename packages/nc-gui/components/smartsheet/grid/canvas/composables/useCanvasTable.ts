@@ -174,6 +174,7 @@ export function useCanvasTable({
   const { metas, getMeta, getPartialMeta } = useMetas()
   const { getBaseRoles } = useBases()
   const { isAllowed } = usePermissions()
+  const { getColor } = useTheme()
   const rowSlice = ref({ start: 0, end: 0 })
   const colSlice = ref({ start: 0, end: 0 })
   const activeCell = ref<{
@@ -195,8 +196,6 @@ export function useCanvasTable({
   const attachmentCellDropOver = ref<AttachmentCellDropOverType | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
-  const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas)
-  const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas)
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const elementMap = new CanvasElement([])
@@ -230,12 +229,16 @@ export function useCanvasTable({
     gridEditEnabled,
     isViewOperationsAllowed,
   } = useSmartsheetStoreOrThrow()
+
+  // Initialize loaders that need meta.base_id after meta is available
+  const tableMetaLoader = new TableMetaLoader(getMeta, () => triggerRefreshCanvas, (meta.value as TableType)?.base_id)
+  const baseRoleLoader = new BaseRoleLoader(getBaseRoles, () => triggerRefreshCanvas)
   const { addUndo, defineViewScope } = useUndoRedo()
   const { activeView } = storeToRefs(useViewsStore())
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
-  const automationStore = useAutomationStore()
+  const scriptStore = useScriptStore()
   const tooltipStore = useTooltipStore()
   const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
   const { isRowColouringEnabled } = useViewRowColorRender()
@@ -269,10 +272,10 @@ export function useCanvasTable({
 
   const { eventBus: scriptEventBus } = useScriptExecutor()
 
-  const { loadAutomation } = automationStore
+  const { loadScript } = scriptStore
   const actionManager = new ActionManager(
     $api,
-    loadAutomation,
+    loadScript,
     generateRows,
     meta,
     triggerRefreshCanvas,
@@ -280,6 +283,11 @@ export function useCanvasTable({
     scriptEventBus,
     currentUser,
   )
+
+  // Set base information for internal API calls
+  if (baseStore.base?.id && baseStore.base?.fk_workspace_id) {
+    actionManager.setBaseInfo(baseStore.base.id, baseStore.base.fk_workspace_id)
+  }
 
   const isGroupBy = computed(() => !!groupByColumns.value?.length)
 
@@ -320,9 +328,16 @@ export function useCanvasTable({
   const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isAiFeaturesEnabled.value)
 
   const fetchMetaIds = ref<string[][]>([])
+  const isLoadingMetas = ref(false)
 
   const columns = computed<CanvasGridColumn[]>(() => {
-    const fetchMetaIdsLocal: string[] = []
+    // Early return if meta is not available yet
+    if (!meta.value?.base_id) {
+      return []
+    }
+
+    const baseId = meta.value.base_id
+    const fetchMetaIdsLocal: Array<[string, string, string]> = [] // [columnId, tableId, baseId]
     const cols = fields.value
       .map((f) => {
         if (!f.id) return false
@@ -336,23 +351,30 @@ export function useCanvasTable({
          */
         f.extra = {}
         if ([UITypes.Lookup, UITypes.Rollup].includes(f.uidt)) {
-          relatedColObj = metas.value?.[f.fk_model_id!]?.columns?.find(
+          const lookupMetaKey = `${baseId}:${f.fk_model_id!}`
+          relatedColObj = metas.value?.[lookupMetaKey]?.columns?.find(
             (c) => c.id === f?.colOptions?.fk_relation_column_id,
           ) as ColumnType
 
           if (relatedColObj && relatedColObj.colOptions?.fk_related_model_id) {
-            if (!metas.value?.[relatedColObj.colOptions.fk_related_model_id]) {
-              fetchMetaIdsLocal.push([relatedColObj.id, relatedColObj.colOptions.fk_related_model_id])
+            // For cross-base links, use fk_related_base_id, otherwise use current baseId
+            const relatedBaseId = (relatedColObj.colOptions as any)?.fk_related_base_id || baseId
+            const relatedMetaKey = `${relatedBaseId}:${relatedColObj.colOptions.fk_related_model_id}`
+            if (!metas.value?.[relatedMetaKey]) {
+              fetchMetaIdsLocal.push([relatedColObj.id, relatedColObj.colOptions.fk_related_model_id, relatedBaseId])
             } else {
-              relatedTableMeta = metas.value?.[relatedColObj.colOptions.fk_related_model_id]
+              relatedTableMeta = metas.value?.[relatedMetaKey]
             }
           }
         } else if (isLTAR(f.uidt, f.colOptions)) {
           if (f.colOptions?.fk_related_model_id) {
-            if (!metas.value?.[f.colOptions.fk_related_model_id]) {
-              fetchMetaIdsLocal.push([f.id, f.colOptions.fk_related_model_id])
+            // For cross-base links, use fk_related_base_id, otherwise use current baseId
+            const relatedBaseId = (f.colOptions as any)?.fk_related_base_id || baseId
+            const ltarMetaKey = `${relatedBaseId}:${f.colOptions.fk_related_model_id}`
+            if (!metas.value?.[ltarMetaKey]) {
+              fetchMetaIdsLocal.push([f.id, f.colOptions.fk_related_model_id, relatedBaseId])
             } else {
-              relatedTableMeta = metas.value?.[f.colOptions.fk_related_model_id]
+              relatedTableMeta = metas.value?.[ltarMetaKey]
             }
           }
         }
@@ -363,7 +385,7 @@ export function useCanvasTable({
           f.extra = getUserColOptions(f, baseUsers.value)
         }
 
-        if ([UITypes.DateTime].includes(f.uidt)) {
+        if ([UITypes.LastModifiedTime, UITypes.CreatedTime, UITypes.DateTime].includes(f.uidt)) {
           const meta = parseProp(f.meta)
           f.extra.timezone = isEeUI ? getTimeZoneFromName(meta?.timezone) : undefined
           f.extra.isDisplayTimezone = isEeUI ? meta?.isDisplayTimezone : undefined
@@ -378,7 +400,7 @@ export function useCanvasTable({
             : undefined
 
           if ([UITypes.DateTime].includes(displayType)) {
-            if (displayColumnConfig.meta) {
+            if (displayColumnConfig?.meta) {
               const displayColumnConfigMeta = displayColumnConfig.meta
 
               const extra = {
@@ -409,6 +431,8 @@ export function useCanvasTable({
           !showEditRestrictedColumnTooltip(f) ||
           isAllowed(PermissionEntity.FIELD, f.id, PermissionKey.RECORD_FIELD_EDIT)
 
+        const isSyncedCol = meta.value?.synced && f.readonly
+
         const aggregation = getFormattedAggrationValue(gridViewCol.aggregation, aggregations.value[f.title!], f, [], {
           col: f,
           meta: meta.value as TableType,
@@ -431,7 +455,13 @@ export function useCanvasTable({
               : parseCellWidth(gridViewCol.width) > width.value * (3 / 4)
               ? false
               : !!f.pv,
-          readonly: f.readonly || isDataReadOnly.value || !isDataEditAllowed.value || isPublicView.value || !isCellEditable,
+          readonly:
+            f.readonly ||
+            isDataReadOnly.value ||
+            !isDataEditAllowed.value ||
+            isPublicView.value ||
+            !isCellEditable ||
+            isSyncedCol,
           isCellEditable,
           pv: !!f.pv,
           virtual: isVirtualCol(f),
@@ -441,6 +471,7 @@ export function useCanvasTable({
           columnObj: f,
           relatedColObj,
           relatedTableMeta,
+          isSyncedColumn: isSyncedCol,
           isInvalidColumn: {
             ...isInvalid,
             tooltip: isInvalid.ignoreTooltip ? null : isInvalid.tooltip && t(isInvalid.tooltip),
@@ -524,7 +555,9 @@ export function useCanvasTable({
       (selection.value.isEmpty() && activeCell.value.column && columns.value[activeCell.value.column]?.virtual) ||
       (!selection.value.isEmpty() &&
         Array.from({ length: selection.value.end.col - selection.value.start.col + 1 }).every(
-          (_, i) => !columns.value[selection.value.start.col + i]?.isCellEditable,
+          (_, i) =>
+            !columns.value[selection.value.start.col + i]?.isCellEditable ||
+            columns.value[selection.value.start.col + i]?.isSyncedColumn,
         ))
     )
   })
@@ -564,13 +597,13 @@ export function useCanvasTable({
   const baseColor = computed(() => {
     switch (groupByColumns.value.length) {
       case 1:
-        return '#F9F9FA'
+        return getColor(themeV4Colors.gray['50'])
       case 2:
-        return '#F4F4F5'
+        return getColor(themeV4Colors.gray['100'])
       case 3:
-        return '#E7E7E9'
+        return getColor(themeV4Colors.gray['200'])
       default:
-        return '#F9F9FA'
+        return getColor(themeV4Colors.gray['50'])
     }
   })
 
@@ -1168,7 +1201,7 @@ export function useCanvasTable({
     for (const row of rows) {
       for (const col of cols) {
         const colObj = col.columnObj
-        if (!row || !colObj || !colObj.title || !col.isCellEditable) continue
+        if (!row || !colObj || !colObj.title || !col.isCellEditable || col.isSyncedColumn) continue
 
         if (isVirtualCol(colObj)) {
           if ((isBt(colObj) || isOo(colObj) || isMm(colObj)) && !isInfoShown) {
@@ -1186,6 +1219,11 @@ export function useCanvasTable({
         row.row[colObj.title] = null
         props.push(colObj.title)
       }
+    }
+
+    if (props.length === 0) {
+      message.info(t('msg.info.noEditableCellsToClear'))
+      return
     }
 
     await bulkUpdateRows(rows, props, undefined, false, path)
@@ -1278,6 +1316,7 @@ export function useCanvasTable({
       fixed: clickedColumn.fixed,
       path,
       isCellEditable: clickedColumn.isCellEditable,
+      isSyncedColumn: clickedColumn.isSyncedColumn,
     }
     hideTooltip()
     return true
@@ -1316,6 +1355,11 @@ export function useCanvasTable({
     const isSystemCol = isSystemColumn(column) && !isLinksOrLTAR(column)
 
     if (!isDataEditAllowed.value || editEnabled.value || readOnly.value || isSystemCol) {
+      return null
+    }
+
+    if (clickedColumn.isSyncedColumn) {
+      message.toast(t('msg.info.syncedFieldsAreNotEditable'))
       return null
     }
 
@@ -1398,18 +1442,32 @@ export function useCanvasTable({
     async () => {
       if (!fetchMetaIds.value.length) return
 
-      await Promise.all(
-        fetchMetaIds.value.map(async ([colId, tableId]) => {
-          try {
-            await getMeta(tableId, false, false, undefined, true)
-          } catch {}
-          if (!metas.value[tableId]) {
-            await getPartialMeta(colId, tableId)
-          }
-        }),
-      )
+      // Prevent concurrent executions that could cause infinite loops
+      if (isLoadingMetas.value) return
+
+      isLoadingMetas.value = true
+
+      // Copy the current fetch list and clear it immediately to prevent re-triggering
+      const metaIdsToFetch = [...fetchMetaIds.value]
       fetchMetaIds.value = []
-      triggerRefreshCanvas()
+
+      try {
+        await Promise.all(
+          metaIdsToFetch.map(async ([colId, tableId, relatedBaseId]) => {
+            if (!tableId || !relatedBaseId) return
+            try {
+              await getMeta(relatedBaseId, tableId, false, false, true)
+            } catch {}
+            const metaKey = `${relatedBaseId}:${tableId}`
+            if (!metas.value[metaKey]) {
+              await getPartialMeta(relatedBaseId, colId, tableId)
+            }
+          }),
+        )
+        triggerRefreshCanvas()
+      } finally {
+        isLoadingMetas.value = false
+      }
     },
   )
 

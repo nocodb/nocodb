@@ -134,7 +134,7 @@ We provide different docker-compose.yml files under [this directory](https://git
 git clone https://github.com/nocodb/nocodb
 # for PostgreSQL
 cd nocodb/docker-compose/2_pg
-docker-compose up -d
+docker compose up -d
 ```
 
 > To persist data in docker, you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.

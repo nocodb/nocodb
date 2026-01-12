@@ -311,16 +311,11 @@ onUnmounted(() => {
           />
         </template>
         <template #fallback>
-          <div class="h-full w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-            <div class="text-center">
-              <a-spin size="large" />
-              <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
-            </div>
-          </div>
+          <MonacoLoading class="min-w-full w-[40rem] expanded-editor" />
         </template>
       </Suspense>
 
-      <span v-if="error" class="nc-cell-field text-xs w-full py-1 text-red-500">
+      <span v-if="error" class="nc-cell-field text-xs w-full py-1 text-nc-content-red-medium">
         {{ error.toString() }}
       </span>
     </div>

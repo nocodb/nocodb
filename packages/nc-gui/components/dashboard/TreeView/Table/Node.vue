@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type BaseType, PlanFeatureTypes, PlanTitles, type TableType, ViewTypes } from 'nocodb-sdk'
+import { type BaseType, PlanFeatureTypes, PlanTitles, type TableType } from 'nocodb-sdk'
 
 import type { SidebarTableNode } from '~/lib/types'
 
@@ -45,15 +45,11 @@ const {
   tableRenameId,
 } = inject(TreeViewInj)!
 
-const { loadViews: _loadViews, navigateToView, duplicateView } = useViewsStore()
-const { activeView, activeViewTitleOrId, viewsByTable } = storeToRefs(useViewsStore())
+const { loadViews: _loadViews } = useViewsStore()
+const { activeView } = storeToRefs(useViewsStore())
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
-const { refreshCommandPalette } = useCommandPalette()
-
 const { showRecordPlanLimitExceededModal } = useEeConfig()
-
-const { isTableAndFieldPermissionsEnabled } = usePermissions()
 
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
@@ -137,9 +133,17 @@ const setIcon = async (icon: string, table: TableType) => {
       tables.value[index] = { ...table }
     }
 
-    await $api.dbTable.update(table.id as string, {
-      meta: table.meta,
-    })
+    await $api.internal.postOperation(
+      table.fk_workspace_id!,
+      table.base_id!,
+      {
+        operation: 'tableUpdate',
+        tableId: table.id as string,
+      },
+      {
+        meta: table.meta,
+      },
+    )
 
     $e('a:table:icon:navdraw', { icon })
   } catch (e) {
@@ -213,31 +217,6 @@ watch(
   },
 )
 
-const isTableOpened = computed(() => {
-  return openedTableId.value === table.value?.id && (activeView.value?.is_default || !activeViewTitleOrId.value)
-})
-
-let tableTimeout: NodeJS.Timeout
-
-watch(openedTableId, () => {
-  if (tableTimeout) {
-    clearTimeout(tableTimeout)
-  }
-
-  if (table.value.id !== openedTableId.value && isExpanded.value) {
-    const views = viewsByTable.value.get(table.value.id!)?.filter((v) => !v.is_default) ?? []
-
-    if (views.length) return
-
-    tableTimeout = setTimeout(() => {
-      if (isExpanded.value) {
-        isExpanded.value = false
-      }
-      clearTimeout(tableTimeout)
-    }, 10000)
-  }
-})
-
 const duplicateTable = (table: SidebarTableNode) => {
   isOptionsOpen.value = false
 
@@ -291,45 +270,6 @@ const openTableDescriptionDialog = (table: SidebarTableNode) => {
 const deleteTable = () => {
   isOptionsOpen.value = false
   isTableDeleteDialogVisible.value = true
-}
-const isOnDuplicateLoading = ref<boolean>(false)
-
-async function onDuplicate() {
-  isOnDuplicateLoading.value = true
-
-  // Load views if not loaded
-  if (!viewsByTable.value.get(table.value.id as string)) {
-    await _openTable(table.value, undefined, false)
-  }
-
-  const views = viewsByTable.value.get(table.value.id as string)
-  const defaultView = views?.find((v) => v.is_default) || views?.[0]
-
-  if (defaultView) {
-    const view = await duplicateView(defaultView)
-
-    refreshCommandPalette()
-
-    await _loadViews({
-      force: true,
-      tableId: table.value!.id!,
-    })
-
-    if (view) {
-      navigateToView({
-        view,
-        tableId: table.value!.id!,
-        tableTitle: table.value.title,
-        baseId: base.value.id!,
-        hardReload: view.type === ViewTypes.FORM,
-      })
-
-      $e('a:view:create', { view: view.type, sidebar: true })
-    }
-  }
-
-  isOnDuplicateLoading.value = false
-  isOptionsOpen.value = false
 }
 
 async function onPermissions(_table: SidebarTableNode) {
@@ -432,6 +372,21 @@ async function onRename() {
 
   onCancel()
 }
+
+const enabledOptions = computed(() => {
+  return {
+    tableRename: isUIAllowed('tableRename', { roles: baseRole?.value, source: source.value }),
+    tableDescriptionEdit: isUIAllowed('tableDescriptionEdit', { roles: baseRole?.value, source: source.value }),
+    tableDuplicate:
+      isUIAllowed('tableDuplicate', {
+        source: source.value,
+      }) &&
+      (source.value?.is_meta || source.value?.is_local),
+    tablePermission:
+      isEeUI && table.value?.type === 'table' && isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }),
+    tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
+  }
+})
 </script>
 
 <template>
@@ -451,7 +406,6 @@ async function onRename() {
           'hover:bg-nc-bg-gray-medium': openedTableId !== table.id,
           'pl-8 !xs:(pl-7)': sourceIndex !== 0,
           'pl-2 xs:(pl-2)': sourceIndex === 0,
-          '!bg-primary-selected': isTableOpened,
         }"
         :data-testid="`nc-tbl-side-node-${table.title}`"
         @contextmenu="setMenuContext('table', table)"
@@ -463,7 +417,7 @@ async function onRename() {
             <div
               v-else
               v-e="['c:table:emoji-picker']"
-              class="flex items-center nc-table-icon min-w-6"
+              class="flex items-center nc-table-icon-wrapper min-w-6"
               :class="{
                 'pointer-events-none': !canUserEditEmote,
               }"
@@ -482,21 +436,15 @@ async function onRename() {
                       {{ $t('general.changeIcon') }}
                     </template>
 
-                    <component
-                      :is="iconMap.ncZap"
-                      v-if="table?.synced"
-                      class="w-4 text-sm"
-                      :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
-                    />
+                    <component :is="iconMap.ncZap" v-if="table?.synced" class="nc-table-icon w-4 text-sm !text-nc-gray-600/75" />
 
                     <component
                       :is="iconMap.table"
                       v-else-if="table.type === 'table'"
-                      class="w-4 text-sm"
-                      :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'"
+                      class="nc-table-icon w-4 text-sm !text-nc-gray-600/75"
                     />
 
-                    <MdiEye v-else class="flex w-5 text-sm" :class="isTableOpened ? '!text-brand-600/85' : '!text-gray-600/75'" />
+                    <MdiEye v-else class="nc-table-iconflex w-5 text-sm !text-nc-gray-600/75" />
                   </NcTooltip>
                 </template>
               </LazyGeneralEmojiPicker>
@@ -508,9 +456,6 @@ async function onRename() {
             ref="input"
             v-model:value="formState.title"
             class="!bg-transparent !pr-1.5 !flex-1 mr-4 !rounded-md !h-6 animate-sidebar-node-input-padding"
-            :class="{
-              '!font-semibold !text-nc-content-brand-disabled': isTableOpened,
-            }"
             :style="{
               fontWeight: 'inherit',
             }"
@@ -525,7 +470,7 @@ async function onRename() {
         >
           <template #title>{{ table.title }}</template>
           <span
-            :class="isTableOpened ? 'text-nc-content-brand-disabled font-semibold' : 'text-nc-content-gray-subtle'"
+            class="text-nc-content-gray-subtle"
             :data-testid="`nc-tbl-title-${table.title}`"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"
             @dblclick.stop="onRenameMenuClick(table)"
@@ -540,7 +485,10 @@ async function onRename() {
             </template>
 
             <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
-              <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-gray-600 opacity-0" />
+              <GeneralIcon
+                icon="info"
+                class="!w-3.5 !h-3.5 nc-info-icon group-hover:opacity-100 text-nc-content-gray-subtle2 opacity-0"
+              />
             </NcButton>
           </NcTooltip>
 
@@ -570,34 +518,21 @@ async function onRename() {
                       tableId: table.id,
                     })
                   "
+                  :data-testid="`sidebar-table-copy-id-${table.title}`"
                 />
-
-                <NcMenuItem
-                  v-if="
-                    isUIAllowed('tableDescriptionEdit', { roles: baseRole, source }) &&
-                    !isUIAllowed('tableRename', { roles: baseRole, source })
-                  "
-                  :data-testid="`sidebar-table-description-${table.title}`"
-                  class="nc-table-description"
-                  @click="openTableDescriptionDialog(table)"
-                >
-                  <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
-                    <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
-                    <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
-                    {{ $t('labels.editTableDescription') }}
-                  </div>
-                </NcMenuItem>
 
                 <template
                   v-if="
                     !isSharedBase &&
-                    (isUIAllowed('tableRename', { roles: baseRole, source }) ||
-                      isUIAllowed('tableDelete', { roles: baseRole, source }))
+                    (enabledOptions.tableRename ||
+                      enabledOptions.tableDescriptionEdit ||
+                      enabledOptions.tableDuplicate ||
+                      enabledOptions.tablePermission)
                   "
                 >
-                  <NcDivider />
+                  <NcDivider v-if="enabledOptions.tableRename || enabledOptions.tableDuplicate" />
                   <NcMenuItem
-                    v-if="isUIAllowed('tableRename', { roles: baseRole, source })"
+                    v-if="enabledOptions.tableRename"
                     :data-testid="`sidebar-table-rename-${table.title}`"
                     class="nc-table-rename"
                     @click="onRenameMenuClick(table)"
@@ -609,12 +544,7 @@ async function onRename() {
                   </NcMenuItem>
 
                   <NcMenuItem
-                    v-if="
-                      isUIAllowed('tableDuplicate', {
-                        source,
-                      }) &&
-                      (source?.is_meta || source?.is_local)
-                    "
+                    v-if="enabledOptions.tableDuplicate"
                     :data-testid="`sidebar-table-duplicate-${table.title}`"
                     @click="duplicateTable(table)"
                   >
@@ -626,26 +556,18 @@ async function onRename() {
                   <NcDivider />
 
                   <NcMenuItem
-                    v-if="isUIAllowed('tableDescriptionEdit', { roles: baseRole, source })"
+                    v-if="enabledOptions.tableDescriptionEdit"
                     :data-testid="`sidebar-table-description-${table.title}`"
                     class="nc-table-description"
                     @click="openTableDescriptionDialog(table)"
                   >
                     <div v-e="['c:table:update-description']" class="flex gap-2 items-center">
-                      <!-- <GeneralIcon icon="ncAlignLeft" class="text-gray-700" /> -->
                       <GeneralIcon icon="ncAlignLeft" class="opacity-80" />
                       {{ $t('labels.editTableDescription') }}
                     </div>
                   </NcMenuItem>
                   <PaymentUpgradeBadgeProvider
-                    v-if="
-                      isTableAndFieldPermissionsEnabled &&
-                      isEeUI &&
-                      isUIAllowed('tableDuplicate', {
-                        source,
-                      }) &&
-                      (source?.is_meta || source?.is_local)
-                    "
+                    v-if="enabledOptions.tablePermission"
                     :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS"
                   >
                     <template #default="{ click }">
@@ -682,21 +604,10 @@ async function onRename() {
                       </NcMenuItem>
                     </template>
                   </PaymentUpgradeBadgeProvider>
-                  <NcDivider />
-
-                  <NcMenuItem @click="onDuplicate">
-                    <GeneralLoader v-if="isOnDuplicateLoading" size="regular" />
-                    <GeneralIcon v-else class="nc-view-copy-icon opacity-80" icon="duplicate" />
-                    {{
-                      $t('general.duplicateEntity', {
-                        entity: $t('title.defaultView').toLowerCase(),
-                      })
-                    }}
-                  </NcMenuItem>
-
+                </template>
+                <template v-if="enabledOptions.tableDelete">
                   <NcDivider />
                   <NcMenuItem
-                    v-if="isUIAllowed('tableDelete', { roles: baseRole, source })"
                     :data-testid="`sidebar-table-delete-${table.title}`"
                     class="nc-table-delete"
                     danger
@@ -754,8 +665,10 @@ async function onRename() {
 }
 
 .nc-tree-item svg {
-  &:not(.nc-info-icon) {
-    @apply text-primary text-opacity-60;
+  &:not(.nc-info-icon):not(.nc-table-icon):not(.nc-view-icon):not(.nc-script-icon):not(.nc-dashboard-icon):not(
+      .nc-workflow-icon
+    ) {
+    @apply text-primary/60;
   }
 }
 

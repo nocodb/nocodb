@@ -9,7 +9,7 @@ const config: XcPluginConfig = {
   id: 'smtp',
   title: 'SMTP',
   version: '0.0.5',
-  // icon: 'mdi-email-outline',
+  icon: 'ncMail',
   description: 'SMTP email client',
   price: 'Free',
   tags: 'Email',

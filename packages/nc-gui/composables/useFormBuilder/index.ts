@@ -9,8 +9,9 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     onChange?: () => void
     fetchOptions?: (key: string) => Promise<any>
     initialState?: Ref<Record<string, any>>
+    disabled?: MaybeRef<boolean>
   }) => {
-    const { formSchema, onSubmit, onChange, fetchOptions, initialState = ref({}) } = props
+    const { formSchema, onSubmit, onChange, fetchOptions, initialState = ref({}), disabled = false } = props
 
     const useForm = Form.useForm
 
@@ -20,7 +21,11 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
     const isChanged = ref(false)
 
-    const changeKey = ref(0)
+    const fieldOptions = ref<Record<string, any[]>>({})
+
+    const isLoadingFieldOptions = ref<Record<string, boolean>>({})
+
+    const dependencyWatcherCleanups: Array<() => void> = []
 
     const setNestedProp = (obj: any, path: string, value: any) => {
       const keys = path.split('.')
@@ -67,14 +72,60 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     }
 
     const loadOptions = async (field: FormBuilderElement) => {
-      if (!fetchOptions || !field.fetchOptionsKey) return []
+      /**
+       * If the field is not visible, don't load options
+       */
+      if (!fetchOptions || !field.fetchOptionsKey || !field.model || !checkCondition(field)) return []
 
-      const options = await fetchOptions(field.fetchOptionsKey)
+      isLoadingFieldOptions.value[field.model] = true
 
-      field.options = options
+      try {
+        fieldOptions.value[field.model] = await fetchOptions(field.fetchOptionsKey)
+      } finally {
+        isLoadingFieldOptions.value[field.model] = false
+      }
     }
 
-    const checkCondition = (field: FormBuilderElement) => {
+    const getFieldOptions = (model: string) => {
+      return fieldOptions.value[model] || []
+    }
+
+    const getIsLoadingFieldOptions = (model: string) => {
+      return ncIsUndefined(fieldOptions.value[model]) || !!isLoadingFieldOptions.value[model]
+    }
+
+    const setupDependencyWatchers = () => {
+      if (unref(disabled)) return
+      dependencyWatcherCleanups.forEach((cleanup) => cleanup())
+      dependencyWatcherCleanups.length = 0
+
+      const fieldsWithDependencies = (unref(formSchema) || []).filter(
+        (field) => field.fetchOptionsKey && field.dependsOn && field.model,
+      )
+
+      fieldsWithDependencies.forEach((field) => {
+        const dependencies = Array.isArray(field.dependsOn) ? field.dependsOn : [field.dependsOn!]
+
+        dependencies.forEach((depPath) => {
+          const stopWatch = watch(
+            () => deepReference(depPath),
+            async (newValue, oldValue) => {
+              if (newValue !== oldValue && oldValue !== undefined) {
+                if (field.model) {
+                  setFormState(field.model, field.selectMode === 'multiple' ? [] : null)
+                }
+
+                await loadOptions(field)
+              }
+            },
+          )
+
+          dependencyWatcherCleanups.push(stopWatch)
+        })
+      })
+    }
+
+    function checkCondition(field: FormBuilderElement) {
       if (!field.condition) return true
 
       const condition = field.condition
@@ -117,6 +168,8 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       return checkConditionItem(condition)
     }
 
+    const groupCollapseState = ref<Record<string, boolean>>({})
+
     const formElementsCategorized = computed(() => {
       const categorizedItems: Record<string, any> = {}
 
@@ -137,6 +190,47 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
 
       return categorizedItems
     })
+
+    const toggleGroup = (groupKey: string) => {
+      const currentState = groupCollapseState.value[groupKey]
+      groupCollapseState.value = {
+        ...groupCollapseState.value,
+        [groupKey]: currentState === undefined ? false : !currentState,
+      }
+    }
+
+    const isGroupCollapsed = (groupKey: string, defaultCollapsed = true) => {
+      return groupCollapseState.value[groupKey] ?? defaultCollapsed
+    }
+
+    const getGroupInfo = (category: string) => {
+      const fields = formElementsCategorized.value[category] || []
+      const groups: Record<
+        string,
+        {
+          fields: FormBuilderElement[]
+          collapsible: boolean
+          label?: string
+          defaultCollapsed: boolean
+        }
+      > = {}
+
+      for (const field of fields) {
+        if (field.group) {
+          if (!groups[field.group]) {
+            groups[field.group] = {
+              fields: [],
+              collapsible: field.groupCollapsible ?? false,
+              label: field.groupLabel,
+              defaultCollapsed: field.groupDefaultCollapsed ?? true,
+            }
+          }
+          groups[field.group].fields.push(field)
+        }
+      }
+
+      return groups
+    }
 
     const validators = computed(() => {
       const validatorsObject: Record<string, any> = {}
@@ -165,6 +259,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
     const { validate, clearValidate, validateInfos } = useForm(formState, validators)
 
     const submit = async () => {
+      if (unref(disabled)) return
       try {
         await validate()
       } catch (e) {
@@ -208,19 +303,20 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       return true
     }
 
+    // Flag to prevent onChange during programmatic updates
+    const isUpdatingProgrammatically = ref(false)
+
     // reset test status on config change
     watch(
       formState,
       () => {
-        onChange?.()
-
-        changeKey.value++
-
-        if (checkDifference()) {
-          isChanged.value = true
-        } else {
-          isChanged.value = false
+        if (unref(disabled)) return
+        // Don't trigger onChange during programmatic updates (e.g., formSchema changes)
+        if (!isUpdatingProgrammatically.value) {
+          onChange?.()
         }
+
+        isChanged.value = checkDifference()
       },
       { deep: true },
     )
@@ -229,6 +325,7 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       () => unref(formSchema),
       async () => {
         isLoading.value = true
+        isUpdatingProgrammatically.value = true
 
         formState.value = {
           ...formState.value,
@@ -239,9 +336,20 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
         nextTick(clearValidate)
 
         isLoading.value = false
+
+        setupDependencyWatchers()
+
+        // Allow onChange to fire again after next tick
+        await nextTick()
+        isUpdatingProgrammatically.value = false
       },
       { immediate: true },
     )
+
+    onBeforeUnmount(() => {
+      dependencyWatcherCleanups.forEach((cleanup) => cleanup())
+      dependencyWatcherCleanups.length = 0
+    })
 
     return {
       form,
@@ -259,7 +367,12 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
       deepReference,
       setFormState,
       loadOptions,
-      changeKey,
+      getFieldOptions,
+      getIsLoadingFieldOptions,
+      toggleGroup,
+      isGroupCollapsed,
+      getGroupInfo,
+      disabled,
     }
   },
   'form-builder-helper',

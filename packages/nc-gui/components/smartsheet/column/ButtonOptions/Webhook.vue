@@ -81,7 +81,7 @@ watch(isWebhookModal, (newVal) => {
 
 <template>
   <a-form-item>
-    <div class="mb-2 text-gray-800 text-[13px] flex justify-between">
+    <div class="mb-2 text-nc-content-gray text-[13px] flex justify-between">
       {{ $t('labels.webhook') }}
       <a
         class="font-medium"
@@ -109,8 +109,8 @@ watch(isWebhookModal, (newVal) => {
           >
             <template v-if="isUIAllowed('hookCreate')" #bottom>
               <a-divider style="margin: 4px 0" />
-              <div class="flex items-center text-brand-500 text-sm cursor-pointer" @click="newWebhook">
-                <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-gray-100">
+              <div class="flex items-center text-nc-content-brand text-sm cursor-pointer" @click="newWebhook">
+                <div class="w-full flex justify-between items-center gap-2 px-2 py-2 rounded-md hover:bg-nc-bg-gray-light">
                   {{ $t('general.create') }} {{ $t('objects.webhook').toLowerCase() }}
                   <GeneralIcon icon="plus" class="flex-none" />
                 </div>
@@ -122,16 +122,16 @@ watch(isWebhookModal, (newVal) => {
           :class="{
             'nc-button-style-dropdown shadow-dropdown-open remove-right-shadow': isWebHookSelectionDropdownOpen,
           }"
-          class="nc-button-webhook-select border-r-0 flex items-center justify-center border-1 h-8 px-[8px] border-gray-300 !w-full transition-all cursor-pointer !rounded-l-lg"
+          class="nc-button-webhook-select border-r-0 flex items-center justify-center border-1 h-8 px-[8px] border-nc-border-gray-dark !w-full transition-all cursor-pointer !rounded-l-lg"
         >
           <div class="flex w-full items-center gap-2">
             <div
               :key="selectedWebhook?.id"
-              class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-gray-800"
+              class="flex items-center overflow-x-clip truncate text-ellipsis w-full gap-1 text-nc-content-gray"
             >
               <NcTooltip
                 :class="{
-                  'text-gray-500': !selectedWebhook?.title,
+                  'text-nc-content-gray-muted': !selectedWebhook?.title,
                 }"
                 class="truncate max-w-full"
                 show-on-truncate-only
@@ -147,7 +147,7 @@ watch(isWebhookModal, (newVal) => {
               :class="{
                 'transform rotate-180': isWebHookSelectionDropdownOpen,
               }"
-              class="text-gray-500 transition-all transition-transform"
+              class="text-nc-content-gray-muted transition-all transition-transform"
             />
           </div>
         </div>
@@ -155,7 +155,7 @@ watch(isWebhookModal, (newVal) => {
       <NcButton
         size="small"
         type="secondary"
-        class="!rounded-l-none border-l-[#d9d9d9] !hover:bg-white nc-button-style-dropdown"
+        class="!rounded-l-none border-l-[#d9d9d9] !hover:bg-nc-bg-default nc-button-style-dropdown"
         :class="{
           'nc-button-style-dropdown shadow-dropdown-open remove-left-shadow': isWebHookSelectionDropdownOpen,
         }"
@@ -163,8 +163,8 @@ watch(isWebhookModal, (newVal) => {
       >
         <GeneralIcon
           :class="{
-            'text-gray-400': !selectedWebhook,
-            'text-gray-700': selectedWebhook,
+            'text-nc-content-gray-disabled': !selectedWebhook,
+            'text-nc-content-gray-subtle': selectedWebhook,
           }"
           icon="ncEdit"
         />

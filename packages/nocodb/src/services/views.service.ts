@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents, EventType, ProjectRoles, ViewTypes } from 'nocodb-sdk';
+import {
+  AppEvents,
+  EventType,
+  getFirstNonPersonalView,
+  ProjectRoles,
+  ViewLockType,
+  ViewTypes,
+} from 'nocodb-sdk';
 import type {
   SharedViewReqType,
   UserType,
@@ -98,7 +105,7 @@ export class ViewsService {
     const model = await Model.get(context, param.tableId);
 
     if (!model) {
-      NcError.tableNotFound(param.tableId);
+      NcError.get(context).tableNotFound(param.tableId);
     }
 
     const viewList = await xcVisibilityMetaGet(context, {
@@ -134,7 +141,7 @@ export class ViewsService {
     const view = await View.get(context, param.viewId);
 
     if (!view) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     this.appHooksService.emit(AppEvents.SHARED_VIEW_CREATE, {
@@ -165,7 +172,7 @@ export class ViewsService {
     const oldView = await View.get(context, param.viewId, ncMeta);
 
     if (!oldView) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     if (param.view.title && param.view.title.trim() !== oldView.title) {
@@ -209,12 +216,30 @@ export class ViewsService {
     // if the owned_by is not the same as the user, then throw error
     // if owned_by is empty, then only allow owner of project to change
     if (
-      param.view.lock_type === 'personal' &&
+      param.view.lock_type === ViewLockType.Personal &&
       param.view.lock_type !== oldView.lock_type
     ) {
+      // Check if this is the last collaborative grid view
+      // Prevent changing to personal if this is the only non-personal grid view
+      if (oldView.type === ViewTypes.GRID) {
+        const views = await View.list(context, oldView.fk_model_id, ncMeta);
+        const otherNonPersonalGridView = getFirstNonPersonalView(
+          views.filter((v) => v.id !== oldView.id),
+          { includeViewType: ViewTypes.GRID },
+        );
+
+        if (!otherNonPersonalGridView) {
+          NcError.get(context).badRequest(
+            'Cannot change the last collaborative grid view to personal',
+          );
+        }
+      }
+
       // if owned_by is not empty then check if the user is the owner of the project
       if (ownedBy && ownedBy !== param.user.id) {
-        NcError.unauthorized('Only owner/creator can change to personal view');
+        NcError.get(context).unauthorized(
+          'Only owner/creator can change to personal view',
+        );
       }
 
       // if empty then check if current user is the owner of the project then allow and update the owned_by
@@ -226,7 +251,9 @@ export class ViewsService {
         }
       } else if (!ownedBy) {
         // todo: move to catchError
-        NcError.unauthorized('Only owner can change to personal view');
+        NcError.get(context).unauthorized(
+          'Only owner can change to personal view',
+        );
       }
     }
 
@@ -238,7 +265,9 @@ export class ViewsService {
         !(param.user as any).base_roles?.[ProjectRoles.OWNER] &&
         !(param.user as any).base_roles?.[ProjectRoles.CREATOR]
       ) {
-        NcError.unauthorized('Only owner/creator can transfer view ownership');
+        NcError.get(context).unauthorized(
+          'Only owner/creator can transfer view ownership',
+        );
       }
 
       ownedBy = param.view.owned_by;
@@ -253,7 +282,7 @@ export class ViewsService {
       );
 
       if (!baseUser) {
-        NcError.badRequest('Invalid user');
+        NcError.get(context).badRequest('Invalid user');
       }
 
       includeCreatedByAndUpdateBy = true;
@@ -313,21 +342,43 @@ export class ViewsService {
   async viewDelete(
     context: NcContext,
     param: { viewId: string; user: UserType; req: NcRequest },
+    ncMeta = Noco.ncMeta,
   ) {
-    const view = await View.get(context, param.viewId);
+    const view = await View.get(context, param.viewId, ncMeta);
 
     if (!view) {
       NcError.get(context).viewNotFound(param.viewId);
     }
 
+    const views = await View.list(context, view.fk_model_id, ncMeta);
+
+    // Check if this is the last collaborative grid view
+    // Use helper to find if there's at least one other non-personal grid view
+    if (
+      view.type === ViewTypes.GRID &&
+      view.lock_type !== ViewLockType.Personal
+    ) {
+      const otherNonPersonalGridView = getFirstNonPersonalView(
+        views.filter((v) => v.id !== view.id),
+        { includeViewType: ViewTypes.GRID },
+      );
+
+      if (!otherNonPersonalGridView) {
+        NcError.get(context).badRequest(
+          'Cannot delete the last collaborative grid view',
+        );
+      }
+    }
+
     const viewWebhookManager = (
       await (
-        await new ViewWebhookManagerBuilder(context).withModelId(
+        await new ViewWebhookManagerBuilder(context, ncMeta).withModelId(
           view.fk_model_id,
         )
       ).withViewId(view.id)
     ).forDelete();
-    await View.delete(context, param.viewId);
+
+    await View.delete(context, param.viewId, ncMeta);
 
     let deleteEvent = AppEvents.GRID_DELETE;
 
@@ -393,7 +444,7 @@ export class ViewsService {
     const view = await View.get(context, param.viewId);
 
     if (!view) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     let customUrl: CustomUrl | undefined = await CustomUrl.get({
@@ -467,7 +518,7 @@ export class ViewsService {
     const view = await View.get(context, param.viewId);
 
     if (!view) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     await View.sharedViewDelete(context, param.viewId);

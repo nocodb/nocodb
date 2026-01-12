@@ -67,13 +67,13 @@ export class DuplicateController {
     );
 
     if (!base) {
-      throw new Error(`Base not found for id '${sharedBaseId}'`);
+      NcError.get(context).baseNotFound(sharedBaseId);
     }
 
     const source = (await base.getSources())[0];
 
     if (!source) {
-      throw new Error(`Source not found!`);
+      NcError.get(context).noSourcesFound();
     }
 
     const bases = await Base.list(context.workspace_id);
@@ -102,6 +102,7 @@ export class DuplicateController {
       baseId: base.id,
       sourceId: source.id,
       dupProjectId: dupProject.id,
+      dupWorkspaceId: dupProject.fk_workspace_id,
       options: {
         ...body.options,
         excludeHooks: true,
@@ -135,6 +136,7 @@ export class DuplicateController {
         excludeHooks?: boolean;
         excludeScripts?: boolean;
         excludeDashboards?: boolean;
+        excludeWorkflows?: boolean;
       };
       // override duplicated base
       base?: any;
@@ -234,7 +236,7 @@ export class DuplicateController {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error(`Base not found for id '${baseId}'`);
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const column = await Column.get(context, {
@@ -243,13 +245,13 @@ export class DuplicateController {
     });
 
     if (!column) {
-      throw new Error(`Column not found!`);
+      NcError.get(context).fieldNotFound(columnId);
     }
 
     const model = await Model.get(context, column.fk_model_id);
 
     if (!model) {
-      throw new Error(`Model not found!`);
+      NcError.get(context).tableNotFound(column?.fk_model_id);
     }
 
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
@@ -269,10 +271,10 @@ export class DuplicateController {
     // check if source is readonly and column type is not allowed
     if (!readonlyMetaAllowedTypes.includes(column.uidt)) {
       if (source.is_schema_readonly) {
-        NcError.sourceMetaReadOnly(source.alias);
+        NcError.get(context).sourceMetaReadOnly(source.alias);
       }
       if (source.is_data_readonly) {
-        NcError.sourceDataReadOnly(source.alias);
+        NcError.get(context).sourceDataReadOnly(source.alias);
       }
     }
 

@@ -33,7 +33,7 @@ const deleteParamRow = (i: number) => {
           v-model:value="paramRow.name"
           :disabled="disabled"
           :placeholder="$t('placeholder.key')"
-          class="!rounded-l-lg !border-gray-200"
+          class="!rounded-l-lg !border-nc-border-gray-medium"
         />
       </a-form-item>
       <a-form-item class="form-item w-3/6">
@@ -41,12 +41,12 @@ const deleteParamRow = (i: number) => {
           v-model:value="paramRow.value"
           :disabled="disabled"
           :placeholder="$t('placeholder.value')"
-          class="nc-webhook-parameters-value-input !border-x-0 !border-gray-200 !rounded-none"
+          class="nc-webhook-parameters-value-input !border-x-0 !border-nc-border-gray-medium !rounded-none"
         />
       </a-form-item>
 
       <NcButton
-        class="!rounded-l-none delete-btn !border-gray-200 !shadow-none"
+        class="!rounded-l-none delete-btn !border-nc-border-gray-medium !shadow-none"
         type="secondary"
         size="small"
         :disabled="vModel.length === 1 || disabled"
@@ -72,16 +72,16 @@ const deleteParamRow = (i: number) => {
   box-shadow: none !important;
 
   &:hover:not(:disabled) {
-    @apply !hover:bg-gray-50;
+    @apply !hover:bg-nc-bg-gray-extralight;
   }
 }
 
 .delete-btn:not([disabled]) {
-  @apply !text-gray-500;
+  @apply !text-nc-content-gray-muted;
 }
 
 :deep(.ant-input) {
-  @apply !placeholder-gray-500;
+  @apply !placeholder-nc-content-gray-muted;
 }
 
 :deep(.ant-input.nc-webhook-parameters-value-input) {
@@ -89,10 +89,10 @@ const deleteParamRow = (i: number) => {
 }
 
 .ant-input-affix-wrapper {
-  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-brand-500 border-gray-200 !ring-0;
+  @apply px-4 rounded-lg py-2 w-84 border-1 focus:border-nc-border-brand border-nc-border-gray-medium !ring-0;
 }
 
 .nc-btn-focus:focus {
-  @apply !text-brand-500 !shadow-none;
+  @apply !text-nc-content-brand !shadow-none;
 }
 </style>

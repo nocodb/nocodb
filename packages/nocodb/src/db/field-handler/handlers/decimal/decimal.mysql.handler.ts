@@ -12,4 +12,5 @@ export class DecimalMysqlHandler extends GenericMysqlFieldHandler {
 
   override filterBlank = this.decimalGeneralHandler.filterBlank;
   override filterNotblank = this.decimalGeneralHandler.filterNotblank;
+  override filterNeq = this.decimalGeneralHandler.filterNeq;
 }

@@ -2,7 +2,7 @@
 import type { VNodeRef } from '@vue/runtime-core'
 import Draggable from 'vuedraggable'
 import tinycolor from 'tinycolor2'
-import { PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, PermissionEntity, PermissionKey, isVirtualCol } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 interface Attachment {
@@ -45,6 +45,8 @@ const router = useRouter()
 
 const route = router.currentRoute
 
+const { isDark, getColor } = useTheme()
+
 const { metaColumnById } = useViewColumnsOrThrow(view, meta)
 
 const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
@@ -73,7 +75,7 @@ const {
   updateAllStacksProperty,
 } = useKanbanViewStoreOrThrow()
 
-const { isViewDataLoading } = storeToRefs(useViewsStore())
+const { isViewDataLoading, isActiveViewFieldHeaderVisible } = storeToRefs(useViewsStore())
 
 const { isUIAllowed } = useRoles()
 
@@ -503,11 +505,15 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
 
   openNewRecordFormHook.trigger()
 }
+
+const resetPointerEvent = (record: RowType, col: ColumnType) => {
+  return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col))
+}
 </script>
 
 <template>
   <div
-    class="flex flex-col w-full bg-gray-50 h-full"
+    class="flex flex-col w-full bg-nc-bg-gray-extralight h-full"
     data-testid="nc-kanban-wrapper"
     :style="{
       minHeight: 'calc(100% - var(--topbar-height))',
@@ -557,7 +563,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                 <a-card
                   v-if="!stack.collapsed"
                   :key="`${stack.id}-${stackIdx}`"
-                  class="flex flex-col w-68.5 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-gray-200"
+                  class="flex flex-col w-68.5 h-full !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none !border-nc-border-gray-medium"
                   :class="{
                     'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                     '!cursor-default': isLocked || !hasEditPermission,
@@ -578,7 +584,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                   <!-- Stack -->
                   <a-layout v-else>
                     <a-layout-header
-                      class="border-b-1 border-gray-100 min-h-[49px]"
+                      class="border-b-1 border-nc-border-gray-light min-h-[49px]"
                       :class="`nc-kanban-stack-header-${stack.id}`"
                     >
                       <div
@@ -626,7 +632,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                             <a-tag
                               v-else
                               class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none !mt-0.5"
-                              :color="stack.color"
+                              :color="getSelectTypeFieldOptionBgColor({ color: stack.color || '#ccc', isDark })"
                               @dblclick="
                                 () => {
                                   if (stack.title !== null && hasEditPermission && !isPublic && !isLocked) {
@@ -637,9 +643,11 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                             >
                               <span
                                 :style="{
-                                  color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                                    ? '#fff'
-                                    : tinycolor.mostReadable(stack.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                                  color: getSelectTypeFieldOptionTextColor({
+                                    color: stack.color || '#ccc',
+                                    isDark,
+                                    getColor,
+                                  }),
                                 }"
                                 class="text-sm font-semibold"
                               >
@@ -666,7 +674,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                         <NcDropdown
                           placement="bottomRight"
                           overlay-class-name="nc-dropdown-kanban-stack-context-menu"
-                          class="bg-white !rounded-lg"
+                          class="bg-nc-bg-default !rounded-lg"
                         >
                           <NcButton
                             :disabled="compareStack(stack, isSavingStack)"
@@ -807,7 +815,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                               <LazySmartsheetRow :row="record">
                                 <a-card
                                   :key="`${getRowId(record)}-${index}`"
-                                  class="!rounded-lg h-full border-gray-200 border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
+                                  class="!rounded-lg h-full border-nc-border-gray-medium border-1 group overflow-hidden break-all max-w-[450px] cursor-pointer flex flex-col"
                                   :body-style="{
                                     padding: '12px !important',
                                     flex: 1,
@@ -834,7 +842,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                     <template v-if="!reloadAttachments && attachments(record).length">
                                       <a-carousel
                                         :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
-                                        class="gallery-carousel !border-b-1 !border-gray-200 !bg-white"
+                                        class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default"
                                         arrows
                                       >
                                         <template #customPaging>
@@ -852,7 +860,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                               size="xsmall"
                                               class="!absolute !left-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
                                             >
-                                              <GeneralIcon icon="arrowLeft" class="text-gray-700 w-4 h-4" />
+                                              <GeneralIcon icon="arrowLeft" class="text-nc-content-inverted-secondary w-4 h-4" />
                                             </NcButton>
                                           </div>
                                         </template>
@@ -864,7 +872,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                               size="xsmall"
                                               class="!absolute !right-1.5 !bottom-[-90px] !opacity-0 !group-hover:opacity-100 !rounded-lg cursor-pointer"
                                             >
-                                              <GeneralIcon icon="arrowRight" class="text-gray-700 w-4 h-4" />
+                                              <GeneralIcon icon="arrowRight" class="text-nc-content-inverted-secondary w-4 h-4" />
                                             </NcButton>
                                           </div>
                                         </template>
@@ -883,7 +891,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                     </template>
                                     <div
                                       v-else
-                                      class="h-52 w-full !flex flex-row !border-b-1 !border-gray-200 items-center justify-center bg-white"
+                                      class="h-52 w-full !flex flex-row !border-b-1 !border-nc-border-gray-medium items-center justify-center bg-nc-bg-default"
                                     >
                                       <img class="object-contain w-[48px] h-[48px]" src="~assets/icons/FileIconImageBox.png" />
                                     </div>
@@ -895,19 +903,18 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                       :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
                                     ></div>
                                     <div
-                                      class="flex-1 flex flex-col gap-3 !children:pointer-events-none"
+                                      class="flex-1 flex flex-col !children:pointer-events-none"
                                       :class="{
                                         'w-[calc(100%_-_16px)]': isRowColouringEnabled,
                                         'w-full': !isRowColouringEnabled,
+                                        'gap-3': isActiveViewFieldHeaderVisible,
                                       }"
                                     >
                                       <h2
                                         v-if="displayField"
                                         class="nc-card-display-value-wrapper"
                                         :class="{
-                                          '!children:pointer-events-auto':
-                                            isButton(displayField) ||
-                                            (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
+                                          '!children:pointer-events-auto': resetPointerEvent(record, displayField),
                                         }"
                                       >
                                         <template
@@ -916,7 +923,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                           <LazySmartsheetVirtualCell
                                             v-if="isVirtualCol(displayField)"
                                             v-model="record.row[displayField.title]"
-                                            class="!text-brand-500"
+                                            class="!text-nc-content-brand"
                                             :column="displayField"
                                             :row="record"
                                           />
@@ -924,7 +931,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                           <LazySmartsheetCell
                                             v-else
                                             v-model="record.row[displayField.title]"
-                                            class="!text-brand-500"
+                                            class="!text-nc-content-brand"
                                             :column="displayField"
                                             :edit-enabled="false"
                                             :read-only="true"
@@ -938,47 +945,81 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                                         :key="`record-${record.row.id}-${col.id}`"
                                         class="nc-card-col-wrapper"
                                         :class="{
-                                          '!children:pointer-events-auto':
-                                            isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
+                                          '!children:pointer-events-auto': resetPointerEvent(record, col),
                                         }"
                                         @click="handleCellClick(col, $event)"
                                       >
-                                        <div class="flex flex-col rounded-lg w-full">
-                                          <div class="flex flex-row w-full justify-start">
-                                            <div class="nc-card-col-header w-full !children:text-gray-500">
-                                              <LazySmartsheetHeaderVirtualCell
-                                                v-if="isVirtualCol(col)"
-                                                :column="col"
-                                                :hide-menu="true"
-                                              />
-
-                                              <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
-                                            </div>
-                                          </div>
+                                        <NcTooltip
+                                          hide-on-click
+                                          :disabled="isActiveViewFieldHeaderVisible"
+                                          class="w-full z-10 flex"
+                                          :class="{
+                                            'pointer-events-auto': !isActiveViewFieldHeaderVisible,
+                                          }"
+                                          placement="left"
+                                          :arrow="false"
+                                        >
+                                          <template #title>
+                                            <LazySmartsheetHeaderVirtualCell
+                                              v-if="isVirtualCol(col)"
+                                              :column="col"
+                                              :hide-menu="true"
+                                              hide-icon-tooltip
+                                              class="!text-gray-100 nc-record-cell-tooltip"
+                                            />
+                                            <LazySmartsheetHeaderCell
+                                              v-else
+                                              :column="col"
+                                              :hide-menu="true"
+                                              hide-icon-tooltip
+                                              class="!text-gray-100 nc-record-cell-tooltip"
+                                            />
+                                          </template>
 
                                           <div
-                                            v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)"
-                                            class="flex flex-row w-full text-gray-800 items-center justify-start min-h-7 py-1"
+                                            class="flex flex-col rounded-lg w-full"
+                                            :class="{
+                                              'pointer-events-none': !resetPointerEvent(record, col),
+                                            }"
                                           >
-                                            <LazySmartsheetVirtualCell
-                                              v-if="isVirtualCol(col)"
-                                              v-model="record.row[col.title]"
-                                              :column="col"
-                                              :row="record"
-                                              class="!text-gray-800"
-                                            />
+                                            <div v-if="isActiveViewFieldHeaderVisible" class="flex flex-row w-full justify-start">
+                                              <div class="nc-card-col-header w-full !children:text-nc-content-gray-muted">
+                                                <LazySmartsheetHeaderVirtualCell
+                                                  v-if="isVirtualCol(col)"
+                                                  :column="col"
+                                                  :hide-menu="true"
+                                                />
 
-                                            <LazySmartsheetCell
-                                              v-else
-                                              v-model="record.row[col.title]"
-                                              :column="col"
-                                              :edit-enabled="false"
-                                              :read-only="true"
-                                              class="!text-gray-800"
-                                            />
+                                                <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                                              </div>
+                                            </div>
+
+                                            <div
+                                              v-if="
+                                                !isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col) || isPercent(col)
+                                              "
+                                              class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"
+                                            >
+                                              <LazySmartsheetVirtualCell
+                                                v-if="isVirtualCol(col)"
+                                                v-model="record.row[col.title]"
+                                                :column="col"
+                                                :row="record"
+                                                class="!text-nc-content-gray"
+                                              />
+
+                                              <LazySmartsheetCell
+                                                v-else
+                                                v-model="record.row[col.title]"
+                                                :column="col"
+                                                :edit-enabled="false"
+                                                :read-only="true"
+                                                class="!text-nc-content-gray"
+                                              />
+                                            </div>
+                                            <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
                                           </div>
-                                          <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
-                                        </div>
+                                        </NcTooltip>
                                       </div>
                                     </div>
                                   </div>
@@ -988,7 +1029,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                           </template>
                           <template v-if="!formattedData.get(stack.title)?.length" #footer>
                             <div class="h-full w-full flex flex-col gap-4 items-center justify-center">
-                              <div class="flex flex-col items-center gap-2 text-gray-600 text-center">
+                              <div class="flex flex-col items-center gap-2 text-nc-content-gray-subtle2 text-center">
                                 <span class="text-sm font-semibold">
                                   {{ $t('general.empty') }} {{ $t('general.stack').toLowerCase() }}
                                 </span>
@@ -1023,7 +1064,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                         </Draggable>
                       </div>
                     </a-layout-content>
-                    <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-gray-100">
+                    <a-layout-footer v-if="formattedData.get(stack.title)" class="border-t-1 border-nc-border-gray-light">
                       <div class="flex items-center justify-between">
                         <PermissionsTooltip
                           v-if="isUIAllowed('dataInsert') && !isSyncedTable"
@@ -1049,7 +1090,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                         <div v-else>&nbsp;</div>
 
                         <!-- Record Count -->
-                        <div class="nc-kanban-data-count text-gray-500 font-weight-500 px-1">
+                        <div class="nc-kanban-data-count text-nc-content-gray-muted font-weight-500 px-1">
                           {{ formattedData.get(stack.title)!.length }}/{{ countByStack.get(stack.title) ?? 0 }}
                           {{ countByStack.get(stack.title) !== 1 ? $t('objects.records') : $t('objects.record') }}
                         </div>
@@ -1062,7 +1103,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                 <a-card
                   v-else
                   :key="`${stack.id}-collapsed`"
-                  class="nc-kanban-collapsed-stack flex items-center w-68.5 h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none !border-gray-200"
+                  class="nc-kanban-collapsed-stack flex items-center w-68.5 h-[44px] !rounded-xl cursor-pointer h-full !p-2 overflow-hidden !shadow-none !hover:shadow-none !border-nc-border-gray-medium"
                   :class="{
                     'not-draggable': stack.title === null || isLocked || isPublic || !hasEditPermission,
                   }"
@@ -1095,12 +1136,17 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                         </NcButton>
 
                         <div class="flex-1 flex max-w-[115px]">
-                          <a-tag class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none" :color="stack.color">
+                          <a-tag
+                            class="max-w-full !rounded-full !px-2 !py-1 h-7 !m-0 !border-none"
+                            :color="getSelectTypeFieldOptionBgColor({ color: stack.color || '#ccc', isDark })"
+                          >
                             <span
                               :style="{
-                                color: tinycolor.isReadable(stack.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                                  ? '#fff'
-                                  : tinycolor.mostReadable(stack.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                                color: getSelectTypeFieldOptionTextColor({
+                                  color: stack.color || '#ccc',
+                                  isDark,
+                                  getColor,
+                                }),
                               }"
                               class="text-sm font-semibold"
                             >
@@ -1127,7 +1173,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
 
                       <div class="flex items-center gap-2 truncate">
                         <div
-                          class="nc-kanban-data-count px-1 rounded bg-gray-200 text-gray-800 text-sm font-weight-500 truncate"
+                          class="nc-kanban-data-count px-1 rounded bg-nc-bg-gray-medium text-nc-content-gray text-sm font-weight-500 truncate"
                           :style="{ 'word-break': 'keep-all', 'white-space': 'nowrap' }"
                         >
                           <!-- Record Count -->
@@ -1136,7 +1182,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
                         </div>
 
                         <NcButton type="text" size="xs" class="!px-1.5">
-                          <component :is="iconMap.arrowDown" class="text-grey h-4 w-4 flex-none" />
+                          <component :is="iconMap.arrowDown" class="h-4 w-4 flex-none opacity-75" />
                         </NcButton>
                       </div>
                     </div>
@@ -1149,7 +1195,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
           <div v-if="hasEditPermission && !isPublic && !isLocked && groupingFieldColumn?.id" class="nc-kanban-add-new-stack">
             <!-- Add New Stack -->
             <a-card
-              class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-gray-200 nc-kanban-stack-header-new-stack"
+              class="flex flex-col w-68.5 !rounded-xl overflow-y-hidden !shadow-none !hover:shadow-none border-nc-border-gray-medium nc-kanban-stack-header-new-stack"
               :class="[
                 {
                   '!cursor-default': isLocked || !hasEditPermission,
@@ -1315,7 +1361,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
 .a-layout,
 .ant-layout-header,
 .ant-layout-footer {
-  @apply !bg-white;
+  @apply !bg-nc-bg-default;
 }
 
 .ant-layout-content {
@@ -1343,12 +1389,12 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
-  @apply rounded-full border-0 cursor-pointer block opacity-100 p-0 outline-none transition-all duration-500 text-transparent h-2 w-2 bg-[#d9d9d9];
+  @apply rounded-full border-0 cursor-pointer block opacity-100 p-0 outline-none transition-all duration-500 text-transparent h-2 w-2 bg-nc-bg-gray-medium;
   font-size: 0;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li.slick-active div > div) {
-  @apply bg-brand-500 opacity-100;
+  @apply bg-nc-content-brand opacity-100;
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li) {
@@ -1382,7 +1428,7 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
 }
 
 .nc-card-display-value-wrapper {
-  @apply my-0 text-xl leading-8 text-gray-600;
+  @apply my-0 text-xl leading-8 text-nc-content-gray-subtle2;
 
   .nc-cell,
   .nc-virtual-cell {
@@ -1392,10 +1438,10 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
     :deep(input),
     :deep(textarea),
     :deep(.nc-cell-field-link) {
-      @apply !text-xl leading-8 text-gray-600;
+      @apply !text-xl leading-8 text-nc-content-gray-subtle2;
 
       &:not(.ant-select-selection-search-input) {
-        @apply !text-xl leading-8 text-gray-600;
+        @apply !text-xl leading-8 text-nc-content-gray-subtle2;
       }
     }
   }
@@ -1478,6 +1524,16 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
       @apply flex-none !max-w-none !w-auto;
     }
   }
+
+  .nc-date-picker > div > div {
+    &:first-child {
+      @apply pl-0;
+    }
+
+    &:last-child {
+      @apply pr-0;
+    }
+  }
 }
 
 :deep(.nc-virtual-cell) {
@@ -1527,6 +1583,29 @@ const handleOpenNewRecordForm = (stackTitle?: string) => {
   &.nc-virtual-cell-qrcode,
   &.nc-virtual-cell-barcode {
     @apply children:justify-start;
+  }
+
+  .nc-date-picker > div > div {
+    &:first-child {
+      @apply pl-0;
+    }
+
+    &:last-child {
+      @apply pr-0;
+    }
+  }
+}
+.nc-record-cell-tooltip {
+  @apply !bg-transparent !hover:bg-transparent;
+  :deep(.nc-cell-icon) {
+    @apply !ml-0 h-3.5 w-3.5;
+  }
+  :deep(.name) {
+    @apply text-captionSm;
+  }
+  :deep(.nc-cell-name-wrapper),
+  :deep(.nc-virtual-cell-name-wrapper) {
+    @apply !max-w-full;
   }
 }
 </style>

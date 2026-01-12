@@ -37,7 +37,7 @@ const onColorChange = (value: string) => {
     <template v-if="!slotHasChildren()">
       <button
         type="button"
-        class="p-1 inline-flex content-center items-center justify-center aspect-square rounded-md min-w-[30px] min-h-[30px] hover:border-gray-200 border-2"
+        class="p-1 inline-flex content-center items-center justify-center aspect-square rounded-md min-w-[30px] min-h-[30px] hover:border-nc-border-gray-medium border-2"
         :style="{
           ...vModel ? ({'background-color': vModel!}) : {},
         }"

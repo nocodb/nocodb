@@ -14,7 +14,6 @@ export const defaultViews = [
     fk_model_id: 'mtWA9ZXvsuh',
     title: 'Table-1',
     type: 3,
-    is_default: true,
     show_system_fields: null,
     lock_type: 'collaborative',
     uuid: null,

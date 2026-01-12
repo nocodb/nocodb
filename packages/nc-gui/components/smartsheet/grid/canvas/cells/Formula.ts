@@ -74,7 +74,8 @@ export const FormulaCellRenderer: CellRenderer = {
       width,
       pv,
       height,
-      textColor = '#4a5268',
+      textColor = themeV4Colors.gray['600'],
+      getColor,
       mousePosition,
       setCursor,
       spriteLoader,
@@ -126,7 +127,7 @@ export const FormulaCellRenderer: CellRenderer = {
       // If the field uses URL formula render it as a clickable link
       if (typeof urls === 'string') {
         ctx.font = `${pv ? 600 : 500} 13px Inter`
-        ctx.fillStyle = pv ? '#3366FF' : textColor
+        ctx.fillStyle = pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor)
         const boxes = renderFormulaURL(ctx, {
           htmlText: urls,
           height,
@@ -134,6 +135,7 @@ export const FormulaCellRenderer: CellRenderer = {
           x: x + padding,
           y: y + 3,
           lineHeight: 16,
+          getColor,
         })
         const hoveredBox = boxes.find((box) => isBoxHovered(box, mousePosition))
         if (hoveredBox && selected) {
@@ -158,11 +160,14 @@ export const FormulaCellRenderer: CellRenderer = {
             size: 12,
             xOffset: 4,
             yOffset: 4,
+            color: getColor(themeV4Colors.gray['700']),
           },
           mousePosition,
           spriteLoader,
           icon: 'maximize',
-          background: 'white',
+          background: getColor(themeV4Colors.base.white),
+          borderColor: getColor(themeV4Colors.gray['200']),
+          hoveredBackground: getColor(themeV4Colors.gray['100']),
           setCursor,
         })
       }
@@ -176,7 +181,7 @@ export const FormulaCellRenderer: CellRenderer = {
     }
   },
   handleClick: async (props) => {
-    const { column, getCellPosition, value, openDetachedLongText, selected, isDoubleClick, mousePosition } = props
+    const { column, getCellPosition, value, openDetachedLongText, selected, isDoubleClick, mousePosition, getColor } = props
     if (!selected && !isDoubleClick) return false
 
     const colObj = column.columnObj
@@ -203,6 +208,7 @@ export const FormulaCellRenderer: CellRenderer = {
             },
           },
           formula: true,
+          getColor,
         })
       }
     }
@@ -231,6 +237,7 @@ export const FormulaCellRenderer: CellRenderer = {
           x: x + padding,
           y: y + 3,
           lineHeight: 16,
+          getColor,
         })
 
         // If clicked on url or other texts

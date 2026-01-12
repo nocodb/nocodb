@@ -19,6 +19,10 @@ const permissionScopes = {
     'apiTokenCreate',
     'apiTokenDelete',
 
+    'oAuthAuthorizationList',
+    'oAuthAuthorizationRevoke',
+    'oAuthClientRegenerateSecret',
+
     // Base
     'baseList',
     'baseCreate',
@@ -67,6 +71,17 @@ const permissionScopes = {
 
     // AI
     'aiSchema',
+
+    // OauthClients
+    'oAuthClientList',
+    'oAuthClientCreate',
+    'oAuthClientUpdate',
+    'oAuthClientDelete',
+    'oAuthClientGet',
+
+    'mcpRootList',
+
+    'getUserProfile',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -74,6 +89,7 @@ const permissionScopes = {
     'baseGet',
     'tableGet',
     'dataList',
+    'bulkDataList',
     'dataRead',
     'dataExist',
     'dataFindOne',
@@ -88,6 +104,12 @@ const permissionScopes = {
     'kanbanViewGet',
     'gridViewUpdate',
     'formViewUpdate',
+    'formColumnUpdate',
+    // missing earlier confirm w/ Raju
+    // 'galleryViewUpdate',
+    // 'kanbanViewUpdate',
+    // 'mapViewUpdate',
+    // 'calendarViewUpdate',
     'calendarViewGet',
     'groupedDataList',
     'mmList',
@@ -100,6 +122,7 @@ const permissionScopes = {
     'sequenceList',
     'procedureList',
     'columnList',
+    'viewColumnList',
     'triggerList',
     'relationList',
     'relationListAll',
@@ -107,9 +130,10 @@ const permissionScopes = {
     'list',
     'dataCount',
     'dataAggregate',
+    'bulkAggregate',
     'swaggerJson',
     'commentList',
-    'commentsCount',
+    'commentCount',
     'commentDelete',
     'commentUpdate',
     'hideAllColumns',
@@ -127,7 +151,7 @@ const permissionScopes = {
     'filterUpdate',
     'filterDelete',
     'filterGet',
-    'filterChildrenRead',
+    'filterChildrenList',
     'mmExcludedList',
     'hmExcludedList',
     'btExcludedList',
@@ -202,6 +226,7 @@ const rolePermissions:
       tableGet: true,
       // data
       dataList: true,
+      bulkDataList: true,
       dataRead: true,
       dataExist: true,
       dataFindOne: true,
@@ -232,6 +257,7 @@ const rolePermissions:
       sequenceList: true,
       procedureList: true,
       columnList: true,
+      viewColumnList: true,
       triggerList: true,
       relationList: true,
       relationListAll: true,
@@ -239,6 +265,7 @@ const rolePermissions:
       list: true,
       dataCount: true,
       dataAggregate: true,
+      bulkAggregate: true,
       swaggerJson: true,
 
       nestedDataList: true,
@@ -250,7 +277,7 @@ const rolePermissions:
 
       jobList: true,
       commentList: true,
-      commentsCount: true,
+      commentCount: true,
       recordAuditList: true,
 
       userInvite: true,
@@ -281,6 +308,7 @@ const rolePermissions:
       viewColumnUpdate: true,
       gridViewUpdate: true,
       formViewUpdate: true,
+      formColumnUpdate: true,
       sortCreate: true,
       sortUpdate: true,
       sortDelete: true,
@@ -288,7 +316,7 @@ const rolePermissions:
       filterUpdate: true,
       filterDelete: true,
       filterGet: true,
-      filterChildrenRead: true,
+      filterChildrenList: true,
       mmExcludedList: true,
       hmExcludedList: true,
       btExcludedList: true,
@@ -344,6 +372,20 @@ const rolePermissions:
       isPluginActive: true,
       commandPalette: true,
       notification: true,
+
+      // oAuth
+      oAuthClientList: true,
+      oAuthClientCreate: true,
+      oAuthClientUpdate: true,
+      oAuthClientDelete: true,
+      oAuthClientGet: true,
+      oAuthAuthorizationList: true,
+      oAuthAuthorizationRevoke: true,
+      oAuthClientRegenerateSecret: true,
+
+      //mcp List Root
+      mcpRootList: true,
+      getUserProfile: true,
     },
   },
   [OrgUserRoles.CREATOR]: {
@@ -611,6 +653,7 @@ const permissionDescriptions: Record<string, string> = {
   baseGet: 'view base details',
   tableGet: 'view table details',
   dataList: 'view data',
+  bulkDataList: 'view data',
   dataRead: 'read data',
   dataExist: 'check if data exists',
   dataFindOne: 'find a single data record',
@@ -626,6 +669,7 @@ const permissionDescriptions: Record<string, string> = {
   calendarViewGet: 'view calendar',
   gridViewUpdate: 'update grid view',
   formViewUpdate: 'update form view',
+  formColumnUpdate: 'update form columns',
   groupedDataList: 'view grouped data',
   mmList: 'view many-to-many relationships',
   hmList: 'view hierarchical relationships',
@@ -638,6 +682,7 @@ const permissionDescriptions: Record<string, string> = {
   sequenceList: 'view list of sequences',
   procedureList: 'view list of procedures',
   columnList: 'view list of columns',
+  viewColumnList: 'view list of view columns',
   triggerList: 'view list of triggers',
   relationList: 'view list of relations',
   relationListAll: 'view all relations',
@@ -645,6 +690,7 @@ const permissionDescriptions: Record<string, string> = {
   list: 'view list of items',
   dataCount: 'view data count',
   dataAggregate: 'view data aggregates',
+  bulkAggregate: 'view data aggregates',
   swaggerJson: 'view Swagger JSON',
   commentList: 'view list of comments',
   commentsCount: 'view comment count',
@@ -664,7 +710,7 @@ const permissionDescriptions: Record<string, string> = {
   filterUpdate: 'update an existing filter',
   filterDelete: 'delete a filter',
   filterGet: 'view filter details',
-  filterChildrenRead: 'view child filters',
+  filterChildrenList: 'view child filters',
   mmExcludedList: 'view excluded many-to-many relationships',
   hmExcludedList: 'view excluded hierarchical relationships',
   btExcludedList: 'view excluded relationships',

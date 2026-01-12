@@ -75,7 +75,7 @@ watch(stepIndex, (newIndex, oldIndex, cleanup) => {
     >
       <header
         data-testid="nc-onboarding-flow-header"
-        class="px-4 pt-4 pb-2 lg:(pt-8 pb-2 px-8) flex items-center justify-between w-full max-w-[672px] lg:max-w-[704px] mx-auto sticky top-0 bg-white z-10"
+        class="px-4 pt-4 pb-2 lg:(pt-8 pb-2 px-8) flex items-center justify-between w-full max-w-[672px] lg:max-w-[704px] mx-auto sticky top-0 bg-nc-bg-default z-10"
       >
         <GeneralIcon icon="nocodb1" class="w-12 h-12 flex-none" />
 
@@ -84,8 +84,8 @@ watch(stepIndex, (newIndex, oldIndex, cleanup) => {
             :percent="progress.percentage"
             size="small"
             status="normal"
-            stroke-color="#3366FF"
-            trail-color="#F0F3FF"
+            stroke-color="var(--nc-content-brand)"
+            trail-color="var(--nc-bg-brand-inverted)"
             :show-info="false"
           />
         </div>
@@ -100,7 +100,7 @@ watch(stepIndex, (newIndex, oldIndex, cleanup) => {
       <slot name="footer">
         <footer
           data-testid="nc-onboarding-flow-footer"
-          class="flex flex-col justify-end w-full max-w-[672px] lg:max-w-[704px] mx-auto px-4 pt-2 pb-4 lg:(pt-2 pb-10 px-8) sticky bottom-0 bg-white z-10"
+          class="flex flex-col justify-end w-full max-w-[672px] lg:max-w-[704px] mx-auto px-4 pt-2 pb-4 lg:(pt-2 pb-10 px-8) sticky bottom-0 bg-nc-bg-default z-10"
         >
           <div
             class="flex items-center"

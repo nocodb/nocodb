@@ -121,9 +121,9 @@ const addVariable = () => {
       >
         <div class="flex gap-2 flex-col">
           <div class="flex items-center justify-between">
-            <span class="text-nc-content-gray-emphasis">Name</span>
+            <span class="text-nc-content-gray-subtle text-caption">Name</span>
             <NcButton size="xxsmall" class="!hover:bg-nc-bg-red-light" type="text" @click="removeVariable(entry.index)">
-              <GeneralIcon icon="ncTrash" class="text-nc-content-red-medium" />
+              <GeneralIcon icon="ncTrash" class="text-nc-content-red-medium w-3.5 h-3.5" />
             </NcButton>
           </div>
           <a-input
@@ -133,7 +133,7 @@ const addVariable = () => {
           />
         </div>
         <div class="flex gap-2 flex-col">
-          <label>Value</label>
+          <label class="text-nc-content-gray-subtle text-caption">Value</label>
           <NcFormBuilderInputWorkflowInput
             :model-value="entry.value"
             :variables="flatVariables"

@@ -26,6 +26,10 @@ export const modalSizes = {
     width: '100vw',
     height: '100vh',
   },
+  extensionFullscreen: {
+    width: 'calc(100vw - 32px)',
+    height: 'calc(100vh - var(--topbar-height) - 16px)',
+  },
 }
 
 /**

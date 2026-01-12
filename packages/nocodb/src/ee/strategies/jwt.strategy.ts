@@ -23,14 +23,6 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     )
       return jwtPayload;
 
-
-    console.log(jwtPayload)
-
-    console.log('isWorkflow/AuromationUser',  [
-      NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER].email,
-      NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER].email,
-    ].includes(jwtPayload?.email))
-
     if (
       [
         NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER].email,
@@ -52,6 +44,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         console.log('User access limited to Base')
         NcError.forbidden('User access limited to Base');
       }
+
+      console.log(jwtPayload)
 
       return {
         ...jwtPayload,

@@ -2,12 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   isLinksOrLTAR,
   ncIsNumber,
-  NcRequest,
   RelationTypes,
   ViewTypes,
 } from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
-import type { NcApiVersion } from 'nocodb-sdk';
+import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
@@ -1041,9 +1040,13 @@ export class DataTableService {
 
   async getLinkedDataList(
     context: NcContext,
-    req: NcRequest,
-    linkColumnId: string,
+    params: {
+      req: NcRequest;
+      linkColumnId: string;
+    },
   ): Promise<any> {
+    const { req, linkColumnId } = params;
+
     const relationColumn = await Column.get(context, { colId: linkColumnId });
 
     if (!relationColumn || !isLinksOrLTAR(relationColumn)) {

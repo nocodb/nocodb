@@ -213,11 +213,10 @@ export class UiGetOperations
         });
       case 'linkDataList':
         context.cache = true;
-        return await this.dataTableService.getLinkedDataList(
-          context,
+        return await this.dataTableService.getLinkedDataList(context, {
           req,
-          req.query.columnId as string,
-        );
+          linkColumnId: req.query.columnId as string,
+        });
     }
   }
 }

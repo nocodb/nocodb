@@ -255,12 +255,23 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 validateFormula,
                 aliasToColumnBuilder,
               );
-              qb.select(
-                baseModel.dbDriver.raw(`?? as ??`, [
-                  selectQb.builder,
-                  getAs(column),
-                ]),
-              );
+
+              if ('toQuery' in selectQb.builder) {
+                const selectQbQuery = selectQb.builder.toQuery();
+                qb.select(
+                  baseModel.dbDriver.raw(
+                    `${selectQbQuery.replaceAll('?', '\\?')} as ??`,
+                    [getAs(column)],
+                  ),
+                );
+              } else {
+                qb.select(
+                  baseModel.dbDriver.raw(`?? as ??`, [
+                    selectQb.builder,
+                    getAs(column),
+                  ]),
+                );
+              }
             } catch (e) {
               logger.log(e);
               // return dummy select

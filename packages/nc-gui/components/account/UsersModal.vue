@@ -17,8 +17,6 @@ const { t } = useI18n()
 
 const { $api, $e } = useNuxtApp()
 
-const { copy } = useCopy()
-
 const { dashboardUrl } = useDashboard()
 
 const { clearBasesUser } = useBases()
@@ -64,19 +62,6 @@ const saveUser = async () => {
 const inviteUrl = computed(() =>
   usersData.value.invitationToken ? `${dashboardUrl.value}#/signup/${usersData.value.invitationToken}` : null,
 )
-
-const copyUrl = async () => {
-  if (!inviteUrl.value) return
-  try {
-    await copy(inviteUrl.value)
-
-    // Copied shareable source url to clipboard!
-    message.success(t('msg.toast.inviteUrlCopy'))
-  } catch (e: any) {
-    message.error(e.message)
-  }
-  $e('c:shared-base:copy-url')
-}
 
 const clickInviteMore = () => {
   $e('c:user:invite-more')
@@ -144,7 +129,8 @@ const userRoleOptions = [
               :message="inviteUrl"
               message-class="!text-green-700 !text-bodyDefaultSm"
               background
-              :copyText="inviteUrl"
+              :copy-text="inviteUrl"
+              :copy-text-toast-message="$t('msg.toast.inviteUrlCopy')"
               class="mt-2 !p-3"
             />
 

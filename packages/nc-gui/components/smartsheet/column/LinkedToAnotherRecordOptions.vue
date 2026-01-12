@@ -124,7 +124,6 @@ const { baseTables } = storeToRefs(tablesStore)
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const refTables = computed(() => {
-  debugger
   if (isEdit.value) {
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     const refTableId = referenceTableChildId.value

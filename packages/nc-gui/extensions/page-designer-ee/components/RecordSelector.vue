@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { PageDesignerEventHookInj, PageDesignerPayloadInj, PageDesignerRowInj, PageDesignerTableTypeInj } from '../lib/context'
 
+const { activeBaseId } = useExtensionHelperOrThrow()
+
 const payload = inject(PageDesignerPayloadInj)!
 const row = inject(PageDesignerRowInj)!
 const meta = inject(PageDesignerTableTypeInj)!
@@ -14,6 +16,7 @@ const eventHook = inject(PageDesignerEventHookInj)!
       :key="payload.selectedTableId + payload.selectedViewId"
       v-model:model-value="row"
       :label="row ? row.row[displayField?.title ?? ''] ?? '' : 'Select Record'"
+      :base-id="meta?.base_id || activeBaseId!"
       :table-id="payload.selectedTableId"
       :view-id="payload.selectedViewId"
       class="page-designer-record-picker flex-1"

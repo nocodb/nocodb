@@ -24,7 +24,7 @@ const emits = defineEmits<{
 
 const { meta, viewMeta, where, records, fields: propsFields } = toRefs(props)
 
-const pv = computed(() => (meta.value.columns ?? []).find((c) => c.pv))
+const pv = computed(() => (meta.value?.columns ?? []).find((c) => c.pv))
 useProvideSmartsheetLtarHelpers(meta)
 
 const { isMobileMode } = useGlobal()
@@ -36,10 +36,10 @@ const _fields = computedInject(FieldsInj, (_fields) => {
     !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isCreatedOrLastModifiedTimeCol(col)
 
   if (propsFields.value?.length) {
-    return (meta.value.columns ?? []).filter((col) => propsFields.value.includes(col.title!) && conditionToCheck(col))
+    return (meta.value?.columns ?? []).filter((col) => propsFields.value.includes(col.title!) && conditionToCheck(col))
   }
 
-  return (meta.value.columns ?? [])
+  return (meta.value?.columns ?? [])
     .filter((col) => conditionToCheck(col))
     .sort((a, b) => {
       return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)

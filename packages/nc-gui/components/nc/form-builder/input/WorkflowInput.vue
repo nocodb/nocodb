@@ -149,6 +149,12 @@ const editor = useEditor({
     markdown = markdown.replaceAll('<br/>', '\n')
     markdown = markdown.replaceAll('<br>', '\n')
 
+    // Unescape markdown special characters that shouldn't be escaped in workflow input
+    markdown = markdown.replaceAll('\\_', '_')
+    markdown = markdown.replaceAll('\\*', '*')
+    markdown = markdown.replaceAll('\\[', '[')
+    markdown = markdown.replaceAll('\\]', ']')
+
     vModel.value = markdown.trim()
   },
   editable: !readOnly.value,

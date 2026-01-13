@@ -10,6 +10,7 @@ import { IterateNode } from './nodes/iterate';
 import { SendEmailAction } from './nodes/send-email';
 import { DelayNode } from './nodes/delay';
 import { WaitUntilNode } from './nodes/wait-until';
+import { HttpRequest } from './nodes/http-request';
 
 export const entries: IntegrationEntry[] = [
   {
@@ -100,6 +101,19 @@ export const entries: IntegrationEntry[] = [
       title: 'Wait Until',
       icon: 'ncCalendar',
       order: 8,
+    },
+    packageManifest: manifest,
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'core.action.http',
+    wrapper: HttpRequest,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'HTTP Request',
+      icon: 'ncGlobe',
+      order: 13,
     },
     packageManifest: manifest,
   },

@@ -2,7 +2,6 @@
 import { mockSetupInit } from '../../../-helper/mock-setup'
 import MockInjection from '../../MockInjection.vue'
 const { metas } = useMetas()
-const defaultTableId = 'mtWA9ZXvsuh'
 
 const rootMeta = ref({})
 const columns = computedAsync(async () => {

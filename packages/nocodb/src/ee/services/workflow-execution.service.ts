@@ -1191,6 +1191,6 @@ export class WorkflowExecutionService {
         ts: Date.now(),
       });
     }
-    return result
+    return result;
   }
 }

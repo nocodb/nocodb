@@ -316,7 +316,7 @@ export function useCopyPaste({
             const columnsHash = (
               await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
                 operation: 'columnsHash',
-                tableId: meta.value?.id!,
+                tableId: meta.value?.id as string,
               })
             ).hash
             const columnsLength = meta.value?.columns?.length || 0
@@ -351,7 +351,7 @@ export function useCopyPaste({
             await $api.internal.postOperation(
               meta.value!.fk_workspace_id!,
               meta.value!.base_id!,
-              { operation: 'columnsBulk', tableId: meta.value?.id! },
+              { operation: 'columnsBulk', tableId: meta.value?.id as string },
               {
                 hash: columnsHash,
                 ops: bulkOpsCols,

@@ -19,7 +19,6 @@ export class IntegrationPostOperations
     context: NcContext,
     {
       payload,
-      req,
       operation,
     }: {
       workspaceId: string;

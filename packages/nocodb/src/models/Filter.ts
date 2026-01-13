@@ -1,4 +1,3 @@
-import { UITypes } from 'nocodb-sdk';
 import type {
   BoolType,
   COMPARISON_OPS,

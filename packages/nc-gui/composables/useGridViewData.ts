@@ -41,8 +41,6 @@ export function useGridViewData(
 
   const { $api } = useNuxtApp()
 
-  const { appInfo } = useGlobal()
-
   const isBulkOperationInProgress = ref(false)
 
   const {
@@ -700,14 +698,14 @@ export function useGridViewData(
                 const columnsHash = (
                   await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
                     operation: 'columnsHash',
-                    tableId: meta.value?.id!,
+                    tableId: meta.value?.id as string,
                   })
                 ).hash
 
                 await $api.internal.postOperation(
                   meta.value!.fk_workspace_id!,
                   meta.value!.base_id!,
-                  { operation: 'columnsBulk', tableId: meta.value?.id! },
+                  { operation: 'columnsBulk', tableId: meta.value?.id as string },
                   {
                     hash: columnsHash,
                     ops: newCols.map((col: ColumnType) => ({
@@ -740,14 +738,14 @@ export function useGridViewData(
                 const columnsHash = (
                   await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
                     operation: 'columnsHash',
-                    tableId: meta.value?.id!,
+                    tableId: meta.value?.id as string,
                   })
                 ).hash
 
                 await $api.internal.postOperation(
                   meta.value!.fk_workspace_id!,
                   meta.value!.base_id!,
-                  { operation: 'columnsBulk', tableId: meta.value?.id! },
+                  { operation: 'columnsBulk', tableId: meta.value?.id as string },
                   {
                     hash: columnsHash,
                     ops: newCols.map((col: ColumnType) => ({

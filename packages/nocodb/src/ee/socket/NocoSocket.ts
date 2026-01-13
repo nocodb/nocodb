@@ -85,9 +85,7 @@ export default class NocoSocket {
       );
 
       if (
-        [
-          EventType.WORKFLOW_EVENT,
-        ].includes(eventType as EventType) &&
+        [EventType.WORKFLOW_EVENT].includes(eventType as EventType) &&
         !hasMinimumRoleAccess(userWithRole, ProjectRoles.CREATOR)
       ) {
         this.logger.warn(

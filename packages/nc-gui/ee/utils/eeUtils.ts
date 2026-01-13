@@ -1,1 +1,1 @@
-export const isEeUI = true
+export const isEeUI: boolean = true

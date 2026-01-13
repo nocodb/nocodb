@@ -76,18 +76,27 @@ jobs:
       - name: Run backend
         if: ${{ inputs.db == 'sqlite' }}
         working-directory: ./packages/nocodb
+        env:
+          DB_TYPE: ${{ inputs.db }}
+          SHARD: ${{ inputs.shard }}
         run: |
-          pnpm run watch:run:playwright &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          pnpm run watch:run:playwright &> "${DB_TYPE}_${SHARD}_test_backend.log" &
       - name: Run backend:mysql
         if: ${{ inputs.db == 'mysql' }}
         working-directory: ./packages/nocodb
+        env:
+          DB_TYPE: ${{ inputs.db }}
+          SHARD: ${{ inputs.shard }}
         run: |
-          pnpm run watch:run:playwright:mysql &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          pnpm run watch:run:playwright:mysql &> "${DB_TYPE}_${SHARD}_test_backend.log" &
       - name: Run backend:pg
         if: ${{ inputs.db == 'pg' }}
         working-directory: ./packages/nocodb
+        env:
+          DB_TYPE: ${{ inputs.db }}
+          SHARD: ${{ inputs.shard }}
         run: |
-          pnpm run watch:run:playwright:pg &> ${{ inputs.db }}_${{ inputs.shard }}_test_backend.log &
+          pnpm run watch:run:playwright:pg &> "${DB_TYPE}_${SHARD}_test_backend.log" &
       - name: download ui build from artf server
         working-directory: ./packages/nc-gui/
         run: |
@@ -129,7 +138,10 @@ jobs:
         timeout-minutes: 5
       - name: Run Playwright Tests
         working-directory: ./tests/playwright
-        run: E2E_DB_TYPE=${{ inputs.db }} npm run ci:test:shard:${{ inputs.shard }}
+        env:
+          DB_TYPE: ${{ inputs.db }}
+          SHARD: ${{ inputs.shard }}
+        run: E2E_DB_TYPE="$DB_TYPE" npm run ci:test:shard:"$SHARD"
         timeout-minutes: 60
       # Stress test added/modified tests
       - name: Fetch develop branch
@@ -137,7 +149,9 @@ jobs:
         run: git fetch origin develop
       - name: Stress test
         working-directory: ./tests/playwright
-        run: E2E_DB_TYPE=${{ inputs.db }} node ./scripts/stressTestNewlyAddedTest.js
+        env:
+          DB_TYPE: ${{ inputs.db }}
+        run: E2E_DB_TYPE="$DB_TYPE" node ./scripts/stressTestNewlyAddedTest.js
 
       #      # Quick tests (pg on sqlite shard 0 and sqlite on sqlite shard 1)
       #      - name: Run quick server and tests (pg)
@@ -206,16 +220,17 @@ jobs:
       - name: Copy Artifacts to Local Artifacts Dir
         if: always()
         working-directory: ./
+        env:
+          SHARD: ${{ inputs.shard }}
         run: |
           # expects the variables to be available in runner context.
-          path="gh-artifacts/runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/"${GITHUB_JOB}"-${{ inputs.shard }}/${RANDOM}-$(date +%s)"
+          path="gh-artifacts/runs/${GITHUB_RUN_ID}/run-attempt/${GITHUB_RUN_ATTEMPT}/job_name/"${GITHUB_JOB}"-${SHARD}/${RANDOM}-$(date +%s)"
           target_dir="/mnt/${path}"
-          mkdir -p ${target_dir}
-          mkdir -p ${target_dir}/playwright-report
+          mkdir -p "${target_dir}"
+          mkdir -p "${target_dir}/playwright-report"
           # start : add any artifacts to be copied here
-          cp -r ./tests/playwright/playwright-report ${target_dir}/  || echo "playwright reports directory does not exists" >>  ${target_dir}/playwright-report/index.html
-          cp ./packages/nocodb/*_test_backend.log ${target_dir}/ || echo "backend logs file does not exists" >> ${target_dir}/index.html
+          cp -r ./tests/playwright/playwright-report "${target_dir}/"  || echo "playwright reports directory does not exists" >>  "${target_dir}/playwright-report/index.html"
+          cp ./packages/nocodb/*_test_backend.log "${target_dir}/" || echo "backend logs file does not exists" >> "${target_dir}/index.html"
           # end: artifacts copy
-          SUMMARY='[Artifacts]('${REPORTS_HOST:-http://135.181.48.96}/${path}')
-          [playwright-report]('${REPORTS_HOST:-http://135.181.48.96}/${path}'/playwright-report)'
+          SUMMARY="[Artifacts](${REPORTS_HOST:-http://135.181.48.96}/${path}) [playwright-report](${REPORTS_HOST:-http://135.181.48.96}/${path}/playwright-report)"
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY

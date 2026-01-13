@@ -6073,7 +6073,7 @@
           "fields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CreateField"
+              "$ref": "#/components/schemas/TableCreateField"
             }
           }
         },
@@ -6333,6 +6333,32 @@
             }
           }
         },
+        "Lookup": {
+          "title": "Lookup",
+          "properties": {
+            "type": {
+              "enum": [
+                "Lookup"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Lookup"
+            }
+          }
+        },
+        "Rollup": {
+          "title": "Rollup",
+          "properties": {
+            "type": {
+              "enum": [
+                "Rollup"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Rollup"
+            }
+          }
+        },
         "Button": {
           "title": "Button",
           "properties": {
@@ -6359,6 +6385,19 @@
             }
           }
         },
+        "Barcode": {
+          "title": "Barcode",
+          "properties": {
+            "type": {
+              "enum": [
+                "Barcode"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_Barcode"
+            }
+          }
+        },
         "Year": {
           "title": "Year",
           "properties": {
@@ -6366,6 +6405,19 @@
               "enum": [
                 "Year"
               ]
+            }
+          }
+        },
+        "QrCode": {
+          "title": "QrCode",
+          "properties": {
+            "type": {
+              "enum": [
+                "QrCode"
+              ]
+            },
+            "options": {
+              "$ref": "#/components/schemas/FieldOptions_QrCode"
             }
           }
         },
@@ -6523,6 +6575,119 @@
                 "$ref": "#/components/schemas/FieldOptions/Links"
               },
               {
+                "$ref": "#/components/schemas/FieldOptions/Lookup"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Rollup"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Button"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Formula"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Barcode"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/QrCode"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/CreatedTime"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LastModifiedTime"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/CreatedBy"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LastModifiedBy"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LinkToAnotherRecord"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/User"
+              }
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/FieldBaseCreate"
+          }
+        ]
+      },
+      "TableCreateField": {
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FieldOptions/SingleLineText"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LongText"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/PhoneNumber"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/URL"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Email"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Number"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Decimal"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Currency"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Percent"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Duration"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Date"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/DateTime"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Time"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Year"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/SingleSelect"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/MultiSelect"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Rating"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Checkbox"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Attachment"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/JSON"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Geometry"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Links"
+              },
+              {
                 "$ref": "#/components/schemas/FieldOptions/Button"
               },
               {
@@ -6549,7 +6714,7 @@
             ]
           },
           {
-            "$ref": "#/components/schemas/FieldBaseCreate"
+            "$ref": "#/components/schemas/TableFieldBaseCreate"
           }
         ]
       },
@@ -7894,7 +8059,20 @@
         "allOf": [
           {
             "$ref": "#/components/schemas/FieldBase"
-          }, {
+          },
+          {
+            "required": [
+              "title",
+              "type"
+            ]
+          }
+        ]
+      },
+      "TableFieldBaseCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBase"
+          },{
             "type": "object",
             "properties": {
               "type": {

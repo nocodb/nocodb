@@ -8,6 +8,7 @@ import mime from 'mime/lite';
 import slash from 'slash';
 import PQueue from 'p-queue';
 import axios from 'axios';
+import { useAgent } from 'request-filtering-agent';
 import hash from 'object-hash';
 import moment from 'moment';
 import { useAgent } from 'request-filtering-agent';

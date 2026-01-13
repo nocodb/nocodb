@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { NcApiVersion, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, NcApiVersion, UITypes } from 'nocodb-sdk';
 import type {
+  FieldV3Type,
   TableCreateV3Type,
   TableReqType,
   TableUpdateV3Type,
@@ -20,6 +21,7 @@ import {
 import { TablesService } from '~/services/tables.service';
 import { tableReadBuilder, tableViewBuilder } from '~/utils/builders/table';
 import { validatePayload } from '~/helpers';
+import { ColumnsV3Service } from '~/services/v3/columns-v3.service';
 
 @Injectable()
 export class TablesV3Service {
@@ -30,6 +32,7 @@ export class TablesV3Service {
     protected readonly appHooksService: AppHooksService,
     protected readonly columnsService: ColumnsService,
     protected readonly tablesService: TablesService,
+    protected readonly columnsV3Service: ColumnsV3Service,
   ) {}
 
   async tableUpdate(
@@ -159,6 +162,10 @@ export class TablesV3Service {
       true,
       context,
     );
+
+    const columns = [];
+    const virtualColumns = [];
+
     for (const field of param.table.fields ?? []) {
       validatePayload(
         `swagger-v3.json#/components/schemas/FieldOptions/${field.type}`,
@@ -166,15 +173,19 @@ export class TablesV3Service {
         true,
         context,
       );
+
+      if (isLinksOrLTAR(field.type)) {
+        virtualColumns.push(field);
+      } else {
+        columns.push(field);
+      }
     }
 
     const tableCreateReq: any = param.table;
 
     // remap the columns if provided
-    if (tableCreateReq.fields) {
-      tableCreateReq.columns = columnV3ToV2Builder().build(
-        tableCreateReq.fields,
-      );
+    if (columns.length) {
+      tableCreateReq.columns = columnV3ToV2Builder().build(columns);
     } else {
       tableCreateReq.columns = [];
     }
@@ -187,6 +198,16 @@ export class TablesV3Service {
       apiVersion: NcApiVersion.V3,
       sourceId: param.sourceId,
     });
+
+    // create virtual columns after table creation
+    for (const vCol of virtualColumns) {
+      await this.columnsV3Service.columnAdd(context, {
+        tableId: tableCreateOutput.id,
+        column: vCol as FieldV3Type,
+        req: param.req as NcRequest,
+        user: param.user! as UserType,
+      });
+    }
 
     return this.getTableWithAccessibleViews(context, {
       tableId: tableCreateOutput.id,

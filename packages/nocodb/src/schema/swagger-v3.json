@@ -6333,32 +6333,6 @@
             }
           }
         },
-        "Lookup": {
-          "title": "Lookup",
-          "properties": {
-            "type": {
-              "enum": [
-                "Lookup"
-              ]
-            },
-            "options": {
-              "$ref": "#/components/schemas/FieldOptions_Lookup"
-            }
-          }
-        },
-        "Rollup": {
-          "title": "Rollup",
-          "properties": {
-            "type": {
-              "enum": [
-                "Rollup"
-              ]
-            },
-            "options": {
-              "$ref": "#/components/schemas/FieldOptions_Rollup"
-            }
-          }
-        },
         "Button": {
           "title": "Button",
           "properties": {
@@ -6385,19 +6359,6 @@
             }
           }
         },
-        "Barcode": {
-          "title": "Barcode",
-          "properties": {
-            "type": {
-              "enum": [
-                "Barcode"
-              ]
-            },
-            "options": {
-              "$ref": "#/components/schemas/FieldOptions_Barcode"
-            }
-          }
-        },
         "Year": {
           "title": "Year",
           "properties": {
@@ -6405,19 +6366,6 @@
               "enum": [
                 "Year"
               ]
-            }
-          }
-        },
-        "QrCode": {
-          "title": "QrCode",
-          "properties": {
-            "type": {
-              "enum": [
-                "QrCode"
-              ]
-            },
-            "options": {
-              "$ref": "#/components/schemas/FieldOptions_QrCode"
             }
           }
         },
@@ -6575,22 +6523,10 @@
                 "$ref": "#/components/schemas/FieldOptions/Links"
               },
               {
-                "$ref": "#/components/schemas/FieldOptions/Lookup"
-              },
-              {
-                "$ref": "#/components/schemas/FieldOptions/Rollup"
-              },
-              {
                 "$ref": "#/components/schemas/FieldOptions/Button"
               },
               {
                 "$ref": "#/components/schemas/FieldOptions/Formula"
-              },
-              {
-                "$ref": "#/components/schemas/FieldOptions/Barcode"
-              },
-              {
-                "$ref": "#/components/schemas/FieldOptions/QrCode"
               },
               {
                 "$ref": "#/components/schemas/FieldOptions/CreatedTime"
@@ -7958,6 +7894,44 @@
         "allOf": [
           {
             "$ref": "#/components/schemas/FieldBase"
+          }, {
+            "type": "object",
+            "properties": {
+              "type": "string",
+              "enum": [
+                "SingleLineText",
+                "LongText",
+                "PhoneNumber",
+                "URL",
+                "Email",
+                "Number",
+                "Decimal",
+                "Currency",
+                "Percent",
+                "Duration",
+                "Date",
+                "DateTime",
+                "Time",
+                "SingleSelect",
+                "MultiSelect",
+                "Rating",
+                "Checkbox",
+                "Attachment",
+                "Geometry",
+                "Links",
+                "LinkToAnotherRecord",
+                "Button",
+                "Formula",
+                "Year",
+                "CreatedTime",
+                "LastModifiedTime",
+                "CreatedBy",
+                "LastModifiedBy",
+                "User",
+                "JSON"
+              ],
+              "description": "Field data type."
+            }
           },
           {
             "required": [

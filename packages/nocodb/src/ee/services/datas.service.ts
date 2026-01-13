@@ -56,7 +56,7 @@ export class DatasService extends DatasServiceCE {
     let baseModel: BaseModelSqlv2 = param.baseModel;
 
     // check for link list query params
-    if (param.query?.linkColumnId) {
+    if (param.query?.linkColumnId && param.query?.linkBaseId) {
       baseModel =
         baseModel ||
         (await Model.getBaseModelSQL(context, {
@@ -65,12 +65,16 @@ export class DatasService extends DatasServiceCE {
           dbDriver: await NcConnectionMgrv2.get(source),
           source,
         }));
+      const linkContext = {
+        ...context,
+        base_id: param.query?.linkBaseId,
+      };
 
-      const column = await Column.get<LinkToAnotherRecordColumn>(context, {
+      const column = await Column.get<LinkToAnotherRecordColumn>(linkContext, {
         colId: param.query.linkColumnId,
       });
 
-      const linkModel = await column.getModel(context);
+      const linkModel = await column.getModel(linkContext);
 
       if (
         !column ||
@@ -87,7 +91,7 @@ export class DatasService extends DatasServiceCE {
       }
 
       const linkConditions = column.meta?.enableConditions
-        ? (await Filter.rootFilterListByLink(context, {
+        ? (await Filter.rootFilterListByLink(linkContext, {
             columnId: column.id,
           })) || []
         : [];
@@ -105,7 +109,7 @@ export class DatasService extends DatasServiceCE {
       customConditions = await replaceDynamicFieldWithValue(
         rowData,
         null,
-        linkModel.columns || (await linkModel.getColumns(context)),
+        linkModel.columns || (await linkModel.getColumns(linkContext)),
         baseModel.readByPk,
       )(linkConditions);
     }

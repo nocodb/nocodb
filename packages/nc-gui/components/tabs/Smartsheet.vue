@@ -22,11 +22,6 @@ const { ncNavigateTo } = useGlobal()
 
 const route = useRoute()
 
-const meta = computed<TableType | undefined>(() => {
-  const viewId = route.params.viewId as string
-  return viewId && getMetaByKey(activeProjectId.value, viewId)
-})
-
 const { handleSidebarOpenOnMobileForNonViews } = useConfigStore()
 const { activeTableId } = storeToRefs(useTablesStore())
 
@@ -37,6 +32,12 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 const viewStore = useViewsStore()
 
 const { activeView, openedViewsTab, activeViewTitleOrId, isViewsLoading } = storeToRefs(viewStore)
+
+const meta = computed<TableType | undefined>(() => {
+  const viewId = route.params.viewId as string
+  return viewId && getMetaByKey(activeProjectId.value, viewId)
+})
+
 const { isGallery, isGrid, isForm, isKanban, isLocked, isMap, isCalendar, xWhere, eventBus } = useProvideSmartsheetStore(
   activeView,
   meta,

@@ -971,7 +971,7 @@ const saveChanges = async () => {
     const res = await $api.internal.postOperation(
       meta.value!.fk_workspace_id!,
       meta.value!.base_id!,
-      { operation: 'columnsBulk', tableId: meta.value?.id! },
+      { operation: 'columnsBulk', tableId: meta.value?.id as string },
       {
         hash: columnsHash.value,
         ops: ops.value,
@@ -1018,7 +1018,7 @@ const saveChanges = async () => {
     columnsHash.value = (
       await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
         operation: 'columnsHash',
-        tableId: meta.value?.id!,
+        tableId: meta.value?.id as string,
       })
     ).hash
 

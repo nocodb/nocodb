@@ -1,4 +1,3 @@
-import { UITypes } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
 import type { FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';

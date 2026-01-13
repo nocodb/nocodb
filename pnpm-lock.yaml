@@ -353,8 +353,8 @@ importers:
         specifier: ^1.7.5
         version: 1.7.5
       nocodb-sdk:
-        specifier: workspace:^
-        version: link:../nocodb-sdk
+        specifier: 0.300.0
+        version: 0.300.0(vue@3.5.14(typescript@5.8.3))
       nocodb-sdk-v2:
         specifier: workspace:^
         version: link:../nocodb-sdk-v2
@@ -1072,8 +1072,8 @@ importers:
         specifier: ^1.7.5
         version: 1.7.5
       nc-lib-gui:
-        specifier: 0.265.1
-        version: 0.265.1
+        specifier: 0.300.0
+        version: 0.300.0
       nestjs-pino:
         specifier: ^3.5.0
         version: 3.5.0(@nestjs/common@10.4.19(class-transformer@0.3.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(pino-http@8.6.1)
@@ -1081,8 +1081,8 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2
       nocodb-sdk:
-        specifier: workspace:^
-        version: link:../nocodb-sdk
+        specifier: 0.300.0
+        version: 0.300.0(debug@4.4.1)(vue@3.5.15(typescript@5.8.3))
       node-sql-parser:
         specifier: ^5.3.6
         version: 5.3.13
@@ -4589,35 +4589,30 @@ packages:
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
-    libc: [glibc]
 
   '@napi-rs/canvas-linux-arm64-musl@0.1.77':
     resolution: {integrity: sha512-S1KtnP1+nWs2RApzNkdNf8X4trTLrHaY7FivV61ZRaL8NvuGOkSkKa+gWN2iedIGFEDz6gecpl/JAUSewwFXYg==}
     engines: {node: '>= 10'}
     cpu: [arm64]
     os: [linux]
-    libc: [musl]
 
   '@napi-rs/canvas-linux-riscv64-gnu@0.1.77':
     resolution: {integrity: sha512-A4YIKFYUwDtrSzCtdCAO5DYmRqlhCVKHdpq0+dBGPnIEhOQDFkPBTfoTAjO3pjlEnorlfKmNMOH21sKQg2esGA==}
     engines: {node: '>= 10'}
     cpu: [riscv64]
     os: [linux]
-    libc: [glibc]
 
   '@napi-rs/canvas-linux-x64-gnu@0.1.77':
     resolution: {integrity: sha512-Lt6Sef5l0+5O1cSZ8ysO0JI+x+rSrqZyXs5f7+kVkCAOVq8X5WTcDVbvWvEs2aRhrWTp5y25Jf2Bn+3IcNHOuQ==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
-    libc: [glibc]
 
   '@napi-rs/canvas-linux-x64-musl@0.1.77':
     resolution: {integrity: sha512-NiNFvC+D+omVeJ3IjYlIbyt/igONSABVe9z0ZZph29epHgZYu4eHwV9osfpRt1BGGOAM8LkFrHk4LBdn2EDymA==}
     engines: {node: '>= 10'}
     cpu: [x64]
     os: [linux]
-    libc: [musl]
 
   '@napi-rs/canvas-win32-x64-msvc@0.1.77':
     resolution: {integrity: sha512-fP6l0hZiWykyjvpZTS3sI46iib8QEflbPakNoUijtwyxRuOPTTBfzAWZUz5z2vKpJJ/8r305wnZeZ8lhsBHY5A==}
@@ -13753,8 +13748,8 @@ packages:
     resolution: {integrity: sha512-2EfjyM8ITPNdumJvd2CFamPO4dvQdrMAPmw9sK0Ex4mMJ/NagdQTnvm/GVaSVshchISx38D0LG+Xqhl3mPKO2w==}
     engines: {node: '>= 20'}
 
-  nc-lib-gui@0.265.1:
-    resolution: {integrity: sha512-Ugm9YuzN/7kWuGcyD7Rpn8thbi2NVDXP3xtDUQNOa5/+7+XlDqm+ElQy3tMsnaPGh8XHfKyQ+FSQJPiozkUEiA==}
+  nc-lib-gui@0.300.0:
+    resolution: {integrity: sha512-UX920ZYa9jQAdwqO9nGOdzU++hzVb3S5Ww1kZSeLekjB7tyZTQSaf1LkRc+aDGE1AYUWrldlahKYmqiau4UhIA==}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -13795,6 +13790,7 @@ packages:
   next@15.3.2:
     resolution: {integrity: sha512-CA3BatMyHkxZ48sgOCLdVHjFU36N7TF1HhqAHLFOkV6buwZnvMI84Cug8xD56B9mCuKrqXnLn94417GrZ/jjCQ==}
     engines: {node: ^18.18.0 || ^19.8.0 || >= 20.0.0}
+    deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/CVE-2025-66478 for more details.
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
@@ -13829,6 +13825,10 @@ packages:
   nock@14.0.6:
     resolution: {integrity: sha512-67n1OfusL/ON57fwFJ6ZurSJa/msYVQmqlz9rCel2HJYj4Zeb8v9TcmRdEW+PV2i9Fm2358umSvzZukhw/E8DA==}
     engines: {node: '>=18.20.0 <20 || >=20.12.1'}
+
+  nocodb-sdk@0.300.0:
+    resolution: {integrity: sha512-XIq77b6zZDUtmL8jhTiEol0RLJx+4kp5eKby7Er4R7O6HxkP47nFW+035QSP3VHDvpGxy+OzlaTQM382oV9E8Q==}
+    engines: {node: '>=18'}
 
   node-abi@3.75.0:
     resolution: {integrity: sha512-OhYaY5sDsIka7H7AtijtI9jwGYLyl29eQn/W623DiN/MIv5sUqc4g7BIDThX+gb7di9f6xK02nkp8sdfFWZLTg==}
@@ -15886,6 +15886,7 @@ packages:
 
   scmp@2.1.0:
     resolution: {integrity: sha512-o/mRQGk9Rcer/jEEw/yw4mwo3EU/NvYvp577/Btqrym9Qy5/MdWGBqipbALgd2lrdWTJ5/gqDusxfnQBxOxT2Q==}
+    deprecated: Just use Node.js's crypto.timingSafeEqual()
 
   screenfull@5.2.0:
     resolution: {integrity: sha512-9BakfsO2aUQN2K9Fdbj87RJIEZ82Q9IGim7FqM5OsebfoFC6ZHXgDq/KvniuLTPdeM8wY2o6Dj3WQ7KeQCj3cA==}
@@ -17762,6 +17763,7 @@ packages:
   vue-i18n@9.14.4:
     resolution: {integrity: sha512-B934C8yUyWLT0EMud3DySrwSUJI7ZNiWYsEEz2gknTthqKiG4dzWE/WSa8AzCuSQzwBEv4HtG1jZDhgzPfWSKQ==}
     engines: {node: '>= 16'}
+    deprecated: v9 and v10 no longer supported. please migrate to v11. about maintenance status, see https://vue-i18n.intlify.dev/guide/maintenance.html
     peerDependencies:
       vue: 3.5.14
 
@@ -34626,7 +34628,7 @@ snapshots:
     dependencies:
       nc-jsep-plugin-ternary: 1.7.5(nc-jsep@1.7.5)
 
-  nc-lib-gui@0.265.1:
+  nc-lib-gui@0.300.0:
     dependencies:
       express: 4.21.2
     transitivePeerDependencies:
@@ -34800,6 +34802,48 @@ snapshots:
       '@mswjs/interceptors': 0.39.4
       json-stringify-safe: 5.0.1
       propagate: 2.0.1
+
+  nocodb-sdk@0.300.0(debug@4.4.1)(vue@3.5.15(typescript@5.8.3)):
+    dependencies:
+      '@vue-flow/core': 1.48.1(vue@3.5.15(typescript@5.8.3))
+      acorn-loose: 8.5.2
+      acorn-walk: 8.3.4
+      axios: 1.9.0(debug@4.4.1)
+      chevrotain: 10.5.0
+      dayjs: 1.11.19
+      fast-deep-equal: 3.1.3
+      nc-jsep: 1.7.5
+      nc-jsep-plugin-arrow: 1.7.5(nc-jsep@1.7.5)
+      nc-jsep-plugin-object: 1.7.5(nc-jsep@1.7.5)
+      nc-jsep-plugin-template: 1.7.5(nc-jsep@1.7.5)
+      nc-jsep-plugin-ternary: 1.7.5(nc-jsep@1.7.5)
+      rfdc: 1.4.1
+      validator: 13.15.26
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - debug
+      - vue
+
+  nocodb-sdk@0.300.0(vue@3.5.14(typescript@5.8.3)):
+    dependencies:
+      '@vue-flow/core': 1.48.1(vue@3.5.14(typescript@5.8.3))
+      acorn-loose: 8.5.2
+      acorn-walk: 8.3.4
+      axios: 1.9.0(debug@4.4.1)
+      chevrotain: 10.5.0
+      dayjs: 1.11.19
+      fast-deep-equal: 3.1.3
+      nc-jsep: 1.7.5
+      nc-jsep-plugin-arrow: 1.7.5(nc-jsep@1.7.5)
+      nc-jsep-plugin-object: 1.7.5(nc-jsep@1.7.5)
+      nc-jsep-plugin-template: 1.7.5(nc-jsep@1.7.5)
+      nc-jsep-plugin-ternary: 1.7.5(nc-jsep@1.7.5)
+      rfdc: 1.4.1
+      validator: 13.15.26
+    transitivePeerDependencies:
+      - '@vue/composition-api'
+      - debug
+      - vue
 
   node-abi@3.75.0:
     dependencies:

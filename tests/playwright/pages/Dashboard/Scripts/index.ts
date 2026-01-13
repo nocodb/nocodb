@@ -71,7 +71,7 @@ export class ScriptsPage extends BasePage {
   }
 
   getBottomBar() {
-    return this.dashboardPage.get().locator('.h-9.border-t-1');
+    return this.dashboardPage.get().locator('[data-test-id="script-editor-bottom-bar"]');
   }
 
   async toggleEditor(): Promise<void> {

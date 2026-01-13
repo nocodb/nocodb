@@ -179,7 +179,7 @@ onBeforeUnmount(async () => {
 </script>
 
 <template>
-  <div class="border-r-1 border-b-1 h-full">
+  <div class="border-r-1 border-b-1 h-[calc(100%-38px)]">
     <div class="text-nc-content-gray-emphasis px-3 border-b-1 text-captionBold py-2">Code</div>
 
     <div ref="editorRef" data-testid="nc-scripts-editor" class="h-full" />

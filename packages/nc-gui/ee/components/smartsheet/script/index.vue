@@ -1,9 +1,4 @@
 <script setup lang="ts">
-import { defineAsyncComponent } from 'vue'
-
-// Define SmartsheetScriptDetails as an async component
-const SmartsheetScriptDetails = defineAsyncComponent(() => import('./Details.vue'))
-
 const scriptStore = useScriptStore()
 const { updateBaseSchema } = scriptStore
 const { isLoadingScript } = storeToRefs(scriptStore)
@@ -18,7 +13,7 @@ onMounted(async () => {
     <LazySmartsheetTopbar />
     <template v-if="!isLoadingScript">
       <Suspense>
-        <SmartsheetScriptDetails />
+        <LazySmartsheetScriptDetails />
         <template #fallback>
           <div class="flex items-center justify-center h-full">
             <GeneralLoader size="xlarge" />

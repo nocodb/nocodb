@@ -489,7 +489,7 @@ export class AtImportProcessor {
           for (const [, value] of Object.entries(col.typeOptions.choices)) {
             // max length of option is 255 chars
             // truncate to 255 chars if character if exceeds above 255
-            (value as any).name = (value as any).name?.slice(0, 255);
+            (value as any).name = (value as any).name?.slice(0, 255).trim();
 
             // replace commas with dot for multiselect
             if (col.type === 'multiSelect') {
@@ -1600,7 +1600,7 @@ export class AtImportProcessor {
             if (value === '') {
               rec[key] = 'nc_empty';
             }
-            rec[key] = value;
+            rec[key] = value.trim();
             break;
 
           case UITypes.MultiSelect:
@@ -1609,7 +1609,7 @@ export class AtImportProcessor {
                 if (v === '') {
                   return 'nc_empty';
                 }
-                return `${v.replace(/,/g, '.')}`;
+                return `${v.replace(/,/g, '.').trim()}`;
               })
               .join(',');
             break;

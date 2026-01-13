@@ -45,6 +45,18 @@ jobs:
     env:
       working-directory: ./packages/nocodb
     steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # Prevent removing tools we might implicitly need or that are fast to keep
+          tool-cache: false
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:

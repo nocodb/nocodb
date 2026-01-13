@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import {
   isLinksOrLTAR,
   ncIsNumber,
+  NcRequest,
   RelationTypes,
   ViewTypes,
 } from 'nocodb-sdk';
@@ -1036,5 +1037,37 @@ export class DataTableService {
     } catch (e) {}
 
     return await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
+  }
+
+  async getLinkedDataList(
+    context: NcContext,
+    req: NcRequest,
+    linkColumnId: string,
+  ): Promise<any> {
+    const relationColumn = await Column.get(context, { colId: linkColumnId });
+
+    if (!relationColumn || !isLinksOrLTAR(relationColumn)) {
+      NcError.get(context).fieldNotFound(linkColumnId);
+    }
+
+    const { refContext } = (
+      relationColumn.colOptions as LinkToAnotherRecordColumn
+    ).getRelContext(context);
+
+    return this.dataList(refContext, {
+      query: {
+        ...req.query,
+        columnId: undefined,
+        linkColumnId,
+        linkBaseId: context.base_id,
+      },
+      modelId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
+        .fk_related_model_id,
+      viewId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
+        .fk_target_view_id,
+      includeSortAndFilterColumns:
+        req.query.includeSortAndFilterColumns === 'true',
+      user: req.user,
+    });
   }
 }

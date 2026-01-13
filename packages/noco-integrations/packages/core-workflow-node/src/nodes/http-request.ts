@@ -269,8 +269,6 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
         },
       });
 
-      console.log(axiosConfig);
-
       // Make the request
       const response = await axios(axiosConfig);
 

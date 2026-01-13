@@ -34,7 +34,7 @@ const baseStore = useBase()
 
 const { tables } = storeToRefs(baseStore)
 
-const { metas, getMeta, getMetaByKey } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const { t } = useI18n()
 

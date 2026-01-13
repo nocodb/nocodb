@@ -347,6 +347,7 @@ export const lookupOrLtarBuilder =
                 columnOptions: (await lookupColumn.getColOptions(
                   context,
                 )) as RollupColumn,
+                parentColumns,
               })
             ).builder;
             // selectQb.select(builder);

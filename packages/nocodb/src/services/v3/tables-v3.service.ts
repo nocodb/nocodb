@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { isLinksOrLTAR, NcApiVersion, UITypes } from 'nocodb-sdk';
+import { isVirtualCol, NcApiVersion, UITypes } from 'nocodb-sdk';
 import type {
+  ColumnType,
   FieldV3Type,
   TableCreateV3Type,
   TableReqType,
@@ -174,7 +175,7 @@ export class TablesV3Service {
         context,
       );
 
-      if (isLinksOrLTAR(field.type)) {
+      if (isVirtualCol(field.type as ColumnType)) {
         virtualColumns.push(field);
       } else {
         columns.push(field);

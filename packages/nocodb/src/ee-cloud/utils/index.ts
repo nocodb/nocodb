@@ -1,2 +1,2 @@
 export * from 'src/ee/utils';
-export const isCloud = true;
+export const isCloud: boolean = true;

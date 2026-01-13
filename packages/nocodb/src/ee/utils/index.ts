@@ -4,8 +4,8 @@ export * from './getWorkspaceUrl';
 export * from './domainVerification';
 export { canUseOptimisedQuery };
 
-export const isEE = true;
-export const isOnPrem = false;
-export const isCloud = false;
-export const isDevOrTestEnvironment =
+export const isEE: boolean = true;
+export const isOnPrem: boolean = false;
+export const isCloud: boolean = false;
+export const isDevOrTestEnvironment: boolean =
   process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test';

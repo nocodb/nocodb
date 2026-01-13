@@ -89,6 +89,7 @@ const permissionScopes = {
     'baseGet',
     'tableGet',
     'dataList',
+    'dataExport',
     'linkDataList',
     'bulkDataList',
     'dataRead',
@@ -227,6 +228,7 @@ const rolePermissions:
       tableGet: true,
       // data
       dataList: true,
+      dataExport: true,
       linkDataList: true,
       bulkDataList: true,
       dataRead: true,
@@ -655,6 +657,7 @@ const permissionDescriptions: Record<string, string> = {
   baseGet: 'view base details',
   tableGet: 'view table details',
   dataList: 'view data',
+  dataExport: 'export view data',
   linkDataList: 'view data',
   bulkDataList: 'view data',
   dataRead: 'read data',

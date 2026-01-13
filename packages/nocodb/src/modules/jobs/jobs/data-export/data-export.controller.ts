@@ -31,7 +31,7 @@ export class DataExportController {
   @Post(['/api/v2/export/:viewId/:exportAs'])
   @HttpCode(200)
   // TODO add new ACL
-  @Acl('dataList')
+  @Acl('dataExport')
   async exportModelData(
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,

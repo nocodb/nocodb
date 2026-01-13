@@ -58,6 +58,7 @@ export class DatasService {
       if (
         !linkColumn ||
         !isLinksOrLTAR(linkColumn) ||
+        !linkColumn.colOptions ||
         linkColumn.colOptions.fk_related_model_id !== model.id
       ) {
         NcError.get(context).fieldNotFound(param.query?.linkColumnId, {
@@ -65,7 +66,7 @@ export class DatasService {
         });
       }
 
-      if (linkColumn.colOptions.fk_target_view_id) {
+      if (linkColumn.colOptions?.fk_target_view_id) {
         view = await View.get(context, linkColumn.colOptions.fk_target_view_id);
       }
     }

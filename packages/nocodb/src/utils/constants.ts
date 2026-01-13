@@ -1,3 +1,3 @@
-export const isEE = false;
-export const isOnPrem = false;
-export const isCloud = false;
+export const isEE: boolean = false;
+export const isOnPrem: boolean = false;
+export const isCloud: boolean = false;

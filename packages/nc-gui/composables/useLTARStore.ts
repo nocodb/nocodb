@@ -477,15 +477,14 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           const linkRowData = await sanitizeRowData(row.value.row)
 
           childrenExcludedList.value = await $api.internal.getOperation(
-            (relatedTableMeta.value as any).fk_workspace_id!,
-            relatedTableMeta.value!.base_id!,
+            (column.value as any).fk_workspace_id!,
+            column.value!.base_id!,
             {
-              operation: 'dataList',
-              tableId: relatedTableMeta?.value?.id as string,
+              operation: 'linkDataList',
               limit: childrenExcludedListPagination.size,
               offset,
               where,
-              linkColumnId: column.value.fk_column_id || column.value.id,
+              columnId: column.value.fk_column_id || column.value.id,
               linkRowData: JSON.stringify(linkRowData),
             },
           )

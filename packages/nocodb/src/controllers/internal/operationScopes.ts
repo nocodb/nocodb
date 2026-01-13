@@ -102,6 +102,7 @@ export const OPERATION_SCOPES = {
   commentDelete: 'base',
   commentResolve: 'base',
   dataList: 'base',
+  linkDataList: 'base',
   dataDelete: 'base',
   bulkDataDeleteAll: 'base',
 } as const;

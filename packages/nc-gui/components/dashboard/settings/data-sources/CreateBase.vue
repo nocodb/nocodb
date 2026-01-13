@@ -229,8 +229,12 @@ const createSource = async () => {
             $e('a:base:create:extdb')
 
             if (baseId.value) {
-              await loadProject(baseId.value, true)
-              await loadProjectTables(baseId.value, true)
+              try {
+                await loadProject(baseId.value, true)
+                await loadProjectTables(baseId.value, true)
+              } catch (_e: any) {
+                // ignore
+              }
             }
 
             emit('sourceCreated')

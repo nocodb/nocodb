@@ -118,8 +118,12 @@ async function syncMetaDiff() {
 
             isLoading.value = false
 
-            await loadTables()
-            await loadMetaDiff(true)
+            try {
+              await loadTables()
+              await loadMetaDiff(true)
+            } catch (_e: any) {
+              // ignore
+            }
 
             emit('baseSynced')
           } else if (data.status === JobStatus.FAILED) {

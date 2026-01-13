@@ -233,7 +233,13 @@ export const useBaseSettings = createSharedComposable(() => {
             refreshCommandPalette()
           } else if (data.status === JobStatus.FAILED) {
             message.error('Failed to restore snapshot')
-            await loadProjects('workspace')
+
+            try {
+              await loadProjects('workspace')
+            } catch (_e: any) {
+              // ignore
+            }
+
             isRestoringSnapshot.value = false
 
             refreshCommandPalette()

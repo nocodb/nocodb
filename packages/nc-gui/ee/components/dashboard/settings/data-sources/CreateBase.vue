@@ -363,8 +363,12 @@ const createSource = async () => {
               loadWorkspacesWithInterval(true)
             } else {
               if (baseId.value) {
-                await loadProject(baseId.value, true)
-                await loadProjectTables(baseId.value, true)
+                try {
+                  await loadProject(baseId.value, true)
+                  await loadProjectTables(baseId.value, true)
+                } catch (_e: any) {
+                  // ignore
+                }
               }
               progressRef.value?.pushProgress('Done!', JobStatus.COMPLETED)
               creatingSource.value = false

@@ -3,7 +3,6 @@
         <a style="color:#36f" href="https://www.nocodb.com">
             <img src="/packages/nc-gui/assets/img/brand/nocodb-full.png" height="80" />
             <br>
-    The Open Source Airtable Alternative 
         </a>
         <br>
     </div>
@@ -163,12 +162,12 @@ Most internet businesses equip themselves with either spreadsheet or a database 
 
 # Our Mission
 
-Our mission is to provide the most powerful no-code interface for databases that is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on the internet.
+Our mission is to provide the most powerful no-code interface for databases, accessible to every internet business across the world. By making this capability broadly available under a fair and sustainable model, we aim to democratise access to powerful computing tools and enable a billion-plus people to develop radical tinkering and building abilities on the internet.
 
 # License
 
 <p>
-This project is licensed under <a href="./LICENSE">AGPLv3</a>.
+This project is licensed under <a href="./LICENSE">Sustainable Use License</a>.
 </p>
 
 # Contributors

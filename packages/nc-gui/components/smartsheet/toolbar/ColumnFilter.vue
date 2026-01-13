@@ -140,10 +140,10 @@ const { nestedFilters, isForm, eventBus } =
 
 const currentFilters = modelValue.value || (!link.value && !webHook.value && !workflow.value && nestedFilters.value) || []
 
-const columns = computed(() => meta.value?.columns)
+const columns = computed(() => meta.value?.columns || [])
 
 const fieldsToFilter = computed(() =>
-  (columns.value || []).filter((c) => {
+  columns.value.filter((c) => {
     if ((link.value || workflow.value) && isSystemColumn(c) && !c.pk && !isCreatedOrLastModifiedTimeCol(c)) return false
 
     const customFilter = props.filterOption ? props.filterOption(c) : true
@@ -212,7 +212,7 @@ const isReorderEnabled = computed(() => {
 
 const getColumn = (filter: Filter) => {
   // extract looked up column if available
-  return btLookupTypesMap.value[filter.fk_column_id] || columns.value?.find((col: ColumnType) => col.id === filter.fk_column_id)
+  return btLookupTypesMap.value[filter.fk_column_id] || columns.value.find((col: ColumnType) => col.id === filter.fk_column_id)
 }
 
 const filterPrevComparisonOp = ref<Record<string, string>>({})
@@ -702,7 +702,7 @@ const sqlUi =
 const isDynamicFilterAllowed = (filter: FilterType) => {
   const col = getColumn(filter)
   // if virtual column, don't allow dynamic filter
-  if (isVirtualCol(col)) return false
+  if (!col || isVirtualCol(col)) return false
 
   // disable dynamic filter for certain fields like rating, attachment, etc
   if (

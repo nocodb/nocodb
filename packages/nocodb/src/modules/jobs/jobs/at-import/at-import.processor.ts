@@ -1600,7 +1600,7 @@ export class AtImportProcessor {
             if (value === '') {
               rec[key] = 'nc_empty';
             }
-            rec[key] = value.trim();
+            rec[key] = value?.trim();
             break;
 
           case UITypes.MultiSelect:

@@ -486,6 +486,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               offset,
               where,
               linkColumnId: column.value.fk_column_id || column.value.id,
+              linkBaseId: column.value.base_id || column.value.base_id,
               linkRowData: JSON.stringify(linkRowData),
             },
           )

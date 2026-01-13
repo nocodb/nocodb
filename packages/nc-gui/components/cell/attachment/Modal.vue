@@ -73,7 +73,7 @@ function onClick(item: Record<string, any>) {
 // when user paste on modal
 useEventListener(dropZoneRef, 'paste', (event: ClipboardEvent) => {
   if (event.clipboardData?.files) {
-    onDrop(event.clipboardData.files)
+    onDrop(event.clipboardData.files, {} as any)
   }
 })
 const onFileDialogOpen = (_event) => {

@@ -1066,8 +1066,8 @@ importers:
         specifier: ^1.7.5
         version: 1.7.5
       nc-lib-gui:
-        specifier: 0.300.0
-        version: 0.300.0
+        specifier: 0.301.0
+        version: 0.301.0
       nestjs-pino:
         specifier: ^3.5.0
         version: 3.5.0(@nestjs/common@10.4.19(class-transformer@0.3.1)(class-validator@0.14.3)(reflect-metadata@0.2.2)(rxjs@7.8.2))(pino-http@8.6.1)
@@ -13742,8 +13742,8 @@ packages:
     resolution: {integrity: sha512-2EfjyM8ITPNdumJvd2CFamPO4dvQdrMAPmw9sK0Ex4mMJ/NagdQTnvm/GVaSVshchISx38D0LG+Xqhl3mPKO2w==}
     engines: {node: '>= 20'}
 
-  nc-lib-gui@0.300.0:
-    resolution: {integrity: sha512-UX920ZYa9jQAdwqO9nGOdzU++hzVb3S5Ww1kZSeLekjB7tyZTQSaf1LkRc+aDGE1AYUWrldlahKYmqiau4UhIA==}
+  nc-lib-gui@0.301.0:
+    resolution: {integrity: sha512-70uTCLj/b4oCKqaz1u5ixTZ102TRKSjDyRFzrqb3sEjOhmLVSyzQg9TZk0u+AJGZt47Qif+G2ZHhbQhrs87zjQ==}
 
   negotiator@0.6.3:
     resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
@@ -34618,7 +34618,7 @@ snapshots:
     dependencies:
       nc-jsep-plugin-ternary: 1.7.5(nc-jsep@1.7.5)
 
-  nc-lib-gui@0.300.0:
+  nc-lib-gui@0.301.0:
     dependencies:
       express: 4.21.2
     transitivePeerDependencies:

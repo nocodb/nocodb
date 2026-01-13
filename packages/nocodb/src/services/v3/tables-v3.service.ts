@@ -157,7 +157,7 @@ export class TablesV3Service {
       sourceId?: string;
     },
   ) {
-    let tableCreateOutput: Model;
+    let tableCreateOutput: Model | undefined;
     try {
       validatePayload(
         'swagger-v3.json#/components/schemas/TableCreate',

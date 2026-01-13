@@ -1,7 +1,4 @@
-import {
-  AutomationTypes,
-  DependencyTableType,
-} from 'nocodb-sdk';
+import { AutomationTypes, DependencyTableType } from 'nocodb-sdk';
 import { default as WorkflowCE } from 'src/models/Workflow';
 import { Logger } from '@nestjs/common';
 import type {

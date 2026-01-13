@@ -78,9 +78,7 @@ const schemaHelpers: {
   [UITypes.SingleSelect]: (col) => {
     const options = col.colOptions.options.map((o) => `"${o.title}"`).join(',');
     return {
-      schema: z
-        .enum(col.colOptions.options.map((o) => o.title))
-        .nullable(),
+      schema: z.enum(col.colOptions.options.map((o) => o.title)).nullable(),
       helperMessage: `must be one and only one of the following options or null. options:${options}`,
     };
   },

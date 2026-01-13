@@ -2,7 +2,7 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ Die Open Source Airtable Alternative ✨ <br>
+    ✨ Free & Self-hostable Airtable alternative ✨ <br>
 
 </h1>
 <p align="center">
@@ -29,7 +29,7 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & MariaDB in eine Smart-T
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 <p align="center">
-  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - Free & Self-hostable Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </p>
 
 # Schneller Versuch
@@ -213,4 +213,5 @@ Die meisten Internet-Unternehmen verwenden entweder eine Tabellenkalkulation ode
 
 # Unsere Aufgabe
 
-Unser Ziel ist es, die leistungsstärkste No-Code-Schnittstelle für Datenbanken, welche Open Source ist, für jedes einzelne Internet-Unternehmen in der Welt bereitzustellen. Dies würde nicht nur den Zugang zu einem leistungsstarken Computerwerkzeug demokratisieren, sondern auch mehr als eine Milliarde Menschen hervorbringen, die über radikale Bastel- und Konstruktionsfähigkeiten im Internet verfügen werden.
+Unsere Mission ist es, die leistungsstärkste No-Code-Schnittstelle für Datenbanken bereitzustellen, die für jedes Internetunternehmen weltweit zugänglich ist. Indem wir diese Möglichkeiten über ein faires und nachhaltiges Modell breit verfügbar machen, wollen wir den Zugang zu leistungsfähigen Computing-Werkzeugen demokratisieren und mehr als einer Milliarde Menschen ermöglichen, radikale Fähigkeiten zum Tüfteln und Entwickeln im Internet aufzubauen.
+

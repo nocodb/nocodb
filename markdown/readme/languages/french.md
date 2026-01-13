@@ -2,7 +2,7 @@
     <b>
         <a href="https://www.nocodb.com">NocoDB </a><br>
     </b>
-    ✨ L'alternative Open Source Airtable ✨ <br>
+    ✨ Free & Self-hostable Airtable alternative ✨ <br>
 
 </h1>
 <p align="center">
@@ -29,7 +29,7 @@ Transformez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb en un
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 <p align="center">
-  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - Free & Self-hostable Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </p>
 
 
@@ -183,4 +183,4 @@ Veuillez vous référer au [Guide des contributions](https://github.com/nocodb/n
 La plupart des entreprises Internet s'équipent d'un tableur ou d'une base de données pour répondre à leurs besoins commerciaux. Les feuilles de calcul sont utilisées par plus d'un milliard d'humains en collaboration chaque jour. Cependant, nous sommes loin de travailler à des vitesses similaires sur des bases de données qui sont des outils beaucoup plus puissants en matière de calcul. Les tentatives pour résoudre ce problème avec les offres SaaS ont entraîné des contrôles d'accès horribles, le verrouillage des fournisseurs, le verrouillage des données, des changements de prix brusques et, surtout, un plafond de verre sur ce qui est possible à l'avenir.
 
 # Notre mission
-Notre mission est de fournir l'interface sans code la plus puissante pour les bases de données qui soit open source pour chaque entreprise Internet dans le monde. Cela démocratiserait non seulement l'accès à un outil informatique puissant, mais ferait également émerger plus d'un milliard de personnes qui auront des capacités radicales de bricolage et de construction sur Internet. 
+Notre mission est de fournir l’interface no-code la plus puissante pour les bases de données, accessible à toutes les entreprises Internet à travers le monde. En rendant ces capacités largement disponibles grâce à un modèle équitable et durable, nous visons à démocratiser l’accès à des outils informatiques puissants et à permettre à plus d’un milliard de personnes de développer des capacités audacieuses d’expérimentation et de création sur Internet. 

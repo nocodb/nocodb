@@ -20,7 +20,7 @@
   "engines": {
     "node": ">=18"
   },
-  "license": "AGPL-3.0-or-later",
+  "license": "Sustainable Use License",
   "keywords": [],
   "scripts": {
     "build": "rimraf ./build && pnpm generate:sdk && run-p build:*",

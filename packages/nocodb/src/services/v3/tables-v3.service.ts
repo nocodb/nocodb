@@ -9,7 +9,7 @@ import type {
   TableV3Type,
   UserType,
 } from 'nocodb-sdk';
-import type { User } from '~/models';
+import type { Model, User } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Base } from '~/models';
 import { ColumnsService } from '~/services/columns.service';
@@ -157,62 +157,85 @@ export class TablesV3Service {
       sourceId?: string;
     },
   ) {
-    validatePayload(
-      'swagger-v3.json#/components/schemas/TableCreate',
-      param.table,
-      true,
-      context,
-    );
-
-    const columns = [];
-    const virtualColumns = [];
-
-    for (const field of param.table.fields ?? []) {
+    let tableCreateOutput: Model;
+    try {
       validatePayload(
-        `swagger-v3.json#/components/schemas/FieldOptions/${field.type}`,
-        field,
+        'swagger-v3.json#/components/schemas/TableCreate',
+        param.table,
         true,
         context,
       );
 
-      if (isVirtualCol(field.type as ColumnType)) {
-        virtualColumns.push(field);
-      } else {
-        columns.push(field);
+      const columns = [];
+      const virtualColumns = [];
+
+      for (const field of param.table.fields ?? []) {
+        validatePayload(
+          `swagger-v3.json#/components/schemas/FieldOptions/${field.type}`,
+          field,
+          true,
+          context,
+        );
+
+        if (isVirtualCol(field.type as ColumnType)) {
+          virtualColumns.push(field);
+        } else {
+          columns.push(field);
+        }
       }
-    }
 
-    const tableCreateReq: any = param.table;
+      const tableCreateReq: any = param.table;
 
-    // remap the columns if provided
-    if (columns.length) {
-      tableCreateReq.columns = columnV3ToV2Builder().build(columns);
-    } else {
-      tableCreateReq.columns = [];
-    }
+      // remap the columns if provided
+      if (columns.length) {
+        tableCreateReq.columns = columnV3ToV2Builder().build(columns);
+      } else {
+        tableCreateReq.columns = [];
+      }
 
-    const tableCreateOutput = await this.tablesService.tableCreate(context, {
-      baseId: param.baseId,
-      table: tableCreateReq,
-      user: param.user,
-      req: param.req,
-      apiVersion: NcApiVersion.V3,
-      sourceId: param.sourceId,
-    });
-
-    // create virtual columns after table creation
-    for (const vCol of virtualColumns) {
-      await this.columnsV3Service.columnAdd(context, {
-        tableId: tableCreateOutput.id,
-        column: vCol as FieldV3Type,
-        req: param.req as NcRequest,
-        user: param.user! as UserType,
+      tableCreateOutput = await this.tablesService.tableCreate(context, {
+        baseId: param.baseId,
+        table: tableCreateReq,
+        user: param.user,
+        req: param.req,
+        apiVersion: NcApiVersion.V3,
+        sourceId: param.sourceId,
       });
-    }
 
-    return this.getTableWithAccessibleViews(context, {
-      tableId: tableCreateOutput.id,
-      user: param.user,
-    });
+      // create virtual columns after table creation
+      for (const vCol of virtualColumns) {
+        await this.columnsV3Service.columnAdd(context, {
+          tableId: tableCreateOutput.id,
+          column: vCol as FieldV3Type,
+          req: param.req as NcRequest,
+          user: param.user! as UserType,
+        });
+      }
+
+      return this.getTableWithAccessibleViews(context, {
+        tableId: tableCreateOutput.id,
+        user: param.user,
+      });
+    } catch (e) {
+      // if table already created, delete it to avoid orphaned tables
+      // this is to handle virtual column creation failures
+      if (tableCreateOutput?.id) {
+        this.tablesService
+          .tableDelete(context, {
+            tableId: tableCreateOutput.id,
+            user: param.user as User,
+            forceDeleteRelations: true,
+            req: param.req,
+          })
+          .catch((deleteError) => {
+            this.logger.error(
+              `Failed to cleanup table with id ${tableCreateOutput?.id} after failed creation`,
+              deleteError,
+            );
+          });
+      }
+
+      throw e;
+    }
   }
 }

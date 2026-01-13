@@ -119,15 +119,24 @@ const _duplicate = async () => {
       }) => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
-            const resBases = await loadProjects('workspace', targetWorkspace?.value?.id)
-            targetBase.value = resBases.find((b) => b.id === jobData.base_id)
-            status.value = 'success'
+            try {
+              const resBases = await loadProjects('workspace', targetWorkspace?.value?.id)
+              targetBase.value = resBases.find((b) => b.id === jobData.base_id)
+            } catch (_e: any) {
+              // ignore
+            }
 
+            status.value = 'success'
             refreshCommandPalette()
           } else if (data.status === JobStatus.FAILED) {
             status.value = 'error'
             errorMessage.value = data?.data?.error?.message || 'Some error occurred'
-            await loadProjects('workspace')
+            try {
+              await loadProjects('workspace')
+            } catch (_e: any) {
+              // ignore
+            }
+
             refreshCommandPalette()
           }
         }

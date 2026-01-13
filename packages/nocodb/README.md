@@ -6,7 +6,6 @@
             NocoDB
         </a>
     </div>
-    The Open Source Airtable Alternative <br>
 </h1>
 
 <p align="center">
@@ -249,7 +248,7 @@ Our mission is to provide the most powerful no-code interface for databases that
 # License
 
 <p>
-This project is licensed under <a href="./LICENSE">AGPLv3</a>.
+This project is licensed under <a href="./LICENSE">Sustainable Use License</a>.
 </p>
 
 # Contributors

@@ -71,6 +71,8 @@ import { JsonPgHandler } from '~/db/field-handler/handlers/json/json.pg.handler'
 import { DecimalPgHandler } from '~/db/field-handler/handlers/decimal/decimal.pg.handler';
 import { EmailGeneralHandler } from '~/db/field-handler/handlers/email/email.general.handler';
 import { AttachmentGeneralHandler } from '~/db/field-handler/handlers/attachment/attachment.general.handler';
+import { TimeGeneralHandler } from '~/db/field-handler/handlers/time/time.general.handler';
+import { TimeMysqlHandler } from '~/db/field-handler/handlers/time/time.mysql.handler';
 
 const CLIENT_DEFAULT = '_default';
 
@@ -120,7 +122,10 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.Year]: {
     [CLIENT_DEFAULT]: YearGeneralHandler,
   },
-  [UITypes.Time]: {},
+  [UITypes.Time]: {
+    [CLIENT_DEFAULT]: TimeGeneralHandler,
+    [ClientType.MYSQL]: TimeMysqlHandler,
+  },
   [UITypes.PhoneNumber]: {
     [CLIENT_DEFAULT]: PhoneNumberGeneralHandler,
   },
@@ -151,8 +156,8 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.Percent]: {
     [CLIENT_DEFAULT]: PercentGeneralHandler,
-    [ClientType.PG]: PercentMysqlHandler,
-    [ClientType.MYSQL]: PercentPgHandler,
+    [ClientType.PG]: PercentPgHandler,
+    [ClientType.MYSQL]: PercentMysqlHandler,
     [ClientType.SQLITE]: PercentSqliteHandler,
   },
   [UITypes.Duration]: {
@@ -160,8 +165,8 @@ const HANDLER_REGISTRY: Partial<
   },
   [UITypes.Rating]: {
     [CLIENT_DEFAULT]: RatingGeneralHandler,
-    [ClientType.PG]: RatingMysqlHandler,
-    [ClientType.MYSQL]: RatingPgHandler,
+    [ClientType.PG]: RatingPgHandler,
+    [ClientType.MYSQL]: RatingMysqlHandler,
     [ClientType.SQLITE]: RatingSqliteHandler,
   },
   [UITypes.Formula]: {

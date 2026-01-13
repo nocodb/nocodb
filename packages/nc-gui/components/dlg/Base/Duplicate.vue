@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import tinycolor from 'tinycolor2'
-import { type BaseType, WorkspaceUserRoles } from 'nocodb-sdk'
+import { type BaseType, ProjectRoles, WorkspaceUserRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
@@ -11,11 +11,13 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const { navigateToProject } = useGlobal()
+const { navigateToProject, user } = useGlobal()
 
 const { refreshCommandPalette } = useCommandPalette()
 
 const { isDashboardEnabled } = storeToRefs(useDashboardStore())
+
+const { isWorkflowsEnabled } = storeToRefs(useWorkflowStore())
 
 const { api } = useApi()
 
@@ -27,6 +29,11 @@ const { workspacesList, activeWorkspace } = useWorkspace()
 
 const { loadProjects, createProject: _createProject } = basesStore
 
+// Check if current user is base owner
+const isBaseOwner = computed(() => {
+  return user.value?.base_roles?.[ProjectRoles.OWNER]
+})
+
 const options = ref({
   includeData: true,
   includeViews: true,
@@ -34,6 +41,7 @@ const options = ref({
   includeComments: true,
   includeScripts: true,
   includeDashboards: isDashboardEnabled.value,
+  includeWorkflows: isWorkflowsEnabled.value,
 })
 const targetWorkspace = ref(activeWorkspace)
 
@@ -49,13 +57,14 @@ const isEaster = ref(false)
 const dropdownOpen = ref(false)
 
 const optionsToExclude = computed(() => {
-  const { includeData, includeViews, includeHooks, includeComments, includeScripts } = options.value
+  const { includeData, includeViews, includeHooks, includeComments, includeScripts, includeWorkflows } = options.value
   return {
     excludeData: !includeData,
     excludeViews: !includeViews,
     excludeHooks: !includeHooks,
     excludeComments: !includeComments,
     excludeScripts: !includeScripts,
+    excludeWorkflows: !includeWorkflows,
   }
 })
 
@@ -206,7 +215,7 @@ onKeyStroke('Enter', () => {
         </template>
         <template v-else-if="status === 'error'">
           <div class="flex items-center gap-2">
-            <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-6 h-6" />
+            <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-6 h-6" />
             <div class="text-nc-content-gray-emphasis font-semibold">
               {{ $t('labels.duplicateBaseFailed') }}
             </div>
@@ -266,6 +275,15 @@ onKeyStroke('Enter', () => {
             <NcSwitch :checked="options.includeDashboards" />
             {{ $t('labels.includeDashboards') }}
           </div>
+
+          <div
+            v-if="isWorkflowsEnabled && isEeUI"
+            class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
+            @click="options.includeWorkflows = !options.includeWorkflows"
+          >
+            <NcSwitch :checked="options.includeWorkflows" />
+            {{ $t('labels.includeWorkflows') }}
+          </div>
         </div>
 
         <div
@@ -275,6 +293,7 @@ onKeyStroke('Enter', () => {
           class="mt-5 text-nc-content-gray-subtle2 font-medium"
         >
           {{ $t('labels.baseDuplicateMessage') }}
+          <template v-if="!isBaseOwner">{{ $t('labels.baseDuplicateMessage2') }}</template>
         </div>
 
         <div v-if="isEeUI" class="mb-5">
@@ -286,9 +305,9 @@ onKeyStroke('Enter', () => {
             <NcDropdown v-model:visible="dropdownOpen" class="mt-2">
               <div
                 class="rounded-lg border-1 transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-3"
-                style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                style="box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08)"
                 :class="{
-                  '!border-brand-500 !shadow-selected': dropdownOpen,
+                  '!border-nc-border-brand !shadow-selected': dropdownOpen,
                 }"
               >
                 <GeneralWorkspaceIcon size="small" :workspace="targetWorkspace" />
@@ -342,7 +361,11 @@ onKeyStroke('Enter', () => {
                         <div v-if="activeWorkspace?.id === option.id" class="text-nc-content-gray-muted leading-4.5 text-xs">
                           {{ $t('labels.currentWorkspace') }}
                         </div>
-                        <GeneralIcon v-if="option.id === targetWorkspace?.id" class="text-brand-500 w-4 h-4" icon="ncCheck" />
+                        <GeneralIcon
+                          v-if="option.id === targetWorkspace?.id"
+                          class="text-nc-content-brand w-4 h-4"
+                          icon="ncCheck"
+                        />
                       </div>
                     </div>
                   </template>

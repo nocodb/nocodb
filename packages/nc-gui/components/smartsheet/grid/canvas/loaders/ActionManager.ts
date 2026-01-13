@@ -20,10 +20,11 @@ interface CellUpdate {
 
 export class ActionManager {
   private api: Api<any>
-  private readonly loadAutomation: (id: string) => Promise<any>
+  private readonly loadScript: (id: string) => Promise<any>
   private readonly generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>
   private readonly triggerRefreshCanvas: () => void
   private meta: Ref<TableType>
+  private baseInfo: { baseId: string; workspaceId: string } | null = null
   private readonly getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
@@ -47,7 +48,7 @@ export class ActionManager {
 
   constructor(
     api: Api<any>,
-    loadAutomation: (id: string) => Promise<any>,
+    loadScript: (id: string) => Promise<any>,
     generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>,
     meta: Ref<TableType>,
     triggerRefreshCanvas: () => void,
@@ -62,7 +63,7 @@ export class ActionManager {
     userSync?: any,
   ) {
     this.api = api
-    this.loadAutomation = loadAutomation
+    this.loadScript = loadScript
     this.generateRows = generateRows
     this.meta = meta
     this.triggerRefreshCanvas = triggerRefreshCanvas
@@ -73,66 +74,76 @@ export class ActionManager {
     this.setupEventListeners()
   }
 
-  private setupEventListeners() {
-    if (!this.eventBus) return
+  setBaseInfo(baseId: string, workspaceId: string) {
+    this.baseInfo = { baseId, workspaceId }
+  }
 
-    const eventHandlers = {
-      [SmartsheetScriptActions.BULK_ACTION_START]: (payload: any) => {
-        this.activeBulkExecs.set(payload.columnId, true)
-        this.startAnimationLoop()
-      },
-      [SmartsheetScriptActions.BULK_ACTION_END]: (payload: any) => {
-        if (payload.columnId) {
-          this.activeBulkExecs.delete(payload.columnId)
-          this.clearBulkRowStatesForColumn(payload.columnId)
-        }
-      },
-      [SmartsheetScriptActions.BUTTON_ACTION_START]: (payload: any) => {
+  private eventMap = {
+    [SmartsheetScriptActions.BULK_ACTION_START]: (payload: any) => {
+      this.activeBulkExecs.set(payload.columnId, true)
+      this.startAnimationLoop()
+    },
+    [SmartsheetScriptActions.BULK_ACTION_END]: (payload: any) => {
+      if (payload.columnId) {
+        this.activeBulkExecs.delete(payload.columnId)
+        this.clearBulkRowStatesForColumn(payload.columnId)
+      }
+    },
+    [SmartsheetScriptActions.BUTTON_ACTION_START]: (payload: any) => {
+      this.setBulkRowState(payload.rowId, payload.columnId, {
+        status: 'loading',
+        startTime: Date.now(),
+        stepTitle: payload.stepTitle,
+      })
+    },
+    [SmartsheetScriptActions.BUTTON_ACTION_PROGRESS]: (payload: any) => {
+      console.log('BUTTON_ACTION_PROGRESS', payload)
+      const rowState = this.getBulkRowState(payload.rowId, payload.columnId)
+      if (rowState) {
         this.setBulkRowState(payload.rowId, payload.columnId, {
-          status: 'loading',
-          startTime: Date.now(),
+          ...rowState,
           stepTitle: payload.stepTitle,
         })
-      },
-      [SmartsheetScriptActions.BUTTON_ACTION_PROGRESS]: (payload: any) => {
-        console.log('BUTTON_ACTION_PROGRESS', payload)
-        const rowState = this.getBulkRowState(payload.rowId, payload.columnId)
-        if (rowState) {
-          this.setBulkRowState(payload.rowId, payload.columnId, {
-            ...rowState,
-            stepTitle: payload.stepTitle,
-          })
-        }
-      },
-      [SmartsheetScriptActions.BUTTON_ACTION_COMPLETE]: (payload: any) => {
-        this.setBulkRowState(payload.rowId, payload.columnId, {
-          status: payload.success ? 'success' : 'error',
-          error: payload.error,
-        })
-      },
-      [SmartsheetScriptActions.BUTTON_ACTION_ERROR]: (payload: any) => {
-        this.setBulkRowState(payload.rowId, payload.columnId, {
-          status: 'error',
-          error: payload.error,
-        })
-      },
-      [SmartsheetScriptActions.UPDATE_STEP_TITLE]: (payload: any) => {
-        this.setCurrentStepTitle(payload.pk, payload.fieldId, payload.title)
-      },
-      [SmartsheetScriptActions.START_CELL_UPDATE]: (payload: any) => {
-        this.startCellUpdate(payload.recordId, payload.fieldId, payload.fieldName, payload.scriptId)
-      },
-      [SmartsheetScriptActions.COMPLETE_CELL_UPDATE]: (payload: any) => {
-        this.completeCellUpdate(payload.recordId, payload.fieldId)
-      },
-      [SmartsheetScriptActions.CLEAR_SCRIPT_CELL_UPDATES]: (payload: any) => {
-        this.clearScriptCellUpdates(payload.scriptId)
-      },
-    }
+      }
+    },
+    [SmartsheetScriptActions.BUTTON_ACTION_COMPLETE]: (payload: any) => {
+      this.setBulkRowState(payload.rowId, payload.columnId, {
+        status: payload.success ? 'success' : 'error',
+        error: payload.error,
+      })
+    },
+    [SmartsheetScriptActions.BUTTON_ACTION_ERROR]: (payload: any) => {
+      this.setBulkRowState(payload.rowId, payload.columnId, {
+        status: 'error',
+        error: payload.error,
+      })
+    },
+    [SmartsheetScriptActions.UPDATE_STEP_TITLE]: (payload: any) => {
+      this.setCurrentStepTitle(payload.pk, payload.fieldId, payload.title)
+    },
+    [SmartsheetScriptActions.START_CELL_UPDATE]: (payload: any) => {
+      this.startCellUpdate(payload.recordId, payload.fieldId, payload.fieldName, payload.scriptId)
+    },
+    [SmartsheetScriptActions.COMPLETE_CELL_UPDATE]: (payload: any) => {
+      this.completeCellUpdate(payload.recordId, payload.fieldId)
+    },
+    [SmartsheetScriptActions.CLEAR_SCRIPT_CELL_UPDATES]: (payload: any) => {
+      this.clearScriptCellUpdates(payload.scriptId)
+    },
+  }
 
-    this.eventBus.on((event: string, payload: any) => {
-      eventHandlers[event]?.(payload)
-    })
+  private eventHandler = (event: string, payload: any) => {
+    this.eventMap[event]?.(payload)
+  }
+
+  private setupEventListeners() {
+    if (!this.eventBus) return
+    this.eventBus.on(this.eventHandler)
+  }
+
+  public releaseEventListeners() {
+    if (!this.eventBus) return
+    this.eventBus.off(this.eventHandler)
   }
 
   private getKey(rowId: string, columnId: string): string {
@@ -300,13 +311,28 @@ export class ActionManager {
           if (!webhookId) throw new Error('No webhook configured')
 
           for (const rowId of rowIds) {
-            await this.executeAction(rowId, column.id, [], () => this.api.dbTableWebhook.trigger(webhookId, rowId))
+            await this.executeAction(rowId, column.id, [], async () => {
+              if (!this.baseInfo) {
+                throw new Error('Base information not available. Call setBaseInfo() first.')
+              }
+
+              return this.api.internal.postOperation(
+                this.baseInfo.workspaceId,
+                this.baseInfo.baseId,
+                {
+                  operation: 'hookTrigger',
+                  hookId: webhookId,
+                  rowId,
+                },
+                {},
+              )
+            })
           }
           break
         }
 
         case 'script': {
-          const script = await this.loadAutomation(colOptions.fk_script_id)
+          const script = await this.loadScript(colOptions.fk_script_id)
 
           for (let i = 0; i < rowIds.length; i++) {
             const rowId = rowIds[i]!

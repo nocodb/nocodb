@@ -4,40 +4,52 @@ import isBetween from 'dayjs/plugin/isBetween';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 import relativeTime from 'dayjs/plugin/relativeTime.js';
+import utc from 'dayjs/plugin/utc.js';
+import timezone from 'dayjs/plugin/timezone.js';
 import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
 import { isDateMonthFormat } from '~/lib/dateTimeHelper';
 import { buildFilterTree } from '~/lib/filterHelpers';
 import { parseProp } from '~/lib/helperFunctions';
 import UITypes from '~/lib/UITypes';
 import { getLookupColumnType } from '~/lib/columnHelper/utils/get-lookup-column-type';
-import { CURRENT_USER_TOKEN } from '~/lib';
-import { ColumnHelper } from '~/lib';
+import { getNodejsTimezone } from '~/lib/timezoneUtils';
+import { ColumnHelper } from '~/lib/columnHelper/column-helper';
+import { CURRENT_USER_TOKEN } from '~/lib/globals';
+import { getMetaWithCompositeKey } from '~/lib/helpers/metaHelpers';
 
+extend(utc);
+extend(timezone);
 extend(relativeTime);
 extend(customParseFormat);
 extend(isSameOrBefore);
 extend(isSameOrAfter);
 extend(isBetween);
 
+const ncToString = (value: any) => {
+  return value?.toString?.() || '';
+};
+
 export function validateRowFilters(params: {
-  filters: FilterType[];
+  filters: (FilterType & { meta?: any })[];
   data: any;
   columns: ColumnType[];
   client: any;
   metas: Record<string, any>;
+  baseId?: string;
   options?: {
     currentUser?: {
       id: string;
       email: string;
     };
+    timezone?: string;
   };
 }) {
-  const { filters: _filters, data, columns, client, metas } = params;
+  const { filters: _filters, data = {}, columns, client, metas, baseId } = params;
   if (!_filters.length) {
     return true;
   }
 
-  const filters = buildFilterTree(_filters);
+  const filters: (FilterType & { meta?: any })[] = buildFilterTree(_filters);
 
   let isValid: boolean | null = null;
   for (const filter of filters) {
@@ -49,6 +61,7 @@ export function validateRowFilters(params: {
         columns: columns,
         client: client,
         metas: metas,
+        baseId: baseId,
       });
     } else {
       const column = columns.find((c) => c.id === filter.fk_column_id);
@@ -68,19 +81,27 @@ export function validateRowFilters(params: {
           filter.comparison_op!
         )
       ) {
+        const getTimezone = () => {
+          return getNodejsTimezone(
+            parseProp(filter.meta).timezone,
+            parseProp(column.meta).timezone,
+            params.options?.timezone
+          );
+        };
         const dateFormat =
           client === 'mysql2' ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ';
 
-        let now = dayjs(new Date());
+        let now = dayjs.tz(new Date(), getTimezone());
         const dateFormatFromMeta = parseProp(column.meta)?.date_format;
         const dataVal: any = val;
         let filterVal: any = filter.value;
         if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
           // reset to 1st
-          now = dayjs(now).date(1);
-          if (val) val = dayjs(val).date(1);
+          now = now.date(1);
+          if (val) val = dayjs.tz(val, getTimezone()).date(1);
         }
-        if (filterVal) res = dayjs(filterVal).isSame(dataVal, 'day');
+        if (filterVal)
+          res = dayjs.tz(filterVal, getTimezone()).isSame(dataVal, 'day');
 
         // handle sub operation
         switch (filter.comparison_sub_op) {
@@ -149,24 +170,42 @@ export function validateRowFilters(params: {
           switch (filter.comparison_op as any) {
             case 'eq':
             case 'gb_eq':
-              res = dayjs(dataVal).isSame(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isSame(filterVal, 'day');
               break;
             case 'neq':
-              res = !dayjs(dataVal).isSame(filterVal, 'day');
+              res = !dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isSame(filterVal, 'day');
               break;
             case 'gt':
-              res = dayjs(dataVal).isAfter(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isAfter(filterVal, 'day');
               break;
             case 'lt':
-              res = dayjs(dataVal).isBefore(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isBefore(filterVal, 'day');
               break;
             case 'lte':
             case 'le':
-              res = dayjs(dataVal).isSameOrBefore(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isSameOrBefore(filterVal, 'day');
               break;
             case 'gte':
             case 'ge':
-              res = dayjs(dataVal).isSameOrAfter(filterVal, 'day');
+              res = dayjs
+                .utc(dataVal)
+                .tz(getTimezone())
+                .isSameOrAfter(filterVal, 'day');
               break;
             case 'empty':
             case 'blank':
@@ -181,21 +220,34 @@ export function validateRowFilters(params: {
               );
               break;
             case 'isWithin': {
-              let now = dayjs(new Date()).format(dateFormat).toString();
+              let now = dayjs
+                .tz(new Date(), getTimezone())
+                .format(dateFormat)
+                .toString();
               now = column.uidt === UITypes.Date ? now.substring(0, 10) : now;
               switch (filter.comparison_sub_op) {
                 case 'pastWeek':
                 case 'pastMonth':
                 case 'pastYear':
-                case 'pastNumberOfDays':
-                  res = dayjs(dataVal).isBetween(filterVal, now, 'day');
+                case 'pastNumberOfDays': {
+                  // the 'today' need to be included, hence we don't use isBetween
+                  const dataValDayjs = dayjs.utc(dataVal).tz(getTimezone());
+                  res =
+                    dataValDayjs.isSameOrAfter(filterVal, 'day') &&
+                    dataValDayjs.isSameOrBefore(now, 'day');
                   break;
+                }
                 case 'nextWeek':
                 case 'nextMonth':
                 case 'nextYear':
-                case 'nextNumberOfDays':
-                  res = dayjs(dataVal).isBetween(now, filterVal, 'day');
+                case 'nextNumberOfDays': {
+                  // the 'today' need to be included, hence we don't use isBetween
+                  const dataValDayjs = dayjs.utc(dataVal).tz(getTimezone());
+                  res =
+                    dataValDayjs.isSameOrAfter(now, 'day') &&
+                    dataValDayjs.isSameOrBefore(filterVal, 'day');
                   break;
+                }
               }
             }
           }
@@ -217,8 +269,9 @@ export function validateRowFilters(params: {
             [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
               getLookupColumnType({
                 col: column,
-                meta: { columns },
+                meta: { columns, base_id: baseId },
                 metas: metas,
+                baseId: baseId,
               }) as UITypes
             ))
         ) {
@@ -228,13 +281,15 @@ export function validateRowFilters(params: {
             ? [data[field].id]
             : [];
 
-          const filterValues = (filter.value?.split(',') || []).map((v) => {
-            let result = v.trim();
-            if (result === CURRENT_USER_TOKEN) {
-              result = params.options?.currentUser?.id ?? result;
+          const filterValues = (ncToString(filter.value).split(',') || []).map(
+            (v) => {
+              let result = v.trim();
+              if (result === CURRENT_USER_TOKEN) {
+                result = params.options?.currentUser?.id ?? result;
+              }
+              return result;
             }
-            return result;
-          });
+          );
 
           switch (filter.comparison_op) {
             case 'anyof':
@@ -269,7 +324,7 @@ export function validateRowFilters(params: {
 
           const relatedModelId = colOptions?.fk_related_model_id;
 
-          const relatedMeta = metas[relatedModelId];
+          const relatedMeta = getMetaWithCompositeKey(metas, baseId, relatedModelId);
 
           if (!relatedMeta?.columns) {
             res = false;
@@ -282,46 +337,52 @@ export function validateRowFilters(params: {
               const childFieldName = childColumn.title;
               const childValues = linkData
                 .map((item) => {
-                  return item?.[childFieldName]?.toString() || '';
+                  return ncToString(item?.[childFieldName]);
                 })
                 .filter((val) => val !== '');
 
               switch (filter.comparison_op) {
                 case 'eq':
-                  res = childValues.includes(filter.value);
+                  res = childValues.includes(ncToString(filter.value));
                   break;
                 case 'neq':
-                  res = !childValues.includes(filter.value);
+                  res = !childValues.includes(ncToString(filter.value));
                   break;
                 case 'like':
                   res = childValues.some((val) =>
                     val
                       .toLowerCase()
-                      .includes(filter.value?.toLowerCase() || '')
+                      .includes(ncToString(filter.value).toLowerCase())
                   );
                   break;
                 case 'nlike':
                   res = !childValues.some((val) =>
                     val
                       .toLowerCase()
-                      .includes(filter.value?.toLowerCase() || '')
+                      .includes(ncToString(filter.value).toLowerCase())
                   );
                   break;
                 case 'anyof': {
                   const filterValues =
-                    filter.value?.split(',').map((v) => v.trim()) || [];
+                    ncToString(filter.value)
+                      .split(',')
+                      .map((v) => v.trim()) || [];
                   res = childValues.some((val) => filterValues.includes(val));
                   break;
                 }
                 case 'nanyof': {
                   const filterValues2 =
-                    filter.value?.split(',').map((v) => v.trim()) || [];
+                    ncToString(filter.value)
+                      .split(',')
+                      .map((v) => v.trim()) || [];
                   res = !childValues.some((val) => filterValues2.includes(val));
                   break;
                 }
                 case 'allof': {
                   const filterValues3 =
-                    filter.value?.split(',').map((v) => v.trim()) || [];
+                    ncToString(filter.value)
+                      .split(',')
+                      .map((v) => v.trim()) || [];
                   res = filterValues3.every((filterVal) =>
                     childValues.includes(filterVal)
                   );
@@ -329,7 +390,9 @@ export function validateRowFilters(params: {
                 }
                 case 'nallof': {
                   const filterValues4 =
-                    filter.value?.split(',').map((v) => v.trim()) || [];
+                    ncToString(filter.value)
+                      .split(',')
+                      .map((v) => v.trim()) || [];
                   res = !filterValues4.every((filterVal) =>
                     childValues.includes(filterVal)
                   );
@@ -368,17 +431,15 @@ export function validateRowFilters(params: {
               break;
             case 'like':
               res =
-                data[field]
-                  ?.toString?.()
-                  ?.toLowerCase()
-                  ?.indexOf(filter.value?.toLowerCase()) > -1;
+                ncToString(data[field])
+                  .toLowerCase()
+                  .indexOf(ncToString(filter.value).toLowerCase()) > -1;
               break;
             case 'nlike':
               res =
-                data[field]
-                  ?.toString?.()
-                  ?.toLowerCase()
-                  ?.indexOf(filter.value?.toLowerCase()) === -1;
+                ncToString(data[field])
+                  .toLowerCase()
+                  .indexOf(ncToString(filter.value).toLowerCase()) === -1;
               break;
             case 'empty':
             case 'blank':
@@ -409,23 +470,39 @@ export function validateRowFilters(params: {
               break;
             case 'allof':
               res = (
-                filter.value?.split(',').map((item) => item.trim()) ?? []
-              ).every((item) => (data[field]?.split(',') ?? []).includes(item));
+                ncToString(filter.value)
+                  .split(',')
+                  .map((item) => item.trim()) ?? []
+              ).every((item) =>
+                (ncToString(data[field]).split(',') ?? []).includes(item)
+              );
               break;
             case 'anyof':
               res = (
-                filter.value?.split(',').map((item) => item.trim()) ?? []
-              ).some((item) => (data[field]?.split(',') ?? []).includes(item));
+                ncToString(filter.value)
+                  .split(',')
+                  .map((item) => item.trim()) ?? []
+              ).some((item) =>
+                (ncToString(data[field]).split(',') ?? []).includes(item)
+              );
               break;
             case 'nallof':
               res = !(
-                filter.value?.split(',').map((item) => item.trim()) ?? []
-              ).every((item) => (data[field]?.split(',') ?? []).includes(item));
+                ncToString(filter.value)
+                  .split(',')
+                  .map((item) => item.trim()) ?? []
+              ).every((item) =>
+                (ncToString(data[field]).split(',') ?? []).includes(item)
+              );
               break;
             case 'nanyof':
               res = !(
-                filter.value?.split(',').map((item) => item.trim()) ?? []
-              ).some((item) => (data[field]?.split(',') ?? []).includes(item));
+                ncToString(filter.value)
+                  .split(',')
+                  .map((item) => item.trim()) ?? []
+              ).some((item) =>
+                (ncToString(data[field]).split(',') ?? []).includes(item)
+              );
               break;
             case 'lt':
               res = +data[field] < +filter.value;

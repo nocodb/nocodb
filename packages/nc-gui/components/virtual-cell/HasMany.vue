@@ -56,7 +56,7 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, un
 await loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
-  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || isForm.value
+  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
 })
 
 const localCellValue = computed<any[]>(() => {
@@ -232,14 +232,19 @@ onUnmounted(() => {
           v-if="hasEditPermission"
           size="xsmall"
           type="secondary"
-          class="nc-action-icon nc-has-many-plus-icon"
+          class="nc-action-icon nc-has-many-plus-icon !h-5 !w-5 !min-w-5"
           @click.stop="openListDlg"
         >
-          <GeneralIcon icon="plus" class="text-sm nc-plus" />
+          <GeneralIcon icon="plus" class="text-sm nc-plus !h-3 !w-3" />
         </NcButton>
         <NcTooltip :title="$t('tooltip.expandShiftSpace')" :disabled="isExpandedForm" class="flex">
-          <NcButton size="xsmall" type="secondary" class="nc-action-icon nc-has-many-maximize-icon" @click.stop="openChildList">
-            <GeneralIcon icon="maximize" />
+          <NcButton
+            size="xsmall"
+            type="secondary"
+            class="nc-action-icon nc-has-many-maximize-icon !h-5 !w-5 !min-w-5"
+            @click.stop="openChildList"
+          >
+            <GeneralIcon icon="maximize" class="!h-3 !w-3" />
           </NcButton>
         </NcTooltip>
       </div>
@@ -259,6 +264,7 @@ onUnmounted(() => {
         v-model="childListDlg"
         :cell-value="localCellValue"
         :column="hasManyColumn"
+        :items="cells.length"
         @attach-record="onAttachRecord"
         @escape="isOpen = false"
       />

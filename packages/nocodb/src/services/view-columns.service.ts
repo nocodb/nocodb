@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { APIContext, AppEvents, EventType, ViewTypes } from 'nocodb-sdk';
+import {
+  APIContext,
+  AppEvents,
+  EventType,
+  NcBaseError,
+  ViewTypes,
+} from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import GridViewColumn from '../models/GridViewColumn';
 import GalleryViewColumn from '../models/GalleryViewColumn';
 import KanbanViewColumn from '../models/KanbanViewColumn';
@@ -27,6 +34,7 @@ import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
 @Injectable()
 export class ViewColumnsService {
+  private logger = new Logger(ViewColumnsService.name);
   constructor(private appHooksService: AppHooksService) {}
 
   async columnList(
@@ -110,7 +118,7 @@ export class ViewColumnsService {
     const view = await View.get(context, param.viewId, ncMeta);
 
     if (!view) {
-      NcError.viewNotFound(param.viewId);
+      NcError.get(context).viewNotFound(param.viewId);
     }
 
     const oldViewColumn = await View.getColumn(
@@ -222,7 +230,7 @@ export class ViewColumnsService {
       : param.columns?.[APIContext.VIEW_COLUMNS];
 
     if (!columns) {
-      NcError.badRequest('Invalid request - fields not found');
+      NcError.get(context).badRequest('Invalid request - fields not found');
     }
 
     const view = await View.get(context, viewId);
@@ -233,7 +241,7 @@ export class ViewColumnsService {
     const ncMeta = await Noco.ncMeta.startTransaction();
 
     if (!view) {
-      NcError.notFound('View not found');
+      NcError.get(context).viewNotFound('View not found');
     }
 
     let viewWebhookManager: ViewWebhookManager;
@@ -440,7 +448,9 @@ export class ViewColumnsService {
       return result;
     } catch (e) {
       await ncMeta.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error updating view columns', e);
+      NcError.get(context).badRequest('Bad Request');
     }
   }
 

@@ -18,7 +18,8 @@ export const LongTextCellRenderer: CellRenderer = {
       height,
       pv,
       padding,
-      textColor = '#4a5268',
+      textColor = themeV4Colors.gray['600'],
+      getColor,
       mousePosition,
       spriteLoader,
       setCursor,
@@ -39,11 +40,14 @@ export const LongTextCellRenderer: CellRenderer = {
           size: 12,
           xOffset: 4,
           yOffset: 4,
+          color: getColor(themeV4Colors.gray['700']),
         },
         mousePosition,
         spriteLoader,
         icon: 'maximize',
-        background: 'white',
+        background: getColor(themeV4Colors.base.white),
+        borderColor: getColor(themeV4Colors.gray['200']),
+        hoveredBackground: getColor(themeV4Colors.gray['100']),
         setCursor,
       })
     }
@@ -74,7 +78,7 @@ export const LongTextCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: pv ? '#3366FF' : textColor,
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
         mousePosition,
         spriteLoader,
@@ -82,6 +86,7 @@ export const LongTextCellRenderer: CellRenderer = {
         selected,
         baseUsers,
         user,
+        getColor,
       })
 
       // Restore context after clipping
@@ -102,9 +107,10 @@ export const LongTextCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: pv ? '#3366FF' : textColor,
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
         cellRenderStore: props.cellRenderStore,
+        renderAsPreTag: true,
       })
 
       if (!props.tag?.renderAsTag && selected) {

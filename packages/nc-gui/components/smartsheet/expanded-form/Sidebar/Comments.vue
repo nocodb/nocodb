@@ -87,6 +87,7 @@ const saveComment = async () => {
       created_by: user.value?.id,
       created_by_email: user.value?.email,
       created_display_name: user.value?.display_name ?? '',
+      created_display_name_short: user.value?.display_name ?? extractNameFromEmail(user.value?.email),
       created_by_meta: user.value?.meta ?? '',
     },
   ]
@@ -186,13 +187,13 @@ async function onEditComment() {
 
 const createdBy = (
   comment: CommentType & {
-    created_display_name?: string
+    created_display_name_short?: string
   },
 ) => {
   if (comment.created_by === user.value?.id) {
     return 'You'
-  } else if (comment.created_display_name?.trim()) {
-    return comment.created_display_name || 'Shared source'
+  } else if (comment.created_display_name_short?.trim()) {
+    return comment.created_display_name_short || 'Shared source'
   } else if (comment.created_by_email) {
     return comment.created_by_email
   } else {
@@ -457,7 +458,7 @@ onBeforeUnmount(() => {
                   </NcTooltip>
 
                   <NcTooltip v-else-if="commentItem.resolved_by">
-                    <template #title>{{ `${$t('activity.resolvedBy')} ${commentItem.resolved_display_name}` }}</template>
+                    <template #title>{{ `${$t('activity.resolvedBy')} ${commentItem.resolved_display_name_short}` }}</template>
                     <NcButton
                       class="!h-7 !w-7 !bg-transparent !hover:bg-nc-bg-gray-medium text-semibold"
                       size="xsmall"

@@ -339,6 +339,9 @@ const isColumnInvalid = ({
           result.isInvalid = true
           result.tooltip = `Input prompt has deleted column(s): ${missingIds.map((id) => id.title).join(', ')}`
         }
+      } else if (!colOptions.type) {
+        result.isInvalid = true
+        result.tooltip = 'msg.buttonTypeIsMissing'
       }
       break
     }
@@ -424,6 +427,7 @@ const formViewHiddenColTypes = [
   UITypes.LastModifiedTime,
   UITypes.CreatedBy,
   UITypes.LastModifiedBy,
+  UITypes.Meta,
   AIButton,
   AIPrompt,
 ]
@@ -542,9 +546,14 @@ const canUseForLookupLinkField = (c: ColumnType, metaSourceId?: string) => {
 const getValidRollupColumn = (c: ColumnType) => {
   return (
     (!isVirtualCol(c.uidt as UITypes) ||
-      [UITypes.CreatedTime, UITypes.CreatedBy, UITypes.LastModifiedTime, UITypes.LastModifiedBy, UITypes.Formula].includes(
-        c.uidt as UITypes,
-      )) &&
+      [
+        UITypes.CreatedTime,
+        UITypes.CreatedBy,
+        UITypes.LastModifiedTime,
+        UITypes.LastModifiedBy,
+        UITypes.Formula,
+        UITypes.Rollup,
+      ].includes(c.uidt as UITypes)) &&
     (!isSystemColumn(c) || c.pk)
   )
 }

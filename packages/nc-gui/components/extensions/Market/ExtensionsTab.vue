@@ -8,11 +8,11 @@ const props = withDefaults(defineProps<Props>(), {})
 
 const emits = defineEmits(['update:searchQuery', 'update:isOpen'])
 
-const { $e } = useNuxtApp()
-
 const searchQuery = useVModel(props, 'searchQuery', emits)
 
 const isOpen = useVModel(props, 'isOpen', emits)
+
+const { $e } = useNuxtApp()
 
 watchDebounced(
   searchQuery,
@@ -24,7 +24,7 @@ watchDebounced(
   { debounce: 3000 },
 )
 
-const { availableExtensions, addExtension, getExtensionAssetsUrl, showExtensionDetails } = useExtensions()
+const { availableExtensions, addExtension, getExtensionAssetsUrl, showExtensionDetails, extensionAccess } = useExtensions()
 
 const { blockAddNewExtension } = useEeConfig()
 
@@ -66,7 +66,7 @@ const onAddExtension = (ext: any) => {
       >
         <template v-for="ext of filteredAvailableExtensions" :key="ext.id">
           <div
-            class="nc-market-extension-item flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-gray-50 transition-all"
+            class="nc-market-extension-item flex items-center gap-3 border-1 rounded-xl p-3 cursor-pointer hover:bg-nc-bg-gray-extralight transition-all"
             :data-testid="`nc-extension-${ext.id}`"
             @click="onExtensionClick(ext.id)"
           >
@@ -95,25 +95,30 @@ const onAddExtension = (ext: any) => {
                 {{ ext.subTitle }}
               </NcTooltip>
             </div>
-            <NcButton
-              v-if="!blockAddNewExtension"
-              size="small"
-              type="secondary"
-              class="flex-none !px-7px"
-              @click.stop="onAddExtension(ext)"
-            >
-              <div class="flex items-center gap-1 -ml-3px text-small">
-                <GeneralIcon icon="plus" />
-                {{ $t('general.add') }}
-              </div>
-            </NcButton>
+            <NcTooltip v-if="!blockAddNewExtension" :disabled="extensionAccess.create">
+              <template #title>
+                {{ $t('tooltip.youDoNotHaveSufficientPermissionToAddExtension') }}
+              </template>
+              <NcButton
+                size="small"
+                type="secondary"
+                class="flex-none !px-7px"
+                :disabled="!extensionAccess.create"
+                @click.stop="onAddExtension(ext)"
+              >
+                <div class="flex items-center gap-1 -ml-3px text-small">
+                  <GeneralIcon icon="plus" />
+                  {{ $t('general.add') }}
+                </div>
+              </NcButton>
+            </NcTooltip>
           </div>
         </template>
         <div
           v-if="searchQuery && !filteredAvailableExtensions.length && availableExtensions.length"
           class="w-full h-full flex items-center justify-center"
         >
-          <div class="pb-6 text-gray-500 flex flex-col items-center gap-6 text-center">
+          <div class="pb-6 text-nc-content-gray-muted flex flex-col items-center gap-6 text-center">
             <img
               src="~assets/img/placeholder/no-search-result-found.png"
               class="!w-[164px] flex-none"
@@ -127,3 +132,11 @@ const onAddExtension = (ext: any) => {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-market-extension-item {
+  &:hover {
+    box-shadow: 0px 4px 8px -2px rgba(var(--rgb-base), 0.08), 0px 2px 4px -2px rgba(var(--rgb-base), 0.04);
+  }
+}
+</style>

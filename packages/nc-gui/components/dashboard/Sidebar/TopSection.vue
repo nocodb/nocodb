@@ -65,8 +65,9 @@ const navigateToIntegrations = () => {
         data-testid="nc-sidebar-team-settings-btn"
         :centered="false"
         :class="{
-          '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': isWorkspaceSettingsPageOpened,
-          '!hover:(bg-gray-200 text-gray-700)': !isWorkspaceSettingsPageOpened,
+          '!text-nc-content-brand-disabled !bg-nc-bg-brand-inverted !hover:bg-nc-bg-brand-inverted':
+            isWorkspaceSettingsPageOpened,
+          '!hover:(bg-nc-bg-gray-medium text-nc-content-inverted-secondary)': !isWorkspaceSettingsPageOpened,
         }"
         @click="navigateToSettings"
       >
@@ -89,8 +90,8 @@ const navigateToIntegrations = () => {
         data-testid="nc-sidebar-integrations-btn"
         :centered="false"
         :class="{
-          '!text-brand-600 !bg-brand-50 !hover:bg-brand-50': isIntegrationsPageOpened,
-          '!hover:(bg-gray-200 text-gray-700)': !isIntegrationsPageOpened,
+          '!text-nc-content-brand-disabled !bg-nc-bg-brand-inverted !hover:bg-nc-bg-brand-inverted': isIntegrationsPageOpened,
+          '!hover:(bg-nc-bg-gray-medium text-nc-content-inverted-secondary)': !isIntegrationsPageOpened,
         }"
         @click="navigateToIntegrations"
       >
@@ -108,7 +109,7 @@ const navigateToIntegrations = () => {
         v-model:is-open="isCreateProjectOpen"
         modal
         type="text"
-        class="nc-sidebar-top-button !hover:(bg-gray-200 text-gray-700) !xs:hidden !h-7 my-0.5"
+        class="nc-sidebar-top-button !hover:(bg-nc-bg-gray-medium text-nc-content-inverted-secondary) !xs:hidden !h-7 my-0.5"
         data-testid="nc-sidebar-create-base-btn"
       >
         <div class="gap-x-2 flex flex-row w-full items-center">

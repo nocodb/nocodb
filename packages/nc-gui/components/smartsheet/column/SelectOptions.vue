@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import tinycolor from 'tinycolor2'
 import { type SelectOptionsType, UITypes } from 'nocodb-sdk'
 import InfiniteLoading from 'v3-infinite-loading'
 
@@ -29,6 +28,8 @@ const vModel = useVModel(props, 'value', emit)
 const { isKanbanStack, optionId, isNewStack } = toRefs(props)
 
 const { $e } = useNuxtApp()
+
+const { isDark, getColor } = useTheme()
 
 const { setAdditionalValidations, validateInfos, column } = useColumnCreateStoreOrThrow()
 
@@ -502,8 +503,8 @@ if (!isKanbanStack.value) {
       class="nc-col-option-select-option"
       :class="{
         'overflow-x-auto scrollbar-thin-dull rounded-lg': !isKanbanStack,
-        'border-1 border-gray-200': renderedOptions.length && !isKanbanStack,
-        'bg-white': isAiModeFieldModal,
+        'border-1 border-nc-border-gray-medium': renderedOptions.length && !isKanbanStack,
+        'bg-nc-bg-default': isAiModeFieldModal,
       }"
       :style="{
         maxHeight: props.fromTableExplorer ? 'calc(100vh - (var(--topbar-height) * 3.6) - 320px)' : 'calc(min(30vh, 250px))',
@@ -525,10 +526,8 @@ if (!isKanbanStack.value) {
                     'justify-center': isLoadingPredictOptions,
                   }"
                   :style="{
-                    backgroundColor: kanbanStackOption.color,
-                    color: tinycolor.isReadable(kanbanStackOption.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                      ? '#fff'
-                      : tinycolor.mostReadable(kanbanStackOption.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                    backgroundColor: getSelectTypeFieldOptionBgColor({ color: kanbanStackOption.color || '#ccc', isDark }),
+                    color: getSelectTypeFieldOptionTextColor({ color: kanbanStackOption.color || '#ccc', isDark, getColor }),
                   }"
                 >
                   <GeneralLoader v-if="isLoadingPredictOptions" size="regular" class="!text-current" />
@@ -541,6 +540,8 @@ if (!isKanbanStack.value) {
                   <LazyGeneralAdvanceColorPicker
                     v-model="kanbanStackOption.color"
                     :is-open="colorMenus[kanbanStackOption.index!]"
+                    invert-in-dark-mode
+                    show-text-icon
                     @input="(el:string) => {
                       kanbanStackOption!.color = el
                       optionChanged(kanbanStackOption!)
@@ -566,7 +567,7 @@ if (!isKanbanStack.value) {
 
           <div
             v-if="isNewStack"
-            class="ml-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center"
+            class="ml-1 hover:!text-nc-content-gray-subtle text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center"
             @click="emit('saveChanges', true, false)"
           >
             <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
@@ -574,7 +575,14 @@ if (!isKanbanStack.value) {
         </div>
       </template>
       <template v-else>
-        <InfiniteLoading v-if="isReverseLazyLoad" v-bind="$attrs" @infinite="loadListDataReverse">
+        <InfiniteLoading
+          v-if="isReverseLazyLoad"
+          v-bind="$attrs"
+          top
+          :target="optionsWrapperDomRef"
+          :distance="80"
+          @infinite="loadListDataReverse"
+        >
           <template #spinner>
             <div class="flex flex-row w-full justify-center mt-2">
               <GeneralLoader />
@@ -592,7 +600,7 @@ if (!isKanbanStack.value) {
           @change="syncOptions"
         >
           <template #item="{ element, index }">
-            <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
+            <div class="flex py-1 items-center nc-select-option hover:bg-nc-bg-gray-light group">
               <div
                 class="flex items-center w-full"
                 :data-testid="`select-column-option-${index}`"
@@ -600,7 +608,7 @@ if (!isKanbanStack.value) {
               >
                 <div
                   v-if="!isKanban"
-                  class="nc-child-draggable-icon p-2 flex cursor-pointer"
+                  class="nc-child-draggable-icon p-2 flex cursor-pointer text-nc-content-gray-subtle"
                   :data-testid="`select-option-column-handle-icon-${element.title}`"
                 >
                   <component :is="iconMap.dragVertical" small class="handle" />
@@ -611,10 +619,8 @@ if (!isKanbanStack.value) {
                     <div
                       class="h-6 w-6 rounded flex items-center"
                       :style="{
-                        backgroundColor: element.color,
-                        color: tinycolor.isReadable(element.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                          ? '#fff'
-                          : tinycolor.mostReadable(element.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                        backgroundColor: getSelectTypeFieldOptionBgColor({ color: element.color, isDark }),
+                        color: getSelectTypeFieldOptionTextColor({ color: element.color, isDark, getColor }),
                       }"
                     >
                       <GeneralIcon icon="arrowDown" class="flex-none h-4 w-4 m-auto !text-current" />
@@ -626,6 +632,8 @@ if (!isKanbanStack.value) {
                       <LazyGeneralAdvanceColorPicker
                         v-model="element.color"
                         :is-open="colorMenus[index]"
+                        invert-in-dark-mode
+                        show-text-icon
                         @input="(el:string) => {
                           element.color = el
                           optionChanged(element)
@@ -648,7 +656,7 @@ if (!isKanbanStack.value) {
               <div
                 v-if="element.status !== 'remove'"
                 :data-testid="`select-column-option-remove-${index}`"
-                class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
+                class="mx-1 hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="removeRenderedOption(index)"
               >
                 <component :is="iconMap.close" class="-mt-0.25 w-4 h-4" />
@@ -656,18 +664,18 @@ if (!isKanbanStack.value) {
               <div
                 v-else
                 :data-testid="`select-column-option-remove-undo-${index}`"
-                class="mx-1 hover:!text-black-500 text-gray-500 cursor-pointer hover:bg-gray-200 py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
+                class="mx-1 hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer hover:bg-nc-bg-gray-medium py-1 px-1.5 rounded-md h-7 flex items-center invisible group-hover:visible"
                 @click="undoRemoveRenderedOption(index)"
               >
                 <MdiArrowULeftBottom
-                  class="hover:!text-black-500 text-gray-500 cursor-pointer w-4 h-4"
+                  class="hover:!text-nc-content-gray-extreme-500 text-nc-content-gray-muted cursor-pointer w-4 h-4"
                   @click="undoRemoveRenderedOption(index)"
                 />
               </div>
             </div>
           </template>
           <template v-if="isLoadingPredictOptions" #footer>
-            <div class="flex py-1 items-center nc-select-option hover:bg-gray-100 group">
+            <div class="flex py-1 items-center nc-select-option hover:bg-nc-bg-gray-light group">
               <div class="flex items-center w-full">
                 <div class="p-2 flex !cursor-disabled">
                   <component :is="iconMap.dragVertical" small class="handle opacity-75" />
@@ -676,10 +684,8 @@ if (!isKanbanStack.value) {
                   <div
                     class="h-6 w-6 rounded flex items-center justify-center"
                     :style="{
-                      backgroundColor: getNextColor(),
-                      color: tinycolor.isReadable(getNextColor() || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                        ? '#fff'
-                        : tinycolor.mostReadable(getNextColor() || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                      backgroundColor: getSelectTypeFieldOptionBgColor({ color: getNextColor(), isDark }),
+                      color: getSelectTypeFieldOptionTextColor({ color: getNextColor(), isDark, getColor }),
                     }"
                   >
                     <GeneralLoader size="regular" class="!text-current" />
@@ -691,7 +697,13 @@ if (!isKanbanStack.value) {
             </div>
           </template>
         </Draggable>
-        <InfiniteLoading v-if="!isReverseLazyLoad" v-bind="$attrs" @infinite="loadListData">
+        <InfiniteLoading
+          v-if="!isReverseLazyLoad"
+          v-bind="$attrs"
+          :target="optionsWrapperDomRef"
+          :distance="80"
+          @infinite="loadListData"
+        >
           <template #spinner>
             <div class="flex flex-row w-full justify-center mt-2">
               <GeneralLoader />
@@ -718,7 +730,7 @@ if (!isKanbanStack.value) {
       class="nc-add-select-option-btn-wrapper flex shadow-sm"
       :class="{
         'mt-2': renderedOptions.length,
-        'bg-white': isAiModeFieldModal,
+        'bg-nc-bg-default': isAiModeFieldModal,
       }"
     >
       <NcButton
@@ -798,7 +810,7 @@ if (!isKanbanStack.value) {
   left: 0;
   top: 50%;
   height: 1px;
-  background: #ccc;
+  background: var(--color-gray-300);
   content: '';
   width: calc(100% + 5px);
   display: block;

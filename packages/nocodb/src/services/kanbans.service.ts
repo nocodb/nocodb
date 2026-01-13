@@ -75,6 +75,27 @@ export class KanbansService {
       }
     }
 
+    param.kanban.title = param.kanban.title?.trim();
+    const existingView = await View.getByTitleOrId(
+      context,
+      {
+        titleOrId: param.kanban.title,
+        fk_model_id: param.tableId,
+      },
+      ncMeta,
+    );
+    if (existingView) {
+      NcError.get(context).duplicateAlias({
+        type: 'view',
+        alias: param.kanban.title,
+        label: 'title',
+        base: context.base_id,
+        additionalTrace: {
+          table: param.tableId,
+        },
+      });
+    }
+
     const viewWebhookManager =
       param.viewWebhookManager ??
       (
@@ -105,6 +126,7 @@ export class KanbansService {
 
     const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
+      context,
       CacheScope.VIEW,
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,
@@ -168,7 +190,7 @@ export class KanbansService {
     const view = await View.get(context, param.kanbanViewId, ncMeta);
 
     if (!view) {
-      NcError.viewNotFound(param.kanbanViewId);
+      NcError.get(context).viewNotFound(param.kanbanViewId);
     }
 
     const viewWebhookManager =
@@ -266,7 +288,7 @@ export class KanbansService {
     }
 
     // Update groupingFieldColumn in view meta
-    const viewMeta = parseProp(view) || {};
+    const viewMeta = parseProp(view?.meta) || {};
     await View.update(context, view.id, {
       ...view,
       meta: {

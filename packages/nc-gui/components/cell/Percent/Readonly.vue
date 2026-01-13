@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ColumnHelper, UITypes, ncIsNaN } from 'nocodb-sdk'
 interface Props {
   modelValue?: number | string | null
   localEditEnabled?: boolean
@@ -26,23 +27,25 @@ const localEditEnabled = useVModel(props, 'localEditEnabled', emits, { defaultVa
 
 const expandedEditEnabled = ref(false)
 
+const percentMeta = computed(() => {
+  return {
+    ...ColumnHelper.getColumnDefaultMeta(UITypes.Percent),
+    ...parseProp(column?.value?.meta),
+    is_progress: isUnderLookup.value && !isLinkRecordDropdown.value ? false : parseProp(column?.value?.meta).is_progress ?? false,
+  }
+})
+
 const percentValue = computed(() => {
-  return !ncIsNull(props.modelValue) && !ncIsUndefined(props.modelValue) && !isNaN(Number(props.modelValue))
-    ? `${props.modelValue}%`
+  return !ncIsNull(props.modelValue) && !ncIsUndefined(props.modelValue) && !ncIsNaN(props.modelValue)
+    ? `${formatPercentage(Number(props.modelValue), percentMeta.value.precision ?? 2)}`
     : props.modelValue
 })
+
 const percentValueNumber = computed(() => {
-  if (props.modelValue && props.modelValue !== '' && !isNaN(Number(props.modelValue))) {
+  if (props.modelValue && props.modelValue !== '' && !ncIsNaN(props.modelValue)) {
     return Number(props.modelValue)
   }
   return 0
-})
-
-const percentMeta = computed(() => {
-  return {
-    is_progress: false,
-    ...parseProp(column.value?.meta),
-  }
 })
 
 const onWrapperFocus = () => {
@@ -65,7 +68,7 @@ const progressPercent = computed(() => {
     !!percentMeta.value.is_progress &&
     !ncIsNull(props.modelValue) &&
     !ncIsUndefined(props.modelValue) &&
-    !isUnderLookup
+    !isUnderLookup.value
   ) {
     return Number(parseFloat(props.modelValue!.toString()).toFixed(2))
   }
@@ -74,7 +77,7 @@ const progressPercent = computed(() => {
 })
 
 const showAsProgres = computed(
-  () => (column.value.meta as any)?.is_progress && (isLinkRecordDropdown.value || (!isUnderLTAR.value && !isUnderLookup.value)),
+  () => percentMeta.value.is_progress && (isLinkRecordDropdown.value || (!isUnderLTAR.value && !isUnderLookup.value)),
 )
 
 const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpandedFormOpen.value))
@@ -100,7 +103,11 @@ const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpanded
       @focus="onWrapperFocus"
       @click="onWrapperFocus"
     >
-      <CellPercentProgressBar :percentage="percentValueNumber" :is-show-number="isExpandedFormOpen">
+      <CellPercentProgressBar
+        :percentage="percentValueNumber"
+        :is-show-number="isExpandedFormOpen"
+        :precision="percentMeta.precision"
+      >
         <template v-if="showInput" #default>
           <input
             class="w-full !border-none !outline-none focus:ring-0 min-h-[10px]"
@@ -127,8 +134,8 @@ const showInput = computed(() => !readOnly.value && (!isGrid.value || isExpanded
         :percent="progressPercent"
         size="small"
         status="normal"
-        stroke-color="#3366FF"
-        trail-color="#E5E5E5"
+        stroke-color="var(--nc-content-brand)"
+        trail-color="var(--nc-bg-brand-inverted)"
         :show-info="false"
       />
     </div>

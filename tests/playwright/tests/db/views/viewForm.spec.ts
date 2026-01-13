@@ -31,7 +31,7 @@ test.describe('Form view', () => {
     await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
-    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 0 });
+    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 1 });
 
     // verify form-view fields order
     await form.verifyFormViewFieldsOrder({
@@ -78,7 +78,7 @@ test.describe('Form view', () => {
     await dashboard.treeView.openTable({ title: 'Country', baseTitle: context.base.title });
 
     await dashboard.viewSidebar.createFormView({ title: 'CountryForm' });
-    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 0 });
+    await dashboard.viewSidebar.verifyView({ title: 'CountryForm', index: 1 });
 
     await form.configureHeader({
       title: 'Country',
@@ -332,7 +332,6 @@ test.describe('Form view with LTAR', () => {
 
     await dashboard.viewSidebar.createFormView({ title: 'NewForm' });
     const formUrl = await dashboard.form.topbar.getSharedViewUrl();
-    console.log(formUrl);
 
     // sign-out
     await dashboard.signOut();

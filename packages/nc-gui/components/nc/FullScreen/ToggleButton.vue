@@ -3,7 +3,7 @@ const { isMobileMode } = useGlobal()
 
 const sidebarStore = useSidebarStore()
 
-const { isFullScreen, ncIsIframeFullscreenSupported } = storeToRefs(sidebarStore)
+const { isFullScreen } = storeToRefs(sidebarStore)
 
 const { toggleFullScreenState: _toggleFullScreenState } = sidebarStore
 
@@ -12,7 +12,7 @@ const showLockResetLoading = ref(false)
 const userClickedOnToggleBtn = ref(false)
 
 const showToggleFullscreenBtn = computed(() => {
-  return !isMobileMode.value && (!ncIsIframe() || ncIsIframeFullscreenSupported.value)
+  return !isMobileMode.value
 })
 
 let lockResetTimer: any
@@ -36,26 +36,18 @@ watch(isFullScreen, async (newValue, _oldValue, onCleanup) => {
 })
 
 const toggleFullScreenState = () => {
+  // If it is inside iframe then open in new tab
+  if (ncIsIframe()) {
+    window.open(window.location.href, '_blank')
+    return
+  }
+
   if (isFullScreen.value) {
     userClickedOnToggleBtn.value = true
   }
 
   _toggleFullScreenState()
 }
-
-useEventListener('message', (event) => {
-  if (!ncIsIframe() && event.data.type !== 'nc-iframe-fullscreen-supported') return
-
-  ncIsIframeFullscreenSupported.value = !!event.data?.supported
-})
-
-onMounted(() => {
-  if (!ncIsIframe()) return
-
-  window.parent.postMessage({
-    type: 'request-nc-iframe-fullscreen-supported',
-  })
-})
 
 /**
  * hide-on-click is not working when we enter in fullscreen mode as tooltip is getting disabled as soon as we enter in fullscreen mode.
@@ -68,7 +60,13 @@ onMounted(() => {
     v-if="showToggleFullscreenBtn"
     :key="`${isFullScreen}`"
     hide-on-click
-    :title="showLockResetLoading ? $t('tooltip.releasingPreviousFullscreenLock') : $t('labels.enterFullscreen')"
+    :title="
+      showLockResetLoading
+        ? $t('tooltip.releasingPreviousFullscreenLock')
+        : ncIsIframe()
+        ? $t('labels.clickToOpenInNewTabToEnterFullscreen')
+        : $t('labels.enterFullscreen')
+    "
     :disabled="isFullScreen"
     placement="left"
     :class="{

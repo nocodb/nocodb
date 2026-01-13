@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CURRENT_USER_TOKEN, type ColumnType, type FilterType } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -59,6 +59,8 @@ const open = ref(false)
 
 const allFilters = ref({})
 
+const filterKey = ref(1)
+
 provide(AllFiltersInj, allFilters)
 
 useMenuCloseOnEsc(open)
@@ -66,13 +68,33 @@ useMenuCloseOnEsc(open)
 const draftFilter = ref({})
 const queryFilterOpen = ref(false)
 
-eventBus.on(async (event, column: ColumnType) => {
+const smartsheetEventListener = async (event: string, payload?: any) => {
+  if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
+    await loadFilters({
+      hookId: undefined,
+      isWebhook: false,
+      loadAllFilters: true,
+    })
+
+    filtersLength.value = nonDeletedFilters.value.length || 0
+
+    filterKey.value++
+  }
+
+  const column = payload?.column as ColumnType | undefined
+
   if (!column) return
 
   if (event === SmartsheetStoreEvents.FILTER_ADD) {
     draftFilter.value = { fk_column_id: column.id }
     open.value = true
   }
+}
+
+eventBus.on(smartsheetEventListener)
+
+onBeforeUnmount(() => {
+  eventBus.off(smartsheetEventListener)
 })
 
 const combinedFilterLength = computed(() => {
@@ -108,9 +130,15 @@ const checkForCurrentUserFilter = (currentFilters: FilterType[] = []) => {
 }
 
 if (isEeUI) {
-  reloadViewDataEventHook.on(async (params) => {
+  const reloadViewDataListener = async (params: any) => {
     if (params?.isFormFieldFilters) return
     isCurrentUserFilterPresent.value = checkForCurrentUserFilter(Object.values(allFilters.value).flat(Infinity) as FilterType[])
+  }
+
+  reloadViewDataEventHook.on(reloadViewDataListener)
+
+  onBeforeUnmount(() => {
+    reloadViewDataEventHook.off(reloadViewDataListener)
   })
 
   watch(
@@ -194,7 +222,7 @@ watch(
     </NcTooltip>
 
     <template #overlay>
-      <div>
+      <div :key="filterKey">
         <SmartsheetToolbarColumnFilter
           ref="filterComp"
           v-model:draft-filter="draftFilter"
@@ -218,7 +246,7 @@ watch(
                 {{ $t('title.urlFilters') }}
                 <div
                   v-if="filtersFromUrlParams?.filters?.length"
-                  class="bg-[#F0F3FF] px-1 rounded rounded-6px font-medium text-brand-500 h-5"
+                  class="bg-nc-bg-brand px-1 rounded rounded-6px font-medium text-nc-content-brand h-5"
                 >
                   {{ filtersFromUrlParams.filters.length }}
                 </div>
@@ -281,7 +309,7 @@ watch(
 .nc-query-filter.readonly {
   input,
   .text-nc-content-gray-muted {
-    @apply !text-gray-400;
+    @apply !text-nc-content-gray-disabled;
   }
 }
 </style>

@@ -20,7 +20,7 @@ export function useData(args: {
 
   const { t } = useI18n()
 
-  const { getMeta, metas } = useMetas()
+  const { getMeta, getMetaByKey } = useMetas()
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
@@ -198,7 +198,14 @@ export function useData(args: {
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
     undo = false,
   ) {
-    if (toUpdate.rowMeta) toUpdate.rowMeta.saving = true
+    if (toUpdate.rowMeta) {
+      toUpdate.rowMeta.saving = true
+
+      // Clear previous error for this property if it exists
+      if (toUpdate.rowMeta.errors && toUpdate.rowMeta.errors[property]) {
+        delete toUpdate.rowMeta.errors[property]
+      }
+    }
 
     try {
       const id = extractPkFromRow(toUpdate.row, metaValue?.columns as ColumnType[])
@@ -302,7 +309,14 @@ export function useData(args: {
       return updatedRowData
     } catch (e: any) {
       toUpdate.row[property] = toUpdate.oldRow[property]
-      message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+      const msg = await extractSdkResponseErrorMsg(e)
+
+      if (!toUpdate.rowMeta.errors) {
+        toUpdate.rowMeta.errors = {}
+      }
+      toUpdate.rowMeta.errors[property] = msg
+
+      message.error(`${t('msg.error.rowUpdateFailed')}: ${msg}`)
     } finally {
       if (toUpdate.rowMeta) toUpdate.rowMeta.saving = false
     }
@@ -492,7 +506,8 @@ export function useData(args: {
 
       const colOptions = column.colOptions as LinkToAnotherRecordType
 
-      const relatedTableMeta = metas.value?.[colOptions?.fk_related_model_id as string]
+      const relatedBaseId = (colOptions as any)?.fk_related_base_id || metaValue?.base_id
+      const relatedTableMeta = getMetaByKey(relatedBaseId, colOptions?.fk_related_model_id as string)
 
       if (isHm(column) || isMm(column)) {
         const relatedRows = (row[column.title!] ?? []) as Record<string, any>[]
@@ -654,7 +669,9 @@ export function useData(args: {
 
     isPaginationLoading.value = true
 
-    const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
+    const { list } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+      operation: 'dataList',
+      tableId: meta.value?.id as string,
       pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
     })
 
@@ -788,7 +805,9 @@ export function useData(args: {
 
     isPaginationLoading.value = true
 
-    const { list } = await $api.dbTableRow.list(NOCO, base?.value.id as string, meta.value?.id as string, {
+    const { list } = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+      operation: 'dataList',
+      tableId: meta.value?.id as string,
       pks: removedRowsData.map((row) => row[compositePrimaryKey]).join(','),
     })
 
@@ -885,9 +904,16 @@ export function useData(args: {
     { metaValue = meta.value, viewMetaValue = viewMeta.value }: { metaValue?: TableType; viewMetaValue?: ViewType } = {},
   ) {
     try {
-      const bulkDeletedRowsData = await $api.dbDataTableRow.delete(metaValue?.id as string, rows.length === 1 ? rows[0] : rows, {
-        viewId: viewMetaValue?.id as string,
-      })
+      const bulkDeletedRowsData = await $api.internal.postOperation(
+        (metaValue as any).fk_workspace_id!,
+        metaValue!.base_id!,
+        {
+          operation: 'dataDelete',
+          tableId: metaValue?.id as string,
+          viewId: viewMetaValue?.id as string,
+        },
+        rows.length === 1 ? rows[0] : rows,
+      )
       await reloadAggregate?.trigger()
 
       return rows.length === 1 && bulkDeletedRowsData ? [bulkDeletedRowsData] : bulkDeletedRowsData

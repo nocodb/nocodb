@@ -59,6 +59,10 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
 const expandedFormRowState = ref<Record<string, any>>()
 
+const tableRef = ref<typeof Table>()
+
+const selectedCellCount = computed(() => tableRef.value?.selectedCellCount ?? 0)
+
 const groupByKeyId = computed(() => routeQuery.value.group)
 
 const expandedFormOnRowIdDlg = computed({
@@ -315,17 +319,24 @@ async function deleteSelectedRowsWrapper() {
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
+const smartsheetEvents = (event: string) => {
+  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
+    reloadViewDataHook?.trigger()
+  }
+}
+
+eventBus.on(smartsheetEvents)
+
 onBeforeUnmount(async () => {
   // reset hooks
+  eventBus.off(smartsheetEvents)
   reloadViewDataHook?.off(reloadTableData)
 })
 
 reloadViewDataHook?.on(reloadTableData)
 
-eventBus.on((event) => {
-  if (event === SmartsheetStoreEvents.GROUP_BY_RELOAD || event === SmartsheetStoreEvents.DATA_RELOAD) {
-    reloadViewDataHook?.trigger()
-  }
+defineExpose({
+  selectedCellCount,
 })
 </script>
 
@@ -333,6 +344,7 @@ eventBus.on((event) => {
   <!-- eslint-disable vue/no-restricted-v-bind -->
   <Table
     v-if="vGroup.rows"
+    ref="tableRef"
     v-model:selected-all-records="selectedAllRecords"
     class="nc-group-table"
     :data="vGroup.rows"

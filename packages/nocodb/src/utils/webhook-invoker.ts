@@ -1,7 +1,8 @@
 import { Logger } from '@nestjs/common';
-import { hasInputCalls, NOCO_SERVICE_USERS } from 'nocodb-sdk';
+import { hasInputCalls, NOCO_SERVICE_USERS, ServiceUserType } from 'nocodb-sdk';
 import { useAgent } from 'request-filtering-agent';
 import { v4 as uuidv4 } from 'uuid';
+import { ncIsNullOrUndefined } from 'nocodb-sdk';
 import type { AxiosResponse } from 'axios';
 import type {
   HookLogType,
@@ -157,7 +158,8 @@ export class WebhookInvoker {
           }, {})
         : {},
       withCredentials: true,
-      ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true'
+      ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true' &&
+      !ncIsNullOrUndefined(url)
         ? {
             httpAgent: useAgent(url, {
               stopPortScanningByUrlRedirection: true,
@@ -224,8 +226,8 @@ export class WebhookInvoker {
   }
 
   // flatten filter tree and id dummy id if no id is present
-  flattenFilter(filters: Filter[], flattenedFilters = [], parentId = null) {
-    for (const filter of filters) {
+  flattenFilter(filters?: Filter[], flattenedFilters = [], parentId = null) {
+    for (const filter of filters || []) {
       // if parent id is present then set it as fk_parent_id
       if (parentId && !filter.fk_parent_id) {
         filter.fk_parent_id = parentId;
@@ -535,17 +537,53 @@ export class WebhookInvoker {
               );
             }
 
+            reqPayload = this.populateAxiosReq({
+              apiMeta: {
+                ...notification?.payload,
+                headers: [
+                  {
+                    name: 'nc-script-id',
+                    value: script.id,
+                    enabled: true,
+                  },
+                  {
+                    name: 'nc-script-title',
+                    value: script.title,
+                    enabled: true,
+                  },
+                ],
+                body: '{{ json event }}',
+              },
+              user,
+              hook: hookPayload,
+              model,
+              view,
+              prevData,
+              newData,
+            });
+
             await addJob?.(JobTypes.ExecuteAction, {
               context,
               scriptId: notification?.payload?.scriptId,
               modelId: model.id,
               records: datas,
+              hookPayload: {
+                ...hook,
+                operation: hookPayload.operation as any,
+                fk_hook_id: hook.id,
+                type: notification.type,
+                payload: JSON.stringify(
+                  this.extractReqPayloadForLog(reqPayload),
+                ),
+                triggered_by: user?.email,
+                conditions: JSON.stringify(filters),
+              },
               req: {
-                user: NOCO_SERVICE_USERS.AUTOMATION_USER,
+                user: NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER],
                 headers: {
                   'xc-auth': genJwt(
                     {
-                      ...NOCO_SERVICE_USERS.AUTOMATION_USER,
+                      ...NOCO_SERVICE_USERS[ServiceUserType.AUTOMATION_USER],
                       extra: {
                         context: {
                           ...context,
@@ -661,22 +699,193 @@ export class WebhookInvoker {
         };
       }
       if (throwErrorOnFailure) {
+        let errorMessage: string;
+
+        // Check for private IP address blocking
         if (e.isAxiosError) {
           if (
             e.message.includes('private IP address') ||
             e.response?.data?.message?.includes('private IP address')
           ) {
-            throw new Error(
-              `Connection to a private network IP is blocked for security reasons.` +
-                // shoe env var only if it's not EE or it's on-prem
-                (!isEE || isOnPrem
-                  ? `If this is intentional, set NC_ALLOW_LOCAL_HOOKS=true to allow local network webhooks.`
-                  : ''),
-            );
+            errorMessage = `Connection to a private network IP is blocked for security reasons.`;
+            if (!isEE || isOnPrem) {
+              errorMessage += ` If this is intentional, set NC_ALLOW_LOCAL_HOOKS=true to allow local network webhooks.`;
+            }
+            throw new Error(errorMessage);
+          }
+
+          // Check for Axios-specific errors
+          if (e.response) {
+            // Server responded with error status
+            const status = e.response.status;
+            const statusText = e.response.statusText;
+            const responseMessage =
+              e.response.data?.message || e.response.data?.error;
+
+            if (status === 401 || status === 403) {
+              errorMessage = `Authentication failed: ${
+                responseMessage || 'Unauthorized access'
+              }`;
+            } else if (status === 404) {
+              errorMessage = `Endpoint not found: ${reqPayload.url}`;
+            } else if (status === 429) {
+              errorMessage = `Rate limit exceeded: ${
+                responseMessage || 'Too many requests'
+              }`;
+            } else if (status >= 500) {
+              errorMessage = `Server error (${status}): ${
+                responseMessage || statusText || 'Internal server error'
+              }`;
+            } else if (status >= 400) {
+              errorMessage = `Client error (${status}): ${
+                responseMessage || statusText || 'Bad request'
+              }`;
+            } else {
+              errorMessage = `Request failed with status ${status}: ${
+                responseMessage || statusText || 'Unknown error'
+              }`;
+            }
+            throw new Error(errorMessage);
+          } else if (e.request) {
+            // Request was made but no response received
+            errorMessage = `No response received from ${reqPayload.url}: ${
+              e.message || 'Network error'
+            }`;
+            throw new Error(errorMessage);
           }
         }
 
-        throw e;
+        // Check for invalid URL
+        if (
+          e?.code?.includes?.('ERR_INVALID_URL') ||
+          e?.message?.includes?.('Invalid URL')
+        ) {
+          throw new Error(`Invalid URL: ${reqPayload.url}`);
+        }
+
+        // Check for DNS resolution errors
+        if (e?.code === 'ENOTFOUND' || e?.code === 'EAI_AGAIN') {
+          throw new Error(
+            `Unable to resolve hostname: ${reqPayload.url} (DNS lookup failed)`,
+          );
+        }
+
+        // Check for connection errors
+        if (e?.code === 'ECONNREFUSED') {
+          throw new Error(
+            `Connection refused by ${reqPayload.url} (server not reachable)`,
+          );
+        }
+
+        if (e?.code === 'ECONNRESET') {
+          throw new Error(
+            `Connection was reset by ${reqPayload.url} (network interruption)`,
+          );
+        }
+
+        if (e?.code === 'ECONNABORTED') {
+          throw new Error(`Connection to ${reqPayload.url} was aborted`);
+        }
+
+        // Check for timeout errors
+        if (e?.code === 'ETIMEDOUT' || e?.message?.includes?.('timeout')) {
+          throw new Error(
+            `Request to ${reqPayload.url} timed out (no response within time limit)`,
+          );
+        }
+
+        // Check for SSL/TLS certificate errors
+        if (
+          e?.code === 'CERT_HAS_EXPIRED' ||
+          e?.code === 'UNABLE_TO_VERIFY_LEAF_SIGNATURE' ||
+          e?.code === 'SELF_SIGNED_CERT_IN_CHAIN' ||
+          e?.message?.includes?.('certificate')
+        ) {
+          throw new Error(
+            `SSL/TLS certificate error for ${reqPayload.url}: ${
+              e.message || 'Invalid certificate'
+            }`,
+          );
+        }
+
+        // Check for protocol errors
+        if (
+          e?.code === 'ERR_INVALID_PROTOCOL' ||
+          e?.message?.includes?.('Protocol')
+        ) {
+          throw new Error(
+            `Invalid protocol in URL: ${reqPayload.url} (use http:// or https://)`,
+          );
+        }
+
+        // Check for proxy errors
+        if (e?.code === 'EPROTO' || e?.message?.includes?.('proxy')) {
+          throw new Error(`Proxy error when connecting to ${reqPayload.url}`);
+        }
+
+        // Check for network unreachable
+        if (e?.code === 'ENETUNREACH' || e?.code === 'EHOSTUNREACH') {
+          throw new Error(
+            `Network unreachable: Cannot connect to ${reqPayload.url}`,
+          );
+        }
+
+        // Check for too many redirects
+        if (
+          e?.message?.includes?.('Maximum redirect') ||
+          e?.message?.includes?.('too many redirects')
+        ) {
+          throw new Error(
+            `Too many redirects when accessing ${reqPayload.url}`,
+          );
+        }
+
+        // Check for request size errors
+        if (
+          e?.code === 'ERR_FR_MAX_BODY_LENGTH_EXCEEDED' ||
+          e?.message?.includes?.('maxBodyLength')
+        ) {
+          throw new Error(`Request body too large for ${reqPayload.url}`);
+        }
+
+        // Check for cancelled requests
+        if (e?.code === 'ERR_CANCELED' || e?.message?.includes?.('cancel')) {
+          throw new Error(`Request to ${reqPayload.url} was cancelled`);
+        }
+
+        // Check for socket hang up
+        if (e?.message?.includes?.('socket hang up')) {
+          throw new Error(
+            `Connection lost to ${reqPayload.url} (socket hang up)`,
+          );
+        }
+
+        // Check for address in use
+        if (e?.code === 'EADDRINUSE') {
+          throw new Error(
+            `Address already in use when connecting to ${reqPayload.url}`,
+          );
+        }
+
+        // Check for pipe errors
+        if (e?.code === 'EPIPE') {
+          throw new Error(`Broken pipe when writing to ${reqPayload.url}`);
+        }
+
+        // Fallback: No specific error pattern matched
+        errorMessage = e?.message || e?.code || 'Unknown error occurred';
+
+        // Add the URL context if not already in the message
+        if (!errorMessage.includes(reqPayload.url)) {
+          errorMessage = `Request to ${reqPayload.url} failed: ${errorMessage}`;
+        }
+
+        // Include error code if available for debugging
+        if (e?.code && !errorMessage.includes(e.code)) {
+          errorMessage += ` (Error code: ${e.code})`;
+        }
+
+        throw new Error(errorMessage);
       }
     } finally {
       if (hookLog) {

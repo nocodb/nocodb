@@ -1,5 +1,5 @@
 import type { ColumnType, FilterType, KanbanType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere } from 'nocodb-sdk'
+import { NcApiVersion, ViewLockType, ViewTypes, extractFilterFromXwhere, getFirstNonPersonalView } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
@@ -11,7 +11,12 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     initialSorts?: Ref<SortType[]>,
     initialFilters?: Ref<FilterType[]>,
   ) => {
-    const isPublic = inject(IsPublicInj, ref(false))
+    /**
+     * In shared view mode, `isPublic` will still be false because both
+     * `useProvideSmartsheetStore` and `provide(IsPublicInj)` are called at the same
+     * component level, so the inject doesn't see the provided value.
+     */
+    const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
     const { $api, $eventBus } = useNuxtApp()
 
@@ -20,11 +25,13 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
 
     const { user, isMobileMode } = useGlobal()
 
-    const { activeView: view, activeNestedFilters, activeSorts } = storeToRefs(useViewsStore())
+    const { isUIAllowed } = useRoles()
+
+    const { activeView: view, activeNestedFilters, activeSorts, views } = storeToRefs(useViewsStore())
 
     const baseStore = useBase()
 
-    const { sqlUis, base } = storeToRefs(baseStore)
+    const { sqlUis, base, isSharedBase } = storeToRefs(baseStore)
 
     const sqlUi = computed(() =>
       (meta.value as TableType)?.source_id ? sqlUis.value[(meta.value as TableType).source_id!] : Object.values(sqlUis.value)[0],
@@ -47,12 +54,29 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const isKanban = computed(() => view.value?.type === ViewTypes.KANBAN)
     const isMap = computed(() => view.value?.type === ViewTypes.MAP)
     const isSharedForm = computed(() => isForm.value && shared)
-    const isDefaultView = computed(() => view.value?.is_default)
+    const isDefaultView = computed(() => {
+      const getFirstGridView = getFirstNonPersonalView(views.value, {
+        includeViewType: ViewTypes.GRID,
+      })
+
+      return getFirstGridView?.id === view.value?.id
+    })
     const gridEditEnabled = ref(true)
 
     const isExternalSource = computed(
       () => !!base.value?.sources?.some((s) => s.id === (meta.value as TableType)?.source_id && !s.is_meta && !s.is_local),
     )
+
+    /**
+     * View operations (toolbar, aggregation footer, column reorder, column resize, etc.)
+     */
+    const isViewOperationsAllowed = computed(() => {
+      // Allow view operations in shared base and view
+      if (isPublic.value || isSharedBase.value) return true
+
+      // Allow view operations only for editor and above roles
+      return isUIAllowed('viewOperations')
+    })
 
     const isAlreadyShownUpgradeModal = ref(false)
 
@@ -68,7 +92,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const filtersFromUrlParams = computed(() => {
       if (route.value.query.where && !ncIsEmptyObject(aliasColObjMap.value)) {
         return extractFilterFromXwhere(
-          { api_version: NcApiVersion.V1 },
+          { api_version: NcApiVersion.V1, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
           route.value.query.where as string,
           aliasColObjMap.value,
           false,
@@ -169,28 +193,40 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
     const viewColumnsMap = reactive<Record<string, Record<string, any>[]>>({})
     const pendingRequests = new Map()
 
-    const getViewColumns = async (viewId: string) => {
+    const getViewColumnsKey = (baseId: string, viewId: string) => `${baseId}:${viewId}`
+
+    const getViewColumns = async (baseId: string, viewId: string) => {
       if (isPublic.value) return []
 
-      if (viewColumnsMap[viewId]) return viewColumnsMap[viewId]
+      const key = getViewColumnsKey(baseId, viewId)
 
-      if (pendingRequests.has(viewId)) {
-        return pendingRequests.get(viewId)
+      if (viewColumnsMap[key]) return viewColumnsMap[key]
+
+      if (pendingRequests.has(key)) {
+        return pendingRequests.get(key)
       }
 
-      const promise = $api.dbViewColumn
-        .list(viewId)
-        .then((result) => {
-          viewColumnsMap[viewId] = result.list
-          pendingRequests.delete(viewId)
-          return result.list
-        })
-        .catch((error) => {
-          pendingRequests.delete(viewId)
+      const promise = (async () => {
+        try {
+          const workspaceId = base.value?.fk_workspace_id
+          if (!workspaceId) {
+            throw new Error('Workspace ID not found')
+          }
+          // Always use internal API for consistency and cross-base support
+          const result = await $api.internal.getOperation(workspaceId, baseId, {
+            operation: 'viewColumnList',
+            viewId,
+          })
+          viewColumnsMap[key] = result?.list ?? []
+          pendingRequests.delete(key)
+          return result?.list ?? []
+        } catch (error) {
+          pendingRequests.delete(key)
           throw error
-        })
+        }
+      })()
 
-      pendingRequests.set(viewId, promise)
+      pendingRequests.set(key, promise)
 
       return promise
     }
@@ -230,6 +266,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
       fetchTotalRowsWithSearchQuery,
       gridEditEnabled,
       getValidSearchQueryForColumn,
+      isViewOperationsAllowed,
     }
   },
   'smartsheet-store',

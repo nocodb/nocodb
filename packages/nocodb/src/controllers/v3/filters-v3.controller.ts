@@ -48,7 +48,10 @@ export type FilterGroup = FilterGroupLevel1;
 export class FiltersV3Controller {
   constructor(protected readonly filtersV3Service: FiltersV3Service) {}
 
-  @Get(`${PREFIX_APIV3_METABASE}/views/:viewId/filters`)
+  @Get([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId/filters`,
+    `${PREFIX_APIV3_METABASE}/views/:viewId/filters`,
+  ])
   @Acl('filterList')
   async filterList(
     @TenantContext() context: NcContext,
@@ -64,6 +67,8 @@ export class FiltersV3Controller {
   }
 
   @Post([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId/filters`,
+
     `${PREFIX_APIV3_METABASE}/views/:viewId/filters`,
     `${PREFIX_APIV3_METABASE}/hooks/:hookId/filters`,
     `${PREFIX_APIV3_METABASE}/links/:linkColumnId/filters`,
@@ -87,7 +92,10 @@ export class FiltersV3Controller {
     return filter;
   }
 
-  @Patch(`${PREFIX_APIV3_METABASE}/views/:viewId/filters`)
+  @Patch([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId/filters`,
+    `${PREFIX_APIV3_METABASE}/views/:viewId/filters`,
+  ])
   @Acl('filterUpdate')
   async filterUpdate(
     @TenantContext() context: NcContext,
@@ -105,7 +113,10 @@ export class FiltersV3Controller {
     return filter;
   }
 
-  @Put(`${PREFIX_APIV3_METABASE}/views/:viewId/filters`)
+  @Put([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId/filters`,
+    `${PREFIX_APIV3_METABASE}/views/:viewId/filters`,
+  ])
   @Acl('filterUpdate')
   async filterReplace(
     @TenantContext() context: NcContext,
@@ -122,7 +133,10 @@ export class FiltersV3Controller {
     return filter;
   }
 
-  @Delete(`${PREFIX_APIV3_METABASE}/views/:viewId/filters`)
+  @Delete([
+    `${PREFIX_APIV3_METABASE}/tables/:tableId/views/:viewId/filters`,
+    `${PREFIX_APIV3_METABASE}/views/:viewId/filters`,
+  ])
   @Acl('filterDelete')
   async filterDelete(
     @TenantContext() context: NcContext,

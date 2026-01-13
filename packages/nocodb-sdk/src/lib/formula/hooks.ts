@@ -1,4 +1,4 @@
-import jsep from 'jsep';
+import jsep from 'nc-jsep';
 
 // opening and closing string code
 const OCURLY_CODE = 123; // '{'

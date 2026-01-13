@@ -17,6 +17,8 @@ export function useColumnFilteredOrSorted() {
     const extractFilterArray = (filters: FilterType[]) => {
       if (filters && filters.length > 0) {
         for (const eachFilter of filters) {
+          if (!eachFilter) continue
+
           if (eachFilter.is_group) {
             if ((eachFilter.children?.length ?? 0) > 0) {
               extractFilterArray(eachFilter.children!)
@@ -68,12 +70,21 @@ export function useColumnFilteredOrSorted() {
       'cellBorderColor': themeV3Colors.gray['200'],
       'cellBorderColor.hovered': themeV3Colors.gray['200'],
       'cellBorderColor.selected': themeV3Colors.gray['200'],
-      'cellBgClass': '!bg-green-50 column-filtered',
+      'cellBgClass': '!bg-nc-green-50 column-filtered',
       'toolbarBgClass': '!bg-nc-bg-green-light !hover:bg-nc-bg-green-dark',
-      'toolbarChipBgClass': 'bg-nc-bg-green-dark group-hover:bg-green-200',
-      'toolbarTextClass': 'text-green-700',
-      'headerBgColor': '#27D6650A',
-      'headerBgClass': "relative !bg-[#ffffff88] after:(content-[''] absolute block inset-0 !bg-[#27D6650A] pointer-events-none)",
+      'toolbarChipBgClass': 'bg-nc-bg-green-dark group-hover:bg-nc-green-200',
+      'toolbarTextClass': 'text-nc-green-700',
+      'headerBgColor': '#27D66510',
+      'headerBgClass': "relative !bg-[#ffffff] after:(content-[''] absolute block inset-0 !bg-[#27D66510] pointer-events-none)",
+      'canvas': {
+        'cellBgColor': themeV4Colors.green['50'],
+        'cellBgColor.hovered': themeV4Colors.green['100'],
+        'cellBgColor.selected': themeV4Colors.green['100'],
+        'cellBorderColor': themeV4Colors.gray['200'],
+        'cellBorderColor.hovered': themeV4Colors.gray['200'],
+        'cellBorderColor.selected': themeV4Colors.gray['200'],
+        'headerBgColor': '#27D66510',
+      },
     },
     SORTED: {
       'cellBgColor': themeV3Colors.orange['50'],
@@ -82,12 +93,21 @@ export function useColumnFilteredOrSorted() {
       'cellBorderColor': themeV3Colors.gray['200'],
       'cellBorderColor.hovered': themeV3Colors.gray['200'],
       'cellBorderColor.selected': themeV3Colors.gray['200'],
-      'cellBgClass': '!bg-orange-50 column-sorted !border-b-gray-200',
+      'cellBgClass': '!bg-nc-orange-50 column-sorted !border-b-nc-gray-200',
       'toolbarBgClass': '!bg-nc-bg-orange-light !hover:bg-nc-bg-orange-dark',
-      'toolbarChipBgClass': 'bg-nc-bg-orange-dark group-hover:bg-orange-200',
-      'toolbarTextClass': 'text-orange-700',
-      'headerBgColor': '#FA82310A',
-      'headerBgClass': "relative !bg-[#ffffff88] after:(content-[''] absolute block inset-0 !bg-[#FA82310A] pointer-events-none)",
+      'toolbarChipBgClass': 'bg-nc-bg-orange-dark group-hover:bg-nc-orange-200',
+      'toolbarTextClass': 'text-nc-orange-700',
+      'headerBgColor': '#FA823110',
+      'headerBgClass': "relative !bg-[#ffffff] after:(content-[''] absolute block inset-0 !bg-[#FA823110] pointer-events-none)",
+      'canvas': {
+        'cellBgColor': themeV4Colors.orange['50'],
+        'cellBgColor.hovered': themeV4Colors.orange['100'],
+        'cellBgColor.selected': themeV4Colors.orange['100'],
+        'cellBorderColor': themeV4Colors.gray['200'],
+        'cellBorderColor.hovered': themeV4Colors.gray['200'],
+        'cellBorderColor.selected': themeV4Colors.gray['200'],
+        'headerBgColor': '#FA823110',
+      },
     },
   }
 

@@ -76,10 +76,18 @@ const updateDescription = async (undo = false) => {
 
   loading.value = true
   try {
-    await $api.dbTable.update(tableMeta.id as string, {
-      base_id: tableMeta.base_id,
-      description: formState.description,
-    })
+    await $api.internal.postOperation(
+      tableMeta.fk_workspace_id!,
+      tableMeta.base_id!,
+      {
+        operation: 'tableUpdate',
+        tableId: tableMeta.id as string,
+      },
+      {
+        base_id: tableMeta.base_id,
+        description: formState.description,
+      },
+    )
 
     dialogShow.value = false
 
@@ -108,7 +116,10 @@ const updateDescription = async (undo = false) => {
     await loadTables()
 
     // update metas
-    const newMeta = await $api.dbTable.read(tableMeta.id as string)
+    const newMeta = await $api.internal.getOperation(tableMeta.fk_workspace_id!, tableMeta.base_id!, {
+      operation: 'tableGet',
+      tableId: tableMeta.id as string,
+    })
     await setMeta(newMeta)
 
     $e('a:table:description:update')
@@ -126,8 +137,8 @@ const updateDescription = async (undo = false) => {
   <NcModal v-model:visible="dialogShow" size="small" :show-separator="false">
     <template #header>
       <div class="flex flex-row items-center gap-x-2 text-base">
-        <GeneralIcon icon="table" class="w-5 h-5 text-gray-600" />
-        <span class="text-base font-semibold text-gray-800">
+        <GeneralTableIcon :meta="tableMeta" class="!mx-0 !w-5 !h-5 !text-nc-content-subtle2" />
+        <span class="text-base font-semibold text-nc-content-gray">
           {{ tableMeta?.title ?? tableMeta?.table_name }}
         </span>
       </div>
@@ -172,7 +183,7 @@ const updateDescription = async (undo = false) => {
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !text-md font-base  !leading-[20px] text-gray-800 flex;
+  @apply !text-md font-base  !leading-[20px] text-nc-content-gray flex;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;

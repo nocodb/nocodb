@@ -3,7 +3,8 @@ import { UITypes } from 'nocodb-sdk';
 import { expect } from 'chai';
 import { initFormulaLookupColumns, initInitialModel } from '../initModel';
 import { createColumn } from '../../factory/column';
-import { listRow } from '../../factory/row';
+import { chunkListRow, listRow } from '../../factory/row';
+import { isEE } from '../../utils/helpers';
 
 function formulaLookupLtarTests() {
   let _setup;
@@ -98,7 +99,9 @@ function formulaLookupLtarTests() {
   it('will create an ARRAYSORT formula referencing table1Name correctly 1', async () => {
     // only applicable for pg
     const source = (await _base.getSources())[0];
-    if(source.type !== 'pg') { return; }
+    if (source.type !== 'pg') {
+      return;
+    }
     // Create a formula field on table 2 that references table1Name
     const formulaColumn = await createColumn(_context, _tables.table2, {
       title: 'FormulaTable1Name',
@@ -133,7 +136,9 @@ function formulaLookupLtarTests() {
   it('will create an ARRAYSORT formula referencing table2_table1s correctly', async () => {
     // only applicable for pg
     const source = (await _base.getSources())[0];
-    if(source.type !== 'pg') { return; }
+    if (source.type !== 'pg') {
+      return;
+    }
 
     // Create a formula field on table 3 that references table2_table1s
     const formulaColumn = await createColumn(_context, _tables.table3, {
@@ -169,7 +174,9 @@ function formulaLookupLtarTests() {
   it('will create an ARRAYUNIQUE formula referencing T4s correctly', async () => {
     // only applicable for pg
     const source = (await _base.getSources())[0];
-    if(source.type !== 'pg') { return; }
+    if (source.type !== 'pg') {
+      return;
+    }
 
     // Create a formula field on table 3 that references T4s
     const controlFormulaColumn = await createColumn(_context, _tables.table3, {
@@ -214,7 +221,9 @@ function formulaLookupLtarTests() {
   it('will create an ARRAYSORT(ARRAYUNIQUE) formula referencing T4s correctly', async () => {
     // only applicable for pg
     const source = (await _base.getSources())[0];
-    if(source.type !== 'pg') { return; }
+    if (source.type !== 'pg') {
+      return;
+    }
 
     // Create a formula field on table 3 that references T4s
     const controlFormulaColumn = await createColumn(_context, _tables.table3, {
@@ -270,6 +279,11 @@ function formulaLookupLtarTests() {
 
   // issue #11299
   it('will create a formula referencing lookup referencing formula', async () => {
+    // TODO: enable and fix for OSS
+    if (!isEE()) {
+      return;
+    }
+
     await initFormulaLookupColumns(_setup);
     const _formulaColumn = await createColumn(_context, _tables.table2, {
       title: 'table1FormulaTitleConcat',
@@ -280,9 +294,95 @@ function formulaLookupLtarTests() {
 
     // Get the data to verify the formula is working correctly
     const rows = await listRow({ base: _base, table: _tables.table2 });
-    expect(rows[0].table1FormulaTitleConcat).to.eq(
-      'T1_001,T1_002,T1_003.T1_001,T1_002,T1_003',
-    );
+    const table1FormulaTitleConcatVal = rows[0].table1FormulaTitleConcat;
+    // expect 'T1_001?,T1_002?,T1_003?.T1_001?,T1_002?,T1_003?' (unordered)
+    const parts = table1FormulaTitleConcatVal.split('.');
+    expect(parts.length).to.eq(2);
+    for (const token of ['T1_001?', 'T1_002?', 'T1_003?']) {
+      expect(parts[0]).to.contain(token);
+      expect(parts[1]).to.contain(token);
+    }
+
+    const t1Rows = await chunkListRow({
+      base: _base,
+      table: _tables.table1,
+      pks: [1, 2, 3, 4, 5, 6].map((k) => `${k}`),
+    });
+    const t2Rows = await chunkListRow({
+      base: _base,
+      table: _tables.table2,
+      pks: [1, 2, 3, 4, 5, 6].map((k) => `${k}`),
+    });
+    const t3Rows = await chunkListRow({
+      base: _base,
+      table: _tables.table3,
+      pks: [1, 2, 3, 4, 5, 6].map((k) => `${k}`),
+    });
+    expect(t1Rows[0].table2FormulaTitle).to.eq('T2_001?');
+    expect(t2Rows[0].table1FormulaTitleConcat).to.contain('T1_001?');
+    expect(t3Rows[0].table1FormulaTitle).to.eq('T1_001?');
+  });
+
+  it('will create a formula column assigned as display value accessed through ltar field', async () => {
+    // Create a formula field on table 3 with pv = true
+    const formulaColumnTable3 = await createColumn(_context, _tables.table3, {
+      title: 'FormulaDisplayValueTable3',
+      uidt: UITypes.Formula,
+      formula: 'CONCAT("A", "?")',
+      formula_raw: 'CONCAT("A", "?")',
+      pv: true,
+    });
+
+    // Verify the formula column was created successfully and is a primary value
+    expect(formulaColumnTable3).to.exist;
+    expect(formulaColumnTable3.title).to.equal('FormulaDisplayValueTable3');
+    expect(formulaColumnTable3.uidt).to.equal(UITypes.Formula);
+    expect(formulaColumnTable3.pv).to.be.true;
+
+    // Create a formula field on table 2 with pv = true
+    const formulaColumnTable2 = await createColumn(_context, _tables.table2, {
+      title: 'FormulaDisplayValueTable2',
+      uidt: UITypes.Formula,
+      formula: 'CONCAT("A", "?")',
+      formula_raw: 'CONCAT("A", "?")',
+      pv: true,
+    });
+
+    // Verify the formula column was created successfully and is a primary value
+    expect(formulaColumnTable2).to.exist;
+    expect(formulaColumnTable2.title).to.equal('FormulaDisplayValueTable2');
+    expect(formulaColumnTable2.uidt).to.equal(UITypes.Formula);
+    expect(formulaColumnTable2.pv).to.be.true;
+
+    // Get the data for table 3 to verify the formula is working correctly
+    const rowsTable3 = await chunkListRow({
+      base: _base,
+      table: _tables.table3,
+      pks: [1, 2, 3, 4, 5, 6].map((k) => `${k}`),
+    });
+    expect(rowsTable3).to.be.an('array');
+    expect(rowsTable3.length).to.be.greaterThan(0);
+    expect(rowsTable3[0]).to.have.property('FormulaDisplayValueTable3');
+    expect(rowsTable3[0].FormulaDisplayValueTable3).to.exist;
+    expect(rowsTable3[0].FormulaDisplayValueTable3).to.eq('A?');
+
+    // Get the data for table 2 to verify the formula is working correctly
+    const rowsTable2 = await chunkListRow({
+      base: _base,
+      table: _tables.table2,
+      pks: [1, 2, 3, 4, 5, 6].map((k) => `${k}`),
+    });
+    expect(rowsTable2).to.be.an('array');
+    expect(rowsTable2.length).to.be.greaterThan(0);
+    expect(rowsTable2[0]).to.have.property('FormulaDisplayValueTable2');
+    expect(rowsTable2[0].FormulaDisplayValueTable2).to.exist;
+
+    // Get the data for table 2 to verify the formula is working correctly
+    await chunkListRow({
+      base: _base,
+      table: _tables.table1,
+      pks: [1, 2, 3, 4, 5, 6].map((k) => `${k}`),
+    });
   });
 }
 

@@ -1,4 +1,5 @@
 import { NcDataErrorCodes, RelationTypes, UITypes } from 'nocodb-sdk';
+import { CircularRefContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from './IBaseModelSqlV2';
 import type { Knex } from 'knex';
 import type {
@@ -9,40 +10,77 @@ import type {
   RollupColumn,
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
+import { NcError } from '~/helpers/ncError';
 import { RelationManager } from '~/db/relation-manager';
 import { Column, Model } from '~/models';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
+import { Profiler } from '~/helpers/profiler';
 
-export default async function ({
-  baseModelSqlv2,
-  knex,
-  alias,
-  columnOptions,
-}: {
+export default async function genRollupSelectv2(param: {
   baseModelSqlv2: IBaseModelSqlV2;
   knex: XKnex;
   alias?: string;
   columnOptions: RollupColumn | LinksColumn;
+  parentColumns?: CircularRefContext;
+  nestedLevel?: number;
 }): Promise<{ builder: Knex.QueryBuilder | any }> {
-  const context = baseModelSqlv2.context;
+  const { baseModelSqlv2, knex, alias, columnOptions, nestedLevel = 0 } = param;
+  let { parentColumns } = param;
 
+  const context = baseModelSqlv2.context;
+  parentColumns = parentColumns ?? CircularRefContext.make();
+  const profiler = Profiler.start(
+    'DEBUG:/genRollupSelectv2/' + columnOptions.fk_column_id,
+  );
   const column = await Column.get(context, {
     colId: columnOptions.fk_column_id,
   });
-  const relationColumn = await columnOptions.getRelationColumn(context);
+  if (column) {
+    const model = await Model.getByAliasOrId(context, {
+      base_id: context.base_id,
+      aliasOrId: column.fk_model_id,
+    });
+    parentColumns = parentColumns.cloneAndAdd({
+      id: column.id,
+      title: column.title,
+      table: model?.title,
+    });
+  }
+  profiler.log('cloneAndAdd done');
+  let relationColumn: Column;
+  if (!columnOptions.getRelationColumn) {
+    relationColumn = await Column.get(context, {
+      colId: columnOptions.fk_relation_column_id,
+    });
+  } else {
+    relationColumn = await columnOptions.getRelationColumn(context);
+  }
+  profiler.log('getRelationColumn done');
+
   const relationColumnOption: LinkToAnotherRecordColumn =
     (await relationColumn.getColOptions(context)) as LinkToAnotherRecordColumn;
-
   const { parentContext, childContext, mmContext, refContext } =
     await relationColumnOption.getParentChildContext(context);
 
-  const rollupColumn = await columnOptions.getRollupColumn(refContext);
+  const rollupColumn = columnOptions.getRollupColumn
+    ? await columnOptions.getRollupColumn(refContext)
+    : await Column.get(refContext, {
+        colId: columnOptions.fk_rollup_column_id,
+      });
+  profiler.log('get relation (parent/child) columns');
+
+  if (!rollupColumn) {
+    NcError.get(context).fieldNotFound(columnOptions.fk_rollup_column_id);
+  }
+
   const childCol = await relationColumnOption.getChildColumn(childContext);
   const childModel = await childCol?.getModel(childContext);
   const parentCol = await relationColumnOption.getParentColumn(parentContext);
   const parentModel = await parentCol?.getModel(parentContext);
-  const refTableAlias = `__nc_rollup`;
+  const refTableAlias =
+    `__nc_rollup` + (nestedLevel > 0 ? `_${nestedLevel}` : ``);
+  profiler.log('get base model');
 
   const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
     model: parentModel,
@@ -53,7 +91,13 @@ export default async function ({
     dbDriver: knex,
   });
 
+  const refBaseModel =
+    rollupColumn.fk_model_id === childModel.id
+      ? childBaseModel
+      : parentBaseModel;
+
   const applyFunction = async (qb: any) => {
+    profiler.log('applyFunction ' + rollupColumn.uidt);
     let selectColumnName = knex.raw('??.??', [
       refTableAlias,
       rollupColumn.column_name,
@@ -83,9 +127,26 @@ export default async function ({
         validateFormula: false,
         parsedTree: formulOption.getParsedTree(),
         baseUsers: undefined,
+        parentColumns,
+      });
+      selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');
+    } else if ([UITypes.Rollup].includes(rollupColumn.uidt)) {
+      const knex = refBaseModel.dbDriver;
+
+      // Rollup-of-rollup: compute inner rollup correlated to the current level
+      const inner = await genRollupSelectv2({
+        baseModelSqlv2: refBaseModel,
+        knex,
+        alias: refTableAlias,
+        columnOptions: await rollupColumn.getColOptions<RollupColumn>(
+          refContext,
+        ),
+        nestedLevel: nestedLevel + 1,
+        parentColumns,
       });
 
-      selectColumnName = knex.raw(formulaQb.builder).wrap('(', ')');
+      // Use the inner builder directly as a subquery
+      selectColumnName = knex.raw('(?)', [inner.builder]);
     } else if (
       [
         UITypes.CreatedTime,
@@ -139,6 +200,7 @@ export default async function ({
       qb[columnOptions.rollup_function as string]?.(
         knex.raw('??::integer', [selectColumnName]),
       );
+      profiler.log('applyFunction done');
       return;
     }
 
@@ -155,10 +217,12 @@ export default async function ({
     } else {
       qb[columnOptions.rollup_function as string]?.(selectColumnName);
     }
+    profiler.log('applyFunction done');
   };
 
   switch (relationColumnOption.type) {
     case RelationTypes.HAS_MANY: {
+      profiler.log('Relation: ' + relationColumnOption.type);
       const queryBuilder: any = knex(
         knex.raw(`?? as ??`, [
           childBaseModel.getTnPath(childModel),
@@ -175,21 +239,24 @@ export default async function ({
       );
       await applyFunction(queryBuilder);
 
-      await extractLinkRelFiltersAndApply({
-        qb: queryBuilder,
-        column,
-        alias: refTableAlias,
-        table: childBaseModel.model,
-        baseModel: childBaseModel,
-        context: childBaseModel.context,
-      });
-
+      if (column) {
+        await extractLinkRelFiltersAndApply({
+          qb: queryBuilder,
+          column,
+          alias: refTableAlias,
+          table: childBaseModel.model,
+          baseModel: childBaseModel,
+          context: childBaseModel.context,
+        });
+      }
+      profiler.end();
       return {
         builder: queryBuilder,
       };
     }
 
     case RelationTypes.ONE_TO_ONE: {
+      profiler.log('Relation: ' + relationColumnOption.type);
       const qb = knex(
         knex.raw(`?? as ??`, [
           childBaseModel.getTnPath(childModel?.table_name),
@@ -215,12 +282,14 @@ export default async function ({
       });
 
       await applyFunction(qb);
+      profiler.end();
       return {
         builder: qb,
       };
     }
 
     case RelationTypes.MANY_TO_MANY: {
+      profiler.log('Relation: ' + relationColumnOption.type);
       const mmModel = await relationColumnOption.getMMModel(mmContext);
       const mmChildCol = await relationColumnOption.getMMChildColumn(mmContext);
       const mmParentCol = await relationColumnOption.getMMParentColumn(
@@ -276,13 +345,13 @@ export default async function ({
       });
 
       await applyFunction(qb);
-
+      profiler.end();
       return {
         builder: qb,
       };
     }
 
     default:
-      throw Error(`Unsupported relation type '${relationColumnOption.type}'`);
+      NcError.get(context).unSupportedRelation(relationColumnOption.type);
   }
 }

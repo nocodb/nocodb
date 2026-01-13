@@ -10,13 +10,13 @@ const { isUIAllowed } = useRoles()
         (!isUIAllowed('superAdminUserManagement') && !isUIAllowed('superAdminAppSettings'))
       "
     >
-      <LazyAccountResetPassword />
+      <AccountResetPassword />
     </template>
     <template v-else-if="$route.params.nestedPage === 'settings'">
-      <LazyAccountSignupSettings />
+      <AccountSignupSettings />
     </template>
     <template v-else-if="isUIAllowed('superAdminUserManagement')">
-      <LazyAccountUserList />
+      <AccountUserList />
     </template>
   </div>
 </template>

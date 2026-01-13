@@ -11,6 +11,7 @@ const props = defineProps<{
   totalRows?: number
   depth?: number
   disablePagination?: boolean
+  selectedCellCount?: number
 }>()
 
 const emits = defineEmits(['update:paginationData'])
@@ -21,19 +22,19 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { changePage, customLabel } = props
 
-const showSizeChanger = toRef(props, 'showSizeChanger')
+const { showSizeChanger, disablePagination, selectedCellCount } = toRefs(props)
 
 const vPaginationData = useVModel(props, 'paginationData', emits)
 
-const disablePagination = toRef(props, 'disablePagination')
-
 const { metas } = useMetas()
+
+const { t } = useI18n()
 
 const baseStore = useBase()
 
 const { isMysql, isPg } = baseStore
 
-const { meta } = useSmartsheetStoreOrThrow()
+const { meta, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const { updateAggregate, getAggregations, visibleFieldsComputed, displayFieldComputed } = useViewAggregateOrThrow()
 
@@ -53,7 +54,13 @@ watch(
   },
 )
 
-const count = computed(() => vPaginationData.value?.totalRows ?? Infinity)
+const count = computed(() => {
+  if (selectedCellCount.value && selectedCellCount.value > 1) {
+    return selectedCellCount.value
+  }
+
+  return vPaginationData.value?.totalRows ?? Infinity
+})
 
 const page = computed({
   get: () => vPaginationData?.value?.page ?? 1,
@@ -109,20 +116,40 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
   }
   return 0
 }
+
+const getCountWithLabel = (defaultCount: number) => {
+  let labelCount = defaultCount
+
+  if (selectedCellCount.value && selectedCellCount.value > 1) {
+    labelCount = selectedCellCount.value
+  }
+
+  return {
+    count: labelCount,
+    label:
+      selectedCellCount.value && selectedCellCount.value > 1
+        ? t('labels.cellsSelected')
+        : customLabel || (labelCount !== 1 ? t('objects.records') : t('objects.record')),
+  }
+}
 </script>
 
 <template>
-  <div ref="containerElement" class="bg-gray-50 w-full pr-1 border-t-1 border-gray-200 overflow-x-hidden no-scrollbar flex h-9">
-    <div class="sticky flex items-center bg-gray-50 left-0">
+  <div
+    ref="containerElement"
+    class="bg-nc-bg-gray-extralight w-full pr-1 border-t-1 border-nc-border-gray-medium overflow-x-hidden no-scrollbar flex h-9"
+  >
+    <div class="sticky flex items-center bg-nc-bg-gray-extralight left-0">
       <NcDropdown
-        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(displayFieldComputed.column?.uidt!) || isLocked"
+        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(displayFieldComputed.column?.uidt!) || isLocked || !isViewOperationsAllowed"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
           v-if="displayFieldComputed.field && displayFieldComputed.column?.id"
-          class="flex items-center overflow-x-hidden hover:bg-gray-100 text-gray-500 justify-end transition-all transition-linear px-3 py-2"
+          class="flex items-center overflow-x-hidden text-nc-content-gray-muted justify-end transition-all transition-linear px-3 py-2"
           :class="{
-            'cursor-pointer': !isLocked,
+            'cursor-pointer': !isLocked && isViewOperationsAllowed,
+            'hover:bg-nc-bg-gray-light': isViewOperationsAllowed,
           }"
           :style="{
             'min-width': displayFieldComputed?.width,
@@ -137,28 +164,28 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
                 <a-skeleton :active="true" :title="true" :paragraph="false" class="w-16 max-w-16" />
               </div>
               <NcTooltip v-else class="flex sticky items-center h-full">
-                <template #title>
-                  {{ count }} {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
-                </template>
+                <template #title> {{ getCountWithLabel(count).count }} {{ getCountWithLabel(count).label }} </template>
                 <span
                   data-testid="grid-pagination"
-                  class="text-gray-500 text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
+                  class="text-nc-content-gray-muted text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
                 >
-                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(count) }}
-                  {{ customLabel ? customLabel : count !== 1 ? $t('objects.records') : $t('objects.record') }}
+                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(getCountWithLabel(count).count) }}
+                  {{ getCountWithLabel(count).label }}
                 </span>
               </NcTooltip>
             </template>
 
-            <template v-else-if="+totalRows >= 0">
+            <template v-else-if="+totalRows >= 0 || (selectedCellCount && selectedCellCount > 1)">
               <NcTooltip class="flex sticky items-center h-full">
-                <template #title> {{ totalRows }} {{ totalRows !== 1 ? $t('objects.records') : $t('objects.record') }} </template>
+                <template #title>
+                  {{ getCountWithLabel(totalRows ?? 0).count }} {{ getCountWithLabel(totalRows ?? 0).label }}
+                </template>
                 <span
                   data-testid="grid-pagination"
-                  class="text-gray-500 text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
+                  class="text-nc-content-gray-muted text-ellipsis overflow-hidden pl-1 truncate nc-grid-row-count caption text-xs text-nowrap"
                 >
-                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(totalRows) }}
-                  {{ totalRows !== 1 ? $t('objects.records') : $t('objects.record') }}
+                  {{ Intl.NumberFormat('en', { notation: 'compact' }).format(getCountWithLabel(totalRows ?? 0).count) }}
+                  {{ getCountWithLabel(totalRows ?? 0).label }}
                 </span>
               </NcTooltip>
             </template>
@@ -169,11 +196,11 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
               <div
                 v-if="!displayFieldComputed.field?.aggregation || displayFieldComputed.field?.aggregation === 'none'"
                 :class="{
-                  'group-hover:opacity-100': !isLocked,
+                  'group-hover:opacity-100': !isLocked && isViewOperationsAllowed,
                 }"
-                class="text-gray-500 opacity-0 transition"
+                class="text-nc-content-gray-muted opacity-0 transition"
               >
-                <GeneralIcon class="text-gray-500" icon="arrowDown" />
+                <GeneralIcon class="text-nc-content-gray-muted" icon="arrowDown" />
                 <span class="text-[10px] font-semibold"> Summary </span>
               </div>
               <NcTooltip
@@ -183,7 +210,7 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
                 }"
               >
                 <div style="direction: rtl" class="flex gap-2 text-nowrap truncate overflow-hidden items-center">
-                  <span class="text-gray-600 text-[12px] font-semibold">
+                  <span class="text-nc-content-gray-subtle2 text-[12px] font-semibold">
                     {{
                       getFormattedAggrationValue(
                         displayFieldComputed.field.aggregation,
@@ -200,7 +227,7 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
                       )
                     }}
                   </span>
-                  <span class="text-gray-500 text-[12px] leading-4">
+                  <span class="text-nc-content-gray-muted text-[12px] leading-4">
                     {{ $t(`aggregation.${displayFieldComputed.field.aggregation}`) }}
                   </span>
                 </div>
@@ -242,10 +269,10 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
               :key="index"
               @click="updateAggregate(displayFieldComputed.column.id, agg)"
             >
-              <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
+              <div class="flex !w-full text-[13px] text-nc-content-gray items-center justify-between">
                 {{ $t(`aggregation_type.${agg}`) }}
 
-                <GeneralIcon v-if="displayFieldComputed.field?.aggregation === agg" class="text-brand-500" icon="check" />
+                <GeneralIcon v-if="displayFieldComputed.field?.aggregation === agg" class="text-nc-content-brand" icon="check" />
               </div>
             </NcMenuItem>
           </NcMenu>
@@ -263,13 +290,14 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
       ></div>
       <NcDropdown
         v-if="field && column?.id"
-        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(column?.uidt!) || isLocked"
+        :disabled="[UITypes.SpecificDBType, UITypes.ForeignKey,  UITypes.Button].includes(column?.uidt!) || isLocked || !isViewOperationsAllowed"
         overlay-class-name="max-h-96 relative scroll-container nc-scrollbar-md overflow-auto"
       >
         <div
-          class="flex items-center overflow-hidden justify-end group hover:bg-gray-100 text-gray-500 transition-all transition-linear px-3 py-2"
+          class="flex items-center overflow-hidden justify-end group text-nc-content-gray-muted transition-all transition-linear px-3 py-2"
           :class="{
-            'cursor-pointer': !isLocked,
+            'cursor-pointer': !isLocked && isViewOperationsAllowed,
+            'hover:bg-nc-bg-gray-light': isViewOperationsAllowed,
           }"
           :style="{
             'min-width': width,
@@ -281,11 +309,11 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
             <div
               v-if="field?.aggregation === 'none' || field?.aggregation === null"
               :class="{
-                'group-hover:opacity-100': !isLocked,
+                'group-hover:opacity-100': !isLocked && isViewOperationsAllowed,
               }"
-              class="text-gray-500 opacity-0 transition"
+              class="text-nc-content-gray-muted opacity-0 transition"
             >
-              <GeneralIcon class="text-gray-500" icon="arrowDown" />
+              <GeneralIcon class="text-nc-content-gray-muted" icon="arrowDown" />
               <span class="text-[10px] font-semibold"> Summary </span>
             </div>
 
@@ -296,11 +324,11 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
               }"
             >
               <div class="flex gap-2 truncate text-nowrap overflow-hidden items-center">
-                <span class="text-gray-500 text-[12px] leading-4">
+                <span class="text-nc-content-gray-muted text-[12px] leading-4">
                   {{ $t(`aggregation.${field.aggregation}`).replace('Percent ', '') }}
                 </span>
 
-                <span class="text-gray-600 font-semibold text-[12px]">
+                <span class="text-nc-content-gray-subtle2 font-semibold text-[12px]">
                   {{
                     getFormattedAggrationValue(field.aggregation, value, column, [], {
                       meta,
@@ -339,10 +367,10 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
         <template #overlay>
           <NcMenu variant="small">
             <NcMenuItem v-for="(agg, i) in getAggregations(column)" :key="i" @click="updateAggregate(column.id, agg)">
-              <div class="flex !w-full text-[13px] text-gray-800 items-center justify-between">
+              <div class="flex !w-full text-[13px] text-nc-content-gray items-center justify-between">
                 {{ $t(`aggregation_type.${agg}`) }}
 
-                <GeneralIcon v-if="field?.aggregation === agg" class="text-brand-500" icon="check" />
+                <GeneralIcon v-if="field?.aggregation === agg" class="text-nc-content-brand" icon="check" />
               </div>
             </NcMenuItem>
           </NcMenu>
@@ -352,7 +380,10 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
 
     <div class="!pl-8 pr-60 !w-8 h-1">‎</div>
 
-    <div v-if="!disablePagination" class="absolute h-9 bg-white border-l-1 border-gray-200 px-1 flex items-center right-0">
+    <div
+      v-if="!disablePagination"
+      class="absolute h-9 bg-nc-bg-default border-l-1 border-nc-border-gray-medium px-1 flex items-center right-0"
+    >
       <NcPaginationV2
         v-if="count !== Infinity"
         v-model:current="page"
@@ -378,7 +409,7 @@ const getAddnlMargin = (depth: number, ignoreCondition = false) => {
 .nc-grid-pagination-wrapper {
   .ant-pagination-item-active {
     a {
-      @apply text-sm !text-gray-700 !hover:text-gray-800;
+      @apply text-sm !text-nc-content-gray-subtle !hover:text-nc-content-gray;
     }
   }
 }

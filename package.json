@@ -48,6 +48,9 @@
   "pnpm": {
     "overrides": {
       "**>ip": "npm:@eggjs/ip@latest",
+      "vue@*": "3.5.14",
+      "@vue/runtime-core@*": "3.5.14",
+      "@vue/runtime-dom@*": "3.5.14",
       "@azure/msal-node": "^2.16.2",
       "@babel/traverse@<7.23.2": ">=7.23.2",
       "ajv@<6.12.3": ">=6.12.3",
@@ -65,11 +68,10 @@
       "tar-fs@<2.1.2": ">=3.0.7",
       "highlight.js@<9.18.5": ">=11.11.1",
       "multer@1.4.4-lts.1": ">=2.0.1",
+      "vue-i8n@<9.14.3": ">=9.14.3",
       "knex@<3.1.0": ">=3.1.0",
       "cookie": ">=0.7.2",
-      "vue@<3": ">=3",
       "@azure/identity@<4.2.1": ">=4.2.1",
-      "vue-i8n@<9.14.3": ">=9.14.3",
       "cross-spawn@<7.0.5 >=7.0.0": ">=7.0.5",
       "dset@<3.1.4": ">=3.1.4",
       "http-proxy-middleware@<2.0.9": "2.0.9",
@@ -85,7 +87,8 @@
       "@babel/helpers@<7.26.10": ">=7.26.10",
       "vite@>=6.0.0 <=6.1.5": ">=6.1.6",
       "vite@>=6.1.0 <6.1.4": ">=6.1.4",
-      "@types/mime": "npm:@types/mime@npm:nonexistent"
+      "@75lb/deep-merge@<=1.1.1": ">=1.1.2",
+      "@babel/runtime@<7.26.10": ">=7.26.10"
     },
     "onlyBuiltDependencies": [
       "@nestjs/core",

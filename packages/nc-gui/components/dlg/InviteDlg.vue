@@ -5,7 +5,9 @@ import {
   type PlanLimitExceededDetailsType,
   ProjectRoles,
   type RoleLabels,
+  type TeamV3V3Type,
   type UserType,
+  type WorkspaceType,
   WorkspaceUserRoles,
 } from 'nocodb-sdk'
 
@@ -14,10 +16,13 @@ import { extractEmail } from '../../helpers/parsers/parserHelpers'
 const props = defineProps<{
   modelValue: boolean
   type?: 'base' | 'workspace' | 'organization'
+  isTeam?: boolean
   baseId?: string
   emails?: string[]
   workspaceId?: string
   users?: Array<Pick<UserType, 'email'>>
+  teams?: Array<TeamV3V3Type>
+  existingTeamIds?: string[]
 }>()
 const emit = defineEmits(['update:modelValue'])
 
@@ -25,13 +30,17 @@ const basesStore = useBases()
 
 const { appInfo } = useGlobal()
 
+const { t } = useI18n()
+
 const workspaceStore = useWorkspace()
 
 const { baseRoles, workspaceRoles } = useRoles()
 
-const { createProjectUser } = basesStore
+const { createProjectUser, baseTeamAdd } = basesStore
 
-const { inviteCollaborator: inviteWsCollaborator } = workspaceStore
+const { inviteCollaborator: inviteWsCollaborator, workspaceTeamAdd } = workspaceStore
+
+const { isTeamsEnabled } = storeToRefs(workspaceStore)
 
 const { isPaymentEnabled, showUserPlanLimitExceededModal, isPaidPlan, showUserMayChargeAlert } = useEeConfig()
 
@@ -47,6 +56,7 @@ const userRoles = computed(() => {
 
 const inviteData = reactive({
   email: '',
+  selectedTeamIds: [],
   roles: orderedRoles.value.NO_ACCESS,
 })
 
@@ -69,6 +79,15 @@ const emailBadges = ref<Array<string>>([])
 const allowedRoles = ref<[]>([])
 
 const disabledRoles = ref<[]>([])
+
+const disabledRolesTooltip = computed<Record<keyof typeof RoleLabels, string>>(() => {
+  if (!props.isTeam) return {}
+
+  return {
+    [WorkspaceUserRoles.OWNER]: t('objects.teams.teamCantBeAssignedOwnerRole'),
+    [ProjectRoles.OWNER]: t('objects.teams.teamCantBeAssignedOwnerRole'),
+  } as Record<keyof typeof RoleLabels, string>
+})
 
 const isLoading = ref(false)
 
@@ -97,19 +116,45 @@ const focusOnDiv = () => {
   isDivFocused.value = true
 }
 
-const { t } = useI18n()
-
 watch(dialogShow, async (newVal) => {
   if (newVal) {
     try {
       const rolesArr = Object.values(orderedRoles.value)
-      const currentRoleIndex = rolesArr.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
+      let currentRoleIndex = rolesArr.findIndex((role) => userRoles.value && Object.keys(userRoles.value).includes(role))
+
       if (currentRoleIndex !== -1) {
-        allowedRoles.value = rolesArr.slice(currentRoleIndex)
-        disabledRoles.value = rolesArr.slice(0, currentRoleIndex)
+        // We don't allow user to assign owner role to a team
+        if (props.isTeam && currentRoleIndex === 0) {
+          currentRoleIndex = 1
+        }
+
+        let filteredRoles = rolesArr
+
+        // If teams are not enabled, filter out INHERIT role as well
+        // todo: remove this check once teams are enabled by default
+        if (props.isTeam || !isTeamsEnabled.value) {
+          filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
+        }
+
+        allowedRoles.value = filteredRoles.slice(currentRoleIndex)
+        disabledRoles.value = filteredRoles.slice(0, currentRoleIndex)
       } else {
-        allowedRoles.value = rolesArr
-        disabledRoles.value = []
+        // Filter out INHERIT role for teams (workspace or base teams)
+        let filteredRoles = rolesArr
+        if (props.isTeam) {
+          filteredRoles = rolesArr.filter((role) => role !== WorkspaceUserRoles.INHERIT && role !== ProjectRoles.INHERIT)
+          allowedRoles.value = filteredRoles.slice(1)
+          disabledRoles.value = filteredRoles.slice(0, 1)
+        } else {
+          allowedRoles.value = rolesArr
+          disabledRoles.value = []
+        }
+      }
+      // move INHERIT role to the end of the list, if present in allowed roles
+      let inheritIndex = allowedRoles.value.indexOf(WorkspaceUserRoles.INHERIT)
+      inheritIndex = inheritIndex === -1 ? allowedRoles.value.indexOf(ProjectRoles.INHERIT) : inheritIndex
+      if (inheritIndex !== -1) {
+        allowedRoles.value.push(...allowedRoles.value.splice(inheritIndex, 1))
       }
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -119,13 +164,20 @@ watch(dialogShow, async (newVal) => {
       emailBadges.value = props.emails
     }
 
+    if (props.isTeam) {
+      emailValidation.isError = false
+    }
+
     setTimeout(() => {
       focusOnDiv()
     }, 100)
   } else {
     emailBadges.value = []
     inviteData.email = ''
+    inviteData.roles = orderedRoles.value.NO_ACCESS
     singleEmailValue.value = ''
+    inviteData.selectedTeamIds = []
+    warningMsg.value = ''
   }
 })
 
@@ -161,6 +213,10 @@ const emailInputValidation = (input: string, isBulkEmailCopyPaste = false): bool
 }
 
 const isInviteButtonDisabled = computed(() => {
+  if (props.isTeam) {
+    return !inviteData.selectedTeamIds?.length
+  }
+
   if (!emailBadges.value.length && !singleEmailValue.value.length) {
     return true
   }
@@ -183,6 +239,10 @@ const showUserWillChargedWarning = computed(() => {
 })
 
 watch(inviteData, (newVal) => {
+  if (props.isTeam) {
+    return
+  }
+
   // when user only want to enter a single email
   // we don't convert that as badge
 
@@ -231,6 +291,8 @@ const handleEnter = () => {
 }
 // remove one email per backspace
 onKeyStroke('Backspace', () => {
+  if (props.isTeam) return
+
   if (isDivFocused.value && inviteData.email.length < 1) {
     emailBadges.value.pop()
   }
@@ -283,52 +345,73 @@ const onPaste = (e: ClipboardEvent) => {
 const inviteCollaborator = async () => {
   try {
     isLoading.value = true
-    const payloadData = singleEmailValue.value || emailBadges.value.join(',')
-    if (!payloadData.includes(',')) {
-      const validationStatus = validateEmail(payloadData)
-      if (!validationStatus) {
-        emailValidation.isError = true
-        emailValidation.message = 'invalid email'
-      }
-    }
 
-    for (const email of payloadData?.split(',')) {
-      if (props.users?.some((u) => u.email === email.trim())) {
-        let scopeLabel = 'objects.project'
-
-        if (props.type === 'workspace') {
-          scopeLabel = 'objects.workspace'
-        } else if (props.type === 'organization') {
-          scopeLabel = 'general.organization'
+    if (!props.isTeam) {
+      const payloadData = singleEmailValue.value || emailBadges.value.join(',')
+      if (!payloadData.includes(',')) {
+        const validationStatus = validateEmail(payloadData)
+        if (!validationStatus) {
+          emailValidation.isError = true
+          emailValidation.message = 'invalid email'
         }
+      }
 
-        warningMsg.value = t('msg.userAlreadyExists', { email: email.trim(), scope: t(scopeLabel).toLowerCase() })
-        return
+      for (const email of payloadData?.split(',')) {
+        if (props.users?.some((u) => u.email === email.trim())) {
+          let scopeLabel = 'objects.project'
+
+          if (props.type === 'workspace') {
+            scopeLabel = 'objects.workspace'
+          } else if (props.type === 'organization') {
+            scopeLabel = 'general.organization'
+          }
+
+          warningMsg.value = t('msg.userAlreadyExists', { email: email.trim(), scope: t(scopeLabel).toLowerCase() })
+          return
+        }
+      }
+
+      if (props.type === 'base' && props.baseId) {
+        await createProjectUser(props.baseId!, {
+          email: payloadData,
+          roles: inviteData.roles,
+        } as unknown as User)
+      } else if (props.type === 'workspace' && props.workspaceId) {
+        await inviteWsCollaborator(payloadData, inviteData.roles, props.workspaceId)
+      } else if (props.type === 'organization') {
+        // TODO: Add support for Bulk Workspace Invite
+        for (const workspace of selectedWorkspaces.value) {
+          await inviteWsCollaborator(payloadData, inviteData.roles, workspace.id)
+        }
+      }
+
+      message.success(t('msg.info.inviteSent'))
+      inviteData.email = ''
+      emailBadges.value = []
+    } else {
+      if (props.type === 'base' && props.baseId) {
+        await baseTeamAdd(
+          props.baseId!,
+          inviteData.selectedTeamIds.map((teamId) => ({
+            team_id: teamId,
+            base_role: inviteData.roles as Exclude<ProjectRoles, ProjectRoles.OWNER>,
+          })),
+        )
+      } else if (props.type === 'workspace' && props.workspaceId) {
+        await workspaceTeamAdd(
+          props.workspaceId,
+          inviteData.selectedTeamIds.map((teamId) => ({
+            team_id: teamId,
+            workspace_role: inviteData.roles as Exclude<WorkspaceUserRoles, WorkspaceUserRoles.OWNER>,
+          })),
+        )
       }
     }
-
-    if (props.type === 'base' && props.baseId) {
-      await createProjectUser(props.baseId!, {
-        email: payloadData,
-        roles: inviteData.roles,
-      } as unknown as User)
-    } else if (props.type === 'workspace' && props.workspaceId) {
-      await inviteWsCollaborator(payloadData, inviteData.roles, props.workspaceId)
-    } else if (props.type === 'organization') {
-      // TODO: Add support for Bulk Workspace Invite
-      for (const workspace of selectedWorkspaces.value) {
-        await inviteWsCollaborator(payloadData, inviteData.roles, workspace.id)
-      }
-    }
-
-    message.success(t('msg.info.inviteSent'))
-    inviteData.email = ''
-    emailBadges.value = []
     dialogShow.value = false
   } catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
       let errorWsId
       if (props.type === 'workspace' && props.workspaceId) {
         errorWsId = props.workspaceId
@@ -351,7 +434,7 @@ const inviteCollaborator = async () => {
         isAdminPanel: props.type === 'organization',
       })
     } else {
-      if (errorInfo.error === NcErrorType.UNKNOWN_ERROR) {
+      if (errorInfo.error === NcErrorType.ERR_UNKNOWN) {
         errorInfo.message = await extractSdkResponseErrorMsg(e)
       }
       message.error(errorInfo.message)
@@ -378,6 +461,10 @@ const removeEmail = (index: number) => {
     inviteData.email = ''
   }
 }
+
+const onTeamChange = async (_teamIds: RawValueType) => {
+  inviteData.selectedTeamIds = (_teamIds as string[]) ?? []
+}
 </script>
 
 <template>
@@ -395,7 +482,11 @@ const removeEmail = (index: number) => {
           type === 'organization'
             ? 'Invite Members to Workspaces'
             : type === 'base'
-            ? $t('activity.addMember')
+            ? isTeam
+              ? $t('activity.addTeamsToBase')
+              : $t('activity.addMember')
+            : isTeam
+            ? $t('activity.addTeamsToWorkspace')
             : $t('activity.inviteToWorkspace')
         }}
       </div>
@@ -404,6 +495,7 @@ const removeEmail = (index: number) => {
       <div class="flex w-full gap-4 flex-col">
         <div class="flex flex-col gap-6 md:(flex-row gap-3 justify-between) w-full">
           <div
+            v-if="!isTeam"
             ref="divRef"
             :class="{
               'border-primary/100 shadow-selected': isDivFocused,
@@ -441,14 +533,26 @@ const removeEmail = (index: number) => {
               @input="warningMsg = null"
             />
           </div>
+          <NcListTeamSelector
+            v-else
+            :on-change="onTeamChange"
+            :value="inviteData.selectedTeamIds || []"
+            is-multi-select
+            :teams="teams"
+            :existing-team-ids="existingTeamIds"
+            class="!min-w-[152px] nc-add-team-selector"
+            size="lg"
+            placement="bottomLeft"
+          />
+
           <div class="flex items-center justify-between gap-4">
             <div class="md:hidden text-nc-content-gray text-bodyLg">{{ $t('labels.selectRole') }}:</div>
             <div class="flex items-center">
-              <RolesSelector
-                :description="false"
+              <RolesSelectorV2
                 :on-role-change="onRoleChange"
                 :role="inviteData.roles"
                 :disabled-roles="disabledRoles"
+                :disabled-roles-tooltip="disabledRolesTooltip"
                 :roles="allowedRoles"
                 class="!min-w-[152px] nc-invite-role-selector"
                 size="lg"
@@ -458,9 +562,9 @@ const removeEmail = (index: number) => {
           </div>
         </div>
         <!-- show warning if validation fails and warningMsg defined -->
-        <span v-if="warningMsg" class="ml-2 text-red-500 -mt-2">{{ warningMsg }}</span>
+        <span v-if="warningMsg" class="ml-2 text-nc-content-red-medium -mt-2">{{ warningMsg }}</span>
 
-        <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-red-500 -mt-2">{{
+        <span v-if="emailValidation.isError && emailValidation.message" class="ml-2 text-nc-content-red-medium -mt-2">{{
           emailValidation.message
         }}</span>
 
@@ -469,9 +573,9 @@ const removeEmail = (index: number) => {
             <NcButton class="!justify-between" full-width size="medium" type="secondary">
               <div
                 :class="{
-                  '!text-gray-600': selectedWorkspaces.length > 0,
+                  '!text-nc-content-gray-subtle2': selectedWorkspaces.length > 0,
                 }"
-                class="flex text-gray-500 justify-between items-center w-full"
+                class="flex text-nc-content-gray-muted justify-between items-center w-full"
               >
                 <NcTooltip class="!max-w-130 truncate" show-on-truncate-only>
                   <span class="">
@@ -499,14 +603,14 @@ const removeEmail = (index: number) => {
                   <a-input
                     v-model:value="searchQuery"
                     :class="{
-                      '!border-brand-500': searchQuery.length > 0,
+                      '!border-nc-border-brand': searchQuery.length > 0,
                     }"
-                    class="!rounded-lg !h-8 !ring-0 !placeholder:text-gray-500 !border-gray-200 !px-4"
+                    class="!rounded-lg !h-8 !ring-0 !placeholder:text-nc-content-gray-muted !border-nc-border-gray-medium !px-4"
                     data-testid="nc-ws-search"
                     placeholder="Search workspace"
                   >
                     <template #prefix>
-                      <component :is="iconMap.search" class="h-4 w-4 mr-1 text-gray-500" />
+                      <component :is="iconMap.search" class="h-4 w-4 mr-1 text-nc-content-gray-muted" />
                     </template>
                   </a-input>
                 </div>
@@ -515,7 +619,7 @@ const removeEmail = (index: number) => {
                   <div
                     v-for="ws in workSpaceSelectList"
                     :key="ws.id"
-                    class="px-2 cursor-pointer hover:bg-gray-100 rounded-lg h-9.5 py-2 w-full flex gap-2"
+                    class="px-2 cursor-pointer hover:bg-nc-bg-gray-light rounded-lg h-9.5 py-2 w-full flex gap-2"
                     @click="checked[ws.id!] = !checked[ws.id!]"
                   >
                     <div class="flex gap-2 capitalize items-center">
@@ -553,7 +657,15 @@ const removeEmail = (index: number) => {
           class="nc-invite-btn"
           @click="inviteCollaborator"
         >
-          {{ type === 'base' ? $t('activity.inviteToBase') : $t('activity.inviteToWorkspace') }}
+          {{
+            isTeam
+              ? (inviteData.selectedTeamIds || []).length > 1
+                ? $t('labels.addTeams')
+                : $t('labels.addTeam')
+              : type === 'base'
+              ? $t('activity.inviteToBase')
+              : $t('activity.inviteToWorkspace')
+          }}
         </NcButton>
       </div>
     </div>

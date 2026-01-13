@@ -16,9 +16,15 @@ export const useBase = defineStore('baseStore', () => {
 
   const forcedProjectId = ref<string>()
 
-  const baseId = computed(() => forcedProjectId.value || (route.value.params.baseId as string))
-
   const basesStore = useBases()
+
+  const baseId = computed(() => {
+    // In shared base mode, use activeProjectId from basesStore which has the correct base ID
+    if (route.value.params.typeOrId === 'base') {
+      return forcedProjectId.value || basesStore.activeProjectId || (route.value.params.baseId as string)
+    }
+    return forcedProjectId.value || (route.value.params.baseId as string)
+  })
 
   const tablesStore = useTablesStore()
 
@@ -303,6 +309,7 @@ export const useBase = defineStore('baseStore', () => {
     base,
     sources,
     tables,
+    baseId,
     loadRoles,
     loadProject,
     updateProject,

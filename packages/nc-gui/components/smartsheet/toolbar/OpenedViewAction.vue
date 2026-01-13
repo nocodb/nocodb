@@ -1,4 +1,8 @@
 <script lang="ts" setup>
+defineProps<{
+  showOnlyCopyId?: boolean
+}>()
+
 const { activeTable } = storeToRefs(useTablesStore())
 
 const { isMobileMode } = useGlobal()
@@ -66,12 +70,13 @@ watch(renameInputDom, () => {
 
 const onRenameBlur = async () => {
   if (validate()) {
-    activeView.value!.title = viewRenameTitle.value
+    const trimmedTitle = viewRenameTitle.value.trim()
+    activeView.value!.title = trimmedTitle
     isRenaming.value = false
     error.value = undefined
 
     await updateView(activeView.value!.id, {
-      title: viewRenameTitle.value,
+      title: trimmedTitle,
     })
   } else {
     renameInputDom.value?.focus()
@@ -80,19 +85,20 @@ const onRenameBlur = async () => {
 
 /** validate view title */
 function validate() {
-  if (!viewRenameTitle.value || viewRenameTitle.value.trim().length < 0) {
+  const trimmedTitle = viewRenameTitle.value.trim()
+  if (!trimmedTitle) {
     error.value = t('msg.error.viewNameRequired')
 
     return false
   }
 
-  if (viewRenameTitle.value.trim().length > 255) {
+  if (trimmedTitle.length > 255) {
     error.value = t('msg.error.nameMaxLength256')
 
     return false
   }
 
-  if (views.value.some((v) => v.title === viewRenameTitle.value && v.id !== activeView.value!.id)) {
+  if (views.value.some((v) => v.title?.trim() === trimmedTitle && v.id !== activeView.value!.id)) {
     error.value = t('msg.error.viewNameDuplicate')
     return false
   }
@@ -140,14 +146,13 @@ function openDeleteDialog() {
     v-if="isRenaming"
     class="h-6 relative"
     :class="{
-      'max-w-2/5': !isSharedBase && !isMobileMode && activeView?.is_default,
-      'max-w-3/5': !isSharedBase && !isMobileMode && !activeView?.is_default,
+      'max-w-3/5': !isSharedBase && !isMobileMode,
     }"
   >
     <input
       ref="renameInputDom"
       v-model="viewRenameTitle"
-      class="ml-0.25 w-full px-1 py-0.5 rounded-md font-medium text-gray-800"
+      class="ml-0.25 w-full px-1 py-0.5 rounded-md font-medium text-nc-content-gray"
       :class="{
         'outline-brand-500': !error,
         'outline-red-500 pr-6': error,
@@ -156,7 +161,7 @@ function openDeleteDialog() {
       @keydown.enter="onRenameBlur"
       @keydown.esc="resetViewRename"
     />
-    <NcTooltip v-if="error" class="absolute top-0.25 right-0.5 bg-white rounded-lg">
+    <NcTooltip v-if="error" class="absolute top-0.25 right-0.5 bg-nc-bg-default rounded-lg">
       <template #title>
         {{ error }}
       </template>
@@ -185,6 +190,7 @@ function openDeleteDialog() {
       <SmartsheetToolbarViewActionMenu
         :table="activeTable"
         :view="activeView"
+        :show-only-copy-id="showOnlyCopyId"
         @close-modal="isDropdownOpen = false"
         @rename="onRenameMenuClick"
         @delete="openDeleteDialog"

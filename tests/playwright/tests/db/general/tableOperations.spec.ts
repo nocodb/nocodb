@@ -4,7 +4,6 @@ import { DashboardPage } from '../../../pages/Dashboard';
 import { deepCompare } from '../../../tests/utils/objectCompareUtil';
 import setup, { unsetup } from '../../../setup';
 import { BaseInfoApiUtil, TableInfo } from '../../../tests/utils/baseInfoApiUtil';
-import { isEE } from '../../../setup/db';
 import { AuditPage } from '../../../pages/Dashboard/ProjectView/Audit';
 
 test.describe('Table Operations', () => {

@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-const { isLoading } = useGlobal()
+const { isLoading, appInfo } = useGlobal()
+
+const { isDark } = useTheme()
 
 const { isMobileMode } = storeToRefs(useConfigStore())
 
@@ -56,12 +58,12 @@ export default {
 
 <template>
   <a-layout id="nc-app">
-    <a-layout class="!flex-col bg-white">
+    <a-layout class="!flex-col bg-nc-bg-default">
       <GeneralPageDoesNotExist v-if="ncNotFound" />
       <template v-else>
         <a-layout-header
           v-if="!disableTopbar"
-          class="nc-table-topbar flex items-center justify-between !bg-transparent !px-3 !py-2 border-b-1 border-gray-200 !h-[46px]"
+          class="nc-table-topbar flex items-center justify-between !bg-transparent !px-3 !py-2 border-b-1 border-nc-border-gray-medium !h-[46px]"
         >
           <div class="flex items-center gap-6 h-7 max-w-[calc(100%_-_280px)] xs:max-w-[calc(100%_-_90px)]">
             <a
@@ -70,10 +72,11 @@ export default {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <img width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
+              <img v-if="isDark" width="96" alt="NocoDB" src="~/assets/img/brand/text.png" class="flex-none min-w-[96px]" />
+              <img v-else width="96" alt="NocoDB" src="~/assets/img/brand/nocodb.png" class="flex-none min-w-[96px]" />
             </a>
 
-            <div class="flex items-center gap-2 text-gray-900 text-sm truncate">
+            <div class="flex items-center gap-2 text-nc-content-gray-emphasis text-sm truncate">
               <template v-if="isLoading">
                 <span data-testid="nc-loading">{{ $t('general.loading') }}</span>
 
@@ -93,7 +96,7 @@ export default {
                   </template>
 
                   <NcButton type="text" class="!hover:bg-transparent" size="xsmall">
-                    <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon text-gray-600" />
+                    <GeneralIcon icon="info" class="!w-3.5 !h-3.5 nc-info-icon text-nc-content-gray-subtle2" />
                   </NcButton>
                 </NcTooltip>
               </div>
@@ -101,9 +104,17 @@ export default {
           </div>
 
           <div class="flex items-center gap-3">
-            <LazySmartsheetToolbarExport v-if="allowCSVDownload" />
+            <DashboardMiniSidebarTheme placement="bottom" render-as-btn />
 
-            <a href="https://app.nocodb.com/#/signin" target="_blank" class="!no-underline xs:hidden" rel="noopener">
+            <LazySmartsheetToolbarExportWithProvider v-if="allowCSVDownload" />
+
+            <a
+              v-if="!appInfo.isOnPrem"
+              href="https://app.nocodb.com/#/signin"
+              target="_blank"
+              class="!no-underline xs:hidden"
+              rel="noopener"
+            >
               <NcButton size="xs"> {{ $t('labels.signUpForFree') }} </NcButton>
             </a>
           </div>

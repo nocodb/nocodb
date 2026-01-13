@@ -929,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "Pokračovať v úpravách",
     "leave": "Odísť",
@@ -2353,6 +2355,7 @@
       "domainNameRequired": "Vyžaduje sa názov domény",
       "nameMaxLength256": "Názov môže mať najviac 256 znakov",
       "viewNameUnique": "Názov zobrazenia musí byť unikátny",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "Vaše vyhľadávanie na {search} nenašlo žiadne výsledky",
       "invalidChar": "Neplatný znak v ceste k priečinku.",
       "invalidDbCredentials": "Neplatné poverenia databázy.",

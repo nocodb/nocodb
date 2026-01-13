@@ -78,9 +78,9 @@ const copyEmail = () => {
 
 <template>
   <div
-    class="flex w-full flex-col border-gray-200 gap-y-1"
+    class="flex w-full flex-col border-nc-border-gray-medium gap-y-1"
     :class="{
-      'sticky bottom-0 bg-[var(--mini-sidebar-bg-color)]': isMiniSidebar,
+      'sticky bottom-0 bg-nc-bg-gray-minisidebar': isMiniSidebar,
     }"
   >
     <LazyGeneralMaintenanceAlert v-if="!isMiniSidebar" />
@@ -108,7 +108,8 @@ const copyEmail = () => {
           <div
             class="flex"
             :class="{
-              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-gray-200 rounded-lg cursor-pointer': !isMiniSidebar,
+              'flex-row py-1 px-3 gap-x-2 items-center text-gray-700 hover:bg-nc-bg-gray-medium rounded-lg cursor-pointer':
+                !isMiniSidebar,
               'nc-mini-sidebar-ws-item !w-[var(--mini-sidebar-width)] flex-none': isMiniSidebar,
             }"
             data-testid="nc-sidebar-userinfo"
@@ -136,7 +137,7 @@ const copyEmail = () => {
                 {{ name ? name : user?.email }}
               </NcTooltip>
 
-              <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-gray-500" />
+              <GeneralIcon icon="chevronDown" class="flex-none !min-w-5 transform rotate-180 !text-nc-content-gray-muted" />
             </template>
           </div>
         </NcTooltip>
@@ -185,7 +186,7 @@ const copyEmail = () => {
               rel="noopener noreferrer"
             >
               <NcMenuItem class="social-icon-wrapper group">
-                <GeneralIcon class="social-icon text-gray-500 group-hover:text-gray-800" icon="ncTwitter" />
+                <GeneralIcon class="social-icon text-nc-content-gray-muted group-hover:text-nc-content-gray" icon="ncTwitter" />
                 <span class="menu-btn"> {{ $t('labels.twitter') }} </span>
               </NcMenuItem>
             </a>
@@ -198,17 +199,19 @@ const copyEmail = () => {
             >
               <NcMenuItem inner-class="w-full">
                 <div v-e="['c:translate:open']" class="flex gap-2 items-center w-full">
-                  <GeneralIcon icon="translate" class="group-hover:text-black nc-language ml-0.25 menu-icon" />
+                  <GeneralIcon icon="translate" class="nc-language ml-0.25 menu-icon" />
                   {{ $t('labels.language') }}
-                  <div class="flex items-center text-gray-400 text-xs">{{ $t('labels.community.communityTranslated') }}</div>
+                  <div class="flex items-center text-nc-content-gray-disabled text-xs">
+                    {{ $t('labels.community.communityTranslated') }}
+                  </div>
                   <div class="flex-1" />
 
-                  <GeneralIcon icon="ncChevronRight" class="flex-none !text-gray-500" />
+                  <GeneralIcon icon="ncChevronRight" class="flex-none !text-nc-content-gray-muted" />
                 </div>
               </NcMenuItem>
 
               <template #content>
-                <div class="bg-white max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
+                <div class="bg-nc-bg-default max-h-50vh min-w-64 mb-1 nc-scrollbar-thin -mr-1.5 pr-1.5">
                   <LazyGeneralLanguageMenu />
                 </div>
               </template>
@@ -252,6 +255,12 @@ const copyEmail = () => {
                 <GeneralIcon icon="bulb" class="menu-icon mt-0.5" />
                 <span class="menu-btn"> {{ $t('general.featurePreview') }} </span>
               </NcMenuItem>
+              <nuxt-link v-e="['c:user:api-tokens']" class="!no-underline" to="/account/tokens">
+                <NcMenuItem>
+                  <GeneralIcon icon="ncKey2" class="menu-icon mt-0.5" />
+                  <span class="menu-btn"> {{ $t('title.apiTokens') }} </span>
+                </NcMenuItem>
+              </nuxt-link>
               <nuxt-link v-e="['c:user:settings']" class="!no-underline" :to="accountUrl" @click="auditsStore.handleReset">
                 <NcMenuItem>
                   <GeneralIcon icon="ncSettings" class="menu-icon" />
@@ -356,8 +365,12 @@ const copyEmail = () => {
 
 <style lang="scss">
 .nc-lang-menu-overlay {
+  .ant-popover-arrow-content {
+    @apply dark:(border-1 border-nc-border-gray-medium);
+  }
+
   .ant-popover-inner {
-    @apply !rounded-lg;
+    @apply dark:(border-1 border-nc-border-gray-medium) !rounded-lg;
   }
 
   .ant-popover-inner-content {

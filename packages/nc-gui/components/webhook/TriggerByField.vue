@@ -19,9 +19,11 @@ const triggerField = useVModel(props, 'triggerField', emits)
 const isDropdownOpen = ref(false)
 
 const computedTags = computed(() => {
-  return triggerFields.value?.map((colId) => {
-    return columns.value.find((k) => k.id === colId)
-  })
+  return triggerFields.value
+    ?.map((colId) => {
+      return columns.value.find((k) => k.id === colId)
+    })
+    .filter(Boolean)
 })
 
 const removeColumnId = (colId: string) => {
@@ -33,7 +35,7 @@ const removeColumnId = (colId: string) => {
   <div class="w-full flex items-center justify-between h-[28px]">
     <label class="cursor-pointer flex items-center" @click.prevent="triggerField = !triggerField">
       <NcSwitch :checked="triggerField" class="nc-check-box-trigger-field">
-        <span class="!text-gray-700 font-semibold"> Trigger only when specific fields change </span>
+        <span class="!text-nc-content-gray-subtle font-semibold"> Trigger only when specific fields change </span>
       </NcSwitch>
     </label>
     <NcDropdown v-if="triggerField" v-model:visible="isDropdownOpen" overlay-class-name="!pt-0">
@@ -41,7 +43,7 @@ const removeColumnId = (colId: string) => {
         size="xs"
         type="secondary"
         :class="{
-          '!shadow-selected !border-brand-500': isDropdownOpen,
+          '!shadow-selected !border-nc-border-brand': isDropdownOpen,
         }"
       >
         <div class="flex items-center justify-center gap-2">
@@ -66,7 +68,9 @@ const removeColumnId = (colId: string) => {
           </template>
 
           <template #listItem="{ option }">
-            <div class="flex items-center w-full truncate gap-3 text-nc-content-gray-subtle hover:text-black transition-colors">
+            <div
+              class="flex items-center w-full truncate gap-3 text-nc-content-gray-subtle hover:text-nc-content-gray-extreme transition-colors"
+            >
               <SmartsheetHeaderIcon :column="option" />
 
               <NcTooltip class="flex-1 truncate" show-on-truncate-only>
@@ -103,7 +107,7 @@ const removeColumnId = (colId: string) => {
         <GeneralIcon class="cursor-pointer opacity-70 hover:opacity-100" icon="close" @click="removeColumnId(col.id)" />
       </div>
     </div>
-    <div v-else class="flex flex-row text-gray-400 mt-2">
+    <div v-else class="flex flex-row text-nc-content-gray-disabled mt-2">
       {{ $t('title.noFieldsSelected') }}
     </div>
   </div>

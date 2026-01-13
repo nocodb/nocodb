@@ -4,6 +4,7 @@ export * from '~/lib/Api';
 export * from '~/lib/columnRules';
 export * from '~/lib/sqlUi';
 export * from '~/lib/globals';
+export * from '~/lib/timezoneUtils';
 export * from '~/lib/helperFunctions';
 export * from '~/lib/enums';
 export * from '~/lib/formulaHelpers';
@@ -12,6 +13,10 @@ export * from '~/lib/payment';
 export * from '~/lib/permission';
 export * from '~/lib/realtime';
 export * from '~/lib/scripts';
+export * from '~/lib/oauth';
+export * from '~/lib/unifiedMeta';
+export * from '~/lib/types';
+export * from '~/lib/helpers/metaHelpers';
 export {
   default as UITypes,
   UITypesName,
@@ -43,6 +48,8 @@ export {
   isDateOrDateTimeCol,
   customLinkSupportedTypes,
   UITypesSearchTerms,
+  isInUIType,
+  hiddenColumnTypes,
 } from '~/lib/UITypes';
 export { default as CustomAPI, FileType } from '~/lib/CustomAPI';
 export { default as TemplateGenerator } from '~/lib/TemplateGenerator';
@@ -72,7 +79,11 @@ export * from '~/lib/filter';
 export * from '~/lib/dashboard';
 export * from '~/lib/arrayHelpers';
 export * from '~/lib/objectHelpers';
-export * from '~/lib/roleHelpers';
+export * from '~/lib/roleHelper';
 export * from '~/lib/system';
 export * from '~/lib/timer.utils';
 export * from '~/lib/commonUtils';
+export * from '~/lib/CircularRefContext';
+export * from '~/lib/viewUtils';
+export * from '~/lib/workflow';
+export * from '~/lib/uniqueConstraintHelpers';

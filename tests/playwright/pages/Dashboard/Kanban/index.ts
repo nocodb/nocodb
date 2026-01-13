@@ -39,9 +39,6 @@ export class KanbanPage extends BasePage {
     const fromCard = srcStack.locator(`.nc-kanban-item`).nth(from.card);
     const toCard = dstStack.locator(`.nc-kanban-item`).nth(to.card);
 
-    console.log(await fromCard.allTextContents());
-    console.log(await toCard.allTextContents());
-
     await fromCard.dragTo(toCard, {
       force: true,
       sourcePosition: { x: 10, y: 10 },

@@ -64,6 +64,7 @@ const rolePermissions = {
       tableDelete: true,
       tableDescriptionEdit: true,
       tableDuplicate: true,
+      tablePermission: true,
       tableSort: true,
       layoutRename: true,
       layoutDelete: true,
@@ -88,12 +89,14 @@ const rolePermissions = {
       sourceCreate: true,
       baseAuditList: true,
 
-      extensionList: true,
-
       // Row colouring
       rowColourUpdate: true,
 
       projectOverviewTab: true,
+
+      // Extensions
+      extensionCreate: true,
+      extensionDelete: true,
     },
   },
   [ProjectRoles.EDITOR]: {
@@ -102,11 +105,17 @@ const rolePermissions = {
       dataEdit: true,
       sortSync: true,
       filterSync: true,
-      filterChildrenRead: true,
+      filterChildrenList: true,
       viewFieldEdit: true,
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,
+
+      // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
+      viewOperations: true,
+
+      // Extensions
+      extensionUpdate: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -127,6 +136,9 @@ const rolePermissions = {
       recordAuditList: true,
       newUser: true,
       manageMCP: true,
+
+      // Extensions
+      extensionList: true,
     },
   },
   [ProjectRoles.NO_ACCESS]: {

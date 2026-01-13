@@ -1,10 +1,10 @@
+import { forwardRef, Inject, Injectable, Logger } from '@nestjs/common';
 import {
-  forwardRef,
-  Inject,
-  Injectable,
-  NotImplementedException,
-} from '@nestjs/common';
-import { NcApiVersion, type NcContext, type NcRequest } from 'nocodb-sdk';
+  NcApiVersion,
+  NcBaseError,
+  type NcContext,
+  type NcRequest,
+} from 'nocodb-sdk';
 import { generateUpdateAuditV1Payload } from 'src/utils';
 import type {
   AuditV1,
@@ -17,6 +17,7 @@ import type { FormulaColumn } from '~/models';
 import type { ReusableParams } from '~/services/columns.service.type';
 import type { FormulaDataMigrationDriver } from '~/services/formula-column-type-changer';
 import type { IFormulaColumnTypeChanger } from './formula-column-type-changer.types';
+import { NcError } from '~/helpers/ncError';
 import {
   getBaseModelSqlFromModelId,
   isDataAuditEnabled,
@@ -31,6 +32,7 @@ export const DEFAULT_BATCH_LIMIT = 100000;
 
 @Injectable()
 export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
+  private logger = new Logger(FormulaColumnTypeChanger.name);
   constructor(
     @Inject(forwardRef(() => ColumnsService))
     private readonly columnsService: ColumnsService,
@@ -66,7 +68,10 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
       modelId: params.formulaColumn.fk_model_id,
     });
     if (!this.dataMigrationDriver[baseModel.dbDriver.clientType()]) {
-      throw new NotImplementedException(
+      this.logger.error(
+        `${baseModel.dbDriver.clientType()} database is not supported in this operation`,
+      );
+      NcError.get(context).notImplemented(
         `${baseModel.dbDriver.clientType()} database is not supported in this operation`,
       );
     }
@@ -106,7 +111,9 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
           reuse: params.reuse,
           forceDeleteSystem: false,
         });
-        throw ex;
+        if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
+        this.logger.error(ex?.message || 'Failed to convert column', ex);
+        NcError.get(context).internalServerError('Failed to convert column');
       }
     } catch (ex) {
       // when failed during create new column for whatever reason
@@ -116,7 +123,9 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
           title: oldTitle,
         });
       }
-      throw ex;
+      if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
+      this.logger.error(ex?.message || 'Failed to convert column', ex);
+      NcError.get(context).internalServerError('Failed to convert column');
     }
     return await Column.updateFormulaColumnToNewType(context, {
       formulaColumn: params.formulaColumn,
@@ -183,7 +192,7 @@ export class FormulaColumnTypeChanger implements IFormulaColumnTypeChanger {
     const qb = baseModelSqlV2.dbDriver;
     const dataMigrationDriver = this.dataMigrationDriver[qb.clientType()];
     if (!dataMigrationDriver) {
-      throw new NotImplementedException(
+      NcError.get(baseModelSqlV2.context).notImplemented(
         `${qb.clientType()} database is not supported in this operation`,
       );
     }

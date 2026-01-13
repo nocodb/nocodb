@@ -40,7 +40,7 @@ declare module '#app' {
       offMessage: (listenerId: string) => void
     }
     $eventBus: {
-      smartsheetStoreEventBus: UseEventBusReturn<string, any>
+      smartsheetStoreEventBus: UseEventBusReturn<SmartsheetStoreEvents, any>
       realtimeBaseUserEventBus: UseEventBusReturn<string, any>
       realtimeViewMetaEventBus: UseEventBusReturn<string, any>
     }

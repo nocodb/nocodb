@@ -400,6 +400,10 @@ const openBaseSettings = async (baseId: string) => {
   await navigateTo(`/nc/${baseId}?page=base-settings`)
 }
 
+const openMcpSettings = async (baseId: string) => {
+  await navigateTo(`/nc/${baseId}?page=base-settings&tab=mcp`)
+}
+
 const showNodeTooltip = ref(true)
 
 const shouldOpenContextMenu = computed(() => {
@@ -434,6 +438,7 @@ defineExpose({
 
 <template>
   <NcDropdown
+    v-model:visible="isProjectNodeContextMenuOpen"
     :trigger="[isProjectHeader ? 'click' : 'contextmenu']"
     overlay-class-name="nc-dropdown-tree-view-context-menu"
     :disabled="isProjectHeader ? editMode || isSharedBase || !!isMobileMode : undefined"
@@ -451,6 +456,7 @@ defineExpose({
         trigger="hover"
         :placement="isProjectHeader ? 'rightTop' : 'right'"
         hide-on-click
+        :mouse-enter-delay="0.5"
         :disabled="
           editMode ||
           isOptionsOpen ||
@@ -463,22 +469,19 @@ defineExpose({
       >
         <template #title>
           <div class="flex flex-col gap-3">
-            <div class="text-small leading-[18px] mb-1">{{ base.title }}</div>
+            <div>
+              <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
+                {{ $t('labels.projName') }}
+              </div>
+              <div class="text-small leading-[18px] mb-1">{{ base.title }}</div>
+            </div>
             <div v-if="currentUserRole">
-              <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">
+              <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
                 {{ $t('title.yourBaseRole') }}
               </div>
               <div
-                class="text-xs font-medium flex items-start gap-2 flex items-center gap-1"
-                :class="{
-                  'text-nc-purple-200': RoleColors[currentUserRole] === 'purple',
-                  'text-nc-blue-200': RoleColors[currentUserRole] === 'blue',
-                  'text-nc-green-200': RoleColors[currentUserRole] === 'green',
-                  'text-nc-orange-200': RoleColors[currentUserRole] === 'orange',
-                  'text-nc-yellow-200': RoleColors[currentUserRole] === 'yellow',
-                  'text-nc-red-200': RoleColors[currentUserRole] === 'red',
-                  'text-nc-maroon-200': RoleColors[currentUserRole] === 'maroon',
-                }"
+                class="text-xs font-medium flex items-center gap-2 gap-1"
+                :class="roleColorsMapping[RoleColors[currentUserRole]]?.contentTooltip"
               >
                 <GeneralIcon :icon="RoleIcons[currentUserRole]" class="w-4 h-4" />
                 {{ $t(`objects.roleType.${RoleLabels[currentUserRole]}`) }}
@@ -501,8 +504,9 @@ defineExpose({
               'flex-grow w-full': isProjectHeader && editMode,
               'bg-nc-bg-gray-medium': isProjectHeader && isProjectNodeContextMenuOpen,
               'h-7 pr-1 pl-2.5 xs:(pl-0) flex-grow w-full': !isProjectHeader,
-              'bg-primary-selected active': activeProjectId === base.id && baseViewOpen && !isMobileMode && !isProjectHeader,
-              'hover:bg-nc-bg-gray-medium': !(activeProjectId === base.id && baseViewOpen) && !isProjectHeader,
+              'bg-primary-selected dark:bg-nc-bg-gray-medium active':
+                activeProjectId === base.id && !isMobileMode && !isProjectHeader,
+              'hover:bg-nc-bg-gray-medium': !(activeProjectId === base.id) && !isProjectHeader,
             }"
             :data-id="base.id"
             :data-testid="`nc-sidebar-base-title-${base.title}`"
@@ -612,6 +616,7 @@ defineExpose({
                       @copy-project-info="copyProjectInfo()"
                       @open-erd-view="openErdView($event)"
                       @open-base-settings="openBaseSettings($event)"
+                      @open-mcp-server="openMcpSettings($event)"
                       @delete="projectDelete"
                     />
                   </template>
@@ -671,6 +676,7 @@ defineExpose({
         @copy-project-info="copyProjectInfo()"
         @open-erd-view="openErdView($event)"
         @open-base-settings="openBaseSettings($event)"
+        @open-mcp-server="openMcpSettings($event)"
         @delete="projectDelete"
       />
       <NcMenu
@@ -760,7 +766,7 @@ defineExpose({
 
 <style lang="scss" scoped>
 :deep(.ant-collapse-header) {
-  @apply !mx-0 !pl-7.5 h-7 !xs:(pl-6 h-[3rem]) !pr-0.5 !py-0 hover:bg-nc-bg-gray-medium xs:(hover:bg-nc-bg-gray-extra-light) !rounded-md;
+  @apply !mx-0 !pl-7.5 h-7 !xs:(pl-6 h-[3rem]) !pr-0.5 !py-0 hover:bg-nc-bg-gray-medium xs:(hover:bg-nc-bg-gray-extralight) !rounded-md;
 
   .ant-collapse-arrow {
     @apply !right-1 !xs:(flex-none border-1 border-nc-border-gray-medium w-6.5 h-6.5 mr-1);

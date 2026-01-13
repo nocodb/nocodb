@@ -1,4 +1,9 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  CircularRefContext,
+  ClientType,
+  RelationTypes,
+  UITypes,
+} from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type {
@@ -13,12 +18,11 @@ import type {
   QrCodeColumn,
   RollupColumn,
 } from '~/models';
-import { getRefColumnIfAlias } from '~/helpers';
-import { NcError } from '~/helpers/catchError';
-import genRollupSelectv2 from '~/db/genRollupSelectv2';
-import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
-import { Model } from '~/models';
 import { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
+import { getAggregateFn } from '~/db/formulav2/formula-query-builder.helpers';
+import genRollupSelectv2 from '~/db/genRollupSelectv2';
+import { getRefColumnIfAlias } from '~/helpers';
+import { Model } from '~/models';
 
 export const lookupOrLtarBuilder =
   (
@@ -37,7 +41,7 @@ export const lookupOrLtarBuilder =
       knex = baseModelSqlv2.dbDriver,
       context = baseModelSqlv2.context,
       tableAlias: _tableAlias,
-      model = baseModelSqlv2.model,
+      //model = baseModelSqlv2.model,
       _formulaQueryBuilder,
       getAliasCount,
     } = params;
@@ -343,6 +347,7 @@ export const lookupOrLtarBuilder =
                 columnOptions: (await lookupColumn.getColOptions(
                   context,
                 )) as RollupColumn,
+                parentColumns,
               })
             ).builder;
             // selectQb.select(builder);
@@ -504,26 +509,23 @@ export const lookupOrLtarBuilder =
             const formulaOption =
               await lookupColumn.getColOptions<FormulaColumn>(context);
             const lookupModel = await lookupColumn.getModel(context);
-            if (parentColumns?.has(lookupColumn.id)) {
-              NcError.get(context).formulaError('Circular reference detected', {
-                details: {
-                  columnId: lookupColumn.id,
-                  modelId: model.id,
-                  parentColumnIds: Array.from(parentColumns),
-                },
-              });
-            }
+            const columns = await lookupModel.getColumns(context);
+            parentColumns = (
+              parentColumns ?? CircularRefContext.make()
+            ).cloneAndAdd({
+              id: lookupColumn.id,
+              title: lookupColumn.title,
+              table: lookupModel?.title,
+            });
             const { builder } = await _formulaQueryBuilder({
               ...params,
               _tree: formulaOption.formula,
               model: lookupModel,
               parsedTree: formulaOption.getParsedTree(),
-              parentColumns: new Set([
-                lookupColumn.id,
-                ...(parentColumns ?? []),
-              ]),
+              parentColumns,
               tableAlias: prevAlias,
               column: lookupColumn,
+              columns,
             });
             if (isArray) {
               const qb = selectQb;
@@ -587,6 +589,52 @@ export const lookupOrLtarBuilder =
           } else {
             selectQb.select(`${prevAlias}.${refCol.column_name}`);
           }
+          break;
+        }
+        case UITypes.Attachment: {
+          {
+            if (isArray) {
+              const qb = selectQb;
+              const cn = `${prevAlias}.${lookupColumn.column_name}`;
+              selectQb = (fn) => {
+                console.log('fn', fn, knex.clientType());
+                if (
+                  knex.clientType() === ClientType.PG &&
+                  (!fn || fn.toLowerCase?.() === 'concat')
+                ) {
+                  return knex
+                    .raw(
+                      [
+                        `select jsonb_agg(__elem)::text`,
+                        `from (`,
+                        `  ??`,
+                        `) t`,
+                        `cross join lateral jsonb_array_elements(__val::jsonb) as __elem`,
+                      ].join(' '),
+                      [
+                        qb
+                          .clear('select')
+                          .select(knex.raw('?? as __val', [cn])),
+                      ],
+                    )
+                    .wrap('(', ')');
+                } else {
+                  return knex
+                    .raw(
+                      getAggregateFn(fn)({
+                        qb,
+                        knex,
+                        cn: `${prevAlias}.${lookupColumn.column_name}`,
+                      }),
+                    )
+                    .wrap('(', ')');
+                }
+              };
+            } else {
+              selectQb.select(`${prevAlias}.${lookupColumn.column_name}`);
+            }
+          }
+
           break;
         }
         default:

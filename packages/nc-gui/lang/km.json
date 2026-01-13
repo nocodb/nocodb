@@ -929,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "បន្តកែសម្រួល",
     "leave": "ចាកចេញ",
@@ -2353,6 +2355,7 @@
       "domainNameRequired": "ឈ្មោះដែនត្រូវបានទាមទារជារបៀបបញ្ចូល",
       "nameMaxLength256": "ឈ្មោះត្រូវតែមានច្រើនបំផុត 256 តួអក្សរ",
       "viewNameUnique": "ឈ្មោះទិដ្ឋភាពគួរតែមានភាពលក្ខណៈពិសេស",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "ការស្វែងរក {search} របស់អ្នកគ្មានលទ្ធផល",
       "invalidChar": "តួអក្សរមិនត្រឹមត្រូវនៅក្នុងផ្លូវថ្នល់ថត។",
       "invalidDbCredentials": "ព័ត៌មានសម្ងាត់មូលបញ្ជីមិនត្រឹមត្រូវ។",

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import tinycolor from 'tinycolor2'
 import { CommonAggregations } from 'nocodb-sdk'
 import { shouldRenderCell } from '../../../utils/groupbyUtils'
 import Table from './Table.vue'
@@ -45,6 +44,10 @@ const emits = defineEmits(['update:paginationData'])
 
 const vGroup = useVModel(props, 'group', emits)
 
+const { appInfo } = useGlobal()
+
+const { isDark, getColor } = useTheme()
+
 const meta = inject(MetaInj, ref())
 
 const fields = inject(FieldsInj, ref())
@@ -73,7 +76,7 @@ const viewDisplayField = computed(() => {
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-reloadAggregate?.on(async (_fields) => {
+const reloadAggregateListener = async (_fields: any) => {
   if (!fields.value?.length) return
   if (!_fields || !_fields?.fields?.length) {
     await props.loadGroupAggregation(vGroup.value)
@@ -93,11 +96,13 @@ reloadAggregate?.on(async (_fields) => {
       vGroup.value,
       Object.entries(fieldAggregateMapping).map(([field, type]) => ({
         field,
-        type,
+        type: type as string,
       })),
     )
   }
-})
+}
+
+reloadAggregate?.on(reloadAggregateListener)
 
 const _loadGroupData = async (group: Group, force?: boolean, params?: any) => {
   isViewDataLoading.value = true
@@ -116,6 +121,8 @@ const wrapper = ref<HTMLElement | undefined>()
 const scrollable = ref<HTMLElement | undefined>()
 
 const tableHeader = ref<HTMLElement | undefined>()
+
+const groupByTableRef = ref()
 
 const fullPage = computed<boolean>(() => {
   return props.fullPage ?? (tableHeader.value?.offsetWidth ?? 0) > (props.viewWidth ?? 0)
@@ -181,6 +188,7 @@ onMounted(async () => {
 
 onBeforeUnmount(async () => {
   reloadViewDataHook?.off(reloadViewDataHandler)
+  reloadAggregate?.off(reloadAggregateListener)
 })
 
 watch([() => vGroup.value.key], async (n, o) => {
@@ -310,28 +318,28 @@ const bgColor = computed(() => {
   if (props.maxDepth === 3) {
     switch (_depth) {
       case 2:
-        return '#F9F9FA'
+        return getColor(themeV4Colors.gray['50'])
       case 1:
-        return '#F4F4F5'
+        return getColor(themeV4Colors.gray['100'])
       default:
-        return '#F1F1F1'
+        return getColor('#F1F1F1', themeV4Colors.gray['200'])
     }
   }
 
   if (props.maxDepth === 2) {
     switch (_depth) {
       case 1:
-        return '#F9F9FA'
+        return getColor(themeV4Colors.gray['50'])
       default:
-        return '#F4F4F5'
+        return getColor(themeV4Colors.gray['100'])
     }
   }
 
   if (props.maxDepth === 1) {
-    return '#F9F9FA'
+    return getColor(themeV4Colors.gray['50'])
   }
 
-  return '#F9F9FA'
+  return getColor(themeV4Colors.gray['50'])
 })
 async function openNewRecordHandler() {
   if (_depth !== 0) return
@@ -353,8 +361,7 @@ async function openNewRecordHandler() {
     <div ref="scrollable" :style="`${vGroup.root === true ? 'width: fit-content' : 'width: 100%'}`">
       <div v-if="vGroup.root === true" class="flex sticky top-0 z-5">
         <div
-          class="border-b-1 border-gray-200 mb-2"
-          style="background-color: #f4f4f5"
+          class="border-b-1 border-nc-border-gray-medium mb-2 bg-nc-bg-gray-light"
           :style="{ 'padding-left': `${(maxDepth || 1) * 9}px` }"
         ></div>
         <Table ref="tableHeader" class="mb-2" :data="[]" :hide-checkbox="true" :header-only="true" />
@@ -369,7 +376,7 @@ async function openNewRecordHandler() {
           <a-collapse-panel
             v-for="grp of vGroup?.children ?? []"
             :key="`group-panel-${grp.key}`"
-            class="!border-1 border-gray-300 nc-group rounded-[8px] mb-2"
+            class="!border-1 border-nc-border-gray-dark nc-group rounded-[8px] mb-2"
             :style="`background: ${bgColor};`"
             :show-arrow="false"
           >
@@ -386,7 +393,7 @@ async function openNewRecordHandler() {
                     '!rounded-bl-[8px]': !activeGroups.includes(grp.key.toString()),
                   }"
                   :style="`width:${computedWidth};background: ${bgColor};`"
-                  class="!sticky flex z-10 justify-between !h-9.8 border-r-1 !rounded-tl-[8px] group pr-2 border-gray-300 overflow-clip items-center !left-0"
+                  class="!sticky flex z-10 justify-between !h-9.8 border-r-1 !rounded-tl-[8px] group pr-2 border-nc-border-gray-dark overflow-clip items-center !left-0"
                 >
                   <div class="flex items-center">
                     <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">
@@ -405,19 +412,21 @@ async function openNewRecordHandler() {
                           v-for="[tagIndex, tag] of Object.entries(grp.key.split(','))"
                           :key="`panel-tag-${grp.column.id}-${tag}`"
                           class="!py-0 !px-[12px] !rounded-[12px]"
-                          :color="grp.color.split(',')[+tagIndex]"
+                          :color="
+                            getSelectTypeFieldOptionBgColor({
+                              isDark,
+                              color: grp.color?.split(',')[+tagIndex] || '#ccc',
+                            })
+                          "
                         >
                           <span
                             class="nc-group-value"
                             :style="{
-                              'color': tinycolor.isReadable(grp.color.split(',')[+tagIndex] || '#ccc', '#fff', {
-                                level: 'AA',
-                                size: 'large',
-                              })
-                                ? '#fff'
-                                : tinycolor
-                                    .mostReadable(grp.color.split(',')[+tagIndex] || '#ccc', ['#0b1d05', '#fff'])
-                                    .toHex8String(),
+                              'color': getSelectTypeFieldOptionTextColor({
+                                isDark,
+                                color: grp.color?.split(',')[+tagIndex] || '#ccc',
+                                getColor,
+                              }),
                               'font-size': '14px',
                               'font-weight': 500,
                             }"
@@ -432,7 +441,7 @@ async function openNewRecordHandler() {
                       >
                         <template v-for="(val, ind) of parseKey(grp)" :key="ind">
                           <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
-                          <span v-else class="text-gray-400">No mapped value</span>
+                          <span v-else class="text-nc-content-gray-disabled">No mapped value</span>
                         </template>
                       </div>
                       <a-tag
@@ -440,17 +449,21 @@ async function openNewRecordHandler() {
                         :key="`panel-tag-${grp.column.id}-${grp.key}`"
                         class="!py-0 !px-[12px]"
                         :class="`${grp.column.uidt === 'SingleSelect' ? '!rounded-[12px]' : '!rounded-[6px]'}`"
-                        :color="grp.color"
+                        :color="
+                          getSelectTypeFieldOptionBgColor({
+                            isDark,
+                            color: grp.color || '#ccc',
+                          })
+                        "
                       >
                         <span
                           class="nc-group-value font-semibold text-[13px]"
                           :style="{
-                            color: tinycolor.isReadable(grp.color || '#ccc', '#fff', {
-                              level: 'AA',
-                              size: 'large',
-                            })
-                              ? '#fff'
-                              : tinycolor.mostReadable(grp.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+                            color: getSelectTypeFieldOptionTextColor({
+                              isDark,
+                              color: grp.color || '#ccc',
+                              getColor,
+                            }),
                           }"
                         >
                           <template v-if="grp.key in GROUP_BY_VARS.VAR_TITLES">{{ GROUP_BY_VARS.VAR_TITLES[grp.key] }}</template>
@@ -465,11 +478,11 @@ async function openNewRecordHandler() {
                     :style="`background: linear-gradient(to right, hsla(0, 0%, 97%, 0), ${bgColor} 18%);`"
                     class="flex !h-10 absolute right-0 pl-8 pr-2 items-center"
                   >
-                    <div class="text-xs group-hover:hidden text-gray-500 nc-group-row-count">
+                    <div class="text-xs group-hover:hidden text-nc-content-gray-muted nc-group-row-count">
                       <span>
                         {{ $t('datatype.Count') }}
                       </span>
-                      <span class="text-[#374151] ml-2"> {{ grp.count }} </span>
+                      <span class="text-nc-content-gray-subtle ml-2"> {{ grp.count }} </span>
                     </div>
 
                     <NcDropdown class="!hidden !group-hover:block">
@@ -503,6 +516,7 @@ async function openNewRecordHandler() {
                   </div>
                 </div>
                 <SmartsheetGridAggregation
+                  v-if="!appInfo.disableGroupByAggregation"
                   :scroll-left="props.scrollLeft || _scrollLeft"
                   :max-depth="maxDepth"
                   :group="grp"
@@ -512,6 +526,7 @@ async function openNewRecordHandler() {
             </template>
             <GroupByTable
               v-if="!grp.nested && grp.rows"
+              :ref="(el) => (groupByTableRef = el)"
               :group="grp"
               :max-depth="maxDepth"
               :depth="depth"
@@ -557,6 +572,7 @@ async function openNewRecordHandler() {
     custom-label="groups"
     :depth="maxDepth"
     :change-page="(p: number) => groupWrapperChangePage(p, vGroup)"
+    :selected-cell-count="groupByTableRef?.selectedCellCount ?? 0"
   />
 
   <LazySmartsheetPagination
@@ -574,6 +590,7 @@ async function openNewRecordHandler() {
         : ''
     }`"
     :fixed-size="undefined"
+    :selected-cell-count="groupByTableRef?.selectedCellCount ?? 0"
   ></LazySmartsheetPagination>
 
   <div v-if="depth !== 0" class="absolute bottom-12 z-5 left-2" @click.stop>
@@ -599,15 +616,15 @@ async function openNewRecordHandler() {
   border-radius: 0 0 8px 8px !important;
 }
 :deep(.ant-collapse) {
-  @apply !border-gray-300 !bg-transparent;
+  @apply !border-nc-border-gray-dark !bg-transparent;
 }
 
 :deep(.ant-collapse-item) {
-  @apply !border-gray-300;
+  @apply !border-nc-border-gray-dark;
 }
 
 :deep(.ant-collapse-header) {
-  @apply !p-0 !border-gray-300 !rounded-lg;
+  @apply !p-0 !border-nc-border-gray-dark !rounded-lg;
 }
 :deep(.ant-collapse-item-active > .ant-collapse-header) {
   border-radius: 8px 8px 0 0 !important;

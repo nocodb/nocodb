@@ -4,7 +4,14 @@ import type { AuditType } from 'nocodb-sdk'
 /* interface */
 
 const props = defineProps<{
-  auditGroup: { audit: AuditType; user: string; displayName?: string; created_display_name?: string }
+  auditGroup: {
+    audit: AuditType
+    user: string
+    displayName?: string
+    displayNameShort?: string
+    created_display_name?: string
+    created_display_name_short?: string
+  }
 }>()
 
 const { user } = useGlobal()
@@ -30,7 +37,7 @@ function safeGetFromAuditDetails(audit: AuditType, key: string) {
 /* formatting */
 
 const createdBy = computed(() => {
-  const displayName = props.auditGroup.displayName?.trim() || props.auditGroup.created_display_name?.trim()
+  const displayName = props.auditGroup.displayNameShort?.trim() || props.auditGroup.created_display_name_short?.trim()
   if (props.auditGroup.user === user.value?.email) {
     return 'You'
   } else if (displayName) {

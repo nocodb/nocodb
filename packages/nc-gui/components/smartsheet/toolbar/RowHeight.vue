@@ -58,11 +58,16 @@ const updateRowHeight = async (rh: number, undo = false) => {
     }
 
     try {
-      if (!isPublic.value && !isSharedBase.value && isUIAllowed('viewCreateOrEdit')) {
-        await updateViewMeta(view.value.id, ViewTypes.GRID, {
+      await updateViewMeta(
+        view.value.id,
+        ViewTypes.GRID,
+        {
           row_height: rh,
-        })
-      }
+        },
+        {
+          skipNetworkCall: isPublic.value || isSharedBase.value || !isUIAllowed('viewCreateOrEdit'),
+        },
+      )
 
       open.value = false
     } catch (e: any) {

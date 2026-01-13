@@ -38,9 +38,9 @@ const { runScript, activeExecutions, fieldIDRowMapping } = useScriptExecutor()
 
 const { addScriptExecution } = useActionPane()
 
-const automationStore = useAutomationStore()
+const scriptStore = useScriptStore()
 
-const { loadAutomation } = automationStore
+const { loadScript } = scriptStore
 
 const isLoading = ref(false)
 
@@ -153,6 +153,15 @@ const componentProps = computed(() => {
           generatingColumnRows.value.includes(column.value.id)),
     }
   }
+
+  // If button type is missing then keep it as disabled
+  if (!column.value.colOptions.type) {
+    return {
+      disabled: true,
+    }
+  }
+
+  return {}
 })
 
 const afterActionStatus = ref<{
@@ -164,13 +173,24 @@ const triggerAction = async () => {
   const colOptions = column.value.colOptions
   afterActionStatus.value = null
 
+  if (!colOptions.type) return
+
   if (colOptions.type === ButtonActionsType.Url) {
     confirmPageLeavingRedirect(componentProps.value?.href, componentProps.value?.target, appInfo.value?.allowLocalUrl)
   } else if (colOptions.type === ButtonActionsType.Webhook) {
     try {
       isLoading.value = true
 
-      await $api.dbTableWebhook.trigger(cellValue.value?.fk_webhook_id, rowId!.value)
+      await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'hookTrigger',
+          hookId: cellValue.value?.fk_webhook_id,
+          rowId: rowId!.value,
+        },
+        {},
+      )
 
       afterActionStatus.value = { status: 'success' }
       ncDelay(2000).then(() => {
@@ -195,7 +215,7 @@ const triggerAction = async () => {
     try {
       isLoading.value = true
 
-      const script = await loadAutomation(colOptions.fk_script_id)
+      const script = await loadScript(colOptions.fk_script_id)
 
       if (!script) {
         throw new Error('Script not found')
@@ -335,11 +355,10 @@ const triggerAction = async () => {
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
   }
   &:focus-within {
-    @apply outline-none ring-0;
-    box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px #3069fe;
+    @apply outline-none ring-0 shadow-focus;
   }
   &[disabled] {
-    @apply opacity-50;
+    @apply opacity-50 cursor-not-allowed;
   }
 
   &.is-expanded-form {
@@ -445,7 +464,7 @@ const triggerAction = async () => {
       @apply bg-gray-200;
     }
     &:focus {
-      box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+      @apply shadow-focus;
     }
 
     &.brand {

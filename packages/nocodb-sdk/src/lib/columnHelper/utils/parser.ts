@@ -69,12 +69,27 @@ export const parseDecimalValue = (
   return roundUpToPrecision(Number(value), columnMeta.precision ?? 1);
 };
 
-export const parsePercentValue = (value: string | null) => {
+export const parsePercentValue = (value: string | null, col: ColumnType) => {
   if (ncIsNaN(value)) {
     return null;
   }
 
-  return `${Number(value)}%`;
+  /**
+   * We have to keep cell display and parse value (copy) consistent
+   * ref: check `formatPercentage` function in `~/utils/cell.ts`
+   */
+  if (Number(value) % 1 === 0) {
+    return `${Number(value)}%`;
+  }
+
+  const columnMeta = parseProp(col.meta);
+
+  const percentValue = roundUpToPrecision(
+    Number(value),
+    columnMeta.precision ?? 2
+  );
+
+  return `${percentValue}%`;
 };
 
 export const parseDurationValue = (value: string | null, col: ColumnType) => {
@@ -191,7 +206,11 @@ export const parseYearValue = (value: any) => {
   return value ? +value : value;
 };
 
-export const parseUserValue = (value: any, withDisplayName = false) => {
+export const parseUserValue = (
+  value: any,
+  withDisplayName = false,
+  useUserId = false
+) => {
   let data = value;
   try {
     if (typeof value === 'string') {
@@ -203,6 +222,8 @@ export const parseUserValue = (value: any, withDisplayName = false) => {
     .map((user) =>
       withDisplayName && user.display_name
         ? `${user.display_name}<${user.email}>`
+        : useUserId
+        ? `${user.id}`
         : `${user.email}`
     )
     .join(', ');

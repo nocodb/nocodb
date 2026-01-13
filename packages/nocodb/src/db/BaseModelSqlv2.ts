@@ -10,6 +10,7 @@ import groupBy from 'lodash/groupBy';
 import {
   AuditOperationSubTypes,
   AuditV1OperationTypes,
+  ClientType,
   convertDurationToSeconds,
   enumColors,
   EventType,
@@ -20,12 +21,14 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isOrderCol,
+  isSelfLinkCol,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
   NcApiVersion,
   NcErrorType,
   ncIsNull,
+  ncIsNullOrUndefined,
   ncIsObject,
   ncIsUndefined,
   PermissionEntity,
@@ -34,7 +37,6 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
-import type { Knex } from 'knex';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -47,8 +49,10 @@ import type {
   DataUpdatePayload,
   FilterType,
   NcRequest,
+  ParsedFormulaNode,
   UpdatePayload,
 } from 'nocodb-sdk';
+import type { Knex } from 'knex';
 import type CustomKnex from '~/db/CustomKnex';
 import type { XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -57,14 +61,15 @@ import type {
   XcFilterWithAlias,
 } from '~/db/sql-data-mapper/lib/BaseModel';
 import type { NcContext } from '~/interface/config';
+import type LookupColumn from '~/models/LookupColumn';
+import type { ResolverObj } from '~/utils';
 import type {
   FormulaColumn,
   LinkToAnotherRecordColumn,
   SelectOption,
   User,
 } from '~/models';
-import type LookupColumn from '~/models/LookupColumn';
-import type { ResolverObj } from '~/utils';
+import { LTARColsUpdater } from '~/db/BaseModelSqlv2/ltar-cols-updater';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import { ncIsStringHasValue } from '~/db/field-handler/utils/handlerUtils';
 import { AttachmentUrlUploadPreparator } from '~/db/BaseModelSqlv2/attachment-url-upload-preparator';
@@ -133,7 +138,9 @@ import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
+import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
+import { Profiler } from '~/helpers/profiler';
 
 dayjs.extend(utc);
 
@@ -317,7 +324,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (this.model.id === model.id) {
       data = await this.readByPk(...rest);
     } else {
-      context = { ...this.context, base_id: this.model.base_id };
+      context = { ...this.context, base_id: model.base_id };
       const baseModel = await Model.getBaseModelSQL(context, {
         model,
         viewId: viewId,
@@ -1050,7 +1057,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             break;
           }
           default:
-            NcError.notImplemented(
+            NcError.get(this.context).notImplemented(
               'This database is not supported for bulk aggregation',
             );
         }
@@ -1225,6 +1232,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     sort?: string | string[];
     filterArr?: Filter[];
     sortArr?: Sort[];
+    minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
     return await baseModelGroupBy(this, logger).list(args);
   }
@@ -1235,6 +1243,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     limit?;
     offset?;
     filterArr?: Filter[];
+    minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
     return await baseModelGroupBy(this, logger).count(args);
   }
@@ -1529,7 +1538,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     aliasToColumnBuilder = {},
   ) {
     const formula = await column.getColOptions<FormulaColumn>(this.context);
-    if (formula.error) throw new Error(`Formula error: ${formula.error}`);
+    if (formula.error) NcError.get(this.context).formulaError(formula.error);
+
     const qb = await formulaQueryBuilderv2({
       baseModel: this,
       tree: formula.formula,
@@ -2149,14 +2159,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
 
     if (!row) {
-      NcError.recordNotFound(rowId);
+      NcError.get(this.context).recordNotFound(rowId);
     }
 
     const newRecordOrder = (
       await this.getUniqueOrdersBeforeItem(beforeRowId, 1)
     )[0];
 
-    return await this.dbDriver(this.tnPath)
+    return this.dbDriver(this.tnPath)
       .update({
         [columns.find((c) => c.uidt === UITypes.Order).column_name]:
           newRecordOrder.toString(),
@@ -2201,7 +2211,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
 
       if (!prevData) {
-        NcError.recordNotFound(id);
+        NcError.get(this.context).recordNotFound(id);
       }
 
       await this.prepareNocoData(updateObj, false, cookie, prevData);
@@ -2854,41 +2864,39 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           isCreatedOrLastModifiedTimeCol(col) ||
           isCreatedOrLastModifiedByCol(col)
         ) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${col.title}" is auto generated and cannot be updated`,
           );
         }
 
         if (isVirtualCol(col) && !isLinksOrLTAR(col)) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${col.title}" is virtual and cannot be updated`,
           );
         }
 
-        if (
-          col.system &&
-          !allowSystemColumn &&
-          [UITypes.ForeignKey].includes(col.uidt)
-        ) {
-          NcError.badRequest(
-            `Column "${col.title}" is system column and cannot be updated`,
-          );
+        if (col.system && !allowSystemColumn) {
+          let shouldThrow = true;
+
+          // allow updating order column during undo operation
+          if (col.uidt === UITypes.Order && params.undo) {
+            shouldThrow = false;
+          }
+          // allow updating self link column (system counter part)
+          else if (isSelfLinkCol(col)) {
+            shouldThrow = false;
+          }
+
+          if (shouldThrow) {
+            NcError.get(this.context).badRequest(
+              `Column "${col.title}" is system column and cannot be updated`,
+            );
+          }
         }
 
         if (!allowSystemColumn && col.readonly) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${col.title}" is readonly column and cannot be updated`,
-          );
-        }
-
-        if (
-          col.system &&
-          !allowSystemColumn &&
-          col.uidt !== UITypes.Order &&
-          !params.undo
-        ) {
-          NcError.badRequest(
-            `Column "${col.title}" is system column and cannot be updated`,
           );
         }
       }
@@ -3040,6 +3048,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   ) {
     let transaction;
     const readChunkSize = 100;
+    const profiler = Profiler.start(`base-model/bulkUpdate`);
 
     try {
       const columns = await this.model.getColumns(this.context);
@@ -3075,7 +3084,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const pkValues = this.extractPksValues(d, true);
 
         if (!pkValues) {
-          if (throwExceptionIfNotExist) NcError.recordNotFound(pkValues);
+          if (throwExceptionIfNotExist)
+            NcError.get(this.context).recordNotFound(pkValues);
           continue;
         }
 
@@ -3099,7 +3109,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           if (!oldRecord) {
             // removed data from error param, record not found message do not use data
-            if (throwExceptionIfNotExist) NcError.recordNotFound(pk);
+            if (throwExceptionIfNotExist)
+              NcError.get(this.context).recordNotFound(pk);
             continue;
           }
           await this.prepareNocoData(data, false, cookie, oldRecord);
@@ -3160,12 +3171,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
 
       if (apiVersion === NcApiVersion.V3) {
+        profiler.log('updateLTARCols start');
         // remove LTAR/Links if part of the update request
         await this.updateLTARCols({
           datas,
           cookie,
         });
+        profiler.log('postUpdateOps start');
         await Promise.all(postUpdateOps.map((ops) => ops()));
+        profiler.log('postUpdateOps end');
       }
 
       if (!raw) {
@@ -3205,7 +3219,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           await this.afterBulkUpdate(prevData, newData, this.dbDriver, cookie);
         }
       }
-
+      profiler.end();
       return newData;
     } catch (e) {
       if (transaction) await transaction.rollback();
@@ -3214,104 +3228,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }
 
   async updateLTARCols({ datas, cookie }: { datas: any[]; cookie: NcRequest }) {
-    const trx = await this.dbDriver.transaction();
-
-    // Create a BaseModelSqlv2 instance that uses the transaction for operations
-    // while preserving the original dbDriver reference for non-transactional operations
-    const trxBaseModel = await Model.getBaseModelSQL(this.context, {
-      model: this.model,
-      transaction: trx,
-      dbDriver: this.dbDriver,
+    return LTARColsUpdater({ baseModel: this, logger }).updateLTARCols({
+      datas,
+      cookie,
     });
-
-    try {
-      for (const col of this.model.columns) {
-        // skip if not LTAR or Links
-        if (!isLinksOrLTAR(col)) continue;
-
-        for (const d of datas) {
-          const rowId = this.extractPksValues(d, true);
-
-          // skip if value is not part of the update
-          if (!(col.title in d)) continue;
-
-          // extract existing link values to current record
-          let existingLinks = [];
-
-          if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
-            existingLinks = await trxBaseModel.mmList({
-              colId: col.id,
-              parentId: rowId,
-            });
-          } else if (col.colOptions.type === RelationTypes.HAS_MANY) {
-            existingLinks = await trxBaseModel.hmList({
-              colId: col.id,
-              id: rowId,
-            });
-          } else {
-            existingLinks = await trxBaseModel.btRead({
-              colId: col.id,
-              id: rowId,
-            });
-          }
-
-          existingLinks = existingLinks || [];
-
-          if (!Array.isArray(existingLinks)) {
-            existingLinks = [existingLinks];
-          }
-
-          const idsToLink = [
-            ...(Array.isArray(d[col.title])
-              ? d[col.title]
-              : [d[col.title]]
-            ).map((rec) => this.extractPksValues(rec, true)),
-          ];
-
-          // check for any missing links then unlink
-          const idsToUnlink = existingLinks
-            .map((link) => this.extractPksValues(link, true))
-            .filter((existingLinkPk) => {
-              const index = idsToLink.findIndex((linkPk) => {
-                return existingLinkPk === linkPk;
-              });
-
-              // if found remove from both list
-              if (index > -1) {
-                idsToLink.splice(index, 1);
-                return false;
-              }
-
-              return true;
-            });
-
-          // check for missing links in new data and unlink them
-          if (idsToUnlink?.length) {
-            await trxBaseModel.removeLinks({
-              colId: col.id,
-              childIds: idsToUnlink,
-              cookie,
-              rowId,
-            });
-          }
-
-          // check for new data and link them
-          if (idsToLink?.length) {
-            await trxBaseModel.addLinks({
-              colId: col.id,
-              childIds: idsToLink,
-              cookie,
-              rowId,
-            });
-          }
-        }
-      }
-
-      await trx.commit();
-    } catch (e) {
-      await trx.rollback();
-      throw e;
-    }
   }
 
   async bulkUpdateAll(
@@ -3342,7 +3262,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       // if attachment provided error out
       for (const col of columns) {
         if (col.uidt === UITypes.Attachment && updateData[col.column_name]) {
-          NcError.notImplemented(`Attachment bulk update all`);
+          NcError.get(this.context).notImplemented(
+            `Attachment bulk update all`,
+          );
         }
       }
 
@@ -3466,7 +3388,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         if (!pkValues) {
           // throw or skip if no pk provided
           if (throwExceptionIfNotExist) {
-            NcError.recordNotFound(pkValues);
+            NcError.get(this.context).recordNotFound(pkValues);
           }
           continue;
         }
@@ -3497,7 +3419,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               if (!oldRecord) {
                 // throw or skip if no record found
                 if (throwExceptionIfNotExist) {
-                  NcError.recordNotFound(pk);
+                  NcError.get(this.context).recordNotFound(pk);
                 }
                 continue;
               }
@@ -3646,7 +3568,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { allowSystemColumn = false } = params || {};
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError._.prohibitedSyncTableOperation({
+      NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
         operation: 'insert',
       });
@@ -3666,7 +3588,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const { allowSystemColumn = false } = params || {};
 
     if (!allowSystemColumn && this.model.synced) {
-      NcError._.prohibitedSyncTableOperation({
+      NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
         operation: 'insert',
       });
@@ -4005,7 +3927,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
-        throw new Error('ignoreWebhook value can be either true or false');
+        NcError.get(this.context).badRequest(
+          'ignoreWebhook value can be either true or false',
+        );
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
@@ -4085,7 +4009,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
-        throw new Error('ignoreWebhook value can be either true or false');
+        NcError.get(this.context).badRequest(
+          'ignoreWebhook value can be either true or false',
+        );
       }
     }
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
@@ -4096,7 +4022,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
     if (this.model.synced) {
-      NcError._.prohibitedSyncTableOperation({
+      NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
         operation: 'delete',
       });
@@ -4107,7 +4033,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   public async beforeBulkDelete(_data: any, _trx: any, _req): Promise<void> {
     if (this.model.synced) {
-      NcError._.prohibitedSyncTableOperation({
+      NcError.get(this.context).prohibitedSyncTableOperation({
         modelName: this.model.title,
         operation: 'delete',
       });
@@ -4116,7 +4042,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   protected async handleHooks(hookName, prevData, newData, req): Promise<void> {
     Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
-      context: this.context,
+      context: { ...this.context, cache: false, cacheMap: undefined },
       hookName,
       prevData,
       newData,
@@ -4159,23 +4085,39 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           isCreatedOrLastModifiedTimeCol(column) ||
           isCreatedOrLastModifiedByCol(column)
         ) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${column.title}" is auto generated and cannot be updated`,
           );
         }
 
-        if (
-          !allowSystemColumn &&
-          column.system &&
-          ![UITypes.ForeignKey, UITypes.Order].includes(column.uidt)
-        ) {
-          NcError.badRequest(
-            `Column "${column.title}" is system column and cannot be updated`,
-          );
+        if (column.system && !allowSystemColumn) {
+          let shouldThrow = true;
+
+          // allow updating order column (required for undo/redo operations)
+          // TODO: add undo flag here
+          if (column.uidt === UITypes.Order) {
+            shouldThrow = false;
+          }
+
+          // allow updating ForeignKey since we are using it for belongs to
+          if (column.uidt === UITypes.ForeignKey) {
+            shouldThrow = false;
+          }
+
+          // allow updating self link column (system counter part)
+          else if (isSelfLinkCol(column)) {
+            shouldThrow = false;
+          }
+
+          if (shouldThrow) {
+            NcError.get(this.context).badRequest(
+              `Column "${column.title}" is system column and cannot be updated`,
+            );
+          }
         }
 
         if (!allowSystemColumn && column.readonly) {
-          NcError.badRequest(
+          NcError.get(this.context).badRequest(
             `Column "${column.title}" is readonly column and cannot be updated`,
           );
         }
@@ -4184,7 +4126,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await this.validateOptions(column, data);
       } catch (ex) {
         if (ex instanceof OptionsNotExistsError && typecast) {
-          await Column.update(this.context, column.id, {
+          const UpdatedColumn = await Column.update(this.context, column.id, {
             ...column,
             colOptions: {
               options: [
@@ -4198,6 +4140,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   ),
                 })),
               ],
+            },
+          });
+
+          const table = await Model.getWithInfo(this.context, {
+            id: column.fk_model_id,
+          });
+
+          NocoSocket.broadcastEvent(this.context, {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'column_update',
+              payload: {
+                table,
+                column: UpdatedColumn,
+              },
             },
           });
         } else {
@@ -4238,7 +4195,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       typeof column.dtxp === 'number' &&
       column.dtxp < data[column.title]?.length
     ) {
-      NcError.badRequest(
+      NcError.get(this.context).badRequest(
         `Column "${column.title}" value exceeds the maximum length of ${column.dtxp}`,
       );
     }
@@ -4313,7 +4270,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       }
     }
     if (notExistedOptions.length > 0) {
-      NcError.optionsNotExists({
+      NcError.get(this.context).optionsNotExists({
         columnTitle,
         validOptions: options,
         options: notExistedOptions,
@@ -4351,7 +4308,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       !column ||
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
     )
-      NcError.fieldNotFound(colId);
+      NcError.get(this.context).fieldNotFound(colId);
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       this.context,
@@ -4657,7 +4614,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       !column ||
       ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
     )
-      NcError.fieldNotFound(colId);
+      NcError.get(this.context).fieldNotFound(colId);
 
     const relationManager = await RelationManager.getRelationManager(
       this,
@@ -4766,6 +4723,47 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
   }
 
+  /**
+   * Extract distinct group column values for grouping operations
+   * Handles options parameter, SingleSelect columns, and other column types
+   */
+  public async extractGroupingValues(
+    column: Column,
+    options?: (string | number | null | boolean)[],
+  ): Promise<Set<any>> {
+    // TODO: Add virtual column support
+    if (isVirtualCol(column)) {
+      NcError.get(this.context).notImplemented('Grouping for virtual columns');
+    }
+
+    let groupingValues: Set<any>;
+
+    if (options?.length) {
+      groupingValues = new Set(options);
+    } else if (column.uidt === UITypes.SingleSelect) {
+      const colOptions = await column.getColOptions<{
+        options: SelectOption[];
+      }>(this.context);
+      groupingValues = new Set(
+        (colOptions?.options ?? []).map((opt) => opt.title),
+      );
+      groupingValues.add(null);
+    } else {
+      groupingValues = new Set(
+        (
+          await this.execAndParse(
+            this.dbDriver(this.tnPath).select(column.column_name).distinct(),
+            null,
+            { raw: true },
+          )
+        ).map((row) => row[column.column_name]),
+      );
+      groupingValues.add(null);
+    }
+
+    return groupingValues;
+  }
+
   public async groupedList(
     args: {
       groupColumnId: string;
@@ -4783,34 +4781,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       const columns = await this.model.getColumns(this.context);
       const column = columns?.find((col) => col.id === args.groupColumnId);
 
-      if (!column) NcError.fieldNotFound(args.groupColumnId);
+      if (!column) NcError.get(this.context).fieldNotFound(args.groupColumnId);
       if (isVirtualCol(column))
-        NcError.notImplemented('Grouping for virtual columns');
+        NcError.get(this.context).notImplemented(
+          'Grouping for virtual columns',
+        );
 
       // extract distinct group column values
-      let groupingValues: Set<any>;
-      if (args.options?.length) {
-        groupingValues = new Set(args.options);
-      } else if (column.uidt === UITypes.SingleSelect) {
-        const colOptions = await column.getColOptions<{
-          options: SelectOption[];
-        }>(this.context);
-        groupingValues = new Set(
-          (colOptions?.options ?? []).map((opt) => opt.title),
-        );
-        groupingValues.add(null);
-      } else {
-        groupingValues = new Set(
-          (
-            await this.execAndParse(
-              this.dbDriver(this.tnPath).select(column.column_name).distinct(),
-              null,
-              { raw: true },
-            )
-          ).map((row) => row[column.column_name]),
-        );
-        groupingValues.add(null);
-      }
+      const groupingValues = await this.extractGroupingValues(
+        column,
+        args.options,
+      );
 
       const qb = this.dbDriver(this.tnPath);
       qb.limit(+rest?.limit || 25);
@@ -4965,9 +4946,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const columns = await this.model.getColumns(this.context);
     const column = columns?.find((col) => col.id === args.groupColumnId);
 
-    if (!column) NcError.fieldNotFound(args.groupColumnId);
+    if (!column) NcError.get(this.context).fieldNotFound(args.groupColumnId);
     if (isVirtualCol(column))
-      NcError.notImplemented('Grouping for virtual columns');
+      NcError.get(this.context).notImplemented('Grouping for virtual columns');
 
     const qb = this.dbDriver(this.tnPath).count('*', { as: 'count' });
 
@@ -5095,12 +5076,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       apiVersion: NcApiVersion.V2,
     },
   ) {
-    if (options.raw) {
+    if (options.raw || options.bulkAggregate) {
       options.skipDateConversion = true;
       options.skipAttachmentConversion = true;
       options.skipSubstitutingColumnIds = true;
       options.skipUserConversion = true;
       options.skipJsonConversion = true;
+    }
+
+    if (typeof qb !== 'string') {
+      this.knex.applyCte(qb);
     }
 
     if (options.first && typeof qb !== 'string') {
@@ -5113,6 +5098,27 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (!this.model?.columns) {
       await this.model.getColumns(this.context);
+    }
+
+    // we need to post process lookup fields based on the looked up column instead of the lookup column
+    const aliasColumns = {};
+
+    if (!dependencyColumns) {
+      const nestedColumns = this.model?.columns.filter(
+        (col) => col.uidt === UITypes.Lookup,
+      );
+
+      for (const col of nestedColumns) {
+        const nestedColumn = await this.getNestedColumn(col);
+        if (
+          nestedColumn &&
+          [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(
+            nestedColumn.colOptions?.type,
+          )
+        ) {
+          aliasColumns[col.id] = nestedColumn;
+        }
+      }
     }
 
     // update attachment fields
@@ -5137,6 +5143,33 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     if (!options.skipJsonConversion) {
       data = await this.convertJsonTypes(data, dependencyColumns);
     }
+
+    if (options.bulkAggregate) {
+      data = data.map(async (d) => {
+        for (const key in d) {
+          let data = d[key];
+
+          if (typeof data === 'string' && data.startsWith('{')) {
+            try {
+              data = JSON.parse(data);
+            } catch (e) {
+              // do nothing
+            }
+          }
+
+          d[key] =
+            (
+              await this.substituteColumnIdsWithColumnTitles(
+                [data],
+                dependencyColumns,
+                aliasColumns,
+              )
+            )[0] ?? {};
+        }
+        return d;
+      });
+    }
+
     if (options.apiVersion === NcApiVersion.V3) {
       data = await this.convertMultiSelectTypes(data, dependencyColumns);
       await FieldHandler.fromBaseModel(this).parseDataDbValue({
@@ -5151,6 +5184,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       data = await this.substituteColumnIdsWithColumnTitles(
         data,
         dependencyColumns,
+        aliasColumns,
       );
     }
 
@@ -5197,11 +5231,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const missingColumnIds = new Set<string>();
 
     // Build initial maps and collect missing column IDs
-    for (let col of modelColumns) {
+    for (const col of modelColumns) {
       if (aliasColumns && col.id in aliasColumns) {
-        aliasColumns[col.id].id = col.id;
-        aliasColumns[col.id].title = col.title;
-        col = aliasColumns[col.id];
+        aliasColumns[col.id] = col;
       }
 
       idToAliasMap[col.id] = col.title;
@@ -5217,6 +5249,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             ltarMap[col.id] = false;
             continue;
           }
+        } else if (
+          (col.colOptions as LinkToAnotherRecordColumn)?.fk_related_base_id !==
+          this.model.base_id
+        ) {
+          const { refContext } = (
+            col.colOptions as LinkToAnotherRecordColumn
+          ).getRelContext(this.context);
+          const columns = await Column.list(refContext, {
+            fk_model_id: (col.colOptions as LinkToAnotherRecordColumn)
+              .fk_related_model_id,
+          });
+          for (const col of columns) idToAliasMap[col.id] = col.title;
         }
 
         ltarMap[col.id] = true;
@@ -5662,7 +5706,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const colOptions = await column.getColOptions<LookupColumn>(context);
     const relationColOpt = await colOptions
       .getRelationColumn(context)
-      .then((col) => col?.getColOptions<LinkToAnotherRecordColumn>(context));
+      .then((col) => {
+        return (
+          col?.colOptions ??
+          col?.getColOptions<LinkToAnotherRecordColumn>(context)
+        );
+      });
 
     const { refContext } = relationColOpt.getRelContext(context);
     return this.getNestedColumn(
@@ -5774,12 +5823,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // Separate attachment and lookup columns for efficient processing
     const directAttachmentColumns = [];
     const lookupColumns = [];
+    const formulaColumns = [];
 
     for (const col of columns) {
       if (col.uidt === UITypes.Attachment) {
         directAttachmentColumns.push(col);
       } else if (col.uidt === UITypes.Lookup) {
         lookupColumns.push(col);
+      } else if (
+        // focus on PG first
+        this.clientType === ClientType.PG &&
+        col.uidt === UITypes.Formula
+      ) {
+        const colOptions = await col.getColOptions<FormulaColumn>(this.context);
+        const parsedTree: ParsedFormulaNode = colOptions.getParsedTree();
+        if (parsedTree?.referencedColumn?.uidt === UITypes.Attachment) {
+          formulaColumns.push(col);
+        }
       }
     }
 
@@ -5806,6 +5866,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const allAttachmentColumns = [
       ...directAttachmentColumns,
       ...lookupAttachmentColumns,
+      ...formulaColumns,
     ];
 
     if (!allAttachmentColumns.length) {
@@ -6088,7 +6149,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       // validate rowId
       if (!row) {
-        NcError.recordNotFound(id);
+        NcError.get(this.context).recordNotFound(id);
       }
 
       const parentCol = await (
@@ -6150,12 +6211,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     model = this.model,
     knex = this.dbDriver,
     baseModel = this,
+    updatedColIds,
   }: {
     rowIds: any | any[];
     cookie?: { user?: any };
     model?: Model;
     knex?: XKnex;
     baseModel?: BaseModelSqlv2;
+    updatedColIds: string[];
   }) {
     const columns = await model.getColumns(this.context);
 
@@ -6169,12 +6232,26 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       (c) => c.uidt === UITypes.LastModifiedBy && c.system,
     );
 
+    const metaColumn = columns.find((c) => c.uidt === UITypes.Meta);
+
     if (lastModifiedTimeColumn) {
       updateObject[lastModifiedTimeColumn.column_name] = this.now();
     }
 
     if (lastModifiedByColumn) {
       updateObject[lastModifiedByColumn.column_name] = cookie?.user?.id;
+    }
+
+    if (metaColumn && updatedColIds.length > 0) {
+      updateObject[metaColumn.column_name] = prepareMetaUpdateQuery({
+        knex: this.dbDriver,
+        colIds: updatedColIds,
+        props: {
+          modifiedBy: cookie?.user?.id,
+          modifiedTime: this.now(),
+        },
+        metaColumn,
+      });
     }
 
     if (Object.keys(updateObject).length === 0) return;
@@ -6190,7 +6267,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   findIntermediateOrder(before: BigNumber, after: BigNumber): BigNumber {
     if (after.lte(before)) {
-      NcError.cannotCalculateIntermediateOrderError();
+      NcError.get(this.context).cannotCalculateIntermediateOrderError();
     }
     return before.plus(after.minus(before).div(2));
   }
@@ -6198,7 +6275,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   async getUniqueOrdersBeforeItem(before: unknown, amount = 1, depth = 0) {
     try {
       if (depth > MAX_RECURSION_DEPTH) {
-        NcError.reorderFailed();
+        NcError.get(this.context).reorderFailed();
       }
 
       const orderColumn = this.model.columns.find((c) => isOrderCol(c));
@@ -6248,7 +6325,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           intermediateOrder.eq(adjacentOrder) ||
           intermediateOrder.eq(currentRowOrder)
         ) {
-          throw NcError.cannotCalculateIntermediateOrderError();
+          NcError.get(this.context).cannotCalculateIntermediateOrderError();
         }
 
         orders.push(intermediateOrder);
@@ -6256,7 +6333,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       return orders;
     } catch (error) {
-      if (error.error === NcErrorType.CANNOT_CALCULATE_INTERMEDIATE_ORDER) {
+      if (error.error === NcErrorType.ERR_CANNOT_CALCULATE_INTERMEDIATE_ORDER) {
         console.error('Error in getUniqueOrdersBeforeItem:', error);
         await this.recalculateFullOrder();
         return await this.getUniqueOrdersBeforeItem(before, amount, depth + 1);
@@ -6296,12 +6373,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const orderColumn = this.model.columns.find((c) => isOrderCol(c));
     if (!orderColumn) {
-      NcError.badRequest('Order column not found to recalculateOrder');
+      NcError.get(this.context).badRequest(
+        'Order column not found to recalculateOrder',
+      );
     }
 
     const client = this.dbDriver.client.config.client;
     if (!sql[client]) {
-      NcError.notImplemented(
+      NcError.get(this.context).notImplemented(
         'Recalculate order not implemented for this database',
       );
     }
@@ -6363,7 +6442,50 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       undo?: boolean;
     },
   ): Promise<void> {
+    const runAfterForLoop = [];
+    const updatedColIds = [];
+
+    // Handle autoincrement primary key columns for insert operations
+    if (isInsertData && !extra?.undo) {
+      // Handle primary key
+      for (const pkColumn of this.model.primaryKeys) {
+        if (pkColumn.ai) {
+          const keyName =
+            data?.[pkColumn.column_name] !== undefined
+              ? pkColumn.column_name
+              : pkColumn.title;
+
+          if (data[keyName]) {
+            delete data[keyName];
+          }
+        }
+      }
+    }
+
     for (const column of this.model.columns) {
+      if (column.uidt === UITypes.Meta && this.isPg) {
+        if (!isInsertData)
+          runAfterForLoop.push(() => {
+            if (!updatedColIds.length) return;
+
+            data[column.column_name] = prepareMetaUpdateQuery({
+              knex: this.dbDriver,
+              colIds: updatedColIds,
+              props: {
+                modifiedBy: cookie?.user?.id,
+                modifiedTime: this.now(),
+              },
+              metaColumn: column,
+            });
+          });
+
+        continue;
+      }
+
+      if (!ncIsUndefined(data[column.column_name]) && !isInsertData) {
+        updatedColIds.push(column.id);
+      }
+
       if (
         !ncIsUndefined(data[column.column_name]) &&
         !ncIsNull(data[column.column_name]) &&
@@ -6461,29 +6583,33 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 data[column.column_name] &&
                 !Array.isArray(data[column.column_name])
               ) {
-                NcError.invalidAttachmentJson(data[column.column_name]);
+                NcError.get(this.context).invalidAttachmentJson(
+                  data[column.column_name],
+                );
               }
             } catch (e) {
-              NcError.invalidAttachmentJson(data[column.column_name]);
+              NcError.get(this.context).invalidAttachmentJson(
+                data[column.column_name],
+              );
             }
 
             // Confirm that all urls are valid urls
             for (const attachment of data[column.column_name] || []) {
               if (!('url' in attachment) && !('path' in attachment)) {
-                NcError.unprocessableEntity(
+                NcError.get(this.context).unprocessableEntity(
                   'Attachment object must contain either url or path',
                 );
               }
 
               if (attachment.url) {
                 if (attachment.url.startsWith('data:')) {
-                  NcError.unprocessableEntity(
+                  NcError.get(this.context).unprocessableEntity(
                     `Attachment urls do not support data urls`,
                   );
                 }
 
                 if (attachment.url.length > 8 * 1024) {
-                  NcError.unprocessableEntity(
+                  NcError.get(this.context).unprocessableEntity(
                     `Attachment url '${attachment.url}' is too long`,
                   );
                 }
@@ -6565,7 +6691,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           if (Array.isArray(data[column.column_name])) {
             for (const attachment of data[column.column_name]) {
               if (!('url' in attachment) && !('path' in attachment)) {
-                NcError.unprocessableEntity(
+                NcError.get(this.context).unprocessableEntity(
                   'Attachment object must contain either url or path',
                 );
               }
@@ -6615,7 +6741,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           column.uidt,
         )
       ) {
-        if (data[column.column_name]) {
+        if (!ncIsNullOrUndefined(data[column.column_name])) {
           const userIds = [];
 
           if (
@@ -6633,6 +6759,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             // it's still valid as a historical record
             include_ws_deleted: true,
             include_internal_user: true,
+            include_team_users: true,
           });
 
           if (typeof data[column.column_name] === 'object') {
@@ -6647,7 +6774,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 if ('id' in user) {
                   const u = baseUsers.find((u) => u.id === user.id);
                   if (!u) {
-                    NcError.unprocessableEntity(
+                    NcError.get(this.context).unprocessableEntity(
                       `User with id '${user.id}' is not part of this workspace`,
                     );
                   }
@@ -6661,16 +6788,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   if (user.email.length === 0) continue;
                   const u = baseUsers.find((u) => u.email === user.email);
                   if (!u) {
-                    NcError.unprocessableEntity(
+                    NcError.get(this.context).unprocessableEntity(
                       `User with email '${user.email}' is not part of this workspace`,
                     );
                   }
                   userIds.push(u.id);
                 } else {
-                  NcError.unprocessableEntity('Invalid user object');
+                  NcError.get(this.context).unprocessableEntity(
+                    'Invalid user object',
+                  );
                 }
               } catch (e) {
-                NcError.unprocessableEntity(e.message);
+                NcError.get(this.context).unprocessableEntity(e.message);
               }
             }
           } else if (typeof data[column.column_name] === 'string') {
@@ -6683,7 +6812,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 if (user.includes('@')) {
                   const u = baseUsers.find((u) => u.email === user);
                   if (!u) {
-                    NcError.unprocessableEntity(
+                    NcError.get(this.context).unprocessableEntity(
                       `User with email '${user}' is not part of this workspace`,
                     );
                   }
@@ -6691,21 +6820,23 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 } else {
                   const u = baseUsers.find((u) => u.id === user);
                   if (!u) {
-                    NcError.unprocessableEntity(
+                    NcError.get(this.context).unprocessableEntity(
                       `User with id '${user}' is not part of this workspace`,
                     );
                   }
                   userIds.push(u.id);
                 }
               } catch (e) {
-                NcError.unprocessableEntity(e.message);
+                NcError.get(this.context).unprocessableEntity(e.message);
               }
             }
           } else {
             logger.error(
               `${data[column.column_name]} is not a valid user input`,
             );
-            NcError.unprocessableEntity('Invalid user object');
+            NcError.get(this.context).unprocessableEntity(
+              'Invalid user object',
+            );
           }
 
           if (userIds.length === 0) {
@@ -6714,7 +6845,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             const userSet = new Set(userIds);
 
             if (userSet.size !== userIds.length) {
-              NcError.unprocessableEntity(
+              NcError.get(this.context).unprocessableEntity(
                 'Duplicate users not allowed for user field',
               );
             }
@@ -6723,7 +6854,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
               data[column.column_name] = userIds.join(',');
             } else {
               if (userIds.length > 1) {
-                NcError.unprocessableEntity(
+                NcError.get(this.context).unprocessableEntity(
                   `Multiple users not allowed for '${column.title}'`,
                 );
               } else {
@@ -6795,6 +6926,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
           data[column.column_name] = JSON.stringify(obj);
         }
+      }
+    }
+
+    if (runAfterForLoop.length) {
+      for (const fn of runAfterForLoop) {
+        await fn();
       }
     }
   }

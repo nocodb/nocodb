@@ -207,7 +207,7 @@ const urls = replaceUrlsWithLink(result)
     >
       <div
         v-if="column"
-        class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-gray-100 overflow-hidden cursor-move select-none"
+        class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-nc-border-gray-light overflow-hidden cursor-move select-none"
         @mousedown="dragStart"
       >
         <SmartsheetHeaderIcon :column="column" class="flex" />
@@ -231,7 +231,7 @@ const urls = replaceUrlsWithLink(result)
             maxHeight: 'min(795px, 100vh - 170px)',
             width: 'min(1256px, 100vw - 124px)',
           }"
-          class="nc-long-text-expanded-textarea border-1 border-gray-200 bg-gray-50 !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
+          class="nc-long-text-expanded-textarea border-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight !py-1 !px-3 !text-nc-content-gray-extreme !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-nc-border-brand disabled:!bg-nc-bg-gray-extralight nc-longtext-scrollbar"
           v-html="urls"
         ></div>
 
@@ -240,7 +240,7 @@ const urls = replaceUrlsWithLink(result)
           ref="inputRef"
           disabled
           :value="modelValue"
-          class="nc-long-text-expanded-textarea !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-brand-500 disabled:!bg-gray-50 nc-longtext-scrollbar"
+          class="nc-long-text-expanded-textarea !py-1 !px-3 !text-nc-content-gray-extreme !transition-none !cursor-text !min-h-[210px] !rounded-lg focus:border-nc-border-brand disabled:!bg-nc-bg-gray-extralight nc-longtext-scrollbar"
           :placeholder="$t('activity.enterText')"
           :style="{
             resize: 'both',

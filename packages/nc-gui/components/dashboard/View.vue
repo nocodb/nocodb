@@ -241,6 +241,7 @@ const isMiniSidebarVisible = computed(() => {
       <Splitpanes
         class="nc-sidebar-content-resizable-wrapper h-full"
         :class="{
+          'sidebar-closed': !isLeftSidebarOpen,
           'hide-resize-bar': !isLeftSidebarOpen || sidebarState === 'openStart' || hideSidebar,
           '!w-[calc(100vw_-_var(--mini-sidebar-width))]': isMiniSidebarVisible && !isSharedBase,
           '!nc-w-screen': !isMiniSidebarVisible || isSharedBase,
@@ -324,10 +325,11 @@ const isMiniSidebarVisible = computed(() => {
 
 /** Split pane CSS */
 
-.nc-sidebar-content-resizable-wrapper > {
+.nc-sidebar-content-resizable-wrapper {
   .splitpanes__splitter {
     @apply !w-0 relative overflow-visible;
   }
+
   .splitpanes__splitter:before {
     @apply bg-nc-bg-gray-medium w-0.25 absolute left-0 top-0 h-full z-40;
     content: '';
@@ -348,9 +350,19 @@ const isMiniSidebarVisible = computed(() => {
   .splitpanes--dragging .splitpanes__splitter {
     @apply w-1 mr-0;
   }
+
+  &.sidebar-closed {
+    .splitpanes__splitter {
+      display: none !important;
+
+      &:before {
+        display: none !important;
+      }
+    }
+  }
 }
 
-.nc-sidebar-content-resizable-wrapper.hide-resize-bar > {
+.nc-sidebar-content-resizable-wrapper.hide-resize-bar {
   .splitpanes__splitter {
     cursor: default !important;
     opacity: 0 !important;

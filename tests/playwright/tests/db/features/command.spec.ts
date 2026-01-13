@@ -48,7 +48,7 @@ test.describe('Command Shortcuts', () => {
 
     await page.waitForTimeout(1000);
     await dashboard.get().locator('.nc-active-view-title').waitFor({ state: 'visible' });
-    await expect(dashboard.get().locator('.nc-active-view-title')).toContainText('Default View');
+    await expect(dashboard.get().locator('.nc-active-view-title')).toContainText('CustomerList');
 
     await dashboard.signOut();
 
@@ -88,7 +88,7 @@ test.describe('Command Shortcuts', () => {
 
     await page.waitForTimeout(1000);
 
-    expect(await dashboard.cmdL.getActiveViewTitle()).toBe('Default View');
+    expect(await dashboard.cmdL.getActiveViewTitle()).toBe('Address');
 
     expect(await dashboard.cmdL.getActiveTableTitle()).toBe('Address');
 

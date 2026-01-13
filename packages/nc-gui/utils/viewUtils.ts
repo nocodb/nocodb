@@ -1,18 +1,19 @@
-import { type RowColoringInfo, ViewTypes } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
+import type { RowColoringInfo, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import { iconMap } from './iconUtils'
 import type { Language } from '~/lib/types'
 import UsersIcon from '~icons/nc-icons/users'
 import LockIcon from '~icons/nc-icons-v2/lock'
 import PersonalIcon from '~icons/nc-icons/personal'
 
-export const viewIcons: Record<number | string, { icon: any; color: string }> = {
-  [ViewTypes.GRID]: { icon: iconMap.grid, color: '#36BFFF' },
-  [ViewTypes.FORM]: { icon: iconMap.form, color: '#7D26CD' },
-  [ViewTypes.CALENDAR]: { icon: iconMap.calendar, color: '#B33771' },
-  [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: '#FC3AC6' },
-  [ViewTypes.MAP]: { icon: iconMap.map, color: 'blue' },
-  [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: '#FF9052' },
-  view: { icon: iconMap.view, color: 'blue' },
+export const viewIcons: Record<number | string, { icon: any; color: string; darkColor?: string }> = {
+  [ViewTypes.GRID]: { icon: iconMap.grid, color: 'var(--color-view-icon-grid)' },
+  [ViewTypes.FORM]: { icon: iconMap.form, color: 'var(--color-view-icon-form)' },
+  [ViewTypes.CALENDAR]: { icon: iconMap.calendar, color: 'var(--color-view-icon-calendar)' },
+  [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: 'var(--color-view-icon-gallery)' },
+  [ViewTypes.MAP]: { icon: iconMap.map, color: 'var(--color-view-icon-map)' },
+  [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: 'var(--color-view-icon-kanban)' },
+  view: { icon: iconMap.view, color: 'var(--color-view-icon-view)' },
 }
 
 export const isRtlLang = (lang: keyof typeof Language) => ['fa', 'ar'].includes(lang)
@@ -78,4 +79,21 @@ export const getDefaultViewMetas = (viewType: ViewTypes) => {
       }
   }
   return {}
+}
+
+export const validateViewConfigOverrideEvent = (
+  event: SmartsheetStoreEvents | string,
+  optionToValidate: ViewSettingOverrideOptions,
+  params?: { viewId: string; copiedOptions: ViewSettingOverrideOptions[] },
+) => {
+  if (
+    event !== SmartsheetStoreEvents.COPIED_VIEW_CONFIG ||
+    !optionToValidate ||
+    !ncIsObject(params) ||
+    !ncIsArray(params?.copiedOptions)
+  ) {
+    return false
+  }
+
+  return params.copiedOptions.includes(optionToValidate)
 }

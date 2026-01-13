@@ -30,13 +30,18 @@ export class GenericSqliteFieldHandler
 
     // Condition for filter, without negation
     const condition = (builder: Knex.QueryBuilder) => {
-      let items = val?.split(',');
+      let items = val?.split(',') ?? [];
       if (['enum', 'set'].includes(column.dt?.toLowerCase())) {
         items = items.map((item) => item.trimEnd());
       }
       for (let i = 0; i < items?.length; i++) {
-        const bindings = [sourceField, `%,${items[i]},%`];
-        const sql = "(',' || ?? || ',') like ?";
+        const bindings = [
+          sourceField,
+          `%,${items[i]},%`,
+          sourceField,
+          `%, ${items[i]},%`,
+        ];
+        const sql = "((',' || ?? || ',') like ? OR (',' || ?? || ',') like ?)";
         if (i === 0) {
           builder = builder.where(knex.raw(sql, bindings));
         } else {

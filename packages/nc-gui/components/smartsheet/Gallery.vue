@@ -14,7 +14,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 const fields = inject(FieldsInj, ref([]))
 
 const { user } = useGlobal()
-const { isViewDataLoading } = storeToRefs(useViewsStore())
+const { isViewDataLoading, isActiveViewFieldHeaderVisible } = storeToRefs(useViewsStore())
 const { isSqlView, xWhere, isExternalSource, isSyncedTable, allFilters, validFiltersFromUrlParams, eventBus } =
   useSmartsheetStoreOrThrow()
 const { isUIAllowed } = useRoles()
@@ -177,17 +177,17 @@ const handleClick = (col, event) => {
 
 openNewRecordFormHook?.on(openNewRecordFormHookHandler)
 
-onBeforeUnmount(() => openNewRecordFormHook.off(openNewRecordFormHookHandler))
-
 const reloadAttachments = ref(false)
 
-reloadViewMetaHook?.on(async () => {
+const reloadViewMetaListener = async () => {
   reloadAttachments.value = true
 
   await nextTick(() => {
     reloadAttachments.value = false
   })
-})
+}
+
+reloadViewMetaHook?.on(reloadViewMetaListener)
 
 const CHUNK_SIZE = 50
 const BUFFER_SIZE = 100
@@ -366,24 +366,37 @@ watch(
   },
 )
 
-reloadViewDataHook?.on(
-  withLoading(async () => {
-    clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
-    await syncCount()
-    calculateSlices()
-  }),
-)
+const reloadViewDataListener = withLoading(async () => {
+  clearCache(Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY)
+  await syncCount()
+  calculateSlices()
+})
 
-eventBus.on((event) => {
+reloadViewDataHook?.on(reloadViewDataListener)
+
+const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
   }
+}
+
+eventBus.on(smartsheetEventHandler)
+
+onBeforeUnmount(() => {
+  openNewRecordFormHook.off(openNewRecordFormHookHandler)
+  eventBus.off(smartsheetEventHandler)
+  reloadViewMetaHook?.off(reloadViewMetaListener)
+  reloadViewDataHook?.off(reloadViewDataListener)
 })
 
 const handleOpenNewRecordForm = () => {
   if (showRecordPlanLimitExceededModal()) return
 
   openNewRecordFormHook.trigger()
+}
+
+const resetPointerEvent = (record: RowType, col: ColumnType) => {
+  return isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col))
 }
 </script>
 
@@ -523,19 +536,18 @@ const handleOpenNewRecordForm = () => {
                       :style="extractRowBackgroundColorStyle(record).rowLeftBorderColor"
                     ></div>
                     <div
-                      class="flex-1 flex flex-col gap-3 !children:pointer-events-none"
+                      class="flex-1 flex flex-col !children:pointer-events-none"
                       :class="{
                         'w-[calc(100%_-_16px)]': isRowColouringEnabled,
                         'w-full': !isRowColouringEnabled,
+                        'gap-3': isActiveViewFieldHeaderVisible,
                       }"
                     >
                       <h2
                         v-if="displayField"
                         class="nc-card-display-value-wrapper"
                         :class="{
-                          '!children:pointer-events-auto':
-                            isButton(displayField) ||
-                            (isRowEmpty(record, displayField) && isAllowToRenderRowEmptyField(displayField)),
+                          '!children:pointer-events-auto': resetPointerEvent(record, displayField),
                         }"
                       >
                         <template
@@ -568,40 +580,74 @@ const handleOpenNewRecordForm = () => {
                         :key="`record-${record.rowMeta.rowIndex}-${col.id}`"
                         class="nc-card-col-wrapper"
                         :class="{
-                          '!children:pointer-events-auto':
-                            isButton(col) || (isRowEmpty(record, col) && isAllowToRenderRowEmptyField(col)),
+                          '!children:pointer-events-auto': resetPointerEvent(record, col),
                         }"
                         @click="handleClick(col, $event)"
                       >
-                        <div class="flex flex-col rounded-lg w-full">
-                          <div class="flex flex-row w-full justify-start">
-                            <div class="nc-card-col-header w-full !children:text-gray-500">
-                              <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-                              <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
-                            </div>
-                          </div>
-                          <div
-                            v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col)"
-                            class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"
-                          >
-                            <LazySmartsheetVirtualCell
+                        <NcTooltip
+                          hide-on-click
+                          :disabled="isActiveViewFieldHeaderVisible"
+                          class="w-full z-10 flex"
+                          :class="{
+                            'pointer-events-auto': !isActiveViewFieldHeaderVisible,
+                          }"
+                          placement="left"
+                          :arrow="false"
+                        >
+                          <template #title>
+                            <LazySmartsheetHeaderVirtualCell
                               v-if="isVirtualCol(col)"
-                              v-model="record.row[col.title]"
                               :column="col"
-                              :row="record"
-                              class="!text-nc-content-gray"
+                              :hide-menu="true"
+                              hide-icon-tooltip
+                              class="!text-gray-100 nc-record-cell-tooltip"
                             />
-                            <LazySmartsheetCell
+                            <LazySmartsheetHeaderCell
                               v-else
-                              v-model="record.row[col.title]"
                               :column="col"
-                              :edit-enabled="false"
-                              :read-only="true"
-                              class="!text-nc-content-gray"
+                              :hide-menu="true"
+                              hide-icon-tooltip
+                              class="!text-gray-100 nc-record-cell-tooltip"
                             />
+                          </template>
+                          <div
+                            class="flex flex-col rounded-lg w-full"
+                            :class="{
+                              'pointer-events-none': !resetPointerEvent(record, col),
+                            }"
+                          >
+                            <div class="flex flex-row w-full justify-start">
+                              <div
+                                v-if="isActiveViewFieldHeaderVisible"
+                                class="nc-card-col-header w-full !children:text-gray-500"
+                              >
+                                <LazySmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+                                <LazySmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                              </div>
+                            </div>
+                            <div
+                              v-if="!isRowEmpty(record, col) || isAllowToRenderRowEmptyField(col)"
+                              class="flex flex-row w-full text-nc-content-gray items-center justify-start min-h-7 py-1"
+                            >
+                              <LazySmartsheetVirtualCell
+                                v-if="isVirtualCol(col)"
+                                v-model="record.row[col.title]"
+                                :column="col"
+                                :row="record"
+                                class="!text-nc-content-gray"
+                              />
+                              <LazySmartsheetCell
+                                v-else
+                                v-model="record.row[col.title]"
+                                :column="col"
+                                :edit-enabled="false"
+                                :read-only="true"
+                                class="!text-nc-content-gray"
+                              />
+                            </div>
+                            <div v-else class="flex flex-row w-full h-7 items-center justify-start">-</div>
                           </div>
-                          <div v-else class="flex flex-row w-full h-7 pl-1 items-center justify-start">-</div>
-                        </div>
+                        </NcTooltip>
                       </div>
                     </div>
                   </div>
@@ -681,7 +727,7 @@ const handleOpenNewRecordForm = () => {
 }
 
 .ant-carousel.gallery-carousel :deep(.slick-dots li div > div) {
-  @apply rounded-full border-0 cursor-pointer block opacity-100 p-0 outline-none transition-all duration-500 text-transparent h-2 w-2 bg-[#d9d9d9];
+  @apply rounded-full border-0 cursor-pointer block opacity-100 p-0 outline-none transition-all duration-500 text-transparent h-2 w-2 bg-nc-bg-gray-medium;
   font-size: 0;
 }
 
@@ -807,6 +853,16 @@ const handleOpenNewRecordForm = () => {
       @apply flex-none !max-w-none !w-auto;
     }
   }
+
+  .nc-date-picker > div > div {
+    &:first-child {
+      @apply pl-0;
+    }
+
+    &:last-child {
+      @apply pr-0;
+    }
+  }
 }
 
 :deep(.nc-virtual-cell) {
@@ -851,6 +907,32 @@ const handleOpenNewRecordForm = () => {
   &.nc-virtual-cell-qrcode,
   &.nc-virtual-cell-barcode {
     @apply children:justify-start;
+  }
+
+  .nc-date-picker > div > div {
+    &:first-child {
+      @apply pl-0;
+    }
+
+    &:last-child {
+      @apply pr-0;
+    }
+  }
+}
+
+.nc-record-cell-tooltip {
+  @apply !bg-transparent !hover:bg-transparent;
+
+  :deep(.nc-cell-icon) {
+    @apply !ml-0 h-3.5 w-3.5;
+  }
+  :deep(.name) {
+    @apply text-captionSm;
+  }
+
+  :deep(.nc-cell-name-wrapper),
+  :deep(.nc-virtual-cell-name-wrapper) {
+    @apply !max-w-full;
   }
 }
 </style>

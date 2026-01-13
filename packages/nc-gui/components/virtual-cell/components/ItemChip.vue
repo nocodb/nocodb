@@ -12,15 +12,22 @@ interface Props {
   truncate?: boolean
 }
 
-const { value, item, column, showUnlinkButton, border = true, readonly: readonlyProp, truncate = true } = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  border: true,
+  truncate: true,
+})
 
 const emit = defineEmits(['unlink'])
+
+const { item, value, column, readonly: readonlyProp } = toRefs(props)
 
 const { relatedTableMeta, externalBaseUserRoles } = useLTARStoreOrThrow()!
 
 const { isUIAllowed } = useRoles()
 
 provide(IsUnderLTARInj, ref(true))
+
+provide(MetaInj, relatedTableMeta)
 
 const readOnly = inject(ReadonlyInj, ref(false))
 
@@ -37,7 +44,7 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
 const isClickDisabled = computed(() => {
-  return !active.value && !isExpandedForm.value
+  return (!active.value && !isExpandedForm.value) || isPublic.value || isForm.value || readonlyProp.value
 })
 
 const { open } = useExpandedFormDetached()
@@ -45,32 +52,33 @@ const { open } = useExpandedFormDetached()
 function openExpandedForm() {
   if (isClickDisabled.value) return
 
-  const rowId = extractPkFromRow(item, relatedTableMeta.value.columns as ColumnType[])
-  if (!isPublic.value && !readonlyProp && rowId) {
-    open({
-      isOpen: true,
-      row: { row: item, rowMeta: {}, oldRow: { ...item } },
-      meta: relatedTableMeta.value,
-      rowId,
-      useMetaFields: true,
-      maintainDefaultViewOrder: true,
-      loadRow: !isPublic.value,
-      skipReload: true,
-      createdRecord: onCreatedRecord,
+  const rowId = extractPkFromRow(item.value, relatedTableMeta.value.columns as ColumnType[])
+
+  if (!rowId) return
+
+  open({
+    isOpen: true,
+    row: { row: item.value, rowMeta: {}, oldRow: { ...item.value } },
+    meta: relatedTableMeta.value,
+    rowId,
+    useMetaFields: true,
+    maintainDefaultViewOrder: true,
+    loadRow: !isPublic.value,
+    skipReload: true,
+    createdRecord: onCreatedRecord,
+  })
+
+  function onCreatedRecord() {
+    reloadTrigger?.trigger({
+      shouldShowLoading: false,
     })
 
-    function onCreatedRecord() {
-      reloadTrigger?.trigger({
-        shouldShowLoading: false,
-      })
-
-      reloadViewDataTrigger?.trigger({
-        shouldShowLoading: false,
-        isFromLinkRecord: true,
-        relatedTableMetaId: relatedTableMeta.value.id,
-        rowId: rowId!,
-      })
-    }
+    reloadViewDataTrigger?.trigger({
+      shouldShowLoading: false,
+      isFromLinkRecord: true,
+      relatedTableMetaId: relatedTableMeta.value.id,
+      rowId: rowId!,
+    })
   }
 }
 </script>
@@ -104,7 +112,7 @@ export default {
             <div
               :class="{
                 'px-1 rounded-full flex-1': !isAttachment(column),
-                'border-gray-200 rounded border-1 blue-chip':
+                'border-nc-border-gray-medium rounded border-1 blue-chip':
                   border && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
               }"
             >
@@ -137,7 +145,7 @@ export default {
     >
       <component
         :is="iconMap.closeThick"
-        class="nc-icon unlink-icon text-gray-500/50 group-hover:text-gray-500 ml-0.5 cursor-pointer"
+        class="nc-icon unlink-icon text-nc-content-gray-muted/50 group-hover:text-nc-content-gray-muted ml-0.5 cursor-pointer"
         @click.stop="emit('unlink')"
       />
     </div>
@@ -204,10 +212,10 @@ export default {
   }
 
   .blue-chip {
-    @apply !bg-nc-bg-brand !border-none px-2 py-[3px] rounded-lg;
+    @apply !bg-nc-bg-brand dark:!bg-nc-bg-gray-light !border-none px-2 py-[3px] rounded-lg;
     &,
     & * {
-      @apply !text-nc-content-brand !bg-nc-bg-brand;
+      @apply !text-nc-content-brand !bg-nc-bg-brand dark:!bg-nc-bg-gray-light;
     }
 
     :deep(.clamped-text) {

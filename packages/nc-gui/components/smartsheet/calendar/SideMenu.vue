@@ -42,7 +42,7 @@ const {
   timezoneDayjs,
 } = useCalendarViewStoreOrThrow()
 
-const { isSyncedTable } = useSmartsheetStoreOrThrow()
+const { isSyncedTable, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const sideBarListRef = ref<VNodeRef | null>(null)
 
@@ -469,8 +469,11 @@ const selectOption = (option) => {
           </template>
         </a-input>
       </div>
-      <div class="mx-4 gap-2 flex items-center">
-        <LazySmartsheetToolbarSortListMenu />
+      <div
+        v-if="isViewOperationsAllowed || (isUIAllowed('dataEdit') && props.visible && !isSyncedTable)"
+        class="mx-4 gap-2 flex items-center"
+      >
+        <LazySmartsheetToolbarSortListMenu v-if="isViewOperationsAllowed" />
 
         <div class="flex-1" />
 
@@ -532,7 +535,7 @@ const selectOption = (option) => {
         </div>
         <template v-else-if="renderData.length > 0">
           <div class="gap-2 flex flex-col">
-            <LazySmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
+            <SmartsheetRow v-for="(record, rowIndex) in renderData" :key="rowIndex" :row="record">
               <LazySmartsheetCalendarSideRecordCard
                 :draggable="sideBarFilterOption === 'withoutDates' && activeCalendarView !== 'year'"
                 :row="record"
@@ -549,7 +552,7 @@ const selectOption = (option) => {
                   <span class="text-nc-content-gray-muted"> - </span>
                 </template>
               </LazySmartsheetCalendarSideRecordCard>
-            </LazySmartsheetRow>
+            </SmartsheetRow>
           </div>
         </template>
       </div>

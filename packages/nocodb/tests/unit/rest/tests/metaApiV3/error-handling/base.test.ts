@@ -27,7 +27,7 @@ export default function () {
           })
           .expect(404);
 
-        expect(result.body.error).to.eq('WORKSPACE_NOT_FOUND');
+        expect(result.body.error).to.eq('ERR_WORKSPACE_NOT_FOUND');
         expect(result.body.message).to.eq(
           `Workspace 'NOT_EXISTS_WS' not found`,
         );
@@ -59,13 +59,11 @@ export default function () {
           })
           .expect(403);
 
+        expect(result.body.error).to.eq('ERR_FORBIDDEN');
         if (isEE) {
-          expect(result.body.error).to.eq('FORBIDDEN');
           expect(
             result.body.message.startsWith('Forbidden - Unauthorized access'),
           ).to.eq(true);
-        } else {
-          expect(result.body.error).to.eq('PERMISSION_DENIED');
         }
       });
 
@@ -78,7 +76,7 @@ export default function () {
             title: '',
           })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(`Invalid request body`);
       });
 
@@ -91,7 +89,7 @@ export default function () {
             title: 'a'.repeat(52),
           })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(`Invalid request body`);
       });
 
@@ -107,7 +105,7 @@ export default function () {
             },
           })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(`'meta' property invalid`);
       });
     });
@@ -118,7 +116,7 @@ export default function () {
           .get(`/api/v3/meta/bases/NOT_FOUND_BASE`)
           .set('xc-token', context.xc_token)
           .expect(422);
-        expect(result.body.error).to.eq('BASE_NOT_FOUND');
+        expect(result.body.error).to.eq('ERR_BASE_NOT_FOUND');
         expect(result.body.message).to.eq(`Base 'NOT_FOUND_BASE' not found`);
       });
     });
@@ -147,7 +145,7 @@ export default function () {
             title: 'HELLO',
           })
           .expect(422);
-        expect(result.body.error).to.eq('BASE_NOT_FOUND');
+        expect(result.body.error).to.eq('ERR_BASE_NOT_FOUND');
         expect(result.body.message).to.eq(`Base 'NOT_FOUND_BASE' not found`);
       });
 
@@ -159,7 +157,7 @@ export default function () {
             title: '',
           })
           .expect(400);
-        expect(result.body.error).to.eq('INVALID_REQUEST_BODY');
+        expect(result.body.error).to.eq('ERR_INVALID_REQUEST_BODY');
         expect(result.body.message).to.eq(`Invalid request body`);
       });
     });
@@ -183,7 +181,7 @@ export default function () {
           .delete(`/api/v3/meta/bases/NOT_FOUND_BASE`)
           .set('xc-token', context.xc_token)
           .expect(422);
-        expect(result.body.error).to.eq('BASE_NOT_FOUND');
+        expect(result.body.error).to.eq('ERR_BASE_NOT_FOUND');
         expect(result.body.message).to.eq(`Base 'NOT_FOUND_BASE' not found`);
       });
     });

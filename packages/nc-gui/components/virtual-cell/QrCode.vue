@@ -107,7 +107,7 @@ onMounted(() => {
     v-model:visible="modalVisible"
     :class="{ active: modalVisible }"
     wrap-class-name="nc-qr-code-large qrcode-modal"
-    :body-style="{ padding: '0px', display: 'flex', justifyContent: 'center' }"
+    :body-style="{ padding: '0px', display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }"
     :closable="false"
     :centered="isMobileMode"
     @ok="handleModalOkClick"
@@ -126,7 +126,7 @@ onMounted(() => {
         </div>
         <div class="flex-1"></div>
         <NcButton class="nc-qrcode-close !px-1" type="text" size="xs" @click="modalVisible = false">
-          <GeneralIcon class="text-md text-gray-700 h-4 w-4" icon="close" />
+          <GeneralIcon class="text-md text-nc-content-gray-subtle h-4 w-4" icon="close" />
         </NcButton>
       </div>
     </template>
@@ -168,7 +168,18 @@ onMounted(() => {
         </div>
       </div>
     </template>
-    <img v-if="showQrCode" :src="qrCodeLarge" :alt="$t('title.qrCode')" class="h-[156px] mt-8 mb-4" />
+    <div v-if="showQrCode" class="w-full px-4">
+      <img :src="qrCodeLarge" :alt="$t('title.qrCode')" class="h-[156px] mx-auto mt-8 mb-4" />
+      <div class="bg-nc-bg-gray-light px-3 py-2 rounded-lg">
+        <NcTooltip show-on-truncate-only class="truncate">
+          <template #title>
+            {{ qrValue }}
+          </template>
+
+          {{ qrValue }}
+        </NcTooltip>
+      </div>
+    </div>
   </a-modal>
   <div
     v-if="showQrCode"
@@ -204,7 +215,7 @@ onMounted(() => {
   <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.qrFieldsCannotBeDirectlyChanged') }}
   </div>
-  <a-tooltip v-else-if="!showQrCode && qrValue === 'ERR!'" placement="bottom" class="text-orange-700">
+  <a-tooltip v-else-if="!showQrCode && qrValue === 'ERR!'" placement="bottom" class="text-nc-content-orange-dark">
     <template #title>
       <span class="font-bold">Please select a target field!</span>
     </template>
@@ -216,11 +227,12 @@ onMounted(() => {
 .qrcode-modal .ant-modal-content {
   padding: 0 !important;
   .ant-modal-header {
+    @apply border-b-1 border-b-nc-border-gray-medium;
     position: relative;
     padding: 8px 16px;
     border-top-left-radius: 1em;
     border-top-right-radius: 1em;
-    border-bottom: 1px solid #e7e7e9;
+
     .ant-modal-title {
       height: 30px;
       display: flex;

@@ -7,6 +7,8 @@ import {
 import type { AuditOperationSubTypes, NcRequest } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
+import type { NcContext } from '~/interface/config';
+import type { Column } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import {
   _wherePk,
@@ -16,6 +18,122 @@ import {
   getRelatedLinksColumn,
 } from '~/helpers/dbHelpers';
 import { Model } from '~/models';
+
+/**
+ * Extract the corresponding link column in the referencing table using a given LTAR column and the referenced table
+ * @param context - The NcContext
+ * @param param - Object containing ltarColumn and optionally referencedTable or referencedTableColumns
+ * @returns The corresponding link column in the referenced table, or null if not found
+ */
+export const extractCorrespondingLinkColumn = async (
+  context: NcContext,
+  param: {
+    ltarColumn: Column;
+    referencedTable?: Model;
+    referencedTableColumns?: Column[];
+  },
+): Promise<Column | null> => {
+  const { ltarColumn } = param;
+
+  if (!isLinksOrLTAR(ltarColumn)) {
+    return null;
+  }
+
+  const colOptions = await ltarColumn.getColOptions(context);
+
+  const { refContext } = colOptions.getRelContext(context);
+
+  // Get the table that contains the LTAR column
+  const sourceTableId = ltarColumn.fk_model_id;
+
+  // Get columns from the referenced table or use provided columns
+  let columnsInReferencedTable: Column[];
+  if (param.referencedTableColumns) {
+    columnsInReferencedTable = param.referencedTableColumns;
+  } else if (param.referencedTable) {
+    columnsInReferencedTable =
+      param.referencedTable.columns ||
+      (await param.referencedTable.getColumns(refContext));
+  } else {
+    // Extract referenced table columns from ref table ID if not provided
+    const refTableId = colOptions.fk_related_model_id;
+    const refTable = await Model.get(context, refTableId);
+    columnsInReferencedTable =
+      refTable.columns || (await refTable.getColumns(refContext));
+  }
+
+  // Find the corresponding link column based on the relation type
+  for (const column of columnsInReferencedTable) {
+    if (!isLinksOrLTAR(column)) continue;
+
+    const passContext =
+      column.base_id === refContext.base_id ? refContext : context;
+
+    const refColOptions = await column.getColOptions(passContext);
+
+    // Check if this column links back to the source table
+    if (refColOptions.fk_related_model_id !== sourceTableId) continue;
+
+    // Handle different relation types
+    switch (colOptions.type) {
+      case RelationTypes.HAS_MANY:
+        // For HM, the referenced table should have a BT column and parent child will remain same
+        if (
+          refColOptions.type === RelationTypes.BELONGS_TO &&
+          refColOptions.fk_child_column_id === colOptions.fk_child_column_id &&
+          refColOptions.fk_parent_column_id === colOptions.fk_parent_column_id
+        ) {
+          return column;
+        }
+        break;
+
+      case RelationTypes.BELONGS_TO:
+        // For BT, the referenced table should have an HM column, and parent child will remain same
+        if (
+          refColOptions.type === RelationTypes.HAS_MANY &&
+          refColOptions.fk_child_column_id === colOptions.fk_child_column_id &&
+          refColOptions.fk_parent_column_id === colOptions.fk_parent_column_id
+        ) {
+          return column;
+        }
+        break;
+
+      case RelationTypes.ONE_TO_ONE:
+        // For OO, the referenced table should have an OO column and parent child will remain same
+        if (
+          refColOptions.type === RelationTypes.ONE_TO_ONE &&
+          refColOptions.fk_child_column_id === colOptions.fk_child_column_id &&
+          refColOptions.fk_parent_column_id === colOptions.fk_parent_column_id
+        ) {
+          return column;
+        }
+        break;
+
+      case RelationTypes.MANY_TO_MANY:
+        // For MM, check if the referenced table has an MM column that references the same junction table
+        // and the parent-child columns are swapped
+        if (
+          refColOptions.type === RelationTypes.MANY_TO_MANY &&
+          refColOptions.fk_mm_model_id === colOptions.fk_mm_model_id && // Same junction table
+          refColOptions.fk_related_model_id === sourceTableId
+        ) {
+          // Additional check for MM columns to ensure they're properly linked
+          // The junction table ID (fk_mm_model_id) is already verified above
+          if (
+            refColOptions.fk_mm_parent_column_id ===
+              colOptions.fk_mm_child_column_id &&
+            refColOptions.fk_mm_child_column_id ===
+              colOptions.fk_mm_parent_column_id
+          ) {
+            return column;
+          }
+        }
+        break;
+    }
+  }
+
+  return null;
+};
 
 /**
  * Transaction Handling Strategy for Link Operations:
@@ -46,7 +164,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
               dataWrapper(refId).getByColumnNameTitleOrId(primaryKey),
             )
           ) {
-            NcError.unprocessableEntity(
+            NcError.get(baseModel.context).unprocessableEntity(
               `Validation failed: Missing primary key column "${
                 primaryKey.title
               }" in request for model "${
@@ -56,7 +174,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           }
         }
       } else if (ncIsNullOrUndefined(refId)) {
-        NcError.unprocessableEntity(
+        NcError.get(baseModel.context).unprocessableEntity(
           `Validation failed: Invalid id "${JSON.stringify(
             refId,
           )}" for model "${refModel.title}".`,
@@ -79,7 +197,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     await baseModel.model.getColumns(baseModel.context);
     const column = baseModel.model.columnsById[colId];
 
-    if (!column || !isLinksOrLTAR(column)) NcError.fieldNotFound(colId);
+    if (!column || !isLinksOrLTAR(column))
+      NcError.get(baseModel.context).fieldNotFound(colId);
 
     const row = await baseModel.readByPk(
       rowId,
@@ -90,7 +209,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     // validate rowId
     if (!row) {
-      NcError.recordNotFound(rowId);
+      NcError.get(baseModel.context).recordNotFound(rowId);
     }
 
     if (!_childIds.length) return;
@@ -261,7 +380,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.recordNotFound(extractIds(missingIds));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(missingIds),
+              );
             }
 
             insertData = childRows
@@ -292,6 +413,15 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: childIds,
             cookie,
+            updatedColIds: [
+              (
+                await extractCorrespondingLinkColumn(baseModel.context, {
+                  ltarColumn: column,
+                  referencedTable: parentTable,
+                  referencedTableColumns: parentTable.columns,
+                })
+              )?.id,
+            ],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -302,6 +432,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
           await childBaseModel.updateLastModified({
             model: childTable,
+            updatedColIds: [column.id],
             rowIds: [rowId],
             cookie,
           });
@@ -360,7 +491,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                   !childRows.find((r) => r[parentColumn.column_name] === id),
               );
 
-              NcError.recordNotFound(extractIds(missingIds));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(missingIds),
+              );
             }
           }
           const updateQb = baseModel.dbDriver(childTn).update({
@@ -397,6 +530,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
+            updatedColIds: [column.id],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -430,7 +564,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             );
 
             if (!childRow) {
-              NcError.recordNotFound(extractIds(childIds, true));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(childIds, true),
+              );
             }
           }
 
@@ -457,6 +593,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
+            updatedColIds: [column.id],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -540,7 +677,8 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
     await baseModel.model.getColumns(baseModel.context);
     const column = baseModel.model.columnsById[colId];
 
-    if (!column || !isLinksOrLTAR(column)) NcError.fieldNotFound(colId);
+    if (!column || !isLinksOrLTAR(column))
+      NcError.get(baseModel.context).fieldNotFound(colId);
 
     const row = await baseModel.readByPk(
       rowId,
@@ -551,7 +689,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
 
     // validate rowId
     if (!row) {
-      NcError.recordNotFound(rowId);
+      NcError.get(baseModel.context).recordNotFound(rowId);
     }
 
     if (!childIds.length) return;
@@ -690,7 +828,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                   ),
               );
 
-              NcError.recordNotFound(extractIds(missingIds));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(missingIds),
+              );
             }
           }
 
@@ -723,6 +863,15 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: childIds,
             cookie,
+            updatedColIds: [
+              (
+                await extractCorrespondingLinkColumn(baseModel.context, {
+                  ltarColumn: column,
+                  referencedTable: childTable,
+                  referencedTableColumns: childTable.columns,
+                })
+              )?.id,
+            ],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -735,6 +884,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: childTable,
             rowIds: [rowId],
             cookie,
+            updatedColIds: [column.id],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -799,7 +949,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
                   ),
               );
 
-              NcError.recordNotFound(extractIds(missingIds));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(missingIds),
+              );
             }
           }
 
@@ -834,6 +986,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [rowId],
             cookie,
+            updatedColIds: [column.id],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -853,7 +1006,7 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
           // validate Ids
           {
             if (childIds.length > 1)
-              NcError.unprocessableEntity(
+              NcError.get(baseModel.context).unprocessableEntity(
                 'Request must contain only one parent id',
               );
 
@@ -873,7 +1026,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             );
 
             if (!childRow) {
-              NcError.recordNotFound(extractIds(childIds, true));
+              NcError.get(baseModel.context).recordNotFound(
+                extractIds(childIds, true),
+              );
             }
           }
 
@@ -897,6 +1052,14 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
             model: parentTable,
             rowIds: [childIds[0]],
             cookie,
+            updatedColIds: [
+              (
+                await extractCorrespondingLinkColumn(baseModel.context, {
+                  ltarColumn: column,
+                  referencedTable: childTable,
+                })
+              )?.id,
+            ],
           });
 
           baseModel.dbDriver.attachToTransaction(async () => {
@@ -964,9 +1127,9 @@ export const addOrRemoveLinks = (baseModel: IBaseModelSqlV2) => {
       );
     });
   };
-
   return {
     addLinks,
     removeLinks,
+    extractCorrespondingLinkColumn,
   };
 };

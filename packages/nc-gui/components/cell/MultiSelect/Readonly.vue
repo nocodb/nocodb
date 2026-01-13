@@ -10,6 +10,8 @@ interface Props {
 
 const { modelValue, options: selectOptions } = defineProps<Props>()
 
+const { isDark, getColor } = useTheme()
+
 const column = inject(ColumnInj)!
 
 const isForm = inject(IsFormInj, ref(false))
@@ -25,7 +27,7 @@ const extensionConfig = inject(ExtensionConfigInj, ref({ isPageDesignerPreviewPa
 const { isMysql } = useBase()
 
 const options = computed(() => {
-  return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value)
+  return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value, isDark.value, getColor)
 })
 
 const optionsMap = computed(() => {
@@ -89,11 +91,11 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
           :class="{
             '!my-0': !rowHeight || rowHeight === 1,
           }"
-          :color="selectedOpt.color"
+          :color="selectedOpt.bgColor"
         >
           <span
             :style="{
-              color: getSelectTypeOptionTextColor(selectedOpt.color),
+              color: selectedOpt.textColor,
             }"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >
@@ -121,7 +123,7 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
 
 <style scoped lang="scss">
 .ms-close-icon {
-  color: rgba(0, 0, 0, 0.25);
+  color: rgba(var(--rgb-base), 0.25);
   cursor: pointer;
   display: flex;
   font-size: 12px;
@@ -142,7 +144,7 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
 }
 
 .ms-close-icon:hover {
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(var(--rgb-base), 0.45);
 }
 
 .read-only {
@@ -157,9 +159,5 @@ const selectedOptsListLayout = computed(() => selectedOpts.value.map((item) => i
 
 :deep(.ant-tag) {
   @apply "rounded-tag" my-[1px];
-}
-
-:deep(.ant-tag-close-icon) {
-  @apply "text-slate-500";
 }
 </style>

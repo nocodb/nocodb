@@ -18,7 +18,6 @@ import type {
   HookType,
   TableType,
   UpdatePayload,
-  ViewType,
 } from 'nocodb-sdk';
 import type { AxiosResponse } from 'axios';
 import type { NcContext } from '~/interface/config';
@@ -62,11 +61,13 @@ export function parseBody(template: string, data: any): string {
 export async function validateCondition(
   context: NcContext,
   filters: Filter[],
-  data: any,
+  data: any = {},
   {
     client,
+    skipFetchingChildren = false,
   }: {
     client: string;
+    skipFetchingChildren?: boolean;
   },
 ) {
   if (!filters.length) {
@@ -78,9 +79,14 @@ export async function validateCondition(
     const filter = _filter instanceof Filter ? _filter : new Filter(_filter);
     let res;
     if (filter.is_group) {
-      filter.children = filter.children || (await filter.getChildren(context));
+      // If skipFetchingChildren is true, only use children from the object
+      // This is useful for filters stored in JSON (like workflow configs) that aren't in the database
+      filter.children = skipFetchingChildren
+        ? filter.children || []
+        : filter.children || (await filter.getChildren(context));
       res = await validateCondition(context, filter.children, data, {
         client,
+        skipFetchingChildren,
       });
     } else {
       const column = await filter.getColumn(context);
@@ -614,9 +620,9 @@ export async function getAffectedColumns(
   if (affectedCols.length) {
     affectedCols = [...new Set(affectedCols)];
     const columns = await model.getColumns(context);
-    return affectedCols.map(
-      (title) => columns.find((col) => col.title === title).id,
-    );
+    return affectedCols
+      .map((title) => columns.find((col) => col.title === title)?.id)
+      .filter(Boolean);
   } else {
     return undefined;
   }

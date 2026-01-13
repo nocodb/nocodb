@@ -7,17 +7,18 @@ import {
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
   isOrderCol,
+  isServiceUser,
   isVirtualCol,
   ModelTypes,
+  NcBaseError,
   ProjectRoles,
   RelationTypes,
+  ServiceUserType,
   UITypes,
 } from 'nocodb-sdk';
-import { NcApiVersion } from 'nocodb-sdk';
-import { MetaDiffsService } from './meta-diffs.service';
-import { ColumnsService } from './columns.service';
 import type {
   ColumnType,
+  NcApiVersion,
   NormalColumnRequestType,
   TableReqType,
   TableType,
@@ -26,8 +27,16 @@ import type {
 import type { MetaService } from '~/meta/meta.service';
 import type { LinkToAnotherRecordColumn, User, View } from '~/models';
 import type { NcContext, NcRequest } from '~/interface/config';
+import { ColumnsService } from '~/services/columns.service';
+import { MetaDiffsService } from '~/services/meta-diffs.service';
+import {
+  hasDefaultTableVisibility,
+  hasTableVisibilityAccess,
+  hasViewersAndUpTableVisibility,
+  repopulateCreateTableSystemColumns,
+} from '~/helpers/tableHelpers';
 import { ColumnWebhookManagerBuilder } from '~/utils/column-webhook-manager';
-import { Base, Column, Model, ModelRoleVisibility } from '~/models';
+import { Base, Column, Model, ModelRoleVisibility, Permission } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import ProjectMgrv2 from '~/db/sql-mgr/v2/ProjectMgrv2';
 import { NcError } from '~/helpers/catchError';
@@ -38,12 +47,9 @@ import mapDefaultDisplayValue from '~/helpers/mapDefaultDisplayValue';
 import Noco from '~/Noco';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { sanitizeColumnName, validatePayload } from '~/helpers';
-import {
-  getUniqueColumnAliasName,
-  getUniqueColumnName,
-} from '~/helpers/getUniqueName';
 import { MetaTable } from '~/utils/globals';
 import NocoSocket from '~/socket/NocoSocket';
+import { validateUniqueConstraint } from '~/helpers/uniqueConstraintHelpers';
 
 @Injectable()
 export class TablesService {
@@ -69,7 +75,7 @@ export class TablesService {
 
     const base = await Base.getWithInfo(
       context,
-      param.table.base_id || param.baseId,
+      param.table.base_id || model.base_id,
     );
     const source = base.sources.find((b) => b.id === model.source_id);
 
@@ -126,7 +132,7 @@ export class TablesService {
 
     if (source.isMeta(true) && base.prefix && !source.isMeta(true, 1)) {
       if (!param.table.table_name.startsWith(base.prefix)) {
-        param.table.table_name = `${base.prefix}${param.table.table_name}`;
+        param.table.table_name = `${base.prefix}_${param.table.table_name}`;
       }
     }
 
@@ -339,7 +345,7 @@ export class TablesService {
       NcError.get(context).invalidRequestBody(
         `This is a many to many table for ${tables[0]?.title} (${relColumns[0]?.title}) & ${tables[1]?.title} (${relColumns[1]?.title}). You can disable "Show M2M tables" in base settings to avoid seeing this.`,
       );
-    } else {
+    } else if (!param.forceDeleteRelations) {
       // if table is using in custom relation as junction table then delete all the relation
       const relations = await Noco.ncMeta.metaList2(
         table.fk_workspace_id,
@@ -441,7 +447,9 @@ export class TablesService {
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback();
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error deleting table', e);
+      NcError.get(context).tableError('Bad Request');
     }
 
     if (result) {
@@ -483,17 +491,35 @@ export class TablesService {
       NcError.tableNotFound(param.tableId);
     }
 
-    // todo: optimise
-    const viewList = <View[]>(
-      await this.xcVisibilityMetaGet(context, table.base_id, [table])
-    );
-
-    //await View.list(param.tableId)
-    table.views = viewList.filter((view: any) => {
-      return Object.keys(param.user?.roles).some(
-        (role) => param.user?.roles[role] && !view.disabled[role],
+    // Check table visibility permission
+    // Base owners always have access, but we still need to check for others
+    if (!isServiceUser(param.user)) {
+      const hasAccess = await hasTableVisibilityAccess(
+        context,
+        param.tableId,
+        param.user,
       );
-    });
+
+      if (!hasAccess) {
+        // Return 404 as if table doesn't exist
+        NcError.tableNotFound(param.tableId);
+      }
+    }
+
+    if (isServiceUser(param.user, ServiceUserType.WORKFLOW_USER)) {
+      await table.getViews(context);
+    } else {
+      // todo: optimise
+      const viewList = <View[]>(
+        await this.xcVisibilityMetaGet(context, table.base_id, [table])
+      );
+      //await View.list(param.tableId)
+      table.views = viewList.filter((view: any) => {
+        return Object.keys(param.user?.roles || {}).some(
+          (role) => param.user?.roles[role] && !view.disabled[role],
+        );
+      });
+    }
 
     return table;
   }
@@ -563,6 +589,12 @@ export class TablesService {
       sourceId?: string;
       includeM2M?: boolean;
       roles: Record<string, boolean>;
+      allSources?: boolean;
+      user: (User | UserType) & {
+        base_roles?: Record<string, boolean>;
+        workspace_roles?: Record<string, boolean>;
+      };
+      isPublicBase?: boolean;
     },
   ) {
     const viewList = await this.xcVisibilityMetaGet(context, param.baseId);
@@ -580,12 +612,52 @@ export class TablesService {
       return o;
     }, {});
 
-    const tableList = (
+    let tableList = (
       await Model.list(context, {
         base_id: param.baseId,
-        source_id: param.sourceId,
+        source_id: param.allSources ? undefined : param.sourceId,
       })
     ).filter((t) => tableViewMapping[t.id]);
+
+    // Filter tables based on TABLE_VISIBILITY permission
+    // Base owners always see all tables, so skip filtering for them
+    if (!param.roles?.[ProjectRoles.OWNER] && !isServiceUser(param.user)) {
+      const permissions = await Permission.list(context, param.baseId);
+      const accessibleTableIds = new Set<string>();
+
+      for (const table of tableList) {
+        // For shared bases (public bases), show tables with default visibility (Everyone) or "Viewers & up" permission
+        if (param.isPublicBase) {
+          if (
+            hasDefaultTableVisibility(table.id, permissions) ||
+            hasViewersAndUpTableVisibility(table.id, permissions)
+          ) {
+            accessibleTableIds.add(table.id);
+          }
+        } else if (param.user) {
+          let user = param.user ?? context.user;
+
+          if (!user) {
+            user = {
+              base_roles: param.roles,
+            } as unknown as UserType;
+          }
+
+          // For regular bases, check user access
+          const hasAccess = await hasTableVisibilityAccess(
+            context,
+            table.id,
+            user,
+            permissions,
+          );
+          if (hasAccess) {
+            accessibleTableIds.add(table.id);
+          }
+        }
+      }
+
+      tableList = tableList.filter((t) => accessibleTableIds.has(t.id));
+    }
 
     return param.includeM2M
       ? tableList
@@ -602,6 +674,7 @@ export class TablesService {
       req: NcRequest;
       synced?: boolean;
       apiVersion?: NcApiVersion;
+      isDuplicateOperation?: boolean;
     },
   ) {
     // before validating add title for columns if only column name is present
@@ -638,130 +711,15 @@ export class TablesService {
       source = base.sources.find((b) => b.id === param.sourceId);
     }
 
-    // add CreatedTime and LastModifiedTime system columns if missing in request payload
-    {
-      for (const uidt of [
-        ...(param.apiVersion === NcApiVersion.V3 ? [UITypes.ID] : []),
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-        UITypes.CreatedBy,
-        UITypes.LastModifiedBy,
-        UITypes.Order,
-      ]) {
-        const col = tableCreatePayLoad.columns.find(
-          (c) => c.uidt === uidt,
-        ) as ColumnType;
-
-        let columnName, columnTitle;
-
-        switch (uidt) {
-          case UITypes.CreatedTime:
-            columnName = 'created_at';
-            columnTitle = 'CreatedAt';
-            break;
-          case UITypes.LastModifiedTime:
-            columnName = 'updated_at';
-            columnTitle = 'UpdatedAt';
-            break;
-          case UITypes.CreatedBy:
-            columnName = 'created_by';
-            columnTitle = 'nc_created_by';
-            break;
-          case UITypes.LastModifiedBy:
-            columnName = 'updated_by';
-            columnTitle = 'nc_updated_by';
-            break;
-          case UITypes.Order:
-            columnTitle = 'nc_order';
-            columnName = 'nc_order';
-            break;
-          case UITypes.ID:
-            columnTitle = 'Id';
-            columnName = 'id';
-            break;
-        }
-
-        const colName = getUniqueColumnName(
-          tableCreatePayLoad.columns as any[],
-          columnName,
-        );
-
-        const colAlias = getUniqueColumnAliasName(
-          tableCreatePayLoad.columns as any[],
-          columnTitle,
-        );
-
-        if (!col || (!col.system && col.uidt !== UITypes.ID)) {
-          tableCreatePayLoad.columns.push({
-            ...(await getColumnPropsFromUIDT({ uidt } as any, source)),
-            column_name: colName,
-            cn: colName,
-            title: colAlias,
-            system: uidt !== UITypes.ID,
-          });
-        } else {
-          // temporary fix for updating if user passed system columns with duplicate names
-          if (
-            tableCreatePayLoad.columns.some(
-              (c: ColumnType) =>
-                c.uidt !== uidt && c.column_name === col.column_name,
-            )
-          ) {
-            Object.assign(col, {
-              column_name: colName,
-              cn: colName,
-            });
-          }
-          if (
-            tableCreatePayLoad.columns.some(
-              (c: ColumnType) => c.uidt !== uidt && c.title === col.title,
-            )
-          ) {
-            Object.assign(col, {
-              title: colAlias,
-            });
-          }
-        }
-      }
-    }
-
-    {
-      // set order of system columns in columns list
-      const orderOfSystemColumns = [
-        UITypes.ID,
-        UITypes.CreatedTime,
-        UITypes.LastModifiedTime,
-        UITypes.CreatedBy,
-        UITypes.LastModifiedBy,
-        UITypes.Order,
-      ];
-
-      tableCreatePayLoad.columns = tableCreatePayLoad.columns.sort((a, b) => {
-        const aIndex =
-          a.system || a.uidt === UITypes.ID
-            ? orderOfSystemColumns.indexOf(a.uidt as UITypes)
-            : -1;
-        const bIndex =
-          b.system || b.uidt === UITypes.ID
-            ? orderOfSystemColumns.indexOf(b.uidt as UITypes)
-            : -1;
-
-        if (aIndex === -1 && bIndex === -1) {
-          return 0;
-        }
-
-        if (aIndex === -1) {
-          return 1;
-        }
-
-        if (bIndex === -1) {
-          return -1;
-        }
-
-        return aIndex - bIndex;
+    if (!param.isDuplicateOperation) {
+      // add CreatedTime and LastModifiedTime system columns if missing in request payload
+      tableCreatePayLoad.columns = repopulateCreateTableSystemColumns(context, {
+        columns: tableCreatePayLoad.columns,
+        clientType: source.type,
       });
     }
 
+    //#region validating table title and table name
     if (!tableCreatePayLoad.title) {
       NcError.get(context).invalidRequestBody(
         'Missing table `title` property in request body',
@@ -866,16 +824,17 @@ export class TablesService {
         `Table name exceeds ${tableNameLengthLimit} characters`,
       );
     }
+    //#endregion validating table title and table name
 
     const mxColumnLength = Column.getMaxColumnNameLength(sqlClientType);
 
     const uniqueColumnNameCount = {};
 
-    mapDefaultDisplayValue(param.table.columns);
+    mapDefaultDisplayValue(tableCreatePayLoad.columns);
 
     const virtualColumns = [];
 
-    for (const column of param.table.columns) {
+    for (const column of tableCreatePayLoad.columns) {
       if (
         !isVirtualCol(column) ||
         (isCreatedOrLastModifiedTimeCol(column) && (column as any).system) ||
@@ -915,7 +874,7 @@ export class TablesService {
     }
 
     tableCreatePayLoad.columns = await Promise.all(
-      param.table.columns
+      tableCreatePayLoad.columns
         // exclude alias columns from column list
         ?.filter((c) => {
           const allowed =
@@ -930,12 +889,55 @@ export class TablesService {
 
           return allowed;
         })
-        .map(async (c) => ({
-          ...(await getColumnPropsFromUIDT(c as any, source)),
-          cn: c.column_name,
-          column_name: c.column_name,
-        })),
+        .map(async (c) => {
+          // Store original cdf and unique before getColumnPropsFromUIDT potentially overwrites them
+          const originalCdf = c.cdf;
+          const originalUnique = c.unique;
+          const props = await getColumnPropsFromUIDT(c as any, source);
+          // getColumnPropsFromUIDT already preserves cdf if it was set (see getColumnPropsFromUIDT.ts lines 43-45)
+          // But we need to ensure it's preserved here as well in case getColumnPropsFromUIDT didn't preserve it
+          // Map unique to ck (column_key) for database operations
+          const preservedCdf =
+            originalCdf !== undefined &&
+            originalCdf !== null &&
+            originalCdf !== ''
+              ? originalCdf
+              : props.cdf !== undefined &&
+                props.cdf !== null &&
+                props.cdf !== ''
+              ? props.cdf
+              : null;
+          return {
+            ...props,
+            cdf: preservedCdf,
+            unique:
+              originalUnique !== undefined ? originalUnique : props.unique,
+            ck: originalUnique ? 1 : props.ck || 0, // Map unique to ck for database operations
+            cn: c.column_name,
+            column_name: c.column_name,
+          };
+        }),
     );
+
+    // Validate unique constraints for columns during table creation
+    // Do this AFTER getColumnPropsFromUIDT but use preserved cdf value
+    for (const column of tableCreatePayLoad.columns) {
+      if (column.unique) {
+        // Use the preserved cdf value from the column object
+        const cdfValue = column.cdf;
+        validateUniqueConstraint(
+          context,
+          column.uidt as UITypes,
+          column.meta,
+          !!column.unique, // Convert to boolean (might be number or boolean)
+          {
+            is_meta: !!source.is_meta,
+            is_local: !!source.is_local,
+          },
+          cdfValue as unknown as string,
+        );
+      }
+    }
 
     await sqlMgr.sqlOpPlus(source, 'tableCreate', {
       ...tableCreatePayLoad,
@@ -958,7 +960,7 @@ export class TablesService {
       )?.data?.list;
     }
 
-    const tables = await Model.list(context, {
+    await Model.list(context, {
       base_id: base.id,
       source_id: source.id,
     });
@@ -995,16 +997,8 @@ export class TablesService {
         (c) => c.uidt === UITypes.Order,
       );
 
-      if (!source.isMeta()) {
-        const orderColumn = columns.find(
-          (c) => c.cn === metaOrderColumn.column_name,
-        );
-
-        if (!orderColumn) {
-          throw new Error(
-            `Column ${metaOrderColumn.column_name} not found in database`,
-          );
-        }
+      if (!metaOrderColumn) {
+        throw new Error('Order column not found' + result.id);
       }
 
       const dbDriver = await NcConnectionMgrv2.get(source);
@@ -1021,8 +1015,10 @@ export class TablesService {
         metaOrderColumn.column_name,
       ]);
     } catch (e) {
-      this.logger.log(`Something went wrong while creating index for nc_order`);
-      this.logger.error(e);
+      this.logger.error(
+        `Something went wrong while creating index for nc_order`,
+        e,
+      );
     }
 
     this.appHooksService.emit(AppEvents.TABLE_CREATE, {

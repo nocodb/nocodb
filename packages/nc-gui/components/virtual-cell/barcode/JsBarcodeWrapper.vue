@@ -7,10 +7,13 @@ const props = defineProps({
   barcodeFormat: { type: String, required: true },
   customStyle: { type: Object, required: false },
   showDownload: { type: Boolean, required: false, default: false },
+  isModal: { type: Boolean, required: false, default: false },
 })
 const emit = defineEmits(['onClickBarcode'])
 
 const { t } = useI18n()
+
+const { isDark } = useTheme()
 
 const isGallery = inject(IsGalleryInj, ref(false))
 
@@ -22,7 +25,11 @@ const generate = () => {
     JsBarcode(barcodeSvgRef.value, String(props.barcodeValue), {
       format: props.barcodeFormat,
       displayValue: false,
-      margin: 0,
+      ...(props.isModal && isDark.value
+        ? { marginTop: 12, marginBottom: 12, marginLeft: 24, marginRight: 24 }
+        : isDark.value
+        ? { marginTop: 4, marginBottom: 4, marginLeft: 8, marginRight: 8 }
+        : { margin: 0 }),
     })
     if (props.customStyle) {
       if (barcodeSvgRef.value) {
@@ -56,7 +63,7 @@ const onBarcodeClick = (ev: MouseEvent) => {
   emit('onClickBarcode')
 }
 
-watch([() => props.barcodeValue, () => props.barcodeFormat, () => props.customStyle], generate)
+watch([() => props.barcodeValue, () => props.barcodeFormat, () => props.customStyle, () => isDark.value], generate)
 onMounted(generate)
 </script>
 
@@ -74,7 +81,18 @@ onMounted(generate)
       @click="onBarcodeClick"
     ></svg>
     <slot v-if="errorForCurrentInput" name="barcodeRenderError" />
-    <div v-if="props.showDownload" class="flex justify-end gap-2 py-2 px-3">
+
+    <div v-if="showDownload" class="bg-nc-bg-gray-light mx-4 px-3 py-2 rounded-lg">
+      <NcTooltip show-on-truncate-only class="truncate">
+        <template #title>
+          {{ barcodeValue }}
+        </template>
+
+        {{ barcodeValue }}
+      </NcTooltip>
+    </div>
+
+    <div v-if="showDownload" class="flex justify-end gap-2 py-2 px-3">
       <NcTooltip>
         <template #title>
           {{ $t('labels.clickToCopy') }}

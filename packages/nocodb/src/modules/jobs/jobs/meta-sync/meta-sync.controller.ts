@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   HttpCode,
   Inject,
   Param,
@@ -87,6 +88,82 @@ export class MetaSyncController {
     }
 
     const job = await this.jobsService.add(JobTypes.MetaSync, {
+      context,
+      baseId,
+      sourceId,
+      user: req.user,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+        headers: req.headers,
+      },
+    });
+
+    return { id: job.id };
+  }
+
+  @Get([
+    '/api/v1/db/meta/projects/:baseId/meta-diff',
+    '/api/v2/meta/bases/:baseId/meta-diff',
+  ])
+  @Acl('metaDiff', {
+    blockApiTokenAccess: true,
+  })
+  async metaDiff(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+    @Req() req: NcRequest,
+  ) {
+    const jobs = await this.jobsService.jobList();
+    const fnd = jobs.find(
+      (j) => j.name === JobTypes.MetaDiff && j.data.baseId === baseId,
+    );
+
+    if (fnd) {
+      return { id: fnd.id };
+    }
+
+    const job = await this.jobsService.add(JobTypes.MetaDiff, {
+      context,
+      baseId,
+      sourceId: 'all',
+      user: req.user,
+      req: {
+        user: req.user,
+        clientIp: req.clientIp,
+        headers: req.headers,
+      },
+    });
+
+    return { id: job.id };
+  }
+
+  @Get([
+    '/api/v1/db/meta/projects/:baseId/meta-diff/:sourceId',
+    '/api/v2/meta/bases/:baseId/meta-diff/:sourceId',
+  ])
+  @Acl('metaDiff', {
+    blockApiTokenAccess: true,
+  })
+  async baseMetaDiff(
+    @TenantContext() context: NcContext,
+    @Param('baseId') baseId: string,
+    @Param('sourceId') sourceId: string,
+    @Req() req: NcRequest,
+  ) {
+    const jobs = await this.jobsService.jobList();
+    const fnd = jobs.find(
+      (j) =>
+        j.name === JobTypes.MetaDiff &&
+        j.data.baseId === baseId &&
+        (j.data.sourceId === sourceId || j.data.sourceId === 'all'),
+    );
+
+    if (fnd) {
+      return { id: fnd.id };
+    }
+
+    const job = await this.jobsService.add(JobTypes.MetaDiff, {
       context,
       baseId,
       sourceId,

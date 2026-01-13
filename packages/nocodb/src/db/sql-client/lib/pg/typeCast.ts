@@ -1,4 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
+import { NcError } from '~/helpers/ncError';
 import { DATE_FORMATS, TIME_FORMATS } from '~/db/sql-client/lib/pg/constants';
 
 /*
@@ -65,7 +66,7 @@ function generateBooleanCastQuery(columnName: string): string {
  */
 function generateDateTimeCastQuery(source: string, dateFormat: string) {
   if (!(dateFormat in DATE_FORMATS)) {
-    throw new Error(`Invalid date format: ${dateFormat}`);
+    NcError.badRequest(`Invalid date format: ${dateFormat}`);
   }
 
   const timeFormats =
@@ -73,12 +74,17 @@ function generateDateTimeCastQuery(source: string, dateFormat: string) {
 
   const cases = DATE_FORMATS[dateFormat].map(([format, regex]) =>
     timeFormats
-      .map(
-        ([timeFormat, timeRegex]) =>
-          `WHEN ${source} ~ '${regex.slice(0, -1)}\\s*${timeRegex.slice(
-            1,
-          )}' THEN to_date_time_safe(${source}, '${format} ${timeFormat}')`,
-      )
+      .map(([timeFormat, timeRegex]) => {
+        // For empty time format (date only), don't add space in format string
+        const formatString = timeFormat ? `${format} ${timeFormat}` : format;
+
+        // Combine regex patterns: remove $ from date regex and ^ from time regex
+        const combinedRegex = timeFormat
+          ? `${regex.slice(0, -1)}\\s+${timeRegex.slice(1)}`
+          : regex;
+
+        return `WHEN ${source} ~ '${combinedRegex}' THEN to_date_time_safe(${source}, '${formatString}')`;
+      })
       .join('\n'),
   );
 

@@ -150,7 +150,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
     body;
     user: UserType;
   }) {
-    const notification = Notification.get({
+    const notification = await Notification.get({
       id: param.notificationId,
       fk_user_id: param.user.id,
     });
@@ -164,7 +164,7 @@ export class NotificationsService implements OnModuleInit, OnModuleDestroy {
   }
 
   async notificationDelete(param: { notificationId: string; user: UserType }) {
-    const notification = Notification.get({
+    const notification = await Notification.get({
       id: param.notificationId,
       fk_user_id: param.user.id,
     });

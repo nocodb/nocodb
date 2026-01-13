@@ -2,15 +2,22 @@
 import type { TooltipPlacement } from 'ant-design-vue/es/tooltip'
 import type { CSSProperties } from '@vue/runtime-dom'
 
-defineProps<{
-  tooltipStyle?: CSSProperties
-  overlayInnerStyle?: CSSProperties
-  mouseLeaveDelay?: number
-  placement?: TooltipPlacement
-  trigger?: 'hover' | 'click'
-  message?: string
-  enabled?: boolean
-}>()
+withDefaults(
+  defineProps<{
+    tooltipStyle?: CSSProperties
+    overlayInnerStyle?: CSSProperties
+    mouseLeaveDelay?: number
+    placement?: TooltipPlacement
+    trigger?: 'hover' | 'click'
+    message?: string
+    enabled?: boolean
+  }>(),
+  {
+    mouseLeaveDelay: 0.3,
+    placement: 'left',
+    trigger: 'hover',
+  },
+)
 </script>
 
 <template>
@@ -18,12 +25,14 @@ defineProps<{
     :disabled="!enabled"
     :tooltip-style="{ 'min-width': 'max-content' }"
     :overlay-inner-style="{ 'min-width': 'max-content' }"
-    :mouse-leave-delay="0.3"
-    placement="left"
-    trigger="hover"
+    :mouse-leave-delay="mouseLeaveDelay"
+    :placement="placement"
+    :trigger="trigger"
   >
     <template #title>
-      {{ message }}
+      <slot name="title">
+        {{ message }}
+      </slot>
     </template>
     <slot />
   </NcTooltip>

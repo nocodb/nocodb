@@ -263,8 +263,8 @@ export default abstract class CacheMgr {
     // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<source_id_1>:list
     const key =
       subKeys.length === 0
-        ? `${this.prefix}:${scope}:list`
-        : `${this.prefix}:${scope}:${subKeys.join(':')}:list`;
+        ? `${scope}:list`
+        : `${scope}:${subKeys.join(':')}:list`;
     // e.g. arr = ["nc:<orgs>:<scope>:<model_id_1>", "nc:<orgs>:<scope>:<model_id_2>"]
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`${this.context}::getList: getting list with key ${key}`);
@@ -388,8 +388,8 @@ export default abstract class CacheMgr {
     // e.g. nc:<orgs>:<scope>:<project_id_1>:<source_id_1>:list
     const listKey =
       subListKeys.length === 0
-        ? `${this.prefix}:${scope}:list`
-        : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
+        ? `${scope}:list`
+        : `${scope}:${subListKeys.join(':')}:list`;
     if (!list.length) {
       // Set NONE here so that it won't hit the DB on each page load
       return this.set(listKey, ['NONE']);
@@ -404,11 +404,11 @@ export default abstract class CacheMgr {
 
     for (const o of list) {
       // construct key for Get
-      let getKey = `${this.prefix}:${scope}:${o.id}`;
+      let getKey = `${scope}:${o.id}`;
       if (props.length) {
         const propValues = props.map((p) => o[p]);
         // e.g. nc:<orgs>:<scope>:<prop_value_1>:<prop_value_2>
-        getKey = `${this.prefix}:${scope}:${propValues.join(':')}`;
+        getKey = `${scope}:${propValues.join(':')}`;
       }
       log(`${this.context}::setList: get key ${getKey}`);
       // get key
@@ -492,8 +492,8 @@ export default abstract class CacheMgr {
     // e.g. key = nc:<orgs>:<scope>:<project_id_1>:<source_id_1>:list
     const listKey =
       subListKeys.length === 0
-        ? `${this.prefix}:${scope}:list`
-        : `${this.prefix}:${scope}:${subListKeys.join(':')}:list`;
+        ? `${scope}:list`
+        : `${scope}:${subListKeys.join(':')}:list`;
     log(`${this.context}::appendToList: append key ${key} to ${listKey}`);
     let list = await this.get(listKey, CacheGetType.TYPE_ARRAY);
 
@@ -723,8 +723,16 @@ export default abstract class CacheMgr {
 
   async processPattern(
     pattern: string,
-    callback: (key: string) => Promise<void>,
-    options: { count?: number; type?: string } = {},
+    callback: (key: string | string[]) => Promise<void>,
+    options: {
+      count?: number;
+      type?: string;
+      batch?: boolean;
+      raw?: boolean;
+    } = {
+      batch: false,
+      raw: false,
+    },
   ): Promise<void> {
     log(`${this.context}::processPattern: processing pattern ${pattern}`);
     const stream = this.client.scanStream({
@@ -735,9 +743,19 @@ export default abstract class CacheMgr {
 
     return new Promise((resolve, reject) => {
       stream.on('data', async (keys: string[]) => {
-        for (const key of keys) {
-          logger.log(`Processing key: ${key}`);
-          await callback(key.replace(`${this.prefix}:`, ''));
+        if (options.batch) {
+          await callback(
+            options.raw
+              ? keys
+              : keys.map((k) => k.replace(`${this.prefix}:`, '')),
+          );
+        } else {
+          for (const key of keys) {
+            logger.log(`Processing key: ${key}`);
+            await callback(
+              options.raw ? key : key.replace(`${this.prefix}:`, ''),
+            );
+          }
         }
       });
 

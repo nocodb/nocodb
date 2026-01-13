@@ -68,6 +68,7 @@ export class JobsController implements OnModuleDestroy {
     } else {
       messages = (
         await NocoCache.get(
+          'root',
           `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
           CacheGetType.TYPE_OBJECT,
         )
@@ -185,7 +186,10 @@ export class JobsController implements OnModuleDestroy {
 
       delete this.jobRooms[jobId];
       delete this.localJobs[jobId];
-      await NocoCache.del(`${CacheScope.JOBS_POLLING}:${jobId}:messages`);
+      await NocoCache.del(
+        'root',
+        `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+      );
       return;
     }
 
@@ -202,9 +206,13 @@ export class JobsController implements OnModuleDestroy {
         this.localJobs[jobId].messages.shift();
       }
 
-      await NocoCache.set(`${CacheScope.JOBS_POLLING}:${jobId}:messages`, {
-        messages: this.localJobs[jobId].messages,
-      });
+      await NocoCache.set(
+        'root',
+        `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+        {
+          messages: this.localJobs[jobId].messages,
+        },
+      );
     } else {
       response = {
         status: 'update',
@@ -217,9 +225,13 @@ export class JobsController implements OnModuleDestroy {
         _mid: 1,
       };
 
-      await NocoCache.set(`${CacheScope.JOBS_POLLING}:${jobId}:messages`, {
-        messages: this.localJobs[jobId].messages,
-      });
+      await NocoCache.set(
+        'root',
+        `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+        {
+          messages: this.localJobs[jobId].messages,
+        },
+      );
     }
 
     if (this.jobRooms[jobId]) {
@@ -246,7 +258,10 @@ export class JobsController implements OnModuleDestroy {
       setTimeout(async () => {
         delete this.jobRooms[jobId];
         delete this.localJobs[jobId];
-        await NocoCache.del(`${CacheScope.JOBS_POLLING}:${jobId}:messages`);
+        await NocoCache.del(
+          'root',
+          `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+        );
       }, POLLING_INTERVAL * 2).unref();
     }
   }
@@ -274,9 +289,13 @@ export class JobsController implements OnModuleDestroy {
         this.localJobs[jobId].messages.shift();
       }
 
-      await NocoCache.set(`${CacheScope.JOBS_POLLING}:${jobId}:messages`, {
-        messages: this.localJobs[jobId].messages,
-      });
+      await NocoCache.set(
+        'root',
+        `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+        {
+          messages: this.localJobs[jobId].messages,
+        },
+      );
     } else {
       response = {
         status: 'update',
@@ -289,9 +308,13 @@ export class JobsController implements OnModuleDestroy {
         _mid: 1,
       };
 
-      await NocoCache.set(`${CacheScope.JOBS_POLLING}:${jobId}:messages`, {
-        messages: this.localJobs[jobId].messages,
-      });
+      await NocoCache.set(
+        'root',
+        `${CacheScope.JOBS_POLLING}:${jobId}:messages`,
+        {
+          messages: this.localJobs[jobId].messages,
+        },
+      );
     }
 
     if (this.jobRooms[jobId]) {

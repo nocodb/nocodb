@@ -1041,7 +1041,7 @@ watch(
         <div class="flex-1 relative ml-1 nc-calendar-border-line border-b-2 border-nc-border-brand"></div>
       </div>
     </div>
-    <div class="flex sticky h-6 z-4 top-0 pl-16 bg-nc-bg-gray-extra-light w-full">
+    <div class="flex sticky h-6 z-4 top-0 pl-16 bg-nc-bg-gray-extralight w-full">
       <div
         v-for="date in datesHours"
         :key="date[0].toISOString()"
@@ -1050,7 +1050,7 @@ watch(
           'w-1/5': maxVisibleDays === 5,
           'w-1/7': maxVisibleDays === 7,
         }"
-        class="text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted w-full py-1 border-nc-border-gray-medium last:border-r-0 border-b-1 border-l-1 border-r-0 bg-nc-bg-gray-extra-light"
+        class="text-center text-[10px] font-semibold leading-4 flex items-center justify-center uppercase text-nc-content-gray-muted w-full py-1 border-nc-border-gray-medium last:border-r-0 border-b-1 border-l-1 border-r-0 bg-nc-bg-gray-extralight"
       >
         {{ timezoneDayjs.dayjsTz(date[0]).format('DD ddd') }}
       </div>
@@ -1107,8 +1107,8 @@ watch(
             'border-1 !border-nc-border-brand !bg-nc-bg-gray-light':
               hour.isSame(selectedTime, 'hour') && (hour.get('day') === 6 || hour.get('day') === 0),
             'selected-hour': hour.isSame(selectedTime, 'hour'),
-            'bg-nc-bg-gray-extra-light hover:nc-bg-gray-light': hour.get('day') === 0 || hour.get('day') === 6,
-            'hover:bg-nc-bg-gray-extra-light': hour.get('day') !== 0 && hour.get('day') !== 6,
+            'bg-nc-bg-gray-extralight hover:nc-bg-gray-light': hour.get('day') === 0 || hour.get('day') === 6,
+            'hover:bg-nc-bg-gray-extralight': hour.get('day') !== 0 && hour.get('day') !== 6,
           }"
           class="text-center relative transition h-13 text-sm text-nc-content-gray-muted w-full py-1 border-transparent border-1 border-x-nc-border-gray-light border-t-nc-border-gray-light border-l-nc-border-gray-light"
           data-testid="nc-calendar-week-hour"

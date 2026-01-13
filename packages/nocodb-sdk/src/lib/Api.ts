@@ -9,6 +9,258 @@
  * ---------------------------------------------------------------
  */
 
+export type ApiTokenWithTokenV3V3Type = ApiTokenV3V3Type & {
+  /**
+   * The actual API token value (only returned on creation)
+   * @example wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh
+   */
+  token: string;
+};
+
+export interface ApiTokenV3V3Type {
+  /**
+   * Token ID
+   * @example 5
+   */
+  id: number;
+  /**
+   * Token title / description
+   * @example Github Integration
+   */
+  title: string;
+  /**
+   * Token creation timestamp
+   * @format date-time
+   * @example 2025-12-30 15:17:24+00:00
+   */
+  created_at: string;
+  /**
+   * Token last update timestamp
+   * @format date-time
+   * @example 2025-12-30 15:17:24+00:00
+   */
+  updated_at: string;
+}
+
+/**
+ * Script with additional info
+ */
+export interface ScriptGetResponseV3Type {
+  /** Unique identifier for the script */
+  id: string;
+  /** Title of the script. */
+  title: string;
+  /** Description of the script. */
+  description?: string | null;
+  /** Script content. */
+  script: string;
+  /** Configuration for the script. */
+  config?: object;
+  /** Metadata of the script. */
+  meta?: object;
+  /** Unique identifier for the base */
+  base_id: string;
+  /** Unique identifier for the workspace */
+  workspace_id: string;
+  /**
+   * Timestamp when the script was created
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the script was last updated
+   * @format date-time
+   */
+  updated_at: string;
+}
+
+/**
+ * Script update request body
+ */
+export interface ScriptUpdateReqV3Type {
+  /** Title of the script. */
+  title?: string;
+  /** Description of the script. */
+  description?: string | null;
+  /** Script content. */
+  script?: string;
+  /** Configuration for the script. */
+  config?: object;
+  /** Metadata for the script. */
+  meta?: object;
+}
+
+/**
+ * Script create request body
+ */
+export interface ScriptCreateReqV3Type {
+  /** Title of the script. */
+  title: string;
+  /** Description of the script. */
+  description?: string | null;
+  /** Script content. */
+  script?: string;
+  /** Configuration for the script. */
+  config?: object;
+  /** Metadata for the script. */
+  meta?: object;
+}
+
+export interface ScriptListV3Type {
+  list: {
+    /** Unique identifier for the script. */
+    id: string;
+    /** Title of the script. */
+    title: string;
+    /** Description of the script. */
+    description?: string | null;
+    /** Unique identifier for the base to which this script belongs to. */
+    base_id: string;
+    /** Unique identifier for the workspace to which this base belongs to. */
+    workspace_id: string;
+  }[];
+}
+
+/**
+ * Bulk delete base team requests for v3 API
+ */
+export interface BaseTeamDeleteBulkV3Type {
+  /**
+   * Array of teams to remove from base
+   * @example [{"team_id":"team123"},{"team_id":"team456"}]
+   */
+  teams: BaseTeamDeleteV3Type[];
+}
+
+/**
+ * Delete base team request for v3 API
+ */
+export interface BaseTeamDeleteV3Type {
+  /**
+   * Team ID to remove from base
+   * @example team123
+   */
+  team_id: string;
+}
+
+/**
+ * Update base team request for v3 API
+ */
+export interface BaseTeamUpdateV3Type {
+  /**
+   * Team ID to update in base
+   * @example team123
+   */
+  team_id: string;
+  /**
+   * New base role for the team (creator or lower only)
+   * @example viewer
+   */
+  base_role: 'creator' | 'editor' | 'viewer' | 'commenter' | 'no-access';
+}
+
+/**
+ * Bulk create base team requests for v3 API
+ */
+export interface BaseTeamCreateBulkV3Type {
+  /**
+   * Array of teams to add to base
+   * @example [{"team_id":"team123","base_role":"editor"},{"team_id":"team456","base_role":"viewer"}]
+   */
+  teams: BaseTeamCreateV3Type[];
+}
+
+/**
+ * Create base team request for v3 API
+ */
+export interface BaseTeamCreateV3Type {
+  /**
+   * Team ID to add to base
+   * @example team123
+   */
+  team_id: string;
+  /**
+   * Base role to assign to the team (creator or lower only)
+   * @example editor
+   */
+  base_role: 'creator' | 'editor' | 'viewer' | 'commenter' | 'no-access';
+}
+
+/**
+ * Bulk delete workspace team requests for v3 API
+ */
+export interface WorkspaceTeamDeleteBulkV3Type {
+  /**
+   * Array of teams to remove from workspace
+   * @example [{"team_id":"team123"},{"team_id":"team456"}]
+   */
+  teams: WorkspaceTeamDeleteV3Type[];
+}
+
+/**
+ * Delete workspace team request for v3 API
+ */
+export interface WorkspaceTeamDeleteV3Type {
+  /**
+   * Team ID to remove from workspace
+   * @example team123
+   */
+  team_id: string;
+}
+
+/**
+ * Update workspace team request for v3 API
+ */
+export interface WorkspaceTeamUpdateV3Type {
+  /**
+   * Team ID to update in workspace
+   * @example team123
+   */
+  team_id: string;
+  /**
+   * New workspace role for the team (creator or lower only)
+   * @example workspace-level-viewer
+   */
+  workspace_role:
+    | 'workspace-level-creator'
+    | 'workspace-level-editor'
+    | 'workspace-level-viewer'
+    | 'workspace-level-commenter'
+    | 'workspace-level-no-access';
+}
+
+/**
+ * Bulk create workspace team requests for v3 API
+ */
+export interface WorkspaceTeamCreateBulkV3Type {
+  /**
+   * Array of teams to add to workspace
+   * @example [{"team_id":"team123","workspace_role":"workspace-level-editor"},{"team_id":"team456","workspace_role":"workspace-level-viewer"}]
+   */
+  teams: WorkspaceTeamCreateV3Type[];
+}
+
+/**
+ * Create workspace team request for v3 API
+ */
+export interface WorkspaceTeamCreateV3Type {
+  /**
+   * Team ID to add to workspace
+   * @example team123
+   */
+  team_id: string;
+  /**
+   * Workspace role to assign to the team (creator or lower only)
+   * @example workspace-level-editor
+   */
+  workspace_role:
+    | 'workspace-level-creator'
+    | 'workspace-level-editor'
+    | 'workspace-level-viewer'
+    | 'workspace-level-commenter'
+    | 'workspace-level-no-access';
+}
+
 /**
  * Workspace roles for the user.
  */
@@ -19,6 +271,249 @@ export enum WorkspaceRolesV3Type {
   WorkspaceLevelViewer = 'workspace-level-viewer',
   WorkspaceLevelCommenter = 'workspace-level-commenter',
   WorkspaceLevelNoAccess = 'workspace-level-no-access',
+}
+
+/**
+ * Team user relationship
+ */
+export interface TeamUserV3Type {
+  /** Team ID */
+  fk_team_id: string;
+  /** User ID */
+  fk_user_id: string;
+  /** Whether user is team owner */
+  is_owner: boolean;
+  /**
+   * Creation timestamp
+   * @format date-time
+   */
+  created_at?: string;
+  /**
+   * Last update timestamp
+   * @format date-time
+   */
+  updated_at?: string;
+}
+
+/**
+ * Update team members request for v3 API
+ */
+export interface TeamMembersUpdateV3ReqV3Type {
+  /**
+   * User ID to update
+   * @example user123
+   */
+  user_id: string;
+  /**
+   * New team role
+   * @example member
+   */
+  team_role: 'member' | 'owner';
+}
+
+/**
+ * Remove team members request for v3 API
+ */
+export interface TeamMembersRemoveV3ReqV3Type {
+  /**
+   * User ID to remove
+   * @example user123
+   */
+  user_id: string;
+}
+
+/**
+ * Add team members request for v3 API
+ */
+export interface TeamMembersAddV3ReqV3Type {
+  /**
+   * User ID to add
+   * @example xxxx
+   */
+  user_id: string;
+  /**
+   * Team role to assign
+   * @example member
+   */
+  team_role: 'member' | 'owner';
+}
+
+/**
+ * Team member response for v3 API
+ */
+export interface TeamMemberV3ResponseV3Type {
+  /**
+   * User email address
+   * @format email
+   * @example user@nocodb.com
+   */
+  user_email: string;
+  /**
+   * User ID
+   * @example id
+   */
+  user_id: string;
+  /**
+   * Team role
+   * @example member
+   */
+  team_role: 'member' | 'owner';
+}
+
+/**
+ * Team member information for v3 API
+ */
+export interface TeamMemberV3V3Type {
+  /**
+   * User ID
+   * @example xxxx
+   */
+  user_id: string;
+  /**
+   * Team role
+   * @example member
+   */
+  team_role: 'member' | 'owner';
+}
+
+/**
+ * Detailed team information for v3 API
+ */
+export interface TeamDetailV3V3Type {
+  /**
+   * Team name
+   * @example Design Team
+   */
+  title: string;
+  /**
+   * Team icon (emoji or icon identifier)
+   * @example 🎨
+   */
+  icon?: string | null;
+  /**
+   * Team icon type
+   * @example EMOJI
+   */
+  icon_type?: 'EMOJI' | 'ICON' | null;
+  /**
+   * Team badge color (hex code)
+   * @example #FF5733
+   */
+  badge_color?: string;
+  /** Team members */
+  members: TeamMemberV3ResponseV3Type[];
+}
+
+/**
+ * Team update request for v3 API
+ */
+export interface TeamUpdateV3ReqV3Type {
+  /**
+   * Updated team name
+   * @example Updated Team Name
+   */
+  title?: string;
+  /**
+   * Updated team icon (emoji or icon identifier)
+   * @example 🛠️
+   */
+  icon?: string | null;
+  /**
+   * Team icon type
+   * @example EMOJI
+   */
+  icon_type?: 'EMOJI' | 'ICON' | null;
+  /**
+   * Updated team badge color (hex code)
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   * @example #00AEEF
+   */
+  badge_color?: string;
+}
+
+/**
+ * Team creation request for v3 API
+ */
+export interface TeamCreateV3ReqV3Type {
+  /**
+   * Team name
+   * @example Design Team
+   */
+  title: string;
+  /**
+   * Team icon (emoji or icon identifier)
+   * @example 🎨
+   */
+  icon?: string | null;
+  /**
+   * Team icon type
+   * @example EMOJI
+   */
+  icon_type?: 'EMOJI' | 'ICON' | null;
+  /**
+   * Team badge color (hex code)
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   * @example #FF5733
+   */
+  badge_color?: string;
+  /** Initial team members */
+  members?: TeamMemberV3V3Type[];
+}
+
+/**
+ * Team information for v3 API
+ */
+export interface TeamV3V3Type {
+  /**
+   * Unique team identifier
+   * @example t12345
+   */
+  id: string;
+  /**
+   * Team name
+   * @example Design Team
+   */
+  title: string;
+  /**
+   * Team icon (emoji or icon identifier)
+   * @example 🎨
+   */
+  icon?: string | null;
+  /**
+   * Team icon type
+   * @example EMOJI
+   */
+  icon_type?: 'EMOJI' | 'ICON' | null;
+  /**
+   * Team badge color (hex code)
+   * @pattern ^#[0-9A-Fa-f]{6}$
+   * @example #FF5733
+   */
+  badge_color?: string;
+  /**
+   * Number of team members
+   * @example 10
+   */
+  members_count: number;
+  /**
+   * Number of team managers
+   * @example 2
+   */
+  managers_count?: number;
+  /** Organization ID (for Cloud Enterprise) */
+  fk_org_id?: string;
+  /** Workspace ID (for other plans) */
+  fk_workspace_id?: string;
+  /**
+   * Team creation timestamp
+   * @format date-time
+   */
+  created_at?: string;
+  /**
+   * Team last update timestamp
+   * @format date-time
+   */
+  updated_at?: string;
 }
 
 /**
@@ -119,6 +614,54 @@ export type WorkspaceWithMembersV3Type = WorkspaceV3Type & {
     workspace_members: WorkspaceMemberV3Type[];
   };
 };
+
+/**
+ * Workspace list response
+ */
+export interface WorkspaceV3ListResponseV3Type {
+  /** List of workspaces */
+  list: WorkspaceV3V3Type[];
+}
+
+/**
+ * Workspace update request
+ */
+export interface WorkspaceV3UpdateV3Type {
+  /** Title of the workspace */
+  title: string;
+}
+
+/**
+ * Workspace creation request
+ */
+export interface WorkspaceV3CreateV3Type {
+  /** Title of the workspace */
+  title: string;
+  /** Organization identifier (required for cloud, absent for on-prem EE) */
+  org_id?: string;
+}
+
+/**
+ * Workspace V3 information with meta data
+ */
+export interface WorkspaceV3V3Type {
+  /** Unique identifier for the workspace */
+  id: string;
+  /** Title of the workspace */
+  title: string;
+  /** Organization identifier (required for cloud, absent for on-prem EE) */
+  org_id?: string;
+  /**
+   * Timestamp when the workspace was created
+   * @format date-time
+   */
+  created_at: string;
+  /**
+   * Timestamp when the workspace was last updated
+   * @format date-time
+   */
+  updated_at: string;
+}
 
 /**
  * Basic workspace information
@@ -335,7 +878,7 @@ export interface FilterV3Type {
   /** Secondary comparison operator (if applicable). */
   sub_operator?: string | null;
   /** Value for comparison. */
-  value: string | number | boolean | null;
+  value?: string | number | boolean | null;
 }
 
 export type FieldUpdateV3Type = FieldBaseV3Type &
@@ -541,6 +1084,12 @@ export type FieldOptionsButtonV3Type =
       icon?: string;
       /** Color of the button */
       color?: string;
+    }
+  | {
+      /** Button type: script */
+      type: 'script';
+      /** ID of the script to trigger */
+      script_id: string;
     };
 
 export interface FieldOptionsRollupV3Type {
@@ -999,6 +1548,8 @@ export interface FieldBaseV3Type {
   description?: string | null;
   /** Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields. */
   default_value?: string | boolean | number;
+  /** Enable unique constraint for the field. When enabled, the field will only accept unique values (no duplicates allowed). Note: Unique constraint is only supported for NC-DB (not external databases) and is mutually exclusive with default values. Supported field types: SingleLineText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Date, DateTime and Time */
+  unique?: boolean;
 }
 
 export type ViewV3Type = {
@@ -1006,8 +1557,6 @@ export type ViewV3Type = {
   id: string;
   /** Id of table associated with the view. */
   table_id?: string;
-  /** Indicates if this is the default view. Omitted if not the default view. */
-  is_default?: boolean;
 } & ViewBaseV3Type & {
     /** User ID of the creator. */
     created_by?: string;
@@ -1405,8 +1954,6 @@ export interface ViewListV3Type {
     type: 'grid' | 'gallery' | 'kanban' | 'calendar' | 'form';
     /** View configuration edit state. */
     lock_type: 'collaborative' | 'locked' | 'personal';
-    /** Indicates if this is the default view. */
-    is_default?: boolean;
     /** User ID of the creator. */
     created_by: string;
     /** User ID of the owner. Applicable only for personal views. */
@@ -2159,6 +2706,7 @@ export enum IntegrationsType {
   Ticketing = 'ticketing',
   Storage = 'storage',
   Others = 'others',
+  WorkflowNode = 'workflow-node',
 }
 
 /**
@@ -2327,7 +2875,8 @@ export interface ColumnType {
     | 'CreatedBy'
     | 'LastModifiedBy'
     | 'AI'
-    | 'Order';
+    | 'Order'
+    | 'Meta';
   /** Is Unsigned? */
   un?: BoolType;
   /** Is unique? */
@@ -3884,7 +4433,8 @@ export interface NormalColumnRequestType {
     | 'CreatedBy'
     | 'LastModifiedBy'
     | 'AI'
-    | 'Order';
+    | 'Order'
+    | 'Meta';
   /** Is this column unique? */
   un?: BoolType;
   /** Is this column unique? */
@@ -3991,7 +4541,7 @@ export interface PluginType {
   description?: string;
   /** Documentation of plugin (Not in use) */
   docs?: string;
-  /** Plugin Icon (Not in use) */
+  /** Plugin Icon - IconMapKey. Takes priority over 'logo' if both are provided. */
   icon?: string;
   /** Unique ID */
   id?: IdType;
@@ -4121,7 +4671,7 @@ export interface BaseType {
     /** List of subjects (users or groups) for the permission */
     subjects?: {
       /** Type of the subject */
-      type: 'user' | 'group';
+      type: 'user' | 'team';
       /** ID of the subject */
       id: string;
     }[];
@@ -4165,8 +4715,6 @@ export interface ProjectReqType {
    */
   status?: StringOrNullType;
   type?: 'database' | 'documentation' | 'dashboard';
-  /** List of Linked Database Base IDs (only used for Dashboard Projects so far) */
-  linked_db_project_ids?: string[];
   /** Base Meta */
   meta?: MetaType;
 }
@@ -4192,8 +4740,6 @@ export interface ProjectUpdateReqType {
    * @example locked
    */
   status?: StringOrNullType;
-  /** List of Linked Database Base IDs (only used for Dashboard Projects so far) */
-  linked_db_project_ids?: string[];
   /**
    * The order of the list of projects.
    * @min 0
@@ -4216,7 +4762,8 @@ export interface ProjectUserReqType {
     | 'guest'
     | 'owner'
     | 'viewer'
-    | 'creator';
+    | 'creator'
+    | 'inherit';
 }
 
 /**
@@ -4236,7 +4783,8 @@ export interface ProjectUserUpdateReqType {
     | 'guest'
     | 'owner'
     | 'viewer'
-    | 'creator';
+    | 'creator'
+    | 'inherit';
 }
 
 /**
@@ -4671,8 +5219,6 @@ export interface ViewType {
   show: BoolType;
   /** Should show system fields in this view? */
   show_system_fields?: BoolType;
-  /** Is this view default view for the model? */
-  is_default?: BoolType;
   /** View Title */
   title: string;
   /** View Type */
@@ -4725,6 +5271,11 @@ export interface ViewCreateReqType {
   fk_geo_data_col_id?: StringOrNullType;
   /** Calendar Range or Null */
   calendar_range?: CalendarRangeOrNullType;
+  /**
+   * Description of the view.
+   * @example This is a grid view.
+   */
+  description?: TextOrNullType;
 }
 
 /**
@@ -5140,6 +5691,77 @@ export interface SnapshotType {
   created_by?: IdType;
   /** Status of the Snapshot */
   status?: string;
+}
+
+/**
+ * Model for Script
+ */
+export interface ScriptType {
+  /** Unique ID */
+  id?: string;
+  /** Title of the Script */
+  title?: string;
+  /** Description of the Script */
+  description?: string;
+  /** Meta data for the Script */
+  meta?: object;
+  /** Config for the Script */
+  config?: object;
+  /** Order of the Script */
+  order?: number;
+  /** Base ID */
+  base_id?: IdType;
+  /** Workspace ID */
+  fk_workspace_id?: IdType;
+  /** User ID of the creator */
+  created_by?: IdType;
+  /** Code of the script */
+  script?: string;
+  /** Last updated time */
+  updated_at?: string;
+  /** Creation time */
+  created_at?: string;
+}
+
+/**
+ * Model for Workflow
+ */
+export interface WorkflowType {
+  /** Unique ID */
+  id?: string;
+  /** Title of the Workflow */
+  title?: string;
+  /** Description of the Workflow */
+  description?: string;
+  /** Base ID */
+  base_id?: IdType;
+  /** Workspace ID */
+  fk_workspace_id?: IdType;
+  /** Whether the workflow is enabled */
+  enabled?: boolean;
+  /** Nodes configuration for the workflow workflow */
+  nodes?: MetaType;
+  /** Edges configuration for the workflow workflow */
+  edges?: MetaType;
+  /** Meta data for the Workflow */
+  meta?: MetaType;
+  /** Draft data for the Workflow */
+  draft?: {
+    /** Nodes configuration for the draft workflow */
+    nodes?: MetaType;
+    /** Edges configuration for the draft workflow */
+    edges?: MetaType;
+  };
+  /** The order of the workflow in the list */
+  order?: number;
+  /** Last updated time */
+  updated_at?: string;
+  /** Creation time */
+  created_at?: string;
+  /** User ID of the creator */
+  created_by?: IdType;
+  /** User ID of the last updated user */
+  updated_by?: IdType;
 }
 
 export interface ExtensionReqType {
@@ -12470,6 +13092,180 @@ export class Api<
         ...params,
       }),
   };
+  oAuth = {
+    /**
+ * @description Retrieve public information about an OAuth client for authorization display
+ * 
+ * @tags OAuth
+ * @name V2PublicOauthClientDetail
+ * @summary Get OAuth Client Information
+ * @request GET:/api/v2/public/oauth/client/{clientId}
+ * @response `200` `{
+  \** OAuth client identifier *\
+  client_id: string,
+  \** Application name *\
+  client_name: string,
+  \**
+   * Application homepage URL
+   * @format uri
+   *\
+  client_uri?: string,
+  \** Application logo URL or file metadata *\
+  logo_uri?: (string | {
+  path?: string,
+  title?: string,
+  mimetype?: string,
+  size?: number,
+
+}),
+  \** Application description *\
+  client_description?: string,
+  \** Registered redirect URIs *\
+  redirect_uris: (string)[],
+  \** OAuth client type *\
+  client_type: "public" | "confidential",
+
+}` OAuth client information
+ * @response `400` `{
+  \** @example invalid_client_id *\
+  error?: string,
+  \** @example The client ID format is invalid *\
+  error_description?: string,
+
+}` Invalid client ID format
+ * @response `404` `{
+  \** @example client_not_found *\
+  error?: string,
+  \** @example The requested OAuth client does not exist *\
+  error_description?: string,
+
+}` OAuth client not found
+ */
+    v2PublicOauthClientDetail: (clientId: string, params: RequestParams = {}) =>
+      this.request<
+        {
+          /** OAuth client identifier */
+          client_id: string;
+          /** Application name */
+          client_name: string;
+          /**
+           * Application homepage URL
+           * @format uri
+           */
+          client_uri?: string;
+          /** Application logo URL or file metadata */
+          logo_uri?:
+            | string
+            | {
+                path?: string;
+                title?: string;
+                mimetype?: string;
+                size?: number;
+              };
+          /** Application description */
+          client_description?: string;
+          /** Registered redirect URIs */
+          redirect_uris: string[];
+          /** OAuth client type */
+          client_type: 'public' | 'confidential';
+        },
+        | {
+            /** @example invalid_client_id */
+            error?: string;
+            /** @example The client ID format is invalid */
+            error_description?: string;
+          }
+        | {
+            /** @example client_not_found */
+            error?: string;
+            /** @example The requested OAuth client does not exist */
+            error_description?: string;
+          }
+      >({
+        path: `/api/v2/public/oauth/client/${clientId}`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Handle OAuth authorization request with user approval/denial
+ * 
+ * @tags OAuth
+ * @name Authorize
+ * @summary OAuth Authorization
+ * @request POST:/api/v2/oauth/authorize
+ * @response `200` `{
+  \**
+   * URL to redirect the user to
+   * @format uri
+   *\
+  redirect_url?: string,
+
+}` Authorization processed successfully
+ * @response `400` `{
+  \** @example Missing required parameters: client_id, redirect_uri *\
+  message?: string,
+
+}` Missing required parameters
+ */
+    authorize: (
+      data: {
+        /**
+         * The client identifier
+         * @example your-client-id
+         */
+        client_id: string;
+        /**
+         * The client redirection URI
+         * @format uri
+         * @example https://your-app.com/callback
+         */
+        redirect_uri: string;
+        /**
+         * Opaque value used to maintain state between request and callback
+         * @example xyz123
+         */
+        state?: string;
+        /**
+         * Whether the user approved the authorization request
+         * @example true
+         */
+        approved?: boolean;
+        /**
+         * PKCE code challenge
+         * @example dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk
+         */
+        code_challenge?: string;
+        /**
+         * PKCE code challenge method
+         * @example S256
+         */
+        code_challenge_method?: 'S256' | 'plain';
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /**
+           * URL to redirect the user to
+           * @format uri
+           */
+          redirect_url?: string;
+        },
+        {
+          /** @example Missing required parameters: client_id, redirect_uri */
+          message?: string;
+        }
+      >({
+        path: `/api/v2/oauth/authorize`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
   utils = {
     /**
  * @description List all comments
@@ -15216,8 +16012,68 @@ export class Api<
         fk_model_id?: string;
         /** Row ID */
         row_id?: string;
+        /** Workflow ID */
+        workflowId?: string;
         /** Cursor */
         cursor?: string;
+        /** Table Id */
+        tableId?: string;
+        /** MCP Token Id */
+        mcpTokenId?: string;
+        /** View Id */
+        viewId?: string;
+        /** Form View Id */
+        formViewId?: string;
+        /** Grid View Id */
+        gridViewId?: string;
+        /** Kanban View Id */
+        kanbanViewId?: string;
+        /** Gallery View Id */
+        galleryViewId?: string;
+        /** Calendar View Id */
+        calendarViewId?: string;
+        /** Public Data UUID */
+        publicDataUuid?: string;
+        /** Shared View UUID */
+        sharedViewUuid?: string;
+        /** Shared Base UUID */
+        sharedBaseUuid?: string;
+        /** Shared Dashboard UUID */
+        sharedDashboardUuid?: string;
+        /** Hook Id */
+        hookId?: string;
+        /** Row Color Condition Id */
+        rowColorConditionId?: string;
+        /** Grid View Column Id */
+        gridViewColumnId?: string;
+        /** Form View Column Id */
+        formViewColumnId?: string;
+        /** Gallery View Column Id */
+        galleryViewColumnId?: string;
+        /** Column Id */
+        columnId?: string;
+        /** Filter Id */
+        filterId?: string;
+        /** Filter Parent Id */
+        filterParentId?: string;
+        /** Widget ID */
+        widgetId?: string;
+        /** Sort Id */
+        sortId?: string;
+        /** Sync Id */
+        syncId?: string;
+        /** Extension Id */
+        extensionId?: string;
+        /** Team ID */
+        teamId?: string;
+        /** Client ID */
+        clientId?: string;
+        /** Token ID */
+        tokenId?: string;
+        /** Dashboard ID */
+        dashboardId?: string;
+        /** Entity ID */
+        id?: string;
       },
       data: Record<string, any>,
       params: RequestParams = {}
@@ -15251,8 +16107,68 @@ export class Api<
         fk_model_id?: string;
         /** Row ID */
         row_id?: string;
+        /** Workflow ID */
+        workflowId?: string;
         /** Cursor */
         cursor?: string;
+        /** Table Id */
+        tableId?: string;
+        /** MCP Token Id */
+        mcpTokenId?: string;
+        /** View Id */
+        viewId?: string;
+        /** Form View Id */
+        formViewId?: string;
+        /** Grid View Id */
+        gridViewId?: string;
+        /** Kanban View Id */
+        kanbanViewId?: string;
+        /** Gallery View Id */
+        galleryViewId?: string;
+        /** Calendar View Id */
+        calendarViewId?: string;
+        /** Public Data UUID */
+        publicDataUuid?: string;
+        /** Shared View UUID */
+        sharedViewUuid?: string;
+        /** Shared Base UUID */
+        sharedBaseUuid?: string;
+        /** Shared Dashboard UUID */
+        sharedDashboardUuid?: string;
+        /** Hook Id */
+        hookId?: string;
+        /** Row Color Condition Id */
+        rowColorConditionId?: string;
+        /** Grid View Column Id */
+        gridViewColumnId?: string;
+        /** Form View Column Id */
+        formViewColumnId?: string;
+        /** Gallery View Column Id */
+        galleryViewColumnId?: string;
+        /** Column Id */
+        columnId?: string;
+        /** Filter Id */
+        filterId?: string;
+        /** Filter Parent Id */
+        filterParentId?: string;
+        /** Widget ID */
+        widgetId?: string;
+        /** Sort Id */
+        sortId?: string;
+        /** Sync Id */
+        syncId?: string;
+        /** Extension Id */
+        extensionId?: string;
+        /** Team ID */
+        teamId?: string;
+        /** Client ID */
+        clientId?: string;
+        /** Token ID */
+        tokenId?: string;
+        /** Dashboard ID */
+        dashboardId?: string;
+        /** Entity ID */
+        id?: string;
       },
       params: RequestParams = {}
     ) =>

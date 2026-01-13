@@ -1,5 +1,3 @@
-import type { ProjectRoles } from 'nocodb-sdk'
-
 export interface ExtensionManifest {
   id: string
   title: string
@@ -23,7 +21,7 @@ export interface ExtensionManifest {
     href: string
   }[]
   config: {
-    modalSize?: 'xs' | 'sm' | 'md' | 'lg'
+    modalSize?: 'xs' | 'sm' | 'md' | 'lg' | 'fullscreen' | 'extensionFullscreen'
     contentMinHeight?: string
   }
   order: number
@@ -36,10 +34,9 @@ export interface ExtensionManifest {
   onPrem?: boolean
   /**
    * The minimum access role required to access the extension.
-   * @default ProjectRoles.CREATOR
-   * Todo: @rameshmane7218
+   * @default 'creator'
    */
-  minAccessRole?: ProjectRoles
+  minAccessRole?: 'owner' | 'creator' | 'editor' | 'commenter' | 'viewer'
   /**
    * `showAsBeta` released as a beta extension.
    * We will add beta tab in market, details and extension places.

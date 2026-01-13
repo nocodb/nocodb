@@ -6,7 +6,6 @@ import type {
   SortUpdateV3Type,
 } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { MetaService } from '~/meta/meta.service';
 import { type ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { Column, Sort } from '~/models';
 import { SortsService } from '~/services/sorts.service';
@@ -16,6 +15,7 @@ import {
 } from '~/utils/api-v3-data-transformation.builder';
 import { NcError } from '~/helpers/catchError';
 import { validatePayload } from '~/helpers';
+import Noco from '~/Noco';
 
 @Injectable()
 export class SortsV3Service {
@@ -43,14 +43,15 @@ export class SortsV3Service {
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
+    ncMeta = Noco.ncMeta,
   ) {
-    const sort = await Sort.get(context, param.sortId ?? '');
+    const sort = await Sort.get(context, param.sortId ?? '', ncMeta);
 
     if (!sort || sort.fk_view_id !== param.viewId) {
       NcError.notFound('Sort not found');
     }
 
-    await this.sortsService.sortDelete(context, param);
+    await this.sortsService.sortDelete(context, param, ncMeta);
     return {};
   }
 
@@ -63,6 +64,7 @@ export class SortsV3Service {
       viewId: string;
       viewWebhookManager?: ViewWebhookManager;
     },
+    ncMeta = Noco.ncMeta,
   ) {
     validatePayload(
       'swagger-v3.json#/components/schemas/SortUpdate',
@@ -73,9 +75,9 @@ export class SortsV3Service {
     let sort;
 
     if (param.sortId) {
-      sort = await Sort.get(context, param.sortId);
+      sort = await Sort.get(context, param.sortId, ncMeta);
     } else {
-      const sorts = await Sort.list(context, { viewId: param.viewId });
+      const sorts = await Sort.list(context, { viewId: param.viewId }, ncMeta);
       sort = sorts.find((s) => s.fk_column_id === param.sort.field_id);
     }
 
@@ -84,12 +86,16 @@ export class SortsV3Service {
     }
 
     const updateObj = this.revBuilder().build(param.sort);
-    await this.sortsService.sortUpdate(context, {
-      ...param,
-      sortId: sort.id,
-      sort: updateObj as SortReqType,
-      viewWebhookManager: param.viewWebhookManager,
-    });
+    await this.sortsService.sortUpdate(
+      context,
+      {
+        ...param,
+        sortId: sort.id,
+        sort: updateObj as SortReqType,
+        viewWebhookManager: param.viewWebhookManager,
+      },
+      ncMeta,
+    );
     return this.sortGet(context, param);
   }
 
@@ -101,7 +107,7 @@ export class SortsV3Service {
       req: NcRequest;
       viewWebhookManager?: ViewWebhookManager;
     },
-    ncMeta?: MetaService,
+    ncMeta = Noco.ncMeta,
   ) {
     validatePayload(
       'swagger-v3.json#/components/schemas/SortCreate',
@@ -144,9 +150,13 @@ export class SortsV3Service {
     return sortBuilder().build(sort);
   }
 
-  async sortList(context: NcContext, param: { viewId: string }) {
+  async sortList(
+    context: NcContext,
+    param: { viewId: string },
+    ncMeta = Noco.ncMeta,
+  ) {
     return sortBuilder().build(
-      await Sort.list(context, { viewId: param.viewId }),
+      await Sort.list(context, { viewId: param.viewId }, ncMeta),
     ) as SortType[];
   }
 }

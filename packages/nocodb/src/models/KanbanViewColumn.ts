@@ -30,6 +30,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
     let viewColumn =
       kanbanViewColumnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.KANBAN_VIEW_COLUMN}:${kanbanViewColumnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -42,6 +43,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
       );
       if (viewColumn) {
         await NocoCache.set(
+          context,
           `${CacheScope.KANBAN_VIEW_COLUMN}:${kanbanViewColumnId}`,
           viewColumn,
         );
@@ -83,6 +85,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
 
     return this.get(context, id, ncMeta).then(async (kanbanViewColumn) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.KANBAN_VIEW_COLUMN,
         [column.fk_view_id],
         `${CacheScope.KANBAN_VIEW_COLUMN}:${id}`,
@@ -96,9 +99,11 @@ export default class KanbanViewColumn implements KanbanColumnType {
     viewId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<KanbanViewColumn[]> {
-    const cachedList = await NocoCache.getList(CacheScope.KANBAN_VIEW_COLUMN, [
-      viewId,
-    ]);
+    const cachedList = await NocoCache.getList(
+      context,
+      CacheScope.KANBAN_VIEW_COLUMN,
+      [viewId],
+    );
     let { list: views } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !views.length) {
@@ -115,7 +120,12 @@ export default class KanbanViewColumn implements KanbanColumnType {
           },
         },
       );
-      await NocoCache.setList(CacheScope.KANBAN_VIEW_COLUMN, [viewId], views);
+      await NocoCache.setList(
+        context,
+        CacheScope.KANBAN_VIEW_COLUMN,
+        [viewId],
+        views,
+      );
     }
     views.sort(
       (a, b) =>
@@ -145,7 +155,7 @@ export default class KanbanViewColumn implements KanbanColumnType {
 
     // get existing cache
     const key = `${CacheScope.KANBAN_VIEW_COLUMN}:${columnId}`;
-    await NocoCache.update(key, updateObj);
+    await NocoCache.update(context, key, updateObj);
 
     // on view column update, delete any optimised single query cache
     {

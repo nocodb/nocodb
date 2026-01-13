@@ -318,7 +318,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
         allow-clear
       >
         <template #prefix>
-          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500" />
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
         </template>
       </a-input>
 
@@ -366,7 +366,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
             </a-breadcrumb>
 
             <NcButton size="small" type="text" class="nc-close-btn" @click="isOpenModal = false">
-              <GeneralIcon icon="close" class="text-gray-600" />
+              <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
             </NcButton>
           </div>
 
@@ -419,7 +419,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                 </div>
               </template>
               <div class="p-6 h-full">
-                <LazyDashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
+                <DashboardSettingsMetadata :source-id="activeSource.id" @source-synced="loadBases(true)" />
               </div>
             </a-tab-pane>
           </NcTabs>
@@ -440,7 +440,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
           />
         </template>
         <div v-else class="ds-table overflow-y-auto nc-scrollbar-thin relative max-h-full mb-4">
-          <div class="ds-table-head sticky top-0 bg-white z-10">
+          <div class="ds-table-head sticky top-0 bg-nc-bg-default z-10">
             <div class="ds-table-row !border-0">
               <div class="ds-table-col ds-table-enabled cursor-pointer">{{ $t('general.visibility') }}</div>
               <div class="ds-table-col ds-table-name">{{ $t('general.name') }}</div>
@@ -460,7 +460,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
               <template v-if="'default'.includes(searchQuery.toLowerCase())" #header>
                 <div
                   v-if="sources[0]"
-                  class="ds-table-row border-gray-200 cursor-pointer"
+                  class="ds-table-row border-nc-border-gray-medium cursor-pointer"
                   @click="handleClickRow(sources[0], 'erd')"
                 >
                   <div class="ds-table-col ds-table-enabled">
@@ -494,23 +494,43 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                     <div class="flex items-center gap-1">-</div>
                   </div>
 
-                  <div class="ds-table-col ds-table-actions">
-                    <NcButton
-                      v-if="!sources[0].is_meta && !sources[0].is_local"
-                      size="small"
-                      class="nc-action-btn nc-edit-base cursor-pointer outline-0 !w-8 !px-1 !rounded-lg"
-                      type="text"
-                      @click.stop="baseAction(sources[0].id, DataSourcesSubTab.Edit)"
-                    >
-                      <GeneralIcon icon="edit" class="text-gray-600" />
-                    </NcButton>
+                  <div class="ds-table-col justify-end gap-x-1 ds-table-actions" @click.stop>
+                    <div class="flex justify-end">
+                      <NcDropdown placement="bottomRight">
+                        <NcButton size="small" type="secondary">
+                          <GeneralIcon icon="threeDotVertical" />
+                        </NcButton>
+                        <template #overlay>
+                          <NcMenu variant="small">
+                            <NcMenuItemCopyId
+                              :id="sources[0].id"
+                              :tooltip="$t('labels.clickToCopySourceID')"
+                              :label="
+                                $t('labels.sourceIdColon', {
+                                  sourceId: sources[0].id,
+                                })
+                              "
+                            />
+
+                            <template v-if="!sources[0].is_meta && !sources[0].is_local">
+                              <NcDivider />
+
+                              <NcMenuItem @click="baseAction(sources[0].id, DataSourcesSubTab.Edit)">
+                                <GeneralIcon icon="edit" />
+                                <span>{{ $t('general.edit') }}</span>
+                              </NcMenuItem>
+                            </template>
+                          </NcMenu>
+                        </template>
+                      </NcDropdown>
+                    </div>
                   </div>
                 </div>
               </template>
               <template #item="{ element: source, index }">
                 <div
                   v-if="index !== 0"
-                  class="ds-table-row border-gray-200 cursor-pointer"
+                  class="ds-table-row border-nc-border-gray-medium cursor-pointer"
                   :class="{
                     '!hidden': !source?.alias?.toLowerCase()?.includes(searchQuery.toLowerCase()),
                   }"
@@ -564,22 +584,36 @@ const handleClickRow = (source: SourceType, tab?: string) => {
                   </div>
                   <div class="ds-table-col justify-end gap-x-1 ds-table-actions" @click.stop>
                     <div class="flex justify-end">
-                      <NcDropdown v-if="!source.is_meta && !source.is_local" placement="bottomRight">
+                      <NcDropdown placement="bottomRight">
                         <NcButton size="small" type="secondary">
                           <GeneralIcon icon="threeDotVertical" />
                         </NcButton>
                         <template #overlay>
                           <NcMenu variant="small">
-                            <NcMenuItem @click="handleClickRow(source, 'edit')">
-                              <GeneralIcon icon="edit" />
-                              <span>{{ $t('general.edit') }}</span>
-                            </NcMenuItem>
+                            <NcMenuItemCopyId
+                              :id="source.id"
+                              :tooltip="$t('labels.clickToCopySourceID')"
+                              :label="
+                                $t('labels.sourceIdColon', {
+                                  sourceId: source.id,
+                                })
+                              "
+                            />
 
-                            <NcDivider />
-                            <NcMenuItem danger @click.stop="openDeleteBase(source)">
-                              <GeneralIcon icon="delete" />
-                              {{ $t('general.remove') }}
-                            </NcMenuItem>
+                            <template v-if="!source.is_meta && !source.is_local">
+                              <NcDivider />
+
+                              <NcMenuItem @click="handleClickRow(source, 'edit')">
+                                <GeneralIcon icon="edit" />
+                                <span>{{ $t('general.edit') }}</span>
+                              </NcMenuItem>
+
+                              <NcDivider />
+                              <NcMenuItem danger @click.stop="openDeleteBase(source)">
+                                <GeneralIcon icon="delete" />
+                                {{ $t('general.remove') }}
+                              </NcMenuItem>
+                            </template>
                           </NcMenu>
                         </template>
                       </NcDropdown>
@@ -593,7 +627,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
               v-if="!isReloading && sources?.length && !isSearchResultAvailable()"
               class="flex-none integration-table-empty flex items-center justify-center py-8 px-6"
             >
-              <div class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center">
+              <div class="px-2 py-6 text-nc-content-gray-muted flex flex-col items-center gap-6 text-center">
                 <img
                   src="~assets/img/placeholder/no-search-result-found.png"
                   class="!w-[164px] flex-none"
@@ -622,7 +656,10 @@ const handleClickRow = (source: SourceType, tab?: string) => {
           :delete-label="$t('general.remove')"
         >
           <template #entity-preview>
-            <div v-if="toBeDeletedBase" class="flex flex-row items-center py-2 px-3.25 bg-gray-50 rounded-lg text-gray-700 mb-4">
+            <div
+              v-if="toBeDeletedBase"
+              class="flex flex-row items-center py-2 px-3.25 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4"
+            >
               <GeneralBaseLogo :source-type="toBeDeletedBase.type" />
               <div
                 class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
@@ -640,10 +677,10 @@ const handleClickRow = (source: SourceType, tab?: string) => {
 
 <style scoped lang="scss">
 .ds-table {
-  @apply border-1 border-gray-200 rounded-lg h-full;
+  @apply border-1 border-nc-border-gray-medium rounded-lg h-full;
 }
 .ds-table-head {
-  @apply flex items-center border-b-1 text-gray-500 bg-gray-50 text-sm font-weight-500;
+  @apply flex items-center border-b-1 text-nc-content-gray-muted bg-nc-bg-gray-extralight text-sm font-weight-500;
 }
 
 .ds-table-body {
@@ -651,7 +688,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
 }
 
 .ds-table-row {
-  @apply grid grid-cols-18 border-b border-gray-100 w-full h-full;
+  @apply grid grid-cols-18 border-b border-nc-border-gray-light w-full h-full;
 }
 
 .ds-table-col {
@@ -686,7 +723,7 @@ const handleClickRow = (source: SourceType, tab?: string) => {
   @apply cursor-pointer justify-self-start mr-2 w-[16px];
 }
 .ds-table-body .ds-table-row:hover {
-  @apply bg-gray-50/60;
+  @apply bg-nc-bg-gray-extralight/60;
 }
 
 :deep(.ant-tabs-content),

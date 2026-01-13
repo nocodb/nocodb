@@ -205,3 +205,17 @@ export const validateBarcode = (value: string, column: ColumnType): { isValid: b
     return result
   }
 }
+
+/**
+ * Helper to get the correct base ID for a related table in a Link/LTAR column.
+ * For cross-base links, this returns the fk_related_base_id from the column options.
+ * For same-base links, it returns the current base ID.
+ */
+export const getRelatedBaseId = (relationColumn: ColumnType | undefined, currentBaseId: string): string => {
+  if (!relationColumn) return currentBaseId
+
+  const colOptions = relationColumn.colOptions as any
+  // For cross-base links, use fk_related_base_id
+  // For same-base links, fk_related_base_id will be undefined, so use current base ID
+  return colOptions?.fk_related_base_id || currentBaseId
+}

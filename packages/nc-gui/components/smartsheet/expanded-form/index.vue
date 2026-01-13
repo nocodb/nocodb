@@ -157,33 +157,34 @@ watch(activeViewMode, async (v) => {
 
 const displayField = computed(() => meta.value?.columns?.find((c) => c.pv && fields.value?.includes(c)) ?? null)
 
-reloadViewDataTrigger.on(
-  withLoading(async (params) => {
-    // Skip loading deleted record again
-    if (params?.skipLoadingRowId && params?.skipLoadingRowId === primaryKey.value) {
-      return
-    }
+const reloadViewDataListener = withLoading(async (params) => {
+  // Skip loading deleted record again
+  if (params?.skipLoadingRowId && params?.skipLoadingRowId === primaryKey.value) {
+    return
+  }
 
-    const isSameRecordUpdated =
-      params?.relatedTableMetaId &&
-      params?.rowId &&
-      params?.relatedTableMetaId === meta.value?.id &&
-      params?.rowId === rowId.value
+  const isSameRecordUpdated =
+    params?.relatedTableMetaId && params?.rowId && params?.relatedTableMetaId === meta.value?.id && params?.rowId === rowId.value
 
-    // If relatedTableMetaId & rowId is present that means some nested record is updated
+  // If relatedTableMetaId & rowId is present that means some nested record is updated
 
-    // If same nested record udpated then udpate whole row
-    if (isSameRecordUpdated) {
-      await _loadRow(rowId.value)
-    } else if (params?.relatedTableMetaId && params?.rowId) {
-      // If it is not same record updated but it has relatedTableMetaId & rowId then update only virtual columns
-      await _loadRow(rowId.value, true)
-    } else {
-      // Else update only new/duplicated/renamed columns
-      await _loadRow(rowId.value, false, true)
-    }
-  }),
-)
+  // If same nested record udpated then udpate whole row
+  if (isSameRecordUpdated) {
+    await _loadRow(rowId.value)
+  } else if (params?.relatedTableMetaId && params?.rowId) {
+    // If it is not same record updated but it has relatedTableMetaId & rowId then update only virtual columns
+    await _loadRow(rowId.value, true)
+  } else {
+    // Else update only new/duplicated/renamed columns
+    await _loadRow(rowId.value, false, true)
+  }
+})
+
+reloadViewDataTrigger.on(reloadViewDataListener)
+
+onBeforeUnmount(() => {
+  reloadViewDataTrigger.off(reloadViewDataListener)
+})
 
 const duplicatingRowInProgress = ref(false)
 
@@ -728,6 +729,20 @@ function onTouchEnd() {
   }
 }
 
+const visibleMoreOptions = computed(() => {
+  const result = {
+    reloadRecord: !isEeUI,
+    copyRecordUrl: !isNew.value && !!rowId.value,
+    duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
+    deleteRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
+  }
+  return {
+    ...result,
+    showMoreOptionsMenu: result.reloadRecord || result.copyRecordUrl || result.duplicateRecord || result.deleteRecord,
+    allHiddenExceptCopyRecordUrl: !result.reloadRecord && !result.duplicateRecord && !result.deleteRecord,
+  }
+})
+
 defineExpose({
   stopLoading,
 })
@@ -803,7 +818,8 @@ export default {
               v-if="!props.showNextPrevIcons"
               class="hidden md:flex items-center rounded-lg bg-nc-bg-gray-light px-2 py-1 gap-2"
             >
-              <GeneralIcon icon="table" class="text-nc-content-inverted-secondary flex-none" />
+              <GeneralTableIcon size="xsmall" :meta="meta" class="!mx-0 !text-nc-content-inverted-secondary" />
+
               <span class="nc-expanded-form-table-name whitespace-nowrap">
                 {{ tableTitle }}
               </span>
@@ -819,7 +835,7 @@ export default {
               class="flex items-center font-bold text-nc-content-gray text-2xl overflow-hidden"
             >
               <span class="min-w-[120px] md:min-w-[300px]">
-                <LazySmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />
+                <SmartsheetPlainCell v-model="displayValue" :column="displayField" show-tooltip />
               </span>
             </div>
           </div>
@@ -852,12 +868,11 @@ export default {
               </NcButton>
             </template>
           </PermissionsTooltip>
-          <NcTooltip>
+          <NcTooltip v-if="visibleMoreOptions.copyRecordUrl && !isMobileMode" class="!<lg:hidden">
             <template #title> {{ isRecordLinkCopied ? $t('labels.copiedRecordURL') : $t('labels.copyRecordURL') }} </template>
             <NcButton
-              v-if="!isNew && rowId && !isMobileMode"
               :disabled="isLoading"
-              class="!<lg:hidden text-nc-content-inverted-secondary !h-7 !w-7"
+              class="text-nc-content-inverted-secondary !h-7 !w-7"
               type="text"
               size="xsmall"
               @click="copyRecordUrl()"
@@ -874,11 +889,20 @@ export default {
               </div>
             </NcButton>
           </NcTooltip>
-          <NcDropdown v-if="!isNew && rowId" placement="bottomRight">
+          <NcDropdown
+            v-if="visibleMoreOptions.showMoreOptionsMenu"
+            placement="bottomRight"
+            :class="{
+              '!lg:hidden': visibleMoreOptions.allHiddenExceptCopyRecordUrl,
+            }"
+          >
             <NcButton
               :type="isMobileMode ? 'secondary' : 'text'"
               size="xsmall"
               class="nc-expand-form-more-actions !w-7 !h-7"
+              :class="{
+                '!lg:hidden': visibleMoreOptions.allHiddenExceptCopyRecordUrl,
+              }"
               :disabled="isLoading"
             >
               <GeneralIcon
@@ -889,14 +913,14 @@ export default {
             </NcButton>
             <template #overlay>
               <NcMenu variant="small">
-                <NcMenuItem @click="_loadRow()">
+                <NcMenuItem v-if="visibleMoreOptions.reloadRecord" @click="_loadRow()">
                   <div v-e="['c:row-expand:reload']" class="flex gap-2 items-center" data-testid="nc-expanded-form-reload">
                     <component :is="iconMap.reload" class="cursor-pointer" />
                     {{ $t('general.reload') }} {{ $t('objects.record') }}
                   </div>
                 </NcMenuItem>
                 <NcMenuItem
-                  v-if="!isNew && rowId"
+                  v-if="visibleMoreOptions.copyRecordUrl"
                   type="secondary"
                   class="!lg:hidden"
                   :disabled="isLoading"
@@ -907,8 +931,21 @@ export default {
                     {{ $t('labels.copyRecordURL') }}
                   </div>
                 </NcMenuItem>
+                <NcTooltip v-if="visibleMoreOptions.duplicateRecord && meta?.synced" placement="left">
+                  <template #title>
+                    {{ $t('msg.info.duplicateNotAvailableForSyncedTable') }}
+                  </template>
+                  <NcMenuItem disabled>
+                    <div class="flex gap-2 items-center" data-testid="nc-expanded-form-duplicate">
+                      <component :is="iconMap.duplicate" class="cursor-pointer nc-duplicate-row" />
+                      <span class="-ml-0.25">
+                        {{ $t('labels.duplicateRecord') }}
+                      </span>
+                    </div>
+                  </NcMenuItem>
+                </NcTooltip>
                 <PermissionsTooltip
-                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView && !isMobileMode"
+                  v-else-if="visibleMoreOptions.duplicateRecord"
                   :entity="PermissionEntity.TABLE"
                   :entity-id="meta?.id"
                   :permission="PermissionKey.TABLE_RECORD_ADD"
@@ -929,15 +966,26 @@ export default {
                     </NcMenuItem>
                   </template>
                 </PermissionsTooltip>
-                <NcDivider
-                  v-if="
-                    isUIAllowed('dataEdit', {
-                      roles: baseRoles,
-                    }) && !isSqlView
-                  "
-                />
+                <NcDivider v-if="visibleMoreOptions.deleteRecord" />
+                <NcTooltip v-if="meta?.synced" placement="left">
+                  <template #title>
+                    {{ $t('msg.info.deleteNotAvailableForSyncedTable') }}
+                  </template>
+                  <NcMenuItem danger disabled>
+                    <div class="flex gap-2 items-center" data-testid="nc-expanded-form-delete">
+                      <GeneralIcon icon="delete" class="cursor-pointer nc-delete-row" />
+                      <span class="-ml-0.25">
+                        {{
+                          $t('general.deleteEntity', {
+                            entity: $t('objects.record').toLowerCase(),
+                          })
+                        }}
+                      </span>
+                    </div>
+                  </NcMenuItem>
+                </NcTooltip>
                 <PermissionsTooltip
-                  v-if="isUIAllowed('dataEdit', baseRoles) && !isSqlView"
+                  v-else-if="visibleMoreOptions.deleteRecord"
                   :entity="PermissionEntity.TABLE"
                   :entity-id="meta?.id"
                   :permission="PermissionKey.TABLE_RECORD_DELETE"

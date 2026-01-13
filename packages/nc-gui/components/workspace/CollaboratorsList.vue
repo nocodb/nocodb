@@ -6,12 +6,18 @@ import {
   PlanLimitTypes,
   PlanTitles,
   WorkspaceUserRoles,
+  type WorkspaceUserType,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
   workspaceId?: string
-  height?: string
+  isActive?: boolean
 }>()
+
+const router = useRouter()
+const route = router.currentRoute
+
+const { $e } = useNuxtApp()
 
 const { workspaceRoles } = useRoles()
 
@@ -23,8 +29,17 @@ const workspaceStore = useWorkspace()
 
 const { removeCollaborator: _removeCollaborator, updateCollaborator: _updateCollaborator } = workspaceStore
 
-const { collaborators, activeWorkspace, workspacesList, isCollaboratorsLoading, removingCollaboratorMap } =
-  storeToRefs(workspaceStore)
+const {
+  collaborators,
+  activeWorkspace,
+  workspacesList,
+  isCollaboratorsLoading,
+  removingCollaboratorMap,
+  isTeamsEnabled,
+  teams,
+  teamsMap,
+  workspaceTeams,
+} = storeToRefs(workspaceStore)
 
 const {
   isPaymentEnabled,
@@ -34,6 +49,7 @@ const {
   isWsOwner,
   navigateToPricing,
   isTopBannerVisible,
+  showUpgradeToUseTeams,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -60,23 +76,39 @@ const { t } = useI18n()
 
 const inviteDlg = ref(false)
 
+const isInviteTeamDlg = ref(false)
+
 const topSectionRef = ref<HTMLDivElement>()
 
 const tableHeaderSectionRef = ref<HTMLDivElement>()
+
+// Todo: @rameshmane7218 - toggle this when user clicks on listed team item
+const isEditModalOpenUsingRouterPush = ref<boolean>(false)
 
 const { height: toSectionHeight } = useElementSize(topSectionRef)
 
 const { height: tableHeaderSectionHeight } = useElementSize(tableHeaderSectionRef)
 
+const workspaceTeamsToCollaborators = computed(() => {
+  return (workspaceTeams.value || []).map((wt) => ({
+    ...wt,
+    id: wt.team_id,
+    isTeam: true,
+    display_name: wt.team_title,
+    roles: wt.workspace_role,
+    email: wt.team_title, // just for sort table by email
+  }))
+})
+
 const filterCollaborators = computed(() => {
-  if (!userSearchText.value) return collaborators.value ?? []
+  if (!userSearchText.value) return (collaborators.value ?? []).concat(workspaceTeamsToCollaborators.value)
 
-  if (!collaborators.value) return []
-
-  return collaborators.value.filter(
-    (collab) =>
-      searchCompare([collab.display_name, collab.email], userSearchText.value) && !removingCollaboratorMap.value[collab.id],
-  )
+  return (collaborators.value || [])
+    .concat(workspaceTeamsToCollaborators.value)
+    .filter(
+      (collab) =>
+        searchCompare([collab.display_name, collab.email], userSearchText.value) && !removingCollaboratorMap.value[collab.id],
+    )
 })
 
 const selected = reactive<{
@@ -90,7 +122,11 @@ const toggleSelectAll = (value: boolean) => {
 }
 
 const sortedCollaborators = computed(() => {
-  return handleGetSortedData(filterCollaborators.value, sorts.value)
+  return handleGetSortedData(
+    filterCollaborators.value,
+    sorts.value,
+    workspaceTeamsToCollaborators.value.length ? { field: 'created_at', direction: 'asc' } : undefined,
+  )
 })
 
 const paidUsersCount = computed(() => (collaborators.value || []).filter((c) => !!parseProp(c?.meta).billable).length)
@@ -118,23 +154,40 @@ const selectAll = computed({
   },
 })
 
-const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
+const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles, overrideBaseRole: boolean = false) => {
   if (!currentWorkspace.value || !currentWorkspace.value.id) return
 
   try {
-    const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, isAdminPanel.value)
-    if (!res) return
-    message.success(t('msg.info.userRoleUpdated'))
-
-    collaborators.value?.forEach((collaborator) => {
-      if (collaborator.id === collab.id) {
-        collaborator.roles = roles
+    if (collab?.isTeam) {
+      // INHERIT role can only be assigned to individual users, not teams
+      if (roles === WorkspaceUserRoles.INHERIT) {
+        message.error(t('msg.error.inheritRoleOnlyForUsers'))
+        return
       }
-    })
+
+      const res = await workspaceStore.workspaceTeamUpdate(currentWorkspace.value.id, {
+        team_id: collab.id,
+        workspace_role: roles,
+      })
+
+      if (!res) return
+
+      message.success(t('msg.info.teamRoleUpdated'))
+    } else {
+      const res = await _updateCollaborator(collab.id, roles, currentWorkspace.value.id, overrideBaseRole)
+      if (!res) return
+      message.success(t('msg.info.userRoleUpdated'))
+
+      collaborators.value?.forEach((collaborator) => {
+        if (collaborator.id === collab.id) {
+          collaborator.roles = roles
+        }
+      })
+    }
   } catch (e: any) {
     const errorInfo = await extractSdkResponseErrorMsgv2(e)
 
-    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.PLAN_LIMIT_EXCEEDED) {
+    if (isPaymentEnabled.value && errorInfo.error === NcErrorType.ERR_PLAN_LIMIT_EXCEEDED) {
       const details = errorInfo.details as PlanLimitExceededDetailsType
 
       showUserPlanLimitExceededModal({
@@ -147,6 +200,52 @@ const updateCollaborator = async (collab: any, roles: WorkspaceUserRoles) => {
   }
 }
 
+// Todo: Enable this after we add support for overriding base role in backend
+const showOverrideBaseRoleCheckbox = ref(false)
+
+const userRoleUpdateInfo = ref<{
+  collab?: WorkspaceUserType
+  roles?: WorkspaceUserRoles
+  showConfirmationModal: boolean
+  overrideBaseRole: boolean
+}>({
+  showConfirmationModal: false,
+  overrideBaseRole: false,
+})
+
+/**
+ * If user is only owner in any base then we should restrict overriding base role
+ */
+const showRoleChangeConfirmationModal = async (collab: any, roles: WorkspaceUserRoles) => {
+  if (!currentWorkspace.value || !currentWorkspace.value.id) return
+
+  userRoleUpdateInfo.value.collab = collab
+  userRoleUpdateInfo.value.roles = roles
+  userRoleUpdateInfo.value.overrideBaseRole = false
+
+  try {
+    /**
+     * Todo: API call to check if user has explicit base role assigned to any base or not
+     * And whether user is only owner in any base or not
+     */
+
+    userRoleUpdateInfo.value.showConfirmationModal = true
+  } catch (e: any) {
+    console.error(e)
+  }
+}
+
+const onCancelRoleChangeConfirmationModal = () => {
+  userRoleUpdateInfo.value.showConfirmationModal = false
+  userRoleUpdateInfo.value.overrideBaseRole = false
+}
+
+const onConfirmRoleChangeConfirmationModal = () => {
+  userRoleUpdateInfo.value.showConfirmationModal = false
+
+  updateCollaborator(userRoleUpdateInfo.value.collab, userRoleUpdateInfo.value.roles!, userRoleUpdateInfo.value.overrideBaseRole)
+}
+
 const isOwnerOrCreator = computed(() => {
   return workspaceRoles.value?.[WorkspaceUserRoles.OWNER] || workspaceRoles.value?.[WorkspaceUserRoles.CREATOR]
 })
@@ -156,8 +255,22 @@ const accessibleRoles = computed<WorkspaceUserRoles[]>(() => {
     (role) => workspaceRoles.value && Object.keys(workspaceRoles.value).includes(role),
   )
   if (currentRoleIndex === -1) return []
-  return OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
+  const roles = OrderedWorkspaceRoles.slice(currentRoleIndex).filter((r) => r)
+
+  // move INHERIT role to the end of the list
+  const inheritIndex = roles.indexOf(WorkspaceUserRoles.INHERIT)
+  if (inheritIndex !== -1) {
+    roles.push(...roles.splice(inheritIndex, 1))
+  }
+
+  return roles
 })
+
+const getTeamCompatibleAccessibleRoles = (roles: WorkspaceUserRoles[], record: any) => {
+  if (!record?.isTeam || !isEeUI) return roles.filter((r) => r !== WorkspaceUserRoles.INHERIT || isTeamsEnabled.value)
+
+  return roles.filter((r) => r !== WorkspaceUserRoles.OWNER && r !== WorkspaceUserRoles.INHERIT)
+}
 
 onMounted(async () => {
   loadSorts()
@@ -243,32 +356,73 @@ const handleScroll = (e) => {
   topScroll.value = e.target?.scrollTop
 }
 
-const removeCollaborator = (userId: string, workspaceId: string) => {
-  showInfoModal({
-    title: userId === user.value?.id ? t('title.confirmLeaveWorkspaceTitle') : t('title.confirmRemoveMemberFromWorkspaceTitle'),
-    content:
-      userId === user.value?.id ? t('title.confirmLeaveWorkspaceSubtile') : t('title.confirmRemoveMemberFromWorkspaceSubtitle'),
-    showCancelBtn: true,
-    showIcon: false,
-    okProps: {
-      type: 'danger',
-    },
-    okText: userId === user.value?.id ? t('activity.leaveWorkspace') : t('general.remove'),
-    okCallback: async () => {
-      _removeCollaborator(userId, workspaceId)
-    },
-  })
+const removeCollaborator = (userId: string, workspaceId: string, record: any) => {
+  if (record?.isTeam) {
+    $e('c:workspace:team-remove')
+
+    showInfoModal({
+      title: t('objects.teams.confirmRemoveTeamFromWorkspaceTitle'),
+      content: t('objects.teams.confirmRemoveTeamFromWorkspaceSubtitle'),
+      showCancelBtn: true,
+      showIcon: false,
+      okProps: {
+        type: 'danger',
+      },
+      okText: t('general.remove'),
+      okCallback: async () => {
+        workspaceStore.workspaceTeamRemove(workspaceId, [record.id])
+      },
+    })
+  } else {
+    showInfoModal({
+      title: userId === user.value?.id ? t('title.confirmLeaveWorkspaceTitle') : t('title.confirmRemoveMemberFromWorkspaceTitle'),
+      content:
+        userId === user.value?.id ? t('title.confirmLeaveWorkspaceSubtile') : t('title.confirmRemoveMemberFromWorkspaceSubtitle'),
+      showCancelBtn: true,
+      showIcon: false,
+      okProps: {
+        type: 'danger',
+      },
+      okText: userId === user.value?.id ? t('activity.leaveWorkspace') : t('general.remove'),
+      okCallback: async () => {
+        _removeCollaborator(userId, workspaceId)
+      },
+    })
+  }
 }
+
+const handleEditTeam = (team: any) => {
+  if (!team?.team_id) return
+
+  router.push({ query: { ...route.value.query, teamId: team.team_id } })
+
+  isEditModalOpenUsingRouterPush.value = true
+}
+
+/**
+ * Reset search query on unmount
+ */
+watch(
+  () => props.isActive,
+  () => {
+    userSearchText.value = ''
+  },
+)
+
+watch(inviteDlg, (newVal) => {
+  if (!newVal) {
+    isInviteTeamDlg.value = false
+  }
+})
 </script>
 
 <template>
   <div
     class="nc-collaborator-table-container overflow-auto nc-scrollbar-thin relative"
     :class="{
-      'nc-is-admin-panel': !height && isAdminPanel,
-      'nc-is-ws-members-list': !height && !isAdminPanel,
+      'nc-is-admin-panel': isAdminPanel,
+      'nc-is-ws-members-list': !isAdminPanel,
     }"
-    :style="`${height ? `height: ${height}` : ''}`"
     @scroll.passive="handleScroll"
   >
     <div ref="topSectionRef">
@@ -282,10 +436,10 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
           allow-clear
           :disabled="isCollaboratorsLoading"
           class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
-          :placeholder="$t('title.searchMembers')"
+          :placeholder="isTeamsEnabled ? $t('title.searchForMembersOrTeams') : $t('title.searchMembers')"
         >
           <template #prefix>
-            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+            <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme" />
           </template>
         </a-input>
         <div class="flex items-center gap-4">
@@ -315,12 +469,44 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
             <div class="self-stretch border-r-1 border-nc-border-gray-medium"></div>
           </template>
 
-          <NcButton size="small" :disabled="isCollaboratorsLoading" data-testid="nc-add-member-btn" @click="inviteDlg = true">
-            <div class="flex items-center gap-2">
-              <component :is="iconMap.plus" class="!h-4 !w-4" />
-              {{ $t('labels.addMember') }}
-            </div>
-          </NcButton>
+          <div class="flex items-center gap-2">
+            <NcButton
+              size="small"
+              :type="isTeamsEnabled ? 'secondary' : 'primary'"
+              :disabled="isCollaboratorsLoading"
+              data-testid="nc-add-member-btn"
+              :text-color="isTeamsEnabled ? 'primary' : undefined"
+              @click="inviteDlg = true"
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
+                {{ $t('activity.addMembers') }}
+              </div>
+            </NcButton>
+
+            <NcButton
+              v-if="isTeamsEnabled && !isAdminPanel"
+              v-e="['c:workspace:team-add']"
+              size="small"
+              type="secondary"
+              :disabled="isCollaboratorsLoading"
+              data-testid="nc-add-teams-btn"
+              text-color="primary"
+              @click="
+                showUpgradeToUseTeams({
+                  successCallback: () => {
+                    isInviteTeamDlg = true
+                    inviteDlg = true
+                  },
+                })
+              "
+            >
+              <div class="flex items-center gap-2">
+                <GeneralIcon icon="ncBuilding" />
+                {{ $t('labels.addTeams') }}
+              </div>
+            </NcButton>
+          </div>
         </div>
       </div>
 
@@ -388,11 +574,15 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
               <NcCheckbox v-model:checked="selected[recordIndex]" />
             </template>
 
-            <div v-if="column.key === 'email'" class="w-full flex gap-3 items-center">
+            <template v-if="column.key === 'email' && record.isTeam">
+              <GeneralTeamInfo :team="transformToTeamObject(record, teamsMap[record.id])" />
+            </template>
+
+            <div v-else-if="column.key === 'email'" class="w-full flex gap-3 items-center">
               <GeneralUserIcon size="base" :user="record" class="flex-none" />
               <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
                 <div class="flex items-center gap-1">
-                  <NcTooltip class="truncate max-w-full text-gray-800 capitalize font-semibold" show-on-truncate-only>
+                  <NcTooltip class="truncate max-w-full text-nc-content-gray capitalize font-semibold" show-on-truncate-only>
                     <template #title>
                       {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                     </template>
@@ -412,13 +602,13 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
                       v-else
                       :border="false"
                       color="green"
-                      class="text-nc-content-green-dark text-[10px] leading-[14px] !h-[18px] font-semibold"
+                      class="text-nc-content-green-dark dark:!bg-nc-bg-green-light text-[10px] leading-[14px] !h-[18px] font-semibold"
                     >
                       <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
                     </NcBadge>
                   </NcTooltip>
                 </div>
-                <NcTooltip class="truncate max-w-full text-xs text-gray-600" show-on-truncate-only>
+                <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                   <template #title>
                     {{ record.email }}
                   </template>
@@ -428,13 +618,12 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
             </div>
             <div v-if="column.key === 'role'">
               <template
-                v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && accessibleRoles.includes(record.roles as WorkspaceUserRoles)"
+                v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles as WorkspaceUserRoles)"
               >
-                <RolesSelector
-                  :description="false"
-                  :on-role-change="(role) => updateCollaborator(record, role as WorkspaceUserRoles)"
+                <RolesSelectorV2
+                  :on-role-change="(role) => showRoleChangeConfirmationModal(record, role as WorkspaceUserRoles)"
                   :role="record.roles"
-                  :roles="accessibleRoles"
+                  :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
                   class="cursor-pointer"
                 />
               </template>
@@ -454,36 +643,63 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
             </div>
 
             <div v-if="column.key === 'action'">
-              <NcDropdown v-if="isOwnerOrCreator || record.id === user.id">
+              <NcDropdown placement="bottomRight">
                 <NcButton size="small" type="secondary">
                   <component :is="iconMap.ncMoreVertical" />
                 </NcButton>
                 <template #overlay>
                   <NcMenu variant="small">
-                    <template v-if="isAdminPanel">
-                      <NcMenuItem data-testid="nc-admin-org-user-delete">
-                        <GeneralIcon icon="signout" />
-                        <span>{{ $t('labels.signOutUser') }}</span>
-                      </NcMenuItem>
+                    <NcMenuItemCopyId
+                      :id="record.id"
+                      :tooltip="record.isTeam ? $t(`labels.clickToCopyTeamID`) : $t(`labels.clickToCopyUserID`)"
+                      :label="
+                        record.isTeam
+                          ? $t(`labels.teamIdColon`, { teamId: record.id })
+                          : $t(`labels.userIdColon`, { userId: record.id })
+                      "
+                    />
 
+                    <template
+                      v-if="isOwnerOrCreator || record.id === user?.id || (record.isTeam && teamsMap[record.id]?.is_member)"
+                    >
                       <NcDivider />
-                    </template>
-                    <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
-                      <template #title>
-                        {{ $t('tooltip.leaveWorkspace') }}
-                      </template>
-                      <NcMenuItem
-                        :disabled="!isDeleteOrUpdateAllowed(record)"
-                        danger
-                        @click="removeCollaborator(record.id, currentWorkspace?.id)"
-                      >
-                        <div v-if="removingCollaboratorMap[record.id]" class="h-4 w-4 flex items-center justify-center">
-                          <GeneralLoader class="!flex-none !text-current" />
-                        </div>
-                        <GeneralIcon v-else icon="delete" />
-                        {{ record.id === user.id ? t('activity.leaveWorkspace') : t('activity.removeMember') }}
+
+                      <NcMenuItem v-if="record.isTeam && teamsMap[record.id]?.is_member" @click="handleEditTeam(record)">
+                        <GeneralIcon icon="ncEdit" class="h-4 w-4" />
+                        {{ $t('general.edit') }}
                       </NcMenuItem>
-                    </NcTooltip>
+                      <template v-if="isAdminPanel && !record.isTeam">
+                        <NcMenuItem data-testid="nc-admin-org-user-delete">
+                          <GeneralIcon icon="signout" />
+                          <span>{{ $t('labels.signOutUser') }}</span>
+                        </NcMenuItem>
+
+                        <NcDivider />
+                      </template>
+
+                      <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
+                        <template #title>
+                          {{ $t('tooltip.leaveWorkspace') }}
+                        </template>
+                        <NcMenuItem
+                          :disabled="!isDeleteOrUpdateAllowed(record) || (record.isTeam && !isOwnerOrCreator)"
+                          danger
+                          @click="removeCollaborator(record.id, currentWorkspace?.id, record)"
+                        >
+                          <div v-if="removingCollaboratorMap[record.id]" class="h-4 w-4 flex items-center justify-center">
+                            <GeneralLoader class="!flex-none !text-current" />
+                          </div>
+                          <GeneralIcon v-else icon="delete" />
+                          {{
+                            record.isTeam
+                              ? $t('objects.teams.removeTeam')
+                              : record.id === user.id
+                              ? t('activity.leaveWorkspace')
+                              : t('activity.removeMember')
+                          }}
+                        </NcMenuItem>
+                      </NcTooltip>
+                    </template>
                   </NcMenu>
                 </template>
               </NcDropdown>
@@ -492,10 +708,10 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
 
           <template #extraRow>
             <div v-if="collaborators?.length === 1" class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center">
-              <div class="text-2xl text-gray-800 font-bold">
+              <div class="text-2xl text-nc-content-gray font-bold">
                 {{ $t('placeholder.inviteYourTeam') }}
               </div>
-              <div class="text-sm text-gray-700">
+              <div class="text-sm text-nc-content-gray-subtle">
                 {{ $t('placeholder.inviteYourTeamLabel') }}
               </div>
               <img src="~assets/img/placeholder/invite-team.png" alt="Invite Team" class="!w-[30rem] flex-none" />
@@ -508,8 +724,68 @@ const removeCollaborator = (userId: string, workspaceId: string) => {
         v-model:model-value="inviteDlg"
         :workspace-id="currentWorkspace?.id"
         type="workspace"
+        :is-team="isInviteTeamDlg"
         :users="sortedCollaborators"
+        :teams="teams"
+        :existing-team-ids="workspaceTeams?.map((team: any) => team.team_id) || []"
       />
+
+      <WorkspaceTeamsEdit v-if="isTeamsEnabled" :is-open-using-router-push="isEditModalOpenUsingRouterPush" />
+
+      <NcModalConfirm
+        v-if="currentWorkspace"
+        v-model:visible="userRoleUpdateInfo.showConfirmationModal"
+        ok-class="capitalize"
+        :ok-text="$t('general.confirm')"
+        :show-icon="false"
+        :keyboard="true"
+        :mask-closable="true"
+        @cancel="onCancelRoleChangeConfirmationModal"
+        @ok="onConfirmRoleChangeConfirmationModal"
+      >
+        <template #title>
+          <div>
+            <div class="inline-flex !align-top mr-2">
+              {{ $t('title.changeWorkspaceRoleTo') }}
+            </div>
+
+            <RolesBadge :border="false" :role="userRoleUpdateInfo.roles" class="inline-flex text-body"> </RolesBadge>
+          </div>
+        </template>
+        <template #extraContent>
+          <div class="flex flex-col gap-5 text-caption text-nc-content-gray">
+            <NcAlert
+              type="info"
+              :show-icon="false"
+              class="!p-3 bg-nc-bg-yellow-light dark:bg-nc-yellow-20 !border-nc-fill-yellow-light"
+              description-class="!line-clamp-none"
+            >
+              <template #description>
+                <div class="text-nc-content-yellow-dark">
+                  <b>{{ $t('general.notice') }}:</b>
+                  {{
+                    userRoleUpdateInfo.collab?.isTeam
+                      ? $t('msg.info.workspaceTeamRoleUpdateNotice')
+                      : $t('msg.info.workspaceRoleUpdateNotice')
+                  }}
+                </div>
+              </template>
+            </NcAlert>
+            <div v-if="showOverrideBaseRoleCheckbox" class="flex items-start gap-3">
+              <div class="flex items-center h-5">
+                <NcCheckbox v-model:checked="userRoleUpdateInfo.overrideBaseRole" />
+              </div>
+
+              <div class="flex flex-col gap-2">
+                <div class="font-semibold">Apply to all bases</div>
+                <div class="text-nc-content-gray-subtle">
+                  This will override explicit base roles and apply the workspace role to all bases.
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </NcModalConfirm>
     </div>
   </div>
 </template>

@@ -1,7 +1,7 @@
 import { RelationTypes } from 'nocodb-sdk';
 import type { BoolType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
 import type Filter from '~/models/Filter';
+import type { NcContext } from '~/interface/config';
 import Model from '~/models/Model';
 import Column from '~/models/Column';
 import Noco from '~/Noco';
@@ -72,7 +72,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { childContext } = await this.getParentChildContext(context);
+    const { childContext } = await this.getParentChildContext({
+      ...context,
+      base_id: this.base_id,
+    });
     return (this.childColumn = await Column.get(
       childContext,
       {
@@ -86,7 +89,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { mmContext } = this.getRelContext(context);
+    const { mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
 
     return (this.mmChildColumn = await Column.get(
       mmContext,
@@ -101,7 +107,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { parentContext } = await this.getParentChildContext(context);
+    const { parentContext } = await this.getParentChildContext({
+      ...context,
+      base_id: this.base_id,
+    });
 
     return (this.parentColumn = await Column.get(
       parentContext,
@@ -116,7 +125,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Column> {
-    const { mmContext } = this.getRelContext(context);
+    const { mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
     return (this.mmParentColumn = await Column.get(
       mmContext,
       {
@@ -144,7 +156,10 @@ export default class LinkToAnotherRecordColumn {
     context: NcContext,
     ncMeta = Noco.ncMeta,
   ): Promise<Model> {
-    const { refContext } = this.getRelContext(context);
+    const { refContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
     return (this.relatedTable = await Model.getByIdOrName(
       refContext,
       {
@@ -207,6 +222,7 @@ export default class LinkToAnotherRecordColumn {
     let colData =
       columnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.COL_RELATION}:${columnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -217,7 +233,11 @@ export default class LinkToAnotherRecordColumn {
         MetaTable.COL_RELATIONS,
         { fk_column_id: columnId },
       );
-      await NocoCache.set(`${CacheScope.COL_RELATION}:${columnId}`, colData);
+      await NocoCache.set(
+        context,
+        `${CacheScope.COL_RELATION}:${columnId}`,
+        colData,
+      );
     }
     return colData ? new LinkToAnotherRecordColumn(colData) : null;
   }
@@ -257,6 +277,12 @@ export default class LinkToAnotherRecordColumn {
       };
     }
 
+    // propagate cache map
+    if (context.cacheMap) {
+      refContext.cacheMap = context.cacheMap;
+      if (mmContext) mmContext.cacheMap = context.cacheMap;
+    }
+
     return (this._context = {
       refContext,
       mmContext,
@@ -272,7 +298,11 @@ export default class LinkToAnotherRecordColumn {
       return this._parentChildContext;
     }
 
-    const { refContext, mmContext } = this.getRelContext(context);
+    const { refContext, mmContext } = this.getRelContext({
+      ...context,
+      base_id: this.base_id,
+    });
+
     let childContext = context;
     let parentContext = context;
 
@@ -306,6 +336,14 @@ export default class LinkToAnotherRecordColumn {
           )?.meta?.bt))
     ) {
       parentContext = refContext;
+    }
+
+    // propagate cache map
+    if (context.cacheMap) {
+      refContext.cacheMap = context.cacheMap;
+      if (mmContext) mmContext.cacheMap = context.cacheMap;
+      childContext.cacheMap = context.cacheMap;
+      parentContext.cacheMap = context.cacheMap;
     }
 
     return (this._parentChildContext = {

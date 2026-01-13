@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { HTTPSnippet } from '@readme/httpsnippet'
-import { LoadingOutlined } from '@ant-design/icons-vue'
+import { defineAsyncComponent } from 'vue'
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 const { t } = useI18n()
 
@@ -16,13 +19,6 @@ const view = inject(ActiveViewInj, ref())
 const { xWhere } = useSmartsheetStoreOrThrow()
 
 const { queryParams } = useViewData(meta, view, xWhere)
-
-const indicator = h(LoadingOutlined, {
-  style: {
-    fontSize: '2rem',
-  },
-  spin: true,
-})
 
 const { copy } = useCopy()
 
@@ -220,7 +216,7 @@ const supportedDocs = [
 
         <div class="flex flex-col gap-1">
           <div
-            class="p-2 text-xs text-gray-500 uppercase font-semibold"
+            class="p-2 text-xs text-nc-content-gray-muted uppercase font-semibold"
             :style="{
               letterSpacing: '0.3px',
             }"
@@ -229,7 +225,7 @@ const supportedDocs = [
           </div>
 
           <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-2 px-2 h-7">
-            <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-600" />
+            <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-nc-content-gray-subtle2" />
 
             <a
               :href="doc.href"
@@ -258,11 +254,11 @@ const supportedDocs = [
               >
                 <div class="flex items-center gap-2 text-small leading-[18px] min-w-80px justify-center">
                   <GeneralIcon
-                    :icon="isCopied ? 'circleCheck' : 'copy'"
+                    :icon="isCopied ? 'circleCheckSolid' : 'copy'"
                     class="h-4 w-4"
                     :class="{
                       'text-nc-content-gray-subtle': !isCopied,
-                      'text-nc-content-green-dark': isCopied,
+                      'text-green-700': isCopied,
                     }"
                   />
                   {{ isCopied ? $t('general.copied') : $t('general.copy') }}
@@ -280,53 +276,53 @@ const supportedDocs = [
             </a-tab-pane>
           </NcTabs>
           <Suspense>
-            <MonacoEditor
-              class="h-[calc(100%_-_36px)] !bg-nc-bg-gray-extralight pl-2"
-              :model-value="code"
-              :read-only="true"
-              lang="typescript"
-              :validate="false"
-              :disable-deep-compare="true"
-              :monaco-config="{
-                minimap: {
-                  enabled: false,
-                },
-                fontSize: 13,
-                lineHeight: 18,
-                padding: {
-                  top: 12,
-                  bottom: 12,
-                },
-                overviewRulerBorder: false,
-                overviewRulerLanes: 0,
-                hideCursorInOverviewRuler: true,
-                lineDecorationsWidth: 12,
-                lineNumbersMinChars: 0,
-                roundedSelection: false,
-                selectOnLineNumbers: false,
-                scrollBeyondLastLine: false,
-                contextmenu: false,
-                glyphMargin: false,
-                folding: false,
-                bracketPairColorization: { enabled: false },
-                wordWrap: 'on',
-                scrollbar: {
-                  horizontal: 'hidden',
-                  verticalScrollbarSize: 6,
-                },
-                wrappingStrategy: 'advanced',
-                renderLineHighlight: 'none',
-                tabSize: 4,
-                detectIndentation: false,
-                insertSpaces: true,
-                lineNumbers: 'off',
-              }"
-              hide-minimap
-            />
+            <template #default>
+              <MonacoEditor
+                class="h-[calc(100%_-_36px)] !bg-nc-bg-gray-extralight pl-2"
+                :model-value="code"
+                :read-only="true"
+                lang="typescript"
+                :validate="false"
+                :disable-deep-compare="true"
+                :monaco-config="{
+                  minimap: {
+                    enabled: false,
+                  },
+                  fontSize: 13,
+                  lineHeight: 18,
+                  padding: {
+                    top: 12,
+                    bottom: 12,
+                  },
+                  overviewRulerBorder: false,
+                  overviewRulerLanes: 0,
+                  hideCursorInOverviewRuler: true,
+                  lineDecorationsWidth: 12,
+                  lineNumbersMinChars: 0,
+                  roundedSelection: false,
+                  selectOnLineNumbers: false,
+                  scrollBeyondLastLine: false,
+                  contextmenu: false,
+                  glyphMargin: false,
+                  folding: false,
+                  bracketPairColorization: { enabled: false },
+                  wordWrap: 'on',
+                  scrollbar: {
+                    horizontal: 'hidden',
+                    verticalScrollbarSize: 6,
+                  },
+                  wrappingStrategy: 'advanced',
+                  renderLineHighlight: 'none',
+                  tabSize: 4,
+                  detectIndentation: false,
+                  insertSpaces: true,
+                  lineNumbers: 'off',
+                }"
+                hide-minimap
+              />
+            </template>
             <template #fallback>
-              <div class="h-full w-full flex flex-col justify-center items-center mt-28">
-                <a-spin size="large" :indicator="indicator" />
-              </div>
+              <MonacoLoading class="h-[calc(100%_-_36px)] w-full" />
             </template>
           </Suspense>
         </div>
@@ -350,9 +346,9 @@ const supportedDocs = [
     }
 
     &.active-menu {
-      @apply bg-brand-50;
+      @apply bg-nc-bg-brand-inverted;
       .nc-menu-item-inner {
-        @apply text-brand-600 font-semibold;
+        @apply text-nc-content-brand-disabled font-semibold;
       }
     }
   }

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { diff } from 'deep-object-diff'
+import { defineAsyncComponent } from 'vue'
 import {
   type HookReqType,
   type HookTestReqType,
@@ -12,6 +13,14 @@ import type { Ref } from 'vue'
 import { onKeyDown } from '@vueuse/core'
 import { UITypes, isLinksOrLTAR, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
 import { extractNextDefaultName } from '~/helpers/parsers/parserHelpers'
+import { jsonThemeDark, jsonThemeLight } from '~/components/monaco/json'
+
+const props = defineProps<Props>()
+
+const emits = defineEmits(['close', 'update:value', 'cancel'])
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
 
 interface Props {
   value: boolean
@@ -21,10 +30,6 @@ interface Props {
   sampleDataV2?: any
   stickyScroll?: boolean
 }
-
-const props = defineProps<Props>()
-
-const emits = defineEmits(['close', 'update:value', 'cancel'])
 
 enum HookTab {
   Configuration = 'configuration',
@@ -36,6 +41,8 @@ const { eventList, showUpgradeModal, sampleDataV2 } = toRefs(props)
 const { t } = useI18n()
 
 const { $e, $api } = useNuxtApp()
+
+const { isDark } = useTheme()
 
 const { api, isLoading: loading } = useApi()
 
@@ -56,8 +63,6 @@ const { appInfo } = useGlobal()
 const { activeTable } = toRefs(useTablesStore())
 
 const { updateStatLimit, showWebhookLogsFeatureAccessModal } = useEeConfig()
-
-const { activeBaseAutomations } = storeToRefs(useAutomationStore())
 
 const defaultHookName = t('labels.webhook')
 
@@ -149,12 +154,6 @@ let hookRef = reactive<
   version: 'v3',
 })
 
-const hasUnsavedChanges = computed(() => {
-  if (!props.hook || !hookRef.id || !oldHookRef.value || !hookRef || showUpgradeModal.value) return true
-
-  return !ncIsEmptyObject(diff(removeUndefinedFromObj(oldHookRef.value), removeUndefinedFromObj(hookRef)))
-})
-
 const operationsEnum = computed(() => {
   if (!hookRef.event) {
     return [] as {
@@ -172,8 +171,6 @@ const operationsEnum = computed(() => {
     })
   return result
 })
-
-const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)
 
 const urlTabKey = ref<'params' | 'headers' | 'body'>('params')
 
@@ -194,6 +191,13 @@ const isDropdownOpen = ref()
 
 const titleDomRef = ref<HTMLInputElement | undefined>()
 
+const hasUnsavedChanges = computed(() => {
+  if (!props.hook || !hookRef.id || !oldHookRef.value || !hookRef || showUpgradeModal.value || filterRef.value?.isFilterUpdated)
+    return true
+
+  return !ncIsEmptyObject(diff(removeUndefinedFromObj(oldHookRef.value), removeUndefinedFromObj(hookRef)))
+})
+
 const notificationTypes = computed(() => {
   return [
     {
@@ -211,14 +215,16 @@ const notificationTypes = computed(() => {
   ]
 })
 
-const automationOptions = computed(() => {
-  return activeBaseAutomations.value
-    .filter((automation) => automation.script && !hasInputCalls(automation.script))
-    .map((automation) => ({
-      label: automation.title,
-      value: automation.id,
-    }))
-})
+const filterScripts = (script: any) => {
+  if (hasInputCalls(script.script)) {
+    return {
+      ...script,
+      ncItemDisabled: true,
+      ncItemTooltip: `Script with user inputs can't be used with webhooks`,
+    }
+  }
+  return script
+}
 
 const toggleOperation = (operation: string) => {
   const ops = [...hookRef.operation]
@@ -652,23 +658,41 @@ async function saveHooks() {
   try {
     let res
     if (hookRef.id) {
-      res = await api.dbTableWebhook.update(hookRef.id, {
-        ...hookRef,
-        operation: operations,
-        notification: {
-          ...hookRef.notification,
-          payload: hookRef.notification.payload,
+      res = await $api.internal.postOperation(
+        base.value!.fk_workspace_id!,
+        base.value!.id!,
+        {
+          operation: 'hookUpdate',
+          hookId: hookRef.id,
         },
-      })
+        {
+          ...hookRef,
+          title: hookRef.title?.trim(),
+          operation: operations,
+          notification: {
+            ...hookRef.notification,
+            payload: hookRef.notification.payload,
+          },
+        },
+      )
     } else {
-      res = await api.dbTableWebhook.create(meta.value!.id!, {
-        ...hookRef,
-        operation: operations,
-        notification: {
-          ...hookRef.notification,
-          payload: hookRef.notification.payload,
+      res = await $api.internal.postOperation(
+        base.value!.fk_workspace_id!,
+        base.value!.id!,
+        {
+          operation: 'hookCreate',
+          tableId: meta.value!.id!,
         },
-      } as HookReqType)
+        {
+          ...hookRef,
+          title: hookRef.title?.trim(),
+          operation: operations,
+          notification: {
+            ...hookRef.notification,
+            payload: hookRef.notification.payload,
+          },
+        } as HookReqType,
+      )
 
       hooks.value.push(res)
       updateStatLimit(PlanLimitTypes.LIMIT_WEBHOOK_PER_WORKSPACE, 1)
@@ -708,7 +732,7 @@ async function saveHooks() {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    getMeta(activeTable.value.id, true)
+    getMeta(activeTable.value.base_id!, activeTable.value.id, true)
     loading.value = false
   }
 }
@@ -741,8 +765,13 @@ async function testWebhook() {
     testConnectionError.value = ''
     testSuccess.value = false
     isTestLoading.value = true
-    await $api.dbTableWebhook.test(
-      meta.value?.id as string,
+    await $api.internal.postOperation(
+      base.value!.fk_workspace_id!,
+      base.value!.id!,
+      {
+        operation: 'hookTest',
+        tableId: meta.value?.id as string,
+      },
       {
         hook: hookRef,
         payload: sampleData.value,
@@ -756,7 +785,7 @@ async function testWebhook() {
   }
 }
 
-const supportedDocs = [
+const supportedDocs: SupportedDocsType[] = [
   {
     title: 'Getting started',
     href: 'https://nocodb.com/docs/product-docs/automation/webhook/create-webhook',
@@ -792,17 +821,14 @@ watch(
 )
 
 async function loadSampleData() {
-  const samplePayload = await $api.dbTableWebhook.samplePayloadGet(
-    meta?.value?.id as string,
-    hookRef?.event ?? 'after',
-    ((hookRef?.operation && hookRef?.operation[0]) as any) || 'insert',
-    hookRef.version!,
-    {
-      query: {
-        includeUser: (!!hookRef.notification?.include_user).toString(),
-      },
-    },
-  )
+  const samplePayload = await $api.internal.getOperation(base.value!.fk_workspace_id!, base.value!.id!, {
+    operation: 'tableSampleData',
+    tableId: meta?.value?.id as string,
+    hookOperation: ((hookRef?.operation && hookRef?.operation[0]) as any) || 'insert',
+    version: hookRef.version!,
+    includeUser: (!!hookRef.notification?.include_user).toString(),
+    event: hookRef?.event ?? 'after',
+  })
   // if non-URL based hook and version is v2, then return the newRowData as payload
   // this is for backward compatibility
   if (hookRef.notification.type !== 'URL' && ['v2', 'v3'].includes(hookRef.version)) {
@@ -943,8 +969,8 @@ const webhookV2AndV3Diff = computed(() => {
     <template #header>
       <div class="flex w-full items-center pl-4 pr-3 py-3 justify-between">
         <div class="flex items-center gap-3 flex-1">
-          <GeneralIcon class="text-gray-900 h-5 w-5" icon="ncWebhook" />
-          <span class="text-gray-900 font-semibold text-xl">
+          <GeneralIcon class="text-nc-content-gray-emphasis h-5 w-5" icon="ncWebhook" />
+          <span class="text-nc-content-gray-emphasis font-semibold text-xl">
             <template v-if="activeTab === HookTab.Configuration">
               {{ showUpgradeModal ? hookRef.title : !hook ? $t('activity.newWebhook') : 'Webhook Settings' }}
             </template>
@@ -956,7 +982,7 @@ const webhookV2AndV3Diff = computed(() => {
 
         <div
           v-if="hook && isEeUI && !showUpgradeModal"
-          class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5 nc-view-sidebar-tab"
+          class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5 nc-view-sidebar-tab"
         >
           <div
             v-e="['c:webhook:edit']"
@@ -1035,7 +1061,7 @@ const webhookV2AndV3Diff = computed(() => {
         </div>
       </div>
     </template>
-    <div v-if="activeTab === HookTab.Configuration" class="flex bg-white rounded-b-2xl h-[calc(100%_-_56px)]">
+    <div v-if="activeTab === HookTab.Configuration" class="flex bg-nc-bg-default rounded-b-2xl h-[calc(100%_-_56px)]">
       <div v-if="showUpgradeModal" class="h-full w-full overflow-auto nc-scrollbar-thin">
         <div class="h-full w-full max-w-[1040] min-w-[640px] px-6 md:px-12 py-6 flex flex-col">
           <div class="flex flex-col gap-2 mb-8">
@@ -1056,35 +1082,42 @@ const webhookV2AndV3Diff = computed(() => {
             <div v-for="(item, idx) of webhookV2AndV3Diff" :key="idx" class="nc-item">
               <div class="nc-item-title">{{ item.title }}</div>
               <div class="nc-item-response">
-                <LazyMonacoEditor
-                  :model-value="item.response"
-                  class="flex-1 min-h-50 resize-y overflow-auto expanded-editor"
-                  hide-minimap
-                  disable-deep-compare
-                  read-only
-                  :monaco-config="{
-                    lineNumbers: 'on',
-                    scrollbar: {
-                      verticalScrollbarSize: 6,
-                      horizontalScrollbarSize: 6,
-                    },
-                    padding: {
-                      top: 12,
-                      bottom: 12,
-                    },
-                    scrollBeyondLastLine: false,
-                  }"
-                  :monaco-custom-theme="{
-                    base: 'vs',
-                    inherit: true,
-                    rules: [],
-                    colors: {
-                      'editor.background': '#f9f9fa',
-                    },
-                  }"
-                  @keydown.enter.stop
-                  @keydown.alt.stop
-                />
+                <Suspense>
+                  <template #default>
+                    <MonacoEditor
+                      :model-value="item.response"
+                      class="flex-1 min-h-50 resize-y overflow-auto expanded-editor"
+                      hide-minimap
+                      disable-deep-compare
+                      read-only
+                      :monaco-config="{
+                        lineNumbers: 'on',
+                        scrollbar: {
+                          verticalScrollbarSize: 6,
+                          horizontalScrollbarSize: 6,
+                        },
+                        padding: {
+                          top: 12,
+                          bottom: 12,
+                        },
+                        scrollBeyondLastLine: false,
+                      }"
+                      :monaco-custom-theme="{
+                        base: 'vs',
+                        inherit: true,
+                        rules: [],
+                        colors: {
+                          'editor.background': '#f9f9fa',
+                        },
+                      }"
+                      @keydown.enter.stop
+                      @keydown.alt.stop
+                    />
+                  </template>
+                  <template #fallback>
+                    <MonacoLoading class="flex-1 min-h-50 w-full" />
+                  </template>
+                </Suspense>
               </div>
             </div>
           </div>
@@ -1102,7 +1135,7 @@ const webhookV2AndV3Diff = computed(() => {
           <div class="max-w-[640px] min-w-[564px] w-full mx-auto gap-8 flex flex-col">
             <a-form-item v-bind="validateInfos.title">
               <div
-                class="flex flex-grow px-2 py-1 title-input items-center border-b-1 rounded-t-md border-gray-200 bg-gray-100"
+                class="flex flex-grow px-2 py-1 title-input items-center border-b-1 rounded-t-md border-nc-border-gray-medium bg-nc-bg-gray-light"
                 @click.prevent="titleDomRef?.focus()"
               >
                 <input
@@ -1146,7 +1179,7 @@ const webhookV2AndV3Diff = computed(() => {
                         class="rounded-lg border-1 w-full transition-all cursor-pointer flex items-center border-nc-border-gray-medium h-8 py-1 gap-2 px-4 py-2 h-[36px] shadow-default"
                         data-testid="nc-dropdown-hook-operation"
                         :class="{
-                          '!border-brand-500 !shadow-selected': isDropdownOpen,
+                          '!border-nc-border-brand !shadow-selected': isDropdownOpen,
                           '!hover:shadow-hover': !isDropdownOpen,
                         }"
                       >
@@ -1210,7 +1243,7 @@ const webhookV2AndV3Diff = computed(() => {
                   <div class="w-full flex items-center justify-between h-[28px]">
                     <label class="cursor-pointer flex items-center" @click.prevent="hookRef.condition = !hookRef.condition">
                       <NcSwitch :checked="Boolean(hookRef.condition)" class="nc-check-box-hook-condition">
-                        <span class="!text-gray-700 font-semibold"> Trigger only when conditions match </span>
+                        <span class="!text-nc-content-gray-subtle font-semibold"> Trigger only when conditions match </span>
                       </NcSwitch>
                     </label>
 
@@ -1307,7 +1340,7 @@ const webhookV2AndV3Diff = computed(() => {
                       >
                         <a-select-option v-for="type in notificationTypes" :key="type.type" :value="type.type">
                           <div class="flex items-center">
-                            <component :is="iconMap[type.type]" class="text-gray-700 mr-2" />
+                            <component :is="iconMap[type.type]" class="text-nc-content-gray-subtle mr-2" />
                             {{ type.label }}
                           </div>
                         </a-select-option>
@@ -1317,15 +1350,15 @@ const webhookV2AndV3Diff = computed(() => {
 
                   <template v-if="isEeUI && hookRef.notification.type === 'Script'">
                     <a-form-item class="flex w-full my-3" v-bind="validateInfos['notification.payload.scriptId']">
-                      <NcSelect
+                      <NcListScriptSelector
                         v-model:value="hookRef.notification.payload.scriptId"
-                        :options="automationOptions"
-                        class="w-full nc-select-shadow nc-select-hook-scrip-type"
                         data-testid="nc-dropdown-hook-notification-type"
-                        placeholder="Select a script"
-                        show-search
-                        :filter-option="(input, option) => antSelectFilterOption(input, option, ['label'])"
-                      ></NcSelect>
+                        class="nc-select-hook-scrip-type"
+                        :base-id="activeTable?.base_id"
+                        :disable-label="true"
+                        :map-script="filterScripts"
+                        :auto-select="false"
+                      />
                     </a-form-item>
                   </template>
 
@@ -1341,7 +1374,7 @@ const webhookV2AndV3Diff = computed(() => {
                           :filter-option="(input, option) => antSelectFilterOption(input, option, ['value'])"
                         >
                           <template #suffixIcon>
-                            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
                           </template>
 
                           <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">
@@ -1387,53 +1420,62 @@ const webhookV2AndV3Diff = computed(() => {
                       <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" />
                     </a-tab-pane>
 
-                    <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
+                    <a-tab-pane key="body" tab="Body">
                       <div
-                        style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
+                        style="
+                          box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08), 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
+                        "
                         class="my-3 mx-1 rounded-lg overflow-hidden"
                       >
-                        <LazyMonacoEditor
-                          v-model="hookRef.notification.payload.body"
-                          lang="handlebars"
-                          disable-deep-compare
-                          :validate="false"
-                          class="min-h-60 max-h-80 !rounded-lg"
-                          :monaco-config="{
-                            minimap: {
-                              enabled: false,
-                            },
-                            padding: {
-                              top: 8,
-                              bottom: 8,
-                            },
-                            fontSize: 14.5,
-                            overviewRulerBorder: false,
-                            overviewRulerLanes: 0,
-                            hideCursorInOverviewRuler: true,
-                            lineDecorationsWidth: 8,
-                            lineNumbersMinChars: 0,
-                            roundedSelection: false,
-                            selectOnLineNumbers: false,
-                            scrollBeyondLastLine: false,
-                            contextmenu: false,
-                            glyphMargin: false,
-                            folding: false,
-                            bracketPairColorization: {
-                              enabled: false,
-                            },
-                            wordWrap: 'on',
-                            scrollbar: {
-                              horizontal: 'hidden',
-                              verticalScrollbarSize: 6,
-                            },
-                            wrappingStrategy: 'advanced',
-                            renderLineHighlight: 'none',
-                            tabSize: 4,
-                            stickyScroll: {
-                              enabled: props.stickyScroll,
-                            },
-                          }"
-                        />
+                        <Suspense>
+                          <template #default>
+                            <MonacoEditor
+                              v-model="hookRef.notification.payload.body"
+                              lang="handlebars"
+                              disable-deep-compare
+                              :validate="false"
+                              class="min-h-60 max-h-80 !rounded-lg"
+                              :monaco-config="{
+                                minimap: {
+                                  enabled: false,
+                                },
+                                padding: {
+                                  top: 8,
+                                  bottom: 8,
+                                },
+                                fontSize: 14.5,
+                                overviewRulerBorder: false,
+                                overviewRulerLanes: 0,
+                                hideCursorInOverviewRuler: true,
+                                lineDecorationsWidth: 8,
+                                lineNumbersMinChars: 0,
+                                roundedSelection: false,
+                                selectOnLineNumbers: false,
+                                scrollBeyondLastLine: false,
+                                contextmenu: false,
+                                glyphMargin: false,
+                                folding: false,
+                                bracketPairColorization: {
+                                  enabled: false,
+                                },
+                                wordWrap: 'on',
+                                scrollbar: {
+                                  horizontal: 'hidden',
+                                  verticalScrollbarSize: 6,
+                                },
+                                wrappingStrategy: 'advanced',
+                                renderLineHighlight: 'none',
+                                tabSize: 4,
+                                stickyScroll: {
+                                  enabled: props.stickyScroll,
+                                },
+                              }"
+                            />
+                          </template>
+                          <template #fallback>
+                            <MonacoLoading class="min-h-60 max-h-80 !rounded-lg w-full" />
+                          </template>
+                        </Suspense>
                       </div>
                     </a-tab-pane>
                   </NcTabs>
@@ -1446,7 +1488,7 @@ const webhookV2AndV3Diff = computed(() => {
               >
                 <div v-if="hookRef.notification.type === 'Slack'" class="flex flex-col w-full gap-3">
                   <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                    <LazyWebhookChannelMultiSelect
+                    <WebhookChannelMultiSelect
                       v-model="hookRef.notification.payload.channels"
                       :selected-channel-list="hookRef.notification.payload.channels"
                       :available-channel-list="slackChannels"
@@ -1457,7 +1499,7 @@ const webhookV2AndV3Diff = computed(() => {
 
                 <div v-if="hookRef.notification.type === 'Microsoft Teams'" class="flex flex-col w-full gap-3">
                   <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                    <LazyWebhookChannelMultiSelect
+                    <WebhookChannelMultiSelect
                       v-model="hookRef.notification.payload.channels"
                       :selected-channel-list="hookRef.notification.payload.channels"
                       :available-channel-list="teamsChannels"
@@ -1468,7 +1510,7 @@ const webhookV2AndV3Diff = computed(() => {
 
                 <div v-if="hookRef.notification.type === 'Discord'" class="flex flex-col w-full gap-3">
                   <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                    <LazyWebhookChannelMultiSelect
+                    <WebhookChannelMultiSelect
                       v-model="hookRef.notification.payload.channels"
                       :selected-channel-list="hookRef.notification.payload.channels"
                       :available-channel-list="discordChannels"
@@ -1479,7 +1521,7 @@ const webhookV2AndV3Diff = computed(() => {
 
                 <div v-if="hookRef.notification.type === 'Mattermost'" class="flex flex-col w-full gap-3">
                   <a-form-item v-bind="validateInfos['notification.payload.channels']">
-                    <LazyWebhookChannelMultiSelect
+                    <WebhookChannelMultiSelect
                       v-model="hookRef.notification.payload.channels"
                       :selected-channel-list="hookRef.notification.payload.channels"
                       :available-channel-list="mattermostChannels"
@@ -1493,13 +1535,13 @@ const webhookV2AndV3Diff = computed(() => {
                 <div>
                   <div class="w-full cursor-pointer flex items-center" @click.prevent="toggleIncludeUser">
                     <NcSwitch :checked="Boolean(hookRef.notification.include_user)" class="nc-check-box-include-user">
-                      <span class="!text-gray-700 font-semibold">{{ $t('labels.includeUser') }}</span>
+                      <span class="!text-nc-content-gray-subtle font-semibold">{{ $t('labels.includeUser') }}</span>
                     </NcSwitch>
                     <NcTooltip class="flex">
                       <template #title>
                         {{ $t('tooltip.includeUserHint') }}
                       </template>
-                      <GeneralIcon icon="info" class="text-gray-400 ml-1" />
+                      <GeneralIcon icon="info" class="text-nc-content-gray-disabled ml-1" />
                     </NcTooltip>
                   </div>
                 </div>
@@ -1545,79 +1587,60 @@ const webhookV2AndV3Diff = computed(() => {
                   </NcButton>
                 </div>
                 <div v-show="isVisible">
-                  <LazyMonacoEditor
-                    v-model="sampleData"
-                    read-only
-                    :monaco-config="{
-                      minimap: {
-                        enabled: false,
-                      },
-                      fontSize: 14.5,
-                      overviewRulerBorder: false,
-                      overviewRulerLanes: 0,
-                      hideCursorInOverviewRuler: true,
-                      lineDecorationsWidth: 12,
-                      lineNumbersMinChars: 0,
-                      scrollBeyondLastLine: false,
-                      renderLineHighlight: 'none',
-                      lineNumbers: 'off',
-                      glyphMargin: false,
-                      folding: false,
-                      bracketPairColorization: { enabled: false },
-                      wordWrap: 'on',
-                      scrollbar: {
-                        horizontal: 'hidden',
-                        verticalScrollbarSize: 6,
-                      },
-                      wrappingStrategy: 'advanced',
-                      tabSize: 4,
-                      readOnly: true,
-                    }"
-                    :monaco-custom-theme="{
-                      base: 'vs',
-                      inherit: true,
-                      rules: [
-                        { token: 'key', foreground: '#B33771', fontStyle: 'bold' },
-                        { token: 'string', foreground: '#2B99CC', fontStyle: 'semibold' },
-                        { token: 'number', foreground: '#1FAB51', fontStyle: 'semibold' },
-                        { token: 'boolean', foreground: '#1FAB51', fontStyle: 'semibold' },
-                        { token: 'delimiter', foreground: '#15171A', fontStyle: 'semibold' },
-                      ],
-                      colors: {},
-                    }"
-                    class="transition-all border-1 rounded-lg"
-                    style="box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08), 0px 0px 4px 0px rgba(0, 0, 0, 0.08)"
-                    :class="{
-                      'w-0 min-w-0': !isVisible,
-                      'min-h-60 max-h-80': isVisible,
-                    }"
-                  />
+                  <Suspense>
+                    <template #default>
+                      <MonacoEditor
+                        v-model="sampleData"
+                        read-only
+                        :monaco-config="{
+                          minimap: {
+                            enabled: false,
+                          },
+                          fontSize: 14.5,
+                          overviewRulerBorder: false,
+                          overviewRulerLanes: 0,
+                          hideCursorInOverviewRuler: true,
+                          lineDecorationsWidth: 12,
+                          lineNumbersMinChars: 0,
+                          scrollBeyondLastLine: false,
+                          renderLineHighlight: 'none',
+                          lineNumbers: 'off',
+                          glyphMargin: false,
+                          folding: false,
+                          bracketPairColorization: { enabled: false },
+                          wordWrap: 'on',
+                          scrollbar: {
+                            horizontal: 'hidden',
+                            verticalScrollbarSize: 6,
+                          },
+                          wrappingStrategy: 'advanced',
+                          tabSize: 4,
+                          readOnly: true,
+                        }"
+                        :monaco-custom-theme="isDark ? jsonThemeDark : jsonThemeLight"
+                        class="transition-all border-1 rounded-lg"
+                        style="
+                          box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08), 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
+                        "
+                        :class="{
+                          'w-0 min-w-0': !isVisible,
+                          'min-h-60 max-h-80': isVisible,
+                        }"
+                      />
+                    </template>
+                    <template #fallback>
+                      <MonacoLoading class="min-h-60 max-h-80 w-full" />
+                    </template>
+                  </Suspense>
                 </div>
               </div>
             </a-form>
           </div>
         </div>
 
-        <div class="h-full bg-gray-50 border-l-1 w-80 p-5 rounded-br-2xl border-gray-200">
-          <div class="w-full flex flex-col gap-3">
-            <h2 class="text-sm text-gray-700 font-semibold !my-0">{{ $t('labels.supportDocs') }}</h2>
-            <div>
-              <div v-for="(doc, idx) of supportedDocs" :key="idx" class="flex items-center gap-1">
-                <div class="h-7 w-7 flex items-center justify-center">
-                  <GeneralIcon icon="bookOpen" class="flex-none w-4 h-4 text-gray-500" />
-                </div>
-                <NuxtLink
-                  :href="doc.href"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  class="!text-gray-500 text-sm !no-underline !hover:underline"
-                >
-                  {{ doc.title }}
-                </NuxtLink>
-              </div>
-            </div>
-          </div>
-        </div>
+        <NcModalSupportedDocsSidebar>
+          <NcModalSupportedDocs :docs="supportedDocs"> </NcModalSupportedDocs>
+        </NcModalSupportedDocsSidebar>
       </template>
     </div>
     <div v-else-if="activeTab === HookTab.Log" class="h-[calc(100%_-_57px)]">
@@ -1630,7 +1653,7 @@ const webhookV2AndV3Diff = computed(() => {
 .nc-modal-webhook-create-edit {
   z-index: 1050;
   a:not(.nc-link) {
-    @apply !no-underline !text-gray-700 !hover:text-primary;
+    @apply !no-underline !text-nc-content-gray-subtle !hover:text-primary;
   }
   .nc-modal {
     @apply !p-0;
@@ -1659,8 +1682,8 @@ const webhookV2AndV3Diff = computed(() => {
     .monaco-editor,
     .monaco-diff-editor,
     .monaco-component {
-      --vscode-editor-background: #f9f9fa;
-      --vscode-editorGutter-background: #f9f9fa;
+      --vscode-editor-background: var(--color-gray-50);
+      --vscode-editorGutter-background: var(--color-gray-50);
     }
   }
 }
@@ -1679,7 +1702,7 @@ const webhookV2AndV3Diff = computed(() => {
 
 .title-input {
   &:focus-within {
-    @apply transition-all duration-0.3s border-b-brand-500;
+    @apply transition-all duration-0.3s border-b-nc-border-brand;
     box-shadow: 0px 2px 0px 0px rgba(51, 102, 255, 0.24);
   }
 }
@@ -1701,11 +1724,11 @@ const webhookV2AndV3Diff = computed(() => {
   }
 
   &:not(.ant-radio-wrapper-disabled):not(:hover):not(:focus-within):not(.shadow-selected) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
   }
 
   &:hover:not(:focus-within):not(.ant-radio-wrapper-disabled) {
-    box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+    box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
   }
 }
 
@@ -1725,12 +1748,12 @@ const webhookV2AndV3Diff = computed(() => {
 
     &:not(.ant-select-disabled):not(:hover):not(.ant-select-focused) .ant-select-selector,
     &:not(.ant-select-disabled):hover.ant-select-disabled .ant-select-selector {
-      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.08);
+      box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
     }
 
     &:hover:not(.ant-select-focused):not(.ant-select-disabled) .ant-select-selector {
-      @apply border-gray-300;
-      box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.24);
+      @apply border-nc-border-gray-dark;
+      box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
     }
 
     &.ant-select-disabled .ant-select-selector {
@@ -1740,7 +1763,7 @@ const webhookV2AndV3Diff = computed(() => {
 }
 
 :deep(.ant-form-item-label > label) {
-  @apply !text-small !leading-[18px] mb-2 text-gray-700 flex;
+  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray-subtle flex;
 
   &.ant-form-item-required:not(.ant-form-item-required-mark-optional)::before {
     @apply content-[''] m-0;
@@ -1748,7 +1771,7 @@ const webhookV2AndV3Diff = computed(() => {
 }
 
 :deep(.ant-form-item-label) {
-  @apply !pb-0 text-small leading-[18px] text-gray-700;
+  @apply !pb-0 text-small leading-[18px] text-nc-content-gray-subtle;
 }
 
 :deep(.ant-form-item-control-input) {
@@ -1779,11 +1802,11 @@ const webhookV2AndV3Diff = computed(() => {
   @apply !rounded-lg !bg-transparent !border-none !p-0;
 
   .ant-alert-message {
-    @apply text-sm text-gray-800 font-weight-600;
+    @apply text-sm text-nc-content-gray font-weight-600;
   }
 
   .ant-alert-description {
-    @apply text-small text-gray-500 font-weight-500;
+    @apply text-small text-nc-content-gray-muted font-weight-500;
   }
 }
 
@@ -1795,7 +1818,7 @@ const webhookV2AndV3Diff = computed(() => {
 
 :deep(input::placeholder),
 :deep(textarea::placeholder) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 :deep(.nc-tabs .ant-tabs-nav) {
   @apply pl-0;
@@ -1807,12 +1830,8 @@ const webhookV2AndV3Diff = computed(() => {
   vertical-align: 0px !important;
 }
 
-:deep(.mtk1) {
-  @apply text-[#000000D9];
-}
-
 .tab {
-  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-nc-content-gray-subtle2 hover:text-nc-content-gray-extreme cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab-icon {
@@ -1828,7 +1847,7 @@ const webhookV2AndV3Diff = computed(() => {
 }
 
 .active {
-  @apply bg-white text-brand-600 hover:text-brand-600;
+  @apply bg-nc-bg-default text-nc-content-brand-disabled hover:text-nc-content-brand-disabled;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 }

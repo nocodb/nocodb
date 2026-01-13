@@ -4,17 +4,17 @@ import { Panel, PanelPosition } from '@vue-flow/additional-components'
 
 <template>
   <Panel
-    class="text-xs bg-white border-1 rounded border-gray-200 shadow-md p-1.5 z-50 nc-erd-histogram"
+    class="text-xs bg-nc-bg-default border-1 rounded border-nc-border-gray-medium shadow-md p-1.5 z-50 nc-erd-histogram"
     :position="PanelPosition.TopLeft"
   >
     <div class="flex flex-col">
       <div class="flex items-center gap-1.5 p-2">
-        <component :is="iconMap.table" class="!text-gray-600/75" />
+        <component :is="iconMap.table" class="nc-table-icon !text-nc-gray-600/75" />
         <div>{{ $t('objects.table') }}</div>
       </div>
 
       <div class="flex items-center gap-1.5 p-2">
-        <component :is="iconMap.eye" />
+        <component :is="iconMap.eye" class="nc-table-icon" />
         <div>{{ $t('objects.sqlView') }}</div>
       </div>
     </div>

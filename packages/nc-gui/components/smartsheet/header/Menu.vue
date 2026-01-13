@@ -67,20 +67,27 @@ const emitEdit = (...args: any[]) => {
         <template #title>
           <div class="whitespace-pre-wrap break-words">{{ column?.description }}</div>
         </template>
-        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-gray-500 flex-none" />
+        <GeneralIcon icon="info" class="group-hover:opacity-100 !w-3.5 !h-3.5 !text-nc-content-gray-muted flex-none" />
       </NcTooltip>
 
       <NcTooltip class="flex items-center">
-        <GeneralIcon v-if="columnInvalid.isInvalid && !isExpandedForm" class="text-red-300 w-3.5 h-3.5" icon="alertTriangle" />
+        <GeneralIcon
+          v-if="columnInvalid.isInvalid && !isExpandedForm"
+          class="text-nc-content-red-light w-3.5 h-3.5"
+          icon="alertTriangle"
+        />
 
         <template #title>
           {{ $t(columnInvalid.tooltip) }}
         </template>
       </NcTooltip>
+      <template v-if="meta?.synced && column?.readonly && !isExpandedForm && !isPublic">
+        <GeneralIcon class="!text-nc-content-gray-disabled cursor-pointer" icon="ncZap" />
+      </template>
       <GeneralIcon
-        v-if="!isExpandedForm"
+        v-else-if="!isExpandedForm"
         icon="arrowDown"
-        class="text-grey h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
+        class="text-nc-content-gray-muted h-full nc-ui-dt-dropdown cursor-pointer outline-0 mr-2"
       />
     </div>
     <template #overlay>

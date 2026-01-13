@@ -53,7 +53,7 @@ watch(
     </template>
 
     <div
-      class="relative h-full max-w-76 flex flex-col justify-center bg-white min-w-16 min-h-8 rounded-lg nc-erd-table-node"
+      class="relative h-full max-w-76 flex flex-col justify-center bg-nc-bg-default min-w-16 min-h-8 rounded-lg nc-erd-table-node"
       :class="[
         `nc-erd-table-node-${table.table_name}`,
         showSkeleton ? 'cursor-pointer items-center min-h-200px min-w-300px' : '',
@@ -61,8 +61,8 @@ watch(
       @click="$e('c:erd:node-click')"
     >
       <div
-        :class="[showSkeleton ? '' : '', hasColumns ? '' : '']"
-        class="text-gray-800 text-sm py-4 border-b-1 border-gray-200 rounded-t-lg w-full h-full px-3 font-medium flex items-center"
+        :class="[showSkeleton ? '' : '', hasColumns ? 'border-b-1 ' : '']"
+        class="text-nc-content-gray text-sm py-4 border-nc-border-gray-medium rounded-t-lg w-full h-full px-3 font-medium flex items-center"
       >
         <GeneralTableIcon class="text-primary" :class="{ '!text-6xl !w-auto mr-2 !h-18': showSkeleton }" :meta="table" />
         <div :class="showSkeleton ? 'text-6xl' : ''" class="flex pr-2 pl-1">
@@ -136,6 +136,6 @@ watch(
 
 <style lang="scss" scoped>
 .nc-erd-table-node-column {
-  @apply py-0.5 px-2 text-gray-700;
+  @apply py-0.5 px-2 text-nc-content-gray-subtle;
 }
 </style>

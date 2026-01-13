@@ -123,7 +123,7 @@ Kami menyediakan berbagai file docker-compose.yml di [bawah direktori](https://g
 git clone https://github.com/nocodb/nocodb
 # for PostgreSQL
 cd nocodb/docker-compose/2_pg
-docker-compose up -d
+docker compose up -d
 ```
 
 > Untuk menyimpan data dalam Docker, Anda dapat melakukan mount volume pada direktori /usr/app/data/ mulai dari versi 0.10.6. Jika tidak, data Anda akan hilang setelah mengulang pembuatan kontainer.

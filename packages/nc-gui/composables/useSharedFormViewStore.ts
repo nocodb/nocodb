@@ -51,7 +51,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
   const { api, isLoading } = useApi()
 
-  const { metas, setMeta, getMeta } = useMetas()
+  const { setMeta, getMeta, getMetaByKey } = useMetas()
+
+  const { isDark, getColor } = useTheme()
 
   const worksapce = useWorkspace()
 
@@ -90,6 +92,25 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     () => typeof sharedFormView.value?.redirect_url === 'string' && !!sharedFormView.value?.redirect_url?.trim(),
   )
 
+  const backgroundAndTextColor = computed(() => {
+    const result = {
+      bgColor: getColor('var(--nc-bg-gray-extralight)'),
+      textColor: '#ffffff',
+    }
+
+    if (parseProp(sharedFormView.value?.meta).background_color) {
+      result.bgColor = getSelectTypeFieldOptionBgColor({
+        color: parseProp(sharedFormView.value?.meta).background_color,
+        isDark: isDark.value,
+        shade: 0,
+      }) as string
+    }
+
+    result.textColor = getOppositeColorOfBackground(result.bgColor)
+
+    return result
+  })
+
   useProvideSmartsheetLtarHelpers(meta)
   const { state: additionalState } = useProvideSmartsheetRowStore(
     ref({
@@ -122,13 +143,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
         return ['mysql', ClientType.MYSQL].includes(sharedView.value?.client || ClientType.MYSQL)
       },
       getMeta,
+      baseId: meta.value?.base_id,
     })
   })
 
   const formColumns = computed(
     () =>
       columns.value?.filter((col) => {
-        const isVisible = col.show
+        const isVisible = col.show && col.visible
 
         const isAllowedToEdit = col?.permissions?.isAllowedToEdit ?? true
 
@@ -173,6 +195,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       // if base is not defined then set it with an object containing source
       if (!base.value?.sources)
         baseStore.setProject({
+          id: viewMeta.base_id,
           sources: [
             {
               id: viewMeta.source_id,
@@ -256,13 +279,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
 
       if (e.response && e.response.status === 404) {
         notFound.value = true
-      } else if (error.error === NcErrorType.INVALID_SHARED_VIEW_PASSWORD) {
+      } else if (error.error === NcErrorType.ERR_INVALID_SHARED_VIEW_PASSWORD) {
         passwordDlg.value = true
 
         if (password.value && password.value !== '') {
           passwordError.value = error.message
         }
-      } else if (error.error === NcErrorType.UNKNOWN_ERROR) {
+      } else if (error.error === NcErrorType.ERR_UNKNOWN) {
         console.error('Error occurred while loading shared form view', e)
         message.error('Error occurred while loading shared form view')
       }
@@ -413,9 +436,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
       const attachment: Record<string, any> = {}
 
       /** find attachments in form data */
-      for (const col of metas.value?.[sharedView.value?.fk_model_id as string]?.columns) {
+      const formMeta = getMetaByKey(sharedView.value?.base_id, sharedView.value?.fk_model_id as string)
+      for (const col of formMeta?.columns ?? []) {
         if (col.uidt === UITypes.Attachment) {
-          if (data[col.title]) {
+          if (col.title && data[col.title]) {
             attachment[`_${col.title}`] = data[col.title].map((item: { file: File }) => item.file)
           }
         }
@@ -701,7 +725,8 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   }
 
   async function loadLinkedRecords(column: ColumnType, ids: string[]) {
-    const relatedMeta = await getMeta((column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
+    const relatedBaseId = (column.colOptions as LinkToAnotherRecordType as any)?.fk_related_base_id || meta.value?.base_id
+    const relatedMeta = await getMeta(relatedBaseId!, (column.colOptions as LinkToAnotherRecordType)?.fk_related_model_id)
 
     if (!relatedMeta) return []
 
@@ -889,6 +914,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
     loadAllviewFilters,
     checkFieldVisibility,
     isAddingEmptyRowPermitted,
+    backgroundAndTextColor,
   }
 }, 'shared-form-view-store')
 

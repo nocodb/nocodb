@@ -94,8 +94,11 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
           try {
             const data = !isPublic.value
-              ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value.id, {
+              ? await api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
+                  operation: 'dataAggregate',
+                  tableId: meta.value.id,
                   viewId: view.value.id,
+                  baseId: meta.value.base_id!,
                   where: where?.value,
                   ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
                   ...(fields ? { aggregation: fields } : {}),
@@ -154,7 +157,7 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         })
     })
 
-    reloadAggregate?.on(async (_fields) => {
+    const reloadAggregateListener = async (_fields: any) => {
       if (!_fields || !_fields?.fields?.length) {
         await loadViewAggregate()
       }
@@ -178,10 +181,16 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
         await loadViewAggregate(
           Object.entries(fieldAggregateMapping).map(([field, type]) => ({
             field,
-            type,
+            type: type as string,
           })),
         )
       }
+    }
+
+    reloadAggregate?.on(reloadAggregateListener)
+
+    onBeforeUnmount(() => {
+      reloadAggregate?.off(reloadAggregateListener)
     })
 
     return {

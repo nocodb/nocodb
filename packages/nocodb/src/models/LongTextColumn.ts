@@ -69,6 +69,7 @@ export default abstract class LongTextColumn {
     let column =
       columnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.COL_LONG_TEXT}:${columnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -79,7 +80,11 @@ export default abstract class LongTextColumn {
         MetaTable.COL_LONG_TEXT,
         { fk_column_id: columnId },
       );
-      await NocoCache.set(`${CacheScope.COL_LONG_TEXT}:${columnId}`, column);
+      await NocoCache.set(
+        context,
+        `${CacheScope.COL_LONG_TEXT}:${columnId}`,
+        column,
+      );
     }
 
     return column ? this.castType(column) : null;
@@ -106,6 +111,7 @@ export default abstract class LongTextColumn {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.COL_LONG_TEXT}:${columnId}`,
       updateObj,
     );

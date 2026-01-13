@@ -18,7 +18,12 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
   async function loadHooksList() {
     isHooksLoading.value = true
     try {
-      const hookList = (await $api.dbTableWebhook.list(activeTable.value?.id as string)).list
+      const hookList = (
+        await $api.internal.getOperation(activeTable.value!.fk_workspace_id!, activeTable.value!.base_id!, {
+          operation: 'hookList',
+          tableId: activeTable.value?.id as string,
+        })
+      ).list
 
       hooks.value = hookList.map((hook) => {
         hook.notification = parseProp(hook.notification)
@@ -36,7 +41,15 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
 
     try {
       if (id) {
-        await $api.dbTableWebhook.delete(id)
+        await $api.internal.postOperation(
+          activeTable.value!.fk_workspace_id!,
+          activeTable.value!.base_id!,
+          {
+            operation: 'hookDelete',
+            hookId: id,
+          },
+          {},
+        )
         hooks.value.splice(index, 1)
       } else {
         hooks.value.splice(index, 1)
@@ -48,33 +61,54 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
-      await getMeta(activeTable.value.id!, true)
+      await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
     }
   }
 
   async function copyHook(hook: HookType) {
     try {
-      const newHook = await $api.dbTableWebhook.create(hook.fk_model_id!, {
-        ...hook,
-        trigger_field: !!hook.trigger_field,
-        title: generateUniqueTitle(`${hook.title} copy`, hooks.value, 'title', '_', true),
-        active: hook.event === 'manual',
-      } as HookReqType)
+      const newHook = await $api.internal.postOperation(
+        activeTable.value!.fk_workspace_id!,
+        activeTable.value!.base_id!,
+        {
+          operation: 'hookCreate',
+          tableId: hook.fk_model_id!,
+        },
+        {
+          ...hook,
+          trigger_field: !!hook.trigger_field,
+          title: generateUniqueTitle(`${hook.title} copy`, hooks.value, 'title', '_', true),
+          active: hook.event === 'manual',
+        } as HookReqType,
+      )
 
       if (newHook) {
         $e('a:webhook:copy')
         // create the corresponding filters
-        const hookFilters = (await $api.dbTableWebhookFilter.read(hook.id!, {})).list
+        const hookFilters = (
+          await $api.internal.getOperation(activeTable.value!.fk_workspace_id!, activeTable.value!.base_id!, {
+            operation: 'hookFilterList',
+            hookId: hook.id!,
+          })
+        ).list
         for (const hookFilter of hookFilters) {
-          await $api.dbTableWebhookFilter.create(newHook.id!, {
-            comparison_op: hookFilter.comparison_op,
-            comparison_sub_op: hookFilter.comparison_sub_op,
-            fk_column_id: hookFilter.fk_column_id,
-            fk_parent_id: hookFilter.fk_parent_id,
-            is_group: hookFilter.is_group,
-            logical_op: hookFilter.logical_op,
-            value: hookFilter.value,
-          } as FilterReqType)
+          await $api.internal.postOperation(
+            activeTable.value!.fk_workspace_id!,
+            activeTable.value!.base_id!,
+            {
+              operation: 'hookFilterCreate',
+              hookId: newHook.id!,
+            },
+            {
+              comparison_op: hookFilter.comparison_op,
+              comparison_sub_op: hookFilter.comparison_sub_op,
+              fk_column_id: hookFilter.fk_column_id,
+              fk_parent_id: hookFilter.fk_parent_id,
+              is_group: hookFilter.is_group,
+              logical_op: hookFilter.logical_op,
+              value: hookFilter.value,
+            } as FilterReqType,
+          )
         }
         newHook.notification = parseProp(newHook.notification)
         hooks.value = [newHook, ...hooks.value]
@@ -82,7 +116,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     } finally {
-      await getMeta(activeTable.value.id!, true)
+      await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
     }
   }
 
@@ -103,21 +137,37 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
     try {
       let res
       if (hook.id) {
-        res = await $api.dbTableWebhook.update(hook.id, {
-          ...hook,
-          notification: {
-            ...hook.notification,
-            payload: hook.notification.payload,
+        res = await $api.internal.postOperation(
+          activeTable.value!.fk_workspace_id!,
+          activeTable.value!.base_id!,
+          {
+            operation: 'hookUpdate',
+            hookId: hook.id,
           },
-        })
+          {
+            ...hook,
+            notification: {
+              ...hook.notification,
+              payload: hook.notification.payload,
+            },
+          },
+        )
       } else {
-        res = await $api.dbTableWebhook.create(activeTable.value!.id!, {
-          ...hook,
-          notification: {
-            ...hook.notification,
-            payload: hook.notification.payload,
+        res = await $api.internal.postOperation(
+          activeTable.value!.fk_workspace_id!,
+          activeTable.value!.base_id!,
+          {
+            operation: 'hookCreate',
+            tableId: activeTable.value!.id!,
           },
-        } as HookReqType)
+          {
+            ...hook,
+            notification: {
+              ...hook.notification,
+              payload: hook.notification.payload,
+            },
+          } as HookReqType,
+        )
 
         hooks.value.push(res)
       }
@@ -150,7 +200,7 @@ export const useWebhooksStore = defineStore('webhooksStore', () => {
         })
       }
     } finally {
-      await getMeta(activeTable.value.id!, true)
+      await getMeta(activeTable.value.base_id!, activeTable.value.id!, true)
     }
 
     $e('a:webhook:add', {

@@ -406,8 +406,8 @@ const scrollBounds = computed(() => {
   return {
     left: 0,
     top: 0,
-    right: (contentWrapper.value?.scrollWidth ?? 0) - (wrapperRef.value?.clientWidth ?? 0),
-    bottom: (contentWrapper.value?.scrollHeight ?? 0) - (wrapperRef.value?.clientHeight ?? 0),
+    right: scrollWidth.value - width.value,
+    bottom: scrollHeight.value - height.value,
   }
 })
 
@@ -548,7 +548,7 @@ defineExpose({
 
 .custom-scrollbar-thumb {
   position: absolute;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(var(--rgb-base), 0.4);
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -556,7 +556,7 @@ defineExpose({
 }
 
 .custom-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(var(--rgb-base), 0.6);
 }
 
 .custom-scrollbar-thumb.vertical {

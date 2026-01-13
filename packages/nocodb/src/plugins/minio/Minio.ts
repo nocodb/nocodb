@@ -4,6 +4,7 @@ import { Client as MinioClient } from 'minio';
 import axios from 'axios';
 import { useAgent } from 'request-filtering-agent';
 import type { IStorageAdapterV2, XcFile } from '~/types/nc-plugin';
+import { NcError } from '~/helpers/ncError';
 
 interface MinioObjectStorageInput {
   bucket: string;
@@ -75,35 +76,44 @@ export default class Minio implements IStorageAdapterV2 {
       await this.fileCreateByStream('nc-test-file.txt', stream);
       return true;
     } catch (e) {
-      throw e;
+      NcError._.pluginTestError(e?.message);
     }
   }
 
   public async fileRead(key: string): Promise<any> {
-    const data = await this.minioClient.getObject(this.input.bucket, key);
+    try {
+      const data = await this.minioClient.getObject(this.input.bucket, key);
 
-    return new Promise((resolve, reject) => {
-      const chunks: any[] = [];
-      data.on('data', (chunk) => {
-        chunks.push(chunk);
-      });
+      return await new Promise((resolve, reject) => {
+        const chunks: any[] = [];
+        data.on('data', (chunk) => {
+          chunks.push(chunk);
+        });
 
-      data.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        resolve(buffer);
-      });
+        data.on('end', () => {
+          const buffer = Buffer.concat(chunks);
+          resolve(buffer);
+        });
 
-      data.on('error', (err) => {
-        reject(err);
+        data.on('error', (err) => {
+          reject(err);
+        });
       });
-    });
+    } catch (error) {
+      NcError._.storageFileReadError(error?.message);
+    }
   }
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
-    const fileStream = fs.createReadStream(file.path);
-    return this.fileCreateByStream(key, fileStream, {
-      mimetype: file?.mimetype,
-    });
+    try {
+      const fileStream = fs.createReadStream(file.path);
+
+      return await this.fileCreateByStream(key, fileStream, {
+        mimetype: file?.mimetype,
+      });
+    } catch (error) {
+      NcError._.storageFileCreateError(error?.message);
+    }
   }
 
   async fileCreateByStream(
@@ -156,7 +166,7 @@ export default class Minio implements IStorageAdapterV2 {
 
       return await Promise.race([upload, streamError]);
     } catch (error) {
-      throw error;
+      NcError._.storageFileStreamError(error?.message);
     }
   }
 
@@ -165,27 +175,33 @@ export default class Minio implements IStorageAdapterV2 {
     url: string,
     { fetchOptions: { buffer } = { buffer: false } },
   ): Promise<any> {
-    const response = await axios.get(url, {
-      httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-      httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-      responseType: buffer ? 'arraybuffer' : 'stream',
-    });
+    try {
+      const response = await axios.get(url, {
+        httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        responseType: buffer ? 'arraybuffer' : 'stream',
+      });
 
-    const uploadParams = {
-      ACL: 'public-read',
-      Key: key,
-      Body: response.data,
-      metaData: {
-        ContentType: response.headers['content-type'],
-      },
-    };
+      const uploadParams = {
+        ACL: 'public-read',
+        Key: key,
+        Body: response.data,
+        metaData: {
+          ContentType: response.headers['content-type'],
+        },
+      };
 
-    const responseUrl = await this.upload(uploadParams);
+      const responseUrl = await this.upload(uploadParams);
 
-    return {
-      url: responseUrl,
-      data: response.data,
-    };
+      return {
+        url: responseUrl,
+        data: response.data,
+      };
+    } catch (error) {
+      NcError._.storageFileCreateError(
+        `Failed to create file from URL: ${error?.message}`,
+      );
+    }
   }
 
   private async upload(uploadParams: {
@@ -211,8 +227,7 @@ export default class Minio implements IStorageAdapterV2 {
         }/${uploadParams.Key}`;
       }
     } catch (error) {
-      console.error('Error uploading file', error);
-      throw error;
+      NcError._.storageFileCreateError(error?.message);
     }
   }
 
@@ -221,19 +236,25 @@ export default class Minio implements IStorageAdapterV2 {
     expiresInSeconds = 7200,
     pathParameters?: { [key: string]: string },
   ) {
-    if (
-      key.startsWith(`${this.input.bucket}/nc/uploads`) ||
-      key.startsWith(`${this.input.bucket}/nc/thumbnails`)
-    ) {
-      key = key.replace(`${this.input.bucket}/`, '');
-    }
+    try {
+      if (
+        key.startsWith(`${this.input.bucket}/nc/uploads`) ||
+        key.startsWith(`${this.input.bucket}/nc/thumbnails`)
+      ) {
+        key = key.replace(`${this.input.bucket}/`, '');
+      }
 
-    return this.minioClient.presignedGetObject(
-      this.input.bucket,
-      key,
-      expiresInSeconds,
-      pathParameters,
-    );
+      return this.minioClient.presignedGetObject(
+        this.input.bucket,
+        key,
+        expiresInSeconds,
+        pathParameters,
+      );
+    } catch (error) {
+      NcError._.storageFileReadError(
+        `Failed to generate signed URL: ${error?.message}`,
+      );
+    }
   }
 
   // TODO - implement
@@ -247,9 +268,12 @@ export default class Minio implements IStorageAdapterV2 {
   }
 
   public async fileDelete(path: string): Promise<any> {
-    return this.minioClient.removeObject(this.input.bucket, path).then(() => {
+    try {
+      await this.minioClient.removeObject(this.input.bucket, path);
       return true;
-    });
+    } catch (error) {
+      NcError._.storageFileDeleteError(error?.message);
+    }
   }
 
   public async scanFiles(globPattern: string): Promise<Readable> {
@@ -274,25 +298,21 @@ export default class Minio implements IStorageAdapterV2 {
     stream.setEncoding('utf8');
 
     const listObjects = async () => {
-      try {
-        const objectStream = this.minioClient.listObjectsV2(
-          this.input.bucket,
-          globPattern,
-          true,
-        );
+      const objectStream = this.minioClient.listObjectsV2(
+        this.input.bucket,
+        globPattern,
+        true,
+      );
 
-        for await (const item of objectStream) {
-          stream.push(item.name);
-        }
-
-        stream.push(null);
-      } catch (error) {
-        stream.emit('error', error);
+      for await (const item of objectStream) {
+        stream.push(item.name);
       }
+
+      stream.push(null);
     };
 
     listObjects().catch((error) => {
-      stream.emit('error', error);
+      stream.destroy(error);
     });
 
     return stream;

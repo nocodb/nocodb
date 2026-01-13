@@ -44,6 +44,7 @@ export default class KanbanView implements KanbanType {
     let view =
       viewId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.KANBAN_VIEW}:${viewId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -59,7 +60,7 @@ export default class KanbanView implements KanbanType {
 
       view = prepareForResponse(view);
 
-      await NocoCache.set(`${CacheScope.KANBAN_VIEW}:${viewId}`, view);
+      await NocoCache.set(context, `${CacheScope.KANBAN_VIEW}:${viewId}`, view);
     }
 
     return view && new KanbanView(view);
@@ -152,6 +153,7 @@ export default class KanbanView implements KanbanType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.KANBAN_VIEW}:${kanbanId}`,
       prepareForResponse(updateObj),
     );

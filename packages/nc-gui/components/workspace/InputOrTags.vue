@@ -66,7 +66,7 @@ const inputTextEl: VNodeRef = (el) => {
 <template>
   <div
     v-if="isMultiWorkspace"
-    class="min-h-10 border-gray-300 border-1 rounded-sm flex items-center flex-wrap p-2 gap-y-2"
+    class="min-h-10 border-nc-border-gray-dark border-1 rounded-sm flex items-center flex-wrap p-2 gap-y-2"
     @click="focusInput"
   >
     <template v-for="(tag, index) in title" :key="tag">

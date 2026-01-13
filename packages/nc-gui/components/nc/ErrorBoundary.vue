@@ -74,7 +74,7 @@ export default {
                       onClick: navigateToHome,
                       type: 'text',
                       size: 'xsmall',
-                      class: '!text-sm !px-2 !text-primary',
+                      class: '!text-sm !px-2 !text-nc-content-brand',
                     },
                     () => 'Home',
                   )
@@ -84,7 +84,7 @@ export default {
                       onClick: reload,
                       type: 'text',
                       size: 'xsmall',
-                      class: '!text-sm !px-2 !text-primary',
+                      class: '!text-sm !px-2 !text-nc-content-brand',
                     },
                     () => 'Reload',
                   ),

@@ -2,6 +2,7 @@ import type { ClientType } from 'nocodb-sdk'
 
 export interface RowHandler {
   rowChange?: (event: FilterRowChangeEvent) => Promise<void>
+  copyFilter?: (event: FilterRowChangeEvent, isGroup?: boolean) => Promise<void>
 }
 
 export interface GroupHandler extends RowHandler {
@@ -55,7 +56,14 @@ export interface GroupEmits {
   (
     event: 'delete',
     model: {
-      filter: ColumnFilterType[]
+      filter: ColumnFilterType
+      index: number
+    },
+  ): void
+  (
+    event: 'copy',
+    model: {
+      filter: ColumnFilterType
       index: number
     },
   ): void

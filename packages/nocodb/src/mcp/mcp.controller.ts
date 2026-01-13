@@ -21,7 +21,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 @Controller()
 @UseGuards(MetaApiLimiterGuard)
 export class McpController {
-  constructor(private readonly mcpService: McpService) {}
+  constructor(protected readonly mcpService: McpService) {}
 
   @All('mcp/:mcpTokenId')
   async handleMcpRequest(

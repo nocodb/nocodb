@@ -12,6 +12,7 @@ import type {
   CalendarView,
   LinkToAnotherRecordColumn,
   LookupColumn,
+  RollupColumn,
 } from '~/models';
 import type { NcContext } from '~/interface/config';
 import {
@@ -26,6 +27,7 @@ import {
 } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
+import { hasDefaultTableVisibility } from '~/helpers/tableHelpers';
 
 @Injectable()
 export class PublicMetasService {
@@ -40,10 +42,10 @@ export class PublicMetasService {
       source?: Pick<Source, 'id' | 'type' | 'is_meta' | 'is_local'>;
     } = await View.getByUUID(context, param.sharedViewUuid);
 
-    if (!view) NcError.viewNotFound(param.sharedViewUuid);
+    if (!view) NcError.get(context).viewNotFound(param.sharedViewUuid);
 
     if (view.password && view.password !== param.password) {
-      NcError.invalidSharedViewPassword();
+      NcError.get(context).invalidSharedViewPassword();
     }
 
     const base = await Base.get(context, view.base_id);
@@ -108,6 +110,13 @@ export class PublicMetasService {
               view.columns.some((vc) => vc.fk_column_id === c1.id && vc.show) &&
               (<LinkToAnotherRecordColumn>c1.colOptions).fk_child_column_id ===
                 c.fk_column_id,
+          ) ||
+          view.model.columns.some(
+            (c1) =>
+              (UITypes.Lookup === c1.uidt || UITypes.Rollup === c1.uidt) &&
+              c1.colOptions &&
+              (<LookupColumn | RollupColumn>c1.colOptions)
+                .fk_relation_column_id === c.fk_column_id,
           )
         );
       })
@@ -124,6 +133,11 @@ export class PublicMetasService {
     // load related table metas
     for (const col of view.model.columns) {
       await this.extractRelatedMetas(context, { col, relatedMetas });
+    }
+
+    // Some times related metas are null, so we need to filter them out
+    for (const key in relatedMetas) {
+      if (relatedMetas[key] == null) delete relatedMetas[key];
     }
 
     view.relatedMetas = relatedMetas;
@@ -188,17 +202,48 @@ export class PublicMetasService {
       relatedMetas: { [key: string]: Model };
     },
   ) {
+    const { refContext, mmContext } = ltarColOption.getRelContext(context);
+
     relatedMetas[ltarColOption.fk_related_model_id] = await Model.getWithInfo(
-      context,
+      refContext,
       {
         id: ltarColOption.fk_related_model_id,
       },
     );
+    this.filterIfLimitedAccess(
+      context,
+      relatedMetas,
+      ltarColOption.fk_related_model_id,
+    );
     if (ltarColOption.type === 'mm') {
       relatedMetas[ltarColOption.fk_mm_model_id] = await Model.getWithInfo(
-        context,
+        mmContext,
         {
           id: ltarColOption.fk_mm_model_id,
+        },
+      );
+      this.filterIfLimitedAccess(
+        context,
+        relatedMetas,
+        ltarColOption.fk_mm_model_id,
+      );
+    }
+  }
+
+  private filterIfLimitedAccess(
+    context: NcContext,
+    relatedMetas: {
+      [p: string]: Model;
+    },
+    tableId: string,
+  ) {
+    if (
+      relatedMetas[tableId]?.columns &&
+      !hasDefaultTableVisibility(tableId, context.permissions)
+    ) {
+      relatedMetas[tableId].columns = relatedMetas[tableId].columns.filter(
+        (col) => {
+          return col.pk || col.pv;
         },
       );
     }
@@ -217,7 +262,13 @@ export class PublicMetasService {
     const relationCol = await Column.get(context, {
       colId: lookupColOption.fk_relation_column_id,
     });
-    const lookedUpCol = await Column.get(context, {
+
+    const { refContext = context } =
+      (relationCol.colOptions as LinkToAnotherRecordColumn)?.getRelContext?.(
+        context,
+      ) || {};
+
+    const lookedUpCol = await Column.get(refContext, {
       colId: lookupColOption.fk_lookup_column_id,
     });
 
@@ -227,18 +278,32 @@ export class PublicMetasService {
       relatedMetas[relationCol.fk_model_id] = await Model.getWithInfo(context, {
         id: relationCol.fk_model_id,
       });
+
+      this.filterIfLimitedAccess(
+        context,
+        relatedMetas,
+        relationCol.fk_model_id,
+      );
     }
 
     // extract meta for table in which looked up column belongs
     // if not already extracted
     if (!relatedMetas[lookedUpCol.fk_model_id]) {
-      relatedMetas[lookedUpCol.fk_model_id] = await Model.getWithInfo(context, {
-        id: lookedUpCol.fk_model_id,
-      });
+      relatedMetas[lookedUpCol.fk_model_id] = await Model.getWithInfo(
+        refContext,
+        {
+          id: lookedUpCol.fk_model_id,
+        },
+      );
+      this.filterIfLimitedAccess(
+        context,
+        relatedMetas,
+        lookedUpCol.fk_model_id,
+      );
     }
 
     // extract metas related to the looked up column
-    await this.extractRelatedMetas(context, {
+    await this.extractRelatedMetas(refContext, {
       col: lookedUpCol,
       relatedMetas,
     });
@@ -256,7 +321,7 @@ export class PublicMetasService {
 
     this.checkBaseType(base);
 
-    return { base_id: base.id };
+    return { base_id: base.id, base_title: base.title };
   }
 
   public checkBaseType(_base: Base) {

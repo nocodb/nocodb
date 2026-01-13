@@ -42,7 +42,7 @@ const getTableMeta = async (context, table) => {
     .expect(200);
 
   return response.body;
-}
+};
 
 const getColumnsByAPI = async (context, base, table) => {
   const response = await request(context.app)

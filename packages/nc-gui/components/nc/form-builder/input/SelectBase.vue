@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 const props = defineProps<{
   value: string
+  disabled?: boolean
 }>()
 
 const emits = defineEmits(['update:value'])
@@ -18,5 +19,5 @@ const baseOptions = computed(() => {
 </script>
 
 <template>
-  <NcSelect v-model:value="vModel" :options="baseOptions" />
+  <NcSelect v-model:value="vModel" :disabled="disabled" :options="baseOptions" />
 </template>

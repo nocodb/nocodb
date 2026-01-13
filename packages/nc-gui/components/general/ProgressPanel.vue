@@ -68,6 +68,7 @@ onMounted(() => {
 <template>
   <a-card
     ref="logRef"
+    :bordered="false"
     :body-style="{
       'overflow': 'auto',
       'width': '100%',
@@ -100,17 +101,18 @@ onMounted(() => {
       <span class="text-green-500 ml-2">Loading...</span>
     </div>
 
-    <a-button
+    <NcButton
       v-if="progressEnd"
       class="!absolute z-1 right-2 bottom-2 opacity-75 hover:opacity-100 !rounded-md !w-8 !h-8"
       size="small"
+      type="secondary"
       @click="downloadLogs('logs.txt')"
     >
       <nc-tooltip>
         <template #title>Download Logs</template>
         <component :is="iconMap.download" />
       </nc-tooltip>
-    </a-button>
+    </NcButton>
   </a-card>
 </template>
 

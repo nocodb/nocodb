@@ -929,6 +929,8 @@
     "confirmRemoveMemberFromWorkspaceSubtitle": "If you remove, they will lose access to all bases and data within this workspace. They’ll need an invitation to rejoin."
   },
   "labels": {
+    "hideEditor": "Hide Editor",
+    "showEditor": "Show Editor",
     "configurationError": "Configuration Error",
     "keepEditing": "সম্পাদনা চালিয়ে যান",
     "leave": "ছেড়ে দিন",
@@ -2353,6 +2355,7 @@
       "domainNameRequired": "ডোমেইন নাম প্রয়োজন",
       "nameMaxLength256": "নাম সর্বাধিক ২৫৬ অক্ষরের হতে হবে",
       "viewNameUnique": "দেখার নাম অনন্য হওয়া উচিত",
+      "viewNameDuplicate": "View name already exists",
       "searchProject": "আপনার অনুসন্ধান {search} এর জন্য কোনও ফলাফল পাওয়া যায় নি",
       "invalidChar": "ফোল্ডার পথে অবৈধ চরিত্র।",
       "invalidDbCredentials": "অবৈধ ডাটাবেস শংসাপত্রগুলি।",

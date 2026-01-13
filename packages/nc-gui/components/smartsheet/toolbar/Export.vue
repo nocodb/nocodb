@@ -1,40 +1,23 @@
-<script lang="ts" setup>
-const { sharedView, meta, nestedFilters } = useSharedView()
-
-const { isLocked, xWhere } = useProvideSmartsheetStore(sharedView, meta, true, ref([]), nestedFilters)
-
-const reloadEventHook = createEventHook()
-
-provide(ReloadViewDataHookInj, reloadEventHook)
-
-provide(ReadonlyInj, ref(true))
-
-provide(MetaInj, meta)
-
-provide(ActiveViewInj, sharedView)
-
-provide(IsPublicInj, ref(true))
-
-provide(IsLockedInj, isLocked)
-
-useProvideViewColumns(sharedView, meta, () => reloadEventHook?.trigger(), true)
-
-useProvideViewGroupBy(sharedView, meta, xWhere, true)
-
-useProvideSmartsheetLtarHelpers(meta)
-
-useProvideKanbanViewStore(meta, sharedView)
-
-useProvideCalendarViewStore(meta, sharedView, true, xWhere)
+<script setup lang="ts">
+defineProps<{
+  isInToolbar?: boolean
+}>()
 </script>
 
 <template>
   <NcDropdown :trigger="['click']" overlay-class-name="nc-dropdown-actions-menu">
-    <NcButton v-e="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn" size="xs" type="secondary">
-      <div class="flex gap-2 items-center text-gray-700">
-        <component :is="iconMap.download" class="group-hover:text-accent" />
-        <span class="text-capitalize !text-sm font-medium xs:hidden">{{ $t('general.download') }}</span>
-        <component :is="iconMap.arrowDown" class="text-grey" />
+    <NcButton
+      v-e="['c:actions']"
+      class="nc-download-actions-menu-btn nc-toolbar-btn"
+      :class="{
+        '!border-0 !h-7': isInToolbar,
+      }"
+      :size="isInToolbar ? 'small' : 'xs'"
+      type="secondary"
+    >
+      <div class="flex gap-2 items-center text-nc-content-gray-subtle">
+        <component :is="iconMap.download" class="h-4 w-4" />
+        <span class="text-capitalize !text-[13px] font-medium xs:hidden">{{ $t('general.download') }}</span>
       </div>
     </NcButton>
 

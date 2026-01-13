@@ -14,15 +14,15 @@ const { integrations } = useProvideIntegrationViewStore()
 
 const basesStore = useBases()
 
-const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesStore)
+const { openedProject, activeProjectId, basesUser, bases, basesTeams } = storeToRefs(basesStore)
 const { activeTable } = storeToRefs(useTablesStore())
-const { activeWorkspace } = storeToRefs(useWorkspace())
+const { activeWorkspace, isTeamsEnabled } = storeToRefs(useWorkspace())
 
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { $e, $api } = useNuxtApp()
 
-const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
+const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, blockSync, showUpgradeToUseSync } = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -53,16 +53,21 @@ const baseSettingsState = ref('')
 
 const userCount = computed(() => {
   // if private base and don't have owner permission then return
-  if (base.value?.default_role && !baseRoles.value[ProjectRoles.OWNER]) {
+  if (base.value?.default_role && !baseRoles.value?.[ProjectRoles.OWNER]) {
     return
   }
 
-  return activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0
+  if (activeProjectId.value) {
+    const teamsCount = !isAdminPanel.value && isTeamsEnabled.value ? basesTeams.value.get(activeProjectId.value)?.length ?? 0 : 0
+    const usersCount = activeProjectId.value
+      ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length ?? 0
+      : 0
+
+    return teamsCount + usersCount
+  }
+
+  return 0
 })
-
-const { isTableAndFieldPermissionsEnabled } = usePermissions()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
@@ -72,6 +77,10 @@ const projectPageTab = computed({
   },
   set(value) {
     if (value === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) {
+      return
+    }
+
+    if (value === 'syncs' && showUpgradeToUseSync()) {
       return
     }
 
@@ -101,18 +110,13 @@ watch(
     }
 
     if (newVal && newVal !== oldVal) {
-      if (newVal === 'syncs') {
+      if (isEeUI && newVal === 'syncs' && !blockSync.value) {
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
       } else if (newVal === 'overview' && isOverviewTabVisible.value) {
         projectPageTab.value = 'overview'
-      } else if (
-        newVal === 'permissions' &&
-        !blockTableAndFieldPermissions.value &&
-        isEeUI &&
-        isTableAndFieldPermissionsEnabled.value
-      ) {
+      } else if (newVal === 'permissions' && !blockTableAndFieldPermissions.value && isEeUI) {
         projectPageTab.value = 'permissions'
       } else if (newVal === 'base-settings') {
         projectPageTab.value = 'base-settings'
@@ -190,7 +194,7 @@ onMounted(() => {
           <GeneralProjectIcon
             :color="parseProp(currentBase?.meta).iconColor"
             :type="currentBase?.type"
-            class="h-5 w-5 md:(h-4 w-4) flex-none"
+            class="h-6 w-6 md:(h-4 w-4) flex-none"
           />
           <NcTooltip
             class="flex font-bold text-base md:text-sm capitalize truncate max-w-150 text-nc-content-gray"
@@ -205,7 +209,7 @@ onMounted(() => {
             v-if="isPrivateBase"
             size="xs"
             class="!text-bodySm !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
-            color="grey"
+            color="gray"
             :border="false"
           >
             <GeneralIcon icon="ncLock" class="w-3.5 h-3.5 mr-1" />
@@ -222,7 +226,7 @@ onMounted(() => {
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <a-tabs v-model:active-key="projectPageTab" class="w-full">
+      <NcTabs v-model:active-key="projectPageTab" class="w-full">
         <template #leftExtra>
           <div class="w-3"></div>
         </template>
@@ -261,10 +265,7 @@ onMounted(() => {
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
-        <a-tab-pane
-          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && isTableAndFieldPermissionsEnabled && !isMobileMode"
-          key="permissions"
-        >
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
@@ -292,17 +293,14 @@ onMounted(() => {
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane
-          v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('sourceCreate') && base.id && !isMobileMode"
-          key="syncs"
-        >
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="syncs">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
               <div>Syncs</div>
             </div>
           </template>
-          <DashboardSettingsSyncs v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
+          <ProjectSync v-if="!blockSync" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
         <a-tab-pane v-if="!isSharedBase && !isMobileMode" key="base-settings">
           <template #tab>
@@ -313,7 +311,7 @@ onMounted(() => {
           </template>
           <DashboardSettingsBase :base-id="base.id!" class="max-h-full" />
         </a-tab-pane>
-      </a-tabs>
+      </NcTabs>
     </div>
   </div>
 </template>
@@ -336,12 +334,6 @@ onMounted(() => {
   &:not(:has(.nc-project-overview-tab-content.ant-tabs-tabpane-active)) {
     @apply nc-content-max-w;
   }
-}
-:deep(.ant-tabs-tab .tab-title) {
-  @apply text-nc-content-gray-muted;
-}
-:deep(.ant-tabs-tab-active .tab-title) {
-  @apply text-primary;
 }
 
 .tab-info {

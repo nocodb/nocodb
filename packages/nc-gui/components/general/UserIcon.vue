@@ -2,7 +2,7 @@
 import { IconType, type UserType } from 'nocodb-sdk'
 import 'emoji-mart-vue-fast/css/emoji-mart.css'
 import { Icon } from '@iconify/vue'
-import { isColorDark, stringToColor } from '#imports'
+import { type IconMapKey, isColorDark, stringToColor } from '#imports'
 
 const props = withDefaults(
   defineProps<{
@@ -12,6 +12,8 @@ const props = withDefaults(
     iconBgColor?: string
     showPlaceholderIcon?: boolean
     isDeleted?: boolean
+    initialsLength?: 1 | 2
+    placeholderIcon?: IconMapKey
   }>(),
   {
     user: () => ({}),
@@ -19,13 +21,16 @@ const props = withDefaults(
     name: '',
     email: '',
     disabled: false,
-    iconBgColor: '#F4F4F5',
+    iconBgColor: 'var(--nc-bg-gray-light)',
     showPlaceholderIcon: false,
     isDeleted: false,
+    initialsLength: 2,
   },
 )
 
 const { size } = toRefs(props)
+
+const { getColor } = useTheme()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -58,6 +63,13 @@ const userIcon = computed<{
 
   const icon = parseProp(user.value.meta).icon || ''
   const iconType = parseProp(user.value.meta).iconType || ''
+
+  if ((!icon || !iconType) && props.placeholderIcon) {
+    return {
+      icon: props.placeholderIcon,
+      iconType: IconType.ICON,
+    }
+  }
 
   return {
     icon: iconType === IconType.IMAGE && ncIsObject(icon) ? getPossibleAttachmentSrc(icon) || '' : (icon as string),
@@ -103,17 +115,7 @@ const usernameInitials = computed(() => {
     return ''
   }
 
-  const displayNameSplit = user.value.display_name?.split(' ').filter((name) => name) ?? []
-
-  if (displayNameSplit.length > 0) {
-    if (displayNameSplit.length > 1) {
-      return displayNameSplit[0][0] + displayNameSplit[1][0]
-    } else {
-      return user.value.display_name.slice(0, 2)
-    }
-  } else {
-    return user.value.email?.split('@')[0].slice(0, 2)
-  }
+  return getSafeInitials(user.value.display_name?.trim() || user.value.email?.split('@')[0], props.initialsLength, true)
 })
 </script>
 
@@ -148,8 +150,8 @@ const usernameInitials = computed(() => {
       class="flex items-center justify-center align-middle"
       :class="{
         'text-inherit': size === 'auto',
-        'text-white': isColorDark(backgroundColor),
-        'text-black opacity-80': !isColorDark(backgroundColor),
+        'text-white': isColorDark(getColor(backgroundColor)),
+        'text-black opacity-80': !isColorDark(getColor(backgroundColor)),
         'text-tiny': size === 'small',
         'text-base': size === 'medium',
         'text-lg': size === 'base',
@@ -182,8 +184,8 @@ const usernameInitials = computed(() => {
       class="flex-none"
       :class="{
         'w-[75%] h-[75%]': size === 'auto',
-        'text-white': isColorDark(backgroundColor),
-        'text-black opacity-80': !isColorDark(backgroundColor),
+        'text-white': isColorDark(getColor(backgroundColor)),
+        'text-black opacity-80': !isColorDark(getColor(backgroundColor)),
         'w-3 h-3': size === 'small',
         'w-4 h-4': size === 'medium',
         'w-5 h-5': size === 'base',
@@ -199,8 +201,8 @@ const usernameInitials = computed(() => {
         '!text-md': size === 'base',
         '!text-3xl': size === 'large',
         '!text-4xl': size === 'xlarge',
-        'text-white': isColorDark(backgroundColor),
-        'text-black': !isColorDark(backgroundColor),
+        'text-white': isColorDark(getColor(backgroundColor)),
+        'text-black': !isColorDark(getColor(backgroundColor)),
       }"
     >
       {{ usernameInitials }}

@@ -9,7 +9,8 @@ const type = computed<string>(() => meta.value?.type)
 </script>
 
 <template>
-  <LazyGeneralEmojiPicker v-if="icon" :data-testid="`nc-emoji-${icon}`" class="text-lg" size="small" :emoji="icon" readonly />
-  <component :is="iconMap.eye" v-else-if="type === 'view'" class="w-4 mx-0.75" />
-  <component :is="iconMap.table" v-else class="w-4 mx-0.5 !text-gray-600/75" />
+  <LazyGeneralEmojiPicker v-if="icon" :data-testid="`nc-emoji-${icon}`" class="text-lg" size="xsmall" :emoji="icon" readonly />
+  <component :is="iconMap.ncZap" v-else-if="table?.synced" class="nc-table-icon w-4 mx-0.5 text-nc-gray-600/75 flex-none" />
+  <component :is="iconMap.eye" v-else-if="type === 'view'" class="nc-table-icon w-4 mx-0.75 flex-none" />
+  <component :is="iconMap.table" v-else class="nc-table-iconw-4 mx-0.5 text-nc-gray-600/75 flex-none" />
 </template>

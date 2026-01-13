@@ -2,13 +2,15 @@
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 
-const { metas, getMeta } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const { isMobileMode } = useGlobal()
 
 const column = inject(ColumnInj, ref())
 
 const row = inject(RowInj)!
+
+const parentMeta = inject(MetaInj, ref())
 
 const cellValue = inject(CellValueInj, ref())
 
@@ -44,9 +46,15 @@ provide(RowHeightInj, providedHeightRef)
 
 const dropdownInitialHeight = ref(0)
 
+// Helper to get the correct base ID for related table (handles cross-base links)
+const getRelatedBaseId = (col: ColumnType | undefined) => {
+  if (!col) return parentMeta.value?.base_id
+  return (col.colOptions as any)?.fk_related_base_id || parentMeta.value?.base_id
+}
+
 const relationColumn = computed(() => {
-  if (column.value?.fk_model_id) {
-    return metas.value[column.value.fk_model_id]?.columns?.find(
+  if (column.value?.fk_model_id && parentMeta.value?.base_id) {
+    return getMetaByKey(parentMeta.value.base_id, column.value.fk_model_id)?.columns?.find(
       (c: ColumnType) => c.id === (column.value?.colOptions as LookupType)?.fk_relation_column_id,
     )
   }
@@ -56,8 +64,8 @@ const relationColumn = computed(() => {
 watch(
   column,
   async (newColumn) => {
-    if (!newColumn?.fk_model_id || metas.value[newColumn?.fk_model_id]) return
-    await getMeta(newColumn.fk_model_id)
+    if (!newColumn?.fk_model_id || getMetaByKey(parentMeta.value?.base_id, newColumn?.fk_model_id)) return
+    if (parentMeta.value?.base_id) await getMeta(parentMeta.value.base_id, newColumn.fk_model_id)
   },
   { immediate: true },
 )
@@ -65,15 +73,19 @@ watch(
 watch(
   relationColumn,
   async (relationCol: { colOptions: LinkToAnotherRecordType }) => {
-    if (relationCol && relationCol.colOptions) await getMeta(relationCol.colOptions.fk_related_model_id!)
+    if (relationCol && relationCol.colOptions) {
+      const relatedBaseId = getRelatedBaseId(relationCol as ColumnType)
+      if (relatedBaseId) await getMeta(relatedBaseId, relationCol.colOptions.fk_related_model_id!)
+    }
   },
   { immediate: true },
 )
 
 const lookupTableMeta = computed<Record<string, any> | undefined>(() => {
-  if (relationColumn.value && relationColumn.value?.colOptions)
-    return metas.value[relationColumn.value.colOptions.fk_related_model_id!]
-
+  if (relationColumn.value && relationColumn.value?.colOptions) {
+    const relatedBaseId = getRelatedBaseId(relationColumn.value as ColumnType)
+    if (relatedBaseId) return getMetaByKey(relatedBaseId, relationColumn.value.colOptions.fk_related_model_id!)
+  }
   return undefined
 })
 
@@ -238,6 +250,7 @@ onMounted(() => {
 onUnmounted(() => {
   onDivDataCellEventHook?.off(toggleDropdown)
   cellClickHook?.off(toggleDropdown)
+  cellEventHook?.off(onCellEvent)
 })
 
 watch(dropdownVisible, (val) => {
@@ -393,7 +406,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
                     class="flex-none"
                     :class="{
                       'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
-                      'border-gray-200 rounded border-1 max-w-full': ![
+                      'border-nc-border-gray-medium rounded border-1 max-w-full': ![
                         UITypes.Attachment,
                         UITypes.MultiSelect,
                         UITypes.SingleSelect,
@@ -497,7 +510,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
                 class="flex-none"
                 :class="{
                   'bg-nc-bg-default rounded-full': !isAttachment(lookupColumn),
-                  'border-gray-200 rounded border-1 max-w-full': ![
+                  'border-nc-border-gray-medium rounded border-1 max-w-full': ![
                     UITypes.Attachment,
                     UITypes.MultiSelect,
                     UITypes.SingleSelect,
@@ -544,7 +557,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
 
 .nc-cell-lookup-scroll:hover {
   &::-webkit-scrollbar-thumb {
-    @apply bg-gray-200;
+    @apply bg-nc-bg-gray-medium;
   }
 }
 .nc-lookup-cell .nc-text-area-clamped-text {

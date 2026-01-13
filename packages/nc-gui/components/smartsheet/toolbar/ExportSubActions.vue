@@ -49,6 +49,9 @@ const exportFile = async (exportType: ExportTypes) => {
 
     isExporting.value = true
 
+    const filenameTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const options = { filenameTimeZone }
+
     let jobData: { id: string }
 
     if (isPublicView.value) {
@@ -61,9 +64,9 @@ const exportFile = async (exportType: ExportTypes) => {
         },
       }
 
-      jobData = await $api.public.exportData(selectedView.value.uuid, exportType, {}, params)
+      jobData = await $api.public.exportData(selectedView.value.uuid, exportType, options, params)
     } else {
-      jobData = await $api.export.data(selectedView.value.id, exportType, {})
+      jobData = await $api.export.data(selectedView.value.id, exportType, options)
     }
 
     message.info('Preparing CSV for download...')

@@ -37,6 +37,7 @@ export class TopbarPage extends BasePage {
   }
 
   async clickShare() {
+    await this.btn_share.waitFor({ state: 'visible' });
     await this.btn_share.click();
   }
 
@@ -79,7 +80,7 @@ export class TopbarPage extends BasePage {
     if (waitForResponse) {
       await this.waitForResponse({
         uiAction: async () => await this.btn_details.click(),
-        requestUrlPathToMatch: 'api/v1/db/meta/tables/',
+        requestUrlPathToMatch: 'columnsHash',
         httpMethodsToMatch: ['GET'],
         responseJsonMatcher: json => json['hash'],
       });
@@ -111,7 +112,7 @@ export class TopbarPage extends BasePage {
   }
 
   async clickDownload(type: string, verificationFile = 'expectedData.txt') {
-    await this.get().locator(`.nc-toolbar-btn.nc-actions-menu-btn`).click();
+    await this.get().locator(`.nc-toolbar-btn.nc-download-actions-menu-btn`).click();
 
     const [download] = await Promise.all([
       // Start waiting for the download

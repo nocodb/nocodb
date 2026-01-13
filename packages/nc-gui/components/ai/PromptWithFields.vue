@@ -49,6 +49,13 @@ const { autoFocus, readOnly } = toRefs(props)
 
 const debouncedLoadMentionFieldTagTooltip = useDebounceFn(loadMentionFieldTagTooltip, 500)
 
+const serializeNode = (node: any) => {
+  if (node.type.name === 'mention') return `{${node.attrs.id}}`
+  if (node.text) return node.text
+  if (node.type.name === 'paragraph' || node.type.name === 'hardBreak') return '\n'
+  return ''
+}
+
 const editor = useEditor({
   content: vModel.value,
   enableInputRules: props.markdown,
@@ -101,15 +108,7 @@ const editor = useEditor({
 
     // replace all mentions with id & prepare vModel
     editor.state.doc.descendants((node) => {
-      if (node.type.name === 'mention') {
-        text += `{${node.attrs.id}}`
-      } else if (node.text) {
-        text += node.text
-      } else if (node.type.name === 'paragraph') {
-        text += '\n'
-      } else if (node.type.name === 'hardBreak') {
-        text += '\n'
-      }
+      text += serializeNode(node)
     })
 
     // remove leading & trailing new lines
@@ -121,7 +120,46 @@ const editor = useEditor({
   },
   editable: !readOnly.value,
   autofocus: autoFocus.value,
-  editorProps: { scrollThreshold: 100 },
+  editorProps: {
+    scrollThreshold: 100,
+    clipboardTextSerializer: (slice) => {
+      let text = ''
+      slice.content.descendants((node) => {
+        text += serializeNode(node)
+      })
+
+      // remove leading & trailing new lines
+      text = text.trim()
+
+      return text
+    },
+    handlePaste(view, event) {
+      const text = event.clipboardData?.getData('text/plain') ?? ''
+      if (!text.includes('{')) return false
+
+      const regex = /\{([^{}]*?)\}/g
+      const tr = view.state.tr
+      let lastIndex = 0
+      let match
+
+      // eslint-disable-next-line no-cond-assign
+      while ((match = regex.exec(text)) !== null) {
+        const [fullMatch, id] = match
+        if (match.index > lastIndex) {
+          tr.insertText(text.slice(lastIndex, match.index))
+        }
+        tr.replaceSelectionWith(view.state.schema.nodes.mention.create({ id }))
+        lastIndex = match.index + fullMatch.length
+      }
+
+      if (lastIndex < text.length) {
+        tr.insertText(text.slice(lastIndex))
+      }
+
+      view.dispatch(tr)
+      return true
+    },
+  },
 })
 
 const newFieldSuggestionNode = () => {
@@ -266,11 +304,11 @@ useEventListener(el, 'focusPromptWithFields', () => {
   }
 
   .prompt-field-tag {
-    @apply bg-gray-100 rounded-md px-1 align-middle;
+    @apply bg-nc-bg-gray-light rounded-md px-1 align-middle;
   }
 
   .ProseMirror {
-    @apply px-3 pb-3 pt-2 h-[120px] min-h-[120px] overflow-y-auto nc-scrollbar-thin outline-none border-1 border-gray-200 bg-white text-nc-content-gray rounded-lg !rounded-b-none transition-shadow ease-linear -mx-[1px] -mt-[1px];
+    @apply px-3 pb-3 pt-2 h-[120px] min-h-[120px] overflow-y-auto nc-scrollbar-thin outline-none border-1 border-nc-border-gray-medium bg-nc-bg-default text-nc-content-gray rounded-lg !rounded-b-none transition-shadow ease-linear -mx-[1px] -mt-[1px];
     resize: vertical;
     min-width: 100%;
     max-height: min(800px, calc(100vh - 200px)) !important;
@@ -285,7 +323,7 @@ useEventListener(el, 'focusPromptWithFields', () => {
   }
 
   .tiptap p.is-editor-empty:first-child::before {
-    @apply text-gray-500;
+    @apply text-nc-content-gray-muted;
     content: attr(data-placeholder);
     white-space: pre-line; /* Preserve line breaks */
     float: left;

@@ -3,13 +3,13 @@ import type { ViewType } from 'nocodb-sdk'
 
 interface Props {
   tableId?: string
+  baseId?: string
   viewId?: string
   value?: string
   forceLayout?: 'vertical' | 'horizontal'
   filterView?: (view: ViewType) => boolean
   ignoreLoading?: boolean
   forceFetchViews?: boolean
-  labelDefaultViewAsDefault?: boolean
   disableLabel?: boolean
   autoSelect?: boolean
   disabled?: boolean
@@ -18,7 +18,6 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   ignoreLoading: false,
   forceFetchViews: false,
-  labelDefaultViewAsDefault: false,
   disableLabel: false,
   autoSelect: false,
   disabled: false,
@@ -32,6 +31,7 @@ const { t } = useI18n()
 
 const viewsStore = useViewsStore()
 const { viewsByTable } = storeToRefs(viewsStore)
+const { activeProjectId } = storeToRefs(useBases())
 
 const modelValue = useVModel(props, 'value', emit)
 
@@ -46,8 +46,15 @@ const viewList = computedAsync(async () => {
   if (!props.tableId) return []
 
   try {
+    const effectiveBaseId = props.baseId || activeProjectId.value
+    if (!effectiveBaseId) {
+      console.error('[ViewSelector] baseId is required but was not provided')
+      return []
+    }
+
     await viewsStore.loadViews({
       tableId: props.tableId,
+      baseId: effectiveBaseId,
       ignoreLoading: props.ignoreLoading,
       force: props.forceFetchViews,
     })
@@ -56,11 +63,11 @@ const viewList = computedAsync(async () => {
     return []
   }
 
-  let viewsList: ViewType[] = viewsByTable.value.get(props.tableId) || []
+  // Use composite key (baseId:tableId) to get views
+  const effectiveBaseId = props.baseId || activeProjectId.value
+  const key = `${effectiveBaseId}:${props.tableId}`
 
-  if (props.labelDefaultViewAsDefault) {
-    viewsList = viewsList.map((v) => ({ ...v, title: v.is_default ? 'Default View' : v.title }))
-  }
+  let viewsList: ViewType[] = viewsByTable.value.get(key) || []
 
   if (props.filterView) {
     viewsList = viewsList.filter(props.filterView)
@@ -145,13 +152,13 @@ defineExpose({
   >
     <template v-if="!disableLabel" #label>
       <div>
-        <slot name="label">{{ t('general.view') }}</slot>
+        <slot name="label">{{ t('objects.view') }}</slot>
       </div>
     </template>
     <NcListDropdown v-model:is-open="isOpenViewSelectDropdown" :disabled="disabled" :has-error="!!selectedView?.ncItemDisabled">
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedView" class="min-w-5 flex items-center justify-center">
-          <NcIconView :view="selectedView" class="text-gray-500" />
+          <NcIconView :view="selectedView" class="text-nc-content-gray-muted" />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span
@@ -186,21 +193,9 @@ defineExpose({
           @update:value="handleValueUpdate"
           @escape="onEsc"
         >
-          <template #item="{ item }">
-            <div class="w-full flex items-center gap-2">
-              <div class="min-w-5 flex items-center justify-center">
-                <NcIconView :view="item" class="text-gray-500" />
-              </div>
-              <NcTooltip class="flex-1 overflow-hidden whitespace-nowrap text-ellipsis" show-on-truncate-only>
-                <template #title>{{ item.label }}</template>
-                <span>{{ item.label }}</span>
-              </NcTooltip>
-              <component
-                :is="iconMap.check"
-                v-if="modelValue === item.value"
-                id="nc-selected-item-icon"
-                class="flex-none text-primary w-4 h-4"
-              />
+          <template #listItemExtraLeft="{ option }">
+            <div class="min-w-5 flex items-center justify-center">
+              <NcIconView :view="option" class="text-nc-content-gray-muted" />
             </div>
           </template>
         </NcList>

@@ -36,7 +36,7 @@ export class CollaborationPage extends BasePage {
     await inviteModal.waitFor({ state: 'visible' });
 
     const input_email = inviteModal.locator('input[id="email"]');
-    const selector_role = inviteModal.locator('.ant-select-selector');
+    const selector_role = inviteModal.locator('.nc-roles-selector');
     const button_addUser = inviteModal.locator('.nc-invite-btn');
 
     // flaky test: wait for the input to be ready

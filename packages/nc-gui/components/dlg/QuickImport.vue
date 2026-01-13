@@ -3,20 +3,9 @@ import { toRaw, unref } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { type TableType, charsetOptions, charsetOptionsMap, ncHasProperties } from 'nocodb-sdk'
+import { defineAsyncComponent } from 'vue'
 import rfdc from 'rfdc'
 import type { ProgressMessageObjType } from '../../helpers/parsers/TemplateGenerator'
-
-interface Props {
-  modelValue: boolean
-  importType: 'csv' | 'json' | 'excel'
-  baseId: string
-  sourceId: string
-  importDataOnly?: boolean
-  transition?: string
-  showBackBtn?: boolean
-  wrapClassName?: string
-  showSourceSelector?: boolean
-}
 
 const {
   importType,
@@ -31,6 +20,21 @@ const {
 } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
+
+interface Props {
+  modelValue: boolean
+  importType: 'csv' | 'json' | 'excel'
+  baseId: string
+  sourceId: string
+  importDataOnly?: boolean
+  transition?: string
+  showBackBtn?: boolean
+  wrapClassName?: string
+  showSourceSelector?: boolean
+}
 
 enum ImportTypeTabs {
   'upload' = 'upload',
@@ -737,7 +741,7 @@ watch(
           'pointer-events-none': importLoading,
         }"
       >
-        <LazyTemplateEditor
+        <TemplateEditor
           v-if="templateEditorModal"
           ref="templateEditorRef"
           :base-template="templateData"
@@ -767,7 +771,7 @@ watch(
                 <a-upload-dragger
                   v-model:file-list="importState.fileList"
                   name="file"
-                  class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
+                  class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-nc-border-gray-medium"
                   :class="{
                     hidden: hideUpload,
                   }"
@@ -781,14 +785,16 @@ watch(
                   @change="handleChange"
                   @reject="rejectDrop"
                 >
-                  <component :is="iconMap.upload" class="w-6 h-6" />
+                  <component :is="iconMap.upload" class="w-6 h-6 text-nc-content-gray-subtle" />
 
-                  <p class="!mt-2 text-[13px]">
+                  <p class="!mt-2 text-[13px] text-nc-content-gray-subtle">
                     {{ $t('msg.dropYourDocHere') }} {{ $t('general.or').toLowerCase() }}
                     <span class="text-nc-content-brand hover:underline">{{ $t('labels.browseFiles') }}</span>
                   </p>
 
-                  <p class="!mt-3 text-[13px] text-gray-500">{{ $t('general.supported') }}: {{ importMeta.acceptTypes }}</p>
+                  <p class="!mt-3 text-[13px] text-nc-content-gray-muted">
+                    {{ $t('general.supported') }}: {{ importMeta.acceptTypes }}
+                  </p>
 
                   <p class="ant-upload-hint">
                     {{ importMeta.uploadHint }}
@@ -976,17 +982,25 @@ watch(
                       jsonErrorText || refMonacoEditor?.error,
                   }"
                 >
-                  <LazyMonacoEditor
-                    ref="refMonacoEditor"
-                    class="nc-import-monaco-editor !h-full min-h-30"
-                    :auto-focus="false"
-                    hide-minimap
-                    :monaco-config="{
-                      lineNumbers: 'on',
-                    }"
-                    :model-value="temporaryJson"
-                    @update:model-value="handleJsonChange($event)"
-                  />
+                  <Suspense>
+                    <template #default>
+                      <MonacoEditor
+                        ref="refMonacoEditor"
+                        class="nc-import-monaco-editor !h-full min-h-30"
+                        :auto-focus="false"
+                        hide-minimap
+                        :monaco-config="{
+                          lineNumbers: 'on',
+                        }"
+                        :model-value="temporaryJson"
+                        @update:model-value="handleJsonChange($event)"
+                      />
+                    </template>
+
+                    <template #fallback>
+                      <MonacoLoading class="!h-full min-h-30" />
+                    </template>
+                  </Suspense>
                 </div>
 
                 <div v-if="jsonErrorText || refMonacoEditor?.error" class="text-nc-content-red-medium text-small mt-2">
@@ -1176,7 +1190,7 @@ span:has(> .nc-modern-drag-import) {
   }
 }
 :deep(.nc-modern-drag-import:not(.ant-upload-disabled)) {
-  @apply bg-white hover:bg-gray-50;
+  @apply bg-nc-bg-default hover:bg-nc-bg-gray-extralight;
 }
 
 :deep(.nc-modern-drag-import.hidden + .ant-upload-list) {
@@ -1205,7 +1219,7 @@ span:has(> .nc-modern-drag-import) {
 
   .tab-title,
   :deep(.ant-tabs-tab-btn) {
-    @apply px-2 text-nc-content-gray-subtle2 rounded-md hover:bg-gray-100 transition-colors;
+    @apply px-2 text-nc-content-gray-subtle2 rounded-md hover:bg-nc-bg-gray-light transition-colors;
     span {
       @apply text-small !leading-[24px];
     }

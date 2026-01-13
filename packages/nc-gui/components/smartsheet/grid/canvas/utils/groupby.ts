@@ -1,16 +1,16 @@
 import { UITypes, isLinksOrLTAR } from 'nocodb-sdk'
-import { COLUMN_HEADER_HEIGHT_IN_PX, GROUP_EXPANDED_BOTTOM_PADDING, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
+import { GROUP_EXPANDED_BOTTOM_PADDING, GROUP_HEADER_HEIGHT, GROUP_PADDING } from './constants'
 
-export function getGroupColors(depth: number, maxDepth: number) {
+export function getGroupColors(depth: number, maxDepth: number, getColor: (color: string) => string) {
   depth = depth + 1
   if (maxDepth === 1) {
     return {
-      border: '#E7E7E9',
-      background: '#FFF',
+      border: getColor(themeV4Colors.gray['200']),
+      background: getColor(themeV4Colors.base.white),
       aggregation: {
-        hover: '#F9F9FA', // Hover State
-        default: '#FFF', // Default Bg State
-        border: '#F4F4F5',
+        hover: getColor(themeV4Colors.gray['50']), // Hover State
+        default: getColor(themeV4Colors.base.white), // Default Bg State
+        border: getColor(themeV4Colors.gray['100']),
       },
     }
   }
@@ -19,23 +19,23 @@ export function getGroupColors(depth: number, maxDepth: number) {
     switch (depth) {
       case 2: {
         return {
-          background: '#FFF',
-          border: '#E7E7E9',
+          background: getColor(themeV4Colors.base.white),
+          border: getColor(themeV4Colors.gray['200']),
           aggregation: {
-            hover: '#F9F9FA', // Hover State
-            default: '#FFF', // Default Bg State
-            border: '#F4F4F5',
+            hover: getColor(themeV4Colors.gray['50']), // Hover State
+            default: getColor(themeV4Colors.base.white), // Default Bg State
+            border: getColor(themeV4Colors.gray['100']),
           },
         }
       }
       case 1: {
         return {
-          background: '#F9F9FA',
-          border: '#d5d5d9',
+          background: getColor(themeV4Colors.gray['50']),
+          border: getColor(themeV4Colors.gray['300']),
           aggregation: {
-            hover: '#F4F4F5', // Hover State
-            default: '#F9F9FA', // Default Bg State
-            border: '#E7E7E8',
+            hover: getColor(themeV4Colors.gray['100']), // Hover State
+            default: getColor(themeV4Colors.gray['50']), // Default Bg State
+            border: getColor(themeV4Colors.gray['200']),
           },
         }
       }
@@ -46,34 +46,34 @@ export function getGroupColors(depth: number, maxDepth: number) {
     switch (depth) {
       case 3: {
         return {
-          background: '#FFF',
-          border: '#E7E7E9',
+          background: getColor(themeV4Colors.base.white),
+          border: getColor(themeV4Colors.gray['200']),
           aggregation: {
-            hover: '#F9F9FA', // Hover State
-            default: '#FFF', // Default Bg State
-            border: '#F4F4F5',
+            hover: getColor(themeV4Colors.gray['50']), // Hover State
+            default: getColor(themeV4Colors.base.white), // Default Bg State
+            border: getColor(themeV4Colors.gray['100']),
           },
         }
       }
       case 2: {
         return {
-          background: '#F9F9FA',
-          border: '#d5d5d9',
+          background: getColor(themeV4Colors.gray['50']),
+          border: getColor(themeV4Colors.gray['300']),
           aggregation: {
-            hover: '#F4F4F5', // Hover State
-            default: '#F9F9FA', // Default Bg State
-            border: '#E7E7E8',
+            hover: getColor(themeV4Colors.gray['100']), // Hover State
+            default: getColor(themeV4Colors.gray['50']), // Default Bg State
+            border: getColor(themeV4Colors.gray['200']),
           },
         }
       }
       case 1: {
         return {
-          background: '#F4F4F5',
-          border: '#9AA2AF',
+          background: getColor(themeV4Colors.gray['100']),
+          border: getColor(themeV4Colors.gray['400']),
           aggregation: {
-            hover: '#E7E7E8', // Hover State
-            default: '#F4F4F5', // Default Bg State
-            border: '#E7E7E9',
+            hover: getColor(themeV4Colors.gray['200']), // Hover State
+            default: getColor(themeV4Colors.gray['100']), // Default Bg State
+            border: getColor(themeV4Colors.gray['200']),
           },
         }
       }
@@ -81,12 +81,12 @@ export function getGroupColors(depth: number, maxDepth: number) {
   }
 
   return {
-    background: '#FFF',
-    border: '#E7E7E9',
+    background: getColor(themeV4Colors.base.white),
+    border: getColor(themeV4Colors.gray['200']),
     aggregation: {
-      hover: '#F9F9FA', // Hover State
-      default: '#FFF', // Default Bg State
-      border: '#F4F4F5',
+      hover: getColor(themeV4Colors.gray['50']), // Hover State
+      default: getColor(themeV4Colors.base.white), // Default Bg State
+      border: getColor(themeV4Colors.gray['100']),
     },
   }
 }
@@ -117,13 +117,18 @@ export function getBackgroundColor(depth: number, maxDepth: number): string {
   return '#F9F9FA'
 }
 
-export function calculateGroupHeight(group: CanvasGroup, rowHeight: number, isAddingNewRowAllowed?: boolean) {
+export function calculateGroupHeight(
+  group: CanvasGroup,
+  rowHeight: number,
+  headerRowHeight: number,
+  isAddingNewRowAllowed?: boolean,
+) {
   let h = GROUP_HEADER_HEIGHT + GROUP_PADDING // Base height for group header
   if (group?.isExpanded) {
     if (group.path) {
       h += (group.count || 0) * rowHeight
       if (isAddingNewRowAllowed) {
-        h += COLUMN_HEADER_HEIGHT_IN_PX
+        h += headerRowHeight
       }
       // 1 Px Offset is Added for Showing the activeBorders. Else it wont be visible
       h += 1
@@ -136,7 +141,7 @@ export function calculateGroupHeight(group: CanvasGroup, rowHeight: number, isAd
           h += GROUP_HEADER_HEIGHT + GROUP_PADDING
           continue
         }
-        h += calculateGroupHeight(subGroup, rowHeight, isAddingNewRowAllowed) // Recursively calculate subgroup height
+        h += calculateGroupHeight(subGroup, rowHeight, headerRowHeight, isAddingNewRowAllowed) // Recursively calculate subgroup height
       }
     }
   }
@@ -147,6 +152,7 @@ export function calculateGroupRange(
   groups: Map<number, CanvasGroup>,
   scrollTop: number,
   rowHeight: number,
+  headerRowHeight: number,
   groupCount: number,
   viewportHeight: number,
   _nested = false,
@@ -159,13 +165,13 @@ export function calculateGroupRange(
 
   for (let i = 0; i < groupCount; i++) {
     const group = groups.get(i)
-    const groupHeight = calculateGroupHeight(group, rowHeight, isAddingNewRowAllowed)
+    const groupHeight = calculateGroupHeight(group, rowHeight, headerRowHeight, isAddingNewRowAllowed)
     if (currentOffset + groupHeight >= scrollTop) {
       startIndex = i
       // startGroupYOffset - is the offset of the group from the top of the viewport, this could be negative
       // when the group is partially visible at the top of the viewport
       // excluding column header height from the calculation since it will be sticky on top
-      const startGroupYOffset = COLUMN_HEADER_HEIGHT_IN_PX - (scrollTop - currentOffset)
+      const startGroupYOffset = headerRowHeight - (scrollTop - currentOffset)
 
       // todo: verify - GROUP_HEADER_HEIGHT + GROUP_PADDING addition
       // it's added to render one extra group at the bottom of the viewport to avoid empty space
@@ -173,7 +179,7 @@ export function calculateGroupRange(
       for (let j = i; j < groupCount; j++) {
         const endGroup = groups.get(j)
 
-        const endGroupHeight = calculateGroupHeight(endGroup, rowHeight, isAddingNewRowAllowed)
+        const endGroupHeight = calculateGroupHeight(endGroup, rowHeight, headerRowHeight, isAddingNewRowAllowed)
         if (currentOffset + endGroupHeight > viewportBottom) {
           endIndex = j
           break
@@ -219,6 +225,7 @@ export function calculateGroupRowTop(
   path: number[],
   rowIndex: number,
   rowHeight: number,
+  headerRowHeight: number,
   isAddingEmptyRowAllowed: boolean,
 ): number {
   let top = GROUP_PADDING
@@ -236,7 +243,7 @@ export function calculateGroupRowTop(
     for (let i = 0; i < groupIndex; i++) {
       const siblingGroup = currentGroups.get(i)
       if (siblingGroup) {
-        top += calculateGroupHeight(siblingGroup, rowHeight, isAddingEmptyRowAllowed)
+        top += calculateGroupHeight(siblingGroup, rowHeight, headerRowHeight, isAddingEmptyRowAllowed)
       }
     }
 

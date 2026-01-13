@@ -1,9 +1,14 @@
-import type { ViewType } from 'nocodb-sdk'
+import { type ViewType } from 'nocodb-sdk'
 import type { ExtensionManifest, ExtensionType } from '#imports'
 
 const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
-  (extension: Ref<ExtensionType>, extensionManifest: ComputedRef<ExtensionManifest | undefined>, activeError: Ref<any>) => {
-    const { $api } = useNuxtApp()
+  (
+    extension: Ref<ExtensionType>,
+    extensionManifest: ComputedRef<ExtensionManifest | undefined>,
+    activeError: Ref<any>,
+    hasAccessToExtension: ComputedRef<boolean>,
+  ) => {
+    const { $api, $e } = useNuxtApp()
     const route = useRoute()
 
     const basesStore = useBases()
@@ -28,6 +33,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
     const fullscreenModalSize = ref<keyof typeof modalSizes>(extensionManifest.value?.config?.modalSize || 'lg')
 
+    const disableToggleFullscreenBtn = ref(false)
+
     const activeTableId = computed(() => route.params.viewId as string | undefined)
     const activeViewId = computed(() => route.params.viewTitle as string | undefined)
 
@@ -39,21 +46,30 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     })
 
     const getViewsForTable = async (tableId: string) => {
-      if (viewsByTable.value.has(tableId)) {
-        return viewsByTable.value.get(tableId) as ViewType[]
+      // Find the table to get its base_id
+      const table = tables.value.find((t) => t.id === tableId)
+      if (!table?.base_id) {
+        console.warn('Could not find base_id for table:', tableId)
+        return []
+      }
+
+      const key = `${table.base_id}:${tableId}`
+      if (viewsByTable.value.has(key)) {
+        return viewsByTable.value.get(key) as ViewType[]
       }
 
       await viewStore.loadViews({ tableId, ignoreLoading: true })
-      return viewsByTable.value.get(tableId) as ViewType[]
+      return viewsByTable.value.get(key) as ViewType[]
     }
 
     const getData = async (params: {
       tableId: string
       viewId?: string
+      where?: string
       eachPage: (records: Record<string, any>[], nextPage: () => void) => Promise<void> | void
       done: () => Promise<void> | void
     }) => {
-      const { tableId, viewId, eachPage, done } = params
+      const { tableId, viewId, where, eachPage, done } = params
 
       let page = 1
 
@@ -66,6 +82,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
           {
             offset: (page - 1) * 100,
             limit: 100,
+            where,
           } as any,
         )
 
@@ -82,7 +99,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     }
 
     const getTableMeta = async (tableId: string) => {
-      return getMeta(tableId)
+      return getMeta(baseId.value!, tableId)
     }
 
     const insertData = async (params: { tableId: string; data: Record<string, any>[]; autoInsertOption?: boolean }) => {
@@ -139,7 +156,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       const chunkSize = 100
 
-      const tableMeta = await getMeta(tableId)
+      const tableMeta = await getMeta(baseId.value!, tableId)
 
       if (!tableMeta?.columns) throw new Error('Table not found')
 
@@ -179,6 +196,11 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     }
 
+    const toggleFullScreen = () => {
+      fullscreen.value = !fullscreen.value
+      $e(`c:extensions:${extension.value.extensionId}:full-screen`)
+    }
+
     return {
       $api,
       fullscreen,
@@ -189,6 +211,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       tables,
       showExpandBtn,
       fullscreenModalSize,
+      activeBaseId: baseId,
       activeTableId,
       activeViewId,
       getViewsForTable,
@@ -200,6 +223,9 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       reloadData,
       reloadMeta,
       eventBus,
+      hasAccessToExtension,
+      disableToggleFullscreenBtn,
+      toggleFullScreen,
     }
   },
   'extension-helper',

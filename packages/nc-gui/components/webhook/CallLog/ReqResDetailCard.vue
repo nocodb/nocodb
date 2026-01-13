@@ -1,12 +1,19 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from 'vue'
+
+const props = defineProps<Props>()
+
+const { isDark } = useTheme()
+
+// Define Monaco Editor as an async component
+const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
+
 interface Props {
   title: string
   headers: Record<string, any>
   payload: unknown
   params?: Record<string, any>
 }
-
-const props = defineProps<Props>()
 
 const copyPayloadContent = computed(() => {
   return typeof props.payload === 'object' ? JSON.stringify(props.payload, null, 2) : props.payload?.toString()
@@ -28,8 +35,30 @@ const formattedPayload = computed(() => {
     <div class="detail-title font-weight-bold">{{ title }}</div>
     <div class="content">
       <div v-if="headers" class="detail-headers">
-        <span class="text-gray-500 font-weight-bold text-small1">Header</span>
-        <div class="log-details">
+        <span v-if="!headers['nc-script-id']" class="text-nc-content-gray-muted font-weight-bold text-small1">Header</span>
+        <div v-if="headers['nc-script-id']" class="log-details">
+          <div class="log-detail-item">
+            <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
+              <template #title>Script ID</template>
+              <span class="label script"> Script ID </span>
+            </NcTooltip>
+            <NcTooltip class="text-small1 max-w-[calc(100%_-_160px)] truncate" show-on-truncate-only>
+              <template #title>{{ headers['nc-script-id'] }}</template>
+              <span class="value"> {{ headers['nc-script-id'] }}</span>
+            </NcTooltip>
+          </div>
+          <div class="log-detail-item">
+            <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
+              <template #title>Script Title</template>
+              <span class="label script"> Script Title </span>
+            </NcTooltip>
+            <NcTooltip class="text-small1 max-w-[calc(100%_-_160px)] truncate" show-on-truncate-only>
+              <template #title>{{ headers['nc-script-title'] }}</template>
+              <span class="value"> {{ headers['nc-script-title'] }}</span>
+            </NcTooltip>
+          </div>
+        </div>
+        <div v-else class="log-details">
           <div v-for="(value, key) in headers" :key="key" class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
               <template #title>{{ key }}</template>
@@ -43,7 +72,7 @@ const formattedPayload = computed(() => {
         </div>
       </div>
       <div v-if="params && Object.keys(params).length" class="detail-params">
-        <span class="text-gray-500 font-weight-bold text-small1">Parameter</span>
+        <span class="text-nc-content-gray-muted font-weight-bold text-small1">Parameter</span>
         <div class="log-details">
           <div v-for="(value, key) in params" :key="key" class="log-detail-item">
             <NcTooltip class="text-small1 min-w-40" show-on-truncate-only>
@@ -58,34 +87,44 @@ const formattedPayload = computed(() => {
         </div>
       </div>
       <div v-if="payload && Object.keys(payload).length" class="detail-payload -mt-1">
-        <div class="text-sm text-gray-500 font-weight-bold pb-2 flex justify-between items-center">
+        <div class="text-sm text-nc-content-gray-muted font-weight-bold pb-2 flex justify-between items-center">
           <span class="text-xs leading-[18px]">Payload</span>
           <GeneralCopyButton :content="copyPayloadContent" size="xs" class="!px-1" />
         </div>
-        <LazyMonacoEditor
-          :model-value="formattedPayload"
-          class="min-w-full w-full flex-1 min-h-50 resize-y overflow-auto expanded-editor"
-          hide-minimap
-          disable-deep-compare
-          read-only
-          :monaco-config="{
-            lineNumbers: 'on',
-            scrollbar: {
-              verticalScrollbarSize: 6,
-              horizontalScrollbarSize: 6,
-            },
-          }"
-          :monaco-custom-theme="{
-            base: 'vs',
-            inherit: true,
-            rules: [],
-            colors: {
-              'editor.background': '#f9f9fa',
-            },
-          }"
-          @keydown.enter.stop
-          @keydown.alt.stop
-        />
+
+        <Suspense>
+          <template #default>
+            <MonacoEditor
+              :model-value="formattedPayload"
+              class="min-w-full w-full flex-1 min-h-50 resize-y overflow-auto expanded-editor max-h-screen"
+              hide-minimap
+              disable-deep-compare
+              read-only
+              :monaco-config="{
+                lineNumbers: 'on',
+                scrollbar: {
+                  verticalScrollbarSize: 6,
+                  horizontalScrollbarSize: 6,
+                },
+                wordWrap: 'on',
+                wrappingStrategy: 'advanced',
+              }"
+              :monaco-custom-theme="{
+                base: isDark ? 'vs-dark' : 'vs',
+                inherit: true,
+                rules: [],
+                colors: {
+                  'editor.background': isDark ? '#171717' : '#f9f9fa',
+                },
+              }"
+              @keydown.enter.stop
+              @keydown.alt.stop
+            />
+          </template>
+          <template #fallback>
+            <MonacoLoading class="min-h-50 min-w-full w-full flex-1" />
+          </template>
+        </Suspense>
       </div>
     </div>
   </div>
@@ -93,7 +132,7 @@ const formattedPayload = computed(() => {
 
 <style scoped lang="scss">
 .detail-card {
-  @apply flex flex-col w-full border-1 border-gray-200 rounded-lg bg-gray-50 h-full;
+  @apply flex flex-col w-full border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-gray-extralight h-full max-h-screen;
 
   & > .detail-title {
     @apply border-b border-nc-border-gray-medium px-3 py-2;
@@ -103,7 +142,7 @@ const formattedPayload = computed(() => {
     @apply flex-1 overflow-auto nc-scrollbar-thin flex flex-col;
 
     & > div:not(:last-child) {
-      @apply border-b border-gray-200;
+      @apply border-b border-nc-border-gray-medium;
     }
 
     & > div {
@@ -114,8 +153,8 @@ const formattedPayload = computed(() => {
       @apply flex flex-col gap-1 mt-2;
       .log-detail-item {
         @apply flex flex-row w-full;
-        .label {
-          @apply min-w-40 font-weight-600 text-gray-700 text-small1 lowercase;
+        .label:not(.script) {
+          @apply min-w-40 font-weight-600 text-nc-content-gray-subtle text-small1 lowercase;
         }
 
         .value {

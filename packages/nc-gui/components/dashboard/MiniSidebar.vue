@@ -5,16 +5,21 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { appInfo, navigateToProject, isMobileMode } = useGlobal()
+const { navigateToProject, isMobileMode } = useGlobal()
 
 const { meta: metaKey, control } = useMagicKeys()
 
 const workspaceStore = useWorkspace()
 
-const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened, isWorkspacesLoading } =
+const { activeWorkspaceId, isWorkspaceSettingsPageOpened, isIntegrationsPageOpened, isWorkspacesLoading, isTemplatesPageOpened } =
   storeToRefs(workspaceStore)
 
-const { navigateToWorkspaceSettings, navigateToIntegrations: _navigateToIntegrations } = workspaceStore
+const {
+  navigateToWorkspaceSettings,
+  navigateToIntegrations: _navigateToIntegrations,
+  navigateToTemplates: _navigateToTemplates,
+  isTemplatesFeatureEnabled,
+} = workspaceStore
 
 const { basesList, showProjectList } = storeToRefs(useBases())
 
@@ -65,6 +70,12 @@ const navigateToSettings = () => {
   navigateToWorkspaceSettings('', cmdOrCtrl)
 }
 
+const navigateToTemplates = () => {
+  const cmdOrCtrl = isMac() ? metaKey.value : control.value
+
+  _navigateToTemplates('', cmdOrCtrl)
+}
+
 const navigateToIntegrations = () => {
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
@@ -82,6 +93,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         isCmdJActive() ||
         isNcDropdownOpen() ||
         isActiveElementInsideExtension() ||
+        isActiveElementInsideScriptPane() ||
         isDrawerOrModalExist() ||
         isExpandedFormOpenExist()))
   ) {
@@ -103,7 +115,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     <div class="flex flex-col items-center">
       <DashboardMiniSidebarItemWrapper size="small" show-in-mobile>
         <div
-          class="min-h-9 sticky top-0 bg-[var(--mini-sidebar-bg-color)]"
+          class="min-h-9 sticky top-0 bg-nc-bg-gray-minisidebar"
           :class="{
             'pt-1.5 pb-1': isMobileMode,
           }"
@@ -246,10 +258,29 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           </div>
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
-
       <div v-if="!isMobileMode" class="px-2 w-full">
         <NcDivider class="!my-0 !border-nc-border-gray-dark !my-2" />
       </div>
+      <DashboardMiniSidebarItemWrapper v-if="isTemplatesFeatureEnabled">
+        <NcTooltip :title="$t('general.templates')" placement="right" hide-on-click :arrow="false">
+          <div
+            v-e="['c:templates']"
+            class="nc-mini-sidebar-btn-full-width"
+            data-testid="nc-sidebar-templates-btn"
+            @click="navigateToTemplates"
+          >
+            <div
+              class="nc-mini-sidebar-btn"
+              :class="{
+                active: isTemplatesPageOpened,
+              }"
+            >
+              <GeneralIcon icon="globe" class="h-4 w-4" />
+            </div>
+          </div>
+        </NcTooltip>
+      </DashboardMiniSidebarItemWrapper>
+
       <DashboardMiniSidebarItemWrapper>
         <NcTooltip :title="$t('labels.myNotifications')" placement="right" hide-on-click :arrow="false">
           <NotificationMenu />
@@ -267,6 +298,8 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         </NcTooltip>
       </DashboardMiniSidebarItemWrapper>
       <template v-if="!isMobileMode">
+        <!--   Disabled for now since feed is not actively maintained -->
+        <!--
         <DashboardMiniSidebarItemWrapper>
           <NcTooltip
             v-if="appInfo.feedEnabled"
@@ -277,7 +310,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
           >
             <DashboardSidebarFeed />
           </NcTooltip>
-        </DashboardMiniSidebarItemWrapper>
+        </DashboardMiniSidebarItemWrapper> -->
         <DashboardMiniSidebarItemWrapper v-if="isChatWootEnabled">
           <NcTooltip :title="`${$t('labels.chatWithNocoDBSupport')}!`" placement="right" hide-on-click :arrow="false">
             <DashboardSidebarChatSupport />
@@ -303,9 +336,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
 
 <style lang="scss">
 .nc-mini-sidebar {
-  --mini-sidebar-bg-color: var(--nc-bg-gray-light);
-
-  @apply w-[var(--mini-sidebar-width)] flex-none bg-[var(--mini-sidebar-bg-color)] flex flex-col justify-between items-center border-r-1 border-nc-border-gray-medium z-502 nc-scrollbar-thin overflow-x-hidden relative;
+  @apply w-[var(--mini-sidebar-width)] flex-none bg-nc-bg-gray-minisidebar flex flex-col justify-between items-center border-r-1 border-nc-border-gray-medium z-502 nc-scrollbar-thin overflow-x-hidden relative;
 
   .nc-mini-sidebar-ws-item {
     @apply cursor-pointer h-9 w-8 rounded py-1 flex items-center justify-center children:flex-none text-nc-content-gray-muted transition-all duration-200;
@@ -317,15 +348,15 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
 
     &.nc-small-shadow .nc-workspace-avatar {
-      box-shadow: 0px 5px 0px -2px rgba(0, 0, 0, 0.4);
+      box-shadow: 0px 5px 0px -2px rgba(var(--rgb-base), 0.4);
     }
     &.nc-medium-shadow .nc-workspace-avatar {
-      box-shadow: 0px 4px 0px -2px rgba(0, 0, 0, 0.4), 0px 7px 0px -3px rgba(0, 0, 0, 0.2);
+      box-shadow: 0px 4px 0px -2px rgba(var(--rgb-base), 0.4), 0px 7px 0px -3px rgba(var(--rgb-base), 0.2);
     }
   }
 
   .nc-mini-sidebar-btn-full-width {
-    @apply w-[var(--mini-sidebar-width)] h-[var(--mini-sidebar-width)] flex-none flex justify-center items-center cursor-pointer;
+    @apply w-[var(--mini-sidebar-width)] h-[var(--mini-sidebar-width)] flex-none flex justify-center items-center cursor-pointer transition-all duration-200;
 
     &:hover {
       .nc-mini-sidebar-btn:not(.active) {
@@ -342,7 +373,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
     }
 
     &.active {
-      @apply !bg-brand-100 !text-nc-content-brand;
+      @apply !bg-nc-brand-100 dark:!bg-nc-bg-gray-medium !text-nc-content-brand;
     }
 
     &.active-base {

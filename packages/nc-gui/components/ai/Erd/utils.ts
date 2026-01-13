@@ -70,9 +70,7 @@ interface Relation {
 export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<AiERDConfig>) {
   const elements = ref<Elements<AiNodeData | AiEdgeData>>([])
 
-  const colorScale = d3ScaleLinear<string>()
-    .domain([0, 2])
-    .range([themeV2Colors['royal-blue'].DEFAULT, themeV2Colors.pink['500']])
+  const colorScale = d3ScaleLinear<string>().domain([0, 2]).range([themeV3Colors.brand['500'], themeV3Colors.pink['500']])
 
   const dagreGraph = new dagre.graphlib.Graph()
   dagreGraph.setDefaultEdgeLabel(() => ({}))
@@ -273,7 +271,7 @@ export function useErdElements(schema: MaybeRef<AiBaseSchema>, props: MaybeRef<A
             x: nodeWithPosition.x + centerOffsetX,
             y: nodeWithPosition.y + centerOffsetY,
           }
-          el.class = ['rounded-lg border-1 border-gray-200 shadow-lg'].join(' ')
+          el.class = [erdNodeClassNames.node].join(' ')
           el.data.color = color
 
           el.style = (n) => {

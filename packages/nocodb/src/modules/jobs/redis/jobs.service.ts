@@ -136,6 +136,7 @@ export class JobsService implements OnModuleInit {
 
     const job = await this.jobsQueue.add(data, {
       jobId: jobData.id,
+      removeOnFail: 1000,
       ...options,
     });
 

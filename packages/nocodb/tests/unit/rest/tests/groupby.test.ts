@@ -379,6 +379,52 @@ function groupByTests() {
     );
     expect(+res1.body.list[res1.body.list.length - 1].count).to.gte(0);
   });
+
+  it('Nested GroupBy list with subGroupColumnName (via view path)', async function () {
+    const titleColumn = filmColumns.find((c) => c.title === 'Title');
+    const descriptionColumn = filmColumns.find(
+      (c) => c.title === 'Description',
+    );
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${filmView.id}/groupby`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        offset: 0,
+        limit: 100,
+        sort: `+${titleColumn.title}`,
+        column_name: titleColumn.title,
+        sortArrJson: '[]',
+        filterArrJson: '[]',
+        subGroupColumnName: descriptionColumn.title,
+      })
+      .expect(200);
+
+    expect(response.body.list.length).to.be.greaterThan(0);
+    expect(response.body.list[0]).to.have.property('__sub_group_count__');
+    expect(+response.body.list[0].__sub_group_count__).to.be.greaterThan(0);
+    // also ensure standard fields exist
+    expect(response.body.list[0]).to.have.property('count');
+    expect(response.body.list[0]).to.have.property(titleColumn.title);
+
+    // Also verify the count endpoint with the same nested group params
+    const countRes = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${sakilaProject.id}/${filmTable.id}/views/${filmView.id}/groupby/count`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        sort: `+${titleColumn.title}`,
+        column_name: titleColumn.title,
+        sortArrJson: '[]',
+        filterArrJson: '[]',
+        subGroupColumnName: descriptionColumn.title,
+      })
+      .expect(200);
+    expect(+countRes.text).to.be.greaterThan(0);
+  });
 }
 
 export default function () {

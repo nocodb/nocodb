@@ -23,6 +23,7 @@ import type { CanvasGroup } from '../lib/types'
 import type { Row } from '#imports'
 import { validateRowFilters } from '~/utils/dataUtils'
 import { NavigateDir } from '~/lib/enums'
+import { isUniqueConstraintViolationError } from '~/utils/errorUtils'
 
 const formatData = (
   list: Record<string, any>[],
@@ -104,7 +105,7 @@ export function useInfiniteData(args: {
 
   const { getBaseType } = baseStore
 
-  const { getMeta, metas } = useMetas()
+  const { getMeta, metas, getMetaByKey } = useMetas()
 
   const { user } = useGlobal()
 
@@ -196,7 +197,7 @@ export function useInfiniteData(args: {
 
   const computedWhereFilter = computed(() => {
     const { filters: filter } = extractFilterFromXwhere(
-      { api_version: NcApiVersion.V1 },
+      { api_version: NcApiVersion.V1, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone },
       where?.value ?? '',
       columnsByAlias.value,
     )
@@ -331,9 +332,10 @@ export function useInfiniteData(args: {
     if (allIds.length === 0) return
 
     try {
-      const aggCommentCount = await $api.utils.commentCount({
-        ids: allIds,
+      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentCount',
         fk_model_id: meta.value!.id as string,
+        ids: allIds,
       })
 
       aggCommentCount?.forEach((commentData: Record<string, any>) => {
@@ -401,7 +403,17 @@ export function useInfiniteData(args: {
       }
 
       const bulkResponse = !isPublic?.value
-        ? await $api.dbDataTableBulkList.dbDataTableBulkList(meta.value.id!, { viewId: viewMeta.value?.id }, bulkRequests, {})
+        ? await $api.internal.postOperation(
+            (meta.value as any).fk_workspace_id!,
+            meta.value.base_id!,
+            {
+              operation: 'bulkDataList',
+              tableId: meta.value.id!,
+              viewId: viewMeta.value?.id,
+              baseId: meta.value.base_id!,
+            },
+            bulkRequests,
+          )
         : await fetchBulkListData({}, bulkRequests)
 
       const allFormattedRows: Array<{ rows: Array<Row>; path: Array<number> }> = []
@@ -569,9 +581,10 @@ export function useInfiniteData(args: {
     const dataCache = getDataCache(path)
 
     try {
-      const aggCommentCount = await $api.utils.commentCount({
-        ids,
+      const aggCommentCount = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentCount',
         fk_model_id: meta.value!.id as string,
+        ids,
       })
 
       formattedData.forEach((row) => {
@@ -590,10 +603,6 @@ export function useInfiniteData(args: {
   }
 
   let upgradeModalTimer: any
-
-  onBeforeUnmount(() => {
-    clearTimeout(upgradeModalTimer)
-  })
 
   async function loadData(
     params: Parameters<Api<any>['dbViewRow']['list']>[4] & {
@@ -657,15 +666,17 @@ export function useInfiniteData(args: {
 
       const data = formatData(response.list, response.pageInfo, params, path, getEvaluatedRowMetaRowColorInfo)
 
-      loadAggCommentsCount(data, path)
+      if (!disableSmartsheet) {
+        loadAggCommentsCount(data, path)
+      }
 
       return data
     } catch (error: any) {
-      if (error?.response?.data.error === 'INVALID_OFFSET_VALUE') {
+      if (error?.response?.data.error === 'ERR_INVALID_OFFSET_VALUE') {
         return []
       }
       if (error?.response?.data?.error === 'FORMULA_ERROR') {
-        await tablesStore.reloadTableMeta(meta.value!.id! as string)
+        await tablesStore.reloadTableMeta(meta.value!.id! as string, meta.value?.base_id)
         return loadData(params)
       }
 
@@ -1229,7 +1240,8 @@ export function useInfiniteData(args: {
 
       const colOptions = column.colOptions as LinkToAnotherRecordType
 
-      const relatedTableMeta = metas.value?.[colOptions?.fk_related_model_id as string]
+      const relatedBaseId = (colOptions as any)?.fk_related_base_id || metaValue?.base_id
+      const relatedTableMeta = getMetaByKey(relatedBaseId, colOptions?.fk_related_model_id as string)
 
       if (isHm(column) || isMm(column)) {
         const relatedRows = (row[column.title!] ?? []) as Record<string, any>[]
@@ -1333,7 +1345,7 @@ export function useInfiniteData(args: {
 
       dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
       dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
-      await syncCount(path)
+      await syncCount(path, true, false)
       callbacks?.syncVisibleData?.()
     } catch (e: any) {
       console.error(e)
@@ -1585,13 +1597,17 @@ export function useInfiniteData(args: {
               dataCache.totalRows.value = tempTotalRows
               dataCache.actualTotalRows.value = tempActualTotalRows
 
-              await updateRowProperty(
-                { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
-                property,
-                undefined,
-                true,
-                path,
-              )
+              try {
+                await updateRowProperty(
+                  { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
+                  property,
+                  undefined,
+                  true,
+                  path,
+                )
+              } catch (e: any) {
+                // ignore
+              }
             },
             args: [
               clone(toUpdate),
@@ -1604,7 +1620,11 @@ export function useInfiniteData(args: {
           },
           redo: {
             fn: async (toUpdate: Row, property: string, path) => {
-              await updateRowProperty(toUpdate, property, undefined, true, path)
+              try {
+                await updateRowProperty(toUpdate, property, undefined, true, path)
+              } catch (e: any) {
+                // ignore
+              }
             },
             args: [clone(toUpdate), property, clone(path)],
           },
@@ -1663,6 +1683,18 @@ export function useInfiniteData(args: {
 
       return updatedRowData
     } catch (e: any) {
+      // Check if it's a unique constraint violation
+      if (isUniqueConstraintViolationError(e)) {
+        // Clear the cell value for unique constraint violations and set to previous value
+        toUpdate.row[property] = toUpdate.oldRow[property] ?? null
+        // Use message directly from response (already includes field name)
+        const errorData = e.response?.data
+        const errorMessage =
+          errorData?.message || (await extractSdkResponseErrorMsg(e)) || t('msg.error.uniqueConstraintViolation')
+        message.error(errorMessage)
+        return undefined
+      }
+
       toUpdate.row[property] = toUpdate.oldRow[property]
       const errorMessage = await extractSdkResponseErrorMsg(e)
       message.error(`${t('msg.error.rowUpdateFailed')}: ${errorMessage}`)
@@ -1735,7 +1767,11 @@ export function useInfiniteData(args: {
           return acc
         }, row.row)
       }
-      data = await updateRowProperty(row, property, args, false, path)
+      try {
+        data = await updateRowProperty(row, property, args, false, path)
+      } catch (e: any) {
+        // ignore
+      }
     }
 
     const isValidationFailed = !validateRowFilters(
@@ -1744,8 +1780,10 @@ export function useInfiniteData(args: {
       meta.value?.columns as ColumnType[],
       getBaseType(viewMeta.value?.view?.source_id),
       metas.value,
+      meta.value?.base_id,
       {
         currentUser: user.value,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       },
     )
     const newRow = dataCache.cachedRows.value.get(row.rowMeta.rowIndex!)
@@ -1762,8 +1800,10 @@ export function useInfiniteData(args: {
         meta.value?.columns as ColumnType[],
         getBaseType(viewMeta.value?.view?.source_id),
         metas.value,
+        meta.value?.base_id,
         {
           currentUser: user.value,
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         },
       )
       row.rowMeta.changedGroupIndex = index
@@ -1878,35 +1918,41 @@ export function useInfiniteData(args: {
     return false
   }
 
-  async function syncCount(path: Array<number> = []): Promise<void> {
+  async function syncCount(path: Array<number> = [], throwError = false, showToastMessage = true): Promise<void> {
     if (!isPublic?.value && (!base?.value?.id || !meta.value?.id || !viewMeta.value?.id)) return
 
     const dataCache = getDataCache(path)
 
     const whereFilter = await callbacks?.getWhereFilter?.(path)
+    const jsonWhereFilterArr = (await callbacks?.getWhereFilterArr?.(path)) ?? []
 
     try {
       const { count } = isPublic?.value
         ? await fetchCount({
-            filtersArr: nestedFilters.value,
+            filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
             where: whereFilter,
           })
         : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
             where: whereFilter,
-            ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.value) }),
+            ...(isUIAllowed('filterSync')
+              ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
+              : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
           })
 
       if (fetchTotalRowsWithSearchQuery.value) {
         const { count: _count } = isPublic?.value
           ? await fetchCount({
-              filtersArr: nestedFilters.value,
+              filtersArr: [...(nestedFilters.value || []), ...jsonWhereFilterArr],
               where: whereQueryFromUrl.value as string,
             })
           : await $api.dbViewRow.count(NOCO, base?.value?.id as string, meta.value!.id as string, viewMeta?.value?.id as string, {
               where: whereQueryFromUrl.value as string,
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.value) }),
+              ...(isUIAllowed('filterSync')
+                ? {
+                    filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr),
+                  }
+                : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
             })
-
         if (!disableSmartsheet && !path.length && blockExternalSourceRecordVisibility(isExternalSource.value)) {
           totalRowsWithoutSearchQuery.value = Math.max(Math.min(200, _count as number), _count as number)
         } else {
@@ -1926,9 +1972,14 @@ export function useInfiniteData(args: {
 
       callbacks?.syncVisibleData?.()
     } catch (error: any) {
-      const errorMessage = await extractSdkResponseErrorMsg(error)
-      message.error(`Failed to sync count: ${errorMessage}`)
-      throw error
+      if (showToastMessage) {
+        const errorMessage = await extractSdkResponseErrorMsg(error)
+        message.error(`Failed to sync count: ${errorMessage}`)
+      }
+
+      if (throwError) {
+        throw error
+      }
     }
   }
 
@@ -2005,7 +2056,7 @@ export function useInfiniteData(args: {
   /**
    * This is used to update the rowMeta color info when the row colour info is updated
    */
-  eventBus.on((event) => {
+  const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
     if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
       return
     }
@@ -2025,10 +2076,333 @@ export function useInfiniteData(args: {
         Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
       })
     }
+  }
+
+  eventBus.on(smartsheetEventHandler)
+
+  onBeforeUnmount(() => {
+    eventBus.off(smartsheetEventHandler)
+    clearTimeout(upgradeModalTimer)
   })
 
   const activeDataListener = ref<string | null>(null)
   const activeCommentListener = ref<string | null>(null)
+
+  const handleDataEvent = (data: DataPayload) => {
+    const { id, action, payload, before } = data
+
+    if (action === 'add') {
+      // Add the new row to the local cache (cachedRows)
+      try {
+        const dataCache = getDataCache()
+
+        const isValidationFailed = !validateRowFilters(
+          [...allFilters.value, ...computedWhereFilter.value],
+          payload,
+          meta.value?.columns as ColumnType[],
+          getBaseType(viewMeta.value?.view?.source_id),
+          metas.value,
+          meta.value?.base_id,
+          {
+            currentUser: user.value,
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+          },
+        )
+
+        // find index to insert the new row
+        if (before) {
+          for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
+            const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+            if (pk && `${pk}` === `${before}`) {
+              // Insert before the found row
+              const newRowIndex = rowIndex
+              // Use descending order so that we first open the position then place the new record
+              const rowsToShift = Array.from(dataCache.cachedRows.value.entries())
+                .filter(([index]) => index >= newRowIndex)
+                .sort((a, b) => b[0] - a[0])
+
+              for (const [index, rowData] of rowsToShift) {
+                rowData.rowMeta.rowIndex = index + 1
+                dataCache.cachedRows.value.delete(index)
+                dataCache.cachedRows.value.set(index + 1, rowData)
+              }
+
+              if (!isValidationFailed) {
+                dataCache.cachedRows.value.set(newRowIndex, {
+                  row: payload,
+                  oldRow: {},
+                  rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+                })
+
+                dataCache.totalRows.value++
+                dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+
+                callbacks?.syncVisibleData?.()
+              }
+              return
+            }
+          }
+        }
+
+        if (!isValidationFailed) {
+          // If no order is found, append to the end
+          const newRowIndex = dataCache.totalRows.value
+          dataCache.cachedRows.value.set(newRowIndex, {
+            row: payload,
+            oldRow: {},
+            rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
+          })
+          dataCache.totalRows.value++
+          dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
+
+          callbacks?.syncVisibleData?.()
+        }
+      } catch (e) {
+        console.error('Failed to add cached row on socket event', e)
+      }
+    } else if (action === 'update') {
+      // Update the row in the local cache (cachedRows)
+      try {
+        const dataCache = getDataCache()
+        let updated = false
+        for (const cachedRow of dataCache.cachedRows.value.values()) {
+          const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+          if (pk && `${pk}` === `${id}`) {
+            Object.assign(cachedRow.row, payload)
+            Object.assign(cachedRow.oldRow, payload)
+
+            const isValidationFailed = !validateRowFilters(
+              [...allFilters.value, ...computedWhereFilter.value],
+              payload,
+              meta.value?.columns as ColumnType[],
+              getBaseType(viewMeta.value?.view?.source_id),
+              metas.value,
+              meta.value?.base_id,
+              {
+                currentUser: user.value,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              },
+            )
+
+            cachedRow.rowMeta.isValidationFailed = isValidationFailed
+            cachedRow.rowMeta.changed = false
+            updated = true
+            break
+          }
+        }
+        if (updated) {
+          callbacks?.syncVisibleData?.()
+        } else {
+          handleDataEvent({
+            ...data,
+            action: 'add',
+          })
+        }
+      } catch (e) {
+        console.error('Failed to update cached row on socket event', e)
+      }
+    } else if (action === 'delete') {
+      // Delete the row from the local cache (cachedRows)
+      try {
+        const dataCache = getDataCache()
+        for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
+          const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+          if (pk && `${pk}` === `${id}`) {
+            dataCache.cachedRows.value.delete(rowIndex)
+
+            const rows = Array.from(dataCache.cachedRows.value.entries())
+            const rowsToShift = rows.filter(([index]) => index > rowIndex)
+            rowsToShift.sort((a, b) => a[0] - b[0])
+
+            for (const [index, row] of rowsToShift) {
+              const newIndex = index - 1
+              row.rowMeta.rowIndex = newIndex
+              dataCache.cachedRows.value.delete(index)
+              dataCache.cachedRows.value.set(newIndex, row)
+            }
+
+            if (rowsToShift.length) {
+              dataCache.chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
+            }
+
+            dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
+            dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
+          }
+        }
+        callbacks?.syncVisibleData?.()
+      } catch (e) {
+        console.error('Failed to delete cached row on socket event', e)
+      }
+    } else if (action === 'reorder') {
+      // Reorder/move the row in the local cache (cachedRows)
+      try {
+        const dataCache = getDataCache()
+
+        // Find the row to be moved by its primary key
+        let rowToMove: Row | null = null
+        let currentIndex: number | null = null
+
+        for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+          const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+          if (pk && `${pk}` === `${id}`) {
+            rowToMove = cachedRow
+            currentIndex = index
+            break
+          }
+        }
+
+        if (!rowToMove || currentIndex === null) {
+          console.warn('Row to move not found in cache:', id)
+
+          if (before) {
+            // Find the 'before' row in cache
+            let beforeIndex: number | null = null
+            for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+              const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+              if (pk && `${pk}` === `${before}`) {
+                beforeIndex = index
+                break
+              }
+            }
+
+            if (beforeIndex !== null) {
+              // The new row position is before an existing cached row
+              // We need to shift all rows from beforeIndex onwards down by 1
+              const newCachedRows = new Map(dataCache.cachedRows.value.entries())
+
+              // Get all rows that need to be shifted (from beforeIndex onwards)
+              const rowsToShift = Array.from((dataCache.cachedRows.value as Map<number, Row>).entries())
+                .filter(([index]) => index >= beforeIndex!)
+                .sort((a, b) => b[0] - a[0])
+
+              // Shift each row down by 1
+              for (const [index, row] of rowsToShift) {
+                const newIndex = index + 1
+                row.rowMeta.rowIndex = newIndex
+                newCachedRows.delete(index)
+                newCachedRows.set(newIndex, row)
+              }
+
+              // Invalidate affected chunks
+              if (rowsToShift.length > 0) {
+                const minAffectedChunk = getChunkIndex(beforeIndex!)
+                const maxAffectedChunk = getChunkIndex(rowsToShift[rowsToShift.length - 1][0] + 1)
+                for (let i = minAffectedChunk; i <= maxAffectedChunk; i++) {
+                  dataCache.chunkStates.value[i] = undefined
+                }
+              }
+
+              // Apply the changes
+              dataCache.cachedRows.value = newCachedRows
+
+              callbacks?.syncVisibleData?.()
+            } else {
+              // The 'before' row is not in cache, skip
+              console.log('Before row not in cache, skipping reorder operation')
+            }
+          } else {
+            // No 'before' specified means move to end
+            // No changes needed to cache since it's moving to the end
+            console.log('Row moved to end, no cache changes needed')
+            callbacks?.syncVisibleData?.()
+          }
+
+          return
+        }
+
+        // Row found in cache - proceed with reordering
+
+        // Find the target position based on the 'before' parameter
+        let targetIndex: number
+
+        if (before) {
+          // Find the row that should come after the moved row
+          let beforeIndex: number | null = null
+          for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
+            const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+            if (pk && `${pk}` === `${before}`) {
+              beforeIndex = index
+              break
+            }
+          }
+
+          if (beforeIndex !== null) {
+            targetIndex = beforeIndex
+          } else {
+            // If 'before' row not found in cache, move to end
+            targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
+          }
+        } else {
+          // If no 'before' specified, move to the end
+          targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
+        }
+
+        // If the row is already at the target position, no need to move
+        if (currentIndex === targetIndex) {
+          return
+        }
+
+        // Create a new cached rows map with the updated positions
+        const newCachedRows = new Map(dataCache.cachedRows.value.entries())
+
+        // Remove the row from its current position
+        newCachedRows.delete(currentIndex)
+
+        // Determine the final target index (similar to updateRecordOrder logic)
+        const finalTargetIndex = targetIndex > currentIndex ? targetIndex - 1 : targetIndex
+
+        // Shift rows to make space for the moved row
+        if (finalTargetIndex < currentIndex) {
+          // Moving up: shift rows down
+          for (let i = currentIndex - 1; i >= finalTargetIndex; i--) {
+            const row = newCachedRows.get(i)
+            if (row) {
+              const newIndex = i + 1
+              row.rowMeta.rowIndex = newIndex
+              newCachedRows.delete(i)
+              newCachedRows.set(newIndex, row)
+            }
+          }
+        } else {
+          // Moving down: shift rows up
+          for (let i = currentIndex + 1; i <= finalTargetIndex; i++) {
+            const row = newCachedRows.get(i)
+            if (row) {
+              const newIndex = i - 1
+              row.rowMeta.rowIndex = newIndex
+              newCachedRows.delete(i)
+              newCachedRows.set(newIndex, row)
+            }
+          }
+        }
+
+        // Place the moved row at its new position
+        rowToMove.rowMeta.rowIndex = finalTargetIndex
+        newCachedRows.set(finalTargetIndex, rowToMove)
+
+        // Update any changed data in the moved row (if payload contains updates)
+        if (payload && typeof payload === 'object') {
+          Object.assign(rowToMove.row, payload)
+          Object.assign(rowToMove.oldRow, payload)
+        }
+        rowToMove.rowMeta.changed = false
+
+        // Invalidate affected chunks
+        const targetChunkIndex = getChunkIndex(finalTargetIndex)
+        const sourceChunkIndex = getChunkIndex(currentIndex)
+        for (let i = Math.min(sourceChunkIndex, targetChunkIndex); i <= Math.max(sourceChunkIndex, targetChunkIndex); i++) {
+          dataCache.chunkStates.value[i] = undefined
+        }
+
+        // Apply the changes
+        dataCache.cachedRows.value = newCachedRows
+
+        callbacks?.syncVisibleData?.()
+      } catch (e) {
+        console.error('Failed to reorder cached row on socket event', e)
+      }
+    }
+  }
 
   watch(
     meta,
@@ -2046,288 +2420,7 @@ export function useInfiniteData(args: {
 
         activeDataListener.value = $ncSocket.onMessage(
           `${EventType.DATA_EVENT}:${newMeta.fk_workspace_id}:${newMeta.base_id}:${newMeta.id}`,
-          (data: DataPayload) => {
-            const { id, action, payload, before } = data
-
-            if (action === 'add') {
-              // Add the new row to the local cache (cachedRows)
-              try {
-                const dataCache = getDataCache()
-
-                // find index to insert the new row
-                if (before) {
-                  for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
-                    const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
-                    if (pk && `${pk}` === `${before}`) {
-                      // Insert before the found row
-                      const newRowIndex = rowIndex
-                      // Use descending order so that we first open the position then place the new record
-                      const rowsToShift = Array.from(dataCache.cachedRows.value.entries())
-                        .filter(([index]) => index >= newRowIndex)
-                        .sort((a, b) => b[0] - a[0])
-
-                      for (const [index, rowData] of rowsToShift) {
-                        rowData.rowMeta.rowIndex = index + 1
-                        dataCache.cachedRows.value.delete(index)
-                        dataCache.cachedRows.value.set(index + 1, rowData)
-                      }
-
-                      dataCache.cachedRows.value.set(newRowIndex, {
-                        row: payload,
-                        oldRow: {},
-                        rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
-                      })
-
-                      dataCache.totalRows.value++
-                      dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
-
-                      callbacks?.syncVisibleData?.()
-                      return
-                    }
-                  }
-                }
-
-                // If no order is found, append to the end
-                const newRowIndex = dataCache.totalRows.value
-                dataCache.cachedRows.value.set(newRowIndex, {
-                  row: payload,
-                  oldRow: {},
-                  rowMeta: { new: false, rowIndex: newRowIndex, path: [] },
-                })
-                dataCache.totalRows.value++
-                dataCache.actualTotalRows.value = Math.max(dataCache.actualTotalRows.value || 0, dataCache.totalRows.value)
-
-                callbacks?.syncVisibleData?.()
-              } catch (e) {
-                console.error('Failed to add cached row on socket event', e)
-              }
-            } else if (action === 'update') {
-              // Update the row in the local cache (cachedRows)
-              try {
-                const dataCache = getDataCache()
-                let updated = false
-                for (const cachedRow of dataCache.cachedRows.value.values()) {
-                  const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
-                  if (pk && `${pk}` === `${id}`) {
-                    Object.assign(cachedRow.row, payload)
-                    Object.assign(cachedRow.oldRow, payload)
-                    cachedRow.rowMeta.changed = false
-                    updated = true
-                    break
-                  }
-                }
-                if (updated) {
-                  callbacks?.syncVisibleData?.()
-                }
-              } catch (e) {
-                console.error('Failed to update cached row on socket event', e)
-              }
-            } else if (action === 'delete') {
-              // Delete the row from the local cache (cachedRows)
-              try {
-                const dataCache = getDataCache()
-                for (const [rowIndex, cachedRow] of dataCache.cachedRows.value.entries()) {
-                  const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
-                  if (pk && `${pk}` === `${id}`) {
-                    dataCache.cachedRows.value.delete(rowIndex)
-
-                    const rows = Array.from(dataCache.cachedRows.value.entries())
-                    const rowsToShift = rows.filter(([index]) => index > rowIndex)
-                    rowsToShift.sort((a, b) => a[0] - b[0])
-
-                    for (const [index, row] of rowsToShift) {
-                      const newIndex = index - 1
-                      row.rowMeta.rowIndex = newIndex
-                      dataCache.cachedRows.value.delete(index)
-                      dataCache.cachedRows.value.set(newIndex, row)
-                    }
-
-                    if (rowsToShift.length) {
-                      dataCache.chunkStates.value[getChunkIndex(rowsToShift[rowsToShift.length - 1][0])] = undefined
-                    }
-
-                    dataCache.totalRows.value = (dataCache.totalRows.value || 0) - 1
-                    dataCache.actualTotalRows.value = Math.max(0, (dataCache.actualTotalRows.value || 0) - 1)
-                  }
-                }
-                callbacks?.syncVisibleData?.()
-              } catch (e) {
-                console.error('Failed to delete cached row on socket event', e)
-              }
-            } else if (action === 'reorder') {
-              // Reorder/move the row in the local cache (cachedRows)
-              try {
-                const dataCache = getDataCache()
-
-                // Find the row to be moved by its primary key
-                let rowToMove: Row | null = null
-                let currentIndex: number | null = null
-
-                for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
-                  const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
-                  if (pk && `${pk}` === `${id}`) {
-                    rowToMove = cachedRow
-                    currentIndex = index
-                    break
-                  }
-                }
-
-                if (!rowToMove || currentIndex === null) {
-                  console.warn('Row to move not found in cache:', id)
-
-                  if (before) {
-                    // Find the 'before' row in cache
-                    let beforeIndex: number | null = null
-                    for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
-                      const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
-                      if (pk && `${pk}` === `${before}`) {
-                        beforeIndex = index
-                        break
-                      }
-                    }
-
-                    if (beforeIndex !== null) {
-                      // The new row position is before an existing cached row
-                      // We need to shift all rows from beforeIndex onwards down by 1
-                      const newCachedRows = new Map(dataCache.cachedRows.value.entries())
-
-                      // Get all rows that need to be shifted (from beforeIndex onwards)
-                      const rowsToShift = Array.from((dataCache.cachedRows.value as Map<number, Row>).entries())
-                        .filter(([index]) => index >= beforeIndex!)
-                        .sort((a, b) => b[0] - a[0])
-
-                      // Shift each row down by 1
-                      for (const [index, row] of rowsToShift) {
-                        const newIndex = index + 1
-                        row.rowMeta.rowIndex = newIndex
-                        newCachedRows.delete(index)
-                        newCachedRows.set(newIndex, row)
-                      }
-
-                      // Invalidate affected chunks
-                      if (rowsToShift.length > 0) {
-                        const minAffectedChunk = getChunkIndex(beforeIndex!)
-                        const maxAffectedChunk = getChunkIndex(rowsToShift[rowsToShift.length - 1][0] + 1)
-                        for (let i = minAffectedChunk; i <= maxAffectedChunk; i++) {
-                          dataCache.chunkStates.value[i] = undefined
-                        }
-                      }
-
-                      // Apply the changes
-                      dataCache.cachedRows.value = newCachedRows
-
-                      callbacks?.syncVisibleData?.()
-                    } else {
-                      // The 'before' row is not in cache, skip
-                      console.log('Before row not in cache, skipping reorder operation')
-                    }
-                  } else {
-                    // No 'before' specified means move to end
-                    // No changes needed to cache since it's moving to the end
-                    console.log('Row moved to end, no cache changes needed')
-                    callbacks?.syncVisibleData?.()
-                  }
-
-                  return
-                }
-
-                // Row found in cache - proceed with reordering
-
-                // Find the target position based on the 'before' parameter
-                let targetIndex: number
-
-                if (before) {
-                  // Find the row that should come after the moved row
-                  let beforeIndex: number | null = null
-                  for (const [index, cachedRow] of dataCache.cachedRows.value.entries()) {
-                    const pk = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
-                    if (pk && `${pk}` === `${before}`) {
-                      beforeIndex = index
-                      break
-                    }
-                  }
-
-                  if (beforeIndex !== null) {
-                    targetIndex = beforeIndex
-                  } else {
-                    // If 'before' row not found in cache, move to end
-                    targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
-                  }
-                } else {
-                  // If no 'before' specified, move to the end
-                  targetIndex = Math.max(...Array.from(dataCache.cachedRows.value.keys())) + 1
-                }
-
-                // If the row is already at the target position, no need to move
-                if (currentIndex === targetIndex) {
-                  return
-                }
-
-                // Create a new cached rows map with the updated positions
-                const newCachedRows = new Map(dataCache.cachedRows.value.entries())
-
-                // Remove the row from its current position
-                newCachedRows.delete(currentIndex)
-
-                // Determine the final target index (similar to updateRecordOrder logic)
-                const finalTargetIndex = targetIndex > currentIndex ? targetIndex - 1 : targetIndex
-
-                // Shift rows to make space for the moved row
-                if (finalTargetIndex < currentIndex) {
-                  // Moving up: shift rows down
-                  for (let i = currentIndex - 1; i >= finalTargetIndex; i--) {
-                    const row = newCachedRows.get(i)
-                    if (row) {
-                      const newIndex = i + 1
-                      row.rowMeta.rowIndex = newIndex
-                      newCachedRows.delete(i)
-                      newCachedRows.set(newIndex, row)
-                    }
-                  }
-                } else {
-                  // Moving down: shift rows up
-                  for (let i = currentIndex + 1; i <= finalTargetIndex; i++) {
-                    const row = newCachedRows.get(i)
-                    if (row) {
-                      const newIndex = i - 1
-                      row.rowMeta.rowIndex = newIndex
-                      newCachedRows.delete(i)
-                      newCachedRows.set(newIndex, row)
-                    }
-                  }
-                }
-
-                // Place the moved row at its new position
-                rowToMove.rowMeta.rowIndex = finalTargetIndex
-                newCachedRows.set(finalTargetIndex, rowToMove)
-
-                // Update any changed data in the moved row (if payload contains updates)
-                if (payload && typeof payload === 'object') {
-                  Object.assign(rowToMove.row, payload)
-                  Object.assign(rowToMove.oldRow, payload)
-                }
-                rowToMove.rowMeta.changed = false
-
-                // Invalidate affected chunks
-                const targetChunkIndex = getChunkIndex(finalTargetIndex)
-                const sourceChunkIndex = getChunkIndex(currentIndex)
-                for (
-                  let i = Math.min(sourceChunkIndex, targetChunkIndex);
-                  i <= Math.max(sourceChunkIndex, targetChunkIndex);
-                  i++
-                ) {
-                  dataCache.chunkStates.value[i] = undefined
-                }
-
-                // Apply the changes
-                dataCache.cachedRows.value = newCachedRows
-
-                callbacks?.syncVisibleData?.()
-              } catch (e) {
-                console.error('Failed to reorder cached row on socket event', e)
-              }
-            }
-          },
+          handleDataEvent,
         )
 
         activeCommentListener.value = $ncSocket.onMessage(

@@ -6,6 +6,8 @@ export type MCPTokenExtendedType = MCPTokenType & {
   loading?: boolean
   error?: boolean
   created_display_name?: string
+  workspace?: { title?: string }
+  base?: { title?: string }
 }
 
 export const useMcpSettings = createSharedComposable(() => {
@@ -24,6 +26,8 @@ export const useMcpSettings = createSharedComposable(() => {
   const baseUsers = computed(() => (activeProjectId.value ? basesUser.value.get(activeProjectId.value) || [] : []))
 
   const mcpTokens = ref<MCPTokenExtendedType[]>([] as MCPTokenExtendedType[])
+
+  const accountMcpTokens = ref<MCPTokenExtendedType[]>([])
 
   const newMcpTokenTitle = ref('')
 
@@ -63,6 +67,11 @@ export const useMcpSettings = createSharedComposable(() => {
     try {
       isCreatingMcpToken.value = true
 
+      // trim title before saving
+      if (newMcpTokenTitle.value) {
+        newMcpTokenTitle.value = newMcpTokenTitle.value.trim()
+      }
+
       const response = await $api.internal.postOperation(
         activeWorkspaceId.value,
         activeProjectId.value,
@@ -99,13 +108,20 @@ export const useMcpSettings = createSharedComposable(() => {
     }
   }
 
-  const updateMcpToken = async (token: MCPTokenExtendedType) => {
+  const updateMcpToken = async (token: MCPTokenExtendedType, isAccountLevel = false) => {
+    const workspaceId = isAccountLevel ? token.fk_workspace_id : activeWorkspaceId.value
+    const baseId = isAccountLevel ? token.base_id : activeProjectId.value
+
+    if (!workspaceId || !baseId) return
+
+    const tokenList = isAccountLevel ? accountMcpTokens : mcpTokens
+
     try {
       token.loading = true
 
       const res = await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        activeProjectId.value,
+        workspaceId,
+        baseId,
         {
           operation: 'mcpUpdate',
         },
@@ -116,6 +132,15 @@ export const useMcpSettings = createSharedComposable(() => {
 
       token.loading = false
       message.success(t('msg.success.mcpTokenUpdated'))
+
+      // Update the token in the appropriate list
+      if (isAccountLevel) {
+        const index = tokenList.value.findIndex((t) => t.id === token.id)
+        if (index !== -1 && res) {
+          tokenList.value[index] = { ...tokenList.value[index], ...res }
+        }
+      }
+
       return res
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
@@ -124,19 +149,24 @@ export const useMcpSettings = createSharedComposable(() => {
     }
   }
 
-  const deleteMcpToken = async (token: MCPTokenExtendedType) => {
-    if (!activeProjectId.value || !activeWorkspaceId.value) return
+  const deleteMcpToken = async (token: MCPTokenExtendedType, isAccountLevel = false) => {
+    const workspaceId = isAccountLevel ? token.fk_workspace_id : activeWorkspaceId.value
+    const baseId = isAccountLevel ? token.base_id : activeProjectId.value
+
+    if (!workspaceId || !baseId) return
 
     try {
+      const tokenList = isAccountLevel ? accountMcpTokens : mcpTokens
+
       // Add loading state
-      const tokenToDelete = mcpTokens.value.find((t) => t.id === token.id)
+      const tokenToDelete = tokenList.value.find((t) => t.id === token.id)
       if (tokenToDelete) {
         tokenToDelete.loading = true
       }
 
       const response = await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        activeProjectId.value,
+        workspaceId,
+        baseId,
         {
           operation: 'mcpDelete',
         },
@@ -147,17 +177,17 @@ export const useMcpSettings = createSharedComposable(() => {
 
       // Only remove from the list if successful
       if (response) {
-        mcpTokens.value = mcpTokens.value.filter((t) => t.id !== token.id)
+        tokenList.value = tokenList.value.filter((t) => t.id !== token.id)
         message.success(t('msg.success.mcpTokenDeleted'))
       } else {
-        // Reset loading state if unsuccessful
         if (tokenToDelete) {
           tokenToDelete.loading = false
         }
         message.error(t('msg.error.failedToDeleteMcpToken'))
       }
     } catch (error: any) {
-      const tokenToDelete = mcpTokens.value.find((t) => t.id === token.id)
+      const tokenList = isAccountLevel ? accountMcpTokens.value : mcpTokens.value
+      const tokenToDelete = tokenList.find((t) => t.id === token.id)
       if (tokenToDelete) {
         tokenToDelete.loading = false
       }
@@ -181,6 +211,26 @@ export const useMcpSettings = createSharedComposable(() => {
     ]
   }
 
+  const listAccountMcpTokens = async () => {
+    try {
+      const response = await $api.internal.getOperation(NO_SCOPE, NO_SCOPE, {
+        operation: 'mcpRootList',
+      })
+
+      if (response && Array.isArray(response)) {
+        accountMcpTokens.value = response.map((token: any) => ({
+          ...token,
+          isNew: false,
+        }))
+      }
+      return accountMcpTokens.value
+    } catch (error: any) {
+      message.error(await extractSdkResponseErrorMsg(error))
+      console.error(error)
+      return []
+    }
+  }
+
   return {
     mcpTokens,
     createMcpToken,
@@ -192,5 +242,8 @@ export const useMcpSettings = createSharedComposable(() => {
     addNewMcpToken,
     isCreatingMcpToken,
     newMcpTokenTitle,
+    // Account-level
+    accountMcpTokens,
+    listAccountMcpTokens,
   }
 })

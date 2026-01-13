@@ -6,6 +6,7 @@ export function useColumnResize(
   columns: ComputedRef<CanvasGridColumn[]>,
   colSlice: Ref<{ start: number; end: number }>,
   scrollLeft: Ref<number>,
+  isViewOperationsAllowed: ComputedRef<boolean>,
   onResize?: (columnId: string, width: number) => void,
   onResizeEnd?: (columnId: string, width: number) => void,
 ) {
@@ -94,7 +95,7 @@ export function useColumnResize(
 
   const handleMouseDown = (e: MouseEvent) => {
     const rect = canvasRef.value?.getBoundingClientRect()
-    if (!rect || isLocked.value) return
+    if (!rect || isLocked.value || !isViewOperationsAllowed.value) return
 
     mousePosition.value = {
       x: e.clientX - rect.left,

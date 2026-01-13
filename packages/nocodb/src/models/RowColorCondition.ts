@@ -1,4 +1,7 @@
+import { Logger } from '@nestjs/common';
+import { NcBaseError } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
+import { NcError } from '~/helpers/ncError';
 import { MetaTable } from '~/cli';
 import Noco from '~/Noco';
 
@@ -11,6 +14,7 @@ export interface IRowColorCondition {
   nc_order: number;
   is_set_as_background: boolean;
 }
+const logger = new Logger('RowColorCondition');
 export default class RowColorCondition implements IRowColorCondition {
   id: string;
   fk_view_id: string;
@@ -25,14 +29,17 @@ export default class RowColorCondition implements IRowColorCondition {
   }
 
   static async getById(context: NcContext, id: string, ncMeta = Noco.ncMeta) {
-    return new RowColorCondition(
-      await ncMeta.metaGet(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.ROW_COLOR_CONDITIONS,
-        id,
-      ),
+    const condition = await ncMeta.metaGet(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.ROW_COLOR_CONDITIONS,
+      id,
     );
+    if (condition) {
+      return new RowColorCondition(condition);
+    } else {
+      return undefined;
+    }
   }
 
   static async getByViewId(
@@ -78,7 +85,11 @@ export default class RowColorCondition implements IRowColorCondition {
       await ncMetaTrans.commit();
     } catch (ex) {
       await ncMetaTrans.rollback();
-      throw ex;
+      if (ex instanceof NcError || ex instanceof NcBaseError) throw ex;
+      logger.error('Failed to remove Row Colouring', ex);
+      NcError.get(context).internalServerError(
+        'Failed to remove Row Colouring',
+      );
     }
   }
 }

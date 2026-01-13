@@ -345,6 +345,7 @@ export const colOptionBuilder = builderGenerator({
     related_table_rollup_field_id: 'fk_rollup_column_id',
 
     fk_webhook_id: 'button_hook_id',
+    fk_script_id: 'script_id',
 
     // todo: extract this
     // inverse_related_field_id: 'inverse_related_field_id',
@@ -363,6 +364,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
       'colOptions',
       'fk_model_id',
       'system',
+      'unique',
     ],
     mappings: {
       uidt: 'type',
@@ -371,6 +373,7 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
       fk_model_id: 'table_id',
     },
     excludeNullProps: true,
+    booleanProps: ['unique'], // Ensure unique is always included even if false
     meta: {
       snakeCase: true,
       metaProps: ['meta'],
@@ -486,6 +489,15 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
             theme: rest.theme,
             icon: rest.icon,
           };
+        } else if (type === 'script') {
+          options = {
+            type,
+            script_id: rest.script_id,
+            label: rest.label,
+            color: rest.color,
+            theme: rest.theme,
+            icon: rest.icon,
+          };
         } else if (type === 'ai') {
           options = {
             type,
@@ -502,7 +514,8 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
           options = { ...rest, button_type: type };
         }
       } else if (isLinksOrLTAR(data.type)) {
-        const { type, ...rest } = data.options as Record<string, any>;
+        const { type, ...rest } =
+          (data.options as Record<string, any>) ?? options;
         options = { ...rest, relation_type: type };
       }
       options = options || data.options;
@@ -516,6 +529,8 @@ export const columnBuilder = builderGenerator<Column | ColumnType, FieldV3Type>(
         ...data,
         colOptions: undefined,
         options: options && Object.keys(options)?.length ? options : undefined,
+        // Explicitly preserve unique property
+        unique: data.unique,
       };
     },
   },
@@ -533,6 +548,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     'related_table_lookup_field_id',
     'rollup_function',
     'button_hook_id',
+    'script_id',
     'webhook_id',
     'type',
     'prompt',
@@ -551,6 +567,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
     relation_type: 'type',
 
     button_hook_id: 'fk_webhook_id',
+    script_id: 'fk_script_id',
     webhook_id: 'fk_webhook_id',
 
     // parent id we need to extract from the url
@@ -567,6 +584,7 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
       if (
         data.type === 'formula' ||
         data.type === 'webhook' ||
+        data.type === 'script' ||
         data.type === 'ai'
       ) {
         return {
@@ -580,7 +598,15 @@ export const columnOptionsV3ToV2Builder = builderGenerator({
 });
 
 export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
-  allowed: ['id', 'title', 'type', 'default_value', 'options', 'description'],
+  allowed: [
+    'id',
+    'title',
+    'type',
+    'default_value',
+    'options',
+    'description',
+    'unique',
+  ],
   mappings: {
     type: 'uidt',
     default_value: 'cdf',
@@ -675,32 +701,6 @@ export const columnV3ToV2Builder = builderGenerator<FieldV3Type, ColumnType>({
       );
       if (durationIdx > -1) {
         meta.duration = durationIdx;
-      }
-    } else if (data.uidt === UITypes.Button) {
-      // Convert the V3 oneOf schema format to the V2 format for buttons
-      const {
-        type,
-        formula,
-        webhook_id,
-        prompt,
-        integration_id,
-        output_column_ids,
-        ...commonProps
-      } = meta as Record<string, any>;
-
-      // Set base meta properties
-      Object.assign(meta, commonProps);
-      meta.type = type;
-
-      // Add type-specific properties
-      if (type === 'formula' && formula) {
-        meta.formula = formula;
-      } else if (type === 'webhook' && webhook_id) {
-        meta.fk_webhook_id = webhook_id;
-      } else if (type === 'ai') {
-        if (prompt) meta.prompt = prompt;
-        if (integration_id) meta.integration_id = integration_id;
-        if (output_column_ids) meta.output_column_ids = output_column_ids;
       }
     }
     // if multi select then accept array of default values

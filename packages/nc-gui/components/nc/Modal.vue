@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import type { CSSProperties } from 'vue'
+
 export interface NcModalProps {
   visible: boolean
   width?: string | number
@@ -13,6 +15,7 @@ export interface NcModalProps {
   ncModalClassName?: string
   stopEventPropogation?: boolean
   class?: string
+  maskStyle?: CSSProperties
 }
 
 const props = withDefaults(defineProps<NcModalProps>(), {
@@ -138,6 +141,7 @@ if (stopEventPropogation.value) {
     :wrap-class-name="newWrapClassName"
     :footer="null"
     :mask-closable="maskClosable"
+    :mask-style="maskStyle"
     :keyboard="keyboard"
     :destroy-on-close="destroyOnClose"
     @keydown.esc="visible = false"
@@ -154,7 +158,7 @@ if (stopEventPropogation.value) {
       <div
         v-if="slots.header"
         :class="{
-          'border-b-1 border-gray-200': showSeparator,
+          'border-b-1 border-nc-border-gray-medium': showSeparator,
         }"
         class="flex pb-2 mb-2 nc-modal-header text-lg font-medium"
       >

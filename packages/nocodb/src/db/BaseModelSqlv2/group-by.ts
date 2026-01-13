@@ -1,4 +1,10 @@
-import { extractFilterFromXwhere, FormulaDataTypes, UITypes } from 'nocodb-sdk';
+import {
+  extractFilterFromXwhere,
+  FormulaDataTypes,
+  isLinksOrLTAR,
+  isSystemColumn,
+  UITypes,
+} from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -9,6 +15,7 @@ import type {
   RollupColumn,
   View,
 } from '~/models';
+import applyAggregation from '~/db/aggregation';
 import { replaceDelimitedWithKeyValuePg } from '~/db/aggregations/pg';
 import { sanitize } from '~/helpers/sqlSanitize';
 import conditionV2 from '~/db/conditionV2';
@@ -21,9 +28,37 @@ import {
   getAs,
   getColumnName,
 } from '~/helpers/dbHelpers';
-import { BaseUser, Column, Filter, Sort } from '~/models';
-import { getAliasGenerator, isOnPrem } from '~/utils';
+import { BaseUser, Column, Filter, GridViewColumn, Sort } from '~/models';
+import { getAliasGenerator } from '~/utils';
 import { replaceDelimitedWithKeyValueSqlite3 } from '~/db/aggregations/sqlite3';
+import { NC_DISABLE_GROUP_BY_LIMIT } from '~/utils/nc-config';
+
+// Returns a SQL expression that converts blank (null or '') values to NULL
+const sqlNullIfBlank = ({
+  baseModel,
+  columnName,
+  isStringType = false,
+}: {
+  baseModel: IBaseModelSqlV2;
+  columnName: string | Knex.QueryBuilder | Knex.Raw;
+  isStringType?: boolean;
+}) => {
+  if (baseModel.isPg && !isStringType) {
+    return baseModel.dbDriver.raw(
+      `CASE 
+        WHEN (pg_typeof(:column:) = 'text'::regtype 
+          OR pg_typeof(:column:) = 'varchar'::regtype 
+          OR pg_typeof(:column:) = 'char'::regtype) 
+          AND (:column:)::text = '' 
+        THEN NULL
+        ELSE :column:
+      END`,
+      { column: columnName },
+    );
+  }
+
+  return baseModel.dbDriver.raw(`NULLIF(??, '')`, [columnName]);
+};
 
 export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   const list = async (args: {
@@ -35,6 +70,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     sort?: string | string[];
     filterArr?: Filter[];
     sortArr?: Sort[];
+    minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) => {
     const { where, ...rest } = baseModel._getListArgs(args as any);
 
@@ -57,7 +93,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         (c) => c.column_name === col || c.title === col,
       );
       if (!column) {
-        throw NcError.fieldNotFound(col);
+        NcError.get(baseModel.context).fieldNotFound(col);
       }
       // if qrCode or Barcode replace it with value column nd keep the alias
       if ([UITypes.QrCode, UITypes.Barcode].includes(column.uidt)) {
@@ -78,12 +114,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       let columnQuery;
       switch (column.uidt) {
         case UITypes.Attachment:
-          NcError.badRequest(
+          NcError.get(baseModel.context).badRequest(
             'Group by using attachment column is not supported',
           );
           break;
         case UITypes.Button:
-          NcError.badRequest('Group by using Button column is not supported');
+          NcError.get(baseModel.context).badRequest(
+            'Group by using Button column is not supported',
+          );
           break;
         case UITypes.Links:
         case UITypes.Rollup:
@@ -113,7 +151,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               (column.colOptions as FormulaColumn).getParsedTree().dataType ===
                 FormulaDataTypes.STRING
             ) {
-              columnQuery = baseModel.dbDriver.raw(`??::text`, [columnQuery]);
+              columnQuery = sqlNullIfBlank({
+                columnName: baseModel.dbDriver.raw(`??::text`, [columnQuery]),
+                baseModel,
+                isStringType: true,
+              });
             }
           } catch (e) {
             logger.log(e);
@@ -202,10 +244,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             column,
             columns,
           );
-          columnQuery = baseModel.dbDriver.raw('??', [defaultColumnName]);
+          const defaultColumnNameQb = sqlNullIfBlank({
+            columnName: defaultColumnName,
+            baseModel,
+          });
+          columnQuery = baseModel.dbDriver.raw('??', [defaultColumnNameQb]);
           if (!isSubGroup) {
             selectors.push(
-              baseModel.dbDriver.raw(`?? as ??`, [defaultColumnName, alias]),
+              baseModel.dbDriver.raw(`?? as ??`, [defaultColumnNameQb, alias]),
             );
           }
           break;
@@ -227,10 +273,15 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       const subGroupQuery = await processColumn(subGroupColumnName, true);
       qb.select(
         baseModel.dbDriver.raw(
-          `COUNT(DISTINCT COALESCE(${
-            baseModel.isPg ? '(??)::text' : '??'
-          }, '__null__')) as ??`,
-          [baseModel.dbDriver.raw(subGroupQuery), '__sub_group_count__'],
+          `COUNT(DISTINCT COALESCE(${sqlNullIfBlank({
+            columnName: baseModel.dbDriver.raw(
+              baseModel.isPg ? '(??)::text' : '??',
+              [baseModel.dbDriver.raw(subGroupQuery)],
+            ),
+            baseModel,
+            isStringType: true,
+          })}, '__null__')) as ??`,
+          ['__sub_group_count__'],
         ),
       );
     }
@@ -295,20 +346,34 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
     }
 
-    // if sort is provided filter out the group by columns sort and apply
-    // since we are grouping by the column and applying sort on any other column is not required
+    // group by using the column aliases
+    qb.groupBy(...groupBySelectors);
+
+    // Add HAVING clause to filter groups by minimum count (e.g., count > 1 for duplicates only)
+    if (args.minCount !== undefined && args.minCount > 0) {
+      qb.havingRaw('COUNT(??) >= ?', [
+        baseModel.model.primaryKey?.column_name || '*',
+        args.minCount,
+      ]);
+    }
+
+    // Wrap in a CTE to allow referencing grouped/aliased columns in subqueries (esp. for Postgres)
+    // We'll use: WITH grouped AS (<qb>) SELECT ... FROM grouped g
+    const outerQb = baseModel.dbDriver
+      .with('grouped', qb.clone())
+      .select('*')
+      .from({ g: 'grouped' });
+
+    if (!NC_DISABLE_GROUP_BY_LIMIT) {
+      applyPaginate(outerQb, rest);
+    }
+
+    // Apply order by on the outer query, referencing g.<alias>
     for (const sort of sorts || []) {
       if (!groupByColumns[sort.fk_column_id]) {
         continue;
       }
-
       const column = groupByColumns[sort.fk_column_id];
-      const columnName = await getColumnName(
-        baseModel.context,
-        column,
-        columns,
-      );
-
       if (
         [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(
           column.uidt as UITypes,
@@ -318,12 +383,17 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           base_id: column.base_id,
           include_internal_user: true,
         });
-
+        const groupedCol = getAs(column);
+        const groupedColQb = sqlNullIfBlank({
+          columnName: baseModel.dbDriver.raw('??.??', ['g', groupedCol]),
+          baseModel,
+          isStringType: true,
+        });
         let finalStatement = '';
         if (baseModel.dbDriver.clientType() === 'pg') {
           finalStatement = `(${replaceDelimitedWithKeyValuePg({
             knex: baseModel.dbDriver,
-            needleColumn: columnName,
+            needleColumn: groupedColQb as any,
             stack: baseUsers.map((user) => ({
               key: user.id,
               value: user.display_name || user.email,
@@ -332,35 +402,34 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         } else if (baseModel.dbDriver.clientType() === 'sqlite3') {
           finalStatement = `(${replaceDelimitedWithKeyValueSqlite3({
             knex: baseModel.dbDriver,
-            needleColumn: columnName,
+            needleColumn: groupedColQb as any,
             stack: baseUsers.map((user) => ({
               key: user.id,
               value: user.display_name || user.email,
             })),
           })})`;
         } else {
-          // use the original replace
           finalStatement = baseUsers.reduce((acc, user) => {
-            const qb = baseModel.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
+            const qbReplace = baseModel.dbDriver.raw(`REPLACE(${acc}, ?, ?)`, [
               user.id,
               user.display_name || user.email,
             ]);
-            return qb.toQuery();
-          }, baseModel.dbDriver.raw(`??`, [columnName]).toQuery());
+            return qbReplace.toQuery();
+          }, groupedColQb.toQuery());
         }
         if (!['asc', 'desc'].includes(sort.direction)) {
-          qb.orderBy(
-            'count',
+          outerQb.orderBy(
+            'g.count',
             sort.direction === 'count-desc' ? 'desc' : 'asc',
             sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
           );
-          qb.orderBy(
+          outerQb.orderBy(
             sanitize(baseModel.dbDriver.raw(finalStatement)),
             sort.direction,
-            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+            'FIRST',
           );
         } else {
-          qb.orderBy(
+          outerQb.orderBy(
             sanitize(baseModel.dbDriver.raw(finalStatement)),
             sort.direction,
             sort.direction === 'desc' ? 'LAST' : 'FIRST',
@@ -368,19 +437,19 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
         }
       } else {
         if (!['asc', 'desc'].includes(sort.direction)) {
-          qb.orderBy(
-            'count',
+          outerQb.orderBy(
+            'g.count',
             sort.direction === 'count-desc' ? 'desc' : 'asc',
             sort.direction === 'count-desc' ? 'LAST' : 'FIRST',
           );
-          qb.orderBy(
-            getAs(column),
+          outerQb.orderBy(
+            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
-            sort.direction === 'desc' ? 'LAST' : 'FIRST',
+            'FIRST',
           );
         } else {
-          qb.orderBy(
-            getAs(column),
+          outerQb.orderBy(
+            baseModel.dbDriver.raw('??.??', ['g', getAs(column)]) as any,
             sort.direction,
             sort.direction === 'desc' ? 'LAST' : 'FIRST',
           );
@@ -388,14 +457,11 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }
     }
 
-    // group by using the column aliases
-    qb.groupBy(...groupBySelectors);
-
-    if (!isOnPrem) {
-      applyPaginate(qb, rest);
-    }
-
-    return await baseModel.execAndParse(qb);
+    return await baseModel.execAndParse(
+      baseModel.dbDriver.from(
+        baseModel.dbDriver.raw(outerQb).wrap('(', ') __nc_group_alias'),
+      ),
+    );
   };
 
   const count = async (args: {
@@ -404,6 +470,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     limit?;
     offset?;
     filterArr?: Filter[];
+    minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) => {
     const { where } = baseModel._getListArgs(args as any);
 
@@ -422,7 +489,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           (c) => c.column_name === col || c.title === col,
         );
         if (!column) {
-          throw NcError.fieldNotFound(col);
+          NcError.get(baseModel.context).fieldNotFound(col);
         }
 
         // if qrCode or Barcode replace it with value column nd keep the alias
@@ -436,12 +503,14 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
         switch (column.uidt) {
           case UITypes.Attachment:
-            NcError.badRequest(
+            NcError.get(baseModel.context).badRequest(
               'Group by using attachment column is not supported',
             );
             break;
           case UITypes.Button: {
-            NcError.badRequest('Group by using Button column is not supported');
+            NcError.get(baseModel.context).badRequest(
+              'Group by using Button column is not supported',
+            );
             break;
           }
           case UITypes.Rollup:
@@ -470,7 +539,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               );
 
               selectQb = baseModel.dbDriver.raw(`?? as ??`, [
-                _selectQb.builder,
+                sqlNullIfBlank({
+                  columnName: _selectQb.builder,
+                  baseModel,
+                }),
                 getAs(column),
               ]);
             } catch (e) {
@@ -588,7 +660,10 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 columns,
               );
               selectors.push(
-                baseModel.dbDriver.raw('?? as ??', [columnName, getAs(column)]),
+                baseModel.dbDriver.raw('?? as ??', [
+                  sqlNullIfBlank({ columnName, baseModel }),
+                  getAs(column),
+                ]),
               );
               groupBySelectors.push(getAs(column));
             }
@@ -597,6 +672,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       }),
     );
 
+    // Build the group-by query
     const qb = baseModel.dbDriver(baseModel.tnPath);
     qb.count(`${baseModel.model.primaryKey?.column_name || '*'} as count`);
     qb.select(...selectors);
@@ -641,9 +717,23 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     qb.groupBy(...groupBySelectors);
 
+    // Add HAVING clause to filter groups by minimum count (e.g., count > 1 for duplicates only)
+    if (args.minCount !== undefined && args.minCount > 0) {
+      qb.havingRaw('COUNT(??) >= ?', [
+        baseModel.model.primaryKey?.column_name || '*',
+        args.minCount,
+      ]);
+    }
+
+    // Wrap in a CTE so that we can reference grouped columns safely in all engines
+    // SELECT COUNT(*) FROM (WITH grouped AS (<qb>) SELECT * FROM grouped g) sub
+    const groupedCte = baseModel.dbDriver
+      .with('grouped', qb.clone())
+      .select('*')
+      .from({ g: 'grouped' });
     const qbP = baseModel.dbDriver
       .count('*', { as: 'count' })
-      .from(qb.as('groupby'));
+      .from(groupedCte.as('sub'));
 
     return (await baseModel.execAndParse(qbP, null, { raw: true, first: true }))
       ?.count;
@@ -675,7 +765,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
       });
 
       if (!bulkFilterList?.length) {
-        return NcError.badRequest('bulkFilterList is required');
+        return NcError.get(baseModel.context).badRequest(
+          'bulkFilterList is required',
+        );
       }
 
       for (const f of bulkFilterList) {
@@ -715,12 +807,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using attachment column is not supported',
                 );
                 break;
               case UITypes.Button: {
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using Button column is not supported',
                 );
                 break;
@@ -946,7 +1038,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             );
             break;
           default:
-            NcError.notImplemented(
+            NcError.get(baseModel.context).notImplemented(
               'This database does not support bulk groupBy count',
             );
         }
@@ -993,7 +1085,9 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
     try {
       if (!bulkFilterList?.length) {
-        return NcError.badRequest('bulkFilterList is required');
+        return NcError.get(baseModel.context).badRequest(
+          'bulkFilterList is required',
+        );
       }
 
       for (const f of bulkFilterList) {
@@ -1022,7 +1116,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               (c) => c.column_name === col || c.title === col,
             );
             if (!column) {
-              throw NcError.fieldNotFound(col);
+              NcError.get(baseModel.context).fieldNotFound(col);
             }
             return column?.id;
           })
@@ -1050,12 +1144,12 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
 
             switch (column.uidt) {
               case UITypes.Attachment:
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using attachment column is not supported',
                 );
                 break;
               case UITypes.Button: {
-                NcError.badRequest(
+                NcError.get(baseModel.context).badRequest(
                   'Group by using Button column is not supported',
                 );
                 break;
@@ -1266,6 +1360,13 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               column,
               columns,
             );
+
+            const columnNameQb = sqlNullIfBlank({
+              columnName,
+              baseModel,
+              isStringType: true,
+            });
+
             const baseUsers = await BaseUser.getUsersList(baseModel.context, {
               base_id: column.base_id,
               include_internal_user: true,
@@ -1278,7 +1379,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                 user.display_name || user.email,
               ]);
               return qb.toQuery();
-            }, baseModel.dbDriver.raw(`??`, [columnName]).toQuery());
+            }, columnNameQb.toQuery());
 
             if (!['asc', 'desc'].includes(sort.direction)) {
               tQb.orderBy(
@@ -1353,7 +1454,7 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             );
             break;
           default:
-            NcError.notImplemented(
+            NcError.get(baseModel.context).notImplemented(
               'This database does not support bulk groupBy',
             );
         }
@@ -1372,10 +1473,237 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
     }
   };
 
+  const bulkAggregate = async (
+    args: {
+      filterArr?: Filter[];
+    },
+    bulkFilterList: Array<{
+      alias: string;
+      where?: string;
+      filterArrJson?: string | Filter[];
+    }>,
+    view?: View,
+  ) => {
+    try {
+      if (!bulkFilterList?.length) {
+        return {};
+      }
+
+      const { where, aggregation } = baseModel._getListArgs(args as any);
+
+      const columns = await baseModel.model.getColumns(baseModel.context);
+
+      let viewColumns: any[];
+      if (baseModel.viewId) {
+        viewColumns = (
+          await GridViewColumn.list(baseModel.context, baseModel.viewId)
+        ).filter((c) => {
+          const col = baseModel.model.columnsById[c.fk_column_id];
+          return c.show && (view?.show_system_fields || !isSystemColumn(col));
+        });
+
+        // By default, the aggregation is done based on the columns configured in the view
+        // If the aggregation parameter is provided, only the columns mentioned in the aggregation parameter are considered
+        // Also the aggregation type from the parameter is given preference over the aggregation type configured in the view
+        if (aggregation?.length) {
+          viewColumns = viewColumns
+            .map((c) => {
+              const agg = aggregation.find((a) => a.field === c.fk_column_id);
+              return new GridViewColumn({
+                ...c,
+                show: !!agg,
+                aggregation: agg ? agg.type : c.aggregation,
+              });
+            })
+            .filter((c) => c.show);
+        }
+      } else {
+        // If no viewId, use all model columns or those specified in aggregation
+        if (aggregation?.length) {
+          viewColumns = aggregation
+            .map((agg) => {
+              const col = baseModel.model.columnsById[agg.field];
+              if (!col) return null;
+              return {
+                fk_column_id: col.id,
+                aggregation: agg.type,
+                show: true,
+              };
+            })
+            .filter(Boolean);
+        } else {
+          viewColumns = [];
+        }
+      }
+
+      const aliasColObjMap = await baseModel.model.getAliasColObjMap(
+        baseModel.context,
+        columns,
+      );
+
+      const qb = baseModel.dbDriver(baseModel.tnPath);
+
+      const aggregateExpressions = {};
+
+      // Construct aggregate expressions for each view column
+      for (const viewColumn of viewColumns) {
+        const col = baseModel.model.columnsById[viewColumn.fk_column_id];
+        if (
+          !col ||
+          !viewColumn.aggregation ||
+          (isLinksOrLTAR(col) && col.system)
+        )
+          continue;
+
+        const aliasFieldName = col.id;
+        const aggSql = await applyAggregation({
+          baseModelSqlv2: baseModel,
+          aggregation: viewColumn.aggregation,
+          column: col,
+        });
+
+        if (aggSql) {
+          aggregateExpressions[aliasFieldName] = aggSql;
+        }
+      }
+
+      if (!Object.keys(aggregateExpressions).length) {
+        return {};
+      }
+
+      let viewFilterList = [];
+      if (baseModel.viewId) {
+        viewFilterList = await Filter.rootFilterList(baseModel.context, {
+          viewId: baseModel.viewId,
+        });
+      }
+
+      const selectors = [] as Array<Knex.Raw>;
+      // Generate a knex raw query for each filter in the bulkFilterList
+      for (const f of bulkFilterList) {
+        const tQb = baseModel.dbDriver(baseModel.tnPath);
+        const { filters: aggFilter } = extractFilterFromXwhere(
+          baseModel.context,
+          f.where,
+          aliasColObjMap,
+        );
+        let aggFilterJson = f.filterArrJson;
+        try {
+          aggFilterJson = JSON.parse(aggFilterJson as any);
+        } catch (_e) {}
+
+        await conditionV2(
+          baseModel,
+          [
+            ...(baseModel.viewId
+              ? [
+                  new Filter({
+                    children: viewFilterList || [],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+            new Filter({
+              children: args.filterArr || [],
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: extractFilterFromXwhere(
+                baseModel.context,
+                where,
+                aliasColObjMap,
+              ).filters,
+              is_group: true,
+              logical_op: 'and',
+            }),
+            new Filter({
+              children: aggFilter,
+              is_group: true,
+              logical_op: 'and',
+            }),
+            ...(aggFilterJson
+              ? [
+                  new Filter({
+                    children: aggFilterJson as Filter[],
+                    is_group: true,
+                  }),
+                ]
+              : []),
+          ],
+          tQb,
+        );
+
+        let jsonBuildObject;
+
+        switch (baseModel.dbDriver.client.config.client) {
+          case 'pg': {
+            jsonBuildObject = baseModel.dbDriver.raw(
+              `JSON_BUILD_OBJECT(${Object.keys(aggregateExpressions)
+                .map((key) => {
+                  return `'${key}', ${aggregateExpressions[key]}`;
+                })
+                .join(', ')})`,
+            );
+
+            break;
+          }
+          case 'mysql2': {
+            jsonBuildObject = baseModel.dbDriver.raw(`JSON_OBJECT(
+                  ${Object.keys(aggregateExpressions)
+                    .map((key) => `'${key}', ${aggregateExpressions[key]}`)
+                    .join(', ')})`);
+            break;
+          }
+
+          case 'sqlite3': {
+            jsonBuildObject = baseModel.dbDriver.raw(`json_object(
+                    ${Object.keys(aggregateExpressions)
+                      .map((key) => `'${key}', ${aggregateExpressions[key]}`)
+                      .join(', ')})`);
+            break;
+          }
+          default:
+            NcError.get(baseModel.context).notImplemented(
+              'This database is not supported for bulk aggregation',
+            );
+        }
+
+        tQb.select(jsonBuildObject);
+
+        if (baseModel.dbDriver.client.config.client === 'mysql2') {
+          selectors.push(
+            baseModel.dbDriver.raw('JSON_UNQUOTE(??) as ??', [
+              jsonBuildObject,
+              `${f.alias}`,
+            ]),
+          );
+        } else {
+          selectors.push(
+            baseModel.dbDriver.raw('(??) as ??', [tQb, `${f.alias}`]),
+          );
+        }
+      }
+
+      qb.select(...selectors);
+
+      qb.limit(1);
+
+      return await baseModel.execAndParse(qb, null, {
+        first: true,
+        bulkAggregate: true,
+      });
+    } catch (err) {
+      logger.log(err);
+      return [];
+    }
+  };
+
   return {
     count,
     list,
     bulkCount,
     bulkList,
+    bulkAggregate,
   };
 };

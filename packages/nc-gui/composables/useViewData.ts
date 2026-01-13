@@ -159,9 +159,10 @@ export function useViewData(
     if (!ids?.length || ids?.some((id) => !id)) return
 
     try {
-      aggCommentCount.value = await $api.utils.commentCount({
-        ids,
+      aggCommentCount.value = await $api.internal.getOperation((meta.value as any).fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'commentCount',
         fk_model_id: metaId.value as string,
+        ids,
       })
 
       for (const row of formattedData.value) {
@@ -277,7 +278,7 @@ export function useViewData(
       if (error?.response?.data?.error === 'FORMULA_ERROR') {
         message.error(await extractSdkResponseErrorMsg(error))
 
-        await tablesStore.reloadTableMeta(metaId.value as string)
+        await tablesStore.reloadTableMeta(metaId.value as string, meta.value?.base_id)
 
         return loadData(params, shouldShowLoading)
       }
@@ -351,7 +352,10 @@ export function useViewData(
   async function loadFormView() {
     if (!viewMeta?.value?.id) return
     try {
-      const { columns, ...view } = await $api.dbView.formRead(viewMeta.value.id)
+      const { columns, ...view } = await $api.internal.getOperation(base.value!.fk_workspace_id!, base.value!.id!, {
+        operation: 'formViewGet',
+        formViewId: viewMeta.value.id,
+      })
       let order = 1
       const fieldById = (columns || []).reduce((o: Record<string, any>, f: Record<string, any>) => {
         if (order < f.order) {

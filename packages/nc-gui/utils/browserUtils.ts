@@ -25,6 +25,7 @@ export const isActiveElementInsideExtension = () =>
   ['.extension-modal', '.nc-extension-pane', '.nc-modal-extension-market', '.nc-modal-share-collaborate'].some((selector) =>
     document.querySelector(selector)?.contains(document.activeElement),
   )
+export const isActiveElementInsideScriptPane = () => document.querySelector('.nc-action-pane')?.contains(document.activeElement)
 export const isTiptapDropdownExistInsideEditor = () => {
   return document.querySelector('.tippy-box')
 }
@@ -107,7 +108,12 @@ export function isSinglePrintableKey(key: string) {
 }
 
 export const isMousePointerType = (event: Event) => {
-  return event instanceof PointerEvent && event?.pointerType === 'mouse'
+  return (
+    // PointerEvent style with mouse
+    ('pointerType' in event && (event as PointerEvent).pointerType === 'mouse') ||
+    // Safari fallback to MouseEvent
+    event instanceof MouseEvent
+  )
 }
 
 export const isTouchEvent = (event: Event | TouchEvent) => !isMousePointerType(event)
@@ -211,3 +217,10 @@ export const removeQueryParamsFromURL = (keysToRemove: string[]) => {
 
 // Feature detection.
 export const supportsKeyboardLock = 'keyboard' in navigator && navigator.keyboard && 'lock' in (navigator.keyboard as any)
+
+export const openContactSalesEmail = (email: string = 'support@nocodb.com') => {
+  const a = document.createElement('a')
+  a.href = `mailto:${email}`
+  a.target = '_blank'
+  a.click()
+}

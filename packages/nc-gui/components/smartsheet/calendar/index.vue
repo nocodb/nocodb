@@ -113,21 +113,25 @@ const newRecord = (row: RowType) => {
 }
 
 onMounted(async () => {
-  await loadCalendarData()
+  await Promise.all([loadCalendarData(), loadSidebarData(), fetchActiveDates()])
   if (!activeCalendarView.value) {
     activeCalendarView.value = 'month'
   }
 })
 
-reloadViewDataHook?.on(
-  withLoading(async (params: void | { shouldShowLoading?: boolean }) => {
-    await Promise.all([
-      loadCalendarData(params?.shouldShowLoading ?? false),
-      loadSidebarData(params?.shouldShowLoading ?? false),
-      fetchActiveDates(),
-    ])
-  }),
-)
+const reloadViewDataListener = withLoading(async (params: void | { shouldShowLoading?: boolean }) => {
+  await Promise.all([
+    loadCalendarData(params?.shouldShowLoading ?? false),
+    loadSidebarData(params?.shouldShowLoading ?? false),
+    fetchActiveDates(),
+  ])
+})
+
+reloadViewDataHook?.on(reloadViewDataListener)
+
+onBeforeUnmount(() => {
+  reloadViewDataHook?.off(reloadViewDataListener)
+})
 
 // on filter param changes reload the data
 // In calendar view we don't have toolbar search component, so we have to listen to route query changes to reload the data
@@ -141,11 +145,11 @@ watch(
 
 <template>
   <template v-if="isMobileMode">
-    <div class="pl-6 pr-[120px] py-6 bg-white flex-col justify-start items-start gap-2.5 inline-flex">
-      <div class="text-gray-500 text-5xl font-semibold leading-16">
+    <div class="pl-6 pr-[120px] py-6 bg-nc-bg-default flex-col justify-start items-start gap-2.5 inline-flex">
+      <div class="text-nc-content-gray-muted text-5xl font-semibold leading-16">
         {{ $t('general.available') }}<br />{{ $t('title.inDesktop') }}
       </div>
-      <div class="text-gray-500 text-base font-medium leading-normal">
+      <div class="text-nc-content-gray-muted text-base font-medium leading-normal">
         {{ $t('msg.calendarViewNotSupportedOnMobile') }}
       </div>
     </div>

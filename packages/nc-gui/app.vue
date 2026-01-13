@@ -3,9 +3,13 @@ import ErrorBoundary from './components/nc/ErrorBoundary.vue'
 
 const router = useRouter()
 
+useUpdateChecker()
+
 const route = router.currentRoute
 
 const { showOnboardingFlow } = useOnboardingFlow()
+
+const { hideSharedBaseBtn } = storeToRefs(useConfigStore())
 
 const disableBaseLayout = computed(
   () => route.value.path.startsWith('/nc/view') || route.value.path.startsWith('/nc/form') || showOnboardingFlow.value,
@@ -37,6 +41,10 @@ const { chatwootInit } = useProvideChatwoot()
 
 onMounted(() => {
   window.addEventListener('chatwoot:ready', chatwootInit)
+
+  if (route.value.query.hideSharedBaseBtn === 'true') {
+    hideSharedBaseBtn.value = true
+  }
 })
 
 onBeforeUnmount(() => {

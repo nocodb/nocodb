@@ -6,7 +6,7 @@ import {
 } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
-import type { SwaggerView } from '~/services/api-docs/swaggerV2/getSwaggerJSONV2';
+import type { SwaggerView } from '~/services/api-docs/shared/swaggerUtils';
 import type { NcContext } from '~/interface/config';
 
 export const recordIdParam = {
@@ -127,9 +127,7 @@ export const viewIdParams = (views: SwaggerView[]) => {
 
   for (const { view } of views) {
     viewIds.push(view.id);
-    description.push(
-      `* ${view.id} - ${view.is_default ? 'Default view' : view.title}`,
-    );
+    description.push(`* ${view.id} - ${view.title}`);
   }
 
   return {

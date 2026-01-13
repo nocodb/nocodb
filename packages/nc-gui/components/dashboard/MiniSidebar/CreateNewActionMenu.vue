@@ -15,6 +15,8 @@ const { activeTable } = storeToRefs(tablesStore)
 
 const { openNewScriptModal } = useScriptStore()
 
+const { openNewWorkflowModal } = useWorkflowStore()
+
 const { openNewDashboardModal } = useDashboardStore()
 
 const viewsStore = useViewsStore()
@@ -124,6 +126,12 @@ const hasScriptCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
   return isUIAllowed('scriptCreateOrEdit')
+})
+
+const hasWorkflowCreateAccess = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return true
+
+  return isUIAllowed('workflowCreateOrEdit')
 })
 
 const hasDashboardCreateAccess = computed(() => {
@@ -273,6 +281,24 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="ncScript" />
                 {{ $t('general.script') }}
+              </NcMenuItem>
+            </NcTooltip>
+            <NcTooltip
+              :title="
+                hasWorkflowCreateAccess
+                  ? $t('tooltip.navigateToBaseToCreateWorkflow')
+                  : $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
+              "
+              :disabled="!(!isBaseHomePage || !hasWorkflowCreateAccess)"
+              placement="right"
+            >
+              <NcMenuItem
+                data-testid="mini-sidebar--workflow-create"
+                :disabled="!isBaseHomePage || !hasWorkflowCreateAccess"
+                @click="openNewWorkflowModal({ baseId: openedProject?.id })"
+              >
+                <GeneralIcon icon="ncAutomation" />
+                {{ $t('general.workflow') }}
               </NcMenuItem>
             </NcTooltip>
           </template>

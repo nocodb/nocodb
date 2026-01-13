@@ -501,7 +501,7 @@ export class UtilsService {
         process.env.NC_DISABLE_ONBOARDING_FLOW === 'true' ||
         process.env.NODE_ENV === 'development' ||
         process.env.NODE_ENV === 'test',
-      ...(isEE === false
+      ...(!isEE
         ? {
             ncDefaultWorkspaceId: Noco.ncDefaultWorkspaceId || null,
           }

@@ -225,6 +225,7 @@ export class ListRecordsNode extends WorkflowNodeIntegration<ListRecordsNodeConf
         workspace_id: ctx.workspaceId,
         base_id: ctx.baseId,
         api_version: NocoSDK.NcApiVersion.V3,
+        user: this.nocodb.user,
       } as NocoSDK.NcContext;
 
       const query: any = {};

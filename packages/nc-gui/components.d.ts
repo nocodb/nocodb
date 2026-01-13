@@ -67,7 +67,6 @@ declare module 'vue' {
     ATextarea: typeof import('ant-design-vue/es')['Textarea']
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
     ATree: typeof import('ant-design-vue/es')['Tree']
-    ATypographyTitle: typeof import('ant-design-vue/es')['TypographyTitle']
     AUploadDragger: typeof import('ant-design-vue/es')['UploadDragger']
     ClaritySuccessLine: typeof import('~icons/clarity/success-line')['default']
     IcRoundEdit: typeof import('~icons/ic/round-edit')['default']

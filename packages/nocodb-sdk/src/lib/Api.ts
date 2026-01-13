@@ -1060,12 +1060,48 @@ export type FieldOptionsButtonV3Type =
       type: 'formula';
       /** Formula to execute */
       formula: string;
+      /** Label of the button */
+      label?: string;
+      /** Icon of the button */
+      icon?: string;
+      /** Color of the button */
+      color?:
+        | 'brand'
+        | 'red'
+        | 'green'
+        | 'maroon'
+        | 'blue'
+        | 'orange'
+        | 'pink'
+        | 'purple'
+        | 'yellow'
+        | 'gray';
+      /** Theme of the button */
+      theme?: 'solid' | 'light' | 'text';
     }
   | {
       /** Button type: webhook */
       type: 'webhook';
       /** ID of the webhook to trigger */
       button_hook_id: string;
+      /** Label of the button */
+      label?: string;
+      /** Icon of the button */
+      icon?: string;
+      /** Color of the button */
+      color?:
+        | 'brand'
+        | 'red'
+        | 'green'
+        | 'maroon'
+        | 'blue'
+        | 'orange'
+        | 'pink'
+        | 'purple'
+        | 'yellow'
+        | 'gray';
+      /** Theme of the button */
+      theme?: 'solid' | 'light' | 'text';
     }
   | {
       /** Button type: AI */
@@ -1075,7 +1111,7 @@ export type FieldOptionsButtonV3Type =
       /** Integration ID for AI service */
       integration_id: string;
       /** Theme of the button */
-      theme?: string;
+      theme?: 'solid' | 'light' | 'text';
       /** IDs of columns where AI output should be stored */
       output_column_ids?: string;
       /** Label of the button */
@@ -1083,13 +1119,41 @@ export type FieldOptionsButtonV3Type =
       /** Icon of the button */
       icon?: string;
       /** Color of the button */
-      color?: string;
+      color?:
+        | 'brand'
+        | 'red'
+        | 'green'
+        | 'maroon'
+        | 'blue'
+        | 'orange'
+        | 'pink'
+        | 'purple'
+        | 'yellow'
+        | 'gray';
     }
   | {
       /** Button type: script */
       type: 'script';
       /** ID of the script to trigger */
       script_id: string;
+      /** Label of the button */
+      label?: string;
+      /** Icon of the button */
+      icon?: string;
+      /** Color of the button */
+      color?:
+        | 'brand'
+        | 'red'
+        | 'green'
+        | 'maroon'
+        | 'blue'
+        | 'orange'
+        | 'pink'
+        | 'purple'
+        | 'yellow'
+        | 'gray';
+      /** Theme of the button */
+      theme?: 'solid' | 'light' | 'text';
     };
 
 export interface FieldOptionsRollupV3Type {

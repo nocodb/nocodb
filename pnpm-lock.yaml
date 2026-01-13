@@ -1029,12 +1029,6 @@ importers:
       knex:
         specifier: 3.1.0
         version: 3.1.0(mysql2@3.14.1)(pg@8.16.0)(sqlite3@5.1.7)
-      knex-databricks:
-        specifier: link:../nc-knex-dialects/knex-databricks
-        version: link:../nc-knex-dialects/knex-databricks
-      knex-snowflake:
-        specifier: link:../nc-knex-dialects/knex-snowflake
-        version: link:../nc-knex-dialects/knex-snowflake
       list-github-dir-content:
         specifier: ^3.0.0
         version: 3.0.0(encoding@0.1.13)

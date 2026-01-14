@@ -2227,6 +2227,7 @@
     "urlFilterError": "តម្រង URL មិនត្រឹមត្រូវ។ ត្រូវបានអធ្យាស្រ័យព្រោះមិនអាចអនុវត្តបាន។",
     "dropYourDocHere": "ទម្លាក់ឯកសាររបស់អ្នកទីនេះ",
     "airtableImportSuccess": "បាននាំចូលពី Base Airtable ដោយជោគជ័យ។",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "បាននាំចូលពី Base NocoDB ដោយជោគជ័យ។",
     "deleteAccountPermanently": "លុបគណនីរបស់អ្នកជាអចិន្ត្រៃយ៍",
     "learnMore": "ស្វែងយល់បន្ថែម",

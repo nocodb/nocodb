@@ -2227,6 +2227,7 @@
     "urlFilterError": "Ongeldig URL-filter. Genegeerd omdat het niet kon worden toegepast.",
     "dropYourDocHere": "Plaats uw document hier",
     "airtableImportSuccess": "Succesvol geïmporteerd uit Airtable-base.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Succesvol geïmporteerd uit NocoDB-base.",
     "deleteAccountPermanently": "Uw account permanent verwijderen",
     "learnMore": "Meer informatie",

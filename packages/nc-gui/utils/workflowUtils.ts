@@ -1,6 +1,7 @@
 import type { Edge, Node } from '@vue-flow/core'
 import type { WorkflowNodeDefinition, WorkflowType } from 'nocodb-sdk'
 import { GeneralNodeID, INIT_WORKFLOW_NODES } from 'nocodb-sdk'
+import { generateRandomUUID } from '~/utils/generateName'
 
 /**
  * Filter nodes and edges based on edit permission
@@ -40,11 +41,11 @@ const getSourceNodesAndEdges = (workflow: WorkflowType, hasEditPermission: boole
 }
 
 const generateUniqueNodeId = (nodes: Node[]): string => {
-  let candidateId = crypto.randomUUID()
+  let candidateId = generateRandomUUID()
 
   // Keep incrementing until we find an ID that doesn't exist
   while (nodes.some((n) => n.id === candidateId)) {
-    candidateId = crypto.randomUUID()
+    candidateId = generateRandomUUID()
   }
 
   return candidateId

@@ -2227,6 +2227,7 @@
     "urlFilterError": "Неправильний фільтр URL. Проігноровано, оскільки його не можна застосувати.",
     "dropYourDocHere": "Перетягніть ваш документ сюди",
     "airtableImportSuccess": "Базу Airtable успішно імпортовано.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Базу NocoDB успішно імпортовано.",
     "deleteAccountPermanently": "Назавжди видалити обліковий запис",
     "learnMore": "Дізнатись більше",

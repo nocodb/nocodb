@@ -2227,6 +2227,7 @@
     "urlFilterError": "Некорректный URL-фильтр. Проигнорирован, так как не может быть применен.",
     "dropYourDocHere": "Перетащите ваш документ сюда",
     "airtableImportSuccess": "Успешно импортировано из базы Airtable.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Успешно импортировано из проекта NocoDB.",
     "deleteAccountPermanently": "Удалить ваш аккаунт навсегда",
     "learnMore": "Узнать больше",

@@ -20,8 +20,6 @@ export const useBase = defineStore('baseStore', () => {
 
   const isSandboxMaster = ref(false)
 
-  const isSandboxSchemaLocked = ref(false)
-
   const baseId = computed(() => {
     // In shared base mode, use activeProjectId from basesStore which has the correct base ID
     if (route.value.params.typeOrId === 'base') {
@@ -314,7 +312,6 @@ export const useBase = defineStore('baseStore', () => {
     sources,
     tables,
     baseId,
-    loadRoles,
     loadProject,
     updateProject,
     loadTables,
@@ -345,7 +342,6 @@ export const useBase = defineStore('baseStore', () => {
     isPrivateBase,
     showBaseAccessRequestOverlay,
     isSandboxMaster,
-    isSandboxSchemaLocked,
   }
 })
 

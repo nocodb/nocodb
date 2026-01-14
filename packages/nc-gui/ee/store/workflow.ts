@@ -534,15 +534,15 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   })
 
-  watch(activeProjectId, async () => {
-    if (activeWorkspaceId.value && activeProjectId.value) {
-      await loadWorkflowNodes()
-    }
-  })
-
-  onMounted(() => {
-    loadWorkflowNodes()
-  })
+  watch(
+    activeProjectId,
+    async () => {
+      if (activeWorkspaceId.value && activeProjectId.value) {
+        await loadWorkflowNodes()
+      }
+    },
+    { immediate: true },
+  )
 
   /**
    * Keeps the browser URL slug in sync with the workflow's readable slug.

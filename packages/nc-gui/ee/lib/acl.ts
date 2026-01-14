@@ -302,7 +302,6 @@ export const sandboxRestrictions = {
 
   tableIconEdit: true,
 
-  csvImport: true,
   baseDuplicate: true,
   sourceCreate: true,
   // Row colouring

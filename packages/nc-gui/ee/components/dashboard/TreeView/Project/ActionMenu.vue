@@ -39,7 +39,11 @@ const { isUIAllowed } = useRoles()
 const isOptionVisible = computed(() => {
   return {
     baseDuplicate: isUIAllowed('baseDuplicate', { roles: baseRole.value }),
-    convertToSandbox: base.value?.version === BaseVersion.V3 && !base.value?.sandbox_id && isUIAllowed('baseMiscSettings'),
+    convertToSandbox:
+      base.value?.version === BaseVersion.V3 &&
+      !base.value?.sandbox_id &&
+      isUIAllowed('baseMiscSettings') &&
+      isFeatureEnabled(FEATURE_FLAG.SANDBOXES),
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&

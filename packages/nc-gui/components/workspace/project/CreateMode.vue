@@ -17,6 +17,8 @@ const aiMode = useVModel(props, 'aiMode', emit)
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const showAppMarket = ref(false)
 
 // Reset showAppMarket when aiMode changes back to null (dialog reopened)
@@ -90,7 +92,12 @@ onMounted(() => {
           <div class="nc-create-base-content-subtitle">Quickly build your ideal Base with all tables, views and fields.</div>
         </div>
       </div>
-      <div v-e="['c:base:market:create']" class="nc-create-base-market" @click="selectMode('market')">
+      <div
+        v-if="isFeatureEnabled(FEATURE_FLAG.SANDBOXES)"
+        v-e="['c:base:market:create']"
+        class="nc-create-base-market"
+        @click="selectMode('market')"
+      >
         <div class="nc-placeholder-icon-wrapper">
           <GeneralIcon icon="ncStore" class="nc-placeholder-icon !h-20 !w-20" />
         </div>

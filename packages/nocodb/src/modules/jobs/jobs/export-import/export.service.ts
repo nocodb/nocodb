@@ -778,6 +778,7 @@ export class ExportService {
       ncSiteUrl?: string;
       delimiter?: string;
       excludeUsers?: boolean;
+      includeCrossBaseColumns?: boolean;
     },
   ) {
     context = { ...context, cache: true };
@@ -796,7 +797,9 @@ export class ExportService {
 
     await model.getColumns(context);
 
-    model.columns = this.filterOutCrossBaseColumns(model);
+    if (!param.includeCrossBaseColumns) {
+      model.columns = this.filterOutCrossBaseColumns(model);
+    }
 
     const btMap = new Map<string, string>();
 

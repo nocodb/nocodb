@@ -154,11 +154,11 @@ onMounted(async () => {
         </div>
 
         <div class="absolute -right-2 -top-0.5">
-          <a-button type="text" class="!rounded-md mr-1" @click="emits('close')">
+          <NcButton type="text" size="small" icon-only @click="emits('close')">
             <template #icon>
-              <MaterialSymbolsCloseRounded class="flex mx-auto" />
+              <GeneralIcon icon="close" />
             </template>
-          </a-button>
+          </NcButton>
         </div>
       </div>
 
@@ -222,11 +222,11 @@ onMounted(async () => {
             <tfoot>
               <tr>
                 <td :colspan="plugin.formDetails.items.length" class="text-center">
-                  <a-button type="default" class="!bg-nc-bg-gray-light rounded-md border-none mr-1" @click="addSetting">
+                  <NcButton type="secondary" size="small" icon-only class="mr-1" inner-class="px-2" @click="addSetting">
                     <template #icon>
                       <component :is="iconMap.plus" class="flex mx-auto" />
                     </template>
-                  </a-button>
+                  </NcButton>
                 </td>
               </tr>
             </tfoot>
@@ -270,7 +270,8 @@ onMounted(async () => {
             :key="i"
             class="!px-5"
             :loading="loadingAction === action.key"
-            :type="action.key === Action.Save ? 'primary' : 'default'"
+            :type="action.key === Action.Save ? 'primary' : 'secondary'"
+            :text-color="action.key !== Action.Save ? 'primary' : undefined"
             :disabled="!!loadingAction"
             @click="doAction(action.key)"
           >

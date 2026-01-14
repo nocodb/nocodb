@@ -8,7 +8,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     activeError: Ref<any>,
     hasAccessToExtension: ComputedRef<boolean>,
   ) => {
-    const { $api } = useNuxtApp()
+    const { $api, $e } = useNuxtApp()
     const route = useRoute()
 
     const basesStore = useBases()
@@ -65,10 +65,11 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     const getData = async (params: {
       tableId: string
       viewId?: string
+      where?: string
       eachPage: (records: Record<string, any>[], nextPage: () => void) => Promise<void> | void
       done: () => Promise<void> | void
     }) => {
-      const { tableId, viewId, eachPage, done } = params
+      const { tableId, viewId, where, eachPage, done } = params
 
       let page = 1
 
@@ -81,6 +82,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
           {
             offset: (page - 1) * 100,
             limit: 100,
+            where,
           } as any,
         )
 
@@ -194,6 +196,11 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     }
 
+    const toggleFullScreen = () => {
+      fullscreen.value = !fullscreen.value
+      $e(`c:extensions:${extension.value.extensionId}:full-screen`)
+    }
+
     return {
       $api,
       fullscreen,
@@ -204,6 +211,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       tables,
       showExpandBtn,
       fullscreenModalSize,
+      activeBaseId: baseId,
       activeTableId,
       activeViewId,
       getViewsForTable,
@@ -217,6 +225,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       eventBus,
       hasAccessToExtension,
       disableToggleFullscreenBtn,
+      toggleFullScreen,
     }
   },
   'extension-helper',

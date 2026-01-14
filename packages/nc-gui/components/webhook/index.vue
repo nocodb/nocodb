@@ -172,8 +172,6 @@ const operationsEnum = computed(() => {
   return result
 })
 
-const isBodyShown = ref(hookRef.version === 'v1' || isEeUI)
-
 const urlTabKey = ref<'params' | 'headers' | 'body'>('params')
 
 const apps: Record<string, any> = ref()
@@ -1422,7 +1420,7 @@ const webhookV2AndV3Diff = computed(() => {
                       <LazyApiClientHeaders v-model="hookRef.notification.payload.headers" />
                     </a-tab-pane>
 
-                    <a-tab-pane v-if="isBodyShown" key="body" tab="Body">
+                    <a-tab-pane key="body" tab="Body">
                       <div
                         style="
                           box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08), 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
@@ -1830,10 +1828,6 @@ const webhookV2AndV3Diff = computed(() => {
 }
 :deep(.ant-select-multiple .ant-select-selection-item-remove > .anticon) {
   vertical-align: 0px !important;
-}
-
-:deep(.mtk1) {
-  @apply text-[#000000D9];
 }
 
 .tab {

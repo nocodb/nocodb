@@ -158,7 +158,7 @@ export default class Base implements BaseType {
             base_id: null,
           },
           CacheScope.PROJECT,
-          [],
+          [base.fk_workspace_id],
           `${CacheScope.PROJECT}:${base.id}`,
         );
         return base;
@@ -171,14 +171,16 @@ export default class Base implements BaseType {
     ncMeta = Noco.ncMeta,
   ): Promise<Base[]> {
     // todo: pagination
-    const cachedList = await NocoCache.getList(
-      {
-        workspace_id: workspaceId,
-        base_id: null,
-      },
-      CacheScope.PROJECT,
-      [],
-    );
+    const cachedList = workspaceId
+      ? await NocoCache.getList(
+          {
+            workspace_id: workspaceId,
+            base_id: null,
+          },
+          CacheScope.PROJECT,
+          [workspaceId],
+        )
+      : { list: [], isNoneList: false };
     let { list: baseList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !baseList.length) {
@@ -225,7 +227,7 @@ export default class Base implements BaseType {
           base_id: null,
         },
         CacheScope.PROJECT,
-        [],
+        [workspaceId],
         baseList,
       );
     }

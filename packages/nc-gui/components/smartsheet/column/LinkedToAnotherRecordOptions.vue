@@ -27,7 +27,10 @@ const meta = inject(MetaInj, ref())
 
 const filterRef = ref()
 
-const crossBase = ref((vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id !== vModel.value?.base_id)
+const crossBase = ref(
+  (vModel.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id &&
+    (vModel.value?.colOptions as LinkToAnotherRecordType).fk_related_base_id !== vModel.value?.base_id,
+)
 
 const { basesList } = storeToRefs(useBases())
 
@@ -53,7 +56,7 @@ const { t } = useI18n()
 
 const { getPlanTitle } = useEeConfig()
 
-const { metas, getMeta, getMetaByKey } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 if (!isEdit.value) {
   setAdditionalValidations({
@@ -119,6 +122,17 @@ const tablesStore = useTablesStore()
 const { baseTables } = storeToRefs(tablesStore)
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
+
+// Check if linked view is private (views inherit from table)
+const isLinkedViewPrivate = computed(() => {
+  if (!vModel.value.childViewId) return false
+  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
+  if (!childId) return false
+  const baseId = meta.value?.base_id
+  const tableMeta = getMetaByKey(baseId, childId)
+  // Check is_private flag from API response
+  return !!(tableMeta && (tableMeta as any).is_private)
+})
 
 const refTables = computed(() => {
   if (isEdit.value) {
@@ -306,17 +320,6 @@ const isLinkedTablePrivate = computed(() => {
   if (!refTableId) return false
   const baseId = meta.value?.base_id
   const tableMeta = getMetaByKey(baseId, refTableId)
-  // Check is_private flag from API response
-  return !!(tableMeta && (tableMeta as any).is_private)
-})
-
-// Check if linked view is private (views inherit from table)
-const isLinkedViewPrivate = computed(() => {
-  if (!vModel.value.childViewId) return false
-  const childId = vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId
-  if (!childId) return false
-  const baseId = meta.value?.base_id
-  const tableMeta = getMetaByKey(baseId, childId)
   // Check is_private flag from API response
   return !!(tableMeta && (tableMeta as any).is_private)
 })

@@ -1,0 +1,29 @@
+{
+  "id": "nc-dedupe",
+  "title": "Dedupe",
+  "subTitle": "Review duplicate records and merge them into a consolidated record.",
+  "description": "dedupe-ee/description.md",
+  "entry": "dedupe-ee",
+  "version": "0.1",
+  "iconUrl": "dedupe-ee/assets/icon.svg",
+  "publisher": {
+    "name": "NocoDB",
+    "email": "contact@nocodb.com",
+    "url": "https://www.nocodb.com",
+    "icon": {
+      "src": "dedupe-ee/assets/publisher-icon.svg",
+      "width": 24,
+      "height": 24
+    }
+  },
+  "links": [],
+  "config": {
+    "modalSize": "extensionFullscreen",
+    "contentMinHeight": "320px"
+  },
+  "order": 9,
+  "beta": true,
+  "disabled": false,
+  "showAsBeta": true,
+  "minAccessRole": "editor"
+}

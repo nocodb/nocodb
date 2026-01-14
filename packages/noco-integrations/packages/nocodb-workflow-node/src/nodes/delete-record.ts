@@ -147,6 +147,7 @@ export class DeleteRecordNode extends WorkflowNodeIntegration<DeleteRecordNodeCo
         workspace_id: ctx.workspaceId,
         base_id: ctx.baseId,
         api_version: NocoSDK.NcApiVersion.V3,
+        user: this.nocodb.user,
       } as NocoSDK.NcContext;
 
       const result = await this.nocodb.dataService.dataDelete(context, {

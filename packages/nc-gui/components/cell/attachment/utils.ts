@@ -335,7 +335,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       if (droppedFiles) {
         // set files
         await onFileSelect(droppedFiles)
-      } else {
+      } else if (event) {
         event.preventDefault()
 
         // Sanitize the dataTransfer HTML string

@@ -5,8 +5,8 @@
             <br>
             NocoDB
         </a>
+        ✨ Free & Self-hostable Airtable alternative ✨ <br>
     </div>
-    The Open Source Airtable Alternative <br>
 </h1>
 
 <p align="center">
@@ -134,7 +134,7 @@ We provide different docker-compose.yml files under [this directory](https://git
 git clone https://github.com/nocodb/nocodb
 # for PostgreSQL
 cd nocodb/docker-compose/2_pg
-docker-compose up -d
+docker compose up -d
 ```
 
 > To persist data in docker, you can mount volume at `/usr/app/data/` since 0.10.6. Otherwise your data will be lost after recreating the container.
@@ -244,12 +244,12 @@ Most internet businesses equip themselves with either spreadsheet or a database 
 
 # Our Mission
 
-Our mission is to provide the most powerful no-code interface for databases that is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on the internet.
+Our mission is to provide the most powerful no-code interface for databases, accessible to every internet business across the world. By making this capability broadly available under a fair and sustainable model, we aim to democratise access to powerful computing tools and enable a billion-plus people to develop radical tinkering and building abilities on the internet.
 
 # License
 
 <p>
-This project is licensed under <a href="./LICENSE">AGPLv3</a>.
+This project is licensed under <a href="./LICENSE">Sustainable Use License</a>.
 </p>
 
 # Contributors

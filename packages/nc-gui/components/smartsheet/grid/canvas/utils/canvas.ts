@@ -5,6 +5,7 @@ import type { SpriteLoader } from '../loaders/SpriteLoader'
 import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
 import { type Block, getFontForToken, parseMarkdown } from './markdownUtils'
 import { NcMarkdownParser } from '~/helpers/tiptap'
+import { getSafe2DContext } from './safeCanvas'
 
 const singleLineTextCache: LRUCache<string, { text: string; width: number; isTruncated: boolean }> = new LRUCache({
   max: 1000,
@@ -1666,4 +1667,4 @@ export function renderFormulaURL(
 }
 
 const offscreenCanvas = new OffscreenCanvas(0, 0)
-export const defaultOffscreen2DContext = offscreenCanvas.getContext('2d')!
+export const defaultOffscreen2DContext = getSafe2DContext(offscreenCanvas)

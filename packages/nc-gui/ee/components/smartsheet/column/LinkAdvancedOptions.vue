@@ -36,7 +36,7 @@ const { validateInfos, onDataTypeChange } = useColumnCreateStoreOrThrow()
 
 const { t } = useI18n()
 
-const { metas, getMeta, getMetaByKey } = useMetas()
+const { getMeta, getMetaByKey } = useMetas()
 
 const isMm = computed(() => vModel.value.type === RelationTypes.MANY_TO_MANY)
 

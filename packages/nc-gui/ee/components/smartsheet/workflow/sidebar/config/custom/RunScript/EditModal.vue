@@ -28,7 +28,7 @@ const modalVisible = useVModel(props, 'value')
             data-testid="nc-close-script-modal"
             @click.stop="modalVisible = false"
           >
-            Finish editing
+            Close
           </NcButton>
         </div>
       </div>

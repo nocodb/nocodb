@@ -6,7 +6,7 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import { validatePayload } from 'src/helpers';
-import type { NcApiVersion } from 'nocodb-sdk';
+import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import { validateV1V2DataPayloadLimit } from '~/helpers/dataHelpers';
@@ -993,5 +993,84 @@ export class DataTableService {
     });
 
     return data;
+  }
+
+  async bulkAggregate(
+    context: NcContext,
+    param: {
+      baseId?: string;
+      modelId: string;
+      viewId?: string;
+      query: any;
+      body: any;
+    },
+  ) {
+    const { model, view } = await this.getModelAndView(context, param);
+
+    const source = await Source.get(context, model.source_id);
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    if (view && view.type !== ViewTypes.GRID) {
+      NcError.badRequest('Aggregation is only supported on grid views');
+    }
+
+    const listArgs: any = { ...param.query };
+
+    let bulkFilterList = param.body;
+
+    try {
+      listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+    } catch (e) {}
+
+    try {
+      listArgs.aggregation = JSON.parse(listArgs.aggregation);
+    } catch (e) {}
+
+    try {
+      bulkFilterList = JSON.parse(bulkFilterList);
+    } catch (e) {}
+
+    return await baseModel.bulkAggregate(listArgs, bulkFilterList, view);
+  }
+
+  async getLinkedDataList(
+    context: NcContext,
+    params: {
+      req: NcRequest;
+      linkColumnId: string;
+    },
+  ): Promise<any> {
+    const { req, linkColumnId } = params;
+
+    const relationColumn = await Column.get(context, { colId: linkColumnId });
+
+    if (!relationColumn || !isLinksOrLTAR(relationColumn)) {
+      NcError.get(context).fieldNotFound(linkColumnId);
+    }
+
+    const { refContext } = (
+      relationColumn.colOptions as LinkToAnotherRecordColumn
+    ).getRelContext(context);
+
+    return this.dataList(refContext, {
+      query: {
+        ...req.query,
+        columnId: undefined,
+        linkColumnId,
+        linkBaseId: context.base_id,
+      },
+      modelId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
+        .fk_related_model_id,
+      viewId: (relationColumn.colOptions as LinkToAnotherRecordColumn)
+        .fk_target_view_id,
+      includeSortAndFilterColumns:
+        req.query.includeSortAndFilterColumns === 'true',
+      user: req.user,
+    });
   }
 }

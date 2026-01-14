@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { ncIsUndefined } from './is';
 
 const AppendToLengthSuffixConfig = {
@@ -193,4 +194,12 @@ export function stringAllMatches(
   }
 
   return matches;
+}
+
+export function generateRandomUuid() {
+  if (crypto?.randomUUID && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+
+  return uuidv4();
 }

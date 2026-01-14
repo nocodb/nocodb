@@ -270,7 +270,7 @@ export const useInfiniteGroups = (
         groups.push(group)
       }
 
-      if (appInfo.value?.ee && groups.length && !appInfo.value.disableGroupByAggregation) {
+      if (groups.length && !appInfo.value.disableGroupByAggregation) {
         const aggregationAliasMapper = new AliasMapper()
 
         const aggregation = Object.values(gridViewCols.value)
@@ -564,7 +564,7 @@ export const useInfiniteGroups = (
       aggregation?: string
     }>,
   ) {
-    if (!appInfo.value?.ee || appInfo.value.disableGroupByAggregation) return
+    if (appInfo.value.disableGroupByAggregation) return
 
     const BATCH_SIZE = 100
     const aggregationAliasMapper = new AliasMapper()

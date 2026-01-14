@@ -6073,7 +6073,7 @@
           "fields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CreateField"
+              "$ref": "#/components/schemas/TableCreateField"
             }
           }
         },
@@ -6614,6 +6614,107 @@
           },
           {
             "$ref": "#/components/schemas/FieldBaseCreate"
+          }
+        ]
+      },
+      "TableCreateField": {
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FieldOptions/SingleLineText"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LongText"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/PhoneNumber"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/URL"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Email"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Number"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Decimal"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Currency"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Percent"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Duration"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Date"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/DateTime"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Time"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Year"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/SingleSelect"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/MultiSelect"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Rating"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Checkbox"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Attachment"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/JSON"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Geometry"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Links"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Button"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Formula"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/CreatedTime"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LastModifiedTime"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/CreatedBy"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LastModifiedBy"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LinkToAnotherRecord"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/User"
+              }
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/TableFieldBaseCreate"
           }
         ]
       },
@@ -7967,6 +8068,59 @@
           }
         ]
       },
+      "TableFieldBaseCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBase"
+          },{
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "SingleLineText",
+                  "LongText",
+                  "PhoneNumber",
+                  "URL",
+                  "Email",
+                  "Number",
+                  "Decimal",
+                  "Currency",
+                  "Percent",
+                  "Duration",
+                  "Date",
+                  "DateTime",
+                  "Time",
+                  "SingleSelect",
+                  "MultiSelect",
+                  "Rating",
+                  "Checkbox",
+                  "Attachment",
+                  "Geometry",
+                  "Links",
+                  "LinkToAnotherRecord",
+                  "Button",
+                  "Formula",
+                  "Year",
+                  "CreatedTime",
+                  "LastModifiedTime",
+                  "CreatedBy",
+                  "LastModifiedBy",
+                  "User",
+                  "JSON"
+                ],
+                "description": "Field data type."
+              }
+            }
+          },
+          {
+            "required": [
+              "title",
+              "type"
+            ]
+          }
+        ]
+      },
       "FieldOptions_LongText": {
         "type": "object",
         "title": "LongText",
@@ -8516,6 +8670,39 @@
               "formula": {
                 "type": "string",
                 "description": "Formula to execute"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
+                "description": "Color of the button"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
+                "description": "Theme of the button"
               }
             },
             "required": [
@@ -8538,6 +8725,39 @@
               "button_hook_id": {
                 "type": "string",
                 "description": "ID of the webhook to trigger"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
+                "description": "Color of the button"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
+                "description": "Theme of the button"
               }
             },
             "required": [
@@ -8567,6 +8787,11 @@
               },
               "theme": {
                 "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
                 "description": "Theme of the button"
               },
               "output_column_ids": {
@@ -8583,6 +8808,18 @@
               },
               "color": {
                 "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
                 "description": "Color of the button"
               }
             },
@@ -8607,6 +8844,39 @@
               "script_id": {
                 "type": "string",
                 "description": "ID of the script to trigger"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
+                "description": "Color of the button"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
+                "description": "Theme of the button"
               }
             },
             "required": [

@@ -7,6 +7,7 @@ import {
   viewTypeAlias,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import type { CommandPaletteResult } from '~/helpers/commandPaletteHelpers';
 import { deserializeJSON } from '~/utils/serialize';
 import { getCommandPaletteForUserWorkspace } from '~/helpers/commandPaletteHelpers';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
@@ -24,40 +25,11 @@ export class CommandPaletteService {
       const { scope, data } = param.body;
 
       if (scope.startsWith('ws-')) {
-        const list: {
-          workspace_id: string;
-          workspace_title: string;
-          workspace_meta: string;
-          workspace_role: string;
-          base_id: string;
-          base_title: string;
-          base_meta: string;
-          base_role: string;
-          table_id: string;
-          table_title: string;
-          table_type: string;
-          table_meta: string;
-          table_synced?: boolean;
-          view_id: string;
-          view_title: string;
-          view_type: string;
-          view_meta: string;
-          script_id: string;
-          script_title: string;
-          script_meta: string;
-          script_order: number;
-          dashboard_id: string;
-          dashboard_title: string;
-          dashboard_meta: string;
-          dashboard_order: number;
-          workflow_id: string;
-          workflow_title: string;
-          workflow_meta: string;
-          workflow_order: number;
-        }[] = await getCommandPaletteForUserWorkspace(
-          param.user?.id,
-          data.workspace_id,
-        );
+        const commandPaletteData: CommandPaletteResult =
+          await getCommandPaletteForUserWorkspace(
+            param.user?.id,
+            data.workspace_id,
+          );
 
         const workspaces = new Map<
           string,
@@ -138,38 +110,42 @@ export class CommandPaletteService {
           }
         >();
 
-        for (const item of list) {
-          if (!workspaces.has(item.workspace_id)) {
-            workspaces.set(item.workspace_id, {
-              id: item.workspace_id,
-              title: item.workspace_title,
-              meta: deserializeJSON(item.workspace_meta),
+        for (const wsAndBases of commandPaletteData.wsAndBases) {
+          if (!workspaces.has(wsAndBases.workspace_id)) {
+            workspaces.set(wsAndBases.workspace_id, {
+              id: wsAndBases.workspace_id,
+              title: wsAndBases.workspace_title,
+              meta: deserializeJSON(wsAndBases.workspace_meta),
             });
           }
 
-          if (!bases.has(item.base_id)) {
-            bases.set(item.base_id, {
-              id: item.base_id,
-              title: item.base_title,
-              meta: deserializeJSON(item.base_meta),
-              workspace_id: item.workspace_id,
+          if (!bases.has(wsAndBases.base_id)) {
+            bases.set(wsAndBases.base_id, {
+              id: wsAndBases.base_id,
+              title: wsAndBases.base_title,
+              meta: deserializeJSON(wsAndBases.base_meta),
+              workspace_id: wsAndBases.workspace_id,
             });
+            // Store base role (should be consistent for all items in same base)
+            if (wsAndBases.base_role && !baseRoleMap.has(wsAndBases.base_id)) {
+              baseRoleMap.set(wsAndBases.base_id, wsAndBases.base_role);
+            }
           }
+        }
 
+        for (const item of commandPaletteData.items.filter(
+          (item) => item.kind === 'model',
+        )) {
           // Collect unique table IDs per base and track base role
           if (!baseTableIdsMap.has(item.base_id)) {
             baseTableIdsMap.set(item.base_id, new Set<string>());
             baseContextMap.set(item.base_id, {
-              workspace_id: item.workspace_id,
+              workspace_id: item.fk_workspace_id,
               base_id: item.base_id,
             } as NcContext);
           }
-          if (item.table_id) {
-            baseTableIdsMap.get(item.base_id)!.add(item.table_id);
-          }
-          // Store base role (should be consistent for all items in same base)
-          if (item.base_role && !baseRoleMap.has(item.base_id)) {
-            baseRoleMap.set(item.base_id, item.base_role);
+          if (item.item_id) {
+            baseTableIdsMap.get(item.base_id)!.add(item.item_id);
           }
         }
 
@@ -235,99 +211,83 @@ export class CommandPaletteService {
         }
 
         // Filter and process items - only include accessible tables
-        for (const item of list) {
-          // Skip if table is not accessible
-          // hasTableVisibilityAccess already handles base owners, so if it returns false,
-          // the table is truly not accessible
-          if (item.table_id && !accessibleTableIds.has(item.table_id)) {
-            continue; // Skip this table/view
-          }
+        for (const item of commandPaletteData.items) {
+          switch (item.kind) {
+            case 'model': {
+              if (!tables.has(item.item_id)) {
+                tables.set(item.item_id, {
+                  id: item.item_id,
+                  title: item.item_title,
+                  meta: deserializeJSON(item.item_meta),
+                  workspace_id: item.fk_workspace_id,
+                  base_id: item.base_id,
+                  type: item.item_type,
+                  synced: item.item_sync,
+                });
+              }
+              break;
+            }
 
-          if (!tables.has(item.table_id) && item.table_id) {
-            tables.set(item.table_id, {
-              id: item.table_id,
-              title: item.table_title,
-              meta: deserializeJSON(item.table_meta),
-              workspace_id: item.workspace_id,
-              base_id: item.base_id,
-              type: item.table_type,
-              synced: item.table_synced,
-            });
-          }
+            case 'view': {
+              // Only include views for accessible tables
+              if (!views.has(item.item_id)) {
+                views.set(item.item_id, {
+                  id: item.item_id,
+                  title: item.item_title,
+                  meta: deserializeJSON(item.item_meta),
+                  workspace_id: item.fk_workspace_id,
+                  base_id: item.base_id,
+                  table_id: item.item_parent_id,
+                  type: item.item_type,
+                });
+              }
 
-          // Only include views for accessible tables
-          if (
-            !views.has(item.view_id) &&
-            item.view_id &&
-            item.table_id &&
-            accessibleTableIds.has(item.table_id)
-          ) {
-            views.set(item.view_id, {
-              id: item.view_id,
-              title: item.view_title,
-              meta: deserializeJSON(item.view_meta),
-              workspace_id: item.workspace_id,
-              base_id: item.base_id,
-              table_id: item.table_id,
-              type: item.view_type,
-            });
-          }
+              break;
+            }
 
-          if (!scripts.has(item.script_id) && item.script_id) {
-            scripts.set(item.script_id, {
-              id: item.script_id,
-              title: item.script_title,
-              meta: deserializeJSON(item.script_meta),
-              workspace_id: item.workspace_id,
-              base_id: item.base_id,
-              order: item.script_order,
-            });
-          }
+            case 'script': {
+              if (!scripts.has(item.item_id)) {
+                scripts.set(item.item_id, {
+                  id: item.item_id,
+                  title: item.item_title,
+                  meta: deserializeJSON(item.item_meta),
+                  workspace_id: item.fk_workspace_id,
+                  base_id: item.base_id,
+                  order: item.item_order,
+                });
+              }
+              break;
+            }
 
-          if (!dashboards.has(item.dashboard_id) && item.dashboard_id) {
-            dashboards.set(item.dashboard_id, {
-              id: item.dashboard_id,
-              title: item.dashboard_title,
-              meta: deserializeJSON(item.dashboard_meta),
-              workspace_id: item.workspace_id,
-              base_id: item.base_id,
-              order: item.dashboard_order,
-            });
-          }
-          if (!workflows.has(item.workflow_id) && item.workflow_id) {
-            workflows.set(item.workflow_id, {
-              id: item.workflow_id,
-              title: item.workflow_title,
-              meta: deserializeJSON(item.workflow_meta),
-              workspace_id: item.workspace_id,
-              base_id: item.base_id,
-              order: item.workflow_order,
-            });
+            case 'dashboard': {
+              if (!dashboards.has(item.item_id) && item.item_id) {
+                dashboards.set(item.item_id, {
+                  id: item.item_id,
+                  title: item.item_title,
+                  meta: deserializeJSON(item.item_meta),
+                  workspace_id: item.fk_workspace_id,
+                  base_id: item.base_id,
+                  order: item.item_order,
+                });
+              }
+              break;
+            }
+
+            case 'workflow': {
+              if (!workflows.has(item.item_id) && item.item_id) {
+                workflows.set(item.item_id, {
+                  id: item.item_id,
+                  title: item.item_title,
+                  meta: deserializeJSON(item.item_meta),
+                  workspace_id: item.fk_workspace_id,
+                  base_id: item.base_id,
+                  order: item.item_order,
+                });
+              }
+              break;
+            }
           }
         }
-
-        /*
-          Avoid returning workspaces as we use them from state
-          for (const [id, workspace] of workspaces) {
-            cmdData.push({
-              id: `ws-nav-${id}`,
-              title: workspace.title,
-              icon: 'workspace',
-              iconColor: deserializeJSON(workspace.meta)?.color,
-              section: 'Workspaces',
-              scopePayload: {
-                scope: `ws-${id}`,
-                data: {
-                  workspace_id: id,
-                },
-              },
-              handler: {
-                type: 'navigate',
-                payload: `/${id}/settings`,
-              },
-            });
-          }
-        */
 
         for (const [id, base] of bases) {
           cmdData.push({

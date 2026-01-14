@@ -1,6 +1,6 @@
 import { acceptHMRUpdate } from 'pinia'
 import type { IntegrationsType, SyncConfig } from 'nocodb-sdk'
-import { ProjectSyncCreate, ProjectSyncProgressModal } from '#components'
+// import { ProjectSyncCreate, ProjectSyncProgressModal } from '#components'
 
 export interface SyncIntegrationConfig {
   id?: string
@@ -13,270 +13,43 @@ export interface SyncIntegrationConfig {
 }
 
 export const useSyncStore = defineStore('sync', () => {
-  const { $api, $e } = useNuxtApp()
-
-  const bases = useBases()
-
-  const { isFeatureEnabled } = useBetaFeatureToggle()
-
-  const isSyncFeatureEnabled = computed(() => isEeUI)
-
-  const isSyncAdvancedFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.SYNC_BETA_FEATURE))
-
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
-
-  const { activeProjectId } = storeToRefs(bases)
-
-  const { loadProjectTables } = useTablesStore()
-
-  const { showUpgradeToUseSync } = useEeConfig()
-
   // State
   const baseSyncs = ref<Map<string, SyncConfig[]>>(new Map())
-
   const isLoadingSync = ref(false)
+  const isSyncFeatureEnabled = ref(false)
+  const isSyncAdvancedFeaturesEnabled = ref(false)
 
-  const activeBaseSyncs = computed(() => {
-    if (!activeProjectId.value) return []
-    return baseSyncs.value.get(activeProjectId.value) || []
-  })
+  // Getters
+  const activeBaseSyncs = computed(() => [])
 
   // Actions
-  const loadSyncs = async (baseId: string, force = false) => {
-    if (!activeWorkspaceId.value) return []
-
-    const existingSyncs = baseSyncs.value.get(baseId)
-    if (existingSyncs && !force) {
-      return existingSyncs
-    }
-
-    try {
-      isLoadingSync.value = true
-
-      const syncList = await $api.internal.getOperation(activeWorkspaceId.value, baseId, {
-        operation: 'listSync',
-      })
-
-      if (syncList && Array.isArray(syncList)) {
-        baseSyncs.value.set(baseId, syncList)
-      }
-
-      return syncList
-    } catch (error) {
-      console.error('Error loading syncs:', error)
-      message.error(await extractSdkResponseErrorMsgv2(error as any))
-    } finally {
-      isLoadingSync.value = false
-    }
+  const loadSyncs = async (_baseId: string, _force = false) => {
+    return []
   }
 
-  const readSync = async (syncConfigId: string) => {
-    if (!activeProjectId.value || !activeWorkspaceId.value || !syncConfigId) {
-      return null
-    }
-
-    let syncConfig: null | SyncConfig = null
-
-    if (baseSyncs.value.get(activeProjectId.value)?.find((sync) => sync.id === syncConfigId)) {
-      syncConfig = baseSyncs.value.get(activeProjectId.value)?.find((sync) => sync.id === syncConfigId) || null
-    }
-
-    try {
-      syncConfig =
-        syncConfig ||
-        (await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
-          operation: 'readSync',
-          id: syncConfigId,
-        }))
-
-      return syncConfig as SyncConfig
-    } catch (error) {
-      console.error('Error reading sync:', error)
-      message.error(await extractSdkResponseErrorMsgv2(error as any))
-      return null
-    } finally {
-      isLoadingSync.value = false
-    }
+  const readSync = async (_syncConfigId: string) => {
+    return null
   }
 
-  const createSync = async (
-    baseId: string,
-    data: Partial<SyncConfig> & {
-      configs: Array<Partial<IntegrationConfig>>
-    },
-  ) => {
-    if (!activeWorkspaceId.value || !baseId) return null
-
-    try {
-      const created = await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        baseId,
-        {
-          operation: 'createSync',
-        },
-        data,
-      )
-
-      const curentBaseSyncs = baseSyncs.value.get(baseId) || []
-      curentBaseSyncs.push(created?.syncConfig)
-      baseSyncs.value.set(baseId, curentBaseSyncs)
-
-      await loadProjectTables(baseId, true)
-
-      $e('a:sync:create', {
-        sync_type: data.sync_type,
-        sync_category: data.sync_category,
-        sources: data.configs?.length || 0,
-      })
-
-      return created as { job: { id: string } }
-    } catch (error) {
-      console.error('Error creating sync:', error)
-      message.error(await extractSdkResponseErrorMsgv2(error as any))
-      throw error
-    }
+  const createSync = async (_baseId: string, _data: any) => {
+    return null
   }
 
-  const updateSync = async (
-    id: string,
-    data: Partial<SyncConfig> & {
-      config?: SyncIntegrationConfig[]
-    },
-  ) => {
-    if (!activeWorkspaceId.value || !activeProjectId.value) return null
-
-    try {
-      const result = await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        activeProjectId.value,
-        {
-          operation: 'updateSync',
-        },
-        data,
-      )
-
-      if (result.syncConfig && result.syncConfig.id) {
-        const curentBaseSyncs = baseSyncs.value.get(activeProjectId.value) || []
-        const index = curentBaseSyncs.findIndex((sync) => sync.id === id)
-        if (index !== -1) {
-          curentBaseSyncs[index] = result.syncConfig
-          baseSyncs.value.set(activeProjectId.value, curentBaseSyncs)
-        }
-      }
-
-      $e('a:sync:update', {
-        sync_type: result.syncConfig?.sync_type,
-        sync_category: result.syncConfig?.sync_category,
-      })
-
-      return result
-    } catch (error) {
-      console.error('Error updating sync:', error)
-      message.error(await extractSdkResponseErrorMsgv2(error as any))
-      return null
-    }
+  const updateSync = async (_id: string, _data: any) => {
+    return null
   }
 
-  const deleteSync = async (baseId: string, syncConfigId: string) => {
-    if (!activeWorkspaceId.value || !baseId) return null
-
-    try {
-      await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        baseId,
-        {
-          operation: 'deleteSync',
-        },
-        {
-          id: syncConfigId,
-        },
-      )
-
-      const curentBaseSyncs = baseSyncs.value.get(baseId) || []
-      const index = curentBaseSyncs.findIndex((sync) => sync.id === syncConfigId)
-      if (index !== -1) {
-        curentBaseSyncs.splice(index, 1)
-        baseSyncs.value.set(baseId, curentBaseSyncs)
-      }
-
-      $e('a:sync:delete')
-
-      return true
-    } catch (error) {
-      console.error('Error deleting sync:', error)
-      message.error(await extractSdkResponseErrorMsgv2(error as any))
-      return false
-    }
+  const deleteSync = async (_baseId: string, _syncConfigId: string) => {
+    return null
   }
 
-  const triggerSync = async (baseId: string, syncConfigId: string, bulk = false) => {
-    if (!activeWorkspaceId.value || !baseId) return null
-
-    try {
-      const syncData = await $api.internal.postOperation(
-        activeWorkspaceId.value,
-        baseId,
-        {
-          operation: 'triggerSync',
-        },
-        {
-          id: syncConfigId,
-          bulk,
-        },
-      )
-
-      $e('a:sync:trigger')
-
-      return syncData as { id: string }
-    } catch (error) {
-      console.error('Error triggering sync:', error)
-      message.error(await extractSdkResponseErrorMsgv2(error as any))
-    }
+  const triggerSync = async (_baseId: string, _syncConfigId: string, _bulk = false) => {
+    return null
   }
 
-  async function openNewSyncCreateModal({ baseId }: { baseId?: string }) {
-    if (!baseId || showUpgradeToUseSync()) return
+  async function openNewSyncCreateModal(..._args: any[]) {}
 
-    $e('c:sync:open-create-modal')
-
-    const isDlgOpen = ref(true)
-
-    const { close } = useDialog(ProjectSyncCreate, {
-      'value': isDlgOpen,
-      'baseId': baseId,
-      'onUpdate:value': () => closeDialog(),
-      'onSyncCreated': async (jobId: string) => {
-        closeDialog(jobId)
-      },
-    })
-
-    async function closeDialog(jobId?: string) {
-      isDlgOpen.value = false
-      close(1000)
-
-      if (baseId && jobId) {
-        openSyncProgressModal({ baseId, jobId })
-      }
-    }
-  }
-
-  async function openSyncProgressModal({ baseId, jobId }: { baseId: string; jobId: string }) {
-    if (!baseId || !jobId) return
-
-    const isDlgOpen = ref(true)
-
-    const { close } = useDialog(ProjectSyncProgressModal, {
-      'modelValue': isDlgOpen,
-      'onUpdate:modelValue': () => closeDialog(),
-      'jobId': jobId,
-      'baseId': baseId,
-    })
-
-    function closeDialog() {
-      isDlgOpen.value = false
-      close(1000)
-    }
-  }
+  async function openSyncProgressModal(..._args: any[]) {}
 
   return {
     // State

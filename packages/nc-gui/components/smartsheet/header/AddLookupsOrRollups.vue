@@ -159,7 +159,7 @@ const createLookupsOrRollup = async () => {
     await $api.internal.postOperation(
       meta.value!.fk_workspace_id!,
       meta.value!.base_id!,
-      { operation: 'columnsBulk', tableId: meta.value?.id! },
+      { operation: 'columnsBulk', tableId: meta.value?.id as string },
       {
         hash: meta.value?.columnsHash,
         ops: bulkOpsCols,

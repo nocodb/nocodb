@@ -38,6 +38,7 @@ import { parseKey } from '../../../../../utils/groupbyUtils'
 import type { CanvasElement } from '../utils/CanvasElement'
 import { ElementTypes } from '../utils/CanvasElement'
 import type { RenderTagProps } from '../utils/types'
+import { getSafe2DContext } from '../utils/safeCanvas'
 
 export function useCanvasRender({
   width,
@@ -2978,7 +2979,7 @@ export function useCanvasRender({
           },
         )
 
-        if (appInfo.value?.ee && !appInfo.value.disableGroupByAggregation) {
+        if (!appInfo.value.disableGroupByAggregation) {
           const { start: startColIndex, end: endColIndex } = colSlice.value
           const visibleCols = columns.value.slice(startColIndex, endColIndex)
 
@@ -3444,7 +3445,7 @@ export function useCanvasRender({
     const canvas = canvasRef.value
     if (!canvas) return
 
-    const ctx = canvas.getContext('2d')
+    const ctx = getSafe2DContext(canvas)
     if (!ctx) return
 
     const dpr = window.devicePixelRatio || 1

@@ -92,7 +92,6 @@ const up = async (knex: Knex) => {
 
   // Drop old indexes
   const tablesToDropOldBaseIdIndex = [
-    { tableName: MetaTable.AUDIT, indexName: 'nc_audit_v2_base_id_index' },
     {
       tableName: MetaTable.PROJECT_USERS,
       indexName: 'nc_base_users_v2_base_id_index',
@@ -742,7 +741,6 @@ const up = async (knex: Knex) => {
 const down = async (knex: Knex) => {
   // Recreate the old indexes that were dropped in `up()`.
   const tablesToRecreateOldBaseIdIndex = [
-    { tableName: MetaTable.AUDIT, indexName: 'nc_audit_v2_base_id_index' },
     {
       tableName: MetaTable.PROJECT_USERS,
       indexName: 'nc_base_users_v2_base_id_index',

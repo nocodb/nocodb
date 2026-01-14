@@ -6,8 +6,6 @@
     <AccountSetup v-else-if="$route.params.page === 'setup'" />
     <AccountProfile v-else-if="$route.params.page === 'profile'" />
     <AccountMcp v-else-if="$route.params.page === 'mcp'" />
-    <AccountOAuthClients v-else-if="$route.params.page === 'oauth-clients'" />
-    <AccountExternalIntegrations v-else-if="$route.params.page === 'external-integrations'" />
     <AccountAppStore v-else-if="$route.params.page === 'apps' && !isEeUI" />
     <span v-else></span>
   </div>

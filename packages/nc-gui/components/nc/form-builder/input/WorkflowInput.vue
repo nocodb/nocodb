@@ -175,6 +175,7 @@ onMounted(() => {
   let lastIndex = 0
   let match
 
+  // eslint-disable-next-line no-cond-assign
   while ((match = expressionRegex.exec(vModel.value)) !== null) {
     const [fullMatch, expression] = match
 
@@ -211,6 +212,7 @@ onMounted(() => {
         const pathRegex = /\.(\w+)|\[['"]([^'"]+)['"]\]/g
         let pathMatch
 
+        // eslint-disable-next-line no-cond-assign
         while ((pathMatch = pathRegex.exec(currentPath)) !== null) {
           // pathMatch[1] is dot notation capture, pathMatch[2] is bracket notation capture
           properties.push(pathMatch[1] || pathMatch[2])

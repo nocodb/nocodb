@@ -45,10 +45,10 @@ const pasteText = (target: HTMLInputElement, value: string) => {
   }
 }
 
-const getFormattedModelValue = () => {
+const getFormattedModelValue = (format = true) => {
   if (vModel.value || vModel.value === 0) {
     if (typeof vModel.value === 'number') {
-      if (props.precision) {
+      if (props.precision && format) {
         return vModel.value.toFixed(props.precision) ?? ''
       } else {
         return vModel.value.toString()
@@ -56,7 +56,7 @@ const getFormattedModelValue = () => {
     } else if (typeof vModel.value === 'string') {
       const numberValue = Number(vModel.value)
       if (!ncIsNaN(numberValue)) {
-        if (props.precision) {
+        if (props.precision && format) {
           return numberValue.toFixed(props.precision) ?? ''
         } else {
           return numberValue.toString()
@@ -67,9 +67,9 @@ const getFormattedModelValue = () => {
 
   return ''
 }
-const refreshVModel = () => {
+const refreshVModel = (format = true) => {
   if (inputRef.value && (vModel.value || vModel.value === 0)) {
-    inputRef.value.value = getFormattedModelValue()
+    inputRef.value.value = getFormattedModelValue(format)
   }
 }
 const saveValue = (targetValue: string) => {
@@ -181,11 +181,24 @@ const onInputBlur = (e: FocusEvent) => {
   }
 }
 
+const onInputFocus = () => {
+  refreshVModel(false)
+}
+
 const registerEvents = (input: HTMLInputElement) => {
   input.addEventListener('keydown', onInputKeyDown)
   input.addEventListener('keyup', onInputKeyUp)
   input.addEventListener('paste', onInputPaste)
   input.addEventListener('blur', onInputBlur)
+  input.addEventListener('focus', onInputFocus)
+}
+
+const removeEvents = (input: HTMLInputElement) => {
+  input.removeEventListener('keydown', onInputKeyDown)
+  input.removeEventListener('keyup', onInputKeyUp)
+  input.removeEventListener('paste', onInputPaste)
+  input.removeEventListener('blur', onInputBlur)
+  input.removeEventListener('focus', onInputFocus)
 }
 
 const onBeforeInput = (e: InputEvent) => {
@@ -206,6 +219,12 @@ onMounted(() => {
         inputRef.value.focus()
       }
     })
+  }
+})
+
+onBeforeUnmount(() => {
+  if (inputRef.value) {
+    removeEvents(inputRef.value as HTMLInputElement)
   }
 })
 

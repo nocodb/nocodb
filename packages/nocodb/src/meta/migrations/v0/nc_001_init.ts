@@ -1486,8 +1486,10 @@ const up = async (knex: Knex) => {
     // Indexes for performance
     table.index('fk_client_id', 'nc_oauth_tokens_fk_client_id_index');
     table.index('fk_user_id', 'nc_oauth_tokens_fk_user_id_index');
-    table.index('access_token', 'nc_oauth_tokens_access_token_index');
-    table.index('refresh_token', 'nc_oauth_tokens_refresh_token_index');
+    if (!['mysql', 'mysql2'].includes(knex.client.config.client)) {
+      table.index('access_token', 'nc_oauth_tokens_access_token_index');
+      table.index('refresh_token', 'nc_oauth_tokens_refresh_token_index');
+    }
     table.index(
       'access_token_expires_at',
       'nc_oauth_tokens_access_token_expires_at_index',

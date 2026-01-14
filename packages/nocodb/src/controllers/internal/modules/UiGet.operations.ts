@@ -60,6 +60,7 @@ export class UiGetOperations
     'commentList' as const,
     'commentCount' as const,
     'dataList' as const,
+    'linkDataList' as const,
   ];
   httpMethod = 'GET' as const;
 
@@ -209,6 +210,12 @@ export class UiGetOperations
           includeSortAndFilterColumns:
             req.query.includeSortAndFilterColumns === 'true',
           user: req.user,
+        });
+      case 'linkDataList':
+        context.cache = true;
+        return await this.dataTableService.getLinkedDataList(context, {
+          req,
+          linkColumnId: req.query.columnId as string,
         });
     }
   }

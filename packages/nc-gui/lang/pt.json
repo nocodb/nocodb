@@ -2227,6 +2227,7 @@
     "urlFilterError": "Filtro de URL inválido. Ignorado pois não pôde ser aplicado.",
     "dropYourDocHere": "Solte o seu documento aqui",
     "airtableImportSuccess": "Importado com sucesso da Base Airtable.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Importado com sucesso da Base NocoDB.",
     "deleteAccountPermanently": "Eliminar a sua conta permanentemente",
     "learnMore": "Saiba mais",

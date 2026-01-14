@@ -2227,6 +2227,7 @@
     "urlFilterError": "無効なURLフィルターです。適用できないため無視されました。",
     "dropYourDocHere": "ここにドキュメントをドロップしてください",
     "airtableImportSuccess": "Airtableベースから正常にインポートしました。",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "NocoDBプロジェクトから正常にインポートしました。",
     "deleteAccountPermanently": "アカウントを永久に削除する",
     "learnMore": "詳細はこちら",

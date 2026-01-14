@@ -52,6 +52,7 @@
     "nc-jsep-plugin-template": "^1.7.5",
     "nc-jsep-plugin-ternary": "^1.7.5",
     "rfdc": "^1.4.1",
+    "uuid": "^11.1.0",
     "validator": "^13.12.0"
   },
   "devDependencies": {

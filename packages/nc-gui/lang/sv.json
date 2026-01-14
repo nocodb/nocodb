@@ -2227,6 +2227,7 @@
     "urlFilterError": "Ogiltigt URL-filter. Ignorerades eftersom det inte kunde tillämpas.",
     "dropYourDocHere": "Släpp ditt dokument här",
     "airtableImportSuccess": "Import från Airtable-bas lyckades.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Import från NocoDB-bas lyckades.",
     "deleteAccountPermanently": "Radera ditt konto permanent",
     "learnMore": "Läs mer",

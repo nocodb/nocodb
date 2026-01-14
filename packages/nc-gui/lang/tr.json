@@ -2227,6 +2227,7 @@
     "urlFilterError": "Geçersiz URL filtresi. Uygulanamadığı için yoksayıldı.",
     "dropYourDocHere": "Belgenizi buraya bırakın",
     "airtableImportSuccess": "Airtable Tabanından başarıyla içe aktarıldı.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "NocoDB Tabanından başarıyla içe aktarıldı.",
     "deleteAccountPermanently": "Hesabınızı kalıcı olarak silin",
     "learnMore": "Daha fazla bilgi edinin",

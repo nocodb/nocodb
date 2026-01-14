@@ -2227,6 +2227,7 @@
     "urlFilterError": "ಅಮಾನ್ಯ URL ಫಿಲ್ಟರ್. ಅನ್ವಯಿಸಲಾಗದ ಕಾರಣ ನಿರ್ಲಕ್ಷಿಸಲಾಗಿದೆ.",
     "dropYourDocHere": "ನಿಮ್ಮ ಡಾಕ್ಯುಮೆಂಟ್ ಅನ್ನು ಇಲ್ಲಿ ಬಿಡಿ",
     "airtableImportSuccess": "Airtable ಬೇಸ್‌ನಿಂದ ಯಶಸ್ವಿಯಾಗಿ ಇಂಪೊರ್ಟ್ ಮಾಡಲಾಗಿದೆ.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "NocoDB ಬೇಸ್‌ನಿಂದ ಯಶಸ್ವಿಯಾಗಿ ಇಂಪೊರ್ಟ್ ಮಾಡಲಾಗಿದೆ.",
     "deleteAccountPermanently": "ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಶಾಶ್ವತವಾಗಿ ಅಳಿಸಿ",
     "learnMore": "ಹೆಚ್ಚಿನ ಮಾಹಿತಿ",

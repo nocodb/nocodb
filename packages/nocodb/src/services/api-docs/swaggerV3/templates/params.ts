@@ -29,18 +29,6 @@ export const sortParam = {
   name: 'sort',
   description:
     'Allows you to specify the fields by which you want to sort the records in your API response. A string representing stringified JSON array of objects. Each object must have a \'field\' property specifying the field name and an optional \'direction\' property with value \'asc\' or \'desc\'. If **viewId** query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view. \n\nExample: sort=`[{"direction":"asc", "field":"field1"}]` will sort records in ascending order based on field1.',
-  examples: {
-    oneField: {
-      value: '[{ "direction": "asc", "field": "field1" }]',
-      summary: 'Sort the response by field1 in ascending order',
-    },
-    twoFields: {
-      value:
-        '[{ "direction": "desc", "field": "field1" },{ "field": "field2" }]',
-      summary:
-        'Sort the response by field1 in descending order, followed by field2 in ascending order',
-    },
-  },
 };
 export const whereParam = {
   schema: {

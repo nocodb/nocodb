@@ -2227,6 +2227,7 @@
     "urlFilterError": "مُرشّح رابط غير صالح. تم تجاهله لعدم إمكانية تطبيقه.",
     "dropYourDocHere": "أسقط مستندك هنا",
     "airtableImportSuccess": "تم الاستيراد بنجاح من قاعدة Airtable.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "تم الاستيراد بنجاح من قاعدة NocoDB.",
     "deleteAccountPermanently": "حذف حسابك نهائيًا",
     "learnMore": "معرفة المزيد",

@@ -2227,6 +2227,7 @@
     "urlFilterError": "URL iragazki baliogabea. Baztertuta aplikatu ezin zenez.",
     "dropYourDocHere": "Arrastatu zure dokumentua hona",
     "airtableImportSuccess": "Airtable Base-tik ongi inportatu da.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "NocoDB Base-tik ongi inportatu da.",
     "deleteAccountPermanently": "Ezabatu zure kontua betiko",
     "learnMore": "Argibide gehiago",

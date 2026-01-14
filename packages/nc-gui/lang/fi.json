@@ -2227,6 +2227,7 @@
     "urlFilterError": "Virheellinen URL-suodatin. Ohitettiin, koska sitä ei voitu käyttää.",
     "dropYourDocHere": "Pudota dokumenttisi tähän",
     "airtableImportSuccess": "Airtable-pohja tuotu onnistuneesti.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "NocoDB-pohja tuotu onnistuneesti.",
     "deleteAccountPermanently": "Poista tilisi pysyvästi",
     "learnMore": "Lisätietoja",

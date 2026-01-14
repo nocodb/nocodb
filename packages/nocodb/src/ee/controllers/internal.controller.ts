@@ -133,18 +133,7 @@ export class InternalController extends InternalControllerCE {
     @Query('operation') operation: string,
     @Req() req: NcRequest,
   ): InternalGETResponseType {
-    let extendedScope: string | undefined = undefined;
-
-    if (operation === 'workspaceAuditList' && req.query?.baseId) {
-      extendedScope = 'base';
-    }
-
-    await this.checkAcl(
-      operation,
-      req,
-      OPERATION_SCOPES[operation],
-      extendedScope,
-    );
+    await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
 
     switch (operation) {
       case 'getDataReflection':
@@ -163,7 +152,8 @@ export class InternalController extends InternalControllerCE {
         return await this.mcpService.list(context, req);
       case 'mcpGet':
         return await this.mcpService.get(context, req.query.tokenId as string);
-      case 'workspaceAuditList': {
+      case 'workspaceAuditList':
+      case 'baseAuditList': {
         const { limit } = await getLimit(
           PlanLimitTypes.LIMIT_AUDIT_RETENTION,
           context.workspace_id,

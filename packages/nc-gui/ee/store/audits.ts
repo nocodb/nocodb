@@ -83,7 +83,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
         activeWorkspaceId.value,
         loadActionForBaseId.value ? loadActionForBaseId.value : NO_SCOPE,
         {
-          operation: 'workspaceAuditList',
+          operation: loadActionForBaseId.value ? 'baseAuditList' : 'workspaceAuditList',
           cursor: currentCursor.value,
           baseId: auditLogsQuery.value.baseId,
           fkUserId: user?.id || user?.fk_user_id,

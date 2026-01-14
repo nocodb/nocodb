@@ -2227,6 +2227,7 @@
     "urlFilterError": "Nevažeći URL filtar. Zanemaren jer se nije mogao primijeniti.",
     "dropYourDocHere": "Ispustite svoj dokument ovdje",
     "airtableImportSuccess": "Uspješno uvezeno iz Airtable baze.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Uspješno uvezeno iz NocoDB baze.",
     "deleteAccountPermanently": "Trajno izbriši račun",
     "learnMore": "Saznajte više",

@@ -2227,6 +2227,7 @@
     "urlFilterError": "Nederīgs URL filtrs. Ignorēts, jo to nevarēja piemērot.",
     "dropYourDocHere": "Nometiet dokumentu šeit",
     "airtableImportSuccess": "Veiksmīgi importēts no Airtable bāzes.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Veiksmīgi importēts no NocoDB bāzes.",
     "deleteAccountPermanently": "Dzēst kontu neatgriezeniski",
     "learnMore": "Uzzināt vairāk",

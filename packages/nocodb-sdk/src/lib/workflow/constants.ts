@@ -1,3 +1,4 @@
+import { generateRandomUuid } from '~/lib/stringHelpers';
 import { WorkflowNodeCategory, WorkflowNodeDefinition } from './node';
 
 export const GeneralNodeID = {
@@ -55,7 +56,7 @@ export const GENERAL_DEFAULT_NODES: WorkflowNodeDefinition[] = [
 
 const initWorkflowNodes = [
   {
-    id: crypto.randomUUID(),
+    id: generateRandomUuid(),
     type: GeneralNodeID.TRIGGER,
     position: { x: 250, y: 50 },
     data: {

@@ -269,21 +269,13 @@ export class SandboxPostOperations
       );
     }
 
-    // Serialize current schema
-    const sourceContext: NcContext = {
-      workspace_id: base.fk_workspace_id,
-      base_id: base.id,
-    };
-
-    const serializedSchema = await serializeMeta(sourceContext);
-
     // Create new draft version
     const newDraft = await SandboxVersion.insert(context, {
       fk_sandbox_id: sandboxId,
       version,
       status: SandboxVersionStatus.DRAFT,
       fk_workspace_id: context.workspace_id,
-      schema: JSON.stringify(serializedSchema),
+      schema: null,
     });
 
     // Update base to point to new draft
@@ -335,6 +327,14 @@ export class SandboxPostOperations
       );
     }
 
+    // Serialize current schema
+    const sourceContext: NcContext = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+
+    const serializedSchema = await serializeMeta(sourceContext);
+
     // Update version to published
     await Noco.ncMeta.metaUpdate(
       RootScopes.ROOT,
@@ -343,6 +343,7 @@ export class SandboxPostOperations
       {
         status: SandboxVersionStatus.PUBLISHED,
         published_at: new Date().toISOString(),
+        schema: JSON.stringify(serializedSchema),
       },
       sandboxVersionId,
     );

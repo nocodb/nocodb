@@ -87,17 +87,7 @@ COPY --link ./docker/litestream.yml /etc/litestream.yml
 COPY --link --from=builder /usr/src/app/ /usr/src/app/
 COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
-# Create data directory and set ownership for non-root user
-RUN mkdir -p /usr/app/data \
-    && chown -R node:node /usr/src/app \
-    && chown -R node:node /usr/src/appEntry \
-    && chown -R node:node /usr/app/data \
-    && chown node:node /etc/litestream.yml
-
 EXPOSE 8080
-
-# Run as non-root user
-USER node
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 

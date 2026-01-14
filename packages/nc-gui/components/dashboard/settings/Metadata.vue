@@ -66,7 +66,12 @@ async function loadMetaDiff(afterSync = false) {
           } else if (data.status === JobStatus.FAILED) {
             isLoading.value = false
             if (afterSync) syncCompleted.value = true
-            throw new Error(data.data?.error?.message || 'Failed to load metadata diff')
+
+            console.error(data.data?.error?.message)
+
+            message.error('Failed to load metadata diff', undefined, {
+              copyText: data.data?.error?.message || '',
+            })
           }
         }
       },
@@ -113,8 +118,12 @@ async function syncMetaDiff() {
 
             isLoading.value = false
 
-            await loadTables()
-            await loadMetaDiff(true)
+            try {
+              await loadTables()
+              await loadMetaDiff(true)
+            } catch (_e: any) {
+              // ignore
+            }
 
             emit('baseSynced')
           } else if (data.status === JobStatus.FAILED) {

@@ -2227,6 +2227,7 @@
     "urlFilterError": "ตัวกรอง URL ไม่ถูกต้อง ถูกละเว้นเนื่องจากไม่สามารถใช้งานได้",
     "dropYourDocHere": "วางเอกสารของคุณที่นี่",
     "airtableImportSuccess": "นำเข้าจากฐาน Airtable สำเร็จ",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "นำเข้าจากฐาน NocoDB สำเร็จ",
     "deleteAccountPermanently": "ลบบัญชีของคุณอย่างถาวร",
     "learnMore": "เรียนรู้เพิ่มเติม",

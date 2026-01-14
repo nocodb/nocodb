@@ -21,7 +21,7 @@ const { $e } = useNuxtApp()
 
 const { workspaceRoles } = useRoles()
 
-const { user, isMobileMode } = useGlobal()
+const { user, isMobileMode, appInfo } = useGlobal()
 
 const { showInfoModal } = useNcConfirmModal()
 
@@ -443,9 +443,9 @@ watch(inviteDlg, (newVal) => {
           </template>
         </a-input>
         <div class="flex items-center gap-4">
-          <template v-if="!isMobileMode && isPaymentEnabled && paidUsersCount">
+          <template v-if="!isMobileMode && (isPaymentEnabled || appInfo.isOnPrem) && paidUsersCount">
             <NcTooltip
-              v-if="activePlanTitle === PlanTitles.FREE"
+              v-if="activePlanTitle === PlanTitles.FREE && !appInfo.isOnPrem"
               :tooltip-style="{ width: '230px' }"
               :overlay-inner-style="{ width: '230px' }"
               :title="
@@ -589,13 +589,13 @@ watch(inviteDlg, (newVal) => {
                     {{ record.display_name || record.email.slice(0, record.email.indexOf('@')) }}
                   </NcTooltip>
                   <NcTooltip
-                    v-if="isPaymentEnabled && parseProp(record.meta).billable"
+                    v-if="(isPaymentEnabled || appInfo.isOnPrem) && parseProp(record.meta).billable"
                     :title="$t('tooltip.paidUserBadgeTooltip')"
                     class="flex items-center"
                     :tooltip-style="{ width: '180px' }"
                     :overlay-inner-style="{ width: '180px' }"
                   >
-                    <div v-if="activePlanTitle === PlanTitles.FREE" class="text-nc-content-gray-default">
+                    <div v-if="activePlanTitle === PlanTitles.FREE && !appInfo.isOnPrem" class="text-nc-content-gray-default">
                       <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
                     </div>
                     <NcBadge

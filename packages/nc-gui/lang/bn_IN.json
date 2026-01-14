@@ -2227,6 +2227,7 @@
     "urlFilterError": "অবৈধ URL ফিল্টার। প্রয়োগ করা যায়নি, উপেক্ষা করা হয়েছে।",
     "dropYourDocHere": "আপনার ডকুমেন্টটি এখানে ছেড়ে দিন",
     "airtableImportSuccess": "এয়ারটেবল বেস থেকে সফলভাবে আমদানি করা হয়েছে।",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "NocoDB বেস থেকে সফলভাবে আমদানি করা হয়েছে।",
     "deleteAccountPermanently": "আপনার অ্যাকাউন্ট স্থায়ীভাবে মুছে ফেলুন",
     "learnMore": "আরও জানুন",

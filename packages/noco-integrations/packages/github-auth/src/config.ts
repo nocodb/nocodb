@@ -8,7 +8,10 @@ export const clientSecret = process.env.INTEGRATION_AUTH_GITHUB_CLIENT_SECRET;
 export const redirectUri = process.env.INTEGRATION_AUTH_GITHUB_REDIRECT_URI;
 
 // OAuth scopes
-export const scopes = ['read:user', 'repo'];
+// - repo: Full control of repositories (issues, PRs, code, webhooks)
+// - read:user: Read user profile data
+// - read:org: Read org membership (for fetching collaborators/assignees)
+export const scopes = ['read:user', 'repo', 'read:org'];
 
 // OAuth URIs
 export const authUri =

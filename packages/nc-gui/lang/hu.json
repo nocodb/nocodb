@@ -2227,6 +2227,7 @@
     "urlFilterError": "Érvénytelen URL-szűrő. Figyelmen kívül hagyva, mivel nem alkalmazható.",
     "dropYourDocHere": "Dobja ide a dokumentumot",
     "airtableImportSuccess": "Sikeres importálás Airtable bázisból.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Sikeres importálás NocoDB bázisból.",
     "deleteAccountPermanently": "Fiók végleges törlése",
     "learnMore": "További információ",

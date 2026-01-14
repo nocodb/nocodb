@@ -152,7 +152,6 @@ export function useEsbuild() {
         stdin: {
           contents: code,
           loader: 'ts',
-          sourcefile: 'input.ts',
         },
         bundle: true,
         write: false,

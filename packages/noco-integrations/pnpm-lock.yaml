@@ -334,8 +334,8 @@ importers:
         specifier: ^5.4.0
         version: 5.4.0
       request-filtering-agent:
-        specifier: ^1.1.2
-        version: 1.1.2
+        specifier: ^3.2.0
+        version: 3.2.0
       zod:
         specifier: ^3.25.76
         version: 3.25.76
@@ -3559,9 +3559,9 @@ packages:
     resolution: {integrity: sha512-dYqgNSZbDwkaJ2ceRd9ojCGjBq+mOm9LmtXnAnEGyHhN/5R7iDW2TRw3h+o/jCFxus3P2LfWIIiwowAjANm7IA==}
     engines: {node: '>= 0.4'}
 
-  request-filtering-agent@1.1.2:
-    resolution: {integrity: sha512-v6uYIoey6rhe+nQXB5rlYEWJI+5SrnvM72XGeLUsykzu2omOEPoW4QmzEH+8/sheK4M/hwQ85L7aPj1cTJfPLg==}
-    deprecated: This version is not maintain. Please upgrade to the latest version.
+  request-filtering-agent@3.2.0:
+    resolution: {integrity: sha512-tKPrKdsmTFuGG1/pBEpzTB66mDZ2lZLW8kjW4N6jj4QjnxUTKrIfv5p2zuJRfztOos86jRPD41lRaGjh+1QqDw==}
+    engines: {node: '>=20.0.0'}
 
   resolve-from@4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==}
@@ -6778,7 +6778,7 @@ snapshots:
       gopd: 1.2.0
       set-function-name: 2.0.2
 
-  request-filtering-agent@1.1.2:
+  request-filtering-agent@3.2.0:
     dependencies:
       ipaddr.js: 2.3.0
 

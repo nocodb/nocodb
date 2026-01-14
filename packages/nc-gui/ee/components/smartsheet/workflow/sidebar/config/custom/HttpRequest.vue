@@ -361,6 +361,5 @@ const showAdvanced = ref(false)
       }
     }
   }
-
 }
 </style>

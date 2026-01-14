@@ -101,8 +101,7 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
       if (!isDynamic) {
         try {
           new URL(config.url);
-        } catch (e) {
-          console.log(e);
+        } catch {
           errors.push({
             path: 'config.url',
             message: 'Please provide a valid URL',
@@ -165,12 +164,8 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
         url: config.url,
         timeout: config.timeout || 30000,
         maxRedirects: config.followRedirects === false ? 0 : 5,
-        httpAgent: useAgent(config.url, {
-          stopPortScanningByUrlRedirection: true,
-        }),
-        httpsAgent: useAgent(config.url, {
-          stopPortScanningByUrlRedirection: true,
-        }),
+        httpAgent: useAgent(config.url),
+        httpsAgent: useAgent(config.url),
         validateStatus:
           config.validateStatus === false
             ? () => true
@@ -264,7 +259,7 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
         data: {
           method: axiosConfig.method,
           url: axiosConfig.url,
-          headers: this.sanitizeHeaders(headers),
+          headers,
           hasBody: !!axiosConfig.data,
         },
       });
@@ -363,7 +358,6 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
             },
           };
         } else if (axiosError.request) {
-          // No response received
           logs.push({
             level: 'error',
             message: `No response received: ${axiosError.message}`,
@@ -388,7 +382,6 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
         }
       }
 
-      // Generic error handling
       const err = error as Error;
       logs.push({
         level: 'error',
@@ -460,32 +453,6 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
     return [];
   }
 
-  /**
-   * Sanitize headers for logging (hide sensitive values)
-   */
-  private sanitizeHeaders(
-    headers: Record<string, string>,
-  ): Record<string, string> {
-    const sensitiveKeys = [
-      'authorization',
-      'x-api-key',
-      'api-key',
-      'apikey',
-      'token',
-    ];
-    const sanitized: Record<string, string> = {};
-
-    for (const [key, value] of Object.entries(headers)) {
-      if (sensitiveKeys.some((k) => key.toLowerCase().includes(k))) {
-        sanitized[key] = value ? '[REDACTED]' : '';
-      } else {
-        sanitized[key] = value;
-      }
-    }
-
-    return sanitized;
-  }
-
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
     const variables: NocoSDK.VariableDefinition[] = [
       {
@@ -517,7 +484,7 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
           itemSchema: [
             {
               key: 'key',
-              name: 'Header Name',
+              name: 'Header name',
               type: NocoSDK.VariableType.String,
             },
             {

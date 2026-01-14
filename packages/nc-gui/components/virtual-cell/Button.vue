@@ -418,7 +418,10 @@ const triggerAction = async () => {
     color: var(--btn-cell-text-hover);
   }
 
-  &.disabled {
+  &.disabled,
+  &[disabled] {
+    @apply cursor-not-allowed opacity-60;
+
     background: var(--btn-cell-disabled-bg);
     color: var(--btn-cell-disabled-text);
   }

@@ -134,7 +134,7 @@ const handleDebouncedSave = () => {
 }
 
 const isDisabledAiButton = computed(() => {
-  return !isFieldAiIntegrationAvailable.value || isLoading.value || isPublic.value || !isUIAllowed('dataEdit')
+  return !isFieldAiIntegrationAvailable.value || isLoading.value || isPublic.value || !isUIAllowed('dataEdit') || readOnly.value
 })
 
 const buttonColors = computed(() => {
@@ -144,13 +144,13 @@ const buttonColors = computed(() => {
 
 <template>
   <div
-    v-if="(!readOnly || isGallery || isKanban) && !vModel"
+    v-if="!vModel"
     class="flex items-center w-full"
     :class="{
       'justify-center': isGrid && !isExpandedForm,
     }"
   >
-    <NcTooltip :disabled="isFieldAiIntegrationAvailable || isPublic || isUIAllowed('dataEdit')" class="flex">
+    <NcTooltip :disabled="isFieldAiIntegrationAvailable || isPublic || isUIAllowed('dataEdit') || readOnly" class="flex">
       <template #title>
         {{ aiIntegrations.length ? $t('tooltip.aiIntegrationReConfigure') : $t('tooltip.aiIntegrationAddAndReConfigure') }}
       </template>
@@ -202,6 +202,8 @@ const buttonColors = computed(() => {
 
   &.disabled,
   &[disabled] {
+    @apply cursor-not-allowed opacity-60;
+
     background: var(--btn-cell-disabled-bg);
     color: var(--btn-cell-disabled-text);
   }

@@ -107,6 +107,13 @@ export const OPERATION_SCOPES = {
   dataDeleteAll: 'base',
   bulkDataDeleteAll: 'base',
 
+  // AT Import
+  syncSourceList: 'base',
+  syncSourceCreate: 'base',
+  syncSourceUpdate: 'base',
+  syncSourceDelete: 'base',
+  atImportTrigger: 'base',
+
   // Sandbox Operations
   sandboxStoreList: 'org',
   sandboxList: 'workspace',

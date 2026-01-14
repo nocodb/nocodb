@@ -25,6 +25,8 @@ import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { CommentsService } from '~/services/comments.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { SyncService } from '~/services/sync.service';
+import { NocoJobsService } from '~/services/noco-jobs.service';
 
 @Injectable()
 export class UiPostOperations
@@ -51,6 +53,8 @@ export class UiPostOperations
     protected calendarsService: CalendarsService,
     protected commentsService: CommentsService,
     protected bulkDataAliasService: BulkDataAliasService,
+    protected syncService: SyncService,
+    protected nocoJobsService: NocoJobsService,
   ) {
     super(
       dataTableService,
@@ -72,6 +76,8 @@ export class UiPostOperations
       calendarsService,
       commentsService,
       bulkDataAliasService,
+      syncService,
+      nocoJobsService,
     );
   }
 

@@ -20,9 +20,7 @@ const emit = defineEmits(['update:modelValue', 'back'])
 
 const { $api } = useNuxtApp()
 
-const baseURL = $api.instance.defaults.baseURL
-
-const { $state, $poller } = useNuxtApp()
+const { $poller } = useNuxtApp()
 
 const workspace = useWorkspace()
 
@@ -138,19 +136,25 @@ async function createOrUpdate() {
     const { id, ...payload } = syncSource.value
 
     if (id !== '') {
-      await $fetch(`/api/v1/db/meta/syncs/${id}`, {
-        baseURL,
-        method: 'PATCH',
-        headers: { 'xc-auth': $state.token.value as string },
-        body: payload,
-      })
+      await $api.internal.postOperation(
+        activeWorkspace.value!.id,
+        baseId,
+        {
+          operation: 'syncSourceUpdate',
+          syncId: id,
+        },
+        payload,
+      )
     } else {
-      syncSource.value = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${customSourceId.value}`, {
-        baseURL,
-        method: 'POST',
-        headers: { 'xc-auth': $state.token.value as string },
-        body: payload,
-      })
+      syncSource.value = await $api.internal.postOperation(
+        activeWorkspace.value!.id,
+        baseId,
+        {
+          operation: 'syncSourceCreate',
+          sourceId: customSourceId.value,
+        },
+        payload,
+      )
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -207,10 +211,9 @@ async function listenForUpdates(id?: string) {
 }
 
 async function loadSyncSrc() {
-  const data: any = await $fetch(`/api/v1/db/meta/projects/${baseId}/syncs/${customSourceId.value}`, {
-    baseURL,
-    method: 'GET',
-    headers: { 'xc-auth': $state.token.value as string },
+  const data: any = await $api.internal.getOperation(activeWorkspace.value!.id, baseId, {
+    operation: 'syncSourceList',
+    sourceId: customSourceId.value,
   })
 
   const { list: srcs } = data
@@ -249,11 +252,15 @@ async function loadSyncSrc() {
 
 async function sync() {
   try {
-    const jobData: any = await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, {
-      baseURL,
-      method: 'POST',
-      headers: { 'xc-auth': $state.token.value as string },
-    })
+    const jobData: any = await $api.internal.postOperation(
+      activeWorkspace.value!.id,
+      baseId,
+      {
+        operation: 'atImportTrigger',
+        syncId: syncSource.value.id,
+      },
+      {},
+    )
     listeningForUpdates.value = false
     listenForUpdates(jobData.id)
   } catch (e: any) {

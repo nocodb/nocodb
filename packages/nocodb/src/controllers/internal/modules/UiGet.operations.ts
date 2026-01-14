@@ -18,6 +18,7 @@ import { HooksService } from '~/services/hooks.service';
 import { FormsService } from '~/services/forms.service';
 import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
+import { SyncService } from '~/services/sync.service';
 
 @Injectable()
 export class UiGetOperations
@@ -36,6 +37,7 @@ export class UiGetOperations
     protected formsService: FormsService,
     protected mapsService: MapsService,
     protected commentsService: CommentsService,
+    protected syncService: SyncService,
   ) {}
   operations = [
     'nestedDataList' as const,
@@ -61,6 +63,7 @@ export class UiGetOperations
     'commentCount' as const,
     'dataList' as const,
     'linkDataList' as const,
+    'syncSourceList' as const,
   ];
   httpMethod = 'GET' as const;
 
@@ -216,6 +219,11 @@ export class UiGetOperations
         return await this.dataTableService.getLinkedDataList(context, {
           req,
           linkColumnId: req.query.columnId as string,
+        });
+      case 'syncSourceList':
+        return await this.syncService.syncSourceList(context, {
+          baseId: context.base_id,
+          sourceId: req.query.sourceId as string,
         });
     }
   }

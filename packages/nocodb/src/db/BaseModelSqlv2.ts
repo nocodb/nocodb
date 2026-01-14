@@ -4256,7 +4256,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       if (Array.isArray(columnValue)) {
         columnValueArr = columnValue;
       } else {
-        columnValueArr = `${columnValue}`.split(',').map((val) => val.trim());
+        columnValueArr = `${columnValue}`.split(',').map((val) => {
+          // If options has any extra space option then return as it is
+          if (options.includes(val)) return val;
+
+          // If options does not have the option then return the trimmed value
+          return val.trim();
+        });
       }
     } else {
       columnValueArr = [columnValue];

@@ -2227,6 +2227,7 @@
     "urlFilterError": "Bộ lọc URL không hợp lệ. Bỏ qua vì không thể áp dụng.",
     "dropYourDocHere": "Thả tài liệu của bạn vào đây",
     "airtableImportSuccess": "Nhập Cơ sở Airtable thành công.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Nhập Cơ sở NocoDB thành công.",
     "deleteAccountPermanently": "Xóa vĩnh viễn tài khoản của bạn",
     "learnMore": "Tìm hiểu thêm",

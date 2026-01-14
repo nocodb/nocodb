@@ -2227,6 +2227,7 @@
     "urlFilterError": "Filter URL tidak valid. Diabaikan karena tidak dapat diterapkan.",
     "dropYourDocHere": "Jatuhkan dokumen Anda di sini",
     "airtableImportSuccess": "Berhasil mengimpor dari Basis Airtable.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Berhasil mengimpor dari Basis NocoDB.",
     "deleteAccountPermanently": "Hapus akun Anda secara permanen",
     "learnMore": "Pelajari lebih lanjut",

@@ -2227,6 +2227,7 @@
     "urlFilterError": "Filtru URL invalid. A fost ignorat deoarece nu a putut fi aplicat.",
     "dropYourDocHere": "Trage documentul aici",
     "airtableImportSuccess": "Importarea din baza Airtable s-a realizat cu succes.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Importarea din baza NocoDB s-a realizat cu succes.",
     "deleteAccountPermanently": "Șterge definitiv contul",
     "learnMore": "Află mai multe",

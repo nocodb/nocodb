@@ -2227,6 +2227,7 @@
     "urlFilterError": "מסנן URL לא תקין. ההתעלם מכיוון שלא ניתן היה ליישם אותו.",
     "dropYourDocHere": "גרור את המסמך שלך כאן",
     "airtableImportSuccess": "יובא בהצלחה ממסד Airtable.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "יובא בהצלחה ממסד NocoDB.",
     "deleteAccountPermanently": "מחק את החשבון שלך לצמיתות",
     "learnMore": "מידע נוסף",

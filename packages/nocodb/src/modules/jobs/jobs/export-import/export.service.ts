@@ -799,6 +799,8 @@ export class ExportService {
 
     if (!param.includeCrossBaseColumns) {
       model.columns = this.filterOutCrossBaseColumns(model);
+    } else {
+      model.columns = [...model.columns];
     }
 
     const btMap = new Map<string, string>();

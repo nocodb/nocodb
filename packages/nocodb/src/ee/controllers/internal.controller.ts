@@ -105,7 +105,12 @@ export class InternalController extends InternalControllerCE {
     super(aclMiddleware, internalApiModules);
   }
 
-  protected async checkAcl(operation: string, req, scope?: string) {
+  protected async checkAcl(
+    operation: string,
+    req,
+    scope?: string,
+    extendedScope?: string,
+  ) {
     if (scope === 'ncSkipAcl') {
       return;
     }
@@ -113,6 +118,7 @@ export class InternalController extends InternalControllerCE {
       operation,
       {
         scope,
+        extendedScope,
       },
       null,
       req,
@@ -127,7 +133,18 @@ export class InternalController extends InternalControllerCE {
     @Query('operation') operation: string,
     @Req() req: NcRequest,
   ): InternalGETResponseType {
-    await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
+    let extendedScope: string | undefined = undefined;
+
+    if (operation === 'workspaceAuditList' && req.query?.baseId) {
+      extendedScope = 'base';
+    }
+
+    await this.checkAcl(
+      operation,
+      req,
+      OPERATION_SCOPES[operation],
+      extendedScope,
+    );
 
     switch (operation) {
       case 'getDataReflection':

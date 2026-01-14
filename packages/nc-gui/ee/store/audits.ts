@@ -28,6 +28,8 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const loadActionWorkspaceLogsOnly = ref<boolean>(false)
 
+  const loadActionForBaseId = ref<string | undefined>()
+
   const audits = ref<Array<AuditType>>([])
 
   const isRowExpanded = ref(false)
@@ -158,16 +160,27 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     }
   }
 
-  const handleReset = () => {
+  const handleReset = (clearBaseAndUsers = true) => {
     auditLogsQuery.value = { ...defaultAuditLogsQuery }
 
-    allBases.value.clear()
-    collaboratorsMap.value.clear()
+    if (clearBaseAndUsers) {
+      allBases.value.clear()
+      collaboratorsMap.value.clear()
+    }
   }
 
-  const onInit = async () => {
+  const onInit = async (baseId?: string) => {
+    loadActionForBaseId.value = baseId
+
     if (loadActionWorkspaceLogsOnly.value) {
       auditLogsQuery.value.workspaceId = activeWorkspaceId.value
+    }
+
+    if (loadActionForBaseId.value) {
+      handleReset(false)
+      auditLogsQuery.value.baseId = loadActionForBaseId.value
+    } else {
+      auditLogsQuery.value.baseId = undefined
     }
 
     const promises = [loadAudits(true, false)]
@@ -233,6 +246,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     getUserName,
     loadActionWorkspaceLogsOnly,
     hasMoreAudits,
+    loadActionForBaseId,
   }
 })
 

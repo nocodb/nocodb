@@ -1,6 +1,12 @@
 <script lang="ts" setup>
 import { type AuditType, auditV1OperationTypesAlias } from 'nocodb-sdk'
 
+interface Props {
+  baseId?: string
+}
+
+const props = defineProps<Props>()
+
 const { t } = useI18n()
 
 const { appInfo } = useGlobal()
@@ -93,14 +99,23 @@ const customRow = (audit: AuditType) => ({
 
 onMounted(() => {
   loadActionWorkspaceLogsOnly.value = true
-  onInit()
+  onInit(props.baseId)
 })
 
 watch(activeWorkspaceId, () => {
   if (!isAdminPanel.value) return
 
-  onInit()
+  onInit(props.baseId)
 })
+
+watch(
+  () => props.baseId,
+  () => {
+    if (!isAdminPanel.value || !props.baseId) return
+
+    onInit(props.baseId)
+  },
+)
 </script>
 
 <template>
@@ -110,7 +125,7 @@ watch(activeWorkspaceId, () => {
     </div>
 
     <template v-else>
-      <WorkspaceAuditsHeader />
+      <WorkspaceAuditsHeader :base-id="baseId" />
       <NcTable
         v-model:order-by="orderBy"
         :is-data-loading="isLoadingAudits"

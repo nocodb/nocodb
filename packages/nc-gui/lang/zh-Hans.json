@@ -2227,6 +2227,7 @@
     "urlFilterError": "无效的 URL 筛选器，已忽略，因为无法应用。",
     "dropYourDocHere": "将文档拖放到这里",
     "airtableImportSuccess": "成功导入自Airtable Base。",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "成功从 NocoDB Base 导入。",
     "deleteAccountPermanently": "永久删除您的账户",
     "learnMore": "了解更多",

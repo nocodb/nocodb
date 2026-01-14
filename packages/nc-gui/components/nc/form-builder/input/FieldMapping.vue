@@ -44,13 +44,13 @@ const groupedVariables = computed(() => {
 const fieldRows = ref<FieldRow[]>(
   props.modelValue && typeof props.modelValue === 'object'
     ? Object.entries(props.modelValue).map(([fieldId, value]) => ({
-        id: crypto.randomUUID(),
+        id: generateRandomUUID(),
         fieldId,
         value: value || '',
       }))
     : [
         {
-          id: crypto.randomUUID(),
+          id: generateRandomUUID(),
           fieldId: '',
           value: '',
         },
@@ -77,7 +77,7 @@ watch(
 
 function addFieldRow() {
   fieldRows.value.push({
-    id: crypto.randomUUID(),
+    id: generateRandomUUID(),
     fieldId: '',
     value: '',
   })
@@ -116,7 +116,7 @@ watch(
       // Reset to single empty row when cleared externally
       fieldRows.value = [
         {
-          id: crypto.randomUUID(),
+          id: generateRandomUUID(),
           fieldId: '',
           value: '',
         },
@@ -124,7 +124,7 @@ watch(
     } else if (typeof newValue === 'object') {
       // Update fieldRows when modelValue changes externally
       fieldRows.value = Object.entries(newValue).map(([fieldId, value]) => ({
-        id: crypto.randomUUID(),
+        id: generateRandomUUID(),
         fieldId,
         value: value || '',
       }))

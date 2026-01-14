@@ -82,7 +82,6 @@ export const useCopySharedBase = createSharedComposable(() => {
         }) => {
           if (data.status !== 'close') {
             if (data.status === JobStatus.COMPLETED) {
-              console.log('job completed', jobData)
               ncNavigateTo({
                 ...(isEeUI ? { workspaceId: jobData.fk_workspace_id } : {}),
                 baseId: jobData.base_id,
@@ -94,7 +93,9 @@ export const useCopySharedBase = createSharedComposable(() => {
               onComplete?.('success')
             } else if (data.status === JobStatus.FAILED) {
               message.error(failedToastMessage)
-              await populateWorkspace()
+              await populateWorkspace().catch(() => {
+                // ignore
+              })
               isLoading.value = false
               onComplete?.('error')
             }

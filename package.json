@@ -14,7 +14,7 @@
   "bugs": {
     "url": "https://github.com/nocodb/nocodb/issues"
   },
-  "license": "AGPL-3.0-or-later",
+  "license": "Sustainable Use License",
   "devDependencies": {
     "husky": "^8.0.3",
     "lerna": "^8.2.2",

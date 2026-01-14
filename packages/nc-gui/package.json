@@ -7,7 +7,7 @@
     "name": "NocoDB",
     "url": "https://nocodb.com/"
   },
-  "license": "AGPL-3.0-or-later",
+  "license": "Sustainable Use License",
   "homepage": "https://github.com/nocodb/nocodb",
   "repository": {
     "type": "git",
@@ -156,6 +156,7 @@
     "typesense": "^2.0.3",
     "unified": "^11.0.5",
     "unique-names-generator": "^4.7.1",
+    "uuid": "^11.1.0",
     "v3-infinite-loading": "^1.3.2",
     "validator": "^13.12.0",
     "vue-advanced-cropper": "^2.8.9",

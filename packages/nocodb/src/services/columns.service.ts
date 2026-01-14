@@ -1300,6 +1300,76 @@ export class ColumnsService implements IColumnsService {
           }
         }
 
+        // normalize multiselect values (split + trim + join) when converting to MultiSelect
+        if (
+          column.uidt !== colBody.uidt &&
+          colBody.uidt === UITypes.MultiSelect
+        ) {
+          if (driverType === 'pg') {
+            await sqlClient.raw(
+              `
+              UPDATE :table_name:
+              SET :column_name: = regexp_replace(
+                regexp_replace(:column_name:, '\\s*,\\s*', ',', 'g'),
+                '^,|,$',
+                '',
+                'g'
+              )
+              WHERE :column_name: IS NOT NULL
+              `,
+              {
+                table_name: baseModel.getTnPath(table.table_name),
+                column_name: column.column_name,
+              },
+            );
+          } else if (driverType === 'mysql' || driverType === 'mysql2') {
+            await sqlClient.raw(
+              `
+              UPDATE :table_name:
+              SET :column_name: = TRIM(BOTH ',' FROM
+                REGEXP_REPLACE(
+                  :column_name:,
+                  '\\\\s*,\\\\s*',
+                  ','
+                )
+              )
+              WHERE :column_name: IS NOT NULL
+              `,
+              {
+                table_name: baseModel.getTnPath(table.table_name),
+                column_name: column.column_name,
+              },
+            );
+          } else if (driverType === 'sqlite3') {
+            await sqlClient.raw(
+              `
+              UPDATE :table_name:
+              SET :column_name: = TRIM(
+                REPLACE(
+                  REPLACE(
+                    REPLACE(
+                      ',' || :column_name: || ',',
+                      ', ',
+                      ','
+                    ),
+                    ' ,',
+                    ','
+                  ),
+                  ',,',
+                  ','
+                ),
+                ','
+              )
+              WHERE :column_name: IS NOT NULL
+              `,
+              {
+                table_name: baseModel.getTnPath(table.table_name),
+                column_name: column.column_name,
+              },
+            );
+          }
+        }
+
         // Handle option delete
         if (column.colOptions?.options) {
           for (const option of column.colOptions.options.filter(

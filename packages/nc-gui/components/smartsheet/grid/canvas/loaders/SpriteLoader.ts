@@ -1,6 +1,7 @@
 import type { VNode } from 'vue'
 import { createSSRApp } from 'vue'
 import { renderToString } from 'vue/server-renderer'
+import { getSafe2DContext } from '../utils/safeCanvas'
 
 export class SpriteLoader {
   private svgCache = new Map<string, string>()
@@ -59,7 +60,7 @@ export class SpriteLoader {
     const canvas = document.createElement('canvas')
     canvas.width = size * scale
     canvas.height = size * scale
-    const spriteCtx = canvas.getContext('2d')!
+    const spriteCtx = getSafe2DContext(canvas)
 
     spriteCtx.imageSmoothingEnabled = true
     spriteCtx.imageSmoothingQuality = 'high'

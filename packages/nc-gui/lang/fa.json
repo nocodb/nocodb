@@ -2227,6 +2227,7 @@
     "urlFilterError": "فیلتر URL نامعتبر. نادیده گرفته شد چون قابل اعمال نبود.",
     "dropYourDocHere": "سند خود را اینجا رها کنید",
     "airtableImportSuccess": "ایمپورت پایگاه Airtable با موفقیت انجام شد.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "ایمپورت پایگاه NocoDB با موفقیت انجام شد.",
     "deleteAccountPermanently": "حذف دائمی حساب کاربری شما",
     "learnMore": "بیشتر بدانید",

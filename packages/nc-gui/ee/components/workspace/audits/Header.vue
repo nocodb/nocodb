@@ -244,6 +244,7 @@ const selectedBase = computed(() => {
   return (auditLogsQuery.value.baseId && bases.value.get(auditLogsQuery.value.baseId)?.title) || 'All'
 })
 
+// Temp hidden workspace selector as its available only at workspace level
 const showWorkspaceSelector = ref(false)
 </script>
 

@@ -16,6 +16,6 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
       'h-[calc(100vh-92px)]': !isAdminPanel,
     }"
   >
-    <WorkspaceAuditsLogs :baseId="baseId" />
+    <WorkspaceAuditsLogs :base-id="baseId" />
   </div>
 </template>

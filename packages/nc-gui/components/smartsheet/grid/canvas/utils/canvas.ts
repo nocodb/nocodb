@@ -4,8 +4,8 @@ import type { ColumnType, UserType } from 'nocodb-sdk'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
 import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
 import { type Block, getFontForToken, parseMarkdown } from './markdownUtils'
-import { NcMarkdownParser } from '~/helpers/tiptap'
 import { getSafe2DContext } from './safeCanvas'
+import { NcMarkdownParser } from '~/helpers/tiptap'
 
 const singleLineTextCache: LRUCache<string, { text: string; width: number; isTruncated: boolean }> = new LRUCache({
   max: 1000,

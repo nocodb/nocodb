@@ -1565,6 +1565,41 @@ export interface FieldOptionsLongTextV3Type {
   generate_text_using_ai?: boolean;
 }
 
+export type TableFieldBaseCreateV3Type = FieldBaseV3Type & {
+  /** Field data type. */
+  type?:
+    | 'SingleLineText'
+    | 'LongText'
+    | 'PhoneNumber'
+    | 'URL'
+    | 'Email'
+    | 'Number'
+    | 'Decimal'
+    | 'Currency'
+    | 'Percent'
+    | 'Duration'
+    | 'Date'
+    | 'DateTime'
+    | 'Time'
+    | 'SingleSelect'
+    | 'MultiSelect'
+    | 'Rating'
+    | 'Checkbox'
+    | 'Attachment'
+    | 'Geometry'
+    | 'Links'
+    | 'LinkToAnotherRecord'
+    | 'Button'
+    | 'Formula'
+    | 'Year'
+    | 'CreatedTime'
+    | 'LastModifiedTime'
+    | 'CreatedBy'
+    | 'LastModifiedBy'
+    | 'User'
+    | 'JSON';
+};
+
 export type FieldBaseCreateV3Type = FieldBaseV3Type;
 
 export interface FieldBaseV3Type {
@@ -2217,6 +2252,8 @@ export interface TableV3Type {
   views: ViewSummaryV3Type[];
 }
 
+export type TableCreateFieldV3Type = TableFieldBaseCreateV3Type;
+
 export type CreateFieldV3Type = FieldBaseCreateV3Type;
 
 export type FieldOptionsV3Type = any;
@@ -2229,7 +2266,7 @@ export interface TableCreateV3Type {
   meta?: TableMetaV3Type;
   /** Unique identifier for the data source. Include this information only if the table being created is part of a data source. */
   source_id?: string;
-  fields?: CreateFieldV3Type[];
+  fields?: TableCreateFieldV3Type[];
 }
 
 export interface TableMetaV3Type {

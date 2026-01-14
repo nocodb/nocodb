@@ -2227,6 +2227,7 @@
     "urlFilterError": "잘못된 URL 필터입니다. 적용할 수 없어 무시되었습니다.",
     "dropYourDocHere": "여기에 문서를 놓으세요",
     "airtableImportSuccess": "에어테이블 베이스에서 성공적으로 가져왔습니다.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "NocoDB Base에서 성공적으로 가져왔습니다.",
     "deleteAccountPermanently": "계정을 영구적으로 삭제하세요",
     "learnMore": "더 보기",

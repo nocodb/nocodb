@@ -2227,6 +2227,7 @@
     "urlFilterError": "Neplatný filtr URL. Byl ignorován, protože jej nelze použít.",
     "dropYourDocHere": "Sem přetáhněte svůj dokument",
     "airtableImportSuccess": "Úspěšně importováno z databáze Airtable.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Úspěšně importováno z databáze NocoDB.",
     "deleteAccountPermanently": "Trvale smazat účet",
     "learnMore": "Další informace",

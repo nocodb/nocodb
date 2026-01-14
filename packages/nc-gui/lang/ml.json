@@ -2227,6 +2227,7 @@
     "urlFilterError": "അസാധുവായ URL ഫിൽറ്റർ. പ്രയോഗിക്കാൻ കഴിയാത്തതിനാൽ അവഗണിച്ചു.",
     "dropYourDocHere": "നിങ്ങളുടെ ഡോക്യുമെന്റ്这里? Need Malayalam: നിങ്ങളുടെ ഡോക്യുമെന്റ് ഇവിടെ ഇടുക",
     "airtableImportSuccess": "Airtable ബെസിൽ നിന്ന് വിജയകരമായി ഇറക്കുമതി ചെയ്തു.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "NocoDB ബെസില്‍ നിന്നും വിജയകരമായി ഇറക്കുമതി ചെയ്തു.",
     "deleteAccountPermanently": "നിങ്ങളുടെ അക്കൗണ്ട് സ്ഥിരമായി മായ്ക്കുക",
     "learnMore": "കൂടുതല്‍ അറിയുക",

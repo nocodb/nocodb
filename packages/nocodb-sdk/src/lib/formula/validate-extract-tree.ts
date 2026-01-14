@@ -128,7 +128,10 @@ async function extractColumnIdentifierType({
 
           // the value is based on the foreign rollup column type
           const refTableMeta = await getMeta(
-            unifiedMeta.getContextFromObject(col),
+            unifiedMeta.getContextFromObject({
+              ...col,
+              base_id: relationColumnOpt.fk_related_base_id ?? col.base_id,
+            }),
             {
               id: relationColumnOpt.fk_related_model_id,
             }
@@ -582,7 +585,12 @@ async function checkForCircularFormulaRef(
 
     if (ltarColumn) {
       const relatedTableMeta = await getMeta(
-        unifiedMeta.getContextFromObject(ltarColumn),
+        unifiedMeta.getContextFromObject({
+          ...ltarColumn,
+          base_id:
+            (ltarColumn.colOptions as LinkToAnotherRecordType)
+              .fk_related_base_id ?? ltarColumn.base_id,
+        }),
         {
           id: (ltarColumn.colOptions as LinkToAnotherRecordType)
             .fk_related_model_id,

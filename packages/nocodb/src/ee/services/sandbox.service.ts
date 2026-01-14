@@ -11,6 +11,7 @@ import {
   type BaseMetaSchema,
   diffMeta,
   serializeMeta,
+  skipOverrideTables,
 } from '~/helpers/baseMetaHelpers';
 import { MetaTable } from '~/utils/globals';
 
@@ -201,6 +202,11 @@ export class SandboxService {
 
     for (const [tableName, records] of Object.entries(schema)) {
       if (!Array.isArray(records)) {
+        remapped[tableName] = records;
+        continue;
+      }
+
+      if (skipOverrideTables.includes(tableName as MetaTable)) {
         remapped[tableName] = records;
         continue;
       }

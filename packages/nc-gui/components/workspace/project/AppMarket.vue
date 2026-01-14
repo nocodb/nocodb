@@ -201,10 +201,6 @@ onMounted(() => {
                   <GeneralIcon icon="download" class="h-3 w-3" />
                   {{ sandbox.install_count || 0 }} {{ t('labels.installs') }}
                 </span>
-                <span class="flex items-center gap-1">
-                  <GeneralIcon icon="code" class="h-3 w-3" />
-                  v{{ sandbox.version }}
-                </span>
               </div>
             </div>
           </div>

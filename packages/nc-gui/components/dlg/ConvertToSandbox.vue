@@ -13,7 +13,7 @@ const sandboxForm = reactive({
   title: '',
   description: '',
   category: '',
-  visibility: 'public',
+  visibility: 'private',
 })
 
 const { base } = storeToRefs(useBase())
@@ -25,7 +25,7 @@ watch(visible, (isVisible) => {
     sandboxForm.title = base.value.title || ''
     sandboxForm.description = ''
     sandboxForm.category = ''
-    sandboxForm.visibility = 'public'
+    sandboxForm.visibility = 'private'
   }
 })
 
@@ -129,7 +129,7 @@ const convertToSandbox = async () => {
               {{ $t('labels.sandboxVisibility') }}
             </label>
             <a-select v-model:value="sandboxForm.visibility" size="large" class="w-full rounded-lg">
-              <a-select-option value="public">
+              <a-select-option disabled value="public">
                 <div class="flex items-center gap-2">
                   <GeneralIcon icon="eye" class="w-4 h-4" />
                   <span>Public</span>

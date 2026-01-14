@@ -127,10 +127,13 @@ const orderedSerializableMetaTables = [
 
   // Scripts and workflows
   MetaTable.AUTOMATIONS,
+  MetaTable.DEPENDENCY_TRACKER,
 
   // Statistics
   MetaTable.MODEL_STAT,
 ].filter((table) => serializableMetaTables.includes(table));
+
+export const skipOverrideTables = [MetaTable.DEPENDENCY_TRACKER];
 
 export type BaseMetaSchema = {
   [K in (typeof serializableMetaTables)[number]]?: any;
@@ -178,7 +181,11 @@ export async function serializeMeta(
           .select();
 
         // Apply overrides if provided (for changing base_id/workspace_id/source_id)
-        if (override && records.length > 0) {
+        if (
+          override &&
+          records.length > 0 &&
+          !skipOverrideTables.includes(metaTable)
+        ) {
           for (const record of records) {
             // Only override specified fields, preserve all other data
             if (override.base_id !== undefined) {

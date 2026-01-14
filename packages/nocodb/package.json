@@ -161,7 +161,7 @@
     "nc-lib-gui": "0.301.0",
     "nestjs-pino": "^3.5.0",
     "net": "^1.0.2",
-    "nocodb-sdk": "0.301.0",
+    "nocodb-sdk": "workspace:^",
     "node-sql-parser": "^5.3.6",
     "nodemailer": "^6.10.0",
     "npm": "^11.3.0",

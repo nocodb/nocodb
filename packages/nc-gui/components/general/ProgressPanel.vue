@@ -14,9 +14,12 @@ const scrollToBottom = () => {
   container.scrollTop = container.scrollHeight
 }
 
-const pushProgress = (message: string, status: JobStatus | 'progress') => {
+const pushProgress = (message: string, status: JobStatus | 'progress' | 'warning') => {
   if (!message?.trim()) return
-  progress.value.push({ msg: message, status })
+  progress.value.push({
+    msg: message,
+    status: status === JobStatus.FAILED ? JobStatus.FAILED : message.startsWith('WARNING: ') ? 'warning' : status,
+  })
 
   if (autoScroll.value) {
     nextTick(scrollToBottom)
@@ -88,7 +91,11 @@ onMounted(() => {
 
         <span class="text-red-500 ml-2">{{ msg }}</span>
       </div>
+      <div v-else-if="status === 'warning'" class="flex items-center">
+        <component :is="iconMap.warning" class="text-yellow-500" />
 
+        <span class="text-yellow-500 ml-2">{{ msg }}</span>
+      </div>
       <div v-else class="flex items-center">
         <MdiCurrencyUsd class="text-green-500" />
 

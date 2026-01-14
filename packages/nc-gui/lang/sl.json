@@ -2227,6 +2227,7 @@
     "urlFilterError": "Neveljaven URL filter. Prezrt, ker ga ni bilo mogoče uporabiti.",
     "dropYourDocHere": "Spustite dokument sem",
     "airtableImportSuccess": "Uspešno uvoženo iz baze Airtable.",
+    "airtableImportWarning": "Note: Import completed with warnings. Please review the details for more information.",
     "nocoDBImportSuccess": "Uspešno uvoženo iz baze NocoDB.",
     "deleteAccountPermanently": "Trajno izbriši račun",
     "learnMore": "Več informacij",

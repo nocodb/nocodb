@@ -108,6 +108,7 @@ export class DataExportProcessor {
           viewId: view.id,
           ncSiteUrl: ncSiteUrl,
           delimiter: options?.delimiter,
+          includeCrossBaseColumns: true,
         })
         .catch((e) => {
           this.logger.debug(e);

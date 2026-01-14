@@ -12,16 +12,13 @@ const { visibility, showShareModal } = storeToRefs(useShare())
 
 const { activeTable } = storeToRefs(useTablesStore())
 
-const { base, isSharedBase } = storeToRefs(useBase())
+const { base, isSharedBase, isSandboxMaster } = storeToRefs(useBase())
 
 const { hideSharedBaseBtn } = storeToRefs(useConfigStore())
 
 const { $e } = useNuxtApp()
 
 const { isUIAllowed } = useRoles()
-
-// Hide share button for sandbox masters that are not in draft mode
-const isSandboxMaster = computed(() => !!base.value?.sandbox_id && !base.value?.is_draft)
 
 const route = useRoute()
 

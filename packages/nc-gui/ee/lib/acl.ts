@@ -276,6 +276,47 @@ export const sourceRestrictions = {
   },
 }
 
+export const sandboxRestrictions = {
+  tableCreate: true,
+  tableRename: true,
+  tableDelete: true,
+  tableDuplicate: true,
+  airtableImport: true,
+  csvImport: true,
+  jsonImport: true,
+  excelImport: true,
+  nocodbImport: true,
+  duplicateColumn: true,
+  duplicateModel: true,
+  viewCreateOrEdit: true,
+  fieldUpdate: true,
+  hookList: true,
+  hookCreate: true,
+  tableDescriptionEdit: true,
+  tableSort: true,
+  webhook: true,
+  fieldEdit: true,
+  fieldAlter: true,
+  fieldDelete: true,
+  fieldAdd: true,
+
+  tableIconEdit: true,
+
+  csvImport: true,
+  baseDuplicate: true,
+  sourceCreate: true,
+  // Row colouring
+  rowColourUpdate: true,
+
+  dashboardCreate: true,
+  dashboardEdit: true,
+  dashboardDelete: true,
+  dashboardRename: true,
+  dashboardDuplicate: true,
+  // Workflows
+  workflowCreateOrEdit: true,
+}
+
 /*
   We inherit include permissions from previous roles in the same scope (role order)
   To determine role order, we use `roleScopes` object

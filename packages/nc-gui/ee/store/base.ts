@@ -54,6 +54,12 @@ export const useBase = defineStore('baseStore', () => {
 
   const lastOpenedViewMap = ref<Record<string, string>>({})
 
+  const isSandboxMaster = computed(() => !!base.value?.sandbox_id && !base.value?.is_draft)
+
+  const isSandboxSchemaLocked = computed(() => {
+    return base.value?.sandbox_schema_locked === true
+  })
+
   // todo: refactor path param name and variable name
   const baseType = computed(() => route.value.params.typeOrId as string)
 
@@ -379,6 +385,8 @@ export const useBase = defineStore('baseStore', () => {
     idUserMap,
     isPrivateBase,
     showBaseAccessRequestOverlay,
+    isSandboxMaster,
+    isSandboxSchemaLocked,
   }
 })
 

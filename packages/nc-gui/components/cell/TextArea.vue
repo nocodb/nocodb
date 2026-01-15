@@ -557,7 +557,7 @@ useResizeObserver(inputWrapperRef, () => {
             'py-1 h-full': isForm,
             'px-2': isExpandedFormOpen,
             'border-none': !(props.isAi && isExpandedFormOpen),
-            'border-1 border-nc-border-gray-medium rounded-lg !focus:(shadow-selected-ai border-nc-border-purple ring-0) transition-shadow duration-300':
+            'nc-inline-textarea-ai border-1 border-nc-border-gray-medium rounded-lg !focus:(shadow-selected-ai border-nc-border-purple ring-0) transition-shadow duration-300':
               props.isAi && isExpandedFormOpen,
             'bg-transparent': isUnderFormula,
           }"
@@ -873,6 +873,12 @@ useResizeObserver(inputWrapperRef, () => {
 .nc-inline-textarea {
   &:disabled {
     @apply !bg-transparent;
+  }
+
+  &.nc-inline-textarea-ai {
+    &:not(:disabled) {
+      @apply dark:!bg-nc-bg-default;
+    }
   }
 }
 

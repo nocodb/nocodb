@@ -122,7 +122,12 @@ const [useProvideScriptStore, useNcScriptStore] = useInjectionState((_script: Sc
 
   const restartScript = async () => {
     stopScript()
-    await runScript()
+
+    try {
+      await runScript()
+    } catch (e: any) {
+      // ignore - console error is logged in runScript
+    }
   }
 
   const updateScript = async ({

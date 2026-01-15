@@ -68,31 +68,34 @@ const onLog = (data: { message: string }) => {
 
 const onStatus = async (status: JobStatus, data?: any) => {
   lastProgress.value = { msg: data?.message, status }
+  try {
+    if (status === JobStatus.COMPLETED) {
+      showGoToDashboardButton.value = true
 
-  if (status === JobStatus.COMPLETED) {
-    showGoToDashboardButton.value = true
+      if (syncOptions.value.workspaceMode || syncOptions.value.newBase) {
+        await basesStore.loadProjects()
+      } else {
+        await baseStore.loadProject()
+      }
 
-    if (syncOptions.value.workspaceMode || syncOptions.value.newBase) {
-      await basesStore.loadProjects()
-    } else {
-      await baseStore.loadProject()
+      progressRef.value?.pushProgress('Done!', status)
+      refreshCommandPalette()
+      // TODO: add tab of the first table
+    } else if (status === JobStatus.FAILED) {
+      if (syncOptions.value.workspaceMode || syncOptions.value.newBase) {
+        await basesStore.loadProjects()
+      } else {
+        await baseStore.loadProject()
+      }
+      goBack.value = true
+      progressRef.value?.pushProgress(data?.error?.message, status)
+
+      lastProgress.value = { msg: data?.error?.message, status }
+
+      refreshCommandPalette()
     }
-
-    progressRef.value?.pushProgress('Done!', status)
-    refreshCommandPalette()
-    // TODO: add tab of the first table
-  } else if (status === JobStatus.FAILED) {
-    if (syncOptions.value.workspaceMode || syncOptions.value.newBase) {
-      await basesStore.loadProjects()
-    } else {
-      await baseStore.loadProject()
-    }
-    goBack.value = true
-    progressRef.value?.pushProgress(data?.error?.message, status)
-
-    lastProgress.value = { msg: data?.error?.message, status }
-
-    refreshCommandPalette()
+  } catch (e: any) {
+    console.log('Error while loading project(s)', e)
   }
 }
 

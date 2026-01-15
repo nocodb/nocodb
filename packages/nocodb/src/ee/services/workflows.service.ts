@@ -823,7 +823,7 @@ export class WorkflowsService implements OnModuleInit {
     activationState._webhookUrl = webhookUrl;
 
     let nextPollingAt: string = undefined;
-    if (activationState?.cronExpression && activationState.heartbeat) {
+    if (activationState?.cronExpression) {
       // mark as heartbeat
       activationState.heartbeat = true;
       // get nextPollingAt using cron expression

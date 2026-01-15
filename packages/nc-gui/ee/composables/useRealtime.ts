@@ -113,6 +113,10 @@ export const useRealtime = createSharedComposable(() => {
       if (baseId && activeBaseId.value === baseId) {
         // Clear all cached metadata first to ensure fresh data
         clearAllMeta()
+        // Clear local caches
+        scriptStore.scripts.clear()
+        workflowStore.workflows.clear()
+        dashboardStore.dashboards.clear()
 
         // Reload everything in the base
         loadProjectTables(baseId, true).then(async () => {

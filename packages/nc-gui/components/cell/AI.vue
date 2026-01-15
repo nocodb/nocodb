@@ -15,6 +15,8 @@ const { row } = useSmartsheetRowStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
+const { getColor } = useTheme()
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const meta = inject(MetaInj, ref())
@@ -134,6 +136,10 @@ const handleDebouncedSave = () => {
 const isDisabledAiButton = computed(() => {
   return !isFieldAiIntegrationAvailable.value || isLoading.value || isPublic.value || !isUIAllowed('dataEdit')
 })
+
+const buttonColors = computed(() => {
+  return getButtonColorsCssVariables('light', 'purple', getColor)
+})
 </script>
 
 <template>
@@ -154,6 +160,7 @@ const isDisabledAiButton = computed(() => {
           'is-expanded-form': isExpandedForm,
         }"
         size="small"
+        :style="buttonColors"
         :disabled="isDisabledAiButton"
         @click.stop="generate"
       >
@@ -183,12 +190,28 @@ const isDisabledAiButton = computed(() => {
 
 <style scoped lang="scss">
 .nc-cell-button {
-  @apply px-2 flex items-center gap-2 transition-all justify-center bg-nc-bg-purple-light hover:bg-nc-bg-purple-dark text-nc-content-purple-medium;
+  @apply px-2 flex items-center gap-2 transition-all justify-center;
 
-  box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  color: var(--btn-cell-text);
+  background: var(--btn-cell-bg);
+
+  &:hover {
+    background: var(--btn-cell-bg-hover);
+    color: var(--btn-cell-text-hover);
+  }
+
+  &.disabled,
+  &[disabled] {
+    background: var(--btn-cell-disabled-bg);
+    color: var(--btn-cell-disabled-text);
+  }
+
+  &.light {
+    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  }
 
   .nc-loader {
-    @apply !text-nc-content-purple-dark;
+    @apply !text-current;
   }
 
   &.is-expanded-form {
@@ -201,10 +224,6 @@ const isDisabledAiButton = computed(() => {
 
   &:focus-within {
     @apply outline-none ring-0 shadow-focus;
-  }
-
-  &[disabled] {
-    @apply !bg-nc-bg-gray-light opacity-50;
   }
 }
 </style>

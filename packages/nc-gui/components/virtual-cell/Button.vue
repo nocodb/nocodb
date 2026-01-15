@@ -16,6 +16,8 @@ const { generateRows, generatingRows, generatingColumnRows, generatingColumns, a
 
 const { appInfo } = useGlobal()
 
+const { getColor } = useTheme()
+
 const meta = inject(MetaInj, ref())
 
 const isGrid = inject(IsGridInj, ref(false))
@@ -164,6 +166,10 @@ const componentProps = computed(() => {
   return {}
 })
 
+const buttonColors = computed(() => {
+  return getButtonColorsCssVariables(column.value.colOptions.theme ?? 'solid', column.value.colOptions.color ?? 'brand', getColor)
+})
+
 const afterActionStatus = ref<{
   status: 'success' | 'error'
   tooltip?: string
@@ -293,7 +299,7 @@ const triggerAction = async () => {
           { '!w-6': !column.colOptions.label, 'disabled': componentProps.disabled, 'is-expanded-form': isExpandedForm },
         ]"
         class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center"
-        @click.prevent="triggerAction"
+        :style="buttonColors"
       >
         <GeneralIcon
           v-if="afterActionStatus"
@@ -371,141 +377,21 @@ const triggerAction = async () => {
 }
 
 .btn-cell-colors {
-  &.solid {
-    @apply text-white;
+  color: var(--btn-cell-text);
+  background: var(--btn-cell-bg);
 
-    &.brand {
-      @apply bg-brand-500 hover:not(.disabled):bg-brand-600;
-    }
+  &:hover {
+    background: var(--btn-cell-bg-hover);
+    color: var(--btn-cell-text-hover);
+  }
 
-    &.red {
-      @apply bg-red-600 hover:not(.disabled):bg-red-700;
-    }
-
-    &.green {
-      @apply bg-green-600 hover:not(.disabled):bg-green-700;
-    }
-
-    &.maroon {
-      @apply bg-maroon-600 hover:not(.disabled):bg-maroon-700;
-    }
-
-    &.blue {
-      @apply bg-blue-600 hover:not(.disabled):bg-blue-700;
-    }
-
-    &.orange {
-      @apply bg-orange-600 hover:not(.disabled):bg-orange-700;
-    }
-
-    &.pink {
-      @apply bg-pink-600 hover:not(.disabled):bg-pink-700;
-    }
-
-    &.purple {
-      @apply bg-purple-500 hover:not(.disabled):bg-purple-700;
-    }
-
-    &.yellow {
-      @apply bg-yellow-600 hover:not(.disabled):bg-yellow-700;
-    }
-
-    &.gray {
-      @apply bg-gray-600 hover:not(.disabled):bg-gray-700;
-    }
+  &.disabled {
+    background: var(--btn-cell-disabled-bg);
+    color: var(--btn-cell-disabled-text);
   }
 
   &.light {
     box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
-
-    &.brand {
-      @apply bg-brand-50 hover:not(.disabled):bg-brand-100 !text-brand-600;
-    }
-
-    &.red {
-      @apply bg-red-50 hover:not(.disabled):bg-red-100 !text-red-600;
-    }
-
-    &.green {
-      @apply bg-green-50 hover:not(.disabled):bg-green-100 !text-green-600;
-    }
-
-    &.maroon {
-      @apply bg-maroon-50 hover:not(.disabled):bg-maroon-100 !text-maroon-600;
-    }
-
-    &.blue {
-      @apply bg-blue-50 hover:not(.disabled):bg-blue-100 !text-blue-600;
-    }
-
-    &.orange {
-      @apply bg-orange-50 hover:not(.disabled):bg-orange-100 !text-orange-600;
-    }
-
-    &.pink {
-      @apply bg-pink-50 hover:not(.disabled):bg-pink-100 !text-pink-600;
-    }
-
-    &.purple {
-      @apply bg-purple-50 hover:not(.disabled):bg-purple-100 !text-purple-600;
-    }
-
-    &.yellow {
-      @apply bg-yellow-50 hover:not(.disabled):bg-yellow-100 !text-yellow-600;
-    }
-
-    &.gray {
-      @apply bg-gray-50 hover:not(.disabled):bg-gray-100 !text-gray-600;
-    }
-  }
-
-  &.text {
-    &:hover:not(.disabled) {
-      @apply bg-nc-gray-200;
-    }
-    &:focus {
-      @apply shadow-focus;
-    }
-
-    &.brand {
-      @apply text-brand-500;
-    }
-
-    &.red {
-      @apply text-red-600;
-    }
-
-    &.green {
-      @apply text-green-600;
-    }
-
-    &.maroon {
-      @apply text-maroon-600;
-    }
-
-    &.blue {
-      @apply text-blue-600;
-    }
-
-    &.orange {
-      @apply text-orange-600;
-    }
-
-    &.pink {
-      @apply text-pink-600;
-    }
-
-    &.purple {
-      @apply text-purple-500;
-    }
-
-    &.yellow {
-      @apply text-yellow-600;
-    }
-
-    &.gray {
-      @apply text-gray-600;
-    }
   }
 }
 </style>

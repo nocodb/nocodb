@@ -98,13 +98,18 @@ export class WorkflowScheduleProcessor {
 
         const nextSyncAt = interval.next().toDate();
 
-        await ncMeta
-          .knexConnection(MetaTable.DEPENDENCY_TRACKER)
-          .where('id', trigger.id)
-          .update({
+        await ncMeta.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.DEPENDENCY_TRACKER,
+          {
             queryable_field_2: nextSyncAt,
             updated_at: new Date(),
-          });
+          },
+          {
+            id: trigger.id,
+          },
+        );
 
         this.logger.debug(
           `Updated next execution time for workflow ${

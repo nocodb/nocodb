@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { BaseVersion } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
-import type { Base } from '~/models';
 import type { MetaService } from '~/meta/meta.service';
+import type { MetaTable } from '~/utils/globals';
+import { Base } from '~/models';
 import Sandbox from '~/models/Sandbox';
 import SandboxVersion from '~/models/SandboxVersion';
 import Noco from '~/Noco';
@@ -13,7 +14,6 @@ import {
   serializeMeta,
   skipOverrideTables,
 } from '~/helpers/baseMetaHelpers';
-import { MetaTable } from '~/utils/globals';
 
 @Injectable()
 export class SandboxService {
@@ -37,10 +37,7 @@ export class SandboxService {
       throw new Error('Target base must be V3');
     }
 
-    const sandboxVersion = await SandboxVersion.getLatest(
-      targetContext,
-      sandboxId,
-    );
+    const sandboxVersion = await SandboxVersion.getLatest(sandboxId);
 
     if (!sandboxVersion) {
       throw new Error('Published sandbox version not found');
@@ -161,14 +158,13 @@ export class SandboxService {
 
       // If a new version ID is provided, update the installed base's sandbox_version_id
       if (newVersionId) {
-        await trx.metaUpdate(
-          installedContext.workspace_id,
-          installedContext.base_id,
-          MetaTable.PROJECT,
+        await Base.update(
+          installedContext,
+          installedBase.id,
           {
             sandbox_version_id: newVersionId,
           },
-          installedBase.id,
+          trx,
         );
       }
 

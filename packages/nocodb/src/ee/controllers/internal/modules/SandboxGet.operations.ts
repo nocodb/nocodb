@@ -233,7 +233,7 @@ export class SandboxGetOperations
       );
     }
 
-    const versions = await SandboxVersion.list(context, sandboxId as string);
+    const versions = await SandboxVersion.list(sandboxId as string);
 
     return {
       list: versions.map((v) => ({
@@ -296,7 +296,7 @@ export class SandboxGetOperations
       );
 
     // Get version information for each installation
-    const versions = await SandboxVersion.list(context, sandboxId);
+    const versions = await SandboxVersion.list(sandboxId);
     const versionMap = new Map(
       versions.map((v) => [v.id, { version: v.version, status: v.status }]),
     );
@@ -386,7 +386,7 @@ export class SandboxGetOperations
     }
 
     // Get version info
-    const version = await SandboxVersion.get(context, versionId as string);
+    const version = await SandboxVersion.get(versionId as string);
     if (!version || version.fk_sandbox_id !== sandboxId) {
       NcError.get(context).notFound('Version not found');
     }
@@ -528,7 +528,7 @@ export class SandboxGetOperations
     ];
 
     const versions = await Promise.all(
-      versionIds.map((vId) => SandboxVersion.get(context, vId)),
+      versionIds.map((vId) => SandboxVersion.get(vId)),
     );
 
     const versionMap = new Map(versions.filter(Boolean).map((v) => [v.id, v]));

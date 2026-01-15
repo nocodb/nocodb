@@ -60,10 +60,7 @@ export default class Base extends BaseCE {
    * - Always locked: installed sandbox instances (sandbox_master=false)
    * - Conditionally locked: sandbox masters with published version
    */
-  public static async computeSchemaLocked(
-    base: Base,
-    context: NcContext,
-  ): Promise<boolean> {
+  public static async computeSchemaLocked(base: Base): Promise<boolean> {
     // Not a sandbox - schema is not locked
     if (!base.sandbox_id) {
       return false;
@@ -76,10 +73,7 @@ export default class Base extends BaseCE {
 
     // Master base - check if current version is published
     if (base.sandbox_version_id) {
-      const version = await SandboxVersion.get(
-        context,
-        base.sandbox_version_id,
-      );
+      const version = await SandboxVersion.get(base.sandbox_version_id);
       return version?.status === SandboxVersionStatus.PUBLISHED;
     }
 

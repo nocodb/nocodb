@@ -21,7 +21,7 @@ import { BasesService } from '~/services/bases.service';
 import { SandboxService } from '~/services/sandbox.service';
 import SandboxDeploymentLog from '~/models/SandboxDeploymentLog';
 import Noco from '~/Noco';
-import { CacheScope, MetaTable, RootScopes } from '~/utils/globals';
+import { CacheScope, MetaTable } from '~/utils/globals';
 import { serializeMeta } from '~/helpers/baseMetaHelpers';
 import NocoCache from '~/cache/NocoCache';
 
@@ -139,7 +139,7 @@ export class SandboxPostOperations
     const serializedSchema = await serializeMeta(sourceContext);
 
     // Create version 1.0.0 as draft
-    const initialVersion = await SandboxVersion.insert(context, {
+    const initialVersion = await SandboxVersion.insert({
       fk_sandbox_id: sandbox.id,
       version: '1.0.0',
       version_number: 1,
@@ -259,7 +259,6 @@ export class SandboxPostOperations
 
     // Check if version already exists
     const existingVersion = await SandboxVersion.getByVersion(
-      context,
       sandboxId,
       version,
     );
@@ -270,7 +269,7 @@ export class SandboxPostOperations
     }
 
     // Create new draft version
-    const newDraft = await SandboxVersion.insert(context, {
+    const newDraft = await SandboxVersion.insert({
       fk_sandbox_id: sandboxId,
       version,
       status: SandboxVersionStatus.DRAFT,
@@ -297,7 +296,7 @@ export class SandboxPostOperations
     }
 
     // Get the version to publish
-    const version = await SandboxVersion.get(context, sandboxVersionId);
+    const version = await SandboxVersion.get(sandboxVersionId);
     if (!version) {
       NcError.get(context).notFound('Sandbox version not found');
     }
@@ -336,17 +335,11 @@ export class SandboxPostOperations
     const serializedSchema = await serializeMeta(sourceContext);
 
     // Update version to published
-    await Noco.ncMeta.metaUpdate(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.SANDBOX_VERSIONS,
-      {
-        status: SandboxVersionStatus.PUBLISHED,
-        published_at: new Date().toISOString(),
-        schema: JSON.stringify(serializedSchema),
-      },
-      sandboxVersionId,
-    );
+    await SandboxVersion.update(sandboxVersionId, {
+      status: SandboxVersionStatus.PUBLISHED,
+      published_at: new Date().toISOString(),
+      schema: JSON.stringify(serializedSchema),
+    });
 
     // Clear cache
     await NocoCache.del(
@@ -399,7 +392,7 @@ export class SandboxPostOperations
     }
 
     // Get the latest published version
-    const versions = await SandboxVersion.list(context, sandboxId);
+    const versions = await SandboxVersion.list(sandboxId);
     const publishedVersions = versions.filter(
       (v) => v.status === SandboxVersionStatus.PUBLISHED,
     );
@@ -561,6 +554,11 @@ export class SandboxPostOperations
           workspace_id: masterBase.fk_workspace_id,
           base_id: masterBase.id,
         };
+
+        // For master base itself, skip
+        if (installedBase.id === masterBase.id) {
+          continue;
+        }
 
         // Create deployment log
         deploymentLog = await SandboxDeploymentLog.insert({

@@ -69,10 +69,7 @@ export default class Base implements BaseType {
     return base && new Base(base);
   }
 
-  public static async computeSchemaLocked(
-    _base: Base,
-    _context: NcContext,
-  ): Promise<boolean> {
+  public static async computeSchemaLocked(_base: Base): Promise<boolean> {
     return false;
   }
 
@@ -294,10 +291,7 @@ export default class Base implements BaseType {
 
     // Compute sandbox_schema_locked
     if (base && base.sandbox_id) {
-      base.sandbox_schema_locked = await this.computeSchemaLocked(
-        base,
-        context,
-      );
+      base.sandbox_schema_locked = await this.computeSchemaLocked(base);
     }
 
     return base;
@@ -378,10 +372,7 @@ export default class Base implements BaseType {
 
       // Compute sandbox_schema_locked
       if (base.sandbox_id) {
-        base.sandbox_schema_locked = await this.computeSchemaLocked(
-          base,
-          context,
-        );
+        base.sandbox_schema_locked = await this.computeSchemaLocked(base);
       }
 
       await base.getSources(includeConfig, ncMeta);

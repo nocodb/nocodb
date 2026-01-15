@@ -1,5 +1,4 @@
 import { SandboxVersionStatus } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
 import {
   CacheGetType,
@@ -29,14 +28,13 @@ export default class SandboxVersion {
   }
 
   public static async get(
-    context: NcContext,
     sandboxVersionId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<SandboxVersion> {
     let sandboxVersion =
       sandboxVersionId &&
       (await NocoCache.get(
-        context,
+        'root',
         `${CacheScope.SANDBOX_VERSION}:${sandboxVersionId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -54,7 +52,7 @@ export default class SandboxVersion {
       sandboxVersion = prepareForResponse(sandboxVersion);
 
       await NocoCache.set(
-        context,
+        'root',
         `${CacheScope.SANDBOX_VERSION}:${sandboxVersionId}`,
         sandboxVersion,
       );
@@ -64,7 +62,6 @@ export default class SandboxVersion {
   }
 
   public static async getByVersion(
-    context: NcContext,
     sandboxId: string,
     version: string,
     ncMeta = Noco.ncMeta,
@@ -72,7 +69,7 @@ export default class SandboxVersion {
     const cacheKey = `${CacheScope.SANDBOX_VERSION}:${sandboxId}:${version}`;
 
     let sandboxVersion = await NocoCache.get(
-      context,
+      'root',
       cacheKey,
       CacheGetType.TYPE_OBJECT,
     );
@@ -87,7 +84,6 @@ export default class SandboxVersion {
             _and: [
               { fk_sandbox_id: { eq: sandboxId } },
               { version: { eq: version } },
-              { fk_workspace_id: { eq: context.workspace_id } },
             ],
           },
         },
@@ -97,14 +93,13 @@ export default class SandboxVersion {
 
       sandboxVersion = prepareForResponse(versions[0]);
 
-      await NocoCache.set(context, cacheKey, sandboxVersion);
+      await NocoCache.set('root', cacheKey, sandboxVersion);
     }
 
     return new SandboxVersion(sandboxVersion);
   }
 
   public static async list(
-    context: NcContext,
     sandboxId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<SandboxVersion[]> {
@@ -114,10 +109,7 @@ export default class SandboxVersion {
       MetaTable.SANDBOX_VERSIONS,
       {
         xcCondition: {
-          _and: [
-            { fk_sandbox_id: { eq: sandboxId } },
-            { fk_workspace_id: { eq: context.workspace_id } },
-          ],
+          _and: [{ fk_sandbox_id: { eq: sandboxId } }],
         },
         orderBy: {
           version_number: 'desc',
@@ -131,7 +123,6 @@ export default class SandboxVersion {
   }
 
   public static async getLatest(
-    context: NcContext,
     sandboxId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<SandboxVersion> {
@@ -141,10 +132,7 @@ export default class SandboxVersion {
       MetaTable.SANDBOX_VERSIONS,
       {
         xcCondition: {
-          _and: [
-            { fk_sandbox_id: { eq: sandboxId } },
-            { fk_workspace_id: { eq: context.workspace_id } },
-          ],
+          _and: [{ fk_sandbox_id: { eq: sandboxId } }],
         },
         orderBy: {
           version_number: 'desc',
@@ -159,16 +147,14 @@ export default class SandboxVersion {
   }
 
   public static async getNextVersionNumber(
-    context: NcContext,
     sandboxId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    const latest = await this.getLatest(context, sandboxId, ncMeta);
+    const latest = await this.getLatest(sandboxId, ncMeta);
     return latest ? latest.version_number + 1 : 1;
   }
 
   public static async insert(
-    context: NcContext,
     sandboxVersion: Partial<SandboxVersion>,
     ncMeta = Noco.ncMeta,
   ): Promise<SandboxVersion> {
@@ -186,7 +172,6 @@ export default class SandboxVersion {
     insertObj.status = insertObj.status || SandboxVersionStatus.DRAFT;
 
     insertObj.version_number = await this.getNextVersionNumber(
-      context,
       insertObj.fk_sandbox_id,
       ncMeta,
     );
@@ -198,11 +183,10 @@ export default class SandboxVersion {
       prepareForDb(insertObj),
     );
 
-    return await this.get(context, id, ncMeta);
+    return await this.get(id, ncMeta);
   }
 
   public static async delete(
-    context: NcContext,
     sandboxVersionId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
@@ -214,9 +198,37 @@ export default class SandboxVersion {
     );
 
     await NocoCache.del(
-      context,
+      'root',
       `${CacheScope.SANDBOX_VERSION}:${sandboxVersionId}`,
     );
+  }
+
+  public static async update(
+    sandboxVersionId: string,
+    sandboxVersion: Partial<SandboxVersion>,
+    ncMeta = Noco.ncMeta,
+  ): Promise<SandboxVersion> {
+    const updateObj = extractProps(sandboxVersion, [
+      'version',
+      'status',
+      'schema',
+      'release_notes',
+    ]);
+
+    await ncMeta.metaUpdate(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.SANDBOX_VERSIONS,
+      prepareForDb(updateObj),
+      sandboxVersionId,
+    );
+
+    await NocoCache.del(
+      'root',
+      `${CacheScope.SANDBOX_VERSION}:${sandboxVersionId}`,
+    );
+
+    return this.get(sandboxVersionId, ncMeta);
   }
 
   public getParsedSchema(): any {

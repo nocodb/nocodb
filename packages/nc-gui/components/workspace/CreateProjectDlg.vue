@@ -120,9 +120,6 @@ const onSandboxInstalled = async (sandbox: any) => {
   // Close the dialog and refresh the base list
   dialogShow.value = false
   refreshCommandPalette()
-  
-  message.success(t('msg.success.baseInstalled'))
-  
   // Navigate to the newly installed base if available
   // TODO: Once install returns the new baseId, navigate to it
   // if (sandbox.installedBaseId) {
@@ -219,8 +216,8 @@ if (props.isCreateNewActionMenu) {
       </div>
     </template>
     <template v-if="aiMode === null">
-      <WorkspaceProjectCreateMode 
-        v-model:ai-mode="aiMode" 
+      <WorkspaceProjectCreateMode
+        v-model:ai-mode="aiMode"
         :workspace-id="activeWorkspace?.id"
         @sandbox-installed="onSandboxInstalled"
         @close="dialogShow = false"

@@ -583,9 +583,8 @@ useResizeObserver(inputWrapperRef, () => {
             <div class="flex items-start p-3 bg-nc-bg-purple-light gap-4">
               <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-4 w-4 flex-none" />
               <div class="flex flex-col">
-                <div class="font-bold text-small leading-[18px] text-nc-content-gray">Record Data Updated</div>
                 <div class="text-small leading-[18px] text-nc-content-gray-muted">
-                  Cell values in this record have been updated. Regenerate to get more accurate content.
+                  AI generated content may be outdated. The source data for this record has changed.
                 </div>
               </div>
             </div>
@@ -838,10 +837,8 @@ useResizeObserver(inputWrapperRef, () => {
           <div class="flex items-center p-4 bg-nc-bg-purple-light gap-4">
             <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-6 w-6 flex-none" />
             <div class="flex flex-col">
-              <div class="font-bold text-base text-nc-content-gray">Record Data Updated</div>
               <div class="text-nc-content-gray-muted text-sm">
-                Cell values in this record have been updated since the last time this content was generated. Regenerate to get
-                more accurate content.
+                AI generated content may be outdated. The source data for this record has changed.
               </div>
             </div>
           </div>

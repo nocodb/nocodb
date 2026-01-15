@@ -450,8 +450,8 @@ export function useViewRowColorOption(params: {
 
         if (updateObj.id) {
           await $api.internal.postOperation(
-            activeView.value!.fk_workspace_id!,
-            activeView.value!.base_id!,
+            view.value!.fk_workspace_id!,
+            view.value!.base_id!,
             { operation: 'filterUpdate', filterId: updateObj.id },
             updateObj,
           )
@@ -463,8 +463,8 @@ export function useViewRowColorOption(params: {
 
     if (filter.id) {
       await $api.internal.postOperation(
-        activeView.value!.fk_workspace_id!,
-        activeView.value!.base_id!,
+        view.value!.fk_workspace_id!,
+        view.value!.base_id!,
         { operation: 'filterUpdate', filterId: filter.id },
         updateObj,
       )

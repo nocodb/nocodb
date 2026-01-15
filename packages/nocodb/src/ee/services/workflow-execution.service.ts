@@ -881,7 +881,13 @@ export class WorkflowExecutionService {
       nodeId: trigger.nodeId,
       nodeType: trigger.nodeType,
       triggerId: trigger.triggerId,
-      activationState: { ...trigger.activationState, ...heartbeatState },
+      activationState: {
+        ...trigger.activationState,
+        ...heartbeatState,
+        heartbeat: true,
+        _webhookUrl: trigger.activationState._webhookUrl,
+        cronExpression: trigger.activationState.cronExpression,
+      },
     });
   }
 

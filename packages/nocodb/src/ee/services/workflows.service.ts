@@ -824,6 +824,8 @@ export class WorkflowsService implements OnModuleInit {
 
     let nextPollingAt: string = undefined;
     if (activationState?.cronExpression && activationState.heartbeat) {
+      // mark as heartbeat
+      activationState.heartbeat = true;
       // get nextPollingAt using cron expression
       nextPollingAt = CronExpressionParser.parse(activationState.cronExpression)
         .next()

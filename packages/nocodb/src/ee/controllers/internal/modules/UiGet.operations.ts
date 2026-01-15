@@ -19,6 +19,7 @@ import { HooksService } from '~/services/hooks.service';
 import { FormsService } from '~/services/forms.service';
 import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
+import { SyncService } from '~/services/sync.service';
 
 @Injectable()
 export class UiGetOperations
@@ -38,6 +39,7 @@ export class UiGetOperations
     protected formsService: FormsService,
     protected mapsService: MapsService,
     protected commentsService: CommentsService,
+    protected syncService: SyncService,
   ) {
     super(
       dataTableService,
@@ -52,6 +54,7 @@ export class UiGetOperations
       formsService,
       mapsService,
       commentsService,
+      syncService,
     );
   }
 

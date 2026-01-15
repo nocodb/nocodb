@@ -49,6 +49,7 @@ import {
   View,
   Workspace,
 } from '~/models';
+import Sandbox from '~/models/Sandbox';
 import rolePermissions, {
   generateReadablePermissionErr,
   sourceRestrictions,
@@ -138,27 +139,27 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     const baseId = params.baseId || params.baseName;
 
     if (!isInternalWorkspaceScope && baseId) {
-      const base = await Base.get(bypassContext, baseId);
-      if (!base) {
+      req.ncBase = await Base.get(bypassContext, baseId);
+      if (!req.ncBase) {
         NcError.get(bypassContext).baseNotFound(baseId);
       }
 
       const context = {
-        workspace_id: base.fk_workspace_id,
-        base_id: base.id,
+        workspace_id: req.ncBase.fk_workspace_id,
+        base_id: req.ncBase.id,
         api_version: req.ncApiVersion,
         socket_id: req.ncSocketId,
       };
 
-      req.ncBaseId = base.id;
-      req.ncWorkspaceId = base.fk_workspace_id;
+      req.ncBaseId = req.ncBase.id;
+      req.ncWorkspaceId = req.ncBase.fk_workspace_id;
 
-      const workspace = await Workspace.get(req.ncWorkspaceId);
-      if (!workspace) {
+      req.ncWorkspace = await Workspace.get(req.ncWorkspaceId);
+      if (!req.ncWorkspace) {
         NcError.workspaceNotFound(req.ncWorkspaceId);
       }
 
-      req.ncOrgId = workspace.fk_org_id;
+      req.ncOrgId = req.ncWorkspace.fk_org_id;
 
       req.context = {
         org_id: req.ncOrgId,
@@ -281,9 +282,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
         req.ncSourceId = view.source_id;
       } else if (sharedBaseUuid) {
-        const base = await Base.getByUuid(context, sharedBaseUuid);
+        req.ncBase = await Base.getByUuid(context, sharedBaseUuid);
 
-        if (!base) {
+        if (!req.ncBase) {
           NcError.get(context).baseNotFound(sharedBaseUuid);
         }
       } else if (sharedDashboardUuid) {
@@ -478,6 +479,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
     await this.additionalValidation({ req, res, next });
 
+    if (req.ncBase) {
+      req.context.schema_locked = !!(req.ncBase as Base).sandbox_schema_locked;
+    }
+
     next();
   }
 
@@ -525,21 +530,21 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       (params.baseId || params.baseName)
     ) {
       // We only allow base id to be used for EE edition
-      const base = await Base.get(context, params.baseId ?? params.baseName);
+      req.ncBase = await Base.get(context, params.baseId ?? params.baseName);
 
-      if (!base) {
+      if (!req.ncBase) {
         NcError.get(context).baseNotFound(params.baseId ?? params.baseName);
       }
 
       if (params.tableId || params.modelId) {
         const model = await Model.getByIdOrName(
           {
-            workspace_id: base.fk_workspace_id,
-            base_id: base.id,
+            workspace_id: req.ncBase.fk_workspace_id,
+            base_id: req.ncBase.id,
           },
           {
             id: params.tableId || params.modelId,
-            base_id: base.id,
+            base_id: req.ncBase.id,
           },
         );
         if (!model) {
@@ -654,12 +659,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId = view.base_id;
       req.ncSourceId = view.source_id;
     } else if (params.sharedBaseUuid) {
-      const base = await Base.getByUuid(context, req.params.sharedBaseUuid);
+      req.ncBase = await Base.getByUuid(context, req.params.sharedBaseUuid);
 
-      if (!base) {
+      if (!req.ncBase) {
         NcError.get(context).baseNotFound(req.params.sharedBaseUuid);
       }
-      req.ncBaseId = base?.id;
+      req.ncBaseId = req.ncBase?.id;
     } else if (params.sharedDashboardUuid) {
       const dashboard = await Dashboard.getByUUID(
         context,
@@ -924,6 +929,23 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       // Extract table ID for permission check at the end
       tableIdToCheck = audit.fk_model_id;
     }
+    // extract base id and workspace id from sandbox id if provided
+    else if (req.query.sandboxId) {
+      const sandbox = await Sandbox.get(req.query.sandboxId);
+
+      if (!sandbox) {
+        NcError.genericNotFound('Sandbox', req.query.sandboxId);
+      }
+
+      req.ncBase = await Base.get(context, sandbox.base_id);
+
+      if (!req.ncBase) {
+        NcError.baseNotFound(sandbox.base_id);
+      }
+
+      req.ncBaseId = req.ncBase.id;
+      req.ncWorkspaceId = (req.ncBase as Base).fk_workspace_id;
+    }
     // extract base id from query params only if it's userMe endpoint
     else if (
       ['/auth/user/me', '/api/v1/db/auth/user/me', '/api/v1/auth/user/me'].some(
@@ -948,15 +970,15 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       !(isInternalWorkspaceScope || isInternalOrgScope)
     ) {
       // we expect project_name to be id for EE
-      const base = await Base.get(context, params.baseId ?? params.baseName);
-      if (base) {
-        req.ncBaseId = base.id;
-        req.ncWorkspaceId = (base as Base).fk_workspace_id;
+      req.ncBase = await Base.get(context, params.baseId ?? params.baseName);
+      if (req.ncBase) {
+        req.ncBaseId = req.ncBase.id;
+        req.ncWorkspaceId = (req.ncBase as Base).fk_workspace_id;
 
         if (req.params.tableName) {
           // extract model and then source id from model
           const model = await Model.getByAliasOrId(context, {
-            base_id: base.id,
+            base_id: req.ncBase.id,
             aliasOrId: req.params.tableName,
           });
 
@@ -976,20 +998,21 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId &&
       !(isInternalWorkspaceScope || isInternalOrgScope)
     ) {
-      const base = await Base.get(context, req.ncBaseId);
-      if (base) {
-        req.ncWorkspaceId = (base as Base).fk_workspace_id;
+      req.ncBase = await Base.get(context, req.ncBaseId);
+      if (req.ncBase) {
+        req.ncWorkspaceId = (req.ncBase as Base).fk_workspace_id;
+        // Read computed schema_locked property
+        req.ncSchemaLocked = !!(req.ncBase as Base).sandbox_schema_locked;
       } else {
         NcError.baseNotFound(req.ncBaseId);
       }
     } else if (req.params.workspaceId && !isInternalOrgScope) {
       req.ncWorkspaceId = req.params.workspaceId;
     } else if (req.params.workspaceOrOrgId) {
-      const workspace = await Workspace.get(req.params.workspaceOrOrgId);
+      req.ncWorkspace = await Workspace.get(req.params.workspaceOrOrgId);
 
-      if (workspace) {
-        req.ncWorkspaceId = workspace.id;
-        req.ncWorkspace = workspace;
+      if (req.ncWorkspace) {
+        req.ncWorkspaceId = req.ncWorkspace.id;
       } else {
         req.ncOrgId = req.params.workspaceOrOrgId;
       }
@@ -1012,11 +1035,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.query.baseId
     ) {
       // check if baseId is valid and under the workspace
-      const base = await Base.get(context, req.query.baseId);
-      if (!base || base.fk_workspace_id !== req.ncWorkspaceId) {
+      req.ncBase = await Base.get(context, req.query.baseId);
+      if (!req.ncBase || req.ncBase.fk_workspace_id !== req.ncWorkspaceId) {
         NcError.baseNotFound(req.query.baseId);
       }
-      req.ncBaseId = base.id;
+      req.ncBaseId = req.ncBase.id;
     }
 
     if (req.route.path === '/api/v1/workspaces/:workspaceId/status') {
@@ -1028,24 +1051,22 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         );
       }
     } else if (req.ncWorkspaceId) {
-      const workspace =
+      req.ncWorkspace =
         req.ncWorkspaceId !== 'nc'
           ? await Workspace.get(req.ncWorkspaceId)
           : null;
 
-      req.ncWorkspace = workspace;
-
-      if (!workspace) {
+      if (!req.ncWorkspace) {
         NcError.workspaceNotFound(req.ncWorkspaceId);
       }
 
       if (
-        workspace.plan &&
-        workspace.plan !== WorkspacePlan.FREE &&
+        req.ncWorkspace.plan &&
+        req.ncWorkspace.plan !== WorkspacePlan.FREE &&
         !isMuxEnabled
       ) {
         logger.error(
-          `id: ${workspace.id} - status: ${workspace.status} - plan: ${workspace.plan} request reached to multi tenant server`,
+          `id: ${req.ncWorkspace.id} - status: ${req.ncWorkspace.status} - plan: ${req.ncWorkspace.plan} request reached to multi tenant server`,
         );
       }
     }
@@ -1056,14 +1077,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
 
     if (req.ncWorkspaceId) {
-      const workspace = await Workspace.get(req.ncWorkspaceId);
+      req.ncWorkspace = await Workspace.get(req.ncWorkspaceId);
 
-      if (!workspace) {
+      if (!req.ncWorkspace) {
         NcError.workspaceNotFound(req.ncWorkspaceId);
       }
 
-      req.ncOrgId = workspace.fk_org_id;
-      req.ncWorkspace = workspace;
+      req.ncOrgId = req.ncWorkspace.fk_org_id;
     } else if (req.params.domainId) {
       const domain = await Domain.get(req.params.domainId);
 
@@ -1088,6 +1108,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       socket_id: req.headers['xc-socket-id'],
       nc_site_url: req.ncSiteUrl,
       timezone: context.timezone,
+      schema_locked: req.ncSchemaLocked || false,
     };
 
     // Load and cache permissions in context to avoid multiple fetches
@@ -1373,9 +1394,9 @@ export class AclMiddleware implements NestInterceptor {
       !['baseUpdate', 'baseDelete'].includes(permissionName) &&
       ['POST', 'DELETE', 'PUT', 'PATCH'].includes(req.method)
     ) {
-      const base = await Base.get(req.context, req.ncBaseId);
+      req.ncBase = await Base.get(req.context, req.ncBaseId);
 
-      if (base.default_role) {
+      if (req.ncBase.default_role) {
         await checkForFeature(
           {
             workspace_id: req.ncWorkspaceId,

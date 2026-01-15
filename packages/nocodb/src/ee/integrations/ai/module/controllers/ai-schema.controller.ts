@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
+import { BaseVersion } from 'nocodb-sdk';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
@@ -91,7 +92,7 @@ export class AiSchemaController {
         req: req,
       });
     } else if (operation === 'createSchema') {
-      const { input } = body.input;
+      const { input, version } = body.input;
 
       const base = await this.basesService.baseCreate({
         base: {
@@ -100,6 +101,7 @@ export class AiSchemaController {
           ...(context.workspace_id
             ? { fk_workspace_id: context.workspace_id }
             : {}),
+          version: version || BaseVersion.V2,
         },
         user: { id: req.user.id },
         req: req,
@@ -127,6 +129,7 @@ export class AiSchemaController {
     body: {
       operation: string;
       input: any;
+      version?: BaseVersion;
     },
   ) {
     const { operation } = body;
@@ -137,7 +140,7 @@ export class AiSchemaController {
         req: req,
       });
     } else if (operation === 'createSchema') {
-      const { input } = body;
+      const { input, version } = body;
 
       if (!input.title) {
         NcError.get(context).badRequest('Title is required');
@@ -150,6 +153,7 @@ export class AiSchemaController {
           ...(context.workspace_id
             ? { fk_workspace_id: context.workspace_id }
             : {}),
+          version: version || BaseVersion.V2,
         },
         user: { id: req.user.id },
         req: req,

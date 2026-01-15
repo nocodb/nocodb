@@ -132,6 +132,12 @@ export class WorkflowsService implements OnModuleInit {
     workflowBody: Partial<Workflow>,
     req: NcRequest,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     workflowBody.title = workflowBody.title?.trim();
 
     const workflow = await Workflow.insert(context, {
@@ -182,6 +188,12 @@ export class WorkflowsService implements OnModuleInit {
     workflowBody: Partial<Workflow>,
     req: NcRequest,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {
@@ -222,6 +234,12 @@ export class WorkflowsService implements OnModuleInit {
   }
 
   async deleteWorkflow(context: NcContext, workflowId: string, req: NcRequest) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const workflow = await Workflow.get(context, workflowId);
 
     if (!workflow) {

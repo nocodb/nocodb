@@ -3,10 +3,17 @@ import rfdc from 'rfdc'
 const deepClone = rfdc()
 const FEATURES = [
   {
+    id: 'sandboxes',
+    title: 'Sandboxes',
+    description: 'Allow users to create replicable sandbox environments',
+    enabled: false,
+    isEngineering: true,
+    isAdvanced: true,
+  },
+  {
     id: 'bases_v3',
     title: 'Bases V3',
-    description:
-      'Experience the next generation of NocoDB with Bases V3, allowing duplicates with same id and enhanced performance.',
+    description: 'Experience the next generation of NocoDB with Bases V3 with and enhanced performance and optimizations.',
     enabled: false,
     version: 1,
   },
@@ -246,6 +253,8 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
 
   const isEngineeringModeOn = ref(false)
 
+  const isAdvancedModeOn = ref(false)
+
   const isExperimentalFeatureModalOpen = ref(false)
 
   const saveFeatures = () => {
@@ -328,6 +337,7 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     toggleFeature,
     isFeatureEnabled,
     isEngineeringModeOn,
+    isAdvancedModeOn,
     isExperimentalFeatureModalOpen,
     initializeFeatures,
   }

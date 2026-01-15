@@ -24,6 +24,11 @@ import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { CommentsService } from '~/services/comments.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { SyncService } from '~/services/sync.service';
+import { SyncSource } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { JobTypes } from '~/interface/Jobs';
+import { NocoJobsService } from '~/services/noco-jobs.service';
 
 @Injectable()
 export class UiPostOperations
@@ -49,6 +54,8 @@ export class UiPostOperations
     protected calendarsService: CalendarsService,
     protected commentsService: CommentsService,
     protected bulkDataAliasService: BulkDataAliasService,
+    protected syncService: SyncService,
+    protected readonly nocoJobsService: NocoJobsService,
   ) {}
   operations = [
     'tableUpdate' as const,
@@ -113,7 +120,11 @@ export class UiPostOperations
     'commentResolve' as const,
     'dataDelete' as const,
     'bulkDataDeleteAll' as const,
-  ] satisfies ReadonlyArray<keyof typeof OPERATION_SCOPES>;
+    'syncSourceCreate' as const,
+    'syncSourceUpdate' as const,
+    'syncSourceDelete' as const,
+    'atImportTrigger' as const,
+  ];
   httpMethod = 'POST' as const;
 
   async handle(
@@ -529,6 +540,62 @@ export class UiPostOperations
           baseId: req.query.baseId as string,
           body: payload,
         });
+      case 'syncSourceCreate':
+        return await this.syncService.syncCreate(context, {
+          baseId: context.base_id,
+          sourceId: req.query.sourceId as string,
+          userId: (req as any).user.id,
+          syncPayload: payload,
+          req,
+        });
+      case 'syncSourceUpdate':
+        return await this.syncService.syncUpdate(context, {
+          syncId: req.query.syncId as string,
+          syncPayload: payload,
+          req,
+        });
+      case 'syncSourceDelete':
+        return await this.syncService.syncDelete(context, {
+          syncId: req.query.syncId as string,
+          req,
+        });
+      case 'atImportTrigger': {
+        const jobs = await this.nocoJobsService.getJobList();
+        const fnd = jobs.find((j) => j.data.syncId === req.query.syncId);
+
+        if (fnd) {
+          NcError.badRequest('Sync already in progress');
+        }
+
+        const syncSource = await SyncSource.get(
+          context,
+          req.query.syncId as string,
+        );
+
+        const user = await syncSource.getUser();
+
+        // Treat default baseUrl as siteUrl from req object
+        let baseURL = (req as any).ncSiteUrl;
+
+        // if environment value avail use it
+        // or if it's docker construct using `PORT`
+        if (process.env.NC_DOCKER) {
+          baseURL = `http://localhost:${process.env.PORT || 8080}`;
+        }
+
+        const job = await this.nocoJobsService.add(JobTypes.AtImport, {
+          context,
+          syncId: req.query.syncId as string,
+          ...(syncSource?.details || {}),
+          baseId: syncSource.base_id,
+          sourceId: syncSource.source_id,
+          authToken: '',
+          baseURL,
+          user: user,
+        });
+
+        return { id: job.id };
+      }
     }
   }
 }

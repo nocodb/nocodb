@@ -19,6 +19,7 @@ import { WorkflowProcessor } from '~/modules/jobs/jobs/workflow/workflow.process
 import { NocoSyncModule } from '~/integrations/sync/module/sync.module';
 import { PaymentModule } from '~/modules/payment/payment.module';
 import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow-schedule.processor';
+import { SandboxExperimentController } from '~/modules/jobs/jobs/export-import/sandbox-experiment.controller';
 import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow-resume.processor';
 
 @Module({
@@ -33,6 +34,7 @@ import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow-resume.pro
     WorkerController,
     CleanUpController,
     SnapshotController,
+    SandboxExperimentController,
   ],
   providers: [
     ...JobsModuleMetadata.providers,

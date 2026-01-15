@@ -127,10 +127,13 @@ const orderedSerializableMetaTables = [
 
   // Scripts and workflows
   MetaTable.AUTOMATIONS,
+  MetaTable.DEPENDENCY_TRACKER,
 
   // Statistics
   MetaTable.MODEL_STAT,
 ].filter((table) => serializableMetaTables.includes(table));
+
+export const skipOverrideTables = [MetaTable.DEPENDENCY_TRACKER];
 
 export type BaseMetaSchema = {
   [K in (typeof serializableMetaTables)[number]]?: any;
@@ -178,7 +181,11 @@ export async function serializeMeta(
           .select();
 
         // Apply overrides if provided (for changing base_id/workspace_id/source_id)
-        if (override && records.length > 0) {
+        if (
+          override &&
+          records.length > 0 &&
+          !skipOverrideTables.includes(metaTable)
+        ) {
           for (const record of records) {
             // Only override specified fields, preserve all other data
             if (override.base_id !== undefined) {
@@ -1113,7 +1120,7 @@ async function handleTableUpdates(
       }
 
       // Update the table metadata using composite key
-      const { id, ...updateData } = tableRecord;
+      const { id, pgSerialLastVal, ...updateData } = tableRecord;
       await ncMeta
         .knex(MetaTable.MODELS)
         .where('id', id)
@@ -1296,7 +1303,16 @@ async function handleNonDDLChanges(
       for (const record of toUpdate) {
         try {
           const pkFields = tablePrimaryKeys[metaTable] || 'id';
-          const updateData = { ...record };
+          let updateData = { ...record };
+
+          // For MODELS table, exclude pgSerialLastVal as it's not a real column
+          if (
+            metaTable === MetaTable.MODELS &&
+            'pgSerialLastVal' in updateData
+          ) {
+            const { pgSerialLastVal, ...rest } = updateData;
+            updateData = rest;
+          }
 
           // Build the where clause based on primary key type
           let whereClause: any;

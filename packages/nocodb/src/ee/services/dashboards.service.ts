@@ -48,6 +48,12 @@ export class DashboardsService {
     insertObj: Partial<Dashboard>,
     req: NcRequest,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     if (!insertObj.created_by) {
       insertObj.created_by = req.user?.id;
     }
@@ -95,6 +101,12 @@ export class DashboardsService {
     updateObj: Partial<Dashboard>,
     req: NcRequest,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const dashboard = await Dashboard.get(context, dashboardId);
 
     if (!dashboard) {
@@ -138,6 +150,12 @@ export class DashboardsService {
     dashboardId: string,
     req: NcRequest,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const dashboard = await Dashboard.get(context, dashboardId);
 
     if (!dashboard) {

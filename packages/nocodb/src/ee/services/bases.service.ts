@@ -32,6 +32,7 @@ import {
   Integration,
   Workspace,
 } from '~/models';
+import Sandbox from '~/models/Sandbox';
 import { PaymentService } from '~/modules/payment/payment.service';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -394,7 +395,13 @@ export class BasesService extends BasesServiceCE {
     const transaction = await ncMeta.startTransaction();
 
     try {
-      await Base.delete(context, param.baseId, ncMeta);
+      // Soft delete associated sandbox if this base is a sandbox master
+      const sandbox = await Sandbox.getByBaseId(param.baseId, transaction);
+      if (sandbox) {
+        await Sandbox.softDelete(sandbox.id, transaction);
+      }
+
+      await Base.delete(context, param.baseId, transaction);
 
       await transaction.commit();
     } catch (e) {

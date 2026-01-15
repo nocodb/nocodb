@@ -114,8 +114,14 @@ const permissionScopes = {
     'mcpRootList',
 
     'getUserProfile',
+
+    // Sandbox (public operations)
+    'sandboxStoreList',
+    'sandboxGet',
   ],
   workspace: [
+    // Sandbox (install operation)
+    'sandboxInstall',
     'workspaceBaseList',
     'workspaceGet',
     'workspaceUpdate',
@@ -173,6 +179,10 @@ const permissionScopes = {
     'workspaceTeamGet',
     'workspaceTeamUpdate',
     'workspaceTeamRemove',
+
+    // Sandbox
+    'sandboxList',
+    'sandboxCreate',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -359,6 +369,14 @@ const permissionScopes = {
     'workflowPublish',
     'workflowNodeIntegrationFetchOptions',
 
+    // Sandbox (management operations)
+    'sandboxGetUpdates',
+    'sandboxUpdate',
+    'sandboxDelete',
+    'sandboxPublish',
+    'sandboxUnpublish',
+    'sandboxVersionsList',
+
     // Audit Logs
     'baseAuditList',
   ],
@@ -408,6 +426,10 @@ const rolePermissions:
       mcpRootList: true,
 
       getUserProfile: true,
+
+      // Sandbox (public operations - available to everyone)
+      sandboxStoreList: true,
+      sandboxGet: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {
@@ -1103,6 +1125,18 @@ const permissionDescriptions: Record<string, string> = {
   baseTeamDelete: 'delete a team from the base',
 
   globalAuditList: 'view list of audits',
+
+  // Sandbox permissions
+  sandboxStoreList: 'browse public sandboxes in the app store',
+  sandboxList: 'view list of sandboxes in the workspace',
+  sandboxGet: 'view sandbox details',
+  sandboxCreate: 'create a new sandbox',
+  sandboxUpdate: 'update sandbox details',
+  sandboxDelete: 'delete a sandbox',
+  sandboxPublish: 'publish a sandbox to the app store',
+  sandboxUnpublish: 'unpublish a sandbox from the app store',
+  sandboxInstall: 'install a sandbox as a new base',
+  sandboxGetUpdates: 'check for updates to an installed sandbox',
 
   viewRowColorInfo: 'view row colouring info',
   viewSettingOverride: 'copy view configuration from other view',

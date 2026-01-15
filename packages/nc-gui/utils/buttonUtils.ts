@@ -1,3 +1,12 @@
+export interface ButtonColorStateType {
+  background: string;
+  text: string;
+}
+
+export interface ButtonColorMapType {
+
+}
+
 export const buttonColorMap = {
   solid: {
     brand: {

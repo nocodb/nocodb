@@ -30,6 +30,8 @@ const { t } = useI18n()
 
 const { getMeta } = useMetas()
 
+const { getColor } = useTheme()
+
 const { isAiBetaFeaturesEnabled } = useNocoAi()
 
 const { isEdit, setAdditionalValidations, validateInfos, sqlUi, column, isAiMode, updateFieldName } =
@@ -421,6 +423,11 @@ const handleUpdateActionType = () => {
               class="flex items-center justify-between border-1 h-8 px-[11px] border-nc-border-gray-dark !w-full transition-all cursor-pointer !rounded-lg"
             >
               <div
+                :style="{
+                  background: getButtonColors(vModel.theme ?? 'solid', vModel.color ?? 'brand', false, false, getColor)
+                    .background,
+                  color: getButtonColors(vModel.theme ?? 'solid', vModel.color ?? 'brand', false, false, getColor).text,
+                }"
                 :class="`${vModel.color ?? 'brand'} ${vModel.theme ?? 'solid'}`"
                 class="flex items-center justify-center nc-cell-button rounded-md h-6 w-6 gap-2"
               >
@@ -430,11 +437,14 @@ const handleUpdateActionType = () => {
             </div>
             <template #overlay>
               <div class="bg-nc-bg-default space-y-2 p-2 rounded-lg">
-                <div v-for="[type, colors] in Object.entries(colorClass)" :key="type" class="flex gap-2">
+                <div v-for="[type, colors] in Object.entries(buttonColorMap)" :key="type" class="flex gap-2">
                   <div v-for="[name, color] in Object.entries(colors)" :key="name">
                     <button
+                      :style="{
+                        background: getColor(color.base.background),
+                        color: getColor(color.base.text),
+                      }"
                       :class="{
-                        [color]: true,
                         '!border-transparent': type !== 'text',
                       }"
                       class="border-1 border-nc-border-gray-medium flex items-center justify-center rounded h-6 w-6"
@@ -578,136 +588,8 @@ const handleUpdateActionType = () => {
 }
 
 .nc-cell-button {
-  &.solid {
-    @apply text-base-white;
-
-    &.brand {
-      @apply bg-brand-500;
-    }
-
-    &.red {
-      @apply bg-red-600;
-    }
-
-    &.green {
-      @apply bg-green-600;
-    }
-
-    &.maroon {
-      @apply bg-maroon-600;
-    }
-
-    &.blue {
-      @apply bg-blue-600;
-    }
-
-    &.orange {
-      @apply bg-orange-600;
-    }
-
-    &.pink {
-      @apply bg-pink-600;
-    }
-
-    &.purple {
-      @apply bg-purple-500;
-    }
-
-    &.yellow {
-      @apply bg-yellow-600;
-    }
-
-    &.gray {
-      @apply bg-gray-600;
-    }
-  }
-
-  &.light {
-    @apply text-gray-700;
-
-    &.brand {
-      @apply bg-brand-200;
-    }
-
-    &.red {
-      @apply bg-red-200;
-    }
-
-    &.green {
-      @apply bg-green-200;
-    }
-
-    &.maroon {
-      @apply bg-maroon-200;
-    }
-
-    &.blue {
-      @apply bg-blue-200;
-    }
-
-    &.orange {
-      @apply bg-orange-200;
-    }
-
-    &.pink {
-      @apply bg-pink-200;
-    }
-
-    &.purple {
-      @apply bg-purple-200;
-    }
-
-    &.yellow {
-      @apply bg-yellow-200;
-    }
-
-    &.gray {
-      @apply bg-gray-200;
-    }
-  }
-
   &.text {
     @apply border-1 border-nc-border-gray-medium rounded;
-
-    &.brand {
-      @apply text-brand-500;
-    }
-
-    &.red {
-      @apply text-red-600;
-    }
-
-    &.green {
-      @apply text-green-600;
-    }
-
-    &.maroon {
-      @apply text-maroon-600;
-    }
-
-    &.blue {
-      @apply text-blue-600;
-    }
-
-    &.orange {
-      @apply text-orange-600;
-    }
-
-    &.pink {
-      @apply text-pink-600;
-    }
-
-    &.purple {
-      @apply text-purple-500;
-    }
-
-    &.yellow {
-      @apply text-yellow-600;
-    }
-
-    &.gray {
-      @apply text-gray-600;
-    }
   }
 }
 </style>

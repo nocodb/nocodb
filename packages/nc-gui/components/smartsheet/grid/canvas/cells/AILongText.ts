@@ -6,7 +6,6 @@ import {
   renderSpinner,
   truncateText,
 } from '../utils/canvas'
-import { getButtonColors } from './Button/utils'
 
 const getButtonDimensions = ({
   ctx,

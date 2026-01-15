@@ -105,12 +105,7 @@ export class InternalController extends InternalControllerCE {
     super(aclMiddleware, internalApiModules);
   }
 
-  protected async checkAcl(
-    operation: string,
-    req,
-    scope?: string,
-    extendedScope?: string,
-  ) {
+  protected async checkAcl(operation: string, req, scope?: string) {
     if (scope === 'ncSkipAcl') {
       return;
     }
@@ -118,7 +113,6 @@ export class InternalController extends InternalControllerCE {
       operation,
       {
         scope,
-        extendedScope,
       },
       null,
       req,

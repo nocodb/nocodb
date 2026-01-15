@@ -21,7 +21,7 @@ const up = async (knex: Knex) => {
     table.string('category', 255);
 
     // Installation/usage stats
-    table.integer('install_count').unsigned().notNullable().defaultTo(0);
+    table.integer('install_count').unsigned().defaultTo(0);
 
     table.text('meta');
 
@@ -58,7 +58,7 @@ const up = async (knex: Knex) => {
     table.string('status', 20).notNullable().defaultTo('draft');
 
     // Serialized schema snapshot for this version (JSON)
-    table.text('schema').notNullable();
+    table.text('schema');
 
     // Optional release notes for this version
     table.text('release_notes');

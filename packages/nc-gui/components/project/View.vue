@@ -22,7 +22,13 @@ const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { $e, $api } = useNuxtApp()
 
-const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions, blockSync, showUpgradeToUseSync } = useEeConfig()
+const {
+  blockTableAndFieldPermissions,
+  showUpgradeToUseTableAndFieldPermissions,
+  blockSync,
+  showUpgradeToUseSync,
+  isWsAuditEnabled,
+} = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -71,6 +77,10 @@ const userCount = computed(() => {
 
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
+const isAuditsTabVisible = computed(
+  () => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('workspaceAuditList'),
+)
+
 const projectPageTab = computed({
   get() {
     return _projectPageTab.value
@@ -81,6 +91,10 @@ const projectPageTab = computed({
     }
 
     if (value === 'syncs' && showUpgradeToUseSync()) {
+      return
+    }
+
+    if (value === 'audits' && !isAuditsTabVisible.value) {
       return
     }
 
@@ -120,6 +134,8 @@ watch(
         projectPageTab.value = 'permissions'
       } else if (newVal === 'base-settings') {
         projectPageTab.value = 'base-settings'
+      } else if (newVal === 'audits' && isAuditsTabVisible.value) {
+        projectPageTab.value = 'audits'
       } else {
         projectPageTab.value = 'collaborator'
       }
@@ -301,6 +317,20 @@ onMounted(() => {
             </div>
           </template>
           <ProjectSync v-if="!blockSync" :base-id="base.id" class="max-h-full" />
+        </a-tab-pane>
+        <a-tab-pane
+          v-if="isEeUI && !isAdminPanel && isWsAuditEnabled && isUIAllowed('workspaceAuditList')"
+          key="audits"
+          class="w-full"
+        >
+          <template #tab>
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
+              <GeneralIcon icon="audit" class="h-4 w-4" />
+              {{ $t('title.audits') }}
+            </div>
+          </template>
+          <WorkspaceAudits v-if="currentBase?.id && projectPageTab === 'audits'" :base-id="currentBase?.id" />
+          <div v-else>&nbsp;</div>
         </a-tab-pane>
         <a-tab-pane v-if="!isSharedBase && !isMobileMode" key="base-settings">
           <template #tab>

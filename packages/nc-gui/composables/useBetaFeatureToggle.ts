@@ -156,7 +156,6 @@ const FEATURES = [
     version: 2,
     isEngineering: false,
     isEE: true,
-    isOnPrem: false,
   },
   {
     id: 'gauge_widget',

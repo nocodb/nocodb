@@ -461,7 +461,7 @@ const triggerAction = async () => {
 
   &.text {
     &:hover:not(.disabled) {
-      @apply bg-gray-200;
+      @apply bg-nc-gray-200;
     }
     &:focus {
       @apply shadow-focus;

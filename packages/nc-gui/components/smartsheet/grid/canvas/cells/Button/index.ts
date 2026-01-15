@@ -25,6 +25,7 @@ export const ButtonCellRenderer: CellRenderer = {
       allowLocalUrl,
       cellRenderStore,
       t,
+      getColor,
     } = props
 
     const isQueued = actionManager.isQueued(pk, column.id!)
@@ -119,7 +120,7 @@ export const ButtonCellRenderer: CellRenderer = {
       mousePosition.y >= startY &&
       mousePosition.y <= startY + buttonHeight
 
-    const colors = getButtonColors(buttonMeta.theme, buttonMeta.color, isHovered, !!disabledState)
+    const colors = getButtonColors(buttonMeta.theme, buttonMeta.color, isHovered, !!disabledState, getColor)
 
     if (isHovered) props.setCursor('pointer')
 

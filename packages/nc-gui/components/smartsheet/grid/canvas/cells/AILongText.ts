@@ -69,6 +69,7 @@ const renderAIButton = (
     loadingStartTime,
     isLoading,
     setCursor,
+    getColor,
   }: {
     x: number
     y: number
@@ -79,6 +80,7 @@ const renderAIButton = (
     spriteLoader?: any
     loadingStartTime?: number
     setCursor: SetCursorType
+    getColor: GetColorType
   },
 ) => {
   const dims = getButtonDimensions({
@@ -108,7 +110,7 @@ const renderAIButton = (
     ctx.globalAlpha = 0.5
   }
 
-  const colors = getButtonColors('light', 'purple', !!isHovered, !!disabled)
+  const colors = getButtonColors('light', 'purple', !!isHovered, !!disabled, getColor)
 
   ctx.beginPath()
   ctx.roundRect(startX, startY, dims.buttonWidth, dims.buttonHeight, 6)
@@ -194,6 +196,7 @@ export const AILongTextCellRenderer: CellRenderer = {
         isLoading,
         loadingStartTime: startTime!,
         setCursor: props.setCursor,
+        getColor,
       })
 
       return {

@@ -228,18 +228,20 @@ useEventListener('keydown', (e: KeyboardEvent) => {
       </NcTooltip>
 
       <div v-if="hasManualTrigger" class="h-6 w-px bg-nc-border-gray-medium mx-1" />
-      <NcTooltip v-if="hasManualTrigger" :disabled="!activeWorkflowHasDraftChanges && isWorkflowEditAllowed">
+      <NcTooltip v-if="hasManualTrigger" :disabled="!activeWorkflowHasDraftChanges && isWorkflowEditAllowed && workflow?.enabled">
         <template #title>
           {{
             !isWorkflowEditAllowed
               ? 'Only creators and owners can trigger manual workflows'
+              : !workflow?.enabled
+              ? 'Workflow is not enabled. Please enable the workflow before triggering.'
               : activeWorkflowHasDraftChanges
               ? 'Workflow has draft changes. Please publish the workflow before triggering.'
               : 'Trigger Workflow'
           }}
         </template>
         <NcButton
-          :disabled="isLoading || activeWorkflowHasDraftChanges || !isWorkflowEditAllowed"
+          :disabled="isLoading || activeWorkflowHasDraftChanges || !isWorkflowEditAllowed || !workflow?.enabled"
           :loading="isLoading"
           size="small"
           type="primary"

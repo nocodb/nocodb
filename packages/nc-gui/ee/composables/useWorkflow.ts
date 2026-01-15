@@ -556,8 +556,13 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
           }) => {
             if (data.status !== 'close') {
               if (data.status === JobStatus.COMPLETED) {
-                updateNodeTestResult(nodeId, data.data?.result)
-                resolve(data.data?.result)
+                const result = data.data?.result
+                updateNodeTestResult(nodeId, result)
+                if (result?.status === 'error') {
+                  reject(new Error(result.error || 'Test execution failed'))
+                } else {
+                  resolve(result)
+                }
               } else if (data.status === JobStatus.FAILED) {
                 const error = data.data?.error?.message || 'Test execution failed'
                 updateNodeTestResult(nodeId, { status: 'error', error })

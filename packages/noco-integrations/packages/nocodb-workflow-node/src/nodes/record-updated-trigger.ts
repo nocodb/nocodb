@@ -46,6 +46,7 @@ export class RecordUpdatedTriggerNode extends WorkflowNodeIntegration<RecordUpda
         fetchOptionsKey: 'fields',
         selectMode: 'multiple',
         dependsOn: 'config.modelId',
+        helpText: 'By default all fields will be monitored',
         validators: [
           {
             type: FormBuilderValidatorType.Required,

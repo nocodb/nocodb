@@ -180,7 +180,7 @@ export const AILongTextCellRenderer: CellRenderer = {
 
     const startTime = actionManager.getLoadingStartTime(pk, column.id!)
 
-    if (!value && !isReadonlyCol) {
+    if (!value) {
       const buttonDisabled = disabled?.isInvalid || isReadonlyCol
 
       const btnWidth = width - horizontalPadding * 2

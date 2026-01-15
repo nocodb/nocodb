@@ -177,14 +177,14 @@ export const AILongTextCellRenderer: CellRenderer = {
 
     const isReadonlyCol = !!(readonly || column.readonly)
 
+    const isLoading = actionManager.isLoading(pk, column.id!)
+
+    const startTime = actionManager.getLoadingStartTime(pk, column.id!)
+
     if (!value && !isReadonlyCol) {
       const buttonDisabled = disabled?.isInvalid || isReadonlyCol
 
       const btnWidth = width - horizontalPadding * 2
-
-      const isLoading = actionManager.isLoading(pk, column.id!)
-
-      const startTime = actionManager.getLoadingStartTime(pk, column.id!)
 
       const { buttonBounds } = renderAIButton(ctx, {
         x: x + (width - btnWidth) / 2,
@@ -214,30 +214,37 @@ export const AILongTextCellRenderer: CellRenderer = {
       height,
     })
 
-    if (selected && (!isReadonlyCol || value)) {
-      renderIconButton(ctx, {
-        buttonX: x + width - 28,
-        buttonY: y + 7,
-        buttonSize: 20,
-        borderRadius: 6,
-        iconData: {
-          size: 12,
-          xOffset: 4,
-          yOffset: 4,
-          color: getColor(themeV4Colors.gray['700']),
-        },
-        mousePosition,
-        spriteLoader,
-        icon: 'maximize',
-        background: getColor(themeV4Colors.base.white),
-        borderColor: getColor(themeV4Colors.gray['200']),
-        hoveredBackground: getColor(themeV4Colors.gray['100']),
-        setCursor,
-      })
+    if ((selected || value?.isStale) && (!isReadonlyCol || value)) {
+      let xButtonOffset = x + width
+
+      if (selected) {
+        xButtonOffset -= 28
+        renderIconButton(ctx, {
+          buttonX: xButtonOffset,
+          buttonY: y + 7,
+          buttonSize: 20,
+          borderRadius: 6,
+          iconData: {
+            size: 12,
+            xOffset: 4,
+            yOffset: 4,
+            color: getColor(themeV4Colors.gray['700']),
+          },
+          mousePosition,
+          spriteLoader,
+          icon: 'maximize',
+          background: getColor(themeV4Colors.base.white),
+          borderColor: getColor(themeV4Colors.gray['200']),
+          hoveredBackground: getColor(themeV4Colors.gray['100']),
+          setCursor,
+        })
+      }
 
       if (!isReadonlyCol) {
+        xButtonOffset = xButtonOffset - (!selected ? 28 : 24)
+
         renderIconButton(ctx, {
-          buttonX: x + width - 52,
+          buttonX: xButtonOffset,
           buttonY: y + 7,
           buttonSize: 20,
           borderRadius: 6,
@@ -254,6 +261,7 @@ export const AILongTextCellRenderer: CellRenderer = {
           borderColor: getColor(themeV4Colors.gray['200']),
           hoveredBackground: getColor(themeV4Colors.gray['100']),
           setCursor,
+          spin: isLoading && startTime ? { startTime, speed: 1.5 } : undefined,
         })
       }
     }
@@ -305,6 +313,15 @@ export const AILongTextCellRenderer: CellRenderer = {
       }
     }
 
+    if (selected || value?.isStale) {
+      if (column?.isInvalidColumn?.isInvalid || isReadOnlyCol) return true
+
+      if (isBoxHovered({ ...regenerateIconBox, x: x + width - (selected ? 52 : 28) }, mousePosition)) {
+        await actionManager.executeButtonAction([pk], column, { row: [row], isAiPromptCol: true, path })
+        return true
+      }
+    }
+
     if (
       selected &&
       (isBoxHovered(expandIconBox, mousePosition) || (!isReadOnlyCol && isBoxHovered(regenerateIconBox, mousePosition)))
@@ -318,17 +335,38 @@ export const AILongTextCellRenderer: CellRenderer = {
   async handleHover({ row, column, mousePosition, getCellPosition, t, value, selected }) {
     const { tryShowTooltip, hideTooltip } = useTooltipStore()
     hideTooltip()
-    if (!row || !column?.id || !mousePosition || column?.isInvalidColumn?.isInvalid || !value || !value?.value || !selected) {
+    if (
+      !row ||
+      !column?.id ||
+      !mousePosition ||
+      column?.isInvalidColumn?.isInvalid ||
+      !value ||
+      !value?.value ||
+      (!selected && !value?.isStale)
+    ) {
       return
     }
 
     const { x, y, width } = getCellPosition(column, row.rowMeta.rowIndex!)
-    const expandIconBox = { x: x + width - 28, y: y + 7, width: 18, height: 18 }
-    const regenerateIconBox = { x: x + width - 52, y: y + 7, width: 18, height: 18 }
-    tryShowTooltip({ text: t('title.expand'), rect: expandIconBox, mousePosition })
+    let xButtonOffset = x + width
+
+    if (selected) {
+      xButtonOffset -= 28
+
+      const expandIconBox = { x: xButtonOffset, y: y + 7, width: 18, height: 18 }
+      tryShowTooltip({ text: t('title.expand'), rect: expandIconBox, mousePosition })
+    }
 
     if (!column.readonly && !column?.columnObj?.readonly) {
-      tryShowTooltip({ text: 'Re-generate', rect: regenerateIconBox, mousePosition })
+      xButtonOffset = xButtonOffset - (!selected ? 28 : 24)
+
+      const regenerateIconBox = { x: xButtonOffset, y: y + 7, width: 18, height: 18 }
+
+      tryShowTooltip({
+        text: value?.isStale && selected ? 'Input have changed, re-generate to update' : 'Re-generate',
+        rect: regenerateIconBox,
+        mousePosition,
+      })
     }
   },
   async handleKeyDown(ctx) {

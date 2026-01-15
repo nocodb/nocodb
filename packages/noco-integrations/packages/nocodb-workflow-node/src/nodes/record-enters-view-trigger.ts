@@ -188,11 +188,10 @@ export class RecordEntersViewTriggerNode extends WorkflowNodeIntegration<RecordE
   }
 
   private async fetchSampleRecord() {
-    if (!this.config.modelId) {
-      return {};
-    }
+    let result;
+
     try {
-      const result = await this.nocodb.dataService.dataList(
+      result = await this.nocodb.dataService.dataList(
         this.nocodb.context,
         {
           modelId: this.config.modelId,
@@ -207,14 +206,15 @@ export class RecordEntersViewTriggerNode extends WorkflowNodeIntegration<RecordE
         false,
       );
 
-      if (result.length) {
+      if (result?.length > 0) {
         return result[0];
       }
-      return {};
     } catch (error) {
       console.error('Failed to fetch sample record:', error);
-      return {};
     }
+    throw new Error(
+      'Please manually add at least one record to the table to test the trigger',
+    );
   }
 
   public async run(ctx: WorkflowNodeRunContext): Promise<WorkflowNodeResult> {

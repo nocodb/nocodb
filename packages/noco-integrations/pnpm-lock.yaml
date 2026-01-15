@@ -1861,6 +1861,10 @@ packages:
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
 
+  uuid@11.1.0:
+    resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
+    hasBin: true
+
   validator@13.15.0:
     resolution: {integrity: sha512-36B2ryl4+oL5QxZ3AzD0t5SsMNGvTtQHpjgFO5tbNxfXbMFkY822ktCDe1MnlqV3301QQI9SLHDNJokDI+Z9pA==}
     engines: {node: '>= 0.10'}
@@ -3513,6 +3517,7 @@ snapshots:
       nc-jsep-plugin-template: 1.7.5(nc-jsep@1.7.5)
       nc-jsep-plugin-ternary: 1.7.5(nc-jsep@1.7.5)
       rfdc: 1.4.1
+      uuid: 11.1.0
       validator: 13.15.0
     transitivePeerDependencies:
       - '@vue/composition-api'
@@ -3968,6 +3973,8 @@ snapshots:
   uri-js@4.4.1:
     dependencies:
       punycode: 2.3.1
+
+  uuid@11.1.0: {}
 
   validator@13.15.0: {}
 

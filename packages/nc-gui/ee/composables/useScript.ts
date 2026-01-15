@@ -105,10 +105,14 @@ const [useProvideScriptStore, useNcScriptStore] = useInjectionState((_script: Sc
 
     isSettingsOpen.value = false
 
-    activeExecutionId.value = await executeScript({
-      ...activeScript.value,
-      script: activeScript.value.script,
-    })
+    try {
+      activeExecutionId.value = await executeScript({
+        ...activeScript.value,
+        script: activeScript.value.script,
+      })
+    } catch (e: any) {
+      // ignore - console error is logged in executeScript
+    }
 
     $e('a:script:run')
   }
@@ -122,6 +126,7 @@ const [useProvideScriptStore, useNcScriptStore] = useInjectionState((_script: Sc
 
   const restartScript = async () => {
     stopScript()
+
     await runScript()
   }
 

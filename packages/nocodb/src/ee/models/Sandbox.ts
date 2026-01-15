@@ -53,12 +53,11 @@ export default class Sandbox {
   }
 
   public static async get(
-    context: NcContext,
     sandboxId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Sandbox> {
     let sandbox = await NocoCache.get(
-      context,
+      'root',
       `${CacheScope.SANDBOX}:${sandboxId}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -74,11 +73,6 @@ export default class Sandbox {
         {
           _and: [
             {
-              fk_workspace_id: {
-                eq: context.workspace_id,
-              },
-            },
-            {
               deleted: {
                 eq: false,
               },
@@ -92,7 +86,7 @@ export default class Sandbox {
       sandbox = prepareForResponse(sandbox);
 
       await NocoCache.set(
-        context,
+        'root',
         `${CacheScope.SANDBOX}:${sandboxId}`,
         sandbox,
       );
@@ -102,7 +96,6 @@ export default class Sandbox {
   }
 
   public static async getByBaseId(
-    context: NcContext,
     baseId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Sandbox> {
@@ -112,11 +105,7 @@ export default class Sandbox {
       MetaTable.SANDBOXES,
       {
         xcCondition: {
-          _and: [
-            { base_id: { eq: baseId } },
-            { fk_workspace_id: { eq: context.workspace_id } },
-            { deleted: { eq: false } },
-          ],
+          _and: [{ base_id: { eq: baseId } }, { deleted: { eq: false } }],
         },
       },
     );
@@ -127,7 +116,6 @@ export default class Sandbox {
   }
 
   public static async list(
-    context: NcContext,
     args?: {
       workspaceId?: string;
       userId?: string;
@@ -139,7 +127,7 @@ export default class Sandbox {
     ncMeta = Noco.ncMeta,
   ): Promise<Sandbox[]> {
     const conditions: any[] = [
-      { fk_workspace_id: { eq: args?.workspaceId || context.workspace_id } },
+      { fk_workspace_id: { eq: args?.workspaceId } },
       { deleted: { eq: false } },
     ];
 
@@ -177,7 +165,6 @@ export default class Sandbox {
   }
 
   public static async listPublished(
-    context: NcContext,
     args?: {
       category?: string;
       search?: string;
@@ -300,11 +287,10 @@ export default class Sandbox {
       prepareForDb(insertObj),
     );
 
-    return this.get(context, id, ncMeta);
+    return this.get(id, ncMeta);
   }
 
   public static async update(
-    context: NcContext,
     sandboxId: string,
     sandbox: Partial<Sandbox>,
     ncMeta = Noco.ncMeta,
@@ -330,13 +316,12 @@ export default class Sandbox {
       sandboxId,
     );
 
-    await NocoCache.del(context, `${CacheScope.SANDBOX}:${sandboxId}`);
+    await NocoCache.del('root', `${CacheScope.SANDBOX}:${sandboxId}`);
 
-    return this.get(context, sandboxId, ncMeta);
+    return this.get(sandboxId, ncMeta);
   }
 
   public static async softDelete(
-    context: NcContext,
     sandboxId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
@@ -348,13 +333,12 @@ export default class Sandbox {
       sandboxId,
     );
 
-    await NocoCache.del(context, `${CacheScope.SANDBOX}:${sandboxId}`);
+    await NocoCache.del('root', `${CacheScope.SANDBOX}:${sandboxId}`);
 
     return true;
   }
 
   public static async delete(
-    context: NcContext,
     sandboxId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
@@ -366,13 +350,12 @@ export default class Sandbox {
       sandboxId,
     );
 
-    await NocoCache.del(context, `${CacheScope.SANDBOX}:${sandboxId}`);
+    await NocoCache.del('root', `${CacheScope.SANDBOX}:${sandboxId}`);
 
     return true;
   }
 
   public static async incrementInstallCount(
-    context: NcContext,
     sandboxId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
@@ -386,10 +369,6 @@ export default class Sandbox {
       sandboxId,
     );
 
-    await NocoCache.del(context, `${CacheScope.SANDBOX}:${sandboxId}`);
-  }
-
-  public async getBase(context: NcContext): Promise<Base> {
-    return await Base.get(context, this.base_id);
+    await NocoCache.del('root', `${CacheScope.SANDBOX}:${sandboxId}`);
   }
 }

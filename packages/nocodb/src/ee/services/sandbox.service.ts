@@ -76,7 +76,7 @@ export class SandboxService {
       await trx.commit();
 
       // Increment the install count for the sandbox
-      await Sandbox.incrementInstallCount(targetContext, sandboxId);
+      await Sandbox.incrementInstallCount(sandboxId);
 
       return {
         success: true,

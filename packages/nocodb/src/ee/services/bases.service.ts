@@ -396,13 +396,9 @@ export class BasesService extends BasesServiceCE {
 
     try {
       // Soft delete associated sandbox if this base is a sandbox master
-      const sandbox = await Sandbox.getByBaseId(
-        context,
-        param.baseId,
-        transaction,
-      );
+      const sandbox = await Sandbox.getByBaseId(param.baseId, transaction);
       if (sandbox) {
-        await Sandbox.softDelete(context, sandbox.id, transaction);
+        await Sandbox.softDelete(sandbox.id, transaction);
       }
 
       await Base.delete(context, param.baseId, transaction);

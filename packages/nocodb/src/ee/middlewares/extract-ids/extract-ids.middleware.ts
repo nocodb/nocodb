@@ -931,7 +931,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     }
     // extract base id and workspace id from sandbox id if provided
     else if (req.query.sandboxId) {
-      const sandbox = await Sandbox.get(context, req.query.sandboxId);
+      const sandbox = await Sandbox.get(req.query.sandboxId);
 
       if (!sandbox) {
         NcError.genericNotFound('Sandbox', req.query.sandboxId);

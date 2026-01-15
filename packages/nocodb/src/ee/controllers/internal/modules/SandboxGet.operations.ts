@@ -68,7 +68,7 @@ export class SandboxGetOperations
   private async listStore(context: NcContext, req: NcRequest) {
     const { category, search, limit, offset } = req.query;
 
-    const sandboxes = await Sandbox.listPublished(context, {
+    const sandboxes = await Sandbox.listPublished({
       category: category as string,
       search: search as string,
       limit: limit ? parseInt(limit as string, 10) : 50,
@@ -86,7 +86,7 @@ export class SandboxGetOperations
   private async list(context: NcContext, workspaceId: string, req: NcRequest) {
     const { limit, offset } = req.query;
 
-    const sandboxes = await Sandbox.list(context, {
+    const sandboxes = await Sandbox.list({
       workspaceId,
       userId: req.user.id,
       limit: limit ? parseInt(limit as string, 10) : 50,
@@ -105,9 +105,9 @@ export class SandboxGetOperations
     let sandbox: Sandbox | null = null;
 
     if (sandboxId) {
-      sandbox = await Sandbox.get(context, sandboxId as string);
+      sandbox = await Sandbox.get(sandboxId as string);
     } else if (baseId) {
-      sandbox = await Sandbox.getByBaseId(context, baseId as string);
+      sandbox = await Sandbox.getByBaseId(baseId as string);
     }
 
     if (!sandbox) {
@@ -130,7 +130,7 @@ export class SandboxGetOperations
   private async getUpdates(context: NcContext, req: NcRequest) {
     const { sandboxId, installedBaseId } = req.query;
 
-    const sandbox = await Sandbox.get(context, sandboxId as string);
+    const sandbox = await Sandbox.get(sandboxId as string);
 
     if (!sandbox) {
       NcError.get(context).notFound('Sandbox not found');
@@ -220,7 +220,7 @@ export class SandboxGetOperations
       NcError.get(context).badRequest('sandboxId is required');
     }
 
-    const sandbox = await Sandbox.get(context, sandboxId as string);
+    const sandbox = await Sandbox.get(sandboxId as string);
 
     if (!sandbox) {
       NcError.get(context).notFound('Sandbox not found');
@@ -256,7 +256,7 @@ export class SandboxGetOperations
       NcError.get(context).badRequest('sandboxId is required');
     }
 
-    const sandbox = await Sandbox.get(context, sandboxId as string);
+    const sandbox = await Sandbox.get(sandboxId as string);
 
     if (!sandbox) {
       NcError.get(context).notFound('Sandbox not found');
@@ -372,7 +372,7 @@ export class SandboxGetOperations
       NcError.get(context).badRequest('versionId is required');
     }
 
-    const sandbox = await Sandbox.get(context, sandboxId as string);
+    const sandbox = await Sandbox.get(sandboxId as string);
 
     if (!sandbox) {
       NcError.get(context).notFound('Sandbox not found');
@@ -499,7 +499,7 @@ export class SandboxGetOperations
     }
 
     // Get the sandbox and verify ownership
-    const sandbox = await Sandbox.get(context, base.sandbox_id);
+    const sandbox = await Sandbox.get(base.sandbox_id);
     if (!sandbox) {
       NcError.get(context).notFound('Sandbox not found');
     }

@@ -72,7 +72,7 @@ import { SnapshotService } from '~/services/snapshot.service';
 import { ScriptsService } from '~/services/scripts.service';
 
 /* Sandbox */
-import { SandboxService } from '~/ee/services/sandbox.service';
+import { SandboxService } from '~/services/sandbox.service';
 
 /* Workflows */
 import { WorkflowsService } from '~/services/workflows.service';

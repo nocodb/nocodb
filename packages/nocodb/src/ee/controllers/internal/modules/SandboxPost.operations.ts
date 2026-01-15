@@ -110,7 +110,7 @@ export class SandboxPostOperations
     }
 
     // Check if sandbox already exists for this base
-    const existingSandbox = await Sandbox.getByBaseId(context, baseId);
+    const existingSandbox = await Sandbox.getByBaseId(baseId);
     if (existingSandbox) {
       NcError.get(context).badRequest('A sandbox already exists for this base');
     }
@@ -167,7 +167,7 @@ export class SandboxPostOperations
       NcError.get(context).badRequest('sandboxId is required');
     }
 
-    const sandbox = await Sandbox.get(context, sandboxId);
+    const sandbox = await Sandbox.get(sandboxId);
 
     if (!sandbox) {
       NcError.get(context).notFound('Sandbox not found');
@@ -188,7 +188,7 @@ export class SandboxPostOperations
     }
 
     // Allow updating: title, description, category, tags, visibility
-    const updatedSandbox = await Sandbox.update(context, sandboxId, updateData);
+    const updatedSandbox = await Sandbox.update(sandboxId, updateData);
 
     return updatedSandbox;
   }
@@ -200,7 +200,7 @@ export class SandboxPostOperations
       NcError.get(context).badRequest('sandboxId is required');
     }
 
-    const sandbox = await Sandbox.get(context, sandboxId);
+    const sandbox = await Sandbox.get(sandboxId);
 
     if (!sandbox) {
       NcError.get(context).notFound('Sandbox not found');
@@ -220,7 +220,7 @@ export class SandboxPostOperations
       );
     }
 
-    await Sandbox.softDelete(context, sandboxId);
+    await Sandbox.softDelete(sandboxId);
 
     return {
       message: 'Sandbox deleted successfully',
@@ -238,7 +238,7 @@ export class SandboxPostOperations
       NcError.get(context).badRequest('version is required');
     }
 
-    const sandbox = await Sandbox.get(context, sandboxId);
+    const sandbox = await Sandbox.get(sandboxId);
     if (!sandbox) {
       NcError.get(context).notFound('Sandbox not found');
     }
@@ -302,7 +302,7 @@ export class SandboxPostOperations
     }
 
     // Get the sandbox
-    const sandbox = await Sandbox.get(context, version.fk_sandbox_id);
+    const sandbox = await Sandbox.get(version.fk_sandbox_id);
     if (!sandbox) {
       NcError.get(context).notFound('Sandbox not found');
     }
@@ -350,7 +350,7 @@ export class SandboxPostOperations
     // Update sandbox published_at if this is the first publish
     const isInitialPublish = !sandbox.published_at;
     if (isInitialPublish) {
-      await Sandbox.update(context, sandbox.id, {
+      await Sandbox.update(sandbox.id, {
         published_at: new Date().toISOString(),
       });
     }
@@ -378,7 +378,7 @@ export class SandboxPostOperations
       NcError.get(context).badRequest('target_workspace_id is required');
     }
 
-    const sandbox = await Sandbox.get(context, sandboxId);
+    const sandbox = await Sandbox.get(sandboxId);
 
     if (!sandbox) {
       NcError.get(context).notFound('Sandbox not found');
@@ -457,7 +457,7 @@ export class SandboxPostOperations
       });
 
       // Increment install count
-      await Sandbox.incrementInstallCount(context, sandboxId);
+      await Sandbox.incrementInstallCount(sandboxId);
 
       return {
         message: 'Sandbox installed successfully',

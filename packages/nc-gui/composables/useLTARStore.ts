@@ -280,6 +280,15 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       )
     })
 
+    const fieldsToLoad = computed(() => {
+      return [
+        ...(relatedTableDisplayValueColumn.value ? [relatedTableDisplayValueColumn.value] : []),
+        ...(relatedTableMeta.value?.columns?.filter((c) => c.pk) || []),
+        ...(attachmentCol.value ? [attachmentCol.value] : []),
+        ...fields.value,
+      ].filter((c) => c)
+    })
+
     // extract external base roles if cross base link
     const externalBaseUserRoles = computedAsync(async () => {
       if (base.value?.id && base.value?.id === relatedTableMeta.value?.base_id) return
@@ -518,14 +527,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               offset: String(offset),
               where,
               linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
-              fields: [
-                ...(relatedTableDisplayValueColumn.value ? [relatedTableDisplayValueColumn.value] : []),
-                ...(relatedTableMeta.value?.columns?.filter((c) => c.pk) || []),
-                ...(attachmentCol.value ? [attachmentCol.value] : []),
-                ...fields.value,
-              ]
-                .map((f) => f.id)
-                .join(','),
+              fields: fieldsToLoad.value.map((f) => f.id).join(','),
             } as any,
           )
         }
@@ -641,14 +643,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 limit: String(limit ?? childrenListPagination.size),
                 offset: String(offset),
                 where,
-                fields: [
-                  ...(relatedTableDisplayValueColumn.value ? [relatedTableDisplayValueColumn.value] : []),
-                  ...(relatedTableMeta.value?.columns?.filter((c) => c.pk) || []),
-                  ...(attachmentCol.value ? [attachmentCol.value] : []),
-                  ...fields.value,
-                ]
-                  .map((f) => f.id)
-                  .join(','),
+                fields: fieldsToLoad.value.map((f) => f.id).join(','),
               } as any,
             )
           }

@@ -269,15 +269,17 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       ref([]),
     )
 
+    const fieldsToLoad = computed(() => {
+      return [
+        relatedTableDisplayValueColumn.value,
+        ...(relatedTableMeta.value?.columns?.filter((c) => c.pk) || []),
+        ...(attachmentCol.value ? [attachmentCol.value] : []),
+        ...(fields.value || []),
+      ].filter((c) => c)
+    })
+
     const requiredFieldsToLoad = computed(() => {
-      return Array.from(
-        new Set([
-          relatedTableDisplayValueProp.value,
-          ...relatedTablePrimaryKeyProps.value,
-          ...(attachmentCol.value ? [attachmentCol.value?.title] : []),
-          ...(fields.value || [])?.map((f) => f.title?.trim() as string),
-        ]),
-      )
+      return Array.from(new Set(fieldsToLoad.value?.map((f) => f.id as string)))
     })
 
     // extract external base roles if cross base link
@@ -518,6 +520,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
               offset: String(offset),
               where,
               linkRowData: changedRowData ? JSON.stringify(changedRowData) : undefined,
+              fields: requiredFieldsToLoad.value,
             } as any,
           )
         }
@@ -633,6 +636,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
                 limit: String(limit ?? childrenListPagination.size),
                 offset: String(offset),
                 where,
+                fields: requiredFieldsToLoad.value,
               } as any,
             )
           }

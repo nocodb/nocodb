@@ -269,24 +269,17 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       ref([]),
     )
 
-    const requiredFieldsToLoad = computed(() => {
-      return Array.from(
-        new Set([
-          relatedTableDisplayValueProp.value,
-          ...relatedTablePrimaryKeyProps.value,
-          ...(attachmentCol.value ? [attachmentCol.value?.title] : []),
-          ...(fields.value || [])?.map((f) => f.title?.trim() as string),
-        ]),
-      )
-    })
-
     const fieldsToLoad = computed(() => {
       return [
-        ...(relatedTableDisplayValueColumn.value ? [relatedTableDisplayValueColumn.value] : []),
+        relatedTableDisplayValueColumn.value,
         ...(relatedTableMeta.value?.columns?.filter((c) => c.pk) || []),
         ...(attachmentCol.value ? [attachmentCol.value] : []),
-        ...fields.value,
+        ...(fields.value || []),
       ].filter((c) => c)
+    })
+
+    const requiredFieldsToLoad = computed(() => {
+      return Array.from(new Set(fieldsToLoad.value?.map((f) => f.title?.trim() as string)))
     })
 
     // extract external base roles if cross base link

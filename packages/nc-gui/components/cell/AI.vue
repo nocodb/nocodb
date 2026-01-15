@@ -33,10 +33,6 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const isGrid = inject(IsGridInj, ref(false))
 
-const isGallery = inject(IsGalleryInj, ref(false))
-
-const isKanban = inject(IsKanbanInj, ref(false))
-
 const isExpandedForm = inject(IsExpandedFormOpenInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)

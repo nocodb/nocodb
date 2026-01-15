@@ -1124,28 +1124,41 @@ export class WorkflowExpressionParser {
   /**
    * Validate an identifier name
    */
-  private validateIdentifier(name: string): void {
-    // Block dangerous identifiers
-    const dangerous = [
-      'eval',
-      'Function',
-      'constructor',
-      '__proto__',
-      'prototype',
-      'process',
-      'require',
-      'import',
-      'global',
-      'globalThis',
-      'window',
-      'document',
-      'location',
-      'localStorage',
-      'sessionStorage',
-    ];
+  private validateIdentifier(name: string, isRoot = true): void {
+    // Block dangerous identifiers for root access
+    if (isRoot) {
+      const rootDangerous = [
+        'eval',
+        'Function',
+        'constructor',
+        '__proto__',
+        'prototype',
+        'process',
+        'require',
+        'import',
+        'global',
+        'globalThis',
+        'window',
+        'document',
+        'location',
+        'localStorage',
+        'sessionStorage',
+      ];
 
-    if (dangerous.includes(name)) {
-      throw new WorkflowSecurityError(`Identifier "${name}" is not allowed`);
+      if (rootDangerous.includes(name)) {
+        throw new WorkflowSecurityError(`Root identifier "${name}" is not allowed`);
+      }
+    } else {
+      // Less restrictive validation for non-root property access
+      const nonRootDangerous = [
+        '__proto__',
+        'constructor',
+        'prototype',
+      ];
+
+      if (nonRootDangerous.includes(name)) {
+        throw new WorkflowSecurityError(`Property "${name}" is not allowed`);
+      }
     }
   }
 
@@ -1154,7 +1167,7 @@ export class WorkflowExpressionParser {
    */
   private validatePropertyAccess(property: string | number): void {
     if (typeof property === 'string') {
-      this.validateIdentifier(property);
+      this.validateIdentifier(property, false);
     }
   }
 
@@ -1162,7 +1175,7 @@ export class WorkflowExpressionParser {
    * Validate a method name
    */
   private validateMethodName(name: string): void {
-    this.validateIdentifier(name);
+    this.validateIdentifier(name, false);
   }
 
   /**
@@ -1219,7 +1232,7 @@ export class WorkflowExpressionParser {
       for (const key in data) {
         if (Object.prototype.hasOwnProperty.call(data, key)) {
           // Validate property name
-          this.validateIdentifier(key);
+          this.validateIdentifier(key, false);
           // Validate property value
           this.validateContextData((data as any)[key], depth + 1, seen);
         }

@@ -28,6 +28,8 @@ import GithubWorkflowNode from '@noco-local-integrations/github-workflow-node';
 import GitlabAuth from '@noco-local-integrations/gitlab-auth';
 import GitlabSync from '@noco-local-integrations/gitlab-sync';
 import GoogleAi from '@noco-local-integrations/google-ai';
+import GoogleCalendarAuth from '@noco-local-integrations/google-calendar-auth';
+import GoogleCalendarWorkflowNodes from '@noco-local-integrations/google-calendar-workflow-nodes';
 import GoogleDriveAuth from '@noco-local-integrations/google-drive-auth';
 import GoogleDriveSync from '@noco-local-integrations/google-drive-sync';
 import GoogleMailAuth from '@noco-local-integrations/google-mail-auth';
@@ -85,6 +87,8 @@ export default [
   ...(Array.isArray(GitlabAuth) ? GitlabAuth : [GitlabAuth]),
   ...(Array.isArray(GitlabSync) ? GitlabSync : [GitlabSync]),
   ...(Array.isArray(GoogleAi) ? GoogleAi : [GoogleAi]),
+  ...(Array.isArray(GoogleCalendarAuth) ? GoogleCalendarAuth : [GoogleCalendarAuth]),
+  ...(Array.isArray(GoogleCalendarWorkflowNodes) ? GoogleCalendarWorkflowNodes : [GoogleCalendarWorkflowNodes]),
   ...(Array.isArray(GoogleDriveAuth) ? GoogleDriveAuth : [GoogleDriveAuth]),
   ...(Array.isArray(GoogleDriveSync) ? GoogleDriveSync : [GoogleDriveSync]),
   ...(Array.isArray(GoogleMailAuth) ? GoogleMailAuth : [GoogleMailAuth]),

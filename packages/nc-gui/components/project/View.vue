@@ -77,9 +77,7 @@ const userCount = computed(() => {
 
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
-const isAuditsTabVisible = computed(
-  () => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('workspaceAuditList'),
-)
+const isAuditsTabVisible = computed(() => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList'))
 
 const projectPageTab = computed({
   get() {
@@ -318,11 +316,7 @@ onMounted(() => {
           </template>
           <ProjectSync v-if="!blockSync" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane
-          v-if="isEeUI && !isAdminPanel && isWsAuditEnabled && isUIAllowed('workspaceAuditList')"
-          key="audits"
-          class="w-full"
-        >
+        <a-tab-pane v-if="isAuditsTabVisible" key="audits" class="w-full">
           <template #tab>
             <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
               <GeneralIcon icon="audit" class="h-4 w-4" />

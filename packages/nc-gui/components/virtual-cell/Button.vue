@@ -300,6 +300,7 @@ const triggerAction = async () => {
         ]"
         class="nc-cell-button nc-button-cell-link btn-cell-colors truncate flex items-center"
         :style="buttonColors"
+        @click.prevent="triggerAction"
       >
         <GeneralIcon
           v-if="afterActionStatus"

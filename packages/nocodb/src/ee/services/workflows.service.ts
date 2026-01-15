@@ -863,11 +863,11 @@ export class WorkflowsService implements OnModuleInit {
         currentDate: new Date(),
       },
     );
-    const nextSyncAt = interval.next();
+    const nextSyncAt = interval.next().toISOString();
     await Workflow.trackExternalTrigger(context, workflow.id, {
       nodeId: triggerNode.id,
       nodeType: triggerNode.type,
-      nextSyncAt: nextSyncAt.toISOString(),
+      nextSyncAt,
       activationState,
     });
   }

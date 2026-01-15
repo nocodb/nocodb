@@ -203,6 +203,14 @@ export class WorkflowsService implements OnModuleInit {
       workflowBody.title = workflowBody.title.trim();
     }
 
+    if (!workflow.enabled && workflowBody.enabled) {
+      // some trigger need heartbeat
+      await this.jobsService.add(JobTypes.HeartbeatWorkflow, {
+        context,
+        workflowId: workflowId,
+      });
+    }
+
     const updatedWorkflow = await Workflow.update(context, workflowId, {
       ...workflowBody,
       updated_by: req.user.id,

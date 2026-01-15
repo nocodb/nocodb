@@ -17,7 +17,7 @@ import * as Diff from 'diff'
  * ```
  */
 export const diffTextBlocks = (sourceString: string, targetString: string) => {
-  return Diff.diffWords(sourceString, targetString).map((it) => ({
+  return Diff.diffWords(sourceString?.toString() || '', targetString?.toString() || '').map((it) => ({
     text: it.value,
     op: it.added ? 'added' : it.removed ? 'removed' : 'unchanged',
   }))

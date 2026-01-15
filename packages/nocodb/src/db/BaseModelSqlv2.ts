@@ -6898,7 +6898,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             isAiEdited = value.isAiEdited;
             delete value.isAiEdited;
 
-            value = value.value ?? '';
+            value = value.value?.toString() ?? '';
+          } else {
+            value = value?.toString() ?? '';
           }
 
           const obj: {

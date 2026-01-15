@@ -107,7 +107,7 @@ const actionPaneRef = ref()
  * We delay rendering Splitpanes until the parent component is fully mounted
  * and show a loader meanwhile to ensure DOM stability.
  */
-const isMounted = ref(false)
+const { isMounted } = useIsMounted()
 
 const onDrop = async (event: DragEvent) => {
   event.preventDefault()
@@ -264,13 +264,7 @@ const checkIfViewExists = async () => {
 }
 
 onMounted(async () => {
-  isMounted.value = true
-
   await checkIfViewExists()
-})
-
-onBeforeUnmount(() => {
-  isMounted.value = false
 })
 
 watch(isViewsLoading, async () => {

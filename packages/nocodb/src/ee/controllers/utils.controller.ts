@@ -122,12 +122,8 @@ export class UtilsController extends UtilsControllerCE {
         if (host && port) {
           const url = `${host.includes('://') ? '' : 'http://'}${host}:${port}`;
           await axios(url, {
-            httpAgent: useAgent(url, {
-              stopPortScanningByUrlRedirection: true,
-            }),
-            httpsAgent: useAgent(url, {
-              stopPortScanningByUrlRedirection: true,
-            }),
+            httpAgent: useAgent(url, {}),
+            httpsAgent: useAgent(url, {}),
             timeout: 100,
           }).catch((err) => {
             if (err.message.includes('DNS lookup')) {

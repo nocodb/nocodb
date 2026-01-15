@@ -143,12 +143,8 @@ export class SSOClientService {
         param.metadataUrl,
         process.env.NODE_ENV !== 'test'
           ? {
-              httpAgent: useAgent(param.metadataUrl, {
-                stopPortScanningByUrlRedirection: true,
-              }),
-              httpsAgent: useAgent(param.metadataUrl, {
-                stopPortScanningByUrlRedirection: true,
-              }),
+              httpAgent: useAgent(param.metadataUrl, {}),
+              httpsAgent: useAgent(param.metadataUrl, {}),
             }
           : {},
       );

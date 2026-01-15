@@ -121,12 +121,6 @@ watch(
   },
   { immediate: true },
 )
-
-onMounted(() => {
-  if (props.workspaceId) {
-    loadSandboxes()
-  }
-})
 </script>
 
 <template>

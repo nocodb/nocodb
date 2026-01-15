@@ -504,8 +504,6 @@ export async function applyMeta(
     progressCallback?.('Clearing caches', 98);
     await clearRelatedCaches(targetContext);
 
-    await NocoCache.destroy();
-
     // Step 9: Broadcast realtime event to trigger UI reload
     progressCallback?.('Broadcasting changes', 99);
     NocoSocket.broadcastEvent(

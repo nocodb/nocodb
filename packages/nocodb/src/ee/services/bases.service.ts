@@ -405,7 +405,7 @@ export class BasesService extends BasesServiceCE {
         await Sandbox.softDelete(context, sandbox.id, transaction);
       }
 
-      await Base.delete(context, param.baseId, ncMeta);
+      await Base.delete(context, param.baseId, transaction);
 
       await transaction.commit();
     } catch (e) {

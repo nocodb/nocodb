@@ -49,7 +49,7 @@ import {
   View,
   Workspace,
 } from '~/models';
-import Sandbox from '~/ee/models/Sandbox';
+import Sandbox from '~/models/Sandbox';
 import rolePermissions, {
   generateReadablePermissionErr,
   sourceRestrictions,

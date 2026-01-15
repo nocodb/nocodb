@@ -399,8 +399,15 @@ export class SandboxGetOperations
       .knexConnection(MetaTable.PROJECT)
       .where('sandbox_id', sandboxId)
       .where('sandbox_version_id', versionId)
-      .where('sandbox_master', false)
-      .where('deleted', false)
+      .where('sandbox_master', (qb) => {
+        qb.where(false).orWhereNull();
+      })
+      .where('deleted', (qb) => {
+        qb.where(false).orWhereNull();
+      })
+      .where('is_snapshot', (qb) => {
+        qb.where(false).orWhereNull();
+      })
       .count('* as count');
 
     // Get paginated results with latest deployment log status

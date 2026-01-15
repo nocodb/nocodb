@@ -521,7 +521,15 @@ export class SandboxPostOperations
     const installedBases = await Noco.ncMeta
       .knexConnection(MetaTable.PROJECT)
       .where('sandbox_id', sandboxId)
-      .where('sandbox_master', false)
+      .where('sandbox_master', (qb) => {
+        qb.where(false).orWhereNull();
+      })
+      .where('deleted', (qb) => {
+        qb.where(false).orWhereNull();
+      })
+      .where('is_snapshot', (qb) => {
+        qb.where(false).orWhereNull();
+      })
       .where('auto_update', true);
 
     if (!installedBases || installedBases.length === 0) {

@@ -325,45 +325,6 @@ if (vModel.value?.type === ButtonActionsType.Url || (column.value?.colOptions as
     ).substituted || ''
 }
 
-const colorClass = {
-  solid: {
-    brand: 'bg-brand-500 text-white',
-    red: 'bg-red-600 text-white',
-    green: 'bg-green-600 text-white',
-    maroon: 'bg-maroon-600 text-white',
-    blue: 'bg-blue-600 text-white',
-    orange: 'bg-orange-600 text-white',
-    pink: 'bg-pink-600 text-white',
-    purple: 'bg-purple-500 text-white',
-    yellow: 'bg-yellow-600 text-white',
-    gray: 'bg-gray-600 text-white',
-  },
-  light: {
-    brand: 'bg-brand-200 text-gray-800',
-    red: 'bg-red-200 text-gray-800',
-    green: 'bg-green-200 text-gray-800',
-    maroon: 'bg-maroon-200 text-gray-800',
-    blue: 'bg-blue-200 text-gray-800',
-    orange: 'bg-orange-200 text-gray-800',
-    pink: 'bg-pink-200 text-gray-800',
-    purple: 'bg-purple-200 text-gray-800',
-    yellow: 'bg-yellow-200 text-gray-800',
-    gray: 'bg-gray-200',
-  },
-  text: {
-    brand: 'text-brand-500',
-    red: 'text-red-600',
-    green: 'text-green-600',
-    maroon: 'text-maroon-600',
-    blue: 'text-blue-600',
-    orange: 'text-orange-600',
-    pink: 'text-pink-600',
-    purple: 'text-purple-500',
-    yellow: 'text-yellow-600',
-    gray: 'text-gray-600',
-  },
-}
-
 const isDropdownOpen = ref(false)
 
 const updateButtonTheme = (type: string, name: string) => {

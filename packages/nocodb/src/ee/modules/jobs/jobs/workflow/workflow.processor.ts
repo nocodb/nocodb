@@ -208,12 +208,6 @@ export class WorkflowProcessor {
       return;
     }
 
-    await UsageStat.incrby(
-      context.workspace_id,
-      PlanLimitTypes.LIMIT_WORKFLOW_RUN,
-      1,
-    );
-
     try {
       await this.workflowExecutionService.heartbeatWorkflow(context, workflow);
     } catch (error) {

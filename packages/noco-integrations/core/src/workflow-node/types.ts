@@ -262,14 +262,5 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
     state?: WorkflowActivationState
   ): Promise<void>;
 
-  heartbeat?: {
-    /**
-     * Heartbeat interval, in a format of cron
-     */
-    cronExpression: string;
-    /**
-     * Triggers a heartbeat for the trigger node in a workflow, signaling liveness to external triggers.
-     */
-    handler: (context: WorkflowActivationContext, state?: WorkflowActivationState) => Promise<WorkflowActivationState>;
-  }
+  heartbeat?: (context: WorkflowActivationContext, state?: WorkflowActivationState) => Promise<WorkflowActivationState>;
 }

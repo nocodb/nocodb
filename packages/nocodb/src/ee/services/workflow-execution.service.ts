@@ -868,7 +868,7 @@ export class WorkflowExecutionService {
     const trigger = (
       await Workflow.getExternalTriggers(context, workflow.id)
     )[0];
-    const heartbeatState = await nodeWrapper.heartbeat.handler(
+    const heartbeatState = await nodeWrapper.heartbeat(
       {
         workflowId: workflow.id,
         nodeId: trigger.nodeId,
@@ -876,13 +876,12 @@ export class WorkflowExecutionService {
       },
       trigger.activationState,
     );
-    heartbeatState._webhookUrl = trigger.activationState._webhookUrl;
     // Track trigger in Workflow model with triggerId for routing
     await Workflow.trackExternalTrigger(context, workflow.id, {
       nodeId: trigger.nodeId,
       nodeType: trigger.nodeType,
       triggerId: trigger.triggerId,
-      activationState: heartbeatState,
+      activationState: { ...trigger.activationState, ...heartbeatState },
     });
   }
 

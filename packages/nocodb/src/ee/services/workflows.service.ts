@@ -822,29 +822,21 @@ export class WorkflowsService implements OnModuleInit {
     if (!activationState) return;
     activationState._webhookUrl = webhookUrl;
 
+    let nextPollingAt: string = undefined;
+    if (activationState?.cronExpression && activationState.heartbeat) {
+      // get nextPollingAt using cron expression
+      nextPollingAt = CronExpressionParser.parse(activationState.cronExpression)
+        .next()
+        .toISOString();
+    }
     // Track trigger in Workflow model with triggerId for routing
     await Workflow.trackExternalTrigger(context, workflow.id, {
       nodeId: triggerNode.id,
       nodeType: triggerNode.type,
       triggerId,
       activationState,
+      nextSyncAt: nextPollingAt,
     });
-
-    if (wrapper.heartbeat?.cronExpression) {
-      // get nextPollingAt using cron expression
-      const nextPollingAt = Math.floor(
-        CronExpressionParser.parse(wrapper.heartbeat?.cronExpression)
-          .next()
-          .getTime(),
-      );
-
-      await Workflow.update(context, workflow.id, {
-        wf_is_polling: true,
-        wf_is_polling_heartbeat: true,
-        wf_polling_cron: wrapper.heartbeat?.cronExpression,
-        wf_next_polling_at: nextPollingAt,
-      });
-    }
   }
 
   /**
@@ -872,22 +864,12 @@ export class WorkflowsService implements OnModuleInit {
       },
     );
     const nextSyncAt = interval.next();
-
-    if (triggerNode.type === 'core.trigger.cron') {
-      await Workflow.trackExternalTrigger(context, workflow.id, {
-        nodeId: triggerNode.id,
-        nodeType: triggerNode.type,
-        nextSyncAt: nextSyncAt.toISOString(),
-        activationState,
-      });
-    } else {
-      await Workflow.update(context, workflow.id, {
-        wf_is_polling: true,
-        wf_is_polling_heartbeat: false,
-        wf_polling_cron: activationState.cronExpression,
-        wf_next_polling_at: nextSyncAt.getTime(),
-      });
-    }
+    await Workflow.trackExternalTrigger(context, workflow.id, {
+      nodeId: triggerNode.id,
+      nodeType: triggerNode.type,
+      nextSyncAt: nextSyncAt.toISOString(),
+      activationState,
+    });
   }
 
   /**
@@ -930,12 +912,6 @@ export class WorkflowsService implements OnModuleInit {
           },
           trigger.activationState,
         );
-        await Workflow.update(context, workflow.id, {
-          wf_is_polling: false,
-          wf_is_polling_heartbeat: false,
-          wf_polling_cron: null,
-          wf_next_polling_at: null,
-        });
       } catch (error) {
         console.error(
           `[Workflow] Failed to deactivate trigger for node ${trigger.nodeId}:`,

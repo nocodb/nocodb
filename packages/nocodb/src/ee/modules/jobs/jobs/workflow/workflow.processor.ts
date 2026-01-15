@@ -5,6 +5,7 @@ import type { Job } from 'bull';
 import {
   type ExecuteWorkflowJobData,
   type ResumeWorkflowJobData,
+  type TestWorkflowNodeJobData,
 } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import Workflow from '~/models/Workflow';
@@ -104,7 +105,7 @@ export class WorkflowProcessor {
           PlanLimitTypes.LIMIT_WORKFLOW_RUN,
           -1,
         );
-        return;
+        return result;
       }
 
       // Handle waiting status (delay node)
@@ -134,7 +135,7 @@ export class WorkflowProcessor {
           updatedExecution,
           'update',
         );
-        return;
+        return result;
       }
 
       // Handle completed/error status
@@ -156,6 +157,8 @@ export class WorkflowProcessor {
         updatedExecution,
         'update',
       );
+
+      return result;
     } catch (error) {
       this.logger.error(`Failed to execute workflow ${workflowId}:`, error);
 
@@ -367,6 +370,34 @@ export class WorkflowProcessor {
       }
 
       throw error; // Let Bull handle retry
+    }
+  }
+
+  async testWorkflowNode(job: Job<TestWorkflowNodeJobData>) {
+    const { context, workflowId, nodeId, testTriggerData } = job.data;
+
+    const workflow = await Workflow.get(context, workflowId);
+    if (!workflow) {
+      throw new Error(`Workflow not found: ${workflowId}`);
+    }
+
+    try {
+      return await this.workflowExecutionService.testExecuteNode(
+        context,
+        workflow,
+        nodeId,
+        testTriggerData,
+      );
+    } catch (error) {
+      return {
+        nodeId,
+        status: 'error',
+        error: error.message || 'Test execution failed',
+        input: {},
+        output: {},
+        startTime: Date.now(),
+        endTime: Date.now(),
+      };
     }
   }
 

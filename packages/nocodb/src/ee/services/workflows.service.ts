@@ -35,7 +35,6 @@ import NocoSocket from '~/socket/NocoSocket';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
-import { throttleWithLast } from '~/utils/functionUtils';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
@@ -351,122 +350,14 @@ export class WorkflowsService implements OnModuleInit {
         `You have reached the limit of ${limit} workflow executions for your plan.`,
     });
 
-    let executionRecord: WorkflowExecution | null = null;
+    const job = await this.jobsService.add(JobTypes.ExecuteWorkflow, {
+      context,
+      workflowId,
+      triggerNodeId: payload?.triggerNodeTitle,
+      triggerInputs: payload?.triggerData,
+    });
 
-    try {
-      executionRecord = await WorkflowExecution.insert(context, workflowId, {
-        workflow_data: {
-          id: workflow.id,
-          title: workflow.title,
-          nodes: workflow.nodes,
-          edges: workflow.edges,
-        },
-        finished: false,
-        started_at: new Date().toISOString(),
-        status: 'running',
-      });
-
-      this.broadcastExecutionEvent(
-        context,
-        workflowId,
-        executionRecord,
-        'create',
-      );
-
-      let isDone = false;
-
-      await UsageStat.incrby(
-        context.workspace_id,
-        PlanLimitTypes.LIMIT_WORKFLOW_RUN,
-        1,
-      );
-
-      const executionState =
-        await this.workflowExecutionService.executeWorkflow(
-          context,
-          workflow,
-          payload?.triggerData,
-          payload?.triggerNodeTitle,
-          throttleWithLast(async (state) => {
-            if (isDone) return;
-            await WorkflowExecution.update(context, executionRecord.id, {
-              execution_data: state,
-            });
-
-            const updatedExecution = await WorkflowExecution.get(
-              context,
-              executionRecord.id,
-            );
-            this.broadcastExecutionEvent(
-              context,
-              workflowId,
-              updatedExecution,
-              'update',
-            );
-          }, 1000),
-        );
-
-      isDone = true;
-
-      const updatedExecution = await WorkflowExecution.update(
-        context,
-        executionRecord.id,
-        {
-          execution_data: executionState,
-          finished: true,
-          finished_at: new Date().toISOString(),
-          status: executionState.status,
-          resume_at:
-            executionState.status === 'waiting' && executionState.resumeAt
-              ? new Date(executionState.resumeAt).toISOString()
-              : undefined,
-        },
-      );
-
-      this.broadcastExecutionEvent(
-        context,
-        workflowId,
-        updatedExecution,
-        'update',
-      );
-
-      this.appHooksService.emit(AppEvents.WORKFLOW_EXECUTE, {
-        workflow,
-        context,
-        req,
-        user: req.user,
-      });
-
-      return executionState;
-    } catch (error) {
-      this.logger.error(`Failed to execute workflow ${workflowId}:`, error);
-
-      if (executionRecord) {
-        try {
-          const updatedExecution = await WorkflowExecution.update(
-            context,
-            executionRecord.id,
-            {
-              finished: true,
-              finished_at: new Date().toISOString(),
-              status: 'error',
-              execution_data: null,
-            },
-          );
-
-          this.broadcastExecutionEvent(
-            context,
-            workflowId,
-            updatedExecution,
-            'update',
-          );
-        } catch (updateError) {
-          this.logger.error(`Failed to update execution log:`, updateError);
-        }
-      }
-
-      throw error;
-    }
+    return { id: job.id };
   }
 
   async integrationFetchOptions(
@@ -502,12 +393,14 @@ export class WorkflowsService implements OnModuleInit {
       NcError.get(context).workflowNotFound(workflowId);
     }
 
-    return await this.workflowExecutionService.testExecuteNode(
+    const job = await this.jobsService.add(JobTypes.TestWorkflowNode, {
       context,
-      workflow,
-      payload.nodeId,
-      payload.testTriggerData,
-    );
+      workflowId,
+      nodeId: payload.nodeId,
+      testTriggerData: payload.testTriggerData,
+    });
+
+    return { id: job.id };
   }
 
   async listExecutions(

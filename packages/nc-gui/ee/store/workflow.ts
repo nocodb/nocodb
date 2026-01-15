@@ -3,7 +3,7 @@ import type { WorkflowNodeDefinition, WorkflowType } from 'nocodb-sdk'
 import { DlgWorkflowCreate } from '#components'
 
 export const useWorkflowStore = defineStore('workflow', () => {
-  const { $api, $e } = useNuxtApp()
+  const { $api, $e, $poller } = useNuxtApp()
 
   const { isUIAllowed } = useRoles()
 
@@ -419,7 +419,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const executeWorkflow = async (workflowId: string) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return
     try {
-      const executionState = await $api.internal.postOperation(
+      const jobData = await $api.internal.postOperation(
         activeWorkspaceId.value,
         activeProjectId.value,
         {
@@ -432,16 +432,58 @@ export const useWorkflowStore = defineStore('workflow', () => {
           },
         },
       )
-      if (executionState.status === 'completed') {
-        const duration = ((executionState.endTime - executionState.startTime) / 1000).toFixed(2)
-        const nodesCount = executionState?.nodeResults?.length
-        message.success(`Workflow executed successfully in ${duration}s (${nodesCount} nodes executed)`)
-      } else if (executionState.status === 'error') {
-        const errorNode = executionState?.nodeResults?.find((r: any) => r.status === 'error')
-        const errorMessage = errorNode ? `Node "${errorNode.nodeTitle}" failed: ${errorNode.error}` : 'Workflow execution failed'
-        message.error(errorMessage)
-        console.error('[Workflow] Execution error:', executionState)
-      }
+
+      await new Promise<void>((resolve, reject) => {
+        $poller.subscribe(
+          { id: jobData.id },
+          (data: {
+            id: string
+            status?: string
+            data?: {
+              error?: { message: string }
+              message?: string
+              result?: any
+            }
+          }) => {
+            if (data.status !== 'close') {
+              if (data.status === JobStatus.COMPLETED) {
+                const executionState = data.data?.result
+                if (!executionState) {
+                  resolve()
+                  return
+                }
+                if (executionState.status === 'completed' || executionState.status === 'success') {
+                  const duration = ((executionState.endTime - executionState.startTime) / 1000).toFixed(2)
+                  const nodesCount = executionState?.nodeResults?.length
+                  message.success(`Workflow executed successfully in ${duration}s (${nodesCount} nodes executed)`)
+                  resolve()
+                } else if (executionState.status === 'error') {
+                  const errorNode = executionState?.nodeResults?.find((r: any) => r.status === 'error')
+                  const errorMessage = errorNode
+                    ? `Node "${errorNode.nodeTitle}" failed: ${errorNode.error}`
+                    : 'Workflow execution failed'
+                  message.error(errorMessage)
+                  console.error('[Workflow] Execution error:', executionState)
+                  reject(new Error(errorMessage))
+                } else if (executionState.status === 'waiting') {
+                  message.info('Workflow paused - waiting for delay')
+                  resolve()
+                } else if (executionState.status === 'skipped') {
+                  message.info('Workflow execution skipped')
+                  resolve()
+                } else {
+                  // Handle other completion states
+                  resolve()
+                }
+              } else if (data.status === JobStatus.FAILED) {
+                const errorMsg = data.data?.error?.message || 'Workflow execution failed'
+                message.error(errorMsg)
+                reject(new Error(errorMsg))
+              }
+            }
+          },
+        )
+      })
     } catch (e) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsgv2(e as any))

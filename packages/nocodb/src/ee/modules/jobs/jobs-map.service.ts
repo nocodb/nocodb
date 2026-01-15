@@ -153,6 +153,10 @@ export class JobsMap extends JobsMapCE {
       [JobTypes.WorkflowResumeSchedule]: {
         this: this.workflowResumeProcessor,
       },
+      [JobTypes.TestWorkflowNode]: {
+        this: this.workflowProcessor,
+        fn: 'testWorkflowNode',
+      },
     };
   }
 }

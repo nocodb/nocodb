@@ -18,7 +18,7 @@ const testState = computed(() => {
 const localErrorMessage = ref('')
 
 const errorMessage = computed(() => {
-  return selectedNode.value?.data?.testResult?.error?.message || localErrorMessage.value
+  return selectedNode.value?.data?.testResult?.error || localErrorMessage.value
 })
 
 const untestedParentNodes = computed(() => {

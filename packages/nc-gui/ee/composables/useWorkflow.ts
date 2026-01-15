@@ -18,6 +18,8 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   const { api } = useApi()
 
+  const { $poller } = useNuxtApp()
+
   const workflowStore = useWorkflowStore()
 
   const baseStore = useBases()
@@ -527,7 +529,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     if (!activeWorkspaceId.value || !activeProjectId.value || !workflow.value) return
 
     try {
-      const result = await api.internal.postOperation(
+      const jobData = await api.internal.postOperation(
         activeWorkspaceId.value,
         activeProjectId.value,
         {
@@ -540,8 +542,36 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
         },
       )
 
-      updateNodeTestResult(nodeId, result)
-      return result
+      return new Promise((resolve, reject) => {
+        $poller.subscribe(
+          { id: jobData.id },
+          (data: {
+            id: string
+            status?: string
+            data?: {
+              error?: { message: string }
+              message?: string
+              result?: any
+            }
+          }) => {
+            if (data.status !== 'close') {
+              if (data.status === JobStatus.COMPLETED) {
+                const result = data.data?.result
+                updateNodeTestResult(nodeId, result)
+                if (result?.status === 'error') {
+                  reject(new Error(result.error || 'Test execution failed'))
+                } else {
+                  resolve(result)
+                }
+              } else if (data.status === JobStatus.FAILED) {
+                const error = data.data?.error?.message || 'Test execution failed'
+                updateNodeTestResult(nodeId, { status: 'error', error })
+                reject(new Error(error))
+              }
+            }
+          },
+        )
+      })
     } catch (e: any) {
       updateNodeTestResult(nodeId, {
         status: 'error',

@@ -276,7 +276,7 @@ interface Users {
   invitationToken?: string
 }
 
-type ProjectPageType = 'overview' | 'collaborator' | 'data-source' | 'base-settings' | 'syncs' | 'permissions'
+type ProjectPageType = 'overview' | 'collaborator' | 'data-source' | 'base-settings' | 'syncs' | 'permissions' | 'audits'
 
 type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions'
 

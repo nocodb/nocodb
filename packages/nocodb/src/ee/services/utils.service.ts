@@ -97,12 +97,8 @@ export class UtilsService extends UtilsServiceCE {
         : {},
       responseType: apiMeta.responseType || 'json',
       withCredentials: true,
-      httpAgent: useAgent(apiMeta.url, {
-        stopPortScanningByUrlRedirection: true,
-      }),
-      httpsAgent: useAgent(apiMeta.url, {
-        stopPortScanningByUrlRedirection: true,
-      }),
+      httpAgent: useAgent(apiMeta.url, {}),
+      httpsAgent: useAgent(apiMeta.url, {}),
     };
     const data = await axios(_req);
     return data?.data;

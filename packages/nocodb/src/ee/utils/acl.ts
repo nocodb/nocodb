@@ -376,6 +376,9 @@ const permissionScopes = {
     'sandboxPublish',
     'sandboxUnpublish',
     'sandboxVersionsList',
+
+    // Audit Logs
+    'baseAuditList',
   ],
 };
 
@@ -687,6 +690,7 @@ const rolePermissions:
     exclude: {
       createBase: true,
       manageSnapshots: true,
+      baseAuditList: true,
     },
   },
   [ProjectRoles.OWNER]: {
@@ -1144,6 +1148,8 @@ const permissionDescriptions: Record<string, string> = {
   workflowUpdate: 'update workflow details',
   workflowDelete: 'delete a workflow',
   workflowExecutionList: 'view workflow execution logs',
+
+  baseAuditList: 'view audit log for a base',
 };
 
 // Human-readable descriptions for roles

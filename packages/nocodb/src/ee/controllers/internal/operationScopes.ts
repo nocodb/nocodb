@@ -21,6 +21,7 @@ export const OPERATION_SCOPES = {
   deleteScript: 'base',
   baseSchema: 'base',
   workspaceAuditList: 'workspace',
+  baseAuditList: 'base',
   duplicateScript: 'base',
   setPermission: 'base',
   dropPermission: 'base',

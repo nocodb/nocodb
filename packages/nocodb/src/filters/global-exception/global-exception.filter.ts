@@ -281,14 +281,17 @@ export class GlobalExceptionFilter implements ExceptionFilter {
     } else {
       this.captureException(exception, request);
 
+      const msgProp = apiVersion === NcApiVersion.V3 ? 'message' : 'msg';
       const responsePayload: any = {
-        msg: 'Internal server error',
+        [msgProp]: `Something didn't work as expected. Please try again. If the problem persists, contact support.`,
       };
 
       // Include actual error message only in development
       if (process.env.NODE_ENV !== 'production') {
-        responsePayload.__msg =
-          exception?.message || 'An unexpected error occurred';
+        responsePayload.innerError = {
+          [msgProp]: exception?.message || 'An unexpected error occurred',
+          stack: exception?.stack,
+        };
       }
 
       response.status(500).json(responsePayload);

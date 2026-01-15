@@ -135,6 +135,7 @@ const rolePermissions = {
       baseDelete: true,
       manageSnapshot: true,
       manageBaseType: true,
+      baseAuditList: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -168,7 +169,6 @@ const rolePermissions = {
       baseRename: true,
       baseDuplicate: true,
       sourceCreate: true,
-      baseAuditList: true,
       reAssignViewOwner: true,
       // Scripts
       scriptCreateOrEdit: true,

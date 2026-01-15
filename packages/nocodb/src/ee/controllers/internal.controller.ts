@@ -146,7 +146,8 @@ export class InternalController extends InternalControllerCE {
         return await this.mcpService.list(context, req);
       case 'mcpGet':
         return await this.mcpService.get(context, req.query.tokenId as string);
-      case 'workspaceAuditList': {
+      case 'workspaceAuditList':
+      case 'baseAuditList': {
         const { limit } = await getLimit(
           PlanLimitTypes.LIMIT_AUDIT_RETENTION,
           context.workspace_id,
@@ -154,7 +155,7 @@ export class InternalController extends InternalControllerCE {
 
         return await this.auditsService.workspaceAuditList(context, {
           cursor: req.query.cursor,
-          baseId: req.query.baseId,
+          baseId: operation === 'baseAuditList' ? baseId : req.query.baseId,
           fkUserId: req.query.fkUserId,
           type: req.query.type,
           startDate: req.query.startDate,

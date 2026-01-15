@@ -3,6 +3,12 @@ import dayjs from 'dayjs'
 import { auditV1OperationsCategory } from 'nocodb-sdk'
 import { AuditLogsDateRange } from '~/lib/enums'
 
+interface Props {
+  baseId?: string
+}
+
+const props = defineProps<Props>()
+
 const defaultAuditDropdowns = {
   type: false,
   subType: false,
@@ -27,6 +33,7 @@ const {
   collaboratorsMap,
   auditCollaborators,
   isLoadingAudits,
+  loadActionForBaseId,
 } = storeToRefs(auditsStore)
 
 const auditLogsQueryEndDate = computed(() =>
@@ -46,8 +53,14 @@ const defaultAuditDropdownsSearch = {
 
 const auditDropdownsSearch = ref(defaultAuditDropdownsSearch)
 
+const unsupportedBaseAuditTypes = ['ORG', 'INTEGRATION', 'TEAM', 'WORKSPACE']
+
 const auditTypeOptions = computed(() => {
-  return Object.values(auditV1OperationsCategory)
+  if (!props.baseId) {
+    return Object.values(auditV1OperationsCategory)
+  }
+
+  return Object.values(auditV1OperationsCategory).filter((type) => !unsupportedBaseAuditTypes.includes(type.value))
 })
 
 const dateRangeOptions = computed(() => {
@@ -231,6 +244,7 @@ const selectedBase = computed(() => {
   return (auditLogsQuery.value.baseId && bases.value.get(auditLogsQuery.value.baseId)?.title) || 'All'
 })
 
+// Temp hidden workspace selector as its available only at workspace level
 const showWorkspaceSelector = ref(false)
 </script>
 
@@ -379,6 +393,7 @@ const showWorkspaceSelector = ref(false)
       </NcDropdown>
 
       <NcDropdown
+        v-if="!loadActionForBaseId"
         v-model:visible="auditDropdowns.base"
         overlay-class-name="overflow-hidden"
         @update:visible="handleClearDropdownSearch($event, 'base')"

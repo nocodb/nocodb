@@ -1,4 +1,10 @@
 <script lang="ts" setup>
+interface Props {
+  baseId?: string
+}
+
+defineProps<Props>()
+
 const isAdminPanel = inject(IsAdminPanelInj, ref(false))
 </script>
 
@@ -10,6 +16,6 @@ const isAdminPanel = inject(IsAdminPanelInj, ref(false))
       'h-[calc(100vh-92px)]': !isAdminPanel,
     }"
   >
-    <WorkspaceAuditsLogs />
+    <WorkspaceAuditsLogs :base-id="baseId" />
   </div>
 </template>

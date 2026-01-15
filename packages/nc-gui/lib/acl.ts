@@ -51,6 +51,7 @@ const rolePermissions = {
       baseDelete: true,
       manageSnapshot: true,
       migrateBase: true,
+      baseAuditList: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -87,7 +88,6 @@ const rolePermissions = {
       baseRename: true,
       baseDuplicate: true,
       sourceCreate: true,
-      baseAuditList: true,
 
       // Row colouring
       rowColourUpdate: true,

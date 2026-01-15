@@ -28,6 +28,8 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
   const loadActionWorkspaceLogsOnly = ref<boolean>(false)
 
+  const loadActionForBaseId = ref<string | undefined>()
+
   const audits = ref<Array<AuditType>>([])
 
   const isRowExpanded = ref(false)
@@ -77,19 +79,23 @@ export const useAuditsStore = defineStore('auditsStore', () => {
 
       const user = collaboratorsMap.value.get(auditLogsQuery.value.user)
 
-      const { list, pageInfo } = await $api.internal.getOperation(activeWorkspaceId.value, NO_SCOPE, {
-        operation: 'workspaceAuditList',
-        cursor: currentCursor.value,
-        baseId: auditLogsQuery.value.baseId,
-        fkUserId: user?.id || user?.fk_user_id,
-        type:
-          ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
-            ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
-            : undefined,
-        startDate: auditLogsQuery.value.startDate,
-        endDate: auditLogsQuery.value.endDate,
-        orderBy: auditLogsQuery.value.orderBy,
-      })
+      const { list, pageInfo } = await $api.internal.getOperation(
+        activeWorkspaceId.value,
+        loadActionForBaseId.value ? loadActionForBaseId.value : NO_SCOPE,
+        {
+          operation: loadActionForBaseId.value ? 'baseAuditList' : 'workspaceAuditList',
+          cursor: currentCursor.value,
+          baseId: auditLogsQuery.value.baseId,
+          fkUserId: user?.id || user?.fk_user_id,
+          type:
+            ncIsArray(auditLogsQuery.value.type) && auditLogsQuery.value.type.length
+              ? auditLogsQuery.value.type.flatMap((cat) => auditV1OperationsCategory[cat]?.types ?? [])
+              : undefined,
+          startDate: auditLogsQuery.value.startDate,
+          endDate: auditLogsQuery.value.endDate,
+          orderBy: auditLogsQuery.value.orderBy,
+        },
+      )
 
       const lastRecord = list[list.length - 1]
 
@@ -158,16 +164,27 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     }
   }
 
-  const handleReset = () => {
+  const handleReset = (clearBaseAndUsers = true) => {
     auditLogsQuery.value = { ...defaultAuditLogsQuery }
 
-    allBases.value.clear()
-    collaboratorsMap.value.clear()
+    if (clearBaseAndUsers) {
+      allBases.value.clear()
+      collaboratorsMap.value.clear()
+    }
   }
 
-  const onInit = async () => {
+  const onInit = async (baseId?: string) => {
+    loadActionForBaseId.value = baseId
+
     if (loadActionWorkspaceLogsOnly.value) {
       auditLogsQuery.value.workspaceId = activeWorkspaceId.value
+    }
+
+    if (loadActionForBaseId.value) {
+      handleReset(false)
+      auditLogsQuery.value.baseId = loadActionForBaseId.value
+    } else {
+      auditLogsQuery.value.baseId = undefined
     }
 
     const promises = [loadAudits(true, false)]
@@ -233,6 +250,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     getUserName,
     loadActionWorkspaceLogsOnly,
     hasMoreAudits,
+    loadActionForBaseId,
   }
 })
 

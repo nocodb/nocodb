@@ -1,5 +1,6 @@
 import groupBy from 'lodash/groupBy';
 import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import type { NcContext } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -9,6 +10,7 @@ import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
 import getAst from '~/helpers/getAst';
 import { Filter, Model, View } from '~/models';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+import { nocoExecute } from '~/utils/nocoExecute';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -17,6 +19,30 @@ export const relationDataFetcher = (param: {
   logger: Logger;
 }) => {
   const { baseModel } = param;
+
+  async function postProcessData(
+    context: NcContext,
+    {
+      data,
+      model,
+      query,
+    }: {
+      data: any[];
+      model: Model;
+      query: any;
+    },
+  ) {
+    // get ast
+    const { ast, parsedQuery } = await getAst(context, {
+      model,
+      query,
+      extractOnlyPrimaries: false,
+    });
+    // nocoexecute
+    const result = await nocoExecute(ast, data, {}, parsedQuery);
+    return result;
+  }
+
   return {
     async multipleHmList(
       {
@@ -268,9 +294,13 @@ export const relationDataFetcher = (param: {
       );
       const proto = await refBaseModel.getProto();
 
-      return children.map((c) => {
-        c.__proto__ = proto;
-        return c;
+      return await postProcessData(refContext, {
+        data: children.map((c) => {
+          c.__proto__ = proto;
+          return c;
+        }),
+        model: refTable,
+        query: args,
       });
     },
 
@@ -437,9 +467,13 @@ export const relationDataFetcher = (param: {
 
         const proto = await childBaseModel.getProto();
 
-        return children.map((c) => {
-          c.__proto__ = proto;
-          return c;
+        return await postProcessData(refContext, {
+          data: children.map((c) => {
+            c.__proto__ = proto;
+            return c;
+          }),
+          model: childTable,
+          query: args,
         });
       } catch (e) {
         throw e;
@@ -1066,9 +1100,13 @@ export const relationDataFetcher = (param: {
         qb,
         await refTable.getColumns(refContext),
       );
-      return data.map((c) => {
-        c.__proto__ = proto;
-        return c;
+      return await postProcessData(refContext, {
+        data: data.map((c) => {
+          c.__proto__ = proto;
+          return c;
+        }),
+        model: refTable,
+        query: args,
       });
     },
 
@@ -1166,9 +1204,13 @@ export const relationDataFetcher = (param: {
         qb,
         await refTable.getColumns(refContext),
       );
-      return data.map((c) => {
-        c.__proto__ = proto;
-        return c;
+      return await postProcessData(refContext, {
+        data: data.map((c) => {
+          c.__proto__ = proto;
+          return c;
+        }),
+        model: refTable,
+        query: args,
       });
     },
 
@@ -1376,9 +1418,13 @@ export const relationDataFetcher = (param: {
         await (isBt ? parentTable : childTable).getColumns(refContext),
       );
 
-      return data.map((c) => {
-        c.__proto__ = proto;
-        return c;
+      return await postProcessData(refContext, {
+        data: data.map((c) => {
+          c.__proto__ = proto;
+          return c;
+        }),
+        model: isBt ? parentTable : childTable,
+        query: args,
       });
     },
 
@@ -1654,9 +1700,13 @@ export const relationDataFetcher = (param: {
         await parentTable.getColumns(parentBaseModel.context),
       );
 
-      return data.map((c) => {
-        c.__proto__ = proto;
-        return c;
+      return await postProcessData(refContext, {
+        data: data.map((c) => {
+          c.__proto__ = proto;
+          return c;
+        }),
+        model: parentTable,
+        query: args,
       });
     },
   };

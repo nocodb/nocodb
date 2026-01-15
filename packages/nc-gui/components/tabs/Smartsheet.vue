@@ -247,6 +247,7 @@ const onReady = () => {
 const checkIfViewExists = async () => {
   await until(() => isViewsLoading.value).toBe(false)
   const views = await viewStore.loadViews({
+    baseId: activeProjectId.value,
     ignoreLoading: true,
   })
 

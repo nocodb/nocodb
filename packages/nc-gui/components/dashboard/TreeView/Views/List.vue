@@ -354,6 +354,7 @@ function onOpenModal({
       await loadViews({
         force: true,
         tableId: table.value.id!,
+        baseId: base.value.id!,
       })
 
       if (view) {

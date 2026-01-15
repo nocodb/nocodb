@@ -58,7 +58,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
         return viewsByTable.value.get(key) as ViewType[]
       }
 
-      await viewStore.loadViews({ tableId, ignoreLoading: true })
+      await viewStore.loadViews({ tableId, baseId: table.base_id, ignoreLoading: true })
       return viewsByTable.value.get(key) as ViewType[]
     }
 

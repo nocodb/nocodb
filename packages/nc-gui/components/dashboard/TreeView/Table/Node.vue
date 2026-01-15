@@ -171,7 +171,7 @@ const onExpand = async () => {
 
   isLoading.value = true
   try {
-    await _loadViews({ tableId: table.value.id, ignoreLoading: true })
+    await _loadViews({ tableId: table.value?.id as string, baseId: base.value.id!, ignoreLoading: true })
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {

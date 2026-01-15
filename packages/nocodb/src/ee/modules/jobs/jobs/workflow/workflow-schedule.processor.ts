@@ -10,7 +10,6 @@ import { MetaTable } from '~/utils/globals';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { JobTypes } from '~/interface/Jobs';
 import { Base } from '~/models';
-import { WorkflowPollingService } from '~/modules/jobs/jobs/workflow/workflow-polling.service';
 
 @Injectable()
 export class WorkflowScheduleProcessor {
@@ -18,17 +17,11 @@ export class WorkflowScheduleProcessor {
 
   constructor(
     @Inject('JobsService') private readonly jobsService: IJobsService,
-    private readonly workflowPollingService: WorkflowPollingService,
   ) {}
 
   async job() {
     this.logger.log('WorkflowScheduleProcessor job started');
-
-    await Promise.all([
-      this.scheduleCronTrigger(),
-      this.workflowPollingService.executePolling(),
-    ]);
-
+    await this.scheduleCronTrigger();
     this.logger.debug('WorkflowScheduleProcessor job completed');
   }
 
@@ -39,7 +32,6 @@ export class WorkflowScheduleProcessor {
       .knexConnection(MetaTable.DEPENDENCY_TRACKER)
       .where('source_type', DependencyTableType.Workflow)
       .where('dependent_type', DependencyTableType.Workflow)
-      .where('queryable_field_0', 'core.trigger.cron') // nodeType = cron
       .where('queryable_field_2', '<=', new Date()) // nextSyncAt <= now
       .limit(10); // Process 10 at a time
 
@@ -71,23 +63,30 @@ export class WorkflowScheduleProcessor {
         }
 
         const scheduledTime = trigger.queryable_field_2;
+        if (activationState?.heartbeat) {
+          // some trigger need heartbeat
+          await this.jobsService.add(JobTypes.HeartbeatWorkflow, {
+            context,
+            workflowId: trigger.source_id,
+          });
+        } else {
+          const job = await this.jobsService.add(JobTypes.ExecuteWorkflow, {
+            context,
+            workflowId: trigger.source_id,
+            triggerNodeId: nodeId,
+            triggerInputs: {
+              timestamp: new Date().toISOString(),
+              scheduledTime,
+            },
+            req: {
+              user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
+            } as any,
+          });
 
-        const job = await this.jobsService.add(JobTypes.ExecuteWorkflow, {
-          context,
-          workflowId: trigger.source_id,
-          triggerNodeId: nodeId,
-          triggerInputs: {
-            timestamp: new Date().toISOString(),
-            scheduledTime,
-          },
-          req: {
-            user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
-          } as any,
-        });
-
-        this.logger.debug(
-          `Queued cron workflow ${trigger.source_id} with job ${job.id}`,
-        );
+          this.logger.debug(
+            `Queued cron workflow ${trigger.source_id} with job ${job.id}`,
+          );
+        }
 
         const interval = CronExpressionParser.parse(
           activationState.cronExpression,

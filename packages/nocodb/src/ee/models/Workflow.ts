@@ -48,11 +48,6 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
 
   order?: number;
 
-  wf_is_polling?: boolean;
-  wf_polling_cron?: string;
-  wf_next_polling_at?: number;
-  wf_is_polling_heartbeat?: boolean;
-
   created_at?: string;
   updated_at?: string;
 
@@ -230,10 +225,6 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
       'draft',
       'order',
       'updated_by',
-      'wf_is_polling',
-      'wf_is_polling_heartbeat',
-      'wf_polling_cron',
-      'wf_next_polling_at',
     ]);
 
     await ncMeta.metaUpdate(

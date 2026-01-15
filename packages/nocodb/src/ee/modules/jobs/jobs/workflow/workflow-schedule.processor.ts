@@ -79,7 +79,7 @@ export class WorkflowScheduleProcessor {
               scheduledTime,
             },
             req: {
-              user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
+              user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
             } as any,
           });
 

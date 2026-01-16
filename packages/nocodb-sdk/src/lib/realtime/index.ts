@@ -1,10 +1,11 @@
-import { UserType } from '~/lib/Api';
+import { UserType, NotificationType } from '~/lib/Api';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
   CONNECTION_WELCOME = 'connection-welcome',
   CONNECTION_ERROR = 'connection-error',
   NOTIFICATION = 'notification',
+  NOTIFICATION_EVENT = 'event-notification',
   USER_EVENT = 'event-user',
   DATA_EVENT = 'event-data',
   META_EVENT = 'event-meta',
@@ -104,16 +105,23 @@ export interface UserEventPayload<T = any> extends BaseSocketPayload {
   workspaceId?: string;
 }
 
+export interface NotificationPayload extends BaseSocketPayload {
+  action: 'create';
+  payload: Partial<NotificationType>;
+}
+
 // Union type for all socket event payloads
 export type SocketEventPayload =
   | ConnectionWelcomePayload
   | ConnectionErrorPayload
   | DataPayload
   | MetaPayload
-  | CommentPayload;
+  | CommentPayload
+  | NotificationPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
+  [EventType.NOTIFICATION_EVENT]: NotificationPayload;
   [EventType.CONNECTION_WELCOME]: ConnectionWelcomePayload;
   [EventType.CONNECTION_ERROR]: ConnectionErrorPayload;
   [EventType.DATA_EVENT]: DataPayload;

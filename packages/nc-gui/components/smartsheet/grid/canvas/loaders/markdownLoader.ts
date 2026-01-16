@@ -44,18 +44,20 @@ export class MarkdownLoader {
       try {
         const { text, maxWidth, baseUsers, user } = options
 
-        const renderText = NcMarkdownParser.preprocessMarkdown(text, true)
+        // 🔑 Async boundary (even though fn is sync)
+        const renderText = await Promise.resolve(NcMarkdownParser.preprocessMarkdown(text, true))
 
-        const result: { blocks: Block[]; width: number } = {
-          width: maxWidth,
-          blocks: parseMarkdown(renderText, {
+        const parsedBlocks = await Promise.resolve(
+          parseMarkdown(renderText, {
             users: baseUsers,
             currentUser: user ?? undefined,
           }),
-        }
+        )
 
-        // ⬅️ Allow skeleton to paint
-        await Promise.resolve()
+        const result: { blocks: Block[]; width: number } = {
+          width: maxWidth,
+          blocks: parsedBlocks,
+        }
 
         markdownTextCache.set(cacheKey, result)
 

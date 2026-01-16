@@ -8,4 +8,5 @@ export const manifest: IntegrationManifest = {
   author: 'NocoDB',
   website: 'https://github.com/nocodb/nocodb',
   order: 10,
+  hidden: true,
 };

@@ -294,211 +294,220 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
           icon: 'cellText',
         },
       },
-      ...[
-        {
-          key: 'id',
-          type: NocoSDK.VariableType.String,
-          name: 'ID',
-        },
-        {
-          key: 'status',
-          type: NocoSDK.VariableType.String,
-          name: 'Status',
-        },
-        {
-          key: 'summary',
-          type: NocoSDK.VariableType.String,
-          name: 'Summary',
-        },
-        {
-          key: 'description',
-          type: NocoSDK.VariableType.String,
-          name: 'Description',
-        },
-        {
-          key: 'location',
-          type: NocoSDK.VariableType.String,
-          name: 'Location',
-        },
-        {
-          key: 'htmlLink',
-          type: NocoSDK.VariableType.String,
-          name: 'HTML Link',
-        },
-        {
-          key: 'created',
-          type: NocoSDK.VariableType.String,
-          name: 'Created At',
-        },
-        {
-          key: 'updated',
-          type: NocoSDK.VariableType.String,
-          name: 'Updated At',
-        },
-        {
-          key: 'creator',
-          type: NocoSDK.VariableType.Object,
-          name: 'Creator',
-        },
-        ...[
+      {
+        key: 'payload',
+        type: NocoSDK.VariableType.Object,
+        children: [
           {
-            key: 'email',
+            key: 'id',
             type: NocoSDK.VariableType.String,
-            name: 'Email',
+            name: 'ID',
           },
           {
-            key: 'displayName',
+            key: 'status',
             type: NocoSDK.VariableType.String,
-            name: 'Display Name',
+            name: 'Status',
           },
           {
-            key: 'self',
-            type: NocoSDK.VariableType.Boolean,
-            name: 'Self',
-          },
-        ].map((item) => ({
-          ...item,
-          key: `creator.${item.key}`,
-        })),
-        {
-          key: 'organizer',
-          type: NocoSDK.VariableType.Object,
-          name: 'Organizer',
-        },
-        ...[
-          {
-            key: 'email',
+            key: 'summary',
             type: NocoSDK.VariableType.String,
-            name: 'Email',
+            name: 'Summary',
           },
           {
-            key: 'displayName',
+            key: 'description',
             type: NocoSDK.VariableType.String,
-            name: 'Display Name',
+            name: 'Description',
           },
           {
-            key: 'self',
-            type: NocoSDK.VariableType.Boolean,
-            name: 'Self',
-          },
-        ].map((item) => ({
-          ...item,
-          key: `organizer.${item.key}`,
-        })),
-        {
-          key: 'start',
-          type: NocoSDK.VariableType.Object,
-          name: 'Start',
-        },
-        ...[
-          {
-            key: 'date',
+            key: 'location',
             type: NocoSDK.VariableType.String,
-            name: 'Date',
+            name: 'Location',
           },
           {
-            key: 'dateTime',
+            key: 'htmlLink',
             type: NocoSDK.VariableType.String,
-            name: 'Date Time',
+            name: 'HTML Link',
           },
           {
-            key: 'timeZone',
+            key: 'created',
             type: NocoSDK.VariableType.String,
-            name: 'Time Zone',
+            name: 'Created At',
           },
-        ].map((item) => ({
-          ...item,
-          key: `start.${item.key}`,
-        })),
-        {
-          key: 'end',
-          type: NocoSDK.VariableType.Object,
-          name: 'End',
-        },
-        ...[
           {
-            key: 'date',
+            key: 'updated',
             type: NocoSDK.VariableType.String,
-            name: 'Date',
+            name: 'Updated At',
           },
           {
-            key: 'dateTime',
-            type: NocoSDK.VariableType.String,
-            name: 'Date Time',
-          },
-          {
-            key: 'timeZone',
-            type: NocoSDK.VariableType.String,
-            name: 'Time Zone',
-          },
-        ].map((item) => ({
-          ...item,
-          key: `end.${item.key}`,
-        })),
-        {
-          key: 'attendees',
-          type: NocoSDK.VariableType.Array,
-          name: 'Attendees',
-        },
-        ...[
-          {
-            key: 'email',
-            type: NocoSDK.VariableType.String,
-            name: 'Email',
-          },
-          {
-            key: 'displayName',
-            type: NocoSDK.VariableType.String,
-            name: 'Display Name',
-          },
-          {
-            key: 'responseStatus',
-            type: NocoSDK.VariableType.String,
-            name: 'Response Status',
-          },
-          {
-            key: 'optional',
-            type: NocoSDK.VariableType.Boolean,
-            name: 'Optional',
+            key: 'creator',
+            type: NocoSDK.VariableType.Object,
+            name: 'Creator',
+            children: [
+              {
+                key: 'email',
+                type: NocoSDK.VariableType.String,
+                name: 'Email',
+              },
+              {
+                key: 'displayName',
+                type: NocoSDK.VariableType.String,
+                name: 'Display Name',
+              },
+              {
+                key: 'self',
+                type: NocoSDK.VariableType.Boolean,
+                name: 'Self',
+              },
+            ].map((item) => ({
+              ...item,
+              key: `payload.creator.${item.key}`,
+            }))
           },
           {
             key: 'organizer',
-            type: NocoSDK.VariableType.Boolean,
+            type: NocoSDK.VariableType.Object,
             name: 'Organizer',
+            children: [
+              {
+                key: 'email',
+                type: NocoSDK.VariableType.String,
+                name: 'Email',
+              },
+              {
+                key: 'displayName',
+                type: NocoSDK.VariableType.String,
+                name: 'Display Name',
+              },
+              {
+                key: 'self',
+                type: NocoSDK.VariableType.Boolean,
+                name: 'Self',
+              },
+            ].map((item) => ({
+              ...item,
+              key: `payload.organizer.${item.key}`,
+            })),
           },
           {
-            key: 'self',
-            type: NocoSDK.VariableType.Boolean,
-            name: 'Self',
+            key: 'start',
+            type: NocoSDK.VariableType.Object,
+            name: 'Start',
+            children: [
+              {
+                key: 'date',
+                type: NocoSDK.VariableType.String,
+                name: 'Date',
+              },
+              {
+                key: 'dateTime',
+                type: NocoSDK.VariableType.String,
+                name: 'Date Time',
+              },
+              {
+                key: 'timeZone',
+                type: NocoSDK.VariableType.String,
+                name: 'Time Zone',
+              },
+            ].map((item) => ({
+              ...item,
+              key: `payload.start.${item.key}`,
+            }))
+          },
+          {
+            key: 'end',
+            type: NocoSDK.VariableType.Object,
+            name: 'End',
+            children: [
+              {
+                key: 'date',
+                type: NocoSDK.VariableType.String,
+                name: 'Date',
+              },
+              {
+                key: 'dateTime',
+                type: NocoSDK.VariableType.String,
+                name: 'Date Time',
+              },
+              {
+                key: 'timeZone',
+                type: NocoSDK.VariableType.String,
+                name: 'Time Zone',
+              },
+            ].map((item) => ({
+              ...item,
+              key: `payload.end.${item.key}`,
+            })),
+          },
+          {
+            key: 'attendees',
+            type: NocoSDK.VariableType.Array,
+            isArray: true,
+            name: 'Attendees',
+            extra: {
+              itemSchema: [
+                {
+                  key: 'email',
+                  type: NocoSDK.VariableType.String,
+                  name: 'Email',
+                },
+                {
+                  key: 'displayName',
+                  type: NocoSDK.VariableType.String,
+                  name: 'Display Name',
+                },
+                {
+                  key: 'responseStatus',
+                  type: NocoSDK.VariableType.String,
+                  name: 'Response Status',
+                },
+                {
+                  key: 'optional',
+                  type: NocoSDK.VariableType.Boolean,
+                  name: 'Optional',
+                },
+                {
+                  key: 'organizer',
+                  type: NocoSDK.VariableType.Boolean,
+                  name: 'Organizer',
+                },
+                {
+                  key: 'self',
+                  type: NocoSDK.VariableType.Boolean,
+                  name: 'Self',
+                },
+              ],
+            },
+          },
+          {
+            key: 'hangoutLink',
+            type: NocoSDK.VariableType.String,
+            name: 'Hangout Link',
+          },
+          {
+            key: 'conferenceData',
+            type: NocoSDK.VariableType.Object,
+            name: 'Conference Data',
+          },
+          {
+            key: 'recurringEventId',
+            type: NocoSDK.VariableType.String,
+            name: 'Recurring Event ID',
+          },
+          {
+            key: 'sequence',
+            type: NocoSDK.VariableType.Number,
+            name: 'Sequence',
           },
         ].map((item) => ({
           ...item,
-          key: `attendees.${item.key}`,
+          key: `payload.${item.key}`,
         })),
-        {
-          key: 'hangoutLink',
-          type: NocoSDK.VariableType.String,
-          name: 'Hangout Link',
+        name: 'Payload',
+        extra: {
+          icon: 'cellJson',
+          description: 'Schema$Event from Google Calendar API',
         },
-        {
-          key: 'conferenceData',
-          type: NocoSDK.VariableType.Object,
-          name: 'Conference Data',
-        },
-        {
-          key: 'recurringEventId',
-          type: NocoSDK.VariableType.String,
-          name: 'Recurring Event ID',
-        },
-        {
-          key: 'sequence',
-          type: NocoSDK.VariableType.Number,
-          name: 'Sequence',
-        },
-      ].map((item) => ({
-        ...item,
-        key: `payload.${item.key}`,
-      }))
+      },
     ];
   }
 }

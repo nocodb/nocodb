@@ -18,7 +18,7 @@ const httpMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'];
 
 type HttpMethod = (typeof httpMethods)[number];
 
-const bodyTypes = ['none', 'json', 'form', 'text', 'xml'];
+const bodyTypes = ['none', 'json', 'form', 'multipart', 'text', 'xml'];
 
 type BodyType = (typeof bodyTypes)[number];
 
@@ -212,32 +212,34 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
               axiosConfig.data = config.body;
             }
             break;
-          case 'form':
+          case 'form': {
             headers['Content-Type'] =
               headers['Content-Type'] || 'application/x-www-form-urlencoded';
-            try {
-              const formData = JSON.parse(config.body);
-              if (Array.isArray(formData)) {
-                const params = new URLSearchParams();
-                for (const item of formData) {
-                  if (item.key && item.value !== undefined) {
-                    params.append(item.key, item.value);
-                  }
-                }
-                axiosConfig.data = params.toString();
-              } else if (typeof formData === 'object') {
-                const params = new URLSearchParams();
-                for (const [key, value] of Object.entries(formData)) {
-                  params.append(key, String(value));
-                }
-                axiosConfig.data = params.toString();
-              } else {
-                axiosConfig.data = config.body;
+            const pairs = this.parseKeyValuePairs(config.body);
+            if (pairs.length > 0) {
+              const params = new URLSearchParams();
+              for (const { key, value } of pairs) {
+                params.append(key, value);
               }
-            } catch {
+              axiosConfig.data = params.toString();
+            } else {
               axiosConfig.data = config.body;
             }
             break;
+          }
+          case 'multipart': {
+            const formData = new FormData();
+            const pairs = this.parseKeyValuePairs(config.body);
+            if (pairs.length > 0) {
+              for (const { key, value } of pairs) {
+                formData.append(key, value);
+              }
+            } else {
+              formData.append('data', config.body);
+            }
+            axiosConfig.data = formData;
+            break;
+          }
           case 'text':
             headers['Content-Type'] = headers['Content-Type'] || 'text/plain';
             axiosConfig.data = config.body;
@@ -429,8 +431,17 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
             (item) => item && typeof item === 'object' && 'key' in item,
           );
         }
-        // If it's an object, convert to key-value pairs
+        // If it's an object, check if it's a single key-value pair format
         if (typeof parsed === 'object' && parsed !== null) {
+          // Check if it's a single { key: string, value: string } object
+          if (
+            'key' in parsed &&
+            'value' in parsed &&
+            Object.keys(parsed).length === 2
+          ) {
+            return [{ key: String(parsed.key), value: String(parsed.value) }];
+          }
+          // Otherwise, convert object entries to key-value pairs
           return Object.entries(parsed).map(([key, value]) => ({
             key,
             value: String(value),
@@ -444,6 +455,20 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
 
     // If object, convert to array
     if (typeof input === 'object') {
+      // Check if it's a single { key: string, value: string } object
+      if (
+        'key' in input &&
+        'value' in input &&
+        Object.keys(input).length === 2
+      ) {
+        return [
+          {
+            key: String((input as any).key),
+            value: String((input as any).value),
+          },
+        ];
+      }
+      // Otherwise, convert object entries to key-value pairs
       return Object.entries(input).map(([key, value]) => ({
         key,
         value: String(value),

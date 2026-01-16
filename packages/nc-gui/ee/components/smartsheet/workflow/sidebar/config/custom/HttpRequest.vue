@@ -1,6 +1,6 @@
 <script setup lang="ts">
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD'
-type BodyType = 'none' | 'json' | 'form' | 'text' | 'xml'
+type BodyType = 'none' | 'json' | 'form' | 'multipart' | 'text' | 'xml'
 
 interface KeyValuePair {
   key: string
@@ -13,7 +13,7 @@ interface HttpRequestConfig {
   headers: KeyValuePair[]
   queryParams: KeyValuePair[]
   bodyType: BodyType
-  body: string
+  body?: string
   timeout: number
   followRedirects: boolean
   validateStatus: boolean
@@ -84,7 +84,8 @@ const httpMethods: { label: string; value: HttpMethod }[] = [
 const bodyTypes: { label: string; value: BodyType }[] = [
   { label: 'None', value: 'none' },
   { label: 'JSON', value: 'json' },
-  { label: 'Form Data', value: 'form' },
+  { label: 'Form URL Encoded', value: 'form' },
+  { label: 'Multipart Form Data', value: 'multipart' },
   { label: 'Raw Text', value: 'text' },
   { label: 'XML', value: 'xml' },
 ]

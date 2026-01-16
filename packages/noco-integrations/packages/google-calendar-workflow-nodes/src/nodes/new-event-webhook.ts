@@ -160,13 +160,12 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
       case 'calendars': {
         const result = await auth.use(async (client) => {
           const response = await client.calendarList.list();
-
           return (
             response.data.items
               ?.filter((cal) => {
                 return (
                   !cal.deleted &&
-                  ['owner', 'writer', 'reader'].includes(cal.accessRole || '')
+                  ['owner'].includes(cal.accessRole || '')
                 );
               })
               ?.map((calendar: calendar_v3.Schema$CalendarListEntry) => ({

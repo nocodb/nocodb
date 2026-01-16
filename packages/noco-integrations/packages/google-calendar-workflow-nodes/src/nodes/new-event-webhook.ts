@@ -3,6 +3,7 @@ import {
   FormBuilderValidatorType,
   type FormDefinition,
   IntegrationType,
+  NocoSDK,
   TriggerActivationType,
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
@@ -19,6 +20,7 @@ import type {
 } from '@noco-integrations/core';
 import type { GoogleCalendarAuthIntegration } from '@noco-integrations/google-calendar-auth';
 import type { calendar_v3 } from 'googleapis';
+
 interface NewEventWebhookNodeConfig extends WorkflowNodeConfig {
   authIntegrationId: string;
   calendar: string;
@@ -279,6 +281,216 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
         },
       };
     }
+  }
+  public async generateOutputVariables(): Promise<
+    NocoSDK.VariableDefinition[]
+  > {
+    return [
+      {
+        key: 'event',
+        type: NocoSDK.VariableType.String,
+        name: 'Event',
+        extra: {
+          icon: 'cellText',
+        },
+      },
+      {
+        key: 'payload',
+        type: NocoSDK.VariableType.Object,
+        children: [
+          {
+            key: 'id',
+            type: NocoSDK.VariableType.String,
+            name: 'ID',
+          },
+          {
+            key: 'status',
+            type: NocoSDK.VariableType.String,
+            name: 'Status',
+          },
+          {
+            key: 'summary',
+            type: NocoSDK.VariableType.String,
+            name: 'Summary',
+          },
+          {
+            key: 'description',
+            type: NocoSDK.VariableType.String,
+            name: 'Description',
+          },
+          {
+            key: 'location',
+            type: NocoSDK.VariableType.String,
+            name: 'Location',
+          },
+          {
+            key: 'htmlLink',
+            type: NocoSDK.VariableType.String,
+            name: 'HTML Link',
+          },
+          {
+            key: 'created',
+            type: NocoSDK.VariableType.String,
+            name: 'Created At',
+          },
+          {
+            key: 'updated',
+            type: NocoSDK.VariableType.String,
+            name: 'Updated At',
+          },
+          {
+            key: 'creator',
+            type: NocoSDK.VariableType.Object,
+            name: 'Creator',
+            children: [
+              {
+                key: 'email',
+                type: NocoSDK.VariableType.String,
+                name: 'Email',
+              },
+              {
+                key: 'displayName',
+                type: NocoSDK.VariableType.String,
+                name: 'Display Name',
+              },
+              {
+                key: 'self',
+                type: NocoSDK.VariableType.Boolean,
+                name: 'Self',
+              },
+            ],
+          },
+          {
+            key: 'organizer',
+            type: NocoSDK.VariableType.Object,
+            name: 'Organizer',
+            children: [
+              {
+                key: 'email',
+                type: NocoSDK.VariableType.String,
+                name: 'Email',
+              },
+              {
+                key: 'displayName',
+                type: NocoSDK.VariableType.String,
+                name: 'Display Name',
+              },
+              {
+                key: 'self',
+                type: NocoSDK.VariableType.Boolean,
+                name: 'Self',
+              },
+            ],
+          },
+          {
+            key: 'start',
+            type: NocoSDK.VariableType.Object,
+            name: 'Start',
+            children: [
+              {
+                key: 'date',
+                type: NocoSDK.VariableType.String,
+                name: 'Date',
+              },
+              {
+                key: 'dateTime',
+                type: NocoSDK.VariableType.String,
+                name: 'Date Time',
+              },
+              {
+                key: 'timeZone',
+                type: NocoSDK.VariableType.String,
+                name: 'Time Zone',
+              },
+            ],
+          },
+          {
+            key: 'end',
+            type: NocoSDK.VariableType.Object,
+            name: 'End',
+            children: [
+              {
+                key: 'date',
+                type: NocoSDK.VariableType.String,
+                name: 'Date',
+              },
+              {
+                key: 'dateTime',
+                type: NocoSDK.VariableType.String,
+                name: 'Date Time',
+              },
+              {
+                key: 'timeZone',
+                type: NocoSDK.VariableType.String,
+                name: 'Time Zone',
+              },
+            ],
+          },
+          {
+            key: 'attendees',
+            type: NocoSDK.VariableType.Array,
+            name: 'Attendees',
+            children: [
+              {
+                key: 'email',
+                type: NocoSDK.VariableType.String,
+                name: 'Email',
+              },
+              {
+                key: 'displayName',
+                type: NocoSDK.VariableType.String,
+                name: 'Display Name',
+              },
+              {
+                key: 'responseStatus',
+                type: NocoSDK.VariableType.String,
+                name: 'Response Status',
+              },
+              {
+                key: 'optional',
+                type: NocoSDK.VariableType.Boolean,
+                name: 'Optional',
+              },
+              {
+                key: 'organizer',
+                type: NocoSDK.VariableType.Boolean,
+                name: 'Organizer',
+              },
+              {
+                key: 'self',
+                type: NocoSDK.VariableType.Boolean,
+                name: 'Self',
+              },
+            ],
+          },
+          {
+            key: 'hangoutLink',
+            type: NocoSDK.VariableType.String,
+            name: 'Hangout Link',
+          },
+          {
+            key: 'conferenceData',
+            type: NocoSDK.VariableType.Object,
+            name: 'Conference Data',
+          },
+          {
+            key: 'recurringEventId',
+            type: NocoSDK.VariableType.String,
+            name: 'Recurring Event ID',
+          },
+          {
+            key: 'sequence',
+            type: NocoSDK.VariableType.Number,
+            name: 'Sequence',
+          },
+        ],
+        name: 'Payload',
+        extra: {
+          icon: 'cellJson',
+          description: 'Schema$Event from Google Calendar API',
+        },
+      },
+    ];
   }
 }
 

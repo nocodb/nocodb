@@ -145,21 +145,6 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
     return workflowList.map((workflow) => new Workflow(workflow));
   }
 
-  public static async getNextPollingWorkflows(ncMeta = Noco.ncMeta) {
-    const workflows = await ncMeta
-      .knexConnection(MetaTable.AUTOMATIONS)
-      .whereNotNull('wf_polling_cron')
-      .andWhere('wf_polling_cron', '!=', '')
-      .andWhere('wf_is_polling', true)
-      .andWhere('enabled', true)
-      .andWhere((subQb) => {
-        subQb.where('wf_next_polling_at', '<=', new Date().getTime());
-        subQb.orWhereNull('wf_next_polling_at');
-      });
-
-    return workflows.map((workflow) => new Workflow(workflow));
-  }
-
   public static async insert(
     context: NcContext,
     workflow: Partial<Workflow>,

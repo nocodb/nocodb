@@ -90,7 +90,7 @@ const column = computed(() => widget.value!.field as Required<ColumnType>)
 
 const sqlUi = computed(() => baseStore.getSqlUiBySourceId(column.value?.source_id))
 
-const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
+const abstractType = computed(() => column.value && sqlUi.value?.getAbstractType(column.value))
 
 const isNew = ref(false)
 

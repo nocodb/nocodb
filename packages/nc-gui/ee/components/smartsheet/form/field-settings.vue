@@ -7,7 +7,7 @@ const { sqlUis } = storeToRefs(useBase())
 
 const sqlUi = ref(activeField.value?.source_id ? sqlUis.value[activeField.value?.source_id] : Object.values(sqlUis.value)[0])
 
-const abstractType = computed(() => activeField.value && sqlUi.value.getAbstractType(activeField.value))
+const abstractType = computed(() => activeField.value && sqlUi.value?.getAbstractType(activeField.value))
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 

@@ -477,12 +477,17 @@ function fieldsValidation(record: Record<string, any>, tn: string) {
     return false
   }
 
-  if (srcDestMapping.value[tn].filter((v: Record<string, any>) => v.destCn === record.destCn).length > 1) {
+  if ((srcDestMapping.value[tn] || []).filter((v: Record<string, any>) => v.destCn === record.destCn).length > 1) {
     message.error(t('msg.error.duplicateMappingFound'))
     return false
   }
 
   const v = columns.value.find((c) => c.title === record.destCn) as Record<string, any>
+
+  if (!v) {
+    message.error(`Column '${record.destCn}' not found`)
+    return false
+  }
 
   for (const tableName of Object.keys(importData)) {
     // check if the input contains null value for a required column

@@ -93,7 +93,7 @@ watch(
             <div
               v-if="isLinksOrLTAR(col)"
               class="flex w-full"
-              :class="`nc-erd-table-node-${table.table_name}-column-${col.title?.toLowerCase().replace(' ', '_')}`"
+              :class="`nc-erd-table-node-${table.table_name}-column-${col.title?.toLowerCase()?.replace(' ', '_')}`"
             >
               <Handle
                 :id="`s-${relatedColumnId(col.colOptions)}-${table.id}`"

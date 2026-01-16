@@ -34,29 +34,17 @@ const nocoExecute = async (
   dataTree = {},
   rootArgs = null,
 ): Promise<any> => {
-  const queue = new PQueue({ concurrency: 3 });
-  let error;
   // Handle array of resolvers by executing nocoExecute on each and returning a Promise.all
   if (Array.isArray(resolverObj)) {
     const result: any[] = [];
     for (let i = 0; i < resolverObj.length; i++) {
       const resolver = resolverObj[i];
-      queue.add(async () => {
-        try {
-          result[i] = await nocoExecuteSingle(
-            requestObj,
-            resolver,
-            dataTree[i],
-            rootArgs,
-          );
-        } catch (ex) {
-          error = ex;
-        }
-      });
-    }
-    await queue.onIdle();
-    if (error) {
-      throw error;
+      result[i] = await nocoExecuteSingle(
+        requestObj,
+        resolver,
+        dataTree[i],
+        rootArgs,
+      );
     }
     return result;
   } else {

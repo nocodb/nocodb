@@ -2,6 +2,7 @@ import { Inject, Logger } from '@nestjs/common';
 import { EventType } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { Job } from 'bull';
+import type { HeartbeatWorkflowJobData } from '~/interface/Jobs';
 import {
   type ExecuteWorkflowJobData,
   type ResumeWorkflowJobData,
@@ -187,6 +188,30 @@ export class WorkflowProcessor {
         }
       }
 
+      throw error;
+    }
+  }
+
+  async heartbeatWorkflow(job: Job<HeartbeatWorkflowJobData>) {
+    const { context, workflowId } = job.data;
+
+    const workflow = await Workflow.get(context, workflowId);
+    if (!workflow) {
+      this.logger.error(`Workflow not found for id: ${workflowId}`);
+      return;
+    }
+
+    if (!workflow.enabled) {
+      this.logger.warn(
+        `Workflow ${workflowId} is disabled, skipping execution`,
+      );
+      return;
+    }
+
+    try {
+      await this.workflowExecutionService.heartbeatWorkflow(context, workflow);
+    } catch (error) {
+      this.logger.error(`Failed to execute workflow ${workflowId}:`, error);
       throw error;
     }
   }

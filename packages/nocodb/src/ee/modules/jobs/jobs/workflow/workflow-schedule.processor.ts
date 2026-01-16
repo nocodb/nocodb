@@ -21,14 +21,17 @@ export class WorkflowScheduleProcessor {
 
   async job() {
     this.logger.log('WorkflowScheduleProcessor job started');
+    await this.scheduleCronTrigger();
+    this.logger.debug('WorkflowScheduleProcessor job completed');
+  }
 
+  async scheduleCronTrigger() {
     const ncMeta = Noco.ncMeta;
 
     const dueTriggers = await ncMeta
       .knexConnection(MetaTable.DEPENDENCY_TRACKER)
       .where('source_type', DependencyTableType.Workflow)
       .where('dependent_type', DependencyTableType.Workflow)
-      .where('queryable_field_0', 'core.trigger.cron') // nodeType = cron
       .where('queryable_field_2', '<=', new Date()) // nextSyncAt <= now
       .limit(10); // Process 10 at a time
 
@@ -60,23 +63,30 @@ export class WorkflowScheduleProcessor {
         }
 
         const scheduledTime = trigger.queryable_field_2;
+        if (activationState?.heartbeat) {
+          // some trigger need heartbeat
+          await this.jobsService.add(JobTypes.HeartbeatWorkflow, {
+            context,
+            workflowId: trigger.source_id,
+          });
+        } else {
+          const job = await this.jobsService.add(JobTypes.ExecuteWorkflow, {
+            context,
+            workflowId: trigger.source_id,
+            triggerNodeId: nodeId,
+            triggerInputs: {
+              timestamp: new Date().toISOString(),
+              scheduledTime,
+            },
+            req: {
+              user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+            } as any,
+          });
 
-        const job = await this.jobsService.add(JobTypes.ExecuteWorkflow, {
-          context,
-          workflowId: trigger.source_id,
-          triggerNodeId: nodeId,
-          triggerInputs: {
-            timestamp: new Date().toISOString(),
-            scheduledTime,
-          },
-          req: {
-            user: NOCO_SERVICE_USERS[ServiceUserType.SYNC_USER],
-          } as any,
-        });
-
-        this.logger.debug(
-          `Queued cron workflow ${trigger.source_id} with job ${job.id}`,
-        );
+          this.logger.debug(
+            `Queued cron workflow ${trigger.source_id} with job ${job.id}`,
+          );
+        }
 
         const interval = CronExpressionParser.parse(
           activationState.cronExpression,
@@ -88,13 +98,18 @@ export class WorkflowScheduleProcessor {
 
         const nextSyncAt = interval.next().toDate();
 
-        await ncMeta
-          .knexConnection(MetaTable.DEPENDENCY_TRACKER)
-          .where('id', trigger.id)
-          .update({
+        await ncMeta.metaUpdate(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.DEPENDENCY_TRACKER,
+          {
             queryable_field_2: nextSyncAt,
             updated_at: new Date(),
-          });
+          },
+          {
+            id: trigger.id,
+          },
+        );
 
         this.logger.debug(
           `Updated next execution time for workflow ${
@@ -109,7 +124,5 @@ export class WorkflowScheduleProcessor {
         // Continue with other triggers
       }
     }
-
-    this.logger.debug('WorkflowCronScheduleProcessor job completed');
   }
 }

@@ -261,4 +261,9 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
     context: WorkflowActivationContext,
     state?: WorkflowActivationState
   ): Promise<void>;
+
+  public async heartbeat?(
+    context: WorkflowActivationContext,
+    state?: WorkflowActivationState
+  ): Promise<WorkflowActivationState>;
 }

@@ -35,7 +35,7 @@ import {
   isNodeAvailableForPlan,
   WorkflowNodePlanRequirements,
 } from '~/helpers/workflowNodeHelpers';
-import { Column, Integration } from '~/models';
+import { Column, Integration, Workflow } from '~/models';
 import { DataV3Service } from '~/services/v3/data-v3.service';
 import { TablesService } from '~/services/tables.service';
 import { NcError } from '~/helpers/ncError';
@@ -831,6 +831,64 @@ export class WorkflowExecutionService {
     } catch (error) {
       return this.handleExecutionError(executionState, error, workflow);
     }
+  }
+
+  async heartbeatWorkflow(
+    context: NcContext,
+    workflow: WorkflowType,
+  ): Promise<void> {
+    const nodes = (workflow.nodes || []) as WorkflowGeneralNode[];
+    const edges = (workflow.edges || []) as WorkflowGeneralEdge[];
+
+    if (nodes.length === 0) {
+      NcError.get(context).workflowEmptyNode();
+    }
+
+    const nodeMap = new Map<string, WorkflowGeneralNode>(
+      nodes.map((n) => [n.id, n]),
+    );
+
+    const { triggerNodes } = buildWorkflowGraph(nodes, edges);
+
+    const currentNodeId = determineStartNode(
+      nodes,
+      triggerNodes,
+      undefined,
+      context,
+    );
+    const node = nodeMap.get(currentNodeId);
+    const nodeWrapper = this.getNodeWrapper(
+      context,
+      node.type,
+      node.data?.config || {},
+    );
+    if (!nodeWrapper.heartbeat) {
+      return;
+    }
+    const trigger = (
+      await Workflow.getExternalTriggers(context, workflow.id)
+    )[0];
+    const heartbeatState = await nodeWrapper.heartbeat(
+      {
+        workflowId: workflow.id,
+        nodeId: trigger.nodeId,
+        webhookUrl: trigger.activationState._webhookUrl,
+      },
+      trigger.activationState,
+    );
+    // Track trigger in Workflow model with triggerId for routing
+    await Workflow.trackExternalTrigger(context, workflow.id, {
+      nodeId: trigger.nodeId,
+      nodeType: trigger.nodeType,
+      triggerId: trigger.triggerId,
+      activationState: {
+        ...trigger.activationState,
+        ...heartbeatState,
+        heartbeat: true,
+        _webhookUrl: trigger.activationState._webhookUrl,
+        cronExpression: trigger.activationState.cronExpression,
+      },
+    });
   }
 
   private handleExecutionError(

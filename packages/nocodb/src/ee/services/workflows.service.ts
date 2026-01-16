@@ -203,6 +203,14 @@ export class WorkflowsService implements OnModuleInit {
       workflowBody.title = workflowBody.title.trim();
     }
 
+    if (!workflow.enabled && workflowBody.enabled) {
+      // some trigger need heartbeat
+      await this.jobsService.add(JobTypes.HeartbeatWorkflow, {
+        context,
+        workflowId: workflowId,
+      });
+    }
+
     const updatedWorkflow = await Workflow.update(context, workflowId, {
       ...workflowBody,
       updated_by: req.user.id,
@@ -820,13 +828,24 @@ export class WorkflowsService implements OnModuleInit {
     });
 
     if (!activationState) return;
+    activationState._webhookUrl = webhookUrl;
 
+    let nextPollingAt: string = undefined;
+    if (activationState?.cronExpression) {
+      // mark as heartbeat
+      activationState.heartbeat = true;
+      // get nextPollingAt using cron expression
+      nextPollingAt = CronExpressionParser.parse(activationState.cronExpression)
+        .next()
+        .toISOString();
+    }
     // Track trigger in Workflow model with triggerId for routing
     await Workflow.trackExternalTrigger(context, workflow.id, {
       nodeId: triggerNode.id,
       nodeType: triggerNode.type,
       triggerId,
       activationState,
+      nextSyncAt: nextPollingAt,
     });
   }
 
@@ -855,7 +874,6 @@ export class WorkflowsService implements OnModuleInit {
       },
     );
     const nextSyncAt = interval.next().toISOString();
-
     await Workflow.trackExternalTrigger(context, workflow.id, {
       nodeId: triggerNode.id,
       nodeType: triggerNode.type,

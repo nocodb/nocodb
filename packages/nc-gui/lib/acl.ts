@@ -97,16 +97,18 @@ const rolePermissions = {
       // Extensions
       extensionCreate: true,
       extensionDelete: true,
+
+      // Creator specific permissions (previously inherited from Editor)
+      sortSync: true,
+      filterSync: true,
+      viewFieldEdit: true,
     },
   },
   [ProjectRoles.EDITOR]: {
     include: {
       dataInsert: true,
       dataEdit: true,
-      sortSync: true,
-      filterSync: true,
       filterChildrenList: true,
-      viewFieldEdit: true,
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,

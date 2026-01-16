@@ -384,13 +384,13 @@ const permissionScopes = {
 
 const rolePermissions:
   | Record<
-      | Exclude<OrgUserRoles, OrgUserRoles.SUPER_ADMIN>
-      | ProjectRoles
-      | WorkspaceUserRoles
-      | CloudOrgUserRoles
-      | 'guest',
-      { include?: Record<string, boolean>; exclude?: Record<string, boolean> }
-    >
+    | Exclude<OrgUserRoles, OrgUserRoles.SUPER_ADMIN>
+    | ProjectRoles
+    | WorkspaceUserRoles
+    | CloudOrgUserRoles
+    | 'guest',
+    { include?: Record<string, boolean>; exclude?: Record<string, boolean> }
+  >
   | Record<OrgUserRoles.SUPER_ADMIN, string> = {
   [OrgUserRoles.SUPER_ADMIN]: '*', // all permissions
   guest: {
@@ -627,30 +627,17 @@ const rolePermissions:
   },
   [ProjectRoles.EDITOR]: {
     include: {
-      hideAllColumns: true,
-      showAllColumns: true,
       dataUpdate: true,
       dataDelete: true,
       dataInsert: true,
       bulkDataUpsert: true,
       nestedDataListCopyPasteOrDeleteAll: true,
-      viewColumnUpdate: true,
-      gridViewUpdate: true,
-      formViewUpdate: true,
-      formColumnUpdate: true,
-      sortCreate: true,
-      sortUpdate: true,
-      sortDelete: true,
-      filterCreate: true,
-      filterUpdate: true,
-      filterDelete: true,
       filterGet: true,
       filterChildrenList: true,
       mmExcludedList: true,
       hmExcludedList: true,
       btExcludedList: true,
       ooExcludedList: true,
-      gridColumnUpdate: true,
 
       bulkDataInsert: true,
       bulkDataUpdate: true,

@@ -18,7 +18,7 @@ const httpMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'];
 
 type HttpMethod = (typeof httpMethods)[number];
 
-const bodyTypes = ['none', 'json', 'form', 'multipart', 'text', 'xml'];
+const bodyTypes = ['none', 'json', 'urlencoded', 'multipartForm', 'plainText', 'xml'];
 
 type BodyType = (typeof bodyTypes)[number];
 
@@ -212,7 +212,7 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
               axiosConfig.data = config.body;
             }
             break;
-          case 'form': {
+          case 'urlencoded': {
             headers['Content-Type'] =
               headers['Content-Type'] || 'application/x-www-form-urlencoded';
             const pairs = this.parseKeyValuePairs(config.body);
@@ -227,7 +227,7 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
             }
             break;
           }
-          case 'multipart': {
+          case 'multipartForm': {
             const formData = new FormData();
             const pairs = this.parseKeyValuePairs(config.body);
             if (pairs.length > 0) {
@@ -240,7 +240,7 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
             axiosConfig.data = formData;
             break;
           }
-          case 'text':
+          case 'plainText':
             headers['Content-Type'] = headers['Content-Type'] || 'text/plain';
             axiosConfig.data = config.body;
             break;

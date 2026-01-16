@@ -1,6 +1,6 @@
 <script setup lang="ts">
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'HEAD'
-type BodyType = 'none' | 'json' | 'form' | 'multipart' | 'text' | 'xml'
+type BodyType = 'none' | 'json' | 'urlencoded' | 'multipartForm' | 'plainText' | 'xml'
 
 interface KeyValuePair {
   key: string
@@ -84,9 +84,9 @@ const httpMethods: { label: string; value: HttpMethod }[] = [
 const bodyTypes: { label: string; value: BodyType }[] = [
   { label: 'None', value: 'none' },
   { label: 'JSON', value: 'json' },
-  { label: 'Form URL Encoded', value: 'form' },
-  { label: 'Multipart Form Data', value: 'multipart' },
-  { label: 'Raw Text', value: 'text' },
+  { label: 'Form URL Encoded', value: 'urlencoded' },
+  { label: 'Multipart Form Data', value: 'multipartForm' },
+  { label: 'Raw Text', value: 'plainText' },
   { label: 'XML', value: 'xml' },
 ]
 

@@ -160,17 +160,17 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
           const response = await client.calendarList.list();
 
           return (
-            response.data.items?.filter(cal => {
-              return (
-                !cal.deleted &&
-                ["owner", "writer", "reader"].includes(cal.accessRole || "")
-              );
-            })?.map(
-              (calendar: calendar_v3.Schema$CalendarListEntry) => ({
+            response.data.items
+              ?.filter((cal) => {
+                return (
+                  !cal.deleted &&
+                  ['owner', 'writer', 'reader'].includes(cal.accessRole || '')
+                );
+              })
+              ?.map((calendar: calendar_v3.Schema$CalendarListEntry) => ({
                 label: calendar.summary,
                 value: calendar.id,
-              }),
-            ) || []
+              })) || []
           );
         });
 
@@ -191,65 +191,25 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
     try {
       // In test mode, return sample payload
       if (ctx.testMode) {
-        // Sample event (timed event)
-        const sampleEvent: calendar_v3.Schema$Event = {
-          id: 'abcd1234efgh5678',
-          status: 'confirmed',
-          summary: 'Team Meeting',
-          description: 'Weekly team sync to discuss project updates',
-          location: 'Zoom Meeting',
-          creator: {
-            email: 'alice@example.com',
-            displayName: 'Alice Johnson',
-          },
-          organizer: {
-            email: 'alice@example.com',
-            displayName: 'Alice Johnson',
-          },
-          start: {
-            dateTime: '2026-01-10T09:00:00-05:00',
-            timeZone: 'America/New_York',
-          },
-          end: {
-            dateTime: '2026-01-10T10:00:00-05:00',
-            timeZone: 'America/New_York',
-          },
-          attendees: [
-            {
-              email: 'bob@example.com',
-              displayName: 'Bob Smith',
-              responseStatus: 'accepted',
-            },
-            {
-              email: 'carol@example.com',
-              displayName: 'Carol Lee',
-              responseStatus: 'needsAction',
-            },
-          ],
-          reminders: {
-            useDefault: false,
-            overrides: [
-              { method: 'email', minutes: 30 },
-              { method: 'popup', minutes: 10 },
-            ],
-          },
-          recurrence: ['RRULE:FREQ=WEEKLY;BYDAY=FR'],
-          transparency: 'opaque',
-          visibility: 'default',
-          created: '2026-01-01T12:00:00Z',
-          updated: '2026-01-03T08:00:00Z',
-        };
+        const auth = await this.getIntegration<GoogleCalendarAuthIntegration>(
+          this.config.authIntegrationId,
+        );
+        // get one latest event from google calendar
+        const sampleEvent = await auth.use(async (client) => {
+          const response = await client.events.list({
+            calendarId: this.config.calendar,
+            maxResults: 1,
+            singleEvents: true,
+            orderBy: 'updated',
+          });
+          return response.data.items?.[0];
+        });
 
-        // Sample webhook notification (headers + body)
-        const sampleHeaders = {
-          'x-goog-resource-state': 'updated',
-          'x-goog-resource-id': 'abcd1234efgh5678',
-          'x-goog-resource-uri':
-            'https://www.googleapis.com/calendar/v3/calendars/primary/events/abcd1234efgh5678',
-          'x-goog-channel-id': 'channel-12345',
-          'x-goog-message-number': '42',
-          'x-goog-changed': 'event',
-        };
+        if (!sampleEvent) {
+          throw new Error(
+            'Create at least one event in the calendar to test the trigger',
+          );
+        }
 
         logs.push({
           level: 'info',
@@ -261,7 +221,6 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
           outputs: {
             event: 'exists',
             payload: sampleEvent,
-            headers: sampleHeaders,
           },
           status: 'success',
           logs,

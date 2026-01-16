@@ -62,7 +62,7 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
 
     return {
       id: NODE_SUBTYPE_NEW_EVENT,
-      title: `${APP_LABEL} New Event Webhook`,
+      title: `New Event Webhook`,
       description: 'Trigger an event via Google Calendar webhook on new event',
       icon: 'googleCalendar',
       category: WorkflowNodeCategory.TRIGGER,

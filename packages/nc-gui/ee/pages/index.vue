@@ -76,42 +76,46 @@ const autoNavigateToProject = async ({ initial = false }: { initial: boolean }) 
 watch(
   [activeWorkspaceId, () => !!activeWorkspace.value, () => showOnboardingFlow.value],
   async ([newId, newWorkspace], [oldId]) => {
-    if (newId === 'nc') {
-      workspaceStore.setLoadingState(false)
-      isWorkspacesLoading.value = false
+    try {
+      if (newId === 'nc') {
+        workspaceStore.setLoadingState(false)
+        isWorkspacesLoading.value = false
 
-      return
-    }
-
-    if (newId === 'base') {
-      workspaceStore.setLoadingState(false)
-      isWorkspacesLoading.value = false
-
-      basesStore.loadProjects()
-      return
-    }
-
-    if (newId && oldId !== newId && lastPopulatedWorkspaceId.value !== newId) {
-      basesStore.clearBases()
-      collaborators.value = []
-      // return
-    }
-
-    // If show onboarding flow is true, don't navigate to workspace
-    if (showOnboardingFlow.value) {
-      return
-    }
-
-    if (newWorkspace && lastPopulatedWorkspaceId.value !== newId && (newId || workspaceStore.workspacesList.length)) {
-      await populateWorkspace()
-
-      if (!route.value.params.baseId && basesStore.basesList.length) {
-        await autoNavigateToProject({ initial: oldId === undefined })
+        return
       }
-    }
 
-    if (lastPopulatedWorkspaceId.value === newId && !route.value.params.typeOrId) {
-      await autoNavigateToProject({ initial: false })
+      if (newId === 'base') {
+        workspaceStore.setLoadingState(false)
+        isWorkspacesLoading.value = false
+
+        basesStore.loadProjects()
+        return
+      }
+
+      if (newId && oldId !== newId && lastPopulatedWorkspaceId.value !== newId) {
+        basesStore.clearBases()
+        collaborators.value = []
+        // return
+      }
+
+      // If show onboarding flow is true, don't navigate to workspace
+      if (showOnboardingFlow.value) {
+        return
+      }
+
+      if (newWorkspace && lastPopulatedWorkspaceId.value !== newId && (newId || workspaceStore.workspacesList.length)) {
+        await populateWorkspace()
+
+        if (!route.value.params.baseId && basesStore.basesList.length) {
+          await autoNavigateToProject({ initial: oldId === undefined })
+        }
+      }
+
+      if (lastPopulatedWorkspaceId.value === newId && !route.value.params.typeOrId) {
+        await autoNavigateToProject({ initial: false })
+      }
+    } catch (e: any) {
+      console.error(e)
     }
   },
   {

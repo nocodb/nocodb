@@ -60,6 +60,7 @@ export enum JobTypes {
   WorkflowCronSchedule = 'workflow-cron-schedule',
   WorkflowResumeSchedule = 'workflow-resume-schedule',
   ResumeWorkflow = 'resume-workflow',
+  TestWorkflowNode = 'test-workflow-node',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -281,4 +282,10 @@ export interface ExecuteWorkflowJobData extends JobData {
 
 export interface ResumeWorkflowJobData extends JobData {
   executionId: string; // Workflow execution to resume
+}
+
+export interface TestWorkflowNodeJobData extends JobData {
+  workflowId: string;
+  nodeId: string;
+  testTriggerData?: any;
 }

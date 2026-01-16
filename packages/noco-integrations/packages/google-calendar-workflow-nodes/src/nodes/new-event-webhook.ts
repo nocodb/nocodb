@@ -292,7 +292,6 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
         outputs: {
           event: googleCalendarEvent || 'unknown',
           payload: webhookPayload,
-          headers: headers,
         },
         status: 'success',
         logs,

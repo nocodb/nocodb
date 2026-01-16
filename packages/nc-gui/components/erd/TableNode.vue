@@ -49,10 +49,11 @@ watch(
     :disabled="dragging || isZooming"
   >
     <template #title>
-      <div class="capitalize">{{ table.table_name }}</div>
+      <div class="capitalize">{{ table?.table_name }}</div>
     </template>
 
     <div
+      v-if="table"
       class="relative h-full max-w-76 flex flex-col justify-center bg-nc-bg-default min-w-16 min-h-8 rounded-lg nc-erd-table-node"
       :class="[
         `nc-erd-table-node-${table.table_name}`,

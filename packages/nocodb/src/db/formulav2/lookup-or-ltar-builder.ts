@@ -659,12 +659,13 @@ export const lookupOrLtarBuilder =
           break;
       }
 
-      if (selectQb)
+      if (selectQb) {
         return {
           builder:
             typeof selectQb === 'function'
               ? selectQb
               : knex.raw(selectQb as any).wrap('(', ')'),
         };
+      }
     }
   };

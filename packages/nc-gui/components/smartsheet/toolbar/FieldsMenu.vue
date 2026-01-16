@@ -525,7 +525,7 @@ const onFieldsMenuDropdownVisibilityChange = (value: boolean) => {
 const onAddColumnDropdownVisibilityChange = () => {
   addColumnDropdown.value = true
 
-  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.shouldKeepModalOpen()) {
+  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
     addColumnDropdown.value = false
   }
 }

@@ -134,7 +134,7 @@ const openDropDown = (e: Event) => {
 
 const onVisibleChange = () => {
   editColumnDropdown.value = true
-  if (!editOrAddProviderRef.value?.shouldKeepModalOpen()) {
+  if (!editOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
     editColumnDropdown.value = false
     enableDescription.value = false
   }

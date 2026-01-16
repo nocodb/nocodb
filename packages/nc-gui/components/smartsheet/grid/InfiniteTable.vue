@@ -1501,7 +1501,7 @@ const saveOrUpdateRecords = async (
 const editOrAddProviderRef = ref()
 
 const onVisibilityChange = () => {
-  addColumnDropdown.value = editOrAddProviderRef.value?.shouldKeepModalOpen()
+  addColumnDropdown.value = editOrAddProviderRef.value?.shouldKeepModalOpen?.()
 }
 
 const COL_VIRTUAL_MARGIN = 5

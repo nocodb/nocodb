@@ -12,8 +12,8 @@ export default class Mattermost implements IWebhookNotificationAdapter {
       try {
         return await axios.post(webhook_url, {
           text,
-          httpAgent: useAgent(webhook_url, {}),
-          httpsAgent: useAgent(webhook_url, {}),
+          httpAgent: useAgent(webhook_url),
+          httpsAgent: useAgent(webhook_url),
         });
       } catch (e) {
         console.log(e);

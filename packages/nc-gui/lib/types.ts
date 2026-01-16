@@ -24,6 +24,7 @@ import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
 import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
 import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
+import type { MarkdownLoader } from '../components/smartsheet/grid/canvas/loaders/markdownLoader'
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
 import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
@@ -429,6 +430,7 @@ interface CellRendererOptions {
   pv?: boolean
   readonly?: boolean
   imageLoader: ImageWindowLoader
+  markdownLoader: MarkdownLoader
   spriteLoader: SpriteLoader
   actionManager: ActionManager
   tableMetaLoader: TableMetaLoader
@@ -546,6 +548,7 @@ interface CellRenderer {
     makeCellEditable: MakeCellEditableFn
     selected: boolean
     imageLoader: ImageWindowLoader
+    markdownLoader: MarkdownLoader
     cellRenderStore: CellRenderStore
     isPublic?: boolean
     openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
@@ -572,6 +575,7 @@ interface CellRenderer {
       path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
+    markdownLoader: MarkdownLoader
     makeCellEditable: MakeCellEditableFn
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
@@ -598,6 +602,7 @@ interface CellRenderer {
     makeCellEditable: MakeCellEditableFn
     selected: boolean
     imageLoader: ImageWindowLoader
+    markdownLoader: MarkdownLoader
     cellRenderStore: CellRenderStore
     setCursor: SetCursorType
     path: Array<number>

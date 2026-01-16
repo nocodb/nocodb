@@ -510,6 +510,30 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
       },
     ];
   }
+
+  public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
+    const { calendar,  } = this.config;
+
+    if (!calendar) return [];
+
+    try {
+      return [
+        {
+          key: 'config.calendar',
+          name: 'Calendar',
+          type: NocoSDK.VariableType.String,
+          groupKey: NocoSDK.VariableGroupKey.Fields,
+          extra: {
+            icon: 'calendar',
+            description: 'Calendar to monitor for events',
+          },
+        },
+      ];
+    } catch {
+      return [];
+    }
+  }
+
 }
 
 interface GoogleCalendarWebhookEvent {

@@ -3,7 +3,7 @@ import { google } from 'googleapis';
 import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, redirectUri, tokenUri } from './config';
 import { APP_LABEL } from './constant';
-import type { RateLimitOptions } from '@noco-integrations/core';
+import type { RateLimitOptions, TokenData } from '@noco-integrations/core';
 import type { GmailAuthConfig } from './types';
 import type { TestConnectionResponse } from '@noco-integrations/core';
 import type { gmail_v1 } from 'googleapis';
@@ -47,6 +47,18 @@ export class GmailAuthIntegration extends AuthIntegration<
     oauth2Client.setCredentials({
       access_token: accessToken,
       refresh_token: this.config.refresh_token,
+    });
+
+    const self = this;
+    // handle refresh token
+    oauth2Client.on('tokens', (token) => {
+      const callbackPayload: TokenData & { expires_in: number } = {
+        oauth_token: token.access_token!,
+        refresh_token: token.refresh_token!,
+        expires_in: token.expiry_date!,
+      };
+      self.tokenRefreshCallback?.(callbackPayload);
+      Object.assign(self._config, token);
     });
 
     this.client = google.gmail({ version: 'v1', auth: oauth2Client });
@@ -101,31 +113,6 @@ export class GmailAuthIntegration extends AuthIntegration<
     return {
       oauth_token: response.data.access_token,
       refresh_token: response.data.refresh_token,
-      expires_in: response.data.expires_in,
-    };
-  }
-
-  public async refreshToken(payload: { refresh_token: string }): Promise<{
-    oauth_token: string;
-    refresh_token?: string;
-    expires_in?: number;
-  }> {
-    const params = new URLSearchParams();
-    params.append('grant_type', 'refresh_token');
-    params.append('refresh_token', payload.refresh_token);
-    params.append('client_id', clientId!);
-    params.append('client_secret', clientSecret!);
-
-    const response = await axios.post(tokenUri, params.toString(), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'application/json',
-      },
-    });
-
-    return {
-      oauth_token: response.data.access_token,
-      refresh_token: response.data.refresh_token || payload.refresh_token,
       expires_in: response.data.expires_in,
     };
   }

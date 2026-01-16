@@ -394,4 +394,8 @@ export const presetErrorCodexMap: Partial<
       `This workflow has ${count} pending execution(s) waiting to resume`,
     code: 400,
   },
+  [NcErrorType.ERR_WORKFLOW_NODE_NOT_FOUND]: {
+    message: (message: string) => message,
+    code: 400,
+  }
 };

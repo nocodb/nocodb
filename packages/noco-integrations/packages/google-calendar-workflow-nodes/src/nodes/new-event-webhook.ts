@@ -514,8 +514,8 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
 
 interface GoogleCalendarWebhookEvent {
   headers: {
-    // Headers sent by Google
-    'x-goog-resource-state': 'exists' | 'sync' | 'updated' | 'deleted';
+    // Headers sent by Google https://developers.google.com/workspace/calendar/api/guides/push#understand-google-calendar-api-notification-events
+    'x-goog-resource-state': 'exists' | 'sync' | 'not_exists';
     'x-goog-resource-id': string; // Unique ID of the watched resource
     'x-goog-resource-uri': string; // The URL to fetch the resource (calendar or event)
     'x-goog-channel-id': string; // Your registered channel ID

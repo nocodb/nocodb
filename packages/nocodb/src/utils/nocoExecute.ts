@@ -1,5 +1,6 @@
 // Define the interface for the request object with possible nested structure
 import { Logger } from '@nestjs/common';
+import PQueue from 'p-queue';
 
 interface XcRequest {
   [key: string]: XcRequest | 1 | true;
@@ -33,18 +34,31 @@ const nocoExecute = async (
   dataTree = {},
   rootArgs = null,
 ): Promise<any> => {
+  const queue = new PQueue({ concurrency: 3 });
+  let error;
   // Handle array of resolvers by executing nocoExecute on each and returning a Promise.all
   if (Array.isArray(resolverObj)) {
-    return Promise.all(
-      resolverObj.map((resolver, i) =>
-        nocoExecuteSingle(
-          requestObj,
-          resolver,
-          (dataTree[i] = dataTree[i] || {}),
-          rootArgs,
-        ),
-      ),
-    );
+    const result: any[] = [];
+    for (let i = 0; i < resolverObj.length; i++) {
+      const resolver = resolverObj[i];
+      queue.add(async () => {
+        try {
+          result[i] = await nocoExecuteSingle(
+            requestObj,
+            resolver,
+            dataTree[i],
+            rootArgs,
+          );
+        } catch (ex) {
+          error = ex;
+        }
+      });
+    }
+    await queue.onIdle();
+    if (error) {
+      throw error;
+    }
+    return result;
   } else {
     return nocoExecuteSingle(requestObj, resolverObj, dataTree, rootArgs);
   }
@@ -57,6 +71,7 @@ const nocoExecuteSingle = async (
   rootArgs = null,
 ): Promise<any> => {
   const res = {};
+  let error;
 
   /**
    * Recursively extract nested data from the dataTree and resolve it.
@@ -170,7 +185,7 @@ const nocoExecuteSingle = async (
       : Object.keys(resolverObj);
 
   const out: any = {}; // Holds the final output
-  const resolPromises = []; // Holds all the promises for asynchronous resolution
+  const queue = new PQueue({ concurrency: 3 }); // Holds all the promises for asynchronous resolution
   for (const key of extractKeys) {
     // Extract the field for each key
     extractField(key, rootArgs?.nested?.[key]);
@@ -216,17 +231,20 @@ const nocoExecuteSingle = async (
     }
     // Push resolved promises to resolPromises array
     if (res[key]) {
-      resolPromises.push(
-        (async () => {
+      queue.add(async () => {
+        try {
           out[key] = await res[key];
-        })(),
-      );
+        } catch (ex) {
+          error = ex;
+        }
+      });
     }
   }
 
-  // Wait for all promises to resolve before returning the final output
-  await Promise.all(resolPromises);
-
+  await queue.onIdle();
+  if (error) {
+    throw error;
+  }
   return out; // Return the final resolved output
 };
 

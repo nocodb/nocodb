@@ -2,7 +2,7 @@ import { IntegrationWrapper } from '../integration';
 import { AuthIntegration } from '../auth';
 import { NocoSDK } from '../sdk';
 import { IDataV3Service, ITablesService, IMailService } from './nocodb.interface';
-import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType, LoopContext } from 'nocodb-sdk'
+import { WorkflowNodeDefinition, WorkflowNodeCategory, WorkflowNodeCategoryType, VariableDefinition, TriggerActivationType, TriggerTestMode, LoopContext } from 'nocodb-sdk'
 
 
 export interface WorkflowNodeLog {
@@ -107,6 +107,7 @@ export {
   WorkflowNodeCategoryType,
   WorkflowNodeDefinition,
   TriggerActivationType,
+  TriggerTestMode,
 }
 
 export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig = WorkflowNodeConfig> extends IntegrationWrapper<TConfig> {

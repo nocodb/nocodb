@@ -5,6 +5,7 @@ import {
 import { manifest } from './manifest';
 import { ManualTriggerNode } from './nodes/manual-trigger';
 import { CronTriggerNode } from './nodes/cron-trigger';
+import { WebhookTriggerNode } from './nodes/webhook-trigger';
 import { IfNode } from './nodes/if';
 import { IterateNode } from './nodes/iterate';
 import { SendEmailAction } from './nodes/send-email';
@@ -12,6 +13,19 @@ import { DelayNode } from './nodes/delay';
 import { WaitUntilNode } from './nodes/wait-until';
 
 export const entries: IntegrationEntry[] = [
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'core.trigger.webhook',
+    wrapper: WebhookTriggerNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'When webhook received',
+      icon: 'ncWebhook',
+      order: 6,
+    },
+    packageManifest: manifest,
+  },
   {
     type: IntegrationType.WorkflowNode,
     sub_type: 'core.trigger.manual',

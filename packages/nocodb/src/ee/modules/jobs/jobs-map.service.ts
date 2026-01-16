@@ -28,6 +28,7 @@ import { ReseatSubscriptionProcessor } from '~/modules/jobs/jobs/reseat-subscrip
 import { WorkflowProcessor } from '~/modules/jobs/jobs/workflow/workflow.processor';
 import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow/workflow-schedule.processor';
 import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow/workflow-resume.processor';
+import { WorkflowTestProcessor } from '~/modules/jobs/jobs/workflow/workflow-test.processor';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {
@@ -60,6 +61,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly workflowProcessor: WorkflowProcessor,
     protected readonly workflowScheduleProcessor: WorkflowScheduleProcessor,
     protected readonly workflowResumeProcessor: WorkflowResumeProcessor,
+    protected readonly workflowTestProcessor: WorkflowTestProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -154,8 +156,12 @@ export class JobsMap extends JobsMapCE {
         this: this.workflowResumeProcessor,
       },
       [JobTypes.TestWorkflowNode]: {
-        this: this.workflowProcessor,
+        this: this.workflowTestProcessor,
         fn: 'testWorkflowNode',
+      },
+      [JobTypes.HeartbeatWorkflow]: {
+        this: this.workflowProcessor,
+        fn: 'heartbeatWorkflow',
       },
     };
   }

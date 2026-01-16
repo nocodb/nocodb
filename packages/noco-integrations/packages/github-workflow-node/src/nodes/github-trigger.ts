@@ -3,6 +3,7 @@ import {
   FormBuilderValidatorType,
   IntegrationType,
   TriggerActivationType,
+  TriggerTestMode,
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
@@ -91,6 +92,7 @@ export class GitHubTriggerNode extends WorkflowNodeIntegration<GitHubTriggerConf
       hidden: true,
       category: WorkflowNodeCategory.TRIGGER,
       activationType: TriggerActivationType.WEBHOOK,
+      testModes: [TriggerTestMode.SAMPLE_DATA, TriggerTestMode.TRIGGER_EVENT],
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
       keywords: ['trigger', 'github', 'webhook', 'repository', 'event'],

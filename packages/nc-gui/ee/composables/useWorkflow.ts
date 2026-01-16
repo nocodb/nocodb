@@ -1,5 +1,5 @@
 import type { IWorkflowExecution, WorkflowGeneralNode, WorkflowType } from 'nocodb-sdk'
-import { GENERAL_DEFAULT_NODES, GeneralNodeID, INIT_WORKFLOW_NODES } from 'nocodb-sdk'
+import { GENERAL_DEFAULT_NODES, GeneralNodeID, INIT_WORKFLOW_NODES, TriggerActivationType } from 'nocodb-sdk'
 import type { Edge, Node } from '@vue-flow/core'
 import rfdc from 'rfdc'
 import {
@@ -9,7 +9,7 @@ import {
   findParentNodesNeedingPlusNodes,
   getNodeOutputPorts,
 } from '~/utils/workflowGraphUtils'
-import { filterNodesByPermission, getSourceNodesAndEdges } from '~/utils/workflowUtils'
+import { filterNodesByPermission, generateTriggerId, getSourceNodesAndEdges } from '~/utils/workflowUtils'
 
 const clone = rfdc()
 
@@ -320,14 +320,22 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       if (!nodeMeta) return
       const uniqueTitle = generateUniqueNodeTitle(nodeMeta, nodes.value)
 
-      // Update the node with unique title
+      // Update the node with unique title and generate triggerId for webhook triggers
       const nodeIndex = nodes.value.findIndex((n) => n.id === nodeId)
       if (nodeIndex !== -1 && nodes.value[nodeIndex]) {
+        const additionalData: Record<string, any> = {}
+
+        // Generate triggerId for webhook triggers so URL is available immediately
+        if (nodeMeta.activationType === TriggerActivationType.WEBHOOK) {
+          additionalData.triggerId = generateTriggerId()
+        }
+
         nodes.value[nodeIndex] = {
           ...nodes.value[nodeIndex],
           data: {
             ...nodes.value[nodeIndex].data,
             title: uniqueTitle,
+            ...additionalData,
           },
         }
       }
@@ -525,7 +533,14 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
     }
   }
 
-  const testExecuteNode = async (nodeId: string, testTriggerData?: any) => {
+  /**
+   * Test execute a node - auto-detects whether to use webhook listening or standard test
+   * @param nodeId - The node ID to test
+   * @param testTriggerData - Optional test data for standard nodes
+   * @param testMode - Optional test mode to force (SAMPLE_DATA, LISTEN_WEBHOOK, TRIGGER_EVENT)
+   * @returns Promise that resolves with test result
+   */
+  const testExecuteNode = async (nodeId: string, testTriggerData?: any, testMode?: string) => {
     if (!activeWorkspaceId.value || !activeProjectId.value || !workflow.value) return
 
     try {
@@ -539,6 +554,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
           workflowId: workflow.value.id,
           nodeId,
           testTriggerData,
+          ...(testMode && { testMode }),
         },
       )
 
@@ -557,15 +573,16 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
             if (data.status !== 'close') {
               if (data.status === JobStatus.COMPLETED) {
                 const result = data.data?.result
-                updateNodeTestResult(nodeId, result)
+                const resultWithMode = { ...result, testMode }
+                updateNodeTestResult(nodeId, resultWithMode)
                 if (result?.status === 'error') {
                   reject(new Error(result.error || 'Test execution failed'))
                 } else {
-                  resolve(result)
+                  resolve(resultWithMode)
                 }
               } else if (data.status === JobStatus.FAILED) {
                 const error = data.data?.error?.message || 'Test execution failed'
-                updateNodeTestResult(nodeId, { status: 'error', error })
+                updateNodeTestResult(nodeId, { status: 'error', error, testMode })
                 reject(new Error(error))
               }
             }
@@ -576,6 +593,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
       updateNodeTestResult(nodeId, {
         status: 'error',
         error: await extractSdkResponseErrorMsgv2(e),
+        testMode,
       })
       console.error('[Workflow] Test execution error:', e)
       throw e

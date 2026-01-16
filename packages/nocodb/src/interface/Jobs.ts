@@ -290,6 +290,9 @@ export interface TestWorkflowNodeJobData extends JobData {
   workflowId: string;
   nodeId: string;
   testTriggerData?: any;
+  testMode?: string; // Force specific test mode: SAMPLE_DATA, LISTEN_WEBHOOK, TRIGGER_EVENT
+  timeoutMs?: number;
+  req?: NcRequest;
 }
 
 export interface HeartbeatWorkflowJobData extends JobData {

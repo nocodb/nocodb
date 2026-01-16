@@ -7,7 +7,7 @@ import {
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
-import { APP_LABEL } from '../constant';
+import { APP_LABEL, NODE_SUBTYPE_NEW_EVENT } from '../constant';
 import type {
   WorkflowActivationContext,
   WorkflowActivationState,
@@ -19,12 +19,12 @@ import type {
 } from '@noco-integrations/core';
 import type { GoogleCalendarAuthIntegration } from '@noco-integrations/google-calendar-auth';
 import type { calendar_v3 } from 'googleapis';
-interface GoogleCalendarTriggerNodeConfig extends WorkflowNodeConfig {
+interface NewEventWebhookNodeConfig extends WorkflowNodeConfig {
   authIntegrationId: string;
   calendar: string;
 }
 
-export class GoogleCalendarTriggerNode extends WorkflowNodeIntegration<GoogleCalendarTriggerNodeConfig> {
+export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhookNodeConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
     const form: FormDefinition = [
       {
@@ -61,9 +61,9 @@ export class GoogleCalendarTriggerNode extends WorkflowNodeIntegration<GoogleCal
     ];
 
     return {
-      id: 'google_calendar.trigger',
-      title: 'Google Calendar Trigger',
-      description: 'Trigger an event via Google Calendar',
+      id: NODE_SUBTYPE_NEW_EVENT,
+      title: `${APP_LABEL} New Event Webhook`,
+      description: 'Trigger an event via Google Calendar webhook on new event',
       icon: 'googleCalendar',
       category: WorkflowNodeCategory.TRIGGER,
       activationType: TriggerActivationType.WEBHOOK,
@@ -183,7 +183,7 @@ export class GoogleCalendarTriggerNode extends WorkflowNodeIntegration<GoogleCal
   }
 
   public async run(
-    ctx: WorkflowNodeRunContext<GoogleCalendarTriggerNodeConfig>,
+    ctx: WorkflowNodeRunContext<NewEventWebhookNodeConfig>,
   ): Promise<WorkflowNodeResult> {
     const logs: WorkflowNodeLog[] = [];
     const startTime = Date.now();

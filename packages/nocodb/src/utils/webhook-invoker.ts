@@ -161,8 +161,8 @@ export class WebhookInvoker {
       ...(process.env.NC_ALLOW_LOCAL_HOOKS !== 'true' &&
       !ncIsNullOrUndefined(url)
         ? {
-            httpAgent: useAgent(url, {}),
-            httpsAgent: useAgent(url, {}),
+            httpAgent: useAgent(url),
+            httpsAgent: useAgent(url),
           }
         : {}),
       timeout: 30 * 1000,

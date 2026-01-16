@@ -126,23 +126,6 @@ export class GmailAuthIntegration extends AuthIntegration<
     refresh_token?: string;
     expires_in?: number;
   }> {
-    const params = new URLSearchParams();
-    params.append('grant_type', 'refresh_token');
-    params.append('refresh_token', payload.refresh_token);
-    params.append('client_id', clientId!);
-    params.append('client_secret', clientSecret!);
-
-    const response = await axios.post(tokenUri, params.toString(), {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Accept: 'application/json',
-      },
-    });
-
-    return {
-      oauth_token: response.data.access_token,
-      refresh_token: response.data.refresh_token || payload.refresh_token,
-      expires_in: response.data.expires_in,
-    };
+    return payload as any;
   }
 }

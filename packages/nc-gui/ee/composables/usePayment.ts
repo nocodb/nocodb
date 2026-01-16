@@ -190,6 +190,11 @@ const [useProvidePaymentStore, usePaymentStore] = useInjectionState(() => {
 
     const price = getPrice(plan, mode) || plan.prices[0]
 
+    if (!price) {
+      console.error('No price found for plan', plan)
+      return 0
+    }
+
     if (price.billing_scheme === 'tiered' && price.tiers_mode === 'volume') {
       const tier = price.tiers.find((tier: any) => workspaceOrOrgSeatCount.value <= (tier.up_to ?? Infinity))
 

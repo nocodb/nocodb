@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, EventType, type NotificationType } from 'nocodb-sdk';
 import { NotificationsService as NotificationsServiceCE } from 'src/services/notifications/notifications.service';
 import { TeamUserRoles } from 'nocodb-sdk';
 import type { BaseType } from 'nocodb-sdk';
@@ -16,6 +16,7 @@ import type {
   BaseTeamInviteEvent,
   WorkspaceTeamInviteEvent,
 } from '~/services/app-hooks/interfaces';
+import type { NcRequest } from '~/interface/config';
 import { extractMentions } from '~/utils/richTextHelper';
 import { DatasService } from '~/services/datas.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -23,6 +24,7 @@ import {
   Base,
   BaseUser,
   Column,
+  Notification,
   PrincipalAssignment,
   User,
   Workspace,
@@ -30,6 +32,7 @@ import {
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
 import { PrincipalType, ResourceType } from '~/utils/globals';
+import NocoSocket from '~/socket/NocoSocket';
 
 @Injectable()
 export class NotificationsService extends NotificationsServiceCE {
@@ -94,6 +97,27 @@ export class NotificationsService extends NotificationsServiceCE {
     this.appHooks.on(AppEvents.TEAM_MEMBER_ADD, (data) =>
       this.hookHandler({ event: AppEvents.TEAM_MEMBER_ADD, data }),
     );
+  }
+
+  /**
+   * Override insertNotification to use WebSocket instead of long polling
+   */
+  protected async insertNotification(
+    insertData: Partial<Notification>,
+    _req: NcRequest,
+  ) {
+    // Insert notification into database
+    await Notification.insert(insertData);
+
+    // Emit notification via WebSocket to the specific user
+    // Send the same data that long polling was sending (insertData, not the DB return value)
+    NocoSocket.broadcastEventToUser(insertData.fk_user_id, {
+      event: EventType.NOTIFICATION_EVENT,
+      payload: {
+        action: 'create',
+        payload: insertData as Partial<NotificationType>,
+      },
+    });
   }
 
   protected async hookHandler({

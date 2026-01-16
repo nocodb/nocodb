@@ -45,6 +45,8 @@ export const useRealtime = createSharedComposable(() => {
 
   const { baseExtensions, Extension } = useExtensions()
 
+  const notificationStore = useNotification()
+
   const activeUserListener = ref<string | null>(null)
   const activeBaseMetaListener = ref<string | null>(null)
   const activeScriptListener = ref<string | null>(null)
@@ -546,6 +548,12 @@ export const useRealtime = createSharedComposable(() => {
   }
 
   const handleUserEvent = async (event: any) => {
+    // Handle notification events
+    if (event.event === EventType.NOTIFICATION_EVENT && event.action === 'create' && event.payload) {
+      notificationStore.handleRealtimeNotification(event.payload)
+      return
+    }
+
     // workspace ops
     if (event.action === 'workspace_user_add') {
       const { workspace } = event.payload

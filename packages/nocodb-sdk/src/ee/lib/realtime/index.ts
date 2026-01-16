@@ -15,6 +15,7 @@ import {
   CommentPayload,
   MetaPayload,
   UserEventPayload,
+  NotificationPayload,
   SocketEventPayload as SocketEventPayloadOSS,
   SocketEventPayloadMap as SocketEventPayloadMapOSS,
 } from 'src/lib/realtime';
@@ -29,6 +30,7 @@ export {
   CommentPayload,
   MetaPayload,
   UserEventPayload,
+  NotificationPayload,
 };
 
 export interface DashboardPayload extends BaseSocketPayload {

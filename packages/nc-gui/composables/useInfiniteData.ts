@@ -643,10 +643,15 @@ export function useInfiniteData(args: {
       const response = !isPublic?.value
         ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id!, {
             ...params,
-            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
+            ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value?.filter((s) => !s.id)) }),
             ...(isUIAllowed('filterSync')
               ? { filterArrJson: stringifyFilterOrSortArr(jsonWhereFilterArr) }
-              : { filterArrJson: stringifyFilterOrSortArr([...(nestedFilters.value || []), ...jsonWhereFilterArr]) }),
+              : {
+                  filterArrJson: stringifyFilterOrSortArr([
+                    ...(nestedFilters.value || []).filter((f) => !f.id),
+                    ...jsonWhereFilterArr,
+                  ]),
+                }),
             includeSortAndFilterColumns: true,
             where: whereFilter,
             include_row_color: true,

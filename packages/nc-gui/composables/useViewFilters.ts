@@ -49,12 +49,13 @@ export function useViewFilters(
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
-  const { nestedFilters, isForm, allFilters } =
+  const { nestedFilters, isForm, allFilters, isLocked } =
     isWidget || isWorkflow
       ? {
           nestedFilters: ref([]),
           isForm: ref(false),
           allFilters: ref([]),
+          isLocked: ref(false),
         }
       : useSmartsheetStoreOrThrow()
 
@@ -74,7 +75,9 @@ export function useViewFilters(
 
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
-  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenList'))
+  const nestedMode = computed(
+    () => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenList') || isLocked.value,
+  )
 
   // Tracks if any filter has been updated - used for webhook save state management
   const isFilterUpdated = ref<boolean>(false)
@@ -150,7 +153,8 @@ export function useViewFilters(
 
   const activeView = inject(ActiveViewInj, ref())
 
-  const { showSystemFields } = widgetId?.value || isWorkflow ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
+  const { showSystemFields, fieldsMap, isLocalMode } =
+    widgetId?.value || isWorkflow ? { showSystemFields: ref(false), fieldsMap: ref({}) } : useViewColumnsOrThrow()
 
   const options = computed<SelectProps['options']>(() =>
     meta.value?.columns?.filter((c: ColumnType) => {
@@ -263,7 +267,7 @@ export function useViewFilters(
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
 
     const defaultColumn = fieldsToFilter?.value?.find((col) => {
-      return !isSystemColumn(col)
+      return !isSystemColumn(col) && !(fieldsMap.value[col.id] && !fieldsMap.value[col.id]?.initialShow)
     })
 
     const filter: ColumnFilterType = {
@@ -374,7 +378,11 @@ export function useViewFilters(
   } = {}) => {
     if (!view.value?.id || !meta.value) return
 
-    if (nestedMode.value || (isForm.value && !isWebhook) || isWorkflow) {
+    if (
+      (nestedMode.value && (isPublic.value || !isUIAllowed('filterChildrenList'))) ||
+      (isForm.value && !isWebhook) ||
+      isWorkflow
+    ) {
       // ignore restoring if not root filter group
       return
     }

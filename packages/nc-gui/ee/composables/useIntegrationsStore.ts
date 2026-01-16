@@ -196,11 +196,20 @@ const [useProvideIntegrationViewStore, _useIntegrationStore] = useInjectionState
       return integrationForms[integrationIdentifier({ type, sub_type: subType })]
     }
 
-    const integrationInfo = await $api.integrations.info(type, subType)
+    try {
+      const integrationInfo = await $api.integrations.info(type, subType)
 
-    if (integrationInfo?.form) {
-      integrationForms[integrationIdentifier({ type, sub_type: subType })] = integrationInfo.form
-      return integrationInfo.form
+      if (integrationInfo?.form) {
+        integrationForms[integrationIdentifier({ type, sub_type: subType })] = integrationInfo.form
+        return integrationInfo.form
+      }
+    } catch (e: any) {
+      console.error('Failed to get integration form', e)
+      const errorMsg = await extractSdkResponseErrorMsg(e)
+
+      message.error(`Failed to get ${type} - ${subType} integration form`, undefined, {
+        copyText: errorMsg,
+      })
     }
 
     return null

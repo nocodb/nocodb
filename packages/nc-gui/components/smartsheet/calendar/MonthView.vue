@@ -433,7 +433,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
   const week = Math.floor(percentY * calendarData.value.weeks.length)
   const day = Math.floor(percentX * maxVisibleDays.value)
 
-  let newStartDate = calendarData.value.weeks[week] ? calendarData.value.weeks[week].days[day].date : null
+  let newStartDate = calendarData.value.weeks[week] ? calendarData.value.weeks[week].days[day]?.date : null
 
   if (!newStartDate) return { newRow: null, updateProperty: [] }
 
@@ -554,8 +554,10 @@ const onResize = (event: MouseEvent) => {
       },
     }
   } else {
-    let newStartDate = calendarData.value.weeks[week] ? calendarData.value.weeks[week].days[day].date : null
+    let newStartDate = calendarData.value.weeks[week] ? calendarData.value.weeks[week].days[day]?.date : null
     updateProperty = [fromCol!.title!]
+
+    if (!newStartDate) return
 
     if (timezoneDayjs.dayjsTz(newStartDate).isAfter(ogEndDate)) {
       newStartDate = timezoneDayjs.dayjsTz(ogEndDate).clone()

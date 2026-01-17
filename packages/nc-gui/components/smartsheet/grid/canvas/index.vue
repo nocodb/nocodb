@@ -430,7 +430,7 @@ const isDropdownVisible = computed({
   set(value) {
     // block closing editOrAddMenu if it needs to be keep open
     // for example while saving/updating column it needs to be in open state to avoid partial save
-    if (!value && _isCreateOrEditColumnDropdownOpen.value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen()) {
+    if (!value && _isCreateOrEditColumnDropdownOpen.value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
       return
     }
     _isDropdownVisible.value = value
@@ -444,7 +444,7 @@ const isCreateOrEditColumnDropdownOpen = computed({
   set(value) {
     // block closing editOrAddMenu if it needs to be keep open
     // for example while saving/updating column it needs to be in open state to avoid partial save
-    if (!value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen()) {
+    if (!value && columnEditOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
       return
     }
     _isCreateOrEditColumnDropdownOpen.value = value
@@ -748,7 +748,7 @@ const onVisibilityChange = (value: boolean) => {
   if (value) {
     isDropdownVisible.value = true
   } else if (isCreateOrEditColumnDropdownOpen.value) {
-    const keepOpen = columnEditOrAddProviderRef.value?.shouldKeepModalOpen()
+    const keepOpen = columnEditOrAddProviderRef.value?.shouldKeepModalOpen?.()
     isDropdownVisible.value = keepOpen
     isCreateOrEditColumnDropdownOpen.value = keepOpen
     if (!keepOpen) {

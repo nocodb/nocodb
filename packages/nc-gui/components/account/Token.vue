@@ -351,7 +351,7 @@ const handleCancel = () => {
                     {{ el.created_by }}
                   </GeneralTruncateText>
                 </span>
-                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-3/9">
+                <span class="text-nc-content-gray-muted font-medium text-3.5 text-start w-3/9 truncate">
                   <GeneralTruncateText v-if="el.token === selectedToken.id && selectedToken.isShow" placement="top" :length="29">
                     {{ el.token }}
                   </GeneralTruncateText>

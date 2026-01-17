@@ -1297,7 +1297,7 @@ const editOrAddProviderRef = ref()
 
 const onVisibilityChange = () => {
   addColumnDropdown.value = true
-  if (!editOrAddProviderRef.value?.shouldKeepModalOpen()) {
+  if (!editOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
     addColumnDropdown.value = false
     persistMenu.value = altModifier.value
   }

@@ -62,22 +62,26 @@ async function handleRouteTypeIdChange() {
     return
   }
 
-  // avoid loading bases for shared base
-  if (route.value.params.typeOrId === 'base') {
+  try {
+    // avoid loading bases for shared base
+    if (route.value.params.typeOrId === 'base') {
+      await populateWorkspace()
+      return
+    }
+
+    if (!signedIn.value) {
+      navigateTo('/signIn')
+      return
+    }
+
+    // Load bases
     await populateWorkspace()
-    return
-  }
 
-  if (!signedIn.value) {
-    navigateTo('/signIn')
-    return
-  }
-
-  // Load bases
-  await populateWorkspace()
-
-  if (!route.value.params.baseId && basesList.value.length > 0) {
-    await autoNavigateToProject()
+    if (!route.value.params.baseId && basesList.value.length > 0) {
+      await autoNavigateToProject()
+    }
+  } catch (e: any) {
+    console.error(e)
   }
 }
 

@@ -1393,26 +1393,30 @@ const unique = computed({
             <!-- Unique Constraint Toggle -->
             <div
               v-if="
-                isXcdbBase(meta!.source_id) &&
+                isXcdbBase(meta?.source_id) &&
                 !isVirtualCol(formState) &&
-                isUniqueConstraintSupportedType(formState.uidt, formState.meta) && isEeUI"
+                isUniqueConstraintSupportedType(formState.uidt, formState.meta) &&
+                isEeUI
+              "
               class="flex"
             >
               <NcTooltip
-                :disabled="canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable || onMouseOverUniqueValuesInfoIcon"
+                :disabled="
+                  canEnableUniqueConstraint(formState, isXcdbBase(meta?.source_id)).canEnable || onMouseOverUniqueValuesInfoIcon
+                "
                 placement="right"
                 class="flex gap-1 items-center"
               >
                 <template #title>
                   <div class="max-w-xs">
-                    {{ canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).reason }}
+                    {{ canEnableUniqueConstraint(formState, isXcdbBase(meta?.source_id)).reason }}
                   </div>
                 </template>
                 <NcSwitch
                   v-model:checked="unique"
                   size="small"
                   class="nc-switch"
-                  :disabled="!canEnableUniqueConstraint(formState, isXcdbBase(meta!.source_id)).canEnable"
+                  :disabled="!canEnableUniqueConstraint(formState, isXcdbBase(meta?.source_id)).canEnable"
                 >
                   <div class="text-sm text-nc-content-gray inline-flex items-center gap-1">
                     <span>{{ $t('labels.uniqueValuesOnly') }}</span>
@@ -1466,8 +1470,8 @@ const unique = computed({
               v-else-if="
                 !isVirtualCol(formState) &&
                 !isAttachment(formState) &&
-                !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
-                !isDatabricks(meta!.source_id) &&
+                !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState))) &&
+                !isDatabricks(meta?.source_id) &&
                 formState.unique &&
                 !isAI(formState)
               "
@@ -1483,12 +1487,12 @@ const unique = computed({
             </NcTooltip>
             <LazySmartsheetColumnDefaultValue
               v-else-if="
-          !isVirtualCol(formState) &&
-          !isAttachment(formState) &&
-          !(isMysql(meta!.source_id) && (isJSON(formState) || isTextArea(formState))) &&
-          !isDatabricks(meta!.source_id) &&
-          !isAI(formState)
-          "
+                !isVirtualCol(formState) &&
+                !isAttachment(formState) &&
+                !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState))) &&
+                !isDatabricks(meta?.source_id) &&
+                !isAI(formState)
+              "
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"
             />
@@ -1496,7 +1500,12 @@ const unique = computed({
           <template v-if="easterEgg || (appInfo.ee && isAttachment(formState))">
             <!-- TODO: Refactor the if condition and verify AttachmentOption -->
             <div
-              v-if="!props.hideAdditionalOptions && !isVirtualCol(formState.uidt)&&!(!appInfo.ee && isAttachment(formState)) && (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta!.source_id) && formState.uidt === UITypes.SpecificDBType))"
+              v-if="
+                !props.hideAdditionalOptions &&
+                !isVirtualCol(formState.uidt) &&
+                !(!appInfo.ee && isAttachment(formState)) &&
+                (!appInfo.ee || (appInfo.ee && !isXcdbBase(meta?.source_id) && formState.uidt === UITypes.SpecificDBType))
+              "
               class="text-xs text-nc-content-gray-disabled flex items-center justify-end"
             >
               <div

@@ -352,6 +352,9 @@ whenever(keys.arrowup, () => {
 whenever(keys.arrowdown, () => {
   if (vOpen.value) {
     const idx = searchedActionList.value.findIndex((el) => el.id === selected.value)
+
+    if (idx === -1 || searchedActionList.value.length === 0) return
+
     if (idx < searchedActionList.value.length - 1) {
       setAction(searchedActionList.value[idx + 1].id)
     } else if (idx === searchedActionList.value.length - 1) {

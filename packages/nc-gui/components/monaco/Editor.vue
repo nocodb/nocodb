@@ -257,8 +257,12 @@ watch(vModel, (v) => {
 
   const editorValue = editor?.getValue()
   if (!disableDeepCompare && lang === 'json') {
-    if (!editorValue || !deepCompare(JSON.parse(v), JSON.parse(editorValue))) {
-      editor.setValue(v)
+    try {
+      if (!editorValue || !deepCompare(JSON.parse(v), JSON.parse(editorValue))) {
+        editor.setValue(v)
+      }
+    } catch (e) {
+      console.error('Failed to parse JSON:', e)
     }
   } else {
     if (editorValue !== v) editor.setValue(v)

@@ -65,6 +65,10 @@ export interface FormBuilderSelectOption {
   ncItemDisabled?: boolean;
   /** Reason for the disabled state **/
   ncItemTooltip?: string;
+  /**
+   * Icon for the option (IconMapKey)
+   */
+  icon?: string;
 }
 
 /**
@@ -131,6 +135,11 @@ interface FormBuilderElementBase {
   border?: boolean;
   /** Show hint as tooltip instead of inline text */
   showHintAsTooltip?: boolean;
+  /**
+   * Just to show required asterisk in label
+   * @note: Use required field validator along with this to ensure field is required
+   * */
+  required?: boolean;
   /** Validators for field validation */
   validators?: FormBuilderValidator[];
   /** Model path(s) this field depends on - when dependency changes, options are reloaded */

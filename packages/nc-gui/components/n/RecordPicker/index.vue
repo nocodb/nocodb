@@ -118,11 +118,11 @@ const loadMetas = async () => {
       viewMeta.value = findViews().find((v) => v.id === props.viewId)
 
       if (!viewMeta.value) {
-        await loadViews({ tableId: props.tableId, force: true })
+        await loadViews({ tableId: props.tableId, baseId: effectiveBaseId!, force: true })
         viewMeta.value = findViews().find((v) => v.id === props.viewId)
       }
     } else {
-      await loadViews({ tableId: props.tableId, force: true })
+      await loadViews({ tableId: props.tableId, baseId: effectiveBaseId!, force: true })
       viewMeta.value = getFirstNonPersonalView(findViews(), {
         includeViewType: ViewTypes.GRID,
       })

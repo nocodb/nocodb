@@ -84,7 +84,8 @@ async function onOpenModal({
 
   isViewListLoading.value = true
   await loadViews({
-    tableId: table.value.id!,
+    tableId: table.value?.id as string,
+    baseId: base.value.id!,
   })
 
   isOpen.value = false

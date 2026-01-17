@@ -1,49 +1,38 @@
+import { nanoid } from 'nanoid';
 import {
   extractFilterFromXwhere,
   isOrderCol,
   NcApiVersion,
   UITypes,
 } from 'nocodb-sdk';
-import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
-import type { DBQueryClient } from '~/dbQueryClient/types';
+import type { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import type { Source, View } from '~/models';
-import NocoCache from '~/cache/NocoCache';
-import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
-import { _wherePk, extractSortsObject, getListArgs } from '~/db/BaseModelSqlv2';
-import conditionV2 from '~/db/conditionV2';
-import sortV2 from '~/db/sortV2';
-import { parseHrtimeToMilliSeconds } from '~/helpers';
-import { haveFormulaColumn } from '~/helpers/dbHelpers';
-import getAst from '~/helpers/getAst';
-import { PagedResponseImpl } from '~/helpers/PagedResponse';
-import { Filter, Model, Sort } from '~/models';
+import type { DBQueryClient } from '~/dbQueryClient/types';
 import {
   checkForCurrentUserFilters,
   checkForStaticDateValFilters,
   shouldSkipCache,
 } from '~/services/data-opt/common-helpers';
+import NocoCache from '~/cache/NocoCache';
+import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import { _wherePk, extractSortsObject, getListArgs } from '~/db/BaseModelSqlv2';
+import conditionV2 from '~/db/conditionV2';
+import sortV2 from '~/db/sortV2';
+import { getDataWithCountCache } from '~/dbQueryClient/cross-db-utils/get-data-with-count-cache';
+import { haveFormulaColumn } from '~/helpers/dbHelpers';
+import getAst from '~/helpers/getAst';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { Profiler } from '~/helpers/profiler';
+import { Filter, Model, Sort } from '~/models';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { isTransientError } from '~/helpers/db-error/utils';
 
-// generate a unique placeholder which is not present in the string
-function getUniquePlaceholders(
-  searchWithin: string,
-  initialVal = '__nc_placeholder__',
-) {
-  let placeholder = initialVal;
-  let i = 0;
-  while (searchWithin.includes(placeholder)) {
-    placeholder = initialVal + ++i;
-  }
-  return placeholder;
-}
-
-export const list = (client: DBQueryClient, _logger: Logger) => {
-  async function singleQueryList(
+export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
+  async function list(
     context: NcContext,
     ctx: {
       model: Model;
@@ -66,10 +55,12 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
   ): Promise<
     PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
   > {
-    if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
-      throw new Error('Source is not mysql');
-    }
+    client.validateClientType(ctx.source.type);
 
+    const profiler = Profiler.start(client.clientType + ': singleQueryList');
+    const excludeCount = ctx.params?.excludeCount;
+
+    let dbQueryTime;
     let skipCache = shouldSkipCache(ctx);
 
     const listArgs = getListArgs(ctx.params ?? {}, ctx.model);
@@ -79,48 +70,72 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
     // get knex connection
     const knex = await NcConnectionMgrv2.get(ctx.source);
 
-    const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
-      ctx.view?.id ?? 'default'
-    }:queries`;
-
-    await ctx.model.getColumns(context);
-    let dbQueryTime;
-
     const baseModel =
       ctx.baseModel ||
       (await Model.getBaseModelSQL(context, {
-        model: ctx.model,
+        id: ctx.model.id,
         viewId: ctx.view?.id,
         dbDriver: knex,
       }));
+
+    const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
+      ctx.view?.id ?? 'default'
+    }:queries`;
+    const countCacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
+      ctx.view?.id ?? 'default'
+    }:count`;
+
     if (!skipCache) {
       const cachedQuery = await NocoCache.get(
         context,
         cacheKey,
         CacheGetType.TYPE_STRING,
       );
-      if (cachedQuery) {
-        const startTime = process.hrtime();
-        const res = await baseModel.execAndParse(
-          knex.raw(cachedQuery, [+listArgs.limit, +listArgs.offset]).toQuery(),
-          null,
-          {
-            skipSubstitutingColumnIds:
-              context.api_version === NcApiVersion.V3 &&
-              ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-            apiVersion: ctx.apiVersion,
+      const cachedCountQuery = await NocoCache.get(
+        context,
+        countCacheKey,
+        CacheGetType.TYPE_STRING,
+      );
+      if (cachedQuery && cachedCountQuery) {
+        profiler.log('get data using cache');
+        const [countRes, res] = await getDataWithCountCache(context, {
+          query: cachedQuery,
+          countQuery: cachedCountQuery,
+          limit: +listArgs.limit,
+          offset: +listArgs.offset,
+          knex,
+          countCacheKey,
+          skipCache,
+          excludeCount,
+          recordQueryTime: (time: string) => {
+            dbQueryTime = time;
           },
-        );
-        dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
+          apiVersion: ctx.apiVersion,
+          baseModel,
+          skipSubstitutingColumnIds:
+            context.api_version === NcApiVersion.V3 &&
+            ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+        });
 
+        // if count is less than the actual result length then reset the count cache
+        if (
+          countRes !== undefined &&
+          countRes !== null &&
+          countRes < res.length
+        ) {
+          await NocoCache.del(context, countCacheKey);
+          logger.warn(
+            'Invalid count query cache deleted. Query: ' + cachedCountQuery,
+          );
+        }
+        profiler.end();
         if (ctx.skipPaginateWrapper) {
           return res.map(({ __nc_count, ...rest }) => rest);
         }
-
         return new PagedResponseImpl(
           res.map(({ __nc_count, ...rest }) => rest),
           {
-            count: +res[0]?.__nc_count || 0,
+            count: countRes,
             limit: +listArgs.limit,
             offset: +listArgs.offset,
             limitOverride: +ctx.limitOverride,
@@ -145,6 +160,7 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
     // handle shuffle if query param preset
     if (+listArgs?.shuffle) {
       await baseModel.shuffle({ qb: rootQb });
+      ctx.skipSortBasedOnOrderCol = true;
     }
 
     if (listArgs.pks) {
@@ -157,7 +173,8 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
       });
     }
 
-    const aliasColObjMap = await ctx.model.getAliasColObjMap(context);
+    profiler.log('getAliasColObjMap');
+    const aliasColObjMap = await ctx.model.getAliasColObjMap(context, columns);
     let sorts = extractSortsObject(
       context,
       listArgs?.sort,
@@ -180,10 +197,11 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
 
     let viewFilters: Filter[] = [];
 
-    if (ctx.view?.id && !ctx.ignoreViewFilterAndSort)
+    if (ctx.view?.id && !ctx.ignoreViewFilterAndSort) {
       viewFilters = await Filter.rootFilterList(context, {
         viewId: ctx.view?.id,
       });
+    }
 
     if (viewFilters?.length && checkForStaticDateValFilters(viewFilters)) {
       skipCache = true;
@@ -223,11 +241,11 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
     ) {
       skipCache = true;
     }
+    profiler.log('apply condition');
 
     // apply filters on root query and count query
     await conditionV2(baseModel, aggrConditionObj, rootQb);
     await conditionV2(baseModel, aggrConditionObj, countQb);
-
     const orderColumn = columns.find((c) => isOrderCol(c));
 
     // apply sort on root query
@@ -253,34 +271,26 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
         );
         if (createdAtColumn) {
           rootQb.orderBy(createdAtColumn.column_name);
-        } else if (ctx.model.primaryKey) {
+        } /*else if (ctx.model.primaryKey) {
           rootQb.orderBy(ctx.model.primaryKey.column_name);
-        }
+        }*/
       }
-    }
-
-    if (listArgs.pks) {
-      const pks = listArgs.pks.split(',');
-      rootQb.where((qb) => {
-        pks.forEach((pk) => {
-          qb.orWhere(_wherePk(ctx.model.primaryKeys, pk));
-        });
-        return qb;
-      });
     }
 
     const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
+    profiler.log('get ast');
     const { ast } = await getAst(context, {
       query: ctx.params,
       model: ctx.model,
       view: ctx.view,
-      getHiddenColumn: ctx.getHiddenColumns,
       throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
       apiVersion: ctx.apiVersion,
       includeSortAndFilterColumns: ctx.includeSortAndFilterColumns,
+      getHiddenColumn: ctx.getHiddenColumns,
       includeRowColorColumns: ctx.params.include_row_color === 'true',
     });
+    profiler.log('extract column');
 
     await client.extractColumns({
       columns,
@@ -292,9 +302,9 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
       ast,
       throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
       validateFormula: ctx.validateFormula,
+      alias: ROOT_ALIAS,
       apiVersion: ctx.apiVersion,
     });
-
     if (!ctx.ignorePagination) {
       if (ctx.limitOverride) {
         rootQb.limit(ctx.limitOverride);
@@ -309,7 +319,7 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
         rootQb.offset(9999);
       }
     }
-
+    profiler.log('apply sort');
     // apply the sort on final query to get the result in correct order
     if (sorts?.length) await sortV2(baseModel, sorts, qb, ROOT_ALIAS);
 
@@ -319,7 +329,6 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
         qb.orderBy(orderColumn.column_name);
       }
     }
-
     // ignore stable sorting / sort by created time when shuffle
     if (!+listArgs?.shuffle) {
       // Ensure stable ordering:
@@ -328,35 +337,32 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
       // This avoids issues when order column has duplicates
       if (ctx.model.primaryKey && ctx.model.primaryKey.ai) {
         qb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
-      } else if (
-        ctx.model.columns.find((c) => c.column_name === 'created_at')
-      ) {
-        qb.orderBy(`${ROOT_ALIAS}.created_at`);
+      } else {
+        const createdAtColumn = ctx.model.columns.find(
+          (c) => c.uidt === UITypes.CreatedTime && c.system,
+        );
+        if (createdAtColumn) {
+          qb.orderBy(`${ROOT_ALIAS}.${createdAtColumn.column_name}`);
+        }
+        /*else if (ctx.model.primaryKey) {
+          rootQb.orderBy(`${ROOT_ALIAS}.${ctx.model.primaryKey.column_name}`);
+        }*/
       }
     }
 
-    const finalQb = qb.select(countQb.as('__nc_count'));
+    // const finalQb = qb.select(countQb.as('__nc_count'));
+    const finalQb = qb;
     knex.applyCte(finalQb);
-
-    let res: any;
-    if (skipCache) {
-      const startTime = process.hrtime();
-      res = await baseModel.execAndParse(finalQb, undefined, {
-        apiVersion: ctx.apiVersion,
-        skipSubstitutingColumnIds:
-          context.api_version === NcApiVersion.V3 &&
-          ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-      });
-      dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-    } else {
+    let dataQuery = finalQb.toQuery();
+    if (!skipCache) {
       const { sql, bindings } = finalQb.toSQL();
 
       // get unique placeholder for limit and offset which is not present in query
-      const placeholder = getUniquePlaceholders(finalQb.toQuery());
+      const placeholder = nanoid();
 
       // bind all params and replace limit and offset with placeholders
       // and in generated sql replace placeholders with bindings
-      const query = knex
+      dataQuery = knex
         .raw(sql, [...bindings.slice(0, -2), placeholder, placeholder])
         .toQuery()
         // escape any `?` in the query to avoid replacing them with bindings
@@ -365,57 +371,67 @@ export const list = (client: DBQueryClient, _logger: Logger) => {
           `limit '${placeholder}' offset '${placeholder}'`,
           'limit ? offset ?',
         );
+    }
+    profiler.log('get data without cache');
 
-      const startTime = process.hrtime();
-      // run the query with actual limit and offset
-      try {
-        res = await baseModel.execAndParse(
-          knex.raw(query, [+listArgs.limit, +listArgs.offset]).toQuery(),
-          undefined,
-          {
-            apiVersion: ctx.apiVersion,
-            skipSubstitutingColumnIds:
-              context.api_version === NcApiVersion.V3 &&
-              ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-          },
-        );
-      } catch (e) {
-        // Check if this is a transient error (connection/timeout issue)
-        const isTransient = isTransientError(e);
+    let count, res;
+    try {
+      [count, res] = await getDataWithCountCache(context, {
+        query: dataQuery,
+        countQuery: countQb.toQuery(),
+        limit: +listArgs.limit,
+        offset: +listArgs.offset,
+        knex,
+        countCacheKey,
+        skipCache,
+        excludeCount,
+        recordQueryTime: (time: string) => {
+          dbQueryTime = time;
+        },
+        apiVersion: ctx.apiVersion,
+        baseModel,
+        skipSubstitutingColumnIds:
+          context.api_version === NcApiVersion.V3 &&
+          ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      });
+    } catch (e) {
+      // Check if this is a transient error (connection/timeout issue)
+      const isTransient = isTransientError(e);
 
-        if (isTransient || ctx.validateFormula || !haveFormulaColumn(columns))
-          throw e;
-        return singleQueryList(context, {
-          ...ctx,
-          validateFormula: true,
-        });
-      }
-      dbQueryTime = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-
-      // cache query for later use after successful execution
-      await NocoCache.set(context, cacheKey, query);
+      if (isTransient || ctx.validateFormula || !haveFormulaColumn(columns))
+        throw e;
+      return singleQueryList(context, {
+        ...ctx,
+        validateFormula: true,
+      });
     }
 
+    if (!skipCache) {
+      // cache query for later use after successful execution
+      await NocoCache.set(context, cacheKey, dataQuery);
+    }
+
+    profiler.end();
     if (ctx.skipPaginateWrapper) {
       return res.map(({ __nc_count, ...rest }) => rest);
     }
-
     return new PagedResponseImpl(
       res.map(({ __nc_count, ...rest }) => rest),
       {
-        count: +res[0]?.__nc_count || 0,
+        // count: +res[0]?.__nc_count || 0,
+        count,
         limit: +listArgs.limit,
         offset: +listArgs.offset,
         limitOverride: +ctx.limitOverride,
       },
       {
         stats: {
-          dbQueryTime,
+          dbQueryTime: dbQueryTime,
         },
       },
     );
   }
   return {
-    singleQueryList,
+    list,
   };
 };

@@ -16,7 +16,17 @@ if (!NC_REFRESH_TOKEN_EXP_IN_DAYS || NC_REFRESH_TOKEN_EXP_IN_DAYS <= 0) {
   throw new Error('NC_REFRESH_TOKEN_EXP_IN_DAYS must be a positive number');
 }
 
-export const NC_MAX_TEXT_LENGTH = 100000;
+const NC_MAX_TEXT_LENGTH_ENV = process.env.NC_MAX_TEXT_LENGTH;
+const parsedNcMaxTextLength =
+  NC_MAX_TEXT_LENGTH_ENV !== undefined
+    ? Number(NC_MAX_TEXT_LENGTH_ENV)
+    : 100000;
+
+if (!Number.isFinite(parsedNcMaxTextLength) || parsedNcMaxTextLength <= 0) {
+  throw new Error('NC_MAX_TEXT_LENGTH must be a positive number');
+}
+
+export const NC_MAX_TEXT_LENGTH = parsedNcMaxTextLength;
 
 export const NC_EMAIL_ASSETS_BASE_URL = 'https://cdn.nocodb.com/emails/v2';
 

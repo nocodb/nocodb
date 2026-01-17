@@ -41,6 +41,10 @@ export { default as Widget } from './Widget';
 export { default as Team } from './Team';
 export { default as PrincipalAssignment } from './PrincipalAssignment';
 
+// SCIM-related models
+export { default as ScimConfig } from './ScimConfig';
+export { default as SSOClient } from './SSOClient';
+
 // Workflow-related models
 export { default as Workflow } from './Workflow';
 export { default as WorkflowExecution } from './WorkflowExecution';

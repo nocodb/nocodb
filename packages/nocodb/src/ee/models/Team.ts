@@ -31,6 +31,10 @@ export default class Team {
   deleted: boolean; // Soft delete flag
   created_at?: string;
   updated_at?: string;
+  // SCIM fields
+  scim_external_id?: string;
+  scim_managed?: boolean;
+  scim_display_name?: string;
 
   constructor(data: Team) {
     Object.assign(this, data);
@@ -52,6 +56,9 @@ export default class Team {
       'fk_org_id',
       'fk_workspace_id',
       'created_by',
+      'scim_external_id',
+      'scim_managed',
+      'scim_display_name',
     ]);
 
     // Set deleted to false by default
@@ -225,6 +232,9 @@ export default class Team {
       'meta',
       'fk_org_id',
       'fk_workspace_id',
+      'scim_external_id',
+      'scim_managed',
+      'scim_display_name',
     ]);
 
     // Prepare meta for database storage

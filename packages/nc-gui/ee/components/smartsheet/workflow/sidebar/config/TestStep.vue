@@ -2,7 +2,6 @@
 import { GeneralNodeID, TriggerTestMode, WorkflowNodeCategory } from 'nocodb-sdk'
 
 const { appInfo } = useGlobal()
-
 const { getNodeMetaById, selectedNode, selectedNodeId, edges, nodes, testExecuteNode, workflow } = useWorkflowOrThrow()
 
 const workspaceStore = useWorkspace()
@@ -12,56 +11,10 @@ const baseStore = useBases()
 const { activeProjectId } = storeToRefs(baseStore)
 
 const { $e } = useNuxtApp()
-
 const { copy } = useCopy()
 
 const localTestState = ref<'idle' | 'testing' | 'listening' | 'listening_event' | 'success' | 'error'>()
-
-const lastTestMode = computed(() => selectedNode.value?.data?.testResult?.testMode)
-
-/**
- * Check if the node supports "Listen for webhook" testing
- * Only triggers with LISTEN_WEBHOOK in testModes should show the webhook URL UI
- * (e.g., core.trigger.webhook)
- */
-const isListenWebhookTrigger = computed(() => {
-  const nodeMeta = getNodeMetaById(selectedNode.value?.type)
-  return nodeMeta?.testModes?.includes(TriggerTestMode.LISTEN_WEBHOOK)
-})
-
-/**
- * Check if the node supports TRIGGER_EVENT testing (external integrations like GitHub)
- */
-const isTriggerEventSupported = computed(() => {
-  const nodeMeta = getNodeMetaById(selectedNode.value?.type)
-  return nodeMeta?.testModes?.includes(TriggerTestMode.TRIGGER_EVENT)
-})
-
-/**
- * Check if the node supports SAMPLE_DATA testing
- */
-const isSampleDataSupported = computed(() => {
-  const nodeMeta = getNodeMetaById(selectedNode.value?.type)
-  return nodeMeta?.testModes?.includes(TriggerTestMode.SAMPLE_DATA)
-})
-
-/**
- * Check if the node supports both SAMPLE_DATA and TRIGGER_EVENT
- * This allows showing both test options to the user
- */
-const supportsBothModes = computed(() => {
-  return isSampleDataSupported.value && isTriggerEventSupported.value
-})
-
-const webhookUrl = computed(() => {
-  if (!isListenWebhookTrigger.value || !selectedNode.value) return null
-
-  const triggerId = selectedNode.value.data?.triggerId
-  if (!triggerId) return null
-
-  return `${appInfo.value?.ncSiteUrl}/api/v3/workflows/${activeWorkspaceId.value}/${activeProjectId.value}/${workflow.value?.id}/${triggerId}/webhook`
-})
-
+const localErrorMessage = ref('')
 const isListening = ref(false)
 
 const testState = computed(() => {
@@ -72,51 +25,51 @@ const testState = computed(() => {
   return localTestState.value
 })
 
-const localErrorMessage = ref('')
+const lastTestMode = computed(() => selectedNode.value?.data?.testResult?.testMode)
 
 const errorMessage = computed(() => {
   return selectedNode.value?.data?.testResult?.error || localErrorMessage.value
 })
 
+const nodeMeta = computed(() => getNodeMetaById(selectedNode.value?.type))
+
+const isTriggerNode = computed(() => nodeMeta.value?.category === WorkflowNodeCategory.TRIGGER)
+
+const isNocoDBRecordTriggerNode = computed(() => nodeMeta.value?.id?.includes?.('nocodb.trigger.after'))
+
+const supportsSampleData = computed(() =>
+  nodeMeta.value?.testModes?.length ? nodeMeta.value?.testModes?.includes(TriggerTestMode.SAMPLE_DATA) : true,
+)
+
+const supportsListenWebhook = computed(() => nodeMeta.value?.testModes?.includes(TriggerTestMode.LISTEN_WEBHOOK))
+
+const supportsTriggerEvent = computed(() => nodeMeta.value?.testModes?.includes(TriggerTestMode.TRIGGER_EVENT))
+
+const webhookUrl = computed(() => {
+  if (!supportsListenWebhook.value || !selectedNode.value) return null
+  const triggerId = selectedNode.value.data?.triggerId
+  if (!triggerId) return null
+  return `${appInfo.value?.ncSiteUrl}/api/v3/workflows/${activeWorkspaceId.value}/${activeProjectId.value}/${workflow.value?.id}/${triggerId}/webhook`
+})
+
 const untestedParentNodes = computed(() => {
   if (!selectedNode.value || !selectedNodeId.value) return []
-
   const ancestorIds = new Set(findAllParentNodes(selectedNodeId.value, edges.value))
-
   return nodes.value
     .filter((node) => {
-      // Skip note nodes as they don't need to be tested
       if (node.type === GeneralNodeID.NOTE) return false
       return ancestorIds.has(node.id) && (!node.data?.testResult || node.data.testResult.status !== 'success')
     })
     .map((node) => node.data?.title || node.id)
 })
 
-const isTriggerNode = computed(() => {
-  const nodeMeta = getNodeMetaById(selectedNode.value?.type)
-  return nodeMeta?.category === WorkflowNodeCategory.TRIGGER
-})
-
-const isNocoDBRecordTriggerNode = computed(() => {
-  const nodeMeta = getNodeMetaById(selectedNode.value?.type)
-  return nodeMeta?.id?.includes?.('nocodb.trigger.after')
-})
-
 const canTestNode = computed(() => {
   if (!selectedNode.value || !selectedNodeId.value) return false
-
   const ancestorIds = findAllParentNodes(selectedNodeId.value, edges.value)
-
-  // If no ancestors, can test
-  if (ancestorIds.length === 0) {
-    return true
-  }
-
-  // All ancestors must exist, have test results, be successful, and not stale
+  if (ancestorIds.length === 0) return true
   return ancestorIds.every((ancestorId) => {
     const ancestorNode = nodes.value.find((n) => n.id === ancestorId)
     const testResult = ancestorNode?.data?.testResult
-
     return testResult?.status === 'success' && testResult.isStale !== true
   })
 })
@@ -124,11 +77,10 @@ const canTestNode = computed(() => {
 const handleTestNode = async () => {
   localTestState.value = 'testing'
   localErrorMessage.value = ''
-  const nodeMeta = getNodeMetaById(selectedNode.value?.type)
 
   $e('a:workflow:node:test', {
     node_type: selectedNode.value?.type,
-    node_category: nodeMeta?.category,
+    node_category: nodeMeta.value?.category,
   })
 
   try {
@@ -137,7 +89,7 @@ const handleTestNode = async () => {
       localTestState.value = 'success'
       $e('a:workflow:node:test:success', {
         node_type: selectedNode.value?.type,
-        node_category: nodeMeta?.category,
+        node_category: nodeMeta.value?.category,
       })
     } else {
       localTestState.value = 'error'
@@ -148,7 +100,7 @@ const handleTestNode = async () => {
     localErrorMessage.value = (await extractSdkResponseErrorMsgv2(er))?.message || 'Unknown error occurred'
     $e('a:workflow:node:test:error', {
       node_type: selectedNode.value?.type,
-      node_category: nodeMeta?.category,
+      node_category: nodeMeta.value?.category,
     })
   }
 }
@@ -164,23 +116,20 @@ const handleWebhookTest = async () => {
   localErrorMessage.value = ''
   isListening.value = true
 
-  const nodeMeta = getNodeMetaById(selectedNode.value?.type)
-
   $e('a:workflow:node:test:webhook', {
     node_type: selectedNode.value?.type,
-    node_category: nodeMeta?.category,
+    node_category: nodeMeta.value?.category,
   })
 
   try {
     const res = await testExecuteNode(selectedNodeId.value)
-
     isListening.value = false
 
     if (res?.status === 'success') {
       localTestState.value = 'success'
       $e('a:workflow:node:test:webhook:success', {
         node_type: selectedNode.value?.type,
-        node_category: nodeMeta?.category,
+        node_category: nodeMeta.value?.category,
       })
     } else {
       localTestState.value = 'error'
@@ -192,40 +141,8 @@ const handleWebhookTest = async () => {
     localErrorMessage.value = (await extractSdkResponseErrorMsgv2(er))?.message || 'Unknown error occurred'
     $e('a:workflow:node:test:webhook:error', {
       node_type: selectedNode.value?.type,
-      node_category: nodeMeta?.category,
+      node_category: nodeMeta.value?.category,
     })
-  }
-}
-
-const copyWebhookUrl = () => {
-  if (webhookUrl.value) {
-    copy(webhookUrl.value)
-    message.success('Webhook URL copied to clipboard')
-  }
-}
-
-const handleSampleDataTest = async () => {
-  localTestState.value = 'testing'
-  localErrorMessage.value = ''
-
-  const nodeMeta = getNodeMetaById(selectedNode.value?.type)
-
-  $e('a:workflow:node:test:sample_data', {
-    node_type: selectedNode.value?.type,
-    node_category: nodeMeta?.category,
-  })
-
-  try {
-    const res = await testExecuteNode(selectedNodeId.value, undefined, TriggerTestMode.SAMPLE_DATA)
-    if (res?.status === 'success') {
-      localTestState.value = 'success'
-    } else {
-      localTestState.value = 'error'
-      localErrorMessage.value = res?.error
-    }
-  } catch (er) {
-    localTestState.value = 'error'
-    localErrorMessage.value = (await extractSdkResponseErrorMsgv2(er))?.message || 'Unknown error occurred'
   }
 }
 
@@ -234,23 +151,20 @@ const handleTriggerEventTest = async () => {
   localErrorMessage.value = ''
   isListening.value = true
 
-  const nodeMeta = getNodeMetaById(selectedNode.value?.type)
-
   $e('a:workflow:node:test:trigger_event', {
     node_type: selectedNode.value?.type,
-    node_category: nodeMeta?.category,
+    node_category: nodeMeta.value?.category,
   })
 
   try {
     const res = await testExecuteNode(selectedNodeId.value, undefined, TriggerTestMode.TRIGGER_EVENT)
-
     isListening.value = false
 
     if (res?.status === 'success') {
       localTestState.value = 'success'
       $e('a:workflow:node:test:trigger_event:success', {
         node_type: selectedNode.value?.type,
-        node_category: nodeMeta?.category,
+        node_category: nodeMeta.value?.category,
       })
     } else {
       localTestState.value = 'error'
@@ -262,8 +176,15 @@ const handleTriggerEventTest = async () => {
     localErrorMessage.value = (await extractSdkResponseErrorMsgv2(er))?.message || 'Unknown error occurred'
     $e('a:workflow:node:test:trigger_event:error', {
       node_type: selectedNode.value?.type,
-      node_category: nodeMeta?.category,
+      node_category: nodeMeta.value?.category,
     })
+  }
+}
+
+const copyWebhookUrl = () => {
+  if (webhookUrl.value) {
+    copy(webhookUrl.value)
+    message.success('Webhook URL copied to clipboard')
   }
 }
 
@@ -276,9 +197,21 @@ watch(selectedNode, () => {
 
 <template>
   <NcGroupedSettings title="Test Step">
-    <template v-if="isListenWebhookTrigger">
-      <div class="text-nc-content-gray-muted">Send a request to the webhook URL to trigger this workflow.</div>
+    <div class="text-nc-content-gray-muted">
+      <template v-if="supportsListenWebhook"> Send a request to the webhook URL to trigger this workflow. </template>
+      <template v-else-if="supportsTriggerEvent">
+        Listen for a real event from the external service to test this trigger.
+      </template>
+      <template v-else-if="isTriggerNode">
+        Test this trigger to confirm its configuration is correct. The data from this test can be used in later steps.
+      </template>
+      <template v-else>
+        Test this action to confirm it works as expected. This will use data from previous tested steps.
+      </template>
+    </div>
 
+    <!-- Webhook URL (only for LISTEN_WEBHOOK triggers) -->
+    <template v-if="supportsListenWebhook">
       <template v-if="webhookUrl">
         <div class="flex items-center gap-2 mt-2">
           <div
@@ -294,160 +227,117 @@ watch(selectedNode, () => {
       <template v-else>
         <div class="text-xs text-nc-content-gray-muted italic mt-2">Webhook URL will be generated when node is configured</div>
       </template>
-
-      <div class="w-full flex justify-end mt-3">
-        <NcTooltip placement="bottom" :disabled="testState !== 'error'">
-          <NcButton
-            type="secondary"
-            size="small"
-            :disabled="testState === 'listening'"
-            :loading="testState === 'listening'"
-            icon-position="right"
-            @click="handleWebhookTest"
-          >
-            <template #icon>
-              <GeneralIcon v-if="testState === 'success'" icon="circleCheckSolid" class="text-green-700 w-4 h-4 flex-none" />
-              <GeneralIcon v-else-if="testState === 'error'" icon="alertTriangleSolid" class="text-red-700 w-4 h-4 flex-none" />
-            </template>
-            <span>
-              <template v-if="testState === 'success'"> Webhook received </template>
-              <template v-else-if="testState === 'listening'"> Listening... </template>
-              <template v-else> Listen for webhook </template>
-            </span>
-          </NcButton>
-
-          <template #title>
-            <template v-if="testState === 'error'">
-              {{ errorMessage }}
-            </template>
-          </template>
-        </NcTooltip>
-      </div>
     </template>
-    <template v-else-if="supportsBothModes">
-      <div class="text-nc-content-gray-muted">
-        Test this trigger using sample data or listen for a real event from the external service.
-      </div>
 
-      <div class="w-full flex justify-end gap-2">
-        <!-- Test with sample data button -->
-        <NcTooltip placement="bottom" :disabled="!(testState === 'error' && lastTestMode === TriggerTestMode.SAMPLE_DATA)">
-          <NcButton
-            type="secondary"
-            size="small"
-            :disabled="testState === 'testing' || testState === 'listening_event'"
-            :loading="testState === 'testing'"
-            icon-position="right"
-            @click="handleSampleDataTest"
-          >
-            <template #icon>
-              <GeneralIcon
-                v-if="testState === 'success' && lastTestMode === TriggerTestMode.SAMPLE_DATA"
-                icon="circleCheckSolid"
-                class="text-green-700 w-4 h-4 flex-none"
-              />
-              <GeneralIcon
-                v-else-if="testState === 'error' && lastTestMode === TriggerTestMode.SAMPLE_DATA"
-                icon="alertTriangleSolid"
-                class="text-red-700 w-4 h-4 flex-none"
-              />
-            </template>
-            <span>
-              <template v-if="testState === 'success' && lastTestMode === TriggerTestMode.SAMPLE_DATA">
-                Test successful
-              </template>
-              <template v-else> Test with sample data </template>
-            </span>
-          </NcButton>
-
-          <template #title>
-            <template v-if="testState === 'error' && lastTestMode === TriggerTestMode.SAMPLE_DATA">
-              {{ errorMessage }}
-            </template>
+    <div class="w-full flex justify-end gap-2" :class="{ 'mt-3': supportsListenWebhook }">
+      <NcTooltip v-if="supportsListenWebhook" placement="bottom" :disabled="testState !== 'error'">
+        <NcButton
+          type="secondary"
+          size="small"
+          :disabled="testState === 'testing' || testState === 'listening' || testState === 'listening_event'"
+          :loading="testState === 'listening'"
+          icon-position="right"
+          @click="handleWebhookTest"
+        >
+          <template #icon>
+            <GeneralIcon v-if="testState === 'success'" icon="circleCheckSolid" class="text-green-700 w-4 h-4 flex-none" />
+            <GeneralIcon v-else-if="testState === 'error'" icon="alertTriangleSolid" class="text-red-700 w-4 h-4 flex-none" />
           </template>
-        </NcTooltip>
-        <NcTooltip placement="bottom" :disabled="!(testState === 'error' && lastTestMode === TriggerTestMode.TRIGGER_EVENT)">
-          <NcButton
-            type="secondary"
-            size="small"
-            :disabled="testState === 'testing' || testState === 'listening_event'"
-            :loading="testState === 'listening_event'"
-            icon-position="right"
-            @click="handleTriggerEventTest"
-          >
-            <template #icon>
-              <GeneralIcon
-                v-if="testState === 'success' && lastTestMode === TriggerTestMode.TRIGGER_EVENT"
-                icon="circleCheckSolid"
-                class="text-green-700 w-4 h-4 flex-none"
-              />
-              <GeneralIcon
-                v-else-if="testState === 'error' && lastTestMode === TriggerTestMode.TRIGGER_EVENT"
-                icon="alertTriangleSolid"
-                class="text-red-700 w-4 h-4 flex-none"
-              />
-            </template>
-            <span>
-              <template v-if="testState === 'listening_event'"> Listening... </template>
-              <template v-else-if="testState === 'success' && lastTestMode === TriggerTestMode.TRIGGER_EVENT">
-                Event received
-              </template>
-              <template v-else> Listen for event </template>
-            </span>
-          </NcButton>
+          <span>{{
+            testState === 'listening' ? 'Listening...' : testState === 'success' ? 'Webhook received' : 'Listen for webhook'
+          }}</span>
+        </NcButton>
+        <template #title>{{ errorMessage }}</template>
+      </NcTooltip>
 
-          <template #title>
-            <template v-if="testState === 'error' && lastTestMode === TriggerTestMode.TRIGGER_EVENT">
-              {{ errorMessage }}
-            </template>
+      <NcTooltip
+        v-if="supportsSampleData"
+        placement="bottom"
+        :disabled="
+          !(
+            (testState === 'error' && lastTestMode !== TriggerTestMode.TRIGGER_EVENT) ||
+            (!canTestNode && untestedParentNodes.length > 0)
+          )
+        "
+      >
+        <NcButton
+          type="secondary"
+          size="small"
+          :disabled="testState === 'testing' || testState === 'listening' || testState === 'listening_event' || !canTestNode"
+          :loading="testState === 'testing'"
+          icon-position="right"
+          @click="handleTestNode"
+        >
+          <template #icon>
+            <GeneralIcon
+              v-if="testState === 'success' && lastTestMode !== TriggerTestMode.TRIGGER_EVENT"
+              icon="circleCheckSolid"
+              class="text-green-700 w-4 h-4 flex-none"
+            />
+            <GeneralIcon
+              v-else-if="testState === 'error' && lastTestMode !== TriggerTestMode.TRIGGER_EVENT"
+              icon="alertTriangleSolid"
+              class="text-red-700 w-4 h-4 flex-none"
+            />
           </template>
-        </NcTooltip>
-      </div>
-    </template>
-    <template v-else>
-      <div class="text-nc-content-gray-muted">
-        <template v-if="isTriggerNode">
-          Test this trigger to confirm its configuration is correct. The data from this test can be used in later steps.
+          <span>{{
+            testState === 'testing'
+              ? 'Testing...'
+              : testState === 'success' && lastTestMode !== TriggerTestMode.TRIGGER_EVENT
+              ? 'Test successful'
+              : isNocoDBRecordTriggerNode
+              ? 'Use suggested record to test'
+              : isTriggerNode
+              ? 'Test this trigger'
+              : 'Test this action'
+          }}</span>
+        </NcButton>
+        <template #title>
+          <template v-if="testState === 'error' && lastTestMode !== TriggerTestMode.TRIGGER_EVENT">{{ errorMessage }}</template>
+          <template v-else-if="!canTestNode && untestedParentNodes.length > 0">
+            <div class="font-medium mb-1">Previous nodes need testing first:</div>
+            <ul class="list-disc pl-5">
+              <li v-for="nodeName in untestedParentNodes" :key="nodeName">{{ nodeName }}</li>
+            </ul>
+          </template>
         </template>
-        <template v-else>
-          Test this action to confirm it works as expected. This will use data from previous tested steps.
-        </template>
-      </div>
-      <div class="w-full flex justify-end">
-        <NcTooltip placement="bottom" :disabled="(canTestNode || untestedParentNodes.length === 0) && testState !== 'error'">
-          <NcButton
-            type="secondary"
-            size="small"
-            :disabled="!canTestNode || testState === 'testing'"
-            :loading="testState === 'testing'"
-            icon-position="right"
-            @click="handleTestNode"
-          >
-            <template #icon>
-              <GeneralIcon v-if="testState === 'success'" icon="circleCheckSolid" class="text-green-700 w-4 h-4 flex-none" />
-              <GeneralIcon v-else-if="testState === 'error'" icon="alertTriangleSolid" class="text-red-700 w-4 h-4 flex-none" />
-            </template>
-            <span>
-              <template v-if="testState === 'success'"> Test successful </template>
-              <template v-else-if="isNocoDBRecordTriggerNode">Use suggested record to test</template>
-              <template v-else-if="isTriggerNode"> Test this trigger </template>
-              <template v-else> Test this action </template>
-            </span>
-          </NcButton>
+      </NcTooltip>
 
-          <template #title>
-            <template v-if="testState === 'error'">
-              {{ errorMessage }}
-            </template>
-            <template v-else>
-              <div class="font-medium mb-1">Previous nodes need testing first:</div>
-              <ul v-if="untestedParentNodes.length > 0" class="list-disc pl-5">
-                <li v-for="nodeName in untestedParentNodes" :key="nodeName">{{ nodeName }}</li>
-              </ul>
-            </template>
+      <NcTooltip
+        v-if="supportsTriggerEvent"
+        placement="bottom"
+        :disabled="!(testState === 'error' && lastTestMode === TriggerTestMode.TRIGGER_EVENT)"
+      >
+        <NcButton
+          type="secondary"
+          size="small"
+          :disabled="testState === 'testing' || testState === 'listening' || testState === 'listening_event'"
+          :loading="testState === 'listening_event'"
+          icon-position="right"
+          @click="handleTriggerEventTest"
+        >
+          <template #icon>
+            <GeneralIcon
+              v-if="testState === 'success' && lastTestMode === TriggerTestMode.TRIGGER_EVENT"
+              icon="circleCheckSolid"
+              class="text-green-700 w-4 h-4 flex-none"
+            />
+            <GeneralIcon
+              v-else-if="testState === 'error' && lastTestMode === TriggerTestMode.TRIGGER_EVENT"
+              icon="alertTriangleSolid"
+              class="text-red-700 w-4 h-4 flex-none"
+            />
           </template>
-        </NcTooltip>
-      </div>
-    </template>
+          <span>{{
+            testState === 'listening_event'
+              ? 'Listening...'
+              : testState === 'success' && lastTestMode === TriggerTestMode.TRIGGER_EVENT
+              ? 'Event received'
+              : 'Listen for event'
+          }}</span>
+        </NcButton>
+        <template #title>{{ errorMessage }}</template>
+      </NcTooltip>
+    </div>
   </NcGroupedSettings>
 </template>

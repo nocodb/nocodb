@@ -28,9 +28,7 @@ export const NcConcurrent = async <T>(
       }
       try {
         const handlerResult = await handler();
-        if (typeof handlerResult !== 'undefined') {
-          result[i] = handlerResult;
-        }
+        result[i] = handlerResult;
       } catch (err) {
         error = err;
         // fire abort signal

@@ -85,7 +85,7 @@ const isGenerating = computed(
 
 const sqlUi = computed(() => baseStore.getSqlUiBySourceId(meta.value?.source_id || column.value?.source_id))
 
-const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
+const abstractType = computed(() => column.value && sqlUi.value?.getAbstractType(column.value))
 
 const emitSave = () => {
   emit('save', [currentRow.value, column.value.title, state.value, undefined, undefined, path.value])

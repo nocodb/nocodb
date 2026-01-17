@@ -30,6 +30,8 @@ const { fields, fieldsToDisplay, displayField } = toRefs(props)
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
+const { isMounted } = useIsMounted()
+
 interface Attachment {
   url: string
   title: string
@@ -70,7 +72,7 @@ useProvideSmartsheetRowStore(row)
     >
       <div class="flex items-center gap-3">
         <template v-if="attachmentField">
-          <div v-if="attachments && attachments.length">
+          <div v-if="isMounted && attachments && attachments.length">
             <a-carousel autoplay class="!w-11 !h-11 !max-h-11 !max-w-11">
               <template #customPaging> </template>
               <template v-for="(attachmentObj, index) in attachments">

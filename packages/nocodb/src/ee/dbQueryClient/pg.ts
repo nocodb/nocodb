@@ -1,6 +1,5 @@
 import { NcApiVersion } from 'nocodb-sdk';
 import { PGDBQueryClient as PGDBQueryClientCE } from 'src/dbQueryClient/pg';
-// eslint-disable-file no-fallthrough
 import {
   ButtonActionsType,
   extractFilterFromXwhere,
@@ -10,6 +9,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import type { NcContext } from 'nocodb-sdk/build/main/lib';
 import type { Knex } from 'knex';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type CustomKnex from '~/db/CustomKnex';
@@ -18,12 +18,17 @@ import type { DBQueryClient, ExtractColumnsParam } from '~/dbQueryClient/types';
 import type {
   BarcodeColumn,
   ButtonColumn,
+  Filter,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
   QrCodeColumn,
+  Source,
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
+import type { PagedResponseImpl } from 'src/helpers/PagedResponse';
+import { read } from '~/dbQueryClient/pg/read';
+import { list } from '~/dbQueryClient/pg/list';
 import {
   extractSortsObject,
   getAs,
@@ -1278,5 +1283,48 @@ export class PGDBQueryClient
         break;
     }
     return result;
+  }
+
+  singleQueryRead(
+    context: NcContext,
+    ctx: {
+      model: Model;
+      view: View;
+      source: Source;
+      params;
+      id: string;
+      getHiddenColumn?: boolean;
+      throwErrorIfInvalidParams?: boolean;
+      validateFormula?: boolean;
+      apiVersion?: NcApiVersion;
+    },
+  ): Promise<PagedResponseImpl<Record<string, any>>> {
+    return read(this).singleQueryRead(context, ctx);
+  }
+
+  singleQueryList(
+    context: NcContext,
+    ctx: {
+      model: Model;
+      view?: View;
+      source: Source;
+      params: any;
+      throwErrorIfInvalidParams?: boolean;
+      validateFormula?: boolean;
+      ignorePagination?: boolean;
+      limitOverride?: number;
+      baseModel?: BaseModelSqlv2;
+      customConditions?: Filter[];
+      getHiddenColumns?: boolean;
+      apiVersion?: NcApiVersion;
+      includeSortAndFilterColumns?: boolean;
+      skipPaginateWrapper?: boolean;
+      skipSortBasedOnOrderCol?: boolean; // dependencyFields,
+      ignoreViewFilterAndSort?: boolean;
+    },
+  ): Promise<
+    PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
+  > {
+    return list(this, this.logger).singleQueryList(context, ctx);
   }
 }

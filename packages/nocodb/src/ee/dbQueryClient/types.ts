@@ -1,8 +1,13 @@
 import type { NcApiVersion, UITypes } from 'nocodb-sdk';
-import type { Knex, XKnex } from '~/db/CustomKnex';
 import type { DBQueryClient as DBQueryClientCE } from 'src/dbQueryClient/types';
-import type { Column, Model } from '~/models';
+import type { Knex, XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { Column, Model } from '~/models';
+import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
+import type { NcContext } from '~/interface/config';
+import type { Source, View } from '~/models';
+import type { Filter } from '~/models';
+import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export interface ExtractColumnParam {
   column: Column;
@@ -60,4 +65,43 @@ export interface DBQueryClient extends DBQueryClientCE {
     columns: Column[];
     isBtOrOo?: boolean;
   }): any;
+
+  singleQueryList(
+    context: NcContext,
+    ctx: {
+      model: Model;
+      view?: View;
+      source: Source;
+      params;
+      throwErrorIfInvalidParams?: boolean;
+      validateFormula?: boolean;
+      ignorePagination?: boolean;
+      limitOverride?: number;
+      baseModel?: BaseModelSqlv2;
+      customConditions?: Filter[];
+      getHiddenColumns?: boolean;
+      apiVersion?: NcApiVersion;
+      includeSortAndFilterColumns?: boolean;
+      skipPaginateWrapper?: boolean;
+      skipSortBasedOnOrderCol?: boolean;
+      ignoreViewFilterAndSort?: boolean;
+    },
+  ): Promise<
+    PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
+  >;
+
+  singleQueryRead(
+    context: NcContext,
+    ctx: {
+      model: Model;
+      view: View;
+      source: Source;
+      params;
+      id: string;
+      getHiddenColumn?: boolean;
+      throwErrorIfInvalidParams?: boolean;
+      validateFormula?: boolean;
+      apiVersion?: NcApiVersion;
+    },
+  ): Promise<PagedResponseImpl<Record<string, any>>>;
 }

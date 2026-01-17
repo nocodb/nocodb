@@ -1,14 +1,16 @@
-import { NcApiVersion, UITypes } from 'nocodb-sdk';
-import { MySqlDBQueryClient as MySqlDBQueryClientCE } from 'src/dbQueryClient/mysql';
-// eslint-disable-file no-fallthrough
+import { Logger } from '@nestjs/common';
 import {
   ButtonActionsType,
   extractFilterFromXwhere,
+  NcApiVersion,
   NcDataErrorCodes,
   RelationTypes,
+  UITypes,
 } from 'nocodb-sdk';
-import { Logger } from '@nestjs/common';
+import { MySqlDBQueryClient as MySqlDBQueryClientCE } from 'src/dbQueryClient/mysql';
 import type { Knex } from 'knex';
+import type { NcContext } from 'nocodb-sdk';
+import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -16,10 +18,12 @@ import type { DBQueryClient } from '~/dbQueryClient/types';
 import type {
   BarcodeColumn,
   ButtonColumn,
+  Filter,
   FormulaColumn,
   LinkToAnotherRecordColumn,
   LookupColumn,
   QrCodeColumn,
+  Source,
 } from '~/models';
 import {
   extractSortsObject,
@@ -34,6 +38,9 @@ import sortV2 from '~/db/sortV2';
 import { extractColumns } from '~/dbQueryClient/cross-db-utils/extract-columns';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { Column, Model, View } from '~/models';
+
+import { list } from '~/dbQueryClient/mysql/list';
+import { read } from '~/dbQueryClient/mysql/read';
 
 export class MySqlDBQueryClient
   extends MySqlDBQueryClientCE
@@ -1178,5 +1185,48 @@ export class MySqlDBQueryClient
         break;
     }
     return result;
+  }
+
+  singleQueryRead(
+    context: NcContext,
+    ctx: {
+      model: Model;
+      view: View;
+      source: Source;
+      params;
+      id: string;
+      getHiddenColumn?: boolean;
+      throwErrorIfInvalidParams?: boolean;
+      validateFormula?: boolean;
+      apiVersion?: NcApiVersion;
+    },
+  ): Promise<PagedResponseImpl<Record<string, any>>> {
+    return read(this).singleQueryRead(context, ctx);
+  }
+
+  singleQueryList(
+    context: NcContext,
+    ctx: {
+      model: Model;
+      view?: View;
+      source: Source;
+      params: any;
+      throwErrorIfInvalidParams?: boolean;
+      validateFormula?: boolean;
+      ignorePagination?: boolean;
+      limitOverride?: number;
+      baseModel?: BaseModelSqlv2;
+      customConditions?: Filter[];
+      getHiddenColumns?: boolean;
+      apiVersion?: NcApiVersion;
+      includeSortAndFilterColumns?: boolean;
+      skipPaginateWrapper?: boolean;
+      skipSortBasedOnOrderCol?: boolean; // dependencyFields,
+      ignoreViewFilterAndSort?: boolean;
+    },
+  ): Promise<
+    PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
+  > {
+    return list(this, this.logger).singleQueryList(context, ctx);
   }
 }

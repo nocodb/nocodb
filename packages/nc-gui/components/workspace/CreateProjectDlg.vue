@@ -116,7 +116,7 @@ const onInit = () => {
   }, 5)
 }
 
-const onSandboxInstalled = async (sandbox: any) => {
+const onSandboxInstalled = async (_sandbox: any) => {
   // Close the dialog and refresh the base list
   dialogShow.value = false
   refreshCommandPalette()

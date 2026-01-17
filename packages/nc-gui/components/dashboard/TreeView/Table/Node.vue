@@ -184,7 +184,11 @@ const onOpenTable = async () => {
   if (isEditing.value || isStopped.value) return
 
   if (isMac() ? metaKey.value : control.value) {
-    await _openTable(table.value, true)
+    try {
+      await _openTable(table.value, true)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
     return
   }
 
@@ -195,7 +199,7 @@ const onOpenTable = async () => {
     if (isMobileMode.value) {
       isLeftSidebarOpen.value = false
     }
-  } catch (e) {
+  } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isLoading.value = false

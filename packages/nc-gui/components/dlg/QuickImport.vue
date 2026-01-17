@@ -103,6 +103,8 @@ const customSourceId = computed(() => {
   return sourceSelectorRef.value?.customSourceId || sourceId
 })
 
+const { clone } = useUndoRedo()
+
 const useForm = Form.useForm
 
 const defaultImportState = {
@@ -118,7 +120,7 @@ const defaultImportState = {
     importDataOnly: true,
   },
 }
-const importState = reactive(structuredClone(defaultImportState))
+const importState = reactive(clone(defaultImportState))
 
 const { token } = useGlobal()
 
@@ -170,7 +172,7 @@ watch(
   dialogShow,
   async (newValue) => {
     if (newValue) {
-      Object.assign(importState, structuredClone(defaultImportState))
+      Object.assign(importState, clone(defaultImportState))
       if (isWorkerSupport) {
         importWorker = await $importWorker?.get()
       }

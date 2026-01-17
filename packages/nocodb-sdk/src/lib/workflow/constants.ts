@@ -17,6 +17,19 @@ export enum TriggerActivationType {
 }
 
 /**
+ * Trigger test modes determine how a trigger can be tested
+ * A trigger can support multiple test modes (array)
+ */
+export enum TriggerTestMode {
+  /** Use sample/mock data for testing (default) */
+  SAMPLE_DATA = 'sample_data',
+  /** Create temporary webhook URL and wait for real request */
+  LISTEN_WEBHOOK = 'listen_webhook',
+  /** User must trigger event on external service (GitHub, Stripe, etc.) */
+  TRIGGER_EVENT = 'trigger_event',
+}
+
+/**
  * Check if a node is a trigger node
  * Trigger nodes include:
  * - core.trigger (generic trigger placeholder)

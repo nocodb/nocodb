@@ -51,6 +51,17 @@ const generateUniqueNodeId = (nodes: Node[]): string => {
   return candidateId
 }
 
+/**
+ * Generate a unique trigger ID for webhook triggers
+ * Format: trg_{8 alphanumeric characters}
+ */
+const generateTriggerId = (): string => {
+  const uuid = generateRandomUUID()
+  // Use first 8 characters of UUID (removing hyphens)
+  const shortId = uuid.replace(/-/g, '').substring(0, 8)
+  return `trg_${shortId}`
+}
+
 interface UIWorkflowNodeDefinition extends WorkflowNodeDefinition {
   input?: number
   output?: number
@@ -267,6 +278,7 @@ export {
   filterNodesByPermission,
   getSourceNodesAndEdges,
   generateUniqueNodeId,
+  generateTriggerId,
   transformNode,
   findAllParentNodes,
   prefixVariableKeysRecursive,

@@ -78,6 +78,7 @@ interface VariableDefinition {
 }
 
 interface NodeExecutionResult {
+  testMode?: string;
   nodeId: string;
   nodeTitle: string;
   status: 'pending' | 'running' | 'success' | 'error' | 'skipped';

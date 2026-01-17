@@ -108,7 +108,7 @@ export default {
       :class="[
         selected || isHovering ? 'opacity-100' : 'opacity-0 !pointer-events-none',
         showSkeleton ? '!text-6xl' : '!text-xs',
-        `nc-erd-table-label-${data.label.toLowerCase().replace(' ', '-').replace('\(', '').replace(')', '')}`,
+        `nc-erd-table-label-${data.label?.toLowerCase()?.replace(' ', '-')?.replace('\(', '')?.replace(')', '')}`,
       ]"
     >
       <!-- Show only simple label which is `sourceTable relationType targetTable` -->

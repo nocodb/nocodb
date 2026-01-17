@@ -44,7 +44,14 @@ export function validateRowFilters(params: {
     timezone?: string;
   };
 }) {
-  const { filters: _filters, data = {}, columns, client, metas, baseId } = params;
+  const {
+    filters: _filters,
+    data = {},
+    columns = [],
+    client,
+    metas,
+    baseId,
+  } = params;
   if (!_filters.length) {
     return true;
   }
@@ -324,7 +331,11 @@ export function validateRowFilters(params: {
 
           const relatedModelId = colOptions?.fk_related_model_id;
 
-          const relatedMeta = getMetaWithCompositeKey(metas, baseId, relatedModelId);
+          const relatedMeta = getMetaWithCompositeKey(
+            metas,
+            baseId,
+            relatedModelId
+          );
 
           if (!relatedMeta?.columns) {
             res = false;
@@ -463,7 +474,7 @@ export function validateRowFilters(params: {
               res = !data[field];
               break;
             case 'null':
-              res = res = data[field] === null;
+              res = data[field] === null;
               break;
             case 'notnull':
               res = data[field] !== null;

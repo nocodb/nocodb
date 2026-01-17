@@ -227,7 +227,7 @@ const editOrAddProviderRef = ref()
 const onVisibilityChange = (state: 'showAddColumn' | 'showEditColumn') => {
   dropdownStates.value[state] = true
 
-  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.shouldKeepModalOpen()) {
+  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
     dropdownStates.value[state] = false
   }
 }

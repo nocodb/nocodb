@@ -84,7 +84,8 @@ const assignView = async () => {
     viewsStore
       .loadViews({
         ignoreLoading: true,
-        tableId: props.view.fk_model_id,
+        tableId: props.view?.fk_model_id as string,
+        baseId: props.view?.base_id,
         force: true,
       })
       .catch(() => {

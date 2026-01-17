@@ -193,10 +193,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return relatedTableDisplayValueColumn.value?.id || ''
     })
 
-    const relatedTablePrimaryKeyProps = computed(() => {
-      return relatedTableMeta.value?.columns?.filter((c) => c.pk)?.map((c) => c.title) ?? []
-    })
-
     const displayValueProp = computed(() => {
       return (meta.value?.columns?.find((c: Required<ColumnType>) => c.pv) || meta?.value?.columns?.[0])?.title
     })

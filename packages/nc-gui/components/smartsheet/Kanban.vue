@@ -51,6 +51,8 @@ const { metaColumnById } = useViewColumnsOrThrow(view, meta)
 
 const { isSyncedTable, eventBus } = useSmartsheetStoreOrThrow()
 
+const { isMounted } = useIsMounted()
+
 const {
   loadKanbanData,
   loadMoreKanbanData,
@@ -839,7 +841,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                     could reference a non-existent column. This is a workaround to handle such scenarios properly.
                                   -->
                                   <template v-if="coverImageColumn?.id" #cover>
-                                    <template v-if="!reloadAttachments && attachments(record).length">
+                                    <template v-if="isMounted && !reloadAttachments && attachments(record).length">
                                       <a-carousel
                                         :key="attachments(record).reduce((acc, curr) => acc + curr?.path, '')"
                                         class="gallery-carousel !border-b-1 !border-nc-border-gray-medium !bg-nc-bg-default"

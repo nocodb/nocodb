@@ -110,8 +110,13 @@ export function getFormulaTextSegments(anchorLinkHTML: string) {
 }
 
 export const openLink = (path: string, baseURL?: string, target = '_blank') => {
-  const url = new URL(path, baseURL)
-  window.open(url.href, target, 'noopener,noreferrer')
+  try {
+    const url = new URL(path, baseURL)
+    window.open(url.href, target, 'noopener,noreferrer')
+  } catch (e) {
+    console.error(`Failed constructing URL'${path}'`, e)
+    message.error((e as Error)?.message || 'Failed to construct URL')
+  }
 }
 
 export const navigateToBlankTargetOpenOption = {

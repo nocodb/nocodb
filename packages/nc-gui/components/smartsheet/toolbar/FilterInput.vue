@@ -70,7 +70,7 @@ const baseStore = useBase()
 
 const sqlUi = computed(() => baseStore.getSqlUiBySourceId(column.value?.source_id))
 
-const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
+const abstractType = computed(() => column.value && sqlUi.value?.getAbstractType(column.value))
 
 const checkType = (filterType: FilterType) => {
   const checkTypeFunction = checkTypeFunctions[filterType]

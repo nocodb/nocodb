@@ -411,6 +411,8 @@ export function calculateUnitPrice(
   workspaceOrOrgSeatCount: number,
   mode: 'month' | 'year',
 ) {
+  if (!price) return 0;
+
   if (price.billing_scheme === 'tiered' && price.tiers_mode === 'volume') {
     const tier = price.tiers.find(
       (tier: any) => workspaceOrOrgSeatCount <= (tier.up_to ?? Infinity),

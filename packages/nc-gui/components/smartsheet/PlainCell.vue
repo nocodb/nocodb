@@ -33,7 +33,7 @@ const { isXcdbBase, isMysql } = useBase()
 
 const sqlUi = computed(() => baseStore.getSqlUiBySourceId(column.value?.source_id))
 
-const abstractType = computed(() => column.value && sqlUi.value.getAbstractType(column.value))
+const abstractType = computed(() => column.value && sqlUi.value?.getAbstractType(column.value))
 
 const parsedValue = computed(() => {
   if (!meta?.value) return ''

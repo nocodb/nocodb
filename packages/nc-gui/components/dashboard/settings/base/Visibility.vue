@@ -18,7 +18,11 @@ watch(includeM2M, async () => await loadTables())
 
 onMounted(async () => {
   await until(() => !!baseId.value).toBeTruthy()
-  await basesStore.loadProject(baseId.value!, true)
+  try {
+    await basesStore.loadProject(baseId.value!, true)
+  } catch (e: any) {
+    // ignore
+  }
   showNullAndEmptyInFilter.value = basesStore.getProjectMeta(baseId.value!)?.showNullAndEmptyInFilter
 })
 

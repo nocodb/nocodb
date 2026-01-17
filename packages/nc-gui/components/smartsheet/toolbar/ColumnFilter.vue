@@ -694,10 +694,11 @@ async function resetDynamicField(filter: any, i) {
 
 const { sqlUis, baseId } = storeToRefs(useBase())
 
-const sqlUi =
-  meta.value?.source_id && meta.value?.base_id === baseId.value
+const sqlUi = computed(() => {
+  return meta.value?.source_id && meta.value?.base_id === baseId.value && sqlUis.value[meta.value?.source_id]
     ? sqlUis.value[meta.value?.source_id]
     : Object.values(sqlUis.value)[0]
+})
 
 const isDynamicFilterAllowed = (filter: FilterType) => {
   const col = getColumn(filter)
@@ -719,7 +720,7 @@ const isDynamicFilterAllowed = (filter: FilterType) => {
   )
     return false
 
-  const abstractType = sqlUi.getAbstractType(col)
+  const abstractType = sqlUi.value?.getAbstractType(col)
 
   if (!['integer', 'float', 'text', 'string'].includes(abstractType)) return false
 
@@ -735,9 +736,9 @@ const dynamicColumns = (filter: FilterType) => {
     if (excludedFilterColUidt.includes(c.uidt as UITypes) || isVirtualCol(c) || (isSystemColumn(c) && !c.pk)) {
       return false
     }
-    const dynamicColAbstractType = sqlUi.getAbstractType(c)
+    const dynamicColAbstractType = sqlUi.value?.getAbstractType(c)
 
-    const filterColAbstractType = sqlUi.getAbstractType(filterCol)
+    const filterColAbstractType = sqlUi.value?.getAbstractType(filterCol)
 
     // treat float and integer as number
     if ([dynamicColAbstractType, filterColAbstractType].every((type) => ['float', 'integer'].includes(type))) {

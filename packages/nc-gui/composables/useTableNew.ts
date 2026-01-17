@@ -98,7 +98,7 @@ export function useTableNew(param: {
       table.isViewsLoading = true
 
       try {
-        await loadViews({ tableId: table.id as string })
+        await loadViews({ tableId: table.id as string, baseId: table.base_id as string })
 
         if (table.base_id) {
           const key = `${table.base_id}:${table.id}`

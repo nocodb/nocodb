@@ -1228,7 +1228,7 @@ const bulkExecuteScript = async () => {
     runScript((field.colOptions as ButtonType).fk_script_id!, row.row, {
       pk,
       fieldId: field.id,
-    }).catch((e: any) => {
+    }).catch((_e: any) => {
       // ignore - console error is logged in runScript
     })
   }
@@ -1501,7 +1501,7 @@ const saveOrUpdateRecords = async (
 const editOrAddProviderRef = ref()
 
 const onVisibilityChange = () => {
-  addColumnDropdown.value = editOrAddProviderRef.value?.shouldKeepModalOpen()
+  addColumnDropdown.value = editOrAddProviderRef.value?.shouldKeepModalOpen?.()
 }
 
 const COL_VIRTUAL_MARGIN = 5

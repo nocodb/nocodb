@@ -205,7 +205,7 @@ export const useRealtime = createSharedComposable(() => {
     } else if (event.action === 'column_add' || event.action === 'column_update' || event.action === 'column_delete') {
       const { table, column, skipDataReload = false } = event.payload
       setMeta(table)
-      if (event.action === 'column_update' || (event.action === 'column_add' && (isVirtualCol(column) || !!column.cdf))) {
+      if (event.action === 'column_update' || (event.action === 'column_add' && (isVirtualCol(column) || !!column?.cdf))) {
         $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
         if (!skipDataReload) $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
       }

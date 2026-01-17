@@ -66,7 +66,8 @@ async function onOpenModal({
   isViewListLoading.value = true
   try {
     await loadViews({
-      tableId: activeTable.value.id!,
+      tableId: activeTable.value?.id as string,
+      baseId: base.value.id!,
     })
   } catch (e) {
     console.log('error', e)

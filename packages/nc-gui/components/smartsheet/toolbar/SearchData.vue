@@ -143,7 +143,7 @@ const handleEscapeKey = () => {
 
 const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
   const targetEl = e.target as HTMLElement
-  if (search.value.query || targetEl.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {
+  if (search.value.query || targetEl?.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {
     return
   }
 

@@ -1,0 +1,470 @@
+import { Injectable, Logger } from '@nestjs/common';
+import type { NcContext } from '~/interface/config';
+import { NcError } from '~/helpers/catchError';
+import { Team, WorkspaceUser } from '~/ee/models';
+import Noco from '~/Noco';
+import { PrincipalAssignment } from '~/ee/models';
+
+interface ScimGroupResource {
+  schemas: string[];
+  id: string;
+  externalId?: string;
+  displayName: string;
+  members?: Array<{
+    value: string;
+    $ref?: string;
+    type?: string;
+    display?: string;
+  }>;
+  meta?: {
+    resourceType: string;
+    created?: string;
+    lastModified?: string;
+    location?: string;
+  };
+}
+
+@Injectable()
+export class ScimGroupsService {
+  protected logger = new Logger(ScimGroupsService.name);
+
+  constructor() {}
+
+  /**
+   * Get a single group (team) by SCIM external ID
+   */
+  async getGroup(
+    context: NcContext,
+    param: { workspaceId: string; scimId: string },
+  ) {
+    const teams = await Team.list(context, {
+      fk_workspace_id: param.workspaceId,
+    });
+
+    const team = teams.find((t) => t.scim_external_id === param.scimId);
+
+    if (!team || team.deleted) {
+      NcError.notFound('Group not found');
+    }
+
+    return this.toScimGroup(context, team, param.workspaceId);
+  }
+
+  /**
+   * List groups with optional filtering and pagination
+   */
+  async listGroups(
+    context: NcContext,
+    param: {
+      workspaceId: string;
+      filter?: string;
+      startIndex?: number;
+      count?: number;
+    },
+  ) {
+    const startIndex = param.startIndex || 1;
+    const count = Math.min(param.count || 100, 100);
+
+    let teams = await Team.list(context, {
+      fk_workspace_id: param.workspaceId,
+    });
+
+    // Filter SCIM-managed teams only
+    teams = teams.filter((t) => t.scim_managed && !t.deleted);
+
+    // Apply SCIM filter if provided
+    if (param.filter) {
+      teams = this.applyFilter(teams, param.filter);
+    }
+
+    const totalResults = teams.length;
+
+    // Apply pagination
+    const paginatedTeams = teams.slice(startIndex - 1, startIndex - 1 + count);
+
+    const resources = await Promise.all(
+      paginatedTeams.map((t) =>
+        this.toScimGroup(context, t, param.workspaceId),
+      ),
+    );
+
+    return {
+      schemas: ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+      totalResults,
+      startIndex,
+      itemsPerPage: resources.length,
+      Resources: resources,
+    };
+  }
+
+  /**
+   * Create a new group (team) from SCIM data
+   */
+  async createGroup(
+    context: NcContext,
+    param: {
+      workspaceId: string;
+      scimGroup: any;
+    },
+  ) {
+    const { scimGroup, workspaceId } = param;
+
+    if (!scimGroup.displayName) {
+      NcError.badRequest('displayName is required');
+    }
+
+    // Check if team with same name already exists
+    const existingTeams = await Team.list(context, {
+      fk_workspace_id: workspaceId,
+    });
+
+    const existingTeam = existingTeams.find(
+      (t) => t.title === scimGroup.displayName && !t.deleted,
+    );
+
+    if (existingTeam) {
+      // If team exists but not SCIM-managed, convert it to SCIM-managed
+      if (!existingTeam.scim_managed) {
+        await Team.update(context, existingTeam.id, {
+          scim_external_id: scimGroup.externalId || scimGroup.id,
+          scim_managed: true,
+          scim_display_name: scimGroup.displayName,
+        });
+
+        // Update membership to match SCIM
+        if (scimGroup.members) {
+          await this.updateTeamMembers(
+            context,
+            existingTeam.id,
+            workspaceId,
+            scimGroup.members,
+          );
+        }
+
+        return this.toScimGroup(context, existingTeam, workspaceId);
+      }
+
+      NcError.badRequest('Group with this name already exists');
+    }
+
+    // Create new team
+    const team = await Team.insert(context, {
+      title: scimGroup.displayName,
+      fk_workspace_id: workspaceId,
+      scim_external_id: scimGroup.externalId || scimGroup.id,
+      scim_managed: true,
+      scim_display_name: scimGroup.displayName,
+    });
+
+    // Add members if provided
+    if (scimGroup.members?.length) {
+      await this.updateTeamMembers(
+        context,
+        team.id,
+        workspaceId,
+        scimGroup.members,
+      );
+    }
+
+    return this.toScimGroup(context, team, workspaceId);
+  }
+
+  /**
+   * Update group (PATCH - partial update for membership)
+   */
+  async updateGroup(
+    context: NcContext,
+    param: {
+      workspaceId: string;
+      scimId: string;
+      scimGroup: any;
+    },
+  ) {
+    const { workspaceId, scimId, scimGroup } = param;
+
+    const teams = await Team.list(context, {
+      fk_workspace_id: workspaceId,
+    });
+
+    const team = teams.find((t) => t.scim_external_id === scimId);
+
+    if (!team) {
+      NcError.notFound('Group not found');
+    }
+
+    // Update team properties if provided
+    const updateData: any = {};
+    if (scimGroup.displayName && scimGroup.displayName !== team.title) {
+      updateData.title = scimGroup.displayName;
+      updateData.scim_display_name = scimGroup.displayName;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await Team.update(context, team.id, updateData);
+    }
+
+    // Handle membership updates
+    if (scimGroup.members !== undefined) {
+      await this.updateTeamMembers(
+        context,
+        team.id,
+        workspaceId,
+        scimGroup.members || [],
+      );
+    }
+
+    // Handle SCIM PATCH operations
+    if (scimGroup.Operations) {
+      await this.applyPatchOperations(
+        context,
+        team,
+        workspaceId,
+        scimGroup.Operations,
+      );
+    }
+
+    const updatedTeam = await Team.get(context, { teamId: team.id });
+    return this.toScimGroup(context, updatedTeam, workspaceId);
+  }
+
+  /**
+   * Delete group (soft delete)
+   */
+  async deleteGroup(
+    context: NcContext,
+    param: { workspaceId: string; scimId: string },
+  ) {
+    const teams = await Team.list(context, {
+      fk_workspace_id: param.workspaceId,
+    });
+
+    const team = teams.find((t) => t.scim_external_id === param.scimId);
+
+    if (!team) {
+      NcError.notFound('Group not found');
+    }
+
+    await Team.softDelete(context, team.id);
+
+    return { status: 'deleted' };
+  }
+
+  /**
+   * Convert Team to SCIM Group format
+   */
+  private async toScimGroup(
+    context: NcContext,
+    team: any,
+    workspaceId: string,
+  ): Promise<ScimGroupResource> {
+    // Get team members
+    const members = await this.getTeamMembers(context, team.id, workspaceId);
+
+    return {
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+      id: team.scim_external_id,
+      externalId: team.scim_external_id,
+      displayName: team.scim_display_name || team.title,
+      members: members.map((member) => ({
+        value: member.scim_external_id,
+        $ref: `/scim/v2/Users/${member.scim_external_id}`,
+        type: 'User',
+        display: member.display_name || member.email,
+      })),
+      meta: {
+        resourceType: 'Group',
+        location: `/scim/v2/Groups/${team.scim_external_id}`,
+      },
+    };
+  }
+
+  /**
+   * Get team members (workspace users who are in the team)
+   */
+  private async getTeamMembers(
+    context: NcContext,
+    teamId: string,
+    workspaceId: string,
+  ): Promise<any[]> {
+    const ncMeta = Noco.ncMeta;
+
+    // Get team user assignments
+    const assignments = await PrincipalAssignment.list(context, {
+      resource_type: 'team',
+      resource_id: teamId,
+    });
+
+    const userIds = assignments
+      .filter((a) => a.principal_type === 'user')
+      .map((a) => a.principal_ref_id);
+
+    // Get workspace users
+    const workspaceUsers = await WorkspaceUser.userList({
+      fk_workspace_id: workspaceId,
+    });
+
+    // Filter to team members who are SCIM-managed
+    return workspaceUsers.filter(
+      (wu) => userIds.includes(wu.fk_user_id) && wu.scim_managed,
+    );
+  }
+
+  /**
+   * Update team members to match SCIM group members
+   */
+  private async updateTeamMembers(
+    context: NcContext,
+    teamId: string,
+    workspaceId: string,
+    scimMembers: any[],
+  ) {
+    // Get current members
+    const currentMembers = await this.getTeamMembers(
+      context,
+      teamId,
+      workspaceId,
+    );
+
+    // Map SCIM member IDs to workspace users
+    const workspaceUsers = await WorkspaceUser.userList({
+      fk_workspace_id: workspaceId,
+    });
+
+    const targetMembers = scimMembers
+      .map((m) => {
+        const wu = workspaceUsers.find((wu) => wu.scim_external_id === m.value);
+        return wu;
+      })
+      .filter((wu) => wu); // Filter out not found
+
+    // Remove members not in target list
+    for (const member of currentMembers) {
+      if (!targetMembers.find((tm) => tm.fk_user_id === member.fk_user_id)) {
+        await PrincipalAssignment.delete(context, {
+          resource_type: 'team',
+          resource_id: teamId,
+          principal_type: 'user',
+          principal_ref_id: member.fk_user_id,
+        });
+      }
+    }
+
+    // Add new members
+    for (const member of targetMembers) {
+      const exists = currentMembers.find(
+        (cm) => cm.fk_user_id === member.fk_user_id,
+      );
+      if (!exists) {
+        await PrincipalAssignment.insert(context, {
+          resource_type: 'team',
+          resource_id: teamId,
+          principal_type: 'user',
+          principal_ref_id: member.fk_user_id,
+          roles: null, // Team role, not individual role
+        });
+      }
+    }
+  }
+
+  /**
+   * Apply SCIM PATCH operations
+   */
+  private async applyPatchOperations(
+    context: NcContext,
+    team: any,
+    workspaceId: string,
+    operations: any[],
+  ) {
+    for (const op of operations) {
+      if (op.path === 'members') {
+        if (op.op === 'add') {
+          // Add members
+          await this.addTeamMembers(context, team.id, workspaceId, op.value);
+        } else if (op.op === 'remove') {
+          // Remove members
+          await this.removeTeamMembers(context, team.id, workspaceId, op.value);
+        }
+      }
+    }
+  }
+
+  /**
+   * Add members to team
+   */
+  private async addTeamMembers(
+    context: NcContext,
+    teamId: string,
+    workspaceId: string,
+    members: any[],
+  ) {
+    const workspaceUsers = await WorkspaceUser.userList({
+      fk_workspace_id: workspaceId,
+    });
+
+    for (const member of members) {
+      const wu = workspaceUsers.find(
+        (wu) => wu.scim_external_id === member.value,
+      );
+      if (wu) {
+        await PrincipalAssignment.insert(context, {
+          resource_type: 'team',
+          resource_id: teamId,
+          principal_type: 'user',
+          principal_ref_id: wu.fk_user_id,
+          roles: null,
+        });
+      }
+    }
+  }
+
+  /**
+   * Remove members from team
+   */
+  private async removeTeamMembers(
+    context: NcContext,
+    teamId: string,
+    workspaceId: string,
+    members: any[],
+  ) {
+    const workspaceUsers = await WorkspaceUser.userList({
+      fk_workspace_id: workspaceId,
+    });
+
+    for (const member of members) {
+      const wu = workspaceUsers.find(
+        (wu) => wu.scim_external_id === member.value,
+      );
+      if (wu) {
+        await PrincipalAssignment.delete(context, {
+          resource_type: 'team',
+          resource_id: teamId,
+          principal_type: 'user',
+          principal_ref_id: wu.fk_user_id,
+        });
+      }
+    }
+  }
+
+  /**
+   * Apply basic SCIM filter
+   */
+  private applyFilter(teams: any[], filter: string): any[] {
+    // Support: displayName eq "Team Name"
+    const displayNameMatch = filter.match(/displayName\s+eq\s+"([^"]+)"/i);
+    if (displayNameMatch) {
+      const displayName = displayNameMatch[1];
+      return teams.filter(
+        (t) => t.scim_display_name === displayName || t.title === displayName,
+      );
+    }
+
+    // Support: externalId eq "id"
+    const externalIdMatch = filter.match(/externalId\s+eq\s+"([^"]+)"/i);
+    if (externalIdMatch) {
+      const externalId = externalIdMatch[1];
+      return teams.filter((t) => t.scim_external_id === externalId);
+    }
+
+    return teams;
+  }
+}

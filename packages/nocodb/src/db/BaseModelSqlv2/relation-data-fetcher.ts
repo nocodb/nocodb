@@ -24,23 +24,24 @@ export const relationDataFetcher = (param: {
     context: NcContext,
     {
       data,
-      model,
-      query,
     }: {
       data: any[];
       model: Model;
       query: any;
     },
   ) {
-    // get ast
-    const { ast, parsedQuery } = await getAst(context, {
-      model,
-      query,
-      extractOnlyPrimaries: false,
-    });
-    // nocoexecute
-    const result = await nocoExecute(ast, data, {}, parsedQuery);
-    return result;
+    return data;
+
+    // FIXME: reopen when we have fixed nocoexecute
+    // // get ast
+    // const { ast, parsedQuery } = await getAst(context, {
+    //   model,
+    //   query,
+    //   extractOnlyPrimaries: false,
+    // });
+    // // nocoexecute
+    // const result = await nocoExecute(ast, data, {}, parsedQuery);
+    // return result;
   }
 
   return {

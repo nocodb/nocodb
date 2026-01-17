@@ -231,7 +231,10 @@ onMounted(() => {
           </NcBadge>
         </div>
       </div>
-      <LazyGeneralShareProject v-if="!showEmptySkeleton && !isMobileMode" />
+      <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
+        <SmartsheetTopbarSandboxStatus />
+        <LazyGeneralShareProject />
+      </div>
     </div>
     <div
       v-if="!showEmptySkeleton"

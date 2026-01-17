@@ -449,6 +449,12 @@ export class ColumnsService implements IColumnsService {
 
     const isSyncedColumn = table.synced && column.readonly;
 
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id),
     );
@@ -2468,6 +2474,12 @@ export class ColumnsService implements IColumnsService {
       }),
     );
 
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id),
     );
@@ -3355,6 +3367,12 @@ export class ColumnsService implements IColumnsService {
     const source = await reuseOrSave('source', reuse, async () =>
       Source.get(context, table.source_id, false, ncMeta),
     );
+
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
 
     // check if source is readonly and column type is not allowed
     if (

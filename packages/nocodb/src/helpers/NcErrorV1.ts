@@ -126,4 +126,19 @@ export class NcErrorV1 extends NcErrorBase {
     // backward compatibility for v1 and v2 apis
     return this.badRequest(message);
   }
+
+  sourceDataReadOnly(name: string): never {
+    return this.forbidden(`Source '${name}' is read-only`);
+  }
+
+  sourceMetaReadOnly(name: string): never {
+    return this.forbidden(`Source '${name}' schema is read-only`);
+  }
+
+  schemaLocked(message?: string): never {
+    return this.forbidden(
+      message ||
+        'Schema modifications are not allowed on installed sandbox bases',
+    );
+  }
 }

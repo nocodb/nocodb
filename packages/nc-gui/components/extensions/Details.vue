@@ -63,13 +63,16 @@ const getModifiedContent = (content = '') => {
 }
 
 const detailsBody = computed(() => {
+  let markdown = ''
   if (descriptionContent.value[props.extensionId]) {
-    return marked.parse(getModifiedContent(descriptionContent.value[props.extensionId]))
+    markdown = descriptionContent.value[props.extensionId]
   } else if (activeExtension.value?.description) {
-    return marked.parse(getModifiedContent(activeExtension.value.description))
+    markdown = activeExtension.value.description
+  } else {
+    return '<p></p>'
   }
 
-  return '<p></p>'
+  return marked.parse(getModifiedContent(markdown))
 })
 </script>
 

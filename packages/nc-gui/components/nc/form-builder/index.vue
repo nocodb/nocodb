@@ -312,6 +312,16 @@ watch(
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
+                  <template v-else-if="field.type === FormBuilderInputType.Textarea">
+                    <a-textarea
+                      class="!w-full !rounded-lg !min-h-[90px] max-h-[500px] nc-scrollbar-thin"
+                      size="large"
+                      hide-details
+                      :value="deepReference(field.model)"
+                      :placeholder="field.placeholder"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
+                    />
+                  </template>
                   <template v-else-if="field.type === FormBuilderInputType.Number">
                     <a-input-number
                       autocomplete="off"

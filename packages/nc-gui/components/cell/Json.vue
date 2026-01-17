@@ -189,20 +189,32 @@ const stopPropagation = (event: MouseEvent) => {
   event.stopPropagation()
 }
 
+const listners: Array<'click' | 'mousedown' | 'mouseup'> = ['click', 'mousedown', 'mouseup']
+
+const addListeners = (element: HTMLDivElement) => {
+  listners.forEach((listener) => {
+    element.addEventListener(listener, stopPropagation)
+  })
+}
+
+const removeListeners = (element: HTMLDivElement) => {
+  listners.forEach((listener) => {
+    element.removeEventListener(listener, stopPropagation)
+  })
+}
+
 watch(inputWrapperRef, () => {
   if (!isEditColumn.value) return
 
   // stop event propogation in edit to prevent close edit modal on clicking expanded modal overlay
   const modal = document.querySelector('.nc-json-expanded-modal') as HTMLElement
 
-  if (isExpanded.value && modal?.parentElement) {
-    modal.parentElement.addEventListener('click', stopPropagation)
-    modal.parentElement.addEventListener('mousedown', stopPropagation)
-    modal.parentElement.addEventListener('mouseup', stopPropagation)
-  } else if (modal?.parentElement) {
-    modal.parentElement.removeEventListener('click', stopPropagation)
-    modal.parentElement.removeEventListener('mousedown', stopPropagation)
-    modal.parentElement.removeEventListener('mouseup', stopPropagation)
+  if (!modal?.parentElement) return
+
+  removeListeners(modal.parentElement as HTMLDivElement)
+
+  if (isExpanded.value) {
+    addListeners(modal.parentElement as HTMLDivElement)
   }
 })
 

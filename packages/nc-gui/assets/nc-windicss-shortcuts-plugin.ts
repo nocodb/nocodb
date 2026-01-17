@@ -23,6 +23,16 @@ export default plugin(({ addUtilities }) => {
     },
   }
 
+  utils['.nc-max-h-screen'] = {
+    'max-height': '100vh',
+    '@supports (max-height: 100dvh)': {
+      'max-height': '100dvh',
+    },
+    '@supports (max-height: 100svh)': {
+      'max-height': '100svh',
+    },
+  }
+
   utils['.nc-w-screen'] = {
     'width': '100vw',
     '@supports (width: 100dvw)': {
@@ -40,6 +50,16 @@ export default plugin(({ addUtilities }) => {
     },
     '@supports (min-width: 100svw)': {
       'min-width': '100svw',
+    },
+  }
+
+  utils['.nc-max-w-screen'] = {
+    'max-width': '100vw',
+    '@supports (width: 100dvw)': {
+      'max-width': '100dvw',
+    },
+    '@supports (max-width: 100svw)': {
+      'max-width': '100svw',
     },
   }
 

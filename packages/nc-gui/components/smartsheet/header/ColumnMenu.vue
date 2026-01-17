@@ -610,7 +610,7 @@ const onDeleteColumn = () => {
 <template>
   <NcMenu
     variant="small"
-    class="flex flex-col gap-1 border-nc-border-gray-medium nc-column-options !min-w-55"
+    class="flex flex-col gap-1 border-nc-border-gray-medium nc-column-options !min-w-55 nc-max-h-screen nc-scrollbar-thin"
     :class="{
       'min-w-[256px]': isExpandedForm,
     }"

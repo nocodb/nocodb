@@ -3,7 +3,6 @@ import type { DBQueryClient as DBQueryClientCE } from 'src/dbQueryClient/types';
 import type { Knex, XKnex } from '~/db/CustomKnex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Column, Model } from '~/models';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
 import type { Source, View } from '~/models';
 import type { Filter } from '~/models';
@@ -77,7 +76,7 @@ export interface DBQueryClient extends DBQueryClientCE {
       validateFormula?: boolean;
       ignorePagination?: boolean;
       limitOverride?: number;
-      baseModel?: BaseModelSqlv2;
+      baseModel?: IBaseModelSqlV2;
       customConditions?: Filter[];
       getHiddenColumns?: boolean;
       apiVersion?: NcApiVersion;

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { FormBuilderValidatorType } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType } from '#imports'
+
 const props = defineProps<{
   baseId: string
 }>()
@@ -11,13 +12,6 @@ const { $api } = useNuxtApp()
 const { t } = useI18n()
 
 const initialSanboxFormState = ref<Record<string, any>>({
-  title: '',
-  description: '',
-  category: '',
-  visibility: 'private',
-})
-
-const sandboxForm = reactive({
   title: '',
   description: '',
   category: '',
@@ -128,43 +122,64 @@ watch(visible, (isVisible) => {
 </script>
 
 <template>
-  <NcModal v-model:visible="visible" size="medium" centered wrap-class-name="nc-modal-convert-to-sandbox">
-    <div class="flex flex-col">
-      <div class="flex items-center gap-3 pb-4 mb-4 border-b border-nc-border-gray-medium">
-        <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
-          <GeneralIcon icon="ncBox" class="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <div class="font-semibold text-lg text-nc-content-gray-emphasis">Convert to Sandbox</div>
-          <div class="text-xs text-nc-content-gray-subtle2">{{ $t('labels.publishToAppStore') }}</div>
-        </div>
+  <NcModal
+    v-model:visible="visible"
+    size="sm"
+    height="auto"
+    centered
+    wrap-class-name="nc-modal-convert-to-sandbox "
+    nc-modal-class-name="!p-0"
+  >
+    <div class="p-4 w-full flex items-center gap-3 border-b border-nc-border-gray-medium">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
+        <GeneralIcon icon="ncBox" class="w-5 h-5 text-white" />
+      </div>
+      <div class="flex-1">
+        <div class="font-semibold text-lg text-nc-content-gray-emphasis">Convert to Sandbox</div>
+        <div class="text-xs text-nc-content-gray-subtle2">{{ $t('labels.publishToAppStore') }}</div>
       </div>
 
-      <div class="space-y-4">
-        <div class="bg-nc-bg-blue-light border border-nc-border-blue rounded-lg p-3 mb-4">
-          <div class="flex gap-2 text-sm text-nc-content-gray">
-            <GeneralIcon icon="info" class="w-4 h-4 text-nc-content-blue-dark mt-0.5 flex-shrink-0" />
-            <div>
-              Convert this base into a living application that can be published to the App Store. You'll be able to manage
-              versions and push updates to all installations.
-            </div>
-          </div>
-        </div>
+      <NcButton size="small" type="text" @click="visible = false" class="self-start">
+        <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
+      </NcButton>
+    </div>
 
-        <NcFormBuilder />
-      </div>
+    <div class="flex-1 p-6 nc-scrollbar-thin">
+      <NcFormBuilder>
+        <template #header>
+          <NcAlert
+            type="info"
+            :align="'top'"
+            description="Convert this base into a living application that can be published to the App Store. You'll be able to manage versions and push updates to all installations."
+            class="!p-3 !items-start bg-nc-bg-blue-light border-1 !border-nc-blue-200 rounded-lg p-3 mb-4"
+          >
+            <template #icon>
+              <GeneralIcon icon="info" class="w-4 h-4 mt-0.5 text-nc-content-blue-dark flex-none" />
+            </template>
+          </NcAlert>
+        </template>
+      </NcFormBuilder>
+    </div>
 
-      <div class="flex justify-end gap-2 mt-6 pt-4 border-t border-nc-border-gray-medium">
-        <NcButton size="small" type="secondary" :disabled="isLoading" @click="visible = false">
-          {{ $t('general.cancel') }}
-        </NcButton>
-        <NcButton size="small" type="primary" :loading="isLoading" @click="submit">
-          <template #icon>
-            <GeneralIcon icon="ncBox" />
-          </template>
-          Convert to sandbox
-        </NcButton>
-      </div>
+    <div class="flex justify-end gap-2 px-4 py-3 border-t border-nc-border-gray-medium">
+      <NcButton size="small" type="secondary" :disabled="isLoading" @click="visible = false">
+        {{ $t('general.cancel') }}
+      </NcButton>
+      <NcButton size="small" type="primary" :loading="isLoading" @click="submit">
+        <template #icon>
+          <GeneralIcon icon="ncBox" />
+        </template>
+        Convert to sandbox
+      </NcButton>
     </div>
   </NcModal>
 </template>
+
+<style lang="scss">
+.nc-modal-convert-to-sandbox {
+  .nc-modal {
+    max-height: min(90vh, 540px) !important;
+    height: min(90vh, 540px) !important;
+  }
+}
+</style>

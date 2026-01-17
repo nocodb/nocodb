@@ -34,6 +34,11 @@ export default class WorkspaceUser {
   deleted?: boolean;
   deleted_at?: string;
   invited_by?: string;
+  // SCIM fields (workspace-specific)
+  scim_external_id?: string;
+  scim_managed?: boolean;
+  scim_user_name?: string;
+  scim_meta?: Record<string, any> | string;
 
   constructor(data: WorkspaceUser) {
     Object.assign(this, data);
@@ -84,6 +89,10 @@ export default class WorkspaceUser {
         'invited_by',
         'deleted',
         'deleted_at',
+        'scim_external_id',
+        'scim_managed',
+        'scim_user_name',
+        'scim_meta',
       ]);
 
       await ncMetaTrans.metaInsert2(
@@ -604,6 +613,10 @@ export default class WorkspaceUser {
       'deleted',
       'deleted_at',
       'order',
+      'scim_external_id',
+      'scim_managed',
+      'scim_user_name',
+      'scim_meta',
     ]);
 
     await ncMeta.metaUpdate(

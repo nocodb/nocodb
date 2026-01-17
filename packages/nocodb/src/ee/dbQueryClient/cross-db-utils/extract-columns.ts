@@ -39,6 +39,11 @@ export function extractColumns({
     validateFormula: boolean;
     apiVersion: NcApiVersion;
   }) {
+    // since this operation is meta-heavy,
+    // we set context to true
+    const lastUseCache = baseModel.context.cache;
+    baseModel.context.cache = true;
+
     const extractPromises = [];
 
     const baseUsers = await BaseUser.getUsersList(baseModel.context, {
@@ -115,5 +120,7 @@ export function extractColumns({
     }
 
     await Promise.all(extractPromises);
+    // we reset the use cache
+    baseModel.context.cache = lastUseCache;
   };
 }

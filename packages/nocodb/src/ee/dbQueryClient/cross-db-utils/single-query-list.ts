@@ -1,3 +1,4 @@
+import debug from 'debug';
 import { nanoid } from 'nanoid';
 import {
   extractFilterFromXwhere,
@@ -30,6 +31,8 @@ import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { isTransientError } from '~/helpers/db-error/utils';
+
+const debugSingleQueryList = debug('nc:db:query:singleQueryList');
 
 export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
   async function list(
@@ -98,6 +101,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       );
       if (cachedQuery && cachedCountQuery) {
         profiler.log('get data using cache');
+        debugSingleQueryList(cachedQuery);
         const [countRes, res] = await getDataWithCountCache(context, {
           query: cachedQuery,
           countQuery: cachedCountQuery,
@@ -376,6 +380,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
 
     let count, res;
     try {
+      debugSingleQueryList(dataQuery);
       [count, res] = await getDataWithCountCache(context, {
         query: dataQuery,
         countQuery: countQb.toQuery(),

@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import debug from 'debug';
 import { normalizeIdForQuery } from '../utils';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { NcContext } from '~/interface/config';
@@ -21,6 +22,8 @@ import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { isTransientError } from '~/helpers/db-error/utils';
+
+const debugSingleQueryRead = debug('nc:db:query:singleQueryRead');
 
 export const singleQueryRead = (client: DBQueryClient) => {
   async function read(
@@ -219,6 +222,16 @@ export const singleQueryRead = (client: DBQueryClient) => {
 
     let res;
     try {
+      debugSingleQueryRead(
+        knex
+          .raw(
+            query,
+            ctx.model.primaryKeys.length === 1
+              ? [ctx.id]
+              : ctx.id.split('___').map((id) => id.replaceAll('\\_', '_')),
+          )
+          .toQuery(),
+      );
       res = await baseModel.execAndParse(
         knex.raw(query, normalizedIdValues).toQuery(),
         null,

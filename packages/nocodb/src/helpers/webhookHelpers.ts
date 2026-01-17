@@ -325,7 +325,7 @@ export async function validateCondition(
               res = !data[field];
               break;
             case 'null':
-              res = res = data[field] === null;
+              res = data[field] === null;
               break;
             case 'notnull':
               res = data[field] !== null;

@@ -20,7 +20,9 @@ const emit = defineEmits(['update:modelValue', 'back'])
 
 const { $api } = useNuxtApp()
 
-const { $poller } = useNuxtApp()
+const baseURL = $api.instance.defaults.baseURL
+
+const { $state, $poller } = useNuxtApp()
 
 const workspace = useWorkspace()
 
@@ -47,6 +49,8 @@ const enableAbort = ref(false)
 const goBack = ref(false)
 
 const listeningForUpdates = ref(false)
+
+const hasWarning = ref(false)
 
 const syncSource = ref({
   id: '',
@@ -80,6 +84,10 @@ const customSourceId = computed(() => {
 const onLog = (data: { message: string }) => {
   progressRef.value?.pushProgress(data.message, 'progress')
   lastProgress.value = { msg: data.message, status: 'progress' }
+
+  if (data.message.startsWith('WARNING: ')) {
+    hasWarning.value = true
+  }
 }
 
 const onStatus = async (status: JobStatus, data?: any) => {
@@ -480,9 +488,12 @@ const collapseKey = ref('')
             :description="$t('msg.error.anErrorOccuredWhileAirtableBaseImport')"
           />
         </template>
-        <div v-else class="flex items-center gap-3">
-          <GeneralIcon icon="checkFill" class="text-white w-4 h-4" />
-          <span> {{ $t('msg.airtableImportSuccess') }} </span>
+        <div v-else class="flex flex-col gap-3">
+          <div class="flex items-center gap-3">
+            <GeneralIcon icon="checkFill" class="text-white w-4 h-4" />
+            <span> {{ $t('msg.airtableImportSuccess') }} </span>
+          </div>
+          <div v-if="hasWarning" class="text-yellow-500">{{ $t('msg.airtableImportWarning') }}</div>
         </div>
       </div>
 

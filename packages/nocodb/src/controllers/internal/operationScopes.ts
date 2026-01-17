@@ -104,5 +104,31 @@ export const OPERATION_SCOPES = {
   dataList: 'base',
   linkDataList: 'base',
   dataDelete: 'base',
+  dataDeleteAll: 'base',
   bulkDataDeleteAll: 'base',
+
+  // AT Import
+  syncSourceList: 'base',
+  syncSourceCreate: 'base',
+  syncSourceUpdate: 'base',
+  syncSourceDelete: 'base',
+  atImportTrigger: 'base',
+
+  // Sandbox Operations
+  sandboxStoreList: 'org',
+  sandboxList: 'workspace',
+  sandboxGet: 'org',
+  sandboxCreate: 'workspace',
+  sandboxUpdate: 'base',
+  sandboxDelete: 'base',
+  sandboxPublish: 'base',
+  sandboxCreateDraft: 'base',
+  sandboxUnpublish: 'base',
+  sandboxInstall: 'workspace',
+  sandboxGetUpdates: 'base',
+  sandboxVersionsList: 'base',
+  sandboxInstallationsList: 'base',
+  sandboxDeployments: 'base',
+  sandboxVersionDeployments: 'base',
+  sandboxDeploymentLogs: 'base',
 } as const;

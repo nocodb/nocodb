@@ -61,6 +61,7 @@ export enum JobTypes {
   WorkflowResumeSchedule = 'workflow-resume-schedule',
   ResumeWorkflow = 'resume-workflow',
   TestWorkflowNode = 'test-workflow-node',
+  HeartbeatWorkflow = 'heartbeat-workflow',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -79,6 +80,7 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.WorkflowCronSchedule,
   JobTypes.WorkflowResumeSchedule,
   JobTypes.ResumeWorkflow,
+  JobTypes.HeartbeatWorkflow,
 ];
 
 export enum JobStatus {
@@ -288,4 +290,8 @@ export interface TestWorkflowNodeJobData extends JobData {
   workflowId: string;
   nodeId: string;
   testTriggerData?: any;
+}
+
+export interface HeartbeatWorkflowJobData extends JobData {
+  workflowId: string;
 }

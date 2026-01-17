@@ -116,6 +116,20 @@ const onInit = () => {
   }, 5)
 }
 
+const onSandboxInstalled = async (sandbox: any) => {
+  // Close the dialog and refresh the base list
+  dialogShow.value = false
+  refreshCommandPalette()
+  // Navigate to the newly installed base if available
+  // TODO: Once install returns the new baseId, navigate to it
+  // if (sandbox.installedBaseId) {
+  //   await navigateToProject({
+  //     workspaceId: activeWorkspace.value?.id,
+  //     baseId: sandbox.installedBaseId,
+  //   })
+  // }
+}
+
 const handleResetInitialValue = () => {
   // Avoid unnecessary reset of initial value
   if (!aiModeInitialValue.value.basePrompt && !route.value?.query?.basePrompt) return
@@ -202,7 +216,12 @@ if (props.isCreateNewActionMenu) {
       </div>
     </template>
     <template v-if="aiMode === null">
-      <WorkspaceProjectCreateMode v-model:ai-mode="aiMode" />
+      <WorkspaceProjectCreateMode
+        v-model:ai-mode="aiMode"
+        :workspace-id="activeWorkspace?.id"
+        @sandbox-installed="onSandboxInstalled"
+        @close="dialogShow = false"
+      />
     </template>
     <template v-if="aiMode === false">
       <div class="mt-1">

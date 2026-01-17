@@ -2,6 +2,7 @@ import { type ColumnType, type TableType, UITypes, type UserType, type ViewType,
 import { renderSingleLineText, renderSpinner, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
+import type { MarkdownLoader } from '../loaders/markdownLoader'
 import { useDetachedLongText } from '../composables/useDetachedLongText'
 import { comparePath } from '../utils/groupby'
 import { EmailCellRenderer } from './Email'
@@ -47,6 +48,7 @@ export function useGridCellHandler(params: {
     path: Array<number>,
   ) => { x: number; y: number; width: number; height: number }
   actionManager: ActionManager
+  markdownLoader: MarkdownLoader
   makeCellEditable: MakeCellEditableFn
   updateOrSaveRow: (
     row: Row,
@@ -163,6 +165,7 @@ export function useGridCellHandler(params: {
       readonly = false,
       spriteLoader,
       imageLoader,
+      markdownLoader = params.markdownLoader,
       tableMetaLoader,
       padding = 10,
       relatedColObj,
@@ -298,6 +301,7 @@ export function useGridCellHandler(params: {
         spriteLoader,
         imageLoader,
         actionManager,
+        markdownLoader,
         tableMetaLoader,
         isMysql,
         isPg,
@@ -404,6 +408,7 @@ export function useGridCellHandler(params: {
         readonly: !params.hasEditPermission.value,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
+        markdownLoader: params.markdownLoader,
         makeCellEditable: (row, clickedColumn, showEditCellRestrictionTooltip = ctx.event.detail === 2) =>
           makeCellEditable(row, clickedColumn, showEditCellRestrictionTooltip),
         isPublic: isPublic.value,
@@ -439,6 +444,7 @@ export function useGridCellHandler(params: {
         readonly: !params.hasEditPermission.value,
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
+        markdownLoader: params.markdownLoader,
         makeCellEditable,
         openDetachedLongText,
         allowLocalUrl: appInfo.value?.allowLocalUrl,
@@ -476,6 +482,7 @@ export function useGridCellHandler(params: {
         getCellPosition: (...args) => params?.getCellPosition?.(...args, ctx.path),
         updateOrSaveRow: params?.updateOrSaveRow,
         actionManager,
+        markdownLoader: params.markdownLoader,
         makeCellEditable,
         setCursor,
         path: ctx.path ?? [],

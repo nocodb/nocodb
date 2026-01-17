@@ -219,7 +219,7 @@ const startDragging = (axis: 'vertical' | 'horizontal', event: DragEvent | Touch
 }
 
 function handleDrag(event: MouseEvent | TouchEvent) {
-  if (!isDragging.value) return
+  if (!isDragging.value || !contentWrapper.value || !wrapperRef.value) return
 
   // normalize again
   const clientY = (event as TouchEvent).touches ? (event as TouchEvent).touches[0].clientY : (event as MouseEvent).clientY

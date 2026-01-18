@@ -556,6 +556,18 @@ const handleScrollIntoView = () => {
               v-else-if="vModel.meta.display_type === UITypes.Rating"
               :value="vModel.meta.display_column_meta"
             />
+            <SmartsheetColumnTimeOptions
+              v-else-if="vModel.meta.display_type === UITypes.Time"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnDateTimeOptions
+              v-else-if="vModel.meta.display_type === UITypes.DateTime"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnDateOptions
+              v-else-if="vModel.meta.display_type === UITypes.Date"
+              :value="vModel.meta.display_column_meta"
+            />
             <SmartsheetColumnDecimalOptions
               v-else-if="rollupResultType === FormulaDataTypes.NUMERIC"
               :value="vModel"

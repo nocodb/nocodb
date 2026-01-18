@@ -225,12 +225,7 @@ watch(
   },
 )
 
-// update datatype precision when precision is less than the new value
-// avoid downgrading precision if the new value is less than the current precision
-// to avoid fractional part data loss(eg. 1.2345 -> 1.23)
-const onPrecisionChange = (value: number) => {
-  vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
-}
+
 
 // set default value
 vModel.value.meta = {
@@ -240,25 +235,59 @@ vModel.value.meta = {
 
 const { isMetaReadOnly } = useRoles()
 
-const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
+
 
 const activeKey = ref('rollup')
 
+const rollupResultType = computed(() => {
+  if (!vModel.value.rollup_function) return FormulaDataTypes.UNKNOWN
+  const func = vModel.value.rollup_function
+
+  if (['count', 'countDistinct'].includes(func)) {
+    return FormulaDataTypes.NUMERIC
+  }
+
+  if (['sum', 'avg', 'sumDistinct', 'avgDistinct'].includes(func)) {
+    return FormulaDataTypes.NUMERIC
+  }
+
+  if (!vModel.value.fk_rollup_column_id) return FormulaDataTypes.UNKNOWN
+
+  const childCol = columns.value.find((c) => c.id === vModel.value.fk_rollup_column_id)
+  if (!childCol) return FormulaDataTypes.UNKNOWN
+
+  if (
+    [
+      UITypes.Date,
+      UITypes.DateTime,
+      UITypes.Time,
+      UITypes.CreatedTime,
+      UITypes.LastModifiedTime,
+    ].includes(childCol.uidt as UITypes)
+  ) {
+    return FormulaDataTypes.DATE
+  }
+
+  if (childCol.uidt === UITypes.Checkbox) {
+    return FormulaDataTypes.BOOLEAN
+  }
+
+  return FormulaDataTypes.NUMERIC
+})
+
 const enableFormattingOptions = computed(() => {
-  // Enable formatting options for all rollup functions that produce numeric results
-  const numericRollupFunctions = ['sum', 'avg', 'min', 'max', 'count', 'countDistinct', 'sumDistinct', 'avgDistinct']
-
-  if (!vModel.value.rollup_function) return false
-  if (!vModel.value.fk_rollup_column_id) return false
-
-  return numericRollupFunctions.includes(vModel.value.rollup_function)
+  return (
+    rollupResultType.value &&
+    rollupResultType.value !== FormulaDataTypes.UNKNOWN &&
+    rollupResultType.value !== FormulaDataTypes.STRING
+  )
 })
 
 // Get supported display types for numeric rollup results
 const supportedDisplayTypes = computed(() => {
   if (!enableFormattingOptions.value) return []
   try {
-    return getUITypesForFormulaDataType(FormulaDataTypes.NUMERIC).map((uidt) => {
+    return getUITypesForFormulaDataType(rollupResultType.value).map((uidt) => {
       return {
         value: uidt,
         label: t(`datatype.${uidt}`),
@@ -527,40 +556,10 @@ const handleScrollIntoView = () => {
               v-else-if="vModel.meta.display_type === UITypes.Rating"
               :value="vModel.meta.display_column_meta"
             />
-            <template v-else>
-              <!-- Default number formatting options when no specific display_type is selected -->
-              <a-form-item :label="$t('placeholder.precision')">
-                <a-select
-                  v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
-                  v-model:value="vModel.meta.precision"
-                  :disabled="isMetaReadOnly"
-                  dropdown-class-name="nc-dropdown-rollup-precision-format"
-                  @change="onPrecisionChange"
-                >
-                  <template #suffixIcon>
-                    <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-                  </template>
-                  <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
-                    <div class="flex gap-2 w-full justify-between items-center">
-                      {{ (precisionFormatsDisplay as any)[format] }}
-                      <component
-                        :is="iconMap.check"
-                        v-if="vModel.meta.precision === format"
-                        id="nc-selected-item-icon"
-                        class="text-primary w-4 h-4"
-                      />
-                    </div>
-                  </a-select-option>
-                </a-select>
-              </a-form-item>
-              <a-form-item>
-                <div class="flex items-center gap-1">
-                  <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
-                    <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.showThousandsSeparator') }}</div>
-                  </NcSwitch>
-                </div>
-              </a-form-item>
-            </template>
+            <SmartsheetColumnDecimalOptions
+              v-else-if="rollupResultType === FormulaDataTypes.NUMERIC"
+              :value="vModel"
+            />
           </template>
         </div>
       </a-tab-pane>

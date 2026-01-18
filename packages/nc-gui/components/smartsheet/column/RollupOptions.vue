@@ -225,17 +225,11 @@ watch(
   },
 )
 
-
-
 // set default value
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
   ...(vModel.value.meta || {}),
 }
-
-const { isMetaReadOnly } = useRoles()
-
-
 
 const activeKey = ref('rollup')
 
@@ -257,13 +251,9 @@ const rollupResultType = computed(() => {
   if (!childCol) return FormulaDataTypes.UNKNOWN
 
   if (
-    [
-      UITypes.Date,
-      UITypes.DateTime,
-      UITypes.Time,
-      UITypes.CreatedTime,
-      UITypes.LastModifiedTime,
-    ].includes(childCol.uidt as UITypes)
+    [UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+      childCol.uidt as UITypes,
+    )
   ) {
     return FormulaDataTypes.DATE
   }
@@ -568,10 +558,9 @@ const handleScrollIntoView = () => {
               v-else-if="vModel.meta.display_type === UITypes.Date"
               :value="vModel.meta.display_column_meta"
             />
-            <SmartsheetColumnDecimalOptions
-              v-else-if="rollupResultType === FormulaDataTypes.NUMERIC"
-              :value="vModel"
-            />
+            <!-- Default options based on rollup result type when no specific display_type is selected -->
+            <SmartsheetColumnDateOptions v-else-if="rollupResultType === FormulaDataTypes.DATE" :value="vModel" />
+            <SmartsheetColumnDecimalOptions v-else-if="rollupResultType === FormulaDataTypes.NUMERIC" :value="vModel" />
           </template>
         </div>
       </a-tab-pane>

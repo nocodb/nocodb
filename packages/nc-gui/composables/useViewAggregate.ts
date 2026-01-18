@@ -8,6 +8,7 @@ import {
   type ViewType,
   ViewTypes,
   getAvailableAggregations,
+  parseProp,
 } from 'nocodb-sdk'
 import type { EventHook } from '@vueuse/core'
 
@@ -72,9 +73,27 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
     })
 
     const getAggregations = (column: ColumnType) => {
+      // Handle Formula columns
       if (column.uidt === UITypes.Formula && (column.colOptions as any)?.parsed_tree?.dataType) {
         return getAvailableAggregations(column.uidt!, (column.colOptions as any).parsed_tree)
       }
+
+      // Handle Rollup columns - check if the result type is date-related
+      if (column.uidt === UITypes.Rollup) {
+        const colMeta = parseProp(column.meta)
+
+        // If display_type is set to a date type, return date aggregations
+        if (colMeta?.display_type && [UITypes.Date, UITypes.DateTime, UITypes.Time].includes(colMeta.display_type)) {
+          return getAvailableAggregations(colMeta.display_type)
+        }
+
+        // Check if the rollup child column is a date type by looking at meta
+        // If the rollup outputs date data (e.g., min/max on a date field), show date aggregations
+        if (colMeta?.date_format) {
+          return getAvailableAggregations(UITypes.Date)
+        }
+      }
+
       return getAvailableAggregations(column.uidt!)
     }
 

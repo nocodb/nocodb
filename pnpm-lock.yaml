@@ -355,6 +355,10 @@ importers:
       youtube-vue3:
         specifier: ^0.1.15
         version: 0.1.15(typescript@5.8.3)
+    dependencies:
+     '@productdevbook/chatwoot':
+       specifier: ^2.0.0
+       version: 2.0.0(magicast@0.3.5)(vue@3.5.15(typescript@5.8.3))
     devDependencies:
       '@antfu/eslint-config':
         specifier: ^0.26.3

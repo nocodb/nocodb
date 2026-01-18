@@ -44,6 +44,7 @@
     "@nuxt/kit": "^3.14.1592",
     "@pinia/nuxt": "^0.5.1",
     "@readme/httpsnippet": "^11.0.0",
+    "@productdevbook/chatwoot": "^2.0.0",
     "@sentry/tracing": "^7.72.0",
     "@sentry/vue": "^7.72.0",
     "@stripe/stripe-js": "^8.6.1",

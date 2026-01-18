@@ -10,6 +10,7 @@ import {
 } from 'nocodb-sdk'
 import { ViewTypes, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import { useColumnVisibility } from './useColumnVisibility'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
   (
@@ -41,9 +42,14 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { isSharedBase } = storeToRefs(useBase())
 
+    const { user: $user } = useGlobal()
+
     const isViewColumnsLoading = ref(true)
 
     const hidingViewColumnsMap = ref<Record<string, boolean>>({})
+
+    // Use shared column visibility composable
+    const { columnVisibilityMap, loadColumnVisibility, isColumnHiddenForRole } = useColumnVisibility()
 
     const { addUndo, defineViewScope } = useUndoRedo()
 
@@ -125,7 +131,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }
       }
 
-      const colsData: GridColumnType[] = (isPublic.value ? view.value?.columns : fields.value) ?? []
+      const colsData: GridColumnType[] = (isPublic ? view.value?.columns : fields.value) ?? []
 
       gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
         (o, col) => ({
@@ -134,6 +140,18 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }),
         {},
       )
+
+      // Load column visibility data for role-based filtering (skip for public views)
+      if (!isPublic && meta.value?.id) {
+        await loadColumnVisibility(meta.value.id)
+      }
+    }
+
+    // Function to reload column visibility data (called after settings are updated)
+    const reloadColumnVisibility = async () => {
+      if (!isPublic && meta.value?.id) {
+        await loadColumnVisibility(meta.value.id)
+      }
     }
 
     const updateDefaultViewColumnMeta = async (
@@ -450,6 +468,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           ) {
             return false
           }
+
+          // Check column role visibility - hide columns disabled for current user role
+          if (
+            metaColumnById.value?.[field.fk_column_id!] &&
+            !isPublic &&
+            isColumnHiddenForRole(metaColumnById.value[field.fk_column_id!])
+          ) {
+            return false
+          }
+
           return field.show && metaColumnById?.value?.[field.fk_column_id!]
         })
         ?.sort((a: Field, b: Field) => a.order - b.order)
@@ -539,7 +567,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
       try {
         // sync with server if allowed
-        if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
+        if (!isPublic && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
           await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
             ...props,
           })
@@ -582,9 +610,11 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
           const field = fields.value?.find((f) => f.fk_column_id === payload.fk_column_id)
           if (field) {
             const currentColumnField = col || {}
+            // Preserve existing order if available, otherwise use field's current order
+            const newOrder = currentColumnField.order ?? field.order ?? 0
             Object.assign(field, {
               show: currentColumnField.show || isColumnViewEssential(currentColumnField),
-              order: currentColumnField.order || order++,
+              order: newOrder,
               aggregation: currentColumnField?.aggregation ?? CommonAggregations.None,
             })
 
@@ -599,6 +629,10 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         }
       } else if (evt === 'view_column_refresh') {
         loadViewColumns()
+        nextTick(() => reloadData?.({ shouldShowLoading: false }))
+      } else if (evt === 'column_visibility_update') {
+        // Reload column visibility data when visibility settings are updated
+        reloadColumnVisibility()
         nextTick(() => reloadData?.({ shouldShowLoading: false }))
       }
     }
@@ -636,6 +670,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       isLocalMode,
       updateDefaultViewColumnMeta,
       hidingViewColumnsMap,
+      reloadColumnVisibility,
     }
   },
   'useViewColumnsOrThrow',

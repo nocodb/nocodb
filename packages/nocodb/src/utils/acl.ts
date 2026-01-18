@@ -644,6 +644,8 @@ const permissionDescriptions: Record<string, string> = {
   commentsCount: 'view comment count',
   commentDelete: 'delete comments',
   commentUpdate: 'update comments',
+  columnVisibilityList: 'view column visibility rules',
+  columnVisibilitySet: 'update column visibility rules',
   hideAllColumns: 'hide all columns',
   showAllColumns: 'show all columns',
   recordAuditList: 'view audit log for a row',

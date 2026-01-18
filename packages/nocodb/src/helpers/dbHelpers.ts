@@ -31,6 +31,7 @@ import { NcError } from '~/helpers/catchError';
 import { defaultLimitConfig } from '~/helpers/extractLimitAndOffset';
 import {
   Column,
+  ColumnRoleVisibility,
   type LinkToAnotherRecordColumn,
   Model,
   Sort,
@@ -433,14 +434,38 @@ export function haveFormulaColumn(columns: Column[]) {
   return columns.some((c) => c.uidt === UITypes.Formula);
 }
 
-export function shouldSkipField(
+export async function shouldSkipField(
   fieldsSet,
   viewOrTableColumn,
   view,
   column,
   extractPkAndPv,
   pkAndPvOnly = false,
+  context?: NcContext,
 ) {
+  // Check column visibility for current user role
+  // Use base_roles which is what NcContext.user has
+  if (context && context.user?.base_roles) {
+    // Get the user's roles - check for the most restrictive role (lowest privilege)
+    const userRoles = Object.keys(context.user.base_roles).filter(
+      (role) => context.user.base_roles[role],
+    );
+    // Priority from highest to lowest privilege - find user's highest role
+    const rolePriority = ['owner', 'creator', 'editor', 'commenter', 'viewer'];
+    const userRole =
+      rolePriority.find((role) => userRoles.includes(role)) || 'viewer';
+
+    // Check if column is hidden for this role
+    const columnVisibility = await ColumnRoleVisibility.get(context, {
+      role: userRole,
+      fk_column_id: column.id,
+    });
+
+    if (columnVisibility?.disabled) {
+      return true;
+    }
+  }
+
   if (fieldsSet && !pkAndPvOnly) {
     return !fieldsSet.has(column.title) && !fieldsSet.has(column.id);
   } else {
@@ -500,17 +525,23 @@ export async function getQueriedColumns(
         _columns.find((col) => col.id === viewColumn.fk_column_id),
       ) || _columns;
   }
-  return viewOrTableColumns.filter(
-    (viewOrTableColumn) =>
-      !shouldSkipField(
+  const filteredColumns = [];
+  for (const viewOrTableColumn of viewOrTableColumns) {
+    if (
+      !(await shouldSkipField(
         fieldsSet,
         viewOrTableColumn,
         view,
         viewOrTableColumn,
         extractPkAndPv || pkAndPvOnly,
         pkAndPvOnly,
-      ),
-  );
+        context,
+      ))
+    ) {
+      filteredColumns.push(viewOrTableColumn);
+    }
+  }
+  return filteredColumns;
 }
 
 export function getListArgs(

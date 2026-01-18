@@ -1276,11 +1276,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       colId: string;
       parentIds: any[];
     },
-    args: { limit?; offset?; fieldsSet?: Set<string>; ignoreCache?: boolean} = {},
+    args: {
+      limit?;
+      offset?;
+      fieldsSet?: Set<string>;
+      ignoreCache?: boolean;
+    } = {},
   ) {
     // skip duplicate id
     const parentIds = [...new Set(_parentIds)];
-    
+
     // Phase 3 Optimization: Chunk large parentIds arrays for better performance
     // Reduced to 50 to minimize WHERE IN parameter count and improve query plan
     const CHUNK_SIZE = 50;
@@ -1289,14 +1294,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       for (let i = 0; i < parentIds.length; i += CHUNK_SIZE) {
         chunks.push(parentIds.slice(i, i + CHUNK_SIZE));
       }
-      
+
       const results = await Promise.all(
-        chunks.map(chunk => 
-          this.multipleMmListFast({ colId, parentIds: chunk }, args)
-        )
+        chunks.map((chunk) =>
+          this.multipleMmListFast({ colId, parentIds: chunk }, args),
+        ),
       );
-      
-      
+
       // Merge results maintaining original order
       const resultMap = new Map();
       for (const chunkResult of results) {
@@ -1310,10 +1314,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           }
         });
       }
-      
+
       return _parentIds.map((id) => resultMap.get(id) || []);
     }
-    
+
     const { where, sort, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns(this.context)).find(
       (c) => c.id === colId,
@@ -1324,13 +1328,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     )) as LinkToAnotherRecordColumn;
 
     // Phase 1 Optimization: Parallelize metadata lookups
-    const [mmTable, mmChildCol, mmParentCol, childCol, parentCol] = await Promise.all([
-      relColOptions.getMMModel(this.context),
-      relColOptions.getMMChildColumn(this.context),
-      relColOptions.getMMParentColumn(this.context),
-      relColOptions.getChildColumn(this.context),
-      relColOptions.getParentColumn(this.context),
-    ]);
+    const [mmTable, mmChildCol, mmParentCol, childCol, parentCol] =
+      await Promise.all([
+        relColOptions.getMMModel(this.context),
+        relColOptions.getMMChildColumn(this.context),
+        relColOptions.getMMParentColumn(this.context),
+        relColOptions.getChildColumn(this.context),
+        relColOptions.getParentColumn(this.context),
+      ]);
 
     // if mm table is not present then return
     if (!mmTable) {
@@ -1366,9 +1371,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     // If caller provided fieldsSet, honor it
     let fieldsSetToUse = args.fieldsSet;
     if (!fieldsSetToUse) {
-      const pkTitles = (childTable.primaryKeys?.length
-        ? childTable.primaryKeys
-        : childTableCols.filter((c) => (c as any).pk)
+      const pkTitles = (
+        childTable.primaryKeys?.length
+          ? childTable.primaryKeys
+          : childTableCols.filter((c) => (c as any).pk)
       ).map((c) => c.title);
       const displayCol =
         childTableCols.find((c) => c.column_name === columnName) ||
@@ -1416,11 +1422,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     const rtnId = childTable.id;
 
     // Reuse already fetched childTableCols instead of fetching again
-    const children = await this.execAndParse(
-      finalQb,
-      childTableCols,
-      {ignoreCache: args.ignoreCache ?? false},
-    );
+    const children = await this.execAndParse(finalQb, childTableCols, {
+      ignoreCache: args.ignoreCache ?? false,
+    });
 
     const proto = await (
       await Model.getBaseModelSQL(this.context, {
@@ -1428,7 +1432,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         dbDriver: this.dbDriver,
       })
     ).getProto();
-    
+
     const gs = groupBy(
       children.map((c) => {
         c.__proto__ = proto;
@@ -5247,7 +5251,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // update attachment fields
     if (!options.skipAttachmentConversion) {
-      data = await this.convertAttachmentType(data, dependencyColumns, options.ignoreCache ?? false);
+      data = await this.convertAttachmentType(
+        data,
+        dependencyColumns,
+        options.ignoreCache ?? false,
+      );
     }
 
     // update date time fields
@@ -5587,7 +5595,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     d: Record<string, any>,
     ignoreCache?: boolean,
   ) {
-    var ignoreCache = ignoreCache ?? false
+    var ignoreCache = ignoreCache ?? false;
     try {
       if (d) {
         const promises = [];
@@ -5634,17 +5642,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       lookedUpAttachment.thumbnails,
                     )) {
                       promises.push(
-                        PresignedUrl.signAttachment(
-                          {
-                            attachment: {
-                              ...lookedUpAttachment,
-                              path: `${thumbnailPath}/${key}.jpg`,
-                            },
-                            filename: lookedUpAttachment.title,
-                            mimetype: 'image/jpeg',
-                            nestedKeys: ['thumbnails', key],
-                            ignoreCache: ignoreCache
-                          })
+                        PresignedUrl.signAttachment({
+                          attachment: {
+                            ...lookedUpAttachment,
+                            path: `${thumbnailPath}/${key}.jpg`,
+                          },
+                          filename: lookedUpAttachment.title,
+                          mimetype: 'image/jpeg',
+                          nestedKeys: ['thumbnails', key],
+                          ignoreCache: ignoreCache,
+                        }),
                       );
                     }
                   } else if (lookedUpAttachment?.url) {
@@ -5652,7 +5659,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                       PresignedUrl.signAttachment({
                         attachment: lookedUpAttachment,
                         filename: lookedUpAttachment.title,
-                        ignoreCache: ignoreCache
+                        ignoreCache: ignoreCache,
                       }),
                     );
 
@@ -5694,7 +5701,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     PresignedUrl.signAttachment({
                       attachment,
                       filename: attachment.title,
-                      ignoreCache: ignoreCache
+                      ignoreCache: ignoreCache,
                     }),
                   );
 
@@ -5723,7 +5730,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                         filename: attachment.title,
                         mimetype: 'image/jpeg',
                         nestedKeys: ['thumbnails', key],
-                        ignoreCache: ignoreCache
+                        ignoreCache: ignoreCache,
                       }),
                     );
                   }
@@ -5732,7 +5739,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                     PresignedUrl.signAttachment({
                       attachment,
                       filename: attachment.title,
-                      ignoreCache: ignoreCache
+                      ignoreCache: ignoreCache,
                     }),
                   );
 
@@ -5757,7 +5764,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                         filename: attachment.title,
                         mimetype: 'image/jpeg',
                         nestedKeys: ['thumbnails', key],
-                        ignoreCache: ignoreCache
+                        ignoreCache: ignoreCache,
                       }),
                     );
                   }
@@ -6033,10 +6040,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (Array.isArray(data)) {
       return Promise.all(
-        data.map((d) => this._convertAttachmentType(allAttachmentColumns, d, ignoreCache)),
+        data.map((d) =>
+          this._convertAttachmentType(allAttachmentColumns, d, ignoreCache),
+        ),
       );
     } else {
-      return this._convertAttachmentType(allAttachmentColumns, data, ignoreCache);
+      return this._convertAttachmentType(
+        allAttachmentColumns,
+        data,
+        ignoreCache,
+      );
     }
   }
 

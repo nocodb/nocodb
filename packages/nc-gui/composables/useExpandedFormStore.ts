@@ -20,6 +20,7 @@ import {
 } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import dayjs from 'dayjs'
+import { useColumnVisibility } from './useColumnVisibility'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
   (meta: Ref<TableType>, _row: Ref<Row>, maintainDefaultViewOrder: Ref<boolean>, useMetaFields: boolean) => {
@@ -27,7 +28,12 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
     const { t } = useI18n()
 
+    const { user: $user } = useGlobal()
+
     const isPublic = inject(IsPublicInj, ref(false))
+
+    // Use shared column visibility composable
+    const { loadColumnVisibility, isColumnHiddenForRole } = useColumnVisibility()
 
     const audits = ref<
       Array<
@@ -131,6 +137,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
      * - Prefers `props.useMetaFields` over `fieldsFromParent` if enabled.
      * - Filters out system columns and readonly fields for new records.
      * - Maintains default view order if `maintainDefaultViewOrder` is enabled.
+     * - Filters out columns hidden by role-based visibility rules.
      *
      * @returns {ColumnType[]} The computed list of fields.
      */
@@ -144,7 +151,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
                 !isSystemColumn(col) &&
                 !!col.meta?.defaultViewColVisibility &&
                 // if new record, then hide readonly fields
-                (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
+                (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)) &&
+                // filter by role-based column visibility
+                !isColumnHiddenForRole(col),
             )
             .sort((a, b) => {
               return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
@@ -158,17 +167,19 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
             // exclude system columns
             !isSystemColumn(col) &&
             // exclude hidden columns
-            !!col.meta?.defaultViewColVisibility,
+            !!col.meta?.defaultViewColVisibility &&
+            // filter by role-based column visibility
+            !isColumnHiddenForRole(col),
         )
       }
 
       // If `props.useMetaFields` is not enabled, use fields from the parent component
       if (fieldsFromParent.value) {
         if (rowStore.isNew.value) {
-          return fieldsFromParent.value.filter((col) => !isHiddenColumnInNewRecord(col))
+          return fieldsFromParent.value.filter((col) => !isHiddenColumnInNewRecord(col) && !isColumnHiddenForRole(col))
         }
 
-        return fieldsFromParent.value
+        return fieldsFromParent.value.filter((col) => !isColumnHiddenForRole(col))
       }
 
       return []
@@ -182,7 +193,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           !fields.value?.includes(col) &&
           (isLocalMode.value && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
           // exclude readonly fields from hidden fields if new record creation
-          (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
+          (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)) &&
+          // exclude columns hidden by role-based visibility
+          !isColumnHiddenForRole(col),
       )
       if (useMetaFields) {
         return maintainDefaultViewOrder.value
@@ -198,6 +211,17 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         })
       }
     })
+
+    // Load column visibility when meta changes
+    watch(
+      () => meta.value?.id,
+      async () => {
+        if (meta.value?.id) {
+          await loadColumnVisibility(meta.value.id)
+        }
+      },
+      { immediate: true },
+    )
 
     const auditToCursor = (audit: any) => {
       return `${audit.id}|${audit.created_at}`
@@ -918,6 +942,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       hiddenFields,
       isAllowedAddNewRecord,
       getIsAllowedEditField,
+      loadColumnVisibility,
       meta,
     }
   },

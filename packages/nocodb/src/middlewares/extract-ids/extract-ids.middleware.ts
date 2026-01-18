@@ -396,6 +396,16 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       workspace_id: null,
       base_id: req.ncBaseId,
       api_version: context.api_version,
+      // Include user info with base_roles for column visibility checks
+      user: req.user
+        ? {
+            id: req.user.id,
+            email: req.user.email,
+            email_verified: req.user.email_verified,
+            base_roles: req.user.base_roles,
+            workspace_roles: req.user.workspace_roles,
+          }
+        : undefined,
     };
 
     next();

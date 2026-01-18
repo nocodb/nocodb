@@ -988,8 +988,8 @@ export interface FieldBaseV3Type {
     | 'Barcode'
     | 'Year'
     | 'QrCode'
-    | 'CreatedAt'
-    | 'LastModifiedAt'
+    | 'CreatedTime'
+    | 'LastModifiedTime'
     | 'CreatedBy'
     | 'LastModifiedBy'
     | 'LinkToAnotherRecord'
@@ -3797,6 +3797,22 @@ export interface ModelRoleVisibilityType {
   /** Unique ID */
   id?: IdType;
   base_id?: string;
+  role?: string;
+}
+
+/**
+ * Model for ColumnRoleVisibility - controls column visibility based on user roles
+ */
+export interface ColumnRoleVisibilityType {
+  source_id?: string;
+  /** Whether the column is hidden for this role */
+  disabled?: BoolType;
+  /** Foreign key to the column */
+  fk_column_id?: string;
+  /** Unique ID */
+  id?: IdType;
+  base_id?: string;
+  /** User role (owner, creator, editor, commenter, viewer, guest) */
   role?: string;
 }
 
@@ -8340,6 +8356,115 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+ * @description Get column visibility rules for a table - controls which roles can see which columns
+ * 
+ * @tags DB Table Column
+ * @name VisibilityList
+ * @summary Get Column Visibility Rules
+ * @request GET:/api/v1/db/meta/tables/{tableId}/column-visibility-rules
+ * @response `200` `({
+  id?: string,
+  title?: string,
+  column_name?: string,
+  uidt?: string,
+  disabled?: {
+  owner?: boolean,
+  creator?: boolean,
+  viewer?: boolean,
+  editor?: boolean,
+  commenter?: boolean,
+  guest?: boolean,
+
+},
+
+})[]` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    visibilityList: (tableId: IdType, params: RequestParams = {}) =>
+      this.request<
+        {
+          id?: string;
+          title?: string;
+          column_name?: string;
+          uidt?: string;
+          disabled?: {
+            owner?: boolean;
+            creator?: boolean;
+            viewer?: boolean;
+            editor?: boolean;
+            commenter?: boolean;
+            guest?: boolean;
+          };
+        }[],
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/tables/${tableId}/column-visibility-rules`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+ * @description Set column visibility rules for a table - controls which roles can see which columns. Only base owners can modify these settings.
+ * 
+ * @tags DB Table Column
+ * @name VisibilitySet
+ * @summary Set Column Visibility Rules
+ * @request POST:/api/v1/db/meta/tables/{tableId}/column-visibility-rules
+ * @response `200` `{
+  \** @example Column visibility rules have been updated successfully *\
+  msg?: string,
+
+}` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    visibilitySet: (
+      tableId: IdType,
+      data: {
+        /** Column ID */
+        id: IdType;
+        /** Role-based visibility settings */
+        disabled: {
+          owner?: boolean;
+          creator?: boolean;
+          viewer?: boolean;
+          editor?: boolean;
+          commenter?: boolean;
+          guest?: boolean;
+        };
+      }[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        {
+          /** @example Column visibility rules have been updated successfully */
+          msg?: string;
+        },
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v1/db/meta/tables/${tableId}/column-visibility-rules`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 

@@ -56,6 +56,8 @@ const rolePermissions = {
   [ProjectRoles.CREATOR]: {
     include: {
       baseCreate: true,
+      columnVisibilityList: true,
+      columnVisibilitySet: true,
       fieldUpdate: true,
       hookList: true,
       hookCreate: true,

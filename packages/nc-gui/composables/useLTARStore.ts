@@ -14,6 +14,7 @@ import {
   timeFormats,
 } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
+import { useColumnVisibility } from './useColumnVisibility'
 
 interface DataApiResponse {
   list: Record<string, any>[]
@@ -49,7 +50,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const { $api, $e } = useNuxtApp()
 
-    const { isMobileMode } = useGlobal()
+    const { isMobileMode, user: $user } = useGlobal()
 
     const activeView = inject(ActiveViewInj, ref())
     const isForm = inject(IsFormInj, ref(false))
@@ -162,6 +163,9 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         targetViewColumns.value = []
         message.error('Field to load related table view columns')
       }
+
+      // Load column visibility data for the related table
+      await loadColumnVisibility(relatedTableMeta.value.id)
     }
 
     const relatedTableDisplayValueColumn = computed(() => {
@@ -234,24 +238,46 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       ref([]),
     )
 
-    const fields = computedInject(
-      FieldsInj,
-      (_fields) => {
-        return (relatedTableMeta.value.columns ?? [])
-          .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
-          .sort((a, b) => {
-            if (isPublic.value) {
-              return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-            }
+    // Use shared column visibility composable
+    const { filterVisibleColumns, loadColumnVisibility } = useColumnVisibility()
 
-            return (
-              (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
-            )
-          })
-          .slice(0, isMobileMode.value ? 1 : 3)
-      },
-      ref([]),
-    )
+    // Patched fields that applies visibility filtering to original logic
+    const fields = ref<any[]>([])
+
+    // Function to update fields - applies original logic then visibility patch
+    const updateFields = async () => {
+      if (!relatedTableMeta.value?.columns) {
+        fields.value = []
+        return
+      }
+
+      // Use original upstream logic
+      const originalFilteredColumns = (relatedTableMeta.value.columns ?? [])
+        .filter((col) => !isSystemColumn(col) && !isPrimary(col) && !isLinksOrLTAR(col) && !isAttachment(col))
+        .sort((a, b) => {
+          if (isPublic.value) {
+            return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+          }
+
+          return (targetViewColumnsById.value[a.id!]?.order ?? Infinity) - (targetViewColumnsById.value[b.id!]?.order ?? Infinity)
+        })
+        .slice(0, isMobileMode.value ? 1 : 3)
+
+      // Apply column visibility patch
+      fields.value = filterVisibleColumns(originalFilteredColumns, externalBaseUserRoles.value)
+    }
+
+    // extract external base roles if cross base link
+    const externalBaseUserRoles = computedAsync(async () => {
+      if (base.value?.id && base.value?.id === relatedTableMeta.value?.base_id) return
+
+      return await getBaseRoles(relatedTableMeta.value?.base_id, {
+        skipUpdatingUser: true,
+      })
+    })
+
+    // Watch for changes and update fields
+    watch([relatedTableMeta, externalBaseUserRoles, () => $user.value?.base_roles], updateFields, { immediate: true })
 
     const requiredFieldsToLoad = computed(() => {
       return Array.from(
@@ -262,15 +288,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           ...(fields.value || [])?.map((f) => f.title?.trim() as string),
         ]),
       )
-    })
-
-    // extract external base roles if cross base link
-    const externalBaseUserRoles = computedAsync(async () => {
-      if (base.value?.id && base.value?.id === relatedTableMeta.value?.base_id) return
-
-      return await getBaseRoles(relatedTableMeta.value?.base_id, {
-        skipUpdatingUser: true,
-      })
     })
 
     /**

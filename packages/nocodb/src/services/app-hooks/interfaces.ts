@@ -361,7 +361,7 @@ export interface MetaDiffEvent extends NcBaseEvent {
 export interface UIAclEvent extends NcBaseEvent {
   base: any;
   role: string;
-  view: any;
+  view?: any;
   disabled: boolean;
 }
 

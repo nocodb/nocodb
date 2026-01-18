@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { inject } from '@vue/runtime-core'
 
-type Role = 'editor' | 'commenter' | 'viewer'
+type Role = 'owner' | 'creator' | 'editor' | 'commenter' | 'viewer'
 
 const props = defineProps<{
-  sourceId: string
+  tableId: string
 }>()
 
 const { t } = useI18n()
 
-const { $api, $e } = useNuxtApp()
+const { $api, $e, $eventBus } = useNuxtApp()
 
 const { base: activeBase } = storeToRefs(useBase())
 
@@ -21,65 +21,62 @@ const { bases } = storeToRefs(useBases())
 
 const base = computed(() => bases.value.get(baseId.value) ?? {})
 
-const { includeM2M } = useGlobal()
-
-const roles = ref<string[]>(['editor', 'commenter', 'viewer'])
+const roles = ref<string[]>(['owner', 'creator', 'editor', 'commenter', 'viewer'])
 
 const isLoading = ref(false)
 
-const tables = ref<any[]>([])
+const columns = ref<any[]>([])
 
 const searchInput = ref('')
 
-const filteredTables = computed(() =>
-  tables.value.filter(
+const filteredColumns = computed(() =>
+  columns.value.filter(
     (el) =>
-      el?.source_id === props.sourceId &&
-      ((typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.value.toLowerCase())) ||
-        (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.value.toLowerCase()))),
+      (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.value.toLowerCase())) ||
+      (typeof el?.column_name === 'string' && el.column_name.toLowerCase().includes(searchInput.value.toLowerCase())),
   ),
 )
 
 const allSelected = computed(() => {
   return roles.value.reduce((acc, role) => {
-    // Check if all filtered tables are visible (not disabled) for this role
-    const filtered = filteredTables.value
+    // Check if all filtered columns are visible (not disabled) for this role
+    const filtered = filteredColumns.value
     if (filtered.length === 0) {
       return { ...acc, [role]: false }
     }
     return {
       ...acc,
-      [role]: filtered.every((t) => !t.disabled?.[role]),
+      [role]: filtered.every((c) => !c.disabled?.[role]),
     }
   }, {} as Record<Role, boolean>)
 })
 
 const toggleSelectAll = (role: Role, checked: boolean) => {
-  // Toggle only filtered tables, not all tables
+  // Toggle only filtered columns, not all columns
   const newDisabledValue = !checked // If checked (visible), disabled should be false
 
-  filteredTables.value.forEach((t) => {
-    if (!t.disabled) {
-      t.disabled = {}
+  filteredColumns.value.forEach((c) => {
+    if (!c.disabled) {
+      c.disabled = {}
     }
-    t.disabled[role] = newDisabledValue
-    t.edited = true
+    c.disabled[role] = newDisabledValue
+    c.edited = true
   })
 }
 
-async function loadTableList() {
+async function loadColumnList() {
   try {
-    if (!baseId.value) return
+    if (!baseId.value || !props.tableId) {
+      return
+    }
 
     isLoading.value = true
 
-    const result = await $api.base.modelVisibilityList(baseId.value, {
-      includeM2M: includeM2M.value,
-    })
+    const result = await $api.dbTableColumn.visibilityList(props.tableId)
     // Normalize disabled objects - ensure each record has a disabled object
-    tables.value = result.map((t: any) => ({
-      ...t,
-      disabled: t.disabled || {},
+    columns.value = result.map((c: any) => ({
+      ...c,
+      disabled: c.disabled || {},
     }))
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -88,25 +85,28 @@ async function loadTableList() {
   }
 }
 
-async function saveUIAcl() {
+async function saveColumnVisibility() {
   try {
-    if (!baseId.value) return
+    if (!baseId.value || !props.tableId) return
 
-    const editedTables = tables.value.filter((t) => t.edited)
-    if (editedTables.length === 0) return
+    const editedColumns = columns.value.filter((c) => c.edited)
+    if (editedColumns.length === 0) return
 
-    await $api.base.modelVisibilitySet(baseId.value, editedTables)
-    // Updated UI ACL for tables successfully
-    message.success(t('msg.success.updatedUIACL'))
+    await $api.dbTableColumn.visibilitySet(props.tableId, editedColumns)
+    // Updated column visibility successfully
+    message.success(t('msg.success.updatedColumnVisibility'))
 
     // Reset edited flags after successful save
-    editedTables.forEach((t) => {
-      t.edited = false
+    editedColumns.forEach((c) => {
+      c.edited = false
     })
+
+    // Trigger reload of column visibility data
+    $eventBus.realtimeViewMetaEventBus.emit('column_visibility_update', { tableId: props.tableId })
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-  $e('a:proj-meta:ui-acl')
+  $e('a:base-meta:column-visibility')
 }
 
 const onRoleCheck = (record: any, role: Role) => {
@@ -134,66 +134,74 @@ const handleRoleCheck = (record: any, columnName: string) => {
 }
 
 onMounted(async () => {
-  if (tables.value.length === 0) {
-    await loadTableList()
+  if (columns.value.length === 0) {
+    await loadColumnList()
   }
 })
 
-const columns = [
+const columnsTable = [
   {
-    key: 'tableName',
-    title: t('labels.tableName'),
-    name: 'Table Name',
-    minWidth: 220,
-    padding: '0px 12px',
-    dataIndex: '_ptn',
-  },
-  {
-    key: 'viewName',
-    title: t('labels.viewName'),
-    name: 'View Name',
-    minWidth: 220,
+    key: 'name',
+    title: t('labels.columnName'),
+    name: 'Column Name',
+    minWidth: 180,
     padding: '0px 12px',
     dataIndex: 'title',
   },
   {
     key: 'action',
+    title: t('objects.roleType.owner'),
+    name: 'owner',
+    width: 100,
+    minWidth: 100,
+    padding: '0px 12px',
+  },
+  {
+    key: 'action',
+    title: t('objects.roleType.creator'),
+    name: 'creator',
+    width: 100,
+    minWidth: 100,
+    padding: '0px 12px',
+  },
+  {
+    key: 'action',
     title: t('objects.roleType.editor'),
     name: 'editor',
-    width: 120,
-    minWidth: 120,
+    width: 100,
+    minWidth: 100,
     padding: '0px 12px',
   },
   {
     key: 'action',
     title: t('objects.roleType.commenter'),
     name: 'commenter',
-    width: 135,
-    minWidth: 135,
+    width: 115,
+    minWidth: 115,
     padding: '0px 12px',
   },
   {
     key: 'action',
     title: t('objects.roleType.viewer'),
     name: 'viewer',
-    width: 120,
-    minWidth: 120,
+    width: 100,
+    minWidth: 100,
     padding: '0px 12px',
   },
 ] as NcTableColumnProps[]
 </script>
 
 <template>
-  <div class="h-full flex flex-row w-full items-center justify-center">
-    <div class="w-full h-full flex flex-col">
-      <NcTooltip class="mb-4 first-letter:capital" show-on-truncate-only>
+  <div class="h-full flex flex-col w-full">
+    <div class="w-full flex-1 flex flex-col min-h-0">
+      <NcTooltip class="mb-4 first-letter:capital flex-shrink-0" show-on-truncate-only>
         <template #title>{{ base.title }}</template>
-        <span>{{ $t('labels.controlViewVisibilityDescription') }}</span>
+        <span>{{ $t('labels.controlColumnVisibilityDescription') }}</span>
       </NcTooltip>
-      <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between">
+      <div class="flex flex-row items-center w-full mb-4 gap-2 justify-between flex-shrink-0">
         <a-input
           v-model:value="searchInput"
-          :placeholder="$t('placeholder.searchModels')"
+          :placeholder="$t('placeholder.searchColumns')"
           allow-clear
           class="nc-acl-search nc-input-border-on-value !w-[400px] nc-input-sm"
         >
@@ -202,14 +210,14 @@ const columns = [
           </template>
         </a-input>
         <div class="flex">
-          <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadTableList">
+          <a-button type="text" ghost class="self-start !rounded-md nc-acl-reload" @click="loadColumnList">
             <div class="flex items-center gap-2 text-gray-600 font-light">
               <component :is="iconMap.reload" :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
               {{ $t('general.reload') }}
             </div>
           </a-button>
 
-          <NcButton size="large" class="z-10 !rounded-lg !px-2 mr-2.5" type="primary" @click="saveUIAcl">
+          <NcButton size="large" class="z-10 !rounded-lg !px-2 mr-2.5" type="primary" @click="saveColumnVisibility">
             <div class="flex flex-row items-center w-full gap-x-1">
               <component :is="iconMap.save" />
               <div class="flex">{{ $t('general.save') }}</div>
@@ -219,21 +227,21 @@ const columns = [
       </div>
 
       <NcTable
-        :columns="columns"
-        :data="filteredTables"
+        :columns="columnsTable"
+        :data="filteredColumns"
         row-height="44px"
         header-row-height="44px"
-        class="h-[calc(100%_-_88px)] w-full"
+        class="flex-1 w-full min-h-0 overflow-auto"
       >
         <template #headerCell="{ column }">
-          <template v-if="column.key === 'tableName' || column.key === 'viewName'">
+          <template v-if="column.key === 'name'">
             {{ column.title }}
           </template>
           <template v-if="column.key === 'action'">
             <div class="flex flex-row gap-x-2">
               <NcCheckbox
                 :checked="allSelected[column.name]"
-                :disabled="!filteredTables.length"
+                :disabled="!filteredColumns.length"
                 class="!m-0 !top-0"
                 :aria-label="t('labels.selectAllForRole', { role: column.title })"
                 @change="(checked) => handleSelectAllChange(column.name, checked)"
@@ -246,31 +254,12 @@ const columns = [
         </template>
 
         <template #bodyCell="{ column, record }">
-          <template v-if="column.name === 'Table Name'">
+          <template v-if="column.name === 'Column Name'">
             <div class="flex items-center gap-2 max-w-full">
-              <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon :meta="{ meta: record.table_meta, type: record.ptype }" class="text-gray-500" />
-              </div>
-
+              <SmartsheetHeaderIcon :column="record" class="text-gray-500" />
               <NcTooltip class="truncate" show-on-truncate-only>
-                <template #title>{{ record._ptn }}</template>
-                {{ record._ptn }}
-              </NcTooltip>
-            </div>
-          </template>
-          <template v-else-if="column.name === 'View Name'">
-            <div class="flex items-center gap-2 max-w-full">
-              <div class="min-w-5 flex items-center justify-center">
-                <GeneralTableIcon
-                  v-if="record?.meta?.icon"
-                  :meta="{ meta: record.meta, type: 'view' }"
-                  class="text-gray-500 !text-sm children:(!w-5 !h-5)"
-                />
-                <GeneralViewIcon v-else :meta="record" class="text-gray-500"></GeneralViewIcon>
-              </div>
-              <NcTooltip class="truncate" show-on-truncate-only>
-                <template #title>{{ record.is_default ? $t('title.defaultView') : record.title }}</template>
-                {{ record.is_default ? $t('title.defaultView') : record.title }}
+                <template #title>{{ record.title }}</template>
+                {{ record.title }}
               </NcTooltip>
             </div>
           </template>
@@ -290,7 +279,7 @@ const columns = [
 
                 <NcCheckbox
                   :checked="!record.disabled?.[column.name]"
-                  :class="`nc-acl-${record.id || record.fk_view_id || 'unknown'}-${column.name}-chkbox !ml-0.25`"
+                  :class="`nc-column-acl-${record.id}-${column.name}-chkbox !ml-0.25`"
                   :aria-label="getAriaLabel(record, column.name, record.disabled?.[column.name])"
                   @change="() => handleRoleCheck(record, column.name)"
                 />

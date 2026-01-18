@@ -67,6 +67,8 @@ const source = computed(() => {
 
 const isTableDeleteDialogVisible = ref(false)
 const isTablePermissionsDialogVisible = ref(false)
+const isColumnVisibilityDialogVisible = ref(false)
+const selectedTableForColumnVisibility = ref<SidebarTableNode | null>(null)
 
 const isOptionsOpen = ref(false)
 
@@ -336,6 +338,13 @@ async function onPermissions(_table: SidebarTableNode) {
   isOptionsOpen.value = false
 
   isTablePermissionsDialogVisible.value = true
+}
+
+async function openColumnVisibilityDialog(_table: SidebarTableNode) {
+  isOptionsOpen.value = false
+
+  isColumnVisibilityDialogVisible.value = true
+  selectedTableForColumnVisibility.value = _table
 }
 
 /** Cancel renaming view */
@@ -682,6 +691,19 @@ async function onRename() {
                       </NcMenuItem>
                     </template>
                   </PaymentUpgradeBadgeProvider>
+
+                  <NcMenuItem
+                    v-if="isUIAllowed('columnVisibilityList', { roles: baseRole, source })"
+                    :data-testid="`sidebar-table-column-visibility-${table.title}`"
+                    class="nc-table-column-visibility"
+                    @click="openColumnVisibilityDialog(table)"
+                  >
+                    <div v-e="['c:table:column-visibility']" class="flex gap-2 items-center">
+                      <GeneralIcon icon="ncEye" class="opacity-80" />
+                      Column Visibility
+                    </div>
+                  </NcMenuItem>
+
                   <NcDivider />
 
                   <NcMenuItem @click="onDuplicate">
@@ -743,6 +765,12 @@ async function onRename() {
       v-model:visible="isTablePermissionsDialogVisible"
       :table-id="table.id"
       :title="table.title"
+    />
+    <DlgColumnVisibility
+      v-if="selectedTableForColumnVisibility"
+      v-model:visible="isColumnVisibilityDialogVisible"
+      :table-id="selectedTableForColumnVisibility.id"
+      :title="selectedTableForColumnVisibility.title"
     />
     <DashboardTreeViewViewsList v-if="isExpanded" :table-id="table.id" :base-id="base.id" />
   </div>

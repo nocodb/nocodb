@@ -25,6 +25,7 @@ export { default as MapView } from './MapView';
 export { default as MapViewColumn } from './MapViewColumn';
 export { default as Model } from './Model';
 export { default as ModelRoleVisibility } from './ModelRoleVisibility';
+export { default as ColumnRoleVisibility } from './ColumnRoleVisibility';
 export { default as Plugin } from './Plugin';
 export { default as Base } from './Base';
 export { default as BaseUser } from './BaseUser';

@@ -404,6 +404,7 @@ export const RootScopeTables = {
     MetaTable.COL_LONG_TEXT,
 
     MetaTable.PRINCIPAL_ASSIGNMENTS,
+    MetaTable.SCIM_CONFIG,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
 };

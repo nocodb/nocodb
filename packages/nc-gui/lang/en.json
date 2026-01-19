@@ -1305,6 +1305,13 @@
     "adminPanel": "Admin Panel",
     "moveWorkspaceToOrg": "Move Workspace To Organisation",
     "ssoSettings": "SSO Settings",
+    "scimProvisioning": "SCIM Provisioning",
+    "scimEnabled": "SCIM Enabled",
+    "scimEndpoint": "SCIM Endpoint URL",
+    "provisioningToken": "Bearer Token",
+    "enableScim": "Enable SCIM",
+    "disableScim": "Disable SCIM",
+    "regenerate": "Regenerate",
     "addDomain": "Add Domain",
     "domain": "Domain",
     "settings": "Settings",
@@ -2863,7 +2870,12 @@
       "mcpUrlCopied": "MCP URL copied to clipboard",
       "nlookupFieldsCreatedSuccessfully": "{n} Lookup field created successfully",
       "nlookupFieldsCreatedSuccessfullyPlural": "{n} Lookup fields created successfully",
-      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it."
+      "tableDuplicatedInOtherBase": "Table has successfully duplicated in another base. Open the specified base to see it.",
+      "scimInitialized": "SCIM provisioning initialized successfully",
+      "scimEnabled": "SCIM provisioning enabled",
+      "scimDisabled": "SCIM provisioning disabled",
+      "tokenRegenerated": "Provisioning token regenerated successfully",
+      "scimDeleted": "SCIM configuration deleted successfully"
     },
     "subText": {
       "startFromScratch": "Start from scratch.",

@@ -129,29 +129,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const _isLockedView = computed(() => (isLocked.value || props.allowLockedLocalEdit) && isViewFilter.value)
-
-const isLockedView = computed(() => {
-  if (props.allowLockedLocalEdit) return false
-  return _isLockedView.value
-})
-
-const isFilterDisabled = (filter: any) => {
-  if (filter.readOnly) return true
-  if (props.readOnly) return true
-
-  // If standard lock applies (and not allowing local edits)
-  if (_isLockedView.value && !props.allowLockedLocalEdit) return true
-
-  // If allowing local edit on locked view, disable existing server filters
-  if (_isLockedView.value && props.allowLockedLocalEdit) {
-    // Disable if it's an existing filter (has ID and not recently created)
-    // Server filters have IDs. New nestedMode filters have tmp_id but no ID.
-    if (filter.id && filter.status !== 'create' && filter.status !== 'update') return true
-  }
-
-  return false
-}
+const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
@@ -937,7 +915,7 @@ defineExpose({
                         class="min-w-18 capitalize"
                         placeholder="Group op"
                         dropdown-class-name="nc-dropdown-filter-logical-op-group"
-                        :disabled="(i > 1 && !isLogicalOpChangeAllowed) || isFilterDisabled(filter)"
+                        :disabled="(i > 1 && !isLogicalOpChangeAllowed) || isLockedView || readOnly"
                         :class="{
                           'nc-disabled-logical-op': filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed),
                           '!max-w-18': !webHook,
@@ -962,29 +940,30 @@ defineExpose({
                   </template>
                   <template #end>
                     <NcButton
+                      v-if="!filter.readOnly && !readOnly"
                       :key="i"
                       v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
                       type="text"
                       size="small"
-                      :disabled="isFilterDisabled(filter)"
+                      :disabled="isLockedView"
                       class="nc-filter-item-remove-btn cursor-pointer"
                       @click.stop="deleteFilter(filter, i)"
                     >
                       <GeneralIcon icon="deleteListItem" />
                     </NcButton>
                     <NcButton
-                      v-if="isEeUI"
+                      v-if="!filter.readOnly && !readOnly && isEeUI"
                       v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
                       type="text"
                       size="small"
-                      :disabled="isFilterDisabled(filter)"
+                      :disabled="isLockedView"
                       class="nc-filter-item-copy-btn"
                       @click.stop="copyFilter(filter, true)"
                     >
                       <GeneralIcon icon="copy" />
                     </NcButton>
                     <NcButton
-                      v-if="isReorderEnabled"
+                      v-if="!filter.readOnly && !readOnly && isReorderEnabled"
                       v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook }]"
                       type="text"
                       size="small"
@@ -1012,7 +991,9 @@ defineExpose({
               :dropdown-match-select-width="false"
               class="h-full !max-w-18 !min-w-18 capitalize"
               hide-details
-              :disabled="isFilterDisabled(filter) || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed)"
+              :disabled="
+                filter.readOnly || (visibleFilters.indexOf(filter) > 1 && !isLogicalOpChangeAllowed) || isLockedView || readOnly
+              "
               dropdown-class-name="nc-dropdown-filter-logical-op"
               :class="{
                 'nc-disabled-logical-op':
@@ -1054,9 +1035,9 @@ defineExpose({
                 class="nc-filter-field-select min-w-32 max-h-8"
                 :columns="fieldsToFilter"
                 :disable-smartsheet="!!widget || !!workflow"
-                :disabled="isFilterDisabled(filter)"
+                :disabled="filter.readOnly || isLockedView || readOnly"
                 :meta="meta"
-                :show-all-columns="isFilterDisabled(filter)"
+                :show-all-columns="filter.readOnly || isLockedView || readOnly"
                 @click.stop
                 @change="selectFilterField(filter, i)"
               />
@@ -1072,7 +1053,7 @@ defineExpose({
                 }"
                 density="compact"
                 variant="solo"
-                :disabled="isFilterDisabled(filter)"
+                :disabled="filter.readOnly || isLockedView || readOnly"
                 hide-details
                 dropdown-class-name="nc-dropdown-filter-comp-op !max-w-80"
                 @change="filterUpdateCondition(filter, i)"
@@ -1110,7 +1091,7 @@ defineExpose({
                 :placeholder="$t('labels.operationSub')"
                 density="compact"
                 variant="solo"
-                :disabled="isFilterDisabled(filter)"
+                :disabled="filter.readOnly || isLockedView || readOnly"
                 hide-details
                 dropdown-class-name="nc-dropdown-filter-comp-sub-op"
                 @change="filterUpdateCondition(filter, i)"
@@ -1160,7 +1141,7 @@ defineExpose({
                     v-if="filter.field && types[filter.field] === 'boolean'"
                     v-model:checked="filter.value"
                     dense
-                    :disabled="isFilterDisabled(filter)"
+                    :disabled="filter.readOnly || isLockedView || readOnly"
                     @change="saveOrUpdate(filter, i)"
                   />
 
@@ -1172,7 +1153,7 @@ defineExpose({
                     }"
                     :column="{ ...getColumn(filter), uidt: types[filter.fk_column_id] }"
                     :filter="filter"
-                    :disabled="isFilterDisabled(filter)"
+                    :disabled="isLockedView || readOnly"
                     @update-filter-value="(value) => updateFilterValue(value, filter, i)"
                     @click.stop
                   />
@@ -1234,7 +1215,7 @@ defineExpose({
                     class="nc-settings-dropdown h-full flex items-center min-w-0 rounded-lg"
                     :trigger="['click']"
                     placement="bottom"
-                    :disabled="isFilterDisabled(filter)"
+                    :disabled="isLockedView"
                   >
                     <NcButton type="text" size="small">
                       <GeneralIcon icon="settings" />
@@ -1291,7 +1272,7 @@ defineExpose({
               v-e="['c:filter:delete', { link: !!link, webHook: !!webHook }]"
               type="text"
               size="small"
-              :disabled="isFilterDisabled(filter)"
+              :disabled="isLockedView"
               class="nc-filter-item-remove-btn self-center"
               @click.stop="deleteFilter(filter, i)"
             >
@@ -1302,7 +1283,7 @@ defineExpose({
               v-e="['c:filter:copy', { link: !!link, webHook: !!webHook }]"
               type="text"
               size="small"
-              :disabled="isFilterDisabled(filter)"
+              :disabled="isLockedView"
               class="nc-filter-item-copy-btn self-center"
               @click.stop="copyFilter(filter)"
             >

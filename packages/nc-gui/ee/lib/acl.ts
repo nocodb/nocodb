@@ -211,6 +211,8 @@ const rolePermissions = {
 
       // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
       viewOperations: true,
+      sortList: true,
+      filterList: true,
 
       // Extensions
       extensionUpdate: true,

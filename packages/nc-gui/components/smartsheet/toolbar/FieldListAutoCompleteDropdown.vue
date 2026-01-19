@@ -37,7 +37,7 @@ const { showSystemFields, fieldsMap, isLocalMode } = disableSmartsheet
 const options = computed<SelectProps['options']>(() =>
   (
     customColumns.value?.filter((c: ColumnType) => {
-      if(restProps.showAllColumns){
+      if (restProps.showAllColumns) {
         return true
       }
       if (

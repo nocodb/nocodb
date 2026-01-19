@@ -15,6 +15,8 @@ export const useBases = defineStore('basesStore', () => {
 
   const { isUIAllowed } = useRoles()
 
+  const baseCreateMode = ref<NcBaseCreateMode | null>(null)
+
   const baseRoles = ref<Record<string, any>>({})
 
   const bases = ref<Map<string, NcProject>>(new Map())
@@ -309,7 +311,7 @@ export const useBases = defineStore('basesStore', () => {
     }
     try {
       meta = (isString(base.meta) ? JSON.parse(base.meta) : base.meta) ?? meta
-    } catch {}
+    } catch { }
 
     return meta
   }
@@ -393,7 +395,7 @@ export const useBases = defineStore('basesStore', () => {
     else navigateTo('/')
   }
 
-  const toggleStarred = async (..._args: any) => {}
+  const toggleStarred = async (..._args: any) => { }
 
   watch(
     () => route.value.params.baseId,
@@ -446,19 +448,20 @@ export const useBases = defineStore('basesStore', () => {
 
   const basesTeams = ref<Map<string, Record<string, any>[]>>(new Map())
 
-  const getBaseTeams = async (..._args: any[]) => {}
+  const getBaseTeams = async (..._args: any[]) => { }
 
-  const baseTeamList = async (..._args: any[]) => {}
-  const baseTeamGet = async (..._args: any[]) => {}
-  const baseTeamAdd = async (..._args: any[]) => {}
-  const baseTeamUpdate = async (..._args: any[]) => {}
-  const baseTeamRemove = async (..._args: any[]) => {}
+  const baseTeamList = async (..._args: any[]) => { }
+  const baseTeamGet = async (..._args: any[]) => { }
+  const baseTeamAdd = async (..._args: any[]) => { }
+  const baseTeamUpdate = async (..._args: any[]) => { }
+  const baseTeamRemove = async (..._args: any[]) => { }
 
   /**
    * Teams section end here
    */
 
   return {
+    baseCreateMode,
     bases,
     basesList,
     loadProjects,

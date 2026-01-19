@@ -457,12 +457,11 @@ watch(
       </div>
 
       <!-- Footer -->
-      <div v-if="activeTab === 'publish' || activeTab === 'fork'"
-        class="px-6 py-4 border-t border-nc-border-gray-medium">
+      <div v-if="activeTab === 'publish' || activeTab === 'fork'" class="px- py-3 border-t border-nc-border-gray-medium">
         <div class="flex justify-end gap-2">
-          <NcButton type="secondary" size="medium" @click="emit('update:visible', false)"> Cancel </NcButton>
+          <NcButton type="secondary" size="small" @click="emit('update:visible', false)"> Cancel </NcButton>
 
-          <NcButton v-if="activeTab === 'publish'" type="primary" size="medium" :loading="isLoading"
+          <NcButton v-if="activeTab === 'publish'" type="primary" size="small" :loading="isLoading"
             @click="publishCurrentDraft">
             <template #icon>
               <GeneralIcon icon="upload" />
@@ -470,7 +469,7 @@ watch(
             Publish Version
           </NcButton>
 
-          <NcButton v-if="activeTab === 'fork'" type="primary" size="medium" :loading="isLoading"
+          <NcButton v-if="activeTab === 'fork'" type="primary" size="small" :loading="isLoading"
             :disabled="!forkForm.version" @click="createNewDraft">
             <template #icon>
               <GeneralIcon icon="plus" />

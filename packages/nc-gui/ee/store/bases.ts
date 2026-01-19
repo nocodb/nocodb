@@ -15,6 +15,8 @@ export const useBases = defineStore('basesStore', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const baseCreateMode = ref<NcBaseCreateMode | null>(null)
+
   const baseRoles = ref<Record<string, any>>({})
 
   const bases = ref<Map<string, NcProject>>(new Map())
@@ -229,14 +231,14 @@ export const useBases = defineStore('basesStore', () => {
         const { list } = await $api.base.list(
           page
             ? {
-                query: {
-                  [page]: true,
-                },
-                baseURL: getBaseUrl(targetWorkspaceId),
-              }
-            : {
-                baseURL: getBaseUrl(targetWorkspaceId),
+              query: {
+                [page]: true,
               },
+              baseURL: getBaseUrl(targetWorkspaceId),
+            }
+            : {
+              baseURL: getBaseUrl(targetWorkspaceId),
+            },
         )
         _projects = list
       }
@@ -384,7 +386,7 @@ export const useBases = defineStore('basesStore', () => {
     }
     try {
       meta = (isString(base.meta) ? JSON.parse(base.meta) : base.meta) ?? meta
-    } catch {}
+    } catch { }
 
     return meta
   }
@@ -738,6 +740,7 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   return {
+    baseCreateMode,
     bases,
     basesList,
     loadProjects,

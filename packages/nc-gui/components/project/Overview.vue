@@ -64,67 +64,43 @@ const onCreateBaseClick = () => {
 </script>
 
 <template>
-  <div
-    class="nc-all-tables-view p-6 nc-scrollbar-thin"
-    :style="{
-      height: 'calc(100vh - var(--topbar-height) - 44px)',
-    }"
-  >
+  <div class="nc-all-tables-view p-6 nc-scrollbar-thin" :style="{
+    height: 'calc(100vh - var(--topbar-height) - 44px)',
+  }">
     <div class="text-subHeading2 text-nc-content-gray mb-5">{{ $t('labels.actions') }}</div>
 
-    <div
-      class="flex flex-row gap-6 flex-wrap max-w-[1000px]"
-      :class="{
-        'pointer-events-none': base?.isLoading,
-      }"
-    >
+    <div class="flex flex-row gap-6 flex-wrap max-w-[1000px]" :class="{
+      'pointer-events-none': base?.isLoading,
+    }">
       <template v-if="base?.isLoading">
         <ProjectActionItem v-for="item in 7" :key="item" is-loading label="loading" />
       </template>
       <template v-else>
-        <ProjectActionItem
-          v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-          :label="$t('dashboards.create_new_table')"
-          :subtext="$t('msg.subText.startFromScratch')"
-          data-testid="proj-view-btn__add-new-table"
-          @click="openTableCreateDialog()"
-        >
+        <ProjectActionItem v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
+          :label="$t('dashboards.create_new_table')" :subtext="$t('msg.subText.startFromScratch')"
+          data-testid="proj-view-btn__add-new-table" @click="openTableCreateDialog()">
           <template #icon>
             <GeneralIcon icon="addOutlineBox" class="!h-8 !w-8 !text-nc-content-brand" />
           </template>
         </ProjectActionItem>
 
-        <ProjectActionItem
-          v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })"
-          v-e="['c:table:import']"
-          data-testid="proj-view-btn__import-data"
-          :label="`${$t('activity.import')} ${$t('general.data')}`"
-          :subtext="$t('msg.subText.importData')"
-          @click="isImportModalOpen = true"
-        >
+        <ProjectActionItem v-if="isUIAllowed('tableCreate', { source: base?.sources?.[0] })" v-e="['c:table:import']"
+          data-testid="proj-view-btn__import-data" :label="`${$t('activity.import')} ${$t('general.data')}`"
+          :subtext="$t('msg.subText.importData')" @click="isImportModalOpen = true">
           <template #icon>
             <GeneralIcon icon="download" class="!h-7.5 !w-7.5 !text-nc-content-orange-dark" />
           </template>
         </ProjectActionItem>
 
-        <NcTooltip
-          v-if="isUIAllowed('sourceCreate')"
-          placement="bottom"
-          :disabled="!isDataSourceLimitReached"
-          class="flex-none flex"
-        >
+        <NcTooltip v-if="isUIAllowed('sourceCreate')" placement="bottom" :disabled="!isDataSourceLimitReached"
+          class="flex-none flex">
           <template #title>
             {{ $t('tooltip.reachedSourceLimit') }}
           </template>
 
-          <ProjectActionItem
-            v-e="['c:table:create-source']"
-            data-testid="proj-view-btn__create-source"
-            :disabled="isDataSourceLimitReached"
-            :label="$t('labels.connectDataSource')"
-            :subtext="$t('msg.subText.connectExternalData')"
-            @click="onCreateBaseClick"
-          >
+          <ProjectActionItem v-e="['c:table:create-source']" data-testid="proj-view-btn__create-source"
+            :disabled="isDataSourceLimitReached" :label="$t('labels.connectDataSource')"
+            :subtext="$t('msg.subText.connectExternalData')" @click="onCreateBaseClick">
             <template #icon>
               <GeneralIcon icon="server1" class="!h-7 !w-7 !text-nc-content-green-dark" />
             </template>

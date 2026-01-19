@@ -7,9 +7,12 @@ import { PlanFeatureTypes, PlanTitles, ProjectRoles, trimMatchingQuotes } from '
 const props = defineProps<{
   modelValue: boolean
   isCreateNewActionMenu?: boolean
+  defaultBaseCreateMode?: NcBaseCreateMode | null
 }>()
 
 const emit = defineEmits(['update:modelValue'])
+
+const { defaultBaseCreateMode } = toRefs(props)
 
 const router = useRouter()
 const route = router.currentRoute
@@ -25,6 +28,8 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 const { createProject: _createProject } = basesStore
+
+const { baseCreateMode } = storeToRefs(basesStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -56,7 +61,13 @@ const creating = ref(false)
 
 const aiMode = ref<boolean | null>(null)
 
-const modalSize = computed(() => (aiMode.value !== true ? 'small' : 'lg'))
+const modalSize = computed(() => {
+  if (baseCreateMode.value === NcBaseCreateMode.BUILD_WITH_AI || baseCreateMode.value === NcBaseCreateMode.FROM_APP_STORE) {
+    return 'lg'
+  }
+
+  return 'small'
+})
 
 const input = ref<typeof Input>()
 
@@ -157,11 +168,13 @@ watch(dialogShow, async (n, o) => {
     handleResetInitialValue()
   }
 
-  aiMode.value = null
+  if (defaultBaseCreateMode.value) return
+
+  baseCreateMode.value = null
 })
 
-watch(aiMode, () => {
-  if (aiMode.value !== false) return
+watch(baseCreateMode, () => {
+  if (baseCreateMode.value !== NcBaseCreateMode.FROM_SCRATCH) return
 
   onInit()
 })
@@ -230,7 +243,7 @@ if (props.isCreateNewActionMenu) {
         baseName: trimMatchingQuotes(baseName as string),
       }
 
-      aiMode.value = true
+      baseCreateMode.value = NcBaseCreateMode.BUILD_WITH_AI
 
       dialogShow.value = true
     },
@@ -242,51 +255,31 @@ if (props.isCreateNewActionMenu) {
 </script>
 
 <template>
-  <NcModal
-    :key="`${aiMode}`"
-    v-model:visible="dialogShow"
-    :size="modalSize"
-    :show-separator="false"
-    :width="aiMode === null ? 'auto' : undefined"
-    :wrap-class-name="
-      aiMode ? 'nc-modal-ai-base-create' : `nc-modal-wrapper ${aiMode === null ? 'nc-ai-select-base-create-mode-modal' : ''}`
-    "
-  >
-    <template v-if="aiMode === false" #header>
-      <!-- Create A New Table -->
-      <div class="flex flex-row items-center text-base text-nc-content-gray">
-        <GeneralProjectIcon :color="formState.meta.iconColor" class="mr-2.5" />
-        {{ $t('general.create') }} {{ $t('objects.project') }}
-      </div>
+  <NcModal :key="`${baseCreateMode}`" v-model:visible="dialogShow" :size="modalSize"
+    :nc-modal-class-name="`${baseCreateMode && baseCreateMode !== NcBaseCreateMode.FROM_SCRATCH ? '!p-0' : ''}`"
+    :show-separator="false" :width="baseCreateMode === null ? 'auto' : undefined" :wrap-class-name="baseCreateMode === NcBaseCreateMode.BUILD_WITH_AI ? 'nc-modal-ai-base-create' : `nc-modal-wrapper ${baseCreateMode === null ? 'nc-ai-select-base-create-mode-modal' : ''}`
+      ">
+    <template v-if="baseCreateMode === null">
+      <!-- <WorkspaceProjectCreateMode v-model:ai-mode="aiMode" :workspace-id="activeWorkspace?.id"
+        @sandbox-installed="onSandboxInstalled" @close="dialogShow = false" /> -->
+
+      <DashboardTreeViewCreateProjectMenu v-model:visible="dialogShow" v-model:base-create-mode="baseCreateMode"
+        variant="modal" />
+
     </template>
-    <template v-if="aiMode === null">
-      <WorkspaceProjectCreateMode
-        v-model:ai-mode="aiMode"
-        :workspace-id="activeWorkspace?.id"
-        @sandbox-installed="onSandboxInstalled"
-        @close="dialogShow = false"
-      />
-    </template>
-    <template v-if="aiMode === false">
-      <div class="mt-1">
-        <a-form
-          ref="form"
-          :model="formState"
-          name="basic"
-          layout="vertical"
-          class="w-full !mx-auto flex flex-col gap-5"
-          no-style
-          autocomplete="off"
-          @finish="createProject"
-        >
+    <template v-if="baseCreateMode === NcBaseCreateMode.FROM_SCRATCH">
+      <div>
+        <!-- Create A New Table -->
+        <div class="flex flex-row items-center text-base text-nc-content-gray mb-5">
+          <GeneralProjectIcon :color="formState.meta.iconColor" class="mr-2.5" />
+          {{ $t('general.create') }} {{ $t('objects.project') }}
+        </div>
+
+        <a-form ref="form" :model="formState" name="basic" layout="vertical" class="w-full !mx-auto flex flex-col gap-5"
+          no-style autocomplete="off" @finish="createProject">
           <a-form-item name="title" :rules="nameValidationRules" class="!mb-0">
-            <a-input
-              ref="input"
-              v-model:value="formState.title"
-              name="title"
-              class="nc-metadb-base-name nc-input-sm nc-input-shadow"
-              placeholder="Title"
-            />
+            <a-input ref="input" v-model:value="formState.title" name="title"
+              class="nc-metadb-base-name nc-input-sm nc-input-shadow" placeholder="Title" />
           </a-form-item>
 
           <a-form-item name="default_role" class="!mb-0">
@@ -298,22 +291,13 @@ if (props.isCreateNewActionMenu) {
                 <GeneralIcon :icon="selectedBaseAccessOption.icon" class="flex-none h-3.5 w-3.5" />
                 <span class="text-sm flex-1">{{ selectedBaseAccessOption.label }}</span>
 
-                <GeneralIcon
-                  icon="ncChevronDown"
-                  class="flex-none h-4 w-4 transition-transform opacity-80"
-                  :class="{ 'transform rotate-180': isOpenBaseAccessDropdown }"
-                />
+                <GeneralIcon icon="ncChevronDown" class="flex-none h-4 w-4 transition-transform opacity-80"
+                  :class="{ 'transform rotate-180': isOpenBaseAccessDropdown }" />
               </div>
               <template #overlay="{ onEsc }">
-                <NcList
-                  v-model:open="isOpenBaseAccessDropdown"
-                  v-model:value="baseAccessValue"
-                  :list="baseAccessOptions"
-                  :item-height="48"
-                  class="!w-auto"
-                  wrapper-class-name="!h-auto"
-                  @escape="onEsc"
-                >
+                <NcList v-model:open="isOpenBaseAccessDropdown" v-model:value="baseAccessValue"
+                  :list="baseAccessOptions" :item-height="48" class="!w-auto" wrapper-class-name="!h-auto"
+                  @escape="onEsc">
                   <template #listItem="{ option, isSelected }">
                     <div class="w-full flex flex-col">
                       <div class="w-full flex items-center justify-between">
@@ -324,12 +308,9 @@ if (props.isCreateNewActionMenu) {
                           <span class="text-captionDropdownDefault !font-550">{{ option.label }}</span>
                         </div>
 
-                        <PaymentUpgradeBadge
-                          v-if="blockPrivateBases && option.value === ProjectRoles.NO_ACCESS"
-                          :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES"
-                          :plan-title="privateBaseMinPlanReq"
-                          remove-click
-                        />
+                        <PaymentUpgradeBadge v-if="blockPrivateBases && option.value === ProjectRoles.NO_ACCESS"
+                          :feature="PlanFeatureTypes.FEATURE_PRIVATE_BASES" :plan-title="privateBaseMinPlanReq"
+                          remove-click />
                         <GeneralIcon v-else-if="isSelected" icon="check" class="text-primary h-4 w-4" />
                       </div>
                       <div class="text-bodySm text-nc-content-gray-muted ml-6">{{ option.subtext }}</div>
@@ -345,17 +326,9 @@ if (props.isCreateNewActionMenu) {
           <NcButton type="secondary" size="small" :disabled="creating" @click="dialogShow = false">{{
             $t('labels.cancel')
           }}</NcButton>
-          <NcButton
-            v-e="['a:base:create']"
-            data-testid="docs-create-proj-dlg-create-btn"
-            :loading="creating"
-            type="primary"
-            size="small"
-            :disabled="creating"
-            :label="`Create ${t('objects.project')}`"
-            :loading-label="`Creating ${t('objects.project')}`"
-            @click="createProject"
-          >
+          <NcButton v-e="['a:base:create']" data-testid="docs-create-proj-dlg-create-btn" :loading="creating"
+            type="primary" size="small" :disabled="creating" :label="`Create ${t('objects.project')}`"
+            :loading-label="`Creating ${t('objects.project')}`" @click="createProject">
             {{ $t('general.createEntity', { entity: t('objects.project') }) }}
             <template #loading>
               {{ $t('general.creatingEntity', { entity: t('objects.project') }) }}
@@ -364,14 +337,14 @@ if (props.isCreateNewActionMenu) {
         </div>
       </div>
     </template>
-    <template v-if="aiMode === true">
-      <WorkspaceProjectAiCreateProject
-        v-model:ai-mode="aiMode"
-        v-model:dialog-show="dialogShow"
-        :is-create-new-action-menu="isCreateNewActionMenu"
-        :workspace-id="activeWorkspace.id"
-        :initial-value="aiModeInitialValue"
-      />
+    <template v-if="baseCreateMode === NcBaseCreateMode.BUILD_WITH_AI">
+      <WorkspaceProjectAiCreateProject v-model:ai-mode="aiMode" v-model:base-create-mode="baseCreateMode"
+        v-model:dialog-show="dialogShow" :is-create-new-action-menu="isCreateNewActionMenu"
+        :workspace-id="activeWorkspace!.id" :initial-value="aiModeInitialValue" />
+    </template>
+    <template v-if="baseCreateMode === NcBaseCreateMode.FROM_APP_STORE">
+      <WorkspaceProjectAppMarket v-model:visible="dialogShow" :workspace-id="activeWorkspace!.id!"
+        @installed="onSandboxInstalled" />
     </template>
   </NcModal>
 </template>
@@ -379,6 +352,7 @@ if (props.isCreateNewActionMenu) {
 <style lang="scss">
 .nc-modal-ai-base-create .ant-modal-content {
   @apply dark:(border-nc-border-purple-medium);
+
   .nc-modal {
     @apply !p-0;
 

@@ -105,6 +105,7 @@ export enum MetaTable {
   SANDBOXES = 'nc_sandboxes',
   SANDBOX_VERSIONS = 'nc_sandbox_versions',
   SANDBOX_DEPLOYMENT_LOGS = 'nc_sandbox_deployment_logs',
+  SCIM_CONFIG = 'nc_scim_config',
 }
 
 export const BaseRelatedMetaTables = [
@@ -329,6 +330,7 @@ export enum CacheScope {
   SANDBOX_VERSION = 'sandboxVersion',
   SANDBOX_DEPLOYMENT_LOG = 'sandboxDeploymentLog',
   SUBSCRIPTIONS_ALIAS = 'subscriptionsAlias',
+  SCIM_CONFIG = 'scimConfig',
 }
 
 export enum CacheGetType {

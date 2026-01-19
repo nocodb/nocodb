@@ -12,6 +12,7 @@ import * as nc_011_merge_workflows_scripts from './v0/nc_011_merge_workflows_scr
 import * as nc_012_workflow_delay from './v0/nc_012_workflow_delay';
 import * as nc_013_composite_pk_missing_tables from './v0/nc_013_composite_pk_missing_tables';
 import * as nc_014_sandboxes from './v0/nc_014_sandboxes';
+import * as nc_015_scim_support from './v0/nc_015_scim_support';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -35,6 +36,7 @@ export default class XcMigrationSourcev0 {
       'nc_012_workflow_delay',
       'nc_013_composite_pk_missing_tables',
       'nc_014_sandboxes',
+      'nc_015_scim_support',
     ]);
   }
 
@@ -72,6 +74,8 @@ export default class XcMigrationSourcev0 {
         return nc_013_composite_pk_missing_tables;
       case 'nc_014_sandboxes':
         return nc_014_sandboxes;
+      case 'nc_015_scim_support':
+        return nc_015_scim_support;
     }
   }
 }

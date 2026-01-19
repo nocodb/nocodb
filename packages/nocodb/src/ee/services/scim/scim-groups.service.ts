@@ -4,6 +4,7 @@ import { NcError } from '~/helpers/catchError';
 import { Team, WorkspaceUser } from '~/ee/models';
 import Noco from '~/Noco';
 import { PrincipalAssignment } from '~/ee/models';
+import { ResourceType, PrincipalType } from '~/utils/globals';
 
 interface ScimGroupResource {
   schemas: string[];
@@ -28,7 +29,7 @@ interface ScimGroupResource {
 export class ScimGroupsService {
   protected logger = new Logger(ScimGroupsService.name);
 
-  constructor() {}
+  constructor() { }
 
   /**
    * Get a single group (team) by SCIM external ID
@@ -223,7 +224,7 @@ export class ScimGroupsService {
       );
     }
 
-    const updatedTeam = await Team.get(context, { teamId: team.id });
+    const updatedTeam = await Team.get(context, team.id);
     return this.toScimGroup(context, updatedTeam, workspaceId);
   }
 
@@ -290,12 +291,12 @@ export class ScimGroupsService {
 
     // Get team user assignments
     const assignments = await PrincipalAssignment.list(context, {
-      resource_type: 'team',
+      resource_type: ResourceType.TEAM,
       resource_id: teamId,
     });
 
     const userIds = assignments
-      .filter((a) => a.principal_type === 'user')
+      .filter((a) => a.principal_type === PrincipalType.USER)
       .map((a) => a.principal_ref_id);
 
     // Get workspace users
@@ -340,12 +341,13 @@ export class ScimGroupsService {
     // Remove members not in target list
     for (const member of currentMembers) {
       if (!targetMembers.find((tm) => tm.fk_user_id === member.fk_user_id)) {
-        await PrincipalAssignment.delete(context, {
-          resource_type: 'team',
-          resource_id: teamId,
-          principal_type: 'user',
-          principal_ref_id: member.fk_user_id,
-        });
+        await PrincipalAssignment.delete(
+          context,
+          ResourceType.TEAM,
+          teamId,
+          PrincipalType.USER,
+          member.fk_user_id,
+        );
       }
     }
 
@@ -356,9 +358,9 @@ export class ScimGroupsService {
       );
       if (!exists) {
         await PrincipalAssignment.insert(context, {
-          resource_type: 'team',
+          resource_type: ResourceType.TEAM,
           resource_id: teamId,
-          principal_type: 'user',
+          principal_type: PrincipalType.USER,
           principal_ref_id: member.fk_user_id,
           roles: null, // Team role, not individual role
         });
@@ -407,9 +409,9 @@ export class ScimGroupsService {
       );
       if (wu) {
         await PrincipalAssignment.insert(context, {
-          resource_type: 'team',
+          resource_type: ResourceType.TEAM,
           resource_id: teamId,
-          principal_type: 'user',
+          principal_type: PrincipalType.USER,
           principal_ref_id: wu.fk_user_id,
           roles: null,
         });
@@ -435,12 +437,13 @@ export class ScimGroupsService {
         (wu) => wu.scim_external_id === member.value,
       );
       if (wu) {
-        await PrincipalAssignment.delete(context, {
-          resource_type: 'team',
-          resource_id: teamId,
-          principal_type: 'user',
-          principal_ref_id: wu.fk_user_id,
-        });
+        await PrincipalAssignment.delete(
+          context,
+          ResourceType.TEAM,
+          teamId,
+          PrincipalType.USER,
+          wu.fk_user_id,
+        );
       }
     }
   }

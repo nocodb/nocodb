@@ -109,6 +109,7 @@ export enum MetaTable {
   MANAGED_APP_DEPLOYMENT_LOGS = 'nc_managed_app_deployment_logs',
   AUTOMATION_SUBSCRIBERS = 'nc_automation_subscribers',
   SANDBOXES = 'nc_sandboxes_v2',
+  SCIM_CONFIG = 'nc_scim_config',
 }
 
 export const BaseRelatedMetaTables = [
@@ -316,6 +317,7 @@ export enum CacheScope {
   MANAGED_APP_DEPLOYMENT_LOG = 'managedAppDeploymentLog',
   AUTOMATION_SUBSCRIBER = 'automationSubscriber',
   SANDBOX = 'sandbox',
+  SCIM_CONFIG = 'scimConfig',
 }
 
 export const RootScopeTables = {
@@ -362,6 +364,7 @@ export const RootScopeTables = {
     MetaTable.SOURCES,
 
     MetaTable.PRINCIPAL_ASSIGNMENTS,
+    MetaTable.SCIM_CONFIG,
   ],
   [RootScopes.BASE]: [MetaTable.PROJECT],
 };

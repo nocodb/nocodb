@@ -33,7 +33,7 @@ interface ScimUserResource {
 export class ScimUsersService {
   protected logger = new Logger(ScimUsersService.name);
 
-  constructor() {}
+  constructor() { }
 
   /**
    * Get a single user by SCIM external ID
@@ -152,7 +152,7 @@ export class ScimUsersService {
     const workspaceUser = await WorkspaceUser.insert({
       fk_workspace_id: workspaceId,
       fk_user_id: user.id,
-      roles: WorkspaceUserRoles.MEMBER, // Default SCIM role
+      roles: WorkspaceUserRoles.VIEWER, // Default SCIM role
       scim_external_id: scimUser.externalId || scimUser.id,
       scim_managed: true,
       scim_user_name: scimUser.userName,

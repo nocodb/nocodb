@@ -3,7 +3,11 @@ import {
   WorkflowNodeCategory,
   WorkflowNodeIntegration,
 } from '@noco-integrations/core';
-import { NON_EDITABLE_FIELDS, normalizeRelationInput } from '../utils/fields';
+import {
+  NON_EDITABLE_FIELDS,
+  parseRelationInput,
+  resolveRelationInputValues,
+} from '../utils/fields';
 import type {
   WorkflowNodeConfig,
   WorkflowNodeDefinition,
@@ -46,7 +50,7 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
           },
         );
 
-        return tables.map((table: any) => ({
+        return tables.map((table: NocoSDK.TableType) => ({
           label: table.title || table.table_name,
           value: table.id,
           ncItemDisabled: table.synced,
@@ -75,8 +79,8 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         }
 
         return table.columns
-          .filter((col: any) => !NocoSDK.isSystemColumn(col))
-          .map((col: any) => ({
+          .filter((col: NocoSDK.ColumnType) => !NocoSDK.isSystemColumn(col))
+          .map((col: NocoSDK.ColumnType) => ({
             label: col.title,
             value: col.title,
             ncItemDisabled: NocoSDK.isInUIType(col, NON_EDITABLE_FIELDS),
@@ -169,19 +173,31 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
         },
       );
 
-      const transformedFields: Record<string, any> = {};
+      const transformedFields: Record<string, unknown> = {};
       if (table && table.columns) {
-        Object.entries(fields).forEach(([fieldId, value]) => {
-          const column = table.columns.find((col: any) => col.id === fieldId);
-          if (!column || !column.title) return;
-          if (column?.title) {
-            transformedFields[column.title] = value;
-          }
+        for (const [fieldId, value] of Object.entries(fields)) {
+          const column = table.columns.find(
+            (col: NocoSDK.ColumnType) => col.id === fieldId,
+          );
+          if (!column || !column.title) continue;
 
           if (NocoSDK.isLinksOrLTAR(column)) {
-            transformedFields[column.title] = normalizeRelationInput(value);
+            // Parse input values and resolve to record IDs
+            const inputValues = parseRelationInput(value);
+            const resolvedIds = await resolveRelationInputValues({
+              nocodb: this.nocodb,
+              column,
+              inputValues,
+              baseId: ctx.baseId,
+              workspaceId: ctx.workspaceId,
+            });
+            // Return single object for single value, array for multiple
+            transformedFields[column.title] =
+              resolvedIds.length === 1 ? resolvedIds[0] : resolvedIds;
+          } else {
+            transformedFields[column.title] = value;
           }
-        });
+        }
       }
 
       const result = await this.nocodb.dataService.dataUpdate(context, {
@@ -293,7 +309,9 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
       };
 
       Object.entries(fields).forEach(([fieldId, value]) => {
-        const field = table.columns.find((col: any) => col.id === fieldId);
+        const field = table.columns.find(
+          (col: NocoSDK.ColumnType) => col.id === fieldId,
+        );
         if (!field?.uidt || !value) return;
         fieldsVariable.children.push({
           key: `config.fields.${fieldId}`,
@@ -306,6 +324,8 @@ export class UpdateRecordNode extends WorkflowNodeIntegration<UpdateRecordNodeCo
           },
         });
       });
+
+      variables.push(fieldsVariable);
 
       return variables;
     } catch {

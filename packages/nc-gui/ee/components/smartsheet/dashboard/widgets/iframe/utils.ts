@@ -87,6 +87,8 @@ const allowedDomains = [
   '*.mural.co',
   'n8n.io',
   '*.n8n.io',
+  'n8n.cloud',
+  '*.n8n.cloud',
   'nocodb.com',
   '*.nocodb.com',
   'notion.so',

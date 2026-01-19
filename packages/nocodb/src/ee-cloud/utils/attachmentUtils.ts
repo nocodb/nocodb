@@ -1,3 +1,5 @@
+import { getThumbnailMaxSize } from '~/utils/nc-config/constants';
+
 /**
  * Checks if a file is an Office document based on MIME type and file extension
  * @param mimeType - The MIME type of the file
@@ -140,5 +142,12 @@ export function isOfficeDocument(
 
 export const supportsThumbnails = (attachment: any) => {
   const mimetype = attachment.mimetype || attachment.mimeType;
+  const size = attachment.size;
+
+  // Skip thumbnail generation for files larger than configured limit
+  if (!size || (size && size > getThumbnailMaxSize())) {
+    return false;
+  }
+
   return mimetype?.startsWith('image/'); // || mimetype?.startsWith('application/pdf')
 };

@@ -105,7 +105,7 @@ export class DataAttachmentV3Service {
             signedUrl: undefined,
           };
           processedAttachments.push(processedAttachment);
-          if (supportsThumbnails({ mimetype: downloadedAttachment.mimeType })) {
+          if (supportsThumbnails({ mimetype: downloadedAttachment.mimeType, size: downloadedAttachment.fileSize })) {
             generateThumbnailAttachments.push(processedAttachment);
           }
         }
@@ -289,7 +289,7 @@ export class DataAttachmentV3Service {
         size: fileSize,
       };
       processedAttachments.push(processedAttachment);
-      if (supportsThumbnails({ mimetype: mimeType })) {
+      if (supportsThumbnails({ mimetype: mimeType, size: fileSize })) {
         generateThumbnailAttachments.push(processedAttachment);
       }
     } catch (error) {

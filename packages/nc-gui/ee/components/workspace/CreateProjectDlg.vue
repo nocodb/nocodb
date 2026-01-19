@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
-import { computed } from '@vue/reactivity'
 import { PlanFeatureTypes, PlanTitles, ProjectRoles, trimMatchingQuotes } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -64,6 +63,10 @@ const aiMode = ref<boolean | null>(null)
 const modalSize = computed(() => {
   if (baseCreateMode.value === NcBaseCreateMode.BUILD_WITH_AI || baseCreateMode.value === NcBaseCreateMode.FROM_APP_STORE) {
     return 'lg'
+  }
+
+  if (baseCreateMode.value === NcBaseCreateMode.MANAGED_APP) {
+    return 'sm'
   }
 
   return 'small'
@@ -257,8 +260,8 @@ if (props.isCreateNewActionMenu) {
 <template>
   <NcModal :key="`${baseCreateMode}`" v-model:visible="dialogShow" :size="modalSize"
     :nc-modal-class-name="`${baseCreateMode !== NcBaseCreateMode.FROM_SCRATCH ? '!p-0' : ''}`" :show-separator="false"
-    :width="baseCreateMode === null ? 'auto' : undefined" :wrap-class-name="baseCreateMode === NcBaseCreateMode.BUILD_WITH_AI ? 'nc-modal-ai-base-create' : `nc-modal-wrapper ${baseCreateMode === null ? 'nc-ai-select-base-create-mode-modal' : ''}`
-      ">
+    :width="!baseCreateMode || baseCreateMode === NcBaseCreateMode.MANAGED_APP ? 'auto' : undefined"
+    :wrap-class-name="`nc-create-project-dlg-wrapper nc-create-project-dlg-wrapper-${baseCreateMode}`">
     <template v-if="baseCreateMode === null">
       <!-- <WorkspaceProjectCreateMode v-model:ai-mode="aiMode" :workspace-id="activeWorkspace?.id"
         @sandbox-installed="onSandboxInstalled" @close="dialogShow = false" /> -->
@@ -325,7 +328,7 @@ if (props.isCreateNewActionMenu) {
         <div class="flex flex-row justify-end mt-5 gap-x-2">
           <NcButton type="secondary" size="small" :disabled="creating" @click="dialogShow = false">{{
             $t('labels.cancel')
-          }}</NcButton>
+            }}</NcButton>
           <NcButton v-e="['a:base:create']" data-testid="docs-create-proj-dlg-create-btn" :loading="creating"
             type="primary" size="small" :disabled="creating" :label="`Create ${t('objects.project')}`"
             :loading-label="`Creating ${t('objects.project')}`" @click="createProject">
@@ -346,11 +349,14 @@ if (props.isCreateNewActionMenu) {
       <WorkspaceProjectAppMarket v-model:visible="dialogShow" :workspace-id="activeWorkspace!.id!"
         @installed="onSandboxInstalled" />
     </template>
+    <template v-if="baseCreateMode === NcBaseCreateMode.MANAGED_APP">
+      <WorkspaceProjectCreateManagedApp v-model:visible="dialogShow" />
+    </template>
   </NcModal>
 </template>
 
 <style lang="scss">
-.nc-modal-ai-base-create .ant-modal-content {
+.nc-create-project-dlg-wrapper-buildWithAi .ant-modal-content {
   @apply dark:(border-nc-border-purple-medium);
 
   .nc-modal {
@@ -366,7 +372,15 @@ if (props.isCreateNewActionMenu) {
   }
 }
 
-.nc-modal-wrapper.nc-ai-select-base-create-mode-modal {
+.nc-create-project-dlg-wrapper-managedApp,
+.nc-create-project-dlg-wrapper-sandboxApp {
+  .nc-modal {
+    max-height: min(90vh, 540px) !important;
+    height: min(90vh, 540px) !important;
+  }
+}
+
+.nc-create-project-dlg-wrapper-null {
   .ant-modal-content {
     @apply !rounded-[12px];
   }

@@ -20,9 +20,7 @@ withDefaults(defineProps<Props>(), {
         :class="`nc-create-project-menu-item-${variant}`">
         <div class="nc-icon-wrapper">
             <slot name="icon">
-                <GeneralIcon v-if="icon" :icon="icon" class="h-4 w-4 flex-none" :class="{
-                    'mt-0.5': $slots.subtext || subtext
-                }" />
+                <GeneralIcon v-if="icon" :icon="icon" class="h-4 w-4 flex-none" />
             </slot>
         </div>
 
@@ -39,7 +37,7 @@ withDefaults(defineProps<Props>(), {
 
 <style lang="scss" scoped>
 .nc-icon-wrapper {
-    @apply flex items-center justify-center h-4 w-4 children:flex-none;
+    @apply flex items-center justify-center h-5 children:flex-none;
 }
 
 .nc-create-project-menu-item-modal {

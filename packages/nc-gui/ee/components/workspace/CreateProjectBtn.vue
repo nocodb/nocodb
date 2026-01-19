@@ -47,8 +47,8 @@ const centered = computed(() => props.centered ?? true)
       <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :default-base-create-mode="baseCreateMode" />
     </NcButton>
     <template #overlay>
-      <DashboardTreeViewCreateProjectMenu v-model:visible="isVisibleCreateBase"
-        v-model:base-create-mode="baseCreateMode" @update:base-create-mode="baseCreateDlg = true" variant="dropdown" />
+      <WorkspaceProjectCreateMenu v-model:visible="isVisibleCreateBase" v-model:base-create-mode="baseCreateMode"
+        @update:base-create-mode="baseCreateDlg = true" variant="dropdown" />
     </template>
   </NcDropdown>
 </template>

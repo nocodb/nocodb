@@ -263,7 +263,7 @@ if (props.isCreateNewActionMenu) {
       <!-- <WorkspaceProjectCreateMode v-model:ai-mode="aiMode" :workspace-id="activeWorkspace?.id"
         @sandbox-installed="onSandboxInstalled" @close="dialogShow = false" /> -->
 
-      <DashboardTreeViewCreateProjectMenu v-model:visible="dialogShow" v-model:base-create-mode="baseCreateMode"
+      <WorkspaceProjectCreateMenu v-model:visible="dialogShow" v-model:base-create-mode="baseCreateMode"
         variant="modal" />
 
     </template>
@@ -325,7 +325,7 @@ if (props.isCreateNewActionMenu) {
         <div class="flex flex-row justify-end mt-5 gap-x-2">
           <NcButton type="secondary" size="small" :disabled="creating" @click="dialogShow = false">{{
             $t('labels.cancel')
-            }}</NcButton>
+          }}</NcButton>
           <NcButton v-e="['a:base:create']" data-testid="docs-create-proj-dlg-create-btn" :loading="creating"
             type="primary" size="small" :disabled="creating" :label="`Create ${t('objects.project')}`"
             :loading-label="`Creating ${t('objects.project')}`" @click="createProject">

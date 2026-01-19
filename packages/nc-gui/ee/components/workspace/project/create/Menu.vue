@@ -13,7 +13,6 @@ const props = withDefaults(defineProps<Props>(), {
 const emits = defineEmits<{
     (e: 'update:visible', value: boolean): void
     (e: 'update:baseCreateMode', value: NcBaseCreateMode | null): void
-    (e: 'onSelect', mode: NcBaseCreateMode): void
 }>()
 
 
@@ -62,30 +61,30 @@ onMounted(() => {
         <NcMenuItemLabel v-if="variant === 'modal'" class="!py-2" @click.stop>
             CREATE BASE
         </NcMenuItemLabel>
-        <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:create:scratch']" :variant="variant" icon="plus"
+        <WorkspaceProjectCreateMenuItem v-e="['c:base:create:scratch']" :variant="variant" icon="plus"
             label="From Scratch" subtext="Start with an empty base"
             @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)" />
 
-        <DashboardTreeViewCreateProjectMenuItem v-if="isTemplatesFeatureEnabled" v-e="['c:base:template:create']"
+        <WorkspaceProjectCreateMenuItem v-if="isTemplatesFeatureEnabled" v-e="['c:base:template:create']"
             :variant="variant" icon="globe" label="From Template" subtext="Pre-built structures for common use cases"
             @click="onClickOption(NcBaseCreateMode.FROM_TEMPLATE)" />
 
-        <DashboardTreeViewCreateProjectMenuItem v-if="isAiFeaturesEnabled" v-e="['c:base:ai:create']" :variant="variant"
+        <WorkspaceProjectCreateMenuItem v-if="isAiFeaturesEnabled" v-e="['c:base:ai:create']" :variant="variant"
             icon="ncAutoAwesome" label="Build with AI" subtext="Pre-built structures for common use cases"
             @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)" />
 
         <template v-if="isFeatureEnabled(FEATURE_FLAG.SANDBOXES)">
-            <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:market:create']" :variant="variant" icon="ncBox"
+            <WorkspaceProjectCreateMenuItem v-e="['c:base:market:create']" :variant="variant" icon="ncBox"
                 label="From App Store" subtext="Install apps built by the community"
                 @click="onClickOption(NcBaseCreateMode.FROM_APP_STORE)" />
 
             <NcDivider />
 
-            <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:managed:create']" :variant="variant" icon="ncBox"
+            <WorkspaceProjectCreateMenuItem v-e="['c:base:managed:create']" :variant="variant" icon="ncBox"
                 label="Managed App" subtext="Build and publish to the App Store"
                 @click="onClickOption(NcBaseCreateMode.MANAGED_APP)" />
 
-            <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:sandbox:create']" :variant="variant" icon="ncBox"
+            <WorkspaceProjectCreateMenuItem v-e="['c:base:sandbox:create']" :variant="variant" icon="ncBox"
                 label="Sandbox App" subtext="Safely test changes on an existing app"
                 @click="onClickOption(NcBaseCreateMode.SANDBOX_APP)">
                 <template #label>
@@ -94,7 +93,7 @@ onMounted(() => {
                         <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
                     </div>
                 </template>
-            </DashboardTreeViewCreateProjectMenuItem>
+            </WorkspaceProjectCreateMenuItem>
 
         </template>
     </component>

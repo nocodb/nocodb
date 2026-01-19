@@ -62,7 +62,7 @@ export class PGDBQueryClient
     title: string;
     columns: Column[];
     isBtOrOo?: boolean;
-  }) {
+  }): Knex.Raw<any> {
     const paramsString = columns.map(() => `?,??.??`).join(',');
     const pramsValueArr = [
       ...columns.flatMap((c) => [c.id, alias, c.id]),

@@ -30,7 +30,9 @@ export interface ExtractColumnParam {
 }
 
 export interface ExtractColumnFunc {
-  (param: ExtractColumnParam): Promise<any>;
+  (param: ExtractColumnParam): Promise<{
+    isArray?: boolean;
+  }>;
 }
 
 export interface ExtractColumnsParam {
@@ -50,7 +52,7 @@ export interface ExtractColumnsParam {
 }
 
 export interface ExtractColumnsFunc {
-  (param: ExtractColumnsParam): Promise<any>;
+  (param: ExtractColumnsParam): Promise<void>;
 }
 
 export interface DBQueryClient extends DBQueryClientCE {

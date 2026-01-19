@@ -95,3 +95,16 @@ export const NC_DISABLE_GROUP_BY_LIMIT =
 
 export const NC_DISABLE_GROUP_BY_AGG =
   process.env.NC_DISABLE_GROUP_BY_AGG === 'true' || false;
+
+const DEFAULT_THUMBNAIL_MAX_SIZE = 3 * 1024 * 1024;
+
+export const getThumbnailMaxSize = () => {
+  const envValue = process.env.NC_THUMBNAIL_MAX_SIZE;
+  if (envValue) {
+    const parsed = parseInt(envValue, 10);
+    if (!isNaN(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return DEFAULT_THUMBNAIL_MAX_SIZE;
+};

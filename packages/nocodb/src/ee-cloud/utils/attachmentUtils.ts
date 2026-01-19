@@ -1,3 +1,6 @@
+import { getThumbnailMaxSize } from '~/utils/nc-config/constants';
+import { ncIsNumber } from 'nocodb-sdk'
+
 /**
  * Checks if a file is an Office document based on MIME type and file extension
  * @param mimeType - The MIME type of the file
@@ -140,5 +143,12 @@ export function isOfficeDocument(
 
 export const supportsThumbnails = (attachment: any) => {
   const mimetype = attachment.mimetype || attachment.mimeType;
+  const size = attachment.size;
+
+  // Skip thumbnail generation if size is missing, not a number, or exceeds limit
+  if (!size || !ncIsNumber(size) || size > getThumbnailMaxSize()) {
+    return false;
+  }
+
   return mimetype?.startsWith('image/'); // || mimetype?.startsWith('application/pdf')
 };

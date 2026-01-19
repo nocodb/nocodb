@@ -53,7 +53,7 @@ const loadAggregationList = async () => {
   try {
     isLoading.value = true
 
-    const tableMeta = await getMeta(props.baseId, props.tableId, undefined, true, true)
+    const tableMeta = await getMeta(props.baseId, props.tableId, undefined, false, true)
     if (!tableMeta) {
       aggregationList.value = []
       return

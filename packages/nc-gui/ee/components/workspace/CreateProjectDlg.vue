@@ -256,8 +256,8 @@ if (props.isCreateNewActionMenu) {
 
 <template>
   <NcModal :key="`${baseCreateMode}`" v-model:visible="dialogShow" :size="modalSize"
-    :nc-modal-class-name="`${baseCreateMode && baseCreateMode !== NcBaseCreateMode.FROM_SCRATCH ? '!p-0' : ''}`"
-    :show-separator="false" :width="baseCreateMode === null ? 'auto' : undefined" :wrap-class-name="baseCreateMode === NcBaseCreateMode.BUILD_WITH_AI ? 'nc-modal-ai-base-create' : `nc-modal-wrapper ${baseCreateMode === null ? 'nc-ai-select-base-create-mode-modal' : ''}`
+    :nc-modal-class-name="`${baseCreateMode !== NcBaseCreateMode.FROM_SCRATCH ? '!p-0' : ''}`" :show-separator="false"
+    :width="baseCreateMode === null ? 'auto' : undefined" :wrap-class-name="baseCreateMode === NcBaseCreateMode.BUILD_WITH_AI ? 'nc-modal-ai-base-create' : `nc-modal-wrapper ${baseCreateMode === null ? 'nc-ai-select-base-create-mode-modal' : ''}`
       ">
     <template v-if="baseCreateMode === null">
       <!-- <WorkspaceProjectCreateMode v-model:ai-mode="aiMode" :workspace-id="activeWorkspace?.id"
@@ -325,7 +325,7 @@ if (props.isCreateNewActionMenu) {
         <div class="flex flex-row justify-end mt-5 gap-x-2">
           <NcButton type="secondary" size="small" :disabled="creating" @click="dialogShow = false">{{
             $t('labels.cancel')
-          }}</NcButton>
+            }}</NcButton>
           <NcButton v-e="['a:base:create']" data-testid="docs-create-proj-dlg-create-btn" :loading="creating"
             type="primary" size="small" :disabled="creating" :label="`Create ${t('objects.project')}`"
             :loading-label="`Creating ${t('objects.project')}`" @click="createProject">
@@ -368,7 +368,7 @@ if (props.isCreateNewActionMenu) {
 
 .nc-modal-wrapper.nc-ai-select-base-create-mode-modal {
   .ant-modal-content {
-    @apply !rounded-[24px];
+    @apply !rounded-[12px];
   }
 }
 </style>

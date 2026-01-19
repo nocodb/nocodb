@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { NcMenu } from "#components"
 interface Props {
     visible: boolean
     variant: 'modal' | 'dropdown'
@@ -38,6 +39,11 @@ const onClickOption = (mode: NcBaseCreateMode) => {
         return
     }
 
+    // Temp do nothing
+    if ([NcBaseCreateMode.SANDBOX_APP].includes(mode)) {
+        return
+    }
+
     baseCreateMode.value = mode
 
 }
@@ -50,34 +56,51 @@ onMounted(() => {
 </script>
 
 <template>
-    <NcMenu v-if="variant === 'dropdown'" variant="large" data-testid="nc-home-create-new-menu"
-        @click="vVisible = false">
-        <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:create:scratch']" icon="plus" label="From Scratch"
-            subtext="Start with an empty base" @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)" />
+    <component :is="variant === 'modal' ? 'div' : NcMenu" variant="large" :class="{
+        'py-1 flex flex-col gap-0.5': variant === 'modal'
+    }" data-testid="nc-home-create-new-menu" @click="vVisible = false">
+        <NcMenuItemLabel v-if="variant === 'modal'" class="!py-2" @click.stop>
+            CREATE BASE
+        </NcMenuItemLabel>
+        <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:create:scratch']" :variant="variant" icon="plus"
+            label="From Scratch" subtext="Start with an empty base"
+            @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)" />
 
         <DashboardTreeViewCreateProjectMenuItem v-if="isTemplatesFeatureEnabled" v-e="['c:base:template:create']"
-            icon="globe" label="From Template" subtext="Pre-built structures for common use cases"
+            :variant="variant" icon="globe" label="From Template" subtext="Pre-built structures for common use cases"
             @click="onClickOption(NcBaseCreateMode.FROM_TEMPLATE)" />
 
-        <DashboardTreeViewCreateProjectMenuItem v-if="isAiFeaturesEnabled" v-e="['c:base:ai:create']"
+        <DashboardTreeViewCreateProjectMenuItem v-if="isAiFeaturesEnabled" v-e="['c:base:ai:create']" :variant="variant"
             icon="ncAutoAwesome" label="Build with AI" subtext="Pre-built structures for common use cases"
             @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)" />
 
         <template v-if="isFeatureEnabled(FEATURE_FLAG.SANDBOXES)">
-            <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:market:create']" icon="ncBox" label="From App Store"
-                subtext="Install apps built by the community" @click="onClickOption(NcBaseCreateMode.FROM_APP_STORE)" />
+            <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:market:create']" :variant="variant" icon="ncBox"
+                label="From App Store" subtext="Install apps built by the community"
+                @click="onClickOption(NcBaseCreateMode.FROM_APP_STORE)" />
 
             <NcDivider />
 
-            <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:managed:create']" icon="ncBox" label="Managed App"
-                subtext="Build and publish to the App Store" @click="onClickOption(NcBaseCreateMode.MANAGED_APP)" />
+            <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:managed:create']" :variant="variant" icon="ncBox"
+                label="Managed App" subtext="Build and publish to the App Store"
+                @click="onClickOption(NcBaseCreateMode.MANAGED_APP)" />
 
-            <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:sandbox:create']" icon="ncBox" label="Sandbox App"
-                subtext="Safely test changes on an existing app" @click="onClickOption(NcBaseCreateMode.SANDBOX_APP)" />
+            <DashboardTreeViewCreateProjectMenuItem v-e="['c:base:sandbox:create']" :variant="variant" icon="ncBox"
+                label="Sandbox App" subtext="Safely test changes on an existing app"
+                @click="onClickOption(NcBaseCreateMode.SANDBOX_APP)">
+                <template #label>
+                    <div class="flex items-center gap-2">
+                        Sandbox App
+                        <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
+                    </div>
+                </template>
+            </DashboardTreeViewCreateProjectMenuItem>
 
         </template>
-    </NcMenu>
-    <div v-else class="flex flex-row gap-6 flex-wrap max-w-[min(80vw,738px)] children:(!w-[230px] !max-w-[230px])">
+    </component>
+
+    <!-- Todo: confirm design - same as base overview cards -->
+    <!-- <div v-else class="flex flex-row gap-6 flex-wrap max-w-[min(80vw,738px)] children:(!w-[230px] !max-w-[230px])">
         <ProjectActionItem v-e="['c:base:create:scratch']" icon="plus" label="From Scratch"
             subtext="Start with an empty base" @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)" />
 
@@ -101,7 +124,7 @@ onMounted(() => {
                 subtext="Safely test changes on an existing app" @click="onClickOption(NcBaseCreateMode.SANDBOX_APP)" />
 
         </template>
-    </div>
+    </div> -->
 </template>
 
 <style scoped lang="scss">

@@ -4,7 +4,7 @@ import { NcError } from '~/helpers/catchError';
 import { Team, WorkspaceUser } from '~/ee/models';
 import Noco from '~/Noco';
 import { PrincipalAssignment } from '~/ee/models';
-import { ResourceType, PrincipalType } from '~/utils/globals';
+import { PrincipalType, ResourceType } from '~/utils/globals';
 
 interface ScimGroupResource {
   schemas: string[];
@@ -29,7 +29,7 @@ interface ScimGroupResource {
 export class ScimGroupsService {
   protected logger = new Logger(ScimGroupsService.name);
 
-  constructor() { }
+  constructor() {}
 
   /**
    * Get a single group (team) by SCIM external ID

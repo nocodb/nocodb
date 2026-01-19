@@ -144,24 +144,16 @@ const copyScimToken = async () => {
   }, 2000)
 }
 
+// Modal visibility
+const showRegenerateTokenModal = ref(false)
+const showDeleteScimModal = ref(false)
+
 const handleRegenerateToken = async () => {
-  Modal.confirm({
-    title: 'Regenerate SCIM Token',
-    content: 'This will invalidate the current token. IdP connections using the old token will stop working. Continue?',
-    okText: 'Regenerate',
-    onOk: async () => await regenerateToken(),
-  })
+  showRegenerateTokenModal.value = true
 }
 
 const handleDeleteScim = async () => {
-  Modal.confirm({
-    title: 'Disable SCIM Provisioning',
-    content:
-      'This will delete the SCIM configuration and stop all provisioning. SCIM-managed users will remain but will no longer sync. Continue?',
-    okText: 'Disable',
-    okType: 'danger',
-    onOk: async () => await deleteScimConfig(),
-  })
+  showDeleteScimModal.value = true
 }
 
 onMounted(async () => {
@@ -488,6 +480,37 @@ onMounted(async () => {
         :is-edit="isEdit"
         :saml="providerProp"
       />
+      <GeneralDeleteModal
+        v-model:visible="showDeleteScimModal"
+        entity-name="SCIM configuration"
+        delete-label="Disable"
+        :on-delete="deleteScimConfig"
+      >
+        <template #entity-preview>
+          <div class="text-nc-content-gray">
+            This will delete the SCIM configuration and stop all provisioning. SCIM-managed users will remain but will no longer
+            sync.
+          </div>
+        </template>
+      </GeneralDeleteModal>
+
+      <GeneralDeleteModal
+        v-model:visible="showRegenerateTokenModal"
+        entity-name="provisioning token"
+        delete-label="Regenerate"
+        :on-delete="
+          async () => {
+            await regenerateToken()
+          }
+        "
+      >
+        <template #entity-preview>
+          <div class="text-nc-content-gray">
+            This will invalidate the current token. IdP connections using the old token will stop working.
+          </div>
+        </template>
+      </GeneralDeleteModal>
+
       <DlgOIDCProvider
         v-if="oidcDialogShow"
         v-model:model-value="oidcDialogShow"

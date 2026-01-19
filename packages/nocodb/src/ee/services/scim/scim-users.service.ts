@@ -33,7 +33,7 @@ interface ScimUserResource {
 export class ScimUsersService {
   protected logger = new Logger(ScimUsersService.name);
 
-  constructor() { }
+  constructor() {}
 
   /**
    * Get a single user by SCIM external ID

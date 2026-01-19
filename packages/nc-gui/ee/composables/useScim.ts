@@ -27,16 +27,13 @@ export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
 
     try {
       isLoading.value = true
-      const response = await $fetch<ScimConfig>(
-        `${baseURL}/api/v3/meta/workspaces/${workspaceId.value}/scim/config`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'xc-auth': $state.token.value as string,
-          },
-        }
-      )
+      const response = await $fetch<ScimConfig>(`${baseURL}/api/v3/meta/workspaces/${workspaceId.value}/scim/config`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'xc-auth': $state.token.value as string,
+        },
+      })
       scimConfig.value = response
       tokenVisible.value = false // Mask token by default
     } catch (e: any) {
@@ -56,19 +53,16 @@ export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
 
     try {
       isLoading.value = true
-      const response = await $fetch<ScimConfig>(
-        `${baseURL}/api/v3/meta/workspaces/${workspaceId.value}/scim/config`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'xc-auth': $state.token.value as string,
-          },
-          body: {
-            siteUrl: window.location.origin,
-          },
-        }
-      )
+      const response = await $fetch<ScimConfig>(`${baseURL}/api/v3/meta/workspaces/${workspaceId.value}/scim/config`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'xc-auth': $state.token.value as string,
+        },
+        body: {
+          siteUrl: window.location.origin,
+        },
+      })
       scimConfig.value = response
       tokenVisible.value = true // Show token on first generation
       message.success(t('msg.success.scimInitialized'))
@@ -95,7 +89,7 @@ export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
             'Content-Type': 'application/json',
             'xc-auth': $state.token.value as string,
           },
-        }
+        },
       )
       if (scimConfig.value && response.provisioning_token) {
         scimConfig.value.provisioning_token = response.provisioning_token

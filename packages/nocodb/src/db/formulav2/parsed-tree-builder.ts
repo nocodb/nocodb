@@ -23,6 +23,15 @@ import type {
 } from './formula-query-builder.types';
 import type CustomKnex from '../CustomKnex';
 
+const assignFnName = (pt: FnParsedTreeNode) => {
+  if (pt.fnName) return;
+  if (pt.dataType === FormulaDataTypes.STRING) {
+    pt.fnName = 'CONCAT';
+  } else {
+    pt.fnName = 'ARITH';
+  }
+};
+
 export const callExpressionBuilder = async ({
   context,
   pt,
@@ -447,10 +456,8 @@ export const binaryExpressionBuilder = async ({
       arguments: [pt.right],
     };
   }
-  (pt.left as FnParsedTreeNode).fnName =
-    (pt.left as FnParsedTreeNode).fnName || 'ARITH';
-  (pt.right as FnParsedTreeNode).fnName =
-    (pt.right as FnParsedTreeNode).fnName || 'ARITH';
+  assignFnName(pt.left as FnParsedTreeNode);
+  assignFnName(pt.right as FnParsedTreeNode);
 
   let left = (await fn(pt.left, pt.operator)).builder.toQuery();
   let right = (await fn(pt.right, pt.operator)).builder.toQuery();

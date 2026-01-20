@@ -708,9 +708,11 @@ describe('WorkflowExpressionParser', () => {
       // Create object with dangerous property names using bracket notation
       const dangerousObj1: any = {};
       dangerousObj1['eval'] = 'bad';
+      dangerousObj1['prototype'] = 'bad';
 
       const dangerousObj2: any = {};
       dangerousObj2['Function'] = 'bad';
+      dangerousObj2['constructor'] = 'bad';
 
       expect(() => parser.setContext({ data: dangerousObj1 })).toThrow(
         WorkflowSecurityError

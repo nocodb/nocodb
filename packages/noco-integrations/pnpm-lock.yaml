@@ -565,6 +565,44 @@ importers:
         specifier: ^3.1.3
         version: 3.1.3(@types/node@20.17.46)
 
+  packages/google-calendar-auth:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      axios:
+        specifier: ^1.9.0
+        version: 1.13.2
+      googleapis:
+        specifier: ^169.0.0
+        version: 169.0.0
+    devDependencies:
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
+  packages/google-calendar-workflow-nodes:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@noco-integrations/google-calendar-auth':
+        specifier: workspace:*
+        version: link:../google-calendar-auth
+      googleapis:
+        specifier: ^169.0.0
+        version: 169.0.0
+    devDependencies:
+      rimraf:
+        specifier: ^5.0.10
+        version: 5.0.10
+      typescript:
+        specifier: ^5.8.3
+        version: 5.8.3
+
   packages/google-drive-auth:
     dependencies:
       '@noco-integrations/core':

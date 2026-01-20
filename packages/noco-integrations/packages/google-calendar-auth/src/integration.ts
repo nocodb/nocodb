@@ -4,15 +4,15 @@ import { AuthIntegration, AuthType } from '@noco-integrations/core';
 import { clientId, clientSecret, redirectUri, tokenUri } from './config';
 import { APP_LABEL } from './constant';
 import type { RateLimitOptions, TokenData } from '@noco-integrations/core';
-import type { GmailAuthConfig } from './types';
+import type { GoogleCalendarAuthConfig } from './types';
 import type { TestConnectionResponse } from '@noco-integrations/core';
-import type { gmail_v1 } from 'googleapis';
+import type { calendar_v3 } from 'googleapis';
 
-export class GmailAuthIntegration extends AuthIntegration<
-  GmailAuthConfig,
-  gmail_v1.Gmail
+export class GoogleCalendarAuthIntegration extends AuthIntegration<
+  GoogleCalendarAuthConfig,
+  calendar_v3.Calendar
 > {
-  public client: gmail_v1.Gmail | null = null;
+  public client: calendar_v3.Calendar | null = null;
 
   protected getRateLimitConfig(): RateLimitOptions | null {
     return {
@@ -24,7 +24,7 @@ export class GmailAuthIntegration extends AuthIntegration<
     };
   }
 
-  public async authenticate(): Promise<gmail_v1.Gmail> {
+  public async authenticate(): Promise<calendar_v3.Calendar> {
     let accessToken: string;
     switch (this.config.type) {
       case AuthType.OAuth:
@@ -61,7 +61,7 @@ export class GmailAuthIntegration extends AuthIntegration<
       Object.assign(self._config, token);
     });
 
-    this.client = google.gmail({ version: 'v1', auth: oauth2Client });
+    this.client = google.calendar({ version: 'v3', auth: oauth2Client });
 
     return this.client;
   }
@@ -69,7 +69,7 @@ export class GmailAuthIntegration extends AuthIntegration<
   public async testConnection(): Promise<TestConnectionResponse> {
     try {
       return await this.use(async (client) => {
-        await client.users.getProfile({ userId: 'me' });
+        await client.calendarList.list();
         return {
           success: true,
         };

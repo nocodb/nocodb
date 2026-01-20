@@ -195,6 +195,7 @@ const {
   linkColId,
   fieldsToFilter,
   parentColId,
+  props.disableAutoLoad,
 )
 
 const { getPlanLimit } = useWorkspace()

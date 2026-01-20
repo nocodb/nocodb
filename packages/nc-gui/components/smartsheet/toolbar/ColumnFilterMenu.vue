@@ -91,7 +91,7 @@ useMenuCloseOnEsc(open)
 
 const draftFilter = ref({})
 const queryFilterOpen = ref(false)
-const viewFilterOpen = ref(false)
+const viewFilterOpen = ref(true)
 
 const smartsheetEventListener = async (event: string, payload?: any) => {
   if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
@@ -265,22 +265,8 @@ watch(
           </SmartsheetToolbarColumnFilter>
         </template>
         <template v-else>
-          <SmartsheetToolbarColumnFilter
-            ref="filterComp"
-            v-model="localFilters"
-            v-model:draft-filter="draftFilter"
-            v-model:is-open="open"
-            class="nc-table-toolbar-menu"
-            :auto-save="false"
-            data-testid="nc-filter-menu"
-            :is-view-filter="false"
-            :allow-locked-local-edit="true"
-            :disable-auto-load="true"
-          >
-          </SmartsheetToolbarColumnFilter>
           <template v-if="!!filtersLength">
-            <a-divider class="!my-1" />
-            <div class="px-2 pb-2">
+            <div class="px-2 mt-2">
               <div
                 class="leading-5 font-semibold inline-flex w-full items-center cursor-pointer px-2"
                 :class="{ 'pb-0': !viewFilterOpen }"
@@ -304,23 +290,37 @@ watch(
                 </div>
               </div>
               <div
-                class="overflow-hidden transition-all duration-300 mt-1"
+                class="overflow-hidden transition-all duration-300 -mt-2"
                 :class="{ 'max-h-0': !viewFilterOpen, 'max-h-[1000px] overflow-auto': viewFilterOpen }"
               >
                 <SmartsheetToolbarColumnFilter
                   :key="`existing-${filterKey}`"
                   v-model:is-open="open"
+                  class="nc-table-toolbar-menu !pl-2 !w-full"
                   :model-value="existingFilters"
                   :auto-save="false"
                   :is-view-filter="true"
-                  class="p-1"
                   read-only
                   @update:filters-length="filtersLength = $event || 0"
                 >
                 </SmartsheetToolbarColumnFilter>
               </div>
             </div>
+            <a-divider class="!my-1" />
           </template>
+          <SmartsheetToolbarColumnFilter
+            ref="filterComp"
+            v-model="localFilters"
+            v-model:draft-filter="draftFilter"
+            v-model:is-open="open"
+            class="nc-table-toolbar-menu"
+            :auto-save="false"
+            data-testid="nc-filter-menu"
+            :is-view-filter="false"
+            :allow-locked-local-edit="true"
+            :disable-auto-load="true"
+          >
+          </SmartsheetToolbarColumnFilter>
         </template>
         <template v-if="filtersFromUrlParams">
           <a-divider class="!my-1" />

@@ -49,12 +49,6 @@ const config = computed<HttpRequestConfig>(() => {
   return (selectedNode.value?.data?.config || defaultConfig) as HttpRequestConfig
 })
 
-onMounted(() => {
-  if (!selectedNode.value?.data?.config || Object.keys(selectedNode.value.data.config).length === 0) {
-    updateConfig(defaultConfig)
-  }
-})
-
 const updateConfig = (updates: Partial<HttpRequestConfig>) => {
   if (!selectedNodeId.value) return
   updateNode(selectedNodeId.value, {
@@ -71,6 +65,12 @@ const updateConfig = (updates: Partial<HttpRequestConfig>) => {
     },
   })
 }
+
+onMounted(() => {
+  if (!selectedNode.value?.data?.config || Object.keys(selectedNode.value.data.config).length === 0) {
+    updateConfig(defaultConfig)
+  }
+})
 
 const httpMethods: { label: string; value: HttpMethod }[] = [
   { label: 'GET', value: 'GET' },

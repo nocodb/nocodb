@@ -37,8 +37,7 @@ const centered = computed(() => props.centered ?? true)
 
           <div class="flex flex-1">{{ $t('title.createBase') }}</div>
 
-          <div
-            class="px-1 flex-none text-bodySmBold !leading-[18px] text-nc-content-gray-subtle bg-nc-bg-gray-medium rounded">
+          <div class="px-1 flex-none text-bodySmBold !leading-[18px] text-nc-content-gray-subtle bg-nc-bg-gray-medium rounded">
             {{ renderAltOrOptlKey(true) }} D
           </div>
         </div>
@@ -47,8 +46,12 @@ const centered = computed(() => props.centered ?? true)
       <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :default-base-create-mode="baseCreateMode" />
     </NcButton>
     <template #overlay>
-      <WorkspaceProjectCreateMenu v-model:visible="isVisibleCreateBase" v-model:base-create-mode="baseCreateMode"
-        @update:base-create-mode="baseCreateDlg = true" variant="dropdown" />
+      <WorkspaceProjectCreateMenu
+        v-model:visible="isVisibleCreateBase"
+        v-model:base-create-mode="baseCreateMode"
+        variant="dropdown"
+        @update:base-create-mode="baseCreateDlg = true"
+      />
     </template>
   </NcDropdown>
 </template>

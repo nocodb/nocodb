@@ -18,8 +18,6 @@ const basesStore = useBases()
 
 const { createProject: _createProject } = basesStore
 
-const { isSharedBase } = storeToRefs(useBase())
-
 const { navigateToProject } = useGlobal()
 
 const { refreshCommandPalette } = useCommandPalette()
@@ -91,19 +89,15 @@ const onInit = () => {
   }, 5)
 }
 
-
-
 watch(dialogShow, (n) => {
   if (n) {
     onInit()
   }
 })
-
 </script>
 
 <template>
   <NcModal v-model:visible="dialogShow" size="small" :show-separator="false" wrap-class-name="nc-modal-wrapper">
-
     <template #header>
       <!-- Create A New Base -->
       <div class="flex flex-row items-center text-base text-nc-content-gray">
@@ -117,21 +111,42 @@ watch(dialogShow, (n) => {
     </template>
 
     <div class="mt-1">
-      <a-form ref="form" :model="formState" name="basic" layout="vertical" class="w-full !mx-auto" no-style
-        autocomplete="off" @finish="createProject">
+      <a-form
+        ref="form"
+        :model="formState"
+        name="basic"
+        layout="vertical"
+        class="w-full !mx-auto"
+        no-style
+        autocomplete="off"
+        @finish="createProject"
+      >
         <a-form-item name="title" :rules="nameValidationRules" class="!mb-0">
-          <a-input ref="input" v-model:value="formState.title" name="title"
-            class="nc-metadb-base-name nc-input-sm nc-input-shadow" placeholder="Title" />
+          <a-input
+            ref="input"
+            v-model:value="formState.title"
+            name="title"
+            class="nc-metadb-base-name nc-input-sm nc-input-shadow"
+            placeholder="Title"
+          />
         </a-form-item>
       </a-form>
 
       <div class="flex flex-row justify-end mt-5 gap-x-2">
         <NcButton type="secondary" size="small" :disabled="creating" @click="dialogShow = false">{{
           $t('general.cancel')
-          }}</NcButton>
-        <NcButton v-e="['a:base:create']" data-testid="docs-create-proj-dlg-create-btn" :loading="creating"
-          type="primary" size="small" :disabled="creating" :label="`${$t('general.create')} Base`"
-          :loading-label="`${$t('general.creating')} Base`" @click="createProject">
+        }}</NcButton>
+        <NcButton
+          v-e="['a:base:create']"
+          data-testid="docs-create-proj-dlg-create-btn"
+          :loading="creating"
+          type="primary"
+          size="small"
+          :disabled="creating"
+          :label="`${$t('general.create')} Base`"
+          :loading-label="`${$t('general.creating')} Base`"
+          @click="createProject"
+        >
           {{
             $t('general.createEntity', {
               entity: 'Base',

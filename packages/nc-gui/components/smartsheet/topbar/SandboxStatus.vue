@@ -107,9 +107,8 @@ watch(
   />
 </template>
 
-
 <style lang="scss" scoped>
-  :deep(.nc-sanbox-status-info-icon path.nc-icon-inner) {
-    stroke: var(--nc-bg-gray-light) !important;
-  }
+:deep(.nc-sanbox-status-info-icon path.nc-icon-inner) {
+  stroke: var(--nc-bg-gray-light) !important;
+}
 </style>

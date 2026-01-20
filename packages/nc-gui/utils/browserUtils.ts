@@ -225,7 +225,6 @@ export const openContactSalesEmail = (email: string = 'support@nocodb.com') => {
   a.click()
 }
 
-
 export const getValidSlotName = (name: string, prefix?: string, suffix?: string): string => {
   let slotName = name.replace(/\./g, '__')
 

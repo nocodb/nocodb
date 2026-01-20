@@ -360,7 +360,7 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   if (!localNestedFilters.value?.length) return
 
   for (const nestedFilter of localNestedFilters.value) {
-    if (nestedFilter.parentId) {
+    if (nestedFilter?.parentId) {
       await nestedFilter.applyChanges(hookOrColId, true, undefined)
     }
   }

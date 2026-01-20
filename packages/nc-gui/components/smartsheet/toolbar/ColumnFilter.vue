@@ -495,7 +495,8 @@ const showFilterInput = (filter: Filter) => {
 }
 
 const eventBusHandler = async (event) => {
-  if (event === SmartsheetStoreEvents.FIELD_UPDATE) {
+  // reload filters only for views
+  if (isViewFilter.value && event === SmartsheetStoreEvents.FIELD_UPDATE) {
     await loadFilters({
       loadAllFilters: true,
     })

@@ -11,6 +11,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     const { $api, $e } = useNuxtApp()
     const route = useRoute()
 
+    const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
     const basesStore = useBases()
 
     const { activeProjectId: baseId } = storeToRefs(basesStore)
@@ -87,7 +89,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
         )
 
         if (pageInfo?.isLastPage) {
-          await eachPage(records, () => {})
+          await eachPage(records, () => { })
           await done()
         } else {
           page++
@@ -211,6 +213,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       tables,
       showExpandBtn,
       fullscreenModalSize,
+      activeWorkspaceId,
       activeBaseId: baseId,
       activeTableId,
       activeViewId,

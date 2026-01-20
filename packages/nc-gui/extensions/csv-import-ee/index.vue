@@ -93,8 +93,18 @@ interface ImportConfigPayloadType {
   encoding?: SupportedExportCharset
 }
 
-const { fullscreen, fullscreenModalSize, extension, tables, insertData, getTableMeta, reloadData, activeTableId } =
-  useExtensionHelperOrThrow()
+const {
+  fullscreen,
+  fullscreenModalSize,
+  extension,
+  tables,
+  insertData,
+  getTableMeta,
+  reloadData,
+  activeTableId,
+  activeWorkspaceId,
+  activeBaseId,
+} = useExtensionHelperOrThrow()
 
 const { extensionAccess } = useExtensions()
 
@@ -715,11 +725,17 @@ const onVerifyImport = async () => {
     const seen = new Set<string>()
 
     while (fetchRecords) {
-      const { list: existingRecordsPage, pageInfo } = await $api.dbDataTableRow.list(importPayload.value.tableId, {
-        where: `(${upsertFieldTitle},in,${chunk.map((record: Record<string, any>) => record[upsertFieldTitle]).join(',')})`,
-        limit: CHUNK_SIZE,
-        offset: (page - 1) * CHUNK_SIZE,
-      })
+      const { list: existingRecordsPage, pageInfo } = await $api.internal.getOperation(
+        activeWorkspaceId.value!,
+        activeBaseId.value!,
+        {
+          operation: 'dataList',
+          tableId: importPayload.value.tableId,
+          where: `(${upsertFieldTitle},in,${chunk.map((record: Record<string, any>) => record[upsertFieldTitle]).join(',')})`,
+          limit: CHUNK_SIZE,
+          offset: (page - 1) * CHUNK_SIZE,
+        },
+      )
 
       list.push(...existingRecordsPage)
 

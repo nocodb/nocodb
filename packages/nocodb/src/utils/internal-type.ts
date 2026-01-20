@@ -5,6 +5,7 @@ import type { Dashboard, Workflow } from '~/models';
 import type {
   Column,
   DataReflection,
+  Extension,
   Filter,
   Hook,
   HookLog,
@@ -14,7 +15,6 @@ import type {
   Script,
   Sort,
   View,
-  Extension
 } from '~/models';
 
 export type InternalGETResponseType = Promise<
@@ -47,12 +47,12 @@ export type InternalPOSTResponseType = Promise<
   | OAuthClient[]
   | { msg: string }
   | {
-    hasBreakingChanges: boolean;
-    entities: {
-      type: DependencyTableType;
-      entity: Dashboard | Workflow;
-    }[];
-  }
+      hasBreakingChanges: boolean;
+      entities: {
+        type: DependencyTableType;
+        entity: Dashboard | Workflow;
+      }[];
+    }
   | DataReflection
   | MCPToken
   | Script

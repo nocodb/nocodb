@@ -32,7 +32,8 @@ import { ExtensionsService } from '~/services/extensions.service';
 @Injectable()
 export class UiPostOperations
   extends UiPostOperationsCE
-  implements InternalApiModule<InternalPOSTResponseType> {
+  implements InternalApiModule<InternalPOSTResponseType>
+{
   constructor(
     protected dataTableService: DataTableService,
     protected tablesService: TablesService,

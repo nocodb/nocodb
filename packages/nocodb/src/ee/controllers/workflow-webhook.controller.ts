@@ -7,7 +7,8 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { NcApiVersion, NcContext } from 'nocodb-sdk';
+import { NcApiVersion } from 'nocodb-sdk';
+import type { NcContext } from 'nocodb-sdk';
 import { NcRequest } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -31,11 +32,10 @@ export class WorkflowWebhookController {
     @Query() query: any,
     @Req() req: NcRequest,
   ) {
-
     const context: NcContext = {
       workspace_id: workspaceId,
       base_id: baseId,
-      api_version: NcApiVersion.V3
+      api_version: NcApiVersion.V3,
     };
 
     const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];

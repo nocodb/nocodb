@@ -25,7 +25,8 @@ import { ExtensionsService } from '~/services/extensions.service';
 @Injectable()
 export class UiGetOperations
   extends UiGetOperationsCE
-  implements InternalApiModule<InternalGETResponseType> {
+  implements InternalApiModule<InternalGETResponseType>
+{
   constructor(
     protected dataTableService: DataTableService,
     protected tablesService: TablesService,

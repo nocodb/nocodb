@@ -20,7 +20,6 @@ import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import {
   DependencyTracker,
-  UsageStat,
   Workflow,
   WorkflowExecution,
 } from '~/models';
@@ -48,7 +47,7 @@ export class WorkflowsService implements OnModuleInit {
     private readonly workflowExecutionService: WorkflowExecutionService,
     @Inject('JobsService') private readonly jobsService: IJobsService,
     protected readonly nocoJobsService: NocoJobsService,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     this.nocoJobsService.jobsQueue.add(
@@ -361,7 +360,7 @@ export class WorkflowsService implements OnModuleInit {
     context: NcContext,
     workflowId: string,
     payload?: { triggerData?: any; triggerNodeTitle?: string },
-    req?: NcRequest,
+    _req?: NcRequest,
   ) {
     const workflow = await Workflow.get(context, workflowId);
 

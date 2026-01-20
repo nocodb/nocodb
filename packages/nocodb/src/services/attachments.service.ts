@@ -292,8 +292,8 @@ export class AttachmentsService {
           if (!url.startsWith('data:')) {
             response = await axios.head(url, {
               maxRedirects: 5,
-              httpAgent: useAgent(url, {}),
-              httpsAgent: useAgent(url, {}),
+              httpAgent: useAgent(url),
+              httpsAgent: useAgent(url),
             });
             mimeType = response.headers['content-type']?.split(';')[0];
             size = response.headers['content-length'];

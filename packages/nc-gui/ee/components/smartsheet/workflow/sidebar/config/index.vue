@@ -11,6 +11,7 @@ import IterateNodeConfig from '~/components/smartsheet/workflow/sidebar/config/c
 import WaitUntilNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/WaitUntil.vue'
 import RunScriptNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/RunScript/index.vue'
 import GenerateStructuredNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/GenerateStructured.vue'
+import HttpRequestNodeConfig from '~/components/smartsheet/workflow/sidebar/config/custom/HttpRequest.vue'
 import { findIterateNodePortForPath } from '~/utils/workflowUtils'
 
 const {
@@ -117,6 +118,7 @@ const FormNodeMap = {
   'core.flow.wait-until': WaitUntilNodeConfig,
   'nocodb.run_script': RunScriptNodeConfig,
   'ai.action.generate-structured': GenerateStructuredNodeConfig,
+  'core.action.http': HttpRequestNodeConfig,
 }
 
 const formSchema = computed(() => {

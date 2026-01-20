@@ -11,6 +11,7 @@
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
     "cron-parser": "^5.4.0",
+    "request-filtering-agent": "^3.2.0",
     "zod": "^3.25.76"
   },
   "devDependencies": {

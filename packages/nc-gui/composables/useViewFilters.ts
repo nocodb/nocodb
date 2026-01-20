@@ -38,6 +38,7 @@ export function useViewFilters(
   linkColId?: Ref<string>,
   fieldsToFilter?: Ref<ColumnType[]>,
   parentColId?: Ref<string>,
+  disableAutoLoad?: boolean,
 ) {
   const savingStatus: Record<number, boolean> = {}
 
@@ -1076,7 +1077,7 @@ export function useViewFilters(
   }
 
   const evtListener = (evt: string, payload: any) => {
-    if (payload.fk_view_id !== view.value?.id) return
+    if (payload.fk_view_id !== view.value?.id || disableAutoLoad) return
 
     if (evt === 'filter_create') {
       allFilters.value.push(payload)

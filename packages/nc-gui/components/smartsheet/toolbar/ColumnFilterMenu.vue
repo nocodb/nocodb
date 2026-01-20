@@ -26,7 +26,6 @@ const {
   filtersFromUrlParams,
   whereQueryFromUrl,
   filtersFromUrlParamsReadableErrors,
-  isLocked: isLockedStore,
 } = useSmartsheetStoreOrThrow()
 
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
@@ -43,7 +42,7 @@ const { nonDeletedFilters, loadFilters } = useViewFilters(
 
 const filtersLength = ref(0)
 // If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
-const isRestrictedEditor = computed(() => isLockedStore.value || !isUIAllowed('filterSync'))
+const isRestrictedEditor = computed(() => !isUIAllowed('filterSync'))
 
 watch(
   () => activeView?.value?.id,

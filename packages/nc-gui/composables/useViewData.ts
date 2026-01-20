@@ -68,6 +68,7 @@ export function useViewData(
     fetchTotalRowsWithSearchQuery,
     totalRowsWithSearchQuery,
     totalRowsWithoutSearchQuery,
+    isLocked,
   } = useSmartsheetStoreOrThrow()
 
   const { isUIAllowed } = useRoles()
@@ -201,8 +202,16 @@ export function useViewData(
               ...params,
               offset: 0,
               limit: 1,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.value) }),
+              ...(!isUIAllowed('sortSync') || isLocked.value
+                ? {
+                    sortArrJson: stringifyFilterOrSortArr(sorts.value.filter((s: any) => !s.id)),
+                  }
+                : {}),
+              ...(!isUIAllowed('filterSync') || isLocked.value
+                ? {
+                    filterArrJson: stringifyFilterOrSortArr(nestedFilters.value.filter((f: any) => !f.id)),
+                  }
+                : {}),
               where: whereQueryFromUrl.value as string,
               include_row_color: true,
             } as any,
@@ -255,8 +264,16 @@ export function useViewData(
             {
               ...queryParams.value,
               ...params,
-              ...(isUIAllowed('sortSync') ? {} : { sortArrJson: stringifyFilterOrSortArr(sorts.value) }),
-              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr(nestedFilters.value) }),
+              ...(!isUIAllowed('sortSync') || isLocked.value
+                ? {
+                    sortArrJson: stringifyFilterOrSortArr(sorts.value.filter((s: any) => !s.id)),
+                  }
+                : {}),
+              ...(!isUIAllowed('filterSync') || isLocked.value
+                ? {
+                    filterArrJson: stringifyFilterOrSortArr(nestedFilters.value.filter((f: any) => !f.id)),
+                  }
+                : {}),
               where: where?.value,
               ...(excludePageInfo.value ? { excludeCount: 'true' } : {}),
               include_row_color: true,

@@ -1,6 +1,6 @@
+import { ncIsNumber } from 'nocodb-sdk';
 import { imageMimeTypes } from '~/helpers/attachmentHelpers';
 import { getThumbnailMaxSize } from '~/utils/nc-config/constants';
-import { ncIsNumber } from 'nocodb-sdk'
 
 export const isOfficeDocument = (..._args) => {
   return false;

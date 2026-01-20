@@ -1,5 +1,5 @@
+import { ncIsNumber } from 'nocodb-sdk';
 import { getThumbnailMaxSize } from '~/utils/nc-config/constants';
-import { ncIsNumber } from 'nocodb-sdk'
 
 /**
  * Checks if a file is an Office document based on MIME type and file extension

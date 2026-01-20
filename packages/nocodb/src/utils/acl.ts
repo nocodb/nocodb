@@ -211,9 +211,9 @@ const permissionScopes = {
 
 const rolePermissions:
   | Record<
-    Exclude<OrgUserRoles, OrgUserRoles.SUPER_ADMIN> | ProjectRoles | 'guest',
-    { include?: Record<string, boolean>; exclude?: Record<string, boolean> }
-  >
+      Exclude<OrgUserRoles, OrgUserRoles.SUPER_ADMIN> | ProjectRoles | 'guest',
+      { include?: Record<string, boolean>; exclude?: Record<string, boolean> }
+    >
   | Record<OrgUserRoles.SUPER_ADMIN, string> = {
   guest: {},
   [OrgUserRoles.SUPER_ADMIN]: '*',

@@ -43,6 +43,9 @@ const handleDownload = async (url: string) => {
 
 const isExporting = ref(false)
 
+const { sorts, nestedFilters, isLocked } = useSmartsheetStoreOrThrow()
+const { isUIAllowed } = useRoles()
+
 const exportFile = async (exportType: ExportTypes) => {
   try {
     if (isExporting.value || !selectedView.value.id) return
@@ -50,7 +53,23 @@ const exportFile = async (exportType: ExportTypes) => {
     isExporting.value = true
 
     const filenameTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
-    const options = { filenameTimeZone }
+
+    // Construct extra params for sort and filter
+    // Construct extra params for sort and filter
+    const extraParams = {
+      ...(!isUIAllowed('sortSync') || isLocked.value
+        ? {
+            sortArrJson: stringifyFilterOrSortArr(sorts.value.filter((s: any) => !s.id)),
+          }
+        : {}),
+      ...(!isUIAllowed('filterSync') || isLocked.value
+        ? {
+            filterArrJson: stringifyFilterOrSortArr(nestedFilters.value.filter((f: any) => !f.id)),
+          }
+        : {}),
+    }
+
+    const options = { filenameTimeZone, ...extraParams }
 
     let jobData: { id: string }
 

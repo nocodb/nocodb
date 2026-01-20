@@ -108,6 +108,8 @@ const rolePermissions = {
     include: {
       dataInsert: true,
       dataEdit: true,
+      viewFieldDataEdit:
+        true /** For editor just show hidden field in expanded form, fields menu and will not allow to configure it */,
       filterChildrenList: true,
       csvTableImport: true,
       excelTableImport: true,
@@ -115,6 +117,8 @@ const rolePermissions = {
 
       // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
       viewOperations: true,
+      sortList: true,
+      filterList: true,
 
       // Extensions
       extensionUpdate: true,

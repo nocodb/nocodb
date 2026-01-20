@@ -17,6 +17,8 @@ const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
+const { isUIAllowed } = useRoles()
+
 const {
   allFilters: smatsheetAllFilters,
   nestedFilters,
@@ -39,6 +41,8 @@ const { nonDeletedFilters, loadFilters } = useViewFilters(
 )
 
 const filtersLength = ref(0)
+// If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
+const isRestrictedEditor = computed(() => !isUIAllowed('filterSync'))
 
 watch(
   () => activeView?.value?.id,
@@ -47,13 +51,33 @@ watch(
       await loadFilters({
         hookId: undefined,
         isWebhook: false,
-        loadAllFilters: true,
+        loadAllFilters: false,
       })
       filtersLength.value = nonDeletedFilters.value.length || 0
     }
   },
   { immediate: true },
 )
+
+const existingFilters = computed(() => {
+  return (nestedFilters.value || []).filter((f) => f.id && f.status !== 'delete')
+})
+
+// We need to cast nestedFilters to any to avoid type check errors in setter for now
+const localFilters = computed({
+  get: () => {
+    // Strictly return new/local filters (no ID)
+    return (nestedFilters.value || []).filter((f) => !f.id)
+  },
+  set: (val: any[]) => {
+    // Merge logic: keep existing (with ID), replace local (no ID)
+    const existing = (nestedFilters.value || []).filter((f) => f.id)
+    // Ensure we don't duplicate if val somehow contains IDs (shouldn't happen)
+    const newLocal = val.filter((f) => !f.id)
+
+    nestedFilters.value = [...existing, ...newLocal]
+  },
+})
 
 const open = ref(false)
 
@@ -67,6 +91,7 @@ useMenuCloseOnEsc(open)
 
 const draftFilter = ref({})
 const queryFilterOpen = ref(false)
+const viewFilterOpen = ref(true)
 
 const smartsheetEventListener = async (event: string, payload?: any) => {
   if (validateViewConfigOverrideEvent(event, ViewSettingOverrideOptions.FILTER_CONDITION, payload) && activeView?.value?.id) {
@@ -98,7 +123,10 @@ onBeforeUnmount(() => {
 })
 
 const combinedFilterLength = computed(() => {
-  return filtersLength.value + (filtersFromUrlParams.value?.filters?.length || 0)
+  if (isRestrictedEditor.value) {
+    return (filtersLength.value || 0) + (localFilters.value?.length || 0)
+  }
+  return filtersLength.value
 })
 
 const isCurrentUserFilterPresent = ref(false)
@@ -211,7 +239,7 @@ watch(
             </span>
           </NcTooltip>
 
-          <!--    show a warning icon with tooltip if query filter error is there -->
+          <!-- show a warning icon with tooltip if query filter error is there -->
           <template v-if="filtersFromUrlParams?.errors?.length">
             <NcTooltip :title="$t('msg.urlFilterError')" placement="top">
               <GeneralIcon icon="ncAlertCircle" class="nc-error-icon w-3.5" />
@@ -223,17 +251,77 @@ watch(
 
     <template #overlay>
       <div :key="filterKey">
-        <SmartsheetToolbarColumnFilter
-          ref="filterComp"
-          v-model:draft-filter="draftFilter"
-          v-model:is-open="open"
-          class="nc-table-toolbar-menu"
-          :auto-save="true"
-          data-testid="nc-filter-menu"
-          :is-view-filter="true"
-          @update:filters-length="filtersLength = $event"
-        >
-        </SmartsheetToolbarColumnFilter>
+        <template v-if="!isRestrictedEditor">
+          <SmartsheetToolbarColumnFilter
+            ref="filterComp"
+            v-model:draft-filter="draftFilter"
+            v-model:is-open="open"
+            class="nc-table-toolbar-menu"
+            :auto-save="true"
+            data-testid="nc-filter-menu"
+            :is-view-filter="true"
+            @update:filters-length="filtersLength = $event"
+          >
+          </SmartsheetToolbarColumnFilter>
+        </template>
+        <template v-else>
+          <template v-if="!!filtersLength">
+            <div class="px-2 mt-2">
+              <div
+                class="leading-5 font-semibold inline-flex w-full items-center cursor-pointer px-2"
+                :class="{ 'pb-3': !viewFilterOpen }"
+                @click="viewFilterOpen = !viewFilterOpen"
+              >
+                <div class="flex-grow gap-2 flex">
+                  {{ $t('title.viewFilters') }}
+
+                  <div>
+                    <NcTooltip :title="$t('msg.viewFilter')" placement="top">
+                      <GeneralIcon icon="ncInfo" class="nc-info-icon !w-3.5 !h-3.5" />
+                    </NcTooltip>
+                  </div>
+                </div>
+                <div class="p-2">
+                  <GeneralIcon
+                    icon="ncChevronDown"
+                    class="nc-chevron-icon transition-all cursor-pointer w-4 h-4"
+                    :class="{ 'transform rotate-180': viewFilterOpen }"
+                  />
+                </div>
+              </div>
+              <div
+                class="overflow-hidden transition-all duration-300 -mt-2"
+                :class="{ 'max-h-0': !viewFilterOpen, 'max-h-[1000px] overflow-auto': viewFilterOpen }"
+              >
+                <SmartsheetToolbarColumnFilter
+                  :key="`existing-${filterKey}`"
+                  v-model:is-open="open"
+                  class="nc-table-toolbar-menu !pl-2 !w-full"
+                  :model-value="existingFilters"
+                  :auto-save="false"
+                  :is-view-filter="true"
+                  read-only
+                  @update:filters-length="filtersLength = $event || 0"
+                >
+                </SmartsheetToolbarColumnFilter>
+              </div>
+            </div>
+            <a-divider class="!my-1" />
+          </template>
+          <SmartsheetToolbarColumnFilter
+            ref="filterComp"
+            v-model="localFilters"
+            v-model:draft-filter="draftFilter"
+            v-model:is-open="open"
+            class="nc-table-toolbar-menu"
+            :auto-save="false"
+            data-testid="nc-filter-menu"
+            :is-view-filter="false"
+            :allow-locked-local-edit="true"
+            :disable-auto-load="true"
+          >
+          </SmartsheetToolbarColumnFilter>
+        </template>
         <template v-if="filtersFromUrlParams">
           <a-divider class="!my-1" />
           <div class="px-2 pb-2">

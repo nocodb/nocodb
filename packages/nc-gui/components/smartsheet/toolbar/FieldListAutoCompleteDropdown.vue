@@ -10,6 +10,7 @@ const { modelValue, isSort, allowEmpty, disableSmartsheet, ...restProps } = defi
   allowEmpty?: boolean
   meta: TableType
   disableSmartsheet?: boolean
+  showAllColumns?: boolean
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -36,6 +37,9 @@ const { showSystemFields, fieldsMap, isLocalMode } = disableSmartsheet
 const options = computed<SelectProps['options']>(() =>
   (
     customColumns.value?.filter((c: ColumnType) => {
+      if (restProps.showAllColumns) {
+        return true
+      }
       if (
         isLocalMode.value &&
         c?.id &&

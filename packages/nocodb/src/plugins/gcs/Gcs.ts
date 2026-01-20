@@ -157,8 +157,8 @@ export default class Gcs implements IStorageAdapterV2 {
   ): Promise<{ url: string; data: any }> {
     try {
       const response = await axios.get(url, {
-        httpAgent: useAgent(url, {}),
-        httpsAgent: useAgent(url, {}),
+        httpAgent: useAgent(url),
+        httpsAgent: useAgent(url),
         responseType: buffer ? 'arraybuffer' : 'stream',
       });
 

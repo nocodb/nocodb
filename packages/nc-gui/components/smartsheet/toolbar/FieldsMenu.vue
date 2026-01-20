@@ -36,6 +36,7 @@ const {
   showSystemFields,
   fields,
   filteredFieldList,
+  hasViewFieldDataEditPermission,
   searchBasisIdMap,
   numberOfHiddenFields,
   filterQuery,
@@ -396,6 +397,14 @@ const showSystemField = computed({
   },
 })
 
+const hasFieldVisibilityTogglePermission = (field: Field) => {
+  if (!field.initialShow && isLocalMode.value && hasViewFieldDataEditPermission.value) {
+    return false
+  }
+
+  return true
+}
+
 const isDragging = ref<boolean>(false)
 
 const fieldsMenuSearchRef = ref<HTMLInputElement>()
@@ -497,11 +506,20 @@ function conditionalToggleFieldVisibility(field: Field) {
     return
   }
 
+  // For editor role we just have to show hidden field without giving access to change field visibility
+  if (!field.initialShow && isLocalMode.value && hasViewFieldDataEditPermission.value) {
+    return
+  }
+
   field.show = !field.show
   toggleFieldVisibility(field.show, field)
 }
 
 function handleFieldVisibilityClick(field: Field) {
+  if (!hasFieldVisibilityTogglePermission(field)) {
+    return
+  }
+
   if (isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id!])) {
     field.show = !field.show
     toggleFieldVisibility(field.show, field)
@@ -742,7 +760,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                   :data-testid="`nc-fields-menu-${field.title}`"
                   class="nc-fields-menu-item pl-2 flex flex-row items-center rounded-md"
                   :class="{
-                    'hover:bg-nc-bg-gray-light': !isFieldsMenuReadOnly,
+                    'hover:bg-nc-bg-gray-light': !isFieldsMenuReadOnly && hasFieldVisibilityTogglePermission(field),
                   }"
                   @click.stop
                 >
@@ -767,7 +785,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                         v-e="['a:fields:show-hide']"
                         class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2"
                         :class="{
-                          'cursor-pointer': !isFieldsMenuReadOnly,
+                          'cursor-pointer': !isFieldsMenuReadOnly && hasFieldVisibilityTogglePermission(field),
                           'is-opened-add-lookup': isOpened,
                         }"
                         @click="conditionalToggleFieldVisibility(field)"
@@ -868,15 +886,23 @@ const onAddColumnDropdownVisibilityChange = () => {
                             />
                           </NcButton>
                         </div>
-                        <span class="flex children:flex-none" @click.stop="conditionalToggleFieldVisibility(field)">
-                          <NcSwitch
-                            :checked="field.show"
-                            :disabled="field.isViewEssentialField || isFieldsMenuReadOnly || isLoadingShowAllColumns"
-                            size="xxsmall"
-                            @change="$e('a:fields:show-hide')"
-                            @click="handleFieldVisibilityClick(field)"
-                          />
-                        </span>
+                        <NcTooltip class="flex" :disabled="hasFieldVisibilityTogglePermission(field)">
+                          <template #title> You do not have permission to change visibility of already hidden field </template>
+                          <span class="flex children:flex-none" @click.stop="conditionalToggleFieldVisibility(field)">
+                            <NcSwitch
+                              :checked="field.show"
+                              :disabled="
+                                field.isViewEssentialField ||
+                                isFieldsMenuReadOnly ||
+                                isLoadingShowAllColumns ||
+                                !hasFieldVisibilityTogglePermission(field)
+                              "
+                              size="xxsmall"
+                              @change="$e('a:fields:show-hide')"
+                              @click="handleFieldVisibilityClick(field)"
+                            />
+                          </span>
+                        </NcTooltip>
                       </div>
                     </template>
                   </SmartsheetToolbarAddLookupsDropdown>

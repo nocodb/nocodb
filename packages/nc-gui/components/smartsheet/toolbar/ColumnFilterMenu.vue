@@ -269,7 +269,7 @@ watch(
             <div class="px-2 mt-2">
               <div
                 class="leading-5 font-semibold inline-flex w-full items-center cursor-pointer px-2"
-                :class="{ 'pb-0': !viewFilterOpen }"
+                :class="{ 'pb-3': !viewFilterOpen }"
                 @click="viewFilterOpen = !viewFilterOpen"
               >
                 <div class="flex-grow gap-2 flex">

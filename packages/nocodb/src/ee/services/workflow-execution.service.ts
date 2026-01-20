@@ -493,7 +493,7 @@ export class WorkflowExecutionService {
       result.logs = nodeResult.logs;
       result.metrics = nodeResult.metrics;
       result.endTime = Date.now();
-      result.error = nodeResult.error?.message
+      result.error = nodeResult.error?.message;
       result.loopContext = nodeResult.loopContext;
 
       // Generate variable definitions for input/output

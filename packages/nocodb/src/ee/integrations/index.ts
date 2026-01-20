@@ -81,14 +81,18 @@ export default [
   ...(Array.isArray(FreshdeskSync) ? FreshdeskSync : [FreshdeskSync]),
   ...(Array.isArray(GithubAuth) ? GithubAuth : [GithubAuth]),
   ...(Array.isArray(GithubSync) ? GithubSync : [GithubSync]),
-  ...(Array.isArray(GithubWorkflowNode) ? GithubWorkflowNode : [GithubWorkflowNode]),
+  ...(Array.isArray(GithubWorkflowNode)
+    ? GithubWorkflowNode
+    : [GithubWorkflowNode]),
   ...(Array.isArray(GitlabAuth) ? GitlabAuth : [GitlabAuth]),
   ...(Array.isArray(GitlabSync) ? GitlabSync : [GitlabSync]),
   ...(Array.isArray(GoogleAi) ? GoogleAi : [GoogleAi]),
   ...(Array.isArray(GoogleDriveAuth) ? GoogleDriveAuth : [GoogleDriveAuth]),
   ...(Array.isArray(GoogleDriveSync) ? GoogleDriveSync : [GoogleDriveSync]),
   ...(Array.isArray(GoogleMailAuth) ? GoogleMailAuth : [GoogleMailAuth]),
-  ...(Array.isArray(GoogleWorkflowNodes) ? GoogleWorkflowNodes : [GoogleWorkflowNodes]),
+  ...(Array.isArray(GoogleWorkflowNodes)
+    ? GoogleWorkflowNodes
+    : [GoogleWorkflowNodes]),
   ...(Array.isArray(GroqAi) ? GroqAi : [GroqAi]),
   ...(Array.isArray(HubspotAuth) ? HubspotAuth : [HubspotAuth]),
   ...(Array.isArray(HubspotSync) ? HubspotSync : [HubspotSync]),
@@ -99,17 +103,27 @@ export default [
   ...(Array.isArray(MysqlAuth) ? MysqlAuth : [MysqlAuth]),
   ...(Array.isArray(MysqlSync) ? MysqlSync : [MysqlSync]),
   ...(Array.isArray(NocodbAi) ? NocodbAi : [NocodbAi]),
-  ...(Array.isArray(NocodbWorkflowNode) ? NocodbWorkflowNode : [NocodbWorkflowNode]),
+  ...(Array.isArray(NocodbWorkflowNode)
+    ? NocodbWorkflowNode
+    : [NocodbWorkflowNode]),
   ...(Array.isArray(OpenaiAi) ? OpenaiAi : [OpenaiAi]),
-  ...(Array.isArray(OpenaiCompatibleAi) ? OpenaiCompatibleAi : [OpenaiCompatibleAi]),
+  ...(Array.isArray(OpenaiCompatibleAi)
+    ? OpenaiCompatibleAi
+    : [OpenaiCompatibleAi]),
   ...(Array.isArray(OutlookMailAuth) ? OutlookMailAuth : [OutlookMailAuth]),
-  ...(Array.isArray(OutlookWorkflowNodes) ? OutlookWorkflowNodes : [OutlookWorkflowNodes]),
+  ...(Array.isArray(OutlookWorkflowNodes)
+    ? OutlookWorkflowNodes
+    : [OutlookWorkflowNodes]),
   ...(Array.isArray(PostgresAuth) ? PostgresAuth : [PostgresAuth]),
   ...(Array.isArray(PostgresSync) ? PostgresSync : [PostgresSync]),
   ...(Array.isArray(SlackAuth) ? SlackAuth : [SlackAuth]),
-  ...(Array.isArray(SlackWorkflowNode) ? SlackWorkflowNode : [SlackWorkflowNode]),
+  ...(Array.isArray(SlackWorkflowNode)
+    ? SlackWorkflowNode
+    : [SlackWorkflowNode]),
   ...(Array.isArray(TwilioAuth) ? TwilioAuth : [TwilioAuth]),
-  ...(Array.isArray(TwilioWorkflowNode) ? TwilioWorkflowNode : [TwilioWorkflowNode]),
+  ...(Array.isArray(TwilioWorkflowNode)
+    ? TwilioWorkflowNode
+    : [TwilioWorkflowNode]),
   ...(Array.isArray(ZendeskAuth) ? ZendeskAuth : [ZendeskAuth]),
   ...(Array.isArray(ZendeskSync) ? ZendeskSync : [ZendeskSync]),
   ...(Array.isArray(ZohoAuth) ? ZohoAuth : [ZohoAuth]),

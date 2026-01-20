@@ -52,9 +52,8 @@ watch(
       await loadFilters({
         hookId: undefined,
         isWebhook: false,
-        loadAllFilters: true,
+        loadAllFilters: false,
       })
-      console.log(nonDeletedFilters.value.length)
       filtersLength.value = nonDeletedFilters.value.length || 0
     }
   },
@@ -317,8 +316,7 @@ watch(
                   :is-view-filter="true"
                   class="p-1"
                   read-only
-                  query-filter
-                  @update:filters-length="filtersLength = ($event || 0) + existingFilters.length"
+                  @update:filters-length="filtersLength = $event || 0"
                 >
                 </SmartsheetToolbarColumnFilter>
               </div>

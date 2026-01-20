@@ -4,7 +4,7 @@ import type { EventHook } from '@vueuse/core'
 import type { UndoRedoAction } from '~/lib/types'
 
 export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () => void) {
-  const { sorts, eventBus, isLocked } = useSmartsheetStoreOrThrow()
+  const { sorts, eventBus } = useSmartsheetStoreOrThrow()
 
   const { $api, $e, $eventBus } = useNuxtApp()
 
@@ -33,6 +33,9 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     }
 
     try {
+      if (!isUIAllowed('sortList')) {
+        return
+      }
       if (!view?.value || !meta.value) return
 
       sorts.value = (
@@ -87,7 +90,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       }
     }
 
-    if (isPublic.value || isSharedBase.value || isLocked.value) {
+    if (isPublic.value || isSharedBase.value) {
       sorts.value[i] = sort
       sorts.value = [...sorts.value]
       reloadHook?.trigger()

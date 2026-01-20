@@ -49,13 +49,12 @@ export function useViewFilters(
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
-  const { nestedFilters, isForm, allFilters, isLocked } =
+  const { nestedFilters, isForm, allFilters } =
     isWidget || isWorkflow
       ? {
           nestedFilters: ref([]),
           isForm: ref(false),
           allFilters: ref([]),
-          isLocked: ref(false),
         }
       : useSmartsheetStoreOrThrow()
 
@@ -75,9 +74,7 @@ export function useViewFilters(
 
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
-  const nestedMode = computed(
-    () => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenList') || isLocked.value,
-  )
+  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterList') || !isUIAllowed('filterChildrenList'))
 
   // Tracks if any filter has been updated - used for webhook save state management
   const isFilterUpdated = ref<boolean>(false)
@@ -153,7 +150,7 @@ export function useViewFilters(
 
   const activeView = inject(ActiveViewInj, ref())
 
-  const { showSystemFields, fieldsMap, isLocalMode } =
+  const { showSystemFields, fieldsMap } =
     widgetId?.value || isWorkflow ? { showSystemFields: ref(false), fieldsMap: ref({}) } : useViewColumnsOrThrow()
 
   const options = computed<SelectProps['options']>(() =>
@@ -377,7 +374,6 @@ export function useViewFilters(
     isLink?: boolean
   } = {}) => {
     if (!view.value?.id || !meta.value) return
-
     if (
       (nestedMode.value && (isPublic.value || !isUIAllowed('filterChildrenList'))) ||
       (isForm.value && !isWebhook) ||

@@ -5,6 +5,7 @@ import type {
   InternalApiModule,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
+import type { DataExportJobData } from '~/interface/Jobs';
 import { DataTableService } from '~/services/data-table.service';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -25,7 +26,7 @@ import { CalendarsService } from '~/services/calendars.service';
 import { CommentsService } from '~/services/comments.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { SyncService } from '~/services/sync.service';
-import { SyncSource } from '~/models';
+import { SyncSource, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
@@ -124,6 +125,7 @@ export class UiPostOperations
     'syncSourceUpdate' as const,
     'syncSourceDelete' as const,
     'atImportTrigger' as const,
+    'dataExport' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -496,6 +498,31 @@ export class UiPostOperations
           body: payload,
           user: req.user,
         });
+      case 'dataExport': {
+        const view = await View.get(context, req.query.viewId);
+
+        if (!view) NcError.viewNotFound(req.query.viewId);
+        const options: DataExportJobData['options'] = payload.options ?? {};
+
+        const job = await this.nocoJobsService.add(JobTypes.DataExport, {
+          context,
+          options: {
+            ...options,
+            // includeByteOrderMark when export is triggered from controller
+            includeByteOrderMark: true,
+          },
+          modelId: view.fk_model_id,
+          viewId: req.query.viewId,
+          user: req.user,
+          exportAs: payload.exportAs,
+          ncSiteUrl: req.ncSiteUrl,
+        });
+
+        return {
+          id: job.id,
+          name: job.name,
+        };
+      }
       case 'commentRow':
         return await this.commentsService.commentRow(context, {
           body: payload,

@@ -87,6 +87,7 @@ export const OPERATION_SCOPES = {
   widgetFilterCreate: 'base',
   linkFilterCreate: 'base',
   rowColorConditionsFilterCreate: 'base',
+  dataExport: 'base',
 
   nestedDataList: 'base',
   nestedDataLink: 'base',

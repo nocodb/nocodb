@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, GalleryType, KanbanType, LookupType } from 'nocodb-sdk'
-import { ProjectRoles, UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -11,7 +11,7 @@ const meta = inject(MetaInj, ref())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
-const { isMobileMode, user } = useGlobal()
+const { isMobileMode } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 

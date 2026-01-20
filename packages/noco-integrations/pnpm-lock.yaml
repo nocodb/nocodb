@@ -589,6 +589,9 @@ importers:
       '@noco-integrations/core':
         specifier: workspace:*
         version: link:../../core
+      '@noco-integrations/google-calendar-auth':
+        specifier: workspace:*
+        version: link:../google-calendar-auth
       googleapis:
         specifier: ^169.0.0
         version: 169.0.0

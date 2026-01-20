@@ -9,5 +9,4 @@ export const manifest: IntegrationManifest = {
   author: 'NocoDB',
   website: 'https://mail.google.com',
   order: 6,
-  hidden: true,
 };

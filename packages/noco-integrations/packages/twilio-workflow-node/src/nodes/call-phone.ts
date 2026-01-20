@@ -162,6 +162,7 @@ export class CallPhoneNode extends WorkflowNodeIntegration<CallPhoneNodeConfig> 
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/twilio',
       keywords: ['twilio', 'call', 'phone', 'voice', 'dial'],
+      hidden: true,
     };
   }
 

@@ -64,13 +64,17 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
 
     return {
       id: NODE_SUBTYPE_NEW_EVENT,
-      title: `New Event Webhook`,
-      description: 'Trigger an event via Google Calendar webhook on new event',
+      title: `New event created`,
+      description: 'Triggers when an event is created',
       icon: 'googleCalendar',
       category: WorkflowNodeCategory.TRIGGER,
+      testModes: [
+        NocoSDK.TriggerTestMode.TRIGGER_EVENT,
+        NocoSDK.TriggerTestMode.SAMPLE_DATA,
+      ],
       activationType: TriggerActivationType.WEBHOOK,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
-      hidden: false,
+      hidden: true,
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/google-calendar',
@@ -158,15 +162,12 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
 
     switch (key) {
       case 'calendars': {
-        const result = await auth.use(async (client) => {
+        return await auth.use(async (client) => {
           const response = await client.calendarList.list();
           return (
             response.data.items
               ?.filter((cal) => {
-                return (
-                  !cal.deleted &&
-                  ['owner'].includes(cal.accessRole || '')
-                );
+                return !cal.deleted && ['owner'].includes(cal.accessRole || '');
               })
               ?.map((calendar: calendar_v3.Schema$CalendarListEntry) => ({
                 label: calendar.summary,
@@ -174,8 +175,6 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
               })) || []
           );
         });
-
-        return result;
       }
       default: {
         return [];
@@ -360,7 +359,7 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
             ].map((item) => ({
               ...item,
               key: `payload.creator.${item.key}`,
-            }))
+            })),
           },
           {
             key: 'organizer',
@@ -410,7 +409,7 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
             ].map((item) => ({
               ...item,
               key: `payload.start.${item.key}`,
-            }))
+            })),
           },
           {
             key: 'end',
@@ -511,7 +510,7 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
   }
 
   public async generateInputVariables(): Promise<NocoSDK.VariableDefinition[]> {
-    const { calendar,  } = this.config;
+    const { calendar } = this.config;
 
     if (!calendar) return [];
 
@@ -532,7 +531,6 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
       return [];
     }
   }
-
 }
 
 interface GoogleCalendarWebhookEvent {

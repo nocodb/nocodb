@@ -14,7 +14,7 @@ export const entries: IntegrationEntry[] = [
     form: [],
     manifest: {
       ...manifest,
-      title: `New Event Webhook`,
+      title: `New event created`,
       icon: 'googleCalendar',
       order: 14,
     },

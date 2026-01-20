@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, GalleryType, KanbanType, LookupType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn, ProjectRoles } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -11,7 +11,7 @@ const meta = inject(MetaInj, ref())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, user } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
@@ -53,7 +53,7 @@ const {
 const { eventBus, isDefaultView, isSqlView, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const isFieldsMenuReadOnly = computed(() => {
-  return isLocked.value || !isViewOperationsAllowed.value
+  return isLocked.value || !isViewOperationsAllowed.value || (isLocalMode.value && hasViewFieldDataEditPermission.value)
 })
 
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
@@ -325,7 +325,7 @@ const onHideAll = async () => {
 const visibleFields = computed(
   () =>
     fields.value?.filter((field: Field) => {
-      if (!field.initialShow && isLocalMode.value) {
+      if (!field.initialShow && isLocalMode.value && !hasViewFieldDataEditPermission.value) {
         return false
       }
 
@@ -396,14 +396,6 @@ const showSystemField = computed({
     showSystemFields.value = val
   },
 })
-
-const hasFieldVisibilityTogglePermission = (field: Field) => {
-  if (!field.initialShow && isLocalMode.value && hasViewFieldDataEditPermission.value) {
-    return false
-  }
-
-  return true
-}
 
 const isDragging = ref<boolean>(false)
 
@@ -516,10 +508,6 @@ function conditionalToggleFieldVisibility(field: Field) {
 }
 
 function handleFieldVisibilityClick(field: Field) {
-  if (!hasFieldVisibilityTogglePermission(field)) {
-    return
-  }
-
   if (isLinksOrLTAR(meta.value?.columnsById?.[field.fk_column_id!])) {
     field.show = !field.show
     toggleFieldVisibility(field.show, field)
@@ -760,7 +748,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                   :data-testid="`nc-fields-menu-${field.title}`"
                   class="nc-fields-menu-item pl-2 flex flex-row items-center rounded-md"
                   :class="{
-                    'hover:bg-nc-bg-gray-light': !isFieldsMenuReadOnly && hasFieldVisibilityTogglePermission(field),
+                    'hover:bg-nc-bg-gray-light': !isFieldsMenuReadOnly,
                   }"
                   @click.stop
                 >
@@ -785,7 +773,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                         v-e="['a:fields:show-hide']"
                         class="flex flex-row items-center w-full truncate ml-1 py-[5px] pr-2"
                         :class="{
-                          'cursor-pointer': !isFieldsMenuReadOnly && hasFieldVisibilityTogglePermission(field),
+                          'cursor-pointer': !isFieldsMenuReadOnly,
                           'is-opened-add-lookup': isOpened,
                         }"
                         @click="conditionalToggleFieldVisibility(field)"
@@ -886,23 +874,16 @@ const onAddColumnDropdownVisibilityChange = () => {
                             />
                           </NcButton>
                         </div>
-                        <NcTooltip class="flex" :disabled="hasFieldVisibilityTogglePermission(field)">
-                          <template #title> You do not have permission to change visibility of already hidden field </template>
-                          <span class="flex children:flex-none" @click.stop="conditionalToggleFieldVisibility(field)">
-                            <NcSwitch
-                              :checked="field.show"
-                              :disabled="
-                                field.isViewEssentialField ||
-                                isFieldsMenuReadOnly ||
-                                isLoadingShowAllColumns ||
-                                !hasFieldVisibilityTogglePermission(field)
-                              "
-                              size="xxsmall"
-                              @change="$e('a:fields:show-hide')"
-                              @click="handleFieldVisibilityClick(field)"
-                            />
-                          </span>
-                        </NcTooltip>
+
+                        <span class="flex children:flex-none" @click.stop="conditionalToggleFieldVisibility(field)">
+                          <NcSwitch
+                            :checked="field.show"
+                            :disabled="field.isViewEssentialField || isFieldsMenuReadOnly || isLoadingShowAllColumns"
+                            size="xxsmall"
+                            @change="$e('a:fields:show-hide')"
+                            @click="handleFieldVisibilityClick(field)"
+                          />
+                        </span>
                       </div>
                     </template>
                   </SmartsheetToolbarAddLookupsDropdown>
@@ -958,7 +939,17 @@ const onAddColumnDropdownVisibilityChange = () => {
           </NcDropdown>
         </div>
 
-        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" />
+        <GeneralLockedViewFooter
+          v-if="isFieldsMenuReadOnly"
+          :show-icon="isLocked"
+          :show-unlock-button="isLocked"
+          @on-open="open = false"
+        >
+          <template v-if="!isLocked" #title>
+            Editing restricted for
+            <span class="capitalize"> {{ Object.keys(user?.base_roles ?? {})?.[0] ?? ProjectRoles.NO_ACCESS }}</span>
+          </template>
+        </GeneralLockedViewFooter>
       </div>
     </template>
   </NcDropdown>

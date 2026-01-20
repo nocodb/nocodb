@@ -275,7 +275,12 @@ watch(readOnly, (newValue) => {
 </script>
 
 <template>
-  <div class="nc-workflow-input relative">
+  <div
+    :class="{
+      multiline: isMultiline,
+    }"
+    class="nc-workflow-input relative"
+  >
     <EditorContent
       :editor="editor"
       class="nc-workflow-input-editor"
@@ -286,10 +291,10 @@ watch(readOnly, (newValue) => {
 
     <NcTooltip
       v-if="!readOnly"
-      class="!absolute right-1.5"
+      class="!absolute nc-workflow-insert-btn-tooltip right-1.5"
       :class="{
-        '!top-1': isMultiline,
-        '!top-1.5': !isMultiline,
+        'top-1': isMultiline,
+        'top-1.5': !isMultiline,
       }"
       hide-on-click
       title="Insert variable"

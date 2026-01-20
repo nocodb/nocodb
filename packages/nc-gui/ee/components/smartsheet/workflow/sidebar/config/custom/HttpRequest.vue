@@ -348,17 +348,16 @@ const showAdvanced = ref(false)
       @apply !leading-8;
     }
   }
-}
 
-:deep(.nc-workflow-input) {
-  .nc-workflow-input-editor {
-    &:not(.multiline) {
-      .ProseMirror {
-        @apply !h-8 !min-h-8 !py-1;
-      }
-
-      .nc-workflow-input-insert-btn {
-        @apply !-top-1;
+  :deep(.nc-workflow-input) {
+    .nc-workflow-insert-btn-tooltip {
+      @apply !top-0.75;
+    }
+    .nc-workflow-input-editor {
+      &:not(.multiline) {
+        .ProseMirror {
+          @apply !h-8 !min-h-8 !py-1;
+        }
       }
     }
   }

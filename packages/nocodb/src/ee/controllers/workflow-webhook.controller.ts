@@ -7,6 +7,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { NcApiVersion, NcContext } from 'nocodb-sdk';
 import { NcRequest } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -30,15 +31,22 @@ export class WorkflowWebhookController {
     @Query() query: any,
     @Req() req: NcRequest,
   ) {
+
+    const context: NcContext = {
+      workspace_id: workspaceId,
+      base_id: baseId,
+      api_version: NcApiVersion.V3
+    };
+
+    const allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+    if (!allowedMethods.includes(req.method)) {
+      NcError.get(context).methodNotAllowed(`Method ${req.method} not allowed`);
+    }
+
     // Validate triggerId format (should be trg_<nanoid>)
     if (!triggerId.startsWith('trg_')) {
       NcError.badRequest('Invalid trigger ID format');
     }
-
-    const context = {
-      workspace_id: workspaceId,
-      base_id: baseId,
-    };
 
     // Check if there's an active test listener for this trigger
     const testListenerKey = `${CacheScope.WORKFLOW_WEBHOOK_TEST_LISTENER}:${workflowId}:${triggerId}`;

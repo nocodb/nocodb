@@ -189,7 +189,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
           !isHiddenCol(col, meta.value ?? {}) &&
           (!useMetaFields || !isSystemColumn(col)) &&
           !fields.value?.includes(col) &&
-          ((isLocalMode.value && !hasViewFieldDataEditPermission.value) && col?.id && fieldsMap.value[col.id] ? fieldsMap.value[col.id]?.initialShow : true) &&
+          (isLocalMode.value && !hasViewFieldDataEditPermission.value && col?.id && fieldsMap.value[col.id]
+            ? fieldsMap.value[col.id]?.initialShow
+            : true) &&
           // exclude readonly fields from hidden fields if new record creation
           (!rowStore.isNew.value || !isHiddenColumnInNewRecord(col)),
       )
@@ -197,8 +199,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       if (useMetaFields) {
         return maintainDefaultViewOrder.value
           ? _hiddenFields.sort((a, b) => {
-            return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
-          })
+              return (a.meta?.defaultViewColOrder ?? Infinity) - (b.meta?.defaultViewColOrder ?? Infinity)
+            })
           : _hiddenFields
       }
       // record from same view and same table (not linked)

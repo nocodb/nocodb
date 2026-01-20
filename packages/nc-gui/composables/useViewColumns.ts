@@ -52,6 +52,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
 
+    const hasViewFieldDataEditPermission = computed(() => isUIAllowed('viewFieldDataEdit'))
+
     const localChanges = ref<Record<string, Field>>({})
 
     const isColumnViewEssential = (column: ColumnType) => {
@@ -84,11 +86,11 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         ((isPublic
           ? meta.value?.columns
           : (
-              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
-                operation: 'viewColumnList',
-                viewId: view.value.id,
-              })
-            ).list) as any[]) ?? []
+            await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+              operation: 'viewColumnList',
+              viewId: view.value.id,
+            })
+          ).list) as any[]) ?? []
 
       const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
         // If hide column api is in progress and we try to load columns before that then we need to assign local visibility state
@@ -380,29 +382,29 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       searchBasisInfo: string
       filterCallback: (query: string, option: ColumnType) => boolean
     }[] = [
-      {
-        searchBasisInfo: t('msg.info.matchedByButtonLabel'),
-        filterCallback: (query, option) => {
-          if (!option) return false
+        {
+          searchBasisInfo: t('msg.info.matchedByButtonLabel'),
+          filterCallback: (query, option) => {
+            if (!option) return false
 
-          const column = option as ColumnType
+            const column = option as ColumnType
 
-          return isButton(column) && searchCompare([(column.colOptions as ButtonType)?.label], query)
+            return isButton(column) && searchCompare([(column.colOptions as ButtonType)?.label], query)
+          },
         },
-      },
-      {
-        searchBasisInfo: t('msg.info.matchedByFieldDescription'),
-        filterCallback: (query, option) => {
-          if (!option) return false
+        {
+          searchBasisInfo: t('msg.info.matchedByFieldDescription'),
+          filterCallback: (query, option) => {
+            if (!option) return false
 
-          const column = option as ColumnType
+            const column = option as ColumnType
 
-          if (!column.description) return false
+            if (!column.description) return false
 
-          return searchCompare([column.description], query)
+            return searchCompare([column.description], query)
+          },
         },
-      },
-    ]
+      ]
 
     const searchBasisIdMap = ref<Record<string, string>>({})
 
@@ -428,7 +430,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       searchBasisIdMap.value = {}
 
       return (fields.value || []).filter((field: Field) => {
-        if (!field.initialShow && isLocalMode.value) {
+        if (!field.initialShow && isLocalMode.value && !hasViewFieldDataEditPermission.value) {
           return false
         }
         const column = metaColumnById?.value?.[field.fk_column_id!]
@@ -457,7 +459,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const numberOfHiddenFields = computed(() => {
       return (fields.value || [])
         ?.filter((field: Field) => {
-          if (!field.initialShow && isLocalMode.value) {
+          if (!field.initialShow && isLocalMode.value && !hasViewFieldDataEditPermission.value) {
             return false
           }
 
@@ -680,6 +682,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       isLocalMode,
       updateDefaultViewColumnMeta,
       hidingViewColumnsMap,
+      hasViewFieldDataEditPermission
     }
   },
   'useViewColumnsOrThrow',

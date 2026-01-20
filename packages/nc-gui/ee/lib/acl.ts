@@ -200,6 +200,7 @@ const rolePermissions = {
     include: {
       dataInsert: true,
       dataEdit: true,
+      viewFieldDataEdit: true, /** For editor just show hidden field in expanded form, fields menu and will not allow to configure it */
       filterChildrenList: true,
       csvTableImport: true,
       excelTableImport: true,

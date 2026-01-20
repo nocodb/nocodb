@@ -929,4 +929,11 @@ export class NcErrorBase {
       ...args,
     });
   }
+
+  methodNotAllowed(method: string, args?: NcErrorArgs): never {
+    throw this.errorCodex.generateError(NcErrorType.ERR_METHOD_NOT_ALLOWED, {
+      params: `${method} method not allowed`,
+      ...args,
+    });
+  }
 }

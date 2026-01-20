@@ -63,6 +63,8 @@ export function useViewFilters(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
+  const isTempFilters = computed(() => isPublic.value || disableAutoLoad)
+
   const { $api, $e, $eventBus } = useNuxtApp()
 
   const { isUIAllowed } = useRoles()
@@ -75,7 +77,7 @@ export function useViewFilters(
 
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
-  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterList') || !isUIAllowed('filterChildrenList'))
+  const nestedMode = computed(() => isTempFilters.value || !isUIAllowed('filterList') || !isUIAllowed('filterChildrenList'))
 
   // Tracks if any filter has been updated - used for webhook save state management
   const isFilterUpdated = ref<boolean>(false)
@@ -376,7 +378,7 @@ export function useViewFilters(
   } = {}) => {
     if (!view.value?.id || !meta.value) return
     if (
-      (nestedMode.value && (isPublic.value || !isUIAllowed('filterChildrenList'))) ||
+      (nestedMode.value && (isTempFilters.value || !isUIAllowed('filterChildrenList'))) ||
       (isForm.value && !isWebhook) ||
       isWorkflow
     ) {

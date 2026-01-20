@@ -163,7 +163,9 @@ export const useExtensions = createSharedComposable(() => {
     }
 
     try {
-      const newExtension = await $api.extensions.create(base.value.id, extensionReq)
+      const newExtension = await $api.internal.postOperation(base.value!.fk_workspace_id!, base.value.id, {
+        operation: 'extensionCreate',
+      }, extensionReq)
 
       if (newExtension) {
         updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
@@ -191,7 +193,10 @@ export const useExtensions = createSharedComposable(() => {
     if (!extensionToUpdate) return
 
     try {
-      const updatedExtension = await $api.extensions.update(extensionId, extension)
+      const updatedExtension = await $api.internal.postOperation(base.value!.fk_workspace_id!, base.value!.id!, {
+        operation: 'extensionUpdate',
+        extensionId
+      }, extension)
 
       if (updatedExtension) {
         extensionToUpdate.deserialize(updatedExtension)
@@ -228,7 +233,10 @@ export const useExtensions = createSharedComposable(() => {
     if (!extensionToDelete) return
 
     try {
-      await $api.extensions.delete(extensionId)
+      await $api.internal.postOperation(base.value!.fk_workspace_id!, base.value.id, {
+        operation: 'extensionDelete',
+        extensionId,
+      }, {})
 
       updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, -1)
 
@@ -256,7 +264,9 @@ export const useExtensions = createSharedComposable(() => {
 
     const { id: _id, order: _order, ...extensionData } = extension.serialize()
 
-    const newExtension = await $api.extensions.create(base.value.id, {
+    const newExtension = await $api.internal.postOperation(base.value!.fk_workspace_id!, base.value.id, {
+      operation: 'extensionCreate',
+    }, {
       ...extensionData,
       title: `${extension.title} (Copy)`,
     })
@@ -303,7 +313,9 @@ export const useExtensions = createSharedComposable(() => {
     }
 
     try {
-      const { list } = await $api.extensions.list(baseId)
+      const { list } = await $api.internal.getOperation(base.value!.fk_workspace_id!, baseId, {
+        operation: 'extensionList',
+      })
 
       const extensions = list?.map((ext: any) => new Extension(ext))
 

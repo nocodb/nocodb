@@ -30,11 +30,11 @@ import { SyncSource, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
+import { ExtensionsService } from '~/services/extensions.service';
 
 @Injectable()
 export class UiPostOperations
-  implements InternalApiModule<InternalPOSTResponseType>
-{
+  implements InternalApiModule<InternalPOSTResponseType> {
   constructor(
     protected dataTableService: DataTableService,
     protected tablesService: TablesService,
@@ -57,7 +57,8 @@ export class UiPostOperations
     protected bulkDataAliasService: BulkDataAliasService,
     protected syncService: SyncService,
     protected readonly nocoJobsService: NocoJobsService,
-  ) {}
+    protected extensionsService: ExtensionsService,
+  ) { }
   operations = [
     'tableUpdate' as const,
     'tableDelete' as const,
@@ -126,6 +127,9 @@ export class UiPostOperations
     'syncSourceDelete' as const,
     'atImportTrigger' as const,
     'dataExport' as const,
+    'extensionCreate' as const,
+    'extensionUpdate' as const,
+    'extensionDelete' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -623,6 +627,22 @@ export class UiPostOperations
 
         return { id: job.id };
       }
+      case 'extensionCreate':
+        return await this.extensionsService.extensionCreate(context, {
+          extension: payload,
+          req,
+        });
+      case 'extensionUpdate':
+        return await this.extensionsService.extensionUpdate(context, {
+          extensionId: req.query.extensionId,
+          extension: payload,
+          req,
+        });
+      case 'extensionDelete':
+        return await this.extensionsService.extensionDelete(context, {
+          extensionId: req.query.extensionId,
+          req,
+        });
     }
   }
 }

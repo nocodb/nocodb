@@ -34,6 +34,9 @@ export const OPERATION_SCOPES = {
   widgetFilterList: 'base',
   formViewGet: 'base',
   mapViewGet: 'base',
+  // Extensions
+  extensionList: 'base',
+  extensionRead: 'base',
 
   // UI Post Operations
   tableUpdate: 'base',
@@ -114,6 +117,11 @@ export const OPERATION_SCOPES = {
   syncSourceUpdate: 'base',
   syncSourceDelete: 'base',
   atImportTrigger: 'base',
+
+  // Extensions
+  extensionCreate: 'base',
+  extensionUpdate: 'base',
+  extensionDelete: 'base',
 
   // Sandbox Operations
   sandboxStoreList: 'org',

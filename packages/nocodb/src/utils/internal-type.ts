@@ -14,6 +14,7 @@ import type {
   Script,
   Sort,
   View,
+  Extension
 } from '~/models';
 
 export type InternalGETResponseType = Promise<
@@ -34,6 +35,8 @@ export type InternalGETResponseType = Promise<
   | { hash: string }
   | OAuthClient
   | OAuthClient[]
+  | Extension
+  | Extension[]
 >;
 
 export type InternalPOSTResponseType = Promise<
@@ -44,12 +47,12 @@ export type InternalPOSTResponseType = Promise<
   | OAuthClient[]
   | { msg: string }
   | {
-      hasBreakingChanges: boolean;
-      entities: {
-        type: DependencyTableType;
-        entity: Dashboard | Workflow;
-      }[];
-    }
+    hasBreakingChanges: boolean;
+    entities: {
+      type: DependencyTableType;
+      entity: Dashboard | Workflow;
+    }[];
+  }
   | DataReflection
   | MCPToken
   | Script
@@ -61,6 +64,7 @@ export type InternalPOSTResponseType = Promise<
   | Filter
   | Sort
   | Hook
+  | Extension
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

@@ -20,12 +20,12 @@ import { FormsService } from '~/services/forms.service';
 import { MapsService } from '~/services/maps.service';
 import { CommentsService } from '~/services/comments.service';
 import { SyncService } from '~/services/sync.service';
+import { ExtensionsService } from '~/services/extensions.service';
 
 @Injectable()
 export class UiGetOperations
   extends UiGetOperationsCE
-  implements InternalApiModule<InternalGETResponseType>
-{
+  implements InternalApiModule<InternalGETResponseType> {
   constructor(
     protected dataTableService: DataTableService,
     protected tablesService: TablesService,
@@ -40,6 +40,7 @@ export class UiGetOperations
     protected mapsService: MapsService,
     protected commentsService: CommentsService,
     protected syncService: SyncService,
+    protected extensionsService: ExtensionsService,
   ) {
     super(
       dataTableService,
@@ -55,6 +56,7 @@ export class UiGetOperations
       mapsService,
       commentsService,
       syncService,
+      extensionsService,
     );
   }
 

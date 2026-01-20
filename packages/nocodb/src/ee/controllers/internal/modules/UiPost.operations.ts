@@ -27,12 +27,12 @@ import { CommentsService } from '~/services/comments.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
 import { SyncService } from '~/services/sync.service';
 import { NocoJobsService } from '~/services/noco-jobs.service';
+import { ExtensionsService } from '~/services/extensions.service';
 
 @Injectable()
 export class UiPostOperations
   extends UiPostOperationsCE
-  implements InternalApiModule<InternalPOSTResponseType>
-{
+  implements InternalApiModule<InternalPOSTResponseType> {
   constructor(
     protected dataTableService: DataTableService,
     protected tablesService: TablesService,
@@ -55,6 +55,7 @@ export class UiPostOperations
     protected bulkDataAliasService: BulkDataAliasService,
     protected syncService: SyncService,
     protected nocoJobsService: NocoJobsService,
+    protected extensionsService: ExtensionsService,
   ) {
     super(
       dataTableService,
@@ -78,6 +79,7 @@ export class UiPostOperations
       bulkDataAliasService,
       syncService,
       nocoJobsService,
+      extensionsService,
     );
   }
 

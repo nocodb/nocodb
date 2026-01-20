@@ -1,5 +1,5 @@
 import { FormDefinition } from '~/lib/formBuilder';
-import type { TriggerActivationType } from './constants';
+import type { TriggerActivationType, TriggerTestMode } from './constants';
 
 /**
  * Workflow Categories
@@ -51,6 +51,16 @@ export interface WorkflowNodeDefinition {
    * - CRON: Requires scheduling (e.g., cron triggers)
    */
   activationType?: TriggerActivationType;
+
+  /**
+   * Supported test modes for this trigger (array, can support multiple)
+   * - SAMPLE_DATA: Use sample/mock data
+   * - LISTEN_WEBHOOK: Listen for real webhook request
+   * - TRIGGER_EVENT: User must trigger event externally
+   *
+   * If not specified, defaults to [SAMPLE_DATA]
+   */
+  testModes?: TriggerTestMode[];
 
   package?: {
     name: string; // e.g., 'github', 'google', 'core', 'nocodb'

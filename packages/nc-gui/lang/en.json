@@ -2249,7 +2249,7 @@
     "webhookV2DeprecationAlertTitle": "Webhooks v3 Now Available",
     "webhookV2DeprecationAlertDesc": "Support for v2 webhooks will be deprecated shortly. Please review and upgrade your existing v2 webhooks to take advantage of the latest features.",
     "urlFilter": "URL filters are applied from URL parameters and combine with view filters set via the toolbar.",
-    "viewFilter": "View filters are predefined filters set via the toolbar by creator/owner of the base.",
+    "viewFilter": "View filters set by creator/owner of the base",
     "urlFilterError": "Invalid URL filter. Ignored as it could not be applied.",
     "dropYourDocHere": "Drop your document here",
     "airtableImportSuccess": "Successfully imported from Airtable Base.",

@@ -945,10 +945,7 @@ const onAddColumnDropdownVisibilityChange = () => {
           :show-unlock-button="isLocked"
           @on-open="open = false"
         >
-          <template v-if="!isLocked" #title>
-            Editing restricted for
-            <span class="capitalize"> {{ Object.keys(user?.base_roles ?? {})?.[0] ?? ProjectRoles.NO_ACCESS }}</span>
-          </template>
+          <template v-if="!isLocked" #title> You don’t have permission to edit this view. </template>
         </GeneralLockedViewFooter>
       </div>
     </template>

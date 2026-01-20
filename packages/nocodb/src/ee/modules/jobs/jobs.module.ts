@@ -18,6 +18,7 @@ import { UpdateStatsProcessor } from '~/modules/jobs/jobs/update-stats/update-st
 import { UpdateUsageStatsProcessor } from '~/modules/jobs/jobs/update-usage-stats.processor';
 import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow/workflow-resume.processor';
 import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow/workflow-schedule.processor';
+import { WorkflowTestProcessor } from '~/modules/jobs/jobs/workflow/workflow-test.processor';
 import { WorkflowProcessor } from '~/modules/jobs/jobs/workflow/workflow.processor';
 import { WorkerController } from '~/modules/jobs/worker/worker.controller';
 import { PaymentModule } from '~/modules/payment/payment.module';
@@ -50,6 +51,7 @@ import { PaymentModule } from '~/modules/payment/payment.module';
     WorkflowProcessor,
     WorkflowScheduleProcessor,
     WorkflowResumeProcessor,
+    WorkflowTestProcessor,
   ],
   exports: [...JobsModuleMetadata.exports, RemoteImportService],
 })

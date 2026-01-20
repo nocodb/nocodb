@@ -87,7 +87,9 @@ export class WorkflowPostOperations
           {
             nodeId: payload.nodeId,
             testTriggerData: payload.testTriggerData,
+            testMode: payload.testMode,
           },
+          req,
         );
       case 'workflowPublish':
         return await this.workflowsService.publishWorkflow(

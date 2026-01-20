@@ -411,7 +411,8 @@ export class WorkflowsService implements OnModuleInit {
   async testExecuteNode(
     context: NcContext,
     workflowId: string,
-    payload: { nodeId: string; testTriggerData?: any },
+    payload: { nodeId: string; testTriggerData?: any; testMode?: string },
+    req: NcRequest,
   ) {
     const workflow = await Workflow.get(context, workflowId);
 
@@ -424,6 +425,9 @@ export class WorkflowsService implements OnModuleInit {
       workflowId,
       nodeId: payload.nodeId,
       testTriggerData: payload.testTriggerData,
+      testMode: payload.testMode,
+      timeoutMs: 120000, // 2 minutes
+      req,
     });
 
     return { id: job.id };
@@ -688,7 +692,6 @@ export class WorkflowsService implements OnModuleInit {
     if (!workflow.enabled) {
       return {
         success: false,
-        message: 'Workflow is disabled',
       };
     }
 
@@ -705,7 +708,6 @@ export class WorkflowsService implements OnModuleInit {
     if (!trigger) {
       return {
         success: false,
-        message: 'Trigger not found',
       };
     }
 
@@ -738,9 +740,6 @@ export class WorkflowsService implements OnModuleInit {
 
     return {
       success: true,
-      message: 'Workflow triggered successfully',
-      workflowId: workflow.id,
-      executionQueued: true,
     };
   }
 
@@ -814,8 +813,7 @@ export class WorkflowsService implements OnModuleInit {
     wrapper: any,
     req: NcRequest,
   ): Promise<void> {
-    // Generate unique trigger ID
-    const triggerId = `trg_${nanoid(16)}`;
+    const triggerId = triggerNode.data?.triggerId || `trg_${nanoid(16)}`;
 
     // Build webhook URL with RESTful path
     const webhookUrl = `${req.ncSiteUrl}/api/v3/workflows/${context.workspace_id}/${context.base_id}/${workflow.id}/${triggerId}/webhook`;

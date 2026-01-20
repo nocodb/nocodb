@@ -146,8 +146,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       const existingSortIndex = sorts.value.findIndex((s) => s.fk_column_id === column.id)
       const existingSort = existingSortIndex > -1 ? sorts.value[existingSortIndex] : undefined
 
-      const isLocalMode = isPublic.value || isSharedBase.value || isLocked.value
-
+      const isLocalMode = isPublic.value || isSharedBase.value || !isUIAllowed('sortSync')
       // Delete existing sort and not update the state as sort count in UI will change for a sec
       if (existingSort && !isLocalMode) {
         await $api.internal.postOperation(
@@ -240,8 +239,8 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   async function deleteSort(sort: SortType, i: number, undo = false) {
     try {
-      const isLocalMode = isPublic.value || isSharedBase.value || isLocked.value
-      if (isUIAllowed('sortSync') && sort.id && !isLocalMode) {
+      const isLocalMode = isPublic.value || isSharedBase.value || !isUIAllowed('sortSync')
+      if (sort.id && !isLocalMode) {
         await $api.internal.postOperation(
           meta.value!.fk_workspace_id!,
           meta.value!.base_id!,

@@ -105,7 +105,12 @@ export class DataAttachmentV3Service {
             signedUrl: undefined,
           };
           processedAttachments.push(processedAttachment);
-          if (supportsThumbnails({ mimetype: downloadedAttachment.mimeType })) {
+          if (
+            supportsThumbnails({
+              mimetype: downloadedAttachment.mimeType,
+              size: downloadedAttachment.fileSize,
+            })
+          ) {
             generateThumbnailAttachments.push(processedAttachment);
           }
         }

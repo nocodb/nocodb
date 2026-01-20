@@ -851,10 +851,15 @@ async function onImport() {
 
         processedRecordsToInsert.value += chunk.length
 
-        await $api.dbDataTableRow.create(
-          importPayload.value.tableId,
+        await $api.internal.postOperation(
+          activeWorkspaceId.value!,
+          activeBaseId.value!,
+          {
+            operation: 'dataInsert',
+            tableId: importPayload.value.tableId,
+            ...(autoInsertOption.value ? { typecast: 'true' } : {}),
+          },
           chunk,
-          autoInsertOption.value ? ({ typecast: 'true' } as any) : undefined,
         )
 
         stats.value = {
@@ -872,10 +877,15 @@ async function onImport() {
 
         processedRecordsToUpdate.value += chunk.length
 
-        await $api.dbDataTableRow.update(
-          importPayload.value.tableId,
+        await $api.internal.postOperation(
+          activeWorkspaceId.value!,
+          activeBaseId.value!,
+          {
+            operation: 'dataUpdate',
+            tableId: importPayload.value.tableId,
+            ...(autoInsertOption.value ? { typecast: 'true' } : {}),
+          },
           chunk,
-          autoInsertOption.value ? ({ typecast: 'true' } as any) : undefined,
         )
 
         stats.value = {

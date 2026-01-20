@@ -221,6 +221,8 @@ export interface DataExportJobData extends JobData {
     // false by default, only use when triggered from controller
     includeByteOrderMark?: boolean;
     filenameTimeZone?: string;
+    filterArrJson?: string;
+    sortArrJson?: string;
   };
   modelId: string;
   viewId: string;

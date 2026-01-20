@@ -779,6 +779,8 @@ export class ExportService {
       delimiter?: string;
       excludeUsers?: boolean;
       includeCrossBaseColumns?: boolean;
+      filterArrJson?: any;
+      sortArrJson?: any;
     },
   ) {
     context = { ...context, cache: true };
@@ -1036,6 +1038,10 @@ export class ExportService {
         true,
         param.delimiter,
         dataExportMode,
+        {
+          filterArrJson: param.filterArrJson,
+          sortArrJson: param.sortArrJson,
+        },
       );
     } catch (e) {
       this.debugLog(e);
@@ -1154,13 +1160,23 @@ export class ExportService {
     header = false,
     delimiter = ',',
     dataExportMode = false,
+    param?: {
+      filterArrJson: any;
+      sortArrJson: any;
+    },
   ): Promise<void> {
     return new Promise<void>((resolve, reject) => {
       this.datasService
         .dataList(context, {
           model,
           view,
-          query: { limit, offset, fields },
+          query: {
+            limit,
+            offset,
+            fields,
+            filterArrJson: param?.filterArrJson,
+            sortArrJson: param?.sortArrJson,
+          },
           baseModel,
           ignoreViewFilterAndSort: !dataExportMode,
           limitOverride: limit,

@@ -17,10 +17,10 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^20.17.46",
-    "@vitest/coverage-v8": "^3.1.4",
+    "@types/node": "^20.19.30",
+    "@vitest/coverage-v8": "^3.2.4",
     "rimraf": "^5.0.10",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   }
 }

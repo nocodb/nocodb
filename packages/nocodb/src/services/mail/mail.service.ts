@@ -20,7 +20,7 @@ type TemplateProps<K extends keyof typeof MailTemplates> = ComponentProps<
 @Injectable()
 export class MailService {
   protected logger = new Logger(MailService.name);
-  async getAdapter(ncMeta = Noco.ncMeta) {
+  protected async getAdapter(ncMeta = Noco.ncMeta) {
     try {
       return await NcPluginMgrv2.emailAdapter(undefined, ncMeta);
     } catch (e) {
@@ -29,7 +29,7 @@ export class MailService {
     }
   }
 
-  async renderMail<K extends keyof typeof MailTemplates>(
+  protected async renderMail<K extends keyof typeof MailTemplates>(
     template: K,
     props: TemplateProps<K>,
   ) {
@@ -275,20 +275,22 @@ export class MailService {
           });
           break;
         }
-        case MailEvent.FORM_SUBMISSION: {
-          const { formView, data, model, emails, base } = payload;
+        case MailEvent.FORM_SUBMISSION:
+          {
+            const { formView, data, model, emails, base } = payload;
 
-          await mailerAdapter.mailSend({
-            to: emails.join(','),
-            subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
-            html: await this.renderMail('FormSubmission', {
-              formTitle: formView.title,
-              tableTitle: model.title,
-              submissionData: data,
-              baseTitle: base.title,
-            }),
-          });
-        }
+            await mailerAdapter.mailSend({
+              to: emails.join(','),
+              subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
+              html: await this.renderMail('FormSubmission', {
+                formTitle: formView.title,
+                tableTitle: model.title,
+                submissionData: data,
+                baseTitle: base.title,
+              }),
+            });
+          }
+          break;
       }
       return true;
     } catch (e) {

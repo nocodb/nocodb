@@ -35,7 +35,14 @@ export class GridsService {
       param.grid,
     );
 
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const model = await Model.get(context, param.tableId, ncMeta);
+
     // check for duplicated view title
     param.grid.title = param.grid.title?.trim();
     const existingView = await View.getByTitleOrId(
@@ -88,6 +95,7 @@ export class GridsService {
     // populate  cache and add to list since the list cache already exist
     const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
+      context,
       CacheScope.VIEW,
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,

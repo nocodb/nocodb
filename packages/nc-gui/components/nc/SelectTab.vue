@@ -30,7 +30,7 @@ const modelValue = defineModel<string>()
       {{ props.tooltip }}
     </template>
     <div
-      class="flex flex-row p-1 bg-gray-200 rounded-lg gap-x-0.5"
+      class="flex flex-row p-1 bg-nc-bg-gray-medium rounded-lg gap-x-0.5"
       :class="{
         '!cursor-not-allowed opacity-50': props.disabled,
       }"
@@ -62,7 +62,7 @@ const modelValue = defineModel<string>()
 
 <style scoped>
 .tab {
-  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-gray-600 hover:text-black cursor-pointer transition-all duration-300 select-none;
+  @apply flex flex-row items-center h-6 justify-center px-2 py-1 rounded-md gap-x-2 text-nc-content-gray-subtle2 hover:text-nc-content-gray-extreme cursor-pointer transition-all duration-300 select-none;
 }
 
 .tab-icon {
@@ -78,7 +78,7 @@ const modelValue = defineModel<string>()
 }
 
 .active {
-  @apply bg-white text-brand-600 hover:text-brand-600;
+  @apply bg-nc-bg-default text-nc-content-brand-disabled hover:text-nc-content-brand-disabled;
 
   box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
 }

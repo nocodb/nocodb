@@ -2,13 +2,17 @@ import {
   type BoolType,
   type FormDefinition,
   integrationCategoryNeedDefault,
-  type IntegrationsType,
+  IntegrationsType,
   type IntegrationType,
   type SourceType,
 } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { ClientType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
-import type { IntegrationWrapper } from '@noco-local-integrations/core';
+import type {
+  IntegrationManifest,
+  IntegrationWrapper,
+} from '@noco-local-integrations/core';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
 import { extractProps } from '~/helpers/extractProps';
@@ -28,6 +32,7 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { IntegrationStore, Source } from '~/models';
 import Integrations from '~/integrations';
 
+const logger = new Logger('Integration');
 export default class Integration implements IntegrationType {
   public static availableIntegrations: {
     type: IntegrationsType;
@@ -40,7 +45,10 @@ export default class Integration implements IntegrationType {
       icon?: string;
       description?: string;
       expose?: string[];
+      order?: number;
+      hidden?: boolean;
     };
+    packageManifest?: IntegrationManifest;
   }[] = Integrations;
 
   id?: string;
@@ -374,8 +382,12 @@ export default class Integration implements IntegrationType {
     ncMeta = Noco.ncMeta,
   ): Promise<Integration> {
     const integrationData = await ncMeta.metaGet2(
-      context.workspace_id ? context.workspace_id : RootScopes.BYPASS,
-      context.workspace_id ? RootScopes.WORKSPACE : RootScopes.BYPASS,
+      context.workspace_id && context.workspace_id !== RootScopes.BYPASS
+        ? context.workspace_id
+        : RootScopes.BYPASS,
+      context.workspace_id && context.workspace_id !== RootScopes.BYPASS
+        ? RootScopes.WORKSPACE
+        : RootScopes.BYPASS,
       MetaTable.INTEGRATIONS,
       id,
       null,
@@ -603,25 +615,59 @@ export default class Integration implements IntegrationType {
     );
 
     if (!integrationWrapper) {
-      throw new Error('Integration not found');
+      logger.error('Integration not found');
+      NcError._.internalServerError('Integration not found');
     }
 
-    return new integrationWrapper.wrapper(config.config) as T;
+    return new integrationWrapper.wrapper(config.config, {}) as T;
   }
 
   public wrapper: IntegrationWrapper;
 
-  getIntegrationWrapper<T = any>(logger?: (message: string) => void) {
+  getIntegrationWrapper<T = any>(pLogger?: (message: string) => void) {
     if (!this.wrapper) {
       const integrationWrapper = Integration.availableIntegrations.find(
         (el) => el.type === this.type && el.sub_type === this.sub_type,
       );
 
       if (!integrationWrapper) {
-        throw new Error('Integration not found');
+        logger.error('Integration not found');
+        NcError._.internalServerError('Integration not found');
       }
 
-      this.wrapper = new integrationWrapper.wrapper(this.getConfig(), logger);
+      this.wrapper = new integrationWrapper.wrapper(this.getConfig(), {
+        saveConfig: async (config: any) => {
+          await Integration.updateIntegration(
+            {
+              workspace_id: this.fk_workspace_id,
+            },
+            this.id,
+            { config },
+          );
+        },
+        logger: pLogger,
+      });
+
+      if (
+        this.type === IntegrationsType.Auth &&
+        this.wrapper &&
+        typeof (this.wrapper as any).setTokenRefreshCallback === 'function'
+      ) {
+        (this.wrapper as any).setTokenRefreshCallback(
+          async (tokens: { oauth_token: string; refresh_token?: string }) => {
+            await Integration.updateIntegration(
+              { workspace_id: this.fk_workspace_id },
+              this.id,
+              {
+                config: {
+                  ...this.getConfig(),
+                  ...tokens,
+                },
+              },
+            );
+          },
+        );
+      }
     }
 
     return this.wrapper as T;
@@ -633,7 +679,8 @@ export default class Integration implements IntegrationType {
     );
 
     if (!integrationMeta) {
-      throw new Error('Integration meta not found');
+      logger.error('Integration meta not found');
+      NcError._.internalServerError('Integration meta not found');
     }
 
     return integrationMeta?.manifest;

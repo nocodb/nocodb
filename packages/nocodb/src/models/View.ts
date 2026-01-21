@@ -1,13 +1,17 @@
 import {
   AppEvents,
   CommonAggregations,
+  EventType,
   ExpandedFormMode,
+  getFirstNonPersonalView,
   isSystemColumn,
+  NcBaseError,
   parseProp,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import { isSupportedDisplayValueColumn } from 'nocodb-sdk';
 import type {
   BoolType,
   ColumnReqType,
@@ -18,6 +22,7 @@ import type {
   ViewType,
 } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { NcError } from '~/helpers/ncError';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import Model from '~/models/Model';
 import FormView from '~/models/FormView';
@@ -43,6 +48,7 @@ import {
   CacheGetType,
   CacheScope,
   MetaTable,
+  RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
 import {
@@ -55,6 +61,7 @@ import { CustomUrl, LinkToAnotherRecordColumn } from '~/models';
 import { cleanCommandPaletteCache } from '~/helpers/commandPaletteHelpers';
 import { isEE } from '~/utils';
 import { cleanBaseSchemaCacheForBase } from '~/helpers/scriptHelper';
+import NocoSocket from '~/socket/NocoSocket';
 
 const { v4: uuidv4 } = require('uuid');
 
@@ -83,7 +90,6 @@ export default class View implements ViewType {
   uuid?: string;
   password?: string;
   show: boolean;
-  is_default: boolean;
   order: number;
   type: ViewTypes;
   lock_type?: ViewType['lock_type'];
@@ -130,6 +136,7 @@ export default class View implements ViewType {
     let view =
       viewId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.VIEW}:${viewId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -143,7 +150,7 @@ export default class View implements ViewType {
       if (view) {
         view.meta = parseMetaProp(view);
 
-        await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
+        await NocoCache.set(context, `${CacheScope.VIEW}:${view.id}`, view);
       }
     }
 
@@ -158,6 +165,7 @@ export default class View implements ViewType {
     const viewId =
       titleOrId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.VIEW_ALIAS}:${fk_model_id}:${titleOrId}`,
         CacheGetType.TYPE_STRING,
       ));
@@ -186,12 +194,14 @@ export default class View implements ViewType {
 
       if (view) {
         await NocoCache.set(
+          context,
           `${CacheScope.VIEW}:${fk_model_id}:${view.id}`,
           view,
         );
         view.meta = parseMetaProp(view);
         // todo: cache - titleOrId can be viewId so we need a different scope here
         await NocoCache.set(
+          context,
           `${CacheScope.VIEW_ALIAS}:${fk_model_id}:${titleOrId}`,
           view.id,
         );
@@ -201,7 +211,7 @@ export default class View implements ViewType {
     return viewId && this.get(context, viewId?.id || viewId);
   }
 
-  public static async getDefaultView(
+  public static async getFirstCollaborativeView(
     context: NcContext,
     fk_model_id: string,
     ncMeta = Noco.ncMeta,
@@ -209,24 +219,26 @@ export default class View implements ViewType {
     let view =
       fk_model_id &&
       (await NocoCache.get(
+        context,
         `${CacheScope.VIEW}:${fk_model_id}:default`,
         CacheGetType.TYPE_OBJECT,
       ));
     if (!view) {
-      view = await ncMeta.metaGet2(
-        context.workspace_id,
-        context.base_id,
-        MetaTable.VIEWS,
+      view = getFirstNonPersonalView(
+        await this.list(context, fk_model_id, ncMeta),
         {
-          fk_model_id,
-          is_default: 1,
+          includeViewType: ViewTypes.GRID,
         },
-        null,
       );
+
       if (view) {
         view.meta = parseMetaProp(view);
 
-        await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
+        await NocoCache.set(
+          context,
+          `${CacheScope.VIEW}:${fk_model_id}:default`,
+          view,
+        );
       }
     }
     return view && new View(view);
@@ -237,7 +249,9 @@ export default class View implements ViewType {
     modelId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.VIEW, [modelId]);
+    const cachedList = await NocoCache.getList(context, CacheScope.VIEW, [
+      modelId,
+    ]);
     let { list: viewsList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !viewsList.length) {
@@ -257,7 +271,7 @@ export default class View implements ViewType {
       for (const view of viewsList) {
         view.meta = parseMetaProp(view);
       }
-      await NocoCache.setList(CacheScope.VIEW, [modelId], viewsList);
+      await NocoCache.setList(context, CacheScope.VIEW, [modelId], viewsList);
     }
     viewsList.sort(
       (a, b) =>
@@ -296,7 +310,6 @@ export default class View implements ViewType {
       const insertObj = extractProps(view, [
         'id',
         'title',
-        'is_default',
         'description',
         'type',
         'fk_model_id',
@@ -643,6 +656,7 @@ export default class View implements ViewType {
       }
       return View.get(context, view_id, ncMeta).then(async (v) => {
         await NocoCache.appendToList(
+          context,
           CacheScope.VIEW,
           [view.fk_model_id],
           `${CacheScope.VIEW}:${view_id}`,
@@ -658,8 +672,13 @@ export default class View implements ViewType {
           req,
           context,
         });
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        logger.error('Failed to Duplicate View', e);
+        NcError.get(context).internalServerError('Failed to Duplicate View');
       }
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      logger.error('Failed to Duplicate View', e);
+      NcError.get(context).internalServerError('Failed to Create View');
     }
   }
 
@@ -983,7 +1002,7 @@ export default class View implements ViewType {
     }
 
     const key = `${cacheScope}:viewColumnId:${colId}`;
-    const o = await NocoCache.get(key, CacheGetType.TYPE_STRING);
+    const o = await NocoCache.get(context, key, CacheGetType.TYPE_STRING);
     if (o) return o;
 
     const viewColumn = await ncMeta.metaGet2(
@@ -997,7 +1016,7 @@ export default class View implements ViewType {
     );
     if (!viewColumn) return undefined;
 
-    await NocoCache.set(key, viewColumn.id);
+    await NocoCache.set(context, key, viewColumn.id);
 
     return viewColumn.id;
   }
@@ -1047,7 +1066,7 @@ export default class View implements ViewType {
 
     // keep primary_value_column always visible and first in grid view
     if (view.type === ViewTypes.GRID) {
-      const primary_value_column_meta = await ncMeta.metaGet2(
+      let primary_value_column_meta = await ncMeta.metaGet2(
         context.workspace_id,
         context.base_id,
         MetaTable.COLUMNS,
@@ -1056,6 +1075,33 @@ export default class View implements ViewType {
           pv: true,
         },
       );
+      if (!primary_value_column_meta) {
+        const metaColumns = await ncMeta.metaList2(
+          context.workspace_id,
+          context.base_id,
+          MetaTable.COLUMNS,
+          {
+            xcCondition: (qb) => {
+              qb.where('fk_model_id', view.fk_model_id);
+              qb.andWhere((subQb) => {
+                subQb.where('system', false).orWhereNull('system');
+              });
+            },
+            orderBy: { order: 'asc' },
+          },
+        );
+        primary_value_column_meta = metaColumns.find((col) =>
+          isSupportedDisplayValueColumn(col),
+        );
+        if (!primary_value_column_meta) {
+          NcError.get(context).internalServerError(
+            `No display field setup for table`,
+          );
+        }
+        await Column.update(context, primary_value_column_meta.id, {
+          pv: true,
+        });
+      }
 
       const primary_value_column = await ncMeta.metaGet2(
         context.workspace_id,
@@ -1088,7 +1134,7 @@ export default class View implements ViewType {
       colId,
     );
 
-    await NocoCache.update(`${cacheScope}:${colId}`, updateObj);
+    await NocoCache.update(context, `${cacheScope}:${colId}`, updateObj);
 
     // on view column update, delete corresponding single query cache
     await View.clearSingleQueryCache(context, view.fk_model_id, [view], ncMeta);
@@ -1262,8 +1308,8 @@ export default class View implements ViewType {
     ncMeta = Noco.ncMeta,
   ) {
     const view = await ncMeta.metaGet2(
-      context.workspace_id,
-      context.base_id,
+      RootScopes.FULL_BYPASS,
+      RootScopes.FULL_BYPASS,
       MetaTable.VIEWS,
       {
         uuid,
@@ -1294,7 +1340,7 @@ export default class View implements ViewType {
         viewId,
       );
 
-      await NocoCache.update(`${CacheScope.VIEW}:${view.id}`, {
+      await NocoCache.update(context, `${CacheScope.VIEW}:${view.id}`, {
         uuid: view.uuid,
       });
     }
@@ -1317,6 +1363,7 @@ export default class View implements ViewType {
       );
 
       await NocoCache.update(
+        context,
         `${CacheScope.VIEW}:${view.id}`,
         prepareForResponse({
           meta: defaultMeta,
@@ -1343,7 +1390,7 @@ export default class View implements ViewType {
       viewId,
     );
 
-    await NocoCache.update(`${CacheScope.VIEW}:${viewId}`, {
+    await NocoCache.update(context, `${CacheScope.VIEW}:${viewId}`, {
       password,
     });
   }
@@ -1367,7 +1414,7 @@ export default class View implements ViewType {
 
     await CustomUrl.delete({ view_id: viewId });
 
-    await NocoCache.update(`${CacheScope.VIEW}:${viewId}`, {
+    await NocoCache.update(context, `${CacheScope.VIEW}:${viewId}`, {
       uuid: null,
       ...(isEE ? { fk_custom_url_id: null } : {}),
     });
@@ -1430,18 +1477,30 @@ export default class View implements ViewType {
 
     // reset alias cache
     await NocoCache.del(
+      context,
       `${CacheScope.VIEW}:${oldView.fk_model_id}:${oldView.title}`,
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.VIEW}:${viewId}`,
       prepareForResponse(updateObj),
     );
 
-    if (oldView.is_default) {
-      await NocoCache.update(
+    // Get the first collaborative grid view to update default view cache
+    const defaultView = getFirstNonPersonalView(
+      await this.list(context, oldView.fk_model_id, ncMeta),
+      {
+        includeViewType: ViewTypes.GRID,
+      },
+    );
+
+    // Update the default view cache if the first collaborative grid view has changed
+    if (defaultView) {
+      await NocoCache.set(
+        context,
         `${CacheScope.VIEW}:${oldView.fk_model_id}:default`,
-        prepareForResponse(updateObj),
+        defaultView,
       );
     }
 
@@ -1498,6 +1557,7 @@ export default class View implements ViewType {
       viewId,
     );
     await NocoCache.deepDel(
+      context,
       `${tableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -1513,19 +1573,22 @@ export default class View implements ViewType {
         },
       );
       await NocoCache.deepDel(
+        context,
         `${CacheScope.CALENDAR_VIEW_RANGE}:${viewId}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
     }
     await NocoCache.deepDel(
+      context,
       `${columnTableScope}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
     await NocoCache.deepDel(
+      context,
       `${CacheScope.VIEW}:${viewId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
-    await NocoCache.del([
+    await NocoCache.del(context, [
       `${CacheScope.VIEW_ALIAS}:${view.fk_model_id}:${view.title}`,
       `${CacheScope.VIEW_ALIAS}:${view.fk_model_id}:${view.id}`,
     ]);
@@ -1543,9 +1606,37 @@ export default class View implements ViewType {
         },
       );
 
+      const contextRef = { ...context };
       for (const link of links) {
         await LinkToAnotherRecordColumn.update(context, link.fk_column_id, {
           fk_target_view_id: null,
+        });
+
+        // notify all sockets of the change in the related column
+        (async (l) => {
+          NocoSocket.broadcastEvent(contextRef, {
+            event: EventType.META_EVENT,
+            payload: {
+              action: 'column_update',
+              payload: await Column.get(
+                context,
+                {
+                  colId: l.fk_column_id,
+                },
+                ncMeta,
+              ).then(async (col) => ({
+                column: col,
+                table: await Model.getWithInfo(
+                  context,
+                  { id: col.fk_model_id },
+                  ncMeta,
+                ),
+                skipDataReload: true,
+              })),
+            },
+          });
+        })(link).catch((err) => {
+          console.log(`Error in related column cache clear:`, err);
         });
       }
     }
@@ -1587,7 +1678,7 @@ export default class View implements ViewType {
     );
 
     // get existing cache
-    const cachedList = await NocoCache.getList(scope, [viewId]);
+    const cachedList = await NocoCache.getList(context, scope, [viewId]);
     const { list: dataList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && dataList?.length) {
@@ -1596,7 +1687,7 @@ export default class View implements ViewType {
           // set data
           o.show = true;
           // set cache
-          await NocoCache.set(`${scope}:${o.id}`, o);
+          await NocoCache.set(context, `${scope}:${o.id}`, o);
         }
       }
     }
@@ -1678,7 +1769,7 @@ export default class View implements ViewType {
     }
 
     // get existing cache
-    const cachedList = await NocoCache.getList(scope, [viewId]);
+    const cachedList = await NocoCache.getList(context, scope, [viewId]);
     const { list: dataList } = cachedList;
     const { isNoneList } = cachedList;
 
@@ -1698,7 +1789,7 @@ export default class View implements ViewType {
           // set data
           o.show = false;
           // set cache
-          await NocoCache.set(`${scope}:${o.id}`, o);
+          await NocoCache.set(context, `${scope}:${o.id}`, o);
         }
       }
     }
@@ -1764,7 +1855,9 @@ export default class View implements ViewType {
     tableId,
     ncMeta = Noco.ncMeta,
   ) {
-    const cachedList = await NocoCache.getList(CacheScope.VIEW, [tableId]);
+    const cachedList = await NocoCache.getList(context, CacheScope.VIEW, [
+      tableId,
+    ]);
     let { list: sharedViews } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !sharedViews.length) {
@@ -1785,7 +1878,7 @@ export default class View implements ViewType {
           },
         },
       );
-      await NocoCache.setList(CacheScope.VIEW, [tableId], sharedViews);
+      await NocoCache.setList(context, CacheScope.VIEW, [tableId], sharedViews);
     }
     sharedViews = sharedViews.filter((v) => v.uuid !== null);
     return sharedViews?.map((v) => new View(v));
@@ -1845,6 +1938,7 @@ export default class View implements ViewType {
           primary_value_column.id,
         );
         await NocoCache.set(
+          context,
           `${CacheScope.GRID_VIEW_COLUMN}:${primary_value_column.id}`,
           primary_value_column,
         );
@@ -1873,6 +1967,7 @@ export default class View implements ViewType {
             view_columns[i].id,
           );
           await NocoCache.set(
+            context,
             `${CacheScope.GRID_VIEW_COLUMN}:${view_columns[i].id}`,
             view_columns[i],
           );
@@ -1893,7 +1988,12 @@ export default class View implements ViewType {
         },
       },
     );
-    await NocoCache.setList(CacheScope.GRID_VIEW_COLUMN, [viewId], views);
+    await NocoCache.setList(
+      context,
+      CacheScope.GRID_VIEW_COLUMN,
+      [viewId],
+      views,
+    );
   }
 
   public static async clearSingleQueryCache(
@@ -1906,7 +2006,8 @@ export default class View implements ViewType {
 
     // get all views of the model
     let viewsList =
-      views || (await NocoCache.getList(CacheScope.VIEW, [modelId])).list;
+      views ||
+      (await NocoCache.getList(context, CacheScope.VIEW, [modelId])).list;
 
     if (!views && !viewsList?.length) {
       viewsList = await ncMeta.metaList2(
@@ -1937,7 +2038,7 @@ export default class View implements ViewType {
       `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
     );
 
-    await NocoCache.del(deleteKeys);
+    await NocoCache.del(context, deleteKeys);
   }
 
   static async bulkColumnInsertToViews(
@@ -2207,7 +2308,6 @@ export default class View implements ViewType {
     const insertObj = extractProps(view, [
       'id',
       'title',
-      'is_default',
       'description',
       'type',
       'fk_model_id',
@@ -2432,6 +2532,7 @@ export default class View implements ViewType {
                 'base_id',
                 'source_id',
                 'order',
+                'meta',
               ]),
               fk_view_id: view_id,
               id: generatedId,
@@ -2516,9 +2617,13 @@ export default class View implements ViewType {
           req,
           context,
         });
+        if (e instanceof NcError || e instanceof NcBaseError) throw e;
+        logger.error('Failed to Duplicate View', e);
+        NcError.get(context).internalServerError('Failed to Duplicate View');
       }
-
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      logger.error('Failed to create View', e);
+      NcError.get(context).internalServerError('Failed to create View');
     }
   }
 

@@ -1,10 +1,12 @@
-import { Injectable, Logger, NotImplementedException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import debug from 'debug';
 import {
   isAIPromptCol,
   isLinksOrLTAR,
   isVirtualCol,
   NcApiVersion,
+  NcBaseError,
+  parseProp,
   RelationTypes,
   SqlUiFactory,
   UITypes,
@@ -13,12 +15,14 @@ import {
 import hash from 'object-hash';
 import papaparse from 'papaparse';
 import { MetaTable } from 'src/cli';
+import PQueue from 'p-queue';
 import { elapsedTime, initTime } from '../../helpers';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
 import type { UserType, ViewCreateReqType } from 'nocodb-sdk';
 import type { Readable } from 'stream';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { CalendarView, LinksColumn, User } from '~/models';
+import { getCustomLinkParam } from '~/helpers/linkHelpers';
 import { validateImportSchema } from '~/utils/modelUtils';
 import { RowColorViewHelpers } from '~/helpers/rowColorViewHelpers';
 import { sanitizeColumnName } from '~/helpers';
@@ -60,6 +64,7 @@ import { ViewColumnsService } from '~/services/view-columns.service';
 import { ViewsService } from '~/services/views.service';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import Noco from '~/Noco';
+import { extractProps } from '~/helpers/extractProps';
 
 @Injectable()
 export class ImportService {
@@ -85,10 +90,8 @@ export class ImportService {
   ) {}
 
   async importUsers(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     context: NcContext,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    payload: {
+    _payload: {
       users: {
         email: string;
         display_name?: string;
@@ -96,7 +99,7 @@ export class ImportService {
       req: NcRequest;
     },
   ) {
-    throw new NotImplementedException();
+    NcError.get(context).notImplemented('Import users not implemented');
   }
 
   async importScripts(
@@ -123,6 +126,20 @@ export class ImportService {
   ) {
     return _param.idMap;
     //  create dashboards
+  }
+
+  async importWorkflows(
+    _context: NcContext,
+    _param: {
+      user: User;
+      baseId: string;
+      data: Array<any>;
+      req: NcRequest;
+      idMap: Map<string, string>;
+    },
+  ) {
+    return _param.idMap;
+    //  create workflows
   }
 
   async importPermissions(
@@ -172,6 +189,7 @@ export class ImportService {
       existingModel?: Model;
       importColumnIds?: string[];
       columnWebhookManager?: ColumnWebhookManager;
+      isDuplicateOperation?: boolean;
     },
   ) {
     const targetContext = param.targetContext ?? context;
@@ -261,9 +279,17 @@ export class ImportService {
     for (const data of param.data) {
       const modelData = data.model;
 
+      const isSystemTimestamp = (col: Column) =>
+        col.system &&
+        [UITypes.CreatedTime, UITypes.LastModifiedTime].includes(col.uidt);
+      // we exclude all virtual column except system CreatedTime and LastModifiedTime
+      // we also include cols marked as pk even if considered virtual
+      const eitherSystemTimestampOrNotVirtual = (col: Column) =>
+        isSystemTimestamp(col) || !isVirtualCol(col) || col.pk;
+
       const reducedColumnSet = modelData.columns.filter(
         (a) =>
-          !isVirtualCol(a) &&
+          eitherSystemTimestampOrNotVirtual(a) &&
           a.uidt !== UITypes.ForeignKey &&
           !isAIPromptCol(a) &&
           (param.importColumnIds
@@ -284,6 +310,7 @@ export class ImportService {
             columns: reducedColumnSet.map((a) => withoutId(a)),
           }),
           req: param.req,
+          isDuplicateOperation: param.isDuplicateOperation,
         }));
 
       idMap.set(modelData.id, table.id);
@@ -441,7 +468,8 @@ export class ImportService {
         if (col.colOptions) {
           if (
             isLinksOrLTAR(col) &&
-            new LinkToAnotherRecordColumn(col.colOptions).isCrossBaseLink()
+            (new LinkToAnotherRecordColumn(col.colOptions).isCrossBaseLink() ||
+              col?.meta?.custom)
           ) {
             continue;
           }
@@ -734,6 +762,20 @@ export class ImportService {
                           colOptions.fk_target_view_id &&
                           getIdOrExternalId(colOptions.fk_target_view_id),
                       },
+                      ...(parseProp(col.meta).custom
+                        ? {
+                            custom: await getCustomLinkParam(
+                              targetContext,
+                              {
+                                col: withoutId(col),
+                                colOptions,
+                                mapId: getIdOrExternalId,
+                              },
+                              ncMeta,
+                            ),
+                            is_custom_link: true,
+                          }
+                        : {}),
                     }) as any,
                     req: param.req,
                     user: param.user,
@@ -847,7 +889,7 @@ export class ImportService {
                 delete col.column_name;
 
                 const freshModelData = (await this.columnsService.columnAdd(
-                  context,
+                  targetContext,
                   {
                     tableId: table.id,
                     column: withoutId({
@@ -867,6 +909,20 @@ export class ImportService {
                           colOptions.fk_target_view_id &&
                           getIdOrExternalId(colOptions.fk_target_view_id),
                       },
+                      ...(parseProp(col.meta).custom
+                        ? {
+                            custom: await getCustomLinkParam(
+                              targetContext,
+                              {
+                                col: withoutId(col),
+                                colOptions,
+                                mapId: getIdOrExternalId,
+                              },
+                              ncMeta,
+                            ),
+                            is_custom_link: true,
+                          }
+                        : {}),
                     }) as any,
                     req: param.req,
                     user: param.user,
@@ -1053,6 +1109,20 @@ export class ImportService {
                           colOptions.fk_target_view_id &&
                           getIdOrExternalId(colOptions.fk_target_view_id),
                       },
+                      ...(parseProp(col.meta).custom
+                        ? {
+                            custom: await getCustomLinkParam(
+                              targetContext,
+                              {
+                                col: withoutId(col),
+                                colOptions,
+                                mapId: getIdOrExternalId,
+                              },
+                              ncMeta,
+                            ),
+                            is_custom_link: true,
+                          }
+                        : {}),
                     }) as any,
                     req: param.req,
                     user: param.user,
@@ -1474,19 +1544,22 @@ export class ImportService {
         col.uidt === UITypes.LastModifiedBy
       ) {
         if (col.system) continue;
-        const freshModelData = (await this.columnsService.columnAdd(context, {
-          tableId: getIdOrExternalId(getParentIdentifier(col.id)),
-          column: withoutId({
-            ...flatCol,
-            // provide column_name to avoid ajv error
-            // it will be ignored by the service
-            column_name: 'system',
-            system: false,
-          }) as any,
-          req: param.req,
-          user: param.user,
-          columnWebhookManager: param.columnWebhookManager,
-        })) as Model;
+        const freshModelData = (await this.columnsService.columnAdd(
+          targetContext,
+          {
+            tableId: getIdOrExternalId(getParentIdentifier(col.id)),
+            column: withoutId({
+              ...flatCol,
+              // provide column_name to avoid ajv error
+              // it will be ignored by the service
+              column_name: 'system',
+              system: false,
+            }) as any,
+            req: param.req,
+            user: param.user,
+            columnWebhookManager: param.columnWebhookManager,
+          },
+        )) as Model;
 
         for (const nColumn of freshModelData.columns) {
           if (nColumn.title === col.title) {
@@ -1551,6 +1624,7 @@ export class ImportService {
     elapsedTime(hrTime, 'create referenced columns', 'importModels');
 
     // create views
+    const vieProcessQueue = new PQueue({ concurrency: 3 });
     for (const data of param.data) {
       if (param.existingModel) break;
 
@@ -1561,149 +1635,154 @@ export class ImportService {
 
       // get default view
       await table.getViews(context);
-
       for (const view of viewsData) {
-        const viewData = withoutId({
-          ...view,
-          meta: RowColorViewHelpers.withContext(targetContext).mapMetaColumn({
-            meta: view.meta,
-            idMap: {
-              get: getIdOrExternalId,
-            } as any,
-          }),
-        });
-
-        const vw = await this.createView(
-          context,
-          idMap,
-          table,
-          viewData,
-          table.views,
-          param.user,
-          param.req,
-        );
-
-        if (!vw) continue;
-
-        idMap.set(view.id, vw.id);
-
-        // create filters
-        const filters = view.filter.children;
-
-        for (const fl of filters) {
-          const fg = await this.filtersService.filterCreate(targetContext, {
-            viewId: vw.id,
-            filter: withoutId({
-              ...fl,
-              fk_parent_column_id: getIdOrExternalId(fl.fk_parent_column_id),
-              fk_column_id: getIdOrExternalId(fl.fk_column_id),
-              fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
+        vieProcessQueue.add(async () => {
+          const viewData = withoutId({
+            ...view,
+            meta: RowColorViewHelpers.withContext(targetContext).mapMetaColumn({
+              meta: view.meta,
+              idMap: {
+                get: getIdOrExternalId,
+              } as any,
             }),
-            user: param.user,
-            req: param.req,
           });
 
-          idMap.set(fl.id, fg.id);
-        }
-
-        // create sorts
-        for (const sr of view.sorts) {
-          await this.sortsService.sortCreate(targetContext, {
-            viewId: vw.id,
-            sort: withoutId({
-              ...sr,
-              fk_column_id: getIdOrExternalId(sr.fk_column_id),
-            }),
-            req: param.req,
-          });
-        }
-
-        // update view columns
-        const vwColumns = await this.viewColumnsService.columnList(
-          targetContext,
-          {
-            viewId: vw.id,
-          },
-        );
-
-        for (const cl of vwColumns) {
-          const fcl = view.columns.find(
-            (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
+          const vw = await this.createView(
+            targetContext,
+            idMap,
+            table,
+            viewData,
+            table.views,
+            param.user,
+            param.req,
           );
-          if (!fcl) continue;
-          const calendarColProperties =
-            vw.type === ViewTypes.CALENDAR
-              ? {
-                  bold: fcl.bold,
-                  italic: fcl.italic,
-                  underline: fcl.underline,
-                }
-              : {};
-          await this.viewColumnsService.columnUpdate(targetContext, {
-            viewId: vw.id,
-            columnId: cl.id,
-            column: {
+          if (!vw) return;
+
+          idMap.set(view.id, vw.id);
+
+          // create filters
+          const filters = view.filter.children;
+
+          for (const fl of filters) {
+            const fg = await this.filtersService.filterCreate(targetContext, {
+              viewId: vw.id,
+              filter: withoutId({
+                ...fl,
+                fk_parent_column_id: getIdOrExternalId(fl.fk_parent_column_id),
+                fk_column_id: getIdOrExternalId(fl.fk_column_id),
+                fk_parent_id: getIdOrExternalId(fl.fk_parent_id),
+              }),
+              user: param.user,
+              req: param.req,
+            });
+
+            idMap.set(fl.id, fg.id);
+          }
+
+          // create sorts
+          for (const sr of view.sorts) {
+            await this.sortsService.sortCreate(targetContext, {
+              viewId: vw.id,
+              sort: withoutId({
+                ...sr,
+                fk_column_id: getIdOrExternalId(sr.fk_column_id),
+              }),
+              req: param.req,
+            });
+          }
+
+          // update view columns
+          const vwColumns = await this.viewColumnsService.columnList(
+            targetContext,
+            {
+              viewId: vw.id,
+            },
+          );
+
+          const vwColumnPayloads: Map<string, any> = new Map();
+
+          for (const cl of vwColumns) {
+            const fcl = view.columns.find(
+              (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
+            );
+            if (!fcl) continue;
+            const calendarColProperties =
+              vw.type === ViewTypes.CALENDAR
+                ? {
+                    bold: fcl.bold,
+                    italic: fcl.italic,
+                    underline: fcl.underline,
+                  }
+                : {};
+
+            vwColumnPayloads.set(cl.fk_column_id, {
+              id: cl.fk_column_id,
               show: fcl.show,
               order: fcl.order,
               ...calendarColProperties,
-            },
-            internal: true,
-            req: param.req,
-          });
-        }
+            });
+          }
 
-        switch (vw.type) {
-          case ViewTypes.GRID:
-            for (const cl of vwColumns) {
-              const fcl = view.columns.find(
-                (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
-              );
-              if (!fcl) continue;
-              const { fk_column_id, ...rest } = fcl;
-              await this.gridColumnsService.gridColumnUpdate(targetContext, {
-                gridViewColumnId: cl.id,
-                grid: {
+          switch (vw.type) {
+            case ViewTypes.GRID:
+              for (const cl of vwColumns) {
+                const fcl = view.columns.find(
+                  (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
+                );
+                if (!fcl) continue;
+                const { fk_column_id, ...rest } = fcl;
+                vwColumnPayloads.set(cl.fk_column_id, {
+                  ...vwColumnPayloads.get(cl.fk_column_id),
                   ...withoutNull(rest),
-                },
-                req: param.req,
-              });
-            }
-            break;
-          case ViewTypes.FORM:
-            for (const cl of vwColumns) {
-              const fcl = view.columns.find(
-                (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
-              );
-              if (!fcl) continue;
-              const { fk_column_id, ...rest } = fcl;
-              await this.formColumnsService.columnUpdate(targetContext, {
-                formViewColumnId: cl.id,
-                formViewColumn: {
+                });
+              }
+              break;
+            case ViewTypes.FORM:
+              for (const cl of vwColumns) {
+                const fcl = view.columns.find(
+                  (a) => a.fk_column_id === reverseGet(idMap, cl.fk_column_id),
+                );
+                if (!fcl) continue;
+                const { fk_column_id, ...rest } = fcl;
+                vwColumnPayloads.set(cl.fk_column_id, {
+                  ...vwColumnPayloads.get(cl.fk_column_id),
                   ...withoutNull(rest),
-                },
-                req: param.req,
-              });
-            }
-            break;
-          case ViewTypes.GALLERY:
-          case ViewTypes.KANBAN:
-          case ViewTypes.CALENDAR:
-            break;
-        }
+                });
+              }
+              break;
+            case ViewTypes.GALLERY:
+            case ViewTypes.KANBAN:
+            case ViewTypes.CALENDAR:
+              break;
+          }
 
-        // fix view order (view insert will always put it at the end)
-        if (view.order !== vw.order) {
-          await this.viewsService.viewUpdate(targetContext, {
+          await this.viewColumnsService.columnsUpdate(targetContext, {
             viewId: vw.id,
-            view: {
-              order: view.order,
-            },
-            user: param.user,
+            columns: Array.from(vwColumnPayloads.values()),
             req: param.req,
           });
-        }
+
+          // fix view order (view insert will always put it at the end)
+          if (view.order !== vw.order) {
+            await this.viewsService.viewUpdate(targetContext, {
+              viewId: vw.id,
+              view: {
+                order: view.order,
+              },
+              user: param.user,
+              req: param.req,
+            });
+          }
+
+          elapsedTime(
+            hrTime,
+            'view created for view: ' + vw.id,
+            'importModels',
+          );
+        });
       }
     }
+    await vieProcessQueue.onIdle();
 
     // create row color info
     for (const data of param.data) {
@@ -1797,13 +1876,22 @@ export class ImportService {
     user: UserType,
     req: NcRequest,
   ): Promise<View> {
-    if (vw.is_default) {
-      const view = views.find((a) => a.is_default);
+    if ((vw as any)?.is_default) {
+      const view = views?.[0];
       if (view) {
         // update meta and coloring mode to default view
-        if (vw.row_coloring_mode || Object.keys(vw.meta ?? {}).length > 0) {
-          await View.update(context, view.id, vw);
-        }
+        await View.update(
+          context,
+          view.id,
+          extractProps(vw, [
+            'title',
+            'show_system_fields',
+            'meta',
+            'expanded_record_mode',
+            'row_coloring_mode',
+            'attachment_mode_column_id',
+          ]),
+        );
         const gridData = withoutNull(vw.view);
         if (gridData) {
           await this.gridsService.gridViewUpdate(context, {
@@ -2084,7 +2172,9 @@ export class ImportService {
             elapsedTime(hrTime, `import links`, 'importBase');
           }
         } catch (e) {
-          throw new Error(e);
+          if (e instanceof NcError || e instanceof NcBaseError) throw e;
+          this.logger.error('Error Importing base', e);
+          NcError.get(context).internalServerError(e?.message);
         }
         break;
       }

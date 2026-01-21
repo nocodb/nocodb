@@ -103,6 +103,8 @@ const customSourceId = computed(() => {
   return sourceSelectorRef.value?.customSourceId || sourceId
 })
 
+const { clone } = useUndoRedo()
+
 const useForm = Form.useForm
 
 const defaultImportState = {
@@ -118,7 +120,7 @@ const defaultImportState = {
     importDataOnly: true,
   },
 }
-const importState = reactive(structuredClone(defaultImportState))
+const importState = reactive(clone(defaultImportState))
 
 const { token } = useGlobal()
 
@@ -170,7 +172,7 @@ watch(
   dialogShow,
   async (newValue) => {
     if (newValue) {
-      Object.assign(importState, structuredClone(defaultImportState))
+      Object.assign(importState, clone(defaultImportState))
       if (isWorkerSupport) {
         importWorker = await $importWorker?.get()
       }
@@ -771,7 +773,7 @@ watch(
                 <a-upload-dragger
                   v-model:file-list="importState.fileList"
                   name="file"
-                  class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-gray-200"
+                  class="nc-modern-drag-import nc-input-import !scrollbar-thin-dull !py-4 !transition !rounded-lg !border-nc-border-gray-medium"
                   :class="{
                     hidden: hideUpload,
                   }"
@@ -785,14 +787,16 @@ watch(
                   @change="handleChange"
                   @reject="rejectDrop"
                 >
-                  <component :is="iconMap.upload" class="w-6 h-6" />
+                  <component :is="iconMap.upload" class="w-6 h-6 text-nc-content-gray-subtle" />
 
-                  <p class="!mt-2 text-[13px]">
+                  <p class="!mt-2 text-[13px] text-nc-content-gray-subtle">
                     {{ $t('msg.dropYourDocHere') }} {{ $t('general.or').toLowerCase() }}
                     <span class="text-nc-content-brand hover:underline">{{ $t('labels.browseFiles') }}</span>
                   </p>
 
-                  <p class="!mt-3 text-[13px] text-gray-500">{{ $t('general.supported') }}: {{ importMeta.acceptTypes }}</p>
+                  <p class="!mt-3 text-[13px] text-nc-content-gray-muted">
+                    {{ $t('general.supported') }}: {{ importMeta.acceptTypes }}
+                  </p>
 
                   <p class="ant-upload-hint">
                     {{ importMeta.uploadHint }}
@@ -994,13 +998,9 @@ watch(
                         @update:model-value="handleJsonChange($event)"
                       />
                     </template>
+
                     <template #fallback>
-                      <div class="!h-full w-full flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-                        <div class="text-center">
-                          <a-spin size="large" />
-                          <div class="mt-4 text-gray-600 dark:text-gray-400">Loading Monaco Editor...</div>
-                        </div>
-                      </div>
+                      <MonacoLoading class="!h-full min-h-30" />
                     </template>
                   </Suspense>
                 </div>
@@ -1192,7 +1192,7 @@ span:has(> .nc-modern-drag-import) {
   }
 }
 :deep(.nc-modern-drag-import:not(.ant-upload-disabled)) {
-  @apply bg-white hover:bg-gray-50;
+  @apply bg-nc-bg-default hover:bg-nc-bg-gray-extralight;
 }
 
 :deep(.nc-modern-drag-import.hidden + .ant-upload-list) {
@@ -1221,7 +1221,7 @@ span:has(> .nc-modern-drag-import) {
 
   .tab-title,
   :deep(.ant-tabs-tab-btn) {
-    @apply px-2 text-nc-content-gray-subtle2 rounded-md hover:bg-gray-100 transition-colors;
+    @apply px-2 text-nc-content-gray-subtle2 rounded-md hover:bg-nc-bg-gray-light transition-colors;
     span {
       @apply text-small !leading-[24px];
     }

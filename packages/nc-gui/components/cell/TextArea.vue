@@ -50,6 +50,7 @@ const canvasCellEventData = inject(CanvasCellEventDataInj, reactive<CanvasCellEv
 const isCanvasInjected = inject(IsCanvasInjectionInj, false)
 const clientMousePosition = inject(ClientMousePositionInj, reactive(clientMousePositionDefaultValue))
 const isUnderLookup = inject(IsUnderLookupInj, ref(false))
+const isUnderLTAR = inject(IsUnderLTARInj, ref(false))
 const canvasSelectCell = inject(CanvasSelectCellInj, null)
 
 const { showNull, user } = useGlobal()
@@ -331,7 +332,17 @@ const onCellEvent = (event?: Event, isCanvasEvent?: boolean) => {
 onMounted(() => {
   cellEventHook?.on(onCellEvent)
 
-  if (isUnderLookup.value || !isCanvasInjected || !clientMousePosition || isExpandedFormOpen.value || isEditColumn.value) return
+  if (
+    isUnderLookup.value ||
+    isUnderLTAR.value ||
+    !isCanvasInjected ||
+    !clientMousePosition ||
+    isExpandedFormOpen.value ||
+    isEditColumn.value
+  ) {
+    return
+  }
+
   const position = { clientX: clientMousePosition.clientX, clientY: clientMousePosition.clientY + 2 }
   forcedNextTick(() => {
     if (onCellEvent(canvasCellEventData.event, true)) return
@@ -476,7 +487,7 @@ useResizeObserver(inputWrapperRef, () => {
           <CellRichText
             v-model:value="vModel"
             :class="{
-              'border-t-1 border-gray-100 allow-vertical-resize': !readOnly,
+              'border-t-1 border-nc-border-gray-light allow-vertical-resize': !readOnly,
             }"
             :autofocus="false"
             show-menu
@@ -526,7 +537,7 @@ useResizeObserver(inputWrapperRef, () => {
       <div
         v-else-if="
           (editEnabled && !isVisible) ||
-          isForm ||
+          (isForm && !isUnderLTAR) ||
           (isUnderFormula && isVisible) ||
           (isCanvasInjected && isUnderFormula) ||
           (isUnderFormula && isExpandedFormOpen && !isUnderLookup)
@@ -540,7 +551,7 @@ useResizeObserver(inputWrapperRef, () => {
           ref="textAreaRef"
           v-model="vModel"
           :rows="isForm ? 5 : 4"
-          class="h-full w-full !outline-none nc-scrollbar-thin"
+          class="nc-inline-textarea h-full w-full !outline-none nc-scrollbar-thin"
           :class="{
             'p-2': editEnabled || isUnderFormula,
             'py-1 h-full': isForm,
@@ -638,7 +649,7 @@ useResizeObserver(inputWrapperRef, () => {
       <CellClampedText
         v-else-if="rowHeight"
         :value="vModel"
-        :lines="rowHeightTruncateLines(localRowHeight)"
+        :lines="isUnderLookup && (isGallery || isKanban) && !isExpandedFormOpen ? 1 : rowHeightTruncateLines(localRowHeight)"
         class="nc-text-area-clamped-text"
         :style="{
           'word-break': 'break-word',
@@ -687,7 +698,7 @@ useResizeObserver(inputWrapperRef, () => {
             <template #icon>
               <GeneralIcon
                 icon="refresh"
-                class="transform group-hover:(!text-gray-800) text-gray-700 w-3 h-3"
+                class="transform group-hover:(!text-nc-content-gray) text-nc-content-inverted-secondary w-3 h-3"
                 :class="{ 'animate-infinite animate-spin': isAiGenerating }"
               />
             </template>
@@ -701,7 +712,10 @@ useResizeObserver(inputWrapperRef, () => {
             class="nc-textarea-expand !p-0 !w-5 !h-5 !min-w-[fit-content]"
             @click.stop="onExpand"
           >
-            <component :is="iconMap.maximize" class="transform group-hover:(!text-gray-800) text-gray-700 w-3 h-3" />
+            <component
+              :is="iconMap.maximize"
+              class="transform group-hover:(!text-nc-content-gray) text-nc-content-inverted-secondary w-3 h-3"
+            />
           </NcButton>
         </NcTooltip>
       </div>
@@ -728,7 +742,7 @@ useResizeObserver(inputWrapperRef, () => {
       >
         <div
           v-if="column"
-          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-gray-100 overflow-hidden"
+          class="flex flex-row gap-x-1 items-center font-medium pl-3 pb-2.5 pt-3 border-b-1 border-nc-border-gray-light overflow-hidden"
           :class="{
             'select-none': isDragging,
             'cursor-move': !isEditColumn,
@@ -816,7 +830,11 @@ useResizeObserver(inputWrapperRef, () => {
             </NcButton>
           </template>
         </div>
-        <div v-if="props.isAi && props.aiMeta?.isStale && !readOnly" ref="aiWarningRef" class="border-b-1 border-gray-100">
+        <div
+          v-if="props.isAi && props.aiMeta?.isStale && !readOnly"
+          ref="aiWarningRef"
+          class="border-b-1 border-nc-border-gray-light"
+        >
           <div class="flex items-center p-4 bg-nc-bg-purple-light gap-4">
             <GeneralIcon icon="alertTriangleSolid" class="text-nc-content-purple-medium h-6 w-6 flex-none" />
             <div class="flex flex-col">
@@ -832,7 +850,7 @@ useResizeObserver(inputWrapperRef, () => {
           <a-textarea
             ref="inputRef"
             v-model:value="vModel"
-            class="nc-text-area-expanded !py-1 !px-3 !text-black !transition-none !cursor-text !min-h-[210px] !rounded-lg disabled:!bg-nc-bg-gray-extralight nc-longtext-scrollbar"
+            class="nc-text-area-expanded !py-1 !px-3 !text-nc-content-gray-extreme !transition-none !cursor-text !min-h-[210px] !rounded-lg disabled:!bg-nc-bg-gray-extralight nc-longtext-scrollbar"
             :class="{
               '!focus:border-nc-border-brand': !props.isAi,
               '!hover:border-nc-border-purple !focus:border-nc-border-purple': props.isAi,
@@ -857,6 +875,12 @@ useResizeObserver(inputWrapperRef, () => {
 </template>
 
 <style lang="scss" scoped>
+.nc-inline-textarea {
+  &:disabled {
+    @apply !bg-transparent;
+  }
+}
+
 textarea:focus {
   box-shadow: none;
 }
@@ -873,7 +897,7 @@ textarea:focus {
   }
 }
 .nc-longtext-scrollbar {
-  @apply scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent;
+  @apply nc-scrollbar-thin;
 }
 
 .nc-readonly-rich-text-wrapper {
@@ -947,7 +971,7 @@ textarea:focus {
       }
 
       .nc-longtext-scrollbar {
-        @apply scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent;
+        @apply nc-scrollbar-thin;
       }
 
       .expanded-cell-input-ai {

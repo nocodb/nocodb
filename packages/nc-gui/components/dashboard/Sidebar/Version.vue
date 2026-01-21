@@ -4,7 +4,7 @@ const { appInfo } = useGlobal()
 
 <template>
   <div>
-    <div class="flex items-center text-xs text-gray-400 px-3 py-1">
+    <div class="flex items-center text-xs text-nc-content-gray-disabled px-3 py-1">
       <span>Version {{ appInfo.version }}</span>
     </div>
   </div>

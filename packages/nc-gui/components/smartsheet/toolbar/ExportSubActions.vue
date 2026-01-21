@@ -5,6 +5,8 @@ const { $api, $poller } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
+const meta = inject(MetaInj)!
+
 const isPublicView = inject(IsPublicInj, ref(false))
 
 const selectedView = inject(ActiveViewInj)!
@@ -43,11 +45,33 @@ const handleDownload = async (url: string) => {
 
 const isExporting = ref(false)
 
+const { sorts, nestedFilters, isLocked } = useSmartsheetStoreOrThrow()
+const { isUIAllowed } = useRoles()
+
 const exportFile = async (exportType: ExportTypes) => {
   try {
     if (isExporting.value || !selectedView.value.id) return
 
     isExporting.value = true
+
+    const filenameTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
+
+    // Construct extra params for sort and filter
+    // Construct extra params for sort and filter
+    const extraParams = {
+      ...(!isUIAllowed('sortSync') || isLocked.value
+        ? {
+            sortArrJson: stringifyFilterOrSortArr(sorts.value.filter((s: any) => !s.id)),
+          }
+        : {}),
+      ...(!isUIAllowed('filterSync') || isLocked.value
+        ? {
+            filterArrJson: stringifyFilterOrSortArr(nestedFilters.value.filter((f: any) => !f.id)),
+          }
+        : {}),
+    }
+
+    const options = { filenameTimeZone, ...extraParams }
 
     let jobData: { id: string }
 
@@ -61,9 +85,20 @@ const exportFile = async (exportType: ExportTypes) => {
         },
       }
 
-      jobData = await $api.public.exportData(selectedView.value.uuid, exportType, {}, params)
+      jobData = await $api.public.exportData(selectedView.value.uuid, exportType, options, params)
     } else {
-      jobData = await $api.export.data(selectedView.value.id, exportType, {})
+      jobData = await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'dataExport',
+          viewId: selectedView.value.id as string,
+        },
+        {
+          options,
+          exportAs: exportType,
+        },
+      )
     }
 
     message.info('Preparing CSV for download...')

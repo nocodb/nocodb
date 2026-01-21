@@ -53,11 +53,11 @@ const relationMeta = computed(() => {
   <div
     class="flex-none flex rounded-md gap-1 items-center p-1 max-h-7"
     :class="{
-      'bg-gray-200 text-gray-600': !linkedRecords,
-      'bg-orange-100 text-orange-700': relation === 'hm' && linkedRecords,
-      'bg-pink-100 text-pink-700': relation === 'mm' && linkedRecords,
-      'bg-blue-100 text-blue-700': relation === 'bt' && linkedRecords,
-      'bg-purple-100 text-purple-700': relation === 'oo' && linkedRecords,
+      'bg-nc-bg-gray-medium text-nc-content-gray-subtle2': !linkedRecords,
+      'bg-nc-bg-orange-dark text-nc-content-orange-dark': relation === 'hm' && linkedRecords,
+      'bg-nc-bg-pink-dark text-nc-content-pink-dark': relation === 'mm' && linkedRecords,
+      'bg-nc-bg-blue-dark text-nc-content-blue-dark': relation === 'bt' && linkedRecords,
+      'bg-nc-bg-purple-dark text-nc-content-purple-dark': relation === 'oo' && linkedRecords,
     }"
   >
     <NcTooltip class="z-10 flex" placement="bottom">
@@ -80,10 +80,10 @@ const relationMeta = computed(() => {
         :is="relationMeta.icon"
         class="nc-relation-icon flex-none w-5 h-5 p-1 rounded-md"
         :class="{
-          '!bg-orange-500': relation === 'hm',
-          '!bg-pink-500': relation === 'mm',
-          '!bg-purple-500 one-to-one': relation === 'oo',
-          '!bg-blue-500': relation === 'bt',
+          '!bg-nc-orange-500': relation === 'hm',
+          '!bg-nc-pink-500': relation === 'mm',
+          '!bg-nc-purple-500 one-to-one': relation === 'oo',
+          '!bg-nc-blue-500': relation === 'bt',
         }"
       />
     </NcTooltip>
@@ -97,6 +97,6 @@ const relationMeta = computed(() => {
 
 <style lang="scss" scoped>
 :deep(.nc-relation-icon.one-to-one path) {
-  @apply stroke-purple-50;
+  @apply stroke-nc-purple-50;
 }
 </style>

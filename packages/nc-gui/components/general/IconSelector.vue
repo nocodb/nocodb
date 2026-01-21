@@ -11,8 +11,10 @@ interface Props {
   iconType: IconType | string
   imageCropperData?: Omit<ImageCropperProps, 'showCropper'>
   tabOrder?: IconType[]
+  hiddenTabs?: IconType[]
   defaultActiveTab?: IconType
   onBeforeTabChange?: (iconsType: IconType) => boolean
+  defaultSlotWrapperClass?: string
 }
 
 interface TabItemType {
@@ -23,8 +25,10 @@ interface TabItemType {
 
 const props = withDefaults(defineProps<Props>(), {
   tabOrder: () => [IconType.ICON, IconType.IMAGE, IconType.EMOJI],
+  hiddenTabs: () => [],
   defaultActiveTab: IconType.ICON,
   onBeforeTabChange: () => true,
+  defaultSlotWrapperClass: '',
 })
 
 const emits = defineEmits(['update:icon', 'update:iconType', 'update:imageCropperData', 'submit'])
@@ -44,6 +48,8 @@ const { isMobileMode } = useGlobal()
 const { getPossibleAttachmentSrc } = useAttachment()
 
 const isOpen = ref<boolean>(false)
+
+const triggerRef = ref<HTMLElement | null>(null)
 
 const isLoading = ref<boolean>(false)
 
@@ -252,7 +258,9 @@ const tabs = computed(() => {
       value: IconType.EMOJI,
       icon: 'ncSmile',
     },
-  ].sort((a, b) => props.tabOrder.indexOf(a.value) - props.tabOrder.indexOf(b.value)) as TabItemType[]
+  ]
+    .filter((tab) => !props.hiddenTabs.includes(tab.value))
+    .sort((a, b) => props.tabOrder.indexOf(a.value) - props.tabOrder.indexOf(b.value)) as TabItemType[]
 })
 
 watch(showImageCropper, (newValue) => {
@@ -270,6 +278,10 @@ watch(isOpen, (newValue) => {
     nextTick(() => {
       focusInput()
     })
+  } else {
+    nextTick(() => {
+      triggerRef.value?.focus()
+    })
   }
 })
 </script>
@@ -283,7 +295,16 @@ watch(isOpen, (newValue) => {
       class="nc-icon-selector"
       @visible-change="onVisibilityChange"
     >
-      <slot name="default" :is-open="isOpen" :icon="vIcon" :icon-type="vIconType"> </slot>
+      <div :class="defaultSlotWrapperClass">
+        <button
+          ref="triggerRef"
+          type="button"
+          tabindex="-1"
+          class="sr-only outline-none ring-0 shadow-none focus:(outline-none shadow-none)"
+        ></button>
+
+        <slot name="default" :is-open="isOpen" :icon="vIcon" :icon-type="vIconType"> </slot>
+      </div>
       <template #overlay>
         <div class="pt-2 h-[320px]">
           <NcTabs v-model:active-key="activeTab" class="nc-icon-selector-dropdown-tabs h-full">
@@ -483,6 +504,11 @@ watch(isOpen, (newValue) => {
 
 .nc-icon-selector-emoji-picker.emoji-mart {
   @apply !w-full md:!w-107.5 !h-full !border-none bg-transparent rounded-t-none rounded-b-lg;
+
+  .emoji-mart-category .emoji-mart-emoji:hover:before,
+  .emoji-mart-emoji-selected:before {
+    @apply bg-nc-bg-gray-medium;
+  }
 
   span.emoji-type-native {
     @apply cursor-pointer;

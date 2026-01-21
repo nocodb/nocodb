@@ -168,7 +168,7 @@ export const composeColumnsForFilter = async ({
   getMeta,
 }: {
   rootMeta: TableType
-  getMeta: (metaIdOrTitle: string) => Promise<TableType | null>
+  getMeta: (baseId: string, metaIdOrTitle: string) => Promise<TableType | null>
 }) => {
   const result: ColumnTypeForFilter[] = []
   for (const column of rootMeta.columns!) {
@@ -182,7 +182,7 @@ export const composeColumnsForFilter = async ({
     // include the column only if all only if all relations are bt
     while (nextCol && nextCol.uidt === UITypes.Lookup) {
       // extract the relation column meta
-      const lookupRelation: ColumnType | undefined = (await getMeta(nextCol.fk_model_id!))?.columns?.find(
+      const lookupRelation: ColumnType | undefined = (await getMeta(rootMeta.base_id!, nextCol.fk_model_id!))?.columns?.find(
         (c) => c.id === (nextCol!.colOptions as LookupType).fk_relation_column_id,
       )
       // this is less likely to happen but if relation column is not found then break the loop
@@ -191,6 +191,7 @@ export const composeColumnsForFilter = async ({
       }
 
       const relatedTableMeta: TableType | null = await getMeta(
+        rootMeta.base_id!,
         (lookupRelation?.colOptions as LinkToAnotherRecordType).fk_related_model_id!,
       )
       nextCol = relatedTableMeta?.columns?.find((c) => c.id === (nextCol!.colOptions as LookupType).fk_lookup_column_id)
@@ -239,8 +240,21 @@ export const adjustFilterWhenColumnChange = ({
     } else {
       filter.comparison_sub_op = 'exactDate'
     }
+
+    // Initialize filter.meta if it doesn't exist
+    if (!filter.meta) {
+      filter.meta = {}
+    }
+    if (!filter.meta.timezone) {
+      filter.meta.timezone = getTimezoneFromColumn(column)
+    }
   } else {
     // reset
     filter.comparison_sub_op = null
   }
+}
+
+export function getTimezoneFromColumn(col: ColumnType, defaultValue = Intl.DateTimeFormat().resolvedOptions().timeZone) {
+  const columnMeta = parseProp(col.meta)
+  return columnMeta.timezone || defaultValue
 }

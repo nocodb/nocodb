@@ -8,6 +8,7 @@ import {
   updateColumn2,
 } from '../../factory/column';
 import { initInitialModel } from '../initModel';
+import { isSqlite } from '../../init/db';
 
 function formulaErrorTests() {
   let _setup;
@@ -78,7 +79,7 @@ function formulaErrorTests() {
       },
     });
     expect(resp.status).to.eq(400);
-    expect(resp.body.error).to.eq('FORMULA_CIRCULAR_REF_ERROR');
+    expect(resp.body.error).to.eq('ERR_CIRCULAR_REF_IN_FORMULA');
     expect(resp.body.message).to.satisfy((msg) =>
       msg.startsWith(`Detected circular ref for column `),
     );
@@ -129,7 +130,7 @@ function formulaErrorTests() {
       },
     });
     expect(resp.status).to.eq(400);
-    expect(resp.body.error).to.eq('FORMULA_CIRCULAR_REF_ERROR');
+    expect(resp.body.error).to.eq('ERR_CIRCULAR_REF_IN_FORMULA');
     expect(resp.body.message).to.satisfy((msg) =>
       msg.startsWith(`Detected circular ref for column `),
     );
@@ -179,10 +180,116 @@ function formulaErrorTests() {
     });
 
     expect(resp.status).to.eq(400);
-    expect(resp.body.error).to.eq('FORMULA_CIRCULAR_REF_ERROR');
+    expect(resp.body.error).to.eq('ERR_CIRCULAR_REF_IN_FORMULA');
     expect(resp.body.message).to.satisfy((msg) =>
       msg.startsWith(`Detected circular ref for column `),
     );
+  });
+
+  describe(`long formula`, () => {
+    beforeEach(async () => {
+      if (isSqlite(_context)) return;
+
+      const longFormula = 'CONCAT("' + 'A'.repeat(1000) + '", "A")';
+      await createColumn(
+        _context,
+        _tables.table1,
+        {
+          title: 'long_fcol1',
+          uidt: UITypes.Formula,
+          formula: longFormula,
+          formula_raw: longFormula,
+        },
+        {
+          throwError: true,
+          responseAsError: true,
+        },
+      );
+      const longFormula2 = 'CONCAT(' + '{long_fcol1},'.repeat(50) + ' "A")';
+      await createColumn(
+        _context,
+        _tables.table1,
+        {
+          title: 'long_fcol2',
+          uidt: UITypes.Formula,
+          formula: longFormula2,
+          formula_raw: longFormula2,
+        },
+        {
+          throwError: true,
+          responseAsError: true,
+        },
+      );
+    });
+    it(`will create a formula longer than 500k characters`, async () => {
+      if (isSqlite(_context)) return;
+
+      const longFormula = 'CONCAT(' + '{long_fcol2},'.repeat(20) + ' "A")';
+      try {
+        await createColumn(
+          _context,
+          _tables.table1,
+          {
+            title: 'longFormulaColumn',
+            uidt: UITypes.Formula,
+            formula: longFormula,
+            formula_raw: longFormula,
+          },
+          {
+            throwError: true,
+            responseAsError: true,
+          },
+        );
+        // If no error is thrown, fail the test
+        expect.fail('Expected formula creation to fail due to length limit');
+      } catch (ex) {
+        expect(ex.body.message).to.satisfy((msg) =>
+          msg.startsWith('Formula length too long for '),
+        );
+      }
+    });
+
+    it(`will update a formula longer than 500k characters`, async () => {
+      if (isSqlite(_context)) return;
+
+      const longFormula = 'CONCAT(' + '{long_fcol2},'.repeat(20) + ' "A")';
+      try {
+        const createdFormulaColumn = await createColumn(
+          _context,
+          _tables.table1,
+          {
+            title: 'longFormulaColumn',
+            uidt: UITypes.Formula,
+            formula: 'CONCAT("A", "1A")',
+            formula_raw: 'CONCAT("A", "1A")',
+          },
+          {
+            throwError: true,
+            responseAsError: true,
+          },
+        );
+
+        const updateResponse = await updateColumn2(_context, {
+          columnId: createdFormulaColumn.id,
+          baseId: _ctx.base_id,
+          attr: {
+            title: 'longFormulaColumn',
+            options: {
+              formula: longFormula,
+            },
+          },
+        });
+        if (updateResponse.statusCode >= 400) {
+          throw updateResponse;
+        }
+        // If no error is thrown, fail the test
+        expect.fail('Expected formula creation to fail due to length limit');
+      } catch (ex) {
+        expect(ex.body.message).to.satisfy((msg) =>
+          msg.startsWith('Formula length too long for '),
+        );
+      }
+    });
   });
 }
 

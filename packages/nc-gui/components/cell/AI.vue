@@ -200,12 +200,11 @@ const isDisabledAiButton = computed(() => {
   }
 
   &:focus-within {
-    @apply outline-none ring-0;
-    box-shadow: 0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px var(--color-purple-500);
+    @apply outline-none ring-0 shadow-focus;
   }
 
   &[disabled] {
-    @apply !bg-gray-100 opacity-50;
+    @apply !bg-nc-bg-gray-light opacity-50;
   }
 }
 </style>

@@ -10,7 +10,8 @@ export const JsonCellRenderer: CellRenderer = {
       height,
       pv,
       padding,
-      textColor = '#4a5268',
+      textColor = themeV4Colors.gray['600'],
+      getColor,
       mousePosition,
       spriteLoader,
       selected,
@@ -29,11 +30,14 @@ export const JsonCellRenderer: CellRenderer = {
           size: 12,
           xOffset: 4,
           yOffset: 4,
+          color: getColor(themeV4Colors.gray['700']),
         },
         mousePosition,
         spriteLoader,
         icon: 'maximize',
-        background: 'white',
+        background: getColor(themeV4Colors.base.white),
+        borderColor: getColor(themeV4Colors.gray['200']),
+        hoveredBackground: getColor(themeV4Colors.gray['100']),
         setCursor,
       })
 
@@ -72,7 +76,7 @@ export const JsonCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: pv ? '#3366FF' : textColor,
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
       })
 

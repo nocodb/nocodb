@@ -13,6 +13,8 @@ const isVisibleDefaultValueInput = useVModel(props, 'isVisibleDefaultValueInput'
 
 const { isAiModeFieldModal } = usePredictFields()
 
+const { isSyncedField } = useColumnCreateStoreOrThrow()
+
 const defaultValueWrapperRef = ref<HTMLDivElement>()
 
 const cdfValue = computed({
@@ -45,33 +47,50 @@ const handleShowInput = () => {
 
 <template>
   <div v-if="!isVisibleDefaultValueInput">
-    <NcButton
-      size="small"
-      type="text"
-      class="text-gray-700"
-      data-testid="nc-show-default-value-btn"
-      @click.stop="handleShowInput"
-    >
-      <div class="flex items-center gap-2">
-        <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
-        <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue').toLowerCase() }}</span>
-      </div>
-    </NcButton>
+    <NcTooltip :disabled="!vModel.unique" placement="right">
+      <template #title>
+        <div class="max-w-xs">
+          Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value
+        </div>
+      </template>
+      <NcButton
+        size="small"
+        type="text"
+        :disabled="isSyncedField || vModel.unique"
+        class="text-nc-content-gray-subtle"
+        data-testid="nc-show-default-value-btn"
+        @click.stop="handleShowInput"
+      >
+        <div class="flex items-center gap-2">
+          <GeneralIcon icon="plus" class="flex-none h-4 w-4" />
+          <span>{{ $t('general.set') }} {{ $t('placeholder.defaultValue').toLowerCase() }}</span>
+        </div>
+      </NcButton>
+    </NcTooltip>
   </div>
 
   <div v-else>
     <div class="w-full flex items-center gap-2 mb-2">
-      <div class="text-small leading-[18px] flex-1 text-gray-700">{{ $t('placeholder.defaultValue') }}</div>
+      <div class="text-small leading-[18px] flex-1 text-nc-content-gray-subtle">{{ $t('placeholder.defaultValue') }}</div>
     </div>
     <div class="flex flex-row gap-2">
       <div
         ref="defaultValueWrapperRef"
-        class="nc-default-value-wrapper nc-rich-long-text-default-value border-1 relative pt-7 flex items-center w-full px-0 border-gray-300 rounded-md max-h-70 pb-1 focus-within:(border-brand-500 shadow-selected) transition-all duration-0.3s"
+        class="nc-default-value-wrapper nc-rich-long-text-default-value border-1 relative pt-7 flex items-center w-full px-0 border-nc-border-gray-dark rounded-md max-h-70 pb-1 focus-within:(border-nc-border-brand shadow-selected) transition-all duration-0.3s"
         :class="{
-          'bg-white': isAiModeFieldModal,
+          'bg-nc-bg-default': isAiModeFieldModal,
+          'bg-nc-bg-gray-light opacity-60 pointer-events-none': vModel.unique,
         }"
       >
-        <LazyCellRichText v-model:value="cdfValue" class="border-t-1 border-gray-100 !max-h-80 !min-h-30" show-menu />
+        <LazyCellRichText
+          v-model:value="cdfValue"
+          class="border-t-1 border-nc-border-gray-light !max-h-80 !min-h-30 text-nc-content-gray-subtle2"
+          :class="{
+            'pointer-events-none': vModel.unique,
+          }"
+          :disabled="vModel.unique"
+          show-menu
+        />
       </div>
     </div>
   </div>
@@ -91,7 +110,7 @@ const handleShowInput = () => {
         }
       }
       .divider {
-        @apply !m-0 !h-7 border-gray-100;
+        @apply !m-0 !h-7 border-nc-border-gray-light;
       }
     }
   }

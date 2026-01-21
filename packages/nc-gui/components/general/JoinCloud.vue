@@ -3,6 +3,8 @@ import type { CloudFeaturesType } from '~/lib/types'
 
 const { $api } = useNuxtApp()
 
+const { isDark } = useTheme()
+
 const { cloudFeatures: _cloudFeatures } = useEeConfig()
 
 const isLoading = ref(false)
@@ -67,22 +69,24 @@ const onMouseover = async () => {
 </script>
 
 <template>
-  <div class="flex flex-row items-center w-full bg-white rounded-lg border-1 border-brand-500 shadow-sm mb-0.5 overflow-hidden">
+  <div
+    class="flex flex-row items-center w-full bg-bg-nc-bg-default rounded-lg border-1 border-nc-border-brand shadow-sm mb-0.5 overflow-hidden"
+  >
     <a
       v-e="['c:navbar:join-cloud']"
-      class="flex flex-grow !no-underline items-center justify-center border-r-1 h-full hover:bg-gray-100"
+      class="flex flex-grow !no-underline items-center justify-center border-r-1 h-full hover:bg-nc-bg-gray-light"
       href="https://app.nocodb.com/#/signin?utm_source=OSS&utm_medium=OSS&utm_campaign=OSS&utm_content=OSS"
     >
-      <div class="px-1 text-gray-500 prose-sm" style="line-height: 1.3125rem">Try NocoDB Cloud</div>
+      <div class="px-1 text-nc-content-gray-muted prose-sm" style="line-height: 1.3125rem">Try NocoDB Cloud</div>
     </a>
 
     <a-tooltip arrow-point-at-center overlay-class-name="nc-join-cloud-tooltip">
       <NcButton type="text" size="small" class="!rounded-l-none !rounded-r-lg" @mouseover="onMouseover">
-        <GeneralIcon icon="help" class="!text-lg -mt-0.5 text-gray-700" />
+        <GeneralIcon icon="help" class="!text-lg -mt-0.5 text-nc-content-gray-subtle" />
       </NcButton>
       <template #title>
         <div class="w-70.5 bg-transparent overflow-hidden rounded-2xl shadow border-1 border-nc-border-gray-medium">
-          <div class="p-4 bg-white gap-4 inline-flex flex-col w-full">
+          <div class="p-4 bg-nc-bg-default gap-4 inline-flex flex-col w-full">
             <div class="flex items-center gap-3">
               <div class="text-base text-nc-content-gray-emphasis font-bold flex-1">NocoDB Cloud</div>
               <div class="text-caption px-1 rounded-md bg-nc-bg-brand text-nc-content-brand">Usage based</div>
@@ -104,7 +108,7 @@ const onMouseover = async () => {
                 <span class="relative">
                   {{ feature.Title }}
 
-                  <div v-if="feature.Highlight" class="nc-plan-description-gradient"></div>
+                  <div v-if="feature.Highlight" class="nc-plan-description-gradient" :class="{ 'nc-dark': isDark }"></div>
                 </span>
                 <span v-if="feature['Coming Soon']" class="flex-1 inline-flex justify-end">
                   <span class="inline-block px-1 rounded-md bg-nc-bg-gray-medium text-sm text-nc-content-gray-subtle2">
@@ -138,6 +142,15 @@ const onMouseover = async () => {
 
   background: linear-gradient(90deg, rgba(255, 255, 255, 0.2) 0%, rgba(252, 58, 198, 0.2) 47.08%, rgba(255, 255, 255, 0.2) 100%);
   filter: blur(2px);
+
+  &.nc-dark {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.06) 0%,
+      rgba(252, 58, 198, 0.1) 47.08%,
+      rgba(255, 255, 255, 0.06) 100%
+    );
+  }
 }
 </style>
 
@@ -149,7 +162,7 @@ const onMouseover = async () => {
     @apply !bg-transparent !p-0 rounded-2xl;
   }
   .ant-tooltip-arrow-content {
-    @apply !bg-white;
+    @apply !bg-nc-bg-default;
   }
 }
 </style>

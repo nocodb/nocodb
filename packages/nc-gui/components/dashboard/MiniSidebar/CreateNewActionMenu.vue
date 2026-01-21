@@ -13,7 +13,9 @@ const tablesStore = useTablesStore()
 const { openTableCreateDialog: _openTableCreateDialog } = tablesStore
 const { activeTable } = storeToRefs(tablesStore)
 
-const { openNewScriptModal } = useAutomationStore()
+const { openNewScriptModal } = useScriptStore()
+
+const { openNewWorkflowModal } = useWorkflowStore()
 
 const { openNewDashboardModal } = useDashboardStore()
 
@@ -64,7 +66,8 @@ async function onOpenModal({
   isViewListLoading.value = true
   try {
     await loadViews({
-      tableId: activeTable.value.id!,
+      tableId: activeTable.value?.id as string,
+      baseId: base.value.id!,
     })
   } catch (e) {
     console.log('error', e)
@@ -120,10 +123,16 @@ const hasViewCreateAccess = computed(() => {
   return isUIAllowed('viewCreateOrEdit')
 })
 
-const hasAutomationCreateAccess = computed(() => {
+const hasScriptCreateAccess = computed(() => {
   if (!base.value || !isBaseHomePage.value) return true
 
   return isUIAllowed('scriptCreateOrEdit')
+})
+
+const hasWorkflowCreateAccess = computed(() => {
+  if (!base.value || !isBaseHomePage.value) return true
+
+  return isUIAllowed('workflowCreateOrEdit')
 })
 
 const hasDashboardCreateAccess = computed(() => {
@@ -259,20 +268,38 @@ const hasDashboardCreateAccess = computed(() => {
             <NcDivider />
             <NcTooltip
               :title="
-                hasAutomationCreateAccess
-                  ? $t('tooltip.navigateToBaseToCreateAutomation')
-                  : $t('tooltip.youDontHaveAccessToCreateNewAutomation')
+                hasScriptCreateAccess
+                  ? $t('tooltip.navigateToBaseToCreateScript')
+                  : $t('tooltip.youDontHaveAccessToCreateNewScript')
               "
-              :disabled="!(!isBaseHomePage || !hasAutomationCreateAccess)"
+              :disabled="!(!isBaseHomePage || !hasScriptCreateAccess)"
               placement="right"
             >
               <NcMenuItem
                 data-testid="mini-sidebar--script-create"
-                :disabled="!isBaseHomePage || !hasAutomationCreateAccess"
+                :disabled="!isBaseHomePage || !hasScriptCreateAccess"
                 @click="openNewScriptModal({ baseId: openedProject?.id })"
               >
                 <GeneralIcon icon="ncScript" />
                 {{ $t('general.script') }}
+              </NcMenuItem>
+            </NcTooltip>
+            <NcTooltip
+              :title="
+                hasWorkflowCreateAccess
+                  ? $t('tooltip.navigateToBaseToCreateWorkflow')
+                  : $t('tooltip.youDontHaveAccessToCreateNewWorkflow')
+              "
+              :disabled="!(!isBaseHomePage || !hasWorkflowCreateAccess)"
+              placement="right"
+            >
+              <NcMenuItem
+                data-testid="mini-sidebar--workflow-create"
+                :disabled="!isBaseHomePage || !hasWorkflowCreateAccess"
+                @click="openNewWorkflowModal({ baseId: openedProject?.id })"
+              >
+                <GeneralIcon icon="ncAutomation" />
+                {{ $t('general.workflow') }}
               </NcMenuItem>
             </NcTooltip>
           </template>

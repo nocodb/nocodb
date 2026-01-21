@@ -60,6 +60,59 @@ const createView = async (
   })) as View;
 };
 
+const createViewV3 = async (
+  context,
+  {
+    baseId,
+    table,
+    body,
+  }: {
+    baseId: string;
+    table: Model;
+    body: {
+      title: string;
+      type: ViewTypes;
+      sorts?: any;
+      filters?: any;
+    };
+  },
+) => {
+  const ctx = {
+    workspace_id: table.fk_workspace_id,
+    base_id: table.base_id,
+  };
+  const viewTypeStr = (type) => {
+    switch (type) {
+      case ViewTypes.GALLERY:
+        return 'gallery';
+      case ViewTypes.FORM:
+        return 'form';
+      case ViewTypes.GRID:
+        return 'grid';
+      case ViewTypes.KANBAN:
+        return 'kanban';
+      case ViewTypes.CALENDAR:
+        return 'calendar';
+      default:
+        throw new Error('Invalid view type');
+    }
+  };
+
+  const response = await request(context.app)
+    .post(`/api/v3/meta/bases/${baseId}/tables/${table.id}/views`)
+    .set('xc-auth', context.token)
+    .send({ ...body, type: viewTypeStr(body.type) });
+
+  if (response.status !== 200) {
+    throw new Error('createView: ' + response.body.message);
+  }
+
+  return (await View.getByTitleOrId(ctx, {
+    fk_model_id: table.id,
+    titleOrId: body.title,
+  })) as View;
+};
+
 const getView = async (
   context,
   { table, name }: { table: Model; name: string },
@@ -75,6 +128,7 @@ const getView = async (
   if (response.status !== 200) {
     throw new Error('List Views', response.body.message);
   }
+
   const _view = response.body.list.find((v) => v.title === name);
   const view = View.getByTitleOrId(ctx, {
     titleOrId: _view.id,
@@ -157,4 +211,4 @@ const deleteView = async (
     .expect(200);
 };
 
-export { createView, updateView, getView, deleteView };
+export { createView, createViewV3, updateView, getView, deleteView };

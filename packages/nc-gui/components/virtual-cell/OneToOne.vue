@@ -175,9 +175,9 @@ onUnmounted(() => {
       >
         <GeneralIcon
           :icon="addIcon"
-          class="!text-md select-none text-gray-700 nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
+          class="!text-md select-none text-nc-content-gray-subtle nc-action-icon nc-plus invisible group-hover:visible group-focus:visible"
           :class="{
-            '!visible !text-gray-600': isCanvasInjected && active,
+            '!visible !text-nc-content-gray-subtle2': isCanvasInjected && active,
           }"
           @click.stop="listItemsDlg = true"
         />

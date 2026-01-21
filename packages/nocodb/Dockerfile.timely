@@ -118,6 +118,7 @@ COPY --link --from=bin-builder /usr/src/app/node_modules/sqlite3/ /usr/src/app/n
 COPY --link --from=bin-builder /usr/src/app/node_modules/sharp/   /usr/src/app/node_modules/sharp/
 
 EXPOSE 8080
+
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Start NocoDB

@@ -5,16 +5,24 @@ import getSchemas from './getSchemas';
 import getSwaggerColumnMetas from './getSwaggerColumnMetas';
 import type { Base, Model } from '~/models';
 import type { NcContext } from '~/interface/config';
+import type { SourcesMap } from '~/services/api-docs/types';
 import Noco from '~/Noco';
 
 export default async function getSwaggerJSON(
   context: NcContext,
-  base: Base,
-  models: Model[],
+  {
+    base,
+    sourcesMap,
+    models,
+  }: {
+    base: Base;
+    sourcesMap: SourcesMap;
+    models: Model[];
+  },
   ncMeta = Noco.ncMeta,
 ) {
   return generateSwagger(
-    { context, base, models, ncMeta },
+    { context, base, models, sourcesMap, ncMeta },
     swaggerBase,
     getSwaggerColumnMetas,
     getPaths,

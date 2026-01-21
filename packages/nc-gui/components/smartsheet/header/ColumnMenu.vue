@@ -6,7 +6,9 @@ import {
   PlanTitles,
   RelationTypes,
   UITypes,
+  ViewTypes,
   columnTypeName,
+  getFirstNonPersonalView,
   isCrossBaseLink,
   isLinksOrLTAR,
   isSupportedDisplayValueColumn,
@@ -28,6 +30,10 @@ const column = toRef(props, 'column')
 provide(ColumnInj, column)
 
 const { eventBus, allFilters, isSqlView, sorts } = useSmartsheetStoreOrThrow()
+
+const viewStore = useViewsStore()
+
+const { views } = storeToRefs(viewStore)
 
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
@@ -61,8 +67,6 @@ const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
 
 const { isUIAllowed, isMetaReadOnly, isDataReadOnly } = useRoles()
 
-const { isTableAndFieldPermissionsEnabled } = usePermissions()
-
 const isLoading = ref<'' | 'hideOrShow' | 'setDisplay'>('')
 
 const setAsDisplayValue = async () => {
@@ -72,9 +76,17 @@ const setAsDisplayValue = async () => {
 
     isOpen.value = false
 
-    await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
+    await $api.internal.postOperation(
+      meta!.value!.fk_workspace_id!,
+      meta!.value!.base_id!,
+      {
+        operation: 'columnSetAsPrimary',
+        columnId: column?.value?.id as string,
+      },
+      {},
+    )
 
-    await getMeta(meta?.value?.id as string, true)
+    await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     $e('a:column:set-primary')
@@ -82,9 +94,17 @@ const setAsDisplayValue = async () => {
     addUndo({
       redo: {
         fn: async (id: string) => {
-          await $api.dbTableColumn.primaryColumnSet(id)
+          await $api.internal.postOperation(
+            meta!.value!.fk_workspace_id!,
+            meta!.value!.base_id!,
+            {
+              operation: 'columnSetAsPrimary',
+              columnId: id,
+            },
+            {},
+          )
 
-          await getMeta(meta?.value?.id as string, true)
+          await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
         },
@@ -92,9 +112,17 @@ const setAsDisplayValue = async () => {
       },
       undo: {
         fn: async (id: string) => {
-          await $api.dbTableColumn.primaryColumnSet(id)
+          await $api.internal.postOperation(
+            meta!.value!.fk_workspace_id!,
+            meta!.value!.base_id!,
+            {
+              operation: 'columnSetAsPrimary',
+              columnId: id,
+            },
+            {},
+          )
 
-          await getMeta(meta?.value?.id as string, true)
+          await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
 
           eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
         },
@@ -146,7 +174,12 @@ const duplicateVirtualColumn = async () => {
   }
 
   try {
-    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder
@@ -156,16 +189,24 @@ const duplicateVirtualColumn = async () => {
       newColumnOrder = (gridViewColumnList[currentColumnIndex].order! + gridViewColumnList[currentColumnIndex + 1].order!) / 2
     }
 
-    await $api.dbTableColumn.create(meta!.value!.id!, {
-      ...columnCreatePayload,
-      pv: false,
-      view_id: view.value!.id as string,
-      column_order: {
-        order: newColumnOrder,
-        view_id: view.value!.id as string,
+    await $api.internal.postOperation(
+      meta!.value!.fk_workspace_id!,
+      meta!.value!.base_id!,
+      {
+        operation: 'columnAdd',
+        tableId: meta!.value!.id!,
       },
-    } as ColumnReqType)
-    await getMeta(meta!.value!.id!, true)
+      {
+        ...columnCreatePayload,
+        pv: false,
+        view_id: view.value!.id as string,
+        column_order: {
+          order: newColumnOrder,
+          view_id: view.value!.id as string,
+        },
+      } as ColumnReqType,
+    )
+    await getMeta(meta!.value!.base_id!, meta!.value!.id!, true)
 
     eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     reloadDataHook?.trigger()
@@ -193,7 +234,12 @@ const openDuplicateDlg = async () => {
   ) {
     duplicateVirtualColumn()
   } else {
-    const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+    const gridViewColumnList = (
+      await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+        operation: 'viewColumnList',
+        viewId: view.value?.id as string,
+      })
+    ).list
 
     const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
     let newColumnOrder
@@ -226,7 +272,12 @@ const openDuplicateDlg = async () => {
 
 // add column before or after current column
 const addColumn = async (before = false) => {
-  const gridViewColumnList = (await $api.dbViewColumn.list(view.value?.id as string)).list
+  const gridViewColumnList = (
+    await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+      operation: 'viewColumnList',
+      viewId: view.value?.id as string,
+    })
+  ).list
 
   const currentColumnIndex = gridViewColumnList.findIndex((f) => f.fk_column_id === column!.value.id)
 
@@ -253,17 +304,17 @@ const addColumn = async (before = false) => {
   })
 }
 
-const getViewId = () => {
-  if (meta.value?.id !== view.value?.fk_model_id) {
-    return meta.value?.views?.find((v) => v.is_default)?.id
-  }
-
-  return view.value?.id
-}
+const isDefaultView = computed(() => {
+  return (
+    getFirstNonPersonalView(views.value, {
+      includeViewType: ViewTypes.GRID,
+    })?.id === view.value?.id
+  )
+})
 
 const updateDefaultViewColVisibility = (columnId?: string, show = false) => {
   //  Don't update meta if it is not default view
-  if (!meta.value || !columnId || meta.value?.id !== view.value?.fk_model_id || !view.value?.is_default) return
+  if (!meta.value || !columnId || meta.value?.id !== view.value?.fk_model_id || !isDefaultView.value) return
 
   meta.value.columns = (meta.value.columns || []).map((c: ColumnType) => {
     if (c.id !== columnId) return c
@@ -284,7 +335,7 @@ const updateDefaultViewColVisibility = (columnId?: string, show = false) => {
 const hideOrShowField = async () => {
   isLoading.value = 'hideOrShow'
 
-  const viewId = getViewId() as string
+  const viewId = view.value?.id
 
   const currentViewColumn = gridViewCols.value[column.value.id!] ? clone(gridViewCols.value[column.value.id!]) : null
 
@@ -298,13 +349,28 @@ const hideOrShowField = async () => {
 
   try {
     const currentColumn =
-      currentViewColumn || (await $api.dbViewColumn.list(viewId)).list.find((f) => f.fk_column_id === column!.value.id)
+      currentViewColumn ||
+      (
+        await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+          operation: 'viewColumnList',
+          viewId,
+        })
+      ).list.find((f) => f.fk_column_id === column!.value.id)
 
-    await $api.dbViewColumn.update(view.value!.id!, currentColumn!.id!, { show: !currentColumn.show })
+    await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      {
+        operation: 'viewColumnUpdate',
+        viewId: view.value!.id!,
+        columnId: currentColumn!.id!,
+      },
+      { show: !currentColumn.show },
+    )
 
     if (!hidingViewColumnsMap.value[column.value.id!]) {
       if (isExpandedForm.value) {
-        await getMeta(meta?.value?.id as string, true)
+        await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
       } else {
         updateDefaultViewColVisibility(column?.value.id, !currentColumn.show)
       }
@@ -321,10 +387,19 @@ const hideOrShowField = async () => {
     addUndo({
       redo: {
         fn: async function redo(id: string, fk_column_id: string, show: boolean) {
-          await $api.dbViewColumn.update(viewId, id, { show: !show })
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnUpdate',
+              viewId,
+              columnId: id,
+            },
+            { show: !show },
+          )
 
           if (isExpandedForm.value) {
-            await getMeta(meta?.value?.id as string, true)
+            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
           } else {
             updateDefaultViewColVisibility(fk_column_id, !show)
           }
@@ -338,10 +413,19 @@ const hideOrShowField = async () => {
       },
       undo: {
         fn: async function undo(id: string, fk_column_id: string, show: boolean) {
-          await $api.dbViewColumn.update(viewId, id, { show })
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnUpdate',
+              viewId,
+              columnId: id,
+            },
+            { show },
+          )
 
           if (isExpandedForm.value) {
-            await getMeta(meta?.value?.id as string, true)
+            await getMeta(meta?.value?.base_id as string, meta?.value?.id as string, true)
           } else {
             updateDefaultViewColVisibility(fk_column_id, show)
           }
@@ -410,7 +494,6 @@ const isDuplicateAllowed = computed(() => {
     ((!isMetaReadOnly.value && !isDataReadOnly.value) || readonlyMetaAllowedTypes.includes(column.value?.uidt)) &&
     !column.value.meta?.custom &&
     column.value.uidt !== UITypes.ForeignKey &&
-    (!meta.value?.synced || !column.value?.readonly) &&
     !isCrossBaseLink(column.value)
   )
 })
@@ -452,7 +535,14 @@ const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {
 }
 
 const isColumnUpdateAllowed = computed(() => {
-  if ((isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) || isSqlView.value) return false
+  if (
+    (isMetaReadOnly.value && !readonlyMetaAllowedTypes.includes(column.value?.uidt)) ||
+    isSqlView.value ||
+    (meta.value?.synced && column.value?.readonly)
+  ) {
+    return false
+  }
+
   return true
 })
 
@@ -520,7 +610,7 @@ const onDeleteColumn = () => {
 <template>
   <NcMenu
     variant="small"
-    class="flex flex-col gap-1 border-gray-200 nc-column-options !min-w-55"
+    class="flex flex-col gap-1 border-nc-border-gray-medium nc-column-options !min-w-55"
     :class="{
       'min-w-[256px]': isExpandedForm,
     }"
@@ -544,6 +634,12 @@ const onDeleteColumn = () => {
       :enabled="!isColumnEditAllowed"
       :is-sql-view="isSqlView"
     >
+      <template v-if="column?.readonly && meta?.synced" #title>
+        <div class="max-w-50">
+          {{ $t('tooltip.schemaChangeDisabledFormSyncedTableField') }}
+        </div>
+      </template>
+
       <NcMenuItem
         :disabled="column?.pk || isSystemColumn(column) || !isColumnEditAllowed || linksAssociated?.length"
         :title="linksAssociated?.length ? 'Field is associated with a link column' : undefined"
@@ -608,25 +704,24 @@ const onDeleteColumn = () => {
     </NcMenuItem>
 
     <NcTooltip
-      v-if="
-        isTableAndFieldPermissionsEnabled &&
-        isEeUI &&
-        isUIAllowed('fieldAlter') &&
-        !isSqlView &&
-        column.uidt !== UITypes.ForeignKey
-      "
-      :disabled="showEditRestrictedColumnTooltip(column)"
+      v-if="isEeUI && isUIAllowed('fieldAlter') && !isSqlView && column.uidt !== UITypes.ForeignKey"
+      :disabled="showEditRestrictedColumnTooltip(column) && !(column?.readonly && meta?.synced)"
       placement="right"
       :arrow="false"
     >
       <template #title>
-        {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+        <template v-if="column?.readonly && meta?.synced">
+          {{ $t('tooltip.fieldPermissionsNotAvailableForSyncedColumns') }}
+        </template>
+        <template v-else>
+          {{ $t('tooltip.dataInThisFieldCantBeManuallyEdited') }}
+        </template>
       </template>
 
       <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS">
         <template #default="{ click }">
           <NcMenuItem
-            :disabled="!showEditRestrictedColumnTooltip(column)"
+            :disabled="!showEditRestrictedColumnTooltip(column) || (column?.readonly && meta?.synced)"
             @click="
               click(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS, () => {
                 onFieldPermissions()
@@ -836,6 +931,11 @@ const onDeleteColumn = () => {
       :enabled="!isColumnUpdateAllowed"
       :is-sql-view="isSqlView"
     >
+      <template v-if="column?.readonly && meta?.synced" #title>
+        <div class="max-w-50">
+          {{ $t('tooltip.deleteFieldIsRestrictedForSyncedTableField') }}
+        </div>
+      </template>
       <NcMenuItem
         :disabled="!isDeleteAllowed || !isColumnUpdateAllowed || linksAssociated?.length"
         :title="linksAssociated ? 'Field is associated with a link column' : undefined"

@@ -1,10 +1,18 @@
-import { type NcContext, ncIsUndefined } from 'nocodb-sdk';
 import dayjs from 'dayjs';
-import { NcError } from 'src/helpers/catchError';
-import { DateTimeGeneralHandler } from '../date-time/date-time.general.handler';
-import type { IBaseModelSqlV2 } from 'src/db/IBaseModelSqlV2';
-import type { MetaService } from 'src/meta/meta.service';
-import type { Column } from 'src/models';
+import timezone from 'dayjs/plugin/timezone';
+import utc from 'dayjs/plugin/utc.js';
+import { type NcContext, ncIsUndefined } from 'nocodb-sdk';
+import type CustomKnex from '~/db/CustomKnex';
+import type { Knex } from '~/db/CustomKnex';
+import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
+import type { MetaService } from '~/meta/meta.service';
+import type { Column, Filter } from '~/models';
+import { DateTimeGeneralHandler } from '~/db/field-handler/handlers/date-time/date-time.general.handler';
+import { NcError } from '~/helpers/catchError';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 export class DateGeneralHandler extends DateTimeGeneralHandler {
   override async parseUserInput(params: {
@@ -54,5 +62,55 @@ export class DateGeneralHandler extends DateTimeGeneralHandler {
       });
     }
     return { value: params.value };
+  }
+
+  dateValueFormat = 'YYYY-MM-DD';
+
+  override comparisonBetween(
+    {
+      sourceField,
+      anchorDate,
+      rangeDate,
+      qb,
+    }: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: any;
+      anchorDate: dayjs.Dayjs;
+      rangeDate: dayjs.Dayjs;
+      qb: Knex.QueryBuilder;
+    },
+    { knex }: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    qb.where(
+      knex.raw('?? between ? and ?', [
+        sourceField,
+        anchorDate.format(this.dateValueFormat),
+        rangeDate.format(this.dateValueFormat),
+      ]),
+    );
+  }
+
+  override comparisonOp(
+    {
+      sourceField,
+      val,
+      qb,
+      comparisonOp,
+    }: {
+      sourceField: string | Knex.QueryBuilder | Knex.RawBuilder;
+      val: dayjs.Dayjs;
+      qb: Knex.QueryBuilder;
+      comparisonOp: '<' | '<=' | '>' | '>=';
+    },
+    { knex }: { knex: CustomKnex; filter: Filter; column: Column },
+    _options: FilterOptions,
+  ) {
+    qb.where(
+      knex.raw(`?? ${comparisonOp} ?`, [
+        sourceField,
+        val.format(this.dateValueFormat),
+      ]),
+    );
   }
 }

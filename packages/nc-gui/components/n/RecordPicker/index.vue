@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { TableType, ViewType } from 'nocodb-sdk'
+import { ViewTypes, getFirstNonPersonalView } from 'nocodb-sdk'
 
 const props = withDefaults(
   defineProps<{
     label: string
+    baseId?: string
     tableId: string
     viewId?: string
     modelValue: Row
@@ -24,6 +26,8 @@ const emits = defineEmits<{
 }>()
 
 const { internalApi } = useApi()
+
+const { activeProjectId } = storeToRefs(useBases())
 
 const searchQuery = ref('')
 
@@ -92,22 +96,42 @@ const isLoading = ref(false)
 
 const loadMetas = async () => {
   if (!props.tableId) return
+
   isLoading.value = true
 
-  tableMeta.value = (await getMeta(props.tableId))!
-
-  if (props.viewId) {
-    viewMeta.value = viewsByTable.value.get(props.tableId)?.find((v) => v.id === props.viewId)
-
-    if (!viewMeta.value) {
-      await loadViews({ tableId: props.tableId, force: true })
-      viewMeta.value = viewsByTable.value.get(props.tableId)?.find((v) => v.id === props.viewId)
+  try {
+    const effectiveBaseId = props.baseId || activeProjectId.value
+    if (!effectiveBaseId) {
+      console.error('[NRecordPicker] baseId is required but was not provided')
+      return
     }
-  } else {
-    await loadViews({ tableId: props.tableId, force: true })
-    viewMeta.value = viewsByTable.value.get(props.tableId)?.find((v) => v.is_default)
+
+    tableMeta.value = (await getMeta(effectiveBaseId!, props.tableId))!
+
+    // Helper function to find views for this table
+    const findViews = () => {
+      const key = `${effectiveBaseId}:${props.tableId}`
+      return viewsByTable.value.get(key) || []
+    }
+
+    if (props.viewId) {
+      viewMeta.value = findViews().find((v) => v.id === props.viewId)
+
+      if (!viewMeta.value) {
+        await loadViews({ tableId: props.tableId, baseId: effectiveBaseId!, force: true })
+        viewMeta.value = findViews().find((v) => v.id === props.viewId)
+      }
+    } else {
+      await loadViews({ tableId: props.tableId, baseId: effectiveBaseId!, force: true })
+      viewMeta.value = getFirstNonPersonalView(findViews(), {
+        includeViewType: ViewTypes.GRID,
+      })
+    }
+  } catch (e) {
+    console.error(e)
+  } finally {
+    isLoading.value = false
   }
-  isLoading.value = false
 }
 
 onMounted(async () => {
@@ -170,8 +194,8 @@ whenever(isOpen, () => {
       :disabled="disabled"
       icon-position="right"
       full-width
-      :class="{ 'record-picker-active': isOpen, '!bg-[#F5F5F5]': disabled }"
-      class="!border-[#d9d9d9]"
+      :class="{ 'record-picker-active': isOpen, '!bg-nc-bg-gray-light': disabled }"
+      class="!border-nc-border-gray-medium"
     >
       <span v-if="displayField && localState?.row" class="truncate text-left !leading-[1.5]">
         <SmartsheetPlainCell :model-value="localState?.row[displayField.title]" :column="displayField" />
@@ -179,7 +203,7 @@ whenever(isOpen, () => {
       <span
         v-else
         :class="{
-          'text-[rgba(0,0,0,.25)]': disabled,
+          'text-[rgba(var(--rgb-base),.25)]': disabled,
         }"
         class="truncate text-left !leading-[1.5]"
       >
@@ -187,14 +211,14 @@ whenever(isOpen, () => {
       </span>
 
       <template #icon>
-        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="self-center text-gray-700" />
+        <GeneralIcon :icon="isOpen ? 'arrowUp' : 'arrowDown'" class="self-center text-nc-content-gray-subtle" />
       </template>
     </NcButton>
 
     <template #overlay>
       <div ref="ncRecordPickerDropdownRef" :class="`${randomClass}`" class="nc-record-picker-dropdown-wrapper">
         <div class="flex flex-col h-full w-full" :class="{ active: isOpen }" @keydown.enter.stop>
-          <div class="bg-gray-100 py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
+          <div class="bg-nc-bg-gray-light py-2 rounded-t-xl flex justify-between pl-3 pr-2 gap-2">
             <div class="flex-1 nc-record-picker-dropdown-record-search-wrapper flex items-center py-0.5 rounded-md">
               <a-input
                 ref="filterQueryRef"
@@ -205,7 +229,7 @@ whenever(isOpen, () => {
                 size="small"
               >
                 <template #prefix>
-                  <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-gray-500" />
+                  <GeneralIcon icon="search" class="nc-search-icon mr-2 h-4 w-4 text-nc-content-gray-muted" />
                 </template>
                 <template v-if="!isValidSearchQuery" #suffix>
                   <NcTooltip :title="$t('msg.error.invalidSearchQueryForVisibleFields')" class="flex">
@@ -216,7 +240,7 @@ whenever(isOpen, () => {
             </div>
           </div>
           <NRecordPickerRecords
-            v-if="!isLoading"
+            v-if="!isLoading && tableMeta"
             ref="recordsRef"
             :view-meta="viewMeta"
             :data="records"
@@ -233,7 +257,7 @@ whenever(isOpen, () => {
 
 <style lang="scss">
 .nc-record-picker-dropdown {
-  @apply rounded-xl !border-gray-200;
+  @apply rounded-xl !border-nc-border-gray-medium;
   z-index: 1000 !important;
 }
 .nc-record-picker-dropdown-wrapper {
@@ -252,18 +276,18 @@ whenever(isOpen, () => {
 
 .nc-record-picker-dropdown-record-search-wrapper {
   .nc-search-icon {
-    @apply flex-none text-gray-500;
+    @apply flex-none text-nc-content-gray-muted;
   }
 
   &:focus-within {
     .nc-search-icon {
-      @apply text-gray-600;
+      @apply text-nc-content-gray-subtle2;
     }
   }
   input {
     @apply !caret-nc-fill-primary;
     &::placeholder {
-      @apply text-gray-500;
+      @apply text-nc-content-gray-muted;
     }
   }
 }

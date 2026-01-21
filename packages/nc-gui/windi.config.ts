@@ -17,10 +17,11 @@ import ncWindicssShortcutsPlugin from './assets/nc-windicss-shortcuts-plugin'
 
 import {
   theme as colors,
+  ncBuildColorsWithOpacity,
   themeColors,
   themeV2Colors,
   themeV3Colors,
-  themeV4ColorsWithNcPrefix,
+  themeV4Colors,
   themeVariables,
 } from './utils/colorsUtils'
 
@@ -87,10 +88,12 @@ export default defineConfig({
 
   shortcuts: {
     'color-transition': 'transition-colors duration-100 ease-in',
-    'scrollbar-thin-primary': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white',
-    'scrollbar-thin-dull': 'scrollbar scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-gray-100 scrollbar-track-white',
+    'scrollbar-thin-primary':
+      'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-base-white',
+    'scrollbar-thin-dull':
+      'scrollbar scrollbar-thin scrollbar-thumb-rounded-md scrollbar-thumb-nc-gray-100 scrollbar-track-base-white',
     'nc-scrollbar-thin':
-      'scrollbar scrollbar-thin scrollbar-thumb-gray-200 hover:scrollbar-thumb-gray-300 scrollbar-track-transparent',
+      'scrollbar scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-gray-500 hover:scrollbar-thumb-gray-300 dark:hover:scrollbar-thumb-gray-600 scrollbar-track-transparent',
     'nc-content-max-w': 'max-w-[97.5rem]',
   },
 
@@ -104,18 +107,13 @@ export default defineConfig({
     },
     extend: {
       screens: {
-        'xs': {
-          max: '480px',
-        },
-        'sm': {
-          min: '480px',
-        },
-        'md': {
-          min: '820px',
-        },
-        '2xl': {
-          min: '1780px',
-        },
+        'xs': { max: '480px' },
+        'sm': { min: '480px' },
+        'md': { min: '820px' },
+        '2xl': { min: '1780px' },
+        '3xl': { min: '1920px' },
+        '4xl': { min: '2560px' },
+        '5xl': { min: '3200px' },
       },
       fontSize: {
         tiny: ['11px', '14px'],
@@ -174,21 +172,24 @@ export default defineConfig({
         'selected': '0px 0px 0px 2px var(--ant-primary-color-outline)',
         'selected-ai': '0px 0px 0px 2px rgba(125, 38, 205, 0.24)',
         'error': '0px 0px 0px 2px var(--ant-error-color-outline)',
-        'focus': '0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe',
+        'focus': '0px 0px 0px 2px var(--nc-bg-default), 0px 0px 0px 4px var(--nc-fill-primary)',
         'nc-sm': '0px 3px 1px -2px rgba(var(--rgb-base), 0.06), 0px 5px 3px -2px rgba(var(--rgb-base), 0.02)',
+        'disabled': '0 0 0 2px rgba(106, 113, 132, 0.24)',
       },
       colors: {
         ...windiColors,
         ...themeColors,
         ...themeV2Colors,
         ...themeV3Colors,
-        ...themeV4ColorsWithNcPrefix,
-        ...themeVariables.content,
-        ...themeVariables.border,
-        ...themeVariables.background,
-        ...themeVariables.fill,
-        primary: 'rgba(var(--color-primary), var(--tw-bg-opacity))',
-        accent: 'rgba(var(--color-accent), var(--tw-bg-opacity))',
+        ...ncBuildColorsWithOpacity(themeV4Colors, 'nc'),
+        ...ncBuildColorsWithOpacity(themeVariables.content),
+        ...ncBuildColorsWithOpacity(themeVariables.border),
+        ...ncBuildColorsWithOpacity(themeVariables.background),
+        ...ncBuildColorsWithOpacity(themeVariables.fill),
+        ...ncBuildColorsWithOpacity({
+          primary: '--color-primary',
+          accent: '--color-accent',
+        }),
         dark: colors.dark,
         light: colors.light,
       },

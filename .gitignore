@@ -1,1 +1,106 @@
-node_modules
+# Node modules
+node_modules/
+
+# OS
+# ===========
+.DS_Store
+ehthumbs.db
+Thumbs.db
+
+# Node and related ecosystem
+# ==========================
+.nodemonignore
+.sass-cache/
+help/
+public/lib/
+app/tests/coverage/
+.bower-*/
+.idea/
+coverage/
+
+# MEAN.js app and assets
+# ======================
+public/dist/
+uploads/
+modules/users/client/img/profile/uploads
+config/env/local.js
+*.pem
+
+# Ignoring MEAN.JS gh-pages branch documentation
+_site/
+
+# General
+# =======
+*.log
+*.csv
+*.dat
+*.out
+*.pid
+*.gz
+*.tmp
+*.tmp.md
+*.bak
+*.swp
+build/
+
+# Visual Studio Code
+# ==================
+.vscode/
+
+# Sublime editor
+# ==============
+*.sublime-project
+*.sublime-workspace
+
+# Eclipse project files
+# =====================
+.project
+.settings/
+.*.md.html
+.metadata
+*~.nib
+local.properties
+
+# IntelliJ
+# ========
+*.iml
+
+# Cloud9 IDE
+# ==========
+.c9/
+mongod
+
+# Visual Studio
+# =============
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# History
+.history
+
+# NocoDB / Packages
+/packages/nocodb/docker/main.js.LICENSE.txt
+/packages/nocodb/noco_log.db
+/packages/nc-secret-mgr/dist/index.js
+/packages/nc-secret-mgr/dist/index.js.map
+
+# NC Databases
+# ============
+nc_minimal_dbs/
+test_noco.db
+
+# ngrok / misc
+httpbin
+.run/test-debug.run.xml
+
+# nix
+result
+
+# Cursor
+.cursorignore
+
+# Temp
+migrate-colors.js
+antd.variable.css

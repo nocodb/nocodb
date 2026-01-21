@@ -144,7 +144,7 @@ test.describe('Calendar View', () => {
 
     await dashboard.viewSidebar.verifyView({
       title: 'Calendar',
-      index: 0,
+      index: 1,
     });
 
     await dashboard.viewSidebar.openView({ title: 'Calendar' });
@@ -309,7 +309,7 @@ test.describe('Calendar View', () => {
 
     await dashboard.viewSidebar.verifyView({
       title: 'Calendar',
-      index: 0,
+      index: 1,
     });
 
     await dashboard.viewSidebar.openView({ title: 'Calendar' });
@@ -389,7 +389,7 @@ test.describe('Calendar View', () => {
 
     await dashboard.viewSidebar.verifyView({
       title: 'Calendar',
-      index: 0,
+      index: 1,
     });
 
     // Share view
@@ -458,7 +458,7 @@ test.describe('Calendar View', () => {
 
     await dashboard.viewSidebar.verifyView({
       title: 'Calendar',
-      index: 0,
+      index: 1,
     });
 
     await dashboard.viewSidebar.openView({ title: 'Calendar' });

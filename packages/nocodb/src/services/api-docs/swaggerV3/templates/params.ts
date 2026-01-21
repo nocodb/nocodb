@@ -14,27 +14,21 @@ export const recordIdParam = {
 };
 export const fieldsParam = {
   schema: {
-    type: 'array',
-    items: {
-      type: 'string',
-    },
+    type: 'string',
   },
   in: 'query',
   name: 'fields',
   description:
-    'Specify fields to include in the API response. \n\nExample: fields=`field1` will include only field1 in the response.',
+    'Specify fields to include in the API response. String representing stringified JSON array of field names or field ids. \n\nExample: fields=`["field1"]` or fields=`["field1","field2"]` will include only field1 (with field2 on 2nd example) in the response.',
 };
 export const sortParam = {
   schema: {
-    type: 'array',
-    items: {
-      type: 'string',
-    },
+    type: 'string',
   },
   in: 'query',
   name: 'sort',
   description:
-    'Allows you to specify the fields by which you want to sort the records in your API response. Each sort object must have a \'field\' property specifying the field name and a \'direction\' property with value \'asc\' or \'desc\'. If **viewId** query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view. \n\nExample: sort=`{"direction":"asc", "field":"field1"}` will sort records in ascending order based on field1.',
+    'Allows you to specify the fields by which you want to sort the records in your API response. A string representing stringified JSON array of objects. Each object must have a \'field\' property specifying the field name and an optional \'direction\' property with value \'asc\' or \'desc\'. If **viewId** query parameter is also included, the sort included here will take precedence over any sorting configuration defined in the view. \n\nExample: sort=`[{"direction":"asc", "field":"field1"}]` will sort records in ascending order based on field1.',
 };
 export const whereParam = {
   schema: {
@@ -110,9 +104,7 @@ export const viewIdParam = (views: SwaggerView[]) => {
 
   for (const { view } of views) {
     viewIds.push(view.id);
-    description.push(
-      `* ${view.id} - ${view.is_default ? 'Default view' : view.title}`,
-    );
+    description.push(`* ${view.id} - ${view.title}`);
   }
 
   return {

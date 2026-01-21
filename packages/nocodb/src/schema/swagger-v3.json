@@ -12,12 +12,15 @@
     {
       "name": "Meta APIs",
       "tags": [
+        "Workspaces",
         "Bases",
         "Tables",
         "Views",
         "Fields",
         "View Filters",
-        "View Sorts"
+        "View Sorts",
+        "Scripts",
+        "API Tokens"
       ]
     },
     {
@@ -34,6 +37,270 @@
     }
   ],
   "paths": {
+    "/api/v3/meta/workspaces": {
+      "get": {
+        "summary": "List workspaces",
+        "operationId": "workspace-list",
+        "description": "Retrieve a list of all workspaces accessible to the user.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspaces retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3ListResponse"
+                },
+                "examples": {
+                  "Workspaces List": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "w6dw3fo0",
+                          "title": "My Workspace",
+                          "org_id": "org123",
+                          "created_at": "2025-01-16T06:04:18.000Z",
+                          "updated_at": "2025-01-16T06:04:18.000Z"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create workspace",
+        "operationId": "workspace-create",
+        "description": "Create a new workspace with the specified title and optional organization ID.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceV3Create"
+              },
+              "examples": {
+                "Create Workspace": {
+                  "value": {
+                    "title": "New Workspace",
+                    "org_id": "org123"
+                  }
+                },
+                "Create Workspace (On-prem)": {
+                  "value": {
+                    "title": "New Workspace"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3"
+                },
+                "examples": {
+                  "Created Workspace": {
+                    "value": {
+                      "id": "w7xyz123",
+                      "title": "New Workspace",
+                      "org_id": "org123",
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/workspaces/{workspaceId}": {
+      "get": {
+        "summary": "Get workspace",
+        "operationId": "workspace-read",
+        "description": "Retrieve details of a specific workspace.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          },
+          {
+            "name": "include",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "description": "Include additional data. Use 'members' to include workspace member information.",
+            "example": "members"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3"
+                },
+                "examples": {
+                  "Workspace": {
+                    "value": {
+                      "id": "w6dw3fo0",
+                      "title": "My Workspace",
+                      "org_id": "org123",
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Workspace not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update workspace",
+        "operationId": "workspace-update",
+        "description": "Update workspace details.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WorkspaceV3Update"
+              },
+              "examples": {
+                "Update Workspace": {
+                  "value": {
+                    "title": "Updated Workspace Title"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkspaceV3"
+                },
+                "examples": {
+                  "Updated Workspace": {
+                    "value": {
+                      "id": "w6dw3fo0",
+                      "title": "Updated Workspace Title",
+                      "org_id": "org123",
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-17T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request."
+          },
+          "404": {
+            "description": "Workspace not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete workspace",
+        "operationId": "workspace-delete",
+        "description": "Delete a workspace.\n\n**Note**: Workspace APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.",
+        "tags": [
+          "Workspaces"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the workspace."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace deleted successfully."
+          },
+          "404": {
+            "description": "Workspace not found."
+          },
+          "500": {
+            "description": "The server encountered an unexpected error while processing the request."
+          }
+        }
+      }
+    },
     "/api/v3/meta/workspaces/{workspaceId}/bases": {
       "get": {
         "summary": "List bases",
@@ -59,11 +326,16 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Base"
-                  },
-                  "description": "List of bases."
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Base"
+                      },
+                      "description": "List of bases."
+                    }
+                  }
                 },
                 "examples": {
                   "Example 1": {
@@ -187,7 +459,7 @@
       "get": {
         "summary": "List workspace members",
         "operationId": "workspace-members-read",
-        "description": "Retrieve details of a specific workspace, including its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Retrieve details of a specific workspace, including its members.\n\nNotes:\n- To include member details, use the query parameter `include[]=members`.\n- Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "tags": [
           "Workspace Members"
         ],
@@ -272,7 +544,7 @@
     "/api/v3/meta/workspaces/{workspaceId}/members": {
       "post": {
         "summary": "Add workspace members",
-        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Add new members to a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "workspace-members-invite",
         "tags": [
           "Workspace Members"
@@ -344,7 +616,7 @@
       },
       "patch": {
         "summary": "Update workspace members",
-        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Update roles of existing workspace members. The request requires the workspace identifier in the path and member update details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "workspace-members-update",
         "tags": [
           "Workspace Members"
@@ -416,7 +688,7 @@
       },
       "delete": {
         "summary": "Delete workspace members",
-        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Remove members from a workspace. The request requires the workspace identifier in the path and member details in the request body.\n\nNotes: Workspace collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "workspace-members-delete",
         "tags": [
           "Workspace Members"
@@ -760,6 +1032,11 @@
                         "options": {
                           "rich_text": true
                         }
+                      },
+                      {
+                        "title": "UniqueEmail",
+                        "type": "Email",
+                        "unique": true
                       },
                       {
                         "title": "Email",
@@ -1594,6 +1871,15 @@
         ],
         "parameters": [
           {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
             "name": "tableId",
             "in": "path",
             "required": true,
@@ -1623,7 +1909,7 @@
         "tags": [
           "Views"
         ],
-        "description": "Retrieve a list of all views for a specific table.",
+        "description": "Retrieve a list of all views for a specific table.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "parameters": [
           {
             "name": "baseId",
@@ -1661,7 +1947,6 @@
                           "table_id": "mrc5unwjdov67vr",
                           "title": "Grid View",
                           "type": "grid",
-                          "is_default": true,
                           "lock_type": "collaborative",
                           "created_at": "2025-06-26 15:02:56+00:00",
                           "updated_at": "2025-06-26 15:36:25+00:00"
@@ -1734,7 +2019,7 @@
       },
       "post": {
         "summary": "Create view",
-        "description": "Create a view for table.",
+        "description": "Create a view for table.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "view-create",
         "tags": [
           "Views"
@@ -1931,6 +2216,15 @@
                       "precision": "4"
                     }
                   }
+                },
+                "Unique Constraint": {
+                  "value": {
+                    "title": "Unique Email",
+                    "type": "Email",
+                    "unique": true,
+                    "description": "Email field with unique constraint - no duplicate values allowed"
+                  },
+                  "summary": "Example of creating a field with unique constraint"
                 }
               }
             }
@@ -2145,7 +2439,7 @@
     "/api/v3/meta/bases/{baseId}/views/{viewId}": {
       "get": {
         "summary": "Get view schema",
-        "description": "Retrieve the details of a specific view.",
+        "description": "Retrieve the details of a specific view.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "view-read",
         "tags": [
           "Views"
@@ -2246,7 +2540,7 @@
       },
       "patch": {
         "summary": "Update view",
-        "description": "Update the details of a specific view. The request body should contain the fields to be updated. Fields not included in the request body will remain unchanged. Fields included will overwrite the existing values. There is no provision for partial updates of fields, sort or filter using this PATCH request.",
+        "description": "Update the details of a specific view. The request body should contain the fields to be updated. Fields not included in the request body will remain unchanged. Fields included will overwrite the existing values. There is no provision for partial updates of fields, sort or filter using this PATCH request.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "view-update",
         "tags": [
           "Views"
@@ -2367,7 +2661,7 @@
       },
       "delete": {
         "summary": "Delete view",
-        "description": "Delete a specific view.",
+        "description": "Delete a specific view.\n\n**Note**: View APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
         "operationId": "view-delete",
         "tags": [
           "Views"
@@ -2546,6 +2840,67 @@
           }
         }
       },
+      "put": {
+        "summary": "Replace filter",
+        "description": "Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request.",
+        "operationId": "view-filter-replace",
+        "tags": [
+          "View Filters"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "viewId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the view. It overwrites all existing filters."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FilterCreateUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Filter or group updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FilterCreateUpdate"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Filter or group not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/filters/{filterId}": {
       "patch": {
         "summary": "Update filter",
         "description": "Update the details of an existing filter or group.",
@@ -2623,7 +2978,7 @@
             "description": "Unique identifier for the base."
           },
           {
-            "name": "viewId",
+            "name": "filterId",
             "in": "path",
             "required": true,
             "schema": {
@@ -2635,56 +2990,6 @@
         "responses": {
           "204": {
             "description": "Filter or group deleted successfully."
-          },
-          "404": {
-            "description": "Filter or group not found."
-          },
-          "500": {
-            "description": "Server error."
-          }
-        }
-      },
-      "put": {
-        "summary": "Replace filter",
-        "description": "Replace filters for a specific view. All the existing filters will be overwritten with the new filters specified in this request.",
-        "operationId": "view-filter-replace",
-        "tags": [
-          "View Filters"
-        ],
-        "parameters": [
-          {
-            "name": "viewId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Unique identifier for the view. It overwrites all existing filters."
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/FilterCreateUpdate"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Filter or group updated successfully.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/FilterCreateUpdate"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request body."
           },
           "404": {
             "description": "Filter or group not found."
@@ -2823,7 +3128,9 @@
             "description": "Server error."
           }
         }
-      },
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/sorts/{sortId}": {
       "delete": {
         "summary": "Delete sort",
         "description": "Delete an existing sort.",
@@ -2934,7 +3241,7 @@
     "/api/v3/meta/bases/{baseId}?include[]=members": {
       "get": {
         "summary": "List base members",
-        "description": "Retrieve all details of a specific base, including its members.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Retrieve all details of a specific base, including its members.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-list",
         "tags": [
           "Base Members"
@@ -3009,7 +3316,7 @@
     "/api/v3/meta/bases/{base_id}/members": {
       "post": {
         "summary": "Invite base members",
-        "description": "Invite new members to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Invite new members to a specific base using their User ID or Email address.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-invite",
         "parameters": [
           {
@@ -3063,7 +3370,7 @@
       },
       "patch": {
         "summary": "Update base members",
-        "description": "Update roles for existing members in a base.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Update roles for existing members in a base.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-update",
         "parameters": [
           {
@@ -3117,7 +3424,7 @@
       },
       "delete": {
         "summary": "Delete base members",
-        "description": "Remove members from a specific base using their IDs.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Business+ plans.",
+        "description": "Remove members from a specific base using their IDs.\n\nNotes: Base collaboration APIs are available only with self-hosted Enterprise plans and cloud-hosted Enterprise plans.",
         "operationId": "base-members-delete",
         "parameters": [
           {
@@ -3155,6 +3462,278 @@
           },
           "500": {
             "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/scripts": {
+      "get": {
+        "summary": "List Scripts",
+        "description": "Retrieve a list of scripts associated with a specific base.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "scripts-list",
+        "tags": [
+          "Scripts"
+        ],
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of scripts retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptList"
+                },
+                "examples": {
+                  "scriptList": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "scrn8jzaljnw05eu1",
+                          "title": "Validate Emails",
+                          "description": "Validates email addresses in the 'Email' field of the 'Contacts' table.",
+                          "base_id": "pgfqcp0ocloo1j3",
+                          "workspace_id": "w6dw3fo0"
+                        },
+                        {
+                          "id": "scrna4t7xkmq92bf8",
+                          "title": "Normalize Phone Numbers",
+                          "description": "Cleans and standardizes phone numbers in the 'Phone' field of the 'Leads' table by removing non-numeric characters and applying a consistent format.",
+                          "base_id": "pgfqcp0ocloo1j3",
+                          "workspace_id": "w6dw3fo0"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Base not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create script",
+        "description": "Create a new script within the specified base by providing the required script details in the request body.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "script-create",
+        "parameters": [
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "tags": [
+          "Scripts"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScriptCreateReq"
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "title": "Sample Script",
+                    "description": "Sample Description",
+                    "script": "Sample Script",
+                    "config": {},
+                    "meta": {}
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Script created.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptGetResponse"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "screjw3n23233lk3",
+                      "title": "This is Script Title",
+                      "description": "Hello Script",
+                      "script": "const config = input.config({\n  title: \"My Script\",\n  description: \"This script processes data based on your configuration.\",\n  items: [\n    input.config.number('limit', {\n      label: 'Processing Limit',\n      description: 'Maximum number of records to process'\n    })\n  ]\n});\n\n// Use the configured values\n\n\nconst limit = config.limit;\n\noutput.text(`Processing limit: ${limit}`);",
+                      "config": {
+                        "limit": "23"
+                      },
+                      "meta": {},
+                      "base_id": "bas3jh4h43k4j3d",
+                      "workspace_id": "ws3n3e3nf",
+                      "created_at": "2025-01-16 06:04:18+00:00",
+                      "updated_at": "2025-01-16 06:04:18+00:00"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{base_id}/scripts/{script_id}": {
+      "get": {
+        "summary": "Get Script Info",
+        "description": "Retrieve the details of a specific script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "script-read",
+        "tags": [
+          "Scripts"
+        ],
+        "parameters": [
+          {
+            "name": "script_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the script."
+          },
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Script retrieved.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptGetResponse"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "screjw3n23233lk3",
+                      "title": "This is Script Title",
+                      "description": "Hello Script",
+                      "script": "output.inspect(base)",
+                      "config": {},
+                      "meta": {},
+                      "base_id": "bas3jh4h43k4j3d",
+                      "workspace_id": "ws3n3e3nf",
+                      "created_at": "2025-01-16 06:04:18+00:00",
+                      "updated_at": "2025-01-16 06:04:18+00:00"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update script",
+        "description": "Update the script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "script-update",
+        "tags": [
+          "Scripts"
+        ],
+        "parameters": [
+          {
+            "name": "script_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the script."
+          },
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScriptUpdateReq"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Script updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScriptGetResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete script",
+        "description": "Delete the script.\n\n**Note**: Script APIs are available only on self-hosted and cloud-hosted **Enterprise** plans.",
+        "operationId": "script-delete",
+        "tags": [
+          "Scripts"
+        ],
+        "parameters": [
+          {
+            "name": "script_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the script."
+          },
+          {
+            "name": "base_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Script deleted."
           }
         }
       }
@@ -4447,6 +5026,742 @@
           }
         ]
       }
+    },
+    "/api/v3/data/{baseId}/{tableId}/actions/{columnId}": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "baseId",
+          "in": "path",
+          "required": true,
+          "description": "**Base Identifier**."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "**Table Identifier**."
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "columnId",
+          "in": "path",
+          "required": true,
+          "description": "**Button Field Identifier** to trigger the action."
+        }
+      ],
+      "post": {
+        "summary": "Trigger Button Action",
+        "operationId": "trigger-action",
+        "description": "Triggers a button action (such as AI generation) for specified rows. This is useful for bulk processing button actions programmatically. Maximum of 25 rows can be processed at a time.",
+        "tags": [
+          "Table Records"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "rowIds"
+                ],
+                "properties": {
+                  "rowIds": {
+                    "type": "array",
+                    "description": "Array of record IDs to process",
+                    "items": {
+                      "type": "string"
+                    },
+                    "minItems": 1,
+                    "maxItems": 25,
+                    "example": [
+                      "1",
+                      "2",
+                      "3"
+                    ]
+                  },
+                  "preview": {
+                    "type": "boolean",
+                    "description": "Preview mode (optional)",
+                    "default": false
+                  }
+                }
+              },
+              "examples": {
+                "Example 1": {
+                  "value": {
+                    "rowIds": [
+                      "1",
+                      "2"
+                    ],
+                    "preview": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Action triggered successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DataRecordV3"
+                  }
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": [
+                      {
+                        "id": "1",
+                        "fields": {
+                          "Title": "Updated by AI",
+                          "Description": "Generated content..."
+                        }
+                      },
+                      {
+                        "id": "2",
+                        "fields": {
+                          "Title": "Another update",
+                          "Description": "More generated content..."
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        },
+        "parameters": [
+          {
+            "required": true,
+            "$ref": "#/components/parameters/xc-token"
+          }
+        ]
+      }
+    },
+    "/api/v3/meta/workspaces/{workspaceId}/teams": {
+      "get": {
+        "summary": "List Teams",
+        "operationId": "teams-list-v3",
+        "description": "Retrieve a list of teams associated with a Workspace or ORG",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of teams",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/TeamV3"
+                      }
+                    }
+                  },
+                  "required": [
+                    "list"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create Team",
+        "operationId": "teams-create-v3",
+        "description": "Create a new team",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamCreateV3Req"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamV3"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/workspaces/{workspaceId}/teams/{teamId}": {
+      "get": {
+        "summary": "Get Team",
+        "operationId": "teams-get-v3",
+        "description": "Fetch details of a specific team",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          },
+          {
+            "name": "include_workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include workspace teams"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamDetailV3"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update Team",
+        "operationId": "teams-update-v3",
+        "description": "Update name, icon, or badge color",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          },
+          {
+            "name": "include_workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include workspace teams"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamUpdateV3Req"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated team",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TeamV3"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete Team",
+        "operationId": "teams-delete-v3",
+        "description": "Delete a team",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          },
+          {
+            "name": "include_workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include workspace teams"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "Team has been deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/workspaces/{workspaceId}/teams/{teamId}/members": {
+      "post": {
+        "summary": "Add Members to Team",
+        "operationId": "teams-members-add-v3",
+        "description": "Add members to a team",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          },
+          {
+            "name": "include_workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include workspace teams"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeamMembersAddV3Req"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Members added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TeamUser"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Remove Member from Team",
+        "operationId": "teams-members-remove-v3",
+        "description": "Remove members from a team",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          },
+          {
+            "name": "include_workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include workspace teams"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeamMembersRemoveV3Req"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Members removed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "Members have been removed successfully"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update Member Role",
+        "operationId": "teams-members-update-v3",
+        "description": "Update member roles in a team",
+        "tags": [
+          "Teams"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Workspace ID"
+          },
+          {
+            "name": "teamId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Team ID"
+          },
+          {
+            "name": "include_workspace",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Include workspace teams"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/TeamMembersUpdateV3Req"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Member roles updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TeamUser"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v3/meta/tokens": {
+      "get": {
+        "summary": "List API tokens",
+        "description": "Retrieve a list of all API tokens for the organization.\n\n**Note**: \nAPI Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "tags": [
+          "API Tokens"
+        ],
+        "security": [
+          {
+            "xc-token": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of API tokens",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "list": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/ApiTokenV3"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create API token",
+        "description": "Create a new API token for the organization.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "tags": [
+          "API Tokens"
+        ],
+        "security": [
+          {
+            "xc-token": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "title"
+                ],
+                "properties": {
+                  "title": {
+                    "type": "string",
+                    "description": "Title / description for the API token",
+                    "example": "Github Integration"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created API token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenWithTokenV3"
+                },
+                "examples": {
+                  "created": {
+                    "value": {
+                      "id": 5,
+                      "title": "Github Integration",
+                      "token": "wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh",
+                      "created_at": "2025-12-30 15:17:24+00:00",
+                      "updated_at": "2025-12-30 15:17:24+00:00"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
+    },
+    "/api/v3/meta/tokens/{tokenId}": {
+      "delete": {
+        "summary": "Delete API token",
+        "description": "Delete an API token by its ID.\n\n**Note**: API Token APIs are available only with self-hosted **Enterprise** plans and cloud-hosted **Enterprise** plans.\n> **Beta**: These APIs are currently in beta and subject to change in future releases.",
+        "tags": [
+          "API Tokens"
+        ],
+        "security": [
+          {
+            "xc-token": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "tokenId",
+            "in": "path",
+            "required": true,
+            "description": "ID of the API token to delete",
+            "schema": {
+              "type": "string",
+              "example": "5"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deleted API token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiTokenV3"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedV3"
+          },
+          "403": {
+            "$ref": "#/components/responses/ForbiddenV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -4758,7 +6073,7 @@
           "fields": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CreateField"
+              "$ref": "#/components/schemas/TableCreateField"
             }
           }
         },
@@ -5302,6 +6617,107 @@
           }
         ]
       },
+      "TableCreateField": {
+        "allOf": [
+          {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/FieldOptions/SingleLineText"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LongText"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/PhoneNumber"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/URL"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Email"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Number"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Decimal"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Currency"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Percent"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Duration"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Date"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/DateTime"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Time"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Year"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/SingleSelect"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/MultiSelect"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Rating"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Checkbox"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Attachment"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/JSON"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Geometry"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Links"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Button"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/Formula"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/CreatedTime"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LastModifiedTime"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/CreatedBy"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LastModifiedBy"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/LinkToAnotherRecord"
+              },
+              {
+                "$ref": "#/components/schemas/FieldOptions/User"
+              }
+            ]
+          },
+          {
+            "$ref": "#/components/schemas/TableFieldBaseCreate"
+          }
+        ]
+      },
       "Table": {
         "type": "object",
         "properties": {
@@ -5676,7 +7092,6 @@
           }
         }
       },
-
       "ViewAggregationEnum": {
         "type": "string",
         "enum": [
@@ -5752,10 +7167,6 @@
                     "personal"
                   ],
                   "description": "View configuration edit state."
-                },
-                "is_default": {
-                  "type": "boolean",
-                  "description": "Indicates if this is the default view."
                 },
                 "created_by": {
                   "type": "string",
@@ -6007,7 +7418,9 @@
                 }
               }
             },
-            "required": ["field_id"]
+            "required": [
+              "field_id"
+            ]
           },
           "cover_field_id": {
             "type": "string",
@@ -6252,7 +7665,6 @@
                 "required": [
                   "options"
                 ]
-
               }
             ],
             "discriminator": {
@@ -6392,10 +7804,6 @@
               "table_id": {
                 "type": "string",
                 "description": "Id of table associated with the view."
-              },
-              "is_default": {
-                "type": "boolean",
-                "description": "Indicates if this is the default view. Omitted if not the default view."
               }
             },
             "required": [
@@ -6562,7 +7970,6 @@
                 "required": [
                   "options"
                 ]
-
               }
             ],
             "discriminator": {
@@ -6571,7 +7978,6 @@
           }
         ]
       },
-
       "FieldBase": {
         "type": "object",
         "properties": {
@@ -6639,6 +8045,10 @@
               "number"
             ],
             "description": "Default value for the field. Applicable for SingleLineText, LongText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Duration, Date, DateTime, Time, SingleSelect, MultiSelect, Rating, Checkbox, User and JSON fields."
+          },
+          "unique": {
+            "type": "boolean",
+            "description": "Enable unique constraint for the field. When enabled, the field will only accept unique values (no duplicates allowed). Note: Unique constraint is only supported for NC-DB (not external databases) and is mutually exclusive with default values. Supported field types: SingleLineText, PhoneNumber, URL, Email, Number, Decimal, Currency, Percent, Date, DateTime and Time"
           }
         },
         "required": [
@@ -6649,6 +8059,59 @@
         "allOf": [
           {
             "$ref": "#/components/schemas/FieldBase"
+          },
+          {
+            "required": [
+              "title",
+              "type"
+            ]
+          }
+        ]
+      },
+      "TableFieldBaseCreate": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/FieldBase"
+          },{
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "SingleLineText",
+                  "LongText",
+                  "PhoneNumber",
+                  "URL",
+                  "Email",
+                  "Number",
+                  "Decimal",
+                  "Currency",
+                  "Percent",
+                  "Duration",
+                  "Date",
+                  "DateTime",
+                  "Time",
+                  "SingleSelect",
+                  "MultiSelect",
+                  "Rating",
+                  "Checkbox",
+                  "Attachment",
+                  "Geometry",
+                  "Links",
+                  "LinkToAnotherRecord",
+                  "Button",
+                  "Formula",
+                  "Year",
+                  "CreatedTime",
+                  "LastModifiedTime",
+                  "CreatedBy",
+                  "LastModifiedBy",
+                  "User",
+                  "JSON"
+                ],
+                "description": "Field data type."
+              }
+            }
           },
           {
             "required": [
@@ -7194,6 +8657,7 @@
         "title": "Button",
         "oneOf": [
           {
+            "title": "Formula Button",
             "type": "object",
             "properties": {
               "type": {
@@ -7206,14 +8670,49 @@
               "formula": {
                 "type": "string",
                 "description": "Formula to execute"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
+                "description": "Color of the button"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
+                "description": "Theme of the button"
               }
             },
             "required": [
               "type",
               "formula"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
+            "title": "Webhook Button",
             "type": "object",
             "properties": {
               "type": {
@@ -7226,14 +8725,49 @@
               "button_hook_id": {
                 "type": "string",
                 "description": "ID of the webhook to trigger"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
+                "description": "Color of the button"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
+                "description": "Theme of the button"
               }
             },
             "required": [
               "type",
               "button_hook_id"
-            ]
+            ],
+            "additionalProperties": false
           },
           {
+            "title": "AI Button",
             "type": "object",
             "properties": {
               "type": {
@@ -7253,6 +8787,11 @@
               },
               "theme": {
                 "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
                 "description": "Theme of the button"
               },
               "output_column_ids": {
@@ -7269,6 +8808,18 @@
               },
               "color": {
                 "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
                 "description": "Color of the button"
               }
             },
@@ -7276,7 +8827,63 @@
               "type",
               "prompt",
               "integration_id"
-            ]
+            ],
+            "additionalProperties": false
+          },
+          {
+            "title": "Script Button",
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "script"
+                ],
+                "description": "Button type: script"
+              },
+              "script_id": {
+                "type": "string",
+                "description": "ID of the script to trigger"
+              },
+              "label": {
+                "type": "string",
+                "description": "Label of the button"
+              },
+              "icon": {
+                "type": "string",
+                "description": "Icon of the button"
+              },
+              "color": {
+                "type": "string",
+                "enum": [
+                  "brand",
+                  "red",
+                  "green",
+                  "maroon",
+                  "blue",
+                  "orange",
+                  "pink",
+                  "purple",
+                  "yellow",
+                  "gray"
+                ],
+                "description": "Color of the button"
+              },
+              "theme": {
+                "type": "string",
+                "enum": [
+                  "solid",
+                  "light",
+                  "text"
+                ],
+                "description": "Theme of the button"
+              }
+            },
+            "required": [
+              "type",
+              "script_id"
+            ],
+            "additionalProperties": false
           }
         ],
         "discriminator": {
@@ -7284,10 +8891,10 @@
           "mapping": {
             "formula": "#/components/schemas/FieldOptions_Button/oneOf/0",
             "webhook": "#/components/schemas/FieldOptions_Button/oneOf/1",
-            "ai": "#/components/schemas/FieldOptions_Button/oneOf/2"
+            "ai": "#/components/schemas/FieldOptions_Button/oneOf/2",
+            "script": "#/components/schemas/FieldOptions_Button/oneOf/3"
           }
-        },
-        "additionalProperties": false
+        }
       },
       "FieldOptions_Links": {
         "type": "object",
@@ -8354,6 +9961,86 @@
           "updated_at"
         ]
       },
+      "WorkspaceV3": {
+        "type": "object",
+        "description": "Workspace V3 information with meta data",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the workspace"
+          },
+          "org_id": {
+            "type": "string",
+            "description": "Organization identifier (required for cloud, absent for on-prem EE)"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workspace was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the workspace was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "WorkspaceV3Create": {
+        "type": "object",
+        "description": "Workspace creation request",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the workspace"
+          },
+          "org_id": {
+            "type": "string",
+            "description": "Organization identifier (required for cloud, absent for on-prem EE)"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "WorkspaceV3Update": {
+        "type": "object",
+        "description": "Workspace update request",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the workspace"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "WorkspaceV3ListResponse": {
+        "type": "object",
+        "description": "Workspace list response",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceV3"
+            },
+            "description": "List of workspaces"
+          }
+        },
+        "required": [
+          "list"
+        ]
+      },
       "WorkspaceWithMembers": {
         "type": "object",
         "description": "Workspace information including member details",
@@ -8542,6 +10229,383 @@
         },
         "description": "Array of workspace users to be deleted."
       },
+      "TeamV3": {
+        "type": "object",
+        "description": "Team information for v3 API",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique team identifier",
+            "example": "t12345"
+          },
+          "title": {
+            "type": "string",
+            "description": "Team name",
+            "example": "Design Team",
+            "maxLength": 50
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Team icon (emoji or icon identifier)",
+            "example": "🎨"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "EMOJI",
+                  "ICON"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
+          },
+          "badge_color": {
+            "type": "string",
+            "description": "Team badge color (hex code)",
+            "example": "#FF5733",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "members_count": {
+            "type": "integer",
+            "description": "Number of team members",
+            "example": 10
+          },
+          "managers_count": {
+            "type": "integer",
+            "description": "Number of team managers",
+            "example": 2
+          },
+          "fk_org_id": {
+            "type": "string",
+            "description": "Organization ID (for Cloud Enterprise)"
+          },
+          "fk_workspace_id": {
+            "type": "string",
+            "description": "Workspace ID (for other plans)"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Team creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Team last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "members_count"
+        ]
+      },
+      "TeamCreateV3Req": {
+        "type": "object",
+        "description": "Team creation request for v3 API",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Team name",
+            "example": "Design Team",
+            "maxLength": 50,
+            "minLength": 1
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Team icon (emoji or icon identifier)",
+            "example": "🎨"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "EMOJI",
+                  "ICON"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
+          },
+          "badge_color": {
+            "type": "string",
+            "description": "Team badge color (hex code)",
+            "example": "#FF5733",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          },
+          "members": {
+            "type": "array",
+            "description": "Initial team members",
+            "items": {
+              "$ref": "#/components/schemas/TeamMemberV3"
+            }
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "TeamUpdateV3Req": {
+        "type": "object",
+        "description": "Team update request for v3 API",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Updated team name",
+            "example": "Updated Team Name",
+            "maxLength": 50,
+            "minLength": 1
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Updated team icon (emoji or icon identifier)",
+            "example": "🛠️"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "EMOJI",
+                  "ICON"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
+          },
+          "badge_color": {
+            "type": "string",
+            "description": "Updated team badge color (hex code)",
+            "example": "#00AEEF",
+            "pattern": "^#[0-9A-Fa-f]{6}$"
+          }
+        }
+      },
+      "TeamDetailV3": {
+        "type": "object",
+        "description": "Detailed team information for v3 API",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Team name",
+            "example": "Design Team"
+          },
+          "icon": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Team icon (emoji or icon identifier)",
+            "example": "🎨"
+          },
+          "icon_type": {
+            "oneOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "EMOJI",
+                  "ICON"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Team icon type",
+            "example": "EMOJI"
+          },
+          "badge_color": {
+            "type": "string",
+            "description": "Team badge color (hex code)",
+            "example": "#FF5733"
+          },
+          "members": {
+            "type": "array",
+            "description": "Team members",
+            "items": {
+              "$ref": "#/components/schemas/TeamMemberV3Response"
+            }
+          }
+        },
+        "required": [
+          "title",
+          "members"
+        ]
+      },
+      "TeamMemberV3": {
+        "type": "object",
+        "description": "Team member information for v3 API",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID",
+            "example": "xxxx"
+          },
+          "team_role": {
+            "type": "string",
+            "description": "Team role",
+            "enum": [
+              "member",
+              "owner"
+            ],
+            "example": "member"
+          }
+        },
+        "required": [
+          "user_id",
+          "team_role"
+        ]
+      },
+      "TeamMemberV3Response": {
+        "type": "object",
+        "description": "Team member response for v3 API",
+        "properties": {
+          "user_email": {
+            "type": "string",
+            "format": "email",
+            "description": "User email address",
+            "example": "user@nocodb.com"
+          },
+          "user_id": {
+            "type": "string",
+            "description": "User ID",
+            "example": "id"
+          },
+          "team_role": {
+            "type": "string",
+            "description": "Team role",
+            "enum": [
+              "member",
+              "owner"
+            ],
+            "example": "member"
+          }
+        },
+        "required": [
+          "user_email",
+          "user_id",
+          "team_role"
+        ]
+      },
+      "TeamMembersAddV3Req": {
+        "type": "object",
+        "description": "Add team members request for v3 API",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID to add",
+            "example": "xxxx"
+          },
+          "team_role": {
+            "type": "string",
+            "description": "Team role to assign",
+            "enum": [
+              "member",
+              "owner"
+            ],
+            "example": "member"
+          }
+        },
+        "required": [
+          "user_id",
+          "team_role"
+        ]
+      },
+      "TeamMembersRemoveV3Req": {
+        "type": "object",
+        "description": "Remove team members request for v3 API",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID to remove",
+            "example": "user123"
+          }
+        },
+        "required": [
+          "user_id"
+        ]
+      },
+      "TeamMembersUpdateV3Req": {
+        "type": "object",
+        "description": "Update team members request for v3 API",
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "description": "User ID to update",
+            "example": "user123"
+          },
+          "team_role": {
+            "type": "string",
+            "description": "New team role",
+            "enum": [
+              "member",
+              "owner"
+            ],
+            "example": "member"
+          }
+        },
+        "required": [
+          "user_id",
+          "team_role"
+        ]
+      },
+      "TeamUser": {
+        "type": "object",
+        "description": "Team user relationship",
+        "properties": {
+          "fk_team_id": {
+            "type": "string",
+            "description": "Team ID"
+          },
+          "fk_user_id": {
+            "type": "string",
+            "description": "User ID"
+          },
+          "is_owner": {
+            "type": "boolean",
+            "description": "Whether user is team owner"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "fk_team_id",
+          "fk_user_id",
+          "is_owner"
+        ]
+      },
       "WorkspaceRoles": {
         "type": "string",
         "description": "Workspace roles for the user.",
@@ -8552,6 +10616,465 @@
           "workspace-level-viewer",
           "workspace-level-commenter",
           "workspace-level-no-access"
+        ]
+      },
+      "WorkspaceTeamCreate": {
+        "type": "object",
+        "description": "Create workspace team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to add to workspace",
+            "example": "team123"
+          },
+          "workspace_role": {
+            "type": "string",
+            "description": "Workspace role to assign to the team (creator or lower only)",
+            "enum": [
+              "workspace-level-creator",
+              "workspace-level-editor",
+              "workspace-level-viewer",
+              "workspace-level-commenter",
+              "workspace-level-no-access"
+            ],
+            "example": "workspace-level-editor"
+          }
+        },
+        "required": [
+          "team_id",
+          "workspace_role"
+        ]
+      },
+      "WorkspaceTeamCreateBulk": {
+        "type": "object",
+        "description": "Bulk create workspace team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to add to workspace",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceTeamCreate"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123",
+                "workspace_role": "workspace-level-editor"
+              },
+              {
+                "team_id": "team456",
+                "workspace_role": "workspace-level-viewer"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
+        ]
+      },
+      "WorkspaceTeamUpdate": {
+        "type": "object",
+        "description": "Update workspace team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to update in workspace",
+            "example": "team123"
+          },
+          "workspace_role": {
+            "type": "string",
+            "description": "New workspace role for the team (creator or lower only)",
+            "enum": [
+              "workspace-level-creator",
+              "workspace-level-editor",
+              "workspace-level-viewer",
+              "workspace-level-commenter",
+              "workspace-level-no-access"
+            ],
+            "example": "workspace-level-viewer"
+          }
+        },
+        "required": [
+          "team_id",
+          "workspace_role"
+        ]
+      },
+      "WorkspaceTeamDelete": {
+        "type": "object",
+        "description": "Delete workspace team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to remove from workspace",
+            "example": "team123"
+          }
+        },
+        "required": [
+          "team_id"
+        ]
+      },
+      "WorkspaceTeamDeleteBulk": {
+        "type": "object",
+        "description": "Bulk delete workspace team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to remove from workspace",
+            "items": {
+              "$ref": "#/components/schemas/WorkspaceTeamDelete"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123"
+              },
+              {
+                "team_id": "team456"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
+        ]
+      },
+      "BaseTeamCreate": {
+        "type": "object",
+        "description": "Create base team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to add to base",
+            "example": "team123"
+          },
+          "base_role": {
+            "type": "string",
+            "description": "Base role to assign to the team (creator or lower only)",
+            "enum": [
+              "creator",
+              "editor",
+              "viewer",
+              "commenter",
+              "no-access"
+            ],
+            "example": "editor"
+          }
+        },
+        "required": [
+          "team_id",
+          "base_role"
+        ]
+      },
+      "BaseTeamCreateBulk": {
+        "type": "object",
+        "description": "Bulk create base team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to add to base",
+            "items": {
+              "$ref": "#/components/schemas/BaseTeamCreate"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123",
+                "base_role": "editor"
+              },
+              {
+                "team_id": "team456",
+                "base_role": "viewer"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
+        ]
+      },
+      "BaseTeamUpdate": {
+        "type": "object",
+        "description": "Update base team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to update in base",
+            "example": "team123"
+          },
+          "base_role": {
+            "type": "string",
+            "description": "New base role for the team (creator or lower only)",
+            "enum": [
+              "creator",
+              "editor",
+              "viewer",
+              "commenter",
+              "no-access"
+            ],
+            "example": "viewer"
+          }
+        },
+        "required": [
+          "team_id",
+          "base_role"
+        ]
+      },
+      "BaseTeamDelete": {
+        "type": "object",
+        "description": "Delete base team request for v3 API",
+        "properties": {
+          "team_id": {
+            "type": "string",
+            "description": "Team ID to remove from base",
+            "example": "team123"
+          }
+        },
+        "required": [
+          "team_id"
+        ]
+      },
+      "BaseTeamDeleteBulk": {
+        "type": "object",
+        "description": "Bulk delete base team requests for v3 API",
+        "properties": {
+          "teams": {
+            "type": "array",
+            "description": "Array of teams to remove from base",
+            "items": {
+              "$ref": "#/components/schemas/BaseTeamDelete"
+            },
+            "minItems": 1,
+            "example": [
+              {
+                "team_id": "team123"
+              },
+              {
+                "team_id": "team456"
+              }
+            ]
+          }
+        },
+        "required": [
+          "teams"
+        ]
+      },
+      "ScriptList": {
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "description": "Unique identifier for the script."
+                },
+                "title": {
+                  "type": "string",
+                  "description": "Title of the script."
+                },
+                "description": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Description of the script."
+                },
+                "base_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the base to which this script belongs to."
+                },
+                "workspace_id": {
+                  "type": "string",
+                  "description": "Unique identifier for the workspace to which this base belongs to."
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "base_id",
+                "workspace_id"
+              ]
+            }
+          }
+        },
+        "required": [
+          "list"
+        ]
+      },
+      "ScriptCreateReq": {
+        "description": "Script create request body",
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the script."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the script."
+          },
+          "script": {
+            "type": "string",
+            "description": "Script content."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the script."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadata for the script."
+          }
+        }
+      },
+      "ScriptUpdateReq": {
+        "description": "Script update request body",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the script."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the script."
+          },
+          "script": {
+            "type": "string",
+            "description": "Script content."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the script."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadata for the script."
+          }
+        }
+      },
+      "ScriptGetResponse": {
+        "description": "Script with additional info",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the script"
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the script."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Description of the script."
+          },
+          "script": {
+            "type": "string",
+            "description": "Script content."
+          },
+          "config": {
+            "type": "object",
+            "description": "Configuration for the script."
+          },
+          "meta": {
+            "type": "object",
+            "description": "Metadata of the script."
+          },
+          "base_id": {
+            "type": "string",
+            "description": "Unique identifier for the base"
+          },
+          "workspace_id": {
+            "type": "string",
+            "description": "Unique identifier for the workspace"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the script was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the script was last updated"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "script",
+          "base_id",
+          "workspace_id",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "ApiTokenV3": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Token ID",
+            "example": 5
+          },
+          "title": {
+            "type": "string",
+            "description": "Token title / description",
+            "example": "Github Integration"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Token creation timestamp",
+            "example": "2025-12-30 15:17:24+00:00"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Token last update timestamp",
+            "example": "2025-12-30 15:17:24+00:00"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "created_at",
+          "updated_at"
+        ]
+      },
+      "ApiTokenWithTokenV3": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiTokenV3"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string",
+                "description": "The actual API token value (only returned on creation)",
+                "example": "wxAFzFO2wwOf9ozVRjragBJ7KPWMaW2OGpklGqHh"
+              }
+            },
+            "required": [
+              "token"
+            ]
+          }
         ]
       }
     },
@@ -8585,6 +11108,62 @@
           }
         },
         "headers": {}
+      }
+    },
+    "BadRequestV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "UnauthorizedV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "ForbiddenV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string",
+          "example": "Accessing api token api require enterprise plan"
+        }
+      }
+    },
+    "NotFoundV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "InternalServerErrorV3": {
+      "type": "object",
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
       }
     },
     "securitySchemes": {

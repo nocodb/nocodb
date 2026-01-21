@@ -27,7 +27,7 @@ export class AjvError extends NcBaseError {
 
 export class NcZodError extends NcBaseErrorv2 {
   constructor(param: { message: string; errors: ZodError | ZodError[] }) {
-    super(param.message, 400, NcErrorType.INVALID_REQUEST_BODY, {
+    super(param.message, 400, NcErrorType.ERR_INVALID_REQUEST_BODY, {
       details: param.errors,
     });
     this.errors = Array.isArray(param.errors) ? param.errors : [param.errors];
@@ -38,7 +38,7 @@ export class NcZodError extends NcBaseErrorv2 {
 export class NcErrorV1 extends NcErrorBase {
   constructor() {
     super();
-    this.errorCodex.setErrorCodex(NcErrorType.INVALID_LIMIT_VALUE, {
+    this.errorCodex.setErrorCodex(NcErrorType.ERR_INVALID_LIMIT_VALUE, {
       message: `Limit value should be between ${defaultLimitConfig.limitMin} and ${defaultLimitConfig.limitMax}`,
       code: 422,
     });
@@ -49,7 +49,7 @@ export class NcErrorV1 extends NcErrorBase {
     roles: Record<string, boolean>,
     extendedScopeRoles: any,
   ): never {
-    throw this.errorCodex.generateError(NcErrorType.PERMISSION_DENIED, {
+    throw this.errorCodex.generateError(NcErrorType.ERR_PERMISSION_DENIED, {
       customMessage: generateReadablePermissionErr(
         permissionName,
         roles,
@@ -104,7 +104,7 @@ export class NcErrorV1 extends NcErrorBase {
       }
     }
 
-    throw this.errorCodex.generateError(NcErrorType.RECORD_NOT_FOUND, {
+    throw this.errorCodex.generateError(NcErrorType.ERR_RECORD_NOT_FOUND, {
       params: formatedId,
       ...args,
     });
@@ -125,5 +125,20 @@ export class NcErrorV1 extends NcErrorBase {
   override invalidRequestBody(message: string): never {
     // backward compatibility for v1 and v2 apis
     return this.badRequest(message);
+  }
+
+  sourceDataReadOnly(name: string): never {
+    return this.forbidden(`Source '${name}' is read-only`);
+  }
+
+  sourceMetaReadOnly(name: string): never {
+    return this.forbidden(`Source '${name}' schema is read-only`);
+  }
+
+  schemaLocked(message?: string): never {
+    return this.forbidden(
+      message ||
+        'Schema modifications are not allowed on installed sandbox bases',
+    );
   }
 }

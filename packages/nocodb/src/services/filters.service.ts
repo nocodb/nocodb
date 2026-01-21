@@ -4,7 +4,7 @@ import { AppEvents, comparisonOpList, EventType } from 'nocodb-sdk';
 import type { FilterReqType, FilterType, UITypes, UserType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
-import type { MetaService } from 'src/meta/meta.service';
+import type { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
@@ -59,6 +59,12 @@ export class FiltersService {
     param: { filterId: string; req: NcRequest },
     ncMeta?: MetaService,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const filter = await Filter.get(context, param.filterId);
 
     if (!filter) {
@@ -402,13 +408,7 @@ export class FiltersService {
     filterId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
-    try {
-      // Delete directly from nc_filters table
-      await Filter.delete(context, filterId, ncMeta);
-    } catch (error) {
-      console.warn(`Failed to delete filter ${filterId}: ${error.message}`);
-      throw error;
-    }
+    await Filter.delete(context, filterId, ncMeta);
   }
 
   /**

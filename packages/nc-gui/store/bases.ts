@@ -3,6 +3,7 @@ import type { BaseType, OracleUi, ProjectUserReqType, RequestParams, SourceType 
 import { SqlUiFactory } from 'nocodb-sdk'
 import { isString } from '@vue/shared'
 import type Record from '~icons/*'
+import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 // todo: merge with base store
 export const useBases = defineStore('basesStore', () => {
@@ -295,7 +296,7 @@ export const useBases = defineStore('basesStore', () => {
     await api.base.delete(baseId)
     bases.value.delete(baseId)
     tableStore.baseTables.delete(baseId)
-
+    extensionUserPrefsManager.deleteBase(baseId)
     await loadProjects()
   }
 
@@ -438,6 +439,25 @@ export const useBases = defineStore('basesStore', () => {
     // this is a placeholder function
   }
 
+  /**
+   * Teams section start here
+   */
+  const isLoadingBaseTeams = ref(true)
+
+  const basesTeams = ref<Map<string, Record<string, any>[]>>(new Map())
+
+  const getBaseTeams = async (..._args: any[]) => {}
+
+  const baseTeamList = async (..._args: any[]) => {}
+  const baseTeamGet = async (..._args: any[]) => {}
+  const baseTeamAdd = async (..._args: any[]) => {}
+  const baseTeamUpdate = async (..._args: any[]) => {}
+  const baseTeamRemove = async (..._args: any[]) => {}
+
+  /**
+   * Teams section end here
+   */
+
   return {
     bases,
     basesList,
@@ -472,6 +492,16 @@ export const useBases = defineStore('basesStore', () => {
     baseHomeSearchQuery,
     getBaseRoles,
     baseRoles,
+
+    // Base Teams
+    isLoadingBaseTeams,
+    basesTeams,
+    getBaseTeams,
+    baseTeamList,
+    baseTeamGet,
+    baseTeamAdd,
+    baseTeamUpdate,
+    baseTeamRemove,
   }
 })
 

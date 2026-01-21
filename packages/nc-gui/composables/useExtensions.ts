@@ -3,6 +3,7 @@ import type { ProjectRoles } from 'nocodb-sdk'
 import { PlanLimitTypes, getProjectRole, hasMinimumRoleAccess } from 'nocodb-sdk'
 import { usePlugin } from './usePlugin'
 import { ExtensionsEvents } from '#imports'
+import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 
 const extensionsState = createGlobalState(() => {
   const baseExtensions = ref<Record<string, any>>({})
@@ -162,7 +163,14 @@ export const useExtensions = createSharedComposable(() => {
     }
 
     try {
-      const newExtension = await $api.extensions.create(base.value.id, extensionReq)
+      const newExtension = await $api.internal.postOperation(
+        base.value!.fk_workspace_id!,
+        base.value.id,
+        {
+          operation: 'extensionCreate',
+        },
+        extensionReq,
+      )
 
       if (newExtension) {
         updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, 1)
@@ -190,7 +198,15 @@ export const useExtensions = createSharedComposable(() => {
     if (!extensionToUpdate) return
 
     try {
-      const updatedExtension = await $api.extensions.update(extensionId, extension)
+      const updatedExtension = await $api.internal.postOperation(
+        base.value!.fk_workspace_id!,
+        base.value!.id!,
+        {
+          operation: 'extensionUpdate',
+          extensionId,
+        },
+        extension,
+      )
 
       if (updatedExtension) {
         extensionToUpdate.deserialize(updatedExtension)
@@ -227,7 +243,15 @@ export const useExtensions = createSharedComposable(() => {
     if (!extensionToDelete) return
 
     try {
-      await $api.extensions.delete(extensionId)
+      await $api.internal.postOperation(
+        base.value!.fk_workspace_id!,
+        base.value.id,
+        {
+          operation: 'extensionDelete',
+          extensionId,
+        },
+        {},
+      )
 
       updateStatLimit(PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE, -1)
 
@@ -235,6 +259,7 @@ export const useExtensions = createSharedComposable(() => {
         (ext: any) => ext.id !== extensionId,
       )
 
+      extensionUserPrefsManager.deleteExtension(extensionId)
       $e('a:extension:delete', { extensionId: extensionToDelete.extensionId })
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -254,10 +279,17 @@ export const useExtensions = createSharedComposable(() => {
 
     const { id: _id, order: _order, ...extensionData } = extension.serialize()
 
-    const newExtension = await $api.extensions.create(base.value.id, {
-      ...extensionData,
-      title: `${extension.title} (Copy)`,
-    })
+    const newExtension = await $api.internal.postOperation(
+      base.value!.fk_workspace_id!,
+      base.value.id,
+      {
+        operation: 'extensionCreate',
+      },
+      {
+        ...extensionData,
+        title: `${extension.title} (Copy)`,
+      },
+    )
 
     if (newExtension) {
       const duplicatedExtension = new Extension(newExtension)
@@ -301,7 +333,9 @@ export const useExtensions = createSharedComposable(() => {
     }
 
     try {
-      const { list } = await $api.extensions.list(baseId)
+      const { list } = await $api.internal.getOperation(base.value!.fk_workspace_id!, baseId, {
+        operation: 'extensionList',
+      })
 
       const extensions = list?.map((ext: any) => new Extension(ext))
 
@@ -312,6 +346,11 @@ export const useExtensions = createSharedComposable(() => {
           extensions: extensions || [],
           expanded: false,
         }
+      }
+
+      if (user.value?.id && extensions) {
+        const validExtensionIds = extensions.map((ext: any) => ext.id)
+        extensionUserPrefsManager.verifyAndCleanup(user.value.id, validExtensionIds)
       }
     } catch (e) {
       baseExtensions.value[baseId] = {
@@ -324,10 +363,12 @@ export const useExtensions = createSharedComposable(() => {
   class KvStore<T extends Record<string, any> = any> implements IKvStore<T> {
     private _id: string
     private data: T
+    private _extension: Extension | null = null
 
-    constructor(id: string, data: T) {
+    constructor(id: string, data: T, extension?: Extension) {
       this._id = id
       this.data = data || {}
+      this._extension = extension || null
     }
 
     get<K extends keyof T = any>(key: K) {
@@ -336,6 +377,11 @@ export const useExtensions = createSharedComposable(() => {
 
     set<K extends keyof T = any>(key: K, value: any) {
       this.data[key] = value
+      // Skip update if last change was from realtime
+      if (this._extension?.is_last_update_from_realtime) {
+        this._extension.is_last_update_from_realtime = false
+        return Promise.resolve()
+      }
       return updateExtension(this._id, { kv_store: this.data })
     }
 
@@ -359,6 +405,7 @@ export const useExtensions = createSharedComposable(() => {
     private _meta: any
     private _order: number
     public uiKey = 0
+    public is_last_update_from_realtime = false
 
     constructor(data: any) {
       this._id = data.id
@@ -366,7 +413,7 @@ export const useExtensions = createSharedComposable(() => {
       this._fkUserId = data.fk_user_id
       this._extensionId = data.extension_id
       this._title = data.title
-      this._kvStore = new KvStore(this._id, data.kv_store)
+      this._kvStore = new KvStore(this._id, data.kv_store, this)
       this._meta = data.meta
       this._order = data.order
     }
@@ -422,7 +469,7 @@ export const useExtensions = createSharedComposable(() => {
       this._fkUserId = data.fk_user_id
       this._extensionId = data.extension_id
       this._title = data.title
-      this._kvStore = new KvStore(this._id, data.kv_store)
+      this._kvStore = new KvStore(this._id, data.kv_store, this)
       this._meta = data.meta
       this._order = data.order
     }
@@ -501,6 +548,7 @@ export const useExtensions = createSharedComposable(() => {
     updateExtensionMeta,
     clearKvStore,
     deleteExtension,
+    loadExtensionsForBase,
     getExtensionAssetsUrl: (pathOrUrl: string) => getPluginAssetUrl(pathOrUrl, pluginTypes.extension),
     isDetailsVisible,
     detailsExtensionId,
@@ -513,5 +561,7 @@ export const useExtensions = createSharedComposable(() => {
     userHasAccessToExtension,
     userCurrentBaseRole,
     extensionAccess,
+    baseExtensions,
+    Extension,
   }
 })

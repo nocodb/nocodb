@@ -3,6 +3,37 @@ import rfdc from 'rfdc'
 const deepClone = rfdc()
 const FEATURES = [
   {
+    id: 'sandboxes',
+    title: 'Sandboxes',
+    description: 'Allow users to create replicable sandbox environments',
+    enabled: false,
+    isEngineering: true,
+    isAdvanced: true,
+  },
+  {
+    id: 'bases_v3',
+    title: 'Bases V3',
+    description: 'Experience the next generation of NocoDB with Bases V3 with and enhanced performance and optimizations.',
+    enabled: false,
+    version: 1,
+  },
+  {
+    id: 'workflows',
+    title: 'Workflows',
+    description: 'Automate tasks with visual workflows - connect triggers, actions, and data transformations without code.',
+    enabled: true,
+    isEngineering: false,
+    version: 2,
+  },
+  {
+    id: 'advanced_nodes',
+    title: 'Enabled advanced nodes',
+    description: 'Enabled advanced nodes like scripts, external trigger node, etc.',
+    enabled: false,
+    isEngineering: true,
+    version: 1,
+  },
+  {
     id: 'infinite_scrolling',
     title: 'Infinite scrolling',
     description: 'Effortlessly browse large datasets with infinite scrolling.',
@@ -19,10 +50,10 @@ const FEATURES = [
   {
     id: 'dark_mode',
     title: 'Dark Mode',
-    isEngineering: true,
+    isEngineering: false,
     description: 'Keep your eyes healthy with dark mode.',
-    enabled: false,
-    version: 1,
+    enabled: true,
+    version: 3,
   },
   {
     id: 'canvas_group_grid_view',
@@ -59,8 +90,8 @@ const FEATURES = [
     id: 'integrations',
     title: 'Integrations',
     description: 'Enable dynamic integrations.',
-    enabled: false,
-    version: 1,
+    enabled: true,
+    version: 2,
     isEngineering: true,
   },
   {
@@ -81,9 +112,9 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'sync',
-    title: 'Sync',
-    description: 'Enable sync feature.',
+    id: 'sync_beta_feature',
+    title: 'Advanced Sync Features',
+    description: 'Enable sync beta features like custom sync, multi source sync, etc.',
     enabled: false,
     version: 1,
     isEngineering: true,
@@ -107,10 +138,10 @@ const FEATURES = [
   },
   {
     id: 'extensions',
-    title: 'Extensions',
+    title: 'Extensions beta features',
     description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
     enabled: ncIsPlaywright(),
-    version: 3,
+    version: 4,
     isEngineering: true,
   },
   {
@@ -138,14 +169,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'table_and_field_permissions',
-    title: 'Table and Field Permissions',
-    description: 'Allows user to manage table and field permissions.',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
     id: 'view_actions',
     title: 'View Actions',
     description: 'Execute scripts and webhooks to all records in a view.',
@@ -155,10 +178,46 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'copy_view_config_from_another_view',
-    title: 'Copy View Config From Another View',
-    description: 'Copy view config from another view.',
-    enabled: true,
+    id: 'show_everyones_personal_views',
+    title: "Show Everyone's Personal Views",
+    description: 'With this feature we can avoid showing other users personal views in left sidebar',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'templates',
+    title: 'Templates',
+    description: 'Enable templates feature to browse and use templates.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+    isOnPrem: false,
+  },
+  {
+    id: 'gauge_widget',
+    title: 'Gauge Widget',
+    description: 'A visual indicator that displays real-time values, limits, and performance levels at a glance.',
+    isEngineering: true,
+    enabled: false,
+    version: 1,
+  },
+  {
+    id: 'card_field_header_visibility',
+    title: 'Card Field Header Visibility',
+    description: 'Enable field header visibility in Gallery and Kanban views.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'kanban_opt',
+    title: 'Optimized Kanban View',
+    description: 'Optimized Kanban view with optimised API for better performance.',
+    enabled: false,
     version: 3,
     isEE: true,
   },
@@ -193,6 +252,8 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
   const { $e } = useNuxtApp()
 
   const isEngineeringModeOn = ref(false)
+
+  const isAdvancedModeOn = ref(false)
 
   const isExperimentalFeatureModalOpen = ref(false)
 
@@ -276,6 +337,7 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     toggleFeature,
     isFeatureEnabled,
     isEngineeringModeOn,
+    isAdvancedModeOn,
     isExperimentalFeatureModalOpen,
     initializeFeatures,
   }

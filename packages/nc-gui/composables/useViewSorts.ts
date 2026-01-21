@@ -18,6 +18,8 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const isPublic = inject(IsPublicInj, ref(false))
 
+  const meta = inject(MetaInj, ref())
+
   const lastSorts = ref<SortType[]>([])
 
   watchOnce(sorts, (sorts: SortType[]) => {
@@ -31,11 +33,17 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     }
 
     try {
-      if (!isUIAllowed('sortSync')) {
+      if (!isUIAllowed('sortList')) {
         return
       }
-      if (!view?.value) return
-      sorts.value = (await $api.dbTableSort.list(view.value!.id!)).list as SortType[]
+      if (!view?.value || !meta.value) return
+
+      sorts.value = (
+        await $api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
+          operation: 'sortList',
+          viewId: view.value!.id!,
+        })
+      ).list as SortType[]
     } catch (e: any) {
       console.error(e)
       message.error(await extractSdkResponseErrorMsg(e))
@@ -92,10 +100,26 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     try {
       if (isUIAllowed('sortSync')) {
         if (sort.id) {
-          await $api.dbTableSort.update(sort.id, sort)
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'sortUpdate',
+              sortId: sort.id,
+            },
+            sort,
+          )
           $e('sort-updated')
         } else {
-          sorts.value[i] = (await $api.dbTableSort.create(view.value?.id as string, sort)) as unknown as SortType
+          sorts.value[i] = (await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'sortCreate',
+              viewId: view.value?.id as string,
+            },
+            sort,
+          )) as unknown as SortType
         }
       }
       reloadData?.()
@@ -122,44 +146,88 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       const existingSortIndex = sorts.value.findIndex((s) => s.fk_column_id === column.id)
       const existingSort = existingSortIndex > -1 ? sorts.value[existingSortIndex] : undefined
 
+      const isLocalMode = isPublic.value || isSharedBase.value || !isUIAllowed('sortSync')
       // Delete existing sort and not update the state as sort count in UI will change for a sec
-      if (existingSort) {
-        await $api.dbTableSort.delete(existingSort.id!)
+      if (existingSort && !isLocalMode) {
+        await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'sortDelete',
+            sortId: existingSort.id!,
+          },
+          {},
+        )
         $e('a:sort:delete')
       }
 
-      const data: any = await $api.dbTableSort.create(view.value?.id as string, {
-        fk_column_id: column!.id,
-        direction,
-        push_to_top: true,
-      })
+      let data: any
+
+      if (isLocalMode) {
+        data = {
+          fk_column_id: column!.id,
+          direction,
+        }
+      } else {
+        data = await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'sortCreate',
+            viewId: view.value?.id as string,
+          },
+          {
+            fk_column_id: column!.id,
+            direction,
+            push_to_top: true,
+          },
+        )
+      }
 
       sorts.value = [...sorts.value.filter((_, index) => index !== existingSortIndex), data as SortType]
 
-      addUndo({
-        redo: {
-          fn: async function redo(this: UndoRedoAction) {
-            const data: any = await $api.dbTableSort.create(view.value?.id as string, {
-              fk_column_id: column!.id,
-              direction,
-              push_to_top: true,
-            })
-            this.undo.args = [data.id]
-            eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-            reloadDataHook?.trigger()
+      if (!isLocalMode) {
+        addUndo({
+          redo: {
+            fn: async function redo(this: UndoRedoAction) {
+              const data: any = await $api.internal.postOperation(
+                meta.value!.fk_workspace_id!,
+                meta.value!.base_id!,
+                {
+                  operation: 'sortCreate',
+                  viewId: view.value?.id as string,
+                },
+                {
+                  fk_column_id: column!.id,
+                  direction,
+                  push_to_top: true,
+                },
+              )
+              this.undo.args = [data.id]
+              eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+              reloadDataHook?.trigger()
+            },
+            args: [],
           },
-          args: [],
-        },
-        undo: {
-          fn: async function undo(id: string) {
-            await $api.dbTableSort.delete(id)
-            eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-            reloadDataHook?.trigger()
+          undo: {
+            fn: async function undo(id: string) {
+              await $api.internal.postOperation(
+                meta.value!.fk_workspace_id!,
+                meta.value!.base_id!,
+                {
+                  operation: 'sortDelete',
+                  sortId: id,
+                },
+                {},
+              )
+              eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+              reloadDataHook?.trigger()
+            },
+            args: [data.id],
           },
-          args: [data.id],
-        },
-        scope: defineViewScope({ view: view.value }),
-      })
+          scope: defineViewScope({ view: view.value }),
+        })
+      }
 
       eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
       reloadDataHook?.trigger()
@@ -171,8 +239,17 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   async function deleteSort(sort: SortType, i: number, undo = false) {
     try {
-      if (isUIAllowed('sortSync') && sort.id && !isPublic.value && !isSharedBase.value) {
-        await $api.dbTableSort.delete(sort.id)
+      const isLocalMode = isPublic.value || isSharedBase.value || !isUIAllowed('sortSync')
+      if (sort.id && !isLocalMode) {
+        await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'sortDelete',
+            sortId: sort.id,
+          },
+          {},
+        )
       }
       sorts.value.splice(i, 1)
       sorts.value = [...sorts.value]

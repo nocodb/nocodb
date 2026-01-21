@@ -2,6 +2,7 @@ import type { CSSProperties } from '@vue/runtime-dom'
 
 import {
   type BaseType,
+  type BaseVersion,
   type ColumnType,
   type FilterType,
   type MetaType,
@@ -23,6 +24,7 @@ import type { Theme as AntTheme } from 'ant-design-vue/es/config-provider'
 import type { UploadFile } from 'ant-design-vue'
 import type { TooltipPlacement } from 'ant-design-vue/lib/tooltip'
 import type { ImageWindowLoader } from '../components/smartsheet/grid/canvas/loaders/ImageLoader'
+import type { MarkdownLoader } from '../components/smartsheet/grid/canvas/loaders/markdownLoader'
 import type { SpriteLoader } from '../components/smartsheet/grid/canvas/loaders/SpriteLoader'
 import type { ActionManager } from '../components/smartsheet/grid/canvas/loaders/ActionManager'
 import type { TableMetaLoader } from '../components/smartsheet/grid/canvas/loaders/TableMetaLoader'
@@ -31,6 +33,16 @@ import type { BaseRoleLoader } from '../components/smartsheet/grid/canvas/loader
 import type { AuditLogsDateRange, ImportSource, ImportType, PreFilledMode, TabType } from './enums'
 import type { rolePermissions } from './acl'
 import type Record from '~icons/*'
+
+export interface SchemaField {
+  name: string
+  type: 'string' | 'number' | 'boolean' | 'array' | 'object' | 'enum'
+  description?: string
+  items?: SchemaField
+  properties?: SchemaField[]
+  enum?: string[]
+  required?: boolean
+}
 
 interface User {
   id: string
@@ -212,6 +224,13 @@ type NcProject = BaseType & {
   uuid?: string
   users?: User[]
   default_role?: ProjectRoles | string
+  version?: BaseVersion
+  // Sandbox fields
+  sandbox_master?: boolean
+  sandbox_id?: string
+  sandbox_version_id?: string
+  auto_update?: boolean
+  sandbox_schema_locked?: boolean
 }
 
 interface UndoRedoAction {
@@ -258,7 +277,7 @@ interface Users {
   invitationToken?: string
 }
 
-type ProjectPageType = 'overview' | 'collaborator' | 'data-source' | 'base-settings' | 'syncs' | 'permissions'
+type ProjectPageType = 'overview' | 'collaborator' | 'data-source' | 'base-settings' | 'syncs' | 'permissions' | 'audits'
 
 type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions'
 
@@ -411,6 +430,7 @@ interface CellRendererOptions {
   pv?: boolean
   readonly?: boolean
   imageLoader: ImageWindowLoader
+  markdownLoader: MarkdownLoader
   spriteLoader: SpriteLoader
   actionManager: ActionManager
   tableMetaLoader: TableMetaLoader
@@ -447,6 +467,8 @@ interface CellRendererOptions {
   sqlUis?: Record<string, any>
   skipRender?: boolean
   setCursor: SetCursorType
+  getColor: GetColorType
+  isDark?: boolean
   cellRenderStore: CellRenderStore
   baseUsers?: (Partial<UserType> | Partial<User>)[]
   user?: Partial<UserType> | Partial<User>
@@ -457,6 +479,7 @@ interface CellRendererOptions {
   fontFamily?: string
   isRowHovered?: boolean
   isRowChecked?: boolean
+  isRowCellSelected?: boolean
   isCellInSelectionRange?: boolean
   isGroupHeader?: boolean
   rowMeta?: Row['rowMeta']
@@ -485,6 +508,13 @@ interface CellRenderStore {
 type CursorType = CSSProperties['cursor']
 
 type SetCursorType = (cursor: CursorType, customCondition?: (prevValue: CursorType) => boolean) => void
+
+type GetColorType = (
+  cssVariableValue: string,
+  darkCssVariableValue?: string,
+  opacity?: number,
+  options?: { bypass?: boolean },
+) => string
 
 type MakeCellEditableFn = (row: Row, clickedColumn: CanvasGridColumn, showEditCellRestrictionTooltip?: boolean) => void
 
@@ -518,6 +548,7 @@ interface CellRenderer {
     makeCellEditable: MakeCellEditableFn
     selected: boolean
     imageLoader: ImageWindowLoader
+    markdownLoader: MarkdownLoader
     cellRenderStore: CellRenderStore
     isPublic?: boolean
     openDetachedExpandedForm: (props: UseExpandedFormDetachedProps) => void
@@ -525,6 +556,7 @@ interface CellRenderer {
     formula?: boolean
     allowLocalUrl?: boolean
     t: Composer['t']
+    getColor: GetColorType
   }) => Promise<boolean>
   handleKeyDown?: (options: {
     e: KeyboardEvent
@@ -543,6 +575,7 @@ interface CellRenderer {
       path?: Array<number>,
     ) => Promise<any>
     actionManager: ActionManager
+    markdownLoader: MarkdownLoader
     makeCellEditable: MakeCellEditableFn
     cellRenderStore: CellRenderStore
     openDetachedLongText: (props: UseDetachedLongTextProps) => void
@@ -569,6 +602,7 @@ interface CellRenderer {
     makeCellEditable: MakeCellEditableFn
     selected: boolean
     imageLoader: ImageWindowLoader
+    markdownLoader: MarkdownLoader
     cellRenderStore: CellRenderStore
     setCursor: SetCursorType
     path: Array<number>
@@ -599,6 +633,7 @@ interface CanvasGridColumn {
   }
   readonly: boolean
   isCellEditable?: boolean
+  isSyncedColumn?: boolean
   aggregation: string
   agg_fn: string
   agg_prefix: string
@@ -683,12 +718,15 @@ interface PermissionConfig {
   entityId: string
   entityTitle?: string
   permission: PermissionKey
+  disabled?: boolean
+  tooltip?: string
 }
 
 interface PermissionSelectorUser {
   id: string
-  email: string
+  email?: string
   display_name?: string | null
+  type?: 'user' | 'team'
 }
 
 // NcList type starts here
@@ -702,6 +740,14 @@ interface NcListItemType {
   label?: string
   ncItemDisabled?: boolean
   ncItemTooltip?: string
+  /**
+   * If the item is a group header, this will be the title of the group
+   */
+  ncGroupHeader?: boolean
+  /**
+   * If the list has groups then we need to add `ncGroupHeaderLabel` in each item, will he user in sorting and filtering the list
+   */
+  ncGroupHeaderLabel?: string
   [key: string]: any
 }
 
@@ -725,6 +771,15 @@ interface NcListProps {
   value: RawValueType
   /** The list of items to display */
   list: NcListItemType[]
+  /**
+   * The order of the groups in the list, this will be used to sort the groups in the list
+   * @example
+   * ```ts
+   * const groupOrder = ['Group 1', 'Group 2', 'Group 3']
+   * ```
+   */
+  groupOrder?: string[]
+
   /**
    * The key to use for accessing the value from a list item
    * @default 'value'
@@ -753,6 +808,11 @@ interface NcListProps {
    * @default 38
    */
   itemHeight?: number
+  /**
+   * The height of the group header in the list
+   * @default 28
+   */
+  groupHeaderHeight?: number
   variant?: 'default' | 'small' | 'medium'
   /** Custom filter function for list items */
   filterOption?: (input: string, option: NcListItemType, index: Number) => boolean
@@ -781,6 +841,8 @@ interface NcListProps {
   wrapperClassName?: string
 
   itemClassName?: string
+
+  groupHeaderClassName?: string
 
   itemTooltipPlacement?: TooltipPlacement
 
@@ -905,6 +967,46 @@ interface GroupKeysStorage {
   }
 }
 
+interface OAuthAuthorization {
+  id: string
+  client_id: string
+  client_name: string
+  client_description?: string
+  client_uri?: string
+  logo_uri?: {
+    url?: string
+    signedUrl?: string
+    path?: string
+    title?: string
+    mimetype?: string
+    size?: number
+  }
+  scope?: string
+  granted_resources?: {
+    workspace_id?: string
+    base_id?: string
+  }
+  created_at: string
+  last_used_at?: string
+}
+
+interface SupportedDocsType {
+  title: string
+  href: string
+}
+
+interface TeamType {
+  id: string
+  title: string
+  description?: string
+  created_by: string
+  owners: string[]
+  members: string[]
+  created_at: string
+  updated_at: string
+  meta: MetaType
+}
+
 export type {
   User,
   ProjectMetaInfo,
@@ -954,6 +1056,7 @@ export type {
   ParsePlainCellValueProps,
   CanvasEditEnabledType,
   SetCursorType,
+  GetColorType,
   CursorType,
   CanvasCellEventDataInjType,
   CanvasGroup,
@@ -974,4 +1077,7 @@ export type {
   NcClipboardDataItemType,
   AttachmentCellDropOverType,
   GroupKeysStorage,
+  OAuthAuthorization,
+  SupportedDocsType,
+  TeamType,
 }

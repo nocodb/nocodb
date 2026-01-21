@@ -31,6 +31,12 @@ export class MapsService {
       param.map,
     );
 
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const model = await Model.get(context, param.tableId);
 
     const { id } = await View.insertMetaOnly(context, {
@@ -51,6 +57,7 @@ export class MapsService {
     // populate  cache and add to list since the list cache already exist
     const view = await View.get(context, id);
     await NocoCache.appendToList(
+      context,
       CacheScope.VIEW,
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,
@@ -81,7 +88,7 @@ export class MapsService {
     const view = await View.get(context, param.mapViewId);
 
     if (!view) {
-      NcError.viewNotFound(param.mapViewId);
+      NcError.get(context).viewNotFound(param.mapViewId);
     }
 
     await MapView.update(context, param.mapViewId, param.map);

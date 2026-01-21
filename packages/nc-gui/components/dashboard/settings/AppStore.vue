@@ -112,18 +112,18 @@ onMounted(async () => {
     </a-modal>
 
     <div class="mb-5">
-      <a-alert type="warning" border="">
+      <a-alert type="warning">
         <template #message>
           <div class="flex flex-row items-center gap-3">
-            <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-6 h-6" />
+            <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-6 h-6" />
             <span class="font-weight-bold">App Store Deprecation</span>
           </div>
         </template>
         <template #description>
-          <span class="text-gray-500 ml-9">
+          <div class="text-nc-content-gray-muted ml-9">
             App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of the plugins
             here will be moved to integrations.
-          </span>
+          </div>
         </template>
       </a-alert>
     </div>
@@ -173,7 +173,7 @@ onMounted(async () => {
           </div>
 
           <div class="flex flex-col flex-1 w-3/5 pl-3">
-            <a-typography-title :level="5">{{ app.title }}</a-typography-title>
+            <h5 class="text-subHeading2 text-nc-content-gray">{{ app.title }}</h5>
 
             {{ app.description }}
           </div>

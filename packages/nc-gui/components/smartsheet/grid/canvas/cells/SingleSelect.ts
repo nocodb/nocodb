@@ -6,7 +6,7 @@ const tagHeight = 22
 const topPadding = 4
 
 export const SingleSelectCellRenderer: CellRenderer = {
-  render: (ctx, { column, value, x, y, width, pv, padding }) => {
+  render: (ctx, { column, value, x, y, width, pv, padding, getColor, isDark }) => {
     const text = value?.toString()?.trim() ?? ''
 
     // If it is empty text then no need to render
@@ -25,13 +25,15 @@ export const SingleSelectCellRenderer: CellRenderer = {
 
     const opColor = (column.extra as ReturnType<typeof getSingleMultiselectColOptions>)?.optionsMap?.[text]?.color ?? '#e7e7e9'
 
+    const opBgColor = !isDark ? opColor : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -10 })
+
     renderTag(ctx, {
       x: x + padding,
       y: y + topPadding,
       width: optionWidth + tagPadding * 2,
       height: tagHeight,
       radius: 12,
-      fillStyle: opColor,
+      fillStyle: opBgColor,
     })
 
     renderSingleLineText(ctx, {
@@ -42,7 +44,9 @@ export const SingleSelectCellRenderer: CellRenderer = {
       textAlign: 'left',
       verticalAlign: 'middle',
       fontFamily: `${pv ? 600 : 500} 13px Inter`,
-      fillStyle: getSelectTypeOptionTextColor(opColor),
+      fillStyle: !isDark
+        ? getSelectTypeOptionTextColor(opColor, getColor, true)
+        : getOppositeColorOfBackground(opBgColor, opColor),
     })
 
     return {
@@ -74,14 +78,15 @@ export const SingleSelectCellRenderer: CellRenderer = {
   },
 
   async handleClick({ row, column, makeCellEditable, selected }) {
-    if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable || !selected) return false
+    if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable || column.isSyncedColumn || !selected)
+      return false
 
     makeCellEditable(row, column)
     return true
   },
 
   async handleKeyDown({ e, row, column, makeCellEditable }) {
-    if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable) return false
+    if (column.readonly || column.columnObj?.readonly || column.isSyncedColumn || !column?.isCellEditable) return false
     if (e.key.length === 1 || e.key === 'Enter') {
       makeCellEditable(row, column)
       return true

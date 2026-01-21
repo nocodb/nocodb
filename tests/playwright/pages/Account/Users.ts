@@ -59,7 +59,7 @@ export class AccountUsersPage extends BasePage {
     await this.inviteUserModal.waitFor({ state: 'visible' });
 
     // http://localhost:3000/#/signup/a5e7bf3a-cbb0-46bc-87f7-c2ae21796707
-    return (await this.inviteUserModal.locator(`.ant-alert-message`).innerText()).split('\n')[0];
+    return (await this.inviteUserModal.locator(`.nc-alert-message`).innerText()).split('\n')[0];
   }
 
   prefixEmail(email: string) {

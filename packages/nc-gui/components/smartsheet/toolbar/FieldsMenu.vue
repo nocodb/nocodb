@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, GalleryType, KanbanType, LookupType } from 'nocodb-sdk'
-import { UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { ProjectRoles, UITypes, ViewTypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 
 import type { SelectProps } from 'ant-design-vue'
@@ -11,7 +11,7 @@ const meta = inject(MetaInj, ref())
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, undefined)!
 
-const { isMobileMode } = useGlobal()
+const { isMobileMode, user } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 
@@ -30,12 +30,13 @@ const { $e } = useNuxtApp()
 
 const { t } = useI18n()
 
-const { metas, getMeta } = useMetas()
+const { metas, getMeta, getMetaByKey } = useMetas()
 
 const {
   showSystemFields,
   fields,
   filteredFieldList,
+  hasViewFieldDataEditPermission,
   searchBasisIdMap,
   numberOfHiddenFields,
   filterQuery,
@@ -52,7 +53,7 @@ const {
 const { eventBus, isDefaultView, isSqlView, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const isFieldsMenuReadOnly = computed(() => {
-  return isLocked.value || !isViewOperationsAllowed.value
+  return isLocked.value || !isViewOperationsAllowed.value || (isLocalMode.value && hasViewFieldDataEditPermission.value)
 })
 
 const isAddingColumnAllowed = computed(() => !readOnly.value && isUIAllowed('fieldAdd') && !isSqlView.value)
@@ -324,7 +325,7 @@ const onHideAll = async () => {
 const visibleFields = computed(
   () =>
     fields.value?.filter((field: Field) => {
-      if (!field.initialShow && isLocalMode.value) {
+      if (!field.initialShow && isLocalMode.value && !hasViewFieldDataEditPermission.value) {
         return false
       }
 
@@ -417,7 +418,7 @@ watch(
 
     const filterFields =
       newValue
-        .filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.Attachment)
+        .filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id]?.uidt === UITypes.Attachment)
         .map((field) => {
           return {
             value: field.fk_column_id,
@@ -428,7 +429,7 @@ watch(
     coverOptions.value = [{ value: null, label: t('labels.noImage') }, ...filterFields]
 
     const lookupColumns = newValue
-      .filter((f) => f.fk_column_id && metaColumnById.value[f.fk_column_id].uidt === UITypes.Lookup)
+      .filter((f) => f.fk_column_id && metaColumnById.value[f.fk_column_id]?.uidt === UITypes.Lookup)
       .map((f) => metaColumnById.value[f.fk_column_id!])
 
     const attLookupColumnIds: Set<string> = new Set()
@@ -436,15 +437,16 @@ watch(
     const loadLookupMeta = async (originalCol: ColumnType, column: ColumnType, metaId?: string): Promise<void> => {
       const relationColumn =
         metaId || meta.value?.id
-          ? metas.value[metaId || meta.value?.id]?.columns?.find(
+          ? getMetaByKey(meta.value?.base_id, metaId || meta.value?.id)?.columns?.find(
               (c: ColumnType) => c.id === (column?.colOptions as LookupType)?.fk_relation_column_id,
             )
           : undefined
 
       if (relationColumn?.colOptions?.fk_related_model_id) {
-        await getMeta(relationColumn.colOptions.fk_related_model_id!)
+        const relatedBaseId = (relationColumn.colOptions as any)?.fk_related_base_id || meta.value?.base_id
+        await getMeta(relatedBaseId as string, relationColumn.colOptions.fk_related_model_id!)
 
-        const lookupColumn = metas.value[relationColumn.colOptions.fk_related_model_id]?.columns?.find(
+        const lookupColumn = getMetaByKey(relatedBaseId, relationColumn.colOptions.fk_related_model_id)?.columns?.find(
           (c: any) => c.id === (column?.colOptions as LookupType)?.fk_lookup_column_id,
         ) as ColumnType | undefined
 
@@ -496,6 +498,11 @@ function conditionalToggleFieldVisibility(field: Field) {
     return
   }
 
+  // For editor role we just have to show hidden field without giving access to change field visibility
+  if (!field.initialShow && isLocalMode.value && hasViewFieldDataEditPermission.value) {
+    return
+  }
+
   field.show = !field.show
   toggleFieldVisibility(field.show, field)
 }
@@ -524,7 +531,7 @@ const onFieldsMenuDropdownVisibilityChange = (value: boolean) => {
 const onAddColumnDropdownVisibilityChange = () => {
   addColumnDropdown.value = true
 
-  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.shouldKeepModalOpen()) {
+  if (editOrAddProviderRef.value && !editOrAddProviderRef.value?.shouldKeepModalOpen?.()) {
     addColumnDropdown.value = false
   }
 }
@@ -574,7 +581,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               </template>
             </span>
           </div>
-          <span v-if="numberOfHiddenFields" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">
+          <span v-if="numberOfHiddenFields" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">
             {{ numberOfHiddenFields }}
           </span>
         </div>
@@ -585,12 +592,12 @@ const onAddColumnDropdownVisibilityChange = () => {
       <div class="w-[320px] rounded-lg nc-table-toolbar-menu" data-testid="nc-fields-menu" @click.stop>
         <div
           v-if="!isPublic && (activeView?.type === ViewTypes.GALLERY || activeView?.type === ViewTypes.KANBAN)"
-          class="flex items-center gap-2 p-2 w-80 border-b-1 border-gray-100"
+          class="flex items-center gap-2 p-2 w-80 border-b-1 border-nc-border-gray-light"
         >
-          <div class="pl-2 flex text-sm select-none text-gray-600">{{ $t('labels.coverImageField') }}</div>
+          <div class="pl-2 flex text-sm select-none text-nc-content-gray-subtle2">{{ $t('labels.coverImageField') }}</div>
 
           <div
-            class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-gray-200 rounded-lg transition-all duration-0.3s max-w-[206px]"
+            class="flex-1 nc-dropdown-cover-image-wrapper flex items-stretch border-1 border-nc-border-gray-medium rounded-lg transition-all duration-0.3s max-w-[206px]"
             :class="{
               'nc-disabled': isFieldsMenuReadOnly,
             }"
@@ -603,7 +610,7 @@ const onAddColumnDropdownVisibilityChange = () => {
               :disabled="isFieldsMenuReadOnly"
               @click.stop
             >
-              <template #suffixIcon><GeneralIcon class="text-gray-700" icon="arrowDown" /></template>
+              <template #suffixIcon><GeneralIcon class="text-nc-content-gray-subtle" icon="arrowDown" /></template>
 
               <a-select-option v-for="option of coverOptions" :key="option.value" :value="option.value">
                 <div class="w-full flex gap-2 items-center justify-between max-w-[400px]">
@@ -632,7 +639,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                     v-if="coverImageColumnId === option.value"
                     id="nc-selected-item-icon"
                     icon="check"
-                    class="flex-none text-primary w-4 h-4"
+                    class="flex-none text-nc-content-brand w-4 h-4"
                   />
                 </div>
               </a-select-option>
@@ -644,14 +651,14 @@ const onAddColumnDropdownVisibilityChange = () => {
               placement="bottomRight"
             >
               <button
-                class="flex items-center px-2 border-l-1 border-gray-200 disabled:(cursor-not-allowed opacity-80)"
+                class="flex items-center px-2 border-l-1 border-nc-border-gray-medium disabled:(cursor-not-allowed opacity-80)"
                 :disabled="isFieldsMenuReadOnly"
               >
                 <GeneralIcon
                   icon="settings"
                   class="h-4 w-4"
                   :class="{
-                    '!text-brand-500': coverImageObjectFitDropdown.isOpen,
+                    '!text-nc-content-brand': coverImageObjectFitDropdown.isOpen,
                   }"
                 />
               </button>
@@ -676,7 +683,7 @@ const onAddColumnDropdownVisibilityChange = () => {
                     <GeneralIcon
                       v-else-if="option.value === coverImageObjectFit"
                       icon="check"
-                      class="flex-none text-primary w-4 h-4"
+                      class="flex-none text-nc-content-brand w-4 h-4"
                     />
                   </NcMenuItem>
                 </NcMenu>
@@ -714,7 +721,7 @@ const onAddColumnDropdownVisibilityChange = () => {
           <div class="nc-fields-list">
             <div
               v-if="!localFilteredFieldList.length"
-              class="px-2 py-6 text-gray-500 flex flex-col items-center gap-6 text-center"
+              class="px-2 py-6 text-nc-content-gray-muted flex flex-col items-center gap-6 text-center"
             >
               <img
                 src="~assets/img/placeholder/no-search-result-found.png"
@@ -741,13 +748,13 @@ const onAddColumnDropdownVisibilityChange = () => {
                   :data-testid="`nc-fields-menu-${field.title}`"
                   class="nc-fields-menu-item pl-2 flex flex-row items-center rounded-md"
                   :class="{
-                    'hover:bg-gray-100': !isFieldsMenuReadOnly,
+                    'hover:bg-nc-bg-gray-light': !isFieldsMenuReadOnly,
                   }"
                   @click.stop
                 >
                   <component
                     :is="iconMap.drag"
-                    class="!h-3.75 text-gray-600 mr-1"
+                    class="!h-3.75 text-nc-content-gray-subtle2 mr-1"
                     :class="{
                       'cursor-not-allowed': isFieldsMenuReadOnly,
                       'cursor-move': !isFieldsMenuReadOnly,
@@ -814,10 +821,10 @@ const onAddColumnDropdownVisibilityChange = () => {
                         <div v-if="activeView.type === ViewTypes.CALENDAR" class="flex mr-2">
                           <NcButton
                             :class="{
-                              '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.bold,
+                              '!text-nc-content-brand !bg-nc-bg-brand hover:!bg-nc-brand-100 active:!bg-nc-brand-200': field.bold,
                               '!rounded-r-none': field.italic,
                             }"
-                            class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                            class="!w-5 !h-5 hover:!bg-nc-bg-gray-medium active:!bg-nc-bg-gray-dark relative"
                             size="xsmall"
                             type="text"
                             :disabled="isFieldsMenuReadOnly"
@@ -826,16 +833,17 @@ const onAddColumnDropdownVisibilityChange = () => {
                             <component :is="iconMap.bold" class="!w-3.5 !h-3.5" />
                             <div
                               v-if="field.bold"
-                              class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                              class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-base-white"
                             />
                           </NcButton>
                           <NcButton
                             :class="{
-                              '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.italic,
+                              '!text-nc-content-brand !bg-nc-bg-brand hover:!bg-nc-brand-100 active:!bg-nc-brand-200':
+                                field.italic,
                               '!rounded-l-none': field.bold,
                               '!rounded-r-none': field.underline,
                             }"
-                            class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                            class="!w-5 !h-5 hover:!bg-nc-bg-gray-medium active:!bg-nc-bg-gray-dark relative"
                             size="xsmall"
                             type="text"
                             :disabled="isFieldsMenuReadOnly"
@@ -844,15 +852,16 @@ const onAddColumnDropdownVisibilityChange = () => {
                             <component :is="iconMap.italic" class="!w-3.5 !h-3.5" />
                             <div
                               v-if="field.italic"
-                              class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                              class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-base-white"
                             />
                           </NcButton>
                           <NcButton
                             :class="{
-                              '!text-primary !bg-brand-50 hover:!bg-brand-100 active:!bg-brand-200': field.underline,
+                              '!text-nc-content-brand !bg-nc-bg-brand hover:!bg-nc-brand-100 active:!bg-nc-brand-200':
+                                field.underline,
                               '!rounded-l-none': field.italic,
                             }"
-                            class="!w-5 !h-5 hover:!bg-gray-200 active:!bg-gray-300 relative"
+                            class="!w-5 !h-5 hover:!bg-nc-bg-gray-medium active:!bg-nc-bg-gray-dark relative"
                             size="xsmall"
                             type="text"
                             :disabled="isFieldsMenuReadOnly"
@@ -861,10 +870,11 @@ const onAddColumnDropdownVisibilityChange = () => {
                             <component :is="iconMap.underline" class="!w-3.5 !h-3.5" />
                             <div
                               v-if="field.underline"
-                              class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-white"
+                              class="bg-primary w-1.25 h-1.25 rounded-full absolute top-0.25 right-0.5 border-1 border-base-white"
                             />
                           </NcButton>
                         </div>
+
                         <span class="flex children:flex-none" @click.stop="conditionalToggleFieldVisibility(field)">
                           <NcSwitch
                             :checked="field.show"
@@ -910,7 +920,7 @@ const onAddColumnDropdownVisibilityChange = () => {
             }"
             @visible-change="onAddColumnDropdownVisibilityChange"
           >
-            <NcButton class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
+            <NcButton text-color="primary" class="nc-fields-add-new-field !font-semibold !px-2" size="small" type="text">
               <GeneralIcon icon="ncPlus" class="!w-4 !h-4 mr-1" />
               <span>{{ t('general.new') }} {{ t('objects.field') }}</span>
             </NcButton>
@@ -929,7 +939,14 @@ const onAddColumnDropdownVisibilityChange = () => {
           </NcDropdown>
         </div>
 
-        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" />
+        <GeneralLockedViewFooter
+          v-if="isFieldsMenuReadOnly"
+          :show-icon="isLocked"
+          :show-unlock-button="isLocked"
+          @on-open="open = false"
+        >
+          <template v-if="!isLocked" #title> You don’t have permission to edit this view. </template>
+        </GeneralLockedViewFooter>
       </div>
     </template>
   </NcDropdown>
@@ -937,7 +954,7 @@ const onAddColumnDropdownVisibilityChange = () => {
 
 <style lang="scss" scoped>
 :deep(.nc-toolbar-dropdown-search-field-input .ant-input::placeholder) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 :deep(.xxsmall) {
   @apply !min-w-0;
@@ -945,18 +962,12 @@ const onAddColumnDropdownVisibilityChange = () => {
 
 .nc-fields-menu-item {
   &:has(.is-opened-add-lookup) {
-    @apply bg-gray-100;
+    @apply bg-nc-bg-gray-light;
   }
 }
 
 .nc-fields-menu-items-ghost {
-  @apply bg-gray-50;
-}
-
-.nc-fields-add-new-field {
-  &:not(:disabled) {
-    @apply text-primary hover:text-primary;
-  }
+  @apply bg-nc-bg-gray-extralight;
 }
 
 .nc-cover-image-object-fit-dropdown-menu {
@@ -966,21 +977,22 @@ const onAddColumnDropdownVisibilityChange = () => {
 }
 .nc-dropdown-cover-image-wrapper {
   @apply h-8;
+
   &:not(.nc-disabled):not(:focus-within) {
     @apply shadow-default hover:shadow-hover;
   }
   &:not(.nc-disabled):focus-within {
-    @apply shadow-selected border-brand-500;
+    @apply shadow-selected border-nc-border-brand;
   }
 }
 
 :deep(.ant-input-affix-wrapper) {
   &:not(.ant-input-affix-wrapper-disabled):not(.ant-input-affix-wrapper-focused):not(:focus) {
-    @apply shadow-default hover:(shadow-hover border-gray-200);
+    @apply shadow-default hover:(shadow-hover border-nc-border-gray-medium);
   }
   &.ant-input-affix-wrapper-focused,
   &:focus {
-    @apply border-brand-500 shadow-selected;
+    @apply border-nc-border-brand shadow-selected;
   }
 }
 </style>

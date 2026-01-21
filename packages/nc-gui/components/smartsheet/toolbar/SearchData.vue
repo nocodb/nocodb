@@ -7,6 +7,8 @@ const reloadAggregate = inject(ReloadAggregateHookInj)
 
 const activeView = inject(ActiveViewInj, ref())
 
+const { $e } = useNuxtApp()
+
 const { meta, eventBus, isGrid, isGallery, totalRowsWithSearchQuery, totalRowsWithoutSearchQuery, gridEditEnabled } =
   useSmartsheetStoreOrThrow()
 
@@ -67,6 +69,7 @@ watch(
 )
 
 function onPressEnter() {
+  $e('a:view:search')
   reloadData.trigger({ shouldShowLoading: false, offset: 0 })
   reloadAggregate?.trigger()
 }
@@ -140,7 +143,7 @@ const handleEscapeKey = () => {
 
 const handleClickOutside = (e: MouseEvent | KeyboardEvent) => {
   const targetEl = e.target as HTMLElement
-  if (search.value.query || targetEl.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {
+  if (search.value.query || targetEl?.closest('.nc-dropdown-toolbar-search, .nc-dropdown-toolbar-search-field-option')) {
     return
   }
 
@@ -202,7 +205,8 @@ watch(
     <LazySmartsheetToolbarSearchDataWrapperDropdown v-else :visible="true">
       <div
         :class="{
-          'border-1 rounded-lg border-gray-200 overflow-hidden focus-within:(border-primary shadow-selected)': isMobileMode,
+          'border-1 rounded-lg border-nc-border-gray-medium overflow-hidden focus-within:(border-primary shadow-selected)':
+            isMobileMode,
           'border-primary shadow-selected': isMobileMode && search.query.length !== 0,
         }"
       >
@@ -214,7 +218,7 @@ watch(
           >
             <div class="flex items-center gap-2 group px-2 cursor-pointer" @click="isDropdownOpen = !isDropdownOpen">
               <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
-              <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand select-none">
+              <div class="h-5 flex items-center gap-1 px-1 rounded-md text-nc-content-brand bg-nc-bg-brand-inverted select-none">
                 <SmartsheetHeaderIcon :column="displayColumn" class="!w-3.5 !h-3.5 !mx-0" />
                 <div v-if="!isMobileMode" class="w-16 text-bodyDefaultSm font-medium truncate">
                   {{ displayColumnLabel ?? '' }}

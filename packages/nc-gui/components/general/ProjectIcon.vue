@@ -53,6 +53,6 @@ const iconColor = computed(() => {
   @apply text-xl;
 }
 .nc-base-icon-hoverable {
-  @apply cursor-pointer !hover:bg-gray-200 !hover:bg-opacity-50;
+  @apply cursor-pointer !hover:bg-nc-bg-gray-medium !hover:bg-opacity-50;
 }
 </style>

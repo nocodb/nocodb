@@ -245,13 +245,13 @@ export class FiltersV3Service {
             existingRootFilter.logical_op !==
               extractLogicalOp(groupOrFilter.group_operator)
           ) {
-            throw new Error(
+            NcError.get(context).badRequest(
               `A root group with a different group operator already exists. Existing: ${existingRootFilter.logical_op?.toUpperCase()}, New: ${
                 groupOrFilter.group_operator
               }`,
             );
           } else if (!('group_operator' in groupOrFilter)) {
-            throw new Error(
+            NcError.get(context).badRequest(
               `A root group already exists. Cannot add a standalone filter to the root.`,
             );
           }
@@ -336,7 +336,9 @@ export class FiltersV3Service {
         ncMeta,
       );
     } else {
-      throw new Error('Invalid structure: Expected a group or filter.');
+      NcError.get(context).badRequest(
+        'Invalid structure: Expected a group or filter.',
+      );
     }
 
     if (innerViewWebhookManager) {

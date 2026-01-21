@@ -489,7 +489,7 @@ export class AtImportProcessor {
           for (const [, value] of Object.entries(col.typeOptions.choices)) {
             // max length of option is 255 chars
             // truncate to 255 chars if character if exceeds above 255
-            (value as any).name = (value as any).name?.slice(0, 255);
+            (value as any).name = (value as any).name?.slice(0, 255).trim();
 
             // replace commas with dot for multiselect
             if (col.type === 'multiSelect') {
@@ -562,6 +562,11 @@ export class AtImportProcessor {
         // check for duplicate and populate a unique name if already exist
         table.table_name = uniqueTableNameGen(sanitizedName);
 
+        // add description to table
+        if (tblSchema[i].description) {
+          table.description = tblSchema[i].description;
+        }
+
         table.columns = [];
 
         const source = await Source.get(context, syncDB.sourceId);
@@ -614,6 +619,11 @@ export class AtImportProcessor {
             column_name: ncName.column_name,
             uidt: getNocoType(col),
           };
+
+          // Add description to column
+          if (col?.description) {
+            ncCol.description = col.description;
+          }
 
           // not supported datatype: pure formula field
           // allow formula based computed fields (created time/ modified time to go through)
@@ -1590,7 +1600,7 @@ export class AtImportProcessor {
             if (value === '') {
               rec[key] = 'nc_empty';
             }
-            rec[key] = value;
+            rec[key] = value?.trim();
             break;
 
           case UITypes.MultiSelect:
@@ -1599,7 +1609,7 @@ export class AtImportProcessor {
                 if (v === '') {
                   return 'nc_empty';
                 }
-                return `${v.replace(/,/g, '.')}`;
+                return `${v.replace(/,/g, '.').trim()}`;
               })
               .join(',');
             break;
@@ -1735,9 +1745,12 @@ export class AtImportProcessor {
 
           // create view
           await getViewData(galleryViews[i].id);
-          const viewName = aTblSchema[idx].views.find(
+          const aView = aTblSchema[idx].views.find(
             (x) => x.id === galleryViews[i].id,
-          )?.name;
+          );
+
+          const viewName = aView?.name;
+          const viewDescription = aView?.description;
 
           logBasic(
             `:: [${configuredViews + i + 1}/${rtc.view.total}] Gallery : ${
@@ -1751,6 +1764,7 @@ export class AtImportProcessor {
             tableId: tblId,
             gallery: {
               title: viewName,
+              description: viewDescription,
             },
             user: syncDB.user,
             req,
@@ -1778,9 +1792,11 @@ export class AtImportProcessor {
 
           // create view
           const vData = await getViewData(formViews[i].id);
-          const viewName = aTblSchema[idx].views.find(
+          const aView = aTblSchema[idx].views.find(
             (x) => x.id === formViews[i].id,
-          )?.name;
+          );
+          const viewName = aView?.name;
+          const viewDescription = aView?.description;
 
           logBasic(
             `:: [${configuredViews + i + 1}/${rtc.view.total}] Form : ${
@@ -1807,6 +1823,7 @@ export class AtImportProcessor {
           const formData = {
             title: viewName,
             heading: viewName,
+            description: viewDescription,
             subheading: desc,
             success_msg: msg,
             submit_another_form: refreshMode.includes('REFRESH_BUTTON'),
@@ -1833,13 +1850,7 @@ export class AtImportProcessor {
           await updateNcTblSchemaById(tblId);
 
           logDetailed(`   Configure show/hide columns`);
-          await nc_configureFields(
-            f.id,
-            vData,
-            aTblSchema[idx].name,
-            viewName,
-            'form',
-          );
+          await nc_configureFields(f.id, vData, aTblSchema[idx].name, 'form');
         }
       }
     };
@@ -1866,9 +1877,12 @@ export class AtImportProcessor {
           const vData = await getViewData(gridViews[i].id);
 
           // retrieve view name & associated NC-ID
-          const viewName = aTblSchema[idx].views.find(
+          const aView = aTblSchema[idx].views.find(
             (x) => x.id === gridViews[i].id,
-          )?.name;
+          );
+          const viewName = aView?.name;
+          const viewDescription = aView?.description;
+
           const _perfStart = recordPerfStart();
           // const viewList: any = await api.dbView.list(tblId);
           const viewList = { list: [] };
@@ -1901,6 +1915,7 @@ export class AtImportProcessor {
                 tableId: tblId,
                 grid: {
                   title: viewName,
+                  description: viewDescription,
                 },
                 req,
               },
@@ -1922,7 +1937,6 @@ export class AtImportProcessor {
             ncViewId,
             vData,
             aTblSchema[idx].name,
-            viewName,
             'grid',
           );
 
@@ -2404,13 +2418,7 @@ export class AtImportProcessor {
       }
     };
 
-    const nc_configureFields = async (
-      _viewId,
-      _c,
-      tblName,
-      viewName,
-      viewType?,
-    ) => {
+    const nc_configureFields = async (viewId, _c, tblName, viewType?) => {
       // force hide PK column
       const hiddenColumns = [ncSysFields.id, ncSysFields.hash];
       const c = _c.columnOrder;
@@ -2418,8 +2426,7 @@ export class AtImportProcessor {
       // column order corrections
       // retrieve table schema
       const ncTbl = await nc_getTableSchema(tblName);
-      // retrieve view ID
-      const viewId = ncTbl.views.find((x) => x.title === viewName).id;
+
       let viewDetails;
 
       const _perfStart = recordPerfStart();
@@ -2516,6 +2523,7 @@ export class AtImportProcessor {
           baseId: syncDB.baseId,
           sourceId: syncDB.sourceId,
           roles: { ...userRole, owner: true },
+          user: { ...req?.user, base_roles: { owner: true } },
         });
         for (const table of tables) {
           await this.tablesService.tableDelete(context, {
@@ -2612,6 +2620,7 @@ export class AtImportProcessor {
               baseId: ncCreatedProjectSchema.id,
               sourceId: syncDB.sourceId,
               roles: { ...userRole, owner: true },
+              user: { ...req?.user, base_roles: { owner: true } },
             },
           );
 

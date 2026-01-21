@@ -15,6 +15,10 @@ export interface NcContext {
   fk_model_id?: string;
   socket_id?: string;
   nc_site_url?: string;
+  timezone?: string;
+  suppressDependencyEvaluation?: boolean;
+  additionalContext?: Record<string, any>;
+  schema_locked?: boolean;
 }
 
 export interface NcRequest extends Partial<Request> {
@@ -29,6 +33,7 @@ export interface NcRequest extends Partial<Request> {
     base_roles?: Record<string, boolean>;
     workspace_roles?: Record<string, boolean>;
     provider?: string;
+    is_api_token?: boolean;
   };
   ncSiteUrl: string;
   dashboardUrl: string;

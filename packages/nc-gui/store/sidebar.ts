@@ -97,12 +97,10 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
 
   const showTopbar = ref(false)
 
-  const ncIsIframeFullscreenSupported = ref(false)
-
   const toggleFullScreenState = () => {
     if (isFullScreen.value) {
       isLeftSidebarOpen.value = true
-      if ((!ncIsIframe() || ncIsIframeFullscreenSupported.value) && document?.exitFullscreen && document?.fullscreenElement) {
+      if (!ncIsIframe() && document?.exitFullscreen && document?.fullscreenElement) {
         document.exitFullscreen().catch((err) => {
           console.warn('Exit fullscreen failed:', err)
         })
@@ -110,7 +108,7 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     } else {
       isLeftSidebarOpen.value = false
 
-      if ((!ncIsIframe() || ncIsIframeFullscreenSupported.value) && document?.documentElement?.requestFullscreen) {
+      if (!ncIsIframe() && document?.documentElement?.requestFullscreen) {
         document.documentElement.requestFullscreen().catch((err) => {
           console.warn('Request fullscreen failed:', err)
         })
@@ -145,7 +143,6 @@ export const useSidebarStore = defineStore('sidebarStore', () => {
     miniSidebarWidth,
     isFullScreen,
     toggleFullScreenState,
-    ncIsIframeFullscreenSupported,
     allowHideLeftSidebarForCurrentRoute,
   }
 })

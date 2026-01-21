@@ -49,7 +49,7 @@ const disableTooltip = computed(() => {
       class="-my-1 !text-nc-content-purple-dark hover:text-nc-content-purple-dark flex-none"
       :class="{
         '!pointer-events-none !cursor-not-allowed': aiLoading,
-        '!bg-nc-bg-purple-dark hover:!bg-gray-100': aiMode,
+        '!bg-nc-bg-purple-dark hover:!bg-nc-bg-gray-light': aiMode,
       }"
       @click.stop="props.onClick"
     >

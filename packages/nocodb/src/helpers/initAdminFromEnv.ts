@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
 import isEmail from 'validator/lib/isEmail';
+import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import { T } from '~/utils';
 import NocoCache from '~/cache/NocoCache';
 import Noco from '~/Noco';
@@ -72,7 +73,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           count: 1,
         });
 
-        await User.insert(
+        const user = await User.insert(
           {
             email,
             salt,
@@ -83,6 +84,8 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           },
           ncMeta,
         );
+
+        await verifyDefaultWorkspace(user, ncMeta);
       } else {
         const salt = await promisify(bcrypt.genSalt)(10);
         const password = await promisify(bcrypt.hash)(
@@ -173,9 +176,11 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
               );
 
               await NocoCache.del(
+                'root',
                 `${CacheScope.USER}:${existingUserWithNewEmail.id}`,
               );
               await NocoCache.del(
+                'root',
                 `${CacheScope.USER}:${existingUserWithNewEmail.email}`,
               );
 
@@ -233,9 +238,11 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           const existingUserWithNewEmail = await User.getByEmail(email, ncMeta);
           if (existingUserWithNewEmail?.id) {
             await NocoCache.del(
+              'root',
               `${CacheScope.USER}:${existingUserWithNewEmail.id}`,
             );
             await NocoCache.del(
+              'root',
               `${CacheScope.USER}:${existingUserWithNewEmail.email}`,
             );
 

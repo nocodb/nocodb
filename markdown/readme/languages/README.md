@@ -10,6 +10,7 @@ Supported Translations:
     <li><a href="german.md">German</a></li>
     <li><a href="hindi.md">Hindi</a></li>
     <li><a href="spanish.md">Spanish</a></li>
+    <li><a href="turkish.md">Turkish</a></li>
     <li><a href="portuguese.md">Portugese</a></li>
     <li><a href="italian.md">Italian</a></li>
     <li><a href="japanese.md">Japanese</a></li>

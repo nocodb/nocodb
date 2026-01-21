@@ -1,8 +1,32 @@
 import { validateDateWithUnknownFormat } from '../dateTimeHelper';
 import { FormulaDataTypes, FormulaErrorType, JSEPNode } from './enums';
 import { FormulaError } from './error';
-import { FormulaMeta } from './types';
+import {
+  CallExpressionNode,
+  FormulaMeta,
+  FormulaMetaCustomValidation,
+} from './types';
+import { isSystemColumn, isVirtualCol, UITypes } from '~/lib';
 export const API_DOC_PREFIX = 'https://nocodb.com/docs/product-docs/fields';
+
+const customValidationArray: FormulaMetaCustomValidation = (
+  _argTypes: FormulaDataTypes[],
+  parsedTree: CallExpressionNode
+) => {
+  if (
+    // check if first parameter exists
+    !parsedTree.arguments?.[0] ||
+    (!parsedTree.arguments?.[0]?.isDataArray &&
+      // data type array is backward compatibility
+      parsedTree.arguments?.[0]?.dataType !== FormulaDataTypes.ARRAY)
+  ) {
+    throw new FormulaError(
+      FormulaErrorType.TYPE_MISMATCH,
+      { key: 'msg.formula.firstParamArray' },
+      'First parameter need to be array. Either it is a link with Has Many / Many to Many relation, or either a Formula or Lookup that reference the link'
+    );
+  }
+};
 
 export const formulas: Record<string, FormulaMeta> = {
   AVG: {
@@ -951,8 +975,8 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 1,
-        type: FormulaDataTypes.ARRAY,
       },
+      custom: customValidationArray,
     },
     description: 'Return unique items from the given array',
     syntax: 'ARRAYUNIQUE(value)',
@@ -967,6 +991,7 @@ export const formulas: Record<string, FormulaMeta> = {
         min: 1,
         max: 2,
       },
+      custom: customValidationArray,
     },
     description: 'Sort an array result',
     syntax: 'ARRAYSORT(value, [direction])',
@@ -979,8 +1004,8 @@ export const formulas: Record<string, FormulaMeta> = {
     validation: {
       args: {
         rqd: 1,
-        type: FormulaDataTypes.ARRAY,
       },
+      custom: customValidationArray,
     },
     description: 'Removes empty strings and null values from the array',
     syntax: 'ARRAYCOMPACT(value)',
@@ -995,6 +1020,7 @@ export const formulas: Record<string, FormulaMeta> = {
         min: 2,
         max: 3,
       },
+      custom: customValidationArray,
     },
     description: 'Removes empty strings and null values from the array',
     syntax: 'ARRAYSLICE(value, start, [end])',
@@ -1226,14 +1252,61 @@ export const formulas: Record<string, FormulaMeta> = {
   //   syntax: 'CREATED_TIME()',
   //   examples: ['CREATED_TIME()'],
   // },
-  // LAST_MODIFIED_TIME: {
-  //   validation: {
-  //     args: {
-  //       rqd: 0,
-  //     },
-  //   },
-  //   description: 'Returns the last modified time of the current record if it exists',
-  //   syntax: ' LAST_MODIFIED_TIME()',
-  //   examples: [' LAST_MODIFIED_TIME()'],
-  // },
+  LAST_MODIFIED_TIME: {
+    validation: {
+      args: {
+        min: 0,
+      },
+      custom(_argTypes: FormulaDataTypes[], parsedTree: any, columns) {
+        if (parsedTree.arguments.length) {
+          // check if meta column exists or not, if not throw error when user provides args}
+          if (
+            !columns.find(
+              (column) => (column.uidt as unknown as UITypes) === UITypes.Meta
+            )
+          ) {
+            throw new FormulaError(
+              FormulaErrorType.INVALID_ARG,
+              {},
+              'LAST_MODIFIED_TIME with field arguments is not supported'
+            );
+          }
+        }
+        for (const arg of parsedTree.arguments) {
+          if (arg.type !== JSEPNode.IDENTIFIER) {
+            throw new FormulaError(
+              FormulaErrorType.INVALID_ARG,
+              {},
+              'Only column references are allowed as arguments for LAST_MODIFIED_TIME'
+            );
+          }
+          // now check if the column allows LAST_MODIFIED_TIME
+          const virtualOrSystemColRef = columns.find(
+            (c) =>
+              (c.title === arg.name || c.id === arg.name) &&
+              (isSystemColumn(c) || isVirtualCol(c))
+          );
+          if (virtualOrSystemColRef) {
+            throw new FormulaError(
+              FormulaErrorType.INVALID_ARG,
+              {},
+              `LAST_MODIFIED_TIME() is not supported for ${
+                virtualOrSystemColRef.system
+                  ? 'System'
+                  : virtualOrSystemColRef.uidt
+              } field.`
+            );
+          }
+        }
+      },
+    },
+    description:
+      'Returns the last modified time of the current record or selection if it exists',
+    syntax: 'LAST_MODIFIED_TIME([field1, ...])',
+    examples: [
+      'LAST_MODIFIED_TIME()',
+      'LAST_MODIFIED_TIME({Status}, {Priority})',
+    ],
+    returnType: FormulaDataTypes.DATE,
+  },
 };

@@ -106,22 +106,22 @@ const { message: templatedMessage } = useTemplatedMessage(
     <GeneralFormBanner
       v-if="sharedFormView && !parseProp(sharedFormView?.meta).hide_banner"
       :banner-image-url="sharedFormView.banner_image_url"
-      class="flex-none dark:border-none"
+      class="flex-none"
     />
 
     <div
-      class="transition-all duration-300 ease-in relative flex flex-col justify-center gap-2 w-full my-6 bg-white dark:bg-transparent rounded-3xl border-1 border-gray-200 px-4 py-8 lg:p-12 md:(p-8 dark:bg-slate-700)"
+      class="transition-all duration-300 ease-in relative flex flex-col justify-center gap-2 w-full my-6 bg-nc-bg-default rounded-3xl border-1 border-nc-border-gray-medium px-4 py-8 lg:p-12 md:(p-8)"
     >
       <template v-if="sharedFormView">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900 mb-4">
+          <h1 class="text-2xl font-bold text-nc-content-gray-emphasis mb-4">
             {{ sharedFormView.heading }}
           </h1>
 
           <div v-if="sharedFormView.subheading">
             <LazyCellRichText
               :value="sharedFormView.subheading"
-              class="font-medium text-base text-gray-500 dark:text-slate-300 !h-auto mb-4 -ml-1"
+              class="font-medium text-base text-nc-content-gray-muted !h-auto mb-4 -ml-1"
               is-form-field
               read-only
               sync-value-change
@@ -155,7 +155,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                 "
                 class="mt-16 w-full flex justify-between items-center flex-wrap gap-3"
               >
-                <p v-if="sharedFormView?.show_blank_form" class="text-sm text-gray-500 dark:text-slate-300 m-0">
+                <p v-if="sharedFormView?.show_blank_form" class="text-sm text-nc-content-gray-muted m-0">
                   {{ $t('labels.newFormLoaded') }} {{ secondsRemain }} {{ $t('general.seconds').toLowerCase() }}
                 </p>
 
@@ -189,7 +189,7 @@ const { message: templatedMessage } = useTemplatedMessage(
               <StreamBarcodeReader v-show="scannerIsReady" @decode="onDecode" @loaded="onLoaded"> </StreamBarcodeReader>
             </div>
           </a-modal>
-          <GeneralOverlay class="bg-gray-50/75 rounded-3xl" :model-value="isLoading" inline transition>
+          <GeneralOverlay class="bg-nc-bg-gray-extralight/75 rounded-3xl" :model-value="isLoading" inline transition>
             <div class="w-full h-full flex items-center justify-center">
               <a-spin size="large" />
             </div>
@@ -205,13 +205,15 @@ const { message: templatedMessage } = useTemplatedMessage(
                     class="flex flex-col gap-2"
                     :data-testid="`nc-shared-form-item-${field.title?.replace(' ', '')}`"
                   >
-                    <div class="nc-form-column-label text-sm font-semibold text-gray-800">
+                    <div class="nc-form-column-label text-sm font-semibold text-nc-content-gray">
                       <span>
                         {{ field.label || field.title }}
                       </span>
-                      <span v-if="isRequired(field, field.required)" class="text-red-500 text-base leading-[18px]">&nbsp;*</span>
+                      <span v-if="isRequired(field, field.required)" class="text-nc-content-red-medium text-base leading-[18px]"
+                        >&nbsp;*</span
+                      >
                     </div>
-                    <div v-if="field?.description" class="nc-form-column-description text-gray-500 text-sm">
+                    <div v-if="field?.description" class="nc-form-column-description text-nc-content-gray-muted text-sm">
                       <LazyCellRichText
                         :value="field?.description"
                         class="!h-auto -ml-1"
@@ -318,7 +320,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
 <style lang="scss" scoped>
 :deep(.nc-cell .nc-action-icon) {
-  @apply !text-white-500 !bg-white/50 !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center !cursor-pointer !hover: !bg-white-600 !hover: !text-white-600 !transition;
+  @apply !p-1 !text-xs !w-7 !h-7 !flex !items-center !justify-center children:flex-none !cursor-pointer !transition;
 }
 .nc-btn-fill-form-column-by-scan {
   @apply h-auto;
@@ -327,7 +329,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
 .nc-shared-form-button {
   &.nc-button.ant-btn:focus {
-    box-shadow: 0px 0px 0px 2px #fff, 0px 0px 0px 4px #3069fe;
+    @apply shadow-focus;
   }
 }
 
@@ -342,7 +344,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
   &:focus-within {
     :deep(.ant-form-item-explain-error) {
-      @apply text-gray-400;
+      @apply text-nc-content-gray-disabled;
     }
   }
 }

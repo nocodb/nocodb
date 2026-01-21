@@ -8,10 +8,10 @@ import {
 } from 'nocodb-sdk';
 import { pluralize, singularize } from 'inflection';
 import { REGEXSTR_INTL_LETTER, REGEXSTR_NUMERIC_ARABIC } from 'nocodb-sdk';
+import { NcError } from './ncError';
 import type {
   BoolType,
   ColumnReqType,
-  LinkToAnotherRecordType,
   LookupColumnReqType,
   NcRequest,
   RollupColumnReqType,
@@ -29,6 +29,7 @@ import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
 import Column from '~/models/Column';
 import { DriverClient } from '~/utils/nc-config';
 import Noco from '~/Noco';
+import { META_COL_NAME } from '~/constants';
 
 export const randomID = customAlphabet(
   '1234567890abcdefghijklmnopqrstuvwxyz_',
@@ -63,7 +64,7 @@ export async function createHmAndBtColumn(
   // save bt column
   {
     const title = getUniqueColumnAliasName(
-      await child.getColumns(context),
+      await child.getColumns({ ...context, base_id: child.base_id }),
       (type === 'bt' && alias) || `${parent.title}`,
     );
 
@@ -93,6 +94,7 @@ export async function createHmAndBtColumn(
         ...crossBaseProps,
 
         virtual,
+        readonly: colExtra?.readonly || false,
         // if self referencing treat it as system field to hide from ui
         system: isSystemCol || parent.id === child.id,
         fk_col_name: fkColName,
@@ -107,6 +109,10 @@ export async function createHmAndBtColumn(
     await columnWebhookManager?.addNewColumnById({
       columnId: childRelCol.id,
       action: WebhookActions.INSERT,
+      context: {
+        ...context,
+        base_id: childRelCol.base_id,
+      },
     });
     if (!isSystemCol)
       Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
@@ -121,7 +127,7 @@ export async function createHmAndBtColumn(
   // save hm column
   {
     const title = getUniqueColumnAliasName(
-      await parent.getColumns(context),
+      await parent.getColumns({ ...context, base_id: parent.base_id }),
       (type === 'hm' && alias) || pluralize(child.title),
     );
     const meta = {
@@ -150,6 +156,7 @@ export async function createHmAndBtColumn(
         fk_child_column_id: childColumn.id,
         fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
         fk_related_model_id: child.id,
+        readonly: colExtra?.readonly || false,
         virtual,
         system: isSystemCol,
         fk_col_name: fkColName,
@@ -162,6 +169,10 @@ export async function createHmAndBtColumn(
     await columnWebhookManager?.addNewColumnById({
       columnId: savedColumn.id,
       action: WebhookActions.INSERT,
+      context: {
+        ...context,
+        base_id: savedColumn.base_id,
+      },
     });
     if (!isSystemCol)
       Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
@@ -247,6 +258,7 @@ export async function createOOColumn(
         fk_parent_column_id: parentColumn?.id || parent.primaryKey.id,
         fk_related_model_id: parent.id,
         virtual,
+        readonly: colExtra?.readonly || false,
         // if self referencing treat it as system field to hide from ui
         system: isSystemCol || parent.id === child.id,
         fk_col_name: fkColName,
@@ -266,6 +278,10 @@ export async function createOOColumn(
     await columnWebhookManager?.addNewColumnById({
       columnId: childRelCol.id,
       action: WebhookActions.INSERT,
+      context: {
+        ...context,
+        base_id: childRelCol.base_id,
+      },
     });
     Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table: child,
@@ -317,13 +333,18 @@ export async function createOOColumn(
       fk_col_name: fkColName,
       fk_index_name: fkColName,
       meta,
-      ...(colExtra || {}),
+      readonly: colExtra?.readonly || false,
       ...crossBaseProps,
+      ...(colExtra || {}),
     });
 
     await columnWebhookManager?.addNewColumnById({
       columnId: savedColumn.id,
       action: WebhookActions.INSERT,
+      context: {
+        ...context,
+        base_id: savedColumn.base_id,
+      },
     });
     Noco.appHooksService.emit(AppEvents.COLUMN_CREATE, {
       table: parent,
@@ -352,46 +373,51 @@ export async function validateRollupPayload(
     context,
   );
 
-  const relation = await (
-    await Column.get(context, {
-      colId: (payload as RollupColumnReqType).fk_relation_column_id,
-    })
-  ).getColOptions<LinkToAnotherRecordType>(context);
+  const column = await Column.get(context, {
+    colId: (payload as RollupColumnReqType).fk_relation_column_id,
+  });
+
+  const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
+    context,
+  );
+  const { refContext } = relation.getRelContext(context);
 
   if (!relation) {
-    throw new Error('Relation column not found');
+    NcError.get(context).relationFieldNotFound(
+      (payload as RollupColumnReqType).fk_relation_column_id,
+    );
   }
 
   let relatedColumn: Column;
   switch (relation.type) {
     case 'hm':
-      relatedColumn = await Column.get(context, {
+      relatedColumn = await Column.get(refContext, {
         colId: relation.fk_child_column_id,
       });
       break;
     case 'mm':
     case 'bt':
-      relatedColumn = await Column.get(context, {
+      relatedColumn = await Column.get(refContext, {
         colId: relation.fk_parent_column_id,
       });
       break;
   }
 
-  const relatedTable = await relatedColumn.getModel(context);
+  const relatedTable = await relatedColumn.getModel(refContext);
 
-  const rollupColumn = (await relatedTable.getColumns(context)).find(
+  const rollupColumn = (await relatedTable.getColumns(refContext)).find(
     (c) => c.id === (payload as RollupColumnReqType).fk_rollup_column_id,
   );
 
   if (!rollupColumn)
-    throw new Error('Rollup column not found in related table');
+    NcError.get(context).badRequest('Rollup column not found in related table');
 
   if (
     !getAvailableRollupForUiType(rollupColumn.uidt).includes(
       (payload as RollupColumnReqType).rollup_function,
     )
   ) {
-    throw new Error(
+    NcError.get(context).badRequest(
       `Rollup function (${
         (payload as RollupColumnReqType).rollup_function
       }) not available for type (${relatedColumn.uidt})`,
@@ -410,30 +436,14 @@ export async function validateLookupPayload(
     context,
   );
 
-  // check for circular reference
-  if (columnId) {
-    let lkCol: LookupColumn | LookupColumnReqType =
-      payload as LookupColumnReqType;
-    while (lkCol) {
-      // check if lookup column is same as column itself
-      if (columnId === lkCol.fk_lookup_column_id)
-        throw new Error('Circular lookup reference not allowed');
-      lkCol = await Column.get(context, {
-        colId: lkCol.fk_lookup_column_id,
-      }).then((c: Column) => {
-        if (c.uidt === 'Lookup') {
-          return c.getColOptions<LookupColumn>(context);
-        }
-        return null;
-      });
-    }
-  }
   const column = await Column.get(context, {
     colId: (payload as LookupColumnReqType).fk_relation_column_id,
   });
 
   if (!column) {
-    throw new Error('Relation column not found');
+    NcError.get(context).relationFieldNotFound(
+      (payload as LookupColumnReqType).fk_relation_column_id,
+    );
   }
 
   const relation = await column.getColOptions<LinkToAnotherRecordColumn>(
@@ -441,8 +451,31 @@ export async function validateLookupPayload(
   );
   const { refContext } = relation.getRelContext(context);
 
+  // check for circular reference (must be done after getting refContext for cross-base)
+  if (columnId) {
+    let lkCol: LookupColumn | LookupColumnReqType =
+      payload as LookupColumnReqType;
+    while (lkCol) {
+      // check if lookup column is same as column itself
+      if (columnId === lkCol.fk_lookup_column_id)
+        NcError.get(context).badRequest(
+          'Circular lookup reference not allowed',
+        );
+      lkCol = await Column.get(refContext, {
+        colId: lkCol.fk_lookup_column_id,
+      }).then((c: Column) => {
+        if (c && c.uidt === 'Lookup') {
+          return c.getColOptions<LookupColumn>(refContext);
+        }
+        return null;
+      });
+    }
+  }
+
   if (!relation) {
-    throw new Error('Relation column not found');
+    NcError.get(context).relationFieldNotFound(
+      (payload as LookupColumnReqType).fk_relation_column_id,
+    );
   }
 
   let relatedColumn: Column;
@@ -473,7 +506,7 @@ export async function validateLookupPayload(
       (c) => c.id === (payload as LookupColumnReqType).fk_lookup_column_id,
     )
   )
-    throw new Error('Lookup column not found in related table');
+    NcError.get(context).badRequest('Lookup column not found in related table');
 }
 
 export const validateRequiredField = (
@@ -646,7 +679,7 @@ export const getMMColumnNames = (parent: Model, child: Model) => {
   };
 };
 
-export const TableSystemColumns = () => [
+export const TableSystemColumns = (isMetaColSupport = false) => [
   {
     column_name: 'id',
     title: 'Id',
@@ -689,6 +722,17 @@ export const TableSystemColumns = () => [
     allowNonSystem: false,
     system: true,
   },
+  ...(isMetaColSupport
+    ? [
+        {
+          column_name: META_COL_NAME,
+          title: META_COL_NAME,
+          uidt: UITypes.Meta,
+          allowNonSystem: false,
+          system: true,
+        },
+      ]
+    : []),
 ];
 
 export const deleteColumnSystemPropsFromRequest = (col: any) => {
@@ -702,7 +746,6 @@ export const deleteColumnSystemPropsFromRequest = (col: any) => {
   delete col.rqd;
   delete col.un;
   delete col.ai;
-  delete col.unique;
   delete col.cc;
   delete col.csn;
   delete col.dtx;

@@ -7,10 +7,13 @@ const props = defineProps({
   barcodeFormat: { type: String, required: true },
   customStyle: { type: Object, required: false },
   showDownload: { type: Boolean, required: false, default: false },
+  isModal: { type: Boolean, required: false, default: false },
 })
 const emit = defineEmits(['onClickBarcode'])
 
 const { t } = useI18n()
+
+const { isDark } = useTheme()
 
 const isGallery = inject(IsGalleryInj, ref(false))
 
@@ -22,7 +25,11 @@ const generate = () => {
     JsBarcode(barcodeSvgRef.value, String(props.barcodeValue), {
       format: props.barcodeFormat,
       displayValue: false,
-      margin: 0,
+      ...(props.isModal && isDark.value
+        ? { marginTop: 12, marginBottom: 12, marginLeft: 24, marginRight: 24 }
+        : isDark.value
+        ? { marginTop: 4, marginBottom: 4, marginLeft: 8, marginRight: 8 }
+        : { margin: 0 }),
     })
     if (props.customStyle) {
       if (barcodeSvgRef.value) {
@@ -56,7 +63,7 @@ const onBarcodeClick = (ev: MouseEvent) => {
   emit('onClickBarcode')
 }
 
-watch([() => props.barcodeValue, () => props.barcodeFormat, () => props.customStyle], generate)
+watch([() => props.barcodeValue, () => props.barcodeFormat, () => props.customStyle, () => isDark.value], generate)
 onMounted(generate)
 </script>
 

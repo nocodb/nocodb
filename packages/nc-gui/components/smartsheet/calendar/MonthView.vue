@@ -433,7 +433,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
   const week = Math.floor(percentY * calendarData.value.weeks.length)
   const day = Math.floor(percentX * maxVisibleDays.value)
 
-  let newStartDate = calendarData.value.weeks[week] ? calendarData.value.weeks[week].days[day].date : null
+  let newStartDate = calendarData.value.weeks[week] ? calendarData.value.weeks[week].days[day]?.date : null
 
   if (!newStartDate) return { newRow: null, updateProperty: [] }
 
@@ -554,8 +554,10 @@ const onResize = (event: MouseEvent) => {
       },
     }
   } else {
-    let newStartDate = calendarData.value.weeks[week] ? calendarData.value.weeks[week].days[day].date : null
+    let newStartDate = calendarData.value.weeks[week] ? calendarData.value.weeks[week].days[day]?.date : null
     updateProperty = [fromCol!.title!]
+
+    if (!newStartDate) return
 
     if (timezoneDayjs.dayjsTz(newStartDate).isAfter(ogEndDate)) {
       newStartDate = timezoneDayjs.dayjsTz(ogEndDate).clone()
@@ -762,7 +764,7 @@ const addRecord = (date: dayjs.Dayjs) => {
       <div
         v-for="(day, index) in days"
         :key="index"
-        class="text-center bg-nc-bg-gray-extra-light py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
+        class="text-center bg-nc-bg-gray-extralight py-1 border-r-1 last:border-r-0 border-nc-border-gray-light font-semibold leading-4 uppercase text-[10px] text-nc-content-gray-muted"
       >
         {{ day }}
       </div>
@@ -791,11 +793,11 @@ const addRecord = (date: dayjs.Dayjs) => {
             :class="{
               'selected-date': isDateSelected(day.date) || (focusedDate && day.date.isSame(focusedDate, 'day')),
               '!text-nc-content-gray-disabled': !day.isInPagedMonth,
-              '!bg-nc-bg-gray-extra-light !hover:bg-nc-bg-gray-light !border-nc-border-gray-medium': day.isWeekend,
+              '!bg-nc-bg-gray-extralight !hover:bg-nc-bg-gray-light !border-nc-border-gray-medium': day.isWeekend,
               '!border-r-nc-border-gray-medium': week.days[i + 1]?.isWeekend,
               'border-t-1': week.weekIndex === 0,
             }"
-            class="text-right relative group last:border-r-0 bg-nc-bg-default transition text-sm h-full border-r-1 border-b-1 border-nc-border-gray-light font-medium hover:bg-nc-bg-gray-extra-light text-nc-content-gray-default bg-white"
+            class="text-right relative group last:border-r-0 bg-nc-bg-default transition text-sm h-full border-r-1 border-b-1 border-nc-border-gray-light font-medium hover:bg-nc-bg-gray-extralight text-nc-content-gray-default bg-nc-bg-default"
             data-testid="nc-calendar-month-day"
             @click="selectDate(day.date)"
             @dblclick="addRecord(day.date)"

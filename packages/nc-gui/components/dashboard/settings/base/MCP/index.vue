@@ -141,9 +141,8 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
 <template>
   <div v-if="isCreatingMcpToken" class="absolute w-full h-full inset-0 flex items-center justify-center z-90 bg-black/12">
     <div
-      v-if="isCreatingMcpToken"
       style="box-shadow: 0px 8px 8px -4px rgba(0, 0, 0, 0.04), 0px 20px 24px -4px rgba(0, 0, 0, 0.1)"
-      class="bg-white p-6 flex flex-col w-[488px] rounded-2xl"
+      class="bg-nc-bg-default p-6 flex flex-col w-[488px] rounded-2xl dark:(border-1 border-nc-border-gray-medium)"
     >
       <div class="text-nc-content-gray-emphasis text-lg font-bold">{{ $t('labels.creatingMCPToken') }}</div>
       <div class="text-nc-gray-subtle2 mt-2">
@@ -189,17 +188,17 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
     >
       <template #bodyCell="{ column, record: token }">
         <template v-if="column.key === 'name'">
-          <NcTooltip v-if="!token.isNew" class="truncate text-gray-800 font-semibold text-sm">
+          <NcTooltip v-if="!token.isNew" class="truncate text-nc-content-gray font-semibold text-sm">
             {{ token.title }}
 
             <template #title>
-              <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-gray-300">
+              <div class="text-[10px] leading-[14px] uppercase font-semibold pt-1 text-nc-content-brand-hover">
                 {{ $t('labels.createdOn') }}
               </div>
               <div class="mt-1 text-[13px]">
                 {{ dayjs(token.created_at).format('D MMMM YYYY, hh:mm A') }}
               </div>
-              <div class="text-[10px] leading-[14px] uppercase font-semibold mt-2 text-gray-300">
+              <div class="text-[10px] leading-[14px] uppercase font-semibold mt-2 text-nc-content-brand-hover">
                 {{ $t('labels.createdBy') }}
               </div>
               <div class="mt-1 pb-1 text-[13px]">
@@ -270,6 +269,6 @@ const getFormattedDate = (date: string, format?: string) => dayjs(date).format(f
 
 <style scoped lang="scss">
 .ant-input {
-  @apply rounded-lg py-1 px-3 w-398 h-8 border-1 focus:border-brand-500 border-gray-200;
+  @apply rounded-lg py-1 px-3 w-398 h-8 border-1 focus:border-nc-border-brand border-nc-border-gray-medium;
 }
 </style>

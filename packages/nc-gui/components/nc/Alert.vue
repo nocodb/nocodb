@@ -50,6 +50,11 @@ export interface NcAlertProps extends Pick<AlertProps, 'showIcon' | 'message' | 
   copyText?: any
 
   /**
+   * Show toast msg after copying the text
+   */
+  copyTextToastMessage?: string
+
+  /**
    * Tooltip text for the copy button.
    * @default 'tooltip.copyErrorCode' (from i18n)
    */
@@ -82,6 +87,12 @@ export interface NcAlertProps extends Pick<AlertProps, 'showIcon' | 'message' | 
    * @default true
    */
   showDuration?: boolean
+
+  /**
+   * Show background color
+   * @default false
+   */
+  background?: boolean
 }
 
 const props = withDefaults(defineProps<NcAlertProps>(), {
@@ -93,6 +104,7 @@ const props = withDefaults(defineProps<NcAlertProps>(), {
   descriptionClass: '',
   isNotification: false,
   showDuration: true,
+  background: false,
 })
 
 /**
@@ -157,6 +169,10 @@ const onClickCopy = async () => {
     await copy(copyText.value)
 
     isCopied.value = true
+
+    if (props.copyTextToastMessage) {
+      message.toast(props.copyTextToastMessage)
+    }
 
     copiedTimeoutId = setTimeout(() => {
       isCopied.value = false
@@ -258,6 +274,7 @@ onUnmounted(() => {
         'items-start': align === 'top',
         'no-border': !bordered,
         'nc-alert-notification': isNotification,
+        'nc-show-background': background,
       },
     ]"
   >
@@ -398,19 +415,31 @@ onUnmounted(() => {
   &.nc-alert-type-success,
   &.nc-alert-type-undefined {
     .nc-alert-icon-wrapper {
-      @apply text-nc-content-green-dark;
+      @apply text-green-700;
+    }
+
+    &.nc-show-background {
+      @apply bg-nc-bg-green-light dark:bg-nc-green-20;
     }
   }
 
   &.nc-alert-type-error {
     .nc-alert-icon-wrapper {
-      @apply text-nc-content-red-dark;
+      @apply text-red-700;
+    }
+
+    &.nc-show-background {
+      @apply bg-nc-bg-red-light dark:bg-nc-red-20;
     }
   }
 
   &.nc-alert-type-warning {
     .nc-alert-icon-wrapper {
-      @apply text-nc-content-orange-medium;
+      @apply text-orange-700;
+    }
+
+    &.nc-show-background {
+      @apply bg-nc-bg-orange-light dark:bg-nc-orange-20;
     }
   }
 
@@ -424,7 +453,7 @@ onUnmounted(() => {
     @apply absolute bottom-0 left-0 right-0 h-1;
 
     .nc-alert-progress {
-      @apply h-full  bg-brand-400;
+      @apply h-full  bg-nc-brand-400;
     }
   }
 }
@@ -437,7 +466,7 @@ onUnmounted(() => {
   .ant-message-notice {
     &:has(.nc-alert-notification) {
       .ant-message-notice-content {
-        @apply bg-white !rounded-lg p-4 gap-4 box-border border-1 border-nc-border-gray-medium text-left relative overflow-hidden;
+        @apply bg-nc-bg-default !rounded-lg p-4 gap-4 box-border border-1 border-nc-border-gray-medium text-left relative overflow-hidden;
 
         .ant-message-custom-content > span {
           @apply flex-none w-full block;
@@ -447,7 +476,7 @@ onUnmounted(() => {
           @apply py-2.5 px-3 bg-gray-700 border-gray-700;
 
           .nc-alert-description {
-            @apply text-white;
+            @apply text-base-white;
           }
         }
       }

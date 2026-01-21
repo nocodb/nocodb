@@ -1,13 +1,13 @@
 {
   "name": "nc-lib-gui",
-  "version": "0.265.1",
+  "version": "0.301.1",
   "description": "NocoDB GUI",
   "author": {
     "name": "NocoDB",
     "url": "https://nocodb.com/"
   },
   "homepage": "https://github.com/nocodb/nocodb",
-  "license": "AGPL-3.0-or-later",
+  "license": "Sustainable Use License",
   "main": "lib/XcLibGui.js",
   "directories": {
     "lib": "lib",

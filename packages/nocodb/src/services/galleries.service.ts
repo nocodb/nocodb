@@ -44,7 +44,14 @@ export class GalleriesService {
       param.gallery,
     );
 
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const model = await Model.get(context, param.tableId, ncMeta);
+
     param.gallery.title = param.gallery.title?.trim();
     const existingView = await View.getByTitleOrId(
       context,
@@ -94,6 +101,7 @@ export class GalleriesService {
     // populate  cache and add to list since the list cache already exist
     const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
+      context,
       CacheScope.VIEW,
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,
@@ -154,7 +162,7 @@ export class GalleriesService {
     const view = await View.get(context, param.galleryViewId, ncMeta);
 
     if (!view) {
-      NcError.viewNotFound(param.galleryViewId);
+      NcError.get(context).viewNotFound(param.galleryViewId);
     }
 
     const viewWebhookManager =

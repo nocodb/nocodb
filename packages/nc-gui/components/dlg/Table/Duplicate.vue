@@ -27,7 +27,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject, loadProjects } = basesStore
 
-const { openTable } = useTablesStore()
+const { openTable, loadProjectTables } = useTablesStore()
 
 const baseStore = useBase()
 
@@ -56,7 +56,7 @@ const targetWorkspace = ref(activeWorkspace)
 const targetBase = ref(activeBase.value)
 
 const targetTableMeta = computedAsync(async () => {
-  return getMeta(props.table.id!)
+  return getMeta(activeBase.value?.id, props.table.id!)
 })
 
 const canTargetOtherBase = computed(() => {
@@ -162,35 +162,52 @@ const _duplicate = async () => {
       }) => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
-            const sourceTable = await getMeta(props.table.id!)
-            if (sourceTable) {
-              for (const col of sourceTable.columns || []) {
-                if ([UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt as UITypes)) {
-                  if (col && col.colOptions) {
-                    const relatedTableId = (col.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
-                    if (relatedTableId) {
-                      await getMeta(relatedTableId, true)
+            try {
+              const sourceTable = await getMeta(activeBase.value?.id, props.table.id!)
+              if (sourceTable) {
+                for (const col of sourceTable.columns || []) {
+                  if ([UITypes.Links, UITypes.LinkToAnotherRecord].includes(col.uidt as UITypes)) {
+                    if (col && col.colOptions) {
+                      const relatedTableId = (col.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
+                      const relatedBaseId = (col.colOptions as any)?.fk_related_base_id || activeBase.value?.id
+                      if (relatedTableId && relatedBaseId) {
+                        await getMeta(relatedBaseId, relatedTableId, true)
+                      }
                     }
                   }
                 }
               }
-            }
 
-            if (!isContextDifferent) {
-              await loadTables()
-              refreshCommandPalette()
-              const newTable = tables.value.find((el) => el.id === data?.data?.result?.id)
+              if (!isContextDifferent) {
+                await loadTables()
+                refreshCommandPalette()
+                const newTable = tables.value.find((el) => el.id === data?.data?.result?.id)
 
-              openTable(newTable!)
-            } else {
-              // TODO: navigating to specified base?
-              message.success(t(`msg.success.tableDuplicatedInOtherBase`))
+                openTable(newTable!)
+              } else {
+                // Load target base tables if target workspace is the same as active workspace
+                if (targetWorkspace.value?.id === activeWorkspace?.id) {
+                  await loadProjectTables(targetBase.value.id!, true)
+                  refreshCommandPalette()
+                }
+
+                // TODO: navigating to specified base?
+                message.success(t(`msg.success.tableDuplicatedInOtherBase`))
+              }
+            } catch (_e: any) {
+              // ignore
             }
             isLoading.value = false
             dialogShow.value = false
           } else if (data.status === JobStatus.FAILED) {
             message.error(t('msg.error.failedToDuplicateTable'))
-            await loadTables()
+
+            try {
+              await loadTables()
+            } catch (_e: any) {
+              // ignore
+            }
+
             isLoading.value = false
             dialogShow.value = false
           }

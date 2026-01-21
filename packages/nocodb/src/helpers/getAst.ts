@@ -11,6 +11,7 @@ import {
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type {
@@ -20,8 +21,6 @@ import type {
   Model,
 } from '~/models';
 import type { ViewMetaRowColoring } from '~/models/View';
-import { MetaTable } from '~/cli';
-import { NcError } from '~/helpers/catchError';
 import {
   CalendarRange,
   Filter,
@@ -31,8 +30,12 @@ import {
   KanbanViewColumn,
   View,
 } from '~/models';
+import { MetaTable } from '~/cli';
+import { NcError } from '~/helpers/catchError';
 import RowColorCondition from '~/models/RowColorCondition';
 import Noco from '~/Noco';
+
+const logger = new Logger('getAst');
 
 type Ast = {
   [key: string]: 1 | true | null | Ast;
@@ -229,7 +232,9 @@ const getAst = async (
 
   const columns = model.columns;
 
-  const ast: Ast = await columns.reduce(async (obj, col: Column) => {
+  const ast: Ast = {};
+
+  for (const col of columns) {
     let value: number | boolean | { [key: string]: any } = 1;
     // TODO: also get from col.id
     const nestedFields =
@@ -241,9 +246,19 @@ const getAst = async (
         );
         const model = await colOpt.getRelatedTable(context);
 
+        if (!model) {
+          // Skip this column - related table not found
+          // This allows data retrieval to continue even with broken relations
+          logger.warn(
+            `Skipping column ${col.title}: related table ${colOpt.fk_related_model_id} not found`,
+          );
+          ast[getFieldKey(col)] = null;
+          continue;
+        }
+
         const { refContext: refTableContext } = colOpt.getRelContext(context);
 
-        const { ast } = await getAst(refTableContext, {
+        const { ast: childAst } = await getAst(refTableContext, {
           model,
           query: query?.nested?.[col.title],
           dependencyFields: (dependencyFields.nested[col.title] =
@@ -254,7 +269,7 @@ const getAst = async (
           throwErrorIfInvalidParams,
         });
 
-        value = ast;
+        value = childAst;
 
         // todo: include field relative to the relation => pk / fk
       } else if (col.uidt === UITypes.Links) {
@@ -272,6 +287,16 @@ const getAst = async (
       const { refContext: refTableContext } = colOpt.getRelContext(context);
 
       const model = await colOpt.getRelatedTable(context);
+
+      if (!model) {
+        // Skip this column - related table not found
+        // This allows data retrieval to continue even with broken relations
+        logger.warn(
+          `Skipping column ${col.title}: related table ${colOpt.fk_related_model_id} not found`,
+        );
+        ast[getFieldKey(col)] = null;
+        continue;
+      }
 
       value = (
         await getAst(refTableContext, {
@@ -294,8 +319,10 @@ const getAst = async (
     const isSortOrFilterColumn =
       includeSortAndFilterColumns &&
       (sortColumnIds.includes(col.id) || filterColumnIds.includes(col.id));
-
-    if (isSortOrFilterColumn) {
+    // exclude row meta column
+    if (col.uidt === UITypes.Meta) {
+      isRequested = false;
+    } else if (isSortOrFilterColumn) {
       isRequested = true;
     } else if (rowColoringColumnIds.has(col.id)) {
       isRequested = true;
@@ -349,11 +376,8 @@ const getAst = async (
     if (isRequested || col.pk)
       await extractDependencies(context, col, dependencyFields);
 
-    return {
-      ...(await obj),
-      [getFieldKey(col)]: isRequested,
-    };
-  }, Promise.resolve({}));
+    ast[getFieldKey(col)] = isRequested;
+  }
 
   return { ast, dependencyFields, parsedQuery: dependencyFields };
 };
@@ -426,13 +450,9 @@ const extractLookupDependencies = async (
   const relationColumnOpts =
     await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
   const { refContext } = relationColumnOpts.getRelContext(context);
-  await extractRelationDependencies(
-    refContext,
-    relationColumn,
-    dependencyFields,
-  );
+  await extractRelationDependencies(context, relationColumn, dependencyFields);
   await extractDependencies(
-    context,
+    refContext,
     await lookupColumnOpts.getLookupColumn(refContext),
     (dependencyFields.nested[relationColumn.title] = dependencyFields.nested[
       relationColumn.title

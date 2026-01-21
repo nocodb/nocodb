@@ -1,5 +1,6 @@
 import { isSystemColumn } from 'nocodb-sdk';
 import type { SwaggerColumn } from '../getSwaggerColumnMetasV3';
+import { swaggerSanitizeSchemaName } from '~/helpers/stringHelpers';
 
 export const getModelSchemas = (ctx: {
   tableName: string;
@@ -7,7 +8,7 @@ export const getModelSchemas = (ctx: {
   baseName: string;
   columns: Array<SwaggerColumn>;
 }) => ({
-  [`${ctx.tableName}Response`]: {
+  [`${swaggerSanitizeSchemaName(ctx.tableName)}Response`]: {
     title: `${ctx.tableName} Response`,
     type: 'object',
     description: '',
@@ -37,7 +38,7 @@ export const getModelSchemas = (ctx: {
     },
     required: ['id'],
   },
-  [`${ctx.tableName}Request`]: {
+  [`${swaggerSanitizeSchemaName(ctx.tableName)}Request`]: {
     title: `${ctx.tableName} Request`,
     type: 'object',
     description: '',
@@ -66,7 +67,7 @@ export const getModelSchemas = (ctx: {
     },
     required: ['fields'],
   },
-  [`${ctx.tableName}UpdateRequest`]: {
+  [`${swaggerSanitizeSchemaName(ctx.tableName)}UpdateRequest`]: {
     title: `${ctx.tableName} Update Request`,
     type: 'object',
     description: '',
@@ -100,7 +101,7 @@ export const getModelSchemas = (ctx: {
     },
     required: ['id', 'fields'],
   },
-  [`${ctx.tableName}IdRequest`]: {
+  [`${swaggerSanitizeSchemaName(ctx.tableName)}IdRequest`]: {
     title: `${ctx.tableName} Id Request`,
     type: 'object',
     description: '',
@@ -123,7 +124,9 @@ export const getViewSchemas = (ctx: {
   baseName: string;
   columns: Array<SwaggerColumn>;
 }) => ({
-  [`${ctx.tableName}${ctx.viewName}GridResponse`]: {
+  [`${swaggerSanitizeSchemaName(ctx.tableName)}${swaggerSanitizeSchemaName(
+    ctx.viewName,
+  )}GridResponse`]: {
     title: `${ctx.tableName} : ${ctx.viewName} Response`,
     type: 'object',
     description: '',
@@ -153,7 +156,9 @@ export const getViewSchemas = (ctx: {
     },
     required: ['id'],
   },
-  [`${ctx.tableName}${ctx.viewName}GridRequest`]: {
+  [`${swaggerSanitizeSchemaName(ctx.tableName)}${swaggerSanitizeSchemaName(
+    ctx.viewName,
+  )}GridRequest`]: {
     title: `${ctx.tableName} : ${ctx.viewName} Request`,
     type: 'object',
     description: '',

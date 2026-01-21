@@ -1,14 +1,5 @@
-import {
-  type ButtonType,
-  type ColumnType,
-  CommonAggregations,
-  type GridColumnReqType,
-  type GridColumnType,
-  type MapType,
-  type TableType,
-  type ViewType,
-} from 'nocodb-sdk'
-import { ViewTypes, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
+import type { ButtonType, ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
+import { CommonAggregations, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
@@ -41,6 +32,18 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { isSharedBase } = storeToRefs(useBase())
 
+    const viewStore = useViewsStore()
+
+    const { views } = storeToRefs(viewStore)
+
+    const isDefaultView = computed(() => {
+      return (
+        getFirstNonPersonalView(views.value, {
+          includeViewType: ViewTypes.GRID,
+        })?.id === view.value?.id
+      )
+    })
+
     const isViewColumnsLoading = ref(true)
 
     const hidingViewColumnsMap = ref<Record<string, boolean>>({})
@@ -48,6 +51,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const { addUndo, defineViewScope } = useUndoRedo()
 
     const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
+
+    const hasViewFieldDataEditPermission = computed(() => isUIAllowed('viewFieldDataEdit'))
 
     const localChanges = ref<Record<string, Field>>({})
 
@@ -77,7 +82,15 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       let order = 1
 
-      const data = ((isPublic ? meta.value?.columns : (await $api.dbViewColumn.list(view.value.id)).list) as any[]) ?? []
+      const data =
+        ((isPublic
+          ? meta.value?.columns
+          : (
+              await $api.internal.getOperation(meta.value!.fk_workspace_id!, meta.value!.base_id!, {
+                operation: 'viewColumnList',
+                viewId: view.value.id,
+              })
+            ).list) as any[]) ?? []
 
       const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
         // If hide column api is in progress and we try to load columns before that then we need to assign local visibility state
@@ -204,14 +217,19 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       if (view?.value?.id) {
         if (ignoreIds) {
-          await $api.dbView.showAllColumn(view.value.id, {
+          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
+            operation: 'showAllColumns',
+            viewId: view.value.id,
             ignoreIds,
           })
         } else {
-          await $api.dbView.showAllColumn(view.value.id)
+          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
+            operation: 'showAllColumns',
+            viewId: view.value.id,
+          })
         }
 
-        if (view.value?.is_default) {
+        if (isDefaultView.value) {
           updateDefaultViewColumnMeta(undefined, { defaultViewColVisibility: true }, true)
         }
       }
@@ -256,14 +274,19 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
       if (view?.value?.id) {
         if (ignoreIds) {
-          await $api.dbView.hideAllColumn(view.value.id, {
+          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
+            operation: 'hideAllColumns',
+            viewId: view.value.id,
             ignoreIds,
           })
         } else {
-          await $api.dbView.hideAllColumn(view.value.id)
+          await $api.internal.postOperation(view.value.fk_workspace_id!, view.value.base_id!, {
+            operation: 'hideAllColumns',
+            viewId: view.value.id,
+          })
         }
 
-        if (view.value?.is_default) {
+        if (isDefaultView.value) {
           updateDefaultViewColumnMeta(undefined, { defaultViewColVisibility: false }, true)
         }
       }
@@ -292,7 +315,16 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
       if (isUIAllowed('viewFieldEdit')) {
         if (field.id && view?.value?.id) {
-          await $api.dbViewColumn.update(view.value.id, field.id, field)
+          await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnUpdate',
+              viewId: view.value.id,
+              columnId: field.id,
+            },
+            field,
+          )
 
           if (updateDefaultViewColMeta) {
             updateDefaultViewColumnMeta(field.fk_column_id, {
@@ -301,7 +333,15 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
             })
           }
         } else if (view.value?.id) {
-          const insertedField = (await $api.dbViewColumn.create(view.value.id, field)) as any
+          const insertedField = (await $api.internal.postOperation(
+            meta.value!.fk_workspace_id!,
+            meta.value!.base_id!,
+            {
+              operation: 'viewColumnCreate',
+              viewId: view.value.id,
+            },
+            field,
+          )) as any
 
           /** update the field in fields if defined */
           if (fields.value) fields.value[index] = insertedField
@@ -390,7 +430,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       searchBasisIdMap.value = {}
 
       return (fields.value || []).filter((field: Field) => {
-        if (!field.initialShow && isLocalMode.value) {
+        if (!field.initialShow && isLocalMode.value && !hasViewFieldDataEditPermission.value) {
           return false
         }
         const column = metaColumnById?.value?.[field.fk_column_id!]
@@ -419,7 +459,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const numberOfHiddenFields = computed(() => {
       return (fields.value || [])
         ?.filter((field: Field) => {
-          if (!field.initialShow && isLocalMode.value) {
+          if (!field.initialShow && isLocalMode.value && !hasViewFieldDataEditPermission.value) {
             return false
           }
 
@@ -464,20 +504,20 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         undo: {
           fn: (v: boolean) => {
             field.show = !v
-            saveOrUpdate(field, fieldIndex, false, !!view.value?.is_default)
+            saveOrUpdate(field, fieldIndex, false, isDefaultView.value)
           },
           args: [checked],
         },
         redo: {
           fn: (v: boolean) => {
             field.show = v
-            saveOrUpdate(field, fieldIndex, false, !!view.value?.is_default)
+            saveOrUpdate(field, fieldIndex, false, isDefaultView.value)
           },
           args: [checked],
         },
         scope: defineViewScope({ view: view.value }),
       })
-      saveOrUpdate(field, fieldIndex, !checked, !!view.value?.is_default)
+      saveOrUpdate(field, fieldIndex, !checked, isDefaultView.value)
     }
 
     const toggleFieldStyles = (field: any, style: 'underline' | 'bold' | 'italic', status: boolean) => {
@@ -540,9 +580,15 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       try {
         // sync with server if allowed
         if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
-          await $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
-            ...props,
-          })
+          await $api.internal.postOperation(
+            view.value!.fk_workspace_id!,
+            view.value!.base_id!,
+            {
+              operation: 'gridColumnUpdate',
+              gridViewColumnId: gridViewCols.value[id].id,
+            },
+            props,
+          )
         }
 
         if (gridViewCols.value?.[id]) {
@@ -636,6 +682,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       isLocalMode,
       updateDefaultViewColumnMeta,
       hidingViewColumnsMap,
+      hasViewFieldDataEditPermission,
     }
   },
   'useViewColumnsOrThrow',

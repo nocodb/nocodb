@@ -88,6 +88,7 @@ COPY --link --from=builder /usr/src/app/ /usr/src/app/
 COPY --link --from=builder /usr/src/appEntry/ /usr/src/appEntry/
 
 EXPOSE 8080
+
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 # Start Nocodb

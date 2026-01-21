@@ -2,6 +2,7 @@ import 'mocha';
 import { expect } from 'chai';
 
 import { UITypes } from 'nocodb-sdk';
+import { DriverClient } from '~/utils/nc-config';
 import { repopulateCreateTableSystemColumns } from '~/helpers/tableHelpers';
 import { TableSystemColumns } from '~/helpers/columnHelpers';
 
@@ -50,7 +51,10 @@ function tableHelpersTests() {
         { ...sameNameColumn },
         { ...normalColumn },
       ];
-      const result = repopulateCreateTableSystemColumns({}, { columns });
+      const result = repopulateCreateTableSystemColumns({} as any, {
+        columns: columns as any[],
+        clientType: DriverClient.PG,
+      });
       const nonSystemResult = result.slice(TableSystemColumns().length);
 
       expect(

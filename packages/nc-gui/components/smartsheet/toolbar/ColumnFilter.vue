@@ -38,8 +38,7 @@ interface Props {
   readOnly?: boolean
   queryFilter?: boolean
   isColourFilter?: boolean
-  allowLockedLocalEdit?: boolean
-  disableAutoLoad?: boolean
+  isTempFilters?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -63,8 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
   isViewFilter: false,
   readOnly: false,
   isColourFilter: false,
-  allowLockedLocalEdit: false,
-  disableAutoLoad: false,
+  isTempFilters: false,
 })
 
 const emit = defineEmits([
@@ -195,7 +193,7 @@ const {
   linkColId,
   fieldsToFilter,
   parentColId,
-  props.disableAutoLoad,
+  props.isTempFilters,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -509,7 +507,7 @@ onMounted(async () => {
 
   await Promise.all([
     (async () => {
-      if (!props.disableAutoLoad && !initialModelValue?.length)
+      if (!props.isTempFilters && !initialModelValue?.length)
         await loadFilters({
           hookId: hookId?.value,
           isWebhook: webHook.value,
@@ -904,6 +902,7 @@ defineExpose({
                   :disable-add-new-filter="disableAddNewFilter"
                   :is-view-filter="isViewFilter"
                   :read-only="readOnly"
+                  :is-temp-filters="isTempFilters"
                 >
                   <template #start>
                     <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{

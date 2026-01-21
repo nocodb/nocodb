@@ -353,8 +353,8 @@ importers:
         specifier: ^1.7.5
         version: 1.7.5
       nocodb-sdk:
-        specifier: 0.301.2
-        version: 0.301.2(vue@3.5.14(typescript@5.8.3))
+        specifier: workspace:^
+        version: link:../nocodb-sdk
       nocodb-sdk-v2:
         specifier: workspace:^
         version: link:../nocodb-sdk-v2
@@ -1078,8 +1078,8 @@ importers:
         specifier: ^1.0.2
         version: 1.0.2
       nocodb-sdk:
-        specifier: 0.301.2
-        version: 0.301.2(debug@4.4.1)(vue@3.5.15(typescript@5.8.3))
+        specifier: workspace:^
+        version: link:../nocodb-sdk
       node-sql-parser:
         specifier: ^5.3.6
         version: 5.3.13
@@ -13825,10 +13825,6 @@ packages:
   nock@14.0.6:
     resolution: {integrity: sha512-67n1OfusL/ON57fwFJ6ZurSJa/msYVQmqlz9rCel2HJYj4Zeb8v9TcmRdEW+PV2i9Fm2358umSvzZukhw/E8DA==}
     engines: {node: '>=18.20.0 <20 || >=20.12.1'}
-
-  nocodb-sdk@0.301.2:
-    resolution: {integrity: sha512-H/U8E+SabmNN4x6CbKHNM5wEpkJHZUrMYIseBUD+xeB65OoWU67lMct+p1RhIoNalkWN42cIqaX2v2VUlSS7iA==}
-    engines: {node: '>=18'}
 
   node-abi@3.75.0:
     resolution: {integrity: sha512-OhYaY5sDsIka7H7AtijtI9jwGYLyl29eQn/W623DiN/MIv5sUqc4g7BIDThX+gb7di9f6xK02nkp8sdfFWZLTg==}
@@ -34804,50 +34800,6 @@ snapshots:
       '@mswjs/interceptors': 0.39.4
       json-stringify-safe: 5.0.1
       propagate: 2.0.1
-
-  nocodb-sdk@0.301.2(debug@4.4.1)(vue@3.5.15(typescript@5.8.3)):
-    dependencies:
-      '@vue-flow/core': 1.48.1(vue@3.5.15(typescript@5.8.3))
-      acorn-loose: 8.5.2
-      acorn-walk: 8.3.4
-      axios: 1.9.0(debug@4.4.1)
-      chevrotain: 10.5.0
-      dayjs: 1.11.19
-      fast-deep-equal: 3.1.3
-      nc-jsep: 1.7.5
-      nc-jsep-plugin-arrow: 1.7.5(nc-jsep@1.7.5)
-      nc-jsep-plugin-object: 1.7.5(nc-jsep@1.7.5)
-      nc-jsep-plugin-template: 1.7.5(nc-jsep@1.7.5)
-      nc-jsep-plugin-ternary: 1.7.5(nc-jsep@1.7.5)
-      rfdc: 1.4.1
-      uuid: 11.1.0
-      validator: 13.15.26
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - debug
-      - vue
-
-  nocodb-sdk@0.301.2(vue@3.5.14(typescript@5.8.3)):
-    dependencies:
-      '@vue-flow/core': 1.48.1(vue@3.5.14(typescript@5.8.3))
-      acorn-loose: 8.5.2
-      acorn-walk: 8.3.4
-      axios: 1.9.0(debug@4.4.1)
-      chevrotain: 10.5.0
-      dayjs: 1.11.19
-      fast-deep-equal: 3.1.3
-      nc-jsep: 1.7.5
-      nc-jsep-plugin-arrow: 1.7.5(nc-jsep@1.7.5)
-      nc-jsep-plugin-object: 1.7.5(nc-jsep@1.7.5)
-      nc-jsep-plugin-template: 1.7.5(nc-jsep@1.7.5)
-      nc-jsep-plugin-ternary: 1.7.5(nc-jsep@1.7.5)
-      rfdc: 1.4.1
-      uuid: 11.1.0
-      validator: 13.15.26
-    transitivePeerDependencies:
-      - '@vue/composition-api'
-      - debug
-      - vue
 
   node-abi@3.75.0:
     dependencies:

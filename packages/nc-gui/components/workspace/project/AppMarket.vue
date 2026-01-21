@@ -31,7 +31,13 @@ const selectedCategory = ref<string | undefined>(undefined)
 const categories = computed(() => {
   const cats = new Set<string>()
   sandboxes.value.forEach((sb) => {
-    if (sb.category) cats.add(sb.category)
+    if (sb.category) {
+      // Split comma-separated categories
+      sb.category.split(',').forEach((cat) => {
+        const trimmed = cat.trim()
+        if (trimmed) cats.add(trimmed)
+      })
+    }
   })
   return Array.from(cats).sort()
 })
@@ -40,7 +46,13 @@ const filteredSandboxes = computed(() => {
   let filtered = sandboxes.value
 
   if (selectedCategory.value) {
-    filtered = filtered.filter((sb) => sb.category === selectedCategory.value)
+    const selected = selectedCategory.value
+    filtered = filtered.filter((sb) => {
+      if (!sb.category) return false
+      // Check if selected category exists in comma-separated list
+      const categories = sb.category.split(',').map((c) => c.trim())
+      return categories.includes(selected)
+    })
   }
 
   if (searchQuery.value) {
@@ -216,12 +228,15 @@ watch(
               <div class="nc-app-details">
                 <div class="nc-app-title-row">
                   <h3 class="nc-app-title">{{ sandbox.title }}</h3>
-                  <div
-                    v-if="sandbox.category"
-                    class="nc-app-category"
-                  >
-                    <GeneralIcon icon="ncHash" class="h-3 w-3" />
-                    <span>{{ sandbox.category }}</span>
+                  <div v-if="sandbox.category" class="nc-app-categories">
+                    <div
+                      v-for="cat in sandbox.category.split(',').map(c => c.trim()).filter(Boolean)"
+                      :key="cat"
+                      class="nc-app-category"
+                    >
+                      <GeneralIcon icon="ncHash" class="h-3 w-3" />
+                      <span>{{ cat }}</span>
+                    </div>
                   </div>
                 </div>
                 <p class="nc-app-description">
@@ -346,7 +361,11 @@ watch(
 }
 
 .nc-app-title {
-  @apply text-base font-semibold text-nc-content-gray-emphasis m-0 truncate;
+  @apply text-base font-semibold text-nc-content-gray-emphasis m-0 truncate flex-shrink-0;
+}
+
+.nc-app-categories {
+  @apply flex items-center gap-2 flex-wrap;
 }
 
 .nc-app-category {

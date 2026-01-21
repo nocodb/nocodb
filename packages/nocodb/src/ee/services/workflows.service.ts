@@ -427,7 +427,13 @@ export class WorkflowsService implements OnModuleInit {
       testTriggerData: payload.testTriggerData,
       testMode: payload.testMode,
       timeoutMs: 120000, // 2 minutes
-      req,
+      req: {
+        user: req.user,
+        context: context,
+        clientIp: req.clientIp,
+        headers: req.headers,
+        ncSiteUrl: req.ncSiteUrl
+      },
     });
 
     return { id: job.id };

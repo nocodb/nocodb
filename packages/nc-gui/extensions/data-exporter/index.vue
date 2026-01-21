@@ -19,6 +19,8 @@ const { $api, $poller, $e } = useNuxtApp()
 
 const { appInfo, user } = useGlobal()
 
+const meta = inject(MetaInj)!
+
 const router = useRouter()
 const route = router.currentRoute
 
@@ -154,11 +156,23 @@ async function exportDataAsync() {
 
     isExporting.value = true
 
-    const jobData = await $api.export.data(exportPayload.value.viewId, 'csv', {
-      extension_id: extension.value.id,
-      delimiter: exportPayload.value.delimiter,
-      encoding: exportPayload.value.encoding,
-    })
+    const jobData = await $api.internal.postOperation(
+      meta.value!.fk_workspace_id!,
+      meta.value!.base_id!,
+      {
+        operation: 'dataExport',
+        viewId: exportPayload.value.viewId as string,
+      },
+      {
+        options: {
+          extension_id: extension.value.id,
+          delimiter: exportPayload.value.delimiter,
+          encoding: exportPayload.value.encoding,
+        },
+        exportAs: 'csv',
+      },
+    )
+
     jobList.value.unshift({ ...jobData, name: 'data-export' })
 
     $poller.subscribe(

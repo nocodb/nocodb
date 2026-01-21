@@ -5,6 +5,7 @@ import type {
   InternalApiModule,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
+import type { DataExportJobData } from '~/interface/Jobs';
 import { DataTableService } from '~/services/data-table.service';
 import { TablesService } from '~/services/tables.service';
 import { ColumnsService } from '~/services/columns.service';
@@ -24,11 +25,16 @@ import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
 import { CommentsService } from '~/services/comments.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
+import { SyncService } from '~/services/sync.service';
+import { SyncSource, View } from '~/models';
+import { NcError } from '~/helpers/catchError';
+import { JobTypes } from '~/interface/Jobs';
+import { NocoJobsService } from '~/services/noco-jobs.service';
+import { ExtensionsService } from '~/services/extensions.service';
 
 @Injectable()
 export class UiPostOperations
-  implements InternalApiModule<InternalPOSTResponseType>
-{
+  implements InternalApiModule<InternalPOSTResponseType> {
   constructor(
     protected dataTableService: DataTableService,
     protected tablesService: TablesService,
@@ -49,7 +55,10 @@ export class UiPostOperations
     protected calendarsService: CalendarsService,
     protected commentsService: CommentsService,
     protected bulkDataAliasService: BulkDataAliasService,
-  ) {}
+    protected syncService: SyncService,
+    protected readonly nocoJobsService: NocoJobsService,
+    protected extensionsService: ExtensionsService,
+  ) { }
   operations = [
     'tableUpdate' as const,
     'tableDelete' as const,
@@ -107,13 +116,23 @@ export class UiPostOperations
     'rowColorConditionsFilterCreate' as const,
     'bulkAggregate' as const,
     'bulkDataList' as const,
+    'dataInsert' as const,
+    'dataUpdate' as const,
+    'dataDelete' as const,
+    'bulkDataDeleteAll' as const,
     'commentRow' as const,
     'commentUpdate' as const,
     'commentDelete' as const,
     'commentResolve' as const,
-    'dataDelete' as const,
-    'bulkDataDeleteAll' as const,
-  ] satisfies ReadonlyArray<keyof typeof OPERATION_SCOPES>;
+    'syncSourceCreate' as const,
+    'syncSourceUpdate' as const,
+    'syncSourceDelete' as const,
+    'atImportTrigger' as const,
+    'dataExport' as const,
+    'extensionCreate' as const,
+    'extensionUpdate' as const,
+    'extensionDelete' as const,
+  ];
   httpMethod = 'POST' as const;
 
   async handle(
@@ -476,6 +495,15 @@ export class UiPostOperations
             user: req.user,
           },
         );
+      case 'bulkAggregate':
+        context.cache = true;
+        return await this.dataTableService.bulkAggregate(context, {
+          query: req.query,
+          modelId: req.query.tableId as string,
+          viewId: req.query.viewId as string,
+          baseId: req.query.baseId as string,
+          body: payload,
+        });
       case 'bulkDataList':
         return await this.dataTableService.bulkDataList(context, {
           query: req.query,
@@ -485,6 +513,65 @@ export class UiPostOperations
           body: payload,
           user: req.user,
         });
+      case 'dataExport': {
+        const view = await View.get(context, req.query.viewId);
+
+        if (!view) NcError.viewNotFound(req.query.viewId);
+        const options: DataExportJobData['options'] = payload.options ?? {};
+
+        const job = await this.nocoJobsService.add(JobTypes.DataExport, {
+          context,
+          options: {
+            ...options,
+            // includeByteOrderMark when export is triggered from controller
+            includeByteOrderMark: true,
+          },
+          modelId: view.fk_model_id,
+          viewId: req.query.viewId,
+          user: req.user,
+          exportAs: payload.exportAs,
+          ncSiteUrl: req.ncSiteUrl,
+        });
+
+        return {
+          id: job.id,
+          name: job.name,
+        };
+      }
+      case 'dataInsert':
+        return await this.dataTableService.dataInsert(context, {
+          modelId: req.query.tableId as string,
+          body: payload,
+          viewId: req.query.viewId as string,
+          cookie: req,
+          undo: req.query.undo === 'true',
+          user: req.user,
+        });
+      case 'dataUpdate':
+        return await this.dataTableService.dataUpdate(context, {
+          modelId: req.query.tableId as string,
+          body: payload,
+          viewId: req.query.viewId as string,
+          cookie: req,
+          user: req.user,
+        });
+      case 'dataDelete':
+        return await this.dataTableService.dataDelete(context, {
+          modelId: req.query.tableId as string,
+          cookie: req,
+          viewId: req.query.viewId as string,
+          body: payload,
+          user: req.user,
+        });
+      case 'bulkDataDeleteAll':
+        return await this.bulkDataAliasService.bulkDataDeleteAll(context, {
+          baseName: context.base_id,
+          tableName: req.query.tableId!,
+          query: req.query,
+          viewName: req.query.viewId,
+          req,
+        });
+
       case 'commentRow':
         return await this.commentsService.commentRow(context, {
           body: payload,
@@ -504,30 +591,77 @@ export class UiPostOperations
           user: req.user,
           req,
         });
-      case 'dataDelete':
-        return await this.dataTableService.dataDelete(context, {
-          modelId: req.query.tableId as string,
-          cookie: req,
-          viewId: req.query.viewId as string,
-          body: payload,
-          user: req.user,
-        });
-      case 'bulkDataDeleteAll':
-        return await this.bulkDataAliasService.bulkDataDeleteAll(context, {
-          baseName: context.base_id,
-          tableName: req.query.tableId!,
-          query: req.query,
-          viewName: req.query.viewId,
+      case 'syncSourceCreate':
+        return await this.syncService.syncCreate(context, {
+          baseId: context.base_id,
+          sourceId: req.query.sourceId as string,
+          userId: (req as any).user.id,
+          syncPayload: payload,
           req,
         });
-      case 'bulkAggregate':
-        context.cache = true;
-        return await this.dataTableService.bulkAggregate(context, {
-          query: req.query,
-          modelId: req.query.tableId as string,
-          viewId: req.query.viewId as string,
-          baseId: req.query.baseId as string,
-          body: payload,
+      case 'syncSourceUpdate':
+        return await this.syncService.syncUpdate(context, {
+          syncId: req.query.syncId as string,
+          syncPayload: payload,
+          req,
+        });
+      case 'syncSourceDelete':
+        return await this.syncService.syncDelete(context, {
+          syncId: req.query.syncId as string,
+          req,
+        });
+      case 'atImportTrigger': {
+        const jobs = await this.nocoJobsService.getJobList();
+        const fnd = jobs.find((j) => j.data.syncId === req.query.syncId);
+
+        if (fnd) {
+          NcError.badRequest('Sync already in progress');
+        }
+
+        const syncSource = await SyncSource.get(
+          context,
+          req.query.syncId as string,
+        );
+
+        const user = await syncSource.getUser();
+
+        // Treat default baseUrl as siteUrl from req object
+        let baseURL = (req as any).ncSiteUrl;
+
+        // if environment value avail use it
+        // or if it's docker construct using `PORT`
+        if (process.env.NC_DOCKER) {
+          baseURL = `http://localhost:${process.env.PORT || 8080}`;
+        }
+
+        const job = await this.nocoJobsService.add(JobTypes.AtImport, {
+          context,
+          syncId: req.query.syncId as string,
+          ...(syncSource?.details || {}),
+          baseId: syncSource.base_id,
+          sourceId: syncSource.source_id,
+          authToken: '',
+          baseURL,
+          user: user,
+        });
+
+        return { id: job.id };
+      }
+      case 'extensionCreate':
+        return await this.extensionsService.extensionCreate(context, {
+          extension: payload,
+          req,
+        });
+      case 'extensionUpdate':
+        return await this.extensionsService.extensionUpdate(context, {
+          extensionId: req.query.extensionId,
+          extension: payload,
+          req,
+        });
+      case 'extensionDelete':
+        return await this.extensionsService.extensionDelete(context, {
+          extensionId: req.query.extensionId,
+          req,
         });
     }
   }

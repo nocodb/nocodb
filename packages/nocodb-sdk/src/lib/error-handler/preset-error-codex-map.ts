@@ -233,7 +233,8 @@ export const presetErrorCodexMap: Partial<
     code: 403,
   },
   [NcErrorType.ERR_MAX_PAYLOAD_LIMIT_EXCEEDED]: {
-    message: (limit: string) => `Maximum ${limit} entities are allowed per request`,
+    message: (limit: string) =>
+      `Maximum ${limit} entities are allowed per request`,
     code: 422,
   },
   [NcErrorType.ERR_MAX_WORKSPACE_LIMIT_REACHED]: {
@@ -393,5 +394,13 @@ export const presetErrorCodexMap: Partial<
     message: (count: string) =>
       `This workflow has ${count} pending execution(s) waiting to resume`,
     code: 400,
+  },
+  [NcErrorType.ERR_WORKFLOW_NODE_NOT_FOUND]: {
+    message: (message: string) => message,
+    code: 400,
+  },
+  [NcErrorType.ERR_METHOD_NOT_ALLOWED]: {
+    message: (method: string) => `Method ${method} not allowed`,
+    code: 405,
   },
 };

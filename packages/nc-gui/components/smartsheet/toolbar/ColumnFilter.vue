@@ -38,6 +38,7 @@ interface Props {
   readOnly?: boolean
   queryFilter?: boolean
   isColourFilter?: boolean
+  isTempFilters?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -61,6 +62,7 @@ const props = withDefaults(defineProps<Props>(), {
   isViewFilter: false,
   readOnly: false,
   isColourFilter: false,
+  isTempFilters: false,
 })
 
 const emit = defineEmits([
@@ -191,6 +193,7 @@ const {
   linkColId,
   fieldsToFilter,
   parentColId,
+  props.isTempFilters,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -356,7 +359,7 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   if (!localNestedFilters.value?.length) return
 
   for (const nestedFilter of localNestedFilters.value) {
-    if (nestedFilter.parentId) {
+    if (nestedFilter?.parentId) {
       await nestedFilter.applyChanges(hookOrColId, true, undefined)
     }
   }
@@ -491,7 +494,8 @@ const showFilterInput = (filter: Filter) => {
 }
 
 const eventBusHandler = async (event) => {
-  if (event === SmartsheetStoreEvents.FIELD_UPDATE) {
+  // reload filters only for views
+  if (isViewFilter.value && event === SmartsheetStoreEvents.FIELD_UPDATE) {
     await loadFilters({
       loadAllFilters: true,
     })
@@ -503,7 +507,7 @@ onMounted(async () => {
 
   await Promise.all([
     (async () => {
-      if (!initialModelValue?.length)
+      if (!props.isTempFilters && !initialModelValue?.length)
         await loadFilters({
           hookId: hookId?.value,
           isWebhook: webHook.value,
@@ -694,10 +698,11 @@ async function resetDynamicField(filter: any, i) {
 
 const { sqlUis, baseId } = storeToRefs(useBase())
 
-const sqlUi =
-  meta.value?.source_id && meta.value?.base_id === baseId.value
+const sqlUi = computed(() => {
+  return meta.value?.source_id && meta.value?.base_id === baseId.value && sqlUis.value[meta.value?.source_id]
     ? sqlUis.value[meta.value?.source_id]
     : Object.values(sqlUis.value)[0]
+})
 
 const isDynamicFilterAllowed = (filter: FilterType) => {
   const col = getColumn(filter)
@@ -719,7 +724,7 @@ const isDynamicFilterAllowed = (filter: FilterType) => {
   )
     return false
 
-  const abstractType = sqlUi.getAbstractType(col)
+  const abstractType = sqlUi.value?.getAbstractType(col)
 
   if (!['integer', 'float', 'text', 'string'].includes(abstractType)) return false
 
@@ -735,9 +740,9 @@ const dynamicColumns = (filter: FilterType) => {
     if (excludedFilterColUidt.includes(c.uidt as UITypes) || isVirtualCol(c) || (isSystemColumn(c) && !c.pk)) {
       return false
     }
-    const dynamicColAbstractType = sqlUi.getAbstractType(c)
+    const dynamicColAbstractType = sqlUi.value?.getAbstractType(c)
 
-    const filterColAbstractType = sqlUi.getAbstractType(filterCol)
+    const filterColAbstractType = sqlUi.value?.getAbstractType(filterCol)
 
     // treat float and integer as number
     if ([dynamicColAbstractType, filterColAbstractType].every((type) => ['float', 'integer'].includes(type))) {
@@ -897,6 +902,7 @@ defineExpose({
                   :disable-add-new-filter="disableAddNewFilter"
                   :is-view-filter="isViewFilter"
                   :read-only="readOnly"
+                  :is-temp-filters="isTempFilters"
                 >
                   <template #start>
                     <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{
@@ -1032,6 +1038,7 @@ defineExpose({
                 :disable-smartsheet="!!widget || !!workflow"
                 :disabled="filter.readOnly || isLockedView || readOnly"
                 :meta="meta"
+                :show-all-columns="filter.readOnly || isLockedView || readOnly"
                 @click.stop
                 @change="selectFilterField(filter, i)"
               />

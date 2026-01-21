@@ -169,6 +169,12 @@ export class ViewsService {
       'swagger.json#/components/schemas/ViewUpdateReq',
       param.view,
     );
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const oldView = await View.get(context, param.viewId, ncMeta);
 
     if (!oldView) {
@@ -344,6 +350,12 @@ export class ViewsService {
     param: { viewId: string; user: UserType; req: NcRequest },
     ncMeta = Noco.ncMeta,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked(
+        'Schema modifications are not allowed on installed sandbox bases',
+      );
+    }
+
     const view = await View.get(context, param.viewId, ncMeta);
 
     if (!view) {

@@ -51,6 +51,7 @@ const rolePermissions = {
       baseDelete: true,
       manageSnapshot: true,
       migrateBase: true,
+      baseAuditList: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -87,7 +88,6 @@ const rolePermissions = {
       baseRename: true,
       baseDuplicate: true,
       sourceCreate: true,
-      baseAuditList: true,
 
       // Row colouring
       rowColourUpdate: true,
@@ -97,22 +97,28 @@ const rolePermissions = {
       // Extensions
       extensionCreate: true,
       extensionDelete: true,
+
+      // Creator specific permissions (previously inherited from Editor)
+      sortSync: true,
+      filterSync: true,
+      viewFieldEdit: true,
     },
   },
   [ProjectRoles.EDITOR]: {
     include: {
       dataInsert: true,
       dataEdit: true,
-      sortSync: true,
-      filterSync: true,
+      viewFieldDataEdit:
+        true /** For editor just show hidden field in expanded form, fields menu and will not allow to configure it */,
       filterChildrenList: true,
-      viewFieldEdit: true,
       csvTableImport: true,
       excelTableImport: true,
       hookTrigger: true,
 
       // View operations (toolbar, aggregation footer, column reorder, column resize, etc.) will be restricted to below editor roles
       viewOperations: true,
+      sortList: true,
+      filterList: true,
 
       // Extensions
       extensionUpdate: true,

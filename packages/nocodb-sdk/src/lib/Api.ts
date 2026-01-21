@@ -12546,6 +12546,49 @@ export class Api<
       }),
 
     /**
+ * @description Read bulk aggregated data from a given table with provided filters
+ * 
+ * @tags Public
+ * @name DataTableBulkAggregate
+ * @summary Read Shared View Bulk Aggregated Data
+ * @request POST:/api/v2/public/shared-view/{sharedViewUuid}/bulk/aggregate
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dataTableBulkAggregate: (
+      sharedViewUuid: string,
+      data: object[],
+      query?: {
+        /** Extra filtering */
+        where?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+        /** List of fields to be aggregated */
+        aggregation?: object[];
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/public/shared-view/${sharedViewUuid}/bulk/aggregate`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
  * @description Download attachment from a shared view
  * 
  * @tags Public
@@ -13361,6 +13404,52 @@ export class Api<
       >({
         path: `/api/v2/oauth/authorize`,
         method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+  };
+  dbDataTableBulkAggregate = {
+    /**
+ * @description Read bulk aggregated data from a given table with given filters
+ * 
+ * @tags DB Data Table Bulk Aggregate
+ * @name DbDataTableBulkAggregate
+ * @summary Read Bulk Aggregated Data
+ * @request POST:/api/v2/tables/{tableId}/bulk/aggregate
+ * @response `200` `object` OK
+ * @response `400` `{
+  \** @example BadRequest [Error]: <ERROR MESSAGE> *\
+  msg: string,
+
+}`
+ */
+    dbDataTableBulkAggregate: (
+      tableId: string,
+      query: {
+        /** View ID is required */
+        viewId: string;
+        /** List of fields to be aggregated */
+        aggregation?: object[];
+        /** Extra filtering */
+        where?: string;
+        /** Used for multiple filter queries */
+        filterArrJson?: string;
+      },
+      data: object[],
+      params: RequestParams = {}
+    ) =>
+      this.request<
+        object,
+        {
+          /** @example BadRequest [Error]: <ERROR MESSAGE> */
+          msg: string;
+        }
+      >({
+        path: `/api/v2/tables/${tableId}/bulk/aggregate`,
+        method: 'POST',
+        query: query,
         body: data,
         type: ContentType.Json,
         format: 'json',

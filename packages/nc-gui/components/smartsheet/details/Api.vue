@@ -72,9 +72,14 @@ const selectedClient = ref<string | undefined>(langs[0].clients && langs[0].clie
 
 const selectedLangName = ref(langs[0].name)
 
-const apiUrl = computed(
-  () => new URL(`/api/v2/tables/${meta.value?.id}/records`, (appInfo.value && appInfo.value.ncSiteUrl) || '/').href,
-)
+const apiUrl = computed(() => {
+  try {
+    return new URL(`/api/v2/tables/${meta.value?.id}/records`, (appInfo.value && appInfo.value.ncSiteUrl) || '/').href
+  } catch (e: any) {
+    console.log('Failed to construct API URL', e)
+    return ''
+  }
+})
 
 const snippet = computed(
   () =>

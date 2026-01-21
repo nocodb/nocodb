@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, type LinkToAnotherRecordType, UITypesName } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, type SortType, UITypesName } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isHiddenCol, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 
 import rfdc from 'rfdc'
@@ -7,6 +7,7 @@ import rfdc from 'rfdc'
 const props = defineProps<{
   // As we need to focus search box when the parent is opened
   isParentOpen: boolean
+  sorts: SortType[]
 }>()
 
 const emits = defineEmits(['created'])
@@ -20,8 +21,6 @@ const activeView = inject(ActiveViewInj, ref())
 const meta = inject(MetaInj, ref())
 
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
-
-const { sorts } = useViewSorts(activeView)
 
 const options = computed<ColumnType[]>(() =>
   (
@@ -51,7 +50,7 @@ const options = computed<ColumnType[]>(() =>
           /** ignore virtual fields which are system fields ( mm relation ) and qr code fields */
         }
       })
-      .filter((c: ColumnType) => !sorts.value.find((s) => s.fk_column_id === c.id)) ?? []
+      .filter((c: ColumnType) => !props.sorts?.find((s) => s.fk_column_id === c.id)) ?? []
   ).map((c) => {
     const isDisabled = [UITypes.QrCode, UITypes.Barcode, UITypes.ID, UITypes.Button].includes(c.uidt)
 

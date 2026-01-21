@@ -40,7 +40,11 @@ async function migrateData() {
 }
 
 onMounted(async () => {
-  await basesStore.loadProject(baseId.value!, true)
+  try {
+    await basesStore.loadProject(baseId.value!, true)
+  } catch (e: any) {
+    // ignore
+  }
 })
 </script>
 

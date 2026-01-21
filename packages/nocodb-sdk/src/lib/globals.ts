@@ -244,6 +244,7 @@ export enum NcErrorType {
   ERR_EXTENSION_NOT_FOUND = 'ERR_EXTENSION_NOT_FOUND',
   ERR_SCRIPT_NOT_FOUND = 'ERR_SCRIPT_NOT_FOUND',
   FIELD_UNIQUE_CONSTRAINT_VIOLATION = 'FIELD_UNIQUE_CONSTRAINT_VIOLATION',
+  ERR_METHOD_NOT_ALLOWED = 'ERR_METHOD_NOT_ALLOWED',
 
   // Workflow Errors
   ERR_WORKFLOW_EMPTY_NODE = 'ERR_WORKFLOW_EMPTY_NODE',
@@ -367,4 +368,27 @@ export enum DependencyTableType {
 export enum BaseVersion {
   V2 = 2,
   V3 = 3,
+}
+
+export enum SandboxVersionStatus {
+  DRAFT = 'draft',
+  PUBLISHED = 'published',
+}
+
+export enum SandboxVisibility {
+  PUBLIC = 'public',
+  PRIVATE = 'private',
+  UNLISTED = 'unlisted',
+}
+
+export enum DeploymentStatus {
+  PENDING = 'pending',
+  IN_PROGRESS = 'in_progress',
+  SUCCESS = 'success',
+  FAILED = 'failed',
+}
+
+export enum DeploymentType {
+  INSTALL = 'install',
+  UPDATE = 'update',
 }

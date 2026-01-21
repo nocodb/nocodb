@@ -49,6 +49,8 @@ const readOnly = inject(ReadonlyInj, ref(false))
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
+const { isMounted } = useIsMounted()
+
 interface Attachment {
   url: string
   title: string
@@ -87,7 +89,7 @@ const attachments: ComputedRef<Attachment[]> = computed(() => {
     >
       <div class="flex items-center gap-3">
         <template v-if="attachment">
-          <div v-if="attachments && attachments.length">
+          <div v-if="isMounted && attachments && attachments.length">
             <a-carousel autoplay class="!w-11 !h-11 !max-h-11 !max-w-11">
               <template #customPaging> </template>
               <template v-for="(attachmentObj, index) in attachments">

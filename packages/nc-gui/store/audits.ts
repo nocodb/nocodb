@@ -20,6 +20,8 @@ export type CollaboratorType = (WorkspaceUserType & { id: string }) | User | Use
 export const useAuditsStore = defineStore('auditsStore', () => {
   const loadActionWorkspaceLogsOnly = ref<boolean>(false)
 
+  const loadActionForBaseId = ref<string | undefined>()
+
   const audits = ref<null | Array<AuditType>>(null)
 
   const isRowExpanded = ref(false)
@@ -81,6 +83,7 @@ export const useAuditsStore = defineStore('auditsStore', () => {
     getUserName,
     loadActionWorkspaceLogsOnly,
     hasMoreAudits,
+    loadActionForBaseId,
   }
 })
 

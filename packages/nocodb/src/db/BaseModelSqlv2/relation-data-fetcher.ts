@@ -1,5 +1,6 @@
 import groupBy from 'lodash/groupBy';
 import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import type { NcContext } from 'nocodb-sdk';
 import type { Logger } from '@nestjs/common';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { LinkToAnotherRecordColumn } from '~/models';
@@ -9,6 +10,7 @@ import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
 import getAst from '~/helpers/getAst';
 import { Filter, Model, View } from '~/models';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+// import { nocoExecute } from '~/utils/nocoExecute';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -17,6 +19,31 @@ export const relationDataFetcher = (param: {
   logger: Logger;
 }) => {
   const { baseModel } = param;
+
+  async function postProcessData(
+    context: NcContext,
+    {
+      data,
+    }: {
+      data: any[];
+      model: Model;
+      query: any;
+    },
+  ) {
+    return data;
+
+    // FIXME: reopen when we have fixed nocoexecute
+    // // get ast
+    // const { ast, parsedQuery } = await getAst(context, {
+    //   model,
+    //   query,
+    //   extractOnlyPrimaries: false,
+    // });
+    // // nocoexecute
+    // const result = await nocoExecute(ast, data, {}, parsedQuery);
+    // return result;
+  }
+
   return {
     async multipleHmList(
       {
@@ -81,9 +108,9 @@ export const relationDataFetcher = (param: {
         const view = relationColOpts.fk_target_view_id
           ? await View.get(refContext, relationColOpts.fk_target_view_id)
           : await View.getFirstCollaborativeView(
-              refContext,
-              childBaseModel.model.id,
-            );
+            refContext,
+            childBaseModel.model.id,
+          );
         await childBaseModel.applySortAndFilter({
           table: childTable,
           where,
@@ -112,7 +139,7 @@ export const relationDataFetcher = (param: {
                 // get one extra record to check if there are more records in case of v3 api and nested
                 query.limit(
                   (+rest?.limit || 25) +
-                    (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+                  (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
                 );
                 query.offset(+rest?.offset || 0);
 
@@ -257,7 +284,7 @@ export const relationDataFetcher = (param: {
         // get one extra record to check if there are more records in case of v3 api and nested
         qb.limit(
           (+rest?.limit || 25) +
-            (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+          (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
         );
       }
       qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
@@ -268,9 +295,13 @@ export const relationDataFetcher = (param: {
       );
       const proto = await refBaseModel.getProto();
 
-      return children.map((c) => {
-        c.__proto__ = proto;
-        return c;
+      return await postProcessData(refContext, {
+        data: children.map((c) => {
+          c.__proto__ = proto;
+          return c;
+        }),
+        model: refTable,
+        query: args,
       });
     },
 
@@ -437,9 +468,13 @@ export const relationDataFetcher = (param: {
 
         const proto = await childBaseModel.getProto();
 
-        return children.map((c) => {
-          c.__proto__ = proto;
-          return c;
+        return await postProcessData(refContext, {
+          data: children.map((c) => {
+            c.__proto__ = proto;
+            return c;
+          }),
+          model: childTable,
+          query: args,
         });
       } catch (e) {
         throw e;
@@ -634,7 +669,7 @@ export const relationDataFetcher = (param: {
           // get one extra record to check if there are more records in case of v3 api and nested
           query.limit(
             (+rest?.limit || 25) +
-              (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+            (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
           );
           query.offset(+rest?.offset || 0);
           return baseModel.isSqlite
@@ -867,10 +902,10 @@ export const relationDataFetcher = (param: {
         listArgs = dependencyFields;
         try {
           listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-        } catch (e) {}
+        } catch (e) { }
         try {
           listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-        } catch (e) {}
+        } catch (e) { }
       }
 
       const parentTable = await (
@@ -1066,9 +1101,13 @@ export const relationDataFetcher = (param: {
         qb,
         await refTable.getColumns(refContext),
       );
-      return data.map((c) => {
-        c.__proto__ = proto;
-        return c;
+      return await postProcessData(refContext, {
+        data: data.map((c) => {
+          c.__proto__ = proto;
+          return c;
+        }),
+        model: refTable,
+        query: args,
       });
     },
 
@@ -1166,9 +1205,13 @@ export const relationDataFetcher = (param: {
         qb,
         await refTable.getColumns(refContext),
       );
-      return data.map((c) => {
-        c.__proto__ = proto;
-        return c;
+      return await postProcessData(refContext, {
+        data: data.map((c) => {
+          c.__proto__ = proto;
+          return c;
+        }),
+        model: refTable,
+        query: args,
       });
     },
 
@@ -1376,9 +1419,13 @@ export const relationDataFetcher = (param: {
         await (isBt ? parentTable : childTable).getColumns(refContext),
       );
 
-      return data.map((c) => {
-        c.__proto__ = proto;
-        return c;
+      return await postProcessData(refContext, {
+        data: data.map((c) => {
+          c.__proto__ = proto;
+          return c;
+        }),
+        model: isBt ? parentTable : childTable,
+        query: args,
       });
     },
 
@@ -1654,9 +1701,13 @@ export const relationDataFetcher = (param: {
         await parentTable.getColumns(parentBaseModel.context),
       );
 
-      return data.map((c) => {
-        c.__proto__ = proto;
-        return c;
+      return await postProcessData(refContext, {
+        data: data.map((c) => {
+          c.__proto__ = proto;
+          return c;
+        }),
+        model: parentTable,
+        query: args,
       });
     },
   };

@@ -97,6 +97,18 @@ const extensionPaneRef = ref()
 
 const actionPaneRef = ref()
 
+/*
+ * NOTE:
+ * Splitpanes internally schedules async resize/redo logic.
+ * If the component is mounted/unmounted quickly (route change, fullscreen toggle),
+ * those callbacks can run after unmount and crash with:
+ * "Cannot read properties of null (reading 'children')".
+ *
+ * We delay rendering Splitpanes until the parent component is fully mounted
+ * and show a loader meanwhile to ensure DOM stability.
+ */
+const { isMounted } = useIsMounted()
+
 const onDrop = async (event: DragEvent) => {
   event.preventDefault()
   try {
@@ -235,6 +247,7 @@ const onReady = () => {
 const checkIfViewExists = async () => {
   await until(() => isViewsLoading.value).toBe(false)
   const views = await viewStore.loadViews({
+    baseId: activeProjectId.value,
     ignoreLoading: true,
   })
 
@@ -269,7 +282,9 @@ watch(isViewsLoading, async () => {
     <SmartsheetTopbar v-if="!isFullScreen" />
     <div style="height: calc(100% - var(--topbar-height))">
       <NcFullScreen v-if="openedViewsTab === 'view'" v-model="isFullScreen" class="h-full" :page-only="true">
+        <!-- Splitpanes is conditionally rendered only after mount to avoid race conditions with its internal async resize logic. -->
         <Splitpanes
+          v-if="isMounted"
           class="nc-extensions-content-resizable-wrapper"
           :class="{
             'nc-is-open-extensions': isPanelExpanded,
@@ -306,6 +321,9 @@ watch(isViewsLoading, async () => {
           <LazyExtensionsPane v-if="isPanelExpanded" ref="extensionPaneRef" />
           <LazyActionsPane v-if="isActionPanelExpanded" ref="actionPaneRef" />
         </Splitpanes>
+        <div v-else class="flex items-center justify-center h-full w-full">
+          <a-spin size="large" />
+        </div>
       </NcFullScreen>
 
       <LazySmartsheetDetails v-else />

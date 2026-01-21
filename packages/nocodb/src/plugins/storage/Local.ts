@@ -47,8 +47,8 @@ export default class Local implements IStorageAdapterV2 {
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36',
           origin: 'https://www.airtable.com/',
         },
-        httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-        httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        httpAgent: useAgent(url),
+        httpsAgent: useAgent(url),
       });
 
       await mkdirp(path.dirname(destPath));

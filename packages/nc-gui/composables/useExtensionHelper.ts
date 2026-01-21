@@ -11,6 +11,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     const { $api, $e } = useNuxtApp()
     const route = useRoute()
 
+    const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
     const basesStore = useBases()
 
     const { activeProjectId: baseId } = storeToRefs(basesStore)
@@ -58,7 +60,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
         return viewsByTable.value.get(key) as ViewType[]
       }
 
-      await viewStore.loadViews({ tableId, ignoreLoading: true })
+      await viewStore.loadViews({ tableId, baseId: table.base_id, ignoreLoading: true })
       return viewsByTable.value.get(key) as ViewType[]
     }
 
@@ -116,7 +118,16 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       for (const chunk of chunks) {
         inserted += chunk.length
-        await $api.dbDataTableRow.create(tableId, chunk, params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined)
+        await $api.internal.postOperation(
+          activeWorkspaceId.value!,
+          baseId.value!,
+          {
+            operation: 'dataInsert',
+            tableId,
+            ...(params.autoInsertOption ? { typecast: 'true' } : {}),
+          },
+          chunk,
+        )
       }
 
       return {
@@ -138,7 +149,15 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       for (const chunk of chunks) {
         updated += chunk.length
-        await $api.dbDataTableRow.update(tableId, chunk)
+        await $api.internal.postOperation(
+          activeWorkspaceId.value!,
+          baseId.value!,
+          {
+            operation: 'dataUpdate',
+            tableId,
+          },
+          chunk,
+        )
       }
 
       return {
@@ -166,10 +185,15 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       if (insert.length) {
         insertCounter += insert.length
         while (insert.length) {
-          await $api.dbDataTableRow.create(
-            tableId,
+          await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            baseId.value!,
+            {
+              operation: 'dataInsert',
+              tableId,
+              ...(params.autoInsertOption ? { typecast: 'true' } : {}),
+            },
             insert.splice(0, chunkSize),
-            params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
           )
         }
       }
@@ -177,10 +201,15 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       if (update.length) {
         updateCounter += update.length
         while (update.length) {
-          await $api.dbDataTableRow.update(
-            tableId,
+          await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            baseId.value!,
+            {
+              operation: 'dataUpdate',
+              tableId,
+              ...(params.autoInsertOption ? { typecast: 'true' } : {}),
+            },
             update.splice(0, chunkSize),
-            params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
           )
         }
       }
@@ -211,6 +240,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       tables,
       showExpandBtn,
       fullscreenModalSize,
+      activeWorkspaceId,
       activeBaseId: baseId,
       activeTableId,
       activeViewId,

@@ -7,6 +7,8 @@ const emits = defineEmits<Emits>()
 
 const { loadUsers, users } = useManageUsers()
 
+const { $api } = useNuxtApp()
+
 interface Props {
   modelValue: boolean
   view?: Record<string, any>
@@ -69,22 +71,33 @@ const filterdBaseUsers = computed(() => {
   })
 })
 
-const { api, isLoading } = useApi()
+const { isLoading } = useApi()
 
 const assignView = async () => {
   try {
     if (!selectedUser.value) return
-    await api.dbView.update(props.view.id, {
-      owned_by: selectedUser.value.id,
-      ...(!isPersonalView.value ? { lock_type: ViewLockType.Personal } : {}),
-    })
+
+    await $api.internal.postOperation(
+      props.view?.fk_workspace_id,
+      props.view?.base_id,
+      {
+        operation: 'viewUpdate',
+        viewId: props.view?.id,
+      },
+      {
+        owned_by: selectedUser.value.id,
+        ...(!isPersonalView.value ? { lock_type: ViewLockType.Personal } : {}),
+      },
+    )
+
     vModel.value = false
     message.success(isPersonalView.value ? 'View reassigned successfully' : 'View assigned as personal view successfully')
 
     viewsStore
       .loadViews({
         ignoreLoading: true,
-        tableId: props.view.fk_model_id,
+        tableId: props.view?.fk_model_id as string,
+        baseId: props.view?.base_id,
         force: true,
       })
       .catch(() => {

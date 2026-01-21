@@ -14,6 +14,7 @@ import type { ButtonType, ColumnType, FormulaType, TableType, UserType, ViewType
 import type { WritableComputedRef } from '@vue/reactivity'
 import { SpriteLoader } from '../loaders/SpriteLoader'
 import { ImageWindowLoader } from '../loaders/ImageLoader'
+import { MarkdownLoader } from '../loaders/markdownLoader'
 import { getSingleMultiselectColOptions, getUserColOptions, parseCellWidth } from '../utils/cell'
 import { clearRowColouringCache, clearTextCache } from '../utils/canvas'
 import {
@@ -196,6 +197,7 @@ export function useCanvasTable({
   const attachmentCellDropOver = ref<AttachmentCellDropOverType | null>(null)
   const spriteLoader = new SpriteLoader(() => triggerRefreshCanvas())
   const imageLoader = new ImageWindowLoader(() => triggerRefreshCanvas())
+  const markdownLoader = new MarkdownLoader(() => triggerRefreshCanvas())
   const reloadVisibleDataHook = inject(ReloadVisibleDataHookInj, undefined)
   const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
   const elementMap = new CanvasElement([])
@@ -842,6 +844,7 @@ export function useCanvasTable({
   const { handleCellClick, renderCell, handleCellHover, handleCellKeyDown } = useGridCellHandler({
     getCellPosition,
     actionManager,
+    markdownLoader,
     updateOrSaveRow,
     makeCellEditable,
     meta,
@@ -875,6 +878,7 @@ export function useCanvasTable({
     isFillMode,
     imageLoader,
     spriteLoader,
+    markdownLoader,
     tableMetaLoader,
     baseRoleLoader,
     partialRowHeight,
@@ -1568,6 +1572,7 @@ export function useCanvasTable({
     // Action Manager
     actionManager,
     imageLoader,
+    markdownLoader,
     baseRoleLoader,
     handleCellClick,
     handleCellHover,

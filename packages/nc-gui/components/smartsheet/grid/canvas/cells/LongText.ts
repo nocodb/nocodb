@@ -26,6 +26,7 @@ export const LongTextCellRenderer: CellRenderer = {
       selected,
       baseUsers,
       user,
+      markdownLoader,
     } = props
 
     const text = value?.toString() ?? ''
@@ -87,6 +88,7 @@ export const LongTextCellRenderer: CellRenderer = {
         baseUsers,
         user,
         getColor,
+        markdownLoader,
       })
 
       // Restore context after clipping

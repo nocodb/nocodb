@@ -38,6 +38,7 @@ export function useViewFilters(
   linkColId?: Ref<string>,
   fieldsToFilter?: Ref<ColumnType[]>,
   parentColId?: Ref<string>,
+  isTempFilters?: boolean,
 ) {
   const savingStatus: Record<number, boolean> = {}
 
@@ -62,6 +63,8 @@ export function useViewFilters(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
+  const isTemp = computed(() => isPublic.value || isTempFilters)
+
   const { $api, $e, $eventBus } = useNuxtApp()
 
   const { isUIAllowed } = useRoles()
@@ -74,7 +77,7 @@ export function useViewFilters(
 
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
-  const nestedMode = computed(() => isPublic.value || !isUIAllowed('filterSync') || !isUIAllowed('filterChildrenList'))
+  const nestedMode = computed(() => isTemp.value || !isUIAllowed('filterList') || !isUIAllowed('filterChildrenList'))
 
   // Tracks if any filter has been updated - used for webhook save state management
   const isFilterUpdated = ref<boolean>(false)
@@ -150,7 +153,8 @@ export function useViewFilters(
 
   const activeView = inject(ActiveViewInj, ref())
 
-  const { showSystemFields } = widgetId?.value || isWorkflow ? { showSystemFields: ref(false) } : useViewColumnsOrThrow()
+  const { showSystemFields, fieldsMap } =
+    widgetId?.value || isWorkflow ? { showSystemFields: ref(false), fieldsMap: ref({}) } : useViewColumnsOrThrow()
 
   const options = computed<SelectProps['options']>(() =>
     meta.value?.columns?.filter((c: ColumnType) => {
@@ -263,7 +267,7 @@ export function useViewFilters(
     const logicalOps = new Set(filters.value.slice(1).map((filter) => filter.logical_op))
 
     const defaultColumn = fieldsToFilter?.value?.find((col) => {
-      return !isSystemColumn(col)
+      return !isSystemColumn(col) && !(fieldsMap.value[col.id] && !fieldsMap.value[col.id]?.initialShow)
     })
 
     const filter: ColumnFilterType = {
@@ -373,8 +377,11 @@ export function useViewFilters(
     isLink?: boolean
   } = {}) => {
     if (!view.value?.id || !meta.value) return
-
-    if (nestedMode.value || (isForm.value && !isWebhook) || isWorkflow) {
+    if (
+      (nestedMode.value && (isTemp.value || !isUIAllowed('filterChildrenList'))) ||
+      (isForm.value && !isWebhook) ||
+      isWorkflow
+    ) {
       // ignore restoring if not root filter group
       return
     }
@@ -1072,11 +1079,11 @@ export function useViewFilters(
   }
 
   const evtListener = (evt: string, payload: any) => {
-    if (payload.fk_view_id !== view.value?.id) return
+    if (payload.fk_view_id !== view.value?.id || isTempFilters) return
 
     if (evt === 'filter_create') {
       allFilters.value.push(payload)
-      if (!payload.fk_parent_id || payload.fk_parent_id === parentId.value) {
+      if ((!payload.fk_parent_id && !parentId.value) || payload.fk_parent_id === parentId.value) {
         filters.value.push(payload)
       }
       reloadHook?.trigger()
@@ -1105,11 +1112,11 @@ export function useViewFilters(
   }
 
   onMounted(() => {
-    $eventBus.realtimeViewMetaEventBus.on(evtListener)
+    if (!isTempFilters) $eventBus.realtimeViewMetaEventBus.on(evtListener)
   })
 
   onBeforeUnmount(() => {
-    $eventBus.realtimeViewMetaEventBus.off(evtListener)
+    if (!isTempFilters) $eventBus.realtimeViewMetaEventBus.off(evtListener)
   })
 
   return {

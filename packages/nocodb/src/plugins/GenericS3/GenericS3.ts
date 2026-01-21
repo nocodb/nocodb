@@ -144,8 +144,8 @@ export default class GenericS3 implements IStorageAdapterV2 {
   ): Promise<any> {
     try {
       const response = await axios.get(url, {
-        httpAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
-        httpsAgent: useAgent(url, { stopPortScanningByUrlRedirection: true }),
+        httpAgent: useAgent(url),
+        httpsAgent: useAgent(url),
         responseType: buffer ? 'arraybuffer' : 'stream',
       });
       const uploadParams: PutObjectRequest = {

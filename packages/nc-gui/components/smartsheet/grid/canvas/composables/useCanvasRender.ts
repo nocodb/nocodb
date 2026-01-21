@@ -39,6 +39,7 @@ import type { CanvasElement } from '../utils/CanvasElement'
 import { ElementTypes } from '../utils/CanvasElement'
 import type { RenderTagProps } from '../utils/types'
 import { getSafe2DContext } from '../utils/safeCanvas'
+import type { MarkdownLoader } from '../loaders/markdownLoader'
 
 export function useCanvasRender({
   width,
@@ -60,6 +61,7 @@ export function useCanvasRender({
   getFillHandlerPosition,
   spriteLoader,
   imageLoader,
+  markdownLoader,
   tableMetaLoader,
   partialRowHeight,
   vSelectedAllRecords,
@@ -131,6 +133,7 @@ export function useCanvasRender({
   getFillHandlerPosition: () => FillHandlerPosition | null
   imageLoader: ImageWindowLoader
   spriteLoader: SpriteLoader
+  markdownLoader: MarkdownLoader
   tableMetaLoader: TableMetaLoader
   partialRowHeight: Ref<number>
   vSelectedAllRecords: WritableComputedRef<boolean>
@@ -1451,6 +1454,7 @@ export function useCanvasRender({
           spriteLoader,
           readonly: column.readonly,
           imageLoader,
+          markdownLoader,
           tableMetaLoader,
           relatedColObj: column.relatedColObj,
           relatedTableMeta: column.relatedTableMeta,
@@ -1535,6 +1539,7 @@ export function useCanvasRender({
               readonly: column.readonly,
               spriteLoader,
               imageLoader,
+              markdownLoader,
               tableMetaLoader,
               relatedColObj: column.relatedColObj,
               relatedTableMeta: column.relatedTableMeta,
@@ -2480,6 +2485,7 @@ export function useCanvasRender({
             pv: column.pv,
             spriteLoader,
             imageLoader,
+            markdownLoader,
             relatedColObj: column.relatedColObj,
             relatedTableMeta: column.relatedTableMeta,
             disabled: column?.isInvalidColumn,
@@ -3337,6 +3343,7 @@ export function useCanvasRender({
             tagFontFamily: '700 13px Inter',
           },
           getColor,
+          markdownLoader,
         } as any)
 
         ctx.restore()
@@ -3397,6 +3404,7 @@ export function useCanvasRender({
         readonly: true,
         textColor: getColor(themeV4Colors.gray['800']), // gray-800
         imageLoader,
+        markdownLoader,
         tableMetaLoader,
         relatedColObj: group.relatedColumn,
         relatedTableMeta: group.relatedTableMeta,
@@ -3428,6 +3436,7 @@ export function useCanvasRender({
         readonly: true,
         textColor: getColor(themeV4Colors.gray['800']), // gray-800
         imageLoader,
+        markdownLoader,
         meta,
         tableMetaLoader,
         relatedColObj: group.relatedColumn,

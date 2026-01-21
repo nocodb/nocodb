@@ -34,6 +34,8 @@ provide(IsCalendarInj, ref(false))
 provide(RowHeightInj, ref(1 as const))
 provide(ReloadRowDataHookInj, reloadViewDataHook!)
 
+const { isMounted } = useIsMounted()
+
 const {
   fetchChunk,
   deleteRow,
@@ -470,7 +472,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 >
                   <template v-if="galleryData?.fk_cover_image_col_id" #cover>
                     <a-carousel
-                      v-if="!reloadAttachments && attachments(record).length"
+                      v-if="isMounted && !reloadAttachments && attachments(record).length"
                       class="gallery-carousel !border-b-1 !border-nc-border-gray-medium min-h-52 !bg-nc-bg-default"
                       :style="{
                         ...extractRowBackgroundColorStyle(record).rowBgColor,

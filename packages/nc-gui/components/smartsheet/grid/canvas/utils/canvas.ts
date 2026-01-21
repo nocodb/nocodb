@@ -2,9 +2,9 @@ import { LRUCache } from 'lru-cache'
 import JsBarcode from 'jsbarcode'
 import type { ColumnType, UserType } from 'nocodb-sdk'
 import type { SpriteLoader } from '../loaders/SpriteLoader'
+import { type MarkdownLoader, markdownTextCache } from '../loaders/markdownLoader'
 import type { RenderMultiLineTextProps, RenderSingleLineTextProps, RenderTagProps } from './types'
-import { type Block, getFontForToken, parseMarkdown } from './markdownUtils'
-import { NcMarkdownParser } from '~/helpers/tiptap'
+import { type Block, getFontForToken } from './markdownUtils'
 import { getSafe2DContext } from './safeCanvas'
 
 const singleLineTextCache: LRUCache<string, { text: string; width: number; isTruncated: boolean }> = new LRUCache({
@@ -12,10 +12,6 @@ const singleLineTextCache: LRUCache<string, { text: string; width: number; isTru
 })
 
 const multiLineTextCache: LRUCache<string, { lines: string[]; width: number }> = new LRUCache({
-  max: 1000,
-})
-
-const markdownTextCache: LRUCache<string, { blocks: Block[]; width: number }> = new LRUCache({
   max: 1000,
 })
 
@@ -1117,12 +1113,55 @@ export function renderBarcode(
   }
 }
 
+const renderMarkdownSkeleton = (
+  ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  {
+    x,
+    y,
+    width,
+    lineHeight,
+    maxLines,
+    getColor,
+  }: {
+    x: number
+    y: number // ← text baseline reference
+    width: number
+    lineHeight: number
+    maxLines: number
+    getColor: GetColorType
+  },
+) => {
+  ctx.save()
+
+  const lines = Math.min(maxLines, 3)
+
+  const barHeight = Math.max(10, Math.floor(lineHeight * 0.6))
+  const radius = Math.min(6, barHeight / 2)
+
+  // ⬇️ Convert baseline Y → top-aligned Y
+  const startY = y - lineHeight / 2
+
+  for (let i = 0; i < lines; i++) {
+    const lineWidth = lines > 1 && i === lines - 1 ? width * 0.55 : width
+
+    const lineY = startY + i * lineHeight + (lineHeight - barHeight) / 2
+
+    ctx.beginPath()
+    ctx.roundRect(x, lineY, lineWidth, barHeight, radius)
+    ctx.fillStyle = getColor(themeV4Colors.gray['200'])
+    ctx.fill()
+  }
+
+  ctx.restore()
+}
+
 export const renderMarkdown = (
   ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   params: RenderMultiLineTextProps & {
     baseUsers?: (Partial<UserType> | Partial<User>)[]
     user?: Partial<UserType> | Partial<User>
     getColor: GetColorType
+    markdownLoader: MarkdownLoader
   },
 ): {
   width: number
@@ -1150,6 +1189,7 @@ export const renderMarkdown = (
     baseUsers,
     user,
     getColor,
+    markdownLoader,
   } = params
   let { maxWidth = Infinity, maxLines } = params
 
@@ -1167,33 +1207,12 @@ export const renderMarkdown = (
     }
   }
 
-  let blocks
+  let blocks: Block[] = []
   let width = 0
   const originalFontFamily = ctx.font
 
   if (fontFamily) {
     ctx.font = fontFamily
-  }
-
-  const cacheKey = `${text}-${fontFamily}-${maxWidth}-${maxLines}`
-  const cachedText = markdownTextCache.get(cacheKey)
-
-  if (cachedText) {
-    width = cachedText.width
-    blocks = cachedText.blocks
-  } else {
-    // Render 2000 characters of the text in the canvas
-    const processText = text.length > 2000 ? text.slice(0, 2000) : text
-
-    const renderText = NcMarkdownParser.preprocessMarkdown(processText, true)
-
-    width = maxWidth
-    blocks = parseMarkdown(renderText, {
-      users: baseUsers,
-      currentUser: user,
-    })
-
-    markdownTextCache.set(cacheKey, { blocks, width })
   }
 
   const yOffset =
@@ -1203,32 +1222,58 @@ export const renderMarkdown = (
         : fontSize / 2 + (py ?? 0)
       : py ?? 0
 
-  if (render) {
-    ctx.textAlign = textAlign
-    ctx.textBaseline = verticalAlign
+  // Render 2000 characters of the text in the canvas
+  const processText = text.length > 2000 ? text.slice(0, 2000) : text
 
-    if (fillStyle) {
-      ctx.fillStyle = fillStyle
-      ctx.strokeStyle = fillStyle
+  const cacheKey = `${processText}-${fontFamily}-${maxWidth}-${maxLines}`
+
+  const cachedText = markdownLoader.loadOrGetMarkdown(cacheKey, { text: processText, maxWidth, baseUsers, user })
+
+  if (cachedText) {
+    width = cachedText.width
+    blocks = cachedText.blocks
+  } else {
+    width = maxWidth
+    blocks = []
+  }
+
+  if (render) {
+    if (markdownLoader.isLoading(cacheKey)) {
+      renderMarkdownSkeleton(ctx, {
+        x,
+        y: y + yOffset,
+        width,
+        lineHeight,
+        maxLines,
+        getColor,
+      })
+    } else {
+      ctx.textAlign = textAlign
+      ctx.textBaseline = verticalAlign
+
+      if (fillStyle) {
+        ctx.fillStyle = fillStyle
+        ctx.strokeStyle = fillStyle
+      }
+      // Render the text lines
+      renderMarkdownBlocks(ctx, {
+        blocks,
+        x,
+        y: y + yOffset,
+        textAlign,
+        verticalAlign,
+        lineHeight,
+        maxLines,
+        fillStyle,
+        maxWidth,
+        mousePosition,
+        cellRenderStore,
+        fontFamily,
+        height,
+        selected,
+        getColor,
+      })
     }
-    // Render the text lines
-    renderMarkdownBlocks(ctx, {
-      blocks,
-      x,
-      y: y + yOffset,
-      textAlign,
-      verticalAlign,
-      lineHeight,
-      maxLines,
-      fillStyle,
-      maxWidth,
-      mousePosition,
-      cellRenderStore,
-      fontFamily,
-      height,
-      selected,
-      getColor,
-    })
   } else {
     /**
      * Set fontFamily is required for measureText to get currect matrics and
@@ -1275,6 +1320,7 @@ export const renderTagLabel = (
     textColor = props.getColor ? props.getColor(themeV4Colors.gray['600']) : '#4a5268',
     mousePosition,
     spriteLoader,
+    markdownLoader,
     text,
     renderAsMarkdown,
     getColor = (color) => color,
@@ -1320,6 +1366,7 @@ export const renderTagLabel = (
       isTagLabel: true,
       mousePosition,
       spriteLoader,
+      markdownLoader,
       cellRenderStore: props.cellRenderStore,
       render: false,
       getColor,
@@ -1338,6 +1385,7 @@ export const renderTagLabel = (
       isTagLabel: true,
       mousePosition,
       spriteLoader,
+      markdownLoader,
       cellRenderStore: props.cellRenderStore,
       getColor,
     })

@@ -52,6 +52,8 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
 
+    const hasViewFieldDataEditPermission = computed(() => isUIAllowed('viewFieldDataEdit'))
+
     const localChanges = ref<Record<string, Field>>({})
 
     const isColumnViewEssential = (column: ColumnType) => {
@@ -428,7 +430,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       searchBasisIdMap.value = {}
 
       return (fields.value || []).filter((field: Field) => {
-        if (!field.initialShow && isLocalMode.value) {
+        if (!field.initialShow && isLocalMode.value && !hasViewFieldDataEditPermission.value) {
           return false
         }
         const column = metaColumnById?.value?.[field.fk_column_id!]
@@ -457,7 +459,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
     const numberOfHiddenFields = computed(() => {
       return (fields.value || [])
         ?.filter((field: Field) => {
-          if (!field.initialShow && isLocalMode.value) {
+          if (!field.initialShow && isLocalMode.value && !hasViewFieldDataEditPermission.value) {
             return false
           }
 
@@ -680,6 +682,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       isLocalMode,
       updateDefaultViewColumnMeta,
       hidingViewColumnsMap,
+      hasViewFieldDataEditPermission,
     }
   },
   'useViewColumnsOrThrow',

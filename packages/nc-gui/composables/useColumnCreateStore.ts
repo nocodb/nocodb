@@ -419,7 +419,12 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             )
 
             if (oldCol && [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(oldCol.uidt)) {
-              viewsStore.loadViews({ tableId: oldCol?.fk_model_id, ignoreLoading: true, force: true })
+              viewsStore.loadViews({
+                tableId: oldCol?.fk_model_id,
+                baseId: meta.value!.base_id!,
+                ignoreLoading: true,
+                force: true,
+              })
             }
             eventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
             eventBus.emit(SmartsheetStoreEvents.ROW_COLOR_UPDATE)

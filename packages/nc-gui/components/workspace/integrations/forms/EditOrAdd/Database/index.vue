@@ -171,7 +171,7 @@ const validators = computed(() => {
         required: true,
         message: 'Connection name is required',
       },
-      baseTitleValidator('connection'),
+      baseTitleValidator('general.connection'),
     ],
     'extraParameters': [extraParameterValidator],
     'dataSource.client': [fieldRequiredValidator()],

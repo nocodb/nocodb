@@ -22,8 +22,7 @@ import { SyncService } from '~/services/sync.service';
 
 @Injectable()
 export class UiGetOperations
-  implements InternalApiModule<InternalGETResponseType>
-{
+  implements InternalApiModule<InternalGETResponseType> {
   constructor(
     protected dataTableService: DataTableService,
     protected tablesService: TablesService,
@@ -38,7 +37,7 @@ export class UiGetOperations
     protected mapsService: MapsService,
     protected commentsService: CommentsService,
     protected syncService: SyncService,
-  ) {}
+  ) { }
   operations = [
     'nestedDataList' as const,
     'tableGet' as const,
@@ -150,6 +149,12 @@ export class UiGetOperations
             hookId: req.query.hookId as string,
             query: req.query,
           }),
+          {
+            ...req.query,
+            count: await this.hooksService.hookLogCount(context, {
+              hookId: req.query.hookId as string,
+            }),
+          },
         );
       case 'hookFilterList':
         return new PagedResponseImpl(

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { ConfigService } from '@nestjs/config';
+import { getCircularReplacer } from 'nocodb-sdk';
 import { useAgent } from 'request-filtering-agent';
 import { UtilsService as UtilsServiceCE } from 'src/services/utils.service';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import SSOClient from '~/models/SSOClient';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
-import { getCircularReplacer } from '~/utils';
 
 interface ViewCount {
   formCount: number | null;

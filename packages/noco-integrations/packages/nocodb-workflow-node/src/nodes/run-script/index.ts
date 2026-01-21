@@ -100,6 +100,7 @@ export class RunScriptNode extends WorkflowNodeIntegration<RunScriptNodeConfig> 
 
       await sandbox.runCode(executableCode, {
         language: 'javascript',
+        timeoutMs: 10 * 60 * 1000, // 10 minutes
         onStdout: (output) => {
           const error = this.parseScriptOutput(
             output.line,

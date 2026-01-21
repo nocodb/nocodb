@@ -17,6 +17,7 @@ export * from '~/lib/oauth';
 export * from '~/lib/unifiedMeta';
 export * from '~/lib/types';
 export * from '~/lib/helpers/metaHelpers';
+export * from '~/lib/circularReplacer';
 export {
   default as UITypes,
   UITypesName,

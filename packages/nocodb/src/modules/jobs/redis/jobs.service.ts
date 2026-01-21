@@ -1,6 +1,7 @@
 import { InjectQueue } from '@nestjs/bull';
 import { Injectable, Logger } from '@nestjs/common';
 import { Queue } from 'bull';
+import { getTrueCircularReplacer } from 'nocodb-sdk';
 import type { JobOptions } from 'bull';
 import type { OnModuleInit } from '@nestjs/common';
 import {
@@ -15,7 +16,6 @@ import { JobsRedis } from '~/modules/jobs/redis/jobs-redis';
 import { Job } from '~/models';
 import { MetaTable, RootScopes } from '~/utils/globals';
 import Noco from '~/Noco';
-import { getTrueCircularReplacer } from '~/utils/circularReplacer';
 
 @Injectable()
 export class JobsService implements OnModuleInit {

@@ -10,7 +10,7 @@ import { _wherePk, applyPaginate } from '~/helpers/dbHelpers';
 import getAst from '~/helpers/getAst';
 import { Filter, Model, View } from '~/models';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
-import { nocoExecute } from '~/utils/nocoExecute';
+// import { nocoExecute } from '~/utils/nocoExecute';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -108,9 +108,9 @@ export const relationDataFetcher = (param: {
         const view = relationColOpts.fk_target_view_id
           ? await View.get(refContext, relationColOpts.fk_target_view_id)
           : await View.getFirstCollaborativeView(
-              refContext,
-              childBaseModel.model.id,
-            );
+            refContext,
+            childBaseModel.model.id,
+          );
         await childBaseModel.applySortAndFilter({
           table: childTable,
           where,
@@ -139,7 +139,7 @@ export const relationDataFetcher = (param: {
                 // get one extra record to check if there are more records in case of v3 api and nested
                 query.limit(
                   (+rest?.limit || 25) +
-                    (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+                  (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
                 );
                 query.offset(+rest?.offset || 0);
 
@@ -284,7 +284,7 @@ export const relationDataFetcher = (param: {
         // get one extra record to check if there are more records in case of v3 api and nested
         qb.limit(
           (+rest?.limit || 25) +
-            (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+          (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
         );
       }
       qb.offset(selectAllRecords ? 0 : +rest?.offset || 0);
@@ -669,7 +669,7 @@ export const relationDataFetcher = (param: {
           // get one extra record to check if there are more records in case of v3 api and nested
           query.limit(
             (+rest?.limit || 25) +
-              (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
+            (apiVersion === NcApiVersion.V3 && nested ? 1 : 0),
           );
           query.offset(+rest?.offset || 0);
           return baseModel.isSqlite
@@ -902,10 +902,10 @@ export const relationDataFetcher = (param: {
         listArgs = dependencyFields;
         try {
           listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-        } catch (e) {}
+        } catch (e) { }
         try {
           listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-        } catch (e) {}
+        } catch (e) { }
       }
 
       const parentTable = await (

@@ -201,7 +201,11 @@ export const lookupOrLtarBuilder =
       }
 
       let prevAlias = alias;
+      // set initial lookup context
+      let lookupContext = refContext;
       while (lookupColumn.uidt === UITypes.Lookup) {
+        // overwrite lookupContext from previous iteration
+        const context = lookupContext;
         const nestedAlias = `__nc_formula${getAliasCount()}`;
         const nestedLookup = await lookupColumn.getColOptions<LookupColumn>(
           context,
@@ -215,6 +219,8 @@ export const lookupOrLtarBuilder =
 
         const { parentContext, childContext, refContext, mmContext } =
           await relation.getParentChildContext(context);
+        // reset for next iteration
+        lookupContext = refContext;
 
         const childColumn = await relation.getChildColumn(childContext);
         const parentColumn = await relation.getParentColumn(parentContext);

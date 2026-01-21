@@ -6,13 +6,14 @@ import {
   RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
+import { isEE } from '~/utils';
 
 export const verifyDefaultWorkspace = async (
   user?: User,
   ncMeta = Noco.ncMeta,
 ) => {
-  // if cloud do not need to handle this
-  if (process.env.NC_CLOUD === 'true') {
+  // if ee do not need to handle this
+  if (isEE) {
     return;
   }
 

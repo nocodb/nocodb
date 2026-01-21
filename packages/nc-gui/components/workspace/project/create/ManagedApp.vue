@@ -117,7 +117,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
 </script>
 
 <template>
-  <div class="flex flex-col">
+  <div class="flex flex-col h-full">
     <div class="p-4 w-full flex items-center gap-3 border-b border-nc-border-gray-medium">
       <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
         <GeneralIcon icon="ncBox" class="w-5 h-5 text-white" />

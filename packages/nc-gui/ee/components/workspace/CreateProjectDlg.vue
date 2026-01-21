@@ -264,7 +264,8 @@ if (props.isCreateNewActionMenu) {
     :size="modalSize"
     :nc-modal-class-name="`${baseCreateMode !== NcBaseCreateMode.FROM_SCRATCH ? '!p-0' : ''}`"
     :show-separator="false"
-    :width="!baseCreateMode || baseCreateMode === NcBaseCreateMode.MANAGED_APP ? 'auto' : undefined"
+    :width="!baseCreateMode ? 'auto' : undefined"
+    :height="baseCreateMode === NcBaseCreateMode.MANAGED_APP ? 'auto' : undefined"
     :wrap-class-name="`nc-create-project-dlg-wrapper nc-create-project-dlg-wrapper-${baseCreateMode}`"
   >
     <template v-if="baseCreateMode === null">

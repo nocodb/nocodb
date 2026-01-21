@@ -5,6 +5,8 @@ const { $api, $poller } = useNuxtApp()
 
 const { appInfo } = useGlobal()
 
+const meta = inject(MetaInj)!
+
 const isPublicView = inject(IsPublicInj, ref(false))
 
 const selectedView = inject(ActiveViewInj)!
@@ -66,7 +68,18 @@ const exportFile = async (exportType: ExportTypes) => {
 
       jobData = await $api.public.exportData(selectedView.value.uuid, exportType, options, params)
     } else {
-      jobData = await $api.export.data(selectedView.value.id, exportType, options)
+      jobData = await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'dataExport',
+          viewId: selectedView.value.id as string,
+        },
+        {
+          options,
+          exportAs: exportType,
+        },
+      )
     }
 
     message.info('Preparing CSV for download...')

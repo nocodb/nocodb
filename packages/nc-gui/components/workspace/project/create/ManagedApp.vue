@@ -88,6 +88,38 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
       category: FORM_BUILDER_NON_CATEGORIZED,
     },
     {
+      type: FormBuilderInputType.Select,
+      label: 'Start from',
+      span: 12,
+      model: 'startFrom',
+      category: FORM_BUILDER_NON_CATEGORIZED,
+      options: [
+        { label: 'New', value: 'new', icon: 'plus' },
+        { label: 'Existing Base', value: 'existing', icon: 'copy' },
+      ],
+      defaultValue: 'new',
+    },
+    {
+      type: FormBuilderInputType.Space,
+      span: 12,
+      category: FORM_BUILDER_NON_CATEGORIZED,
+      condition: {
+        model: 'startFrom',
+        equal: 'new',
+      },
+    },
+    {
+      type: FormBuilderInputType.SelectBase,
+      label: 'Select base',
+      span: 12,
+      model: 'baseId',
+      category: FORM_BUILDER_NON_CATEGORIZED,
+      condition: {
+        model: 'startFrom',
+        equal: 'existing',
+      },
+    },
+    {
       type: FormBuilderInputType.Input,
       label: t('labels.sandboxCategory'),
       span: 12,

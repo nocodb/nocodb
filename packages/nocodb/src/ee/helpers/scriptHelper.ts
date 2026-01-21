@@ -73,15 +73,22 @@ function transformFieldMeta(field: any, colOptions: any): Record<string, any> {
       break;
     case UITypes.Checkbox:
       if (metaObj.icon) {
-        options.icon = checkboxIconList[metaObj.iconIdx ?? 0]?.label;
+        const iconIdx = metaObj.iconIdx ?? 0;
+        options.icon =
+          checkboxIconList[
+            iconIdx < checkboxIconList.length ? iconIdx : 0
+          ]?.label;
         options.color = metaObj.color || '#232323';
       }
       break;
-    case UITypes.Rating:
-      options.icon = ratingIconList[metaObj.iconIdx ?? 0]?.label;
+    case UITypes.Rating: {
+      const iconIdx = metaObj.iconIdx ?? 0;
+      options.icon =
+        ratingIconList[iconIdx < ratingIconList.length ? iconIdx : 0]?.label;
       options.max_value = metaObj.max || 5;
       options.color = metaObj.color || '#232323';
       break;
+    }
     case UITypes.User:
       options.allow_multiple_users = metaObj.is_multi || false;
       options.notify_user_when_added = metaObj.notify || false;
@@ -90,6 +97,12 @@ function transformFieldMeta(field: any, colOptions: any): Record<string, any> {
     case UITypes.LinkToAnotherRecord:
       options.singular = metaObj.singular;
       options.plural = metaObj.plural;
+      break;
+    case UITypes.Barcode:
+      options.barcode_format = metaObj.barcodeFormat || 'CODE128';
+      if (colOptions?.barcode_value_field_id) {
+        options.barcode_value_field_id = colOptions.barcode_value_field_id;
+      }
       break;
     case UITypes.Formula:
       if (metaObj.display_column_meta) {

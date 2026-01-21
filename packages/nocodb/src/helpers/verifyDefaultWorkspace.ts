@@ -97,3 +97,57 @@ export const verifyDefaultWorkspace = async (
 
   Noco.ncDefaultWorkspaceId = workspace.id;
 };
+
+export const verifyDefaultWsOwner = async (ncMeta = Noco.ncMeta) => {
+  // if ee do not need to handle this
+  if (isEE) {
+    return;
+  }
+
+  // find super user
+  const user = await ncMeta
+    .knexConnection(MetaTable.USERS)
+    .where('roles', 'like', '%super%')
+    .first();
+  // no user created yet, we don't need to init ws
+  if (!user) {
+    return;
+  }
+
+  // if no default ws id present, we verify it first
+  if (!Noco.ncDefaultWorkspaceId) {
+    await verifyDefaultWorkspace(user, ncMeta);
+  }
+
+  // get the user's workspace role
+  const workspaceUser = await ncMeta
+    .knexConnection(MetaTable.WORKSPACE_USER)
+    .where('fk_workspace_id', Noco.ncDefaultWorkspaceId)
+    .andWhere('fk_user_id', user.id)
+    .first();
+
+  // if no role for user, we assign owner
+  if (!workspaceUser) {
+    await ncMeta.metaInsert2(
+      RootScopes.WORKSPACE,
+      RootScopes.WORKSPACE,
+      MetaTable.WORKSPACE_USER,
+      {
+        fk_workspace_id: Noco.ncDefaultWorkspaceId,
+        fk_user_id: user.id,
+        roles: WorkspaceUserRoles.OWNER,
+      },
+      true,
+    );
+  }
+  // however if user has workspace role but not owner, we update
+  else if (workspaceUser.roles !== WorkspaceUserRoles.OWNER) {
+    await ncMeta
+      .knexConnection(MetaTable.WORKSPACE)
+      .where('fk_workspace_id', Noco.ncDefaultWorkspaceId)
+      .andWhere('fk_user_id', user.id)
+      .update({
+        roles: WorkspaceUserRoles.OWNER,
+      });
+  }
+};

@@ -109,6 +109,8 @@ export class DataExportProcessor {
           ncSiteUrl: ncSiteUrl,
           delimiter: options?.delimiter,
           includeCrossBaseColumns: true,
+          filterArrJson: options.filterArrJson,
+          sortArrJson: options.sortArrJson,
         })
         .catch((e) => {
           this.logger.debug(e);

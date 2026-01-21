@@ -33,7 +33,7 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
     }
 
     try {
-      if (!isUIAllowed('sortSync')) {
+      if (!isUIAllowed('sortList')) {
         return
       }
       if (!view?.value || !meta.value) return
@@ -146,8 +146,9 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       const existingSortIndex = sorts.value.findIndex((s) => s.fk_column_id === column.id)
       const existingSort = existingSortIndex > -1 ? sorts.value[existingSortIndex] : undefined
 
+      const isLocalMode = isPublic.value || isSharedBase.value || !isUIAllowed('sortSync')
       // Delete existing sort and not update the state as sort count in UI will change for a sec
-      if (existingSort) {
+      if (existingSort && !isLocalMode) {
         await $api.internal.postOperation(
           meta.value!.fk_workspace_id!,
           meta.value!.base_id!,
@@ -160,62 +161,73 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
         $e('a:sort:delete')
       }
 
-      const data: any = await $api.internal.postOperation(
-        meta.value!.fk_workspace_id!,
-        meta.value!.base_id!,
-        {
-          operation: 'sortCreate',
-          viewId: view.value?.id as string,
-        },
-        {
+      let data: any
+
+      if (isLocalMode) {
+        data = {
           fk_column_id: column!.id,
           direction,
-          push_to_top: true,
-        },
-      )
+        }
+      } else {
+        data = await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'sortCreate',
+            viewId: view.value?.id as string,
+          },
+          {
+            fk_column_id: column!.id,
+            direction,
+            push_to_top: true,
+          },
+        )
+      }
 
       sorts.value = [...sorts.value.filter((_, index) => index !== existingSortIndex), data as SortType]
 
-      addUndo({
-        redo: {
-          fn: async function redo(this: UndoRedoAction) {
-            const data: any = await $api.internal.postOperation(
-              meta.value!.fk_workspace_id!,
-              meta.value!.base_id!,
-              {
-                operation: 'sortCreate',
-                viewId: view.value?.id as string,
-              },
-              {
-                fk_column_id: column!.id,
-                direction,
-                push_to_top: true,
-              },
-            )
-            this.undo.args = [data.id]
-            eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-            reloadDataHook?.trigger()
+      if (!isLocalMode) {
+        addUndo({
+          redo: {
+            fn: async function redo(this: UndoRedoAction) {
+              const data: any = await $api.internal.postOperation(
+                meta.value!.fk_workspace_id!,
+                meta.value!.base_id!,
+                {
+                  operation: 'sortCreate',
+                  viewId: view.value?.id as string,
+                },
+                {
+                  fk_column_id: column!.id,
+                  direction,
+                  push_to_top: true,
+                },
+              )
+              this.undo.args = [data.id]
+              eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+              reloadDataHook?.trigger()
+            },
+            args: [],
           },
-          args: [],
-        },
-        undo: {
-          fn: async function undo(id: string) {
-            await $api.internal.postOperation(
-              meta.value!.fk_workspace_id!,
-              meta.value!.base_id!,
-              {
-                operation: 'sortDelete',
-                sortId: id,
-              },
-              {},
-            )
-            eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
-            reloadDataHook?.trigger()
+          undo: {
+            fn: async function undo(id: string) {
+              await $api.internal.postOperation(
+                meta.value!.fk_workspace_id!,
+                meta.value!.base_id!,
+                {
+                  operation: 'sortDelete',
+                  sortId: id,
+                },
+                {},
+              )
+              eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+              reloadDataHook?.trigger()
+            },
+            args: [data.id],
           },
-          args: [data.id],
-        },
-        scope: defineViewScope({ view: view.value }),
-      })
+          scope: defineViewScope({ view: view.value }),
+        })
+      }
 
       eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
       reloadDataHook?.trigger()
@@ -227,7 +239,8 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   async function deleteSort(sort: SortType, i: number, undo = false) {
     try {
-      if (isUIAllowed('sortSync') && sort.id && !isPublic.value && !isSharedBase.value) {
+      const isLocalMode = isPublic.value || isSharedBase.value || !isUIAllowed('sortSync')
+      if (sort.id && !isLocalMode) {
         await $api.internal.postOperation(
           meta.value!.fk_workspace_id!,
           meta.value!.base_id!,

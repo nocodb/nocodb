@@ -38,6 +38,8 @@ interface Props {
   readOnly?: boolean
   queryFilter?: boolean
   isColourFilter?: boolean
+  allowLockedLocalEdit?: boolean
+  disableAutoLoad?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -61,6 +63,8 @@ const props = withDefaults(defineProps<Props>(), {
   isViewFilter: false,
   readOnly: false,
   isColourFilter: false,
+  allowLockedLocalEdit: false,
+  disableAutoLoad: false,
 })
 
 const emit = defineEmits([
@@ -191,6 +195,7 @@ const {
   linkColId,
   fieldsToFilter,
   parentColId,
+  props.disableAutoLoad,
 )
 
 const { getPlanLimit } = useWorkspace()
@@ -356,7 +361,7 @@ const applyChanges = async (hookOrColId?: string, nested = false, isConditionSup
   if (!localNestedFilters.value?.length) return
 
   for (const nestedFilter of localNestedFilters.value) {
-    if (nestedFilter.parentId) {
+    if (nestedFilter?.parentId) {
       await nestedFilter.applyChanges(hookOrColId, true, undefined)
     }
   }
@@ -491,7 +496,8 @@ const showFilterInput = (filter: Filter) => {
 }
 
 const eventBusHandler = async (event) => {
-  if (event === SmartsheetStoreEvents.FIELD_UPDATE) {
+  // reload filters only for views
+  if (isViewFilter.value && event === SmartsheetStoreEvents.FIELD_UPDATE) {
     await loadFilters({
       loadAllFilters: true,
     })
@@ -503,7 +509,7 @@ onMounted(async () => {
 
   await Promise.all([
     (async () => {
-      if (!initialModelValue?.length)
+      if (!props.disableAutoLoad && !initialModelValue?.length)
         await loadFilters({
           hookId: hookId?.value,
           isWebhook: webHook.value,
@@ -1033,6 +1039,7 @@ defineExpose({
                 :disable-smartsheet="!!widget || !!workflow"
                 :disabled="filter.readOnly || isLockedView || readOnly"
                 :meta="meta"
+                :show-all-columns="filter.readOnly || isLockedView || readOnly"
                 @click.stop
                 @change="selectFilterField(filter, i)"
               />

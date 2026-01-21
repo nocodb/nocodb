@@ -23,7 +23,8 @@ import { ExtensionsService } from '~/services/extensions.service';
 
 @Injectable()
 export class UiGetOperations
-  implements InternalApiModule<InternalGETResponseType> {
+  implements InternalApiModule<InternalGETResponseType>
+{
   constructor(
     protected dataTableService: DataTableService,
     protected tablesService: TablesService,
@@ -39,7 +40,7 @@ export class UiGetOperations
     protected commentsService: CommentsService,
     protected syncService: SyncService,
     protected extensionsService: ExtensionsService,
-  ) { }
+  ) {}
   operations = [
     'nestedDataList' as const,
     'tableGet' as const,
@@ -240,8 +241,8 @@ export class UiGetOperations
         return new PagedResponseImpl(
           await this.extensionsService.extensionList(context, {
             baseId: context.base_id,
-          })
-        )
+          }),
+        );
       case 'extensionRead':
         return await this.extensionsService.extensionRead(context, {
           extensionId: req.query.extensionId as string,

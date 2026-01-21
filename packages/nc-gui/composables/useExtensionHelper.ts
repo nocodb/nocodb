@@ -118,7 +118,11 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       for (const chunk of chunks) {
         inserted += chunk.length
-        await $api.dbDataTableRow.create(tableId, chunk, params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined)
+        await $api.internal.postOperation(activeWorkspaceId.value!, baseId.value!, {
+          operation: 'dataInsert',
+          tableId,
+          ...(params.autoInsertOption ? { typecast: 'true' } : {}),
+        }, chunk)
       }
 
       return {
@@ -140,6 +144,11 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       for (const chunk of chunks) {
         updated += chunk.length
+        await $api.internal.postOperation(activeWorkspaceId.value!, baseId.value!, {
+          operation: 'dataUpdate',
+          tableId
+        }, chunk)
+
         await $api.dbDataTableRow.update(tableId, chunk)
       }
 
@@ -168,22 +177,22 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       if (insert.length) {
         insertCounter += insert.length
         while (insert.length) {
-          await $api.dbDataTableRow.create(
+          await $api.internal.postOperation(activeWorkspaceId.value!, baseId.value!, {
+            operation: 'dataInsert',
             tableId,
-            insert.splice(0, chunkSize),
-            params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
-          )
+            ...(params.autoInsertOption ? { typecast: 'true' } : {}),
+          }, insert.splice(0, chunkSize))
         }
       }
 
       if (update.length) {
         updateCounter += update.length
         while (update.length) {
-          await $api.dbDataTableRow.update(
+          await $api.internal.postOperation(activeWorkspaceId.value!, baseId.value!, {
+            operation: 'dataUpdate',
             tableId,
-            update.splice(0, chunkSize),
-            params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
-          )
+            ...(params.autoInsertOption ? { typecast: 'true' } : {}),
+          }, update.splice(0, chunkSize))
         }
       }
 

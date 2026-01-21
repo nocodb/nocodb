@@ -1,6 +1,7 @@
 import { Form } from 'ant-design-vue'
 import { diff } from 'deep-object-diff'
-import type { FormBuilderCondition, FormBuilderElement, FormDefinition } from 'nocodb-sdk'
+import type { FormBuilderCondition, FormBuilderElement, FormDefinition, FormBuilderValidator, CustomFormBuilderValidator } from 'nocodb-sdk'
+import { FormBuilderValidatorType, } from 'nocodb-sdk'
 
 const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
   (props: {
@@ -238,12 +239,20 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
         if (!field.model) continue
 
         if (field.validators && checkCondition(field)) {
+          console.log('field', field.validators)
+
           validatorsObject[field.model] = field.validators
-            .map((validator: { type: 'required'; message?: string }) => {
-              if (validator.type === 'required') {
+            .map((validator: FormBuilderValidator) => {
+              if (validator.type === FormBuilderValidatorType.Required) {
                 return {
                   required: true,
                   message: validator.message,
+                }
+              }
+
+              if (validator.type === FormBuilderValidatorType.Custom && ncIsFunction((validator as CustomFormBuilderValidator).validator)) {
+                return {
+                  validator: (validator as CustomFormBuilderValidator).validator,
                 }
               }
 

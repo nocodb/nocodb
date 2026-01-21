@@ -14,13 +14,13 @@
     "@ai-sdk/provider": "^3.0.0",
     "ai": "^6.0.3",
     "nocodb-sdk": "file:../../nocodb-sdk",
-    "zod": "^3.25.76"
+    "zod": "^4.3.5"
   },
   "devDependencies": {
-    "@types/node": "^20.17.46",
-    "@vitest/coverage-v8": "^3.1.4",
-    "rimraf": "^5.0.10",
+    "@types/node": "^24.10.9",
+    "@vitest/coverage-v8": "^4.0.17",
+    "rimraf": "^6.1.2",
     "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
+    "vitest": "^4.0.17"
   }
 }

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type ColumnType, ProjectRoles, ROW_COLORING_MODE } from 'nocodb-sdk'
+import { type ColumnType, ROW_COLORING_MODE } from 'nocodb-sdk'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
 import type { NcListItemType } from '../../../../../components/nc/List/index.vue'
 
@@ -32,8 +32,6 @@ const { columns } = toRefs(props)
 const isLocked = inject(IsLockedInj, ref(false))
 
 const { t } = useI18n()
-
-const { user } = useGlobal()
 
 const { isUIAllowed } = useRoles()
 

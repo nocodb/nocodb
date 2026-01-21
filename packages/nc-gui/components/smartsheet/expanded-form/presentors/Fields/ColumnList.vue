@@ -81,7 +81,14 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
       <a-skeleton-input
         v-if="isLoading"
         active
-        class="h-8 flex-none <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden"
+        class="flex-none h-8 <lg:!w-full lg:flex-1 !rounded-lg !overflow-hidden"
+        :class="{
+          '!h-[151px]': isTextArea(col),
+          '!h-[118px]': isAttachment(col),
+          '!h-[80px]': isQrCode(col),
+          '!h-[64px]': isBarcode(col),
+          '!h-[38px]': isButton(col),
+        }"
         size="small"
       />
       <NcTooltip
@@ -172,8 +179,10 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
   &:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
     box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.08);
   }
+
   &:not(:focus-within):hover:not(.nc-readonly-div-data-cell):not(.nc-system-field):not(.nc-virtual-cell-button) {
     @apply !border-1;
+
     &:not(.nc-attachment-cell):not(.nc-virtual-cell-button) {
       box-shadow: 0px 0px 4px 0px rgba(var(--rgb-base), 0.24);
     }
@@ -214,27 +223,34 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
       }
     }
   }
+
   &:has(.nc-virtual-cell-qrcode .nc-qrcode-container),
   &:has(.nc-virtual-cell-barcode .nc-barcode-container) {
     @apply !border-none px-0 !rounded-none;
+
     :deep(.nc-virtual-cell-qrcode),
     :deep(.nc-virtual-cell-barcode) {
       @apply px-0;
+
       & > div {
         @apply !px-0;
       }
+
       .barcode-wrapper {
         @apply ml-0;
       }
     }
+
     :deep(.nc-virtual-cell-qrcode) {
       img {
         @apply !h-full border-1 border-solid border-nc-border-gray-medium rounded;
       }
     }
+
     :deep(.nc-virtual-cell-barcode) {
       .nc-barcode-container {
         @apply border-1 rounded-lg border-nc-border-gray-medium h-[64px] max-w-full p-2 dark:bg-white;
+
         svg {
           @apply !h-full;
         }
@@ -259,12 +275,15 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
 :deep(.nc-system-field input) {
   @apply bg-transparent;
 }
+
 :deep(.nc-data-cell .nc-cell .nc-cell-field) {
   @apply px-2;
 }
+
 :deep(.nc-data-cell .nc-virtual-cell .nc-cell-field) {
   @apply px-2;
 }
+
 :deep(.nc-data-cell .nc-cell-field.nc-lookup-cell .nc-cell-field) {
   @apply px-0;
 }

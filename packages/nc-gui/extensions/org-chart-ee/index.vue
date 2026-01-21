@@ -5,8 +5,18 @@ import { type CoordPosition, type Edge, useLayoutHelper } from './useLayoutHelpe
 
 const { $e } = useNuxtApp()
 
-const { fullscreen, tables, getViewsForTable, getTableMeta, activeTableId, activeViewId, $api, extension } =
-  useExtensionHelperOrThrow()
+const {
+  fullscreen,
+  tables,
+  getViewsForTable,
+  getTableMeta,
+  activeTableId,
+  activeViewId,
+  $api,
+  extension,
+  activeBaseId,
+  activeWorkspaceId,
+} = useExtensionHelperOrThrow()
 
 const { eventBus } = useExtensions()
 
@@ -238,7 +248,9 @@ const loadChildren = async (rowIds: string[]) => {
       if (unfetchedChildRowIdsToFilterAndFetch) {
         const finalChildrenDataFilteredByViews = unfetchedChildRowIdsToFilterAndFetch.length
           ? (
-              await $api.dbDataTableRow.list(tableId.value, {
+              await $api.internal.getOperation(activeWorkspaceId.value!, activeBaseId.value!, {
+                operation: 'dataList',
+                tableId: tableId.value,
                 viewId: viewId.value,
                 fields: coverImageFieldId.value
                   ? [...mandatoryColumns.value, selectedCoverImageField.value?.title]
@@ -332,7 +344,9 @@ const loadGraph = async () => {
       correspondingReverseField.value = reverseMappingField?.id
     }
 
-    const parentRows = await $api.dbDataTableRow.list(tableId.value, {
+    const parentRows = await $api.internal.getOperation(activeWorkspaceId.value!, activeBaseId.value!, {
+      operation: 'dataList',
+      tableId: tableId.value,
       viewId: viewId.value,
       where: `where=(${selectedRelationFieldTitle.value},eq,0)`,
     })

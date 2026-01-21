@@ -5,6 +5,7 @@ import type { Dashboard, Workflow } from '~/models';
 import type {
   Column,
   DataReflection,
+  Extension,
   Filter,
   Hook,
   HookLog,
@@ -34,6 +35,8 @@ export type InternalGETResponseType = Promise<
   | { hash: string }
   | OAuthClient
   | OAuthClient[]
+  | Extension
+  | Extension[]
 >;
 
 export type InternalPOSTResponseType = Promise<
@@ -61,6 +64,7 @@ export type InternalPOSTResponseType = Promise<
   | Filter
   | Sort
   | Hook
+  | Extension
 >;
 
 export const INTERNAL_API_MODULE_PROVIDER_KEY = 'INTERNAL_API_MODULE';

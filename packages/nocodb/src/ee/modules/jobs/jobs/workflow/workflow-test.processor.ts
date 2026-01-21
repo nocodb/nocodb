@@ -1,6 +1,5 @@
 import { Inject, Logger } from '@nestjs/common';
 import { TriggerTestMode } from 'nocodb-sdk';
-import { nanoid } from 'nanoid';
 import type { Job } from 'bull';
 import type { TestWorkflowNodeJobData } from '~/interface/Jobs';
 import { JobsLogService } from '~/modules/jobs/jobs/jobs-log.service';
@@ -16,7 +15,7 @@ export class WorkflowTestProcessor {
     @Inject('WorkflowExecutionService')
     private readonly workflowExecutionService: WorkflowExecutionService,
     private readonly jobsLogService: JobsLogService,
-  ) {}
+  ) { }
 
   async testWorkflowNode(job: Job<TestWorkflowNodeJobData>) {
     const {
@@ -49,7 +48,7 @@ export class WorkflowTestProcessor {
 
     // Determine test mode - use explicit testMode if provided, otherwise auto-detect
     let useListenWebhook = testMode === TriggerTestMode.LISTEN_WEBHOOK;
-    let useTriggerEvent = testMode === TriggerTestMode.TRIGGER_EVENT;
+    const useTriggerEvent = testMode === TriggerTestMode.TRIGGER_EVENT;
 
     if (!testMode && nodeWrapper) {
       try {
@@ -109,7 +108,7 @@ export class WorkflowTestProcessor {
   ) {
     const { context, workflowId, nodeId } = job.data;
 
-    let triggerId = node.data?.triggerId;
+    const triggerId = node.data?.triggerId;
     if (!triggerId) {
       throw new Error('Trigger ID not found');
     }
@@ -191,10 +190,7 @@ export class WorkflowTestProcessor {
       };
     } catch (error) {
       await NocoCache.del(context, cacheKey);
-      this.logger.error(
-        `Webhook test failed for trigger ${triggerId}:`,
-        error,
-      );
+      this.logger.error(`Webhook test failed for trigger ${triggerId}:`, error);
 
       return {
         nodeId,
@@ -222,7 +218,7 @@ export class WorkflowTestProcessor {
     const { context, workflowId, nodeId, req } = job.data;
 
     // Generate a temporary triggerId for testing
-    let triggerId = node.data?.triggerId;
+    const triggerId = node.data?.triggerId;
     if (!triggerId) {
       throw new Error('Trigger ID not found');
     }
@@ -422,7 +418,10 @@ export class WorkflowTestProcessor {
     triggerId: string,
     reason?: 'timeout' | 'error',
   ) {
-    if (!activationState || typeof nodeWrapper.onDeactivateHook !== 'function') {
+    if (
+      !activationState ||
+      typeof nodeWrapper.onDeactivateHook !== 'function'
+    ) {
       return;
     }
 

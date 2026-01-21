@@ -30,11 +30,11 @@ import { SyncSource, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { JobTypes } from '~/interface/Jobs';
 import { NocoJobsService } from '~/services/noco-jobs.service';
+import { ExtensionsService } from '~/services/extensions.service';
 
 @Injectable()
 export class UiPostOperations
-  implements InternalApiModule<InternalPOSTResponseType>
-{
+  implements InternalApiModule<InternalPOSTResponseType> {
   constructor(
     protected dataTableService: DataTableService,
     protected tablesService: TablesService,
@@ -57,7 +57,8 @@ export class UiPostOperations
     protected bulkDataAliasService: BulkDataAliasService,
     protected syncService: SyncService,
     protected readonly nocoJobsService: NocoJobsService,
-  ) {}
+    protected extensionsService: ExtensionsService,
+  ) { }
   operations = [
     'tableUpdate' as const,
     'tableDelete' as const,
@@ -115,17 +116,22 @@ export class UiPostOperations
     'rowColorConditionsFilterCreate' as const,
     'bulkAggregate' as const,
     'bulkDataList' as const,
+    'dataInsert' as const,
+    'dataUpdate' as const,
+    'dataDelete' as const,
+    'bulkDataDeleteAll' as const,
     'commentRow' as const,
     'commentUpdate' as const,
     'commentDelete' as const,
     'commentResolve' as const,
-    'dataDelete' as const,
-    'bulkDataDeleteAll' as const,
     'syncSourceCreate' as const,
     'syncSourceUpdate' as const,
     'syncSourceDelete' as const,
     'atImportTrigger' as const,
     'dataExport' as const,
+    'extensionCreate' as const,
+    'extensionUpdate' as const,
+    'extensionDelete' as const,
   ];
   httpMethod = 'POST' as const;
 
@@ -489,6 +495,15 @@ export class UiPostOperations
             user: req.user,
           },
         );
+      case 'bulkAggregate':
+        context.cache = true;
+        return await this.dataTableService.bulkAggregate(context, {
+          query: req.query,
+          modelId: req.query.tableId as string,
+          viewId: req.query.viewId as string,
+          baseId: req.query.baseId as string,
+          body: payload,
+        });
       case 'bulkDataList':
         return await this.dataTableService.bulkDataList(context, {
           query: req.query,
@@ -523,6 +538,40 @@ export class UiPostOperations
           name: job.name,
         };
       }
+      case 'dataInsert':
+        return await this.dataTableService.dataInsert(context, {
+          modelId: req.query.tableId as string,
+          body: payload,
+          viewId: req.query.viewId as string,
+          cookie: req,
+          undo: req.query.undo === 'true',
+          user: req.user,
+        });
+      case 'dataUpdate':
+        return await this.dataTableService.dataUpdate(context, {
+          modelId: req.query.tableId as string,
+          body: payload,
+          viewId: req.query.viewId as string,
+          cookie: req,
+          user: req.user,
+        });
+      case 'dataDelete':
+        return await this.dataTableService.dataDelete(context, {
+          modelId: req.query.tableId as string,
+          cookie: req,
+          viewId: req.query.viewId as string,
+          body: payload,
+          user: req.user,
+        });
+      case 'bulkDataDeleteAll':
+        return await this.bulkDataAliasService.bulkDataDeleteAll(context, {
+          baseName: context.base_id,
+          tableName: req.query.tableId!,
+          query: req.query,
+          viewName: req.query.viewId,
+          req,
+        });
+
       case 'commentRow':
         return await this.commentsService.commentRow(context, {
           body: payload,
@@ -541,31 +590,6 @@ export class UiPostOperations
           commentId: payload.commentId,
           user: req.user,
           req,
-        });
-      case 'dataDelete':
-        return await this.dataTableService.dataDelete(context, {
-          modelId: req.query.tableId as string,
-          cookie: req,
-          viewId: req.query.viewId as string,
-          body: payload,
-          user: req.user,
-        });
-      case 'bulkDataDeleteAll':
-        return await this.bulkDataAliasService.bulkDataDeleteAll(context, {
-          baseName: context.base_id,
-          tableName: req.query.tableId!,
-          query: req.query,
-          viewName: req.query.viewId,
-          req,
-        });
-      case 'bulkAggregate':
-        context.cache = true;
-        return await this.dataTableService.bulkAggregate(context, {
-          query: req.query,
-          modelId: req.query.tableId as string,
-          viewId: req.query.viewId as string,
-          baseId: req.query.baseId as string,
-          body: payload,
         });
       case 'syncSourceCreate':
         return await this.syncService.syncCreate(context, {
@@ -623,6 +647,22 @@ export class UiPostOperations
 
         return { id: job.id };
       }
+      case 'extensionCreate':
+        return await this.extensionsService.extensionCreate(context, {
+          extension: payload,
+          req,
+        });
+      case 'extensionUpdate':
+        return await this.extensionsService.extensionUpdate(context, {
+          extensionId: req.query.extensionId,
+          extension: payload,
+          req,
+        });
+      case 'extensionDelete':
+        return await this.extensionsService.extensionDelete(context, {
+          extensionId: req.query.extensionId,
+          req,
+        });
     }
   }
 }

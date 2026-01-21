@@ -531,7 +531,7 @@ export class PublicDatasService {
     await view.model.getColumns(context);
 
     const fields = (view.model.columns = view.columns
-      .filter((c) => c.show)
+      .filter((c) => c.show && view.model.columnsById[c.fk_column_id])
       .reduce((o, c) => {
         o[view.model.columnsById[c.fk_column_id].title] = new Column({
           ...c,

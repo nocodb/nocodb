@@ -51,7 +51,7 @@ watch(
       await loadFilters({
         hookId: undefined,
         isWebhook: false,
-        loadAllFilters: false,
+        loadAllFilters: true,
       })
       filtersLength.value = nonDeletedFilters.value.length || 0
     }

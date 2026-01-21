@@ -592,10 +592,7 @@ export class SyncModuleService implements OnModuleInit {
       syncConfigId: syncConfig.id,
       trigger,
       bulk,
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-      },
+      req,
     });
 
     await SyncConfig.update(context, syncConfig.id, {
@@ -621,10 +618,7 @@ export class SyncModuleService implements OnModuleInit {
     const job = await this.nocoJobsService.add(JobTypes.SyncModuleMigrateSync, {
       context,
       syncConfigId: syncConfig.id,
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-      },
+      req,
     });
 
     return {
@@ -945,10 +939,7 @@ export class SyncModuleService implements OnModuleInit {
           await this.nocoJobsService.add(JobTypes.SyncModuleRefreshData, {
             context,
             syncConfigId: syncConfig.id,
-            req: {
-              user: req.user,
-              clientIp: req.clientIp,
-            },
+            req,
           });
         }
 

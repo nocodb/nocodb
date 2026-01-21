@@ -104,6 +104,8 @@ export class SnapshotController {
       title: body?.title ?? dayjs().format('Snapshot YYYY-MM-DD HH:mm:ss'),
     });
 
+    req.skipAudit = true;
+
     const job = await this.jobsService.add(JobTypes.CreateSnapshot, {
       context: {
         workspace_id: base.fk_workspace_id,
@@ -115,11 +117,7 @@ export class SnapshotController {
       snapshotBaseId: snapshotBase.id,
       snapshot,
       options: {},
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        skipAudit: true,
-      },
+      req,
     });
 
     this.appHooksService.emit(AppEvents.SNAPSHOT_CREATE, {
@@ -185,6 +183,10 @@ export class SnapshotController {
     }
     const parentAuditId = await Noco.ncAudit.genNanoid(MetaTable.AUDIT);
 
+    req.ncParentAuditId = parentAuditId;
+    req.ncWorkspaceId = base.fk_workspace_id;
+    req.ncBaseId = baseId;
+
     const targetBase = await this.basesService.baseCreate({
       base: {
         title: `${base.title} - ${snapshot.title}`.substring(0, 49),
@@ -197,11 +199,7 @@ export class SnapshotController {
           : { fk_workspace_id: base?.fk_workspace_id }),
       } as any,
       user: { id: req.user.id },
-      req: {
-        user: { id: req.user.id, email: req.user.email },
-        ncParentAuditId: parentAuditId,
-        ncWorkspaceId: base.fk_workspace_id,
-      } as any,
+      req,
     });
 
     const sourceBase = await Base.get(context, snapshot.base_id);
@@ -213,6 +211,10 @@ export class SnapshotController {
       sourceBase,
       req,
     });
+
+    req.ncParentAuditId = parentAuditId;
+    req.ncBaseId = targetBase.id;
+    req.ncWorkspaceId = base.fk_workspace_id;
 
     const job = await this.jobsService.add(JobTypes.RestoreSnapshot, {
       context: {
@@ -228,13 +230,7 @@ export class SnapshotController {
       targetBaseId: targetBase.id,
       snapshot,
       options: {},
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        ncParentAuditId: parentAuditId,
-        ncBaseId: targetBase.id,
-        ncWorkspaceId: base.fk_workspace_id,
-      },
+      req,
     });
 
     return { id: job.id };

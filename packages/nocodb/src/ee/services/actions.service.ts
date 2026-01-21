@@ -41,12 +41,7 @@ export class ActionsService {
 
     const job = await this.jobsService.add(JobTypes.ExecuteAction, {
       context,
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-        ncSiteUrl: req.ncSiteUrl,
-      },
+      req,
       scriptId: script.id,
       modelId: model.id,
       viewId: view.id,

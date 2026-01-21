@@ -147,10 +147,7 @@ export class RemoteImportService {
         baseId: base.id,
         sourceId: source.id,
         user: req.user,
-        req: {
-          user: req.user,
-          clientIp: req.clientIp,
-        },
+        req,
       },
       {
         delay: 10 * 60 * 1000,

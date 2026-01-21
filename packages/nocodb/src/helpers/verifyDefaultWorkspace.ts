@@ -97,3 +97,37 @@ export const verifyDefaultWorkspace = async (
 
   Noco.ncDefaultWorkspaceId = workspace.id;
 };
+
+export const verifyDefaultWsOwner = async (ncMeta = Noco.ncMeta) => {
+  // if ee do not need to handle this
+  if (isEE) {
+    return;
+  }
+
+  // find super user
+  const user = await ncMeta
+    .knexConnection(MetaTable.USERS)
+    .where('roles', 'like', '%super%')
+    .first();
+  // no user created yet, we don't need to init ws
+  if (!user) {
+    return;
+  }
+
+  // if no default ws id present, we verify it first
+  if (!Noco.ncDefaultWorkspaceId) {
+    await verifyDefaultWorkspace(user, ncMeta);
+  }
+
+  const workspace = await ncMeta
+    .knexConnection(MetaTable.WORKSPACE)
+    .where('id', Noco.ncDefaultWorkspaceId)
+    .orderBy('created_at', 'asc')
+    .first();
+
+  if (workspace.fk_user_id !== user.id) {
+    await ncMeta.knexConnection(MetaTable.WORKSPACE).update({
+      fk_user_id: user.id,
+    });
+  }
+};

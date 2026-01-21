@@ -25,6 +25,8 @@ const table = inject(SidebarTableInj)!
 
 const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
+const { $api } = useNuxtApp()
+
 const { activeTableId } = storeToRefs(useTablesStore())
 
 const { isUIAllowed } = useRoles()
@@ -222,10 +224,18 @@ async function changeView(view: ViewType) {
 /** Rename a view */
 async function onRename(view: ViewType, originalTitle?: string, undo = false) {
   try {
-    await api.dbView.update(view.id!, {
-      title: view.title,
-      order: view.order,
-    })
+    await $api.internal.postOperation(
+      view.fk_workspace_id!,
+      view.base_id!,
+      {
+        operation: 'viewUpdate',
+        viewId: view.id!,
+      },
+      {
+        title: view.title,
+        order: view.order,
+      },
+    )
 
     navigateToView({
       view,
@@ -303,9 +313,17 @@ const setIcon = async (icon: string, view: ViewType) => {
       icon,
     }
 
-    api.dbView.update(view.id as string, {
-      meta: view.meta,
-    })
+    await $api.internal.postOperation(
+      view.fk_workspace_id!,
+      view.base_id!,
+      {
+        operation: 'viewUpdate',
+        viewId: view.id!,
+      },
+      {
+        meta: view.meta,
+      },
+    )
 
     $e('a:view:icon:sidebar', { icon })
   } catch (e: any) {

@@ -49,11 +49,7 @@ export class SourceDeleteController {
       context,
       user: req.user,
       sourceId,
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-      },
+      req,
     });
 
     return { id: job.id };

@@ -190,132 +190,123 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
       `${MetaTable.USERS}.display_name as name`,
     );
 
-  // 6. All column options in a single UNION ALL query (9 queries -> 1)
-  const columnOptionsRows = await knex.raw(
-    `
-    SELECT fk_column_id, 'select' as opt_type, 
-           id, title, color, 
-           NULL as relation_type, NULL as related_table_id, NULL as limit_record_selection_view_id,
-           NULL as related_field_id, NULL as related_table_lookup_field_id, NULL as related_table_rollup_field_id, 
-           NULL as rollup_function, NULL as formula, NULL as label, NULL as theme, NULL as icon, 
-           NULL as button_hook_id, NULL as script_id, NULL as integration_id, NULL as model, NULL as type,
-           NULL as barcode_value_field_id, NULL as barcode_format, NULL as qrcode_value_field_id, NULL as prompt
-    FROM ${MetaTable.COL_SELECT_OPTIONS}
-    WHERE base_id = ? AND fk_workspace_id = ?
-    
-    UNION ALL
-    
-    SELECT fk_column_id, 'relation' as opt_type,
-           NULL, NULL, NULL,
-           type as relation_type, fk_related_model_id as related_table_id, fk_target_view_id as limit_record_selection_view_id,
-           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-    FROM ${MetaTable.COL_RELATIONS}
-    WHERE base_id = ? AND fk_workspace_id = ?
-    
-    UNION ALL
-    
-    SELECT fk_column_id, 'lookup' as opt_type,
-           NULL, NULL, NULL, NULL, NULL, NULL,
-           fk_relation_column_id as related_field_id, fk_lookup_column_id as related_table_lookup_field_id, NULL,
-           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-    FROM ${MetaTable.COL_LOOKUP}
-    WHERE base_id = ? AND fk_workspace_id = ?
-    
-    UNION ALL
-    
-    SELECT fk_column_id, 'rollup' as opt_type,
-           NULL, NULL, NULL, NULL, NULL, NULL,
-           fk_relation_column_id as related_field_id, NULL, fk_rollup_column_id as related_table_rollup_field_id,
-           rollup_function, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-    FROM ${MetaTable.COL_ROLLUP}
-    WHERE base_id = ? AND fk_workspace_id = ?
-    
-    UNION ALL
-    
-    SELECT fk_column_id, 'formula' as opt_type,
-           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-           formula_raw as formula, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-    FROM ${MetaTable.COL_FORMULA}
-    WHERE base_id = ? AND fk_workspace_id = ?
-    
-    UNION ALL
-    
-    SELECT fk_column_id, 'button' as opt_type,
-           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 
-           formula_raw as formula, label, theme, icon,
-           fk_webhook_id as button_hook_id, fk_script_id as script_id, fk_integration_id as integration_id, model, type,
-           NULL, NULL, NULL, NULL
-    FROM ${MetaTable.COL_BUTTON}
-    WHERE base_id = ? AND fk_workspace_id = ?
-    
-    UNION ALL
-    
-    SELECT fk_column_id, 'barcode' as opt_type,
-           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-           fk_barcode_value_column_id as barcode_value_field_id, barcode_format, NULL, NULL
-    FROM ${MetaTable.COL_BARCODE}
-    WHERE base_id = ? AND fk_workspace_id = ?
-    
-    UNION ALL
-    
-    SELECT fk_column_id, 'qrcode' as opt_type,
-           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-           fk_qr_value_column_id as qrcode_value_field_id, NULL
-    FROM ${MetaTable.COL_QRCODE}
-    WHERE base_id = ? AND fk_workspace_id = ?
-    
-    UNION ALL
-    
-    SELECT fk_column_id, 'longtext' as opt_type,
-           NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
-           fk_integration_id as integration_id, model, NULL, NULL, NULL, NULL,
-           prompt_raw as prompt
-    FROM ${MetaTable.COL_LONG_TEXT}
-    WHERE base_id = ? AND fk_workspace_id = ?
-    `,
-    [
-      baseId,
-      workspaceId, // select
-      baseId,
-      workspaceId, // relation
-      baseId,
-      workspaceId, // lookup
-      baseId,
-      workspaceId, // rollup
-      baseId,
-      workspaceId, // formula
-      baseId,
-      workspaceId, // button
-      baseId,
-      workspaceId, // barcode
-      baseId,
-      workspaceId, // qrcode
-      baseId,
-      workspaceId, // longtext
-    ],
-  );
+  // 6. Select options
+  const selectOptions = await knex(MetaTable.COL_SELECT_OPTIONS)
+    .where('base_id', baseId)
+    .where('fk_workspace_id', workspaceId)
+    .select('fk_column_id', 'id', 'title', 'color');
 
-  // Build column options lookup map from unified results
+  // 7. Relations
+  const relations = await knex(MetaTable.COL_RELATIONS)
+    .where('base_id', baseId)
+    .where('fk_workspace_id', workspaceId)
+    .select(
+      'fk_column_id',
+      'type as relation_type',
+      'fk_related_model_id as related_table_id',
+      'fk_target_view_id as limit_record_selection_view_id',
+    );
+
+  // 8. Lookups
+  const lookups = await knex(MetaTable.COL_LOOKUP)
+    .where('base_id', baseId)
+    .where('fk_workspace_id', workspaceId)
+    .select(
+      'fk_column_id',
+      'fk_relation_column_id as related_field_id',
+      'fk_lookup_column_id as related_table_lookup_field_id',
+    );
+
+  // 9. Rollups
+  const rollups = await knex(MetaTable.COL_ROLLUP)
+    .where('base_id', baseId)
+    .where('fk_workspace_id', workspaceId)
+    .select(
+      'fk_column_id',
+      'fk_relation_column_id as related_field_id',
+      'fk_rollup_column_id as related_table_rollup_field_id',
+      'rollup_function',
+    );
+
+  // 10. Formulas
+  const formulas = await knex(MetaTable.COL_FORMULA)
+    .where('base_id', baseId)
+    .where('fk_workspace_id', workspaceId)
+    .select('fk_column_id', 'formula_raw as formula');
+
+  // 11. Buttons
+  const buttons = await knex(MetaTable.COL_BUTTON)
+    .where('base_id', baseId)
+    .where('fk_workspace_id', workspaceId)
+    .select(
+      'fk_column_id',
+      'label',
+      'theme',
+      'color',
+      'icon',
+      'formula_raw as formula',
+      'fk_webhook_id as button_hook_id',
+      'fk_script_id as script_id',
+      'fk_integration_id as integration_id',
+      'model',
+      'type',
+    );
+
+  // 12. Barcodes
+  const barcodes = await knex(MetaTable.COL_BARCODE)
+    .where('base_id', baseId)
+    .where('fk_workspace_id', workspaceId)
+    .select(
+      'fk_column_id',
+      'fk_barcode_value_column_id as barcode_value_field_id',
+      'barcode_format',
+    );
+
+  // 13. QR Codes
+  const qrcodes = await knex(MetaTable.COL_QRCODE)
+    .where('base_id', baseId)
+    .where('fk_workspace_id', workspaceId)
+    .select('fk_column_id', 'fk_qr_value_column_id as qrcode_value_field_id');
+
+  // 14. Long Text (AI)
+  const longtexts = await knex(MetaTable.COL_LONG_TEXT)
+    .where('base_id', baseId)
+    .where('fk_workspace_id', workspaceId)
+    .select(
+      'fk_column_id',
+      'prompt_raw as prompt',
+      'fk_integration_id as integration_id',
+      'model',
+    );
+
+  // Build column options lookup map
   const columnOptionsMap = new Map<string, Record<string, any>>();
 
-  for (const row of columnOptionsRows.rows) {
-    const { fk_column_id, opt_type, ...rest } = row;
-    const existing = columnOptionsMap.get(fk_column_id) || {};
+  // Process select options (group by fk_column_id)
+  for (const opt of selectOptions) {
+    const existing = columnOptionsMap.get(opt.fk_column_id) || {};
+    const choices = existing.choices || [];
+    choices.push({ id: opt.id, title: opt.title, color: opt.color });
+    columnOptionsMap.set(opt.fk_column_id, { ...existing, choices });
+  }
 
-    if (opt_type === 'select') {
-      // Group select options into choices array
-      const choices = existing.choices || [];
-      choices.push({ id: rest.id, title: rest.title, color: rest.color });
-      columnOptionsMap.set(fk_column_id, { ...existing, choices });
-    } else {
-      // For non-select types, merge all non-null fields
-      const cleanedOptions: Record<string, any> = {};
-      for (const [key, value] of Object.entries(rest)) {
-        if (value !== null) {
-          cleanedOptions[key] = value;
-        }
-      }
-      columnOptionsMap.set(fk_column_id, { ...existing, ...cleanedOptions });
+  // Process all other column options
+  const allOptions = [
+    relations,
+    lookups,
+    rollups,
+    formulas,
+    buttons,
+    barcodes,
+    qrcodes,
+    longtexts,
+  ];
+
+  for (const optionRows of allOptions) {
+    for (const row of optionRows) {
+      const { fk_column_id, ...options } = row;
+      const existing = columnOptionsMap.get(fk_column_id) || {};
+      columnOptionsMap.set(fk_column_id, { ...existing, ...options });
     }
   }
 

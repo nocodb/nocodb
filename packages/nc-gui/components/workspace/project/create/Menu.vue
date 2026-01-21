@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { NcMenu } from '#components'
 interface Props {
   visible: boolean
   variant: 'modal' | 'dropdown'
@@ -12,29 +13,15 @@ const props = withDefaults(defineProps<Props>(), {
 const emits = defineEmits<{
   (e: 'update:visible', value: boolean): void
   (e: 'update:baseCreateMode', value: NcBaseCreateMode | null): void
-  (e: 'onSelect', mode: NcBaseCreateMode): void
 }>()
 
 const vVisible = useVModel(props, 'visible', emits)
 
 const baseCreateMode = useVModel(props, 'baseCreateMode', emits)
 
-const workspaceStore = useWorkspace()
-
-const { navigateToTemplates } = workspaceStore
-
-const { isTemplatesFeatureEnabled } = storeToRefs(workspaceStore)
-
 const { isAiFeaturesEnabled } = useNocoAi()
 
 const onClickOption = (mode: NcBaseCreateMode) => {
-  if (isTemplatesFeatureEnabled.value && mode === NcBaseCreateMode.FROM_TEMPLATE) {
-    vVisible.value = false
-    navigateToTemplates()
-
-    return
-  }
-
   baseCreateMode.value = mode
 }
 
@@ -46,40 +33,33 @@ onMounted(() => {
 </script>
 
 <template>
-  <NcMenu v-if="variant === 'dropdown'" variant="large" data-testid="nc-home-create-new-menu" @click="vVisible = false">
-    <DashboardTreeViewCreateProjectMenuItem
+  <component
+    :is="variant === 'modal' ? 'div' : NcMenu"
+    variant="large"
+    :class="{
+      'py-1 flex flex-col gap-0.5': variant === 'modal',
+    }"
+    data-testid="nc-home-create-new-menu"
+    @click="vVisible = false"
+  >
+    <NcMenuItemLabel v-if="variant === 'modal'" class="!py-2" @click.stop> CREATE BASE </NcMenuItemLabel>
+    <WorkspaceProjectCreateMenuItem
       v-e="['c:base:create:scratch']"
+      :variant="variant"
       icon="plus"
       label="From Scratch"
       subtext="Start with an empty base"
       @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)"
     />
 
-    <DashboardTreeViewCreateProjectMenuItem
+    <WorkspaceProjectCreateMenuItem
       v-if="isAiFeaturesEnabled"
       v-e="['c:base:ai:create']"
+      :variant="variant"
       icon="ncAutoAwesome"
       label="Build with AI"
       subtext="Pre-built structures for common use cases"
       @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)"
     />
-  </NcMenu>
-  <div v-else class="flex flex-row gap-6 flex-wrap max-w-[min(80vw,738px)] children:(!w-[230px] !max-w-[230px])">
-    <ProjectActionItem
-      v-e="['c:base:create:scratch']"
-      icon="plus"
-      label="From Scratch"
-      subtext="Start with an empty base"
-      @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)"
-    />
-
-    <ProjectActionItem
-      v-if="isAiFeaturesEnabled"
-      v-e="['c:base:ai:create']"
-      icon="ncAutoAwesome"
-      label="Build with AI"
-      subtext="Pre-built structures for common use cases"
-      @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)"
-    />
-  </div>
+  </component>
 </template>

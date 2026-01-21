@@ -966,12 +966,22 @@ export class AclMiddleware implements NestInterceptor {
       NcError.forbidden('Unauthorized access');
     }
 
-    const userScopeRole = getUserRoleForScope(req.user, scope);
+    const userScopeRole =
+      req.user.roles?.[OrgUserRoles.SUPER_ADMIN] === true
+        ? OrgUserRoles.SUPER_ADMIN
+        : getUserRoleForScope(req.user, scope);
     // extendedScope is used to allow access based on extended scope in which permission is prefixed with scope name and separated by underscore
     const extendedScopeRoles =
       extendedScope && getUserRoleForScope(req.user, extendedScope);
     if (!userScopeRole && !extendedScopeRoles) {
       NcError.forbidden('Unauthorized access');
+    }
+
+    // assign owner role to super admin for all bases
+    if (userScopeRole === OrgUserRoles.SUPER_ADMIN) {
+      req.user.base_roles = {
+        [ProjectRoles.OWNER]: true,
+      };
     }
 
     const roles: Record<string, boolean> = extractRolesObj(userScopeRole);

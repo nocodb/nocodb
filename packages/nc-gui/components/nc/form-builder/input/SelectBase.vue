@@ -4,6 +4,7 @@ const props = withDefaults(
     value: string
     disabled?: boolean
     dropdownMatchSelectWidth?: boolean
+    filterOption?: (base: NcProject) => boolean
   }>(),
   {
     dropdownMatchSelectWidth: true,
@@ -17,11 +18,13 @@ const vModel = useVModel(props, 'value', emits)
 const basesStore = useBases()
 
 const baseOptions = computed(() => {
-  return basesStore.basesList.map((base) => ({
-    label: base.title,
-    value: base.id,
-    meta: base.meta,
-  }))
+  return basesStore.basesList
+    .filter((base) => !props.filterOption || props.filterOption(base))
+    .map((base) => ({
+      label: base.title,
+      value: base.id,
+      meta: base.meta,
+    }))
 })
 </script>
 
@@ -31,10 +34,11 @@ const baseOptions = computed(() => {
     :disabled="disabled"
     :show-search="baseOptions.length > 4"
     allow-clear
+    :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
     placeholder="- Select base -"
     :dropdown-match-select-width="dropdownMatchSelectWidth"
   >
-    <a-select-option v-for="option of baseOptions" :key="option.value" :value="option.value">
+    <a-select-option v-for="option of baseOptions" :key="option.value" :value="option.value" :data-label="option.label">
       <div class="w-full flex gap-2 items-center" :data-testid="option.value">
         <div class="min-w-5 flex items-center justify-center">
           <GeneralProjectIcon :color="parseProp(option.meta).iconColor" size="small" />

@@ -90,7 +90,7 @@ export class SandboxPostOperations
         base: {
           title: (body.basePayload?.title || body.title).trim().substring(0, 50),
           type: 'database',
-          fk_workspace_id: workspaceId,
+          ...{ fk_workspace_id: workspaceId },
           version: BaseVersion.V3,
           ...(body.basePayload?.meta ? { meta: body.basePayload.meta } : {}),
         },

@@ -1083,7 +1083,7 @@ export function useViewFilters(
 
     if (evt === 'filter_create') {
       allFilters.value.push(payload)
-      if (!payload.fk_parent_id || payload.fk_parent_id === parentId.value) {
+      if ((!payload.fk_parent_id && !parentId.value) || payload.fk_parent_id === parentId.value) {
         filters.value.push(payload)
       }
       reloadHook?.trigger()

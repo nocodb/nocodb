@@ -155,7 +155,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     // actions
 
     const loadRelatedTableMeta = async () => {
-      const relatedBaseId = colOptions.value.fk_related_base_id || base.value?.id
+      const relatedBaseId = colOptions.value.fk_related_base_id || column.value.base_id
       if (!relatedBaseId) {
         console.error('Cannot load related table meta: base_id not found')
         return
@@ -292,7 +292,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
      */
     const extractOnlyPrimaryValues = async (value: any, col: ColumnType) => {
       const currColOptions = (col.colOptions || {}) as LinkToAnotherRecordType
-      const relatedBaseId = currColOptions.fk_related_base_id || (base.value?.id as string)
+      const relatedBaseId = currColOptions.fk_related_base_id || column.value.base_id
 
       await getMeta(relatedBaseId, currColOptions.fk_related_model_id as string)
 

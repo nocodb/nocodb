@@ -51,7 +51,7 @@ watch(
       await loadFilters({
         hookId: undefined,
         isWebhook: false,
-        loadAllFilters: false,
+        loadAllFilters: true,
       })
       filtersLength.value = nonDeletedFilters.value.length || 0
     }
@@ -317,8 +317,7 @@ watch(
             :auto-save="false"
             data-testid="nc-filter-menu"
             :is-view-filter="false"
-            :allow-locked-local-edit="true"
-            :disable-auto-load="true"
+            :is-temp-filters="true"
           >
           </SmartsheetToolbarColumnFilter>
         </template>

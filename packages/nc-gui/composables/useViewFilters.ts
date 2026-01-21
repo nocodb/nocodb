@@ -38,7 +38,7 @@ export function useViewFilters(
   linkColId?: Ref<string>,
   fieldsToFilter?: Ref<ColumnType[]>,
   parentColId?: Ref<string>,
-  disableAutoLoad?: boolean,
+  isTempFilters?: boolean,
 ) {
   const savingStatus: Record<number, boolean> = {}
 
@@ -63,7 +63,7 @@ export function useViewFilters(
 
   const isPublic = inject(IsPublicInj, ref(false))
 
-  const isTempFilters = computed(() => isPublic.value || disableAutoLoad)
+  const isTemp = computed(() => isPublic.value || isTempFilters)
 
   const { $api, $e, $eventBus } = useNuxtApp()
 
@@ -77,7 +77,7 @@ export function useViewFilters(
 
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
-  const nestedMode = computed(() => isTempFilters.value || !isUIAllowed('filterList') || !isUIAllowed('filterChildrenList'))
+  const nestedMode = computed(() => isTemp.value || !isUIAllowed('filterList') || !isUIAllowed('filterChildrenList'))
 
   // Tracks if any filter has been updated - used for webhook save state management
   const isFilterUpdated = ref<boolean>(false)
@@ -378,7 +378,7 @@ export function useViewFilters(
   } = {}) => {
     if (!view.value?.id || !meta.value) return
     if (
-      (nestedMode.value && (isTempFilters.value || !isUIAllowed('filterChildrenList'))) ||
+      (nestedMode.value && (isTemp.value || !isUIAllowed('filterChildrenList'))) ||
       (isForm.value && !isWebhook) ||
       isWorkflow
     ) {
@@ -1079,11 +1079,11 @@ export function useViewFilters(
   }
 
   const evtListener = (evt: string, payload: any) => {
-    if (payload.fk_view_id !== view.value?.id || disableAutoLoad) return
+    if (payload.fk_view_id !== view.value?.id || isTempFilters) return
 
     if (evt === 'filter_create') {
       allFilters.value.push(payload)
-      if (!payload.fk_parent_id || payload.fk_parent_id === parentId.value) {
+      if ((!payload.fk_parent_id && !parentId.value) || payload.fk_parent_id === parentId.value) {
         filters.value.push(payload)
       }
       reloadHook?.trigger()
@@ -1112,11 +1112,11 @@ export function useViewFilters(
   }
 
   onMounted(() => {
-    $eventBus.realtimeViewMetaEventBus.on(evtListener)
+    if (!isTempFilters) $eventBus.realtimeViewMetaEventBus.on(evtListener)
   })
 
   onBeforeUnmount(() => {
-    $eventBus.realtimeViewMetaEventBus.off(evtListener)
+    if (!isTempFilters) $eventBus.realtimeViewMetaEventBus.off(evtListener)
   })
 
   return {

@@ -239,8 +239,6 @@ const [useProvideFormBuilderHelper, useFormBuilderHelper] = useInjectionState(
         if (!field.model) continue
 
         if (field.validators && checkCondition(field)) {
-          console.log('field', field.validators)
-
           validatorsObject[field.model] = field.validators
             .map((validator: FormBuilderValidator) => {
               if (validator.type === FormBuilderValidatorType.Required) {

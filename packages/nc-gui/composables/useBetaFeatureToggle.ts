@@ -48,14 +48,6 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'dark_mode',
-    title: 'Dark Mode',
-    isEngineering: false,
-    description: 'Keep your eyes healthy with dark mode.',
-    enabled: true,
-    version: 3,
-  },
-  {
     id: 'canvas_group_grid_view',
     title: 'Improved Group By',
     description: 'New and Improved groupby in grid view with enhanced scrolling and rendering capabilities.',

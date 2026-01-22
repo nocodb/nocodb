@@ -589,16 +589,29 @@ watch(
 }
 
 .nc-version-item {
-  @apply bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg p-4 flex items-center justify-between gap-4 transition-all duration-200;
+  @apply bg-nc-bg-default border-1 border-nc-border-gray-light rounded-xl p-4 flex items-center justify-between gap-4 relative overflow-hidden;
+  @apply transition-all duration-200 ease-in-out;
+
+  &::before {
+    @apply absolute left-0 top-0 bottom-0 w-1 bg-nc-content-brand opacity-0;
+    @apply transition-opacity duration-200 ease-in-out;
+    content: '';
+  }
 
   &.nc-version-item-clickable {
     @apply cursor-pointer;
 
     &:hover {
-      @apply border-nc-border-brand shadow-hover transform translate-x-0.5;
+      @apply border-nc-border-brand transform translate-x-0.5;
+      box-shadow: 0 4px 12px rgba(51, 102, 255, 0.08);
+
+      &::before {
+        @apply opacity-100;
+      }
 
       .nc-version-icon {
-        @apply scale-105;
+        @apply transform scale-105;
+        box-shadow: 0 4px 8px rgba(51, 102, 255, 0.15);
       }
 
       .nc-chevron-icon {
@@ -606,10 +619,14 @@ watch(
       }
     }
   }
+
+  &:last-child {
+    @apply mb-0;
+  }
 }
 
 .nc-chevron-icon {
-  @apply opacity-0 transition-opacity duration-200;
+  @apply opacity-0 transition-opacity duration-200 ease-in-out;
 }
 
 .nc-version-info {
@@ -619,7 +636,7 @@ watch(
 .nc-version-icon {
   @apply w-9 h-9 rounded-lg bg-nc-bg-gray-light border-1 border-nc-border-gray-light;
   @apply flex items-center justify-center text-nc-content-gray flex-shrink-0;
-  @apply transition-transform duration-200;
+  @apply transition-all duration-200 ease-in-out;
 }
 
 .nc-version-details {

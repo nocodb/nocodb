@@ -27,6 +27,7 @@ export {
   isNumericCol,
   isVirtualCol,
   isLinksOrLTAR,
+  isLinkV2,
   isSelfLinkCol,
   isCreatedOrLastModifiedTimeCol,
   isCreatedOrLastModifiedByCol,

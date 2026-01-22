@@ -28,11 +28,11 @@ const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 
-const convertToSandbox = async (formState: Record<string, any>) => {
+const createManagedApp = async (formState: Record<string, any>) => {
   try {
     const response = await $api.internal.postOperation(
       activeWorkspaceId.value as string,
-      props.baseId,
+      formState.baseId || NO_SCOPE,
       {
         operation: 'sandboxCreate',
       } as any,
@@ -41,6 +41,17 @@ const convertToSandbox = async (formState: Record<string, any>) => {
         description: formState.description,
         category: formState.category,
         visibility: formState.visibility,
+        ...(!formState.baseId
+          ? {
+              basePayload: {
+                title: formState.title,
+                default_role: '' as NcProject['default_role'],
+                meta: JSON.stringify({
+                  iconColor: baseIconColors[Math.floor(Math.random() * 1000) % baseIconColors.length],
+                }),
+              },
+            }
+          : {}),
       },
     )
 
@@ -56,7 +67,11 @@ const convertToSandbox = async (formState: Record<string, any>) => {
     }
 
     // Reload base to ensure all sandbox data is loaded
-    await basesStore.loadProject(props.baseId, true)
+    if (formState.baseId) {
+      await basesStore.loadProject(formState.baseId, true)
+    } else {
+      await basesStore.loadProjects()
+    }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -152,7 +167,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
 
     formState.value.title = formState.value.title.trim()
 
-    return await convertToSandbox(formState.value)
+    return await createManagedApp(formState.value)
   },
   initialState: initialSanboxFormState,
 })

@@ -1,6 +1,5 @@
 import moment from 'moment';
 import { AuditV1OperationTypes, SqlUiFactory, UITypes } from 'nocodb-sdk';
-import Airtable from 'airtable';
 import hash from 'object-hash';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -13,6 +12,7 @@ import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
 import { importData } from './helpers/readAndProcessData';
 import EntityMap from './helpers/EntityMap';
+import { ATImportEngine } from './engine';
 import type {
   AirtableImportFailPayload,
   AirtableImportPayload,
@@ -292,7 +292,6 @@ export class AtImportProcessor {
 
     const getAirtableSchema = async (sDB) => {
       const start = Date.now();
-
       if (!sDB.shareId)
         throw {
           message:
@@ -319,7 +318,10 @@ export class AtImportProcessor {
 
       const file = ft.schema;
       atBaseId = ft.baseId;
-      atBase = new Airtable({ apiKey: sDB.apiKey }).base(atBaseId);
+      atBase = ATImportEngine.get().atBase({
+        apiKey: sDB.apiKey,
+        baseId: atBaseId,
+      });
       // store copy of airtable schema globally
       g_aTblSchema = file.tableSchemas;
 

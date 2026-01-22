@@ -159,7 +159,7 @@ watch(
       return
     }
 
-    openTable(activeTables.value[0]!, true, extractAiBaseCreateQueryParams(route.value.query))
+    openTable(activeTables.value[0]!, true)
   },
   {
     immediate: true,

@@ -18,7 +18,14 @@ const httpMethods = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD'];
 
 type HttpMethod = (typeof httpMethods)[number];
 
-const bodyTypes = ['none', 'json', 'urlencoded', 'multipartForm', 'plainText', 'xml'];
+const bodyTypes = [
+  'none',
+  'json',
+  'urlencoded',
+  'multipartForm',
+  'plainText',
+  'xml',
+];
 
 type BodyType = (typeof bodyTypes)[number];
 

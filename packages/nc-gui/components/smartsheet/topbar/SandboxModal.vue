@@ -481,7 +481,7 @@ watch(
             <template #icon>
               <GeneralIcon icon="upload" />
             </template>
-            Publish Version
+            Publish
           </NcButton>
 
           <NcButton
@@ -557,7 +557,7 @@ watch(
 }
 
 .nc-stat-card {
-  @apply bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl p-4 transition-all duration-200 hover:(border-nc-border-gray-dark shadow-hover);
+  @apply bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-xl p-4 transition-all duration-200 hover:(border-nc-border-gray-dark shadow-hover);
 }
 
 .nc-stat-icon-wrapper {
@@ -589,7 +589,7 @@ watch(
 }
 
 .nc-version-item {
-  @apply bg-nc-bg-default border-1 border-nc-border-gray-light rounded-xl p-4 flex items-center justify-between gap-4 relative overflow-hidden;
+  @apply bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl p-4 flex items-center justify-between gap-4 relative overflow-hidden;
   @apply transition-all duration-200 ease-in-out;
 
   &::before {

@@ -57,12 +57,7 @@ const filteredSandboxes = computed(() => {
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(
-      (sb) =>
-        sb.title?.toLowerCase().includes(query) ||
-        sb.description?.toLowerCase().includes(query) ||
-        sb.category?.toLowerCase().includes(query),
-    )
+    filtered = filtered.filter((sb) => searchCompare([sb.title, sb.description, sb.category], query))
   }
 
   return filtered
@@ -150,7 +145,7 @@ watch(
           <GeneralIcon icon="ncBox" class="h-5 w-5" />
         </div>
         <div class="flex-1">
-          <div class="text-lg font-semibold text-nc-content-gray-emphasis">{{ t('labels.appMarket') }}</div>
+          <div class="text-lg font-semibold text-nc-content-gray-emphasis">{{ t('title.appStore') }}</div>
           <div class="text-xs text-nc-content-gray-subtle2">Discover and install managed applications</div>
         </div>
 
@@ -214,23 +209,22 @@ watch(
 
       <!-- App List -->
       <div v-else class="nc-app-market-list">
-        <div
-          v-for="sandbox in filteredSandboxes"
-          :key="sandbox.id"
-          class="nc-app-item"
-        >
+        <div v-for="sandbox in filteredSandboxes" :key="sandbox.id" class="nc-app-item">
           <div class="nc-app-item-content">
             <!-- App Icon & Info -->
             <div class="nc-app-info">
               <div class="nc-app-icon">
-                <GeneralIcon icon="ncBox" class="h-6 w-6" />
+                <GeneralIcon icon="ncBox" />
               </div>
               <div class="nc-app-details">
                 <div class="nc-app-title-row">
                   <h3 class="nc-app-title">{{ sandbox.title }}</h3>
                   <div v-if="sandbox.category" class="nc-app-categories">
                     <div
-                      v-for="cat in sandbox.category.split(',').map(c => c.trim()).filter(Boolean)"
+                      v-for="cat in sandbox.category
+                        .split(',')
+                        .map((c) => c.trim())
+                        .filter(Boolean)"
                       :key="cat"
                       class="nc-app-category"
                     >
@@ -239,7 +233,12 @@ watch(
                     </div>
                   </div>
                 </div>
-                <p class="nc-app-description">
+                <p
+                  class="nc-app-description"
+                  :class="{
+                    '!text-nc-content-gray-muted': !sandbox.description,
+                  }"
+                >
                   {{ sandbox.description || 'No description available' }}
                 </p>
                 <div class="nc-app-meta">
@@ -339,17 +338,21 @@ watch(
 }
 
 .nc-app-item-content {
-  @apply flex items-center gap-6 p-5;
+  @apply flex items-center gap-4 px-4 py-3;
 }
 
 .nc-app-info {
-  @apply flex gap-4 flex-1 min-w-0;
+  @apply flex gap-3 flex-1 min-w-0;
 }
 
 .nc-app-icon {
-  @apply w-12 h-12 rounded-xl border-1 border-nc-border-gray-light flex items-center justify-center flex-shrink-0 text-nc-content-brand;
+  @apply w-10 h-10 rounded-lg border-1 border-nc-border-gray-light flex items-center justify-center flex-shrink-0 text-nc-content-brand;
   @apply transition-all duration-200 ease-in-out;
   background: linear-gradient(135deg, var(--nc-bg-brand) 0%, var(--nc-bg-blue-light) 100%);
+
+  :deep(svg) {
+    @apply w-5 h-5;
+  }
 }
 
 .nc-app-details {
@@ -357,7 +360,7 @@ watch(
 }
 
 .nc-app-title-row {
-  @apply flex items-center gap-3 mb-2;
+  @apply flex items-center gap-2 mb-1.5;
 }
 
 .nc-app-title {
@@ -374,11 +377,11 @@ watch(
 }
 
 .nc-app-description {
-  @apply text-sm text-nc-content-gray-subtle m-0 mb-3 leading-relaxed line-clamp-2;
+  @apply text-sm text-nc-content-gray-subtle m-0 mb-2 leading-normal line-clamp-2;
 }
 
 .nc-app-meta {
-  @apply flex items-center gap-6 text-xs text-nc-content-gray-subtle2;
+  @apply flex items-center gap-4 text-xs text-nc-content-gray-subtle2;
 }
 
 .nc-app-meta-item {

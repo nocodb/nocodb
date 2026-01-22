@@ -43,6 +43,7 @@ export interface FormBuilderCondition {
  */
 export enum FormBuilderValidatorType {
   Required = 'required',
+  Custom = 'custom',
 }
 
 /**

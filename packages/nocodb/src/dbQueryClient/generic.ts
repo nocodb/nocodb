@@ -45,4 +45,22 @@ export abstract class GenericDBQueryClient implements DBQueryClient {
 
   abstract concat(fields: string[]): string;
   abstract simpleCast(field: string, asType: string): string;
+
+  generateNestedRowSelectQuery(_param: any) {
+    return null as any;
+  }
+  async singleQueryList(_context: any, _ctx: any) {
+    return null as any;
+  }
+  async singleQueryRead(_context: any, _ctx: any) {
+    return null as any;
+  }
+
+  async extractColumns(_param: any) {
+    return null as any;
+  }
+
+  async extractColumn(_param: any) {
+    return null as any;
+  }
 }

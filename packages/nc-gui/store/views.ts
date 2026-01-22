@@ -196,13 +196,9 @@ export const useViewsStore = defineStore('viewsStore', () => {
   const isActiveViewLocked = computed(() => activeView.value?.lock_type === 'locked')
   const isLockedView = computed(() => activeView.value?.lock_type === 'locked')
 
-  const isCardFieldHeaderVisibilityEnabled = computed(() => {
-    return isEeUI && isFeatureEnabled(FEATURE_FLAG.CARD_FIELD_HEADER_VISIBILITY)
-  })
-
   const isActiveViewFieldHeaderVisible = computed(() => {
     // If card field header visibility is not enabled or blocked, return true to show header by default
-    if (!isCardFieldHeaderVisibilityEnabled.value || blockCardFieldHeaderVisibility.value || !isEeUI) return true
+    if (blockCardFieldHeaderVisibility.value || !isEeUI) return true
 
     return parseProp((activeView.value?.view as GalleryType | KanbanType)?.meta)?.is_field_header_visible ?? true
   })
@@ -1354,7 +1350,6 @@ export const useViewsStore = defineStore('viewsStore', () => {
     lastOpenedViewId,
     activeViewRowColorInfo,
     sharedView,
-    isCardFieldHeaderVisibilityEnabled,
     isActiveViewFieldHeaderVisible,
 
     // Methods

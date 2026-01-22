@@ -29,7 +29,7 @@ const { updateWorkflow, openNewWorkflowModal } = workflowStore
 
 const { activeScriptId, scripts: allScripts, activeBaseScripts } = storeToRefs(scriptStore)
 
-const { activeWorkflowId, workflows: allWorkflows, activeBaseWorkflows, isWorkflowsEnabled } = storeToRefs(workflowStore)
+const { activeWorkflowId, workflows: allWorkflows, activeBaseWorkflows } = storeToRefs(workflowStore)
 
 const scripts = computed(() => allScripts.value.get(baseId.value) ?? [])
 
@@ -189,7 +189,7 @@ watchEffect(() => {
   <div>
     <template v-if="!allEntities.length && isUIAllowed('workflowCreateOrEdit')">
       <NcDropdown
-        v-if="isWorkflowsEnabled && (isWorkflowsCreateOrEditAllowed || isScriptsCreateOrEditAllowed)"
+        v-if="isWorkflowsCreateOrEditAllowed || isScriptsCreateOrEditAllowed"
         overlay-class-name="nc-automation-create-dropdown"
       >
         <div
@@ -236,23 +236,6 @@ watchEffect(() => {
           </NcMenu>
         </template>
       </NcDropdown>
-      <div
-        v-else-if="isScriptsCreateOrEditAllowed"
-        class="nc-create-table-btn flex flex-row items-center cursor-pointer rounded-md w-full text-nc-content-brand hover:text-nc-content-brand-disabled"
-        role="button"
-        @click="openNewScriptModal({ baseId })"
-      >
-        <div class="nc-project-home-section-item">
-          <GeneralIcon icon="plus" />
-          <div>
-            {{
-              $t('general.createEntity', {
-                entity: $t('objects.automation'),
-              })
-            }}
-          </div>
-        </div>
-      </div>
     </template>
 
     <div

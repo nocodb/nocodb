@@ -21,10 +21,6 @@ const { isUIAllowed } = useRoles()
 
 const { isMarketVisible } = storeToRefs(useScriptStore())
 
-const { isWorkflowsEnabled } = storeToRefs(useWorkflowStore())
-
-const { isDashboardEnabled } = storeToRefs(useDashboardStore())
-
 const showBaseOption = (source: SourceType) => {
   return (
     (source.enabled || (base.value.sources || []).length > 1) &&
@@ -80,12 +76,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
       </div>
     </NcMenuItem>
 
-    <NcMenuItem
-      v-if="isDashboardEnabled"
-      inner-class="w-full"
-      data-testid="create-new-dashboard"
-      @click="emits('emptyDashboard')"
-    >
+    <NcMenuItem inner-class="w-full" data-testid="create-new-dashboard" @click="emits('emptyDashboard')">
       <GeneralIcon icon="dashboards" />
       {{ $t('labels.dashboard') }}
     </NcMenuItem>
@@ -115,7 +106,6 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
       </template>
     </ProjectSyncCreateProvider>
     <NcMenuItem
-      v-if="isWorkflowsEnabled"
       class="nc-menu-item-integration"
       inner-class="w-full"
       data-testid="create-new-workflow"

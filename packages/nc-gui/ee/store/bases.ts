@@ -15,6 +15,8 @@ export const useBases = defineStore('basesStore', () => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
+  const baseCreateMode = ref<NcBaseCreateMode | null>(null)
+
   const baseRoles = ref<Record<string, any>>({})
 
   const bases = ref<Map<string, NcProject>>(new Map())
@@ -738,6 +740,7 @@ export const useBases = defineStore('basesStore', () => {
   }
 
   return {
+    baseCreateMode,
     bases,
     basesList,
     loadProjects,

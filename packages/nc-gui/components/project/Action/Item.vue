@@ -4,6 +4,7 @@ defineProps<{
   label: string
   subtext?: string
   isLoading?: boolean
+  icon?: IconMapKey
 }>()
 </script>
 
@@ -19,7 +20,9 @@ defineProps<{
   >
     <div class="icon-wrapper">
       <a-skeleton-avatar v-if="isLoading" active shape="square" class="!h-full !w-full !children:(rounded-md w-8 h-8)" />
-      <slot v-else name="icon" />
+      <slot v-else name="icon">
+        <GeneralIcon v-if="icon" :icon="icon" />
+      </slot>
     </div>
     <div class="flex flex-col gap-1">
       <div class="label">
@@ -70,6 +73,7 @@ defineProps<{
   :deep(.ant-skeleton-title) {
     @apply !my-0;
   }
+
   :deep(.ant-skeleton-paragraph) {
     @apply !mb-1;
   }

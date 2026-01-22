@@ -447,6 +447,10 @@ onUnmounted(() => {
     .nc-alert-icon-wrapper {
       @apply text-nc-content-brand;
     }
+
+    &.nc-show-background {
+      @apply bg-nc-bg-brand dark:bg-nc-brand-20;
+    }
   }
 
   .nc-alert-progress-wrapper {

@@ -12,6 +12,8 @@ const { isUIAllowed } = useRoles()
 
 const { orgRoles, workspaceRoles } = useRoles()
 
+const { baseCreateMode } = storeToRefs(useBases())
+
 const baseStore = useBase()
 const { isSharedBase } = storeToRefs(baseStore)
 
@@ -22,6 +24,10 @@ const baseCreateDlg = ref(false)
 
 const size = computed(() => props.size || 'small')
 const centered = computed(() => props.centered ?? true)
+
+onMounted(() => {
+  baseCreateMode.value = NcBaseCreateMode.FROM_SCRATCH
+})
 </script>
 
 <template>
@@ -45,7 +51,7 @@ const centered = computed(() => props.centered ?? true)
         </div>
       </div>
     </slot>
-    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
+    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :default-base-create-mode="baseCreateMode" />
   </NcButton>
 </template>
 

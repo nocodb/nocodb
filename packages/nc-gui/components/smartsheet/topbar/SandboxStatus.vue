@@ -76,10 +76,10 @@ watch(
   <div v-if="isSandboxMaster" class="flex items-center gap-2">
     <!-- Version Badge (clickable to open modal) -->
     <div
-      class="flex items-center gap-1.5 px-2.5 py-1 bg-nc-bg-gray-light rounded-md border border-nc-border-gray-medium cursor-pointer hover:bg-nc-bg-gray-medium transition-colors"
+      class="flex items-center gap-1.5 px-2.5 py-1 bg-nc-bg-gray-light rounded-md border-1 border-nc-border-gray-medium cursor-pointer hover:(bg-nc-bg-gray-medium border-nc-border-gray-dark) transition-colors"
       @click="openModal()"
     >
-      <GeneralIcon icon="ncInfoSolid" class="w-3.5 h-3.5 text-nc-content-gray" />
+      <GeneralIcon icon="ncInfoSolid" class="w-3.5 h-3.5 text-nc-content-gray nc-sanbox-status-info-icon" />
       <span class="text-xs font-mono font-semibold text-nc-content-gray-emphasis">v{{ currentVersion?.version || '1.0.0' }}</span>
       <div
         v-if="currentVersion?.status === 'draft'"
@@ -106,3 +106,9 @@ watch(
     @forked="handleForked"
   />
 </template>
+
+<style lang="scss" scoped>
+:deep(.nc-sanbox-status-info-icon path.nc-icon-inner) {
+  stroke: var(--nc-bg-gray-light) !important;
+}
+</style>

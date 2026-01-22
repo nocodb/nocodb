@@ -3,6 +3,7 @@ import {
   BaseVersion,
   DeploymentStatus,
   DeploymentType,
+  NO_SCOPE,
   ProjectStatus,
   SandboxVersionStatus,
   SandboxVisibility,
@@ -27,8 +28,7 @@ import NocoCache from '~/cache/NocoCache';
 
 @Injectable()
 export class SandboxPostOperations
-  implements InternalApiModule<InternalPOSTResponseType>
-{
+  implements InternalApiModule<InternalPOSTResponseType> {
   httpMethod = 'POST' as const;
   operations = [
     'sandboxCreate',
@@ -42,7 +42,7 @@ export class SandboxPostOperations
   constructor(
     private readonly sandboxService: SandboxService,
     private readonly basesService: BasesService,
-  ) {}
+  ) { }
 
   async handle(
     context: NcContext,
@@ -85,35 +85,57 @@ export class SandboxPostOperations
     body: any,
     req: NcRequest,
   ) {
-    // Check if base is already an installed sandbox instance
-    const existingBase = await Base.get(context, baseId);
-    if (existingBase?.sandbox_id && !existingBase?.sandbox_master) {
-      NcError.get(context).badRequest(
-        'Cannot create sandbox from an installed sandbox instance',
-      );
+    if (!baseId || baseId === NO_SCOPE) {
+      const base = await this.basesService.baseCreate({
+        base: {
+          title: (body.basePayload?.title || body.title).trim().substring(0, 50),
+          type: 'database',
+          ...{ fk_workspace_id: workspaceId },
+          version: BaseVersion.V3,
+          ...(body.basePayload?.meta ? { meta: body.basePayload.meta } : {}),
+        },
+        user: { id: req.user.id },
+        req: req,
+      });
+
+      context.base_id = base.id;
+      baseId = base.id;
+      delete body.basePayload;
+    } else {
+      // Check if base is already an installed sandbox instance
+      const existingBase = await Base.get(context, baseId);
+      if (existingBase?.sandbox_id && !existingBase?.sandbox_master) {
+        NcError.get(context).badRequest(
+          'Cannot create sandbox from an installed sandbox instance',
+        );
+      }
+
+      // Validate base exists and belongs to workspace
+      const base = await Base.get(context, baseId);
+      if (!base) {
+        NcError.get(context).baseNotFound(baseId);
+      }
+
+      if (base.fk_workspace_id !== workspaceId) {
+        NcError.get(context).badRequest('Base does not belong to this workspace');
+      }
+
+
+      if (base.version !== BaseVersion.V3) {
+        NcError.get(context).badRequest(
+          'Only V3 bases can be published as sandboxes',
+        );
+      }
+
+      // Check if sandbox already exists for this base
+      const existingSandbox = await Sandbox.getByBaseId(baseId);
+      if (existingSandbox) {
+        NcError.get(context).badRequest('A sandbox already exists for this base');
+      }
+
     }
 
-    // Validate base exists and belongs to workspace
-    const base = await Base.get(context, baseId);
-    if (!base) {
-      NcError.get(context).baseNotFound(baseId);
-    }
 
-    if (base.fk_workspace_id !== workspaceId) {
-      NcError.get(context).badRequest('Base does not belong to this workspace');
-    }
-
-    if (base.version !== BaseVersion.V3) {
-      NcError.get(context).badRequest(
-        'Only V3 bases can be published as sandboxes',
-      );
-    }
-
-    // Check if sandbox already exists for this base
-    const existingSandbox = await Sandbox.getByBaseId(baseId);
-    if (existingSandbox) {
-      NcError.get(context).badRequest('A sandbox already exists for this base');
-    }
 
     const sandbox = await Sandbox.insert(context, {
       ...body,

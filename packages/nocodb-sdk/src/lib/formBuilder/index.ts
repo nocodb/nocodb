@@ -1,5 +1,8 @@
+import { BaseType } from "../Api";
+
 export enum FormBuilderInputType {
   Input = 'input',
+  Textarea = 'textarea',
   Select = 'select',
   Switch = 'switch',
   Space = 'space',
@@ -40,17 +43,24 @@ export interface FormBuilderCondition {
  */
 export enum FormBuilderValidatorType {
   Required = 'required',
+  Custom = 'custom',
 }
 
 /**
  * Validator configuration for form field validation
  */
-export interface FormBuilderValidator {
+export interface BaseFormBuilderValidator {
   /** Type of validation to apply */
   type: FormBuilderValidatorType;
   /** Custom error message to display when validation fails */
   message?: string;
 }
+
+export interface CustomFormBuilderValidator extends BaseFormBuilderValidator {
+  validator: (rule: any, value: any) => Promise<any>
+}
+
+export type FormBuilderValidator = BaseFormBuilderValidator | CustomFormBuilderValidator;
 
 /**
  * Option configuration for select elements
@@ -64,6 +74,10 @@ export interface FormBuilderSelectOption {
   ncItemDisabled?: boolean;
   /** Reason for the disabled state **/
   ncItemTooltip?: string;
+  /**
+   * Icon for the option (IconMapKey)
+   */
+  icon?: string;
 }
 
 /**
@@ -130,6 +144,11 @@ interface FormBuilderElementBase {
   border?: boolean;
   /** Show hint as tooltip instead of inline text */
   showHintAsTooltip?: boolean;
+  /**
+   * Just to show required asterisk in label
+   * @note: Use required field validator along with this to ensure field is required
+   * */
+  required?: boolean;
   /** Validators for field validation */
   validators?: FormBuilderValidator[];
   /** Model path(s) this field depends on - when dependency changes, options are reloaded */
@@ -167,6 +186,14 @@ interface FormBuilderElementBase {
  */
 export interface FormBuilderInputElement extends FormBuilderElementBase {
   type: FormBuilderInputType.Input;
+  defaultValue?: string | null;
+}
+
+/**
+ * Textarea element (textarea input)
+ */
+export interface FormBuilderTextareaElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.Textarea;
   defaultValue?: string | null;
 }
 
@@ -242,6 +269,7 @@ export interface FormBuilderSelectIntegrationElement
 export interface FormBuilderSelectBaseElement extends FormBuilderElementBase {
   type: FormBuilderInputType.SelectBase;
   defaultValue?: string | null;
+  filterOption?: (base: BaseType) => boolean;
 }
 
 /**
@@ -325,6 +353,7 @@ export interface FormBuilderFieldMappingElement extends FormBuilderElementBase {
  */
 export type FormBuilderElement =
   | FormBuilderInputElement
+  | FormBuilderTextareaElement
   | FormBuilderPasswordElement
   | FormBuilderSelectElement
   | FormBuilderSwitchElement

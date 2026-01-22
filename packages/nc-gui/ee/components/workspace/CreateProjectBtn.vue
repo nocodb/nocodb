@@ -12,6 +12,8 @@ const props = defineProps<{
 
 const { isUIAllowed } = useRoles()
 
+const { baseCreateMode } = storeToRefs(useBases())
+
 const baseStore = useBase()
 const { isSharedBase } = storeToRefs(baseStore)
 
@@ -20,34 +22,43 @@ const { activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const baseCreateDlg = ref(false)
 
+const isVisibleCreateBase = ref(false)
+
 const size = computed(() => props.size || 'small')
 const centered = computed(() => props.centered ?? true)
 </script>
 
 <template>
-  <NcButton
-    v-if="isUIAllowed('baseCreate') && !isSharedBase"
-    v-e="['c:base:create']"
-    type="text"
-    :size="size"
-    :centered="centered"
-    full-width
-    @click="baseCreateDlg = true"
-  >
-    <slot>
-      <div class="flex items-center gap-2 w-full">
-        <GeneralIcon icon="ncPlusCircleSolid" />
+  <NcDropdown v-if="isUIAllowed('baseCreate') && !isSharedBase" v-model:visible="isVisibleCreateBase">
+    <NcButton
+      v-e="['c:base:create']"
+      type="text"
+      data-testid="nc-sidebar-create-base-btn"
+      :size="size"
+      :centered="centered"
+      full-width
+    >
+      <slot>
+        <div class="flex items-center gap-2 w-full">
+          <GeneralIcon icon="ncPlusCircleSolid" />
 
-        <div class="flex flex-1">{{ $t('title.createBase') }}</div>
+          <div class="flex flex-1">{{ $t('title.createBase') }}</div>
 
-        <div class="px-1 flex-none text-bodySmBold !leading-[18px] text-nc-content-gray-subtle bg-nc-bg-gray-medium rounded">
-          {{ renderAltOrOptlKey(true) }} D
+          <div class="px-1 flex-none text-bodySmBold !leading-[18px] text-nc-content-gray-subtle bg-nc-bg-gray-medium rounded">
+            {{ renderAltOrOptlKey(true) }} D
+          </div>
         </div>
-      </div>
-    </slot>
+      </slot>
 
-    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
-  </NcButton>
+      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :default-base-create-mode="baseCreateMode" />
+    </NcButton>
+    <template #overlay>
+      <WorkspaceProjectCreateMenu
+        v-model:visible="isVisibleCreateBase"
+        v-model:base-create-mode="baseCreateMode"
+        variant="dropdown"
+        @update:base-create-mode="baseCreateDlg = true"
+      />
+    </template>
+  </NcDropdown>
 </template>
-
-<style scoped></style>

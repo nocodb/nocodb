@@ -1,15 +1,17 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
 import type { Form, Input } from 'ant-design-vue'
-import { computed } from '@vue/reactivity'
 import { PlanFeatureTypes, PlanTitles, ProjectRoles, trimMatchingQuotes } from 'nocodb-sdk'
 
 const props = defineProps<{
   modelValue: boolean
   isCreateNewActionMenu?: boolean
+  defaultBaseCreateMode?: NcBaseCreateMode | null
 }>()
 
 const emit = defineEmits(['update:modelValue'])
+
+const { defaultBaseCreateMode } = toRefs(props)
 
 const router = useRouter()
 const route = router.currentRoute
@@ -25,6 +27,8 @@ const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
 const { createProject: _createProject } = basesStore
+
+const { baseCreateMode } = storeToRefs(basesStore)
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -56,7 +60,17 @@ const creating = ref(false)
 
 const aiMode = ref<boolean | null>(null)
 
-const modalSize = computed(() => (aiMode.value !== true ? 'small' : 'lg'))
+const modalSize = computed(() => {
+  if (baseCreateMode.value === NcBaseCreateMode.BUILD_WITH_AI || baseCreateMode.value === NcBaseCreateMode.FROM_APP_STORE) {
+    return 'lg'
+  }
+
+  if (baseCreateMode.value === NcBaseCreateMode.MANAGED_APP) {
+    return 'sm'
+  }
+
+  return 'small'
+})
 
 const input = ref<typeof Input>()
 
@@ -157,11 +171,13 @@ watch(dialogShow, async (n, o) => {
     handleResetInitialValue()
   }
 
-  aiMode.value = null
+  if (defaultBaseCreateMode.value) return
+
+  baseCreateMode.value = null
 })
 
-watch(aiMode, () => {
-  if (aiMode.value !== false) return
+watch(baseCreateMode, () => {
+  if (baseCreateMode.value !== NcBaseCreateMode.FROM_SCRATCH) return
 
   onInit()
 })
@@ -230,7 +246,7 @@ if (props.isCreateNewActionMenu) {
         baseName: trimMatchingQuotes(baseName as string),
       }
 
-      aiMode.value = true
+      baseCreateMode.value = NcBaseCreateMode.BUILD_WITH_AI
 
       dialogShow.value = true
     },
@@ -243,32 +259,29 @@ if (props.isCreateNewActionMenu) {
 
 <template>
   <NcModal
-    :key="`${aiMode}`"
+    :key="`${baseCreateMode}`"
     v-model:visible="dialogShow"
     :size="modalSize"
+    :nc-modal-class-name="`${baseCreateMode !== NcBaseCreateMode.FROM_SCRATCH ? '!p-0' : ''}`"
     :show-separator="false"
-    :width="aiMode === null ? 'auto' : undefined"
-    :wrap-class-name="
-      aiMode ? 'nc-modal-ai-base-create' : `nc-modal-wrapper ${aiMode === null ? 'nc-ai-select-base-create-mode-modal' : ''}`
-    "
+    :width="!baseCreateMode ? 'auto' : undefined"
+    :height="baseCreateMode === NcBaseCreateMode.MANAGED_APP ? 'auto' : undefined"
+    :wrap-class-name="`nc-create-project-dlg-wrapper nc-create-project-dlg-wrapper-${baseCreateMode}`"
   >
-    <template v-if="aiMode === false" #header>
-      <!-- Create A New Table -->
-      <div class="flex flex-row items-center text-base text-nc-content-gray">
-        <GeneralProjectIcon :color="formState.meta.iconColor" class="mr-2.5" />
-        {{ $t('general.create') }} {{ $t('objects.project') }}
-      </div>
+    <template v-if="baseCreateMode === null">
+      <!-- <WorkspaceProjectCreateMode v-model:ai-mode="aiMode" :workspace-id="activeWorkspace?.id"
+        @sandbox-installed="onSandboxInstalled" @close="dialogShow = false" /> -->
+
+      <WorkspaceProjectCreateMenu v-model:visible="dialogShow" v-model:base-create-mode="baseCreateMode" variant="modal" />
     </template>
-    <template v-if="aiMode === null">
-      <WorkspaceProjectCreateMode
-        v-model:ai-mode="aiMode"
-        :workspace-id="activeWorkspace?.id"
-        @sandbox-installed="onSandboxInstalled"
-        @close="dialogShow = false"
-      />
-    </template>
-    <template v-if="aiMode === false">
-      <div class="mt-1">
+    <template v-if="baseCreateMode === NcBaseCreateMode.FROM_SCRATCH">
+      <div>
+        <!-- Create A New Table -->
+        <div class="flex flex-row items-center text-base text-nc-content-gray mb-5">
+          <GeneralProjectIcon :color="formState.meta.iconColor" class="mr-2.5" />
+          {{ $t('general.create') }} {{ $t('objects.project') }}
+        </div>
+
         <a-form
           ref="form"
           :model="formState"
@@ -364,21 +377,33 @@ if (props.isCreateNewActionMenu) {
         </div>
       </div>
     </template>
-    <template v-if="aiMode === true">
+    <template v-if="baseCreateMode === NcBaseCreateMode.BUILD_WITH_AI">
       <WorkspaceProjectAiCreateProject
         v-model:ai-mode="aiMode"
+        v-model:base-create-mode="baseCreateMode"
         v-model:dialog-show="dialogShow"
         :is-create-new-action-menu="isCreateNewActionMenu"
-        :workspace-id="activeWorkspace.id"
+        :workspace-id="activeWorkspace!.id"
         :initial-value="aiModeInitialValue"
       />
+    </template>
+    <template v-if="baseCreateMode === NcBaseCreateMode.FROM_APP_STORE">
+      <WorkspaceProjectAppMarket
+        v-model:visible="dialogShow"
+        :workspace-id="activeWorkspace!.id!"
+        @installed="onSandboxInstalled"
+      />
+    </template>
+    <template v-if="baseCreateMode === NcBaseCreateMode.MANAGED_APP">
+      <WorkspaceProjectCreateManagedApp v-model:visible="dialogShow" />
     </template>
   </NcModal>
 </template>
 
 <style lang="scss">
-.nc-modal-ai-base-create .ant-modal-content {
+.nc-create-project-dlg-wrapper-buildWithAi .ant-modal-content {
   @apply dark:(border-nc-border-purple-medium);
+
   .nc-modal {
     @apply !p-0;
 
@@ -392,9 +417,17 @@ if (props.isCreateNewActionMenu) {
   }
 }
 
-.nc-modal-wrapper.nc-ai-select-base-create-mode-modal {
+.nc-create-project-dlg-wrapper-managedApp,
+.nc-create-project-dlg-wrapper-sandboxApp {
+  .nc-modal {
+    max-height: min(90vh, 540px) !important;
+    height: min(90vh, 540px) !important;
+  }
+}
+
+.nc-create-project-dlg-wrapper-null {
   .ant-modal-content {
-    @apply !rounded-[24px];
+    @apply !rounded-[12px];
   }
 }
 </style>

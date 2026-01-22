@@ -613,7 +613,6 @@ onBeforeUnmount(() => {
                 modal
                 type="text"
                 class="nc-sidebar-create-base-btn nc-sidebar-item-dark nc-project-home-section-item !text-nc-content-brand !hover:(text-nc-content-brand-disabled bg-none) !xs:hidden w-full"
-                data-testid="nc-sidebar-create-base-btn"
               >
               </WorkspaceCreateProjectBtn>
             </div>

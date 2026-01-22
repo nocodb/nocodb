@@ -124,28 +124,31 @@ watch(
 </script>
 
 <template>
-  <NcModal v-model:visible="visible" :footer="null" size="large" @close="emit('close')">
-    <template #header>
-      <div class="flex items-center gap-3">
-        <GeneralIcon icon="ncStore" class="h-5 w-5" />
-        <span>{{ t('labels.appMarket') }}</span>
-      </div>
-    </template>
+  <NcModal v-model:visible="visible" :footer="null" nc-modal-class-name="!p-0" size="large" @close="emit('close')">
 
-    <div class="flex flex-col gap-4 h-[600px]">
+    <div class="flex items-center gap-3 px-4 py-3 border-b-1 border-b-nc-border-gray-medium">
+      <GeneralIcon icon="ncBox" class="h-5 w-5" />
+      <div class="flex-1 text-bodyLgBold">{{ t('labels.appMarket') }}</div>
+
+      <NcButton size="small" type="text" @click="emit('close')" class="self-start">
+        <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
+      </NcButton>
+    </div>
+
+    <div class="flex flex-col gap-4 h-[600px] p-6">
       <!-- Search and Filter Bar -->
       <div class="flex gap-3">
-        <a-input v-model:value="searchQuery" class="flex-1" :placeholder="t('placeholder.searchByTitle')" allow-clear>
+        <a-input v-model:value="searchQuery" class="flex-1 nc-input-sm nc-input-shadow" :placeholder="t('placeholder.searchByTitle')" allow-clear>
           <template #prefix>
-            <GeneralIcon icon="search" class="h-4 w-4 text-gray-500" />
+            <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-muted" />
           </template>
         </a-input>
 
-        <a-select v-model:value="selectedCategory" class="w-48" :placeholder="t('labels.category')" allow-clear>
+        <NcSelect v-model:value="selectedCategory" class="w-48 nc-select-sm" :placeholder="t('labels.category')" allow-clear>
           <a-select-option v-for="cat in categories" :key="cat" :value="cat">
             {{ cat }}
           </a-select-option>
-        </a-select>
+        </NcSelect>
       </div>
 
       <!-- Sandbox List -->
@@ -154,31 +157,26 @@ watch(
       </div>
 
       <div v-else-if="filteredSandboxes.length === 0" class="flex flex-col items-center justify-center h-full gap-3">
-        <GeneralIcon icon="inbox" class="h-16 w-16 text-gray-400" />
-        <span class="text-gray-500">{{ t('msg.info.noSandboxesFound') }}</span>
+        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE"  class="!my-0" >
+          <template #description>
+            <div class="text-nc-content-gray-muted mt-1">{{ t('msg.info.noSandboxesFound') }}</div>
+          </template>
+        </a-empty>
       </div>
 
       <div v-else class="flex flex-col gap-3 overflow-y-auto pr-2">
-        <div
-          v-for="sandbox in filteredSandboxes"
-          :key="sandbox.id"
-          class="nc-sandbox-card border-1 border-gray-200 rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
-          @click="installSandbox(sandbox)"
-        >
+        <div v-for="sandbox in filteredSandboxes" :key="sandbox.id"
+          class="nc-sandbox-card border-1 border-nc-border-gray-medium rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
+          @click="installSandbox(sandbox)">
           <div class="flex gap-4">
             <div class="flex-1">
               <div class="flex items-start justify-between gap-3 mb-2">
                 <div class="flex-1">
-                  <h3 class="text-base font-semibold text-gray-800 mb-1">{{ sandbox.title }}</h3>
-                  <p class="text-sm text-gray-600 line-clamp-2">{{ sandbox.description }}</p>
+                  <h3 class="text-base font-semibold text-nc-content-gray mb-1">{{ sandbox.title }}</h3>
+                  <p class="text-sm text-nc-content-gray-subtle line-clamp-2">{{ sandbox.description }}</p>
                 </div>
-                <NcButton
-                  :loading="installing === sandbox.id"
-                  :disabled="!!installing"
-                  size="small"
-                  type="primary"
-                  @click.stop="installSandbox(sandbox)"
-                >
+                <NcButton :loading="installing === sandbox.id" :disabled="!!installing" size="small" type="primary"
+                  @click.stop="installSandbox(sandbox)">
                   <template #icon>
                     <GeneralIcon icon="download" />
                   </template>
@@ -186,7 +184,7 @@ watch(
                 </NcButton>
               </div>
 
-              <div class="flex items-center gap-4 text-xs text-gray-500 mt-3">
+              <div class="flex items-center gap-4 text-xs text-nc-content-gray-muted mt-3">
                 <span v-if="sandbox.category" class="flex items-center gap-1">
                   <GeneralIcon icon="tag" class="h-3 w-3" />
                   {{ sandbox.category }}

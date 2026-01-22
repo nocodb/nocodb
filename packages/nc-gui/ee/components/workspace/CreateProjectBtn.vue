@@ -30,7 +30,14 @@ const centered = computed(() => props.centered ?? true)
 
 <template>
   <NcDropdown v-if="isUIAllowed('baseCreate') && !isSharedBase" v-model:visible="isVisibleCreateBase">
-    <NcButton v-e="['c:base:create']" type="text" :size="size" :centered="centered" full-width>
+    <NcButton
+      v-e="['c:base:create']"
+      type="text"
+      data-testid="nc-sidebar-create-base-btn"
+      :size="size"
+      :centered="centered"
+      full-width
+    >
       <slot>
         <div class="flex items-center gap-2 w-full">
           <GeneralIcon icon="ncPlusCircleSolid" />
@@ -55,5 +62,3 @@ const centered = computed(() => props.centered ?? true)
     </template>
   </NcDropdown>
 </template>
-
-<style scoped></style>

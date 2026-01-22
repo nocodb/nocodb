@@ -59,7 +59,7 @@ onMounted(() => {
     :class="{
       'py-1 flex flex-col gap-0.5': variant === 'modal',
     }"
-    data-testid="nc-home-create-new-menu"
+    data-testid="nc-base-create-menu"
     @click="vVisible = false"
   >
     <NcMenuItemLabel v-if="variant === 'modal'" class="!py-2" @click.stop> CREATE BASE </NcMenuItemLabel>
@@ -69,6 +69,7 @@ onMounted(() => {
       icon="plus"
       label="From Scratch"
       subtext="Start with an empty base"
+      data-testid="nc-menu-from-scratch"
       @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)"
     />
 
@@ -79,6 +80,7 @@ onMounted(() => {
       icon="globe"
       label="From Template"
       subtext="Pre-built structures for common use cases"
+      data-testid="nc-menu-from-template"
       @click="onClickOption(NcBaseCreateMode.FROM_TEMPLATE)"
     />
 
@@ -89,6 +91,7 @@ onMounted(() => {
       icon="ncAutoAwesome"
       label="Build with AI"
       subtext="Pre-built structures for common use cases"
+      data-testid="nc-menu-build-with-ai"
       @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)"
     />
 
@@ -99,6 +102,7 @@ onMounted(() => {
         icon="ncBox"
         label="From App Store"
         subtext="Install apps built by the community"
+        data-testid="nc-menu-from-app-store"
         @click="onClickOption(NcBaseCreateMode.FROM_APP_STORE)"
       />
 
@@ -110,6 +114,7 @@ onMounted(() => {
         icon="ncBox"
         label="Managed App"
         subtext="Build and publish to the App Store"
+        data-testid="nc-menu-managed-app"
         @click="onClickOption(NcBaseCreateMode.MANAGED_APP)"
       />
 
@@ -119,6 +124,7 @@ onMounted(() => {
         icon="ncBox"
         label="Sandbox App"
         subtext="Safely test changes on an existing app"
+        data-testid="nc-menu-sandbox-app"
         @click="onClickOption(NcBaseCreateMode.SANDBOX_APP)"
       >
         <template #label>

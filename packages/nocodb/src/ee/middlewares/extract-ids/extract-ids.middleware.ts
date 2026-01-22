@@ -480,7 +480,8 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     await this.additionalValidation({ req, res, next });
 
     if (req.ncBase) {
-      req.context.schema_locked = !!(req.ncBase as Base).managed_app_schema_locked;
+      req.context.schema_locked = !!(req.ncBase as Base)
+        .managed_app_schema_locked;
     }
 
     next();

@@ -37,11 +37,6 @@ const onClickOption = (mode: NcBaseCreateMode) => {
     return
   }
 
-  // Temp do nothing
-  if ([NcBaseCreateMode.MANAGED_APP].includes(mode)) {
-    return
-  }
-
   baseCreateMode.value = mode
 }
 

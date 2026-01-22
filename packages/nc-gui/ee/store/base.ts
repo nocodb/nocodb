@@ -54,7 +54,7 @@ export const useBase = defineStore('baseStore', () => {
 
   const lastOpenedViewMap = ref<Record<string, string>>({})
 
-  const isManagedAppMaster = computed(() => !!base.value?.managed_app_id && !base.value?.is_draft)
+  const isManagedAppMaster = computed(() => !!base.value?.managed_app_master && !!base.value?.managed_app_id)
 
   // todo: refactor path param name and variable name
   const baseType = computed(() => route.value.params.typeOrId as string)

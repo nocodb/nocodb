@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { base } = storeToRefs(useBase())
+const { base, isManagedAppMaster } = storeToRefs(useBase())
 const { $api } = useNuxtApp()
 
 const isModalVisible = ref(false)
@@ -7,8 +7,6 @@ const initialTab = ref<'publish' | 'fork' | 'deployments' | undefined>(undefined
 
 const managedApp = ref<any>(null)
 const currentVersion = ref<any>(null)
-
-const isManagedAppMaster = computed(() => !!(base.value as any)?.managed_app_master && !!(base.value as any)?.managed_app_id)
 
 // Load managed app info and current version
 const loadManagedApp = async () => {

@@ -73,8 +73,8 @@ const convertToSandbox = async () => {
 </script>
 
 <template>
-  <GeneralModal v-model:visible="visible" size="medium" centered>
-    <div class="flex flex-col p-6">
+  <NcModal v-model:visible="visible" size="medium" centered wrap-class-name="nc-modal-convert-to-sandbox">
+    <div class="flex flex-col">
       <div class="flex items-center gap-3 pb-4 mb-4 border-b border-nc-border-gray-medium">
         <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
           <GeneralIcon icon="ncBox" class="w-5 h-5 text-white" />
@@ -164,5 +164,5 @@ const convertToSandbox = async () => {
         </NcButton>
       </div>
     </div>
-  </GeneralModal>
+  </NcModal>
 </template>

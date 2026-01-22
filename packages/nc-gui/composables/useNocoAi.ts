@@ -13,7 +13,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const isAiFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
+  const isAiFeaturesEnabled = computed(() => isEeUI)
 
   const isAiBetaFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_BETA_FEATURES))
 

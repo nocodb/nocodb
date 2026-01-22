@@ -144,14 +144,14 @@ async function copyComment(comment: CommentType) {
     <div
       class="flex-1 bg-nc-bg-default rounded-lg border-1 group ml-11.5"
       :class="{
-        'border-nc-brand-200': isCreatedByYou,
+        'border-nc-brand-200/70 dark:!border-[#388bfd4b]': isCreatedByYou,
         'border-nc-border-gray-medium': !isCreatedByYou,
       }"
     >
       <div
         class="flex items-center gap-2 bg-nc-bg-gray-extralight px-4 py-1 border-b rounded-t-lg text-nc-content-gray min-h-[37px]"
         :class="{
-          '!bg-nc-bg-brand border-nc-brand-200': isCreatedByYou,
+          '!bg-nc-bg-brand border-nc-brand-200/70 dark:(!bg-[#151b23] !border-[#388bfd4b])': isCreatedByYou,
           'border-nc-border-gray-medium': !isCreatedByYou,
         }"
       >

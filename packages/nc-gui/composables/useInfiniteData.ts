@@ -597,6 +597,9 @@ export function useInfiniteData(args: {
         const count = aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
         cachedRow.rowMeta.commentCount = +count
       })
+
+      // Trigger re-render canvas to update the comment count
+      eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
     } catch (e) {
       console.error('Failed to load aggregate comment count:', e)
     }

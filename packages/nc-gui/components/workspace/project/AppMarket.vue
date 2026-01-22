@@ -309,7 +309,7 @@ watch(
 }
 
 .nc-app-item {
-  @apply bg-nc-bg-default border-1 border-nc-border-gray-light rounded-xl mb-3 relative overflow-hidden;
+  @apply bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl mb-3 relative overflow-hidden;
   @apply transition-all duration-200 ease-in-out;
 
   &::before {

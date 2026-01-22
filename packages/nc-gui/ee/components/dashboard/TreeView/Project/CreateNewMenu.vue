@@ -21,8 +21,6 @@ const { isUIAllowed } = useRoles()
 
 const { isMarketVisible } = storeToRefs(useScriptStore())
 
-const { isWorkflowsEnabled } = storeToRefs(useWorkflowStore())
-
 const { isDashboardEnabled } = storeToRefs(useDashboardStore())
 
 const showBaseOption = (source: SourceType) => {
@@ -115,7 +113,6 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
       </template>
     </ProjectSyncCreateProvider>
     <NcMenuItem
-      v-if="isWorkflowsEnabled"
       class="nc-menu-item-integration"
       inner-class="w-full"
       data-testid="create-new-workflow"

@@ -6,8 +6,6 @@ const { openedProject, isDataSourceLimitReached } = storeToRefs(useBases())
 const baseStore = useBase()
 const { base } = storeToRefs(baseStore)
 
-const { isWorkflowsEnabled } = storeToRefs(useWorkflowStore())
-
 const isNewBaseModalOpen = ref(false)
 
 const { isUIAllowed } = useRoles()
@@ -137,7 +135,7 @@ const onCreateBaseClick = () => {
         <ProjectActionCreateEmptyScript />
         <ProjectActionScriptsByNocoDB />
         <ProjectActionCreateEmptyDashboard />
-        <ProjectActionCreateEmptyWorkflow v-if="isWorkflowsEnabled" />
+        <ProjectActionCreateEmptyWorkflow />
       </template>
     </div>
 

@@ -18,14 +18,6 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'workflows',
-    title: 'Workflows',
-    description: 'Automate tasks with visual workflows - connect triggers, actions, and data transformations without code.',
-    enabled: true,
-    isEngineering: false,
-    version: 2,
-  },
-  {
     id: 'advanced_nodes',
     title: 'Enabled advanced nodes',
     description: 'Enabled advanced nodes like scripts, external trigger node, etc.',

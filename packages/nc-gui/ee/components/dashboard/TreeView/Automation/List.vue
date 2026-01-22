@@ -29,7 +29,7 @@ const { updateWorkflow, openNewWorkflowModal } = workflowStore
 
 const { activeScriptId, scripts: allScripts, activeBaseScripts } = storeToRefs(scriptStore)
 
-const { activeWorkflowId, workflows: allWorkflows, activeBaseWorkflows, isWorkflowsEnabled } = storeToRefs(workflowStore)
+const { activeWorkflowId, workflows: allWorkflows, activeBaseWorkflows } = storeToRefs(workflowStore)
 
 const scripts = computed(() => allScripts.value.get(baseId.value) ?? [])
 
@@ -189,7 +189,7 @@ watchEffect(() => {
   <div>
     <template v-if="!allEntities.length && isUIAllowed('workflowCreateOrEdit')">
       <NcDropdown
-        v-if="isWorkflowsEnabled && (isWorkflowsCreateOrEditAllowed || isScriptsCreateOrEditAllowed)"
+        v-if="isWorkflowsCreateOrEditAllowed || isScriptsCreateOrEditAllowed"
         overlay-class-name="nc-automation-create-dropdown"
       >
         <div

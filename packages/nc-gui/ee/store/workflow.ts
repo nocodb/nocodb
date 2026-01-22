@@ -25,8 +25,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const isWorkflowsEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.WORKFLOWS))
-
   const isAdvancedNodesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.ADVANCED_NODES))
 
   const isWorkflowEditAllowed = computed(() => isUIAllowed('workflowCreateOrEdit'))
@@ -87,7 +85,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   // Actions
   const loadWorkflows = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    if (!isWorkflowsEnabled.value || !activeWorkspaceId.value) return []
+    if (!activeWorkspaceId.value) return []
 
     const existingWorkflows = workflows.value.get(baseId)
     if (existingWorkflows && !force) {
@@ -117,7 +115,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   }
 
   const loadWorkflow = async (workflowId: string, showLoader = true) => {
-    if (!activeProjectId.value || !isWorkflowsEnabled.value || !activeWorkspaceId.value || !workflowId) {
+    if (!activeProjectId.value || !activeWorkspaceId.value || !workflowId) {
       return null
     }
 
@@ -212,20 +210,20 @@ export const useWorkflowStore = defineStore('workflow', () => {
       const workflow = workflows.value.get(baseId)?.find((a) => a.id === workflowId)
       const updated = options?.skipNetworkCall
         ? {
-            ...workflow,
-            ...updates,
-          }
+          ...workflow,
+          ...updates,
+        }
         : await $api.internal.postOperation(
-            activeWorkspaceId.value,
-            baseId,
-            {
-              operation: 'workflowUpdate',
-            },
-            {
-              ...updates,
-              workflowId,
-            },
-          )
+          activeWorkspaceId.value,
+          baseId,
+          {
+            operation: 'workflowUpdate',
+          },
+          {
+            ...updates,
+            workflowId,
+          },
+        )
 
       if (options?.bumpDirty) {
         updated._dirty = workflow?._dirty ? +workflow?._dirty + 1 : 1
@@ -628,7 +626,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     isLoadingWorkflow,
 
     // Getters
-    isWorkflowsEnabled,
     activeBaseWorkflows,
     activeWorkflowId,
     activeBaseNodeSchemas,

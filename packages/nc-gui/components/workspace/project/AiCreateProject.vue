@@ -374,8 +374,10 @@ onMounted(() => {
     </div>
 
     <div class="h-[calc(100%_-_49px)] flex">
-      <div ref="leftPaneContentRef"
-        class="w-[480px] h-full relative flex flex-col nc-scrollbar-thin border-r-1 border-nc-border-purple-light">
+      <div
+        ref="leftPaneContentRef"
+        class="w-[480px] h-full relative flex flex-col nc-scrollbar-thin border-r-1 border-nc-border-purple-light"
+      >
         <!-- create base config panel -->
         <div class="flex-1 p-6 flex flex-col gap-6">
           <div class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">
@@ -385,27 +387,38 @@ onMounted(() => {
             <!-- Predefined tags -->
 
             <template v-for="prompt of predefinedBasePrompts" :key="prompt.tag">
-              <a-tag class="nc-ai-base-schema-tag nc-ai-suggested-tag relative" :class="{
-                'nc-selected': prompt.description === aiFormState.prompt.trim(),
-                'nc-disabled': !aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema'),
-              }" :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')"
-                @mouseover="handleMouseOverTag(prompt.description)" @mouseleave="handleMouseLeaveTag"
-                @click="handleUpdatePrompt(prompt.description)">
+              <a-tag
+                class="nc-ai-base-schema-tag nc-ai-suggested-tag relative"
+                :class="{
+                  'nc-selected': prompt.description === aiFormState.prompt.trim(),
+                  'nc-disabled': !aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema'),
+                }"
+                :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')"
+                @mouseover="handleMouseOverTag(prompt.description)"
+                @mouseleave="handleMouseLeaveTag"
+                @click="handleUpdatePrompt(prompt.description)"
+              >
                 <div class="flex flex-row items-center gap-1 py-1 text-sm">
                   <div>{{ prompt.tag }}</div>
                 </div>
-                <div v-if="prompt.description === aiFormState.prompt.trim()"
-                  class="bg-nc-fill-purple-dark text-nc-content-inverted-primary rounded-full absolute -right-[3px] -top-[4px] h-3 w-3 grid place-items-center">
+                <div
+                  v-if="prompt.description === aiFormState.prompt.trim()"
+                  class="bg-nc-fill-purple-dark text-nc-content-inverted-primary rounded-full absolute -right-[3px] -top-[4px] h-3 w-3 grid place-items-center"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8" fill="none">
-                    <path d="M6.66659 2L2.99992 5.66667L1.33325 4" stroke="currentColor" stroke-width="1.33333"
-                      stroke-linecap="round" stroke-linejoin="round" />
+                    <path
+                      d="M6.66659 2L2.99992 5.66667L1.33325 4"
+                      stroke="currentColor"
+                      stroke-width="1.33333"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
                   </svg>
                 </div>
               </a-tag>
             </template>
 
-            <NcButton size="xs" type="text" icon-position="right" class="nc-show-more-tags-btn"
-              @click="onToggleShowMore">
+            <NcButton size="xs" type="text" icon-position="right" class="nc-show-more-tags-btn" @click="onToggleShowMore">
               {{ isExpandedPredefiendBasePromts ? $t('general.showLess') : $t('general.showMore') }}
 
               <template #icon>
@@ -414,11 +427,16 @@ onMounted(() => {
             </NcButton>
           </div>
           <div>
-            <a-textarea ref="aiPromptInputRef" :value="aiFormState.onHoverTagPrompt || aiFormState.prompt"
+            <a-textarea
+              ref="aiPromptInputRef"
+              :value="aiFormState.onHoverTagPrompt || aiFormState.prompt"
               placeholder="Type something..."
               class="!w-full !min-h-[120px] !rounded-lg mt-2 overflow-y-auto nc-scrollbar-thin nc-input-shadow nc-ai-input"
-              size="middle" :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')"
-              :maxlength="8192" @update:value="aiFormState.prompt = $event" />
+              size="middle"
+              :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')"
+              :maxlength="8192"
+              @update:value="aiFormState.prompt = $event"
+            />
           </div>
 
           <a-collapse v-model:active-key="expansionPanel" ghost class="flex-1 flex flex-col">
@@ -426,13 +444,22 @@ onMounted(() => {
             <a-collapse-panel :key="ExpansionPanelKeys.additionalDetails" collapsible="disabled">
               <template #header>
                 <div class="flex">
-                  <NcButton size="small" type="text" icon-position="right" class="-ml-[7px]"
-                    @click="handleUpdateExpansionPanel(ExpansionPanelKeys.additionalDetails)">
+                  <NcButton
+                    size="small"
+                    type="text"
+                    icon-position="right"
+                    class="-ml-[7px]"
+                    @click="handleUpdateExpansionPanel(ExpansionPanelKeys.additionalDetails)"
+                  >
                     {{ $t('title.additionalDetails') }}
                     <template #icon>
-                      <GeneralIcon icon="arrowDown" class="transform transition-all opacity-80" :class="{
-                        'rotate-180': expansionPanel.includes(ExpansionPanelKeys.additionalDetails),
-                      }" />
+                      <GeneralIcon
+                        icon="arrowDown"
+                        class="transform transition-all opacity-80"
+                        :class="{
+                          'rotate-180': expansionPanel.includes(ExpansionPanelKeys.additionalDetails),
+                        }"
+                      />
                     </template>
                   </NcButton>
                 </div>
@@ -441,18 +468,25 @@ onMounted(() => {
               <div class="flex flex-col gap-6 pt-6">
                 <div v-for="field of additionalDetails" :key="field.title" class="flex items-center gap-2">
                   <div class="min-w-[120px] text-nc-content-gray">{{ field.title }}</div>
-                  <a-input v-model:value="aiFormState[field.key]" class="nc-input-sm nc-input-shadow nc-ai-input"
-                    hide-details :placeholder="field.placeholder"
-                    :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')" />
+                  <a-input
+                    v-model:value="aiFormState[field.key]"
+                    class="nc-input-sm nc-input-shadow nc-ai-input"
+                    hide-details
+                    :placeholder="field.placeholder"
+                    :disabled="!aiIntegrationAvailable || (aiLoading && callFunction === 'onPredictSchema')"
+                  />
                 </div>
               </div>
             </a-collapse-panel>
           </a-collapse>
         </div>
-        <div class="sticky bottom-0 w-full bg-nc-bg-default px-6 pt-3 pb-6 border-t-1 flex flex-col gap-3" :class="{
-          'border-nc-border-gray-medium': showBtnTopBorder,
-          'border-transparent': !showBtnTopBorder,
-        }">
+        <div
+          class="sticky bottom-0 w-full bg-nc-bg-default px-6 pt-3 pb-6 border-t-1 flex flex-col gap-3"
+          :class="{
+            'border-nc-border-gray-medium': showBtnTopBorder,
+            'border-transparent': !showBtnTopBorder,
+          }"
+        >
           <div v-if="aiError" class="w-full flex items-start gap-3 bg-nc-bg-red-light rounded-lg p-4">
             <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-6 h-6" />
 
@@ -467,20 +501,35 @@ onMounted(() => {
             </div>
           </div>
           <div v-if="aiIntegrationAvailable" class="flex items-center gap-3">
-            <NcButton size="small" :type="aiStep !== AI_STEP.MODIFY || isOldPromptChanged ? 'primary' : 'secondary'"
-              theme="ai" class="w-1/2"
+            <NcButton
+              size="small"
+              :type="aiStep !== AI_STEP.MODIFY || isOldPromptChanged ? 'primary' : 'secondary'"
+              theme="ai"
+              class="w-1/2"
               :disabled="!aiFormState.prompt?.trim() || (aiLoading && callFunction === 'onPredictSchema')"
-              :loading="aiLoading && callFunction === 'onPredictSchema'" @click="onPredictSchema">
+              :loading="aiLoading && callFunction === 'onPredictSchema'"
+              @click="onPredictSchema"
+            >
               <template #icon>
                 <GeneralIcon icon="ncAutoAwesome" class="h-4 w-4" />
               </template>
               {{ $t('labels.suggestTablesViews') }}
             </NcButton>
-            <NcButton v-e="['a:base:ai:create']" type="primary" size="small" theme="ai" class="w-1/2" :disabled="aiStep !== AI_STEP.MODIFY ||
-              finalSchema?.tables?.length === 0 ||
-              (aiLoading && callFunction === 'onCreateSchema') ||
-              isOldPromptChanged
-              " :loading="aiLoading && callFunction === 'onCreateSchema'" @click="onCreateSchema">
+            <NcButton
+              v-e="['a:base:ai:create']"
+              type="primary"
+              size="small"
+              theme="ai"
+              class="w-1/2"
+              :disabled="
+                aiStep !== AI_STEP.MODIFY ||
+                finalSchema?.tables?.length === 0 ||
+                (aiLoading && callFunction === 'onCreateSchema') ||
+                isOldPromptChanged
+              "
+              :loading="aiLoading && callFunction === 'onCreateSchema'"
+              @click="onCreateSchema"
+            >
               {{ $t('activity.createProject') }}
             </NcButton>
           </div>
@@ -501,8 +550,10 @@ onMounted(() => {
         <!-- create base preview panel -->
 
         <template v-if="aiStep === AI_STEP.LOADING || aiStep === AI_STEP.PROMPT">
-          <div v-if="aiStep === AI_STEP.LOADING"
-            class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">
+          <div
+            v-if="aiStep === AI_STEP.LOADING"
+            class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium"
+          >
             {{ $t('title.generatingBaseTailoredToYourRequirement') }}
           </div>
           <div v-else class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">
@@ -510,23 +561,34 @@ onMounted(() => {
           </div>
 
           <template v-if="aiStep === AI_STEP.LOADING">
-            <div v-for="(loadingText, idx) of activeLoadingText" :key="idx"
-              class="text-sm text-nc-content-purple-light flex items-center">
+            <div
+              v-for="(loadingText, idx) of activeLoadingText"
+              :key="idx"
+              class="text-sm text-nc-content-purple-light flex items-center"
+            >
               {{ loadingText }}
               <div v-if="loadingText.length === loadingMessages[idx]?.length" class="nc-animate-dots"></div>
             </div>
 
             <div class="rounded-xl border-1 border-nc-border-purple-light">
-              <div v-for="idx in 7" :key="idx"
-                class="px-3 py-2 flex items-center gap-2 border-b-1 border-nc-border-purple-light !last-of-type:border-b-0">
+              <div
+                v-for="idx in 7"
+                :key="idx"
+                class="px-3 py-2 flex items-center gap-2 border-b-1 border-nc-border-purple-light !last-of-type:border-b-0"
+              >
                 <div class="flex-1 flex items-center gap-2">
-                  <a-skeleton-input :active="aiStep === AI_STEP.LOADING"
-                    class="!w-4 !h-4 !rounded overflow-hidden !bg-nc-bg-purple-light" />
-                  <a-skeleton-input :active="aiStep === AI_STEP.LOADING"
-                    class="!h-4 !rounded overflow-hidden !bg-nc-bg-purple-light" :class="{
+                  <a-skeleton-input
+                    :active="aiStep === AI_STEP.LOADING"
+                    class="!w-4 !h-4 !rounded overflow-hidden !bg-nc-bg-purple-light"
+                  />
+                  <a-skeleton-input
+                    :active="aiStep === AI_STEP.LOADING"
+                    class="!h-4 !rounded overflow-hidden !bg-nc-bg-purple-light"
+                    :class="{
                       '!w-[133px]': idx % 2 === 0,
                       '!w-[90px]': idx % 2 !== 0,
-                    }" />
+                    }"
+                  />
                 </div>
                 <div class="grid place-items-center h-6 w-6">
                   <GeneralIcon icon="arrowDown" class="text-nc-content-purple-light" />
@@ -544,19 +606,29 @@ onMounted(() => {
           </div>
 
           <template v-if="predictedSchema?.tables">
-            <AiWizardCard v-model:active-tab="activePreviewTab" :tabs="previewTabs"
-              class="!rounded-xl flex-1 flex flex-col min-w-[320px]" content-class-name="flex-1 flex flex-col">
+            <AiWizardCard
+              v-model:active-tab="activePreviewTab"
+              :tabs="previewTabs"
+              class="!rounded-xl flex-1 flex flex-col min-w-[320px]"
+              content-class-name="flex-1 flex flex-col"
+            >
               <template #tabContent>
-                <a-collapse v-if="activePreviewTab === SchemaPreviewTabs.TABLES_AND_VIEWS"
-                  v-model:active-key="previewExpansionPanel" class="nc-schema-preview-table flex flex-col">
+                <a-collapse
+                  v-if="activePreviewTab === SchemaPreviewTabs.TABLES_AND_VIEWS"
+                  v-model:active-key="previewExpansionPanel"
+                  class="nc-schema-preview-table flex flex-col"
+                >
                   <template #expandIcon> </template>
 
                   <a-collapse-panel v-for="table in predictedSchema.tables" :key="table.title" collapsible="disabled">
                     <template #header>
-                      <div class="w-full flex items-center px-4 py-2"
-                        @click="handleUpdatePreviewExpansionPanel(table.title, !viewsGrouped[table.title]?.length)">
+                      <div
+                        class="w-full flex items-center px-4 py-2"
+                        @click="handleUpdatePreviewExpansionPanel(table.title, !viewsGrouped[table.title]?.length)"
+                      >
                         <div
-                          class="flex-1 flex items-center gap-3 text-nc-content-purple-dark dark:text-nc-content-purple-medium">
+                          class="flex-1 flex items-center gap-3 text-nc-content-purple-dark dark:text-nc-content-purple-medium"
+                        >
                           <NcCheckbox :checked="!table.excluded" theme="ai" @click.stop="onExcludeTable(table)" />
 
                           <GeneralIcon icon="table" class="flex-none !h-4 opacity-85" />
@@ -568,13 +640,24 @@ onMounted(() => {
                             {{ table.title }}
                           </NcTooltip>
                         </div>
-                        <NcButton size="xs" type="text" theme="ai" icon-only class="!px-0 !h-6 !w-6 !min-w-6" :class="{
-                          hidden: !viewsGrouped[table.title]?.length,
-                        }">
+                        <NcButton
+                          size="xs"
+                          type="text"
+                          theme="ai"
+                          icon-only
+                          class="!px-0 !h-6 !w-6 !min-w-6"
+                          :class="{
+                            hidden: !viewsGrouped[table.title]?.length,
+                          }"
+                        >
                           <template #icon>
-                            <GeneralIcon icon="arrowDown" class="transform transition-all opacity-80" :class="{
-                              'rotate-180': previewExpansionPanel.includes(table.title),
-                            }" />
+                            <GeneralIcon
+                              icon="arrowDown"
+                              class="transform transition-all opacity-80"
+                              :class="{
+                                'rotate-180': previewExpansionPanel.includes(table.title),
+                              }"
+                            />
                           </template>
                         </NcButton>
                       </div>

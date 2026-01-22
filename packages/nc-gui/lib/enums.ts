@@ -221,7 +221,6 @@ export const EventBusEnum = {
   SmartsheetActions: Symbol('SmartSheetActions'),
 }
 
-
 export enum NcBaseCreateMode {
   FROM_SCRATCH = 'fromScratch',
   FROM_TEMPLATE = 'fromTemplate',

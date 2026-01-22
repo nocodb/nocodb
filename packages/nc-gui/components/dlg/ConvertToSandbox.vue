@@ -139,7 +139,7 @@ watch(visible, (isVisible) => {
         <div class="text-xs text-nc-content-gray-subtle2">{{ $t('labels.publishToAppStore') }}</div>
       </div>
 
-      <NcButton size="small" type="text" @click="visible = false" class="self-start">
+      <NcButton size="small" type="text" class="self-start" @click="visible = false">
         <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
       </NcButton>
     </div>
@@ -149,7 +149,7 @@ watch(visible, (isVisible) => {
         <template #header>
           <NcAlert
             type="info"
-            :align="'top'"
+            align="top"
             description="Convert this base into a living application that can be published to the App Store. You'll be able to manage versions and push updates to all installations."
             class="!p-3 !items-start bg-nc-bg-blue-light border-1 !border-nc-blue-200 rounded-lg p-3 mb-4"
           >

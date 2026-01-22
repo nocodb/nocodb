@@ -19,7 +19,6 @@ const emit = defineEmits(['update:visible', 'installed'])
 
 const visible = useVModel(props, 'visible', emit)
 
-
 const { $api } = useNuxtApp()
 const { t } = useI18n()
 
@@ -125,7 +124,7 @@ watch(
       <GeneralIcon icon="ncBox" class="h-5 w-5" />
       <div class="flex-1 text-bodyLgBold">{{ t('labels.appMarket') }}</div>
 
-      <NcButton size="small" type="text" @click="visible = false" class="self-start">
+      <NcButton size="small" type="text" class="self-start" @click="visible = false">
         <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
       </NcButton>
     </div>
@@ -133,15 +132,18 @@ watch(
     <div class="flex flex-col gap-4 h-[600px] p-6">
       <!-- Search and Filter Bar -->
       <div class="flex gap-3">
-        <a-input v-model:value="searchQuery" class="flex-1 nc-input-sm nc-input-shadow !rounded-md"
-          :placeholder="t('placeholder.searchByTitle')" allow-clear>
+        <a-input
+          v-model:value="searchQuery"
+          class="flex-1 nc-input-sm nc-input-shadow !rounded-md"
+          :placeholder="t('placeholder.searchByTitle')"
+          allow-clear
+        >
           <template #prefix>
             <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-muted" />
           </template>
         </a-input>
 
-        <NcSelect v-model:value="selectedCategory" class="w-48 nc-select-sm" :placeholder="t('labels.category')"
-          allow-clear>
+        <NcSelect v-model:value="selectedCategory" class="w-48 nc-select-sm" :placeholder="t('labels.category')" allow-clear>
           <a-select-option v-for="cat in categories" :key="cat" :value="cat">
             {{ cat }}
           </a-select-option>
@@ -162,9 +164,12 @@ watch(
       </div>
 
       <div v-else class="flex flex-col gap-3 overflow-y-auto pr-2">
-        <div v-for="sandbox in filteredSandboxes" :key="sandbox.id"
+        <div
+          v-for="sandbox in filteredSandboxes"
+          :key="sandbox.id"
           class="nc-sandbox-card border-1 border-nc-border-gray-medium rounded-lg p-4 hover:shadow-md transition-all cursor-pointer"
-          @click="installSandbox(sandbox)">
+          @click="installSandbox(sandbox)"
+        >
           <div class="flex gap-4">
             <div class="flex-1">
               <div class="flex items-start justify-between gap-3 mb-2">
@@ -172,8 +177,13 @@ watch(
                   <h3 class="text-base font-semibold text-nc-content-gray mb-1">{{ sandbox.title }}</h3>
                   <p class="text-sm text-nc-content-gray-subtle line-clamp-2">{{ sandbox.description }}</p>
                 </div>
-                <NcButton :loading="installing === sandbox.id" :disabled="!!installing" size="small" type="primary"
-                  @click.stop="installSandbox(sandbox)">
+                <NcButton
+                  :loading="installing === sandbox.id"
+                  :disabled="!!installing"
+                  size="small"
+                  type="primary"
+                  @click.stop="installSandbox(sandbox)"
+                >
                   <template #icon>
                     <GeneralIcon icon="download" />
                   </template>

@@ -1463,6 +1463,18 @@ export const linkInitTables = async (context: any, base: any) => {
       id: '5',
       customerId: '12',
     },
+    {
+      id: '5',
+      customerId: '31',
+    },
+    {
+      id: '5',
+      customerId: '32',
+    },
+    {
+      id: '5',
+      customerId: '33',
+    },
   ];
 
   const linkTo_Customer_MM_Rental_LTAR = (rowId: string, body: any[]) => {

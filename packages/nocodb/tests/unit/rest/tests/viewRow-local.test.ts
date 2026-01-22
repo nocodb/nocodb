@@ -1,7 +1,7 @@
 import 'mocha';
 // @ts-ignore
 import { expect } from 'chai';
-import { UITypes, ViewTypes } from 'nocodb-sdk';
+import { APIContext, UITypes, ViewTypes } from 'nocodb-sdk';
 import request from 'supertest';
 import { createProject } from '../../factory/base';
 import {
@@ -9,9 +9,14 @@ import {
   createLookupColumn,
   createLtarColumn,
   createRollupColumn,
-  updateViewColumn,
 } from '../../factory/column';
-import { createChildRow, createRow, getRow } from '../../factory/row';
+import {
+  countRows,
+  createChildRow,
+  createRow,
+  getRow,
+} from '../../factory/row';
+import { listenForJob } from '../../factory/job';
 import { createTable, getTable } from '../../factory/table';
 import { createView } from '../../factory/view';
 import init from '../../init';
@@ -113,6 +118,8 @@ function viewRowLocalStaticTests() {
         )?.id,
       },
     });
+
+    await linkInitTables(context, base);
 
     console.timeEnd('#### viewRowLocalTests');
   });
@@ -1186,9 +1193,98 @@ function viewRowLocalTests() {
   });
 
   const testFindOneSortedFilteredNestedFieldsDataWithRollup = async (
-    _viewType: ViewTypes,
+    viewType: ViewTypes,
   ) => {
-    // TODO: Implement test logic
+    const rollupColumn = await createRollupColumn(context, {
+      base: base,
+      title: 'Number of rentals',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: rentalTable.table_name,
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const view = await createView(context, {
+      title: 'View',
+      table: customerTable,
+      type: viewType,
+    });
+
+    const viewColumns = await view.getColumns(ctx);
+    const rollupViewColumn = viewColumns.find(
+      (vc) => vc.fk_column_id === rollupColumn.id,
+    );
+
+    await updateViewColumns(context, {
+      view: view,
+      viewColumns: {
+        [rollupViewColumn.id]: { show: true },
+      },
+    });
+
+    const activeColumn = (await customerTable.getColumns(ctx)).find(
+      (c: ColumnType) => c.title === 'Active',
+    );
+
+    const nestedFields = {
+      Rentals: { f: 'RentalDate,ReturnDate' },
+    };
+
+    const nestedFilter = [
+      {
+        fk_column_id: rollupColumn?.id,
+        status: 'create',
+        logical_op: 'and',
+        comparison_op: 'gte',
+        value: 1,
+      },
+      {
+        is_group: true,
+        status: 'create',
+        logical_op: 'or',
+        children: [
+          {
+            fk_column_id: rollupColumn?.id,
+            status: 'create',
+            logical_op: 'and',
+            comparison_op: 'lte',
+            value: 10,
+          },
+          {
+            is_group: true,
+            status: 'create',
+            logical_op: 'and',
+            children: [
+              {
+                logical_op: 'and',
+                fk_column_id: activeColumn?.id,
+                status: 'create',
+                comparison_op: 'eq',
+                value: 1,
+              },
+            ],
+          },
+        ],
+      },
+    ];
+
+    const ascResponse = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}/find-one`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        nested: nestedFields,
+        filterArrJson: JSON.stringify([nestedFilter]),
+        sort: `${rollupColumn.title}`,
+      })
+      .expect(200);
+
+    // Verify rollup column exists and has a value
+    expect(parseInt(ascResponse.body[rollupColumn.title])).to.be.greaterThan(0);
+
+    // Verify nested rentals are returned
+    expect(ascResponse.body).to.have.property('Rentals');
   };
 
   it('Find one view sorted filtered view with nested fields data list with a rollup column in customer table GRID', async function () {
@@ -1254,8 +1350,62 @@ function viewRowLocalTests() {
     await testGroupDescSorted(ViewTypes.CALENDAR);
   });
 
-  const testGroupWithOffset = async (_viewType: ViewTypes) => {
-    // TODO: Implement test logic
+  const testGroupWithOffset = async (viewType: ViewTypes) => {
+    const view = await createView(context, {
+      title: 'View',
+      table: customerTable,
+      type: viewType,
+    });
+
+    const firstNameColumn = customerColumns.find(
+      (col: ColumnType) => col.title === 'FirstName',
+    );
+
+    const rollupColumn = await createRollupColumn(context, {
+      base: base,
+      title: 'Rollup',
+      rollupFunction: 'count',
+      table: customerTable,
+      relatedTableName: rentalTable.table_name,
+      relatedTableColumnTitle: 'RentalDate',
+    });
+
+    const visibleColumns = [firstNameColumn];
+    const sortInfo = `-FirstName, +${rollupColumn.title}`;
+
+    // First get results without offset to know what to expect
+    const responseNoOffset = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}/groupby`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: sortInfo,
+        column_name: firstNameColumn.title,
+      })
+      .expect(200);
+
+    // Now get results with offset and verify
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${customerTable.id}/views/${view.id}/groupby`,
+      )
+      .set('xc-auth', context.token)
+      .query({
+        fields: visibleColumns.map((c) => c.title),
+        sort: sortInfo,
+        column_name: firstNameColumn.title,
+        offset: 4,
+      })
+      .expect(200);
+
+    // Verify that offset works - first item with offset=4 should match 5th item without offset
+    if (responseNoOffset.body.list.length > 4) {
+      expect(response.body.list[0]['FirstName']).to.equal(
+        responseNoOffset.body.list[4]['FirstName'],
+      );
+    }
   };
 
   it('Groupby desc sorted and with rollup view data list with required columns GALLERY', async function () {
@@ -1276,8 +1426,40 @@ function viewRowLocalTests() {
   //#endregion Group by tests
 
   //#region Count tests
-  const testCount = async (_viewType: ViewTypes) => {
-    // TODO: Implement test logic
+  const testCount = async (viewType: ViewTypes) => {
+    let calendar_range = {};
+    let table;
+
+    if (viewType === ViewTypes.CALENDAR) {
+      table = rentalTable;
+      calendar_range = {
+        fk_from_column_id: rentalColumns.find(
+          (c: ColumnType) => c.title === 'RentalDate',
+        )?.id,
+      };
+    } else {
+      table = customerTable;
+    }
+
+    const view = await createView(context, {
+      title: 'View ' + viewType,
+      table: table,
+      type: viewType,
+      range: calendar_range,
+    });
+
+    const response = await request(context.app)
+      .get(`/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}/count`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    if (viewType === ViewTypes.CALENDAR) {
+      // Rental table has 40 rows
+      expect(parseInt(response.body.count)).to.equal(40);
+    } else {
+      // Customer table has 33 rows
+      expect(parseInt(response.body.count)).to.equal(33);
+    }
   };
 
   it('Count view data list with required columns', async function () {
@@ -1289,8 +1471,44 @@ function viewRowLocalTests() {
   //#endregion Count tests
 
   //#region Read/Exist tests
-  const testReadViewRow = async (_viewType: ViewTypes) => {
-    // TODO: Implement test logic
+  const testReadViewRow = async (viewType: ViewTypes) => {
+    let table;
+    let calendar_range = {};
+    const idColumn = 'Id';
+
+    if (viewType === ViewTypes.CALENDAR) {
+      table = rentalTable;
+      calendar_range = {
+        fk_from_column_id: rentalColumns.find(
+          (c: ColumnType) => c.title === 'RentalDate',
+        )?.id,
+      };
+    } else {
+      table = customerTable;
+    }
+
+    const view = await createView(context, {
+      title: 'View ' + viewType,
+      table: table,
+      type: viewType,
+      range: calendar_range,
+    });
+
+    const listResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    const row = listResponse.body.list[0];
+
+    const readResponse = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}/${row[idColumn]}`,
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    expect(row[idColumn]).to.equal(readResponse.body[idColumn]);
   };
 
   it('Read view row', async function () {
@@ -1300,8 +1518,45 @@ function viewRowLocalTests() {
     await testReadViewRow(ViewTypes.CALENDAR);
   });
 
-  const testViewRowExists = async (_viewType: ViewTypes) => {
-    // TODO: Implement test logic
+  const testViewRowExists = async (viewType: ViewTypes) => {
+    let table;
+    let calendar_range = {};
+    const idColumn = 'Id';
+
+    if (viewType === ViewTypes.CALENDAR) {
+      table = rentalTable;
+      calendar_range = {
+        fk_from_column_id: rentalColumns.find(
+          (c: ColumnType) => c.title === 'RentalDate',
+        )?.id,
+      };
+    } else {
+      table = customerTable;
+    }
+
+    const view = await createView(context, {
+      title: 'View ' + viewType,
+      table: table,
+      type: viewType,
+      range: calendar_range,
+    });
+
+    // Get first row to test existence
+    const listResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    const row = listResponse.body.list[0];
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}/${row[idColumn]}/exist`,
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    expect(response.body).to.be.true;
   };
 
   it('Exist view row : should return true when row exists in view', async function () {
@@ -1311,8 +1566,36 @@ function viewRowLocalTests() {
     await testViewRowExists(ViewTypes.CALENDAR);
   });
 
-  const testViewRowNotExists = async (_viewType: ViewTypes) => {
-    // TODO: Implement test logic
+  const testViewRowNotExists = async (viewType: ViewTypes) => {
+    let calendar_range = {};
+    let table;
+
+    if (viewType === ViewTypes.CALENDAR) {
+      table = rentalTable;
+      calendar_range = {
+        fk_from_column_id: rentalColumns.find(
+          (c: ColumnType) => c.title === 'RentalDate',
+        )?.id,
+      };
+    } else {
+      table = customerTable;
+    }
+
+    const view = await createView(context, {
+      title: 'View ' + viewType,
+      table: table,
+      type: viewType,
+      range: calendar_range,
+    });
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/data/noco/${base.id}/${table.id}/views/${view.id}/999999/exist`,
+      )
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    expect(response.body).to.be.false;
   };
 
   it("Exist view row : should return false when row doesn't exist in view", async function () {
@@ -1325,17 +1608,80 @@ function viewRowLocalTests() {
 
   //#region Calendar-specific tests
   const testCalendarDataApi = async () => {
-    // TODO: Implement test logic
+    const table = rentalTable;
+    const calendar_range = {
+      fk_from_column_id: rentalColumns.find(
+        (c: ColumnType) => c.title === 'RentalDate',
+      )?.id,
+    };
+
+    const view = await createView(context, {
+      title: 'View',
+      table: table,
+      type: ViewTypes.CALENDAR,
+      range: calendar_range,
+    });
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/calendar-data/noco/${base.id}/${table.id}/views/${view.id}`,
+      )
+      .query({
+        from_date: '2005-05-24',
+        to_date: '2005-05-26',
+      })
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    // Local data has rentals in the 2005-05-24 to 2005-05-26 range
+    expect(response.body.list.length).to.be.greaterThan(0);
   };
 
+  // FIXME:
   it('Calendar data', async function () {
     await testCalendarDataApi();
   });
 
-  const testCountDatesByRange = async (_viewType: ViewTypes) => {
-    // TODO: Implement test logic
+  const testCountDatesByRange = async (viewType: ViewTypes) => {
+    let calendar_range = {};
+    let expectStatus = 400;
+
+    if (viewType === ViewTypes.CALENDAR) {
+      calendar_range = {
+        fk_from_column_id: rentalColumns.find(
+          (c: ColumnType) => c.title === 'RentalDate',
+        )?.id,
+      };
+      expectStatus = 200;
+    }
+
+    const view = await createView(context, {
+      title: 'View',
+      table: rentalTable,
+      type: viewType,
+      range: calendar_range,
+    });
+
+    const response = await request(context.app)
+      .get(
+        `/api/v1/db/calendar-data/noco/${base.id}/${rentalTable.id}/views/${view.id}/countByDate/`,
+      )
+      .query({
+        from_date: '2005-05-24',
+        to_date: '2005-05-26',
+      })
+      .set('xc-auth', context.token)
+      .expect(expectStatus);
+
+    if (expectStatus === 200) {
+      expect(response.body).to.have.property('count');
+      expect(response.body.count).to.be.greaterThan(0);
+    } else if (expectStatus === 400) {
+      expect(response.body.msg).to.equal('View is not a calendar view');
+    }
   };
 
+  // FIXME:
   it('Count dates by range Calendar', async () => {
     await testCountDatesByRange(ViewTypes.CALENDAR);
   });
@@ -1359,13 +1705,129 @@ function viewRowLocalTests() {
 
   //#region Export tests
   it('Export csv GRID', async function () {
-    // TODO: Implement test logic
+    const view = await createView(context, {
+      title: 'View',
+      table: customerTable,
+      type: ViewTypes.GRID,
+    });
+
+    // get row count
+    const rowCount = await countRows({
+      base: base,
+      table: customerTable,
+      view: view,
+    });
+
+    // Start export job
+    const jobResponse = await request(context.app)
+      .post(`/api/v2/export/${view.id}/csv`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    // Verify we got a job ID
+    const jobId = jobResponse.body.id;
+    expect(jobId).to.be.a('string');
+
+    // Wait for job completion
+    const resultData = await listenForJob({
+      context,
+      base_id: base.id,
+      job_id: jobId,
+    });
+
+    // Verify the exported file
+    expect(resultData).to.be.an('object');
+    expect(resultData.url).to.be.a('string');
+
+    const fileUrl = resultData.url;
+
+    // Download the file
+    const fileResponse = await request(context.app)
+      .get(`/${encodeURI(fileUrl)}`)
+      .set('xc-auth', context.token)
+      .expect(200);
+
+    // Check file content
+    expect(fileResponse.headers['content-type']).to.include('text/csv');
+    expect(fileResponse.text).to.be.a('string').and.not.empty;
+    expect(fileResponse.text.split('\n').length).to.equal(rowCount + 1);
   });
   //#endregion Export tests
 
   //#region View column API tests
+  // FIXME:
   it('Test view column v3 apis', async function () {
-    // TODO: Implement test logic
+    // Use filmTable which was already initialized
+    const view = await createView(context, {
+      title: 'Film View',
+      table: filmTable,
+      type: ViewTypes.GRID,
+    });
+
+    const columns = await filmTable.getColumns(ctx);
+
+    // get rows before hiding columns
+    const listResponse = await request(context.app)
+      .get(`/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}`)
+      .set('xc-auth', context.token)
+      .query({ limit: 1 })
+      .expect(200);
+
+    const rows = listResponse.body.list;
+
+    // hide few columns using update view column API
+    const columnsToHide = ['Rating', 'Description', 'ReleaseYear'];
+
+    // generate key value pair of column id and object with show as false
+    const viewColumnsObj: any = columnsToHide.reduce(
+      (acc: any, columnTitle) => {
+        const column = columns.find((c: ColumnType) => c.title === columnTitle);
+        if (column) {
+          acc[column.id] = {
+            show: false,
+          };
+        }
+        return acc;
+      },
+      {},
+    );
+
+    await updateViewColumns(context, {
+      view,
+      viewColumns: viewColumnsObj,
+    });
+
+    // get rows after update
+    const listResponseAfter = await request(context.app)
+      .get(`/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}`)
+      .set('xc-auth', context.token)
+      .query({ limit: 1 })
+      .expect(200);
+
+    const rowsAfterUpdate = listResponseAfter.body.list;
+
+    // verify column visible in old and hidden in new
+    for (const title of columnsToHide) {
+      expect(rows[0]).to.have.property(title);
+      expect(rowsAfterUpdate[0]).to.not.have.property(title);
+    }
+
+    // get view columns and verify hidden columns
+    const viewColApiRes: any = await getViewColumns(context, {
+      view,
+    });
+
+    for (const colId of Object.keys(viewColApiRes[APIContext.VIEW_COLUMNS])) {
+      const column = columns.find((c: ColumnType) => c.id === colId);
+      if (column && columnsToHide.includes(column.title)) {
+        expect(viewColApiRes[APIContext.VIEW_COLUMNS][colId]).to.have.property(
+          'show',
+        );
+        expect(!!viewColApiRes[APIContext.VIEW_COLUMNS][colId].show).to.be.eq(
+          false,
+        );
+      }
+    }
   });
   //#endregion View column API tests
 }

@@ -210,20 +210,20 @@ export const useWorkflowStore = defineStore('workflow', () => {
       const workflow = workflows.value.get(baseId)?.find((a) => a.id === workflowId)
       const updated = options?.skipNetworkCall
         ? {
-          ...workflow,
-          ...updates,
-        }
-        : await $api.internal.postOperation(
-          activeWorkspaceId.value,
-          baseId,
-          {
-            operation: 'workflowUpdate',
-          },
-          {
+            ...workflow,
             ...updates,
-            workflowId,
-          },
-        )
+          }
+        : await $api.internal.postOperation(
+            activeWorkspaceId.value,
+            baseId,
+            {
+              operation: 'workflowUpdate',
+            },
+            {
+              ...updates,
+              workflowId,
+            },
+          )
 
       if (options?.bumpDirty) {
         updated._dirty = workflow?._dirty ? +workflow?._dirty + 1 : 1

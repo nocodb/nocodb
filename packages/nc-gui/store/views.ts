@@ -310,7 +310,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
     const slugs = doNotSwitchTab ? router.currentRoute.value.params.slugs || [] : []
 
     if (ncIsArray(slugs)) {
-      ; (slugs as string[])[0] = getViewReadableUrlSlug({ tableTitle, viewOrViewTitle: view })
+      ;(slugs as string[])[0] = getViewReadableUrlSlug({ tableTitle, viewOrViewTitle: view })
     }
 
     if (

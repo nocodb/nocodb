@@ -23,7 +23,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const duplicateDashboard = async (..._params: any) => null
 
-  async function openNewDashboardModal(..._params: any) { }
+  async function openNewDashboardModal(..._params: any) {}
 
   return {
     // State

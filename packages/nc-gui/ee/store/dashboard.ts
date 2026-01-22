@@ -188,21 +188,21 @@ export const useDashboardStore = defineStore('dashboard', () => {
       const dashboard = dashboards.value.get(baseId)?.find((a) => a.id === dashboardId)
       const updated = options?.skipNetworkCall
         ? {
-          ...dashboard,
-          ...updates,
-        }
-        : await $api.internal.postOperation(
-          activeWorkspaceId.value,
-          baseId,
-          {
-            operation: 'dashboardUpdate',
-          },
-          {
+            ...dashboard,
             ...updates,
-            id: dashboardId,
-            dashboardId,
-          },
-        )
+          }
+        : await $api.internal.postOperation(
+            activeWorkspaceId.value,
+            baseId,
+            {
+              operation: 'dashboardUpdate',
+            },
+            {
+              ...updates,
+              id: dashboardId,
+              dashboardId,
+            },
+          )
 
       const baseDashboards = dashboards.value.get(baseId) || []
       const index = baseDashboards.findIndex((a) => a.id === dashboardId)

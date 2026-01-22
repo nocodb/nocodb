@@ -11,21 +11,21 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const activeWorkflow = computed(() => null)
 
   // Actions
-  const loadWorkflows = async (..._args: any[]) => { }
+  const loadWorkflows = async (..._args: any[]) => {}
 
-  const loadWorkflow = async (..._args: any[]) => { }
+  const loadWorkflow = async (..._args: any[]) => {}
 
-  const createWorkflow = async (..._args: any[]) => { }
+  const createWorkflow = async (..._args: any[]) => {}
 
-  const updateWorkflow = async (..._args: any[]) => { }
+  const updateWorkflow = async (..._args: any[]) => {}
 
-  const deleteWorkflow = async (..._args: any[]) => { }
+  const deleteWorkflow = async (..._args: any[]) => {}
 
-  const openWorkflow = async (..._args: any[]) => { }
+  const openWorkflow = async (..._args: any[]) => {}
 
-  const duplicateWorkflow = async (..._args: any[]) => { }
+  const duplicateWorkflow = async (..._args: any[]) => {}
 
-  async function openNewWorkflowModal(..._args: any[]) { }
+  async function openNewWorkflowModal(..._args: any[]) {}
 
   return {
     // State

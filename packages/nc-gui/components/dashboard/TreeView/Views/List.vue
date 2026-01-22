@@ -49,8 +49,6 @@ const views = computed(() => {
   return viewsByTable.value.get(key) ?? []
 })
 
-const { api } = useApi()
-
 const { refreshCommandPalette } = useCommandPalette()
 
 const { addUndo, defineModelScope } = useUndoRedo()

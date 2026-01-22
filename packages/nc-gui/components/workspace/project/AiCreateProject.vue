@@ -4,6 +4,7 @@ import { stringToViewTypeMap } from 'nocodb-sdk'
 interface Props {
   dialogShow: boolean
   aiMode: boolean | null
+  baseCreateMode: NcBaseCreateMode | null
   workspaceId?: string
   isCreateNewActionMenu?: boolean
   initialValue?: {
@@ -14,7 +15,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emit = defineEmits(['update:dialogShow', 'update:aiMode', 'navigateToProject'])
+const emit = defineEmits(['update:dialogShow', 'update:aiMode', 'update:baseCreateMode', 'navigateToProject'])
 
 enum SchemaPreviewTabs {
   TABLES_AND_VIEWS = 'TABLES_AND_VIEWS',
@@ -26,6 +27,8 @@ const loadingMessages = ['Suggesting tables', 'Suggesting fields', 'Suggesting l
 const dialogShow = useVModel(props, 'dialogShow', emit)
 
 const aiMode = useVModel(props, 'aiMode', emit)
+
+const baseCreateMode = useVModel(props, 'baseCreateMode', emit)
 
 const { workspaceId } = toRefs(props)
 
@@ -311,6 +314,7 @@ const handleMouseLeaveTag = () => {
 
 const resetToDefault = () => {
   aiMode.value = null
+  baseCreateMode.value = null
   aiStep.value = AI_STEP.PROMPT
   oldAiFormState.value = null
   aiFormState.value = defaultAiFormState
@@ -603,7 +607,6 @@ onMounted(() => {
 
           <template v-if="predictedSchema?.tables">
             <AiWizardCard
-              v-if="aiMode"
               v-model:active-tab="activePreviewTab"
               :tabs="previewTabs"
               class="!rounded-xl flex-1 flex flex-col min-w-[320px]"

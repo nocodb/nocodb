@@ -99,11 +99,11 @@ onMounted(() => {
         @click="selectMode('market')"
       >
         <div class="nc-placeholder-icon-wrapper">
-          <GeneralIcon icon="ncStore" class="nc-placeholder-icon !h-20 !w-20" />
+          <GeneralIcon icon="ncBox" class="nc-placeholder-icon !h-20 !w-20" />
         </div>
         <div class="nc-create-base-content">
           <div class="nc-create-base-content-title">
-            <GeneralIcon icon="ncStore" class="h-4 w-4 !text-nc-content-gray-subtle" />
+            <GeneralIcon icon="ncBox" class="h-4 w-4 !text-nc-content-gray-subtle" />
             Install from App Market
           </div>
           <div class="nc-create-base-content-subtitle">Browse and install pre-built Bases from the App Market.</div>

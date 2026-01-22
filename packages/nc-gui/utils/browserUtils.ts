@@ -224,3 +224,17 @@ export const openContactSalesEmail = (email: string = 'support@nocodb.com') => {
   a.target = '_blank'
   a.click()
 }
+
+export const getValidSlotName = (name: string, prefix?: string, suffix?: string): string => {
+  let slotName = name.replace(/\./g, '__')
+
+  if (prefix) {
+    slotName = `${prefix}-${slotName}`
+  }
+
+  if (suffix) {
+    slotName = `${slotName}-${suffix}`
+  }
+
+  return slotName
+}

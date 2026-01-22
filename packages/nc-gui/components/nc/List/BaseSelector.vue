@@ -101,7 +101,7 @@ watch(
 
       // Auto-select logic (only if autoSelect is enabled and no current value)
       if (!modelValue.value && props.autoSelect) {
-        const firstBase = newBaseList[0]
+        const firstBase = newBaseList[0]!
 
         if (firstBase.ncItemDisabled) {
           modelValue.value = newBaseList.find((base) => !base.ncItemDisabled)?.value || firstBase.value

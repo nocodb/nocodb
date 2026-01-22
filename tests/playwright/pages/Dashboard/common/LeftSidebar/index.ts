@@ -92,8 +92,8 @@ export class LeftSidebarPage extends BasePage {
     await this.btn_newProject.click();
 
     if (isEE()) {
-      await this.rootPage.locator('.nc-create-base').waitFor();
-      await this.rootPage.locator('.nc-create-base').click();
+      await this.rootPage.getByTestId('nc-base-create-menu').waitFor();
+      await this.rootPage.getByTestId('nc-base-create-menu').getByTestId('nc-menu-from-scratch').click();
     }
 
     await this.rootPage.locator('.ant-modal-content:has-text(" Create Base")').waitFor();

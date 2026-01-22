@@ -1603,7 +1603,7 @@
     "includeComments": "Include comments",
     "zoomInToViewColumns": "Zoom in to view columns",
     "embedInSite": "Embed this view in your site",
-    "titleRequired": "title is required.",
+    "titleRequired": "Title is required.",
     "sourceNameRequired": "Source name is required",
     "changeWsName": "Change Workspace Name",
     "pressEnter": "Press Enter",

@@ -60,9 +60,7 @@ export class FiltersService {
     ncMeta?: MetaService,
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const filter = await Filter.get(context, param.filterId);

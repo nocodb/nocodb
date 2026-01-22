@@ -198,6 +198,7 @@ watch(
 
 <template>
   <div class="nc-form-builder nc-scrollbar-thin relative">
+    <slot name="header"></slot>
     <a-form ref="form" :model="formState" hide-required-mark layout="vertical" class="flex flex-col gap-8 !pb-2">
       <template v-for="category in Object.keys(formElementsCategorized)" :key="category">
         <div class="nc-form-section">
@@ -310,6 +311,24 @@ watch(
                       :value="deepReference(field.model)"
                       :placeholder="field.placeholder"
                       @update:value="setFormStateWithEmit(field.model, $event)"
+                    >
+                      <!-- Todo: @rameshmane7218 slots customization  -->
+                      <!-- <template v-if="$slots[getValidSlotName(field.model, 'prefix')]" #prefix>
+                        <slot :name="getValidSlotName(field.model, 'prefix')" />
+                      </template>
+<template v-if="$slots[getValidSlotName(field.model, 'suffix')]" #suffix>
+                        <slot :name="getValidSlotName(field.model, 'suffix')" />
+                      </template> -->
+                    </a-input>
+                  </template>
+                  <template v-else-if="field.type === FormBuilderInputType.Textarea">
+                    <a-textarea
+                      class="!w-full !rounded-lg !text-sm !min-h-[90px] max-h-[500px] nc-scrollbar-thin"
+                      size="large"
+                      hide-details
+                      :value="deepReference(field.model)"
+                      :placeholder="field.placeholder"
+                      @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Number">
@@ -340,14 +359,39 @@ watch(
                       <NcSelect
                         :disabled="disabled"
                         :value="getSelectValue(field)"
-                        :options="field.fetchOptionsKey ? getFieldOptions(field.model) : field.options"
                         :mode="selectMode(field)"
                         :max-tag-count="field.selectMode === 'singleWithInput' ? 1 : undefined"
                         show-search
                         :placeholder="field.placeholder"
                         :loading="field.fetchOptionsKey && getIsLoadingFieldOptions(field.model)"
                         @update:value="handleSelectChange(field, $event)"
-                      />
+                      >
+                        <a-select-option
+                          v-for="option in field.fetchOptionsKey ? getFieldOptions(field.model) : field.options"
+                          :key="option.value"
+                          :value="option.value"
+                        >
+                          <div class="w-full flex gap-2 items-center" :data-testid="option.value">
+                            <GeneralIcon v-if="option.icon" :icon="option.icon" class="flex-none h-4 w-4" />
+                            <NcTooltip class="flex-1 truncate min-w-0" show-on-truncate-only>
+                              <template #title>
+                                {{ option.label }}
+                              </template>
+                              {{ option.label }}
+                            </NcTooltip>
+                            <component
+                              :is="iconMap.check"
+                              v-if="
+                                ncIsArray(getSelectValue(field))
+                                  ? getSelectValue(field).includes(option.value)
+                                  : getSelectValue(field) === option.value
+                              "
+                              id="nc-selected-item-icon"
+                              class="text-nc-content-brand w-4 h-4"
+                            />
+                          </div>
+                        </a-select-option>
+                      </NcSelect>
                     </NcFormBuilderInputMountedWrapper>
                   </template>
                   <template v-else-if="field.type === FormBuilderInputType.Switch">
@@ -395,7 +439,7 @@ watch(
                       >
                         <div class="w-full flex gap-2 items-center" :data-testid="integration.title">
                           <GeneralIntegrationIcon v-if="integration?.sub_type" :type="integration.sub_type" />
-                          <NcTooltip class="flex-1 truncate">
+                          <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                             <template #title>
                               {{ integration.title }}
                             </template>
@@ -405,7 +449,7 @@ watch(
                             :is="iconMap.check"
                             v-if="formState.fk_integration_id === integration.id"
                             id="nc-selected-item-icon"
-                            class="text-primary w-4 h-4"
+                            class="text-nc-content-brand w-4 h-4"
                           />
                         </div>
                       </a-select-option>
@@ -430,6 +474,7 @@ watch(
                     <NcFormBuilderInputSelectBase
                       :value="deepReference(field.model)"
                       :disabled="disabled"
+                      :filter-option="field.filterOption"
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
@@ -662,6 +707,7 @@ watch(
 
   :deep(.ant-row:not(.ant-form-item)) {
     @apply !-mx-1.5;
+
     & > .ant-col {
       @apply !px-1.5;
     }
@@ -676,7 +722,7 @@ watch(
   @apply mt-2 mb-2;
 
   button {
-    @apply hover:!text-nc-content-brand;
+    @apply hover: !text-nc-content-brand;
   }
 }
 </style>

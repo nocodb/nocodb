@@ -220,3 +220,12 @@ export const EventBusEnum = {
   RealtimeViewMeta: Symbol('RealtimeViewMeta'),
   SmartsheetActions: Symbol('SmartSheetActions'),
 }
+
+export enum NcBaseCreateMode {
+  FROM_SCRATCH = 'fromScratch',
+  FROM_TEMPLATE = 'fromTemplate',
+  BUILD_WITH_AI = 'buildWithAi',
+  FROM_APP_STORE = 'fromAppStore',
+  MANAGED_APP = 'managedApp',
+  SANDBOX_APP = 'sandboxApp',
+}

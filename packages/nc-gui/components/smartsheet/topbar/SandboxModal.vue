@@ -261,7 +261,7 @@ watch(
           <div class="space-y-4">
             <div>
               <label class="text-nc-content-gray text-sm font-medium mb-2 block">Version</label>
-              <a-input :value="currentVersion?.version" disabled size="large" class="rounded-lg">
+              <a-input :value="currentVersion?.version" disabled size="large" class="rounded-lg nc-input-sm">
                 <template #prefix>
                   <span class="text-nc-content-gray-subtle2">v</span>
                 </template>
@@ -271,29 +271,36 @@ watch(
             <div>
               <label class="text-nc-content-gray text-sm font-medium mb-2 block">Release Notes (Optional)</label>
               <a-textarea v-model:value="publishForm.releaseNotes" placeholder="Describe what's new in this version"
-                :rows="6" size="large" class="rounded-lg" />
+                :rows="6" size="large" class="rounded-lg nc-input-sm" />
             </div>
           </div>
         </div>
 
         <!-- Fork Tab -->
         <div v-if="activeTab === 'fork'" class="p-6">
-          <div class="mb-4 bg-nc-bg-blue-light border border-nc-border-blue rounded-lg p-4">
-            <div class="flex gap-3">
-              <GeneralIcon icon="info" class="w-5 h-5 text-nc-content-blue-dark mt-0.5 flex-shrink-0" />
-              <div class="text-sm text-nc-content-gray">
-                Create a new draft version to work on updates. Current published version
-                <strong>{{ currentVersion?.version }}</strong> will remain unchanged.
-              </div>
-            </div>
-          </div>
+         
+          <NcAlert
+            type="info"
+            :align="'top'"
+            description="Convert this base into a living application that can be published to the App Store. You'll be able to manage versions and push updates to all installations."
+            class="!p-3 !items-start bg-nc-bg-blue-light border-1 !border-nc-blue-200 rounded-lg p-3 mb-4"
+          >
+            <template #icon>
+              <GeneralIcon icon="info" class="w-4 h-4 mt-0.5 text-nc-content-blue-dark flex-none" />
+            </template>
+
+            <template #description>
+              Create a new draft version to work on updates. Current published version
+              <strong>{{ currentVersion?.version }}</strong> will remain unchanged.
+            </template>
+          </NcAlert>
 
           <div class="space-y-4">
             <div>
               <label class="text-nc-content-gray text-sm font-medium mb-2 block">
                 New Version <span class="text-nc-content-red-dark">*</span>
               </label>
-              <a-input v-model:value="forkForm.version" placeholder="e.g., 2.0.0" size="large" class="rounded-lg">
+              <a-input v-model:value="forkForm.version" placeholder="e.g., 2.0.0" size="large" class="rounded-lg nc-input-sm nc-input-shadow">
                 <template #prefix>
                   <span class="text-nc-content-gray-subtle2">v</span>
                 </template>

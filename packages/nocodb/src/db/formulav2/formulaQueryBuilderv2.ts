@@ -10,6 +10,7 @@ import {
 } from 'nocodb-sdk';
 import { getColumnName } from 'src/helpers/dbHelpers';
 import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
+import { isTransientError } from 'src/helpers/db-error/utils';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import { replaceDelimitedWithKeyValuePg } from '../aggregations/pg';
 import { replaceDelimitedWithKeyValueSqlite3 } from '../aggregations/sqlite3';
@@ -554,13 +555,18 @@ export default async function formulaQueryBuilderv2({
       context.cacheMap?.clear();
     }
   } catch (e) {
+    // Check if this is a transient error (connection/timeout issue)
+    const isTransient = isTransientError(e);
+
     // Mark formula error if formula validation is invoked
     // or if a circular reference error occurs and a column is provided
+    // BUT skip marking for transient errors
     if (
-      validateFormula ||
-      (column?.id &&
-        e instanceof NcBaseErrorv2 &&
-        e.error === NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA)
+      !isTransient &&
+      (validateFormula ||
+        (column?.id &&
+          e instanceof NcBaseErrorv2 &&
+          e.error === NcErrorType.ERR_CIRCULAR_REF_IN_FORMULA))
     ) {
       console.error(e);
 
@@ -577,9 +583,7 @@ export default async function formulaQueryBuilderv2({
               error: e.message,
             },
           );
-        } else if (
-          ![NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT].includes(e.error)
-        ) {
+        } else {
           // add formula error to show in UI
           await FormulaColumn.update(context, column.id, {
             error: e.message,

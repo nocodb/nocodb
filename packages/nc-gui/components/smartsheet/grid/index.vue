@@ -222,10 +222,10 @@ const updateViewWidth = () => {
 
 const isInfiniteScrollingEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.INFINITE_SCROLLING))
 
-const isCanvasTableEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.CANVAS_GRID_VIEW))
+const isCanvasTableEnabled = computed(() => !ncIsPlaywright())
 
 const isCanvasGroupByTableEnabled = computed(
-  () => isFeatureEnabled(FEATURE_FLAG.CANVAS_GROUP_GRID_VIEW) && !blockExternalSourceRecordVisibility(isExternalSource.value),
+  () => !ncIsPlaywright() && !blockExternalSourceRecordVisibility(isExternalSource.value),
 )
 
 watch([windowSize, leftSidebarWidth], updateViewWidth)

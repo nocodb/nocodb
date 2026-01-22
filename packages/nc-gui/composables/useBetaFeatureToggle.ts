@@ -33,33 +33,11 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'canvas_grid_view',
-    title: 'Improved Grid View',
-    description: 'High-performance grid view with enhanced scrolling and rendering capabilities.',
-    enabled: !ncIsPlaywright(),
-    version: 1,
-  },
-  {
-    id: 'canvas_group_grid_view',
-    title: 'Improved Group By',
-    description: 'New and Improved groupby in grid view with enhanced scrolling and rendering capabilities.',
-    enabled: !ncIsPlaywright(),
-    version: 1,
-  },
-  {
     id: 'link_to_another_record',
     title: 'Link To Another Record',
     description: 'Show linked record display value in Link fields.',
     enabled: false,
     version: 1,
-  },
-  {
-    id: 'ai_features',
-    title: 'AI features',
-    description: 'Unlock AI features to enhance your NocoDB experience.',
-    enabled: true,
-    version: 3,
-    isEE: true,
   },
   {
     id: 'ai_beta_features',

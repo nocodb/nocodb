@@ -15,11 +15,15 @@ const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
+const { navigateToProject } = useGlobal()
+
 const initialSanboxFormState = ref<Record<string, any>>({
   title: '',
   description: '',
   category: '',
   visibility: 'private',
+  startFrom: 'new',
+  baseId: undefined,
 })
 
 const workspaceStore = useWorkspace()
@@ -59,8 +63,8 @@ const createManagedApp = async (formState: Record<string, any>) => {
     visible.value = false
 
     // Update the base with the sandbox_id from response
-    if (response && response.sandbox_id) {
-      const currentBase = basesStore.bases.get(props.baseId)
+    if (response && response.sandbox_id && formState.baseId) {
+      const currentBase = basesStore.bases.get(formState.baseId as string)
       if (currentBase) {
         ;(currentBase as any).sandbox_id = response.sandbox_id
       }
@@ -71,6 +75,13 @@ const createManagedApp = async (formState: Record<string, any>) => {
       await basesStore.loadProject(formState.baseId, true)
     } else {
       await basesStore.loadProjects()
+    }
+
+    if (response?.base_id || formState.baseId) {
+      navigateToProject({
+        baseId: response?.base_id || formState.baseId,
+        workspaceId: activeWorkspaceId.value as string,
+      })
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -137,6 +148,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
         model: 'startFrom',
         equal: 'existing',
       },
+      defaultValue: undefined,
     },
     {
       type: FormBuilderInputType.Input,

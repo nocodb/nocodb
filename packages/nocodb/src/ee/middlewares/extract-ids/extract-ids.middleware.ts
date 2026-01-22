@@ -49,7 +49,7 @@ import {
   View,
   Workspace,
 } from '~/models';
-import Sandbox from '~/models/Sandbox';
+import ManagedApp from '~/models/ManagedApp';
 import rolePermissions, {
   generateReadablePermissionErr,
   sourceRestrictions,
@@ -480,7 +480,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     await this.additionalValidation({ req, res, next });
 
     if (req.ncBase) {
-      req.context.schema_locked = !!(req.ncBase as Base).sandbox_schema_locked;
+      req.context.schema_locked = !!(req.ncBase as Base).managed_app_schema_locked;
     }
 
     next();
@@ -929,18 +929,18 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       // Extract table ID for permission check at the end
       tableIdToCheck = audit.fk_model_id;
     }
-    // extract base id and workspace id from sandbox id if provided
-    else if (req.query.sandboxId) {
-      const sandbox = await Sandbox.get(req.query.sandboxId);
+    // extract base id and workspace id from managed app id if provided
+    else if (req.query.managedAppId) {
+      const managedApp = await ManagedApp.get(req.query.managedAppId);
 
-      if (!sandbox) {
-        NcError.genericNotFound('Sandbox', req.query.sandboxId);
+      if (!managedApp) {
+        NcError.genericNotFound('ManagedApp', req.query.managedAppId);
       }
 
-      req.ncBase = await Base.get(context, sandbox.base_id);
+      req.ncBase = await Base.get(context, managedApp.base_id);
 
       if (!req.ncBase) {
-        NcError.baseNotFound(sandbox.base_id);
+        NcError.baseNotFound(managedApp.base_id);
       }
 
       req.ncBaseId = req.ncBase.id;
@@ -1002,7 +1002,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       if (req.ncBase) {
         req.ncWorkspaceId = (req.ncBase as Base).fk_workspace_id;
         // Read computed schema_locked property
-        req.ncSchemaLocked = !!(req.ncBase as Base).sandbox_schema_locked;
+        req.ncSchemaLocked = !!(req.ncBase as Base).managed_app_schema_locked;
       } else {
         NcError.baseNotFound(req.ncBaseId);
       }

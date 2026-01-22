@@ -5,8 +5,8 @@ import { WorkflowGetOperations } from '~/controllers/internal/modules/WorkflowGe
 import { UiPostOperations } from '~/controllers/internal/modules/UiPost.operations';
 import { UiGetOperations } from '~/controllers/internal/modules/UiGet.operations';
 import { IntegrationPostOperations } from '~/controllers/internal/modules/IntegrationPost.operations';
-import { SandboxGetOperations } from '~/controllers/internal/modules/SandboxGet.operations';
-import { SandboxPostOperations } from '~/controllers/internal/modules/SandboxPost.operations';
+import { ManagedAppGetOperations } from '~/controllers/internal/modules/ManagedAppGet.operations';
+import { ManagedAppPostOperations } from '~/controllers/internal/modules/ManagedAppPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -16,8 +16,8 @@ export const InternalApiModules = [
   UiPostOperations,
   UiGetOperations,
   IntegrationPostOperations,
-  SandboxGetOperations,
-  SandboxPostOperations,
+  ManagedAppGetOperations,
+  ManagedAppPostOperations,
 ];
 
 export const InternalApiModuleProvider = {

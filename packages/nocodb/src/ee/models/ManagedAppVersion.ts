@@ -1,4 +1,4 @@
-import { SandboxVersionStatus } from 'nocodb-sdk';
+import { ManagedAppVersionStatus } from 'nocodb-sdk';
 import Noco from '~/Noco';
 import {
   CacheGetType,
@@ -10,12 +10,12 @@ import NocoCache from '~/cache/NocoCache';
 import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 
-export default class SandboxVersion {
+export default class ManagedAppVersion {
   id?: string;
-  fk_sandbox_id: string;
+  fk_managed_app_id: string;
   version: string;
   version_number: number;
-  status: SandboxVersionStatus;
+  status: ManagedAppVersionStatus;
   fk_workspace_id: string;
   schema: string; // Serialized schema JSON
   release_notes?: string;
@@ -23,66 +23,66 @@ export default class SandboxVersion {
   updated_at?: string;
   published_at?: string;
 
-  constructor(data: Partial<SandboxVersion>) {
+  constructor(data: Partial<ManagedAppVersion>) {
     Object.assign(this, data);
   }
 
   public static async get(
-    sandboxVersionId: string,
+    managedAppVersionId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<SandboxVersion> {
-    let sandboxVersion =
-      sandboxVersionId &&
+  ): Promise<ManagedAppVersion> {
+    let managedAppVersion =
+      managedAppVersionId &&
       (await NocoCache.get(
         'root',
-        `${CacheScope.SANDBOX_VERSION}:${sandboxVersionId}`,
+        `${CacheScope.MANAGED_APP_VERSION}:${managedAppVersionId}`,
         CacheGetType.TYPE_OBJECT,
       ));
 
-    if (!sandboxVersion) {
-      sandboxVersion = await ncMeta.metaGet2(
+    if (!managedAppVersion) {
+      managedAppVersion = await ncMeta.metaGet2(
         RootScopes.ROOT,
         RootScopes.ROOT,
-        MetaTable.SANDBOX_VERSIONS,
-        sandboxVersionId,
+        MetaTable.MANAGED_APP_VERSIONS,
+        managedAppVersionId,
       );
 
-      if (!sandboxVersion) return null;
+      if (!managedAppVersion) return null;
 
-      sandboxVersion = prepareForResponse(sandboxVersion);
+      managedAppVersion = prepareForResponse(managedAppVersion);
 
       await NocoCache.set(
         'root',
-        `${CacheScope.SANDBOX_VERSION}:${sandboxVersionId}`,
-        sandboxVersion,
+        `${CacheScope.MANAGED_APP_VERSION}:${managedAppVersionId}`,
+        managedAppVersion,
       );
     }
 
-    return new SandboxVersion(sandboxVersion);
+    return new ManagedAppVersion(managedAppVersion);
   }
 
   public static async getByVersion(
-    sandboxId: string,
+    managedAppId: string,
     version: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<SandboxVersion> {
-    const cacheKey = `${CacheScope.SANDBOX_VERSION}:${sandboxId}:${version}`;
+  ): Promise<ManagedAppVersion> {
+    const cacheKey = `${CacheScope.MANAGED_APP_VERSION}:${managedAppId}:${version}`;
 
-    let sandboxVersion = await NocoCache.get(
+    let managedAppVersion = await NocoCache.get(
       'root',
       cacheKey,
       CacheGetType.TYPE_OBJECT,
     );
 
-    if (!sandboxVersion) {
+    if (!managedAppVersion) {
       const versions = await ncMeta.metaList2(
         RootScopes.ROOT,
         RootScopes.ROOT,
-        MetaTable.SANDBOX_VERSIONS,
+        MetaTable.MANAGED_APP_VERSIONS,
         {
           xcCondition: {
             _and: [
-              { fk_sandbox_id: { eq: sandboxId } },
+              { fk_managed_app_id: { eq: managedAppId } },
               { version: { eq: version } },
             ],
           },
@@ -91,25 +91,25 @@ export default class SandboxVersion {
 
       if (!versions || versions.length === 0) return null;
 
-      sandboxVersion = prepareForResponse(versions[0]);
+      managedAppVersion = prepareForResponse(versions[0]);
 
-      await NocoCache.set('root', cacheKey, sandboxVersion);
+      await NocoCache.set('root', cacheKey, managedAppVersion);
     }
 
-    return new SandboxVersion(sandboxVersion);
+    return new ManagedAppVersion(managedAppVersion);
   }
 
   public static async list(
-    sandboxId: string,
+    managedAppId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<SandboxVersion[]> {
+  ): Promise<ManagedAppVersion[]> {
     const versions = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOX_VERSIONS,
+      MetaTable.MANAGED_APP_VERSIONS,
       {
         xcCondition: {
-          _and: [{ fk_sandbox_id: { eq: sandboxId } }],
+          _and: [{ fk_managed_app_id: { eq: managedAppId } }],
         },
         orderBy: {
           version_number: 'desc',
@@ -118,21 +118,21 @@ export default class SandboxVersion {
     );
 
     return (
-      versions?.map((v) => new SandboxVersion(prepareForResponse(v))) || []
+      versions?.map((v) => new ManagedAppVersion(prepareForResponse(v))) || []
     );
   }
 
   public static async getLatest(
-    sandboxId: string,
+    managedAppId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<SandboxVersion> {
+  ): Promise<ManagedAppVersion> {
     const versions = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOX_VERSIONS,
+      MetaTable.MANAGED_APP_VERSIONS,
       {
         xcCondition: {
-          _and: [{ fk_sandbox_id: { eq: sandboxId } }],
+          _and: [{ fk_managed_app_id: { eq: managedAppId } }],
         },
         orderBy: {
           version_number: 'desc',
@@ -143,24 +143,24 @@ export default class SandboxVersion {
 
     if (!versions || versions.length === 0) return null;
 
-    return new SandboxVersion(prepareForResponse(versions[0]));
+    return new ManagedAppVersion(prepareForResponse(versions[0]));
   }
 
   public static async getNextVersionNumber(
-    sandboxId: string,
+    managedAppId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    const latest = await this.getLatest(sandboxId, ncMeta);
+    const latest = await this.getLatest(managedAppId, ncMeta);
     return latest ? latest.version_number + 1 : 1;
   }
 
   public static async insert(
-    sandboxVersion: Partial<SandboxVersion>,
+    managedAppVersion: Partial<ManagedAppVersion>,
     ncMeta = Noco.ncMeta,
-  ): Promise<SandboxVersion> {
-    const insertObj = extractProps(sandboxVersion, [
+  ): Promise<ManagedAppVersion> {
+    const insertObj = extractProps(managedAppVersion, [
       'id',
-      'fk_sandbox_id',
+      'fk_managed_app_id',
       'version',
       'status',
       'fk_workspace_id',
@@ -169,17 +169,17 @@ export default class SandboxVersion {
     ]);
 
     // Default to draft if not specified
-    insertObj.status = insertObj.status || SandboxVersionStatus.DRAFT;
+    insertObj.status = insertObj.status || ManagedAppVersionStatus.DRAFT;
 
     insertObj.version_number = await this.getNextVersionNumber(
-      insertObj.fk_sandbox_id,
+      insertObj.fk_managed_app_id,
       ncMeta,
     );
 
     const { id } = await ncMeta.metaInsert2(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOX_VERSIONS,
+      MetaTable.MANAGED_APP_VERSIONS,
       prepareForDb(insertObj),
     );
 
@@ -187,28 +187,28 @@ export default class SandboxVersion {
   }
 
   public static async delete(
-    sandboxVersionId: string,
+    managedAppVersionId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
     await ncMeta.metaDelete(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOX_VERSIONS,
-      sandboxVersionId,
+      MetaTable.MANAGED_APP_VERSIONS,
+      managedAppVersionId,
     );
 
     await NocoCache.del(
       'root',
-      `${CacheScope.SANDBOX_VERSION}:${sandboxVersionId}`,
+      `${CacheScope.MANAGED_APP_VERSION}:${managedAppVersionId}`,
     );
   }
 
   public static async update(
-    sandboxVersionId: string,
-    sandboxVersion: Partial<SandboxVersion>,
+    managedAppVersionId: string,
+    managedAppVersion: Partial<ManagedAppVersion>,
     ncMeta = Noco.ncMeta,
-  ): Promise<SandboxVersion> {
-    const updateObj = extractProps(sandboxVersion, [
+  ): Promise<ManagedAppVersion> {
+    const updateObj = extractProps(managedAppVersion, [
       'version',
       'status',
       'schema',
@@ -218,24 +218,24 @@ export default class SandboxVersion {
     await ncMeta.metaUpdate(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOX_VERSIONS,
+      MetaTable.MANAGED_APP_VERSIONS,
       prepareForDb(updateObj),
-      sandboxVersionId,
+      managedAppVersionId,
     );
 
     await NocoCache.del(
       'root',
-      `${CacheScope.SANDBOX_VERSION}:${sandboxVersionId}`,
+      `${CacheScope.MANAGED_APP_VERSION}:${managedAppVersionId}`,
     );
 
-    return this.get(sandboxVersionId, ncMeta);
+    return this.get(managedAppVersionId, ncMeta);
   }
 
   public getParsedSchema(): any {
     try {
       return JSON.parse(this.schema);
     } catch (e) {
-      console.error('Failed to parse sandbox version schema:', e);
+      console.error('Failed to parse managed app version schema:', e);
       return null;
     }
   }

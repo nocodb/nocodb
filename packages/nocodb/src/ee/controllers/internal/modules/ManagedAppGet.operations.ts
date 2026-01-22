@@ -6,28 +6,28 @@ import type {
   InternalGETResponseType,
 } from '~/utils/internal-type';
 import { NcError } from '~/helpers/catchError';
-import Sandbox from '~/models/Sandbox';
-import SandboxVersion from '~/models/SandboxVersion';
-import SandboxDeploymentLog from '~/models/SandboxDeploymentLog';
+import ManagedApp from '~/models/ManagedApp';
+import ManagedAppVersion from '~/models/ManagedAppVersion';
+import ManagedAppDeploymentLog from '~/models/ManagedAppDeploymentLog';
 import { Base } from '~/models';
 import { diffMeta, serializeMeta } from '~/helpers/baseMetaHelpers';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 
 @Injectable()
-export class SandboxGetOperations
+export class ManagedAppGetOperations
   implements InternalApiModule<InternalGETResponseType>
 {
   httpMethod = 'GET' as const;
   operations = [
-    'sandboxStoreList',
-    'sandboxList',
-    'sandboxGet',
-    'sandboxGetUpdates',
-    'sandboxVersionsList',
-    'sandboxDeployments',
-    'sandboxVersionDeployments',
-    'sandboxDeploymentLogs',
+    'managedAppStoreList',
+    'managedAppList',
+    'managedAppGet',
+    'managedAppGetUpdates',
+    'managedAppVersionsList',
+    'managedAppDeployments',
+    'managedAppVersionDeployments',
+    'managedAppDeploymentLogs',
   ] as (keyof typeof OPERATION_SCOPES)[];
 
   async handle(
@@ -44,21 +44,21 @@ export class SandboxGetOperations
     },
   ): InternalGETResponseType {
     switch (operation) {
-      case 'sandboxStoreList':
+      case 'managedAppStoreList':
         return await this.listStore(context, req);
-      case 'sandboxList':
+      case 'managedAppList':
         return await this.list(context, workspaceId, req);
-      case 'sandboxGet':
+      case 'managedAppGet':
         return await this.get(context, req);
-      case 'sandboxGetUpdates':
+      case 'managedAppGetUpdates':
         return await this.getUpdates(context, req);
-      case 'sandboxVersionsList':
+      case 'managedAppVersionsList':
         return await this.listVersions(context, req);
-      case 'sandboxDeployments':
+      case 'managedAppDeployments':
         return await this.getDeployments(context, req);
-      case 'sandboxVersionDeployments':
+      case 'managedAppVersionDeployments':
         return await this.getVersionDeployments(context, req);
-      case 'sandboxDeploymentLogs':
+      case 'managedAppDeploymentLogs':
         return await this.getDeploymentLogs(context, req);
       default:
         return NcError.notFound('Operation');
@@ -68,7 +68,7 @@ export class SandboxGetOperations
   private async listStore(context: NcContext, req: NcRequest) {
     const { category, search, limit, offset } = req.query;
 
-    const sandboxes = await Sandbox.listPublished({
+    const managedApps = await ManagedApp.listPublished({
       category: category as string,
       search: search as string,
       limit: limit ? parseInt(limit as string, 10) : 50,
@@ -78,7 +78,7 @@ export class SandboxGetOperations
     });
 
     return {
-      list: sandboxes,
+      list: managedApps,
       pageInfo: {},
     };
   }
@@ -86,7 +86,7 @@ export class SandboxGetOperations
   private async list(context: NcContext, workspaceId: string, req: NcRequest) {
     const { limit, offset } = req.query;
 
-    const sandboxes = await Sandbox.list({
+    const managedApps = await ManagedApp.list({
       workspaceId,
       userId: req.user.id,
       limit: limit ? parseInt(limit as string, 10) : 50,
@@ -94,61 +94,61 @@ export class SandboxGetOperations
     });
 
     return {
-      list: sandboxes,
+      list: managedApps,
       pageInfo: {},
     };
   }
 
   private async get(context: NcContext, req: NcRequest) {
-    const { sandboxId, baseId } = req.query;
+    const { managedAppId, baseId } = req.query;
 
-    let sandbox: Sandbox | null = null;
+    let managedApp: ManagedApp | null = null;
 
-    if (sandboxId) {
-      sandbox = await Sandbox.get(sandboxId as string);
+    if (managedAppId) {
+      managedApp = await ManagedApp.get(managedAppId as string);
     } else if (baseId) {
-      sandbox = await Sandbox.getByBaseId(baseId as string);
+      managedApp = await ManagedApp.getByBaseId(baseId as string);
     }
 
-    if (!sandbox) {
-      NcError.get(context).notFound('Sandbox not found');
+    if (!managedApp) {
+      NcError.get(context).notFound('Managed app not found');
     }
 
     // Check visibility permissions
-    const canView = this.canViewSandbox(
-      sandbox,
+    const canView = this.canViewManagedApp(
+      managedApp,
       req.user?.id,
       context.workspace_id,
     );
     if (!canView) {
-      NcError.get(context).notFound('Sandbox not found');
+      NcError.get(context).notFound('Managed app not found');
     }
 
-    return sandbox;
+    return managedApp;
   }
 
   private async getUpdates(context: NcContext, req: NcRequest) {
-    const { sandboxId, installedBaseId } = req.query;
+    const { managedAppId, installedBaseId } = req.query;
 
-    const sandbox = await Sandbox.get(sandboxId as string);
+    const managedApp = await ManagedApp.get(managedAppId as string);
 
-    if (!sandbox) {
-      NcError.get(context).notFound('Sandbox not found');
+    if (!managedApp) {
+      NcError.get(context).notFound('Managed app not found');
     }
 
     // Check visibility permissions
-    const canView = this.canViewSandbox(
-      sandbox,
+    const canView = this.canViewManagedApp(
+      managedApp,
       req.user?.id,
       context.workspace_id,
     );
     if (!canView) {
-      NcError.get(context).notFound('Sandbox not found');
+      NcError.get(context).notFound('Managed app not found');
     }
 
-    const masterBase = await Base.get(context, sandbox.base_id);
+    const masterBase = await Base.get(context, managedApp.base_id);
     if (!masterBase) {
-      NcError.get(context).baseNotFound(sandbox.base_id);
+      NcError.get(context).baseNotFound(managedApp.base_id);
     }
 
     const installedBase = await Base.get(context, installedBaseId as string);
@@ -197,7 +197,7 @@ export class SandboxGetOperations
     const diff = await diffMeta(installedMeta, masterMeta);
 
     return {
-      sandbox,
+      managedApp,
       masterBase: {
         id: masterBase.id,
         title: masterBase.title,
@@ -214,26 +214,26 @@ export class SandboxGetOperations
   }
 
   private async listVersions(context: NcContext, req: NcRequest) {
-    const { sandboxId } = req.query;
+    const { managedAppId } = req.query;
 
-    if (!sandboxId) {
-      NcError.get(context).badRequest('sandboxId is required');
+    if (!managedAppId) {
+      NcError.get(context).badRequest('managedAppId is required');
     }
 
-    const sandbox = await Sandbox.get(sandboxId as string);
+    const managedApp = await ManagedApp.get(managedAppId as string);
 
-    if (!sandbox) {
-      NcError.get(context).notFound('Sandbox not found');
+    if (!managedApp) {
+      NcError.get(context).notFound('Managed app not found');
     }
 
     // Only owner can view version history
-    if (sandbox.created_by !== req.user.id) {
+    if (managedApp.created_by !== req.user.id) {
       NcError.get(context).unauthorized(
         'Only the owner can view version history',
       );
     }
 
-    const versions = await SandboxVersion.list(sandboxId as string);
+    const versions = await ManagedAppVersion.list(managedAppId as string);
 
     return {
       list: versions.map((v) => ({
@@ -250,65 +250,65 @@ export class SandboxGetOperations
   }
 
   private async getDeployments(context: NcContext, req: NcRequest) {
-    const { sandboxId } = req.query;
+    const { managedAppId } = req.query;
 
-    if (!sandboxId) {
-      NcError.get(context).badRequest('sandboxId is required');
+    if (!managedAppId) {
+      NcError.get(context).badRequest('managedAppId is required');
     }
 
-    const sandbox = await Sandbox.get(sandboxId as string);
+    const managedApp = await ManagedApp.get(managedAppId as string);
 
-    if (!sandbox) {
-      NcError.get(context).notFound('Sandbox not found');
+    if (!managedApp) {
+      NcError.get(context).notFound('Managed app not found');
     }
 
     // Only owner can view deployment statistics
-    if (sandbox.created_by !== req.user.id) {
+    if (managedApp.created_by !== req.user.id) {
       NcError.get(context).unauthorized(
         'Only the owner can view deployment statistics',
       );
     }
 
-    // Get all bases that have this sandbox installed with latest deployment log status
+    // Get all bases that have this managed app installed with latest deployment log status
     const installedBases = await Noco.ncMeta
       .knexConnection(MetaTable.PROJECT)
       .leftJoin(
         Noco.ncMeta.knexConnection.raw(
           `(
             SELECT DISTINCT ON (base_id) base_id, status
-            FROM ${MetaTable.SANDBOX_DEPLOYMENT_LOGS}
+            FROM ${MetaTable.MANAGED_APP_DEPLOYMENT_LOGS}
             ORDER BY base_id, created_at DESC
           ) as latest_log`,
         ),
         `${MetaTable.PROJECT}.id`,
         'latest_log.base_id',
       )
-      .where(`${MetaTable.PROJECT}.sandbox_id`, sandboxId)
-      .where(`${MetaTable.PROJECT}.sandbox_master`, false)
+      .where(`${MetaTable.PROJECT}.managed_app_id`, managedAppId)
+      .where(`${MetaTable.PROJECT}.managed_app_master`, false)
       .where(`${MetaTable.PROJECT}.deleted`, false)
       .select(
         `${MetaTable.PROJECT}.id`,
         `${MetaTable.PROJECT}.title`,
-        `${MetaTable.PROJECT}.sandbox_version_id`,
+        `${MetaTable.PROJECT}.managed_app_version_id`,
         `${MetaTable.PROJECT}.updated_at`,
         `${MetaTable.PROJECT}.created_at`,
         'latest_log.status as deployment_status',
       );
 
     // Get version information for each installation
-    const versions = await SandboxVersion.list(sandboxId);
+    const versions = await ManagedAppVersion.list(managedAppId);
     const versionMap = new Map(
       versions.map((v) => [v.id, { version: v.version, status: v.status }]),
     );
 
     // Build deployment list with version info and deployment status
     const deploymentsList = installedBases.map((base) => {
-      const versionInfo = versionMap.get(base.sandbox_version_id);
+      const versionInfo = versionMap.get(base.managed_app_version_id);
       return {
         baseId: base.id,
         baseTitle: base.title,
         version: versionInfo?.version || 'unknown',
-        versionId: base.sandbox_version_id,
+        versionId: base.managed_app_version_id,
         installedAt: base.created_at,
         lastUpdated: base.updated_at,
         status: base.deployment_status || 'unknown',
@@ -340,10 +340,10 @@ export class SandboxGetOperations
     ).length;
 
     return {
-      sandbox: {
-        id: sandbox.id,
-        title: sandbox.title,
-        installCount: sandbox.install_count || 0,
+      managedApp: {
+        id: managedApp.id,
+        title: managedApp.title,
+        installCount: managedApp.install_count || 0,
       },
       statistics: {
         totalDeployments,
@@ -359,35 +359,35 @@ export class SandboxGetOperations
 
   /**
    * Get deployments for a specific version (paginated)
-   * Only accessible by sandbox owner
+   * Only accessible by managed app owner
    */
   private async getVersionDeployments(context: NcContext, req: NcRequest) {
-    const { sandboxId, versionId, limit, offset } = req.query;
+    const { managedAppId, versionId, limit, offset } = req.query;
 
-    if (!sandboxId) {
-      NcError.get(context).badRequest('sandboxId is required');
+    if (!managedAppId) {
+      NcError.get(context).badRequest('managedAppId is required');
     }
 
     if (!versionId) {
       NcError.get(context).badRequest('versionId is required');
     }
 
-    const sandbox = await Sandbox.get(sandboxId as string);
+    const managedApp = await ManagedApp.get(managedAppId as string);
 
-    if (!sandbox) {
-      NcError.get(context).notFound('Sandbox not found');
+    if (!managedApp) {
+      NcError.get(context).notFound('Managed app not found');
     }
 
     // Only owner can view version deployments
-    if (sandbox.created_by !== req.user.id) {
+    if (managedApp.created_by !== req.user.id) {
       NcError.get(context).unauthorized(
         'Only the owner can view version deployments',
       );
     }
 
     // Get version info
-    const version = await SandboxVersion.get(versionId as string);
-    if (!version || version.fk_sandbox_id !== sandboxId) {
+    const version = await ManagedAppVersion.get(versionId as string);
+    if (!version || version.fk_managed_app_id !== managedAppId) {
       NcError.get(context).notFound('Version not found');
     }
 
@@ -397,10 +397,10 @@ export class SandboxGetOperations
     // Get total count
     const [{ count: totalCount }] = await Noco.ncMeta
       .knexConnection(MetaTable.PROJECT)
-      .where('sandbox_id', sandboxId)
-      .where('sandbox_version_id', versionId)
+      .where('managed_app_id', managedAppId)
+      .where('managed_app_version_id', versionId)
       .where((qb) => {
-        qb.where('sandbox_master', false).orWhere('sandbox_master', null);
+        qb.where('managed_app_master', false).orWhere('managed_app_master', null);
       })
       .where((qb) => {
         qb.where('deleted', false).orWhere('deleted', null);
@@ -417,22 +417,22 @@ export class SandboxGetOperations
         Noco.ncMeta.knexConnection.raw(
           `(
             SELECT DISTINCT ON (base_id) base_id, status
-            FROM ${MetaTable.SANDBOX_DEPLOYMENT_LOGS}
+            FROM ${MetaTable.MANAGED_APP_DEPLOYMENT_LOGS}
             ORDER BY base_id, created_at DESC
           ) as latest_log`,
         ),
         `${MetaTable.PROJECT}.id`,
         'latest_log.base_id',
       )
-      .where(`${MetaTable.PROJECT}.sandbox_id`, sandboxId)
-      .where(`${MetaTable.PROJECT}.sandbox_version_id`, versionId)
-      .where(`${MetaTable.PROJECT}.sandbox_master`, false)
+      .where(`${MetaTable.PROJECT}.managed_app_id`, managedAppId)
+      .where(`${MetaTable.PROJECT}.managed_app_version_id`, versionId)
+      .where(`${MetaTable.PROJECT}.managed_app_master`, false)
       .where(`${MetaTable.PROJECT}.deleted`, false)
       .select(
         `${MetaTable.PROJECT}.id`,
         `${MetaTable.PROJECT}.title`,
         `${MetaTable.PROJECT}.fk_workspace_id`,
-        `${MetaTable.PROJECT}.sandbox_version_id`,
+        `${MetaTable.PROJECT}.managed_app_version_id`,
         `${MetaTable.PROJECT}.updated_at`,
         `${MetaTable.PROJECT}.created_at`,
         'latest_log.status as deployment_status',
@@ -446,16 +446,16 @@ export class SandboxGetOperations
       baseId: base.id,
       baseTitle: base.title,
       workspaceId: base.fk_workspace_id,
-      versionId: base.sandbox_version_id,
+      versionId: base.managed_app_version_id,
       installedAt: base.created_at,
       lastUpdated: base.updated_at,
       status: base.deployment_status || 'unknown',
     }));
 
     return {
-      sandbox: {
-        id: sandbox.id,
-        title: sandbox.title,
+      managedApp: {
+        id: managedApp.id,
+        title: managedApp.title,
       },
       version: {
         id: version.id,
@@ -491,21 +491,21 @@ export class SandboxGetOperations
       NcError.get(context).notFound('Base not found');
     }
 
-    // Verify this is a sandbox installation
-    if (!base.sandbox_id || base.sandbox_master) {
+    // Verify this is a managed app installation
+    if (!base.managed_app_id || base.managed_app_master) {
       NcError.get(context).badRequest(
-        'This base is not a sandbox installation',
+        'This base is not a managed app installation',
       );
     }
 
-    // Get the sandbox and verify ownership
-    const sandbox = await Sandbox.get(base.sandbox_id);
-    if (!sandbox) {
-      NcError.get(context).notFound('Sandbox not found');
+    // Get the managed app and verify ownership
+    const managedApp = await ManagedApp.get(base.managed_app_id);
+    if (!managedApp) {
+      NcError.get(context).notFound('Managed app not found');
     }
 
     // Only owner can view deployment logs
-    if (sandbox.created_by !== req.user.id) {
+    if (managedApp.created_by !== req.user.id) {
       NcError.get(context).unauthorized(
         'Only the owner can view deployment logs',
       );
@@ -515,7 +515,7 @@ export class SandboxGetOperations
     const pageOffset = offset ? parseInt(offset as string, 10) : 0;
 
     // Get deployment logs for this installation with pagination
-    const allLogs = await SandboxDeploymentLog.list(baseId as string);
+    const allLogs = await ManagedAppDeploymentLog.list(baseId as string);
     const totalCount = allLogs.length;
     const logs = allLogs.slice(pageOffset, pageOffset + pageLimit);
 
@@ -528,7 +528,7 @@ export class SandboxGetOperations
     ];
 
     const versions = await Promise.all(
-      versionIds.map((vId) => SandboxVersion.get(vId)),
+      versionIds.map((vId) => ManagedAppVersion.get(vId)),
     );
 
     const versionMap = new Map(versions.filter(Boolean).map((v) => [v.id, v]));
@@ -568,8 +568,8 @@ export class SandboxGetOperations
       base: {
         id: base.id,
         title: base.title,
-        sandboxId: base.sandbox_id,
-        currentVersionId: base.sandbox_version_id,
+        managedAppId: base.managed_app_id,
+        currentVersionId: base.managed_app_version_id,
       },
       logs: enrichedLogs,
       pageInfo: {
@@ -583,26 +583,26 @@ export class SandboxGetOperations
   }
 
   /**
-   * Check if user can view a sandbox based on visibility rules:
+   * Check if user can view a managed app based on visibility rules:
    * - Public: visible to everyone
    * - Private: visible to users in the same workspace
    * - Unlisted: visible only to the owner
    */
-  private canViewSandbox(
-    sandbox: Sandbox,
+  private canViewManagedApp(
+    managedApp: ManagedApp,
     userId?: string,
     workspaceId?: string,
   ): boolean {
-    if (sandbox.visibility === 'public') {
+    if (managedApp.visibility === 'public') {
       return true;
     }
 
-    if (sandbox.visibility === 'private') {
-      return sandbox.fk_workspace_id === workspaceId;
+    if (managedApp.visibility === 'private') {
+      return managedApp.fk_workspace_id === workspaceId;
     }
 
-    if (sandbox.visibility === 'unlisted') {
-      return sandbox.created_by === userId;
+    if (managedApp.visibility === 'unlisted') {
+      return managedApp.created_by === userId;
     }
 
     // Default deny

@@ -101,9 +101,12 @@ export enum MetaTable {
   AUTOMATION_EXECUTIONS = 'nc_automation_executions',
   DEPENDENCY_TRACKER = 'nc_dependency_tracker',
   INSTALLATIONS = 'nc_installations',
-  SANDBOXES = 'nc_sandboxes',
-  SANDBOX_VERSIONS = 'nc_sandbox_versions',
-  SANDBOX_DEPLOYMENT_LOGS = 'nc_sandbox_deployment_logs',
+  SANDBOXES_OLD = 'nc_sandboxes',
+  SANDBOX_VERSIONS_OLD = 'nc_sandbox_versions',
+  SANDBOX_DEPLOYMENT_LOGS_OLD = 'nc_sandbox_deployment_logs',
+  MANAGED_APPS = 'nc_managed_apps',
+  MANAGED_APP_VERSIONS = 'nc_managed_app_versions',
+  MANAGED_APP_DEPLOYMENT_LOGS = 'nc_managed_app_deployment_logs',
 }
 
 export const BaseRelatedMetaTables = [
@@ -306,9 +309,9 @@ export enum CacheScope {
   DEPENDENCY_TRACKER = 'dependencyTracker',
   INSTALLATION = 'installation',
   INSTALLATION_ALIAS = 'installationAlias',
-  SANDBOX = 'sandbox',
-  SANDBOX_VERSION = 'sandboxVersion',
-  SANDBOX_DEPLOYMENT_LOG = 'sandboxDeploymentLog',
+  MANAGED_APP = 'managedApp',
+  MANAGED_APP_VERSION = 'managedAppVersion',
+  MANAGED_APP_DEPLOYMENT_LOG = 'managedAppDeploymentLog',
 }
 
 export const RootScopeTables = {
@@ -326,9 +329,9 @@ export const RootScopeTables = {
     MetaTable.DATA_REFLECTION,
     MetaTable.PLANS,
     MetaTable.SUBSCRIPTIONS,
-    MetaTable.SANDBOXES,
-    MetaTable.SANDBOX_VERSIONS,
-    MetaTable.SANDBOX_DEPLOYMENT_LOGS,
+    MetaTable.MANAGED_APPS,
+    MetaTable.MANAGED_APP_VERSIONS,
+    MetaTable.MANAGED_APP_DEPLOYMENT_LOGS,
     // Temporarily added need to be discussed within team
     MetaTable.AUDIT,
     MetaTable.CUSTOM_URLS,

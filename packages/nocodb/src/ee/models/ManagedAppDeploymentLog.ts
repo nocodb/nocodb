@@ -14,11 +14,11 @@ import {
   stringifyMetaProp,
 } from '~/utils/modelUtils';
 
-export default class SandboxDeploymentLog {
+export default class ManagedAppDeploymentLog {
   id: string;
   fk_workspace_id: string;
   base_id: string;
-  fk_sandbox_id: string;
+  fk_managed_app_id: string;
 
   from_version_id?: string;
   to_version_id: string;
@@ -35,15 +35,15 @@ export default class SandboxDeploymentLog {
   started_at?: string;
   completed_at?: string;
 
-  constructor(log: Partial<SandboxDeploymentLog>) {
+  constructor(log: Partial<ManagedAppDeploymentLog>) {
     Object.assign(this, log);
   }
 
   public static async get(
     logId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<SandboxDeploymentLog> {
-    const cacheKey = `${CacheScope.SANDBOX_DEPLOYMENT_LOG}:${logId}`;
+  ): Promise<ManagedAppDeploymentLog> {
+    const cacheKey = `${CacheScope.MANAGED_APP_DEPLOYMENT_LOG}:${logId}`;
 
     let log = await NocoCache.get('root', cacheKey, CacheGetType.TYPE_OBJECT);
 
@@ -51,7 +51,7 @@ export default class SandboxDeploymentLog {
       log = await ncMeta.metaGet2(
         RootScopes.ROOT,
         RootScopes.ROOT,
-        MetaTable.SANDBOX_DEPLOYMENT_LOGS,
+        MetaTable.MANAGED_APP_DEPLOYMENT_LOGS,
         logId,
       );
 
@@ -62,17 +62,17 @@ export default class SandboxDeploymentLog {
       await NocoCache.set('root', cacheKey, log);
     }
 
-    return log && new SandboxDeploymentLog(log);
+    return log && new ManagedAppDeploymentLog(log);
   }
 
   public static async list(
     baseId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<SandboxDeploymentLog[]> {
+  ): Promise<ManagedAppDeploymentLog[]> {
     const logs = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOX_DEPLOYMENT_LOGS,
+      MetaTable.MANAGED_APP_DEPLOYMENT_LOGS,
       {
         condition: {
           base_id: baseId,
@@ -84,21 +84,21 @@ export default class SandboxDeploymentLog {
     );
 
     return logs?.map((log) => {
-      return new SandboxDeploymentLog(prepareForResponse(log));
+      return new ManagedAppDeploymentLog(prepareForResponse(log));
     });
   }
 
-  public static async listBySandbox(
-    sandboxId: string,
+  public static async listByManagedApp(
+    managedAppId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<SandboxDeploymentLog[]> {
+  ): Promise<ManagedAppDeploymentLog[]> {
     const logs = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOX_DEPLOYMENT_LOGS,
+      MetaTable.MANAGED_APP_DEPLOYMENT_LOGS,
       {
         condition: {
-          fk_sandbox_id: sandboxId,
+          fk_managed_app_id: managedAppId,
         },
         orderBy: {
           created_at: 'desc',
@@ -107,19 +107,19 @@ export default class SandboxDeploymentLog {
     );
 
     return logs?.map((log) => {
-      return new SandboxDeploymentLog(prepareForResponse(log));
+      return new ManagedAppDeploymentLog(prepareForResponse(log));
     });
   }
 
   public static async insert(
-    log: Partial<SandboxDeploymentLog>,
+    log: Partial<ManagedAppDeploymentLog>,
     ncMeta = Noco.ncMeta,
-  ): Promise<SandboxDeploymentLog> {
+  ): Promise<ManagedAppDeploymentLog> {
     const insertObj = extractProps(log, [
       'id',
       'fk_workspace_id',
       'base_id',
-      'fk_sandbox_id',
+      'fk_managed_app_id',
       'from_version_id',
       'to_version_id',
       'status',
@@ -138,7 +138,7 @@ export default class SandboxDeploymentLog {
     const { id } = await ncMeta.metaInsert2(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOX_DEPLOYMENT_LOGS,
+      MetaTable.MANAGED_APP_DEPLOYMENT_LOGS,
       prepareForDb(insertObj),
     );
 
@@ -147,9 +147,9 @@ export default class SandboxDeploymentLog {
 
   public static async update(
     logId: string,
-    log: Partial<SandboxDeploymentLog>,
+    log: Partial<ManagedAppDeploymentLog>,
     ncMeta = Noco.ncMeta,
-  ): Promise<SandboxDeploymentLog> {
+  ): Promise<ManagedAppDeploymentLog> {
     const updateObj = extractProps(log, [
       'status',
       'error_message',
@@ -166,12 +166,12 @@ export default class SandboxDeploymentLog {
     await ncMeta.metaUpdate(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOX_DEPLOYMENT_LOGS,
+      MetaTable.MANAGED_APP_DEPLOYMENT_LOGS,
       prepareForDb(updateObj),
       logId,
     );
 
-    const cacheKey = `${CacheScope.SANDBOX_DEPLOYMENT_LOG}:${logId}`;
+    const cacheKey = `${CacheScope.MANAGED_APP_DEPLOYMENT_LOG}:${logId}`;
     await NocoCache.del('root', cacheKey);
 
     return await this.get(logId, ncMeta);

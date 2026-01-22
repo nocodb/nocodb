@@ -9,7 +9,6 @@ import { CleanUpController } from '~/modules/jobs/jobs/clean-up/clean-up.control
 import { CleanUpProcessor } from '~/modules/jobs/jobs/clean-up/clean-up.processor';
 import { CloudDbMigrateProcessor } from '~/modules/jobs/jobs/cloud-db-migrate.processor';
 import { RemoteImportService } from '~/modules/jobs/jobs/export-import/remote-import.service';
-import { SandboxExperimentController } from '~/modules/jobs/jobs/export-import/sandbox-experiment.controller';
 import { HealthCheckProcessor } from '~/modules/jobs/jobs/health-check.processor';
 import { ReseatSubscriptionProcessor } from '~/modules/jobs/jobs/reseat-subscription.processor';
 import { SnapshotController } from '~/modules/jobs/jobs/snapshot/snapshot.controller';
@@ -35,7 +34,6 @@ import { PaymentModule } from '~/modules/payment/payment.module';
     WorkerController,
     CleanUpController,
     SnapshotController,
-    SandboxExperimentController,
   ],
   providers: [
     ...JobsModuleMetadata.providers,

@@ -2,7 +2,7 @@ import BaseCE from 'src/models/Base';
 import {
   BaseVersion,
   ProjectRoles,
-  SandboxVersionStatus,
+  ManagedAppVersionStatus,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
@@ -30,7 +30,7 @@ import {
   MCPToken,
   ModelStat,
   Permission,
-  SandboxVersion,
+  ManagedAppVersion,
   Source,
   Workspace,
 } from '~/models';
@@ -55,26 +55,26 @@ export default class Base extends BaseCE {
   }
 
   /**
-   * Compute and set sandbox_schema_locked property
-   * - Not locked: non-sandbox bases
-   * - Always locked: installed sandbox instances (sandbox_master=false)
-   * - Conditionally locked: sandbox masters with published version
+   * Compute and set managed_app_schema_locked property
+   * - Not locked: non-managed app bases
+   * - Always locked: installed managed app instances (managed_app_master=false)
+   * - Conditionally locked: managed app masters with published version
    */
   public static async computeSchemaLocked(base: Base): Promise<boolean> {
-    // Not a sandbox - schema is not locked
-    if (!base.sandbox_id) {
+    // Not a managed app - schema is not locked
+    if (!base.managed_app_id) {
       return false;
     }
 
     // Installed instance (non-master) - always locked
-    if (!base.sandbox_master) {
+    if (!base.managed_app_master) {
       return true;
     }
 
     // Master base - check if current version is published
-    if (base.sandbox_version_id) {
-      const version = await SandboxVersion.get(base.sandbox_version_id);
-      return version?.status === SandboxVersionStatus.PUBLISHED;
+    if (base.managed_app_version_id) {
+      const version = await ManagedAppVersion.get(base.managed_app_version_id);
+      return version?.status === ManagedAppVersionStatus.PUBLISHED;
     }
 
     // No version set - not locked
@@ -180,9 +180,9 @@ export default class Base extends BaseCE {
       'is_snapshot',
       'default_role',
       'version',
-      'sandbox_master',
-      'sandbox_id',
-      'sandbox_version_id',
+      'managed_app_master',
+      'managed_app_id',
+      'managed_app_version_id',
       'auto_update',
     ]);
 
@@ -275,9 +275,9 @@ export default class Base extends BaseCE {
       'fk_custom_url_id',
       'default_role',
       'version',
-      'sandbox_master',
-      'sandbox_id',
-      'sandbox_version_id',
+      'managed_app_master',
+      'managed_app_id',
+      'managed_app_version_id',
       'auto_update',
     ]);
 

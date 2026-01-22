@@ -4,8 +4,8 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type { MetaTable } from '~/utils/globals';
 import { Base } from '~/models';
-import Sandbox from '~/models/Sandbox';
-import SandboxVersion from '~/models/SandboxVersion';
+import ManagedApp from '~/models/ManagedApp';
+import ManagedAppVersion from '~/models/ManagedAppVersion';
 import Noco from '~/Noco';
 import {
   applyMeta,
@@ -16,34 +16,34 @@ import {
 } from '~/helpers/baseMetaHelpers';
 
 @Injectable()
-export class SandboxService {
+export class ManagedAppService {
   constructor() {}
 
   /**
-   * Install a sandbox from a serialized schema (published version)
+   * Install a managed app from a serialized schema (published version)
    * This uses the stored snapshot instead of the live base
    */
-  async installFromSandbox({
+  async installFromManagedApp({
     targetContext,
     targetBase,
-    sandboxId,
+    managedAppId,
   }: {
     targetContext: NcContext;
     targetBase: Base;
-    sandboxId: string;
+    managedAppId: string;
   }) {
     // Validate that target is V3 base
     if (targetBase.version !== BaseVersion.V3) {
       throw new Error('Target base must be V3');
     }
 
-    const sandboxVersion = await SandboxVersion.getLatest(sandboxId);
+    const managedAppVersion = await ManagedAppVersion.getLatest(managedAppId);
 
-    if (!sandboxVersion) {
-      throw new Error('Published sandbox version not found');
+    if (!managedAppVersion) {
+      throw new Error('Published managed app version not found');
     }
 
-    const serializedSchema = sandboxVersion.getParsedSchema();
+    const serializedSchema = managedAppVersion.getParsedSchema();
 
     // Get the target base's primary source (where tables will be created)
     const targetSources = await targetBase.getSources();
@@ -75,13 +75,13 @@ export class SandboxService {
 
       await trx.commit();
 
-      // Increment the install count for the sandbox
-      await Sandbox.incrementInstallCount(sandboxId);
+      // Increment the install count for the managed app
+      await ManagedApp.incrementInstallCount(managedAppId);
 
       return {
         success: true,
         installedBaseId: targetBase.id,
-        sandboxId,
+        managedAppId,
       };
     } catch (error) {
       if (trx) {
@@ -92,9 +92,9 @@ export class SandboxService {
   }
 
   /**
-   * Apply metadata updates from master sandbox to an installed base
+   * Apply metadata updates from master managed app to an installed base
    * Uses meta diff/apply approach to synchronize schema changes
-   * Also updates the installed base's sandbox_version_id to reflect the new version
+   * Also updates the installed base's managed_app_version_id to reflect the new version
    */
   async applyUpdatesToInstallation({
     masterBase,
@@ -156,13 +156,13 @@ export class SandboxService {
 
       await applyMeta(installedContext, diff, trx);
 
-      // If a new version ID is provided, update the installed base's sandbox_version_id
+      // If a new version ID is provided, update the installed base's managed_app_version_id
       if (newVersionId) {
         await Base.update(
           installedContext,
           installedBase.id,
           {
-            sandbox_version_id: newVersionId,
+            managed_app_version_id: newVersionId,
           },
           trx,
         );
@@ -173,7 +173,7 @@ export class SandboxService {
       return {
         success: true,
         baseId: installedBase.id,
-        fromVersionId: installedBase.sandbox_version_id,
+        fromVersionId: installedBase.managed_app_version_id,
         toVersionId: newVersionId,
         diff,
       };

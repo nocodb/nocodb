@@ -4,22 +4,22 @@ defineProps<{
   label: string
   subtext?: string
   isLoading?: boolean
+  icon?: IconMapKey
 }>()
 </script>
 
 <template>
-  <div
-    role="button"
-    class="nc-base-view-all-table-btn"
-    :class="{
-      disabled,
-      'loading cursor-wait': isLoading,
-      'cursor-pointer': !isLoading,
-    }"
-  >
+  <div role="button" class="nc-base-view-all-table-btn" :class="{
+    disabled,
+    'loading cursor-wait': isLoading,
+    'cursor-pointer': !isLoading,
+  }">
     <div class="icon-wrapper">
-      <a-skeleton-avatar v-if="isLoading" active shape="square" class="!h-full !w-full !children:(rounded-md w-8 h-8)" />
-      <slot v-else name="icon" />
+      <a-skeleton-avatar v-if="isLoading" active shape="square"
+        class="!h-full !w-full !children:(rounded-md w-8 h-8)" />
+      <slot v-else name="icon">
+        <GeneralIcon v-if="icon" :icon="icon" />
+      </slot>
     </div>
     <div class="flex flex-col gap-1">
       <div class="label">
@@ -70,6 +70,7 @@ defineProps<{
   :deep(.ant-skeleton-title) {
     @apply !my-0;
   }
+
   :deep(.ant-skeleton-paragraph) {
     @apply !mb-1;
   }

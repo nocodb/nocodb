@@ -10,28 +10,24 @@ interface SandboxType {
 
 interface Props {
   workspaceId: string
+  visible: boolean
 }
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['close', 'installed'])
+const emit = defineEmits(['update:visible', 'installed'])
+
+const visible = useVModel(props, 'visible', emit)
+
 
 const { $api } = useNuxtApp()
 const { t } = useI18n()
 
-const visible = ref(true)
 const sandboxes = ref<SandboxType[]>([])
 const loading = ref(false)
 const installing = ref<string | null>(null)
 const searchQuery = ref('')
 const selectedCategory = ref<string | null>(null)
-
-// Watch visible to emit close when modal is closed by clicking outside
-watch(visible, (newVal) => {
-  if (!newVal) {
-    emit('close')
-  }
-})
 
 const categories = computed(() => {
   const cats = new Set<string>()
@@ -104,7 +100,7 @@ const installSandbox = async (sandbox: SandboxType) => {
 
     message.success(t('msg.success.baseInstalled'))
     emit('installed', sandbox)
-    emit('close')
+    visible.value = false
   } catch (e) {
     message.error(await extractSdkResponseErrorMsg(e))
   } finally {
@@ -124,12 +120,12 @@ watch(
 </script>
 
 <template>
-  <NcModal v-model:visible="visible" :footer="null" nc-modal-class-name="!p-0" size="large" @close="emit('close')">
+  <div class="flex flex-col">
     <div class="flex items-center gap-3 px-4 py-3 border-b-1 border-b-nc-border-gray-medium">
       <GeneralIcon icon="ncBox" class="h-5 w-5" />
       <div class="flex-1 text-bodyLgBold">{{ t('labels.appMarket') }}</div>
 
-      <NcButton size="small" type="text" @click="emit('close')" class="self-start">
+      <NcButton size="small" type="text" @click="visible = false" class="self-start">
         <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
       </NcButton>
     </div>
@@ -137,13 +133,15 @@ watch(
     <div class="flex flex-col gap-4 h-[600px] p-6">
       <!-- Search and Filter Bar -->
       <div class="flex gap-3">
-        <a-input v-model:value="searchQuery" class="flex-1 nc-input-sm nc-input-shadow !rounded-md" :placeholder="t('placeholder.searchByTitle')" allow-clear>
+        <a-input v-model:value="searchQuery" class="flex-1 nc-input-sm nc-input-shadow !rounded-md"
+          :placeholder="t('placeholder.searchByTitle')" allow-clear>
           <template #prefix>
             <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-muted" />
           </template>
         </a-input>
 
-        <NcSelect v-model:value="selectedCategory" class="w-48 nc-select-sm" :placeholder="t('labels.category')" allow-clear>
+        <NcSelect v-model:value="selectedCategory" class="w-48 nc-select-sm" :placeholder="t('labels.category')"
+          allow-clear>
           <a-select-option v-for="cat in categories" :key="cat" :value="cat">
             {{ cat }}
           </a-select-option>
@@ -156,7 +154,7 @@ watch(
       </div>
 
       <div v-else-if="filteredSandboxes.length === 0" class="flex flex-col items-center justify-center h-full gap-3">
-        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE"  class="!my-0" >
+        <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" class="!my-0">
           <template #description>
             <div class="text-nc-content-gray-muted mt-1">{{ t('msg.info.noSandboxesFound') }}</div>
           </template>
@@ -198,7 +196,7 @@ watch(
         </div>
       </div>
     </div>
-  </NcModal>
+  </div>
 </template>
 
 <style lang="scss" scoped>

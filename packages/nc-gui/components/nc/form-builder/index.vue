@@ -198,6 +198,7 @@ watch(
 
 <template>
   <div class="nc-form-builder nc-scrollbar-thin relative">
+    <slot name="header"></slot>
     <a-form ref="form" :model="formState" hide-required-mark layout="vertical" class="flex flex-col gap-8 !pb-2">
       <template v-for="category in Object.keys(formElementsCategorized)" :key="category">
         <div class="nc-form-section">

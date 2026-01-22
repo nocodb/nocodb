@@ -943,6 +943,7 @@ declare interface RecordQueryResult {
 enum UITypes {
   ID = 'ID',
   LinkToAnotherRecord = 'LinkToAnotherRecord',
+  LinkToAnotherRecord = 'LinkToAnotherRecordV2',
   ForeignKey = 'ForeignKey',
   Lookup = 'Lookup',
   SingleLineText = 'SingleLineText',

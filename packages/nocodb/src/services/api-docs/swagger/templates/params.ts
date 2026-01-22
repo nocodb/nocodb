@@ -1,4 +1,4 @@
-import { isLinksOrLTAR, RelationTypes, UITypes } from 'nocodb-sdk';
+import { isLinksOrLTAR, isLTARType, RelationTypes } from 'nocodb-sdk';
 import type { LinkToAnotherRecordColumn } from '~/models';
 import type { SwaggerColumn } from '../getSwaggerColumnMetas';
 import type { NcContext } from '~/interface/config';
@@ -198,7 +198,7 @@ export const getNestedParams = async (
   columns: SwaggerColumn[],
 ): Promise<any[]> => {
   return await columns.reduce(async (paramsArr, { column }) => {
-    if (column.uidt === UITypes.LinkToAnotherRecord) {
+    if (isLTARType(column)) {
       // exclude system columns(relations to junction table)
       if (column.system) {
         return paramsArr;

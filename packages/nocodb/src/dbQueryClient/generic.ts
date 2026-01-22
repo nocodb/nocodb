@@ -1,6 +1,7 @@
 import { arrFlatMap } from 'nocodb-sdk';
 import type { DBQueryClient } from '~/dbQueryClient/types';
-import type { XKnex } from '~/db/CustomKnex';
+import type { Knex, XKnex } from '~/db/CustomKnex';
+import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export abstract class GenericDBQueryClient implements DBQueryClient {
   temporaryTableRaw({
@@ -46,21 +47,31 @@ export abstract class GenericDBQueryClient implements DBQueryClient {
   abstract concat(fields: string[]): string;
   abstract simpleCast(field: string, asType: string): string;
 
-  generateNestedRowSelectQuery(_param: any) {
-    return null as any;
+  generateNestedRowSelectQuery(_param: any): Knex.Raw<any> {
+    throw new Error('Not implemented');
   }
-  async singleQueryList(_context: any, _ctx: any) {
-    return null as any;
+  async singleQueryList(
+    _context: any,
+    _ctx: any,
+  ): Promise<
+    PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
+  > {
+    throw new Error('Not implemented');
   }
-  async singleQueryRead(_context: any, _ctx: any) {
-    return null as any;
+  async singleQueryRead(
+    _context: any,
+    _ctx: any,
+  ): Promise<PagedResponseImpl<Record<string, any>>> {
+    throw new Error('Not implemented');
   }
 
-  async extractColumns(_param: any) {
-    return null as any;
+  async extractColumns(_param: any): Promise<void> {
+    throw new Error('Not implemented');
   }
 
-  async extractColumn(_param: any) {
-    return null as any;
+  async extractColumn(_param: any): Promise<{
+    isArray?: boolean;
+  }> {
+    throw new Error('Not implemented');
   }
 }

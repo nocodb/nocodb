@@ -877,7 +877,7 @@ export class LinksRequestHandler extends LinksRequestHandlerCE {
 
         const qb = knex(mmBaseModel.getTnPath(mmModel, '_tbl'))
           .whereExists(
-            knex(toDeleteUnionTableWithAlias)
+            toDeleteUnionTableWithAlias
               .select(knex.raw('1'))
               .where(
                 knex.raw(`??::text = ??::text AND ??::text = ??::text`, [

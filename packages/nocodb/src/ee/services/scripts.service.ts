@@ -37,9 +37,7 @@ export class ScriptsService {
     req: NcRequest,
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const workspace = await Workspace.get(context.workspace_id);
@@ -88,9 +86,7 @@ export class ScriptsService {
     req: NcRequest,
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const script = await Script.get(context, scriptId);
@@ -129,9 +125,7 @@ export class ScriptsService {
 
   async deleteScript(context: NcContext, scriptId: string, req: NcRequest) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const script = await Script.get(context, scriptId);

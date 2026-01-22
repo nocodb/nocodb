@@ -18,11 +18,7 @@ import { extractWorkflowDependencies } from '~/services/workflows/extractDepende
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { NcError } from '~/helpers/catchError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import {
-  DependencyTracker,
-  Workflow,
-  WorkflowExecution,
-} from '~/models';
+import { DependencyTracker, Workflow, WorkflowExecution } from '~/models';
 import { checkLimit, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import {
   getPlanDisplayName,
@@ -47,7 +43,7 @@ export class WorkflowsService implements OnModuleInit {
     private readonly workflowExecutionService: WorkflowExecutionService,
     @Inject('JobsService') private readonly jobsService: IJobsService,
     protected readonly nocoJobsService: NocoJobsService,
-  ) { }
+  ) {}
 
   async onModuleInit() {
     this.nocoJobsService.jobsQueue.add(
@@ -131,9 +127,7 @@ export class WorkflowsService implements OnModuleInit {
     req: NcRequest,
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     workflowBody.title = workflowBody.title?.trim();
@@ -187,9 +181,7 @@ export class WorkflowsService implements OnModuleInit {
     req: NcRequest,
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const workflow = await Workflow.get(context, workflowId);
@@ -241,9 +233,7 @@ export class WorkflowsService implements OnModuleInit {
 
   async deleteWorkflow(context: NcContext, workflowId: string, req: NcRequest) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const workflow = await Workflow.get(context, workflowId);

@@ -1,5 +1,6 @@
 export enum FormBuilderInputType {
   Input = 'input',
+  Textarea = 'textarea',
   Select = 'select',
   Switch = 'switch',
   Space = 'space',
@@ -171,6 +172,14 @@ export interface FormBuilderInputElement extends FormBuilderElementBase {
 }
 
 /**
+ * Textarea element (textarea input)
+ */
+export interface FormBuilderTextareaElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.Textarea;
+  defaultValue?: string | null;
+}
+
+/**
  * Password element (password input)
  */
 export interface FormBuilderPasswordElement extends FormBuilderElementBase {
@@ -325,6 +334,7 @@ export interface FormBuilderFieldMappingElement extends FormBuilderElementBase {
  */
 export type FormBuilderElement =
   | FormBuilderInputElement
+  | FormBuilderTextareaElement
   | FormBuilderPasswordElement
   | FormBuilderSelectElement
   | FormBuilderSwitchElement

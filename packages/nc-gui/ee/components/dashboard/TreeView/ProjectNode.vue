@@ -412,10 +412,10 @@ const duplicateProject = (base: BaseType) => {
   isDuplicateDlgOpen.value = true
 }
 
-const isConvertToSandboxDlgOpen = ref(false)
+const isConvertToManagedAppDlgOpen = ref(false)
 
-const convertToSandbox = () => {
-  isConvertToSandboxDlgOpen.value = true
+const convertToManagedApp = () => {
+  isConvertToManagedAppDlgOpen.value = true
 }
 
 const getSource = (sourceId: string) => {
@@ -720,7 +720,7 @@ defineExpose({
                       @rename="enableEditMode()"
                       @toggle-starred="toggleStarred($event)"
                       @duplicate-project="duplicateProject($event)"
-                      @convert-to-sandbox="convertToSandbox"
+                      @convert-to-managed-app="convertToManagedApp"
                       @open-erd-view="openErdView($event)"
                       @on-data-reflection="onDataReflection"
                       @open-base-settings="openBaseSettings($event)"
@@ -787,7 +787,7 @@ defineExpose({
         @rename="enableEditMode(true)"
         @toggle-starred="toggleStarred($event)"
         @duplicate-project="duplicateProject($event)"
-        @convert-to-sandbox="convertToSandbox"
+        @convert-to-managed-app="convertToManagedApp"
         @open-erd-view="openErdView($event)"
         @on-data-reflection="onDataReflection"
         @open-base-settings="openBaseSettings($event)"
@@ -868,7 +868,7 @@ defineExpose({
   <DlgBaseDelete v-model:visible="isProjectDeleteDialogVisible" :base-id="base?.id" />
 
   <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
-  <DlgConvertToSandbox v-if="base?.id" v-model:visible="isConvertToSandboxDlgOpen" :base-id="base.id" />
+  <DlgConvertToManagedApp v-if="base?.id" v-model:visible="isConvertToManagedAppDlgOpen" :base-id="base.id" />
 </template>
 
 <style lang="scss" scoped>

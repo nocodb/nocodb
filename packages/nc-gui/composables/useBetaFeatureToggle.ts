@@ -3,9 +3,9 @@ import rfdc from 'rfdc'
 const deepClone = rfdc()
 const FEATURES = [
   {
-    id: 'sandboxes',
-    title: 'Sandboxes',
-    description: 'Allow users to create replicable sandbox environments',
+    id: 'managed_apps',
+    title: 'Managed Apps',
+    description: 'Allow users to create replicable managed app environments',
     enabled: false,
     isEngineering: true,
     isAdvanced: true,

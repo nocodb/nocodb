@@ -132,16 +132,16 @@ const onInit = () => {
   }, 5)
 }
 
-const onSandboxInstalled = async (_sandbox: any) => {
+const onManagedAppInstalled = async (_managedApp: any) => {
   // Close the dialog and refresh the base list
   dialogShow.value = false
   refreshCommandPalette()
   // Navigate to the newly installed base if available
   // TODO: Once install returns the new baseId, navigate to it
-  // if (sandbox.installedBaseId) {
+  // if (managedApp.installedBaseId) {
   //   await navigateToProject({
   //     workspaceId: activeWorkspace.value?.id,
-  //     baseId: sandbox.installedBaseId,
+  //     baseId: managedApp.installedBaseId,
   //   })
   // }
 }
@@ -270,7 +270,7 @@ if (props.isCreateNewActionMenu) {
   >
     <template v-if="baseCreateMode === null">
       <!-- <WorkspaceProjectCreateMode v-model:ai-mode="aiMode" :workspace-id="activeWorkspace?.id"
-        @sandbox-installed="onSandboxInstalled" @close="dialogShow = false" /> -->
+        @managed-app-installed="onManagedAppInstalled" @close="dialogShow = false" /> -->
 
       <WorkspaceProjectCreateMenu v-model:visible="dialogShow" v-model:base-create-mode="baseCreateMode" variant="modal" />
     </template>
@@ -391,7 +391,7 @@ if (props.isCreateNewActionMenu) {
       <WorkspaceProjectAppMarket
         v-model:visible="dialogShow"
         :workspace-id="activeWorkspace!.id!"
-        @installed="onSandboxInstalled"
+        @installed="onManagedAppInstalled"
       />
     </template>
     <template v-if="baseCreateMode === NcBaseCreateMode.MANAGED_APP">
@@ -418,7 +418,7 @@ if (props.isCreateNewActionMenu) {
 }
 
 .nc-create-project-dlg-wrapper-managedApp,
-.nc-create-project-dlg-wrapper-sandboxApp {
+.nc-create-project-dlg-wrapper-managedApp {
   .nc-modal {
     max-height: min(90vh, 540px) !important;
     height: min(90vh, 540px) !important;

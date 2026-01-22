@@ -38,7 +38,7 @@ const onClickOption = (mode: NcBaseCreateMode) => {
   }
 
   // Temp do nothing
-  if ([NcBaseCreateMode.SANDBOX_APP].includes(mode)) {
+  if ([NcBaseCreateMode.MANAGED_APP].includes(mode)) {
     return
   }
 
@@ -95,7 +95,7 @@ onMounted(() => {
       @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)"
     />
 
-    <template v-if="isFeatureEnabled(FEATURE_FLAG.SANDBOXES)">
+    <template v-if="isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)">
       <WorkspaceProjectCreateMenuItem
         v-e="['c:base:market:create']"
         :variant="variant"
@@ -119,17 +119,17 @@ onMounted(() => {
       />
 
       <!-- <WorkspaceProjectCreateMenuItem
-        v-e="['c:base:sandbox:create']"
+        v-e="['c:base:managedApp:create']"
         :variant="variant"
         icon="ncBox"
-        label="Sandbox App"
+        label="Managed App"
         subtext="Safely test changes on an existing app"
-        data-testid="nc-menu-sandbox-app"
-        @click="onClickOption(NcBaseCreateMode.SANDBOX_APP)"
+        data-testid="nc-menu-managed-app"
+        @click="onClickOption(NcBaseCreateMode.MANAGED_APP)"
       >
         <template #label>
           <div class="flex items-center gap-2">
-            Sandbox App
+            Managed App
             <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
           </div>
         </template>
@@ -151,15 +151,15 @@ onMounted(() => {
             label="Build with AI" subtext="Pre-built structures for common use cases"
             @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)" />
 
-        <template v-if="isFeatureEnabled(FEATURE_FLAG.SANDBOXES)">
+        <template v-if="isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)">
             <ProjectActionItem v-e="['c:base:market:create']" icon="ncBox" label="From App Store"
                 subtext="Install apps built by the community" @click="onClickOption(NcBaseCreateMode.FROM_APP_STORE)" />
 
             <ProjectActionItem v-e="['c:base:managed:create']" icon="ncBox" label="Managed App"
                 subtext="Build and publish to the App Store" @click="onClickOption(NcBaseCreateMode.MANAGED_APP)" />
 
-            <ProjectActionItem v-e="['c:base:sandbox:create']" icon="ncBox" label="Sandbox App"
-                subtext="Safely test changes on an existing app" @click="onClickOption(NcBaseCreateMode.SANDBOX_APP)" />
+            <ProjectActionItem v-e="['c:base:managedApp:create']" icon="ncBox" label="Managed App"
+                subtext="Safely test changes on an existing app" @click="onClickOption(NcBaseCreateMode.MANAGED_APP)" />
 
         </template>
     </div> -->

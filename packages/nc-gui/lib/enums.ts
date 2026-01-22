@@ -149,6 +149,10 @@ export enum ImportWorkerResponse {
   ERROR = 'error',
 }
 
+export enum FeatureFlag {
+  MANAGED_APP = 'MANAGED_APP',
+}
+
 export enum ImportType {
   EXCEL = 'excel',
   CSV = 'csv',
@@ -227,5 +231,4 @@ export enum NcBaseCreateMode {
   BUILD_WITH_AI = 'buildWithAi',
   FROM_APP_STORE = 'fromAppStore',
   MANAGED_APP = 'managedApp',
-  SANDBOX_APP = 'sandboxApp',
 }

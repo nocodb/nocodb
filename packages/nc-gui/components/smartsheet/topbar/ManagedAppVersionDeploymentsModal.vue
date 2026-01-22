@@ -3,7 +3,7 @@ import { DeploymentStatus } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
-  sandbox: any
+  managedApp: any
   version: any
 }>()
 
@@ -27,14 +27,14 @@ const logsPageSize = 10
 const isLoadingLogs = ref(false)
 
 const loadDeployments = async (page = 1) => {
-  if (!props.sandbox?.id || !props.version?.versionId || !base.value?.fk_workspace_id) return
+  if (!props.managedApp?.id || !props.version?.versionId || !base.value?.fk_workspace_id) return
 
   isLoading.value = true
   try {
     const offset = (page - 1) * pageSize
     const response = await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id!, {
-      operation: 'sandboxVersionDeployments',
-      sandboxId: props.sandbox.id,
+      operation: 'managedAppVersionDeployments',
+      managedAppId: props.managedApp.id,
       versionId: props.version.versionId,
       limit: pageSize,
       offset,
@@ -59,7 +59,7 @@ const loadDeploymentLogs = async (baseId: string, page = 1) => {
   try {
     const offset = (page - 1) * logsPageSize
     const response = await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id!, {
-      operation: 'sandboxDeploymentLogs',
+      operation: 'managedAppDeploymentLogs',
       baseId,
       limit: logsPageSize,
       offset,

@@ -3,7 +3,7 @@ import { MetaTable } from '~/utils/globals';
 
 const up = async (knex: Knex) => {
   // Create sandboxes table
-  await knex.schema.createTable(MetaTable.SANDBOXES, (table) => {
+  await knex.schema.createTable(MetaTable.SANDBOXES_OLD, (table) => {
     table.string('id', 20).primary();
     table.string('fk_workspace_id', 20).notNullable();
     table.string('base_id', 20).notNullable().unique();
@@ -44,7 +44,7 @@ const up = async (knex: Knex) => {
   });
 
   // Create sandbox_versions table to store serialized schemas for each published version
-  await knex.schema.createTable(MetaTable.SANDBOX_VERSIONS, (table) => {
+  await knex.schema.createTable(MetaTable.SANDBOX_VERSIONS_OLD, (table) => {
     table.string('id', 20).primary();
     table.string('fk_workspace_id', 20).notNullable();
     table.string('fk_sandbox_id', 20).notNullable();
@@ -92,11 +92,11 @@ const up = async (knex: Knex) => {
     // Is this base a sandbox master?
     table.boolean('sandbox_master').defaultTo(false);
 
-    // Points to SANDBOXES.id (for both master and installed instances)
+    // Points to SANDBOXES_OLD.id (for both master and installed instances)
     table.string('sandbox_id', 20);
 
     // Current version: for master=draft/published being worked on, for installed=installed version
-    // Points to SANDBOX_VERSIONS.id
+    // Points to SANDBOX_VERSIONS_OLD.id
     table.string('sandbox_version_id', 20);
 
     // For installed instances: auto-update to new published versions
@@ -115,60 +115,69 @@ const up = async (knex: Knex) => {
   });
 
   // Create sandbox_deployment_logs table
-  await knex.schema.createTable(MetaTable.SANDBOX_DEPLOYMENT_LOGS, (table) => {
-    table.string('id', 20).primary();
-    table.string('fk_workspace_id', 20).notNullable();
+  await knex.schema.createTable(
+    MetaTable.SANDBOX_DEPLOYMENT_LOGS_OLD,
+    (table) => {
+      table.string('id', 20).primary();
+      table.string('fk_workspace_id', 20).notNullable();
 
-    // Installation reference
-    table.string('base_id', 20).notNullable(); // The installed base
-    table.string('fk_sandbox_id', 20).notNullable(); // The sandbox being deployed
+      // Installation reference
+      table.string('base_id', 20).notNullable(); // The installed base
+      table.string('fk_sandbox_id', 20).notNullable(); // The sandbox being deployed
 
-    // Version tracking
-    table.string('from_version_id', 20); // NULL for initial install
-    table.string('to_version_id', 20).notNullable(); // Target version
+      // Version tracking
+      table.string('from_version_id', 20); // NULL for initial install
+      table.string('to_version_id', 20).notNullable(); // Target version
 
-    // Deployment status: 'pending', 'in_progress', 'success', 'failed'
-    table.string('status', 20).notNullable().defaultTo('pending');
+      // Deployment status: 'pending', 'in_progress', 'success', 'failed'
+      table.string('status', 20).notNullable().defaultTo('pending');
 
-    // Deployment type: 'install', 'update'
-    table.string('deployment_type', 20).notNullable();
+      // Deployment type: 'install', 'update'
+      table.string('deployment_type', 20).notNullable();
 
-    // Deployment details
-    table.text('error_message'); // Error message if failed
-    table.text('deployment_log'); // Detailed logs (JSON or text)
-    table.text('meta'); // Additional metadata (JSON)
+      // Deployment details
+      table.text('error_message'); // Error message if failed
+      table.text('deployment_log'); // Detailed logs (JSON or text)
+      table.text('meta'); // Additional metadata (JSON)
 
-    // Timestamps
-    table.timestamps(true, true);
-    table.timestamp('started_at');
-    table.timestamp('completed_at');
+      // Timestamps
+      table.timestamps(true, true);
+      table.timestamp('started_at');
+      table.timestamp('completed_at');
 
-    // Indexes for performance
-    table.index(
-      ['fk_workspace_id'],
-      'nc_sandbox_deployment_logs_workspace_id_idx',
-    );
-    table.index(['base_id'], 'nc_sandbox_deployment_logs_base_id_idx');
-    table.index(['fk_sandbox_id'], 'nc_sandbox_deployment_logs_sandbox_id_idx');
-    table.index(
-      ['base_id', 'created_at'],
-      'nc_sandbox_deployment_logs_base_created_idx',
-    );
-    table.index(['status'], 'nc_sandbox_deployment_logs_status_idx');
-    table.index(
-      ['from_version_id'],
-      'nc_sandbox_deployment_logs_from_version_idx',
-    );
-    table.index(['to_version_id'], 'nc_sandbox_deployment_logs_to_version_idx');
-  });
+      // Indexes for performance
+      table.index(
+        ['fk_workspace_id'],
+        'nc_sandbox_deployment_logs_workspace_id_idx',
+      );
+      table.index(['base_id'], 'nc_sandbox_deployment_logs_base_id_idx');
+      table.index(
+        ['fk_sandbox_id'],
+        'nc_sandbox_deployment_logs_sandbox_id_idx',
+      );
+      table.index(
+        ['base_id', 'created_at'],
+        'nc_sandbox_deployment_logs_base_created_idx',
+      );
+      table.index(['status'], 'nc_sandbox_deployment_logs_status_idx');
+      table.index(
+        ['from_version_id'],
+        'nc_sandbox_deployment_logs_from_version_idx',
+      );
+      table.index(
+        ['to_version_id'],
+        'nc_sandbox_deployment_logs_to_version_idx',
+      );
+    },
+  );
 };
 
 const down = async (knex: Knex) => {
   // Drop sandbox_deployment_logs table
-  await knex.schema.dropTable(MetaTable.SANDBOX_DEPLOYMENT_LOGS);
+  await knex.schema.dropTable(MetaTable.SANDBOX_DEPLOYMENT_LOGS_OLD);
 
   // Drop sandbox_versions table
-  await knex.schema.dropTable(MetaTable.SANDBOX_VERSIONS);
+  await knex.schema.dropTable(MetaTable.SANDBOX_VERSIONS_OLD);
 
   // Drop indexes from bases table
   await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
@@ -190,7 +199,7 @@ const down = async (knex: Knex) => {
   });
 
   // Drop sandboxes table
-  await knex.schema.dropTable(MetaTable.SANDBOXES);
+  await knex.schema.dropTable(MetaTable.SANDBOXES_OLD);
 };
 
 export { up, down };

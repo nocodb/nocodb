@@ -280,7 +280,7 @@ export const sourceRestrictions = {
   },
 }
 
-export const sandboxRestrictions = {
+export const managedAppRestrictions = {
   tableCreate: true,
   tableRename: true,
   tableDelete: true,

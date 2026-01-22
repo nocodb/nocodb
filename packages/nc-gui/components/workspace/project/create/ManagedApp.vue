@@ -38,7 +38,7 @@ const createManagedApp = async (formState: Record<string, any>) => {
       activeWorkspaceId.value as string,
       formState.baseId || NO_SCOPE,
       {
-        operation: 'sandboxCreate',
+        operation: 'managedAppCreate',
       } as any,
       {
         title: formState.title,
@@ -59,18 +59,18 @@ const createManagedApp = async (formState: Record<string, any>) => {
       },
     )
 
-    message.success(t('msg.success.sandboxCreated'))
+    message.success(t('msg.success.managedAppCreated'))
     visible.value = false
 
-    // Update the base with the sandbox_id from response
-    if (response && response.sandbox_id && formState.baseId) {
+    // Update the base with the managed_app_id from response
+    if (response && response.managed_app_id && formState.baseId) {
       const currentBase = basesStore.bases.get(formState.baseId as string)
       if (currentBase) {
-        ;(currentBase as any).sandbox_id = response.sandbox_id
+        ;(currentBase as any).managed_app_id = response.managed_app_id
       }
     }
 
-    // Reload base to ensure all sandbox data is loaded
+    // Reload base to ensure all managed app data is loaded
     if (formState.baseId) {
       await basesStore.loadProject(formState.baseId, true)
     } else {
@@ -92,7 +92,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
   formSchema: [
     {
       type: FormBuilderInputType.Input,
-      label: t('labels.sandboxTitle'),
+      label: t('labels.managedAppTitle'),
       span: 24,
       model: 'title',
       placeholder: 'Enter a descriptive title',
@@ -111,7 +111,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     },
     {
       type: FormBuilderInputType.Textarea,
-      label: t('labels.sandboxDescription'),
+      label: t('labels.managedAppDescription'),
       span: 24,
       model: 'description',
       placeholder: "Describe your application's capabilities",
@@ -149,11 +149,11 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
         equal: 'existing',
       },
       defaultValue: undefined,
-      filterOption: (base) => base && !base?.sandbox_id,
+      filterOption: (base) => base && !base?.managed_app_id,
     },
     {
       type: FormBuilderInputType.Input,
-      label: t('labels.sandboxCategory'),
+      label: t('labels.managedAppCategory'),
       span: 12,
       model: 'category',
       placeholder: 'e.g., CRM, HR',
@@ -161,7 +161,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     },
     {
       type: FormBuilderInputType.Select,
-      label: t('labels.sandboxVisibility'),
+      label: t('labels.managedAppVisibility'),
       span: 12,
       model: 'visibility',
       category: FORM_BUILDER_NON_CATEGORIZED,
@@ -234,7 +234,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
 </template>
 
 <style lang="scss">
-.nc-modal-convert-to-sandbox {
+.nc-modal-convert-to-managed-app {
   .nc-modal {
     max-height: min(90vh, 540px) !important;
     height: min(90vh, 540px) !important;

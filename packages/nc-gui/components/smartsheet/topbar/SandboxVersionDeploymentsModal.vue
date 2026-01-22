@@ -144,112 +144,123 @@ watch(
 
 <template>
   <GeneralModal :visible="visible" size="large" centered @update:visible="emit('update:visible', $event)">
-    <div class="flex flex-col h-full max-h-[80vh]">
+    <div class="nc-deployments-modal">
       <!-- Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-nc-border-gray-medium">
-        <div>
-          <div class="font-semibold text-lg text-nc-content-gray-emphasis">Version Deployments</div>
-          <div class="text-xs text-nc-content-gray-subtle2">
-            Tracking deployments for
-            <span class="font-mono font-semibold">v{{ version?.version }}</span>
-          </div>
+      <div class="nc-deployments-header">
+        <div class="nc-deployments-header-icon">
+          <GeneralIcon icon="ncServer" class="w-5 h-5 text-white" />
         </div>
-        <GeneralIcon
-          icon="close"
-          class="w-5 h-5 text-nc-content-gray cursor-pointer hover:text-nc-content-gray-emphasis"
-          @click="emit('update:visible', false)"
-        />
+        <div class="flex-1 min-w-0">
+          <h2 class="text-base font-semibold text-nc-content-gray-emphasis m-0">Version Deployments</h2>
+          <p class="text-xs text-nc-content-gray-subtle2 m-0 mt-0.5">
+            Tracking installations for
+            <span class="font-mono font-semibold text-nc-content-brand">v{{ version?.version }}</span>
+          </p>
+        </div>
+        <NcButton type="text" size="small" class="!px-1" @click="emit('update:visible', false)">
+          <GeneralIcon icon="close" class="w-4 h-4" />
+        </NcButton>
       </div>
 
       <!-- Content -->
-      <div class="flex-1 overflow-y-auto p-6">
-        <div v-if="isLoading" class="flex items-center justify-center py-12">
+      <div class="nc-deployments-content">
+        <div v-if="isLoading" class="nc-deployments-loading">
           <a-spin size="large" />
+          <div class="text-sm text-nc-content-gray-muted mt-3">Loading deployments...</div>
         </div>
 
         <template v-else-if="deployments.length > 0">
-          <div class="space-y-3">
-            <div
-              v-for="deployment in deployments"
-              :key="deployment.baseId"
-              class="bg-nc-bg-gray-light border border-nc-border-gray-light rounded-lg overflow-hidden"
-            >
+          <div class="nc-deployments-list">
+            <div v-for="deployment in deployments" :key="deployment.baseId" class="nc-deployment-item">
               <!-- Deployment Row -->
-              <div class="p-4 cursor-pointer transition-colors" @click="toggleExpand(deployment)">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-4 flex-1">
-                    <!-- Expand Icon -->
+              <div class="nc-deployment-row" @click="toggleExpand(deployment)">
+                <div class="nc-deployment-info">
+                  <!-- Expand Icon -->
+                  <div class="nc-expand-icon">
                     <GeneralIcon
                       :icon="expandedBaseId === deployment.baseId ? 'ncChevronDown' : 'ncChevronRight'"
-                      class="w-4 h-4 text-nc-content-gray-subtle2 transition-transform"
+                      class="w-4 h-4"
                     />
-
-                    <!-- Deployment Info -->
-                    <div class="flex items-center gap-3">
-                      <div class="p-2 bg-white dark:bg-nc-bg-gray-light rounded-md">
-                        <GeneralIcon icon="ncServer" class="w-4 h-4 text-nc-content-gray" />
-                      </div>
-                      <div>
-                        <div class="font-medium text-sm text-nc-content-gray-emphasis">{{ deployment.baseTitle }}</div>
-                        <div class="text-xs text-nc-content-gray-subtle2 mt-0.5">
-                          Installed: {{ formatDate(deployment.installedAt) }}
-                        </div>
-                      </div>
-                    </div>
                   </div>
 
-                  <!-- Status Badge -->
-                  <div class="px-2.5 py-1 text-xs rounded-full font-semibold" :class="getStatusColor(deployment.status)">
-                    {{ deployment.status }}
+                  <!-- Deployment Details -->
+                  <div class="nc-deployment-icon">
+                    <GeneralIcon icon="ncServer" class="w-4 h-4" />
+                  </div>
+                  <div class="nc-deployment-details">
+                    <div class="nc-deployment-title">{{ deployment.baseTitle }}</div>
+                    <div class="nc-deployment-date">
+                      <GeneralIcon icon="calendar" class="w-3.5 h-3.5 opacity-60" />
+                      <span>Installed {{ formatDate(deployment.installedAt) }}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Status Badge -->
+                <div class="nc-deployment-status">
+                  <div class="nc-status-badge" :class="getStatusColor(deployment.status)">
+                    <span>{{ deployment.status }}</span>
                   </div>
                 </div>
               </div>
 
               <!-- Expanded Logs Section -->
-              <div v-if="expandedBaseId === deployment.baseId" class="border-t border-nc-border-gray-medium">
-                <div class="p-4 bg-nc-bg-gray-light">
-                  <div class="text-xs font-semibold text-nc-content-gray-emphasis mb-3 uppercase tracking-wide">
-                    Deployment History
+              <div v-if="expandedBaseId === deployment.baseId" class="nc-deployment-logs-wrapper">
+                <div class="nc-deployment-logs">
+                  <div class="nc-logs-header">
+                    <GeneralIcon icon="ncFileText" class="w-4 h-4 text-nc-content-gray-subtle2" />
+                    <span>Deployment History</span>
                   </div>
 
-                  <div v-if="isLoadingLogs" class="flex items-center justify-center py-8">
-                    <a-spin />
+                  <div v-if="isLoadingLogs" class="nc-logs-loading">
+                    <a-spin size="small" />
+                    <span class="text-xs text-nc-content-gray-muted ml-2">Loading history...</span>
                   </div>
 
                   <template v-else-if="deploymentLogs.length > 0">
-                    <div class="space-y-2">
-                      <div v-for="log in deploymentLogs" :key="log.id" class="bg-white dark:bg-nc-bg-gray-light rounded-md p-3">
-                        <div class="flex items-start justify-between">
-                          <div class="flex-1">
-                            <div class="flex items-center gap-2 mb-1.5">
-                              <span class="px-2 py-0.5 text-xs rounded font-semibold" :class="getStatusColor(log.status)">
+                    <div class="nc-logs-list">
+                      <div v-for="log in deploymentLogs" :key="log.id" class="nc-log-item">
+                        <div class="nc-log-content">
+                          <div class="nc-log-header">
+                            <div class="nc-log-badges">
+                              <div class="nc-log-status" :class="getStatusColor(log.status)">
                                 {{ log.status }}
-                              </span>
-                              <span class="text-xs font-medium text-nc-content-gray">
-                                {{ getDeploymentTypeLabel(log.deploymentType) }}
-                              </span>
-                            </div>
-
-                            <div class="flex items-center gap-3 text-xs text-nc-content-gray-subtle2">
-                              <div v-if="log.fromVersion">
-                                <span class="font-mono">v{{ log.fromVersion.version }}</span>
-                                <GeneralIcon icon="arrowRight" class="inline-block w-3 h-3 mx-1" />
                               </div>
-                              <span class="font-mono font-semibold">v{{ log.toVersion?.version }}</span>
-                              <span class="text-nc-content-gray-subtle2">•</span>
+                              <div class="nc-log-type">
+                                <GeneralIcon
+                                  :icon="log.deploymentType === 'install' ? 'download' : 'reload'"
+                                  class="w-3 h-3 opacity-60"
+                                />
+                                <span>{{ getDeploymentTypeLabel(log.deploymentType) }}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="nc-log-meta">
+                            <div class="nc-log-version">
+                              <div v-if="log.fromVersion" class="flex items-center gap-1.5">
+                                <span class="font-mono text-nc-content-gray-subtle2">v{{ log.fromVersion.version }}</span>
+                                <GeneralIcon icon="arrowRight" class="w-3 h-3 text-nc-content-gray-subtle2" />
+                              </div>
+                              <span class="font-mono font-semibold text-nc-content-brand">v{{ log.toVersion?.version }}</span>
+                            </div>
+                            <span class="nc-log-divider">•</span>
+                            <div class="nc-log-time">
+                              <GeneralIcon icon="clock" class="w-3.5 h-3.5 opacity-60" />
                               <span>{{ formatDate(log.createdAt) }}</span>
                             </div>
+                          </div>
 
-                            <div v-if="log.errorMessage" class="mt-2 text-xs text-nc-content-red-dark">
-                              {{ log.errorMessage }}
-                            </div>
+                          <div v-if="log.errorMessage" class="nc-log-error">
+                            <GeneralIcon icon="alertTriangle" class="w-3.5 h-3.5 flex-shrink-0" />
+                            <span>{{ log.errorMessage }}</span>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     <!-- Logs Pagination -->
-                    <div v-if="logsPageInfo.totalRows > logsPageSize" class="flex justify-center mt-4">
+                    <div v-if="logsPageInfo.totalRows > logsPageSize" class="nc-logs-pagination">
                       <a-pagination
                         v-model:current="logsCurrentPage"
                         :total="logsPageInfo.totalRows"
@@ -261,7 +272,8 @@ watch(
                     </div>
                   </template>
 
-                  <div v-else class="text-center py-8">
+                  <div v-else class="nc-logs-empty">
+                    <GeneralIcon icon="inbox" class="w-8 h-8 text-nc-content-gray-subtle2 mb-2" />
                     <div class="text-sm text-nc-content-gray-subtle2">No deployment history available</div>
                   </div>
                 </div>
@@ -270,7 +282,7 @@ watch(
           </div>
 
           <!-- Deployments Pagination -->
-          <div v-if="pageInfo.totalRows > pageSize" class="flex justify-center mt-6">
+          <div v-if="pageInfo.totalRows > pageSize" class="nc-deployments-pagination">
             <a-pagination
               v-model:current="currentPage"
               :total="pageInfo.totalRows"
@@ -282,14 +294,220 @@ watch(
         </template>
 
         <!-- Empty State -->
-        <div v-else class="text-center py-16">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-nc-bg-gray-light mb-4">
-            <GeneralIcon icon="ncServer" class="w-8 h-8 text-nc-content-gray-subtle2" />
+        <div v-else class="nc-deployments-empty">
+          <div class="nc-empty-icon">
+            <GeneralIcon icon="ncServer" class="w-10 h-10 text-nc-content-gray-muted" />
           </div>
-          <div class="text-base font-medium text-nc-content-gray-emphasis mb-1">No deployments found</div>
-          <div class="text-sm text-nc-content-gray-subtle2">No installations are using version {{ version?.version }}</div>
+          <div class="text-base font-semibold text-nc-content-gray mb-1">No installations found</div>
+          <div class="text-sm text-nc-content-gray-subtle max-w-md text-center">
+            Version <span class="font-mono font-semibold">v{{ version?.version }}</span> hasn't been installed by any users yet
+          </div>
         </div>
       </div>
     </div>
   </GeneralModal>
 </template>
+
+<style lang="scss" scoped>
+.nc-deployments-modal {
+  @apply flex flex-col h-full max-h-[80vh];
+}
+
+.nc-deployments-header {
+  @apply flex items-center gap-3 px-4 py-3 border-b-1 border-nc-border-gray-medium;
+}
+
+.nc-deployments-header-icon {
+  @apply w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0;
+  background: linear-gradient(135deg, var(--nc-content-brand) 0%, var(--nc-content-blue-medium) 100%);
+  box-shadow: 0 2px 4px rgba(51, 102, 255, 0.15);
+}
+
+.nc-deployments-content {
+  @apply flex-1 overflow-y-auto p-6;
+}
+
+.nc-deployments-loading {
+  @apply flex flex-col items-center justify-center py-16;
+}
+
+.nc-deployments-list {
+  @apply space-y-3;
+}
+
+.nc-deployment-item {
+  @apply bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl overflow-hidden relative;
+  @apply transition-all duration-200 ease-in-out;
+
+  &::before {
+    @apply absolute left-0 top-0 bottom-0 w-1 bg-nc-content-brand opacity-0;
+    @apply transition-opacity duration-200 ease-in-out;
+    content: '';
+  }
+
+  &:hover {
+    @apply border-nc-border-brand transform translate-x-0.5;
+    box-shadow: 0 4px 12px rgba(51, 102, 255, 0.08);
+
+    &::before {
+      @apply opacity-100;
+    }
+
+    .nc-deployment-icon {
+      @apply transform scale-105;
+      box-shadow: 0 4px 8px rgba(51, 102, 255, 0.15);
+    }
+  }
+}
+
+.nc-deployment-row {
+  @apply flex items-center justify-between gap-4 p-4 cursor-pointer;
+}
+
+.nc-deployment-info {
+  @apply flex items-center gap-3 flex-1 min-w-0;
+}
+
+.nc-expand-icon {
+  @apply w-6 h-6 flex items-center justify-center text-nc-content-gray-subtle2 flex-shrink-0;
+  @apply transition-transform duration-200;
+}
+
+.nc-deployment-icon {
+  @apply w-9 h-9 rounded-lg bg-nc-bg-gray-light border-1 border-nc-border-gray-light;
+  @apply flex items-center justify-center text-nc-content-gray flex-shrink-0;
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.nc-deployment-details {
+  @apply flex-1 min-w-0;
+}
+
+.nc-deployment-title {
+  @apply font-semibold text-sm text-nc-content-gray-emphasis truncate mb-1;
+}
+
+.nc-deployment-date {
+  @apply flex items-center gap-1.5 text-xs text-nc-content-gray-subtle2;
+}
+
+.nc-deployment-status {
+  @apply flex-shrink-0;
+}
+
+.nc-status-badge {
+  @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold;
+}
+
+.nc-deployment-logs-wrapper {
+  @apply border-t-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight;
+}
+
+.nc-deployment-logs {
+  @apply p-4;
+}
+
+.nc-logs-header {
+  @apply flex items-center gap-2 text-xs font-semibold text-nc-content-gray-emphasis mb-3;
+  @apply uppercase tracking-wide;
+}
+
+.nc-logs-loading {
+  @apply flex items-center justify-center py-8;
+}
+
+.nc-logs-list {
+  @apply space-y-2;
+}
+
+.nc-log-item {
+  @apply bg-nc-bg-default border-1 border-nc-border-gray-light rounded-lg p-3;
+  @apply transition-all duration-150;
+
+  &:hover {
+    @apply border-nc-border-gray-medium shadow-sm;
+  }
+}
+
+.nc-log-content {
+  @apply space-y-2;
+}
+
+.nc-log-header {
+  @apply flex items-center justify-between gap-2;
+}
+
+.nc-log-badges {
+  @apply flex items-center gap-2 flex-wrap;
+}
+
+.nc-log-status {
+  @apply inline-flex px-2 py-0.5 rounded text-xs font-semibold;
+}
+
+.nc-log-type {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded;
+  @apply bg-nc-bg-gray-light text-nc-content-gray text-xs font-medium;
+}
+
+.nc-log-meta {
+  @apply flex items-center gap-2 text-xs text-nc-content-gray-subtle2 flex-wrap;
+}
+
+.nc-log-version {
+  @apply flex items-center gap-1.5;
+}
+
+.nc-log-divider {
+  @apply text-nc-content-gray-subtle2;
+}
+
+.nc-log-time {
+  @apply flex items-center gap-1;
+}
+
+.nc-log-error {
+  @apply flex items-start gap-2 p-2 rounded-lg;
+  @apply bg-nc-bg-red-light text-nc-content-red-dark text-xs;
+}
+
+.nc-logs-pagination {
+  @apply flex justify-center mt-4 pt-4 border-t-1 border-nc-border-gray-light;
+}
+
+.nc-logs-empty {
+  @apply flex flex-col items-center justify-center py-12 text-center;
+}
+
+.nc-deployments-pagination {
+  @apply flex justify-center mt-6;
+}
+
+.nc-deployments-empty {
+  @apply flex flex-col items-center justify-center py-16;
+}
+
+.nc-empty-icon {
+  @apply w-16 h-16 rounded-full bg-nc-bg-gray-light;
+  @apply flex items-center justify-center mb-4;
+}
+
+// Responsive
+@media (max-width: 640px) {
+  .nc-deployment-row {
+    @apply flex-col items-start;
+  }
+
+  .nc-deployment-info {
+    @apply w-full;
+  }
+
+  .nc-deployment-status {
+    @apply w-full;
+  }
+
+  .nc-log-meta {
+    @apply flex-col items-start gap-1;
+  }
+}
+</style>

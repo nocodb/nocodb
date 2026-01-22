@@ -39,7 +39,7 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
@@ -56,7 +56,7 @@ jobs:
           echo "TARGET_SHA=${TARGET_SHA}" >> $GITHUB_OUTPUT
           echo "Setting TARGET_SHA: ${TARGET_SHA}"
       - name: Create tag
-        uses: actions/github-script@v3
+        uses: actions/github-script@v8
         with:
           # need workflows permission but it's not in GITHUB_TOKEN scope
           # need a custom PAT with workflows permission here
@@ -68,7 +68,7 @@ jobs:
               ref: "refs/tags/${{ github.event.inputs.tag || inputs.tag }}",
               sha: "${{ steps.get-sha.outputs.TARGET_SHA }}"
             })
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
       - run: "npx github-release-notes@0.17.2  release --token ${{ secrets.GITHUB_TOKEN }}  --draft --tags ${{ github.event.inputs.tag || inputs.tag }}..${{ github.event.inputs.prev_tag || inputs.prev_tag }}"

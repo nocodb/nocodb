@@ -50,9 +50,9 @@ const baseOptions = computed(() => {
           {{ option.label }}
         </NcTooltip>
         <GeneralIcon
-          icon="check"
           v-if="vModel === option.value"
           id="nc-selected-item-icon"
+          icon="check"
           class="text-nc-content-brand w-4 h-4"
         />
       </div>

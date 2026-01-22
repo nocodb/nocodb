@@ -200,7 +200,7 @@ export const baseTitleValidator = (title: string = 'objects.project') => {
           reject(
             new Error(
               t('msg.error.projectNameCannotStartWithSpace', {
-                title: t(title)
+                title: t(title),
               }),
             ),
           )
@@ -357,7 +357,7 @@ export const validateColumnValue = (column: ColumnType, value: any) => {
     let validateObj: any
     try {
       validateObj = JSON.parse(validate)
-    } catch (ex) { }
+    } catch (ex) {}
     if (validateObj.func?.[0] && validator[validateObj.func[0] as string]) {
       const validatorFunc = validator[validateObj.func[0] as any]
       const validationResult = validatorFunc(value)

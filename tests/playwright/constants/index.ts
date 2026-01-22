@@ -1,7 +1,7 @@
 const airtableApiBases = [
-  'https://airtable.com/appZtc5xOWQkUL4Ok/shrrfpcWoNa5QGGSI',
-  'https://airtable.com/appBnSP4VbJtKTTHB/shrfiNNg3yk9A0APu',
-  'https://airtable.com/appPFK0xj5jTQR6wQ/shr6zjJvrUbSvfGPq',
+  // 'https://airtable.com/appZtc5xOWQkUL4Ok/shrrfpcWoNa5QGGSI',
+  // 'https://airtable.com/appBnSP4VbJtKTTHB/shrfiNNg3yk9A0APu',
+  // 'https://airtable.com/appPFK0xj5jTQR6wQ/shr6zjJvrUbSvfGPq',
   'https://airtable.com/apprb2mFeIlQitU0o/shrY6swT2FOy9X1Bl',
 ];
 const today = new Date();

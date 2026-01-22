@@ -202,72 +202,77 @@ watch(
 </script>
 
 <template>
-  <NcModal :visible="visible" size="lg" nc-modal-class-name="!p-0" centered @update:visible="emit('update:visible', $event)">
+  <NcModal
+    :visible="visible"
+    size="lg"
+    nc-modal-class-name="nc-modal-sandbox-management"
+    centered
+    @update:visible="emit('update:visible', $event)"
+  >
     <div class="flex flex-col h-full">
-      <!-- Header -->
-      <div class="flex items-center justify-between px-4 py-3 border-b border-nc-border-gray-medium">
-        <div>
-          <div class="text-bodyLgBold text-nc-content-gray-emphasis">Sandbox Management</div>
-          <div class="text-bodySm text-nc-content-gray-subtle2">Manage versions and track deployments</div>
+      <!-- Header with Tabs -->
+      <div class="nc-sandbox-header">
+        <div class="flex items-center gap-3 flex-1">
+          <div class="nc-sandbox-icon">
+            <GeneralIcon icon="ncBox" class="h-5 w-5 text-white" />
+          </div>
+          <div class="flex-1">
+            <div class="text-lg font-semibold text-nc-content-gray-emphasis">Sandbox Management</div>
+            <div class="text-xs text-nc-content-gray-subtle2">Manage versions and track deployments</div>
+          </div>
         </div>
 
-        <NcButton size="small" type="text" class="self-start" @click="emit('update:visible', false)">
-          <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
-        </NcButton>
-      </div>
+        <!-- Tabs (Segmented Control) -->
+        <div class="nc-sandbox-tabs">
+          <div class="flex items-center">
+            <div
+              v-if="isDraft"
+              class="nc-sandbox-tab"
+              :class="{ selected: activeTab === 'publish' }"
+              @click="activeTab = 'publish'"
+            >
+              <GeneralIcon icon="upload" class="h-4 w-4 flex-none opacity-75" />
+              <span>Publish</span>
+            </div>
+            <div
+              v-if="isPublished"
+              class="nc-sandbox-tab"
+              :class="{ selected: activeTab === 'fork' }"
+              @click="activeTab = 'fork'"
+            >
+              <GeneralIcon icon="ncGitBranch" class="h-4 w-4 flex-none opacity-75" />
+              <span>Fork</span>
+            </div>
+            <div class="nc-sandbox-tab" :class="{ selected: activeTab === 'deployments' }" @click="activeTab = 'deployments'">
+              <GeneralIcon icon="ncServer" class="h-4 w-4 flex-none opacity-75" />
+              <span>Deployments</span>
+            </div>
+          </div>
+        </div>
 
-      <!-- Tabs -->
-      <div class="flex gap-6 px-6 pt-3 border-b border-nc-border-gray-medium">
-        <button
-          v-if="isDraft"
-          class="pb-2 px-1 text-sm font-medium transition-colors border-b-2"
-          :class="[
-            activeTab === 'publish'
-              ? 'border-nc-content-brand text-nc-content-brand'
-              : 'border-transparent text-nc-content-gray hover:text-nc-content-gray-emphasis',
-          ]"
-          @click="activeTab = 'publish'"
-        >
-          Publish
-        </button>
-        <button
-          v-if="isPublished"
-          class="pb-2 px-1 text-sm font-medium transition-colors border-b-2"
-          :class="[
-            activeTab === 'fork'
-              ? 'border-nc-content-brand text-nc-content-brand'
-              : 'border-transparent text-nc-content-gray hover:text-nc-content-gray-emphasis',
-          ]"
-          @click="activeTab = 'fork'"
-        >
-          Fork
-        </button>
-        <button
-          class="pb-2 px-1 text-sm font-medium transition-colors border-b-2"
-          :class="[
-            activeTab === 'deployments'
-              ? 'border-nc-content-brand text-nc-content-brand'
-              : 'border-transparent text-nc-content-gray hover:text-nc-content-gray-emphasis',
-          ]"
-          @click="activeTab = 'deployments'"
-        >
-          Deployments
-        </button>
+        <NcButton size="small" type="text" @click="emit('update:visible', false)">
+          <GeneralIcon icon="close" class="text-nc-content-gray-muted h-4 w-4" />
+        </NcButton>
       </div>
 
       <!-- Content -->
       <div class="flex-1 overflow-y-auto">
         <!-- Publish Tab -->
         <div v-if="activeTab === 'publish'" class="p-6">
-          <div class="mb-4 bg-nc-bg-blue-light border border-nc-border-blue rounded-lg p-4">
-            <div class="flex gap-3">
-              <GeneralIcon icon="info" class="w-5 h-5 text-nc-content-blue-dark mt-0.5 flex-shrink-0" />
-              <div class="text-sm text-nc-content-gray">
-                Publishing version <strong>{{ currentVersion?.version }}</strong> will make it available in the App Store and
-                automatically update all installations.
-              </div>
-            </div>
-          </div>
+          <NcAlert
+            type="info"
+            align="top"
+            class="!p-3 !items-start bg-nc-bg-blue-light border-1 !border-nc-blue-200 rounded-lg p-3 mb-4"
+          >
+            <template #icon>
+              <GeneralIcon icon="info" class="w-4 h-4 mt-0.5 text-nc-content-blue-dark flex-none" />
+            </template>
+
+            <template #description>
+              Publishing version <strong>{{ currentVersion?.version }}</strong> will make it available in the App Store and
+              automatically update all installations.
+            </template>
+          </NcAlert>
 
           <div class="space-y-4">
             <div>
@@ -297,7 +302,6 @@ watch(
           <NcAlert
             type="info"
             align="top"
-            description="Convert this base into a living application that can be published to the App Store. You'll be able to manage versions and push updates to all installations."
             class="!p-3 !items-start bg-nc-bg-blue-light border-1 !border-nc-blue-200 rounded-lg p-3 mb-4"
           >
             <template #icon>
@@ -331,156 +335,145 @@ watch(
         </div>
 
         <!-- Deployments Tab -->
-        <div v-if="activeTab === 'deployments'" class="p-6">
-          <div v-if="isLoadingDeployments" class="flex items-center justify-center py-12">
+        <div v-if="activeTab === 'deployments'" class="nc-deployments-content">
+          <div v-if="isLoadingDeployments" class="nc-deployments-loading">
             <a-spin size="large" />
+            <div class="text-sm text-nc-content-gray-muted mt-3">Loading deployment statistics...</div>
           </div>
 
           <template v-else-if="deploymentStats">
             <!-- Stats Cards -->
-            <div class="grid grid-cols-4 gap-4 mb-8">
+            <div class="nc-deployment-stats">
               <!-- Total Deployments -->
-              <div class="bg-nc-bg-gray-light rounded-lg p-4 border border-nc-border-gray-light">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="p-2 bg-nc-bg-blue-light rounded-lg">
-                    <GeneralIcon icon="ncServer" class="w-5 h-5 text-nc-content-blue-dark" />
-                  </div>
+              <div class="nc-stat-card">
+                <div class="nc-stat-icon-wrapper bg-nc-bg-blue-light">
+                  <GeneralIcon icon="ncServer" class="w-5 h-5 text-nc-content-blue-dark" />
                 </div>
-                <div class="text-3xl font-bold text-nc-content-gray-emphasis mb-1">
-                  {{ deploymentStats.statistics?.totalDeployments || 0 }}
+                <div class="nc-stat-content">
+                  <div class="nc-stat-value">{{ deploymentStats.statistics?.totalDeployments || 0 }}</div>
+                  <div class="nc-stat-label">Total Installs</div>
                 </div>
-                <div class="text-xs font-medium text-nc-content-gray-subtle2 uppercase tracking-wide">Total Deployments</div>
               </div>
 
               <!-- Active -->
-              <div class="bg-nc-bg-gray-light rounded-lg p-4 border border-nc-border-gray-light">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="p-2 bg-nc-bg-green-light rounded-lg">
-                    <GeneralIcon icon="check" class="w-5 h-5 text-nc-content-green-dark" />
-                  </div>
+              <div class="nc-stat-card">
+                <div class="nc-stat-icon-wrapper bg-nc-bg-green-light">
+                  <GeneralIcon icon="check" class="w-5 h-5 text-nc-content-green-dark" />
                 </div>
-                <div class="text-3xl font-bold text-nc-content-gray-emphasis mb-1">
-                  {{ deploymentStats.statistics?.activeDeployments || 0 }}
+                <div class="nc-stat-content">
+                  <div class="nc-stat-value">{{ deploymentStats.statistics?.activeDeployments || 0 }}</div>
+                  <div class="nc-stat-label">Active</div>
                 </div>
-                <div class="text-xs font-medium text-nc-content-gray-subtle2 uppercase tracking-wide">Active</div>
               </div>
 
               <!-- Failed -->
-              <div class="bg-nc-bg-gray-light rounded-lg p-4 border border-nc-border-gray-light">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="p-2 bg-nc-bg-red-light rounded-lg">
-                    <GeneralIcon icon="alertTriangle" class="w-5 h-5 text-nc-content-red-dark" />
-                  </div>
+              <div class="nc-stat-card">
+                <div class="nc-stat-icon-wrapper bg-nc-bg-red-light">
+                  <GeneralIcon icon="alertTriangle" class="w-5 h-5 text-nc-content-red-dark" />
                 </div>
-                <div class="text-3xl font-bold text-nc-content-gray-emphasis mb-1">
-                  {{ deploymentStats.statistics?.failedDeployments || 0 }}
+                <div class="nc-stat-content">
+                  <div class="nc-stat-value">{{ deploymentStats.statistics?.failedDeployments || 0 }}</div>
+                  <div class="nc-stat-label">Failed</div>
                 </div>
-                <div class="text-xs font-medium text-nc-content-gray-subtle2 uppercase tracking-wide">Failed</div>
               </div>
 
               <!-- Versions -->
-              <div class="bg-nc-bg-gray-light rounded-lg p-4 border border-nc-border-gray-light">
-                <div class="flex items-center justify-between mb-3">
-                  <div class="p-2 bg-nc-bg-purple-light rounded-lg">
-                    <GeneralIcon icon="ncGitBranch" class="w-5 h-5 text-nc-content-purple-dark" />
-                  </div>
+              <div class="nc-stat-card">
+                <div class="nc-stat-icon-wrapper bg-nc-bg-purple-light">
+                  <GeneralIcon icon="ncGitBranch" class="w-5 h-5 text-nc-content-purple-dark" />
                 </div>
-                <div class="text-3xl font-bold text-nc-content-gray-emphasis mb-1">
-                  {{ deploymentStats.statistics?.totalVersions || 0 }}
+                <div class="nc-stat-content">
+                  <div class="nc-stat-value">{{ deploymentStats.statistics?.totalVersions || 0 }}</div>
+                  <div class="nc-stat-label">Versions</div>
                 </div>
-                <div class="text-xs font-medium text-nc-content-gray-subtle2 uppercase tracking-wide">Versions</div>
               </div>
             </div>
 
-            <!-- Version List Header -->
-            <div v-if="deploymentStats.versionStats && deploymentStats.versionStats.length > 0" class="mb-4">
-              <h3 class="text-sm font-semibold text-nc-content-gray-emphasis">Version History</h3>
-              <p class="text-xs text-nc-content-gray-subtle2 mt-1">Track deployments across all published versions</p>
-            </div>
+            <!-- Version List -->
+            <div v-if="deploymentStats.versionStats && deploymentStats.versionStats.length > 0" class="nc-version-list-wrapper">
+              <div class="nc-version-list-header">
+                <div>
+                  <h3 class="text-sm font-semibold text-nc-content-gray-emphasis">Version History</h3>
+                  <p class="text-xs text-nc-content-gray-subtle2 mt-0.5">
+                    {{ deploymentStats.versionStats.length }}
+                    {{ deploymentStats.versionStats.length === 1 ? 'version' : 'versions' }}
+                    published
+                  </p>
+                </div>
+              </div>
 
-            <!-- Version List with Real Stats -->
-            <div v-if="deploymentStats.versionStats && deploymentStats.versionStats.length > 0" class="space-y-2">
-              <div
-                v-for="(versionStat, index) in deploymentStats.versionStats"
-                :key="versionStat.versionId"
-                class="bg-nc-bg-gray-light border border-nc-border-gray-light rounded-lg p-4 hover:border-nc-border-brand hover:shadow-sm transition-all duration-200"
-              >
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-4 flex-1">
-                    <!-- Version Badge -->
-                    <div class="flex items-center gap-2">
-                      <div class="p-2 bg-white dark:bg-nc-bg-gray-medium rounded-md">
-                        <GeneralIcon icon="ncGitBranch" class="w-4 h-4 text-nc-content-gray" />
-                      </div>
-                      <div>
-                        <div class="flex items-center gap-2">
-                          <span class="font-mono font-bold text-base text-nc-content-gray-emphasis"
-                            >v{{ versionStat.version }}</span
-                          >
-                          <div
-                            v-if="index === 0 && versionStat.status === 'published'"
-                            class="px-2 py-0.5 text-xs rounded-full bg-nc-bg-green-light text-nc-content-green-dark font-semibold"
-                          >
-                            Current
-                          </div>
-                        </div>
-                        <div class="text-xs text-nc-content-gray-subtle2 mt-0.5">
-                          {{ formatDate(versionStat.publishedAt) }}
+              <div class="nc-version-list">
+                <div
+                  v-for="(versionStat, index) in deploymentStats.versionStats"
+                  :key="versionStat.versionId"
+                  class="nc-version-item"
+                  :class="{ 'nc-version-item-clickable': versionStat.deploymentCount > 0 }"
+                  @click="versionStat.deploymentCount > 0 && openVersionDeploymentsModal(versionStat)"
+                >
+                  <div class="nc-version-info">
+                    <div class="nc-version-icon">
+                      <GeneralIcon icon="ncGitBranch" class="w-4 h-4" />
+                    </div>
+                    <div class="nc-version-details">
+                      <div class="nc-version-title">
+                        <span class="nc-version-number">v{{ versionStat.version }}</span>
+                        <div v-if="index === 0 && versionStat.status === 'published'" class="nc-version-badge">
+                          <GeneralIcon icon="check" class="w-3 h-3" />
+                          <span>Current</span>
                         </div>
                       </div>
+                      <div class="nc-version-date">Published {{ formatDate(versionStat.publishedAt) }}</div>
                     </div>
                   </div>
 
-                  <!-- Deployment Count -->
-                  <template v-if="versionStat.deploymentCount === 0">
-                    <div
-                      class="flex items-center gap-3 px-4 py-2 bg-white dark:bg-nc-bg-gray-medium rounded-lg border border-nc-border-gray-light transition-all"
-                    >
-                      <GeneralIcon icon="ncServer" class="w-4 h-4 text-nc-content-gray-subtle2" />
-                      <div class="text-right">
-                        <div class="text-lg font-bold text-nc-content-gray-emphasis">{{ versionStat.deploymentCount }}</div>
-                      </div>
+                  <div class="nc-version-installs">
+                    <div class="nc-installs-count">
+                      <GeneralIcon icon="download" class="w-4 h-4 text-nc-content-gray-subtle2" />
+                      <span class="font-bold">{{ versionStat.deploymentCount }}</span>
+                      <span class="text-nc-content-gray-muted">{{
+                        versionStat.deploymentCount === 1 ? 'install' : 'installs'
+                      }}</span>
                     </div>
-                  </template>
-                  <template v-else>
-                    <a-tooltip placement="top" title="Click to view deployments">
-                      <div
-                        class="flex items-center gap-3 px-4 py-2 bg-white dark:bg-nc-bg-gray-medium rounded-lg border border-nc-border-gray-light cursor-pointer hover:border-nc-border-brand hover:shadow-sm transition-all"
-                        @click="openVersionDeploymentsModal(versionStat)"
-                      >
-                        <GeneralIcon icon="ncServer" class="w-4 h-4 text-nc-content-gray-subtle2" />
-                        <div class="text-right">
-                          <div class="text-lg font-bold text-nc-content-gray-emphasis">{{ versionStat.deploymentCount }}</div>
-                        </div>
-                      </div>
-                    </a-tooltip>
-                  </template>
+                    <GeneralIcon
+                      v-if="versionStat.deploymentCount > 0"
+                      icon="chevronRight"
+                      class="w-4 h-4 text-nc-content-gray-subtle2 nc-chevron-icon"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
 
             <!-- Empty State -->
-            <div v-else class="text-center py-16">
-              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-nc-bg-gray-light mb-4">
-                <GeneralIcon icon="ncServer" class="w-8 h-8 text-nc-content-gray-subtle2" />
+            <div v-else class="nc-deployments-empty">
+              <div class="nc-empty-icon">
+                <GeneralIcon icon="ncServer" class="w-10 h-10 text-nc-content-gray-muted" />
               </div>
-              <div class="text-base font-medium text-nc-content-gray-emphasis mb-1">No deployments yet</div>
-              <div class="text-sm text-nc-content-gray-subtle2">Users will appear here once they install your application</div>
+              <div class="text-base font-semibold text-nc-content-gray mb-1">No installations yet</div>
+              <div class="text-sm text-nc-content-gray-subtle max-w-md text-center">
+                Once users install your application from the App Store, their deployments will appear here.
+              </div>
             </div>
           </template>
 
-          <div v-else class="text-center py-16">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-nc-bg-red-light mb-4">
-              <GeneralIcon icon="alertTriangle" class="w-8 h-8 text-nc-content-red-dark" />
+          <div v-else class="nc-deployments-error">
+            <div class="nc-error-icon">
+              <GeneralIcon icon="alertTriangle" class="w-10 h-10 text-nc-content-red-dark" />
             </div>
-            <div class="text-base font-medium text-nc-content-gray-emphasis mb-1">Failed to load statistics</div>
-            <div class="text-sm text-nc-content-gray-subtle2">Please try refreshing the page</div>
+            <div class="text-base font-semibold text-nc-content-gray mb-1">Failed to load statistics</div>
+            <div class="text-sm text-nc-content-gray-subtle mb-4">There was an error loading deployment data</div>
+            <NcButton size="small" type="secondary" @click="loadDeployments">
+              <template #icon>
+                <GeneralIcon icon="reload" />
+              </template>
+              Retry
+            </NcButton>
           </div>
         </div>
       </div>
 
       <!-- Footer -->
-      <div v-if="activeTab === 'publish' || activeTab === 'fork'" class="px- py-3 border-t border-nc-border-gray-medium">
+      <div v-if="activeTab === 'publish' || activeTab === 'fork'" class="nc-sandbox-footer">
         <div class="flex justify-end gap-2">
           <NcButton type="secondary" size="small" @click="emit('update:visible', false)"> Cancel </NcButton>
 
@@ -516,3 +509,192 @@ watch(
     />
   </NcModal>
 </template>
+
+<style lang="scss" scoped>
+.nc-sandbox-header {
+  @apply flex items-center gap-4 px-4 py-3 border-b-1 border-nc-border-gray-medium;
+}
+
+.nc-sandbox-icon {
+  @apply w-10 h-10 rounded-xl flex items-center justify-center;
+  background: linear-gradient(135deg, var(--nc-content-brand) 0%, var(--nc-content-blue-medium) 100%);
+  box-shadow: 0 2px 4px rgba(51, 102, 255, 0.15);
+}
+
+.nc-sandbox-tabs {
+  @apply flex bg-nc-bg-gray-medium rounded-lg p-1;
+}
+
+.nc-sandbox-tab {
+  @apply px-3 py-1.5 flex items-center gap-2 text-xs rounded-md select-none cursor-pointer;
+  @apply text-nc-content-gray-subtle2 transition-all duration-200;
+
+  &.selected {
+    @apply bg-nc-bg-default text-nc-content-gray-emphasis;
+    box-shadow: 0px 3px 1px -2px rgba(0, 0, 0, 0.06), 0px 5px 3px -2px rgba(0, 0, 0, 0.02);
+  }
+
+  &:hover:not(.selected) {
+    @apply text-nc-content-gray;
+  }
+}
+
+.nc-sandbox-footer {
+  @apply px-6 py-3 border-t-1 border-nc-border-gray-medium;
+}
+
+// Deployments Tab Styles
+.nc-deployments-content {
+  @apply p-6;
+}
+
+.nc-deployments-loading {
+  @apply flex flex-col items-center justify-center py-16;
+}
+
+.nc-deployment-stats {
+  @apply grid grid-cols-4 gap-4 mb-6;
+}
+
+.nc-stat-card {
+  @apply bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-xl p-4 transition-all duration-200 hover:(border-nc-border-gray-dark shadow-hover);
+}
+
+.nc-stat-icon-wrapper {
+  @apply w-10 h-10 rounded-lg flex items-center justify-center mb-3;
+}
+
+.nc-stat-content {
+  @apply space-y-1;
+}
+
+.nc-stat-value {
+  @apply text-3xl font-bold text-nc-content-gray-emphasis leading-none;
+}
+
+.nc-stat-label {
+  @apply text-xs font-medium text-nc-content-gray-subtle2 uppercase tracking-wide;
+}
+
+.nc-version-list-wrapper {
+  @apply mt-6;
+}
+
+.nc-version-list-header {
+  @apply flex items-center justify-between mb-4;
+}
+
+.nc-version-list {
+  @apply space-y-2;
+}
+
+.nc-version-item {
+  @apply bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg p-4 flex items-center justify-between gap-4 transition-all duration-200;
+
+  &.nc-version-item-clickable {
+    @apply cursor-pointer;
+
+    &:hover {
+      @apply border-nc-border-brand shadow-hover transform translate-x-0.5;
+
+      .nc-version-icon {
+        @apply scale-105;
+      }
+
+      .nc-chevron-icon {
+        @apply opacity-100;
+      }
+    }
+  }
+}
+
+.nc-chevron-icon {
+  @apply opacity-0 transition-opacity duration-200;
+}
+
+.nc-version-info {
+  @apply flex items-center gap-3 flex-1 min-w-0;
+}
+
+.nc-version-icon {
+  @apply w-9 h-9 rounded-lg bg-nc-bg-gray-light border-1 border-nc-border-gray-light;
+  @apply flex items-center justify-center text-nc-content-gray flex-shrink-0;
+  @apply transition-transform duration-200;
+}
+
+.nc-version-details {
+  @apply flex-1 min-w-0;
+}
+
+.nc-version-title {
+  @apply flex items-center gap-2 mb-1;
+}
+
+.nc-version-number {
+  @apply font-mono font-bold text-base text-nc-content-gray-emphasis;
+}
+
+.nc-version-badge {
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full;
+  @apply bg-nc-bg-green-light text-nc-content-green-dark;
+  @apply text-xs font-semibold;
+}
+
+.nc-version-date {
+  @apply text-xs text-nc-content-gray-subtle2;
+}
+
+.nc-version-installs {
+  @apply flex items-center gap-3;
+}
+
+.nc-installs-count {
+  @apply flex items-center gap-2 text-sm;
+  @apply px-3 py-1.5 rounded-lg bg-nc-bg-gray-light;
+}
+
+.nc-deployments-empty {
+  @apply flex flex-col items-center justify-center py-16;
+}
+
+.nc-empty-icon {
+  @apply w-16 h-16 rounded-full bg-nc-bg-gray-light;
+  @apply flex items-center justify-center mb-4;
+}
+
+.nc-deployments-error {
+  @apply flex flex-col items-center justify-center py-16;
+}
+
+.nc-error-icon {
+  @apply w-16 h-16 rounded-full bg-nc-bg-red-light;
+  @apply flex items-center justify-center mb-4;
+}
+
+// Responsive
+@media (max-width: 1024px) {
+  .nc-deployment-stats {
+    @apply grid-cols-2 gap-3;
+  }
+}
+
+@media (max-width: 640px) {
+  .nc-deployment-stats {
+    @apply grid-cols-1;
+  }
+
+  .nc-version-item {
+    @apply flex-col items-start;
+  }
+
+  .nc-version-installs {
+    @apply w-full justify-between;
+  }
+}
+</style>
+
+<style lang="scss">
+.nc-modal-sandbox-management {
+  @apply !p-0;
+}
+</style>

@@ -3,8 +3,6 @@ const { t } = useI18n()
 
 const dashboardStore = useDashboardStore()
 
-const { isDashboardEnabled } = storeToRefs(dashboardStore)
-
 const { openNewDashboardModal: _openNewDashboardModal } = dashboardStore
 
 const { openedProject } = storeToRefs(useBases())
@@ -24,7 +22,7 @@ async function openNewDashboardModal() {
 }
 
 const isActionVisible = computed(() => {
-  return isDashboardEnabled.value && !isSharedBase.value
+  return !isSharedBase.value
 })
 </script>
 

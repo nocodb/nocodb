@@ -22,8 +22,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-  const isDashboardEnabled = computed(() => true)
-
   // State
   const dashboards = ref<Map<string, DashboardType[]>>(new Map())
 
@@ -59,7 +57,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   })
 
   const loadDashboards = async ({ baseId, force = false }: { baseId: string; force?: boolean }) => {
-    if (!isDashboardEnabled.value || !activeWorkspaceId.value) return []
+    if (!activeWorkspaceId.value) return []
 
     const existingDashboards = dashboards.value.get(baseId)
     if (existingDashboards && !force) {
@@ -85,7 +83,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   }
 
   const loadDashboard = async (dashboardId: string) => {
-    if (!activeProjectId.value || !dashboardId || !isDashboardEnabled.value || !activeWorkspaceId.value) return null
+    if (!activeProjectId.value || !dashboardId || !activeWorkspaceId.value) return null
 
     let dashboard: null | DashboardType = null
 
@@ -190,21 +188,21 @@ export const useDashboardStore = defineStore('dashboard', () => {
       const dashboard = dashboards.value.get(baseId)?.find((a) => a.id === dashboardId)
       const updated = options?.skipNetworkCall
         ? {
-            ...dashboard,
-            ...updates,
-          }
+          ...dashboard,
+          ...updates,
+        }
         : await $api.internal.postOperation(
-            activeWorkspaceId.value,
-            baseId,
-            {
-              operation: 'dashboardUpdate',
-            },
-            {
-              ...updates,
-              id: dashboardId,
-              dashboardId,
-            },
-          )
+          activeWorkspaceId.value,
+          baseId,
+          {
+            operation: 'dashboardUpdate',
+          },
+          {
+            ...updates,
+            id: dashboardId,
+            dashboardId,
+          },
+        )
 
       const baseDashboards = dashboards.value.get(baseId) || []
       const index = baseDashboards.findIndex((a) => a.id === dashboardId)
@@ -479,7 +477,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   // Watch for active dashboard changes
   watch(activeDashboardId, async (dashboardId) => {
-    if (!activeProjectId.value || !isDashboardEnabled.value) return
+    if (!activeProjectId.value) return
     if (dashboardId) {
       await loadDashboard(dashboardId)
     }
@@ -521,7 +519,7 @@ export const useDashboardStore = defineStore('dashboard', () => {
   )
 
   onMounted(async () => {
-    if (!activeDashboardId.value || !activeProjectId.value || !isDashboardEnabled.value) {
+    if (!activeDashboardId.value || !activeProjectId.value) {
       return
     }
     loadDashboard(activeDashboardId.value)
@@ -538,7 +536,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
     // Getters
     activeBaseDashboards,
     activeDashboardId,
-    isDashboardEnabled,
 
     // Actions
     loadDashboards,

@@ -9,8 +9,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const activeDashboard = computed(() => null)
 
-  const isDashboardEnabled = computed(() => false)
-
   const loadDashboards = async (..._params: any) => []
 
   const loadDashboard = async (..._params: any) => null
@@ -25,14 +23,13 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const duplicateDashboard = async (..._params: any) => null
 
-  async function openNewDashboardModal(..._params: any) {}
+  async function openNewDashboardModal(..._params: any) { }
 
   return {
     // State
     dashboards,
     activeDashboard,
     isEditingDashboard,
-    isDashboardEnabled,
 
     // Getters
     activeBaseDashboards,

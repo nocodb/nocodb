@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FormBuilderValidatorType } from 'nocodb-sdk'
+import { FormBuilderValidatorType, type CustomFormBuilderValidator } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType } from '#imports'
 
 const props = defineProps<{
@@ -76,6 +76,10 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
           type: FormBuilderValidatorType.Required,
           message: t('labels.titleRequired'),
         },
+        {
+          type: FormBuilderValidatorType.Custom,
+          validator: baseTitleValidator('App').validator,
+        },
       ],
       required: true,
     },
@@ -142,6 +146,12 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     },
   ],
   onSubmit: async () => {
+    if (formState.value.startFrom === 'new' && formState.value.baseId) {
+      formState.value.baseId = ''
+    }
+
+    formState.value.title = formState.value.title.trim()
+
     return await convertToSandbox(formState.value)
   },
   initialState: initialSanboxFormState,

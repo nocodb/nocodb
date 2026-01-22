@@ -170,9 +170,7 @@ export class ViewsService {
       param.view,
     );
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const oldView = await View.get(context, param.viewId, ncMeta);
@@ -351,9 +349,7 @@ export class ViewsService {
     ncMeta = Noco.ncMeta,
   ) {
     if (context.schema_locked) {
-      NcError.get(context).schemaLocked(
-        'Schema modifications are not allowed on installed sandbox bases',
-      );
+      NcError.get(context).schemaLocked();
     }
 
     const view = await View.get(context, param.viewId, ncMeta);

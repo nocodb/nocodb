@@ -13,7 +13,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const isAiFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
+  const isAiFeaturesEnabled = computed(() => isEeUI)
 
   const isAiBetaFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_BETA_FEATURES))
 
@@ -315,13 +315,13 @@ export const useNocoAi = createSharedComposable(() => {
     column:
       | string
       | {
-          title: string
-          prompt_raw: string
-          fk_integration_id: string
-          uidt: string
-          model?: string
-          output_column_ids?: string
-        },
+        title: string
+        prompt_raw: string
+        fk_integration_id: string
+        uidt: string
+        model?: string
+        output_column_ids?: string
+      },
     rowIds: string[],
     skipMsgToast = false,
     preview = false,

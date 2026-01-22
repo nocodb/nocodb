@@ -189,8 +189,8 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
 <template>
   <div class="flex flex-col h-full">
     <div class="p-4 w-full flex items-center gap-3 border-b border-nc-border-gray-medium">
-      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-brand-500 to-brand-600 flex items-center justify-center">
-        <GeneralIcon icon="ncBox" class="w-5 h-5 text-white" />
+      <div class="nc-managed-app-icon">
+        <GeneralIcon icon="ncBox" class="h-5 w-5" />
       </div>
       <div class="flex-1">
         <div class="font-semibold text-lg text-nc-content-gray-emphasis">Create Managed App</div>
@@ -227,7 +227,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
         <template #icon>
           <GeneralIcon icon="ncBox" />
         </template>
-        Convert to sandbox
+        Create managed app
       </NcButton>
     </div>
   </div>
@@ -239,5 +239,13 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     max-height: min(90vh, 540px) !important;
     height: min(90vh, 540px) !important;
   }
+}
+</style>
+
+<style lang="scss" scoped>
+.nc-managed-app-icon {
+  @apply w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm;
+  background: linear-gradient(135deg, var(--nc-content-brand) 0%, var(--nc-content-blue-medium) 100%);
+  box-shadow: 0 2px 4px rgba(51, 102, 255, 0.15);
 }
 </style>

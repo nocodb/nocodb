@@ -113,7 +113,7 @@ onMounted(() => {
         @click="onClickOption(NcBaseCreateMode.MANAGED_APP)"
       />
 
-      <WorkspaceProjectCreateMenuItem
+      <!-- <WorkspaceProjectCreateMenuItem
         v-e="['c:base:sandbox:create']"
         :variant="variant"
         icon="ncBox"
@@ -127,7 +127,7 @@ onMounted(() => {
             <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
           </div>
         </template>
-      </WorkspaceProjectCreateMenuItem>
+      </WorkspaceProjectCreateMenuItem> -->
     </template>
   </component>
 

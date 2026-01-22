@@ -8,6 +8,7 @@ import {
   viewTypeAlias,
 } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
+import BaseUser from '~/models/BaseUser';
 import { CacheGetType, CacheScope, MetaTable } from '~/utils/globals';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
@@ -188,7 +189,7 @@ export async function getBaseSchema(context: NcContext, ncMeta = Noco.ncMeta) {
     .where('fk_workspace_id', workspaceId)
     .select('id', 'fk_model_id', 'title', 'type', 'description');
 
-  // 5. Collaborators
+  // 5. Collaborators (TODO include inherited users, maybe use BaseUser)
   const collaborators = await knex(MetaTable.PROJECT_USERS)
     .where(`${MetaTable.PROJECT_USERS}.base_id`, baseId)
     .where(`${MetaTable.PROJECT_USERS}.fk_workspace_id`, workspaceId)

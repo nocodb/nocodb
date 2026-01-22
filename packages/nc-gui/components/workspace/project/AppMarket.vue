@@ -125,7 +125,6 @@ watch(
 
 <template>
   <NcModal v-model:visible="visible" :footer="null" nc-modal-class-name="!p-0" size="large" @close="emit('close')">
-
     <div class="flex items-center gap-3 px-4 py-3 border-b-1 border-b-nc-border-gray-medium">
       <GeneralIcon icon="ncBox" class="h-5 w-5" />
       <div class="flex-1 text-bodyLgBold">{{ t('labels.appMarket') }}</div>
@@ -138,7 +137,7 @@ watch(
     <div class="flex flex-col gap-4 h-[600px] p-6">
       <!-- Search and Filter Bar -->
       <div class="flex gap-3">
-        <a-input v-model:value="searchQuery" class="flex-1 nc-input-sm nc-input-shadow" :placeholder="t('placeholder.searchByTitle')" allow-clear>
+        <a-input v-model:value="searchQuery" class="flex-1 nc-input-sm nc-input-shadow !rounded-md" :placeholder="t('placeholder.searchByTitle')" allow-clear>
           <template #prefix>
             <GeneralIcon icon="search" class="h-4 w-4 text-nc-content-gray-muted" />
           </template>

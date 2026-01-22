@@ -202,56 +202,43 @@ watch(
 </script>
 
 <template>
-  <GeneralModal :visible="visible" size="large" centered @update:visible="emit('update:visible', $event)">
+  <NcModal :visible="visible" size="lg" nc-modal-class-name="!p-0" centered
+    @update:visible="emit('update:visible', $event)">
     <div class="flex flex-col h-full">
       <!-- Header -->
-      <div class="flex items-center justify-between px-6 py-4 border-b border-nc-border-gray-medium">
+      <div class="flex items-center justify-between px-4 py-3 border-b border-nc-border-gray-medium">
         <div>
-          <div class="font-semibold text-lg text-nc-content-gray-emphasis">Sandbox Management</div>
-          <div class="text-xs text-nc-content-gray-subtle2">Manage versions and track deployments</div>
+          <div class="text-bodyLgBold text-nc-content-gray-emphasis">Sandbox Management</div>
+          <div class="text-bodySm text-nc-content-gray-subtle2">Manage versions and track deployments</div>
         </div>
-        <GeneralIcon
-          icon="close"
-          class="w-5 h-5 text-nc-content-gray cursor-pointer hover:text-nc-content-gray-emphasis"
-          @click="emit('update:visible', false)"
-        />
+
+
+        <NcButton size="small" type="text" @click="emit('update:visible', false)" class="self-start">
+          <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
+        </NcButton>
       </div>
 
       <!-- Tabs -->
       <div class="flex gap-6 px-6 pt-3 border-b border-nc-border-gray-medium">
-        <button
-          v-if="isDraft"
-          class="pb-2 px-1 text-sm font-medium transition-colors border-b-2"
-          :class="[
-            activeTab === 'publish'
-              ? 'border-nc-content-brand text-nc-content-brand'
-              : 'border-transparent text-nc-content-gray hover:text-nc-content-gray-emphasis',
-          ]"
-          @click="activeTab = 'publish'"
-        >
+        <button v-if="isDraft" class="pb-2 px-1 text-sm font-medium transition-colors border-b-2" :class="[
+          activeTab === 'publish'
+            ? 'border-nc-content-brand text-nc-content-brand'
+            : 'border-transparent text-nc-content-gray hover:text-nc-content-gray-emphasis',
+        ]" @click="activeTab = 'publish'">
           Publish
         </button>
-        <button
-          v-if="isPublished"
-          class="pb-2 px-1 text-sm font-medium transition-colors border-b-2"
-          :class="[
-            activeTab === 'fork'
-              ? 'border-nc-content-brand text-nc-content-brand'
-              : 'border-transparent text-nc-content-gray hover:text-nc-content-gray-emphasis',
-          ]"
-          @click="activeTab = 'fork'"
-        >
+        <button v-if="isPublished" class="pb-2 px-1 text-sm font-medium transition-colors border-b-2" :class="[
+          activeTab === 'fork'
+            ? 'border-nc-content-brand text-nc-content-brand'
+            : 'border-transparent text-nc-content-gray hover:text-nc-content-gray-emphasis',
+        ]" @click="activeTab = 'fork'">
           Fork
         </button>
-        <button
-          class="pb-2 px-1 text-sm font-medium transition-colors border-b-2"
-          :class="[
-            activeTab === 'deployments'
-              ? 'border-nc-content-brand text-nc-content-brand'
-              : 'border-transparent text-nc-content-gray hover:text-nc-content-gray-emphasis',
-          ]"
-          @click="activeTab = 'deployments'"
-        >
+        <button class="pb-2 px-1 text-sm font-medium transition-colors border-b-2" :class="[
+          activeTab === 'deployments'
+            ? 'border-nc-content-brand text-nc-content-brand'
+            : 'border-transparent text-nc-content-gray hover:text-nc-content-gray-emphasis',
+        ]" @click="activeTab = 'deployments'">
           Deployments
         </button>
       </div>
@@ -264,7 +251,8 @@ watch(
             <div class="flex gap-3">
               <GeneralIcon icon="info" class="w-5 h-5 text-nc-content-blue-dark mt-0.5 flex-shrink-0" />
               <div class="text-sm text-nc-content-gray">
-                Publishing version <strong>{{ currentVersion?.version }}</strong> will make it available in the App Store and
+                Publishing version <strong>{{ currentVersion?.version }}</strong> will make it available in the App
+                Store and
                 automatically update all installations.
               </div>
             </div>
@@ -282,13 +270,8 @@ watch(
 
             <div>
               <label class="text-nc-content-gray text-sm font-medium mb-2 block">Release Notes (Optional)</label>
-              <a-textarea
-                v-model:value="publishForm.releaseNotes"
-                placeholder="Describe what's new in this version"
-                :rows="6"
-                size="large"
-                class="rounded-lg"
-              />
+              <a-textarea v-model:value="publishForm.releaseNotes" placeholder="Describe what's new in this version"
+                :rows="6" size="large" class="rounded-lg" />
             </div>
           </div>
         </div>
@@ -315,7 +298,8 @@ watch(
                   <span class="text-nc-content-gray-subtle2">v</span>
                 </template>
               </a-input>
-              <div class="text-xs text-nc-content-gray-subtle2 mt-1.5">Use semantic versioning (e.g., 2.0.0, 2.1.0)</div>
+              <div class="text-xs text-nc-content-gray-subtle2 mt-1.5">Use semantic versioning (e.g., 2.0.0, 2.1.0)
+              </div>
             </div>
           </div>
         </div>
@@ -339,7 +323,8 @@ watch(
                 <div class="text-3xl font-bold text-nc-content-gray-emphasis mb-1">
                   {{ deploymentStats.statistics?.totalDeployments || 0 }}
                 </div>
-                <div class="text-xs font-medium text-nc-content-gray-subtle2 uppercase tracking-wide">Total Deployments</div>
+                <div class="text-xs font-medium text-nc-content-gray-subtle2 uppercase tracking-wide">Total Deployments
+                </div>
               </div>
 
               <!-- Active -->
@@ -390,11 +375,8 @@ watch(
 
             <!-- Version List with Real Stats -->
             <div v-if="deploymentStats.versionStats && deploymentStats.versionStats.length > 0" class="space-y-2">
-              <div
-                v-for="(versionStat, index) in deploymentStats.versionStats"
-                :key="versionStat.versionId"
-                class="bg-nc-bg-gray-light border border-nc-border-gray-light rounded-lg p-4 hover:border-nc-border-brand hover:shadow-sm transition-all duration-200"
-              >
+              <div v-for="(versionStat, index) in deploymentStats.versionStats" :key="versionStat.versionId"
+                class="bg-nc-bg-gray-light border border-nc-border-gray-light rounded-lg p-4 hover:border-nc-border-brand hover:shadow-sm transition-all duration-200">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-4 flex-1">
                     <!-- Version Badge -->
@@ -404,13 +386,10 @@ watch(
                       </div>
                       <div>
                         <div class="flex items-center gap-2">
-                          <span class="font-mono font-bold text-base text-nc-content-gray-emphasis"
-                            >v{{ versionStat.version }}</span
-                          >
-                          <div
-                            v-if="index === 0 && versionStat.status === 'published'"
-                            class="px-2 py-0.5 text-xs rounded-full bg-nc-bg-green-light text-nc-content-green-dark font-semibold"
-                          >
+                          <span class="font-mono font-bold text-base text-nc-content-gray-emphasis">v{{
+                            versionStat.version }}</span>
+                          <div v-if="index === 0 && versionStat.status === 'published'"
+                            class="px-2 py-0.5 text-xs rounded-full bg-nc-bg-green-light text-nc-content-green-dark font-semibold">
                             Current
                           </div>
                         </div>
@@ -424,11 +403,11 @@ watch(
                   <!-- Deployment Count -->
                   <template v-if="versionStat.deploymentCount === 0">
                     <div
-                      class="flex items-center gap-3 px-4 py-2 bg-white dark:bg-nc-bg-gray-medium rounded-lg border border-nc-border-gray-light transition-all"
-                    >
+                      class="flex items-center gap-3 px-4 py-2 bg-white dark:bg-nc-bg-gray-medium rounded-lg border border-nc-border-gray-light transition-all">
                       <GeneralIcon icon="ncServer" class="w-4 h-4 text-nc-content-gray-subtle2" />
                       <div class="text-right">
-                        <div class="text-lg font-bold text-nc-content-gray-emphasis">{{ versionStat.deploymentCount }}</div>
+                        <div class="text-lg font-bold text-nc-content-gray-emphasis">{{ versionStat.deploymentCount }}
+                        </div>
                       </div>
                     </div>
                   </template>
@@ -436,11 +415,11 @@ watch(
                     <a-tooltip placement="top" title="Click to view deployments">
                       <div
                         class="flex items-center gap-3 px-4 py-2 bg-white dark:bg-nc-bg-gray-medium rounded-lg border border-nc-border-gray-light cursor-pointer hover:border-nc-border-brand hover:shadow-sm transition-all"
-                        @click="openVersionDeploymentsModal(versionStat)"
-                      >
+                        @click="openVersionDeploymentsModal(versionStat)">
                         <GeneralIcon icon="ncServer" class="w-4 h-4 text-nc-content-gray-subtle2" />
                         <div class="text-right">
-                          <div class="text-lg font-bold text-nc-content-gray-emphasis">{{ versionStat.deploymentCount }}</div>
+                          <div class="text-lg font-bold text-nc-content-gray-emphasis">{{ versionStat.deploymentCount }}
+                          </div>
                         </div>
                       </div>
                     </a-tooltip>
@@ -455,7 +434,8 @@ watch(
                 <GeneralIcon icon="ncServer" class="w-8 h-8 text-nc-content-gray-subtle2" />
               </div>
               <div class="text-base font-medium text-nc-content-gray-emphasis mb-1">No deployments yet</div>
-              <div class="text-sm text-nc-content-gray-subtle2">Users will appear here once they install your application</div>
+              <div class="text-sm text-nc-content-gray-subtle2">Users will appear here once they install your
+                application</div>
             </div>
           </template>
 
@@ -470,25 +450,21 @@ watch(
       </div>
 
       <!-- Footer -->
-      <div v-if="activeTab === 'publish' || activeTab === 'fork'" class="px-6 py-4 border-t border-nc-border-gray-medium">
+      <div v-if="activeTab === 'publish' || activeTab === 'fork'"
+        class="px-6 py-4 border-t border-nc-border-gray-medium">
         <div class="flex justify-end gap-2">
           <NcButton type="secondary" size="medium" @click="emit('update:visible', false)"> Cancel </NcButton>
 
-          <NcButton v-if="activeTab === 'publish'" type="primary" size="medium" :loading="isLoading" @click="publishCurrentDraft">
+          <NcButton v-if="activeTab === 'publish'" type="primary" size="medium" :loading="isLoading"
+            @click="publishCurrentDraft">
             <template #icon>
               <GeneralIcon icon="upload" />
             </template>
             Publish Version
           </NcButton>
 
-          <NcButton
-            v-if="activeTab === 'fork'"
-            type="primary"
-            size="medium"
-            :loading="isLoading"
-            :disabled="!forkForm.version"
-            @click="createNewDraft"
-          >
+          <NcButton v-if="activeTab === 'fork'" type="primary" size="medium" :loading="isLoading"
+            :disabled="!forkForm.version" @click="createNewDraft">
             <template #icon>
               <GeneralIcon icon="plus" />
             </template>
@@ -499,10 +475,7 @@ watch(
     </div>
 
     <!-- Version Deployments Modal -->
-    <SmartsheetTopbarSandboxVersionDeploymentsModal
-      v-model:visible="showVersionDeploymentsModal"
-      :sandbox="sandbox"
-      :version="selectedVersion"
-    />
-  </GeneralModal>
+    <SmartsheetTopbarSandboxVersionDeploymentsModal v-model:visible="showVersionDeploymentsModal" :sandbox="sandbox"
+      :version="selectedVersion" />
+  </NcModal>
 </template>

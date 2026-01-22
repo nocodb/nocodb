@@ -77,6 +77,7 @@ declare module 'vue' {
     AUpload: typeof import('ant-design-vue/es')['Upload']
     AUploadDragger: typeof import('ant-design-vue/es')['UploadDragger']
     ClaritySuccessLine: typeof import('~icons/clarity/success-line')['default']
+    Icon: typeof import('~icons/ic/on')['default']
     IcRoundEdit: typeof import('~icons/ic/round-edit')['default']
     LogosGoogleGmail: typeof import('~icons/logos/google-gmail')['default']
     MaterialSymbolsAttachFile: typeof import('~icons/material-symbols/attach-file')['default']

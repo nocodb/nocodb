@@ -19,6 +19,8 @@ export const useBases = defineStore('basesStore', () => {
 
   const baseRoles = ref<Record<string, any>>({})
 
+  const workspaceBasesMap = ref<Map<string, NcProject[]>>(new Map())
+
   const bases = ref<Map<string, NcProject>>(new Map())
 
   const baseRoleLoadingStatus: Record<string, boolean> = {}
@@ -241,6 +243,10 @@ export const useBases = defineStore('basesStore', () => {
               },
         )
         _projects = list
+      }
+
+      if (targetWorkspaceId) {
+        workspaceBasesMap.value.set(targetWorkspaceId, _projects)
       }
 
       // Only update bases.value if the workspaceId matches activeWorkspace.id
@@ -741,6 +747,7 @@ export const useBases = defineStore('basesStore', () => {
 
   return {
     baseCreateMode,
+    workspaceBasesMap,
     bases,
     basesList,
     loadProjects,

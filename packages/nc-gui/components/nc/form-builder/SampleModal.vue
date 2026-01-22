@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { FormBuilderInputType, FormBuilderValidatorType } from '@noco-integrations/core'
 const initState = ref({
   someDefaultProp: 'value',
 })
@@ -12,7 +13,12 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
       model: 'title',
       placeholder: 'Some placeholder',
       category: 'General',
-      required: true,
+      validators: [
+        {
+          type: FormBuilderValidatorType.Required,
+          message: 'Sample Input is required',
+        },
+      ],
     },
     {
       type: FormBuilderInputType.Input,
@@ -22,7 +28,12 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
       placeholder: 'This is added to config.sample',
       category: 'Sample Category',
       helpText: 'This is a sample help text',
-      required: true,
+      validators: [
+        {
+          type: FormBuilderValidatorType.Required,
+          message: 'Input To Nested Path is required',
+        },
+      ],
     },
     {
       type: FormBuilderInputType.Input,
@@ -31,7 +42,6 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
       model: 'config.sample2',
       placeholder: 'This is added to config.sample2',
       category: 'Sample Category',
-      required: false,
     },
     {
       type: FormBuilderInputType.Select,
@@ -45,7 +55,12 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
         { label: 'Option 3', value: 'option3' },
       ],
       defaultValue: 'option2',
-      required: true,
+      validators: [
+        {
+          type: FormBuilderValidatorType.Required,
+          message: 'Sample Select is required',
+        },
+      ],
     },
     {
       type: FormBuilderInputType.Switch,
@@ -54,7 +69,6 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
       model: 'config.switch',
       category: 'Misc',
       helpText: 'This is a sample switch',
-      required: false,
       border: true,
     },
   ],

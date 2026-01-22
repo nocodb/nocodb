@@ -13,6 +13,10 @@ import { DatabricksClient } from 'knex-databricks';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const MAX_POOL_SIZE = process.env.MAX_POOL_SIZE
+  ? parseInt(process.env.MAX_POOL_SIZE, 10)
+  : 50;
+
 const DEBUG = process.env.DEBUG === 'true';
 
 const fastify = Fastify({ logger: DEBUG });
@@ -201,7 +205,7 @@ async function getConnectionPool(config: any, sourceId: string | null) {
         poolSizeConfig = { min: 0, max: dynamicPoolMax };
       }
     } else {
-      poolSizeConfig = { min: 0, max: 10 };
+      poolSizeConfig = { min: 0, max: MAX_POOL_SIZE };
     }
 
     connectionPools[connectionKey] = knex({

@@ -98,9 +98,9 @@ export const useTooltipStore = defineStore('tooltip', () => {
     const tooltipWithDescription =
       ncIsString(text) && description
         ? h('div', { class: 'flex flex-col gap-1' }, [
-            h('div', { class: 'text-captionBold' }, text),
-            h('div', { class: 'text-captionSm' }, description),
-          ])
+          h('div', { class: 'text-captionBold' }, text),
+          h('div', { class: 'text-captionSm' }, description),
+        ])
         : text
 
     showTooltip({ text: tooltipWithDescription, rect, mousePosition, placement })

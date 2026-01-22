@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FormBuilderValidatorType, type CustomFormBuilderValidator } from 'nocodb-sdk'
+import { FormBuilderValidatorType } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType } from '#imports'
 
 const props = defineProps<{

@@ -15,17 +15,13 @@ const disableBaseLayout = computed(
   () => route.value.path.startsWith('/nc/view') || route.value.path.startsWith('/nc/form') || showOnboardingFlow.value,
 )
 
-const { isExperimentalFeatureModalOpen, initializeFeatures, isFeatureEnabled } = useBetaFeatureToggle()
+const { isExperimentalFeatureModalOpen, initializeFeatures } = useBetaFeatureToggle()
 
 initializeFeatures()
 
 useAntDvTheme()
 
-const isDarkModeEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.DARK_MODE))
-
-if (isDarkModeEnabled.value) {
-  useTheme()
-}
+useTheme()
 
 const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
 

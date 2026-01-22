@@ -15,8 +15,6 @@ const { navigateToProject, user } = useGlobal()
 
 const { refreshCommandPalette } = useCommandPalette()
 
-const { isDashboardEnabled } = storeToRefs(useDashboardStore())
-
 const { api } = useApi()
 
 const { $e, $poller } = useNuxtApp()
@@ -37,9 +35,9 @@ const options = ref({
   includeViews: true,
   includeHooks: true,
   includeComments: true,
-  includeScripts: true,
-  includeDashboards: isDashboardEnabled.value,
-  includeWorkflows: true,
+  includeScripts: isEeUI,
+  includeDashboards: isEeUI,
+  includeWorkflows: isEeUI,
 })
 const targetWorkspace = ref(activeWorkspace)
 
@@ -275,7 +273,7 @@ onKeyStroke('Enter', () => {
           </div>
 
           <div
-            v-if="isDashboardEnabled && isEeUI"
+            v-if="isEeUI"
             class="flex gap-3 cursor-pointer leading-5 text-nc-content-gray font-medium items-center"
             @click="options.includeDashboards = !options.includeDashboards"
           >

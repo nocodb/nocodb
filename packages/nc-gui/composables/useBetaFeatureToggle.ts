@@ -205,15 +205,6 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'card_field_header_visibility',
-    title: 'Card Field Header Visibility',
-    description: 'Enable field header visibility in Gallery and Kanban views.',
-    enabled: false,
-    version: 1,
-    isEngineering: true,
-    isEE: true,
-  },
-  {
     id: 'kanban_opt',
     title: 'Optimized Kanban View',
     description: 'Optimized Kanban view with optimised API for better performance.',

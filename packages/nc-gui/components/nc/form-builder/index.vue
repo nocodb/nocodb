@@ -474,6 +474,7 @@ watch(
                     <NcFormBuilderInputSelectBase
                       :value="deepReference(field.model)"
                       :disabled="disabled"
+                      :filter-option="field.filterOption"
                       @update:value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>

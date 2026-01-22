@@ -1,3 +1,5 @@
+import { BaseType } from "../Api";
+
 export enum FormBuilderInputType {
   Input = 'input',
   Textarea = 'textarea',
@@ -266,6 +268,7 @@ export interface FormBuilderSelectIntegrationElement
 export interface FormBuilderSelectBaseElement extends FormBuilderElementBase {
   type: FormBuilderInputType.SelectBase;
   defaultValue?: string | null;
+  filterOption?: (base: BaseType) => boolean;
 }
 
 /**

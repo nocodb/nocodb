@@ -180,7 +180,7 @@ export const layoutTitleValidator = {
   },
 }
 
-export const baseTitleValidator = (title: 'project' | 'connection' = 'project') => {
+export const baseTitleValidator = (title: string = 'objects.project') => {
   return {
     validator: (rule: any, value: any) => {
       const { t } = getI18n().global
@@ -190,7 +190,7 @@ export const baseTitleValidator = (title: 'project' | 'connection' = 'project') 
           reject(
             new Error(
               t('msg.error.projectNameExceeds50Characters', {
-                title: title === 'project' ? t('objects.project') : t('general.connection'),
+                title: t(title),
               }),
             ),
           )
@@ -200,7 +200,7 @@ export const baseTitleValidator = (title: 'project' | 'connection' = 'project') 
           reject(
             new Error(
               t('msg.error.projectNameCannotStartWithSpace', {
-                title: title === 'project' ? t('objects.project') : t('general.connection'),
+                title: t(title)
               }),
             ),
           )
@@ -357,7 +357,7 @@ export const validateColumnValue = (column: ColumnType, value: any) => {
     let validateObj: any
     try {
       validateObj = JSON.parse(validate)
-    } catch (ex) {}
+    } catch (ex) { }
     if (validateObj.func?.[0] && validator[validateObj.func[0] as string]) {
       const validatorFunc = validator[validateObj.func[0] as any]
       const validationResult = validatorFunc(value)

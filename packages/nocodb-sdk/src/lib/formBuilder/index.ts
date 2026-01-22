@@ -46,12 +46,18 @@ export enum FormBuilderValidatorType {
 /**
  * Validator configuration for form field validation
  */
-export interface FormBuilderValidator {
+export interface BaseFormBuilderValidator {
   /** Type of validation to apply */
   type: FormBuilderValidatorType;
   /** Custom error message to display when validation fails */
   message?: string;
 }
+
+export interface CustomFormBuilderValidator extends BaseFormBuilderValidator {
+  validator: (rule: any, value: any) => Promise<any>
+}
+
+export type FormBuilderValidator = BaseFormBuilderValidator | CustomFormBuilderValidator;
 
 /**
  * Option configuration for select elements

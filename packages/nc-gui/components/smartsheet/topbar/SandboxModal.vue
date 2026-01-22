@@ -557,7 +557,7 @@ watch(
 }
 
 .nc-stat-card {
-  @apply bg-nc-bg-gray-extralight border-1 border-nc-border-gray-medium rounded-xl p-4 transition-all duration-200 hover:(border-nc-border-gray-dark shadow-hover);
+  @apply bg-nc-bg-gray-extralight border-1 border-nc-border-gray-light rounded-xl p-4 transition-all duration-200 hover:(border-nc-border-gray-medium shadow-hover);
 }
 
 .nc-stat-icon-wrapper {

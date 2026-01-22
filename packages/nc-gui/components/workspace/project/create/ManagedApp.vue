@@ -149,7 +149,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
         equal: 'existing',
       },
       defaultValue: undefined,
-      filterOption: (base) => base && !base?.sandbox_master,
+      filterOption: (base) => base && !base?.sandbox_id,
     },
     {
       type: FormBuilderInputType.Input,

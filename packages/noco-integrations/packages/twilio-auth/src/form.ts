@@ -1,7 +1,7 @@
 import {
+  AuthType,
   FormBuilderInputType,
   FormBuilderValidatorType,
-  AuthType,
 } from '@noco-integrations/core';
 import type { FormDefinition } from '@noco-integrations/core';
 

@@ -1,6 +1,8 @@
 export const clientId = process.env.INTEGRATION_AUTH_GOOGLE_CALENDAR_CLIENT_ID;
-export const clientSecret = process.env.INTEGRATION_AUTH_GOOGLE_CALENDAR_CLIENT_SECRET;
-export const redirectUri = process.env.INTEGRATION_AUTH_GOOGLE_CALENDAR_REDIRECT_URI;
+export const clientSecret =
+  process.env.INTEGRATION_AUTH_GOOGLE_CALENDAR_CLIENT_SECRET;
+export const redirectUri =
+  process.env.INTEGRATION_AUTH_GOOGLE_CALENDAR_REDIRECT_URI;
 
 export const scopes = [
   'https://www.googleapis.com/auth/calendar.readonly',

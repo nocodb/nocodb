@@ -10,17 +10,28 @@ import { isDevOrTestEnvironment } from '~/utils';
  * Nodes not listed here are considered FREE (available to all plans)
  */
 export const WorkflowNodePlanRequirements: Record<string, PlanTitles> = {
-  'core.trigger.cron': PlanTitles.PLUS,
-  'core.action.send-email': PlanTitles.PLUS,
-  'core.flow.iterate': PlanTitles.PLUS,
-  'core.flow.delay': PlanTitles.PLUS,
-  'google.send_email': PlanTitles.PLUS,
-  'outlook.send_email': PlanTitles.PLUS,
-  'slack.send_message': PlanTitles.PLUS,
-  'core.flow.wait-until': PlanTitles.PLUS,
-  'ai.action.generate-text': PlanTitles.PLUS,
-  'ai.action.generate-structured': PlanTitles.PLUS,
-  'nocodb.run_script': PlanTitles.BUSINESS,
+  // Triggers
+  'core.trigger.cron': PlanTitles.PLUS, // Scheduled / Cron
+  'core.trigger.webhook': PlanTitles.PLUS, // Incoming Webhook
+  'core.trigger.email_received': PlanTitles.PLUS, // Incoming Email
+
+  // Flow control
+  'core.flow.iterate': PlanTitles.PLUS, // Iterate
+  'core.flow.delay': PlanTitles.PLUS, // Delay
+  'core.flow.wait-until': PlanTitles.PLUS, // Wait until
+
+  // Actions
+  'core.action.send-email': PlanTitles.PLUS, // Send email
+  'core.action.http': PlanTitles.PLUS, // Http request
+  'nocodb.run_script': PlanTitles.PLUS, // Run script
+
+  // Integrations
+  'google.send_email': PlanTitles.PLUS, // Gmail
+  'slack.send_message': PlanTitles.PLUS, // Slack
+  'outlook.send_email': PlanTitles.PLUS, // Outlook
+  'twilio.action.send_sms': PlanTitles.PLUS, // Twilio SMS
+  'twilio.action.call_phone': PlanTitles.PLUS, // Twilio Call
+  'twilio.action.send_whatsapp': PlanTitles.PLUS, // Twilio WhatsApp
 };
 
 /**

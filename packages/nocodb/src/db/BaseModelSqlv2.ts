@@ -141,6 +141,7 @@ import NocoSocket from '~/socket/NocoSocket';
 import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
+import { isTransientError } from '~/helpers/db-error/utils';
 
 dayjs.extend(utc);
 
@@ -644,7 +645,11 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         skipSubstitutingColumnIds: options.skipSubstitutingColumnIds,
       });
     } catch (e) {
-      if (validateFormula || !haveFormulaColumn(columns)) throw e;
+      // Check if this is a transient error (connection/timeout issue)
+      const isTransient = isTransientError(e);
+
+      if (isTransient || validateFormula || !haveFormulaColumn(columns))
+        throw e;
       logger.log(e);
       return this.list(args, {
         ignoreViewFilterAndSort,

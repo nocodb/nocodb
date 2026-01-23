@@ -28,7 +28,8 @@ import NocoCache from '~/cache/NocoCache';
 
 @Injectable()
 export class SandboxPostOperations
-  implements InternalApiModule<InternalPOSTResponseType> {
+  implements InternalApiModule<InternalPOSTResponseType>
+{
   httpMethod = 'POST' as const;
   operations = [
     'sandboxCreate',
@@ -42,7 +43,7 @@ export class SandboxPostOperations
   constructor(
     private readonly sandboxService: SandboxService,
     private readonly basesService: BasesService,
-  ) { }
+  ) {}
 
   async handle(
     context: NcContext,
@@ -88,7 +89,9 @@ export class SandboxPostOperations
     if (!baseId || baseId === NO_SCOPE) {
       const base = await this.basesService.baseCreate({
         base: {
-          title: (body.basePayload?.title || body.title).trim().substring(0, 50),
+          title: (body.basePayload?.title || body.title)
+            .trim()
+            .substring(0, 50),
           type: 'database',
           ...{ fk_workspace_id: workspaceId },
           version: BaseVersion.V3,
@@ -117,9 +120,10 @@ export class SandboxPostOperations
       }
 
       if (base.fk_workspace_id !== workspaceId) {
-        NcError.get(context).badRequest('Base does not belong to this workspace');
+        NcError.get(context).badRequest(
+          'Base does not belong to this workspace',
+        );
       }
-
 
       if (base.version !== BaseVersion.V3) {
         NcError.get(context).badRequest(
@@ -130,12 +134,11 @@ export class SandboxPostOperations
       // Check if sandbox already exists for this base
       const existingSandbox = await Sandbox.getByBaseId(baseId);
       if (existingSandbox) {
-        NcError.get(context).badRequest('A sandbox already exists for this base');
+        NcError.get(context).badRequest(
+          'A sandbox already exists for this base',
+        );
       }
-
     }
-
-
 
     const sandbox = await Sandbox.insert(context, {
       ...body,

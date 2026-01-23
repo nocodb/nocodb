@@ -14,6 +14,7 @@ import {
   singleQueryRead as mysqlSingleQueryRead,
 } from '~/services/data-opt/mysql-helpers';
 import { haveFormulaColumn } from '~/db/BaseModelSqlv2';
+import { isTransientError } from '~/helpers/db-error/utils';
 
 @Injectable()
 export class DataOptService {
@@ -63,7 +64,11 @@ export class DataOptService {
         params,
       })) as PagedResponseImpl<Record<string, any>>;
     } catch (e) {
+      // Check if this is a transient error (connection/timeout issue)
+      const isTransient = isTransientError(e);
+
       if (
+        isTransient ||
         ctx.validateFormula ||
         !haveFormulaColumn(await ctx.model.getColumns(context))
       )
@@ -92,7 +97,11 @@ export class DataOptService {
       }
       return singleQueryRead(context, ctx);
     } catch (e) {
+      // Check if this is a transient error (connection/timeout issue)
+      const isTransient = isTransientError(e);
+
       if (
+        isTransient ||
         ctx.validateFormula ||
         !haveFormulaColumn(await ctx.model.getColumns(context))
       )

@@ -29,6 +29,7 @@ import { Filter, Model, Sort } from '~/models';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { CacheGetType, CacheScope } from '~/utils/globals';
+import { isTransientError } from '~/helpers/db-error/utils';
 
 export const list = (client: DBQueryClient, logger: Logger) => {
   async function singleQueryList(
@@ -396,7 +397,11 @@ export const list = (client: DBQueryClient, logger: Logger) => {
           ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       });
     } catch (e) {
-      if (ctx.validateFormula || !haveFormulaColumn(columns)) throw e;
+      // Check if this is a transient error (connection/timeout issue)
+      const isTransient = isTransientError(e);
+
+      if (isTransient || ctx.validateFormula || !haveFormulaColumn(columns))
+        throw e;
       return singleQueryList(context, {
         ...ctx,
         validateFormula: true,

@@ -15,7 +15,7 @@ export class WorkflowTestProcessor {
     @Inject('WorkflowExecutionService')
     private readonly workflowExecutionService: WorkflowExecutionService,
     private readonly jobsLogService: JobsLogService,
-  ) { }
+  ) {}
 
   async testWorkflowNode(job: Job<TestWorkflowNodeJobData>) {
     const {

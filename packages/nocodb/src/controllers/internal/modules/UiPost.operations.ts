@@ -34,7 +34,8 @@ import { ExtensionsService } from '~/services/extensions.service';
 
 @Injectable()
 export class UiPostOperations
-  implements InternalApiModule<InternalPOSTResponseType> {
+  implements InternalApiModule<InternalPOSTResponseType>
+{
   constructor(
     protected dataTableService: DataTableService,
     protected tablesService: TablesService,
@@ -58,7 +59,7 @@ export class UiPostOperations
     protected syncService: SyncService,
     protected readonly nocoJobsService: NocoJobsService,
     protected extensionsService: ExtensionsService,
-  ) { }
+  ) {}
   operations = [
     'tableUpdate' as const,
     'tableDelete' as const,

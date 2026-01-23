@@ -4,7 +4,6 @@ import { expect } from 'chai';
 import { initFormulaLookupColumns, initInitialModel } from '../initModel';
 import { createColumn } from '../../factory/column';
 import { chunkListRow, listRow } from '../../factory/row';
-import { isEE } from '../../utils/helpers';
 
 function formulaLookupLtarTests() {
   let _setup;
@@ -279,11 +278,6 @@ function formulaLookupLtarTests() {
 
   // issue #11299
   it('will create a formula referencing lookup referencing formula', async () => {
-    // TODO: enable and fix for OSS
-    if (!isEE()) {
-      return;
-    }
-
     await initFormulaLookupColumns(_setup);
     const _formulaColumn = await createColumn(_context, _tables.table2, {
       title: 'table1FormulaTitleConcat',

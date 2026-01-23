@@ -1,9 +1,9 @@
 import { Form } from 'ant-design-vue'
 import { diff } from 'deep-object-diff'
 import type {
+  CustomFormBuilderValidator,
   FormBuilderCondition,
   FormBuilderConditionGroup,
-  CustomFormBuilderValidator,
   FormBuilderElement,
   FormBuilderValidator,
   FormDefinition,

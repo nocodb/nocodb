@@ -354,6 +354,9 @@ export default defineNuxtConfig({
         'cronstrue',
         'plyr',
         'cron-parser',
+        'leaflet',
+        'leaflet.markercluster',
+        'uuid',
       ],
       esbuildOptions: {
         define: {

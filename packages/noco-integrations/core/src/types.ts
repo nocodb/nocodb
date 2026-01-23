@@ -6,6 +6,7 @@ import {
   IntegrationsType as IntegrationType,
   SyncCategory,
   UITypes,
+  EntitySelectorMode,
 } from 'nocodb-sdk';
 import type { IntegrationWrapper } from './integration';
 
@@ -43,4 +44,5 @@ export {
   IntegrationType,
   SyncCategory,
   UITypes,
+  EntitySelectorMode,
 };

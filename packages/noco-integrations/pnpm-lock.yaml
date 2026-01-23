@@ -720,6 +720,19 @@ importers:
         specifier: ^5.8.3
         version: 5.8.3
 
+  packages/hubspot-crm-workflow-node:
+    dependencies:
+      '@noco-integrations/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@noco-integrations/hubspot-auth':
+        specifier: workspace:*
+        version: link:../hubspot-auth
+    devDependencies:
+      typescript:
+        specifier: ^5.0.0
+        version: 5.8.3
+
   packages/hubspot-sync:
     dependencies:
       '@noco-integrations/core':

@@ -179,6 +179,7 @@ export abstract class WorkflowNodeIntegration<TConfig extends WorkflowNodeConfig
 
   public async fetchOptions(
     _key: string,
+    _searchQuery?: string,
   ): Promise<unknown> {
     return []
   }

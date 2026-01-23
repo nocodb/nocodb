@@ -36,6 +36,7 @@ import GoogleMailAuth from '@noco-local-integrations/google-mail-auth';
 import GoogleWorkflowNodes from '@noco-local-integrations/google-workflow-nodes';
 import GroqAi from '@noco-local-integrations/groq-ai';
 import HubspotAuth from '@noco-local-integrations/hubspot-auth';
+import HubspotCrmWorkflowNode from '@noco-local-integrations/hubspot-crm-workflow-node';
 import HubspotSync from '@noco-local-integrations/hubspot-sync';
 import JiraCloudAuth from '@noco-local-integrations/jira-cloud-auth';
 import JiraCloudSync from '@noco-local-integrations/jira-cloud-sync';
@@ -103,6 +104,7 @@ export default [
     : [GoogleWorkflowNodes]),
   ...(Array.isArray(GroqAi) ? GroqAi : [GroqAi]),
   ...(Array.isArray(HubspotAuth) ? HubspotAuth : [HubspotAuth]),
+  ...(Array.isArray(HubspotCrmWorkflowNode) ? HubspotCrmWorkflowNode : [HubspotCrmWorkflowNode]),
   ...(Array.isArray(HubspotSync) ? HubspotSync : [HubspotSync]),
   ...(Array.isArray(JiraCloudAuth) ? JiraCloudAuth : [JiraCloudAuth]),
   ...(Array.isArray(JiraCloudSync) ? JiraCloudSync : [JiraCloudSync]),

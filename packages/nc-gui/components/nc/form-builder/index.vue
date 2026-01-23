@@ -178,6 +178,32 @@ const handleSelectChange = (field: FormBuilderElement, value: any) => {
   }
 }
 
+const searchDebounceMap = new Map<string, ReturnType<typeof useDebounceFn>>()
+
+const getSelectSearchHandler = (field: FormBuilderElement) => {
+  if (!field.searchable || !field.model) return undefined
+
+  if (!searchDebounceMap.has(field.model)) {
+    searchDebounceMap.set(
+      field.model,
+      useDebounceFn(async (query: string) => {
+        await loadOptions(field, query)
+      }, 300),
+    )
+  }
+
+  return (query: string) => {
+    searchDebounceMap.get(field.model)?.(query)
+  }
+}
+
+const getSelectFilterOption = (field: FormBuilderElement) => {
+  if (field.searchable) {
+    return false // Disable client-side filtering when using server-side search
+  }
+  return undefined // Use default client-side filtering
+}
+
 eventBus.on(integegrationEventHandler)
 
 onBeforeUnmount(() => {
@@ -185,10 +211,10 @@ onBeforeUnmount(() => {
 })
 
 watch(
-  () => unref(formSchema),
-  async () => {
+  haveIntegrationInput,
+  async (hasIntegration) => {
     // if integration field is available, load the integration state
-    if (haveIntegrationInput.value) {
+    if (hasIntegration) {
       await loadIntegrations()
     }
   },
@@ -364,7 +390,9 @@ watch(
                         show-search
                         :placeholder="field.placeholder"
                         :loading="field.fetchOptionsKey && getIsLoadingFieldOptions(field.model)"
+                        :filter-option="getSelectFilterOption(field)"
                         @update:value="handleSelectChange(field, $event)"
+                        @search="getSelectSearchHandler(field)?.($event)"
                       >
                         <a-select-option
                           v-for="option in field.fetchOptionsKey ? getFieldOptions(field.model) : field.options"
@@ -547,15 +575,31 @@ watch(
                       @update:model-value="setFormStateWithEmit(field.model, $event)"
                     />
                   </template>
-                  <template v-else-if="field.type === FormBuilderInputType.FieldMapping">
+                  <template v-else-if="field.type === FormBuilderInputType.KeyValue">
+                    <NcFormBuilderInputKeyValue
+                      :model-value="deepReference(field.model)"
+                      :element="field"
+                      :disabled="disabled"
+                      @update:model-value="setFormStateWithEmit(field.model, $event)"
+                    />
+                  </template>
+                  <template v-else-if="field.type === FormBuilderInputType.EntitySelector">
                     <NcFormBuilderInputMountedWrapper @mounted="loadOptions(field)">
-                      <NcFormBuilderInputFieldMapping
+                      <NcFormBuilderInputEntitySelector
                         :model-value="deepReference(field.model)"
                         :element="field"
                         :disabled="disabled"
                         @update:model-value="setFormStateWithEmit(field.model, $event)"
                       />
                     </NcFormBuilderInputMountedWrapper>
+                  </template>
+                  <template v-else-if="field.type === FormBuilderInputType.ConditionBuilder">
+                    <NcFormBuilderInputConditionBuilder
+                      :model-value="deepReference(field.model)"
+                      :element="field"
+                      :disabled="disabled"
+                      @update:model-value="setFormStateWithEmit(field.model, $event)"
+                    />
                   </template>
                   <div
                     v-if="field.helpText && field.type !== FormBuilderInputType.Switch && !field.showHintAsTooltip"

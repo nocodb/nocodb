@@ -370,6 +370,7 @@ export abstract class SyncIntegration<T = any> extends IntegrationWrapper<T> {
   async fetchOptions(
     _auth: AuthIntegration<any, any>,
     _key: string,
+    _searchQuery?: string,
   ): Promise<{
     label: string;
     value: string;

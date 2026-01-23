@@ -205,6 +205,70 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     });
   }
 
+  public async readByPk(
+    id?: any,
+    validateFormula = false,
+    query: any = {},
+    {
+      ignoreView = false,
+      getHiddenColumn = false,
+      throwErrorIfInvalidParams = false,
+      extractOnlyPrimaries = false,
+      apiVersion,
+      extractOrderColumn = false,
+    }: {
+      ignoreView?: boolean;
+      getHiddenColumn?: boolean;
+      throwErrorIfInvalidParams?: boolean;
+      extractOnlyPrimaries?: boolean;
+      apiVersion?: NcApiVersion;
+      extractOrderColumn?: boolean;
+    } = {},
+    disableOptimization = false,
+  ): Promise<any> {
+    const source = await this.getSource();
+
+    // Use optimized query for PostgreSQL/MySQL when available
+    if (
+      await canUseOptimisedQuery(this.context, {
+        source,
+        disableOptimization,
+      })
+    ) {
+      const view =
+        ignoreView || !this.viewId
+          ? null
+          : await View.get(this.context, this.viewId);
+
+      const result = await getSingleQueryReadFn(source)(this.context, {
+        model: this.model,
+        id,
+        view,
+        params: query || {},
+        source,
+        getHiddenColumn,
+        throwErrorIfInvalidParams,
+        validateFormula,
+        apiVersion: apiVersion ?? this.context.api_version,
+        extractOnlyPrimaries,
+        extractOrderColumn,
+      });
+
+      // Ensure we return null instead of undefined for consistency with CE version
+      return result ?? null;
+    }
+
+    // Fallback to superclass implementation when optimization is not available
+    return super.readByPk(id, validateFormula, query, {
+      ignoreView,
+      getHiddenColumn,
+      throwErrorIfInvalidParams,
+      extractOnlyPrimaries,
+      apiVersion,
+      extractOrderColumn,
+    });
+  }
+
   public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
     if (this.isPg && this.schema) {

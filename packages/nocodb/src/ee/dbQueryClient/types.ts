@@ -98,11 +98,13 @@ export interface DBQueryClient extends DBQueryClientCE {
       view: View;
       source: Source;
       params;
-      id: string;
+      id: string | Record<string, any>;
       getHiddenColumn?: boolean;
       throwErrorIfInvalidParams?: boolean;
       validateFormula?: boolean;
       apiVersion?: NcApiVersion;
+      extractOnlyPrimaries?: boolean;
+      extractOrderColumn?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>>;
 }

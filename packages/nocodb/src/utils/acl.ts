@@ -95,6 +95,7 @@ const permissionScopes = {
     'dataExist',
     'dataFindOne',
     'dataGroupBy',
+    'dataExport',
     'exportCsv',
     'exportExcel',
     'sortList',
@@ -234,6 +235,7 @@ const rolePermissions:
       dataFindOne: true,
       dataGroupBy: true,
 
+      dataExport: true,
       exportCsv: true,
       exportExcel: true,
 

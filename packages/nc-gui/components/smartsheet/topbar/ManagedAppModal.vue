@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const props = defineProps<{
   visible: boolean
-  sandbox: any
+  managedApp: any
   currentVersion: any
   initialTab?: 'publish' | 'fork' | 'deployments'
 }>()
@@ -38,12 +38,12 @@ const isDraft = computed(() => props.currentVersion?.status === 'draft')
 
 // Load versions
 const loadVersions = async () => {
-  if (!props.sandbox?.id || !base.value?.fk_workspace_id) return
+  if (!props.managedApp?.id || !base.value?.fk_workspace_id) return
 
   try {
     const response = await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id!, {
-      operation: 'sandboxVersionsList',
-      sandboxId: props.sandbox.id,
+      operation: 'managedAppVersionsList',
+      managedAppId: props.managedApp.id,
     } as any)
     if (response?.list) {
       versions.value = response.list
@@ -55,13 +55,13 @@ const loadVersions = async () => {
 
 // Load real deployment statistics
 const loadDeployments = async () => {
-  if (!props.sandbox?.id || !base.value?.fk_workspace_id) return
+  if (!props.managedApp?.id || !base.value?.fk_workspace_id) return
 
   isLoadingDeployments.value = true
   try {
     const response = await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id!, {
-      operation: 'sandboxDeployments',
-      sandboxId: props.sandbox.id,
+      operation: 'managedAppDeployments',
+      managedAppId: props.managedApp.id,
     } as any)
     if (response) {
       deploymentStats.value = response
@@ -82,14 +82,14 @@ const publishCurrentDraft = async () => {
       base.value.fk_workspace_id,
       base.value.id,
       {
-        operation: 'sandboxPublish',
+        operation: 'managedAppPublish',
       },
       {
-        sandboxVersionId: props.currentVersion.id,
+        managedAppVersionId: props.currentVersion.id,
       },
     )
 
-    // Reload base to get updated sandbox version info
+    // Reload base to get updated managed app version info
     if (base.value?.id) {
       await baseStore.loadProject()
     }
@@ -105,7 +105,7 @@ const publishCurrentDraft = async () => {
 }
 
 const createNewDraft = async () => {
-  if (!base.value?.fk_workspace_id || !base.value?.id || !props.sandbox?.id) return
+  if (!base.value?.fk_workspace_id || !base.value?.id || !props.managedApp?.id) return
   if (!forkForm.version) {
     message.error('Please provide a version')
     return
@@ -117,15 +117,15 @@ const createNewDraft = async () => {
       base.value.fk_workspace_id,
       base.value.id,
       {
-        operation: 'sandboxCreateDraft',
+        operation: 'managedAppCreateDraft',
       },
       {
-        sandboxId: props.sandbox.id,
+        managedAppId: props.managedApp.id,
         version: forkForm.version,
       },
     )
 
-    // Reload base to get updated sandbox version info
+    // Reload base to get updated managed app version info
     if (base.value?.id) {
       await baseStore.loadProject()
     }
@@ -205,29 +205,29 @@ watch(
   <NcModal
     :visible="visible"
     size="lg"
-    nc-modal-class-name="nc-modal-sandbox-management"
+    nc-modal-class-name="nc-modal-managed-app-management"
     centered
     @update:visible="emit('update:visible', $event)"
   >
     <div class="flex flex-col h-full">
       <!-- Header with Tabs -->
-      <div class="nc-sandbox-header">
+      <div class="nc-managed-app-header">
         <div class="flex items-center gap-3 flex-1">
-          <div class="nc-sandbox-icon">
+          <div class="nc-managed-app-icon">
             <GeneralIcon icon="ncBox" class="h-5 w-5 text-white" />
           </div>
           <div class="flex-1">
-            <div class="text-lg font-semibold text-nc-content-gray-emphasis">Sandbox Management</div>
+            <div class="text-lg font-semibold text-nc-content-gray-emphasis">Managed App Management</div>
             <div class="text-xs text-nc-content-gray-subtle2">Manage versions and track deployments</div>
           </div>
         </div>
 
         <!-- Tabs (Segmented Control) -->
-        <div class="nc-sandbox-tabs">
+        <div class="nc-managed-app-tabs">
           <div class="flex items-center">
             <div
               v-if="isDraft"
-              class="nc-sandbox-tab"
+              class="nc-managed-app-tab"
               :class="{ selected: activeTab === 'publish' }"
               @click="activeTab = 'publish'"
             >
@@ -236,14 +236,14 @@ watch(
             </div>
             <div
               v-if="isPublished"
-              class="nc-sandbox-tab"
+              class="nc-managed-app-tab"
               :class="{ selected: activeTab === 'fork' }"
               @click="activeTab = 'fork'"
             >
               <GeneralIcon icon="ncGitBranch" class="h-4 w-4 flex-none opacity-75" />
               <span>Fork</span>
             </div>
-            <div class="nc-sandbox-tab" :class="{ selected: activeTab === 'deployments' }" @click="activeTab = 'deployments'">
+            <div class="nc-managed-app-tab" :class="{ selected: activeTab === 'deployments' }" @click="activeTab = 'deployments'">
               <GeneralIcon icon="ncServer" class="h-4 w-4 flex-none opacity-75" />
               <span>Deployments</span>
             </div>
@@ -473,7 +473,7 @@ watch(
       </div>
 
       <!-- Footer -->
-      <div v-if="activeTab === 'publish' || activeTab === 'fork'" class="nc-sandbox-footer">
+      <div v-if="activeTab === 'publish' || activeTab === 'fork'" class="nc-managed-app-footer">
         <div class="flex justify-end gap-2">
           <NcButton type="secondary" size="small" @click="emit('update:visible', false)"> Cancel </NcButton>
 
@@ -502,30 +502,30 @@ watch(
     </div>
 
     <!-- Version Deployments Modal -->
-    <SmartsheetTopbarSandboxVersionDeploymentsModal
+    <SmartsheetTopbarManagedAppVersionDeploymentsModal
       v-model:visible="showVersionDeploymentsModal"
-      :sandbox="sandbox"
+      :managed-app="managedApp"
       :version="selectedVersion"
     />
   </NcModal>
 </template>
 
 <style lang="scss" scoped>
-.nc-sandbox-header {
+.nc-managed-app-header {
   @apply flex items-center gap-4 px-4 py-3 border-b-1 border-nc-border-gray-medium;
 }
 
-.nc-sandbox-icon {
+.nc-managed-app-icon {
   @apply w-10 h-10 rounded-xl flex items-center justify-center;
   background: linear-gradient(135deg, var(--nc-content-brand) 0%, var(--nc-content-blue-medium) 100%);
   box-shadow: 0 2px 4px rgba(51, 102, 255, 0.15);
 }
 
-.nc-sandbox-tabs {
+.nc-managed-app-tabs {
   @apply flex bg-nc-bg-gray-medium rounded-lg p-1;
 }
 
-.nc-sandbox-tab {
+.nc-managed-app-tab {
   @apply px-3 py-1.5 flex items-center gap-2 text-xs rounded-md select-none cursor-pointer;
   @apply text-nc-content-gray-subtle2 transition-all duration-200;
 
@@ -539,7 +539,7 @@ watch(
   }
 }
 
-.nc-sandbox-footer {
+.nc-managed-app-footer {
   @apply px-6 py-3 border-t-1 border-nc-border-gray-medium;
 }
 
@@ -711,7 +711,7 @@ watch(
 </style>
 
 <style lang="scss">
-.nc-modal-sandbox-management {
+.nc-modal-managed-app-management {
   @apply !p-0;
 }
 </style>

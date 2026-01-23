@@ -21,7 +21,7 @@ interface Emits {
   (e: 'openMcpServer', id: string): void
   (e: 'delete'): void
   (e: 'toggleStarred', id: string): void
-  (e: 'convertToSandbox'): void
+  (e: 'convertToManagedApp'): void
 }
 
 const { dataReflectionState, dataReflectionText } = toRefs(props)
@@ -39,11 +39,11 @@ const { isUIAllowed } = useRoles()
 const isOptionVisible = computed(() => {
   return {
     baseDuplicate: isUIAllowed('baseDuplicate', { roles: baseRole.value }),
-    convertToSandbox:
+    convertToManagedApp:
       base.value?.version === BaseVersion.V3 &&
-      !base.value?.sandbox_id &&
+      !base.value?.managed_app_id &&
       isUIAllowed('baseMiscSettings') &&
-      isFeatureEnabled(FEATURE_FLAG.SANDBOXES),
+      isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS),
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&
@@ -103,12 +103,12 @@ const isOptionVisible = computed(() => {
     </NcMenuItem>
 
     <NcMenuItem
-      v-if="isOptionVisible.convertToSandbox"
-      data-testid="nc-sidebar-base-convert-to-sandbox"
-      @click="emits('convertToSandbox')"
+      v-if="isOptionVisible.convertToManagedApp"
+      data-testid="nc-sidebar-base-convert-to-managed-app"
+      @click="emits('convertToManagedApp')"
     >
       <GeneralIcon icon="ncBox" />
-      Convert to sandbox
+      Convert to managed app
     </NcMenuItem>
 
     <NcDivider />

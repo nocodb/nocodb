@@ -1,4 +1,4 @@
-import { BaseVersion, SandboxVisibility } from 'nocodb-sdk';
+import { BaseVersion, ManagedAppVisibility } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { extractProps } from '~/helpers/extractProps';
 import Noco from '~/Noco';
@@ -17,7 +17,7 @@ import {
 } from '~/utils/modelUtils';
 import { Base } from '~/models';
 
-export default class Sandbox {
+export default class ManagedApp {
   id: string;
   base_id: string;
   fk_workspace_id: string;
@@ -25,11 +25,11 @@ export default class Sandbox {
   title: string;
   description?: string;
 
-  // Owner of the sandbox app
+  // Owner of the managed app
   created_by: string;
 
   // Visibility in app store
-  visibility: SandboxVisibility;
+  visibility: ManagedAppVisibility;
 
   // Category for filtering in app store
   category?: string;
@@ -48,27 +48,27 @@ export default class Sandbox {
   updated_at: string;
   published_at?: string;
 
-  constructor(sandbox: Partial<Sandbox>) {
-    Object.assign(this, sandbox);
+  constructor(managedApp: Partial<ManagedApp>) {
+    Object.assign(this, managedApp);
   }
 
   public static async get(
-    sandboxId: string,
+    managedAppId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<Sandbox> {
-    let sandbox = await NocoCache.get(
+  ): Promise<ManagedApp> {
+    let managedApp = await NocoCache.get(
       'root',
-      `${CacheScope.SANDBOX}:${sandboxId}`,
+      `${CacheScope.MANAGED_APP}:${managedAppId}`,
       CacheGetType.TYPE_OBJECT,
     );
 
-    if (!sandbox) {
+    if (!managedApp) {
       // Use RootScopes.ROOT for global scope query with workspace filtering via xcCondition
-      sandbox = await ncMeta.metaGet2(
+      managedApp = await ncMeta.metaGet2(
         RootScopes.ROOT,
         RootScopes.ROOT,
-        MetaTable.SANDBOXES,
-        sandboxId,
+        MetaTable.MANAGED_APPS,
+        managedAppId,
         null,
         {
           _and: [
@@ -81,28 +81,28 @@ export default class Sandbox {
         },
       );
 
-      if (!sandbox) return null;
+      if (!managedApp) return null;
 
-      sandbox = prepareForResponse(sandbox);
+      managedApp = prepareForResponse(managedApp);
 
       await NocoCache.set(
         'root',
-        `${CacheScope.SANDBOX}:${sandboxId}`,
-        sandbox,
+        `${CacheScope.MANAGED_APP}:${managedAppId}`,
+        managedApp,
       );
     }
 
-    return new Sandbox(sandbox);
+    return new ManagedApp(managedApp);
   }
 
   public static async getByBaseId(
     baseId: string,
     ncMeta = Noco.ncMeta,
-  ): Promise<Sandbox> {
-    const sandboxes = await ncMeta.metaList2(
+  ): Promise<ManagedApp> {
+    const managedApps = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOXES,
+      MetaTable.MANAGED_APPS,
       {
         xcCondition: {
           _and: [{ base_id: { eq: baseId } }, { deleted: { eq: false } }],
@@ -110,22 +110,22 @@ export default class Sandbox {
       },
     );
 
-    if (!sandboxes || sandboxes.length === 0) return null;
+    if (!managedApps || managedApps.length === 0) return null;
 
-    return new Sandbox(prepareForResponse(sandboxes[0]));
+    return new ManagedApp(prepareForResponse(managedApps[0]));
   }
 
   public static async list(
     args?: {
       workspaceId?: string;
       userId?: string;
-      visibility?: SandboxVisibility;
+      visibility?: ManagedAppVisibility;
       category?: string;
       limit?: number;
       offset?: number;
     },
     ncMeta = Noco.ncMeta,
-  ): Promise<Sandbox[]> {
+  ): Promise<ManagedApp[]> {
     const conditions: any[] = [
       { fk_workspace_id: { eq: args?.workspaceId } },
       { deleted: { eq: false } },
@@ -143,10 +143,10 @@ export default class Sandbox {
       conditions.push({ category: { eq: args.category } });
     }
 
-    const sandboxList = await ncMeta.metaList2(
+    const managedAppList = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOXES,
+      MetaTable.MANAGED_APPS,
       {
         xcCondition: {
           _and: conditions,
@@ -159,8 +159,8 @@ export default class Sandbox {
       },
     );
 
-    return sandboxList.map(
-      (sandbox) => new Sandbox(prepareForResponse(sandbox)),
+    return managedAppList.map(
+      (managedApp) => new ManagedApp(prepareForResponse(managedApp)),
     );
   }
 
@@ -174,7 +174,7 @@ export default class Sandbox {
       workspaceId?: string;
     },
     ncMeta = Noco.ncMeta,
-  ): Promise<Sandbox[]> {
+  ): Promise<ManagedApp[]> {
     const xcCondition: any = {
       _and: [
         { published_at: { neq: null } }, // Has been published
@@ -187,13 +187,13 @@ export default class Sandbox {
     // - Private: visible to users in the same workspace
     // - Unlisted: visible only to the owner
     const visibilityConditions: any[] = [
-      { visibility: { eq: SandboxVisibility.PUBLIC } },
+      { visibility: { eq: ManagedAppVisibility.PUBLIC } },
     ];
 
     if (args?.workspaceId) {
       visibilityConditions.push({
         _and: [
-          { visibility: { eq: SandboxVisibility.PRIVATE } },
+          { visibility: { eq: ManagedAppVisibility.PRIVATE } },
           { fk_workspace_id: { eq: args.workspaceId } },
         ],
       });
@@ -202,7 +202,7 @@ export default class Sandbox {
     if (args?.userId) {
       visibilityConditions.push({
         _and: [
-          { visibility: { eq: SandboxVisibility.UNLISTED } },
+          { visibility: { eq: ManagedAppVisibility.UNLISTED } },
           { created_by: { eq: args.userId } },
         ],
       });
@@ -224,10 +224,10 @@ export default class Sandbox {
     }
 
     // Use RootScopes.ROOT for global scope query
-    const sandboxList = await ncMeta.metaList2(
+    const managedAppList = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOXES,
+      MetaTable.MANAGED_APPS,
       {
         xcCondition,
         limit: args?.limit,
@@ -239,29 +239,29 @@ export default class Sandbox {
       },
     );
 
-    return sandboxList.map(
-      (sandbox) => new Sandbox(prepareForResponse(sandbox)),
+    return managedAppList.map(
+      (managedApp) => new ManagedApp(prepareForResponse(managedApp)),
     );
   }
 
   public static async insert(
     context: NcContext,
-    sandbox: Partial<Sandbox>,
+    managedApp: Partial<ManagedApp>,
     ncMeta = Noco.ncMeta,
-  ): Promise<Sandbox> {
+  ): Promise<ManagedApp> {
     // Validate base exists and is V3
-    const base = await Base.get(context, sandbox.base_id);
+    const base = await Base.get(context, managedApp.base_id);
     if (!base) {
-      NcError.get(context).baseNotFound(sandbox.base_id);
+      NcError.get(context).baseNotFound(managedApp.base_id);
     }
 
     if (base.version !== BaseVersion.V3) {
       NcError.get(context).badRequest(
-        `Only V3 bases can be published as sandbox apps`,
+        `Only V3 bases can be published as managed apps`,
       );
     }
 
-    const insertObj = extractProps(sandbox, [
+    const insertObj = extractProps(managedApp, [
       'title',
       'description',
       'base_id',
@@ -273,7 +273,7 @@ export default class Sandbox {
     ]);
 
     // Set defaults
-    insertObj.visibility = insertObj.visibility || SandboxVisibility.PRIVATE;
+    insertObj.visibility = insertObj.visibility || ManagedAppVisibility.PRIVATE;
     insertObj.install_count = 0;
 
     if (insertObj.meta && typeof insertObj.meta === 'object') {
@@ -283,7 +283,7 @@ export default class Sandbox {
     const { id } = await ncMeta.metaInsert2(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOXES,
+      MetaTable.MANAGED_APPS,
       prepareForDb(insertObj),
     );
 
@@ -291,11 +291,11 @@ export default class Sandbox {
   }
 
   public static async update(
-    sandboxId: string,
-    sandbox: Partial<Sandbox>,
+    managedAppId: string,
+    managedApp: Partial<ManagedApp>,
     ncMeta = Noco.ncMeta,
-  ): Promise<Sandbox> {
-    const updateObj = extractProps(sandbox, [
+  ): Promise<ManagedApp> {
+    const updateObj = extractProps(managedApp, [
       'title',
       'description',
       'visibility',
@@ -311,64 +311,64 @@ export default class Sandbox {
     await ncMeta.metaUpdate(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOXES,
+      MetaTable.MANAGED_APPS,
       prepareForDb(updateObj),
-      sandboxId,
+      managedAppId,
     );
 
-    await NocoCache.del('root', `${CacheScope.SANDBOX}:${sandboxId}`);
+    await NocoCache.del('root', `${CacheScope.MANAGED_APP}:${managedAppId}`);
 
-    return this.get(sandboxId, ncMeta);
+    return this.get(managedAppId, ncMeta);
   }
 
   public static async softDelete(
-    sandboxId: string,
+    managedAppId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
     await ncMeta.metaUpdate(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOXES,
+      MetaTable.MANAGED_APPS,
       { deleted: true },
-      sandboxId,
+      managedAppId,
     );
 
-    await NocoCache.del('root', `${CacheScope.SANDBOX}:${sandboxId}`);
+    await NocoCache.del('root', `${CacheScope.MANAGED_APP}:${managedAppId}`);
 
     return true;
   }
 
   public static async delete(
-    sandboxId: string,
+    managedAppId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<boolean> {
     // Hard delete - use softDelete instead for normal operations
     await ncMeta.metaDelete(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOXES,
-      sandboxId,
+      MetaTable.MANAGED_APPS,
+      managedAppId,
     );
 
-    await NocoCache.del('root', `${CacheScope.SANDBOX}:${sandboxId}`);
+    await NocoCache.del('root', `${CacheScope.MANAGED_APP}:${managedAppId}`);
 
     return true;
   }
 
   public static async incrementInstallCount(
-    sandboxId: string,
+    managedAppId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<void> {
     await ncMeta.metaUpdate(
       RootScopes.ROOT,
       RootScopes.ROOT,
-      MetaTable.SANDBOXES,
+      MetaTable.MANAGED_APPS,
       {
         install_count: ncMeta.knex.raw('install_count + 1'),
       },
-      sandboxId,
+      managedAppId,
     );
 
-    await NocoCache.del('root', `${CacheScope.SANDBOX}:${sandboxId}`);
+    await NocoCache.del('root', `${CacheScope.MANAGED_APP}:${managedAppId}`);
   }
 }

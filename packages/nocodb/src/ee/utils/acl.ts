@@ -115,13 +115,13 @@ const permissionScopes = {
 
     'getUserProfile',
 
-    // Sandbox (public operations)
-    'sandboxStoreList',
-    'sandboxGet',
+    // Managed App (public operations)
+    'managedAppStoreList',
+    'managedAppGet',
   ],
   workspace: [
-    // Sandbox (install operation)
-    'sandboxInstall',
+    // Managed App (install operation)
+    'managedAppInstall',
     'workspaceBaseList',
     'workspaceGet',
     'workspaceUpdate',
@@ -180,9 +180,9 @@ const permissionScopes = {
     'workspaceTeamUpdate',
     'workspaceTeamRemove',
 
-    // Sandbox
-    'sandboxList',
-    'sandboxCreate',
+    // Managed App
+    'managedAppList',
+    'managedAppCreate',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -370,13 +370,13 @@ const permissionScopes = {
     'workflowPublish',
     'workflowNodeIntegrationFetchOptions',
 
-    // Sandbox (management operations)
-    'sandboxGetUpdates',
-    'sandboxUpdate',
-    'sandboxDelete',
-    'sandboxPublish',
-    'sandboxUnpublish',
-    'sandboxVersionsList',
+    // Managed App (management operations)
+    'managedAppGetUpdates',
+    'managedAppUpdate',
+    'managedAppDelete',
+    'managedAppPublish',
+    'managedAppUnpublish',
+    'managedAppVersionsList',
 
     // Audit Logs
     'baseAuditList',
@@ -428,9 +428,9 @@ const rolePermissions:
 
       getUserProfile: true,
 
-      // Sandbox (public operations - available to everyone)
-      sandboxStoreList: true,
-      sandboxGet: true,
+      // Managed App (public operations - available to everyone)
+      managedAppStoreList: true,
+      managedAppGet: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {
@@ -1115,18 +1115,17 @@ const permissionDescriptions: Record<string, string> = {
 
   globalAuditList: 'view list of audits',
 
-  // Sandbox permissions
-  sandboxStoreList: 'browse public sandboxes in the app store',
-  sandboxList: 'view list of sandboxes in the workspace',
-  sandboxGet: 'view sandbox details',
-  sandboxCreate: 'create a new sandbox',
-  sandboxUpdate: 'update sandbox details',
-  sandboxDelete: 'delete a sandbox',
-  sandboxPublish: 'publish a sandbox to the app store',
-  sandboxUnpublish: 'unpublish a sandbox from the app store',
-  sandboxInstall: 'install a sandbox as a new base',
-  sandboxGetUpdates: 'check for updates to an installed sandbox',
-
+  // Managed App permissions
+  managedAppStoreList: 'browse public managed apps in the app store',
+  managedAppList: 'view list of managed apps in the workspace',
+  managedAppGet: 'view managed app details',
+  managedAppCreate: 'create a new managed app',
+  managedAppUpdate: 'update managed app details',
+  managedAppDelete: 'delete a managed app',
+  managedAppPublish: 'publish a managed app to the app store',
+  managedAppUnpublish: 'unpublish a managed app from the app store',
+  managedAppInstall: 'install a managed app as a new base',
+  managedAppGetUpdates: 'check for updates to an installed managed app',
   viewRowColorInfo: 'view row colouring info',
   viewSettingOverride: 'copy view configuration from other view',
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-interface SandboxType {
+interface ManagedAppType {
   id: string
   title: string
   description?: string
@@ -22,7 +22,7 @@ const visible = useVModel(props, 'visible', emit)
 const { $api } = useNuxtApp()
 const { t } = useI18n()
 
-const sandboxes = ref<SandboxType[]>([])
+const managedApps = ref<ManagedAppType[]>([])
 const loading = ref(false)
 const installing = ref<string | null>(null)
 const searchQuery = ref('')
@@ -30,10 +30,10 @@ const selectedCategory = ref<string | undefined>(undefined)
 
 const categories = computed(() => {
   const cats = new Set<string>()
-  sandboxes.value.forEach((sb) => {
-    if (sb.category) {
+  managedApps.value.forEach((ma) => {
+    if (ma.category) {
       // Split comma-separated categories
-      sb.category.split(',').forEach((cat) => {
+      ma.category.split(',').forEach((cat) => {
         const trimmed = cat.trim()
         if (trimmed) cats.add(trimmed)
       })
@@ -42,28 +42,28 @@ const categories = computed(() => {
   return Array.from(cats).sort()
 })
 
-const filteredSandboxes = computed(() => {
-  let filtered = sandboxes.value
+const filteredManagedApps = computed(() => {
+  let filtered = managedApps.value
 
   if (selectedCategory.value) {
     const selected = selectedCategory.value
-    filtered = filtered.filter((sb) => {
-      if (!sb.category) return false
+    filtered = filtered.filter((ma) => {
+      if (!ma.category) return false
       // Check if selected category exists in comma-separated list
-      const categories = sb.category.split(',').map((c) => c.trim())
+      const categories = ma.category.split(',').map((c) => c.trim())
       return categories.includes(selected)
     })
   }
 
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter((sb) => searchCompare([sb.title, sb.description, sb.category], query))
+    filtered = filtered.filter((ma) => searchCompare([ma.title, ma.description, ma.category], query))
   }
 
   return filtered
 })
 
-const loadSandboxes = async () => {
+const loadManagedApps = async () => {
   if (!props.workspaceId) {
     console.error('WorkspaceId is required')
     return
@@ -77,10 +77,10 @@ const loadSandboxes = async () => {
   loading.value = true
   try {
     const response = await $api.internal.getOperation(props.workspaceId, NO_SCOPE, {
-      operation: 'sandboxStoreList',
+      operation: 'managedAppStoreList',
     })
 
-    sandboxes.value = response?.list || []
+    managedApps.value = response?.list || []
   } catch (e: any) {
     console.error('API error:', e)
     message.error(await extractSdkResponseErrorMsg(e))
@@ -89,23 +89,23 @@ const loadSandboxes = async () => {
   }
 }
 
-const installSandbox = async (sandbox: SandboxType) => {
-  installing.value = sandbox.id
+const installManagedApp = async (managedApp: ManagedAppType) => {
+  installing.value = managedApp.id
   try {
     await $api.internal.postOperation(
       props.workspaceId,
       NO_SCOPE,
       {
-        operation: 'sandboxInstall',
+        operation: 'managedAppInstall',
       },
       {
-        sandboxId: sandbox.id,
+        managedAppId: managedApp.id,
         target_workspace_id: props.workspaceId,
       },
     )
 
     message.success(t('msg.success.baseInstalled'))
-    emit('installed', sandbox)
+    emit('installed', managedApp)
     visible.value = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -129,7 +129,7 @@ watch(
   () => props.workspaceId,
   (newVal) => {
     if (newVal) {
-      loadSandboxes()
+      loadManagedApps()
     }
   },
   { immediate: true },
@@ -177,8 +177,8 @@ watch(
       </div>
 
       <!-- Results count -->
-      <div v-if="!loading && filteredSandboxes.length > 0" class="mt-3 text-xs text-nc-content-gray-muted">
-        {{ filteredSandboxes.length }} {{ filteredSandboxes.length === 1 ? 'app' : 'apps' }} available
+      <div v-if="!loading && filteredManagedApps.length > 0" class="mt-3 text-xs text-nc-content-gray-muted">
+        {{ filteredManagedApps.length }} {{ filteredManagedApps.length === 1 ? 'app' : 'apps' }} available
       </div>
     </div>
 
@@ -193,7 +193,7 @@ watch(
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="filteredSandboxes.length === 0" class="nc-app-market-empty">
+      <div v-else-if="filteredManagedApps.length === 0" class="nc-app-market-empty">
         <div class="nc-empty-icon">
           <GeneralIcon icon="ncBox" class="h-10 w-10 text-nc-content-gray-muted" />
         </div>
@@ -209,7 +209,7 @@ watch(
 
       <!-- App List -->
       <div v-else class="nc-app-market-list">
-        <div v-for="sandbox in filteredSandboxes" :key="sandbox.id" class="nc-app-item">
+        <div v-for="managedApp in filteredManagedApps" :key="managedApp.id" class="nc-app-item">
           <div class="nc-app-item-content">
             <!-- App Icon & Info -->
             <div class="nc-app-info">
@@ -218,10 +218,10 @@ watch(
               </div>
               <div class="nc-app-details">
                 <div class="nc-app-title-row">
-                  <h3 class="nc-app-title">{{ sandbox.title }}</h3>
-                  <div v-if="sandbox.category" class="nc-app-categories">
+                  <h3 class="nc-app-title">{{ managedApp.title }}</h3>
+                  <div v-if="managedApp.category" class="nc-app-categories">
                     <div
-                      v-for="cat in sandbox.category
+                      v-for="cat in managedApp.category
                         .split(',')
                         .map((c) => c.trim())
                         .filter(Boolean)"
@@ -236,20 +236,20 @@ watch(
                 <p
                   class="nc-app-description"
                   :class="{
-                    '!text-nc-content-gray-muted': !sandbox.description,
+                    '!text-nc-content-gray-muted': !managedApp.description,
                   }"
                 >
-                  {{ sandbox.description || 'No description available' }}
+                  {{ managedApp.description || 'No description available' }}
                 </p>
                 <div class="nc-app-meta">
                   <span class="nc-app-meta-item">
                     <GeneralIcon icon="download" class="h-3.5 w-3.5" />
-                    <span class="font-medium">{{ formatInstallCount(sandbox.install_count || 0) }}</span>
+                    <span class="font-medium">{{ formatInstallCount(managedApp.install_count || 0) }}</span>
                     <span class="text-nc-content-gray-muted">installs</span>
                   </span>
-                  <span v-if="sandbox.version" class="nc-app-meta-item">
+                  <span v-if="managedApp.version" class="nc-app-meta-item">
                     <GeneralIcon icon="gitCommit" class="h-3.5 w-3.5" />
-                    <span>v{{ sandbox.version }}</span>
+                    <span>v{{ managedApp.version }}</span>
                   </span>
                 </div>
               </div>
@@ -258,16 +258,16 @@ watch(
             <!-- Install Button -->
             <div class="nc-app-action">
               <NcButton
-                :loading="installing === sandbox.id"
+                :loading="installing === managedApp.id"
                 :disabled="!!installing"
                 size="small"
                 type="primary"
-                @click="installSandbox(sandbox)"
+                @click="installManagedApp(managedApp)"
               >
                 <template #icon>
                   <GeneralIcon icon="download" class="h-4 w-4" />
                 </template>
-                {{ installing === sandbox.id ? 'Installing...' : t('general.install') }}
+                {{ installing === managedApp.id ? 'Installing...' : t('general.install') }}
               </NcButton>
             </div>
           </div>

@@ -11,7 +11,7 @@ const visible = defineModel<boolean>('visible', { required: true })
 const { $api } = useNuxtApp()
 const { t } = useI18n()
 
-const initialSanboxFormState = ref<Record<string, any>>({
+const initialManagedAppFormState = ref<Record<string, any>>({
   title: '',
   description: '',
   category: '',
@@ -22,13 +22,13 @@ const { base } = storeToRefs(useBase())
 
 const basesStore = useBases()
 
-const convertToSandbox = async (formState: Record<string, any>) => {
+const convertToManagedApp = async (formState: Record<string, any>) => {
   try {
     const response = await $api.internal.postOperation(
       base.value!.fk_workspace_id as string,
       props.baseId,
       {
-        operation: 'sandboxCreate',
+        operation: 'managedAppCreate',
       } as any,
       {
         title: formState.title,
@@ -38,18 +38,18 @@ const convertToSandbox = async (formState: Record<string, any>) => {
       },
     )
 
-    message.success(t('msg.success.sandboxCreated'))
+    message.success(t('msg.success.managedAppCreated'))
     visible.value = false
 
-    // Update the base with the sandbox_id from response
-    if (response && response.sandbox_id) {
+    // Update the base with the managed_app_id from response
+    if (response && response.managed_app_id) {
       const currentBase = basesStore.bases.get(props.baseId)
       if (currentBase) {
-        ;(currentBase as any).sandbox_id = response.sandbox_id
+        ;(currentBase as any).managed_app_id = response.managed_app_id
       }
     }
 
-    // Reload base to ensure all sandbox data is loaded
+    // Reload base to ensure all managed app data is loaded
     await basesStore.loadProject(props.baseId, true)
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -60,7 +60,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
   formSchema: [
     {
       type: FormBuilderInputType.Input,
-      label: t('labels.sandboxTitle'),
+      label: t('labels.managedAppTitle'),
       span: 24,
       model: 'title',
       placeholder: 'Enter a descriptive title',
@@ -75,7 +75,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     },
     {
       type: FormBuilderInputType.Textarea,
-      label: t('labels.sandboxDescription'),
+      label: t('labels.managedAppDescription'),
       span: 24,
       model: 'description',
       placeholder: "Describe your application's capabilities",
@@ -83,7 +83,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     },
     {
       type: FormBuilderInputType.Input,
-      label: t('labels.sandboxCategory'),
+      label: t('labels.managedAppCategory'),
       span: 12,
       model: 'category',
       placeholder: 'e.g., CRM, HR',
@@ -91,7 +91,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     },
     {
       type: FormBuilderInputType.Select,
-      label: t('labels.sandboxVisibility'),
+      label: t('labels.managedAppVisibility'),
       span: 12,
       model: 'visibility',
       category: FORM_BUILDER_NON_CATEGORIZED,
@@ -104,9 +104,9 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     },
   ],
   onSubmit: async () => {
-    return await convertToSandbox(formState.value)
+    return await convertToManagedApp(formState.value)
   },
-  initialState: initialSanboxFormState,
+  initialState: initialManagedAppFormState,
 })
 
 watch(visible, (isVisible) => {
@@ -127,7 +127,7 @@ watch(visible, (isVisible) => {
     size="sm"
     height="auto"
     centered
-    wrap-class-name="nc-modal-convert-to-sandbox "
+    wrap-class-name="nc-modal-convert-to-managed-app "
     nc-modal-class-name="!p-0"
   >
     <div class="p-4 w-full flex items-center gap-3 border-b border-nc-border-gray-medium">
@@ -135,7 +135,7 @@ watch(visible, (isVisible) => {
         <GeneralIcon icon="ncBox" class="w-5 h-5 text-white" />
       </div>
       <div class="flex-1">
-        <div class="font-semibold text-lg text-nc-content-gray-emphasis">Convert to Sandbox</div>
+        <div class="font-semibold text-lg text-nc-content-gray-emphasis">Convert to Managed App</div>
         <div class="text-xs text-nc-content-gray-subtle2">{{ $t('labels.publishToAppStore') }}</div>
       </div>
 
@@ -169,14 +169,14 @@ watch(visible, (isVisible) => {
         <template #icon>
           <GeneralIcon icon="ncBox" />
         </template>
-        Convert to sandbox
+        Convert to Managed App
       </NcButton>
     </div>
   </NcModal>
 </template>
 
 <style lang="scss">
-.nc-modal-convert-to-sandbox {
+.nc-modal-convert-to-managed-app {
   .nc-modal {
     max-height: min(90vh, 540px) !important;
     height: min(90vh, 540px) !important;

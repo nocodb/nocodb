@@ -99,7 +99,7 @@ export class ViewColumnsService {
   }
 
   async columnUpdate(
-  context: NcContext,
+    context: NcContext,
     param: {
       viewId: string;
       columnId: string;

@@ -19,6 +19,7 @@ import { Filter, Model } from '~/models';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { CacheGetType, CacheScope } from '~/utils/globals';
+import { isTransientError } from '~/helpers/db-error/utils';
 
 export const read = (client: DBQueryClient) => {
   async function singleQueryRead(
@@ -223,7 +224,11 @@ export const read = (client: DBQueryClient) => {
         },
       );
     } catch (e) {
-      if (ctx.validateFormula || !haveFormulaColumn(columns)) throw e;
+      // Check if this is a transient error (connection/timeout issue)
+      const isTransient = isTransientError(e);
+
+      if (isTransient || ctx.validateFormula || !haveFormulaColumn(columns))
+        throw e;
       return singleQueryRead(context, {
         ...ctx,
         validateFormula: true,

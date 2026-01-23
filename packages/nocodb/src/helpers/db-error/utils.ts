@@ -31,14 +31,14 @@ export enum DBError {
  *
  * Transient errors include:
  * - Connection failures (ECONNREFUSED, ETIMEDOUT, etc.)
- * - Database timeouts
- * - Network issues
- * - Temporary DNS failures
+ * - Database timeouts (query timeout, connection pool exhaustion)
+ * - Network issues (DNS failures, unreachable hosts)
+ * - Temporary resource constraints (too many connections, locks)
  *
  * These errors should NOT mark formulas/queries as permanently invalid.
  */
 export function isTransientError(error: any): boolean {
-  // Check for NcBaseErrorv2 with specific transient error types
+  // 1. Check for NcBaseErrorv2 with specific transient error types
   if (error instanceof NcBaseErrorv2) {
     const transientErrorTypes = [
       NcErrorType.ERR_EXTERNAL_DATA_SOURCE_TIMEOUT,
@@ -49,57 +49,80 @@ export function isTransientError(error: any): boolean {
     }
   }
 
-  // Check for common connection error codes
+  // 2. Check for common network-level connection error codes
   const connectionErrorCodes = [
     'ECONNREFUSED', // Connection refused
     'ETIMEDOUT', // Connection timeout
     'ENOTFOUND', // DNS lookup failed
-    'ECONNRESET', // Connection reset
+    'ECONNRESET', // Connection reset by peer
     'EHOSTUNREACH', // Host unreachable
     'EAI_AGAIN', // DNS temporary failure
     'EPIPE', // Broken pipe
     'ENETUNREACH', // Network unreachable
+    'ECONNABORTED', // Connection aborted
+    'EHOSTDOWN', // Host is down
   ];
 
   if (error?.code && connectionErrorCodes.includes(error.code)) {
     return true;
   }
 
-  // Check for database-specific timeout/connection errors
+  // 3. Check for database-specific timeout/connection errors
   if (error?.code) {
     const code = String(error.code);
-    // PostgreSQL connection errors (Class 08 - Connection Exception)
-    if (code.startsWith('08')) return true;
-    // PostgreSQL timeout errors
-    if (['40P01', '57014', '57P01'].includes(code)) return true;
-    // PostgreSQL too many connections
-    if (code === '53300') return true;
-    // MySQL connection/timeout errors
+
+    // PostgreSQL errors
+    if (code.startsWith('08')) return true; // Class 08: Connection Exception
+    if (['57014', '57P01', '57P02', '57P03'].includes(code)) return true; // Query canceled, shutdown, idle timeout
+    if (code === '53300') return true; // Too many connections
+
+    // MySQL/MariaDB errors
     if (
       [
         'ER_LOCK_WAIT_TIMEOUT',
         'ER_CON_COUNT_ERROR',
         'ER_TOO_MANY_USER_CONNECTIONS',
+        'ER_CONNECTION_COUNT_ERROR',
+        'CR_CONNECTION_ERROR',
+        'CR_CONN_HOST_ERROR',
       ].includes(code)
     ) {
       return true;
     }
+
+    // SQLite errors
+    if (['SQLITE_BUSY', 'SQLITE_LOCKED'].includes(code)) return true;
+
+    // File system errors (relevant for SQLite and file-based operations)
+    if (['EACCES', 'EROFS', 'ENOSPC'].includes(code)) return true;
   }
 
-  // Check error message for connection-related keywords
+  // 4. Check error message for specific connection-related patterns
+  // Note: Using specific phrases to minimize false positives
   const errorMessage = error?.message?.toLowerCase() || '';
-  const connectionKeywords = [
-    'connection',
-    'timeout',
-    'timed out',
-    'unreachable',
-    'network',
-    'econnrefused',
-    'etimedout',
-  ];
 
-  if (connectionKeywords.some((keyword) => errorMessage.includes(keyword))) {
-    return true;
+  // Only check messages with reasonable length to avoid matching generic errors
+  if (errorMessage.length > 20) {
+    const specificPatterns = [
+      'connection refused',
+      'connection timeout',
+      'connection timed out',
+      'connection reset',
+      'connection error',
+      'connection failed',
+      'network is unreachable',
+      'no route to host',
+      'too many connections',
+      'database is locked',
+      'cannot connect',
+      'unable to connect',
+      'lost connection',
+      'connection was killed',
+    ];
+
+    if (specificPatterns.some((pattern) => errorMessage.includes(pattern))) {
+      return true;
+    }
   }
 
   return false;

@@ -405,7 +405,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
 
       if (isTransient || ctx.validateFormula || !haveFormulaColumn(columns))
         throw e;
-      return singleQueryList(context, {
+      return list(context, {
         ...ctx,
         validateFormula: true,
       });

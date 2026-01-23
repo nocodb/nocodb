@@ -131,9 +131,9 @@ export class MetaService {
       [MetaTable.INSTALLATIONS]: 'inst',
       [MetaTable.AUTOMATIONS]: 'aut',
       [MetaTable.AUTOMATION_EXECUTIONS]: 'auex',
-      [MetaTable.SANDBOXES]: 'sb',
-      [MetaTable.SANDBOX_VERSIONS]: 'sbv',
-      [MetaTable.SANDBOX_DEPLOYMENT_LOGS]: 'sbdl',
+      [MetaTable.MANAGED_APPS]: 'ma',
+      [MetaTable.MANAGED_APP_VERSIONS]: 'mav',
+      [MetaTable.MANAGED_APP_DEPLOYMENT_LOGS]: 'madl',
     };
 
     const prefix = prefixMap[target] || 'nc';

@@ -370,12 +370,12 @@ export enum BaseVersion {
   V3 = 3,
 }
 
-export enum SandboxVersionStatus {
+export enum ManagedAppVersionStatus {
   DRAFT = 'draft',
   PUBLISHED = 'published',
 }
 
-export enum SandboxVisibility {
+export enum ManagedAppVisibility {
   PUBLIC = 'public',
   PRIVATE = 'private',
   UNLISTED = 'unlisted',

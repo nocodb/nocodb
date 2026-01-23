@@ -313,6 +313,9 @@ export default defineNuxtConfig({
         'vue-fullscreen',
         'cronstrue',
         'plyr',
+        'leaflet',
+        'leaflet.markercluster',
+        'uuid',
       ],
       esbuildOptions: {
         define: {

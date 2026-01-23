@@ -10,7 +10,7 @@ const currentVersion = ref<any>(null)
 
 // Load managed app info and current version
 const loadManagedApp = async () => {
-  if (!(base.value as any)?.managed_app_id || !base.value?.fk_workspace_id) return
+  if (!base.value?.managed_app_id || !base.value?.managed_app_master || !base.value?.fk_workspace_id) return
 
   try {
     const response = await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id!, {
@@ -27,7 +27,7 @@ const loadManagedApp = async () => {
 
 // Load current version info
 const loadCurrentVersion = async () => {
-  if (!base.value?.managed_app_version_id || !base.value?.fk_workspace_id) return
+  if (!base.value?.managed_app_version_id || !base.value?.managed_app_master || !base.value?.fk_workspace_id) return
 
   try {
     // Get version details from versions list

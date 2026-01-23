@@ -207,7 +207,7 @@ export class ManagedAppPostOperations
 
     // Only owner can update
     if (managedApp.created_by !== req.user.id) {
-      NcError.get(context).unauthorized(
+      NcError.get(context).forbidden(
         'Only the owner can update this managed app',
       );
     }
@@ -240,7 +240,7 @@ export class ManagedAppPostOperations
 
     // Only owner can delete
     if (managedApp.created_by !== req.user.id) {
-      NcError.get(context).unauthorized(
+      NcError.get(context).forbidden(
         'Only the owner can delete this managed app',
       );
     }
@@ -276,7 +276,7 @@ export class ManagedAppPostOperations
 
     // Only owner can create drafts
     if (managedApp.created_by !== req.user.id) {
-      NcError.get(context).unauthorized(
+      NcError.get(context).forbidden(
         'Only the owner can create drafts for this managed app',
       );
     }
@@ -333,7 +333,7 @@ export class ManagedAppPostOperations
 
     // Only owner can publish
     if (managedApp.created_by !== req.user.id) {
-      NcError.get(context).unauthorized(
+      NcError.get(context).forbidden(
         'Only the owner can publish this managed app',
       );
     }

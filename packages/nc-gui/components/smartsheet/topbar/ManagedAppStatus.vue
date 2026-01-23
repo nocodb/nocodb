@@ -5,40 +5,40 @@ const { $api } = useNuxtApp()
 const isModalVisible = ref(false)
 const initialTab = ref<'publish' | 'fork' | 'deployments' | undefined>(undefined)
 
-const sandbox = ref<any>(null)
+const managedApp = ref<any>(null)
 const currentVersion = ref<any>(null)
 
-const isSandboxMaster = computed(() => !!(base.value as any)?.sandbox_master && !!(base.value as any)?.sandbox_id)
+const isManagedAppMaster = computed(() => !!(base.value as any)?.managed_app_master && !!(base.value as any)?.managed_app_id)
 
-// Load sandbox info and current version
-const loadSandbox = async () => {
-  if (!(base.value as any)?.sandbox_id || !base.value?.fk_workspace_id) return
+// Load managed app info and current version
+const loadManagedApp = async () => {
+  if (!(base.value as any)?.managed_app_id || !base.value?.fk_workspace_id) return
 
   try {
     const response = await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id!, {
-      operation: 'sandboxGet',
+      operation: 'managedAppGet',
       baseId: base.value.id,
     } as any)
     if (response) {
-      sandbox.value = response
+      managedApp.value = response
     }
   } catch (e) {
-    console.error('Failed to load sandbox:', e)
+    console.error('Failed to load managed app:', e)
   }
 }
 
 // Load current version info
 const loadCurrentVersion = async () => {
-  if (!base.value?.sandbox_version_id || !base.value?.fk_workspace_id) return
+  if (!base.value?.managed_app_version_id || !base.value?.fk_workspace_id) return
 
   try {
     // Get version details from versions list
     const response = await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id!, {
-      operation: 'sandboxVersionsList',
-      sandboxId: (base.value as any).sandbox_id,
+      operation: 'managedAppVersionsList',
+      managedAppId: (base.value as any).managed_app_id,
     } as any)
     if (response?.list) {
-      currentVersion.value = response.list.find((v: any) => v.id === base.value.sandbox_version_id)
+      currentVersion.value = response.list.find((v: any) => v.id === base.value.managed_app_version_id)
     }
   } catch (e) {
     console.error('Failed to load current version:', e)
@@ -51,20 +51,20 @@ const openModal = (tab?: 'publish' | 'fork' | 'deployments') => {
 }
 
 const handlePublished = async () => {
-  await loadSandbox()
+  await loadManagedApp()
   await loadCurrentVersion()
 }
 
 const handleForked = async () => {
-  await loadSandbox()
+  await loadManagedApp()
   await loadCurrentVersion()
 }
 
 watch(
-  () => (base.value as any)?.sandbox_id,
-  async (sandboxId) => {
-    if (sandboxId) {
-      await loadSandbox()
+  () => (base.value as any)?.managed_app_id,
+  async (managedAppId) => {
+    if (managedAppId) {
+      await loadManagedApp()
       await loadCurrentVersion()
     }
   },
@@ -73,13 +73,13 @@ watch(
 </script>
 
 <template>
-  <div v-if="isSandboxMaster" class="flex items-center gap-2">
+  <div v-if="isManagedAppMaster" class="flex items-center gap-2">
     <!-- Version Badge (clickable to open modal) -->
     <div
       class="flex items-center gap-1.5 px-2.5 py-1 bg-nc-bg-gray-light rounded-md border-1 border-nc-border-gray-medium cursor-pointer hover:(bg-nc-bg-gray-medium border-nc-border-gray-dark) transition-colors"
       @click="openModal()"
     >
-      <GeneralIcon icon="ncInfoSolid" class="w-3.5 h-3.5 text-nc-content-gray nc-sanbox-status-info-icon" />
+      <GeneralIcon icon="ncInfoSolid" class="w-3.5 h-3.5 text-nc-content-gray nc-managed-app-status-info-icon" />
       <span class="text-xs font-mono font-semibold text-nc-content-gray-emphasis">v{{ currentVersion?.version || '1.0.0' }}</span>
       <div
         v-if="currentVersion?.status === 'draft'"
@@ -96,10 +96,10 @@ watch(
     </div>
   </div>
 
-  <!-- Sandbox Modal -->
-  <SmartsheetTopbarSandboxModal
+  <!-- Managed App Modal -->
+  <SmartsheetTopbarManagedAppModal
     v-model:visible="isModalVisible"
-    :sandbox="sandbox"
+    :managed-app="managedApp"
     :current-version="currentVersion"
     :initial-tab="initialTab"
     @published="handlePublished"
@@ -108,7 +108,7 @@ watch(
 </template>
 
 <style lang="scss" scoped>
-:deep(.nc-sanbox-status-info-icon path.nc-icon-inner) {
+:deep(.nc-managed-app-status-info-icon path.nc-icon-inner) {
   stroke: var(--nc-bg-gray-light) !important;
 }
 </style>

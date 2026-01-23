@@ -99,7 +99,10 @@ export function isTransientError(error: any): boolean {
 
   // 4. Check error message for specific connection-related patterns
   // Note: Using specific phrases to minimize false positives
-  const errorMessage = error?.message?.toLowerCase() || '';
+  // Handle both error objects with .message property and plain strings
+  const errorMessage = (
+    typeof error === 'string' ? error : error?.message || ''
+  ).toLowerCase();
 
   // Only check messages with reasonable length to avoid matching generic errors
   if (errorMessage.length > 20) {

@@ -656,8 +656,12 @@ export class ColumnsService implements IColumnsService {
       // Check if disabling unique constraint (always allowed)
       if (!param.column.unique && column.unique) {
         // Disabling is allowed, no validation needed
+      }
+      // if previous and existing are unique, no need to validate
+      else if (param.column.unique && column.unique) {
+        // no validation needed
       } else if (param.column.unique) {
-        // Enabling or keeping unique constraint enabled
+        // Enabling unique constraint enabled
         validateUniqueConstraint(
           context,
           (param.column.uidt || column.uidt) as UITypes,

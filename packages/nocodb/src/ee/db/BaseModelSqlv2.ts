@@ -228,7 +228,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   ): Promise<any> {
     const source = await this.getSource();
 
-    // Use optimized query for PostgreSQL if available
+    // Use optimized query for PostgreSQL/MySQL when available
     if (
       await canUseOptimisedQuery(this.context, {
         source,
@@ -240,20 +240,25 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           ? null
           : await View.get(this.context, this.viewId);
 
-      return await getSingleQueryReadFn(source)(this.context, {
+      const result = await getSingleQueryReadFn(source)(this.context, {
         model: this.model,
         id,
         view,
-        params: query,
+        params: query || {},
         source,
         getHiddenColumn,
         throwErrorIfInvalidParams,
         validateFormula,
         apiVersion: apiVersion ?? this.context.api_version,
+        extractOnlyPrimaries,
+        extractOrderColumn,
       });
+
+      // Ensure we return null instead of undefined for consistency with CE version
+      return result ?? null;
     }
 
-    // Fallback to superclass implementation
+    // Fallback to superclass implementation when optimization is not available
     return super.readByPk(id, validateFormula, query, {
       ignoreView,
       getHiddenColumn,

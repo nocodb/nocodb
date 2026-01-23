@@ -1,4 +1,5 @@
 import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import { normalizeIdForQuery } from '../utils';
 import type { DBQueryClient } from '~/dbQueryClient/types';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { NcContext } from '~/interface/config';
@@ -41,11 +42,13 @@ export const read = (client: DBQueryClient) => {
       view: View;
       source: Source;
       params;
-      id: string;
+      id: string | Record<string, any>;
       getHiddenColumn?: boolean;
       throwErrorIfInvalidParams?: boolean;
       validateFormula?: boolean;
       apiVersion?: NcApiVersion;
+      extractOnlyPrimaries?: boolean;
+      extractOrderColumn?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     await ctx.model.getColumns(context);
@@ -53,6 +56,14 @@ export const read = (client: DBQueryClient) => {
     if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
       throw new Error('Source is not mysql');
     }
+
+    // Normalize id: extract PK values if id is an object
+    // For composite keys: keep as array, for single key: extract single value
+    const normalizedIdValues = normalizeIdForQuery(
+      ctx.id,
+      ctx.model.primaryKeys,
+    );
+
     let skipCache = shouldSkipCache(ctx, false);
 
     // get knex connection
@@ -68,8 +79,11 @@ export const read = (client: DBQueryClient) => {
       dbDriver: knex,
     });
 
-    // get the key value pair condition
-    const pkCondition = _wherePk(ctx.model.primaryKeys, ctx.id);
+    // Build primary key condition object from normalized values
+    const pkCondition = ctx.model.primaryKeys.reduce((acc, pk, idx) => {
+      acc[pk.column_name] = normalizedIdValues[idx];
+      return acc;
+    }, {});
 
     if (!skipCache) {
       const cachedQuery = await NocoCache.get(
@@ -182,6 +196,8 @@ export const read = (client: DBQueryClient) => {
       throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
       apiVersion: ctx.apiVersion,
       includeRowColorColumns: ctx.params.include_row_color,
+      extractOnlyPrimaries: ctx.extractOnlyPrimaries,
+      extractOrderColumn: ctx.extractOrderColumn,
     });
 
     await client.extractColumns({

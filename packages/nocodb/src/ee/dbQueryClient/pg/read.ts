@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import { normalizeIdForQuery } from '../utils';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { NcContext } from '~/interface/config';
 import type { Source, View } from '~/models';
@@ -29,11 +30,13 @@ export const read = (client: DBQueryClient) => {
       view: View;
       source: Source;
       params;
-      id: string;
+      id: string | Record<string, any>;
       getHiddenColumn?: boolean;
       throwErrorIfInvalidParams?: boolean;
       validateFormula?: boolean;
       apiVersion?: NcApiVersion;
+      extractOnlyPrimaries?: boolean;
+      extractOrderColumn?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     await ctx.model.getColumns(context);
@@ -41,6 +44,13 @@ export const read = (client: DBQueryClient) => {
     if (ctx.source.type !== 'pg') {
       throw new Error('Single query only supported in postgres');
     }
+
+    // Normalize id: extract PK values if id is an object
+    // For composite keys: keep as array, for single key: extract single value
+    const normalizedIdValues = normalizeIdForQuery(
+      ctx.id,
+      ctx.model.primaryKeys,
+    );
 
     let skipCache = shouldSkipCache(ctx, false);
 
@@ -64,14 +74,7 @@ export const read = (client: DBQueryClient) => {
       );
       if (cachedQuery) {
         const res = await baseModel.execAndParse(
-          knex
-            .raw(
-              cachedQuery,
-              ctx.model.primaryKeys.length === 1
-                ? [ctx.id]
-                : ctx.id.split('___').map((id) => id.replaceAll('\\_', '_')),
-            )
-            .toQuery(),
+          knex.raw(cachedQuery, normalizedIdValues).toQuery(),
           null,
           {
             skipSubstitutingColumnIds:
@@ -162,6 +165,8 @@ export const read = (client: DBQueryClient) => {
       throwErrorIfInvalidParams: ctx.throwErrorIfInvalidParams,
       apiVersion: ctx.apiVersion,
       includeRowColorColumns: ctx.params.include_row_color,
+      extractOnlyPrimaries: ctx.extractOnlyPrimaries,
+      extractOrderColumn: ctx.extractOrderColumn,
     });
 
     await client.extractColumns({
@@ -207,14 +212,7 @@ export const read = (client: DBQueryClient) => {
     let res;
     try {
       res = await baseModel.execAndParse(
-        knex
-          .raw(
-            query,
-            ctx.model.primaryKeys.length === 1
-              ? [ctx.id]
-              : ctx.id.split('___').map((id) => id.replaceAll('\\_', '_')),
-          )
-          .toQuery(),
+        knex.raw(query, normalizedIdValues).toQuery(),
         null,
         {
           first: true,

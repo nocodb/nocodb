@@ -228,9 +228,7 @@ export class ManagedAppGetOperations
 
     // Only owner can view version history
     if (managedApp.created_by !== req.user.id) {
-      NcError.get(context).unauthorized(
-        'Only the owner can view version history',
-      );
+      NcError.get(context).forbidden('Only the owner can view version history');
     }
 
     const versions = await ManagedAppVersion.list(managedAppId as string);
@@ -264,7 +262,7 @@ export class ManagedAppGetOperations
 
     // Only owner can view deployment statistics
     if (managedApp.created_by !== req.user.id) {
-      NcError.get(context).unauthorized(
+      NcError.get(context).forbidden(
         'Only the owner can view deployment statistics',
       );
     }
@@ -380,7 +378,7 @@ export class ManagedAppGetOperations
 
     // Only owner can view version deployments
     if (managedApp.created_by !== req.user.id) {
-      NcError.get(context).unauthorized(
+      NcError.get(context).forbidden(
         'Only the owner can view version deployments',
       );
     }
@@ -509,9 +507,7 @@ export class ManagedAppGetOperations
 
     // Only owner can view deployment logs
     if (managedApp.created_by !== req.user.id) {
-      NcError.get(context).unauthorized(
-        'Only the owner can view deployment logs',
-      );
+      NcError.get(context).forbidden('Only the owner can view deployment logs');
     }
 
     const pageLimit = limit ? parseInt(limit as string, 10) : 10;

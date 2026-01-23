@@ -10,6 +10,7 @@ import {
 } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import NcModalConfirm, { type NcConfirmModalProps } from '../../components/nc/ModalConfirm.vue'
+import { getI18n } from '~/plugins/a.i18n'
 
 const eeConfigState = createGlobalState(() => {
   const isSideBannerExpanded = ref<boolean>(true)
@@ -18,7 +19,7 @@ const eeConfigState = createGlobalState(() => {
 })
 
 export const useEeConfig = createSharedComposable(() => {
-  const { t } = useI18n()
+  const { t } = getI18n().global
 
   // it's not possible to use inject in a shared composable we manually we have to set this value
   const isOrgBilling = ref(false)

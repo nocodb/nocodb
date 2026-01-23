@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { FormBuilderValidatorType } from 'nocodb-sdk'
+import { BaseVersion, FormBuilderValidatorType } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType } from '#imports'
 
 const props = defineProps<{
@@ -149,7 +149,9 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
         equal: 'existing',
       },
       defaultValue: undefined,
-      filterOption: (base) => base && !base?.managed_app_id,
+      filterOption: (base) => base && base.version === BaseVersion.V3 && !base.managed_app_id,
+      helpText: 'Only V3 bases can be published as managed apps',
+      showHintAsTooltip: true,
     },
     {
       type: FormBuilderInputType.Input,

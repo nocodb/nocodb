@@ -39,7 +39,10 @@ export const extractCorrespondingLinkColumn = async (
     return null;
   }
 
-  const colOptions = await ltarColumn.getColOptions(context);
+  const colOptions = await ltarColumn.getColOptions({
+    ...context,
+    base_id: ltarColumn.base_id,
+  });
 
   const { refContext } = colOptions.getRelContext(context);
 

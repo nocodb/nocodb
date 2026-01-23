@@ -106,6 +106,11 @@ export default async function generateLookupSelectQuery({
         const parentModel = await parentColumn.getModel(parentContext);
         await parentModel.getColumns(parentContext);
 
+        const childBaseModel = await Model.getBaseModelSQL(childContext, {
+          model: childModel,
+          dbDriver: knex,
+        });
+
         const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
           model: parentModel,
           dbDriver: knex,
@@ -119,7 +124,7 @@ export default async function generateLookupSelectQuery({
         ).where(
           `${alias}.${parentColumn.column_name}`,
           knex.raw(`??`, [
-            `${rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
+            `${rootAlias || childBaseModel.getTnPath(childModel.table_name)}.${
               childColumn.column_name
             }`,
           ]),
@@ -132,6 +137,12 @@ export default async function generateLookupSelectQuery({
         await childModel.getColumns(childContext);
         const parentModel = await parentColumn.getModel(parentContext);
         await parentModel.getColumns(parentContext);
+
+        const childBaseModel = await Model.getBaseModelSQL(childContext, {
+          model: childModel,
+          dbDriver: knex,
+        });
+
         const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
           model: parentModel,
           dbDriver: knex,
@@ -139,15 +150,15 @@ export default async function generateLookupSelectQuery({
 
         selectQb = knex(
           knex.raw(`?? as ??`, [
-            parentBaseModel.getTnPath(childModel.table_name),
+            childBaseModel.getTnPath(childModel.table_name),
             alias,
           ]),
         ).where(
           `${alias}.${childColumn.column_name}`,
           knex.raw(`??`, [
-            `${rootAlias || baseModelSqlv2.getTnPath(parentModel.table_name)}.${
-              parentColumn.column_name
-            }`,
+            `${
+              rootAlias || parentBaseModel.getTnPath(parentModel.table_name)
+            }.${parentColumn.column_name}`,
           ]),
         );
       } else if (relationType === RelationTypes.MANY_TO_MANY) {
@@ -158,6 +169,11 @@ export default async function generateLookupSelectQuery({
         await childModel.getColumns(childContext);
         const parentModel = await parentColumn.getModel(parentContext);
         await parentModel.getColumns(parentContext);
+
+        const childBaseModel = await Model.getBaseModelSQL(childContext, {
+          model: childModel,
+          dbDriver: knex,
+        });
 
         const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
           model: parentModel,
@@ -194,7 +210,7 @@ export default async function generateLookupSelectQuery({
             '=',
             knex.ref(
               `${
-                rootAlias || baseModelSqlv2.getTnPath(childModel.table_name)
+                rootAlias || childBaseModel.getTnPath(childModel.table_name)
               }.${childColumn.column_name}`,
             ),
           );
@@ -299,6 +315,12 @@ export default async function generateLookupSelectQuery({
           await childModel.getColumns(childContext);
           const parentModel = await parentColumn.getModel(parentContext);
           await parentModel.getColumns(parentContext);
+
+          const childBaseModel = await Model.getBaseModelSQL(childContext, {
+            model: childModel,
+            dbDriver: knex,
+          });
+
           const parentBaseModel = await Model.getBaseModelSQL(parentContext, {
             model: parentModel,
             dbDriver: knex,
@@ -335,7 +357,7 @@ export default async function generateLookupSelectQuery({
               knex.ref(`${mmTableAlias}.${mmChildCol.column_name}`),
               '=',
               knex.ref(
-                `${alias || baseModelSqlv2.getTnPath(childModel.table_name)}.${
+                `${alias || childBaseModel.getTnPath(childModel.table_name)}.${
                   childColumn.column_name
                 }`,
               ),

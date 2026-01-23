@@ -104,7 +104,7 @@ onMounted(() => {
       <NcDivider />
 
       <WorkspaceProjectCreateMenuItem
-        v-e="['c:base:managed:create']"
+        v-e="['c:base:managedApp:create']"
         :variant="variant"
         icon="ncBox"
         label="Managed App"
@@ -112,50 +112,53 @@ onMounted(() => {
         data-testid="nc-menu-managed-app"
         @click="onClickOption(NcBaseCreateMode.MANAGED_APP)"
       />
-
-      <!-- <WorkspaceProjectCreateMenuItem
-        v-e="['c:base:managedApp:create']"
-        :variant="variant"
-        icon="ncBox"
-        label="Managed App"
-        subtext="Safely test changes on an existing app"
-        data-testid="nc-menu-managed-app"
-        @click="onClickOption(NcBaseCreateMode.MANAGED_APP)"
-      >
-        <template #label>
-          <div class="flex items-center gap-2">
-            Managed App
-            <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
-          </div>
-        </template>
-      </WorkspaceProjectCreateMenuItem> -->
     </template>
   </component>
 
   <!-- Todo: confirm design - same as base overview cards -->
   <!-- <div v-else class="flex flex-row gap-6 flex-wrap max-w-[min(80vw,738px)] children:(!w-[230px] !max-w-[230px])">
-        <ProjectActionItem v-e="['c:base:create:scratch']" icon="plus" label="From Scratch"
-            subtext="Start with an empty base" @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)" />
+    <ProjectActionItem
+      v-e="['c:base:create:scratch']"
+      icon="plus"
+      label="From Scratch"
+      subtext="Start with an empty base"
+      @click="onClickOption(NcBaseCreateMode.FROM_SCRATCH)"
+    />
 
-        <ProjectActionItem v-if="isTemplatesFeatureEnabled" v-e="['c:base:template:create']" icon="globe"
-            label="From Template" subtext="Pre-built structures for common use cases"
-            @click="onClickOption(NcBaseCreateMode.FROM_TEMPLATE)" />
+    <ProjectActionItem
+      v-if="isTemplatesFeatureEnabled"
+      v-e="['c:base:template:create']"
+      icon="globe"
+      label="From Template"
+      subtext="Pre-built structures for common use cases"
+      @click="onClickOption(NcBaseCreateMode.FROM_TEMPLATE)"
+    />
 
+    <ProjectActionItem
+      v-if="isAiFeaturesEnabled"
+      v-e="['c:base:ai:create']"
+      icon="ncAutoAwesome"
+      label="Build with AI"
+      subtext="Pre-built structures for common use cases"
+      @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)"
+    />
 
-        <ProjectActionItem v-if="isAiFeaturesEnabled" v-e="['c:base:ai:create']" icon="ncAutoAwesome"
-            label="Build with AI" subtext="Pre-built structures for common use cases"
-            @click="onClickOption(NcBaseCreateMode.BUILD_WITH_AI)" />
+    <template v-if="isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)">
+      <ProjectActionItem
+        v-e="['c:base:market:create']"
+        icon="ncBox"
+        label="From App Store"
+        subtext="Install apps built by the community"
+        @click="onClickOption(NcBaseCreateMode.FROM_APP_STORE)"
+      />
 
-        <template v-if="isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS)">
-            <ProjectActionItem v-e="['c:base:market:create']" icon="ncBox" label="From App Store"
-                subtext="Install apps built by the community" @click="onClickOption(NcBaseCreateMode.FROM_APP_STORE)" />
-
-            <ProjectActionItem v-e="['c:base:managed:create']" icon="ncBox" label="Managed App"
-                subtext="Build and publish to the App Store" @click="onClickOption(NcBaseCreateMode.MANAGED_APP)" />
-
-            <ProjectActionItem v-e="['c:base:managedApp:create']" icon="ncBox" label="Managed App"
-                subtext="Safely test changes on an existing app" @click="onClickOption(NcBaseCreateMode.MANAGED_APP)" />
-
-        </template>
-    </div> -->
+      <ProjectActionItem
+        v-e="['c:base:managedApp:create']"
+        icon="ncBox"
+        label="Managed App"
+        subtext="Build and publish to the App Store"
+        @click="onClickOption(NcBaseCreateMode.MANAGED_APP)"
+      />
+    </template>
+  </div> -->
 </template>

@@ -1,6 +1,7 @@
 import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
+  isHiddenCol,
   isLinksOrLTAR,
   isOrderCol,
   isSystemColumn,
@@ -341,6 +342,7 @@ const getAst = async (
     } else if (getHiddenColumn) {
       isRequested =
         !isSystemColumn(col) ||
+        ((!view || !!view?.show_system_fields) && !isHiddenCol(col, model)) ||
         (isCreatedOrLastModifiedTimeCol(col) && col.system) ||
         // include all non-has-many system links(self-link) columns since has-many is part of mm relation and which is not required
         (isLinksOrLTAR(col) &&

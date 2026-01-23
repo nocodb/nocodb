@@ -10,7 +10,6 @@ import {
 } from 'nocodb-sdk';
 import { getColumnName } from 'src/helpers/dbHelpers';
 import { DBErrorExtractor } from 'src/helpers/db-error/extractor';
-import { isTransientError } from 'src/helpers/db-error/utils';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import { replaceDelimitedWithKeyValuePg } from '../aggregations/pg';
 import { replaceDelimitedWithKeyValueSqlite3 } from '../aggregations/sqlite3';
@@ -30,6 +29,7 @@ import type {
   TAliasToColumn,
   TAliasToColumnParam,
 } from './formula-query-builder.types';
+import { isTransientError } from '~/helpers/db-error/utils';
 import NocoCache from '~/cache/NocoCache';
 import { getRefColumnIfAlias } from '~/helpers';
 import { NcBaseErrorv2, NcError } from '~/helpers/catchError';

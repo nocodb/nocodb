@@ -1,8 +1,8 @@
 import BaseCE from 'src/models/Base';
 import {
   BaseVersion,
-  ProjectRoles,
   ManagedAppVersionStatus,
+  ProjectRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
@@ -27,10 +27,10 @@ import {
   DataReflection,
   Extension,
   FileReference,
+  ManagedAppVersion,
   MCPToken,
   ModelStat,
   Permission,
-  ManagedAppVersion,
   Source,
   Workspace,
 } from '~/models';

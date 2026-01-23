@@ -400,7 +400,10 @@ export class ManagedAppGetOperations
       .where('managed_app_id', managedAppId)
       .where('managed_app_version_id', versionId)
       .where((qb) => {
-        qb.where('managed_app_master', false).orWhere('managed_app_master', null);
+        qb.where('managed_app_master', false).orWhere(
+          'managed_app_master',
+          null,
+        );
       })
       .where((qb) => {
         qb.where('deleted', false).orWhere('deleted', null);

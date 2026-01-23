@@ -396,7 +396,10 @@ export class BasesService extends BasesServiceCE {
 
     try {
       // Soft delete associated managed app if this base is a managed app master
-      const managedApp = await ManagedApp.getByBaseId(param.baseId, transaction);
+      const managedApp = await ManagedApp.getByBaseId(
+        param.baseId,
+        transaction,
+      );
       if (managedApp) {
         await ManagedApp.softDelete(managedApp.id, transaction);
       }

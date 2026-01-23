@@ -1042,7 +1042,16 @@ export class PGDBQueryClient
               columnIdToUidt,
               baseUsers,
             });
-            qb.select(knex.raw(`?? as ??`, [selectQb.builder, getAs(column)]));
+            if ('toQuery' in selectQb.builder) {
+              const selectQbQuery = selectQb.builder
+                .toQuery()
+                .replaceAll('?', '\\?');
+              qb.select(knex.raw(`(${selectQbQuery}) as ??`, [getAs(column)]));
+            } else {
+              qb.select(
+                knex.raw(`?? as ??`, [selectQb.builder, getAs(column)]),
+              );
+            }
           } catch (e) {
             this.logger.log(e);
             qb.select(knex.raw(`'ERR' as ??`, [getAs(column)]));

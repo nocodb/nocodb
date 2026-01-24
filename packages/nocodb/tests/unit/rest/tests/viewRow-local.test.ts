@@ -15,6 +15,7 @@ import {
   createChildRow,
   createRow,
   getRow,
+  listRow,
 } from '../../factory/row';
 import { listenForJob } from '../../factory/job';
 import { createTable, getTable } from '../../factory/table';
@@ -1758,7 +1759,7 @@ function viewRowLocalTests() {
 
   //#region View column API tests
   // FIXME:
-  it('Test view column v3 apis', async function () {
+  it.only('Test view column v3 apis', async function () {
     // Use filmTable which was already initialized
     const view = await createView(context, {
       title: 'Film View',
@@ -1800,13 +1801,14 @@ function viewRowLocalTests() {
     });
 
     // get rows after update
-    const listResponseAfter = await request(context.app)
-      .get(`/api/v1/db/data/noco/${base.id}/${filmTable.id}/views/${view.id}`)
-      .set('xc-auth', context.token)
-      .query({ limit: 1 })
-      .expect(200);
-
-    const rowsAfterUpdate = listResponseAfter.body.list;
+    const rowsAfterUpdate = await listRow({
+      base: base,
+      table: filmTable,
+      view,
+      options: {
+        limit: 1,
+      },
+    });
 
     // verify column visible in old and hidden in new
     for (const title of columnsToHide) {

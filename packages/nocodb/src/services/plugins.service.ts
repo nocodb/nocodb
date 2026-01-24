@@ -38,6 +38,14 @@ export class PluginsService {
     req: NcRequest;
   }) {
     validatePayload('swagger.json#/components/schemas/PluginReq', param.plugin);
+    const pluginInfo = await Plugin.get(param.pluginId);
+    if (pluginInfo?.title && pluginInfo.category) {
+      await NcPluginMgrv2.test({
+        title: pluginInfo.title,
+        category: pluginInfo.category,
+        input: param.plugin.input,
+      });
+    }
 
     const pluginInfo = await Plugin.get(param.pluginId);
     if (pluginInfo?.title && pluginInfo.category && !isPlayWrightNode()) {

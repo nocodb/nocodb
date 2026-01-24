@@ -32,7 +32,7 @@ withDefaults(defineProps<Props>(), {})
 
 <style lang="scss" scoped>
 .nc-managed-app-status-menu-item {
-  @apply flex items-center gap-3 px-3 py-2.5 my-0.5 mx-2 rounded-lg transition-colors group;
+  @apply flex items-center gap-3 p-2  my-0.5 mx-2 rounded-lg transition-colors group;
 
   &.nc-clickable {
     @apply cursor-pointer select-none hover:bg-nc-bg-gray-extralight;

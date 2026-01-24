@@ -142,7 +142,7 @@ const badgeConfig = computed(() => {
               </template>
             </SmartsheetTopbarManagedAppStatusMenuItem>
 
-            <NcDivider />
+            <NcDivider class="!my-1" />
             <SmartsheetTopbarManagedAppStatusMenuItem
               clickable
               label="Fork to Draft"
@@ -171,7 +171,7 @@ const badgeConfig = computed(() => {
                 <span class="text-orange-600"> Editing Draft </span>
               </template>
             </SmartsheetTopbarManagedAppStatusMenuItem>
-            <NcDivider />
+            <NcDivider class="!my-1" />
 
             <SmartsheetTopbarManagedAppStatusMenuItem
               clickable
@@ -206,16 +206,21 @@ const badgeConfig = computed(() => {
               <GeneralIcon icon="delete" class="text-nc-content-gray-muted" />
             </template>
           </SmartsheetTopbarManagedAppStatusMenuItem>
-          <NcDivider />
+          <NcDivider class="!my-1" />
 
           <!-- Version history  -->
-          <div
-            class="flex items-center gap-2 px-5 py-2 text-captionSm text-nc-content-gray-muted cursor-pointer select-none"
+
+          <SmartsheetTopbarManagedAppStatusMenuItem
+            clickable
+            label="View version history"
+            subtext="See what's new in each version"
+            icon-wrapper-class="bg-nc-bg-gray-light"
             @click="openModal('versionHistory')"
           >
-            <GeneralIcon icon="ncClock" />
-            View version history
-          </div>
+            <template #icon>
+              <GeneralIcon icon="ncClock" class="text-nc-content-gray-muted" />
+            </template>
+          </SmartsheetTopbarManagedAppStatusMenuItem>
         </template>
 
         <!-- Installer application  -->
@@ -256,7 +261,7 @@ const badgeConfig = computed(() => {
             </SmartsheetTopbarManagedAppStatusMenuItem>
           </div>
 
-          <NcDivider />
+          <NcDivider class="!my-1" />
           <SmartsheetTopbarManagedAppStatusMenuItem
             clickable
             label="View Changelog"
@@ -281,6 +286,6 @@ const badgeConfig = computed(() => {
 }
 
 .nc-managed-app-status-menu-header {
-  @apply flex items-center justify-between gap-2 pt-3 px-5 mb-1 text-nc-content-gray-muted text-captionSm;
+  @apply flex items-center justify-between gap-2 pt-3 px-4 mb-1 text-nc-content-gray-muted text-captionSm;
 }
 </style>

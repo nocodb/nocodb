@@ -30,13 +30,13 @@ const { modalSize, variant } = toRefs(props)
     :mask-closable="maskClosable"
     nc-modal-class-name="nc-modal-dlg-managed-app"
   >
-    <template v-if="variant === 'draftOrPublish'">
+    <slot v-if="$slots.default"> </slot>
+    <template v-else-if="variant === 'draftOrPublish'">
       <DlgManagedAppDraftOrPublish v-model:visible="vVisible" />
     </template>
-    <template v-if="variant === 'versionHistory'">
+    <template v-else-if="variant === 'versionHistory'">
       <DlgManagedAppVersionHistory v-model:visible="vVisible" />
     </template>
-    <slot v-else-if="$slots.default"> </slot>
     <template v-else>
       <slot name="header">
         <DlgManagedAppHeader v-model:visible="vVisible" :modalSize="modalSize" :title="title" :subTitle="subTitle" />

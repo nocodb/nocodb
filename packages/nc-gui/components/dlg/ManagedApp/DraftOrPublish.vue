@@ -186,7 +186,7 @@ watch(
           </div>
         </div>
         <div v-if="isDraft">
-          <label class="text-nc-content-gray text-sm font-medium mb-2 block">Release Notes (Optional)</label>
+          <label class="text-nc-content-gray text-sm font-medium mb-2 block">Changelog</label>
           <a-textarea
             v-model:value="publishForm.releaseNotes"
             placeholder="Describe what's new in this version"

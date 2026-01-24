@@ -178,7 +178,7 @@ const nocoExecuteSingle = async (
         const res1 = await res[key];
         if (Array.isArray(res1)) {
           // Handle arrays of results by executing nocoExecute on each element sequentially
-          dataTree[key] = [];
+          dataTree[key] = dataTree[key] || [];
           for (let i = 0; i < res1.length; i++) {
             const r = res1[i];
             dataTree[key][i] = dataTree[key][i] || {};

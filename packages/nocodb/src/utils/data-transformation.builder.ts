@@ -61,6 +61,42 @@ export class ApiV3DataTransformationBuilder<
     return this;
   }
 
+  filterLike<S = Input, T = Output>(
+    field: string,
+    value: string,
+    caseInsensitive = true,
+  ): this {
+    this.transformations.push((data: S) => {
+      if (Array.isArray(data)) {
+        return data.filter((item) => {
+          const fieldValue = item[field as keyof typeof item];
+          if (typeof fieldValue === 'string') {
+            const filterVal = caseInsensitive ? value.toLowerCase() : value;
+            const itemVal = caseInsensitive
+              ? fieldValue.toLowerCase()
+              : fieldValue;
+            if (filterVal.startsWith('%') && filterVal.endsWith('%')) {
+              return itemVal.includes(
+                filterVal.substring(1, filterVal.length - 1),
+              );
+            } else if (filterVal.startsWith('%')) {
+              return itemVal.endsWith(filterVal.substring(1));
+            } else if (filterVal.endsWith('%')) {
+              return itemVal.startsWith(
+                filterVal.substring(0, filterVal.length - 1),
+              );
+            } else {
+              return itemVal === filterVal;
+            }
+          }
+          return false;
+        }) as unknown as T;
+      }
+      return data as unknown as T;
+    });
+    return this;
+  }
+
   metaTransform<S = Input, T = Output>({
     snakeCase = true,
     camelCase = false,

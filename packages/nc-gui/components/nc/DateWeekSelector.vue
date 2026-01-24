@@ -49,11 +49,13 @@ const timezoneDayjs = computed(() => {
   return withTimezone(props.timezone)
 })
 
+const { t } = useI18n()
+
 const days = computed(() => {
   if (props.isMondayFirst) {
-    return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su']
+    return ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].map((d) => t(`objects.shortDays.${d}`))
   } else {
-    return ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+    return ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'].map((d) => t(`objects.shortDays.${d}`))
   }
 })
 

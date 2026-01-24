@@ -4062,7 +4062,7 @@
             }
           }
         },
-        "description": "This API endpoint allows the creation of new records within a specified table. Records to be inserted are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nCertain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code.\n\nFor **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record update API will be added soon.",
+        "description": "This API endpoint allows the creation of new records within a specified table. Records to be inserted are input as an array of key-value pair objects, where each key corresponds to a field name. Ensure that all the required fields are included in the payload, with exceptions for fields designated as auto-increment or those having default values. \n\nCertain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code.\n\nFor **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record update API will be added soon.\n\nYou can create up to 10 records per request. To create more than 10 records, please submit multiple requests\n",
         "parameters": [
           {
             "required": true,
@@ -4145,7 +4145,7 @@
             }
           }
         },
-        "description": "This API endpoint allows you to update records within a specified table by their Record ID. The request payload should contain the Record ID and the fields that need to be updated.\n\nCertain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code.\n\nFor **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record update API will be added soon.",
+        "description": "This API endpoint allows you to update records within a specified table by their Record ID. The request payload should contain the Record ID and the fields that need to be updated.\n\nCertain read-only field types will be disregarded if included in the request. These field types include Look Up, Roll Up, Formula, Created By, Updated By, Created At, Updated At, Button, Barcode and QR Code.\n\nFor **Attachment** field types, this API cannot be used. Instead, utilize the storage APIs for managing attachments. Support for attachment fields in the record update API will be added soon.\n\nYou can update up to 10 records per request. To update more than 10 records, please submit multiple requests\n",
         "parameters": [
           {
             "required": true,

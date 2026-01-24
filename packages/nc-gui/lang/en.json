@@ -1185,6 +1185,8 @@
     "updateDetails": "Update Details",
     "published": "Published",
     "draft": "Draft",
+    "upToDate": "Up to date",
+    "updateAvailable": "Update available",
     "managedAppTitle": "Title",
     "managedAppDescription": "Description",
     "managedAppCategory": "Category",

@@ -1758,8 +1758,8 @@ function viewRowLocalTests() {
   //#endregion Export tests
 
   //#region View column API tests
-  // FIXME:
-  it.only('Test view column v3 apis', async function () {
+  // FIXME: still has cache race condition issue
+  it('Test view column v3 apis', async function () {
     // Use filmTable which was already initialized
     const view = await createView(context, {
       title: 'Film View',
@@ -1838,5 +1838,5 @@ function viewRowLocalTests() {
 
 export default function () {
   describe('ViewRowLocal', viewRowLocalStaticTests);
-  describe.only('ViewRowLocal', viewRowLocalTests);
+  describe('ViewRowLocal', viewRowLocalTests);
 }

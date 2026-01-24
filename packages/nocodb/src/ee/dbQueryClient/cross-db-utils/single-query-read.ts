@@ -46,10 +46,6 @@ export const singleQueryRead = (client: DBQueryClient) => {
 
     await ctx.model.getColumns(context);
 
-    if (ctx.source.type !== 'pg') {
-      throw new Error('Single query only supported in postgres');
-    }
-
     // Normalize id: extract PK values if id is an object
     // For composite keys: keep as array, for single key: extract single value
     const normalizedIdValues = normalizeIdForQuery(

@@ -229,8 +229,12 @@ watch(
     </template>
   </NcDropdown>
 
+  <DlgManagedApp v-if="initialTab !== 'deployments'" v-model:visible="isModalVisible" modal-size="sm" variant="draftOrPublish">
+  </DlgManagedApp>
+
   <!-- Managed App Modal -->
   <SmartsheetTopbarManagedAppModal
+    v-if="initialTab === 'deployments'"
     v-model:visible="isModalVisible"
     :managed-app="managedApp"
     :current-version="managedAppVersionsInfo.current"

@@ -226,10 +226,11 @@ export class ManagedAppGetOperations
       NcError.get(context).notFound('Managed app not found');
     }
 
-    // Only owner can view version history
-    if (managedApp.created_by !== req.user.id) {
-      NcError.get(context).forbidden('Only the owner can view version history');
-    }
+    // Todo: Discuss with Mert
+    // // Only owner can view version history
+    // if (managedApp.created_by !== req.user.id) {
+    //   NcError.get(context).forbidden('Only the owner can view version history');
+    // }
 
     const versions = await ManagedAppVersion.list(managedAppId as string);
 

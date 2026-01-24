@@ -60,6 +60,28 @@ export const useBase = defineStore('baseStore', () => {
 
   const liveVersion = ref<any>(null)
 
+  const managedAppVersions = ref<any[]>([])
+
+  const managedAppVersionsInfo = computed(() => {
+    const result = {
+      current: managedAppVersions.value.find((v: any) => v.id === base.value.managed_app_version_id),
+      published: managedAppVersions.value.find((v: any) => v.status === 'published'),
+      draft: managedAppVersions.value.find((v: any) => v.status === 'draft'),
+      updateAvailable: false,
+    }
+
+    if (
+      result.current &&
+      result.published &&
+      result.current.id !== result.published.id &&
+      result.published.version_number > result.current.version_number
+    ) {
+      result.updateAvailable = true
+    }
+
+    return result
+  })
+
   const isManagedAppMaster = computed(() => !!base.value?.managed_app_master && !!base.value?.managed_app_id)
 
   const isManagedAppInstaller = computed(() => !!base.value?.managed_app_id && !base.value?.managed_app_master)
@@ -325,7 +347,7 @@ export const useBase = defineStore('baseStore', () => {
 
   // Load current version info
   const loadCurrentVersion = async () => {
-    if (!base.value?.managed_app_version_id || !base.value?.managed_app_master || !base.value?.fk_workspace_id) return
+    if (!base.value?.managed_app_version_id || !base.value?.fk_workspace_id) return
 
     try {
       // Get version details from versions list
@@ -334,9 +356,7 @@ export const useBase = defineStore('baseStore', () => {
         managedAppId: (base.value as any).managed_app_id,
       } as any)
       if (response?.list) {
-        currentVersion.value = response.list.find((v: any) => v.id === base.value.managed_app_version_id)
-
-        liveVersion.value = response.list.find((v: any) => v.status === 'published')
+        managedAppVersions.value = response.list
       }
     } catch (e) {
       console.error('Failed to load current version:', e)
@@ -432,6 +452,8 @@ export const useBase = defineStore('baseStore', () => {
     currentVersion,
     liveVersion,
     loadCurrentVersion,
+    managedAppVersions,
+    managedAppVersionsInfo,
   }
 })
 

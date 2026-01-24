@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 interface Props {
-  label: string
+  label?: string
   subtext?: string
   icon?: IconMapKey
   iconWrapperClass?: string

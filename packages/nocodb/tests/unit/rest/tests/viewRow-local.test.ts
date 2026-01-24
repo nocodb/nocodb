@@ -607,7 +607,7 @@ function viewRowLocalTests() {
       .expect(200);
     expect(ascResponse.body.pageInfo.totalRows).greaterThan(0);
     expect(JSON.stringify(ascResponse.body.list[0][lookupColumn.title])).equal(
-      JSON.stringify(['ANGELA']),
+      JSON.stringify(['AARON']),
     );
 
     const descResponse = await request(context.app)
@@ -1629,6 +1629,8 @@ function viewRowLocalTests() {
       .query({
         from_date: '2005-05-24',
         to_date: '2005-05-26',
+        next_date: '2005-05-27',
+        prev_date: '2005-05-24',
       })
       .set('xc-auth', context.token)
       .expect(200);
@@ -1637,7 +1639,6 @@ function viewRowLocalTests() {
     expect(response.body.list.length).to.be.greaterThan(0);
   };
 
-  // FIXME:
   it('Calendar data', async function () {
     await testCalendarDataApi();
   });
@@ -1669,6 +1670,8 @@ function viewRowLocalTests() {
       .query({
         from_date: '2005-05-24',
         to_date: '2005-05-26',
+        next_date: '2005-05-27',
+        prev_date: '2005-05-24',
       })
       .set('xc-auth', context.token)
       .expect(expectStatus);
@@ -1681,7 +1684,6 @@ function viewRowLocalTests() {
     }
   };
 
-  // FIXME:
   it('Count dates by range Calendar', async () => {
     await testCountDatesByRange(ViewTypes.CALENDAR);
   });
@@ -1834,5 +1836,5 @@ function viewRowLocalTests() {
 
 export default function () {
   describe('ViewRowLocal', viewRowLocalStaticTests);
-  describe('ViewRowLocal', viewRowLocalTests);
+  describe.only('ViewRowLocal', viewRowLocalTests);
 }

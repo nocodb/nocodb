@@ -10,16 +10,16 @@ const { base, isManagedAppMaster, isManagedAppInstaller, managedApp, currentVers
 
 const isModalVisible = ref(false)
 
-const initialTab = ref<'publish' | 'fork' | 'deployments' | undefined>(undefined)
+const modalVariant = ref<'draftOrPublish' | 'versionHistory' | undefined>(undefined)
 
 const isOpenDropdown = ref<boolean>(false)
 
 const isDraft = computed(() => managedAppVersionsInfo.value.current?.status === 'draft')
 
-const openModal = (tab?: 'publish' | 'fork' | 'deployments') => {
+const openModal = (variant?: 'draftOrPublish' | 'versionHistory') => {
   isOpenDropdown.value = false
 
-  initialTab.value = tab
+  modalVariant.value = variant
 
   nextTick(() => {
     isModalVisible.value = true
@@ -29,14 +29,6 @@ const openModal = (tab?: 'publish' | 'fork' | 'deployments') => {
 const loadManagedAppAndCurrentVersion = async () => {
   await loadManagedApp()
   await loadCurrentVersion()
-}
-
-const handlePublished = async () => {
-  await loadManagedAppAndCurrentVersion()
-}
-
-const handleForked = async () => {
-  await loadManagedAppAndCurrentVersion()
 }
 
 watch(
@@ -158,7 +150,7 @@ const badgeConfig = computed(() => {
                 managedAppVersionsInfo.published.version || '1.0.0',
               )} to make changes`"
               icon-wrapper-class="bg-nc-bg-gray-light dakr:bg-nc-bg-gray-light/75"
-              @click="openModal('fork')"
+              @click="openModal('draftOrPublish')"
             >
               <template #icon>
                 <GeneralIcon icon="ncCopy" class="text-nc-content-gray-muted" />
@@ -184,7 +176,7 @@ const badgeConfig = computed(() => {
             <SmartsheetTopbarManagedAppStatusMenuItem
               clickable
               icon-wrapper-class="bg-green-50 dark:bg-nc-green-20"
-              @click="openModal('publish')"
+              @click="openModal('draftOrPublish')"
             >
               <template #icon>
                 <GeneralIcon icon="ncArrowUp" class="text-green-600" />
@@ -219,7 +211,7 @@ const badgeConfig = computed(() => {
           <!-- Version history  -->
           <div
             class="flex items-center gap-2 px-5 py-2 text-captionSm text-nc-content-gray-muted cursor-pointer select-none"
-            @click="openModal('deployments')"
+            @click="openModal('versionHistory')"
           >
             <GeneralIcon icon="ncClock" />
             View version history
@@ -238,7 +230,7 @@ const badgeConfig = computed(() => {
 
             <template v-if="managedAppVersionsInfo.current?.published_at" #subtext>
               <span class="text-green-600">
-                Published {{ parseStringDateTime(managedAppVersionsInfo.current?.published_at, 'MMM DD, YYYY, HH:mm A') }}
+                Published {{ parseStringDateTime(managedAppVersionsInfo.current?.published_at, 'MMM DD, YYYY, hh:mm A') }}
               </span>
             </template>
           </SmartsheetTopbarManagedAppStatusMenuItem>
@@ -280,19 +272,7 @@ const badgeConfig = computed(() => {
     </template>
   </NcDropdown>
 
-  <DlgManagedApp v-if="initialTab !== 'deployments'" v-model:visible="isModalVisible" modal-size="sm" variant="draftOrPublish">
-  </DlgManagedApp>
-
-  <!-- Managed App Modal -->
-  <SmartsheetTopbarManagedAppModal
-    v-if="initialTab === 'deployments'"
-    v-model:visible="isModalVisible"
-    :managed-app="managedApp"
-    :current-version="managedAppVersionsInfo.current"
-    :initial-tab="initialTab"
-    @published="handlePublished"
-    @forked="handleForked"
-  />
+  <DlgManagedApp v-model:visible="isModalVisible" modal-size="sm" :variant="modalVariant"> </DlgManagedApp>
 </template>
 
 <style lang="scss" scoped>

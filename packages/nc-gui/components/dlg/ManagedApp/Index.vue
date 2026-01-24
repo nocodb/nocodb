@@ -4,7 +4,7 @@ interface Props {
   modalSize: 'small' | 'medium' | 'large' | keyof typeof modalSizes
   title?: string
   subTitle?: string
-  variant?: 'draftOrPublish'
+  variant?: 'draftOrPublish' | 'versionHistory'
   contentClass?: string
   maskClosable?: boolean
 }
@@ -33,10 +33,13 @@ const { modalSize, variant } = toRefs(props)
     <template v-if="variant === 'draftOrPublish'">
       <DlgManagedAppDraftOrPublish v-model:visible="vVisible" />
     </template>
+    <template v-if="variant === 'versionHistory'">
+      <DlgManagedAppVersionHistory v-model:visible="vVisible" />
+    </template>
     <slot v-else-if="$slots.default"> </slot>
     <template v-else>
       <slot name="header">
-        <NcDlgManagedAppHeader :visible="vVisible" :modalSize="modalSize" :title="title" :subTitle="subTitle" />
+        <DlgManagedAppHeader v-model:visible="vVisible" :modalSize="modalSize" :title="title" :subTitle="subTitle" />
       </slot>
 
       <div class="flex-1 nc-scrollbar-thin" :class="contentClass">
@@ -47,8 +50,6 @@ const { modalSize, variant } = toRefs(props)
     </template>
   </NcModal>
 </template>
-
-<style lang="scss" scoped></style>
 
 <style lang="scss">
 .nc-modal-dlg-managed-app {

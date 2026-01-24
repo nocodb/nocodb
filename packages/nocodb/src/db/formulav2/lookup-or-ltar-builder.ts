@@ -1,6 +1,7 @@
 import {
   CircularRefContext,
   ClientType,
+  isMMOrMMLike,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -378,6 +379,7 @@ export const lookupOrLtarBuilder =
         case UITypes.LinkToAnotherRecord:
           {
             const nestedAlias = `__nc_formula${getAliasCount()}`;
+            const isMMLike = isMMOrMMLike(lookupColumn);
             const relation =
               await lookupColumn.getColOptions<LinkToAnotherRecordColumn>(
                 context,
@@ -409,7 +411,9 @@ export const lookupOrLtarBuilder =
 
             let cn;
 
-            let relationType = relation.type;
+            let relationType = isMMLike
+              ? RelationTypes.MANY_TO_MANY
+              : relation.type;
 
             if (relationType === RelationTypes.ONE_TO_ONE) {
               relationType = relationCol.meta?.bt

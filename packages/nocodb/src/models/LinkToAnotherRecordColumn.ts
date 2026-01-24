@@ -200,6 +200,8 @@ export default class LinkToAnotherRecordColumn {
     if (insertObj.version === undefined) {
       insertObj.version = 2;
     }
+console.log(new Error('test'))
+    console.log('Inserting LinkToAnotherRecordColumn with data:', insertObj);
 
     await ncMeta.metaInsert2(
       context.workspace_id,

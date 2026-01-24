@@ -142,7 +142,7 @@ watch(
 
 <template>
   <div class="flex flex-col h-full">
-    <DlgManagedAppHeader v-model:visible="vVisible" :title="title" :subTitle="subTitle" />
+    <DlgManagedAppHeader v-model:visible="vVisible" :title="title" :sub-title="subTitle" />
 
     <div class="flex-1 p-6 nc-scrollbar-thin">
       <NcAlert

@@ -39,7 +39,7 @@ const { modalSize, variant } = toRefs(props)
     </template>
     <template v-else>
       <slot name="header">
-        <DlgManagedAppHeader v-model:visible="vVisible" :modalSize="modalSize" :title="title" :subTitle="subTitle" />
+        <DlgManagedAppHeader v-model:visible="vVisible" :modal-size="modalSize" :title="title" :sub-title="subTitle" />
       </slot>
 
       <div class="flex-1 nc-scrollbar-thin" :class="contentClass">

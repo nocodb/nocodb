@@ -20,10 +20,6 @@ export const useBase = defineStore('baseStore', () => {
 
   const managedApp = ref<any>(null)
 
-  const currentVersion = ref<any>(null)
-
-  const liveVersion = ref<any>(null)
-
   const managedAppVersions = ref<any[]>([])
 
   const managedAppVersionsInfo = computed(() => {})
@@ -362,8 +358,6 @@ export const useBase = defineStore('baseStore', () => {
     isManagedAppInstaller,
     managedApp,
     loadManagedApp,
-    currentVersion,
-    liveVersion,
     loadCurrentVersion,
     managedAppVersions,
     managedAppVersionsInfo,

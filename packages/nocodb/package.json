@@ -195,7 +195,7 @@
     "resumable-stream": "^2.2.1",
     "rfdc": "^1.4.1",
     "rxjs": "^7.8.1",
-    "sharp": "0.33.4",
+    "sharp": "0.34.2",
     "slash": "^3.0.0",
     "slug": "^8.2.3",
     "snowflake-sdk": "^2.1.0",

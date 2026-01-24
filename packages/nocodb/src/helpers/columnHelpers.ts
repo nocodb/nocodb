@@ -2,6 +2,7 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   getAvailableRollupForUiType,
+  isLinkV2,
   RelationTypes,
   UITypes,
   WebhookActions,
@@ -12,6 +13,7 @@ import { NcError } from './ncError';
 import type {
   BoolType,
   ColumnReqType,
+  LinkToAnotherRecordType,
   LookupColumnReqType,
   NcRequest,
   RollupColumnReqType,
@@ -19,10 +21,10 @@ import type {
 } from 'nocodb-sdk';
 import type LinkToAnotherRecordColumn from '~/models/LinkToAnotherRecordColumn';
 import type LookupColumn from '~/models/LookupColumn';
-import type Model from '~/models/Model';
 import type { NcContext } from '~/interface/config';
 import type { RollupColumn, View } from '~/models';
 import type { ColumnWebhookManager } from '~/utils/column-webhook-manager';
+import Model from '~/models/Model';
 import { GridViewColumn } from '~/models';
 import validateParams from '~/helpers/validateParams';
 import { getUniqueColumnAliasName } from '~/helpers/getUniqueName';
@@ -754,4 +756,54 @@ export const deleteColumnSystemPropsFromRequest = (col: any) => {
   delete col.au;
   delete col.validate;
   delete col.system;
+};
+
+// get the reverse type of the relation
+export const getRevType = (type: RelationTypes) => {
+  switch (type) {
+    case RelationTypes.BELONGS_TO:
+      return RelationTypes.HAS_MANY;
+    case RelationTypes.HAS_MANY:
+      return RelationTypes.BELONGS_TO;
+    case RelationTypes.MANY_TO_ONE:
+      return RelationTypes.ONE_TO_MANY;
+    case RelationTypes.ONE_TO_MANY:
+      return RelationTypes.MANY_TO_ONE;
+  }
+
+  return type;
+};
+
+export const getTargetTableRelColumn = async (
+  context: NcContext,
+  relationColumn: Column,
+  _targetTable?: Model,
+) => {
+  if (!isLinkV2(relationColumn)) {
+    NcError.notImplemented();
+  }
+
+  const colOptions =
+    await relationColumn.getColOptions<LinkToAnotherRecordColumn>(context);
+  const { refContext } = colOptions.getRelContext(context);
+
+  const targetTable =
+    _targetTable ||
+    (await Model.get(refContext, colOptions.fk_related_model_id));
+
+  return await targetTable
+    .getColumns(refContext)
+    .then((columns) =>
+      columns.find(
+        (col: Column<LinkToAnotherRecordColumn>) =>
+          col.uidt === UITypes.LinkToAnotherRecord &&
+          col.colOptions?.fk_related_model_id === relationColumn.fk_model_id &&
+          col &&
+          col.colOptions?.fk_child_column_id ===
+            colOptions.fk_parent_column_id &&
+          col.colOptions?.fk_parent_column_id ===
+            colOptions.fk_child_column_id &&
+          col.colOptions?.fk_mm_model_id === colOptions.fk_mm_model_id,
+      ),
+    );
 };

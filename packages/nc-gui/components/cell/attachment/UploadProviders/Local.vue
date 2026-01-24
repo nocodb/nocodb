@@ -26,6 +26,8 @@ watch(files, (newFiles) => {
 })
 
 const onDrop = (files: File[], event: DragEvent) => {
+  if (!files || !ncIsArray(files)) return
+
   tempFiles.value.push(...files)
   event.preventDefault()
   event.stopPropagation()

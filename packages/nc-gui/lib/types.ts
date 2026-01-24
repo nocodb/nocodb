@@ -229,6 +229,8 @@ type NcProject = BaseType & {
   managed_app_master?: boolean
   managed_app_id?: string
   managed_app_version_id?: string
+  managed_app_version?: string
+  managed_app_published_at?: string
   auto_update?: boolean
   managed_app_schema_locked?: boolean
 }

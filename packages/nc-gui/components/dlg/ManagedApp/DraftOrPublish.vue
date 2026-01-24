@@ -46,7 +46,6 @@ const publishForm = reactive({
 // Fork form (for creating new draft from published)
 const forkForm = reactive({
   version: '',
-  releaseNotes: '',
 })
 
 const loadManagedAppAndCurrentVersion = async () => {
@@ -67,6 +66,7 @@ const publishCurrentDraft = async () => {
       },
       {
         managedAppVersionId: managedAppVersionsInfo.value.current.id,
+        releaseNotes: publishForm.releaseNotes,
       },
     )
 
@@ -187,13 +187,15 @@ watch(
         </div>
         <div v-if="isDraft">
           <label class="text-nc-content-gray text-sm font-medium mb-2 block">Changelog</label>
-          <a-textarea
-            v-model:value="publishForm.releaseNotes"
-            placeholder="Describe what's new in this version"
-            :rows="6"
-            size="large"
-            class="rounded-lg nc-input-sm"
-          />
+          <div class="nc-changelog-editor-wrapper">
+            <LazyCellRichText
+              v-model:value="publishForm.releaseNotes"
+              class="nc-changelog-editor allow-vertical-resize"
+              placeholder="Describe what's new in this version"
+              show-menu
+              hide-mention
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -222,5 +224,26 @@ watch(
 <style lang="scss" scoped>
 .nc-dlg-managed-app-footer {
   @apply px-6 py-3 border-t-1 border-nc-border-gray-medium;
+}
+
+.nc-changelog-editor-wrapper {
+  @apply relative pt-11 border-1 border-nc-border-gray-medium rounded-lg focus-within:border-nc-border-brand focus-within:shadow-selected transition-all duration-200;
+}
+</style>
+
+<style lang="scss">
+.nc-changelog-editor-wrapper {
+  .nc-changelog-editor {
+    @apply border-t-1 border-nc-border-gray-medium;
+    .nc-textarea-rich-editor {
+      .ProseMirror {
+        @apply border-0 rounded-none min-h-42 max-h-150 p-3;
+      }
+
+      .ProseMirror-focused {
+        @apply border-0;
+      }
+    }
+  }
 }
 </style>

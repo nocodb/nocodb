@@ -39,6 +39,33 @@ const databricks = {
       ),
     };
   },
+  CHECKSUM_MD5: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`CASE WHEN ? IS NULL THEN NULL ELSE MD5(CAST(? AS STRING)) END`, [
+        value,
+        value,
+      ]),
+    };
+  },
+  CHECKSUM_SHA1: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `CASE WHEN ? IS NULL THEN NULL ELSE SHA1(CAST(? AS STRING)) END`,
+        [value, value],
+      ),
+    };
+  },
+  CHECKSUM_SHA256: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `CASE WHEN ? IS NULL THEN NULL ELSE SHA2(CAST(? AS STRING), 256) END`,
+        [value, value],
+      ),
+    };
+  },
 };
 
 export default databricks;

@@ -205,6 +205,33 @@ END)`,
       ),
     };
   },
+  CHECKSUM_MD5: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`CASE WHEN ? IS NULL THEN NULL ELSE LOWER(MD5(?)) END`, [
+        value,
+        value,
+      ]),
+    };
+  },
+  CHECKSUM_SHA1: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(`CASE WHEN ? IS NULL THEN NULL ELSE LOWER(SHA1(?)) END`, [
+        value,
+        value,
+      ]),
+    };
+  },
+  CHECKSUM_SHA256: async ({ fn, knex, pt }: MapFnArgs) => {
+    const value = (await fn(pt.arguments[0])).builder;
+    return {
+      builder: knex.raw(
+        `CASE WHEN ? IS NULL THEN NULL ELSE LOWER(SHA2(?, 256)) END`,
+        [value, value],
+      ),
+    };
+  },
 };
 
 export default mysql2;

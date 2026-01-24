@@ -42,12 +42,6 @@ watch(
   },
   { immediate: true },
 )
-
-watchEffect(() => {
-  console.log('managed App', managedApp.value)
-  console.log('currentVersion', currentVersion.value)
-  console.log('liveVersion', liveVersion.value)
-})
 </script>
 
 <template>
@@ -193,7 +187,7 @@ watchEffect(() => {
 
             <template v-if="managedAppVersionsInfo.current?.published_at" #subtext>
               <span class="text-green-600">
-                Published {{ parseStringDateTime(managedAppVersionsInfo.current?.published_at, undefined, true, 'MMM DD, YYYY') }}
+                Published {{ parseStringDateTime(managedAppVersionsInfo.current?.published_at, 'MMM DD, YYYY, HH:mm A') }}
               </span>
             </template>
           </SmartsheetTopbarManagedAppStatusMenuItem>

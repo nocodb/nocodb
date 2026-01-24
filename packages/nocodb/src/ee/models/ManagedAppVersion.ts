@@ -213,6 +213,7 @@ export default class ManagedAppVersion {
       'status',
       'schema',
       'release_notes',
+      'published_at',
     ]);
 
     await ncMeta.metaUpdate(

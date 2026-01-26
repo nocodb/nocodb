@@ -235,7 +235,7 @@ const mockColumns: UnifiedMetaType.IColumn[] = [
   },
 ];
 
-const mockGetMeta: UnifiedMetaType.IGetModel = jest.fn(
+const mockGetMeta: UnifiedMetaType.IGetModel = (jest.fn(
   async (_context, options) => {
     if (options.id === 'model2') {
       return {
@@ -264,7 +264,7 @@ const mockGetMeta: UnifiedMetaType.IGetModel = jest.fn(
       columns: mockColumns,
     };
   }
-);
+) as any);
 
 const mockClientOrSqlUi = SqlUiFactory.create({ client: 'pg' });
 

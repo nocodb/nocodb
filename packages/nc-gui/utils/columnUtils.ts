@@ -176,6 +176,10 @@ const uiTypes: UiTypesType[] = [
     icon: iconMap.cellDb,
   },
   {
+    name: UITypes.UUID,
+    icon: iconMap.cellText, // Using text icon for now
+  },
+  {
     name: UITypes.User,
     icon: iconMap.cellUser,
   },
@@ -428,6 +432,7 @@ const formViewHiddenColTypes = [
   UITypes.CreatedBy,
   UITypes.LastModifiedBy,
   UITypes.Meta,
+  UITypes.UUID,
   AIButton,
   AIPrompt,
 ]

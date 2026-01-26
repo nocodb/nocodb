@@ -238,6 +238,10 @@ const uiFilters = (t: UiTypesType) => {
   if (column?.value?.uidt === UITypes.Formula) {
     formulaColumnTypeValid = [UITypes.SingleLineText].includes(t.name)
   }
+
+  // UUID is only supported for PostgreSQL databases
+  const showUUID = t.name === UITypes.UUID ? base.value?.sources?.[0]?.type === 'pg' : true
+
   return (
     systemFiledNotEdited &&
     geoDataToggle &&
@@ -246,7 +250,8 @@ const uiFilters = (t: UiTypesType) => {
     isAllowToAddInFormView &&
     showAiFields &&
     showLTAR &&
-    formulaColumnTypeValid
+    formulaColumnTypeValid &&
+    showUUID
   )
 }
 

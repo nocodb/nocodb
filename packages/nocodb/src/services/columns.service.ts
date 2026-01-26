@@ -2713,6 +2713,19 @@ export class ColumnsService implements IColumnsService {
           fk_model_id: table.id,
         });
         break;
+      case UITypes.UUID:
+        // UUID is only supported for PostgreSQL databases
+        if (source.type !== 'pg') {
+          NcError.get(context).badRequest(
+            'UUID field type is supported only for PostgreSQL databases'
+          );
+        }
+        
+        savedColumn = await Column.insert(context, {
+          ...colBody,
+          fk_model_id: table.id,
+        });
+        break;
       case UITypes.Formula:
         try {
           const relatedModels: Map<string, Model> = await getRelatedModelMap(
@@ -3481,6 +3494,7 @@ export class ColumnsService implements IColumnsService {
       case UITypes.QrCode:
       case UITypes.Barcode:
       case UITypes.Button:
+      case UITypes.UUID:
         await Column.delete2(
           context,
           {

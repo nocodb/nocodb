@@ -53,6 +53,7 @@ enum UITypes {
   LastModifiedBy = 'LastModifiedBy',
   Order = 'Order',
   Meta = 'Meta',
+  UUID = 'UUID',
 }
 
 export const UITypesName = {
@@ -100,6 +101,7 @@ export const UITypesName = {
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
   [UITypes.Meta]: 'Row Meta',
+  [UITypes.UUID]: 'UUID',
   AIButton: 'AI Button',
   AIPrompt: 'AI Text',
 };
@@ -231,6 +233,13 @@ export const UITypesSearchTerms = {
     'last updated by',
     'who changed',
   ],
+  [UITypes.UUID]: [
+    'UUID',
+    'unique identifier',
+    'globally unique',
+    'GUID',
+    'universally unique identifier',
+  ],
   AIButton: ['AI Button', 'AI action', 'smart button'],
   AIPrompt: ['AI Text', 'AI Prompt', 'AI field', 'smart field'],
 };
@@ -310,6 +319,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.LastModifiedBy]: 'Last modified by',
   [UITypes.Order]: 'Order',
   [UITypes.Meta]: 'Row Meta',
+  [UITypes.UUID]: 'UUID',
 };
 
 export const numericUITypes = [
@@ -512,6 +522,7 @@ export const readonlyMetaAllowedTypes = [
   UITypes.Button,
   UITypes.Barcode,
   UITypes.QrCode,
+  UITypes.UUID,
 ];
 
 export const partialUpdateAllowedTypes = [
@@ -728,6 +739,7 @@ export const isReadOnlyColumn = (column: ColumnType): boolean => {
       UITypes.Barcode,
       UITypes.QrCode,
       UITypes.ForeignKey,
+      UITypes.UUID,
     ].includes(column.uidt as UITypes) ||
     // Check if the column is a system-generated user tracking field (CreatedBy, LastModifiedBy)
     isCreatedOrLastModifiedByCol(column) ||

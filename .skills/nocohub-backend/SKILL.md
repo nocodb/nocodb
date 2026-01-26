@@ -8,6 +8,10 @@ description: |
 
 # NocoDB Enterprise Backend Development
 
+> **📝 Skill Maintenance Note**
+>
+> While working on PRs, if you discover that any information in this skill is outdated, incorrect, or missing, **please update this skill as part of your PR**. Keeping these skills accurate helps the entire team work more efficiently with Claude. Update patterns, add new conventions, or correct any discrepancies you find.
+
 ## Architecture Overview
 
 NocoDB uses **NestJS** (Node.js) with **Knex** query builder. The codebase separates Community Edition (CE) and Enterprise Edition (EE) through directory prefixes.

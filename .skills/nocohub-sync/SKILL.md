@@ -8,6 +8,10 @@ description: |
 
 # NocoDB Sync Feature Development
 
+> **📝 Skill Maintenance Note**
+>
+> While working on PRs, if you discover that any information in this skill is outdated, incorrect, or missing, **please update this skill as part of your PR**. Keeping these skills accurate helps the entire team work more efficiently with Claude. Update patterns, add new conventions, or correct any discrepancies you find.
+
 ## Overview
 
 The Sync feature enables NocoDB to act as a central data hub by pulling data from external SaaS platforms (CRM, Ticketing, Project Management, etc.) into NocoDB tables. It's an **Enterprise Edition (EE) feature**.

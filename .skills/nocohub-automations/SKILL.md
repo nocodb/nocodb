@@ -8,6 +8,10 @@ description: |
 
 # NocoDB Automation Node Development
 
+> **📝 Skill Maintenance Note**
+>
+> While working on PRs, if you discover that any information in this skill is outdated, incorrect, or missing, **please update this skill as part of your PR**. Keeping these skills accurate helps the entire team work more efficiently with Claude. Update patterns, add new conventions, or correct any discrepancies you find.
+
 ## Architecture Overview
 
 NocoDB's automation system uses a **modular integration framework** in `packages/noco-integrations/`:

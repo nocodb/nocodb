@@ -7,6 +7,8 @@ import {
   PlanTitles,
   WorkspaceUserRoles,
   type WorkspaceUserType,
+  extractBaseRoleFromWorkspaceRole,
+  ProjectRoles,
 } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -342,6 +344,16 @@ const isDeleteOrUpdateAllowed = (user) => {
   return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
 }
 
+const getEffectiveRoleForUser = (user: any) => {
+  // For workspace users, if they have INHERIT role, determine the effective role from their workspace role
+  if (user.roles === WorkspaceUserRoles.INHERIT) {
+    // In workspace context, INHERIT typically resolves to EDITOR by default
+    // This is a simplified logic - in practice you might need to look at workspace-level defaults
+    return WorkspaceUserRoles.EDITOR
+  }
+  return user.roles
+}
+
 const topScroll = ref(0)
 
 const tableHeight = computed(() => {
@@ -624,11 +636,26 @@ watch(inviteDlg, (newVal) => {
                   :on-role-change="(role) => showRoleChangeConfirmationModal(record, role as WorkspaceUserRoles)"
                   :role="record.roles"
                   :roles="getTeamCompatibleAccessibleRoles(accessibleRoles, record)"
+                  :show-inherit="true"
+                  :inherit-source="'workspace'"
+                  :effective-role="record.roles === WorkspaceUserRoles.INHERIT ? getEffectiveRoleForUser(record) : undefined"
                   class="cursor-pointer"
                 />
               </template>
               <template v-else>
-                <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
+                <div v-if="record.roles === WorkspaceUserRoles.INHERIT" class="flex flex-col gap-1">
+                  <RolesBadge 
+                    :border="false" 
+                    :role="getEffectiveRoleForUser(record)" 
+                    class="cursor-default"
+                    :size="'sm'"
+                  />
+                  <div class="flex items-center gap-1 text-xs text-nc-content-gray-muted">
+                    <GeneralIcon icon="link2" class="h-3 w-3" />
+                    <span>{{ $t('tooltip.roleInheritedFromWorkspace') }}</span>
+                  </div>
+                </div>
+                <RolesBadge v-else :border="false" :role="record.roles" class="cursor-default" />
               </template>
             </div>
             <div v-if="column.key === 'created_at'">

@@ -27,7 +27,7 @@ export function useViewRowColorRender() {
     return Object.values(meta.value?.columnsById ?? {})
   })
 
-  const evaluateRowColor = (row: any) => {
+  const evaluateRowColor = (row: any, columnId?: string) => {
     if (!isRowColouringEnabled.value) return null
 
     if (activeViewRowColorInfo.value.mode === ROW_COLORING_MODE.SELECT) {
@@ -50,6 +50,7 @@ export function useViewRowColorRender() {
       return color
         ? {
             is_set_as_background: selectRowColorInfo.is_set_as_background,
+            type: selectRowColorInfo.type || 'row',
             color,
             hoverColor,
             rawColor,
@@ -66,6 +67,15 @@ export function useViewRowColorRender() {
       }
 
       for (const eachCondition of filterRowColorInfo.conditions) {
+        // For cell-type coloring, check if this condition applies to the specified column
+        if (eachCondition.type === 'cell' && columnId && eachCondition.fk_column_id !== columnId) {
+          continue
+        }
+        // For row-type coloring when checking a specific column, skip cell-specific conditions
+        if (!columnId && eachCondition.type === 'cell') {
+          continue
+        }
+
         const isFilterValid = validateRowFilters(
           eachCondition.conditions,
           row,
@@ -98,6 +108,8 @@ export function useViewRowColorRender() {
 
           return {
             is_set_as_background: eachCondition.is_set_as_background,
+            type: eachCondition.type || 'row',
+            fk_column_id: eachCondition.fk_column_id,
             color,
             hoverColor,
             rawColor: eachCondition.color,
@@ -110,13 +122,14 @@ export function useViewRowColorRender() {
     return null
   }
 
-  const getCachedEvaluatedResult = (rowHash: string, row: any) => {
-    const cachedEvaluatedResult = rowColouringCache.get(rowHash)
+  const getCachedEvaluatedResult = (rowHash: string, row: any, columnId?: string) => {
+    const cacheKey = columnId ? `${rowHash}:${columnId}` : rowHash
+    const cachedEvaluatedResult = rowColouringCache.get(cacheKey)
 
     if (!cachedEvaluatedResult) {
-      const evaluatedResult = evaluateRowColor(row)
+      const evaluatedResult = evaluateRowColor(row, columnId)
       if (evaluatedResult) {
-        rowColouringCache.set(rowHash, evaluatedResult)
+        rowColouringCache.set(cacheKey, evaluatedResult)
       }
 
       return evaluatedResult
@@ -149,10 +162,34 @@ export function useViewRowColorRender() {
     }
   }
 
+  const getEvaluatedCellColorInfo = (row: any, columnId: string) => {
+    const result = {
+      is_set_as_background: false,
+      cellBgColor: null,
+      cellBorderColor: null,
+      cellHoverColor: null,
+    }
+
+    if (!row || !isRowColouringEnabled.value || !columnId) return result
+
+    const rowHash = getRowHash(row)
+    const cellColorResult = getCachedEvaluatedResult(rowHash, row, columnId)
+
+    if (!cellColorResult || cellColorResult.type !== 'cell') return result
+
+    return {
+      is_set_as_background: cellColorResult.is_set_as_background ?? false,
+      cellBgColor: cellColorResult.is_set_as_background ? cellColorResult.color ?? null : null,
+      cellBorderColor: cellColorResult.is_set_as_background ? cellColorResult.borderColor ?? null : null,
+      cellHoverColor: cellColorResult.hoverColor ?? null,
+    }
+  }
+
   return {
     rowColorInfo: activeViewRowColorInfo,
     evaluateRowColor,
     isRowColouringEnabled,
     getEvaluatedRowMetaRowColorInfo,
+    getEvaluatedCellColorInfo,
   }
 }

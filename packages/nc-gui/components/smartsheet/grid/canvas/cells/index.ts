@@ -75,7 +75,7 @@ export function useGridCellHandler(params: {
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
-  const { isRowColouringEnabled } = useViewRowColorRender()
+  const { isRowColouringEnabled, getEvaluatedCellColorInfo } = useViewRowColorRender()
 
   const { getColor, isDark } = useTheme()
 
@@ -222,15 +222,35 @@ export function useGridCellHandler(params: {
           },
         })
       } else if (!rowMeta?.isValidationFailed && isRootCell) {
-        const rowColor =
-          rowMeta?.is_set_as_background &&
-          (selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected)
-            ? rowMeta?.rowHoverColor
-            : rowMeta?.rowBgColor
+        // First check for cell-specific coloring
+        const cellColorInfo = isRowColouringEnabled.value ? getEvaluatedCellColorInfo(row, column.id) : null
+        
+        let backgroundColorToRender: string | null = null
+        let hoverColorToRender: string | null = null
+        
+        if (cellColorInfo?.cellBgColor) {
+          // Cell-specific color takes precedence
+          backgroundColorToRender = cellColorInfo.cellBgColor
+          hoverColorToRender = cellColorInfo.cellHoverColor
+        } else {
+          // Fall back to row coloring
+          const rowColor =
+            rowMeta?.is_set_as_background &&
+            (selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected)
+              ? rowMeta?.rowHoverColor
+              : rowMeta?.rowBgColor
+          backgroundColorToRender = rowColor
+        }
 
-        if (rowColor) {
+        // Apply the final color (cell or row)
+        const finalColor =
+          selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected
+            ? hoverColorToRender || backgroundColorToRender
+            : backgroundColorToRender
+
+        if (finalColor) {
           roundedRect(ctx, x, y, width, height, 0, {
-            backgroundColor: rowColor,
+            backgroundColor: finalColor,
             borderColor: getColor(themeV4Colors.gray['200']),
             borderWidth: 0.4,
             borders: {

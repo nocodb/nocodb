@@ -308,6 +308,7 @@ export type RowColoringInfoFilterRow = {
   nc_order: number;
   color: string;
   type: string;
+  fk_column_id?: string;
   conditions: FilterType[];
   nestedConditions: FilterType[];
 };

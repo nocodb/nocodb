@@ -314,6 +314,30 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       <a-select-option value="cell">{{ $t('general.cell') }}</a-select-option>
                     </NcSelect>
                   </div>
+                  <div v-if="rowColorConfig.type === 'cell'" class="flex items-center cursor-pointer select-none text-nc-content-gray">
+                    <NcSelect
+                      :value="rowColorConfig.fk_column_id || ''"
+                      class="!w-32"
+                      size="small"
+                      :placeholder="$t('objects.field')"
+                      @change="updateColor(i, 'fk_column_id', $event)"
+                    >
+                      <template #suffixIcon>
+                        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                      </template>
+                      <a-select-option v-for="column in columns" :key="column.id" :value="column.id">
+                        <div class="w-full flex gap-2 items-center">
+                          <SmartsheetHeaderIcon :column="column" class="!mx-0" />
+                          <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                            <template #title>
+                              {{ column.title }}
+                            </template>
+                            {{ column.title }}
+                          </NcTooltip>
+                        </div>
+                      </a-select-option>
+                    </NcSelect>
+                  </div>
                 </div>
               </template>
             </SmartsheetToolbarFilterGroup>

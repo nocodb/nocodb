@@ -1,4 +1,6 @@
 <script setup lang="ts">
+const { t } = useI18n()
+
 const baseStore = useBase()
 
 const { loadManagedApp, loadCurrentVersion } = baseStore
@@ -7,6 +9,7 @@ const { base, isManagedAppMaster, isManagedAppInstaller, managedApp, currentVers
   storeToRefs(baseStore)
 
 const isModalVisible = ref(false)
+
 const initialTab = ref<'publish' | 'fork' | 'deployments' | undefined>(undefined)
 
 const isOpenDropdown = ref<boolean>(false)
@@ -17,7 +20,10 @@ const openModal = (tab?: 'publish' | 'fork' | 'deployments') => {
   isOpenDropdown.value = false
 
   initialTab.value = tab
-  isModalVisible.value = true
+
+  nextTick(() => {
+    isModalVisible.value = true
+  })
 }
 
 const loadManagedAppAndCurrentVersion = async () => {
@@ -42,6 +48,54 @@ watch(
   },
   { immediate: true },
 )
+
+const colors = {
+  green: {
+    bg: 'bg-nc-green-50 dark:bg-nc-green-20',
+    border: 'border-green-200 dark:border-nc-green-100',
+    text: 'text-green-600 dark:text-nc-green-300',
+  },
+  orange: {
+    bg: 'bg-nc-orange-20 dark:bg-nc-orange-20',
+    border: 'border-nc-orange-200 dark:border-orange-600/40',
+    text: 'text-orange-600 text-orange-600',
+  },
+  brand: {
+    bg: 'bg-nc-brand-50 dark:bg-nc-brand-20/40',
+    border: 'border-nc-brand-200 dark:border-nc-content-brand/50',
+    text: 'text-nc-content-brand',
+  },
+}
+
+const badgeConfig = computed(() => {
+  const result = {
+    colors: colors.green,
+    icon: 'circleCheck3',
+    subText: '',
+  }
+
+  if (isManagedAppInstaller.value) {
+    if (managedAppVersionsInfo.value.updateAvailable) {
+      result.colors = colors.brand
+      result.icon = 'ncDownload'
+      result.subText = t('labels.updateAvailable')
+    } else {
+      result.colors = colors.green
+      result.icon = 'circleCheck3'
+      result.subText = t('labels.upToDate')
+    }
+  } else if (isDraft.value) {
+    result.colors = colors.orange
+    result.icon = 'pencil'
+    result.subText = t('labels.draft')
+  } else {
+    result.colors = colors.green
+    result.icon = 'circleCheck3'
+    result.subText = t('labels.published')
+  }
+
+  return result
+})
 </script>
 
 <template>
@@ -54,24 +108,21 @@ watch(
     <div class="flex items-center gap-2">
       <!-- Version Badge (clickable to open modal) -->
       <div
-        class="flex items-center gap-1.5 px-2.5 py-1 bg-nc-bg-gray-light rounded-md border-1 border-nc-border-gray-medium cursor-pointer hover:(bg-nc-bg-gray-medium border-nc-border-gray-dark) transition-colors"
+        class="flex items-center gap-2 px-2.5 py-1 h-8 rounded-lg border-1 cursor-pointer transition-colors select-none"
+        :class="[badgeConfig.colors.bg, badgeConfig.colors.border, badgeConfig.colors.text]"
       >
-        <GeneralIcon icon="ncInfoSolid" class="w-3.5 h-3.5 text-nc-content-gray nc-managed-app-status-info-icon" />
-        <span class="text-xs font-mono font-semibold text-nc-content-gray-emphasis"
-          >v{{ managedAppVersionsInfo.current?.version || '1.0.0' }}</span
-        >
-        <div
-          v-if="managedAppVersionsInfo.current?.status === 'draft'"
-          class="ml-1 px-1.5 py-0.5 text-xs rounded bg-nc-bg-orange-light text-nc-content-orange-dark font-medium"
-        >
-          {{ $t('labels.draft') }}
-        </div>
-        <div
-          v-else-if="managedAppVersionsInfo.current?.status === 'published'"
-          class="ml-1 px-1.5 py-0.5 text-xs rounded bg-nc-bg-green-dark text-nc-content-green-dark font-medium"
-        >
-          {{ $t('labels.published') }}
-        </div>
+        <GeneralIcon :icon="badgeConfig.icon as IconMapKey" class="w-3.5 h-3.5 text-current nc-managed-app-status-info-icon" />
+        <span class="text-xs font-mono font-medium"> v{{ managedAppVersionsInfo.current?.version || '1.0.0' }}</span>
+        <span class="py-0.5 text-xs font-medium whitespace-nowrap">
+          {{ badgeConfig.subText }}
+        </span>
+        <GeneralIcon
+          icon="chevronDown"
+          class="w-3.5 h-3.5 text-nc-content-gray-muted opacity-80 transform transition-all duration-200"
+          :class="{
+            'rotate-180': isOpenDropdown,
+          }"
+        />
       </div>
     </div>
     <template #overlay>
@@ -245,10 +296,6 @@ watch(
 </template>
 
 <style lang="scss" scoped>
-:deep(.nc-managed-app-status-info-icon path.nc-icon-inner) {
-  stroke: var(--nc-bg-gray-light) !important;
-}
-
 .nc-managed-app-status-menu {
   @apply w-[318px] pb-2;
 }

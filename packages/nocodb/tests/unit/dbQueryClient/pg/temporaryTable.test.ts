@@ -1,5 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
+import { ClientType } from 'nocodb-sdk';
 import { initInitialModel } from '../initModel';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { PGDBQueryClient } from '~/dbQueryClient/pg';
@@ -27,6 +28,9 @@ function pgTemporaryTableTest() {
   });
 
   it(`will generate a temporary table`, async () => {
+    if (_source!.type !== ClientType.PG) {
+      return;
+    }
     const data = [
       { id: 1, foo: 'foo1', bar: 'bar1' },
       { id: 2, foo: 'foo2', bar: 'bar2' },

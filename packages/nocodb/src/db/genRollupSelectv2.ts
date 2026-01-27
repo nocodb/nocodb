@@ -273,6 +273,13 @@ export default async function genRollupSelectv2(param: {
     case RelationTypes.MANY_TO_MANY: {
       profiler.log('Relation: ' + relationColumnOption.type);
       const mmModel = await relationColumnOption.getMMModel(mmContext);
+
+      if (!mmModel) {
+        return this.dbDriver.raw(`?`, [
+          NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
+        ]);
+      }
+
       const mmChildCol = await relationColumnOption.getMMChildColumn(mmContext);
       const mmParentCol = await relationColumnOption.getMMParentColumn(
         mmContext,
@@ -281,11 +288,6 @@ export default async function genRollupSelectv2(param: {
         id: mmModel.id,
         dbDriver: knex,
       });
-      if (!mmModel) {
-        return this.dbDriver.raw(`?`, [
-          NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
-        ]);
-      }
 
       const qb = knex(
         knex.raw(`?? as ??`, [

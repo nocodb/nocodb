@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { toRaw, unref } from '@vue/runtime-core'
+import { ref, toRaw, unref, watch } from '@vue/runtime-core'
 import type { UploadChangeParam, UploadFile } from 'ant-design-vue'
 import { Upload } from 'ant-design-vue'
 import { type TableType, charsetOptions, charsetOptionsMap, ncHasProperties } from 'nocodb-sdk'
@@ -20,6 +20,8 @@ const {
 } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'back'])
+
+const sourceIdRef = ref(sourceId)
 
 // Define Monaco Editor as an async component
 const MonacoEditor = defineAsyncComponent(() => import('~/components/monaco/Editor.vue'))
@@ -99,9 +101,14 @@ const refMonacoEditor = ref()
 
 const sourceSelectorRef = ref()
 
-const customSourceId = computed(() => {
-  return sourceSelectorRef.value?.customSourceId || sourceId
-})
+watch(
+  () => sourceSelectorRef.value?.customSourceId,
+  (newValue) => {
+    if (newValue) {
+      sourceIdRef.value = newValue
+    }
+  },
+)
 
 const { clone } = useUndoRedo()
 
@@ -753,7 +760,7 @@ watch(
           :quick-import-type="importType"
           :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
           :base-id="baseId"
-          :source-id="customSourceId"
+          :source-id="sourceIdRef"
           :import-worker="importWorker"
           :table-icon="importMeta.icon"
           class="nc-quick-import-template-editor"
@@ -1039,7 +1046,7 @@ watch(
           <NcListSourceSelector
             ref="sourceSelectorRef"
             :base-id="baseId"
-            :source-id="sourceId"
+            :source-id="sourceIdRef"
             :show-source-selector="showSourceSelector"
             force-layout="vertical"
           />

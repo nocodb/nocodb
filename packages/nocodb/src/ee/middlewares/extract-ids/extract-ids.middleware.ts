@@ -1110,6 +1110,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       nc_site_url: req.ncSiteUrl,
       timezone: context.timezone,
       schema_locked: req.ncSchemaLocked || false,
+      is_api_token: req.user?.is_api_token,
     };
 
     // Load and cache permissions in context to avoid multiple fetches
@@ -1448,6 +1449,10 @@ export class AclMiddleware implements NestInterceptor {
       ) {
         NcError.sourceDataReadOnly(source.alias);
       }
+    }
+
+    if (req.context) {
+      req.context.is_api_token = req.user.is_api_token;
     }
   }
 

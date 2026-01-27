@@ -90,19 +90,16 @@ export function parseStringDate(v: string, dateFormat: string) {
 export function parseStringDateTime(
   v: string,
   dateTimeFormat: string = `${dateFormats[0]} ${timeFormats[0]}`,
-  toLocal: boolean = true,
-  newDateTimeFormat?: string
+  toLocal: boolean = true
 ) {
   const dayjsObj = toLocal ? dayjs(v).local() : dayjs(v);
 
   if (dayjsObj.isValid()) {
-    v = dayjsObj.format(newDateTimeFormat || dateTimeFormat);
+    v = dayjsObj.format(dateTimeFormat);
   } else {
     v = toLocal
-      ? dayjs(v, dateTimeFormat)
-          .local()
-          .format(newDateTimeFormat || dateTimeFormat)
-      : dayjs(v, dateTimeFormat).format(newDateTimeFormat || dateTimeFormat);
+      ? dayjs(v, dateTimeFormat).local().format(dateTimeFormat)
+      : dayjs(v, dateTimeFormat).format(dateTimeFormat);
   }
 
   return v;

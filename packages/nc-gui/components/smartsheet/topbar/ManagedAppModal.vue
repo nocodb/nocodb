@@ -142,14 +142,8 @@ const createNewDraft = async () => {
 
 const formatDate = (dateString: string) => {
   if (!dateString) return 'N/A'
-  const date = new Date(dateString)
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
+
+  return parseStringDateTime(dateString, 'MMM DD, YYYY, HH:mm A')
 }
 
 const openVersionDeploymentsModal = (version: any) => {
@@ -342,13 +336,13 @@ const modalSize = computed(() => {
 
               <!-- Active -->
               <div class="nc-stat-card">
-                <div class="nc-stat-value">{{ deploymentStats.statistics?.activeDeployments || 0 }}</div>
+                <div class="nc-stat-value text-green-600">{{ deploymentStats.statistics?.activeDeployments || 0 }}</div>
                 <div class="nc-stat-label">Active</div>
               </div>
 
               <!-- Failed -->
               <div class="nc-stat-card">
-                <div class="nc-stat-value">{{ deploymentStats.statistics?.failedDeployments || 0 }}</div>
+                <div class="nc-stat-value text-red-600">{{ deploymentStats.statistics?.failedDeployments || 0 }}</div>
                 <div class="nc-stat-label">Failed</div>
               </div>
 
@@ -527,15 +521,11 @@ const modalSize = computed(() => {
 }
 
 .nc-stat-card {
-  @apply flex flex-col gap-1 items-center justify-center border-r-1 border-nc-border-gray-light last:border-r-0 p-4;
+  @apply flex flex-col gap-1 items-center justify-center border-r-1 border-nc-border-gray-medium last:border-r-0 p-4 text-nc-content-gray-subtle;
 }
 
 .nc-stat-icon-wrapper {
   @apply w-10 h-10 rounded-lg flex items-center justify-center mb-3;
-}
-
-.nc-stat-content {
-  @apply space-y-1;
 }
 
 .nc-stat-value {
@@ -543,7 +533,7 @@ const modalSize = computed(() => {
 }
 
 .nc-stat-label {
-  @apply text-captionSm text-nc-content-gray-muted uppercase;
+  @apply text-tiny text-nc-content-gray-muted uppercase;
 }
 
 .nc-version-list-wrapper {

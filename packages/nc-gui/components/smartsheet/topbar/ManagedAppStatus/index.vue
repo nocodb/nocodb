@@ -91,12 +91,7 @@ const badgeConfig = computed(() => {
 </script>
 
 <template>
-  <NcDropdown
-    v-if="isManagedAppMaster || isManagedAppInstaller"
-    v-model:visible="isOpenDropdown"
-    placement="bottomRight"
-    overlay-class-name="!rounded-xl"
-  >
+  <NcDropdown v-if="isManagedAppMaster || isManagedAppInstaller" v-model:visible="isOpenDropdown" placement="bottomRight">
     <div class="flex items-center gap-2">
       <!-- Version Badge (clickable to open modal) -->
       <div
@@ -209,11 +204,10 @@ const badgeConfig = computed(() => {
           <NcDivider class="!my-1" />
 
           <!-- Version history  -->
-
           <SmartsheetTopbarManagedAppStatusMenuItem
             clickable
             label="View version history"
-            subtext="See what's new in each version"
+            subtext="Manage versions & track deployments"
             icon-wrapper-class="bg-nc-bg-gray-light"
             @click="openModal('versionHistory')"
           >
@@ -286,6 +280,6 @@ const badgeConfig = computed(() => {
 }
 
 .nc-managed-app-status-menu-header {
-  @apply flex items-center justify-between gap-2 pt-3 px-4 mb-1 text-nc-content-gray-muted text-captionSm;
+  @apply flex items-center justify-between gap-2 pt-3 px-3 mb-1 text-nc-content-gray-muted text-captionSm;
 }
 </style>

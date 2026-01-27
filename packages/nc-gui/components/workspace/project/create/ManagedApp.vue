@@ -1,15 +1,21 @@
 <script setup lang="ts">
-import { BaseVersion, FormBuilderValidatorType } from 'nocodb-sdk'
+import { type FormDefinition, BaseVersion, FormBuilderValidatorType } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType } from '#imports'
 
 const props = defineProps<{
   visible: boolean
   baseId?: string
+  title?: string
+  subTitle?: string
+  alertDescription?: string
+  submitButtonText?: string
 }>()
 
 const emit = defineEmits(['update:visible'])
 
 const visible = useVModel(props, 'visible', emit)
+
+const { title, subTitle, alertDescription, submitButtonText } = toRefs(props)
 
 const { $api } = useNuxtApp()
 
@@ -22,8 +28,8 @@ const initialSanboxFormState = ref<Record<string, any>>({
   description: '',
   category: '',
   visibility: 'private',
-  startFrom: 'new',
-  baseId: undefined,
+  startFrom: props.baseId ? 'existing' : 'new',
+  baseId: props.baseId,
 })
 
 const workspaceStore = useWorkspace()
@@ -31,6 +37,10 @@ const workspaceStore = useWorkspace()
 const { activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const basesStore = useBases()
+
+const baseStore = useBase()
+
+const { base } = storeToRefs(baseStore)
 
 const createManagedApp = async (formState: Record<string, any>) => {
   try {
@@ -77,11 +87,14 @@ const createManagedApp = async (formState: Record<string, any>) => {
       await basesStore.loadProjects()
     }
 
-    if (response?.base_id || formState.baseId) {
+    if (!props.baseId && (response?.base_id || formState.baseId) && base.value?.id !== (response?.base_id || formState.baseId)) {
       navigateToProject({
         baseId: response?.base_id || formState.baseId,
         workspaceId: activeWorkspaceId.value as string,
       })
+    } else if (base.value?.id && base.value.id === formState.baseId) {
+      baseStore.loadManagedApp()
+      baseStore.loadCurrentVersion()
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -117,42 +130,47 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
       placeholder: "Describe your application's capabilities",
       category: FORM_BUILDER_NON_CATEGORIZED,
     },
-    {
-      type: FormBuilderInputType.Select,
-      label: 'Start from',
-      span: 12,
-      model: 'startFrom',
-      category: FORM_BUILDER_NON_CATEGORIZED,
-      options: [
-        { label: 'New', value: 'new', icon: 'plus' },
-        { label: 'Existing Base', value: 'existing', icon: 'copy' },
-      ],
-      defaultValue: 'new',
-    },
-    {
-      type: FormBuilderInputType.Space,
-      span: 12,
-      category: FORM_BUILDER_NON_CATEGORIZED,
-      condition: {
-        model: 'startFrom',
-        equal: 'new',
-      },
-    },
-    {
-      type: FormBuilderInputType.SelectBase,
-      label: 'Select base',
-      span: 12,
-      model: 'baseId',
-      category: FORM_BUILDER_NON_CATEGORIZED,
-      condition: {
-        model: 'startFrom',
-        equal: 'existing',
-      },
-      defaultValue: undefined,
-      filterOption: (base) => base && base.version === BaseVersion.V3 && !base.managed_app_id,
-      helpText: 'Only V3 bases can be published as managed apps',
-      showHintAsTooltip: true,
-    },
+    ...(!props.baseId
+      ? ([
+          {
+            type: FormBuilderInputType.Select,
+            label: 'Start from',
+            span: 12,
+            model: 'startFrom',
+            category: FORM_BUILDER_NON_CATEGORIZED,
+            options: [
+              { label: 'New', value: 'new', icon: 'plus' },
+              { label: 'Existing Base', value: 'existing', icon: 'copy' },
+            ],
+            defaultValue: 'new',
+          },
+          {
+            type: FormBuilderInputType.Space,
+            span: 12,
+            category: FORM_BUILDER_NON_CATEGORIZED,
+            condition: {
+              model: 'startFrom',
+              equal: 'new',
+            },
+          },
+          {
+            type: FormBuilderInputType.SelectBase,
+            label: 'Select base',
+            span: 12,
+            model: 'baseId',
+            category: FORM_BUILDER_NON_CATEGORIZED,
+            condition: {
+              model: 'startFrom',
+              equal: 'existing',
+            },
+            defaultValue: undefined,
+            filterOption: (base) => base && base.version === BaseVersion.V3 && !base.managed_app_id,
+            helpText: 'Only V3 bases can be published as managed apps',
+            showHintAsTooltip: true,
+          },
+        ] as FormDefinition)
+      : []),
+
     {
       type: FormBuilderInputType.Input,
       label: t('labels.managedAppCategory'),
@@ -176,8 +194,12 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     },
   ],
   onSubmit: async () => {
-    if (formState.value.startFrom === 'new' && formState.value.baseId) {
+    if (!props.baseId && formState.value.startFrom === 'new' && formState.value.baseId) {
       formState.value.baseId = ''
+    }
+
+    if (props.baseId) {
+      formState.value.baseId = props.baseId
     }
 
     formState.value.title = formState.value.title.trim()
@@ -190,19 +212,11 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
 
 <template>
   <div class="flex flex-col h-full">
-    <div class="p-4 w-full flex items-center gap-3 border-b border-nc-border-gray-medium">
-      <div class="nc-managed-app-icon">
-        <GeneralIcon icon="ncBox" class="h-5 w-5" />
-      </div>
-      <div class="flex-1">
-        <div class="font-semibold text-lg text-nc-content-gray-emphasis">Create Managed App</div>
-        <div class="text-xs text-nc-content-gray-subtle2">{{ $t('labels.publishToAppStore') }}</div>
-      </div>
-
-      <NcButton size="small" type="text" class="self-start" @click="visible = false">
-        <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
-      </NcButton>
-    </div>
+    <DlgManagedAppHeader
+      v-model:visible="visible"
+      :title="title || 'Create Managed App'"
+      :subTitle="subTitle || $t('labels.publishToAppStore')"
+    />
 
     <div class="flex-1 p-6 nc-scrollbar-thin">
       <NcFormBuilder>
@@ -210,7 +224,10 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
           <NcAlert
             type="info"
             align="top"
-            description="Create managed application that can be published to the App Store. You'll be able to manage versions and push updates to all installations."
+            :description="
+              alertDescription ||
+              'Create managed application that can be published to the App Store. You\'ll be able to manage versions and push updates to all installations.'
+            "
             class="!p-3 !items-start bg-nc-bg-blue-light border-1 !border-nc-blue-200 rounded-lg p-3 mb-4"
           >
             <template #icon>
@@ -229,25 +246,8 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
         <template #icon>
           <GeneralIcon icon="ncBox" />
         </template>
-        Create managed app
+        {{ submitButtonText || 'Create managed app' }}
       </NcButton>
     </div>
   </div>
 </template>
-
-<style lang="scss">
-.nc-modal-convert-to-managed-app {
-  .nc-modal {
-    max-height: min(90vh, 540px) !important;
-    height: min(90vh, 540px) !important;
-  }
-}
-</style>
-
-<style lang="scss" scoped>
-.nc-managed-app-icon {
-  @apply w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm;
-  background: linear-gradient(135deg, var(--nc-content-brand) 0%, var(--nc-content-blue-medium) 100%);
-  box-shadow: 0 2px 4px rgba(51, 102, 255, 0.15);
-}
-</style>

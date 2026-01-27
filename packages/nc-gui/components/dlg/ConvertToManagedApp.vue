@@ -127,7 +127,7 @@ watch(visible, (isVisible) => {
     size="sm"
     height="auto"
     centered
-    wrap-class-name="nc-modal-convert-to-managed-app "
+    wrap-class-name="nc-modal-convert-to-managed-app"
     nc-modal-class-name="!p-0"
   >
     <div class="p-4 w-full flex items-center gap-3 border-b border-nc-border-gray-medium">

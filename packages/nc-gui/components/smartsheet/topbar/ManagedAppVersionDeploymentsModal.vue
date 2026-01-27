@@ -143,7 +143,7 @@ watch(
 </script>
 
 <template>
-  <GeneralModal :visible="visible" size="large" centered @update:visible="emit('update:visible', $event)">
+  <NcModal :visible="visible" size="lg" nc-modal-class-name="!p-0" @update:visible="emit('update:visible', $event)">
     <div class="nc-deployments-modal">
       <!-- Header -->
       <div class="nc-deployments-header">
@@ -246,7 +246,7 @@ watch(
                             </div>
                             <span class="nc-log-divider">•</span>
                             <div class="nc-log-time">
-                              <GeneralIcon icon="clock" class="w-3.5 h-3.5 opacity-60" />
+                              <GeneralIcon icon="ncClock" class="w-3.5 h-3.5 opacity-60" />
                               <span>{{ formatDate(log.createdAt) }}</span>
                             </div>
                           </div>
@@ -305,7 +305,7 @@ watch(
         </div>
       </div>
     </div>
-  </GeneralModal>
+  </NcModal>
 </template>
 
 <style lang="scss" scoped>

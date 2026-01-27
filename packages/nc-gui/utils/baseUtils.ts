@@ -104,3 +104,20 @@ export const extractAiBaseCreateQueryParams = (query: any) => {
 
   return searchQuery
 }
+
+export const suggestManagedAppNextVersion = (currentVersion?: string) => {
+  if (!currentVersion) {
+    return '1.0.0'
+  }
+
+  const versionParts = currentVersion.split('.')
+
+  if (versionParts.length === 3) {
+    // Increment minor version for new draft
+    versionParts[1] = String(Number(versionParts[1]) + 1)
+    versionParts[2] = '0'
+    return versionParts.join('.')
+  } else {
+    return ''
+  }
+}

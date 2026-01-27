@@ -152,24 +152,6 @@ const formatDate = (dateString: string) => {
   }).format(date)
 }
 
-const suggestNextVersion = () => {
-  if (!props.currentVersion?.version) {
-    forkForm.version = '1.0.0'
-    return
-  }
-
-  const currentVersion = props.currentVersion.version
-  const versionParts = currentVersion.split('.')
-  if (versionParts.length === 3) {
-    // Increment minor version for new draft
-    versionParts[1] = String(Number(versionParts[1]) + 1)
-    versionParts[2] = '0'
-    forkForm.version = versionParts.join('.')
-  } else {
-    forkForm.version = ''
-  }
-}
-
 const openVersionDeploymentsModal = (version: any) => {
   selectedVersion.value = version
   showVersionDeploymentsModal.value = true
@@ -193,20 +175,28 @@ watch(
 
       await loadVersions()
       await loadDeployments()
-      if (!isDraft.value && !props.initialTab) {
-        suggestNextVersion()
+      if (!isDraft.value) {
+        forkForm.version = suggestManagedAppNextVersion(props.currentVersion?.version)
       }
     }
   },
 )
+
+const modalSize = computed(() => {
+  if (props.initialTab === 'fork' || props.initialTab === 'publish') {
+    return 'sm'
+  }
+
+  return 'sm'
+})
 </script>
 
 <template>
   <NcModal
     :visible="visible"
-    size="lg"
+    :size="modalSize"
+    :height="modalSize === 'sm' ? 'auto' : undefined"
     nc-modal-class-name="nc-modal-managed-app-management"
-    centered
     @update:visible="emit('update:visible', $event)"
   >
     <div class="flex flex-col h-full">
@@ -256,7 +246,7 @@ watch(
       </div>
 
       <!-- Content -->
-      <div class="flex-1 overflow-y-auto">
+      <div class="flex-1 nc-scrollbar-thin">
         <!-- Publish Tab -->
         <div v-if="activeTab === 'publish'" class="p-6">
           <NcAlert
@@ -346,46 +336,26 @@ watch(
             <div class="nc-deployment-stats">
               <!-- Total Deployments -->
               <div class="nc-stat-card">
-                <div class="nc-stat-icon-wrapper bg-nc-bg-blue-light">
-                  <GeneralIcon icon="ncServer" class="w-5 h-5 text-nc-content-blue-dark" />
-                </div>
-                <div class="nc-stat-content">
-                  <div class="nc-stat-value">{{ deploymentStats.statistics?.totalDeployments || 0 }}</div>
-                  <div class="nc-stat-label">Total Installs</div>
-                </div>
+                <div class="nc-stat-value">{{ deploymentStats.statistics?.totalDeployments || 0 }}</div>
+                <div class="nc-stat-label">Total Installs</div>
               </div>
 
               <!-- Active -->
               <div class="nc-stat-card">
-                <div class="nc-stat-icon-wrapper bg-nc-bg-green-light">
-                  <GeneralIcon icon="check" class="w-5 h-5 text-nc-content-green-dark" />
-                </div>
-                <div class="nc-stat-content">
-                  <div class="nc-stat-value">{{ deploymentStats.statistics?.activeDeployments || 0 }}</div>
-                  <div class="nc-stat-label">Active</div>
-                </div>
+                <div class="nc-stat-value">{{ deploymentStats.statistics?.activeDeployments || 0 }}</div>
+                <div class="nc-stat-label">Active</div>
               </div>
 
               <!-- Failed -->
               <div class="nc-stat-card">
-                <div class="nc-stat-icon-wrapper bg-nc-bg-red-light">
-                  <GeneralIcon icon="alertTriangle" class="w-5 h-5 text-nc-content-red-dark" />
-                </div>
-                <div class="nc-stat-content">
-                  <div class="nc-stat-value">{{ deploymentStats.statistics?.failedDeployments || 0 }}</div>
-                  <div class="nc-stat-label">Failed</div>
-                </div>
+                <div class="nc-stat-value">{{ deploymentStats.statistics?.failedDeployments || 0 }}</div>
+                <div class="nc-stat-label">Failed</div>
               </div>
 
               <!-- Versions -->
               <div class="nc-stat-card">
-                <div class="nc-stat-icon-wrapper bg-nc-bg-purple-light">
-                  <GeneralIcon icon="ncGitBranch" class="w-5 h-5 text-nc-content-purple-dark" />
-                </div>
-                <div class="nc-stat-content">
-                  <div class="nc-stat-value">{{ deploymentStats.statistics?.totalVersions || 0 }}</div>
-                  <div class="nc-stat-label">Versions</div>
-                </div>
+                <div class="nc-stat-value">{{ deploymentStats.statistics?.totalVersions || 0 }}</div>
+                <div class="nc-stat-label">Versions</div>
               </div>
             </div>
 
@@ -545,7 +515,7 @@ watch(
 
 // Deployments Tab Styles
 .nc-deployments-content {
-  @apply p-6;
+  @apply px-6 pb-6;
 }
 
 .nc-deployments-loading {
@@ -553,11 +523,11 @@ watch(
 }
 
 .nc-deployment-stats {
-  @apply grid grid-cols-4 gap-4 mb-6;
+  @apply grid grid-cols-4 mb-6;
 }
 
 .nc-stat-card {
-  @apply bg-nc-bg-gray-extralight border-1 border-nc-border-gray-light rounded-xl p-4 transition-all duration-200 hover:(border-nc-border-gray-medium shadow-hover);
+  @apply flex flex-col gap-1 items-center justify-center border-r-1 border-nc-border-gray-light last:border-r-0 p-4;
 }
 
 .nc-stat-icon-wrapper {
@@ -569,11 +539,11 @@ watch(
 }
 
 .nc-stat-value {
-  @apply text-3xl font-bold text-nc-content-gray-emphasis leading-none;
+  @apply text-subHeading1 font-normal;
 }
 
 .nc-stat-label {
-  @apply text-xs font-medium text-nc-content-gray-subtle2 uppercase tracking-wide;
+  @apply text-captionSm text-nc-content-gray-muted uppercase;
 }
 
 .nc-version-list-wrapper {
@@ -713,5 +683,10 @@ watch(
 <style lang="scss">
 .nc-modal-managed-app-management {
   @apply !p-0;
+
+  &.nc-modal-size-sm {
+    max-height: min(90vh, 540px) !important;
+    height: min(90vh, 540px) !important;
+  }
 }
 </style>

@@ -22345,7 +22345,8 @@
               "LastModifiedBy",
               "AI",
               "Order",
-              "Meta"
+              "Meta",
+              "Color"
             ],
             "type": "string"
           },

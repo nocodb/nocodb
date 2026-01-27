@@ -206,34 +206,6 @@ const modalSize = computed(() => {
           </div>
         </div>
 
-        <!-- Tabs (Segmented Control) -->
-        <div class="nc-managed-app-tabs">
-          <div class="flex items-center">
-            <div
-              v-if="isDraft"
-              class="nc-managed-app-tab"
-              :class="{ selected: activeTab === 'publish' }"
-              @click="activeTab = 'publish'"
-            >
-              <GeneralIcon icon="upload" class="h-4 w-4 flex-none opacity-75" />
-              <span>Publish</span>
-            </div>
-            <div
-              v-if="isPublished"
-              class="nc-managed-app-tab"
-              :class="{ selected: activeTab === 'fork' }"
-              @click="activeTab = 'fork'"
-            >
-              <GeneralIcon icon="ncGitBranch" class="h-4 w-4 flex-none opacity-75" />
-              <span>Fork</span>
-            </div>
-            <div class="nc-managed-app-tab" :class="{ selected: activeTab === 'deployments' }" @click="activeTab = 'deployments'">
-              <GeneralIcon icon="ncServer" class="h-4 w-4 flex-none opacity-75" />
-              <span>Deployments</span>
-            </div>
-          </div>
-        </div>
-
         <NcButton size="small" type="text" @click="emit('update:visible', false)">
           <GeneralIcon icon="close" class="text-nc-content-gray-muted h-4 w-4" />
         </NcButton>

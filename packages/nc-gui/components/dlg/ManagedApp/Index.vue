@@ -4,7 +4,7 @@ interface Props {
   modalSize: 'small' | 'medium' | 'large' | keyof typeof modalSizes
   title?: string
   subTitle?: string
-  variant?: 'convertToManagedApp'
+  variant?: 'draftOrPublish'
   contentClass?: string
   maskClosable?: boolean
 }
@@ -19,7 +19,7 @@ const emits = defineEmits(['update:visible'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
-const { modalSize } = toRefs(props)
+const { modalSize, variant } = toRefs(props)
 </script>
 
 <template>
@@ -30,7 +30,10 @@ const { modalSize } = toRefs(props)
     :mask-closable="maskClosable"
     nc-modal-class-name="nc-modal-dlg-managed-app"
   >
-    <slot v-if="$slots.default"> </slot>
+    <template v-if="variant === 'draftOrPublish'">
+      <DlgManagedAppDraftOrPublish v-model:visible="vVisible" />
+    </template>
+    <slot v-else-if="$slots.default"> </slot>
     <template v-else>
       <slot name="header">
         <NcDlgManagedAppHeader :visible="vVisible" :modalSize="modalSize" :title="title" :subTitle="subTitle" />

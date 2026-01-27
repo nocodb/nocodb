@@ -69,7 +69,7 @@ watch(
 
 <template>
   <div class="flex flex-col h-full">
-    <DlgManagedAppHeader v-model:visible="vVisible" title="Version History" subTitle="Manage versions and track deployments" />
+    <DlgManagedAppHeader v-model:visible="vVisible" title="Version History" sub-title="Manage versions and track deployments" />
 
     <div class="flex-1 nc-scrollbar-thin">
       <div
@@ -127,7 +127,7 @@ watch(
 
             <div class="nc-version-list">
               <div
-                v-for="(versionStat, index) in deploymentStats.versionStats"
+                v-for="versionStat in deploymentStats.versionStats"
                 :key="versionStat.versionId"
                 class="nc-version-item"
                 :class="{ 'nc-version-item-clickable': versionStat.deploymentCount > 0 }"

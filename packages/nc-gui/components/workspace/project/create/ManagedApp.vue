@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type FormDefinition, BaseVersion, FormBuilderValidatorType } from 'nocodb-sdk'
+import { BaseVersion, FormBuilderValidatorType, type FormDefinition } from 'nocodb-sdk'
 import { FORM_BUILDER_NON_CATEGORIZED, FormBuilderInputType } from '#imports'
 
 const props = defineProps<{
@@ -215,7 +215,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
     <DlgManagedAppHeader
       v-model:visible="visible"
       :title="title || 'Create Managed App'"
-      :subTitle="subTitle || $t('labels.publishToAppStore')"
+      :sub-title="subTitle || $t('labels.publishToAppStore')"
     />
 
     <div class="flex-1 p-6 nc-scrollbar-thin">

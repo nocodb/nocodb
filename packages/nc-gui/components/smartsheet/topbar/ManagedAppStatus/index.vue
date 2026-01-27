@@ -5,8 +5,7 @@ const baseStore = useBase()
 
 const { loadManagedApp, loadCurrentVersion } = baseStore
 
-const { base, isManagedAppMaster, isManagedAppInstaller, managedApp, currentVersion, liveVersion, managedAppVersionsInfo } =
-  storeToRefs(baseStore)
+const { base, isManagedAppMaster, isManagedAppInstaller, managedAppVersionsInfo } = storeToRefs(baseStore)
 
 const isModalVisible = ref(false)
 

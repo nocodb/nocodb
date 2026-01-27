@@ -22,14 +22,14 @@ const isLoading = ref(false)
 const deployments = ref<any[]>([])
 const pageInfo = ref<any>({})
 const currentPage = ref(1)
-const pageSize = 10
+const pageSize = ref(10)
 
 // Expanded deployment logs state
 const expandedBaseId = ref<string | null>(null)
 const deploymentLogs = ref<any[]>([])
 const logsPageInfo = ref<any>({})
 const logsCurrentPage = ref(1)
-const logsPageSize = 10
+const logsPageSize = ref(10)
 const isLoadingLogs = ref(false)
 
 const loadDeployments = async (page = 1) => {
@@ -37,12 +37,12 @@ const loadDeployments = async (page = 1) => {
 
   isLoading.value = true
   try {
-    const offset = (page - 1) * pageSize
+    const offset = (page - 1) * pageSize.value
     const response = await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id!, {
       operation: 'managedAppVersionDeployments',
       managedAppId: managedApp.value.id,
       versionId: props.version.versionId,
-      limit: pageSize,
+      limit: pageSize.value,
       offset,
     } as any)
 
@@ -63,11 +63,11 @@ const loadDeploymentLogs = async (baseId: string, page = 1) => {
 
   isLoadingLogs.value = true
   try {
-    const offset = (page - 1) * logsPageSize
+    const offset = (page - 1) * logsPageSize.value
     const response = await $api.internal.getOperation(base.value.fk_workspace_id, base.value.id!, {
       operation: 'managedAppDeploymentLogs',
       baseId,
-      limit: logsPageSize,
+      limit: logsPageSize.value,
       offset,
     } as any)
 
@@ -121,15 +121,15 @@ const getStatusColor = (status: string) => {
   return colors[status as keyof typeof colors] || 'text-nc-content-gray bg-nc-bg-gray-light'
 }
 
-const handlePageChange = (page: number) => {
+watch(currentPage, (page) => {
   loadDeployments(page)
-}
+})
 
-const handleLogsPageChange = (page: number) => {
+watch(logsCurrentPage, (page) => {
   if (expandedBaseId.value) {
     loadDeploymentLogs(expandedBaseId.value, page)
   }
-}
+})
 
 watch(
   vVisible,
@@ -257,13 +257,11 @@ watch(
 
                   <!-- Logs Pagination -->
                   <div v-if="logsPageInfo.totalRows > logsPageSize" class="nc-logs-pagination">
-                    <a-pagination
+                    <NcPagination
                       v-model:current="logsCurrentPage"
-                      :total="logsPageInfo.totalRows"
-                      :page-size="logsPageSize"
-                      :show-size-changer="false"
-                      size="small"
-                      @change="handleLogsPageChange"
+                      v-model:page-size="logsPageSize"
+                      :total="+logsPageInfo.totalRows"
+                      mode="simple"
                     />
                   </div>
                 </template>
@@ -291,13 +289,7 @@ watch(
     </div>
     <!-- Deployments Pagination -->
     <div v-if="deployments.length > 0 && pageInfo.totalRows > pageSize" class="nc-deployments-pagination">
-      <a-pagination
-        v-model:current="currentPage"
-        :total="pageInfo.totalRows"
-        :page-size="pageSize"
-        :show-size-changer="false"
-        @change="handlePageChange"
-      />
+      <NcPagination v-model:current="currentPage" v-model:page-size="pageSize" :total="+pageInfo.totalRows" mode="simple" />
     </div>
   </div>
 </template>
@@ -460,7 +452,7 @@ watch(
 }
 
 .nc-deployments-pagination {
-  @apply flex justify-center mt-6;
+  @apply flex justify-center py-2;
 }
 
 .nc-deployments-empty {

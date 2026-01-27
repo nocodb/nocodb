@@ -168,7 +168,7 @@ const { formState, isLoading, submit } = useProvideFormBuilderHelper({
       model: 'visibility',
       category: FORM_BUILDER_NON_CATEGORIZED,
       options: [
-        { label: 'Public', value: 'public', icon: 'eye' },
+        // { label: 'Public', value: 'public', icon: 'eye' },
         { label: 'Private', value: 'private', icon: 'lock' },
         { label: 'Unlisted', value: 'unlisted', icon: 'ncEyeOff' },
       ],

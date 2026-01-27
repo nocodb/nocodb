@@ -163,11 +163,9 @@ watch(
                     <GeneralIcon icon="download" class="w-4 h-4 text-nc-content-gray-subtle2" />
                     <span class="font-bold">{{ versionStat.deploymentCount }}</span>
                   </div>
-                  <GeneralIcon
-                    v-if="versionStat.deploymentCount > 0"
-                    icon="chevronRight"
-                    class="w-4 h-4 text-nc-content-gray-subtle2"
-                  />
+                  <div v-if="versionStat.deploymentCount > 0" class="nc-chevron-wrapper">
+                    <GeneralIcon icon="chevronRight" class="nc-chevron-icon" />
+                  </div>
                 </div>
               </div>
             </div>
@@ -275,19 +273,27 @@ watch(
         box-shadow: 0 4px 8px rgba(51, 102, 255, 0.15);
       }
 
+      .nc-installs-count {
+        @apply -translate-x-1;
+      }
+
+      .nc-chevron-wrapper {
+        @apply w-4 ml-2;
+      }
+
       .nc-chevron-icon {
-        @apply opacity-100;
+        @apply opacity-100 text-nc-content-brand;
       }
     }
+  }
+
+  &:not(.nc-version-item-clickable) {
+    @apply bg-nc-bg-gray-extralight/75 opacity-70 dark:opacity-60;
   }
 
   &:last-child {
     @apply mb-0;
   }
-}
-
-.nc-chevron-icon {
-  @apply opacity-0 transition-opacity duration-200 ease-in-out;
 }
 
 .nc-version-info {
@@ -329,12 +335,23 @@ watch(
 }
 
 .nc-version-installs {
-  @apply flex items-center gap-3;
+  @apply flex items-center;
 }
 
 .nc-installs-count {
   @apply flex items-center gap-2 text-sm;
   @apply px-3 py-1.5 rounded-lg bg-nc-bg-gray-light;
+  @apply transition-transform duration-200 ease-in-out;
+}
+
+.nc-chevron-wrapper {
+  @apply w-0 ml-0 overflow-hidden flex items-center justify-center;
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.nc-chevron-icon {
+  @apply w-4 h-4 text-nc-content-gray-subtle2;
+  @apply opacity-0 transition-opacity duration-200 ease-in-out;
 }
 
 .nc-deployments-empty {

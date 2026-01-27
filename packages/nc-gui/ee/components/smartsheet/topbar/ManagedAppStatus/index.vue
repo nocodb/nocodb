@@ -275,7 +275,7 @@ const badgeConfig = computed(() => {
 
 <style lang="scss" scoped>
 .nc-managed-app-status-menu {
-  @apply w-[318px] pb-2;
+  @apply w-[318px] pb-1;
 }
 
 .nc-managed-app-status-menu-header {

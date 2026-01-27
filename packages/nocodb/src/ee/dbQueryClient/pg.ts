@@ -42,6 +42,7 @@ import sortV2 from '~/db/sortV2';
 import { recursiveCTEFromLookupColumn } from '~/helpers/lookupHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { Column, Model, View } from '~/models';
+import { NC_MAX_TEXT_LENGTH } from '~/constants';
 import { extractColumns } from '~/dbQueryClient/cross-db-utils/extract-columns';
 
 export class PGDBQueryClient
@@ -1249,6 +1250,17 @@ export class PGDBQueryClient
           knex.raw(`??.?? as ??`, [
             rootAlias,
             sanitize(columnName),
+            getAs(column),
+          ]),
+        );
+        break;
+      }
+      case UITypes.LongText: {
+        qb.select(
+          knex.raw(`SUBSTR(??.??::TEXT, 1, ?) as ??`, [
+            rootAlias,
+            sanitize(column.column_name),
+            NC_MAX_TEXT_LENGTH,
             getAs(column),
           ]),
         );

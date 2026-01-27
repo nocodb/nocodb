@@ -280,6 +280,6 @@ const badgeConfig = computed(() => {
 }
 
 .nc-managed-app-status-menu-header {
-  @apply flex items-center justify-between gap-2 pt-3 px-3 mb-1 text-nc-content-gray-muted text-captionSm;
+  @apply flex items-center justify-between gap-2 pt-3 px-3.5 mb-1 text-nc-content-gray-muted text-captionSm;
 }
 </style>

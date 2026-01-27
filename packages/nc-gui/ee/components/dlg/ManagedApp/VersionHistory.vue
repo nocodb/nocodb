@@ -141,8 +141,9 @@ watch(
                 class="nc-version-item"
                 :class="{
                   'nc-version-item-clickable': versionStat.deploymentCount > 0,
-                  'nc-draft-version':
-                    managedAppVersionsInfo.current?.id === versionStat.versionId && versionStat.status === 'draft',
+                  'nc-draft-or-live-version':
+                    managedAppVersionsInfo.published?.id === versionStat.versionId ||
+                    (managedAppVersionsInfo.current?.id === versionStat.versionId && versionStat.status === 'draft'),
                 }"
                 @click="versionStat.deploymentCount > 0 && openVersionDeploymentsModal(versionStat)"
               >
@@ -304,7 +305,7 @@ watch(
     }
   }
 
-  &:not(.nc-version-item-clickable):not(.nc-draft-version) {
+  &:not(.nc-version-item-clickable):not(.nc-draft-or-live-version) {
     @apply bg-nc-bg-gray-extralight/75 opacity-70 dark:opacity-60;
   }
 

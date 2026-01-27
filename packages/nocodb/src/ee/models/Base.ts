@@ -55,6 +55,9 @@ export default class Base extends BaseCE {
   }
 
   public static async populateManagedAppInfo(base: Base): Promise<void> {
+    // Extra check to avoid unwanted behaviour
+    if (!base.managed_app_id) return;
+
     // default values
     base.managed_app_schema_locked = false;
 

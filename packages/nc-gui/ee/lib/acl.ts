@@ -280,7 +280,7 @@ export const sourceRestrictions = {
   },
 }
 
-export const managedAppRestrictions = {
+export const managedAppRestrictions: Record<Permission, boolean> = {
   tableCreate: true,
   tableRename: true,
   tableDelete: true,

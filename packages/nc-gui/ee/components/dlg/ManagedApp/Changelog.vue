@@ -17,8 +17,21 @@ const { base, managedAppVersionsInfo, managedAppVersions, isManagedAppMaster, is
 
 const isUpdating = ref(false)
 
+// Pagination state
+const currentPage = ref(1)
+const pageSize = ref(10)
+
 // Use versions from store (already loaded by loadCurrentVersion)
-const versions = computed(() => managedAppVersions.value || [])
+const allVersions = computed(() => managedAppVersions.value || [])
+
+// Paginated versions for display
+const paginatedVersions = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return allVersions.value.slice(start, end)
+})
+
+const totalVersions = computed(() => allVersions.value.length)
 
 const formatDate = (dateString: string) => {
   if (!dateString) return ''
@@ -61,6 +74,13 @@ const updateToVersion = async (version: any) => {
   if (!base.value?.fk_workspace_id || !base.value?.id) return
   // Todo: Currently we have auto update, we have to use this when we support manual update
 }
+
+// Reset pagination when modal opens
+watch(vVisible, (val) => {
+  if (val) {
+    currentPage.value = 1
+  }
+})
 </script>
 
 <template>
@@ -69,10 +89,10 @@ const updateToVersion = async (version: any) => {
 
     <div class="flex-1 nc-scrollbar-thin">
       <div class="nc-changelog-content">
-        <template v-if="versions.length > 0">
+        <template v-if="allVersions.length > 0">
           <div class="nc-version-cards">
             <div
-              v-for="version in versions"
+              v-for="version in paginatedVersions"
               :key="version.id"
               class="nc-version-card"
               :class="{
@@ -146,7 +166,16 @@ const updateToVersion = async (version: any) => {
       <span class="text-sm text-nc-content-gray-muted">
         Currently on v{{ managedAppVersionsInfo.current?.version || '1.0.0' }}
       </span>
-      <NcButton type="secondary" size="small" @click="vVisible = false"> Done </NcButton>
+      <div class="flex items-center gap-3">
+        <NcPagination
+          v-if="totalVersions > pageSize"
+          v-model:current="currentPage"
+          v-model:page-size="pageSize"
+          :total="totalVersions"
+          mode="simple"
+        />
+        <NcButton type="secondary" size="small" @click="vVisible = false"> Done </NcButton>
+      </div>
     </div>
   </div>
 </template>

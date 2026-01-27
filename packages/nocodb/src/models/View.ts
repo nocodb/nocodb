@@ -2028,15 +2028,25 @@ export default class View implements ViewType {
       deleteKeys.push(
         `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
         `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:count`,
-        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
       );
+      // Add all 8 combinations of bitwise flags (0-7)
+      for (let flags = 0; flags < 8; flags++) {
+        deleteKeys.push(
+          `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:${flags}`,
+        );
+      }
     }
 
     deleteKeys.push(
       `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
       `${CacheScope.SINGLE_QUERY}:${modelId}:default:count`,
-      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
     );
+    // Add all 8 combinations of bitwise flags (0-7)
+    for (let flags = 0; flags < 8; flags++) {
+      deleteKeys.push(
+        `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:${flags}`,
+      );
+    }
 
     await NocoCache.del(context, deleteKeys);
   }

@@ -153,7 +153,6 @@ export class ThumbnailMigration {
           .knexConnection(temp_file_references_table)
           .where('thumbnail_generated', false)
           .andWhere('referenced', true)
-          .andWhere('mimetype', 'like', 'image/%')
           .count('*', { as: 'count' })
           .first()
       )?.count;
@@ -161,7 +160,7 @@ export class ThumbnailMigration {
       let processedImages = 0;
 
       const limit = 10;
-      const parallelLimit = 1;
+      const parallelLimit = 5;
 
       const skipImages = [];
       let processingImages: {
@@ -265,7 +264,6 @@ export class ThumbnailMigration {
           )
           .andWhere('thumbnail_generated', false)
           .andWhere('referenced', true)
-          .andWhere('mimetype', 'like', 'image/%')
           .limit(limit);
 
         if (fileReferences.length === 0) {
@@ -316,6 +314,7 @@ export class ThumbnailMigration {
             }
 
             if (fileReference.thumbnail_generated) {
+              this.log("found thumbnail, skipping")
               continue;
             }
 

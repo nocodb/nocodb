@@ -181,7 +181,7 @@ export class RecoverDisconnectedTableNames {
       });
       let tableName = baseModel.getTnPath(model.table_name);
       if (['pg', 'postgres'].includes(source.type)) {
-        tableName = replaceQuestionMarkWithPlaceholderPg(tableName);
+        tableName = replaceQuestionMarkWithPlaceholderPg(tableName as string);
       }
       // replacing table name must not use tn name (without schema)
       let replacingTableName = model.table_name;

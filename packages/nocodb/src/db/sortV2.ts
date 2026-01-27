@@ -9,6 +9,7 @@ import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import { sanitize } from '~/helpers/sqlSanitize';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
+import { trace } from '~/tracing/decorator'
 
 export default async function sortV2(
   baseModelSqlv2: BaseModelSqlv2,

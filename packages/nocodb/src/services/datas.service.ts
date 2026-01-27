@@ -14,6 +14,7 @@ import { Base, Column, Model, Source, View } from '~/models';
 import { nocoExecute } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import { trace } from '~/tracing/decorator'
 
 @Injectable()
 export class DatasService {
@@ -21,6 +22,7 @@ export class DatasService {
 
   constructor() {}
 
+  @trace()
   async dataList(
     context: NcContext,
     param: (PathParams | { view?: View; model: Model }) & {
@@ -226,6 +228,7 @@ export class DatasService {
       includeSortAndFilterColumns?: boolean;
       includeRowColorColumns?: boolean;
       skipSortBasedOnOrderCol?: boolean;
+      ignoreCache?: boolean;
     },
   ) {
     const {
@@ -279,19 +282,13 @@ export class DatasService {
         try {
           data = await nocoExecute(
             ast,
-            await baseModel.list(
-              { ...listArgs, apiVersion: param.apiVersion },
-              {
-                ignoreViewFilterAndSort,
-                throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
-                ignorePagination: param.ignorePagination,
-                limitOverride: param.limitOverride,
-                skipSubstitutingColumnIds:
-                  context.api_version === NcApiVersion.V3 &&
-                  query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-                skipSortBasedOnOrderCol,
-              },
-            ),
+            await baseModel.list(listArgs, {
+              ignoreViewFilterAndSort,
+              throwErrorIfInvalidParams: param.throwErrorIfInvalidParams,
+              ignorePagination: param.ignorePagination,
+              limitOverride: param.limitOverride,
+              ignoreCache: param.ignoreCache,
+            }),
             {},
             listArgs,
           );

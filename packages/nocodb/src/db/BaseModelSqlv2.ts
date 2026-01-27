@@ -431,6 +431,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       limitOverride?: number;
       skipSubstitutingColumnIds?: boolean;
       skipSortBasedOnOrderCol?: boolean;
+      ignoreCache?: boolean;
     } = {},
   ): Promise<any> {
     const {
@@ -440,6 +441,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwErrorIfInvalidParams = false,
       limitOverride,
       skipSortBasedOnOrderCol = false,
+      ignoreCache = false,
     } = options;
 
     const columns = await this.model.getColumns(this.context);
@@ -1265,6 +1267,177 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     );
   }
 
+  GROUP_COL = '__nc_group_id';
+  public async multipleMmListFast(
+    {
+      colId,
+      parentIds: _parentIds,
+    }: {
+      colId: string;
+      parentIds: any[];
+    },
+    args: { limit?; offset?; fieldsSet?: Set<string>; ignoreCache?: boolean} = {},
+  ) {
+    // skip duplicate id
+    const parentIds = [...new Set(_parentIds)];
+    
+    // Phase 3 Optimization: Chunk large parentIds arrays for better performance
+    // Reduced to 50 to minimize WHERE IN parameter count and improve query plan
+    const CHUNK_SIZE = 50;
+    if (parentIds.length > CHUNK_SIZE) {
+      const chunks: any[][] = [];
+      for (let i = 0; i < parentIds.length; i += CHUNK_SIZE) {
+        chunks.push(parentIds.slice(i, i + CHUNK_SIZE));
+      }
+      
+      const results = await Promise.all(
+        chunks.map(chunk => 
+          this.multipleMmListFast({ colId, parentIds: chunk }, args)
+        )
+      );
+      
+      
+      // Merge results maintaining original order
+      const resultMap = new Map();
+      for (const chunkResult of results) {
+        chunkResult.forEach((items, idx) => {
+          if (items && items.length > 0) {
+            // Find the original ID for this result
+            const originalIdx = _parentIds.indexOf(items[0]?.[this.GROUP_COL]);
+            if (originalIdx !== -1) {
+              resultMap.set(_parentIds[originalIdx], items);
+            }
+          }
+        });
+      }
+      
+      return _parentIds.map((id) => resultMap.get(id) || []);
+    }
+    
+    const { where, sort, ...rest } = this._getListArgs(args as any);
+    const relColumn = (await this.model.getColumns(this.context)).find(
+      (c) => c.id === colId,
+    );
+
+    const relColOptions = (await relColumn.getColOptions(
+      this.context,
+    )) as LinkToAnotherRecordColumn;
+
+    // Phase 1 Optimization: Parallelize metadata lookups
+    const [mmTable, mmChildCol, mmParentCol, childCol, parentCol] = await Promise.all([
+      relColOptions.getMMModel(this.context),
+      relColOptions.getMMChildColumn(this.context),
+      relColOptions.getMMParentColumn(this.context),
+      relColOptions.getChildColumn(this.context),
+      relColOptions.getParentColumn(this.context),
+    ]);
+
+    // if mm table is not present then return
+    if (!mmTable) {
+      return;
+    }
+
+    const vtn = this.getTnPath(mmTable);
+    const vcn = mmChildCol.column_name;
+    const vrcn = mmParentCol.column_name;
+    const cn = childCol.column_name;
+
+    // Fetch child and parent tables in parallel
+    const [childTable, parentTable] = await Promise.all([
+      parentCol.getModel(this.context),
+      childCol.getModel(this.context),
+    ]);
+
+    // Fetch columns for both tables in parallel
+    const [parentTableCols, childTableCols] = await Promise.all([
+      parentTable.getColumns(this.context),
+      childTable.getColumns(this.context),
+    ]);
+
+    const columnName = childTable.displayValue.column_name
+    const qb = this.dbDriver()
+
+    const childModel = await Model.getBaseModelSQL(this.context, {
+      dbDriver: this.dbDriver,
+      model: childTable,
+    });
+    // Minimize selected columns by default: only PK(s) and display value
+    // If caller provided fieldsSet, honor it
+    let fieldsSetToUse = args.fieldsSet;
+    if (!fieldsSetToUse) {
+      const pkTitles = (childTable.primaryKeys?.length
+        ? childTable.primaryKeys
+        : childTableCols.filter((c) => (c as any).pk)
+      ).map((c) => c.title);
+      const displayCol =
+        childTableCols.find((c) => c.column_name === columnName) ||
+        (childTable.displayValue as any);
+      const titles = [...pkTitles];
+      if (displayCol?.title) titles.push(displayCol.title);
+      fieldsSetToUse = new Set<string>(titles);
+    }
+    await childModel.selectObject({ qb, fieldsSet: fieldsSetToUse });
+
+    // Phase 2 Optimization: Replace CTE with direct JOIN
+    // Build the base query with direct join instead of CTE
+    const finalQb = qb
+      .select(
+        `${vtn}.${vrcn}`,
+        `${vtn}.${vcn} as ${this.GROUP_COL}`
+      )
+      .from(mmTable.table_name)
+      .join(childTable.table_name, `${childTable.table_name}.${cn}`, `${vtn}.${vrcn}`)
+      .whereIn(`${vtn}.${vcn}`, parentIds);
+
+    // Phase 2B: Optimize DISTINCT ON for Postgres
+    // Use DISTINCT ON with explicit ORDER BY for deterministic results
+    if (this.isPg && columnName) {
+      // Add ORDER BY before DISTINCT ON to ensure consistent results and enable index usage
+      finalQb.orderBy([
+        { column: `${vtn}.${vcn}`, order: 'asc' },
+        { column: `${childTable.table_name}.${columnName}`, order: 'asc' }
+      ]);
+      finalQb.distinctOn(`${vtn}.${vcn}`, `${childTable.table_name}.${columnName}`);
+    } else if (columnName) {
+      // For non-Postgres databases, use GROUP BY approach
+      // This is less efficient but more portable
+      finalQb.groupBy(`${vtn}.${vcn}`, `${vtn}.${vrcn}`, `${childTable.table_name}.${columnName}`);
+    }
+
+    // Apply sort and filter to the final query after DISTINCT ON / GROUP BY logic
+    await this.applySortAndFilter({
+      table: childTable,
+      where,
+      qb: finalQb,
+      sort,
+    });
+
+    const rtnId = childTable.id;
+
+    // Reuse already fetched childTableCols instead of fetching again
+    const children = await this.execAndParse(
+      finalQb,
+      childTableCols,
+      {ignoreCache: args.ignoreCache ?? false},
+    );
+
+    const proto = await (
+      await Model.getBaseModelSQL(this.context, {
+        id: rtnId,
+        dbDriver: this.dbDriver,
+      })
+    ).getProto();
+    
+    const gs = groupBy(
+      children.map((c) => {
+        c.__proto__ = proto;
+        return c;
+      }),
+      this.GROUP_COL,
+    );
+    return _parentIds.map((id) => gs[id] || []);
+  }
+
   public async multipleMmList(
     param: {
       colId: string;
@@ -1510,6 +1683,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     apiVersion = NcApiVersion.V2,
   }: {
     apiVersion?: NcApiVersion;
+    ignoreCache?: boolean;
   } = {}) {
     if (this._proto) {
       return this._proto as ResolverObj;
@@ -1606,16 +1780,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 const listLoader = new DataLoader(
                   async (ids: string[]) => {
                     if (ids?.length > 1) {
-                      const data = await this.multipleMmList(
+                      const data = await this.multipleMmListFast(
                         {
                           parentIds: ids,
                           colId: column.id,
-                          apiVersion,
-                          nested: true,
                         },
                         (listLoader as any).args,
                       );
-
                       return data;
                     } else {
                       return [
@@ -5038,6 +5209,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       raw?: boolean; // alias for skipDateConversion and skipAttachmentConversion
       first?: boolean;
       bulkAggregate?: boolean;
+      ignoreCache?: boolean;
       apiVersion?: NcApiVersion;
     } = {
       skipDateConversion: false,
@@ -5048,6 +5220,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       raw: false,
       first: false,
       bulkAggregate: false,
+      ignoreCache: false,
       apiVersion: NcApiVersion.V2,
     },
   ) {
@@ -5073,7 +5246,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     // update attachment fields
     if (!options.skipAttachmentConversion) {
-      data = await this.convertAttachmentType(data, dependencyColumns);
+      data = await this.convertAttachmentType(data, dependencyColumns, options.ignoreCache ?? false);
     }
 
     // update date time fields
@@ -5411,103 +5584,190 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   protected async _convertAttachmentType(
     attachmentColumns: Record<string, any>[],
     d: Record<string, any>,
+    ignoreCache?: boolean,
   ) {
+    var ignoreCache = ignoreCache ?? false
     try {
-      if (!d || !attachmentColumns.length) {
-        return d;
-      }
-
-      const allAttachments = [];
-      const allThumbnails = [];
-
-      // First pass: parse JSON and collect all attachment instances (no deduplication)
-      for (const col of attachmentColumns) {
-        if (!d[col.id]) continue;
-
-        // Parse JSON if needed
-        if (typeof d[col.id] === 'string') {
-          try {
+      if (d) {
+        const promises = [];
+        for (const col of attachmentColumns) {
+          if (d[col.id] && typeof d[col.id] === 'string') {
             d[col.id] = JSON.parse(d[col.id]);
-          } catch {
-            continue;
           }
-        }
 
-        if (!Array.isArray(d[col.id]) || !d[col.id].length) continue;
+          if (d[col.id]?.length) {
+            for (let i = 0; i < d[col.id].length; i++) {
+              if (typeof d[col.id][i] === 'string') {
+                d[col.id][i] = JSON.parse(d[col.id][i]);
+              }
 
-        // Process each attachment instance individually
-        for (let i = 0; i < d[col.id].length; i++) {
-          const item = d[col.id][i];
+              const attachment = d[col.id][i];
 
-          if (typeof item === 'string') {
-            try {
-              d[col.id][i] = JSON.parse(item);
-            } catch {
-              continue;
+              // we expect array of array of attachments in case of lookup
+              if (Array.isArray(attachment)) {
+                for (const lookedUpAttachment of attachment) {
+                  if (lookedUpAttachment?.path) {
+                    promises.push(
+                      PresignedUrl.signAttachment({
+                        attachment: lookedUpAttachment,
+                        filename: lookedUpAttachment.title,
+                      }),
+                    );
+
+                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                      continue;
+                    }
+
+                    lookedUpAttachment.thumbnails = {
+                      tiny: {},
+                      small: {},
+                      card_cover: {},
+                    };
+
+                    const thumbnailPath = `thumbnails/${lookedUpAttachment.path.replace(
+                      /^download[/\\]/i,
+                      '',
+                    )}`;
+
+                    for (const key of Object.keys(
+                      lookedUpAttachment.thumbnails,
+                    )) {
+                      promises.push(
+                        PresignedUrl.signAttachment(
+                          {
+                            attachment: {
+                              ...lookedUpAttachment,
+                              path: `${thumbnailPath}/${key}.jpg`,
+                            },
+                            filename: lookedUpAttachment.title,
+                            mimetype: 'image/jpeg',
+                            nestedKeys: ['thumbnails', key],
+                            ignoreCache: ignoreCache
+                          })
+                      );
+                    }
+                  } else if (lookedUpAttachment?.url) {
+                    promises.push(
+                      PresignedUrl.signAttachment({
+                        attachment: lookedUpAttachment,
+                        filename: lookedUpAttachment.title,
+                        ignoreCache: ignoreCache
+                      }),
+                    );
+
+                    if (!lookedUpAttachment.mimetype?.startsWith('image/')) {
+                      continue;
+                    }
+
+                    const thumbnailUrl = lookedUpAttachment.url.replace(
+                      'nc/uploads',
+                      'nc/thumbnails',
+                    );
+
+                    lookedUpAttachment.thumbnails = {
+                      tiny: {},
+                      small: {},
+                      card_cover: {},
+                    };
+
+                    for (const key of Object.keys(
+                      lookedUpAttachment.thumbnails,
+                    )) {
+                      promises.push(
+                        PresignedUrl.signAttachment({
+                          attachment: {
+                            ...lookedUpAttachment,
+                            url: `${thumbnailUrl}/${key}.jpg`,
+                          },
+                          filename: lookedUpAttachment.title,
+                          mimetype: 'image/jpeg',
+                          nestedKeys: ['thumbnails', key],
+                        }),
+                      );
+                    }
+                  }
+                }
+              } else {
+                if (attachment?.path) {
+                  promises.push(
+                    PresignedUrl.signAttachment({
+                      attachment,
+                      filename: attachment.title,
+                      ignoreCache: ignoreCache
+                    }),
+                  );
+
+                  if (!attachment.mimetype?.startsWith('image/')) {
+                    continue;
+                  }
+
+                  const thumbnailPath = `thumbnails/${attachment.path.replace(
+                    /^download[/\\]/i,
+                    '',
+                  )}`;
+
+                  attachment.thumbnails = {
+                    tiny: {},
+                    small: {},
+                    card_cover: {},
+                  };
+
+                  for (const key of Object.keys(attachment.thumbnails)) {
+                    promises.push(
+                      PresignedUrl.signAttachment({
+                        attachment: {
+                          ...attachment,
+                          path: `${thumbnailPath}/${key}.jpg`,
+                        },
+                        filename: attachment.title,
+                        mimetype: 'image/jpeg',
+                        nestedKeys: ['thumbnails', key],
+                        ignoreCache: ignoreCache
+                      }),
+                    );
+                  }
+                } else if (attachment?.url) {
+                  promises.push(
+                    PresignedUrl.signAttachment({
+                      attachment,
+                      filename: attachment.title,
+                      ignoreCache: ignoreCache
+                    }),
+                  );
+
+                  const thumbhailUrl = attachment.url.replace(
+                    'nc/uploads',
+                    'nc/thumbnails',
+                  );
+
+                  attachment.thumbnails = {
+                    tiny: {},
+                    small: {},
+                    card_cover: {},
+                  };
+
+                  for (const key of Object.keys(attachment.thumbnails)) {
+                    promises.push(
+                      PresignedUrl.signAttachment({
+                        attachment: {
+                          ...attachment,
+                          url: `${thumbhailUrl}/${key}.jpg`,
+                        },
+                        filename: attachment.title,
+                        mimetype: 'image/jpeg',
+                        nestedKeys: ['thumbnails', key],
+                        ignoreCache: ignoreCache
+                      }),
+                    );
+                  }
+                }
+              }
             }
           }
-
-          const attachment = d[col.id][i];
-
-          if (attachment.id?.startsWith('temp_')) {
-            // Skip temporary attachments
-            continue;
-          }
-
-          // Handle array of arrays (lookup case)
-          for (const lookedUpAttachment of Array.isArray(attachment)
-            ? attachment
-            : [attachment]) {
-            const thumbnails =
-              this.prepareAttachmentForSigning(lookedUpAttachment);
-            if (
-              lookedUpAttachment &&
-              (lookedUpAttachment.path || lookedUpAttachment.url)
-            ) {
-              allAttachments.push(lookedUpAttachment);
-              allThumbnails.push(...thumbnails);
-            }
-          }
         }
+        await Promise.all(promises);
       }
-
-      await processConcurrently(
-        allAttachments,
-        async (item) => {
-          try {
-            await PresignedUrl.signAttachment({
-              attachment: item,
-              filename: item.title,
-            });
-          } catch (e) {}
-        },
-        15,
-      );
-
-      await processConcurrently(
-        allThumbnails,
-        async ({ attachment, thumbnailKey, thumbnailPath }) => {
-          try {
-            await PresignedUrl.signAttachment({
-              attachment: {
-                ...attachment,
-                ...(attachment.path
-                  ? { path: thumbnailPath }
-                  : { url: thumbnailPath }),
-              },
-              filename: attachment.title,
-              mimetype: 'image/jpeg',
-              nestedKeys: ['thumbnails', thumbnailKey],
-            });
-          } catch (e) {}
-        },
-        15,
-      );
-    } catch (error) {
-      // Log error but don't throw to avoid breaking the entire response
-      console.warn('Error in _convertAttachmentType:', error.message);
-    }
-
+    } catch {}
     return d;
   }
 
@@ -5719,6 +5979,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public async convertAttachmentType(
     data: Record<string, any>,
     dependencyColumns?: Column[],
+    ignoreCache?: boolean,
   ) {
     // attachment is stored in text and parse in UI
     // convertAttachmentType is used to convert the response in string to array of object in API response
@@ -5771,10 +6032,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     if (Array.isArray(data)) {
       return Promise.all(
-        data.map((d) => this._convertAttachmentType(allAttachmentColumns, d)),
+        data.map((d) => this._convertAttachmentType(allAttachmentColumns, d, ignoreCache)),
       );
     } else {
-      return this._convertAttachmentType(allAttachmentColumns, data);
+      return this._convertAttachmentType(allAttachmentColumns, data, ignoreCache);
     }
   }
 

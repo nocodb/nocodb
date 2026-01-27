@@ -27,6 +27,7 @@ export class JobsService implements OnModuleInit {
     // );
 
     await this.add(JobTypes.InitMigrationJobs, {});
+    await this.add(JobTypes.CacheWarmingJob, {});
   }
 
   get jobsQueue() {

@@ -6,10 +6,13 @@ import {
   isDateMonthFormat,
   isNumericCol,
   UITypes,
+  RelationTypes,
 } from 'nocodb-sdk';
 import { FieldHandler } from './field-handler';
+import { negatedMapping, getAlias } from './field-handler/utils/handlerUtils';
 import type { FilterOperationResult } from './field-handler/field-handler.interface';
-import type { FilterType, NcContext } from 'nocodb-sdk';
+import type { FilterType } from 'nocodb-sdk';
+import type { NcContext } from '~/interface/config';
 // import customParseFormat from 'dayjs/plugin/customParseFormat.js';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
@@ -21,15 +24,15 @@ import { getRefColumnIfAlias } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { getColumnName } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
-import { type BarcodeColumn, BaseUser, type QrCodeColumn } from '~/models';
+import { type BarcodeColumn, BaseUser, type QrCodeColumn, LinkToAnotherRecordColumn } from '~/models';
 import Filter from '~/models/Filter';
 import { getAliasGenerator } from '~/utils';
+import { trace } from '~/tracing/decorator'
 import { validateAndStringifyJson } from '~/utils/tsUtils';
 import { handleCurrentUserFilter } from '~/helpers/conditionHelpers';
 
 // tod: tobe fixed
 // extend(customParseFormat);
-
 export default async function conditionV2(
   baseModelSqlv2: IBaseModelSqlV2,
   conditionObj: Filter | FilterType | FilterType[] | Filter[],
@@ -211,20 +214,293 @@ const parseConditionV2 = async (
         NcError.fieldNotFound(filter.fk_column_id);
       }
     }
-    if (
+    if (column.uidt === UITypes.LinkToAnotherRecord) {
+      const colOptions = (await column.getColOptions(
+        context,
+      )) as LinkToAnotherRecordColumn;
+      const childColumn = await colOptions.getChildColumn(context);
+      const parentColumn = await colOptions.getParentColumn(context);
+      const childModel = await childColumn.getModel(context);
+      await childModel.getColumns(context);
+      const parentModel = await parentColumn.getModel(context);
+      await parentModel.getColumns(context);
+
+      let relationType = colOptions.type;
+
+      if (relationType === RelationTypes.ONE_TO_ONE) {
+        relationType = column.meta?.bt
+          ? RelationTypes.BELONGS_TO
+          : RelationTypes.HAS_MANY;
+      }
+
+      if (relationType === RelationTypes.HAS_MANY) {
+        if (
+          ['blank', 'notblank', 'checked', 'notchecked'].includes(
+            filter.comparison_op,
+          )
+        ) {
+          const childTableAlias = getAlias(aliasCount);
+
+          const selectHmCount = knex(
+            baseModelSqlv2.getTnPath(childModel.table_name, childTableAlias),
+          )
+            .count(childColumn.column_name)
+            .whereRaw('??.?? = ??.??', [
+              childTableAlias,
+              childColumn.column_name,
+              alias || baseModelSqlv2.getTnPath(parentModel.table_name),
+              parentColumn.column_name,
+            ]);
+
+          return {
+            clause: (qb) => {
+              if (filter.comparison_op === 'blank') {
+                qb.where(knex.raw('?? = 0', [selectHmCount]));
+              } else {
+                qb.where(knex.raw('?? != 0', [selectHmCount]));
+              }
+            }
+          };
+        }
+        const selectQb = knex(
+          baseModelSqlv2.getTnPath(childModel.table_name),
+        ).select(childColumn.column_name);
+        const parseOperationResult = await parseConditionV2(
+          baseModelSqlv2,
+          new Filter({
+            ...filter,
+            ...(filter.comparison_op in negatedMapping
+              ? negatedMapping[filter.comparison_op]
+              : {}),
+            fk_model_id: childModel.id,
+            fk_column_id: childModel?.displayValue?.id,
+          }),
+          aliasCount,
+          undefined,
+          undefined,
+          throwErrorIfInvalid,
+        );
+        parseOperationResult.clause(selectQb);
+
+        return {
+          clause: (qbP: Knex.QueryBuilder) => {
+            if (filter.comparison_op in negatedMapping)
+              qbP.whereNotIn(parentColumn.column_name, selectQb);
+            else qbP.whereIn(parentColumn.column_name, selectQb);
+          }
+        };
+      } else if (relationType === RelationTypes.BELONGS_TO) {
+        if (
+          ['blank', 'notblank', 'checked', 'notchecked'].includes(
+            filter.comparison_op,
+          )
+        ) {
+          // handle self reference
+          if (parentModel.id === childModel.id) {
+            if (filter.comparison_op === 'blank') {
+              return {
+                clause: (qb) => {
+                  qb.whereNull(childColumn.column_name);
+                }
+              };
+            } else {
+              return {
+                clause: (qb) => {
+                  qb.whereNotNull(childColumn.column_name);
+                }
+              };
+            }
+          }
+
+          const selectBtCount = knex(
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+          )
+            .count(parentColumn.column_name)
+            .where(
+              parentColumn.column_name,
+              knex.raw('??.??', [
+                alias || baseModelSqlv2.getTnPath(childModel.table_name),
+                childColumn.column_name,
+              ]),
+            );
+
+          return {
+            clause: (qb) => {
+              if (filter.comparison_op === 'blank') {
+                qb.where(knex.raw('?? = 0', [selectBtCount]));
+              } else {
+                qb.where(knex.raw('?? != 0', [selectBtCount]));
+              }
+            }
+          };
+        }
+
+        const selectQb = knex(
+          baseModelSqlv2.getTnPath(parentModel.table_name),
+        ).select(parentColumn.column_name);
+        const parseOperationResult2 = await parseConditionV2(
+          baseModelSqlv2,
+          new Filter({
+            ...filter,
+            ...(filter.comparison_op in negatedMapping
+              ? negatedMapping[filter.comparison_op]
+              : {}),
+            fk_model_id: parentModel.id,
+            fk_column_id: parentModel?.displayValue?.id,
+          }),
+          aliasCount,
+          undefined,
+          undefined,
+          throwErrorIfInvalid,
+        );
+        parseOperationResult2.clause(selectQb);
+
+        return {
+          clause: (qbP: Knex.QueryBuilder) => {
+            if (filter.comparison_op in negatedMapping) {
+              qbP.where((qb) =>
+                qb
+                  .whereNotIn(childColumn.column_name, selectQb)
+                  .orWhereNull(childColumn.column_name),
+              );
+            } else qbP.whereIn(childColumn.column_name, selectQb);
+          }
+        };
+      } else if (relationType === RelationTypes.MANY_TO_MANY) {
+        const mmModel = await colOptions.getMMModel(context);
+        const mmParentColumn = await colOptions.getMMParentColumn(context);
+        const mmChildColumn = await colOptions.getMMChildColumn(context);
+
+        if (
+          ['blank', 'notblank', 'checked', 'notchecked'].includes(
+            filter.comparison_op,
+          )
+        ) {
+          // handle self reference
+          if (mmModel.id === childModel.id) {
+            if (filter.comparison_op === 'blank') {
+              return {
+                clause: (qb) => {
+                  qb.whereNull(childColumn.column_name);
+                }
+              };
+            } else {
+              return {
+                clause: (qb) => {
+                  qb.whereNotNull(childColumn.column_name);
+                }
+              };
+            }
+          }
+
+          const selectMmCount = knex(
+            baseModelSqlv2.getTnPath(mmModel.table_name),
+          )
+            .count(mmChildColumn.column_name)
+            .where(
+              mmChildColumn.column_name,
+              knex.raw('??.??', [
+                alias || baseModelSqlv2.getTnPath(childModel.table_name),
+                childColumn.column_name,
+              ]),
+            );
+
+          return {
+            clause: (qb) => {
+              if (filter.comparison_op === 'blank') {
+                qb.where(knex.raw('?? = 0', [selectMmCount]));
+              } else {
+                qb.where(knex.raw('?? != 0', [selectMmCount]));
+              }
+            }
+          };
+        }
+
+        const selectQb = knex(baseModelSqlv2.getTnPath(mmModel.table_name))
+          .select(mmChildColumn.column_name)
+          .join(
+            baseModelSqlv2.getTnPath(parentModel.table_name),
+            `${baseModelSqlv2.getTnPath(mmModel.table_name)}.${
+              mmParentColumn.column_name
+            }`,
+            `${baseModelSqlv2.getTnPath(parentModel.table_name)}.${
+              parentColumn.column_name
+            }`,
+          );
+
+        const parseOperationResult3 = await parseConditionV2(
+          baseModelSqlv2,
+          new Filter({
+            ...filter,
+            ...(filter.comparison_op in negatedMapping
+              ? negatedMapping[filter.comparison_op]
+              : {}),
+            fk_model_id: parentModel.id,
+            fk_column_id: parentModel?.displayValue?.id,
+          }),
+          aliasCount,
+          undefined,
+          undefined,
+          throwErrorIfInvalid,
+        );
+        parseOperationResult3.clause(selectQb);
+
+        return {
+          clause: (qbP: Knex.QueryBuilder) => {
+            if (filter.comparison_op in negatedMapping)
+              qbP.where((qb) =>
+                qb
+                  .whereNotIn(childColumn.column_name, selectQb)
+                  .orWhereNull(childColumn.column_name),
+              );
+            else qbP.whereIn(childColumn.column_name, selectQb);
+          }
+        };
+      }
+
+      return {
+        clause: (_qb) => {}
+      };
+    } else if (column.uidt === UITypes.Lookup) {
+      return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
+        filter,
+        column,
+        {
+          alias,
+          conditionParser: parseConditionV2,
+          depth: aliasCount,
+          context,
+          throwErrorIfInvalid,
+          customWhereClause,
+        },
+      );
+    } else if (
+      [UITypes.Rollup, UITypes.Links].includes(column.uidt) &&
+      !customWhereClause
+    ) {
+      return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
+        filter,
+        column,
+        {
+          alias,
+          conditionParser: parseConditionV2,
+          depth: aliasCount,
+          context,
+          throwErrorIfInvalid,
+          customWhereClause,
+        },
+      );
+    } else if (
       [
         UITypes.JSON,
-        UITypes.LinkToAnotherRecord,
-        UITypes.Lookup,
         UITypes.Decimal,
         UITypes.Number,
         UITypes.Rating,
         UITypes.Percent,
         UITypes.User,
-      ].includes(column.uidt) ||
-      ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
-        !customWhereClause)
+      ].includes(column.uidt)
     ) {
+      // Handle other UI types that were in the original HEAD condition
       return FieldHandler.fromBaseModel(baseModelSqlv2).applyFilter(
         filter,
         column,

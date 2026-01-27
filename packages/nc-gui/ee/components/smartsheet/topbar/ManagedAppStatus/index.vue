@@ -9,13 +9,13 @@ const { base, isManagedAppMaster, isManagedAppInstaller, managedAppVersionsInfo 
 
 const isModalVisible = ref(false)
 
-const modalVariant = ref<'draftOrPublish' | 'versionHistory' | undefined>(undefined)
+const modalVariant = ref<'draftOrPublish' | 'versionHistory' | 'changelog' | undefined>(undefined)
 
 const isOpenDropdown = ref<boolean>(false)
 
 const isDraft = computed(() => managedAppVersionsInfo.value.current?.status === 'draft')
 
-const openModal = (variant?: 'draftOrPublish' | 'versionHistory') => {
+const openModal = (variant?: 'draftOrPublish' | 'versionHistory' | 'changelog') => {
   isOpenDropdown.value = false
 
   modalVariant.value = variant
@@ -260,6 +260,7 @@ const badgeConfig = computed(() => {
             label="View Changelog"
             subtext="See what's new in each version"
             icon-wrapper-class="bg-nc-bg-gray-light"
+            @click="openModal('changelog')"
           >
             <template #icon>
               <GeneralIcon icon="file" class="text-nc-content-gray-muted" />

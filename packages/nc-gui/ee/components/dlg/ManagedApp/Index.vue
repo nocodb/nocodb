@@ -4,7 +4,7 @@ interface Props {
   modalSize: 'small' | 'medium' | 'large' | keyof typeof modalSizes
   title?: string
   subTitle?: string
-  variant?: 'draftOrPublish' | 'versionHistory'
+  variant?: 'draftOrPublish' | 'versionHistory' | 'changelog'
   contentClass?: string
   maskClosable?: boolean
 }
@@ -36,6 +36,9 @@ const { modalSize, variant } = toRefs(props)
     </template>
     <template v-else-if="variant === 'versionHistory'">
       <DlgManagedAppVersionHistory v-model:visible="vVisible" />
+    </template>
+    <template v-else-if="variant === 'changelog'">
+      <DlgManagedAppChangelog v-model:visible="vVisible" />
     </template>
     <template v-else>
       <slot name="header">

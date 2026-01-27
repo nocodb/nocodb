@@ -23,6 +23,9 @@ const deploymentStats = ref<any>(null)
 const showVersionDeploymentsModal = ref(false)
 const selectedVersion = ref<any>(null)
 
+// Changelog modal
+const showChangelogModal = ref(false)
+
 // Load real deployment statistics
 const loadDeployments = async () => {
   if (!managedApp.value?.id || !base.value?.fk_workspace_id) return
@@ -123,6 +126,12 @@ watch(
                   published
                 </p>
               </div>
+              <NcButton size="small" type="secondary" @click="showChangelogModal = true">
+                <template #icon>
+                  <GeneralIcon icon="file" class="w-4 h-4" />
+                </template>
+                View Changelog
+              </NcButton>
             </div>
 
             <div class="nc-version-list">
@@ -130,7 +139,11 @@ watch(
                 v-for="versionStat in deploymentStats.versionStats"
                 :key="versionStat.versionId"
                 class="nc-version-item"
-                :class="{ 'nc-version-item-clickable': versionStat.deploymentCount > 0 }"
+                :class="{
+                  'nc-version-item-clickable': versionStat.deploymentCount > 0,
+                  'nc-draft-version':
+                    managedAppVersionsInfo.current?.id === versionStat.versionId && versionStat.status === 'draft',
+                }"
                 @click="versionStat.deploymentCount > 0 && openVersionDeploymentsModal(versionStat)"
               >
                 <div class="nc-version-info">
@@ -201,6 +214,10 @@ watch(
 
     <DlgManagedApp v-model:visible="showVersionDeploymentsModal" modal-size="sm">
       <DlgManagedAppVersionDeployments v-model:visible="showVersionDeploymentsModal" :version="selectedVersion" />
+    </DlgManagedApp>
+
+    <DlgManagedApp v-model:visible="showChangelogModal" modal-size="sm">
+      <DlgManagedAppChangelog v-model:visible="showChangelogModal" />
     </DlgManagedApp>
   </div>
 </template>
@@ -287,7 +304,7 @@ watch(
     }
   }
 
-  &:not(.nc-version-item-clickable) {
+  &:not(.nc-version-item-clickable):not(.nc-draft-version) {
     @apply bg-nc-bg-gray-extralight/75 opacity-70 dark:opacity-60;
   }
 

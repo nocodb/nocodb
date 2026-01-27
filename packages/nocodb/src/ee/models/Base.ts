@@ -141,7 +141,9 @@ export default class Base extends BaseCE {
       );
     }
 
-    return baseList
+    const promises = [];
+
+    const castedProjectList = baseList
       .filter(
         (p) => p.deleted === 0 || p.deleted === false || p.deleted === null,
       )
@@ -150,7 +152,19 @@ export default class Base extends BaseCE {
           (a.order != null ? a.order : Infinity) -
           (b.order != null ? b.order : Infinity),
       )
-      .map((m) => this.castType(m));
+      .map((m) => {
+        const base = this.castType(m);
+
+        if (base.managed_app_id) {
+          promises.push(Base.populateManagedAppInfo(base));
+        }
+
+        return base;
+      });
+
+    await Promise.all(promises);
+
+    return castedProjectList;
   }
 
   public static async createProject(
@@ -1017,6 +1031,10 @@ export default class Base extends BaseCE {
           const base = this.castType(p);
           base.meta = parseMetaProp(base);
           promises.push(base.getSources(false, ncMeta));
+
+          if (base.managed_app_id) {
+            promises.push(Base.populateManagedAppInfo(base));
+          }
           return base;
         });
 
@@ -1072,6 +1090,10 @@ export default class Base extends BaseCE {
           const base = this.castType(p);
           base.meta = parseMetaProp(base);
           promises.push(base.getSources(false, ncMeta));
+
+          if (base.managed_app_id) {
+            promises.push(Base.populateManagedAppInfo(base));
+          }
           return base;
         });
 

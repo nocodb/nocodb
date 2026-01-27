@@ -3,6 +3,7 @@ import { PGDBQueryClient as PGDBQueryClientCE } from 'src/dbQueryClient/pg';
 import {
   ButtonActionsType,
   extractFilterFromXwhere,
+  isMMOrMMLike,
   NcDataErrorCodes,
   parseProp,
   RelationTypes,
@@ -135,6 +136,7 @@ export class PGDBQueryClient
     switch (column.uidt) {
       case UITypes.LinkToAnotherRecord:
         {
+          const isMMLike = isMMOrMMLike(column);
           const relatedModel = await (
             column.colOptions as LinkToAnotherRecordColumn
           ).getRelatedTable(context);
@@ -193,7 +195,11 @@ export class PGDBQueryClient
             throwErrorIfInvalidParams,
           );
 
-          switch (column.colOptions.type) {
+          const relType = isMMLike
+            ? RelationTypes.MANY_TO_MANY
+            : column.colOptions.type;
+
+          switch (relType) {
             case RelationTypes.MANY_TO_MANY:
               {
                 result.isArray = true;
@@ -654,6 +660,8 @@ export class PGDBQueryClient
               context,
             );
 
+          const isMMLike = isMMOrMMLike(relationColumn);
+
           const { parentContext, childContext, refContext, mmContext } =
             await relationColOpts.getParentChildContext(context);
 
@@ -663,7 +671,11 @@ export class PGDBQueryClient
           const relTableAlias = getAlias();
           let refBaseModel: BaseModelSqlv2;
 
-          switch (relationColOpts.type) {
+          const relType = isMMLike
+            ? RelationTypes.MANY_TO_MANY
+            : relationColumn.colOptions.type;
+
+          switch (relType) {
             case RelationTypes.MANY_TO_MANY:
               {
                 result.isArray = true;

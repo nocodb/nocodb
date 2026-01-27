@@ -270,55 +270,9 @@ export default async function genRollupSelectv2(param: {
       };
     }
 
-    case RelationTypes.ONE_TO_ONE: {
-      profiler.log('Relation: ' + relationColumnOption.type);
-      const qb = knex(
-        knex.raw(`?? as ??`, [
-          childBaseModel.getTnPath(childModel?.table_name),
-          refTableAlias,
-        ]),
-      ).where(
-        knex.ref(
-          `${alias || parentBaseModel.getTnPath(parentModel.table_name)}.${
-            parentCol.column_name
-          }`,
-        ),
-        '=',
-        knex.ref(`${refTableAlias}.${childCol.column_name}`),
-      );
-
-      await extractLinkRelFiltersAndApply({
-        qb,
-        column,
-        alias: refTableAlias,
-        table: childBaseModel.model,
-        baseModel: childBaseModel,
-        context: childBaseModel.context,
-      });
-
-      await applyFunction(qb);
-      profiler.end();
-      return {
-        builder: qb,
-      };
-    }
-
     case RelationTypes.MANY_TO_MANY: {
       profiler.log('Relation: ' + relationColumnOption.type);
       const mmModel = await relationColumnOption.getMMModel(mmContext);
-
-      if (!mmModel) {
-        // Return a subquery that returns the error code as a constant
-        return {
-          builder: knex.select(
-            knex.raw(`? as ??`, [
-              NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
-              'value',
-            ]),
-          ),
-        };
-      }
-
       const mmChildCol = await relationColumnOption.getMMChildColumn(mmContext);
       const mmParentCol = await relationColumnOption.getMMParentColumn(
         mmContext,

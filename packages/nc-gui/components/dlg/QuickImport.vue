@@ -99,9 +99,7 @@ const refMonacoEditor = ref()
 
 const sourceSelectorRef = ref()
 
-const customSourceId = computed(() => {
-  return sourceSelectorRef.value?.customSourceId || sourceId
-})
+const sourceIdRef = ref(sourceId)
 
 const { clone } = useUndoRedo()
 
@@ -753,7 +751,7 @@ watch(
           :quick-import-type="importType"
           :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
           :base-id="baseId"
-          :source-id="customSourceId"
+          :source-id="sourceIdRef"
           :import-worker="importWorker"
           :table-icon="importMeta.icon"
           class="nc-quick-import-template-editor"
@@ -1039,7 +1037,7 @@ watch(
           <NcListSourceSelector
             ref="sourceSelectorRef"
             :base-id="baseId"
-            :source-id="sourceId"
+            v-model:source-id="sourceIdRef"
             :show-source-selector="showSourceSelector"
             force-layout="vertical"
           />

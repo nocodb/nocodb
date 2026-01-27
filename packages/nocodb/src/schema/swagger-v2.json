@@ -13629,7 +13629,8 @@
               "User",
               "CreatedBy",
               "LastModifiedBy",
-              "Meta"
+              "Meta",
+              "Color"
             ],
             "type": "string"
           },

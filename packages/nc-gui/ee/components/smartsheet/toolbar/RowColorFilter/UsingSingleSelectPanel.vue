@@ -25,7 +25,6 @@ const props = defineProps({
   modelValue: ref({
     is_set_as_background: false,
     fk_column_id: '',
-    type: 'row',
   }),
   columns: computed(() => []),
   isLoadingFilter: ref(false),
@@ -104,22 +103,6 @@ const hasPermission = computed(() => !isLocked.value && (isUIAllowed('rowColourU
         </div>
       </div>
       
-      <div class="flex items-center gap-2 justify-end">
-        <span class="text-nc-content-gray text-sm">{{ $t('general.type') }}:</span>
-        <NcSelect
-          :value="vModel.type || 'row'"
-          class="!w-20"
-          size="small"
-          :disabled="!hasPermission"
-          @change="(val) => { vModel.type = val; emits('change'); }"
-        >
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-gray-700" />
-          </template>
-          <a-select-option value="row">{{ $t('general.row') }}</a-select-option>
-          <a-select-option value="cell">{{ $t('general.cell') }}</a-select-option>
-        </NcSelect>
-      </div>
     </div>
   </div>
 </template>

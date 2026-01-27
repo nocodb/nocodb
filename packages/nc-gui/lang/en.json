@@ -700,7 +700,7 @@
       "usingSingleSelectFieldDescription": "Colour records based on single select field",
       "usingSingleSelectFieldTooltip": "There is no single select field. Add to configure colouring using single select field.",
       "usingConditions": "Using Conditions",
-      "usingConditionsDescription": "Colour records based on conditions",
+      "usingConditionsDescription": "Colour records/cells based on conditions",
       "colourRecordsByField": "Colour records by field"
     },
     "permissions": {

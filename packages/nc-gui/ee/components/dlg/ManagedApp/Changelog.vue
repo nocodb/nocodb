@@ -70,8 +70,7 @@ const isDraftVersion = (version: any) => {
 
 const showUpdateButton = false
 
-const updateToVersion = async (version: any) => {
-  if (!base.value?.fk_workspace_id || !base.value?.id) return
+const updateToVersion = async (_version: any) => {
   // Todo: Currently we have auto update, we have to use this when we support manual update
 }
 

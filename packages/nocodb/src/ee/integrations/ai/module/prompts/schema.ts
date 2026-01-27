@@ -25,6 +25,7 @@ You can create multiple tables. Each table must have a meaningful name and a set
 - Percent
 - Duration
 - Rating
+- Colour
 - DateTime
 - JSON
 

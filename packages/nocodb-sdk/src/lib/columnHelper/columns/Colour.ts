@@ -54,7 +54,7 @@ export class ColourHelper extends AbstractColumnHelper {
 
   parsePlainCellValue(
     value: any,
-    params: SerializerOrParserFnProps['params']
+    _params: SerializerOrParserFnProps['params']
   ): string {
     if (!value) return '';
     

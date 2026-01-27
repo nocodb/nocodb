@@ -261,6 +261,11 @@ export enum ROW_COLORING_MODE {
   SELECT = 'select',
 }
 
+export enum COLORING_TYPE {
+  ROW = 'row',
+  CELL = 'cell',
+}
+
 export const LongTextAiMetaProp = 'ai';
 
 export const NO_SCOPE = 'nc';
@@ -302,6 +307,7 @@ export type RowColoringInfoFilterRow = {
   is_set_as_background: boolean;
   nc_order: number;
   color: string;
+  type: string;
   conditions: FilterType[];
   nestedConditions: FilterType[];
 };
@@ -312,6 +318,7 @@ export type RowColoringInfoSelect = {
   options: { title: string; color: string }[];
   selectColumn: ColumnType;
   is_set_as_background: boolean;
+  type: string;
 };
 export type RowColoringInfoFilter = {
   mode: ROW_COLORING_MODE.FILTER;

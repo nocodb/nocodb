@@ -78,6 +78,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         options: (selectOptions as any).options,
         mode: ROW_COLORING_MODE.SELECT,
         is_set_as_background: meta?.rowColoringInfo?.is_set_as_background,
+        type: meta?.rowColoringInfo?.type || 'row',
         fk_column_id: meta?.rowColoringInfo?.fk_column_id,
         selectColumn,
         fk_model_id: model.id,
@@ -126,6 +127,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           color: rowColorCondition.color,
           nc_order: rowColorCondition.nc_order,
           is_set_as_background: rowColorCondition.is_set_as_background,
+          type: rowColorCondition.type || 'row',
           conditions: filters,
           nestedConditions: nestedFilters,
         };
@@ -143,6 +145,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     color: string;
     is_set_as_background: boolean;
     nc_order: number;
+    type?: string;
     filter?: FilterType;
     viewWebhookManager?: ViewWebhookManager;
     ncMeta?: MetaService;
@@ -199,6 +202,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           color: params.color,
           nc_order: params.nc_order,
           is_set_as_background: params.is_set_as_background ?? false,
+          type: params.type ?? 'row',
         },
       );
       const rowColoringConditionId = rowColoringCondition.id;
@@ -279,6 +283,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     color: string;
     is_set_as_background: boolean;
     nc_order: number;
+    type?: string;
     viewWebhookManager?: ViewWebhookManager;
     ncMeta?: MetaService;
   }) {
@@ -322,6 +327,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         color: params.color,
         nc_order: params.nc_order,
         is_set_as_background: params.is_set_as_background,
+        ...(params.type && { type: params.type }),
       },
       params.fk_row_coloring_conditions_id,
     );

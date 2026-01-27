@@ -290,7 +290,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
               </template>
 
               <template #root-add-filter-row>
-                <div class="flex-grow flex justify-end items-center">
+                <div class="flex-grow flex justify-end items-center gap-4">
                   <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
                     <NcSwitch
                       v-model:checked="rowColorConfig.is_set_as_background"
@@ -299,6 +299,20 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                     >
                       {{ $t('labels.backgroundColour') }}
                     </NcSwitch>
+                  </div>
+                  <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
+                    <NcSelect
+                      :value="rowColorConfig.type || 'row'"
+                      class="!w-20"
+                      size="small"
+                      @change="updateColor(i, 'type', $event)"
+                    >
+                      <template #suffixIcon>
+                        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                      </template>
+                      <a-select-option value="row">{{ $t('general.row') }}</a-select-option>
+                      <a-select-option value="cell">{{ $t('general.cell') }}</a-select-option>
+                    </NcSelect>
                   </div>
                 </div>
               </template>

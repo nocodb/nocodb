@@ -25,6 +25,7 @@ const props = defineProps({
   modelValue: ref({
     is_set_as_background: false,
     fk_column_id: '',
+    type: 'row',
   }),
   columns: computed(() => []),
   isLoadingFilter: ref(false),
@@ -84,21 +85,40 @@ const hasPermission = computed(() => !isLocked.value && (isUIAllowed('rowColourU
       </a-form-item>
     </div>
 
-    <div class="flex items-center gap-2 justify-between">
-      <NcButton type="text" size="small" :disabled="!hasPermission" @click="emits('remove')">
-        {{ $t('labels.removeColouring') }}
-      </NcButton>
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center gap-2 justify-between">
+        <NcButton type="text" size="small" :disabled="!hasPermission" @click="emits('remove')">
+          {{ $t('labels.removeColouring') }}
+        </NcButton>
 
-      <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
-        <NcSwitch
-          v-model:checked="vModel.is_set_as_background"
-          placement="right"
-          :loading="props.isLoadingFilter"
+        <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
+          <NcSwitch
+            v-model:checked="vModel.is_set_as_background"
+            placement="right"
+            :loading="props.isLoadingFilter"
+            :disabled="!hasPermission"
+            @change="emits('change')"
+          >
+            {{ $t('labels.backgroundColour') }}
+          </NcSwitch>
+        </div>
+      </div>
+      
+      <div class="flex items-center gap-2 justify-end">
+        <span class="text-nc-content-gray text-sm">{{ $t('general.type') }}:</span>
+        <NcSelect
+          :value="vModel.type || 'row'"
+          class="!w-20"
+          size="small"
           :disabled="!hasPermission"
-          @change="emits('change')"
+          @change="(val) => { vModel.type = val; emits('change'); }"
         >
-          {{ $t('labels.backgroundColour') }}
-        </NcSwitch>
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-gray-700" />
+          </template>
+          <a-select-option value="row">{{ $t('general.row') }}</a-select-option>
+          <a-select-option value="cell">{{ $t('general.cell') }}</a-select-option>
+        </NcSelect>
       </div>
     </div>
   </div>

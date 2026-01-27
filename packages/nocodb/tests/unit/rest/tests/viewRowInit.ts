@@ -1412,6 +1412,10 @@ export const linkInitTables = async (context: any, base: any) => {
       customerId: '8',
     },
     {
+      id: '30',
+      customerId: '8',
+    },
+    {
       id: '24',
       customerId: '7',
     },
@@ -1445,7 +1449,7 @@ export const linkInitTables = async (context: any, base: any) => {
     },
     {
       id: '4',
-      customerId: '8',
+      customerId: '12',
     },
     {
       id: '4',
@@ -1462,6 +1466,18 @@ export const linkInitTables = async (context: any, base: any) => {
     {
       id: '5',
       customerId: '12',
+    },
+    {
+      id: '29',
+      customerId: '31',
+    },
+    {
+      id: '27',
+      customerId: '32',
+    },
+    {
+      id: '28',
+      customerId: '33',
     },
   ];
 

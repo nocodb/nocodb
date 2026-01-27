@@ -20,9 +20,7 @@ const emit = defineEmits(['update:modelValue', 'back'])
 
 const { $api } = useNuxtApp()
 
-const baseURL = $api.instance.defaults.baseURL
-
-const { $state, $poller } = useNuxtApp()
+const { $poller } = useNuxtApp()
 
 const workspace = useWorkspace()
 

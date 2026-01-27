@@ -71,7 +71,7 @@ export const read = (client: DBQueryClient) => {
 
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
-    }:read`;
+    }:read:${!!ctx.getHiddenColumn}:${!!ctx.extractOnlyPrimaries}:${!!ctx.extractOrderColumn}`;
 
     const baseModel = await Model.getBaseModelSQL(context, {
       id: ctx.model.id,

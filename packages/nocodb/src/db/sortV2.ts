@@ -108,7 +108,6 @@ export default async function sortV2(
         break;
       case UITypes.Lookup:
       case UITypes.LinkToAnotherRecord:
-      case UITypes.Links:
         {
           const rootAlias = alias;
           {

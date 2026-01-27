@@ -308,9 +308,15 @@ export default async function genRollupSelectv2(param: {
       const mmModel = await relationColumnOption.getMMModel(mmContext);
 
       if (!mmModel) {
-        return knex.raw(`?`, [
-          NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
-        ]);
+        // Return a subquery that returns the error code as a constant
+        return {
+          builder: knex.select(
+            knex.raw(`? as ??`, [
+              NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
+              'value',
+            ]),
+          ),
+        };
       }
 
       const mmChildCol = await relationColumnOption.getMMChildColumn(mmContext);

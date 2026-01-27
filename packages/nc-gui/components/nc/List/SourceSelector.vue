@@ -10,6 +10,8 @@ const props = withDefaults(defineProps<Props>(), {
   showSourceSelector: true,
 })
 
+const emits = defineEmits(['update:sourceId'])
+
 const { baseId } = toRefs(props)
 
 const { t } = useI18n()
@@ -18,7 +20,10 @@ const { bases } = storeToRefs(useBases())
 
 const base = computed(() => bases.value.get(baseId.value))
 
-const customSourceId = ref<string | undefined>()
+const sourceId = useVModel(props, 'sourceId', emits, {
+  defaultValue: undefined,
+  passive: true,
+})
 
 const isOpenSourceSelectDropdown = ref(false)
 
@@ -51,26 +56,30 @@ const sourceList = computed(() => {
 })
 
 const selectedSource = computed(() => {
-  if (sourceList.value.length < 2) return undefined
+  if (!sourceList.value.length) return undefined
 
-  return sourceList.value.find((source) => source.value === customSourceId.value) || sourceList.value[0]
+  return sourceList.value.find((source) => sourceId.value && source.value === sourceId.value) || sourceList.value[0]
 })
 
 onMounted(() => {
-  const newSourceId = props.sourceId || sourceList.value[0]?.value
+  const newSourceId = sourceId.value || sourceList.value[0]?.value
 
   const sourceObj = sourceList.value.find((source) => source.value === newSourceId)
 
   // Change source id only if it is default source selected initially and its not enabled
   if (sourceObj && sourceObj.ncItemDisabled && sourceObj.value === sourceList.value[0]?.value) {
-    customSourceId.value = sourceList.value.find((source) => !source.ncItemDisabled)?.value || sourceList.value[0]?.value
+    sourceId.value = sourceList.value.find((source) => !source.ncItemDisabled)?.value || sourceList.value[0]?.value
   } else {
-    customSourceId.value = newSourceId
+    sourceId.value = newSourceId
   }
 })
 
+const onUpdateValue = (value: string) => {
+  sourceId.value = value
+}
+
 defineExpose({
-  customSourceId,
+  sourceId,
   selectedSource,
   isOpenSourceSelectDropdown,
 })
@@ -107,12 +116,12 @@ defineExpose({
       <template #overlay="{ onEsc }">
         <NcList
           v-model:open="isOpenSourceSelectDropdown"
-          :value="customSourceId || selectedSource?.value || ''"
+          :value="sourceId || selectedSource?.value || ''"
           :list="sourceList"
           variant="medium"
           class="!w-auto"
           wrapper-class-name="!h-auto"
-          @update:value="customSourceId = $event as string"
+          @update:value="onUpdateValue($event as string)"
           @escape="onEsc"
         >
         </NcList>

@@ -50,7 +50,7 @@ const colors = {
   orange: {
     bg: 'bg-nc-orange-20 dark:bg-nc-orange-20',
     border: 'border-nc-orange-200 dark:border-orange-600/40',
-    text: 'text-orange-600 text-orange-600',
+    text: 'text-orange-600',
   },
   brand: {
     bg: 'bg-nc-brand-50 dark:bg-nc-brand-20/40',

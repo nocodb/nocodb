@@ -29,7 +29,7 @@ const vVisible = useVModel(props, 'visible', emits)
       </slot>
     </div>
     <div class="flex-1">
-      <div class="font-semibold text-lg text-nc-content-gray-emphasis" :class="titleClass">
+      <div class="font-semibold text-lg text-nc-content-gray" :class="titleClass">
         <slot name="title">
           {{ title }}
         </slot>

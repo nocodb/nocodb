@@ -112,11 +112,12 @@ const getDeploymentTypeLabel = (type: string) => {
 
 const getStatusColor = (status: string) => {
   const colors = {
-    [DeploymentStatus.SUCCESS]: 'text-nc-content-green-dark bg-nc-bg-green-light',
-    [DeploymentStatus.FAILED]: 'text-nc-content-red-dark bg-nc-bg-red-light',
-    [DeploymentStatus.PENDING]: 'text-nc-content-orange-dark bg-nc-bg-orange-light',
-    [DeploymentStatus.IN_PROGRESS]: 'text-nc-content-blue-dark bg-nc-bg-blue-light',
+    [DeploymentStatus.SUCCESS]: 'text-green-600 bg-nc-green-50 dark:bg-nc-green-20',
+    [DeploymentStatus.FAILED]: 'text-red-600 bg-nc-red-50 dark:bg-nc-red-20',
+    [DeploymentStatus.PENDING]: 'text-orange-600 bg-nc-orange-20 dark:bg-nc-orange-20',
+    [DeploymentStatus.IN_PROGRESS]: 'text-blue-600 bg-nc-blue-50 dark:bg-nc-blue-20',
   }
+
   return colors[status as keyof typeof colors] || 'text-nc-content-gray bg-nc-bg-gray-light'
 }
 
@@ -239,10 +240,10 @@ watch(
                             </div>
                             <span class="font-mono font-semibold text-nc-content-brand">v{{ log.toVersion?.version }}</span>
                           </div>
-                          <span class="nc-log-divider">•</span>
+                          <span class="nc-log-divider flex-1"></span>
                           <div class="nc-log-time">
                             <GeneralIcon icon="ncClock" class="w-3.5 h-3.5 opacity-60" />
-                            <span>{{ formatDate(log.createdAt) }}</span>
+                            <span>{{ timeAgo(log.createdAt) }}</span>
                           </div>
                         </div>
 
@@ -363,7 +364,7 @@ watch(
 }
 
 .nc-deployment-title {
-  @apply font-semibold text-sm text-nc-content-gray-emphasis truncate mb-1;
+  @apply font-semibold text-sm text-nc-content-gray truncate mb-1;
 }
 
 .nc-deployment-date {
@@ -387,7 +388,7 @@ watch(
 }
 
 .nc-logs-header {
-  @apply flex items-center gap-2 text-xs font-semibold text-nc-content-gray-emphasis mb-3;
+  @apply flex items-center gap-2 text-xs font-semibold text-nc-content-gray mb-3;
   @apply uppercase tracking-wide;
 }
 
@@ -426,7 +427,7 @@ watch(
 
 .nc-log-type {
   @apply inline-flex items-center gap-1 px-2 py-0.5 rounded;
-  @apply bg-nc-bg-gray-light text-nc-content-gray text-xs font-medium;
+  @apply bg-nc-bg-gray-light dark:bg-nc-bg-gray-extralight text-nc-content-gray-subtle2 text-xs font-medium;
 }
 
 .nc-log-meta {

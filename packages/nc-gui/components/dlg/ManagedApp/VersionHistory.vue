@@ -13,7 +13,7 @@ const { $api } = useNuxtApp()
 
 const baseStore = useBase()
 
-const { base, managedApp } = storeToRefs(baseStore)
+const { base, managedApp, managedAppVersionsInfo } = storeToRefs(baseStore)
 
 const isLoadingDeployments = ref(true)
 
@@ -115,7 +115,8 @@ watch(
           <div v-if="deploymentStats.versionStats && deploymentStats.versionStats.length > 0" class="nc-version-list-wrapper">
             <div class="nc-version-list-header">
               <div>
-                <h3 class="text-sm font-semibold text-nc-content-gray-emphasis">Version History</h3>
+                <h3 class="text-sm font-semibold text-nc-content-gray">Version History</h3>
+
                 <p class="text-xs text-nc-content-gray-subtle2 mt-0.5 mb-0">
                   {{ deploymentStats.versionStats.length }}
                   {{ deploymentStats.versionStats.length === 1 ? 'version' : 'versions' }}
@@ -139,12 +140,21 @@ watch(
                   <div class="nc-version-details">
                     <div class="nc-version-title">
                       <span class="nc-version-number">v{{ versionStat.version }}</span>
-                      <div v-if="index === 0 && versionStat.status === 'published'" class="nc-version-badge">
-                        <GeneralIcon icon="check" class="w-3 h-3" />
-                        <span>Current</span>
+                      <div v-if="managedAppVersionsInfo.published?.id === versionStat.versionId" class="nc-version-badge">
+                        {{ $t('labels.live') }}
+                      </div>
+                      <div
+                        v-else-if="managedAppVersionsInfo.current?.id === versionStat.versionId && versionStat.status === 'draft'"
+                        class="nc-version-badge nc-version-badge-draft"
+                      >
+                        {{ $t('labels.draft') }}
                       </div>
                     </div>
-                    <div class="nc-version-date">Published {{ formatDate(versionStat.publishedAt) }}</div>
+                    <div class="nc-version-date">
+                      <GeneralIcon icon="calendar" class="w-3.5 h-3.5 opacity-60" />
+
+                      <span>Published {{ formatDate(versionStat.publishedAt) }}</span>
+                    </div>
                   </div>
                 </div>
 
@@ -152,14 +162,11 @@ watch(
                   <div class="nc-installs-count">
                     <GeneralIcon icon="download" class="w-4 h-4 text-nc-content-gray-subtle2" />
                     <span class="font-bold">{{ versionStat.deploymentCount }}</span>
-                    <span class="text-nc-content-gray-muted">{{
-                      versionStat.deploymentCount === 1 ? 'install' : 'installs'
-                    }}</span>
                   </div>
                   <GeneralIcon
                     v-if="versionStat.deploymentCount > 0"
                     icon="chevronRight"
-                    class="w-4 h-4 text-nc-content-gray-subtle2 nc-chevron-icon"
+                    class="w-4 h-4 text-nc-content-gray-subtle2"
                   />
                 </div>
               </div>
@@ -194,7 +201,7 @@ watch(
       </div>
     </div>
 
-    <DlgManagedApp v-model:visible="showVersionDeploymentsModal" modal-size="md">
+    <DlgManagedApp v-model:visible="showVersionDeploymentsModal" modal-size="sm">
       <DlgManagedAppVersionDeployments v-model:visible="showVersionDeploymentsModal" :version="selectedVersion" />
     </DlgManagedApp>
   </div>
@@ -302,17 +309,23 @@ watch(
 }
 
 .nc-version-number {
-  @apply font-mono font-bold text-base text-nc-content-gray-emphasis;
+  @apply font-mono font-bold text-base text-nc-content-gray;
 }
 
 .nc-version-badge {
-  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full;
-  @apply bg-nc-bg-green-light text-nc-content-green-dark;
-  @apply text-xs font-semibold;
+  @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold;
+
+  &.nc-version-badge-draft {
+    @apply bg-nc-orange-20 dark:bg-nc-orange-20 text-orange-600;
+  }
+
+  &:not(.nc-version-badge-draft) {
+    @apply bg-nc-green-50 dark:bg-nc-green-20 text-green-600;
+  }
 }
 
 .nc-version-date {
-  @apply text-xs text-nc-content-gray-subtle2;
+  @apply text-xs text-nc-content-gray-subtle2 flex items-center gap-1.5;
 }
 
 .nc-version-installs {

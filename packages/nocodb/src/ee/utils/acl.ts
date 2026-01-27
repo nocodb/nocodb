@@ -57,6 +57,9 @@ const permissionScopes = {
 
     'paymentSeatCount',
     'manageSubscription',
+
+    // etc
+    'fetchViaUrl',
   ],
   org: [
     // SSO Client

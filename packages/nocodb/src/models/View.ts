@@ -2028,14 +2028,28 @@ export default class View implements ViewType {
       deleteKeys.push(
         `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:queries`,
         `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:count`,
-        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:false:false:false`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:false:false:true`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:false:true:false`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:false:true:true`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:true:false:false`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:true:false:true`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:true:true:false`,
+        `${CacheScope.SINGLE_QUERY}:${modelId}:${view.id}:read:true:true:true`,
       );
     }
 
     deleteKeys.push(
       `${CacheScope.SINGLE_QUERY}:${modelId}:default:queries`,
       `${CacheScope.SINGLE_QUERY}:${modelId}:default:count`,
-      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:false:false:false`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:false:false:true`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:false:true:false`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:false:true:true`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:true:false:false`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:true:false:true`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:true:true:false`,
+      `${CacheScope.SINGLE_QUERY}:${modelId}:default:read:true:true:true`,
     );
 
     await NocoCache.del(context, deleteKeys);

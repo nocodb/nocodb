@@ -35,15 +35,15 @@ const nocoExecute = async (
 ): Promise<any> => {
   // Handle array of resolvers by executing nocoExecute on each sequentially
   if (Array.isArray(resolverObj)) {
-    const results = [];
+    const res = [];
     for (let i = 0; i < resolverObj.length; i++) {
       const resolver = resolverObj[i];
       dataTree[i] = dataTree[i] || {};
-      results.push(
+      res.push(
         await nocoExecuteSingle(requestObj, resolver, dataTree[i], rootArgs),
       );
     }
-    return results;
+    return res;
   } else {
     return nocoExecuteSingle(requestObj, resolverObj, dataTree, rootArgs);
   }
@@ -106,11 +106,11 @@ const nocoExecuteSingle = async (
         : Promise.resolve(dataTreeObj[path[0]]));
 
       if (Array.isArray(res1)) {
-        const results = [];
-        for (const r of res1) {
-          results.push(await extractNested(path.slice(1), r, {}, args));
+        const res = [];
+        for (let i = 0; i < res1.length; i++) {
+          res.push(await extractNested(path.slice(1), res1[i], {}, args));
         }
-        return results;
+        return res;
       } else {
         return res1 !== null && res1 !== undefined
           ? await extractNested(path.slice(1), res1, {}, args)
@@ -151,7 +151,7 @@ const nocoExecuteSingle = async (
       res[key] = (async () => {
         const res1 = await extractNested(
           resolverObj?.__proto__?.__columnAliases?.[key]?.path,
-          dataTree,
+          {},
           resolverObj,
           args?.nested?.[key],
         );
@@ -179,23 +179,26 @@ const nocoExecuteSingle = async (
         if (Array.isArray(res1)) {
           // Handle arrays of results by executing nocoExecute on each element sequentially
           dataTree[key] = dataTree[key] || [];
+          res[key] = [];
           for (let i = 0; i < res1.length; i++) {
             const r = res1[i];
             dataTree[key][i] = dataTree[key][i] || {};
-            dataTree[key][i] = await nocoExecute(
-              requestObj[key] as XcRequest,
-              r,
-              dataTree[key][i],
-              Object.assign(
-                {
-                  nestedPage: rootArgs?.nestedPage,
-                  limit: rootArgs?.nestedLimit,
-                },
-                rootArgs?.nested?.[key] || {},
-              ),
+
+            res[key].push(
+              (dataTree[key][i] = await nocoExecute(
+                requestObj[key] as XcRequest,
+                r,
+                dataTree[key][i],
+                Object.assign(
+                  {
+                    nestedPage: rootArgs?.nestedPage,
+                    limit: rootArgs?.nestedLimit,
+                  },
+                  rootArgs?.nested?.[key] || {},
+                ),
+              )),
             );
           }
-          res[key] = dataTree[key];
         } else if (res1) {
           // Handle single objects
           res[key] = await nocoExecute(
@@ -217,7 +220,7 @@ const nocoExecuteSingle = async (
       }
     }
 
-    if (res[key]) {
+    if (Object.prototype.hasOwnProperty.call(res, key)) {
       out[key] = await res[key];
     }
   }

@@ -3,6 +3,7 @@ import {
   AuditV1OperationTypes,
   extractFilterFromXwhere,
   isLinksOrLTAR,
+  isMMOrMMLike,
   UITypes,
 } from 'nocodb-sdk';
 import type { Knex } from 'knex';
@@ -134,7 +135,8 @@ export class BaseModelDelete {
 
       const childTn = childBaseModel.getTnPath(childTable);
 
-      switch (colOptions.type) {
+      const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+      switch (relationType) {
         case 'mm':
           {
             const vChildCol = await colOptions.getMMChildColumn(mmContext);

@@ -3,6 +3,7 @@ import {
   AppEvents,
   getAvailableRollupForUiType,
   isLinkV2,
+  isMMOrMMLike,
   RelationTypes,
   UITypes,
   WebhookActions,
@@ -13,7 +14,6 @@ import { NcError } from './ncError';
 import type {
   BoolType,
   ColumnReqType,
-  LinkToAnotherRecordType,
   LookupColumnReqType,
   NcRequest,
   RollupColumnReqType,
@@ -391,7 +391,8 @@ export async function validateRollupPayload(
   }
 
   let relatedColumn: Column;
-  switch (relation.type) {
+  const relationType = isMMOrMMLike(column) ? 'mm' : relation.type;
+  switch (relationType) {
     case 'hm':
       relatedColumn = await Column.get(refContext, {
         colId: relation.fk_child_column_id,
@@ -481,7 +482,8 @@ export async function validateLookupPayload(
   }
 
   let relatedColumn: Column;
-  switch (relation.type) {
+  const relationType = isMMOrMMLike(column) ? 'mm' : relation.type;
+  switch (relationType) {
     case 'hm':
       relatedColumn = await Column.get(refContext, {
         colId: relation.fk_child_column_id,

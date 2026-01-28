@@ -2009,7 +2009,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           this.context,
         );
 
-        switch (colOptions.type) {
+        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+        switch (relationType) {
           case 'mm':
             {
               const mmTable = await Model.get(
@@ -3455,7 +3456,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const { mmContext, refContext, childContext } =
           await colOptions.getParentChildContext(this.context);
 
-        switch (colOptions.type) {
+        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+        switch (relationType) {
           case 'mm':
             {
               const mmTable = await Model.get(

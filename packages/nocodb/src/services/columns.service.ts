@@ -9,7 +9,8 @@ import {
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isLinksOrLTAR, isLTARType,
+  isLinksOrLTAR,
+  isLTARType,
   isMMOrMMLike,
   isServiceUser,
   isSystemColumn,
@@ -4589,8 +4590,8 @@ export class ColumnsService implements IColumnsService {
     }
 
     if (
-      ((param.column as LinkToAnotherColumnReqType).type === 'hm' ||
-        (param.column as LinkToAnotherColumnReqType).type === 'bt')
+      (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
+      (param.column as LinkToAnotherColumnReqType).type === 'bt'
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
@@ -4991,7 +4992,9 @@ export class ColumnsService implements IColumnsService {
           .type as RelationTypes,
       );
 
-      const relationType = (param.column as Pick<LinkToAnotherColumnReqType, 'type'>).type as RelationTypes;
+      const relationType = (
+        param.column as Pick<LinkToAnotherColumnReqType, 'type'>
+      ).type as RelationTypes;
 
       // Use singular for ONE_TO_ONE and MANY_TO_ONE, plural for others
       const defaultTitle = [
@@ -5028,7 +5031,7 @@ export class ColumnsService implements IColumnsService {
           singular:
             param.column['meta']?.singular || singularize(refTable.title),
         },
-        version: isMMLike ? 2: 1,
+        version: isMMLike ? 2 : 1,
         // column_order and view_id if provided
         ...param.colExtra,
         // include cross base link props
@@ -5054,7 +5057,7 @@ export class ColumnsService implements IColumnsService {
         ),
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: revType,
-        version: isMMLike ? 2: 1,
+        version: isMMLike ? 2 : 1,
 
         // ref_db_alias
         fk_model_id: refTable.id,

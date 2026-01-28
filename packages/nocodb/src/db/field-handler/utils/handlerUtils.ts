@@ -1,4 +1,5 @@
 import {
+  isMMOrMMLike,
   ncIsNull,
   ncIsUndefined,
   parseProp,
@@ -95,7 +96,10 @@ export async function nestedConditionJoin({
     });
 
     {
-      switch (relationColOptions.type) {
+      const relationType = isMMOrMMLike(relationColumn)
+        ? 'mm'
+        : relationColOptions.type;
+      switch (relationType) {
         case RelationTypes.HAS_MANY:
           {
             const useRecursiveEvaluation = parseProp(
@@ -229,7 +233,10 @@ export async function nestedConditionJoin({
       clauses.push(filterOperationResult.clause);
       rootAppliances.push(filterOperationResult.rootApply);
     } else {
-      switch (relationColOptions.type) {
+      const relationType = isMMOrMMLike(relationColumn)
+        ? 'mm'
+        : relationColOptions.type;
+      switch (relationType) {
         case RelationTypes.HAS_MANY: {
           const filterOperationResult = await parseConditionV2(
             childBaseModel,

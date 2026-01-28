@@ -124,6 +124,7 @@ export default class ManagedAppVersion {
 
   public static async getLatest(
     managedAppId: string,
+    status?: ManagedAppVersionStatus,
     ncMeta = Noco.ncMeta,
   ): Promise<ManagedAppVersion> {
     const versions = await ncMeta.metaList2(
@@ -132,7 +133,12 @@ export default class ManagedAppVersion {
       MetaTable.MANAGED_APP_VERSIONS,
       {
         xcCondition: {
-          _and: [{ fk_managed_app_id: { eq: managedAppId } }],
+          _and: [
+            {
+              fk_managed_app_id: { eq: managedAppId },
+              ...(status ? { status: { eq: status } } : {}),
+            },
+          ],
         },
         orderBy: {
           version_number: 'desc',
@@ -150,7 +156,7 @@ export default class ManagedAppVersion {
     managedAppId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<number> {
-    const latest = await this.getLatest(managedAppId, ncMeta);
+    const latest = await this.getLatest(managedAppId, undefined, ncMeta);
     return latest ? latest.version_number + 1 : 1;
   }
 

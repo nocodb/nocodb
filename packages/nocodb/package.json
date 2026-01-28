@@ -128,7 +128,7 @@
     "fast-levenshtein": "^2.0.6",
     "fs-extra": "^9.1.0",
     "get-port": "5.1.1",
-    "glob": "^10.4.5",
+    "glob": "^11.0.0",
     "googleapis": "^169.0.0",
     "handlebars": "^4.7.8",
     "handlebars-helpers-v2": "^2.2.0",

@@ -1,17 +1,23 @@
-import { AuditOperationSubTypes, RelationTypes, UITypes } from 'nocodb-sdk';
+import {
+  AuditOperationSubTypes,
+  isLinksOrLTAR,
+  isLinkV2,
+  isMMOrMMLike,
+  RelationTypes,
+} from 'nocodb-sdk';
 import type { NcContext, NcRequest } from 'nocodb-sdk';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from 'knex';
-import { RelationUpdateWebhookHandler } from '~/db/relation-update-webhook-handler';
 import { Model } from '~/models';
+import { RelationUpdateWebhookHandler } from '~/db/relation-update-webhook-handler';
 import { NcError } from '~/helpers/catchError';
 import {
   _wherePk,
   getCompositePkValue,
   getOppositeRelationType,
 } from '~/helpers/dbHelpers';
-import { extractCorrespondingLinkColumn } from '~/db/BaseModelSqlv2/add-remove-links';
+import { getTargetTableRelColumn } from '~/helpers';
 
 interface AuditUpdateLog {
   pkValue?: Record<string, any>;
@@ -25,6 +31,7 @@ interface AuditUpdateLog {
   type: RelationTypes;
   direction: 'parent_child' | 'child_parent';
 }
+
 interface AuditUpdateObj extends AuditUpdateLog {
   columnTitle: string;
   refColumnTitle?: string;
@@ -33,6 +40,7 @@ interface AuditUpdateObj extends AuditUpdateLog {
   model: Model;
   refModel?: Model;
 }
+
 export class RelationManager {
   constructor(
     private relationContext: {
@@ -70,7 +78,11 @@ export class RelationManager {
   ) {
     const isBelongsTo =
       colOptions.type === RelationTypes.BELONGS_TO || relationColumn.meta?.bt;
-    return isBelongsTo || colOptions.type === RelationTypes.MANY_TO_MANY;
+    return (
+      isLinkV2(relationColumn) ||
+      isBelongsTo ||
+      colOptions.type === RelationTypes.MANY_TO_MANY
+    );
   }
 
   static async getRelationManager(
@@ -84,11 +96,7 @@ export class RelationManager {
     await baseModel.model.getColumns(baseModel.context);
     const column = baseModel.model.columnsById[colId];
 
-    if (
-      !column ||
-      ![UITypes.LinkToAnotherRecord, UITypes.Links].includes(column.uidt)
-    )
-      NcError.get(baseModel.context).fieldNotFound(colId);
+    if (!column || !isLinksOrLTAR(column.uidt)) NcError.fieldNotFound(colId);
 
     const colOptions = await column.getColOptions<LinkToAnotherRecordColumn>(
       baseModel.context,
@@ -168,6 +176,53 @@ export class RelationManager {
     );
   }
 
+  async getLinkV2RelatedRow() {
+    const {
+      childTable,
+      childBaseModel,
+      childTn,
+      childColumn,
+      childId,
+      parentBaseModel,
+      parentTn,
+      parentColumn,
+      relationColOptions,
+      mmContext,
+    } = this.relationContext;
+
+    const vChildCol = await relationColOptions.getMMChildColumn(mmContext);
+    const vParentCol = await relationColOptions.getMMParentColumn(mmContext);
+    const vTable = await relationColOptions.getMMModel(mmContext);
+
+    const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+      model: vTable,
+      dbDriver: childBaseModel.dbDriver,
+    });
+
+    const vTn = assocBaseModel.getTnPath(vTable);
+
+    // Get related records from parent table through junction table
+    return await parentBaseModel.execAndParse(
+      parentBaseModel
+        .dbDriver(parentTn)
+        .select(`${parentTn}.*`)
+        .join(
+          vTn,
+          `${vTn}.${vParentCol.column_name}`,
+          `${parentTn}.${parentColumn.column_name}`,
+        )
+        .where({
+          [`${vTn}.${vChildCol.column_name}`]: childBaseModel
+            .dbDriver(childTn)
+            .select(childColumn.column_name)
+            .where(_wherePk(childTable.primaryKeys, childId))
+            .first(),
+        }),
+      null,
+      { raw: true },
+    );
+  }
+
   async getHmOrOoChildLinkedWithParent() {
     const {
       childBaseModel: baseModel,
@@ -201,7 +256,6 @@ export class RelationManager {
   }) {
     const {
       relationColOptions: colOptions,
-      relationColumn: column,
       baseModel,
       parentBaseModel,
       parentColumn,
@@ -215,18 +269,10 @@ export class RelationManager {
       childId,
       parentId,
       mmContext,
+      relationColumn,
     } = this.relationContext;
 
-    // Get the corresponding link column ID for the parent table
-    const refTableLinkColumnId = (
-      await extractCorrespondingLinkColumn(baseModel.context, {
-        ltarColumn: column,
-        referencedTable:
-          colOptions.fk_related_model_id === parentTable.id
-            ? parentTable
-            : childTable,
-      })
-    )?.id;
+    const isMMLike = isMMOrMMLike(this.relationContext.relationColumn);
 
     const { onlyUpdateAuditLogs, req } = params;
     if (onlyUpdateAuditLogs && colOptions.type !== RelationTypes.BELONGS_TO) {
@@ -245,7 +291,12 @@ export class RelationManager {
         child: childId,
       },
     );
-    switch (colOptions.type) {
+
+    const relationType = isMMLike
+      ? RelationTypes.MANY_TO_MANY
+      : colOptions.type;
+
+    switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
           const vChildCol = await colOptions.getMMChildColumn(mmContext);
@@ -258,6 +309,76 @@ export class RelationManager {
           });
 
           const vTn = assocBaseModel.getTnPath(vTable);
+          // if relation type is Many to One / One to One, then remove the existing link
+          if (
+            [RelationTypes.MANY_TO_ONE, RelationTypes.ONE_TO_ONE].includes(
+              colOptions.type as RelationTypes,
+            )
+          ) {
+            // Get existing children linked to this parent
+            const existingChildren = await this.getLinkV2RelatedRow();
+
+            // Remove each existing child with proper audit logging
+            for (const child of existingChildren) {
+              // Create a new relation manager with the correct IDs for this relationship
+              const relationManager = await RelationManager.getRelationManager(
+                baseModel,
+                this.relationContext.relationColumn.id,
+                {
+                  // in case of LinkToAnotherRecordV2, childId is the rowId
+                  rowId: childId,
+                  childId: getCompositePkValue(parentTable.primaryKeys, child),
+                },
+              );
+              await relationManager.removeChild({ req });
+              // merge audit logs
+              this.auditUpdateObj.push(...relationManager.auditUpdateObj);
+            }
+          }
+
+          // if relation type is One to Many / One to One, then remove any existing parent link
+          if (
+            [RelationTypes.ONE_TO_MANY, RelationTypes.ONE_TO_ONE].includes(
+              colOptions.type as RelationTypes,
+            )
+          ) {
+            const targetRelationColumn = await getTargetTableRelColumn(
+              childBaseModel.context,
+              relationColumn,
+              parentTable,
+            );
+            const targetRelationManager =
+              await RelationManager.getRelationManager(
+                parentBaseModel,
+                targetRelationColumn.id,
+                {
+                  // in case of LinkToAnotherRecordV2, childId is the rowId
+                  rowId: parentId,
+                  // provide a dummy value
+                  childId: '',
+                },
+              );
+
+            // Get existing children linked to this parent
+            const existingChildren =
+              await targetRelationManager.getLinkV2RelatedRow();
+
+            // Remove each existing child with proper audit logging
+            for (const child of existingChildren) {
+              // Create a new relation manager with the correct IDs for this relationship
+              const relationManager = await RelationManager.getRelationManager(
+                parentBaseModel,
+                targetRelationColumn.id,
+                {
+                  rowId: parentId,
+                  childId: getCompositePkValue(childTable.primaryKeys, child),
+                },
+              );
+              await relationManager.removeChild({ req });
+              // merge audit logs
+              this.auditUpdateObj.push(...relationManager.auditUpdateObj);
+            }
+          }
 
           if (baseModel.isSnowflake || baseModel.isDatabricks) {
             const parentPK = parentBaseModel
@@ -667,8 +788,8 @@ export class RelationManager {
 
   async removeChild(params: { req: any }) {
     const {
+      relationColumn,
       relationColOptions: colOptions,
-      relationColumn: column,
       baseModel,
       parentBaseModel,
       parentColumn,
@@ -698,7 +819,11 @@ export class RelationManager {
       },
     );
 
-    switch (colOptions.type) {
+    const relationType = isMMOrMMLike(relationColumn)
+      ? RelationTypes.MANY_TO_MANY
+      : colOptions.type;
+
+    switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
           const vChildCol = await colOptions.getMMChildColumn(mmContext);

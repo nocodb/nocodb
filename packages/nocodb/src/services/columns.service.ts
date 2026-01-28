@@ -10,9 +10,11 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
+  isMMOrMMLike,
   isServiceUser,
   isSystemColumn,
   isVirtualCol,
+  LinksVersion,
   LongTextAiMetaProp,
   MetaEventType,
   NcApiVersion,
@@ -3565,7 +3567,11 @@ export class ColumnsService implements IColumnsService {
           );
           const custom = column.meta?.custom;
 
-          switch (relationColOpt.type) {
+          const isMMLike = isMMOrMMLike(column);
+
+          const relationType = isMMLike ? 'mm' : relationColOpt.type;
+
+          switch (relationType) {
             case 'bt':
             case 'hm':
               {
@@ -4504,6 +4510,10 @@ export class ColumnsService implements IColumnsService {
     validateParams(['parentId', 'childId', 'type'], param.column, context);
 
     const reuse = param.reuse ?? {};
+
+    // in new LTAR type we treat all relation similar to mm, so check if it's new type
+    // version 1 is deprecated and will be removed in future
+    const isMMLike = (param.column as any).version !== LinksVersion.V1;
 
     // get table and refTable models
     const table = await Model.getWithInfo(context, {

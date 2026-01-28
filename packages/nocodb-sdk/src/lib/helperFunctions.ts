@@ -1,5 +1,5 @@
-import UITypes, { isLinksOrLTAR, isNumericCol } from './UITypes';
-import { RelationTypes, RolesObj, RolesType } from './globals';
+import UITypes, {isLinksOrLTAR, isNumericCol} from './UITypes';
+import { RolesObj, RolesType } from './globals';
 import { ClientType } from './enums';
 import {
   ColumnType,
@@ -7,11 +7,12 @@ import {
   IntegrationsType,
   LinkToAnotherRecordType,
 } from './Api';
-import { FormulaDataTypes } from './formula/enums';
+import { FormulaDataTypes } from './formulaHelpers';
 import { ncIsNull, ncIsUndefined } from '~/lib/is';
 
 // import {RelationTypes} from "./globals";
 
+// const systemCols = ['created_at', 'updated_at']
 const filterOutSystemColumns = (columns) => {
   return (columns && columns.filter((c) => !isSystemColumn(c))) || [];
 };
@@ -25,6 +26,8 @@ const isSystemColumn = (col): boolean =>
   !!(
     col &&
     (col.uidt === UITypes.ForeignKey ||
+      ((col.column_name === 'created_at' || col.column_name === 'updated_at') &&
+        col.uidt === UITypes.DateTime) ||
       (col.pk && (col.ai || col.cdf)) ||
       (col.pk && col.meta && col.meta.ag) ||
       col.system)
@@ -256,6 +259,7 @@ const testDataBaseNames = {
   mysql: null,
   [ClientType.PG]: 'postgres',
   oracledb: 'xe',
+  [ClientType.MSSQL]: undefined,
   [ClientType.SQLITE]: 'a.sqlite',
 };
 
@@ -272,21 +276,21 @@ export const integrationCategoryNeedDefault = (category: IntegrationsType) => {
   return [IntegrationsType.Ai].includes(category);
 };
 
-export function parseProp(v: any, fallbackVal = {}): any {
+export function parseProp(v: any): any {
   if (ncIsUndefined(v) || ncIsNull(v)) return {};
   try {
-    return typeof v === 'string' ? JSON.parse(v) ?? fallbackVal : v;
+    return typeof v === 'string' ? JSON.parse(v) ?? {} : v;
   } catch {
-    return fallbackVal;
+    return {};
   }
 }
 
-export function stringifyProp(v: any, fallbackVal = '{}'): string {
+export function stringifyProp(v: any): string {
   if (ncIsUndefined(v) || ncIsNull(v)) return '{}';
   try {
-    return typeof v === 'string' ? v : JSON.stringify(v) ?? fallbackVal;
+    return typeof v === 'string' ? v : JSON.stringify(v) ?? '{}';
   } catch {
-    return fallbackVal;
+    return '{}';
   }
 }
 
@@ -321,30 +325,4 @@ export function isCrossBaseLink(col: ColumnType) {
     (col.colOptions as LinkToAnotherRecordType)?.fk_related_base_id !==
       (col.colOptions as LinkToAnotherRecordType)?.base_id
   );
-}
-
-export function lookupCanHaveRecursiveEvaluation(param: {
-  isEeUI: boolean;
-  relationCol: ColumnType;
-  relationType: RelationTypes;
-  dbClientType: ClientType;
-}) {
-  const { isEeUI, dbClientType, relationType, relationCol } = param;
-  return (
-    isEeUI &&
-    dbClientType === ClientType.PG &&
-    isSelfReferencingTableColumn(relationCol) &&
-    [RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes(relationType)
-  );
-}
-
-export function formatBytes(bytes, decimals = 2, base = 1000) {
-  if (bytes === 0) return '0 Bytes';
-
-  const k = base;
-  const dm = Math.max(0, decimals);
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-  return `${(bytes / k ** i).toFixed(dm)} ${sizes[i]}`;
 }

@@ -460,11 +460,20 @@ export function isLinksOrLTAR(
 export const isLTARType = isLinksOrLTAR;
 
 export function isLinkV2(
-  colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
+  col: ColumnType | { uidt: UITypes | string; colOptions?: any } | UITypes | string
 ) {
+  // If it's just a string or simple object without colOptions, check if it's UITypes.Links
+  if (typeof col === 'string' || !('colOptions' in col)) {
+    return (
+      <UITypes>(typeof col === 'object' ? col?.uidt : col) === UITypes.Links
+    );
+  }
+
+  // For full column objects with colOptions, check version field
   return (
-    <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt) ===
-    UITypes.Links
+    !!col &&
+    isLinksOrLTAR(col) &&
+    (col.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2
   );
 }
 
@@ -472,12 +481,16 @@ export function isMMOrMMLike(
   col: ColumnType | { uidt: UITypes | string; colOptions?: any }
 ): boolean {
   if (typeof col === 'object') {
-    // Check if it's Links v2 (always MM-like)
+    // Check if it's Links v2 (always MM-like because v2 uses junction tables for all relation types)
     if (col.uidt === UITypes.Links) {
       return true;
     }
-    // Check if it's LinkToAnotherRecord with MANY_TO_MANY type
+    // Check if it's LinkToAnotherRecord with version V2 (also MM-like)
     if (col.uidt === UITypes.LinkToAnotherRecord && col.colOptions) {
+      if ((col.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2) {
+        return true;
+      }
+      // Check if it's traditional MANY_TO_MANY type
       return (col.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.MANY_TO_MANY;
     }
   }
@@ -811,3 +824,8 @@ export const customLinkSupportedTypes: UITypes[] = [
 
 // column types that are not shown in the GUI
 export const hiddenColumnTypes: UITypes[] = [UITypes.Meta];
+
+export const LinksVersion = {
+  V1: 1,
+  V2: 2,
+} as const;

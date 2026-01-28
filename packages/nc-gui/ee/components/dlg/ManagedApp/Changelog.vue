@@ -13,7 +13,7 @@ const vVisible = useVModel(props, 'visible', emits)
 
 const baseStore = useBase()
 
-const { base, managedAppVersionsInfo, managedAppVersions, isManagedAppMaster, isManagedAppInstaller } = storeToRefs(baseStore)
+const { managedAppVersionsInfo, managedAppVersions, isManagedAppMaster, isManagedAppInstaller } = storeToRefs(baseStore)
 
 const isUpdating = ref(false)
 

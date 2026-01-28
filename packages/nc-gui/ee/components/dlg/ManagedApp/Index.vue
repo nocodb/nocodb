@@ -19,21 +19,21 @@ const emits = defineEmits(['update:visible'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
-const { modalSize: _modalSize, variant } = toRefs(props)
+const { modalSize, variant } = toRefs(props)
 
-const modalSize = computed(() => {
+const modalSizeLocal = computed(() => {
   if (variant.value === 'discardDraft') {
     return 'small'
   }
-  return _modalSize.value
+  return modalSize.value
 })
 </script>
 
 <template>
   <NcModal
     v-model:visible="vVisible"
-    :size="modalSize"
-    :height="modalSize === 'sm' ? 'auto' : undefined"
+    :size="modalSizeLocal"
+    :height="modalSizeLocal === 'sm' ? 'auto' : undefined"
     :mask-closable="maskClosable"
     nc-modal-class-name="nc-modal-dlg-managed-app"
   >
@@ -52,7 +52,7 @@ const modalSize = computed(() => {
     </template>
     <template v-else>
       <slot name="header">
-        <DlgManagedAppHeader v-model:visible="vVisible" :modal-size="modalSize" :title="title" :sub-title="subTitle" />
+        <DlgManagedAppHeader v-model:visible="vVisible" :title="title" :sub-title="subTitle" />
       </slot>
 
       <div class="flex-1 nc-scrollbar-thin" :class="contentClass">

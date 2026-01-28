@@ -72,7 +72,11 @@ watch(
 
 <template>
   <div class="flex flex-col h-full">
-    <DlgManagedAppHeader v-model:visible="vVisible" :title="$t('title.versionHistory')" :sub-title="$t('labels.manageVersionsAndTrackDeployments')" />
+    <DlgManagedAppHeader
+      v-model:visible="vVisible"
+      :title="$t('title.versionHistory')"
+      :sub-title="$t('labels.manageVersionsAndTrackDeployments')"
+    />
 
     <div class="flex-1 nc-scrollbar-thin">
       <div
@@ -122,7 +126,11 @@ watch(
 
                 <p class="text-xs text-nc-content-gray-subtle2 mt-0.5 mb-0">
                   {{ deploymentStats.versionStats.length }}
-                  {{ deploymentStats.versionStats.length === 1 ? $t('general.version').toLowerCase() : $t('general.versions').toLowerCase() }}
+                  {{
+                    deploymentStats.versionStats.length === 1
+                      ? $t('general.version').toLowerCase()
+                      : $t('general.versions').toLowerCase()
+                  }}
                   {{ $t('labels.published').toLowerCase() }}
                 </p>
               </div>

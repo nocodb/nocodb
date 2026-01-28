@@ -313,7 +313,7 @@ export class ManagedAppPostOperations
   }
 
   private async publish(context: NcContext, body: any, req: NcRequest) {
-    const { managedAppVersionId } = body;
+    const { managedAppVersionId, releaseNotes } = body;
 
     if (!managedAppVersionId) {
       NcError.get(context).badRequest('managedAppVersionId is required');
@@ -363,6 +363,7 @@ export class ManagedAppPostOperations
       status: ManagedAppVersionStatus.PUBLISHED,
       published_at: new Date().toISOString(),
       schema: JSON.stringify(serializedSchema),
+      release_notes: releaseNotes,
     });
 
     // Clear cache

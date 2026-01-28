@@ -127,8 +127,9 @@ export const OPERATION_SCOPES = {
 
   // Managed App Operations
   managedAppStoreList: 'org',
-  managedAppList: 'workspace',
   managedAppGet: 'org',
+  managedAppVersionsList: 'org',
+  managedAppList: 'workspace',
   managedAppCreate: 'workspace',
   managedAppUpdate: 'base',
   managedAppDelete: 'base',
@@ -137,7 +138,6 @@ export const OPERATION_SCOPES = {
   managedAppUnpublish: 'base',
   managedAppInstall: 'workspace',
   managedAppGetUpdates: 'base',
-  managedAppVersionsList: 'base',
   managedAppInstallationsList: 'base',
   managedAppDeployments: 'base',
   managedAppVersionDeployments: 'base',

@@ -1036,8 +1036,8 @@ watch(
         <div class="mb-4">
           <NcListSourceSelector
             ref="sourceSelectorRef"
-            :base-id="baseId"
             v-model:source-id="sourceIdRef"
+            :base-id="baseId"
             :show-source-selector="showSourceSelector"
             force-layout="vertical"
           />

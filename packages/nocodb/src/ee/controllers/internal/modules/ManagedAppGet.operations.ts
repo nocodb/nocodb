@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { DeploymentStatus, type NcContext, type NcRequest } from 'nocodb-sdk';
+import {
+  DeploymentStatus,
+  ManagedAppVersionStatus,
+  type NcContext,
+  type NcRequest,
+} from 'nocodb-sdk';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type {
   InternalApiModule,
@@ -226,12 +231,14 @@ export class ManagedAppGetOperations
       NcError.get(context).notFound('Managed app not found');
     }
 
-    // Only owner can view version history
-    if (managedApp.created_by !== req.user.id) {
-      NcError.get(context).forbidden('Only the owner can view version history');
-    }
+    let versions = await ManagedAppVersion.list(managedAppId as string);
 
-    const versions = await ManagedAppVersion.list(managedAppId as string);
+    // If not owner, filter to only published versions
+    if (managedApp.created_by !== req.user.id) {
+      versions = versions.filter(
+        (v) => v.status === ManagedAppVersionStatus.PUBLISHED,
+      );
+    }
 
     return {
       list: versions.map((v) => ({

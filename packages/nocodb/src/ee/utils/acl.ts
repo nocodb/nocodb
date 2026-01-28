@@ -121,6 +121,7 @@ const permissionScopes = {
     // Managed App (public operations)
     'managedAppStoreList',
     'managedAppGet',
+    'managedAppVersionsList',
   ],
   workspace: [
     // Managed App (install operation)
@@ -379,7 +380,6 @@ const permissionScopes = {
     'managedAppDelete',
     'managedAppPublish',
     'managedAppUnpublish',
-    'managedAppVersionsList',
 
     // Audit Logs
     'baseAuditList',
@@ -434,6 +434,7 @@ const rolePermissions:
       // Managed App (public operations - available to everyone)
       managedAppStoreList: true,
       managedAppGet: true,
+      managedAppVersionsList: true,
     },
   },
   [CloudOrgUserRoles.VIEWER]: {

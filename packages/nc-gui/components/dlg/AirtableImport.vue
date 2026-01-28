@@ -407,8 +407,8 @@ const collapseKey = ref('')
         <div class="my-5">
           <NcListSourceSelector
             ref="sourceSelectorRef"
-            :base-id="baseId"
             v-model:source-id="sourceIdRef"
+            :base-id="baseId"
             :show-source-selector="showSourceSelector"
             force-layout="vertical"
           />

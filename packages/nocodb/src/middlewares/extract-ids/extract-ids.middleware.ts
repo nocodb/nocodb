@@ -1113,6 +1113,10 @@ export class AclMiddleware implements NestInterceptor {
         NcError.sourceDataReadOnly(source.alias);
       }
     }
+
+    if (req.context) {
+      req.context.is_api_token = req.user.is_api_token;
+    }
   }
 
   async intercept(

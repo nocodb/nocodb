@@ -218,26 +218,14 @@ export const singleQueryRead = (client: DBQueryClient) => {
 
     let res;
     try {
-      debugSingleQueryRead(
-        knex
-          .raw(
-            query,
-            ctx.model.primaryKeys.length === 1
-              ? [ctx.id]
-              : ctx.id.split('___').map((id) => id.replaceAll('\\_', '_')),
-          )
-          .toQuery(),
-      );
-      res = await baseModel.execAndParse(
-        knex.raw(query, normalizedIdValues).toQuery(),
-        null,
-        {
-          first: true,
-          skipSubstitutingColumnIds:
-            context.api_version === NcApiVersion.V3 &&
-            ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-        },
-      );
+      const queryToExec = knex.raw(query, normalizedIdValues).toQuery();
+      debugSingleQueryRead(queryToExec);
+      res = await baseModel.execAndParse(queryToExec, null, {
+        first: true,
+        skipSubstitutingColumnIds:
+          context.api_version === NcApiVersion.V3 &&
+          ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      });
     } catch (e) {
       // Check if this is a transient error (connection/timeout issue)
       const isTransient = isTransientError(e);

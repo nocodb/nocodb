@@ -3,15 +3,23 @@ const { t } = useI18n()
 
 const baseStore = useBase()
 
+const { user } = useGlobal()
+
 const { loadManagedApp, loadCurrentVersion } = baseStore
 
-const { base, isManagedAppMaster, isManagedAppInstaller, managedAppVersionsInfo } = storeToRefs(baseStore)
+const { base, isManagedAppMaster, isManagedAppInstaller, managedAppVersionsInfo, managedApp } = storeToRefs(baseStore)
 
 const isModalVisible = ref(false)
 
 const modalVariant = ref<'draftOrPublish' | 'versionHistory' | 'changelog' | undefined>(undefined)
 
 const isOpenDropdown = ref<boolean>(false)
+
+const isManagedAppOwner = computed(() => {
+  if (!managedApp.value) return false
+
+  return managedApp.value.created_by === user.value?.id
+})
 
 const isDraft = computed(() => managedAppVersionsInfo.value.current?.status === 'draft')
 
@@ -136,8 +144,9 @@ const badgeConfig = computed(() => {
               </template>
             </SmartsheetTopbarManagedAppStatusMenuItem>
 
-            <NcDivider class="!my-1" />
+            <NcDivider v-if="isManagedAppOwner" class="!my-1" />
             <SmartsheetTopbarManagedAppStatusMenuItem
+              v-if="isManagedAppOwner"
               clickable
               label="Fork to Draft"
               :subtext="`Create v${suggestManagedAppNextVersion(
@@ -165,9 +174,10 @@ const badgeConfig = computed(() => {
                 <span class="text-orange-600"> Editing Draft </span>
               </template>
             </SmartsheetTopbarManagedAppStatusMenuItem>
-            <NcDivider class="!my-1" />
+            <NcDivider v-if="isManagedAppOwner" class="!my-1" />
 
             <SmartsheetTopbarManagedAppStatusMenuItem
+              v-if="isManagedAppOwner"
               clickable
               icon-wrapper-class="bg-green-50 dark:bg-nc-green-20"
               @click="openModal('draftOrPublish')"
@@ -190,7 +200,7 @@ const badgeConfig = computed(() => {
 
           <!-- Initial draft state  -->
           <SmartsheetTopbarManagedAppStatusMenuItem
-            v-if="managedAppVersionsInfo.published && isDraft"
+            v-if="isManagedAppOwner && managedAppVersionsInfo.published && isDraft"
             clickable
             label="Discard Draft"
             :subtext="`Return to v${managedAppVersionsInfo.published.version || '1.0.0'}`"
@@ -200,10 +210,11 @@ const badgeConfig = computed(() => {
               <GeneralIcon icon="delete" class="text-nc-content-gray-muted" />
             </template>
           </SmartsheetTopbarManagedAppStatusMenuItem>
-          <NcDivider class="!my-1" />
+          <NcDivider v-if="isManagedAppOwner" class="!my-1" />
 
           <!-- Version history  -->
           <SmartsheetTopbarManagedAppStatusMenuItem
+            v-if="isManagedAppOwner"
             clickable
             label="View version history"
             subtext="Manage versions & track deployments"
@@ -280,6 +291,6 @@ const badgeConfig = computed(() => {
 }
 
 .nc-managed-app-status-menu-header {
-  @apply flex items-center justify-between gap-2 pt-3 px-3 mb-1 text-nc-content-gray-muted text-captionSm;
+  @apply flex items-center justify-between gap-2 pt-3 px-3.5 mb-1 text-nc-content-gray-muted text-captionSm;
 }
 </style>

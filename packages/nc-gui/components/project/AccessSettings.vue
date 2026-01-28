@@ -371,7 +371,7 @@ const getInheritanceInfo = (record: any) => {
     defaultBaseRole: base.value?.default_role,
   })
 
-  if (!effectiveRole || effectiveRole === ProjectRoles.INHERIT || effectiveRole === ProjectRoles.NO_ACCESS) {
+  if (!effectiveRole || effectiveRole === ProjectRoles.INHERIT) {
     return null
   }
 

@@ -72,7 +72,9 @@ export const lookupOrLtarBuilder =
       const parentModel = await parentColumn.getModel(parentContext);
       await parentModel.getColumns(parentContext);
 
-      let relationType = relation.type;
+      let relationType = isMMOrMMLike(relationCol)
+        ? RelationTypes.MANY_TO_MANY
+        : relation.type;
 
       if (relationType === RelationTypes.ONE_TO_ONE) {
         relationType = relationCol.meta?.bt

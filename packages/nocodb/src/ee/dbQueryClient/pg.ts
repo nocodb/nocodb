@@ -27,8 +27,8 @@ import type {
 } from '~/models';
 import type { XKnex } from '~/db/CustomKnex';
 import type { PagedResponseImpl } from 'src/helpers/PagedResponse';
-import { read } from '~/dbQueryClient/pg/read';
-import { list } from '~/dbQueryClient/pg/list';
+import { singleQueryRead } from '~/dbQueryClient/cross-db-utils/single-query-read';
+import { singleQueryList } from '~/dbQueryClient/cross-db-utils/single-query-list';
 import {
   extractSortsObject,
   getAs,
@@ -1308,7 +1308,7 @@ export class PGDBQueryClient
       apiVersion?: NcApiVersion;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
-    return read(this).singleQueryRead(context, ctx);
+    return singleQueryRead(this).read(context, ctx);
   }
 
   singleQueryList(
@@ -1334,6 +1334,6 @@ export class PGDBQueryClient
   ): Promise<
     PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
   > {
-    return list(this, this.logger).singleQueryList(context, ctx);
+    return singleQueryList(this, this.logger).list(context, ctx);
   }
 }

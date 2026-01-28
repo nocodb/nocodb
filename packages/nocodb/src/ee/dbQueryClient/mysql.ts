@@ -39,8 +39,8 @@ import { extractColumns } from '~/dbQueryClient/cross-db-utils/extract-columns';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { Column, Model, View } from '~/models';
 
-import { list } from '~/dbQueryClient/mysql/list';
-import { read } from '~/dbQueryClient/mysql/read';
+import { singleQueryRead } from '~/dbQueryClient/cross-db-utils/single-query-read';
+import { singleQueryList } from '~/dbQueryClient/cross-db-utils/single-query-list';
 
 export class MySqlDBQueryClient
   extends MySqlDBQueryClientCE
@@ -1201,7 +1201,7 @@ export class MySqlDBQueryClient
       apiVersion?: NcApiVersion;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
-    return read(this).singleQueryRead(context, ctx);
+    return singleQueryRead(this).read(context, ctx);
   }
 
   singleQueryList(
@@ -1227,6 +1227,6 @@ export class MySqlDBQueryClient
   ): Promise<
     PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
   > {
-    return list(this, this.logger).singleQueryList(context, ctx);
+    return singleQueryList(this, this.logger).list(context, ctx);
   }
 }

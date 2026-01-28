@@ -1,41 +1,32 @@
+import { nanoid } from 'nanoid';
 import { extractFilterFromXwhere, NcApiVersion } from 'nocodb-sdk';
+import debug from 'debug';
 import { normalizeIdForQuery } from '../utils';
-import type { DBQueryClient } from '~/dbQueryClient/types';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 import type { NcContext } from '~/interface/config';
 import type { Source, View } from '~/models';
-import NocoCache from '~/cache/NocoCache';
-import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
-import { _wherePk, getListArgs } from '~/db/BaseModelSqlv2';
-import conditionV2 from '~/db/conditionV2';
-import { haveFormulaColumn } from '~/helpers/dbHelpers';
-import getAst from '~/helpers/getAst';
-import { Filter, Model } from '~/models';
+import type { DBQueryClient } from '~/dbQueryClient/types';
 import {
   checkForCurrentUserFilters,
   checkForStaticDateValFilters,
   shouldSkipCache,
 } from '~/services/data-opt/common-helpers';
+import NocoCache from '~/cache/NocoCache';
+import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import { getListArgs } from '~/db/BaseModelSqlv2';
+import conditionV2 from '~/db/conditionV2';
+import { haveFormulaColumn } from '~/helpers/dbHelpers';
+import getAst from '~/helpers/getAst';
+import { Filter, Model } from '~/models';
 import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { isTransientError } from '~/helpers/db-error/utils';
 
-// generate a unique placeholder which is not present in the string
-function getUniquePlaceholders(
-  searchWithin: string,
-  initialVal = '__nc_placeholder__',
-) {
-  let placeholder = initialVal;
-  let i = 0;
-  while (searchWithin.includes(placeholder)) {
-    placeholder = initialVal + ++i;
-  }
-  return placeholder;
-}
+const debugSingleQueryRead = debug('nc:db:query:singleQueryRead');
 
-export const read = (client: DBQueryClient) => {
-  async function singleQueryRead(
+export const singleQueryRead = (client: DBQueryClient) => {
+  async function read(
     context: NcContext,
     ctx: {
       model: Model;
@@ -51,11 +42,9 @@ export const read = (client: DBQueryClient) => {
       extractOrderColumn?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
-    await ctx.model.getColumns(context);
+    client.validateClientType(ctx.source.type);
 
-    if (!['mysql', 'mysql2'].includes(ctx.source.type)) {
-      throw new Error('Source is not mysql');
-    }
+    await ctx.model.getColumns(context);
 
     // Normalize id: extract PK values if id is an object
     // For composite keys: keep as array, for single key: extract single value
@@ -69,6 +58,12 @@ export const read = (client: DBQueryClient) => {
     // get knex connection
     const knex = await NcConnectionMgrv2.get(ctx.source);
 
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: ctx.model.id,
+      viewId: ctx.view?.id,
+      dbDriver: knex,
+    });
+
     // Use bitwise flags: bit 0 (1) = getHiddenColumn, bit 1 (2) = extractOnlyPrimaries, bit 2 (4) = extractOrderColumn
     const flags =
       (ctx.getHiddenColumn ? 1 : 0) |
@@ -78,19 +73,6 @@ export const read = (client: DBQueryClient) => {
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
     }:read:${flags}`;
-
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: ctx.model.id,
-      viewId: ctx.view?.id,
-      dbDriver: knex,
-    });
-
-    // Build primary key condition object from normalized values
-    const pkCondition = ctx.model.primaryKeys.reduce((acc, pk, idx) => {
-      acc[pk.column_name] = normalizedIdValues[idx];
-      return acc;
-    }, {});
-
     if (!skipCache) {
       const cachedQuery = await NocoCache.get(
         context,
@@ -99,22 +81,16 @@ export const read = (client: DBQueryClient) => {
       );
       if (cachedQuery) {
         const res = await baseModel.execAndParse(
-          knex
-            .raw(
-              cachedQuery,
-              ctx.model.primaryKeys.map(
-                (pkCol) => pkCondition[pkCol.column_name],
-              ),
-            )
-            .toQuery(),
+          knex.raw(cachedQuery, normalizedIdValues).toQuery(),
           null,
           {
-            first: true,
             skipSubstitutingColumnIds:
               context.api_version === NcApiVersion.V3 &&
               ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+            first: true,
           },
         );
+
         return res;
       }
     }
@@ -139,13 +115,12 @@ export const read = (client: DBQueryClient) => {
       }, {}),
     );
 
-    const aliasColObjMap = await ctx.model.getAliasColObjMap(context);
+    const aliasColObjMap = await ctx.model.getAliasColObjMap(context, columns);
     // let sorts = extractSortsObject(listArgs?.sort, aliasColObjMap);
     const { filters: queryFilterObj } = extractFilterFromXwhere(
       context,
       listArgs?.where,
       aliasColObjMap,
-      ctx.throwErrorIfInvalidParams,
     );
 
     const viewFilters = ctx.view?.id
@@ -184,13 +159,8 @@ export const read = (client: DBQueryClient) => {
     ) {
       skipCache = true;
     }
-
-    // apply filters on root query and count query
+    // apply filters on root query
     await conditionV2(baseModel, aggrConditionObj, rootQb);
-    // await conditionV2(baseModel, aggrConditionObj, countQb);
-
-    // apply sort on root query
-    // if (sorts) await sortV2(baseModel, sorts, rootQb);
 
     const qb = knex.from(rootQb.as(ROOT_ALIAS));
 
@@ -227,7 +197,7 @@ export const read = (client: DBQueryClient) => {
     const { sql, bindings } = finalQb.toSQL();
 
     // get unique placeholder which is not present in the query
-    const idPlaceholder = getUniquePlaceholders(sql);
+    const idPlaceholder = nanoid();
 
     // // take care of composite primary key
     // const idPlaceholders = ctx.model.primaryKeys.map(() => idPlaceholder);
@@ -248,30 +218,21 @@ export const read = (client: DBQueryClient) => {
 
     let res;
     try {
-      res = await baseModel.execAndParse(
-        knex
-          .raw(
-            query,
-            ctx.model.primaryKeys.map(
-              (pkCol) => pkCondition[pkCol.column_name],
-            ),
-          )
-          .toQuery(),
-        null,
-        {
-          first: true,
-          skipSubstitutingColumnIds:
-            context.api_version === NcApiVersion.V3 &&
-            ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
-        },
-      );
+      const queryToExec = knex.raw(query, normalizedIdValues).toQuery();
+      debugSingleQueryRead(queryToExec);
+      res = await baseModel.execAndParse(queryToExec, null, {
+        first: true,
+        skipSubstitutingColumnIds:
+          context.api_version === NcApiVersion.V3 &&
+          ctx.params?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
+      });
     } catch (e) {
       // Check if this is a transient error (connection/timeout issue)
       const isTransient = isTransientError(e);
 
       if (isTransient || ctx.validateFormula || !haveFormulaColumn(columns))
         throw e;
-      return singleQueryRead(context, {
+      return read(context, {
         ...ctx,
         validateFormula: true,
       });
@@ -284,7 +245,8 @@ export const read = (client: DBQueryClient) => {
 
     return res;
   }
+
   return {
-    singleQueryRead,
+    read,
   };
 };

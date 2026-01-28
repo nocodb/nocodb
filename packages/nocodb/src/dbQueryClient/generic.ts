@@ -1,9 +1,17 @@
-import { arrFlatMap } from 'nocodb-sdk';
+import { arrFlatMap, ClientType } from 'nocodb-sdk';
 import type { DBQueryClient } from '~/dbQueryClient/types';
 import type { Knex, XKnex } from '~/db/CustomKnex';
 import type { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 export abstract class GenericDBQueryClient implements DBQueryClient {
+  get clientType(): ClientType {
+    return ClientType.PG;
+  }
+  validateClientType(client: string) {
+    if (client !== this.clientType) {
+      throw new Error('Source is not ' + this.clientType);
+    }
+  }
   temporaryTableRaw({
     knex,
     data,

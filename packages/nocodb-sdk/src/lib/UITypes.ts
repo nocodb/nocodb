@@ -481,12 +481,8 @@ export function isMMOrMMLike(
   col: ColumnType | { uidt: UITypes | string; colOptions?: any }
 ): boolean {
   if (typeof col === 'object') {
-    // Check if it's Links v2 (always MM-like because v2 uses junction tables for all relation types)
-    if (col.uidt === UITypes.Links) {
-      return true;
-    }
     // Check if it's LinkToAnotherRecord with version V2 (also MM-like)
-    if (col.uidt === UITypes.LinkToAnotherRecord && col.colOptions) {
+    if (isLinksOrLTAR(col) && col.colOptions) {
       if ((col.colOptions as LinkToAnotherRecordType)?.version === LinksVersion.V2) {
         return true;
       }

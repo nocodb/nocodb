@@ -196,11 +196,6 @@ export default class LinkToAnotherRecordColumn {
       'version',
     ]);
 
-    // if version is not provided, default to 2
-    if (insertObj.version === undefined) {
-      insertObj.version = 2;
-    }
-
     await ncMeta.metaInsert2(
       context.workspace_id,
       context.base_id,

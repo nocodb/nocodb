@@ -18,7 +18,13 @@ export default class LinksColumn
       return this.fk_child_column_id;
     } else if (this.type === 'mm') {
       return this.fk_parent_column_id;
+    } else if (this.type === 'bt') {
+      return this.fk_parent_column_id;
+    } else if (this.type === 'oo') {
+      return this.fk_parent_column_id;
     }
+    // Default fallback for any other types (mo, om, etc.)
+    return this.fk_parent_column_id;
   }
 
   async getRelationColumn(

@@ -564,7 +564,7 @@
       "editor": "Can add, edit, and delete records, but cannot modify base configurations",
       "commenter": "Can view and comment on records within the base",
       "viewer": "Can only view records within the base",
-      "inherit": "Inherits role from base-level team, or workspace level if no base-level team",
+      "inherit": "Will inherit role in this order: base level team or workspace level team or workspace member role",
       "no-access": "No access to this base",
       "super": "Full access to all",
       "org-level-creator": "Can fully configure and edit bases",

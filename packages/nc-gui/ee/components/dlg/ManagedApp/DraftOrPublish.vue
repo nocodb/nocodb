@@ -10,6 +10,9 @@ const emits = defineEmits(['update:visible'])
 const vVisible = useVModel(props, 'visible', emits)
 
 const { $api } = useNuxtApp()
+
+const { t } = useI18n()
+
 const baseStore = useBase()
 
 const { loadManagedApp, loadCurrentVersion } = baseStore
@@ -22,19 +25,21 @@ const isLoading = ref(false)
 
 const title = computed(() => {
   if (isDraft.value) {
-    return `Publish v${managedAppVersionsInfo.value.current?.version || '1.0.0'}?`
+    return `${t('general.publish')} v${managedAppVersionsInfo.value.current?.version || '1.0.0'}?`
   } else {
-    return `Fork to Draft`
+    return t('title.forkToDraft')
   }
 })
 
 const subTitle = computed(() => {
   if (isDraft.value) {
     return managedAppVersionsInfo.value.published
-      ? `Replace v${managedAppVersionsInfo.value.published.version || '1.0.0'} and go live`
-      : `Go live`
+      ? t('msg.replaceVersionAndGoLive', { version: `v${managedAppVersionsInfo.value.published.version || '1.0.0'}` })
+      : t('labels.goLive')
   } else {
-    return `Create v${suggestManagedAppNextVersion(managedAppVersionsInfo.value.published?.version || '1.0.0')} to make changes`
+    return t('msg.createVersionToMakeChanges', {
+      version: `v${suggestManagedAppNextVersion(managedAppVersionsInfo.value.published?.version || '1.0.0')}`,
+    })
   }
 })
 
@@ -77,7 +82,7 @@ const publishCurrentDraft = async () => {
 
     await loadManagedAppAndCurrentVersion()
 
-    message.success(`Version ${managedAppVersionsInfo.value.current?.version || '1.0.0'} published successfully!`)
+    message.success(t('msg.versionPublishedSuccessfully', { version: managedAppVersionsInfo.value.current?.version || '1.0.0' }))
 
     vVisible.value = false
   } catch (e: any) {
@@ -90,7 +95,7 @@ const publishCurrentDraft = async () => {
 const createNewDraft = async () => {
   if (!base.value?.fk_workspace_id || !base.value?.id || !managedApp.value?.id) return
   if (!forkForm.version) {
-    message.error('Please provide a version')
+    message.error(t('labels.pleaseProvideVersion'))
     return
   }
 
@@ -115,7 +120,7 @@ const createNewDraft = async () => {
 
     await loadManagedAppAndCurrentVersion()
 
-    message.success(`New draft version ${forkForm.version} created successfully!`)
+    message.success(t('msg.draftCreatedSuccessfully', { version: forkForm.version }))
 
     vVisible.value = false
   } catch (e: any) {
@@ -167,8 +172,8 @@ watch(
       <div class="space-y-4">
         <div>
           <label class="text-nc-content-gray text-sm font-medium mb-2 block">
-            <template v-if="isDraft"> Version </template>
-            <template v-else> New Version <span class="text-nc-content-red-dark">*</span> </template>
+            <template v-if="isDraft"> {{ $t('general.version') }} </template>
+            <template v-else> {{ $t('labels.newVersion') }} <span class="text-nc-content-red-dark">*</span> </template>
           </label>
           <a-input
             v-model:value="forkForm.version"
@@ -182,16 +187,16 @@ watch(
             </template>
           </a-input>
           <div v-if="!isDraft" class="text-xs text-nc-content-gray-subtle2 mt-1.5">
-            Use semantic versioning (e.g., 2.0.0, 2.1.0)
+            {{ $t('labels.semanticVersioningHint') }}
           </div>
         </div>
         <div v-if="isDraft">
-          <label class="text-nc-content-gray text-sm font-medium mb-2 block">Changelog</label>
+          <label class="text-nc-content-gray text-sm font-medium mb-2 block">{{ $t('general.changelog') }}</label>
           <div class="nc-changelog-editor-wrapper">
             <LazyCellRichText
               v-model:value="publishForm.releaseNotes"
               class="nc-changelog-editor allow-vertical-resize"
-              placeholder="Describe what's new in this version"
+              :placeholder="$t('labels.describeWhatsNew')"
               show-menu
               hide-mention
             />
@@ -207,14 +212,14 @@ watch(
           <template #icon>
             <GeneralIcon icon="upload" />
           </template>
-          Publish
+          {{ $t('general.publish') }}
         </NcButton>
 
         <NcButton v-else type="primary" size="small" :loading="isLoading" :disabled="!forkForm.version" @click="createNewDraft">
           <template #icon>
             <GeneralIcon icon="plus" />
           </template>
-          Create Draft
+          {{ $t('labels.createDraft') }}
         </NcButton>
       </div>
     </div>

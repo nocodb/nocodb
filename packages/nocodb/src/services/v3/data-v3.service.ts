@@ -320,7 +320,6 @@ export class DataV3Service {
   ) {
     const columns = param.modelInfo.columns;
     if (param.query.sort) {
-      
       let fieldsArr: string[] = [];
       let parsedSort: any[] = [];
 

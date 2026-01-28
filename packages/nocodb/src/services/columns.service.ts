@@ -9,7 +9,7 @@ import {
   isAIPromptCol,
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
-  isLinksOrLTAR,
+  isLinksOrLTAR, isLTARType,
   isMMOrMMLike,
   isServiceUser,
   isSystemColumn,
@@ -3893,7 +3893,7 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
         if (listRanges?.length) {
-          NcError.badRequest(
+          NcError.get(context).badRequest(
             `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
@@ -4515,9 +4515,7 @@ export class ColumnsService implements IColumnsService {
 
     // in new LTAR type we treat all relation similar to mm, so check if it's new type
     // version 1 is deprecated and will be removed in future
-    const isMMLike = (param.column as any).version !== LinksVersion.V1;
-
-    console.log({ isMMLike });
+    const isMMLike = ((!(param.column as any).version && isLTARType(param.column) && ![RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes((param.column as LinkToAnotherColumnReqType).type)) || (param.column as any).version && param.column as any).version !== LinksVersion.V1) ;
 
     // get table and refTable models
     const table = await Model.getWithInfo(context, {
@@ -4585,8 +4583,7 @@ export class ColumnsService implements IColumnsService {
 
     if (
       ((param.column as LinkToAnotherColumnReqType).type === 'hm' ||
-        (param.column as LinkToAnotherColumnReqType).type === 'bt') &&
-      !isMMLike
+        (param.column as LinkToAnotherColumnReqType).type === 'bt')
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
@@ -5014,7 +5011,7 @@ export class ColumnsService implements IColumnsService {
           singular:
             param.column['meta']?.singular || singularize(refTable.title),
         },
-
+        version: isMMLike ? 2: 1,
         // column_order and view_id if provided
         ...param.colExtra,
         // include cross base link props
@@ -5032,6 +5029,7 @@ export class ColumnsService implements IColumnsService {
         ),
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: revType,
+        version: isMMLike ? 2: 1,
 
         // ref_db_alias
         fk_model_id: refTable.id,

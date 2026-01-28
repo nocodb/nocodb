@@ -186,6 +186,80 @@ export class ManagedAppService {
   }
 
   /**
+   * Rollback the master base schema to a published version's snapshot
+   * Used when discarding a draft to restore the previous state
+   */
+  async rollbackToPublishedVersion({
+    masterBase,
+    masterContext,
+    publishedSchema,
+    publishedVersionId,
+  }: {
+    masterBase: Base;
+    masterContext: NcContext;
+    publishedSchema: BaseMetaSchema;
+    publishedVersionId: string;
+  }) {
+    // Validate that master is V3 base
+    if (masterBase.version !== BaseVersion.V3) {
+      throw new Error('Master base must be V3');
+    }
+
+    // Get master base's primary source for proper source_id override
+    const masterSources = await masterBase.getSources();
+    const masterSourceId = masterSources?.[0]?.id;
+
+    if (!masterSourceId) {
+      throw new Error(`No sources found in master base ${masterBase.id}`);
+    }
+
+    // Serialize current metadata from master base
+    const currentMeta = await serializeMeta(masterContext);
+
+    // Remap the published schema's source_id to match the master base's source
+    // (in case it was stored with a different source_id)
+    const remappedPublishedSchema = this.remapSourceId(
+      publishedSchema,
+      masterSourceId,
+    );
+
+    // Calculate diff (current is "old", published is "new" - we're reverting to published)
+    const diff = await diffMeta(currentMeta, remappedPublishedSchema);
+
+    // Apply the diff in a transaction
+    let trx: MetaService;
+    try {
+      trx = await Noco.ncMeta.startTransaction();
+
+      await applyMeta(masterContext, diff, trx);
+
+      // Update the master base's managed_app_version_id to the published version
+      await Base.update(
+        masterContext,
+        masterBase.id,
+        {
+          managed_app_version_id: publishedVersionId,
+        },
+        trx,
+      );
+
+      await trx.commit();
+
+      return {
+        success: true,
+        baseId: masterBase.id,
+        restoredToVersionId: publishedVersionId,
+        diff,
+      };
+    } catch (error) {
+      if (trx) {
+        await trx.rollback();
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Remap source_id in a serialized schema to a different source
    * This is needed when installing a sandbox to a different base
    * Similar to the override logic in serializeMeta

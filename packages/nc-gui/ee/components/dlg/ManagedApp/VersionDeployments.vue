@@ -12,6 +12,8 @@ const emits = defineEmits(['update:visible'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
+const { t } = useI18n()
+
 const { $api } = useNuxtApp()
 
 const baseStore = useBase()
@@ -104,8 +106,8 @@ const formatDate = (dateString: string) => {
 
 const getDeploymentTypeLabel = (type: string) => {
   const labels = {
-    install: 'Initial Install',
-    update: 'Update',
+    install: t('labels.initialInstall'),
+    update: t('general.update'),
   }
   return labels[type as keyof typeof labels] || type
 }
@@ -148,12 +150,12 @@ watch(
 
 <template>
   <div class="flex flex-col h-full">
-    <DlgManagedAppHeader v-model:visible="vVisible" title="Version Deployments">
+    <DlgManagedAppHeader v-model:visible="vVisible" :title="$t('title.versionDeployments')">
       <template #icon>
         <GeneralIcon icon="ncServer" class="w-5 h-5 text-white" />
       </template>
       <template #subTitle>
-        Tracking installations for
+        {{ $t('msg.trackingInstallationsFor') }}
         <span class="font-mono font-semibold text-nc-content-brand">v{{ version?.version }}</span>
       </template>
     </DlgManagedAppHeader>
@@ -162,7 +164,7 @@ watch(
     <div class="nc-deployments-content">
       <div v-if="isLoading" class="nc-deployments-loading">
         <a-spin size="large" />
-        <div class="text-sm text-nc-content-gray-muted mt-3">Loading deployments...</div>
+        <div class="text-sm text-nc-content-gray-muted mt-3">{{ $t('labels.loadingDeployments') }}</div>
       </div>
 
       <template v-else-if="deployments.length > 0">
@@ -205,12 +207,12 @@ watch(
               <div class="nc-deployment-logs">
                 <div class="nc-logs-header">
                   <GeneralIcon icon="ncFileText" class="w-4 h-4 text-nc-content-gray-subtle2" />
-                  <span>Deployment History</span>
+                  <span>{{ $t('labels.deploymentHistory') }}</span>
                 </div>
 
                 <div v-if="isLoadingLogs" class="nc-logs-loading">
                   <a-spin size="small" />
-                  <span class="text-xs text-nc-content-gray-muted ml-2">Loading history...</span>
+                  <span class="text-xs text-nc-content-gray-muted ml-2">{{ $t('labels.loadingHistory') }}</span>
                 </div>
 
                 <template v-else-if="deploymentLogs.length > 0">
@@ -268,7 +270,7 @@ watch(
 
                 <div v-else class="nc-logs-empty">
                   <GeneralIcon icon="inbox" class="w-8 h-8 text-nc-content-gray-subtle2 mb-2" />
-                  <div class="text-sm text-nc-content-gray-subtle2">No deployment history available</div>
+                  <div class="text-sm text-nc-content-gray-subtle2">{{ $t('labels.noDeploymentHistoryAvailable') }}</div>
                 </div>
               </div>
             </div>
@@ -281,7 +283,7 @@ watch(
         <div class="nc-empty-icon">
           <GeneralIcon icon="ncServer" class="w-10 h-10 text-nc-content-gray-muted" />
         </div>
-        <div class="text-base font-semibold text-nc-content-gray mb-1">No installations found</div>
+        <div class="text-base font-semibold text-nc-content-gray mb-1">{{ $t('labels.noInstallationsFound') }}</div>
         <div class="text-sm text-nc-content-gray-subtle max-w-md text-center">
           Version <span class="font-mono font-semibold">v{{ version?.version }}</span> hasn't been installed by any users yet
         </div>

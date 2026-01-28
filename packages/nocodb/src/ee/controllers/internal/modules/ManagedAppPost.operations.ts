@@ -37,6 +37,7 @@ export class ManagedAppPostOperations
     'managedAppDelete',
     'managedAppPublish',
     'managedAppCreateDraft',
+    'managedAppDiscardDraft',
     'managedAppInstall',
   ] as (keyof typeof OPERATION_SCOPES)[];
 
@@ -72,6 +73,8 @@ export class ManagedAppPostOperations
         return await this.publish(context, payload, req);
       case 'managedAppCreateDraft':
         return await this.createDraft(context, payload, req);
+      case 'managedAppDiscardDraft':
+        return await this.discardDraft(context, payload, req);
       case 'managedAppInstall':
         return await this.install(context, payload, req);
       default:
@@ -309,6 +312,101 @@ export class ManagedAppPostOperations
     return {
       message: 'New draft version created successfully',
       version: newDraft,
+    } as any;
+  }
+
+  private async discardDraft(context: NcContext, body: any, req: NcRequest) {
+    const { managedAppId } = body;
+
+    if (!managedAppId) {
+      NcError.get(context).badRequest('managedAppId is required');
+    }
+
+    const managedApp = await ManagedApp.get(managedAppId);
+    if (!managedApp) {
+      NcError.get(context).notFound('ManagedApp not found');
+    }
+
+    // Only owner can discard drafts
+    if (managedApp.created_by !== req.user.id) {
+      NcError.get(context).forbidden(
+        'Only the owner can discard drafts for this managed app',
+      );
+    }
+
+    const base = await Base.get(context, managedApp.base_id);
+    if (!base?.managed_app_master) {
+      NcError.get(context).badRequest(
+        'Only master managed apps can discard drafts',
+      );
+    }
+
+    // Get the current version (should be a draft)
+    const currentVersion = await ManagedAppVersion.get(
+      base.managed_app_version_id,
+    );
+    if (!currentVersion) {
+      NcError.get(context).notFound('Current version not found');
+    }
+
+    if (currentVersion.status !== ManagedAppVersionStatus.DRAFT) {
+      NcError.get(context).badRequest(
+        'Current version is not a draft. Nothing to discard.',
+      );
+    }
+
+    // Get all versions and find the latest published one
+    const versions = await ManagedAppVersion.list(managedAppId);
+    const publishedVersions = versions.filter(
+      (v) => v.status === ManagedAppVersionStatus.PUBLISHED,
+    );
+
+    if (!publishedVersions || publishedVersions.length === 0) {
+      NcError.get(context).badRequest(
+        'No published version found to rollback to. Cannot discard the only version.',
+      );
+    }
+
+    // Latest published version (versions are ordered by version_number DESC)
+    const latestPublishedVersion = publishedVersions[0];
+
+    // Get the published version's schema
+    const publishedSchema = latestPublishedVersion.getParsedSchema();
+    if (!publishedSchema) {
+      NcError.get(context).badRequest(
+        'Published version has no stored schema. Cannot rollback.',
+      );
+    }
+
+    const masterContext: NcContext = {
+      workspace_id: base.fk_workspace_id,
+      base_id: base.id,
+    };
+
+    // Rollback the master base schema to the published version
+    await this.managedAppService.rollbackToPublishedVersion({
+      masterBase: base,
+      masterContext,
+      publishedSchema,
+      publishedVersionId: latestPublishedVersion.id,
+    });
+
+    // Delete the draft version
+    await ManagedAppVersion.delete(currentVersion.id);
+
+    // Clear version cache
+    await NocoCache.del(
+      context,
+      `${CacheScope.MANAGED_APP_VERSION}:${currentVersion.id}`,
+    );
+
+    return {
+      message: 'Draft discarded successfully',
+      managedAppId,
+      discardedVersionId: currentVersion.id,
+      discardedVersion: currentVersion.version,
+      rolledBackToVersionId: latestPublishedVersion.id,
+      rolledBackToVersion: latestPublishedVersion.version,
     } as any;
   }
 

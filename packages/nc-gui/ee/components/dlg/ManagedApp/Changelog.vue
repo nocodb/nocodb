@@ -84,7 +84,11 @@ watch(vVisible, (val) => {
 
 <template>
   <div class="flex flex-col h-full">
-    <DlgManagedAppHeader v-model:visible="vVisible" title="Changelog" sub-title="Version history and updates" />
+    <DlgManagedAppHeader
+      v-model:visible="vVisible"
+      :title="$t('general.changelog')"
+      :sub-title="$t('labels.versionHistoryAndUpdates')"
+    />
 
     <div class="flex-1 nc-scrollbar-thin">
       <div class="nc-changelog-content">
@@ -134,7 +138,7 @@ watch(vVisible, (val) => {
                 v-html="parseChangelog(version.release_notes)"
               ></div>
               <div v-else class="nc-version-changelog-empty">
-                <span class="text-nc-content-gray-muted text-sm">No changelog available</span>
+                <span class="text-nc-content-gray-muted text-sm">{{ $t('labels.noChangelogAvailable') }}</span>
               </div>
 
               <!-- Update Button -->
@@ -155,15 +159,15 @@ watch(vVisible, (val) => {
           <div class="nc-empty-icon">
             <GeneralIcon icon="file" class="w-10 h-10 text-nc-content-gray-muted" />
           </div>
-          <div class="text-base font-semibold text-nc-content-gray mb-1">No versions available</div>
-          <div class="text-sm text-nc-content-gray-subtle">Version history will appear here once available.</div>
+          <div class="text-base font-semibold text-nc-content-gray mb-1">{{ $t('labels.noVersionsAvailable') }}</div>
+          <div class="text-sm text-nc-content-gray-subtle">{{ $t('labels.versionHistoryAppearHere') }}</div>
         </div>
       </div>
     </div>
 
     <div class="nc-changelog-footer">
       <span class="text-sm text-nc-content-gray-muted">
-        Currently on v{{ managedAppVersionsInfo.current?.version || '1.0.0' }}
+        {{ $t('msg.currentlyOnVersion', { version: `v${managedAppVersionsInfo.current?.version || '1.0.0'}` }) }}
       </span>
       <div class="flex items-center gap-3">
         <NcPagination
@@ -173,7 +177,7 @@ watch(vVisible, (val) => {
           :total="totalVersions"
           mode="simple"
         />
-        <NcButton type="secondary" size="small" @click="vVisible = false"> Done </NcButton>
+        <NcButton type="secondary" size="small" @click="vVisible = false"> {{ $t('general.done') }} </NcButton>
       </div>
     </div>
   </div>

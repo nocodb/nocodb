@@ -72,7 +72,11 @@ watch(
 
 <template>
   <div class="flex flex-col h-full">
-    <DlgManagedAppHeader v-model:visible="vVisible" title="Version History" sub-title="Manage versions and track deployments" />
+    <DlgManagedAppHeader
+      v-model:visible="vVisible"
+      :title="$t('title.versionHistory')"
+      :sub-title="$t('labels.manageVersionsAndTrackDeployments')"
+    />
 
     <div class="flex-1 nc-scrollbar-thin">
       <div
@@ -83,7 +87,7 @@ watch(
       >
         <div v-if="isLoadingDeployments" class="nc-deployments-loading">
           <a-spin size="large" />
-          <div class="text-sm text-nc-content-gray-muted mt-3">Loading deployment statistics...</div>
+          <div class="text-sm text-nc-content-gray-muted mt-3">{{ $t('labels.loadingDeploymentStatistics') }}</div>
         </div>
 
         <template v-else-if="deploymentStats">
@@ -92,25 +96,25 @@ watch(
             <!-- Total Deployments -->
             <div class="nc-stat-card">
               <div class="nc-stat-value">{{ deploymentStats.statistics?.totalDeployments || 0 }}</div>
-              <div class="nc-stat-label">Total Installs</div>
+              <div class="nc-stat-label">{{ $t('labels.totalInstalls') }}</div>
             </div>
 
             <!-- Active -->
             <div class="nc-stat-card">
               <div class="nc-stat-value text-green-600">{{ deploymentStats.statistics?.activeDeployments || 0 }}</div>
-              <div class="nc-stat-label">Active</div>
+              <div class="nc-stat-label">{{ $t('general.active') }}</div>
             </div>
 
             <!-- Failed -->
             <div class="nc-stat-card">
               <div class="nc-stat-value text-red-600">{{ deploymentStats.statistics?.failedDeployments || 0 }}</div>
-              <div class="nc-stat-label">Failed</div>
+              <div class="nc-stat-label">{{ $t('labels.failed') }}</div>
             </div>
 
             <!-- Versions -->
             <div class="nc-stat-card">
               <div class="nc-stat-value">{{ deploymentStats.statistics?.totalVersions || 0 }}</div>
-              <div class="nc-stat-label">Versions</div>
+              <div class="nc-stat-label">{{ $t('general.versions') }}</div>
             </div>
           </div>
 
@@ -118,19 +122,23 @@ watch(
           <div v-if="deploymentStats.versionStats && deploymentStats.versionStats.length > 0" class="nc-version-list-wrapper">
             <div class="nc-version-list-header">
               <div>
-                <h3 class="text-sm font-semibold text-nc-content-gray">Version History</h3>
+                <h3 class="text-sm font-semibold text-nc-content-gray">{{ $t('title.versionHistory') }}</h3>
 
                 <p class="text-xs text-nc-content-gray-subtle2 mt-0.5 mb-0">
                   {{ deploymentStats.versionStats.length }}
-                  {{ deploymentStats.versionStats.length === 1 ? 'version' : 'versions' }}
-                  published
+                  {{
+                    deploymentStats.versionStats.length === 1
+                      ? $t('general.version').toLowerCase()
+                      : $t('general.versions').toLowerCase()
+                  }}
+                  {{ $t('labels.published').toLowerCase() }}
                 </p>
               </div>
               <NcButton size="small" type="secondary" @click="showChangelogModal = true">
                 <template #icon>
                   <GeneralIcon icon="file" class="w-4 h-4" />
                 </template>
-                View Changelog
+                {{ $t('labels.viewChangelog') }}
               </NcButton>
             </div>
 
@@ -190,9 +198,9 @@ watch(
             <div class="nc-empty-icon">
               <GeneralIcon icon="ncServer" class="w-10 h-10 text-nc-content-gray-muted" />
             </div>
-            <div class="text-base font-semibold text-nc-content-gray mb-1">No installations yet</div>
+            <div class="text-base font-semibold text-nc-content-gray mb-1">{{ $t('labels.noInstallationsYet') }}</div>
             <div class="text-sm text-nc-content-gray-subtle max-w-md text-center">
-              Once users install your application from the App Store, their deployments will appear here.
+              {{ $t('labels.appStoreInstallationsDescription') }}
             </div>
           </div>
         </template>
@@ -201,13 +209,13 @@ watch(
           <div class="nc-error-icon">
             <GeneralIcon icon="alertTriangle" class="w-10 h-10 text-nc-content-red-dark" />
           </div>
-          <div class="text-base font-semibold text-nc-content-gray mb-1">Failed to load statistics</div>
-          <div class="text-sm text-nc-content-gray-subtle mb-4">There was an error loading deployment data</div>
+          <div class="text-base font-semibold text-nc-content-gray mb-1">{{ $t('labels.failedToLoadStatistics') }}</div>
+          <div class="text-sm text-nc-content-gray-subtle mb-4">{{ $t('labels.errorLoadingDeploymentData') }}</div>
           <NcButton size="small" type="secondary" @click="loadDeployments">
             <template #icon>
               <GeneralIcon icon="reload" />
             </template>
-            Retry
+            {{ $t('general.retry') }}
           </NcButton>
         </div>
       </div>

@@ -51,8 +51,8 @@ async function onChangeRole(val: SelectValue) {
 }
 
 const roleSelectorOptions = computed<NcListItemType[]>(() => {
-  return (props.disabledRoles || []).concat(props.roles || []).map(
-    (role: keyof typeof RoleLabels): NcListItemType => ({
+  return (props.disabledRoles || []).concat(props.roles || []).map((role: keyof typeof RoleLabels): NcListItemType => {
+    return {
       value: role,
       label: t(`objects.roleType.${RoleLabels[role]}`),
       description: t(`objects.roleDescription.${role}`),
@@ -60,8 +60,8 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
       color: RoleColors[role],
       ncItemDisabled: props.disabledRoles?.includes(role),
       ncItemTooltip: props.disabledRoles?.includes(role) ? props.disabledRolesTooltip?.[role] ?? '' : '',
-    }),
-  )
+    }
+  })
 })
 </script>
 
@@ -73,36 +73,18 @@ const roleSelectorOptions = computed<NcListItemType[]>(() => {
       default-slot-wrapper-class="flex-1 flex items-center gap-3"
       :placement="placement"
     >
-      <RolesBadge
-        :border="false"
-        :inherit="!!inherit && role === ProjectRoles.INHERIT"
-        :role="role"
-        :size="size"
-        clickable
-        data-testid="roles"
-        class="flex-none"
-      />
-      <NcTooltip
-        v-if="showInherit && isEeUI && !!inherit && role === ProjectRoles.INHERIT"
-        class="uppercase text-[10px] leading-4 text-nc-content-gray-muted"
-        placement="bottom"
-        :disabled="isDropdownOpen"
-      >
-        <template #title>
-          <div class="flex flex-col gap-1">
-            <div>
-              {{ inheritSource === 'team' ? $t('tooltip.roleInheritedFromTeam') : $t('tooltip.roleInheritedFromWorkspace') }}
-            </div>
-            <div v-if="effectiveRole" class="text-xs font-normal">
-              {{ $t('tooltip.effectiveRole', { role: $t(`objects.roleType.${effectiveRole}`) }) }}
-            </div>
-          </div>
-        </template>
-        <div class="flex items-center gap-1">
-          <RolesBadge v-if="effectiveRole" :border="false" :role="effectiveRole" icon-only nc-badge-class="!px-1" />
-          <span>{{ inheritSource === 'team' ? $t('objects.team') : $t('objects.workspace') }}</span>
+      <div class="flex flex-col gap-1 cursor-pointer">
+        <RolesBadge data-testid="roles" :border="false" :role="effectiveRole || role" :size="size" clickable class="flex-none" />
+        <div
+          v-if="showInherit && isEeUI && role === ProjectRoles.INHERIT && !!inherit"
+          class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
+        >
+          <GeneralIcon icon="role_inherit" class="h-3 w-3" />
+          <span>{{
+            inheritSource === 'team' ? $t('tooltip.roleInheritedFromTeam') : $t('tooltip.roleInheritedFromWorkspace')
+          }}</span>
         </div>
-      </NcTooltip>
+      </div>
 
       <template #overlay="{ onEsc }">
         <NcList

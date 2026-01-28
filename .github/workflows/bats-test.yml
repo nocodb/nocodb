@@ -43,6 +43,16 @@ jobs:
           WORKING_DIR="$(pwd)/docker-compose/1_Auto_Upstall/tests"
           echo "WORKING_DIR=$WORKING_DIR" >> $GITHUB_ENV
 
+      - name: Pre-pull Docker images
+        run: |
+          docker pull nocodb/nocodb:latest &
+          docker pull postgres:16.6 &
+          docker pull redis:latest &
+          docker pull minio/minio:latest &
+          docker pull traefik:v3.1 &
+          docker pull nickfedor/watchtower &
+          wait
+
       - name: Run BATS test
         run: bats ${{ matrix.test }}
         env:

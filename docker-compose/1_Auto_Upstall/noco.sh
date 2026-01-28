@@ -1028,7 +1028,7 @@ EOF
 	if [ "${CONFIG_WATCHTOWER_ENABLED}" = "Y" ]; then
 		cat >>"$compose_file" <<EOF
   watchtower:
-    image: containrrr/watchtower
+    image: nickfedor/watchtower
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --schedule "0 2 * * 6" --cleanup
@@ -1109,7 +1109,10 @@ EOF
 create_update_script() {
 	cat >./update.sh <<EOF
 #!/bin/bash
-$CONFIG_DOCKER_COMMAND compose pull
+if ! timeout 300 $CONFIG_DOCKER_COMMAND compose pull; then
+	echo "Failed to pull Docker images. Please check your network connection and try again."
+	exit 1
+fi
 $CONFIG_DOCKER_COMMAND compose up -d --force-recreate
 $CONFIG_DOCKER_COMMAND image prune -a -f
 EOF
@@ -1118,7 +1121,10 @@ EOF
 }
 
 start_services() {
-	$CONFIG_DOCKER_COMMAND compose pull
+	if ! timeout 300 $CONFIG_DOCKER_COMMAND compose pull; then
+		print_error "Failed to pull Docker images. Please check your network connection and try again."
+		exit 1
+	fi
 	$CONFIG_DOCKER_COMMAND compose up -d
 	print_empty_line
 	print_empty_line
@@ -1281,7 +1287,10 @@ restart_service() {
 
 upgrade_service() {
 	echo -e "\nUpgrading nocodb..."
-	$CONFIG_DOCKER_COMMAND compose pull
+	if ! timeout 300 $CONFIG_DOCKER_COMMAND compose pull; then
+		print_error "Failed to pull Docker images. Please check your network connection and try again."
+		return 1
+	fi
 	$CONFIG_DOCKER_COMMAND compose up -d --force-recreate
 	$CONFIG_DOCKER_COMMAND image prune -a -f
 }

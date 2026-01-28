@@ -85,7 +85,7 @@ services:
   watchtower: 
     command: "--schedule \"0 5 * * *\" --cleanup --label-enable"
     container_name: watchtower
-    image: containrrr/watchtower
+    image: nickfedor/watchtower
     labels: 
       - com.centurylinklabs.watchtower.enable=true
     networks: 

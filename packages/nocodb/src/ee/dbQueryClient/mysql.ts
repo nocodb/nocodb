@@ -35,6 +35,7 @@ import conditionV2, { extractLinkRelFiltersAndApply } from '~/db/conditionV2';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
 import sortV2 from '~/db/sortV2';
+import { NC_MAX_TEXT_LENGTH } from '~/constants';
 import { extractColumns } from '~/dbQueryClient/cross-db-utils/extract-columns';
 import { sanitize } from '~/helpers/sqlSanitize';
 import { Column, Model, View } from '~/models';
@@ -1147,6 +1148,20 @@ export class MySqlDBQueryClient
           ]),
         );
         break;
+      }
+      case UITypes.LongText: {
+        if ((baseModel.dbDriver as any).isExternal) {
+          qb.select(
+            knex.raw(`SUBSTR(??.??, 1, ?) as ??`, [
+              rootAlias,
+              sanitize(column.column_name),
+              NC_MAX_TEXT_LENGTH,
+              getAs(column),
+            ]),
+          );
+          break;
+        }
+        // Else fall through
       }
       default:
         {

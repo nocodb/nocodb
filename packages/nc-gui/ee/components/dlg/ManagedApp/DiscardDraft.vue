@@ -21,8 +21,6 @@ const { base, managedApp, managedAppVersionsInfo } = storeToRefs(baseStore)
 
 const isLoading = ref(false)
 
-const modalRef = ref<HTMLElement>()
-
 const loadManagedAppAndCurrentVersion = async () => {
   await loadManagedApp()
   await loadCurrentVersion()
@@ -61,33 +59,23 @@ const discardDraft = async () => {
     isLoading.value = false
   }
 }
-
-onKeyStroke('Escape', () => {
-  if (vVisible.value && !isLoading.value) vVisible.value = false
-})
-
-watch(vVisible, (value) => {
-  if (value) {
-    setTimeout(() => {
-      modalRef.value?.focus()
-    }, 100)
-  }
-})
 </script>
 
 <template>
-  <GeneralModal v-model:visible="vVisible" size="small" centered>
-    <div ref="modalRef" class="flex flex-col p-6">
-      <div class="flex flex-row pb-2 mb-3 font-medium text-lg text-nc-content-gray">
-        {{ $t('title.discardDraft') }}
-      </div>
+  <div class="flex flex-col h-full">
+    <DlgManagedAppHeader v-model:visible="vVisible" :title="$t('title.discardDraft')">
+      <template #icon>
+        <GeneralIcon icon="delete" class="w-5 h-5 text-white" />
+      </template>
+    </DlgManagedAppHeader>
 
+    <div class="flex-1 nc-scrollbar-thin p-4">
       <div class="mb-3 text-nc-content-gray">
         {{ $t('msg.discardDraftConfirmation') }}
       </div>
 
       <!-- Version info preview -->
-      <div class="flex flex-col gap-2 mb-3">
+      <div class="flex flex-col gap-2">
         <div class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle">
           <GeneralIcon icon="edit" class="text-orange-600 w-4 h-4" />
           <div class="pl-3 flex-1">
@@ -103,26 +91,32 @@ watch(vVisible, (value) => {
           </div>
         </div>
       </div>
-
-      <div class="flex flex-row gap-x-2 mt-2.5 pt-2.5 justify-end">
-        <NcButton type="secondary" size="small" :disabled="isLoading" @click="vVisible = false">
-          {{ $t('general.cancel') }}
-        </NcButton>
-
-        <NcButton
-          key="submit"
-          type="danger"
-          size="small"
-          :loading="isLoading"
-          data-testid="nc-discard-draft-btn"
-          @click="discardDraft"
-        >
-          {{ $t('labels.discardDraft') }}
-          <template #loading>
-            {{ $t('labels.discarding') }}
-          </template>
-        </NcButton>
-      </div>
     </div>
-  </GeneralModal>
+
+    <div class="nc-discard-footer">
+      <NcButton type="secondary" size="small" :disabled="isLoading" @click="vVisible = false">
+        {{ $t('general.cancel') }}
+      </NcButton>
+
+      <NcButton
+        key="submit"
+        type="danger"
+        size="small"
+        :loading="isLoading"
+        data-testid="nc-discard-draft-btn"
+        @click="discardDraft"
+      >
+        {{ $t('labels.discardDraft') }}
+        <template #loading>
+          {{ $t('labels.discarding') }}
+        </template>
+      </NcButton>
+    </div>
+  </div>
 </template>
+
+<style lang="scss" scoped>
+.nc-discard-footer {
+  @apply px-4 py-3 flex items-center justify-end gap-2;
+}
+</style>

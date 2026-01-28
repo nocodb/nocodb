@@ -4,7 +4,7 @@ interface Props {
   modalSize: 'small' | 'medium' | 'large' | keyof typeof modalSizes
   title?: string
   subTitle?: string
-  variant?: 'draftOrPublish' | 'versionHistory' | 'changelog'
+  variant?: 'draftOrPublish' | 'versionHistory' | 'changelog' | 'discardDraft'
   contentClass?: string
   maskClosable?: boolean
 }
@@ -19,7 +19,14 @@ const emits = defineEmits(['update:visible'])
 
 const vVisible = useVModel(props, 'visible', emits)
 
-const { modalSize, variant } = toRefs(props)
+const { modalSize: _modalSize, variant } = toRefs(props)
+
+const modalSize = computed(() => {
+  if (variant.value === 'discardDraft') {
+    return 'small'
+  }
+  return _modalSize.value
+})
 </script>
 
 <template>
@@ -39,6 +46,9 @@ const { modalSize, variant } = toRefs(props)
     </template>
     <template v-else-if="variant === 'changelog'">
       <DlgManagedAppChangelog v-model:visible="vVisible" />
+    </template>
+    <template v-else-if="variant === 'discardDraft'">
+      <DlgManagedAppDiscardDraft v-model:visible="vVisible" />
     </template>
     <template v-else>
       <slot name="header">

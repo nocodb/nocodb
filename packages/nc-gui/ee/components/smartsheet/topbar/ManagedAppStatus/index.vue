@@ -9,15 +9,13 @@ const { base, isManagedAppMaster, isManagedAppInstaller, managedAppVersionsInfo 
 
 const isModalVisible = ref(false)
 
-const isDiscardDraftModalVisible = ref(false)
-
-const modalVariant = ref<'draftOrPublish' | 'versionHistory' | 'changelog' | undefined>(undefined)
+const modalVariant = ref<'draftOrPublish' | 'versionHistory' | 'changelog' | 'discardDraft' | undefined>(undefined)
 
 const isOpenDropdown = ref<boolean>(false)
 
 const isDraft = computed(() => managedAppVersionsInfo.value.current?.status === 'draft')
 
-const openModal = (variant?: 'draftOrPublish' | 'versionHistory' | 'changelog') => {
+const openModal = (variant?: 'draftOrPublish' | 'versionHistory' | 'changelog' | 'discardDraft') => {
   isOpenDropdown.value = false
 
   modalVariant.value = variant
@@ -30,11 +28,6 @@ const openModal = (variant?: 'draftOrPublish' | 'versionHistory' | 'changelog') 
 const loadManagedAppAndCurrentVersion = async () => {
   await loadManagedApp()
   await loadCurrentVersion()
-}
-
-const openDiscardDraftModal = () => {
-  isOpenDropdown.value = false
-  isDiscardDraftModalVisible.value = true
 }
 
 watch(
@@ -202,7 +195,7 @@ const badgeConfig = computed(() => {
             :label="$t('labels.discardDraft')"
             :subtext="`${$t('labels.returnTo')} v${managedAppVersionsInfo.published.version || '1.0.0'}`"
             icon-wrapper-class="bg-nc-bg-gray-light"
-            @click="openDiscardDraftModal"
+            @click="openModal('discardDraft')"
           >
             <template #icon>
               <GeneralIcon icon="delete" class="text-nc-content-gray-muted" />
@@ -279,9 +272,7 @@ const badgeConfig = computed(() => {
     </template>
   </NcDropdown>
 
-  <DlgManagedApp v-model:visible="isModalVisible" modal-size="sm" :variant="modalVariant"> </DlgManagedApp>
-
-  <DlgManagedAppDiscardDraft v-model:visible="isDiscardDraftModalVisible" />
+  <DlgManagedApp v-model:visible="isModalVisible" modal-size="sm" :variant="modalVariant" />
 </template>
 
 <style lang="scss" scoped>

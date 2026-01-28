@@ -35,6 +35,7 @@ import {
   PermissionKey,
   RelationTypes,
   UITypes,
+  parseHelper,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type {
@@ -6890,7 +6891,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         }
       } else if (isAIPromptCol(column) && !extra?.raw) {
         if (data[column.column_name]) {
-          let value = data[column.column_name];
+          // value can be stringified object or string
+          let value = parseHelper(data[column.column_name]);
+
           /**
            * IsAiEdited is used to fix edited by ai issue in expanded form as cookie?.system will be undefined in that case
            */
@@ -6900,7 +6903,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
             isAiEdited = value.isAiEdited;
             delete value.isAiEdited;
 
-            value = value.value;
+            value = value.value?.toString() ?? '';
+          } else {
+            value = value?.toString() ?? '';
           }
 
           const obj: {

@@ -151,6 +151,8 @@ export const useRolesShared = createSharedComposable(() => {
       roles?: string | Record<string, boolean> | string[] | null
       source?: MaybeRef<SourceType & { meta?: Record<string, any> }>
       skipSourceCheck?: boolean
+      base?: MaybeRef<NcProject>
+      skipBaseCheck?: boolean
     } = {},
   ) => {
     const { roles } = args

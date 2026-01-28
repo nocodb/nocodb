@@ -1,6 +1,7 @@
 import MarkdownIt from 'markdown-it'
 import mdTaskList from 'markdown-it-task-lists'
 import type { UserType } from 'nocodb-sdk'
+import DOMPurify from 'isomorphic-dompurify'
 import { mdImageAsText, mdLinkRuleSetupExt } from '.'
 import { parseUserMention } from '~/helpers/tiptap-markdown/extensions'
 
@@ -135,7 +136,22 @@ export class NcMarkdownParser {
 
     // If content is a string, parse it
     if (ncIsString(content)) {
-      return parser.md.render(NcMarkdownParser.preprocessMarkdown(content))
+      const rendered = parser.md.render(NcMarkdownParser.preprocessMarkdown(content))
+
+      // Sanitize the rendered HTML to prevent XSS attacks
+      return DOMPurify.sanitize(rendered, {
+        ALLOWED_TAGS: [
+          'p', 'br', 'strong', 'em', 'u', 's', 'a', 'ul', 'ol', 'li',
+          'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre',
+          'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'div', 'span',
+          'input', 'label', // for markdown task lists
+        ],
+        ALLOWED_ATTR: [
+          'href', 'target', 'rel', 'class', 'src', 'alt', 'title',
+          'type', 'checked', 'disabled', 'id', 'for',
+        ],
+        ALLOW_DATA_ATTR: false,
+      })
     }
 
     return content

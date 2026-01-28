@@ -20,7 +20,7 @@ jobs:
     runs-on: [self-hosted, v3, aws]
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Dependency Review
         uses: actions/dependency-review-action@v4

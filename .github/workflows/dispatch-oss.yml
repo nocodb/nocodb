@@ -9,7 +9,7 @@ jobs:
   push:
     runs-on: ubuntu-22.04
     steps:
-    - uses: actions/github-script@v6
+    - uses: actions/github-script@v8
       with:
         github-token: ${{ secrets.OSS_DISPATCH }}
         script: |

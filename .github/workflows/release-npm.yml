@@ -42,13 +42,13 @@ jobs:
         with:
           version: 9
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
       - name: pnpm Setup and Publish with 18.19.1
         # Setup .npmrc file to publish to npm
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
           registry-url: "https://registry.npmjs.org"
@@ -80,7 +80,7 @@ jobs:
       - name: Create Pull Request
         if: ${{ github.event.inputs.targetEnv == 'PROD' || inputs.targetEnv == 'PROD' }}
         id: cpr
-        uses: peter-evans/create-pull-request@v4.2.3
+        uses: peter-evans/create-pull-request@v8
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

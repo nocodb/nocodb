@@ -307,6 +307,14 @@ function isTransientErrorTests() {
       expect(isTransientError(error)).to.be.true;
     });
 
+    it('should identify Knex connection pool timeout', () => {
+      const error = {
+        message:
+          'Knex: Timeout acquiring a connection. The pool is probably full. Are you missing a .transacting(trx) call?',
+      };
+      expect(isTransientError(error)).to.be.true;
+    });
+
     it('should identify network partition', () => {
       const error = {
         code: 'EHOSTUNREACH',

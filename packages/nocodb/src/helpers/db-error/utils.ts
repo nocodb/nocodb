@@ -121,6 +121,7 @@ export function isTransientError(error: any): boolean {
       'unable to connect',
       'lost connection',
       'connection was killed',
+      'timeout acquiring a connection', // Knex connection pool timeout
     ];
 
     if (specificPatterns.some((pattern) => errorMessage.includes(pattern))) {

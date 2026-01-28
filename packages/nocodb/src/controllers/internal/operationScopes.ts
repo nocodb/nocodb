@@ -135,6 +135,7 @@ export const OPERATION_SCOPES = {
   managedAppDelete: 'base',
   managedAppPublish: 'base',
   managedAppCreateDraft: 'base',
+  managedAppDiscardDraft: 'base',
   managedAppUnpublish: 'base',
   managedAppInstall: 'workspace',
   managedAppGetUpdates: 'base',

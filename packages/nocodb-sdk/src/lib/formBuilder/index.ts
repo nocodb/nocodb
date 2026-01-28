@@ -1,4 +1,4 @@
-import { BaseType } from "../Api";
+import { BaseType } from '../Api';
 
 export enum FormBuilderInputType {
   Input = 'input',
@@ -84,6 +84,7 @@ export enum FormBuilderValidatorType {
  * Base validator configuration
  */
 interface FormBuilderValidatorBase {
+  type: FormBuilderValidatorType;
   /** Custom error message to display when validation fails */
   message?: string;
 }
@@ -127,7 +128,8 @@ export interface FormBuilderMaxValueValidator extends FormBuilderValidatorBase {
 /**
  * MinLength validator - validates minimum string length
  */
-export interface FormBuilderMinLengthValidator extends FormBuilderValidatorBase {
+export interface FormBuilderMinLengthValidator
+  extends FormBuilderValidatorBase {
   type: FormBuilderValidatorType.MinLength;
   /** Minimum string length */
   value: number;
@@ -136,7 +138,8 @@ export interface FormBuilderMinLengthValidator extends FormBuilderValidatorBase 
 /**
  * MaxLength validator - validates maximum string length
  */
-export interface FormBuilderMaxLengthValidator extends FormBuilderValidatorBase {
+export interface FormBuilderMaxLengthValidator
+  extends FormBuilderValidatorBase {
   type: FormBuilderValidatorType.MaxLength;
   /** Maximum string length */
   value: number;
@@ -157,7 +160,8 @@ export interface FormBuilderUrlValidator extends FormBuilderValidatorBase {
 }
 
 export interface CustomFormBuilderValidator extends FormBuilderValidatorBase {
-  validator: (rule: any, value: any) => Promise<any>
+  type: FormBuilderValidatorType.Custom;
+  validator: (rule: any, value: any) => Promise<any>;
 }
 
 /**

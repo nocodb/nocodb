@@ -4515,7 +4515,14 @@ export class ColumnsService implements IColumnsService {
 
     // in new LTAR type we treat all relation similar to mm, so check if it's new type
     // version 1 is deprecated and will be removed in future
-    const isMMLike = ((!(param.column as any).version && isLTARType(param.column) && ![RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes((param.column as LinkToAnotherColumnReqType).type)) || (param.column as any).version && param.column as any).version !== LinksVersion.V1) ;
+    const isMMLike =
+      (!(param.column as any).version &&
+        isLTARType(param.column) &&
+        ![RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes(
+          (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
+        )) ||
+      ((param.column as any).version &&
+        (param.column as any).version !== LinksVersion.V1);
 
     // get table and refTable models
     const table = await Model.getWithInfo(context, {

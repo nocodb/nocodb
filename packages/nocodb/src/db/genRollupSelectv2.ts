@@ -308,7 +308,7 @@ export default async function genRollupSelectv2(param: {
       const mmModel = await relationColumnOption.getMMModel(mmContext);
 
       if (!mmModel) {
-        return this.dbDriver.raw(`?`, [
+        return knex.raw(`?`, [
           NcDataErrorCodes.NC_ERR_MM_MODEL_NOT_FOUND,
         ]);
       }

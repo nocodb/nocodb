@@ -1,13 +1,13 @@
-import { RelationTypes } from 'nocodb-sdk';
+import { isMMOrMMLike, RelationTypes, UITypes } from 'nocodb-sdk';
 import type CustomKnex from '~/db/CustomKnex';
 import type { Column, LinkToAnotherRecordColumn } from '~/models';
 import type { FilterOptions } from '~/db/field-handler/field-handler.interface';
 import type { Knex } from '~/db/CustomKnex';
+import { Filter, Model } from '~/models';
 import {
   getAlias,
   negatedMapping,
 } from '~/db/field-handler/utils/handlerUtils';
-import { Filter, Model } from '~/models';
 import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
 export class LtarGeneralHandler extends GenericFieldHandler {
@@ -25,6 +25,7 @@ export class LtarGeneralHandler extends GenericFieldHandler {
       throwErrorIfInvalid,
       conditionParser: parseConditionV2,
     } = options;
+    const isMMLike = isMMOrMMLike(column);
     const colOptions = (await column.getColOptions(
       context,
     )) as LinkToAnotherRecordColumn;
@@ -40,7 +41,7 @@ export class LtarGeneralHandler extends GenericFieldHandler {
     const parentModel = await parentColumn.getModel(parentContext);
     await parentModel.getColumns(parentContext);
 
-    let relationType = colOptions.type;
+    let relationType = isMMLike ? RelationTypes.MANY_TO_MANY : colOptions.type;
 
     if (relationType === RelationTypes.ONE_TO_ONE) {
       relationType = column.meta?.bt

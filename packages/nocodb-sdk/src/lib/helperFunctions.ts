@@ -33,7 +33,7 @@ const isSystemColumn = (col): boolean =>
 const isSelfReferencingTableColumn = (col): boolean => {
   return (
     col &&
-    (col.uidt === UITypes.Links || col.uidt === UITypes.LinkToAnotherRecord) &&
+    isLinksOrLTAR(col) &&
     (col?.fk_model_id || col?.colOptions?.fk_model_id) &&
     col?.colOptions?.fk_related_model_id &&
     (col?.fk_model_id || col?.colOptions?.fk_model_id) ===

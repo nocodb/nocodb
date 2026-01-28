@@ -12957,7 +12957,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -13070,7 +13071,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -13296,7 +13298,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -14911,7 +14914,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -22325,6 +22329,7 @@
               "LastModifiedTime",
               "LongText",
               "LinkToAnotherRecord",
+              "LinkToAnotherRecordV2",
               "Lookup",
               "MultiSelect",
               "Number",
@@ -25622,6 +25627,8 @@
               "bt",
               "hm",
               "mm",
+              "om",
+              "mo",
               "oo"
             ],
             "type": "string",
@@ -25630,6 +25637,7 @@
           "uidt": {
             "enum": [
               "LinkToAnotherRecord",
+              "LinkToAnotherRecordV2",
               "Links"
             ],
             "type": "string",
@@ -25671,7 +25679,8 @@
             "order": "string",
             "type": "string",
             "ur": "string",
-            "virtual": true
+            "virtual": true,
+            "version": 2
           }
         ],
         "properties": {
@@ -25739,6 +25748,9 @@
           },
           "fk_mm_source_id": {
             "type": "string"
+          },
+          "version": {
+            "type": "number"
           }
         },
         "title": "LinkToAnotherRecord Model",
@@ -26196,6 +26208,7 @@
               "LastModifiedTime",
               "LongText",
               "LinkToAnotherRecord",
+              "LinkToAnotherRecordV2",
               "Lookup",
               "MultiSelect",
               "Number",

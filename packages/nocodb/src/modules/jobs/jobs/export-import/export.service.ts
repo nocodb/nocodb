@@ -5,6 +5,7 @@ import {
   getFirstNonPersonalView,
   isCrossBaseLink,
   isLinksOrLTAR,
+  isLinkV2,
   isSystemColumn,
   isVirtualCol,
   LongTextAiMetaProp,
@@ -871,9 +872,17 @@ export class ExportService {
     const mmColumns = param._fieldIds
       ? model.columns
           .filter((c) => param._fieldIds?.includes(c.id))
-          .filter((col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm')
+          .filter(
+            (col) =>
+              (isLinksOrLTAR(col) &&
+                col.colOptions?.type === RelationTypes.MANY_TO_MANY) ||
+              isLinkV2(col),
+          )
       : model.columns.filter(
-          (col) => isLinksOrLTAR(col) && col.colOptions?.type === 'mm',
+          (col) =>
+            (isLinksOrLTAR(col) &&
+              col.colOptions?.type === RelationTypes.MANY_TO_MANY) ||
+            isLinkV2(col),
         );
 
     const hasLink = !dataExportMode && mmColumns.length > 0;

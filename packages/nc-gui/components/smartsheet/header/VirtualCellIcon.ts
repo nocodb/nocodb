@@ -13,8 +13,10 @@ export const renderIcon = (column: ColumnType, relationColumn?: ColumnType) => {
         case RelationTypes.MANY_TO_MANY:
           return { icon: iconMap.mm_solid }
         case RelationTypes.HAS_MANY:
+        case RelationTypes.ONE_TO_MANY:
           return { icon: iconMap.hm_solid }
         case RelationTypes.BELONGS_TO:
+        case RelationTypes.MANY_TO_ONE:
           return { icon: iconMap.bt_solid }
         case RelationTypes.ONE_TO_ONE:
           return { icon: iconMap.oneToOneSolid, color: 'text-purple-500' }

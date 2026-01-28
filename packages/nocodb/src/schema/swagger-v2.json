@@ -8920,7 +8920,8 @@
               "mm",
               "hm",
               "bt",
-              "oo"
+              "oo",
+              "ln"
             ]
           },
           "name": "relationType",
@@ -16100,7 +16101,9 @@
               "bt",
               "hm",
               "mm",
-              "oo"
+              "oo",
+              "mo",
+              "om"
             ],
             "type": "string",
             "description": "The type of the relationship"
@@ -16149,7 +16152,8 @@
             "order": "string",
             "type": "string",
             "ur": "string",
-            "virtual": true
+            "virtual": true,
+            "version": 2
           }
         ],
         "properties": {
@@ -16199,6 +16203,9 @@
           },
           "ur": {
             "type": "string"
+          },
+          "version": {
+            "type": "number"
           },
           "virtual": {
             "$ref": "#/components/schemas/Bool"
@@ -17070,7 +17077,10 @@
             "type": "string",
             "enum": [
               "hm",
-              "mm"
+              "mm",
+              "om",
+              "mo",
+              "oo"
             ]
           },
           "fk_child_column_id": {
@@ -17268,6 +17278,7 @@
             "QrCode": "#/components/schemas/FieldTypeQrCode",
             "Links": "#/components/schemas/FieldTypeLinks",
             "LinkToAnotherRecord": "#/components/schemas/FieldTypeLinkToAnotherRecord",
+            "LinkToAnotherRecordV2": "#/components/schemas/FieldTypeLinkToAnotherRecord",
             "Lookup": "#/components/schemas/FieldTypeLookup",
             "Rollup": "#/components/schemas/FieldTypeRollup",
             "ID": "#/components/schemas/FieldTypeID",

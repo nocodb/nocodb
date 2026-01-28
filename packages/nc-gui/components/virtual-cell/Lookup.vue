@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, type LookupType, isMMOrMMLike } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 
 const { getMeta, getMetaByKey } = useMetas()
@@ -355,6 +355,7 @@ const attachmentUrl = computed(() => getPossibleAttachmentSrc(arrValue.value[0])
               v-if="
                 lookupColumn.uidt !== UITypes.LinkToAnotherRecord ||
                 (lookupColumn.uidt === UITypes.LinkToAnotherRecord &&
+                  !isMMOrMMLike(lookupColumn) &&
                   [RelationTypes.BELONGS_TO, RelationTypes.ONE_TO_ONE].includes(lookupColumn.colOptions.type))
               "
             >

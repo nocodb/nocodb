@@ -2,6 +2,7 @@ import {
   AuditV1OperationTypes,
   checkboxIconList,
   durationOptions,
+  isLinksOrLTAR,
   isSystemColumn,
   isVirtualCol,
   ratingIconList,
@@ -397,10 +398,7 @@ export const extractRefColumnIfFound = async ({
   }
 
   // if Links / LTAR column extract the ref table title and column title
-  if (
-    column.uidt === UITypes.Links ||
-    column.uidt === UITypes.LinkToAnotherRecord
-  ) {
+  if (isLinksOrLTAR(column)) {
     const refTable = await Model.get(
       context,
       column.child_id ||

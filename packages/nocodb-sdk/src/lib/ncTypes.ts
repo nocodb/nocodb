@@ -19,6 +19,10 @@ export interface NcContext {
   suppressDependencyEvaluation?: boolean;
   additionalContext?: Record<string, any>;
   schema_locked?: boolean;
+  cache?: boolean;
+  cacheMap?: any;
+  permissions?: any;
+  is_api_token?: boolean;
 }
 
 export interface NcRequest extends Partial<Request> {

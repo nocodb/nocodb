@@ -592,7 +592,7 @@ export default class PrincipalAssignment {
         await NocoCache.deepDel(
           context,
           `${CacheScope.BASE_USER}:${resourceId}`,
-          CacheDelDirection.CHILD_TO_PARENT,
+          CacheDelDirection.PARENT_TO_CHILD,
         );
       } else if (resourceType === ResourceTypeEnum.WORKSPACE) {
         // Clear BASE_USER cache for all bases in this workspace
@@ -606,7 +606,7 @@ export default class PrincipalAssignment {
             await NocoCache.deepDel(
               baseContext,
               `${CacheScope.BASE_USER}:${base.id}`,
-              CacheDelDirection.CHILD_TO_PARENT,
+              CacheDelDirection.PARENT_TO_CHILD,
             );
           }
         } catch (error) {

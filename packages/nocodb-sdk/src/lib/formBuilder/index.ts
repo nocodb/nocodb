@@ -1,4 +1,4 @@
-import { BaseType } from "../Api";
+import { BaseType } from '../Api';
 
 export enum FormBuilderInputType {
   Input = 'input',
@@ -16,7 +16,9 @@ export enum FormBuilderInputType {
   OAuth = 'oauth',
   Checkbox = 'checkbox',
   WorkflowInput = 'workflow-input',
-  FieldMapping = 'field-mapping',
+  KeyValue = 'key-value',
+  EntitySelector = 'entity-selector',
+  ConditionBuilder = 'condition-builder',
 }
 
 /**
@@ -32,10 +34,35 @@ export interface FormBuilderCondition {
   equal?: string;
   /** Check if the model value is in this array of values */
   in?: string[];
+  /** Check if the model value is NOT in this array of values */
+  notIn?: string[];
   /** Check if the model value is empty (empty string, empty array, null, undefined) */
   empty?: boolean;
   /** Check if the model value is not empty */
   notEmpty?: boolean;
+  /** Check if the model value does NOT equal this value */
+  notEqual?: string;
+}
+
+/**
+ * Hide condition configuration - field will be hidden when condition is met
+ * Opposite of show condition (condition property)
+ */
+export type FormBuilderHideCondition = FormBuilderCondition;
+
+/**
+ * Logical operator for combining multiple conditions
+ */
+export type FormBuilderConditionOperator = 'and' | 'or';
+
+/**
+ * Multiple conditions with logical operator
+ */
+export interface FormBuilderConditionGroup {
+  /** Logical operator to combine conditions (default: 'and') */
+  operator?: FormBuilderConditionOperator;
+  /** Array of conditions to evaluate */
+  conditions: FormBuilderCondition[];
 }
 
 /**
@@ -43,24 +70,113 @@ export interface FormBuilderCondition {
  */
 export enum FormBuilderValidatorType {
   Required = 'required',
+  Regex = 'regex',
+  MinValue = 'minValue',
+  MaxValue = 'maxValue',
+  MinLength = 'minLength',
+  MaxLength = 'maxLength',
+  Email = 'email',
+  Url = 'url',
   Custom = 'custom',
 }
 
 /**
- * Validator configuration for form field validation
+ * Base validator configuration
  */
-export interface BaseFormBuilderValidator {
-  /** Type of validation to apply */
+interface FormBuilderValidatorBase {
   type: FormBuilderValidatorType;
   /** Custom error message to display when validation fails */
   message?: string;
 }
 
-export interface CustomFormBuilderValidator extends BaseFormBuilderValidator {
-  validator: (rule: any, value: any) => Promise<any>
+/**
+ * Required validator
+ */
+export interface FormBuilderRequiredValidator extends FormBuilderValidatorBase {
+  type: FormBuilderValidatorType.Required;
 }
 
-export type FormBuilderValidator = BaseFormBuilderValidator | CustomFormBuilderValidator;
+/**
+ * Regex validator - validates against a regular expression pattern
+ */
+export interface FormBuilderRegexValidator extends FormBuilderValidatorBase {
+  type: FormBuilderValidatorType.Regex;
+  /** Regular expression pattern to match */
+  pattern: string;
+  /** Regex flags (e.g., 'i' for case-insensitive) */
+  flags?: string;
+}
+
+/**
+ * MinValue validator - validates minimum numeric value
+ */
+export interface FormBuilderMinValueValidator extends FormBuilderValidatorBase {
+  type: FormBuilderValidatorType.MinValue;
+  /** Minimum allowed value */
+  value: number;
+}
+
+/**
+ * MaxValue validator - validates maximum numeric value
+ */
+export interface FormBuilderMaxValueValidator extends FormBuilderValidatorBase {
+  type: FormBuilderValidatorType.MaxValue;
+  /** Maximum allowed value */
+  value: number;
+}
+
+/**
+ * MinLength validator - validates minimum string length
+ */
+export interface FormBuilderMinLengthValidator
+  extends FormBuilderValidatorBase {
+  type: FormBuilderValidatorType.MinLength;
+  /** Minimum string length */
+  value: number;
+}
+
+/**
+ * MaxLength validator - validates maximum string length
+ */
+export interface FormBuilderMaxLengthValidator
+  extends FormBuilderValidatorBase {
+  type: FormBuilderValidatorType.MaxLength;
+  /** Maximum string length */
+  value: number;
+}
+
+/**
+ * Email validator - validates email format
+ */
+export interface FormBuilderEmailValidator extends FormBuilderValidatorBase {
+  type: FormBuilderValidatorType.Email;
+}
+
+/**
+ * URL validator - validates URL format
+ */
+export interface FormBuilderUrlValidator extends FormBuilderValidatorBase {
+  type: FormBuilderValidatorType.Url;
+}
+
+export interface CustomFormBuilderValidator extends FormBuilderValidatorBase {
+  type: FormBuilderValidatorType.Custom;
+  validator: (rule: any, value: any) => Promise<any>;
+}
+
+/**
+ * Union type of all validator configurations
+ */
+export type FormBuilderValidator =
+  | FormBuilderRequiredValidator
+  | FormBuilderRegexValidator
+  | FormBuilderMinValueValidator
+  | FormBuilderMaxValueValidator
+  | FormBuilderMinLengthValidator
+  | FormBuilderMaxLengthValidator
+  | FormBuilderEmailValidator
+  | FormBuilderUrlValidator
+  | CustomFormBuilderValidator;
 
 /**
  * Option configuration for select elements
@@ -138,8 +254,22 @@ interface FormBuilderElementBase {
   description?: string;
   /** Category for grouping elements - same category elements are grouped together */
   category?: string;
-  /** Condition(s) for the element to be visible */
-  condition?: FormBuilderCondition | FormBuilderCondition[];
+  /**
+   * Condition(s) for the element to be visible (show condition)
+   * Can be a single condition, array of conditions (AND logic), or a condition group
+   */
+  condition?:
+    | FormBuilderCondition
+    | FormBuilderCondition[]
+    | FormBuilderConditionGroup;
+  /**
+   * Hide condition(s) - element will be hidden when condition is met
+   * Opposite of show condition. Can be a single condition, array (AND), or group
+   */
+  hideCondition?:
+    | FormBuilderHideCondition
+    | FormBuilderHideCondition[]
+    | FormBuilderConditionGroup;
   /** Show border around the element */
   border?: boolean;
   /** Show hint as tooltip instead of inline text */
@@ -224,6 +354,8 @@ export interface FormBuilderSelectElement extends FormBuilderElementBase {
   selectMode?: 'single' | 'multiple' | 'multipleWithInput' | 'singleWithInput';
   /** Key to fetch options dynamically */
   fetchOptionsKey?: string;
+  /** Enable server-side search - when true, typing triggers fetchOptions with search query */
+  searchable?: boolean;
   /** Default value - string for single, array for multiple */
   defaultValue?: string | string[] | null;
 }
@@ -338,14 +470,165 @@ export interface FormBuilderWorkflowInputElement
 }
 
 /**
- * FieldMapping element (Dynamic field-value mapping with field selection and workflow input)
+ * KeyValue element (Dynamic key-value pair input for arbitrary data)
  */
-export interface FormBuilderFieldMappingElement extends FormBuilderElementBase {
-  type: FormBuilderInputType.FieldMapping;
-  /** Key to fetch field options dynamically */
-  fetchOptionsKey?: string;
-  /** Default field-value mappings as Record<fieldId, value> */
+export interface FormBuilderKeyValueElement extends FormBuilderElementBase {
+  type: FormBuilderInputType.KeyValue;
+  /** Label for the key column */
+  keyLabel?: string;
+  /** Label for the value column */
+  valueLabel?: string;
+  /** Default key-value pairs as Record<key, value> */
   defaultValue?: Record<string, string> | null;
+}
+
+/**
+ * EntitySelector mode configuration
+ */
+export interface EntitySelectorMode {
+  /** Mode type: 'list' for dropdown, 'manual' for WorkflowInput */
+  type: 'list' | 'manual';
+  /** Key to fetch options dynamically (for 'list' mode) */
+  fetchOptionsKey?: string;
+  /** Enable server-side search (for 'list' mode) */
+  searchable?: boolean;
+  /** Placeholder text for this mode */
+  placeholder?: string;
+}
+
+/**
+ * EntitySelector element - Select dropdown with optional toggle to WorkflowInput
+ *
+ * Use cases:
+ * - Select an entity from a dropdown (e.g., HubSpot Contact)
+ * - OR enter an ID/expression manually using WorkflowInput
+ *
+ * Value is stored as simple string (the ID/value).
+ */
+export interface FormBuilderEntitySelectorElement
+  extends FormBuilderElementBase {
+  type: FormBuilderInputType.EntitySelector;
+  /** Available modes - defaults to just list mode if not specified */
+  modes?: EntitySelectorMode[];
+  /** Default value - simple string */
+  defaultValue?: string | null;
+}
+
+/**
+ * Filter operator types by data type
+ */
+export type FilterOperatorType =
+  // String operators
+  | 'equals'
+  | 'notEquals'
+  | 'contains'
+  | 'notContains'
+  | 'startsWith'
+  | 'endsWith'
+  | 'regex'
+  // Number operators
+  | 'gt'
+  | 'gte'
+  | 'lt'
+  | 'lte'
+  // DateTime operators
+  | 'after'
+  | 'before'
+  // Boolean operators
+  | 'isTrue'
+  | 'isFalse'
+  // Common operators
+  | 'exists'
+  | 'notExists'
+  | 'empty'
+  | 'notEmpty';
+
+/**
+ * Filter data types
+ */
+export type FilterDataType =
+  | 'string'
+  | 'number'
+  | 'boolean'
+  | 'dateTime'
+  | 'array'
+  | 'object'
+  | 'any';
+
+/**
+ * Filter operator definition
+ */
+export interface FilterOperator {
+  /** Operator identifier */
+  id: string;
+  /** Display name */
+  name: string;
+  /** Data type this operator applies to */
+  type: FilterDataType;
+  /** Operation type */
+  operation: FilterOperatorType;
+  /** Whether this operator doesn't need a right-side value (e.g., exists, empty) */
+  singleValue?: boolean;
+  /** Expected type for right-side value (if different from left) */
+  rightType?: FilterDataType;
+}
+
+/**
+ * Single filter condition value
+ */
+export interface FilterConditionValue {
+  /** Unique ID for this condition */
+  id?: string;
+  /** Left side value (field/variable reference or literal) */
+  leftValue: string;
+  /** Selected operator */
+  operator: {
+    type: FilterDataType;
+    operation: FilterOperatorType;
+  };
+  /** Right side value (comparison value) */
+  rightValue?: string;
+}
+
+/**
+ * Filter combinator type
+ */
+export type FilterCombinator = 'and' | 'or';
+
+/**
+ * Condition builder value (array of conditions with combinator)
+ */
+export interface ConditionBuilderValue {
+  /** Combinator for combining conditions (default: 'and') */
+  combinator: FilterCombinator;
+  /** Array of filter conditions */
+  conditions: FilterConditionValue[];
+}
+
+/**
+ * ConditionBuilder element - Complex filter/condition builder with drag-drop conditions
+ */
+export interface FormBuilderConditionBuilderElement
+  extends FormBuilderElementBase {
+  type: FormBuilderInputType.ConditionBuilder;
+  /** Allowed data types for filtering */
+  allowedTypes?: FilterDataType[];
+  /** Whether the left value is fixed (not editable) */
+  fixedLeftValue?: boolean;
+  /** Supported operators (if not specified, all operators are available) */
+  supportedOperators?: FilterOperatorType[];
+  /** Whether conditions can be reordered */
+  sortable?: boolean;
+  /** Maximum number of conditions */
+  maxConditions?: number;
+  /** Default value */
+  defaultValue?: ConditionBuilderValue | null;
+  /** Static property options for the left value dropdown */
+  propertyOptions?: FormBuilderSelectOption[];
+  /** Key to fetch property options dynamically */
+  fetchPropertyOptionsKey?: string;
+  /** Placeholder for property field */
+  propertyPlaceholder?: string;
 }
 
 /**
@@ -367,7 +650,9 @@ export type FormBuilderElement =
   | FormBuilderOAuthElement
   | FormBuilderWorkflowInputElement
   | FormBuilderNumberInputElement
-  | FormBuilderFieldMappingElement;
+  | FormBuilderKeyValueElement
+  | FormBuilderEntitySelectorElement
+  | FormBuilderConditionBuilderElement;
 
 /**
  * Complete form definition - array of form elements

@@ -1256,15 +1256,18 @@ export class PGDBQueryClient
         break;
       }
       case UITypes.LongText: {
-        qb.select(
-          knex.raw(`SUBSTR(??.??::TEXT, 1, ?) as ??`, [
-            rootAlias,
-            sanitize(column.column_name),
-            NC_MAX_TEXT_LENGTH,
-            getAs(column),
-          ]),
-        );
-        break;
+        if ((baseModel.dbDriver as any).isExternal) {
+          qb.select(
+            knex.raw(`SUBSTR(??.??::TEXT, 1, ?) as ??`, [
+              rootAlias,
+              sanitize(column.column_name),
+              NC_MAX_TEXT_LENGTH,
+              getAs(column),
+            ]),
+          );
+          break;
+        }
+        // Else fall through
       }
       default:
         {

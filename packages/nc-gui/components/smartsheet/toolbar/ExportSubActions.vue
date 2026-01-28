@@ -45,7 +45,15 @@ const handleDownload = async (url: string) => {
 
 const isExporting = ref(false)
 
-const { sorts, nestedFilters, isLocked } = useSmartsheetStoreOrThrow()
+/**
+ * This component is lazy loaded and might be initialized after the view is effectively unmounted.
+ * In that case, the store is not available anymore, so we need to provide a fallback to avoid a crash.
+ */
+const { sorts, nestedFilters, isLocked } = useSmartsheetStore() || {
+  sorts: ref([]),
+  nestedFilters: ref([]),
+  isLocked: ref(false),
+}
 const { isUIAllowed } = useRoles()
 
 const exportFile = async (exportType: ExportTypes) => {

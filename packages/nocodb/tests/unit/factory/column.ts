@@ -12,6 +12,7 @@ import type {
   View,
 } from '../../../src/models';
 import type init from '../init';
+import { verify } from 'crypto';
 
 type Context = Awaited<ReturnType<typeof init>>;
 
@@ -922,6 +923,11 @@ const createColumn = async (
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
+      ...(columnAttr.uidt === UITypes.LinkToAnotherRecord
+        ? {
+            version: 1,
+          }
+        : {}),
     });
   if (response.status >= 400 && option?.throwError) {
     if (option?.responseAsError) {
@@ -956,6 +962,11 @@ const createColumn2 = async ({
     .set('xc-auth', context.token)
     .send({
       ...columnAttr,
+      ...(columnAttr.uidt === UITypes.LinkToAnotherRecord
+        ? {
+            version: 1,
+          }
+        : {}),
     });
   if (response.status >= 400 && option?.throwError) {
     throw response.error;

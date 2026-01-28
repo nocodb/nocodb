@@ -425,20 +425,16 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            updatedColIds: [refTableLinkColumnId],
+            updatedColIds: [],
           });
-
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
 
           await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            updatedColIds: [column.id],
+            updatedColIds: [],
           });
-
-          await childBaseModel.broadcastLinkUpdates([childId]);
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -481,7 +477,7 @@ export class RelationManager {
               model: parentTable,
               rowIds: [oldRowId],
               cookie: req,
-              updatedColIds: [column.id],
+              updatedColIds: [],
             });
           }
 
@@ -509,20 +505,16 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            updatedColIds: [refTableLinkColumnId],
+            updatedColIds: [],
           });
-
-          await childBaseModel.broadcastLinkUpdates([childId]);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            updatedColIds: [column.id],
+            updatedColIds: [],
           });
-
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -565,14 +557,7 @@ export class RelationManager {
               model: parentTable,
               rowIds: [oldParentRowId],
               cookie: req,
-              updatedColIds: [
-                (
-                  await extractCorrespondingLinkColumn(childBaseModel.context, {
-                    ltarColumn: column,
-                    referencedTable: parentTable,
-                  })
-                )?.id,
-              ],
+              updatedColIds: [],
             });
           }
 
@@ -600,20 +585,16 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            updatedColIds: [column.id],
+            updatedColIds: [],
           });
-
-          await childBaseModel.broadcastLinkUpdates([childId]);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            updatedColIds: [refTableLinkColumnId],
+            updatedColIds: [],
           });
-
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
       case RelationTypes.ONE_TO_ONE:
@@ -660,7 +641,7 @@ export class RelationManager {
                 model: childTable,
                 rowIds: [oldChildRowId],
                 cookie: req,
-                updatedColIds: [column.id],
+                updatedColIds: [],
               });
             }
           }
@@ -703,7 +684,7 @@ export class RelationManager {
               model: parentTable,
               rowIds: [oldRowId],
               cookie: req,
-              updatedColIds: [refTableLinkColumnId],
+              updatedColIds: [],
             });
           }
           // todo: unlink if it's already mapped
@@ -749,20 +730,16 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            updatedColIds: [column.meta?.bt ? column.id : refTableLinkColumnId],
+            updatedColIds: [],
           });
-
-          await childBaseModel.broadcastLinkUpdates([childId]);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: parentId,
             cookie: req,
-            updatedColIds: [column.meta?.bt ? refTableLinkColumnId : column.id],
+            updatedColIds: [],
           });
-
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
     }
@@ -860,27 +837,16 @@ export class RelationManager {
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            updatedColIds: [
-              (
-                await extractCorrespondingLinkColumn(childBaseModel.context, {
-                  ltarColumn: this.relationContext.relationColumn,
-                  referencedTable: parentTable,
-                })
-              )?.id,
-            ],
+            updatedColIds: [],
           });
-
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
 
           await childBaseModel.updateLastModified({
             baseModel: childBaseModel,
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            updatedColIds: [colOptions.fk_column_id],
+            updatedColIds: [],
           });
-
-          await childBaseModel.broadcastLinkUpdates([childId]);
         }
         break;
       case RelationTypes.HAS_MANY:
@@ -904,27 +870,16 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            updatedColIds: [colOptions.fk_column_id],
+            updatedColIds: [],
           });
-
-          await childBaseModel.broadcastLinkUpdates([childId]);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            updatedColIds: [
-              (
-                await extractCorrespondingLinkColumn(childBaseModel.context, {
-                  ltarColumn: this.relationContext.relationColumn,
-                  referencedTable: parentTable,
-                })
-              )?.id,
-            ],
+            updatedColIds: [],
           });
-
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
       case RelationTypes.BELONGS_TO:
@@ -949,27 +904,16 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            updatedColIds: [column.id],
+            updatedColIds: [],
           });
-
-          await childBaseModel.broadcastLinkUpdates([childId]);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            updatedColIds: [
-              (
-                await extractCorrespondingLinkColumn(childBaseModel.context, {
-                  ltarColumn: this.relationContext.relationColumn,
-                  referencedTable: parentTable,
-                })
-              )?.id,
-            ],
+            updatedColIds: [],
           });
-
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
       case RelationTypes.ONE_TO_ONE:
@@ -988,26 +932,16 @@ export class RelationManager {
             model: childTable,
             rowIds: [childId],
             cookie: req,
-            updatedColIds: [colOptions.fk_column_id],
+            updatedColIds: [],
           });
-
-          await childBaseModel.broadcastLinkUpdates([childId]);
 
           await parentBaseModel.updateLastModified({
             baseModel: parentBaseModel,
             model: parentTable,
             rowIds: [parentId],
             cookie: req,
-            updatedColIds: [
-              (
-                await extractCorrespondingLinkColumn(childBaseModel.context, {
-                  ltarColumn: this.relationContext.relationColumn,
-                  referencedTable: parentTable,
-                })
-              )?.id,
-            ],
+            updatedColIds: [],
           });
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
         }
         break;
     }

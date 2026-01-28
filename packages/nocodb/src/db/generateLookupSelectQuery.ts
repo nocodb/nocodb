@@ -1,4 +1,4 @@
-import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { isMMOrMMLike, RelationTypes, UITypes } from 'nocodb-sdk';
 import type { Knex } from 'knex';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { QueryWithCte } from '~/helpers/dbHelpers';
@@ -69,7 +69,10 @@ export default async function generateLookupSelectQuery({
 
     if (column.uidt === UITypes.Lookup) {
       lookupColOpt = await column.getColOptions<LookupColumn>(context);
-    } else if (column.uidt !== UITypes.LinkToAnotherRecord) {
+    } else if (
+      column.uidt !== UITypes.LinkToAnotherRecord &&
+      column.uidt !== UITypes.Links
+    ) {
       NcError.get(context).badRequest('Invalid field type');
     }
 
@@ -81,6 +84,8 @@ export default async function generateLookupSelectQuery({
         : column;
       const relation =
         await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
+
+      const isMMLike = isMMOrMMLike(column);
 
       const {
         parentContext,
@@ -98,7 +103,7 @@ export default async function generateLookupSelectQuery({
           : RelationTypes.HAS_MANY;
       }
 
-      if (relationType === RelationTypes.BELONGS_TO) {
+      if (relationType === RelationTypes.BELONGS_TO && !isMMLike) {
         const childColumn = await relation.getChildColumn(context);
         const parentColumn = await relation.getParentColumn(context);
         const childModel = await childColumn.getModel(childContext);
@@ -129,7 +134,7 @@ export default async function generateLookupSelectQuery({
             }`,
           ]),
         );
-      } else if (relationType === RelationTypes.HAS_MANY) {
+      } else if (relationType === RelationTypes.HAS_MANY && !isMMLike) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn(context);
         const parentColumn = await relation.getParentColumn(context);
@@ -161,7 +166,7 @@ export default async function generateLookupSelectQuery({
             }.${parentColumn.column_name}`,
           ]),
         );
-      } else if (relationType === RelationTypes.MANY_TO_MANY) {
+      } else if (relationType === RelationTypes.MANY_TO_MANY || isMMLike) {
         isBtLookup = false;
         const childColumn = await relation.getChildColumn(context);
         const parentColumn = await relation.getParentColumn(context);
@@ -250,7 +255,9 @@ export default async function generateLookupSelectQuery({
         const relation =
           await relationCol.getColOptions<LinkToAnotherRecordColumn>(context);
 
-        let relationType = relation.type;
+        let relationType = isMMOrMMLike(relationCol)
+          ? RelationTypes.MANY_TO_MANY
+          : relation.type;
 
         if (relationType === RelationTypes.ONE_TO_ONE) {
           relationType = relationCol.meta?.bt

@@ -67,6 +67,8 @@ import {
   deleteColumnSystemPropsFromRequest,
   generateFkName,
   getMMColumnNames,
+  getRevType,
+  getTargetTableRelColumn,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -3687,7 +3689,7 @@ export class ColumnsService implements IColumnsService {
                       ncMeta,
                     );
                   if (
-                    colOpt.type === 'mm' &&
+                    isMMOrMMLike(c) &&
                     colOpt.fk_parent_column_id === childColumn.id &&
                     colOpt.fk_child_column_id === parentColumn.id &&
                     colOpt.fk_mm_model_id === relationColOpt.fk_mm_model_id &&
@@ -3891,7 +3893,7 @@ export class ColumnsService implements IColumnsService {
           ncMeta,
         );
         if (listRanges?.length) {
-          NcError.get(context).badRequest(
+          NcError.badRequest(
             `The column '${column.title}' is being used in Calendar View. Please update Calendar View first.`,
           );
         }
@@ -4515,6 +4517,8 @@ export class ColumnsService implements IColumnsService {
     // version 1 is deprecated and will be removed in future
     const isMMLike = (param.column as any).version !== LinksVersion.V1;
 
+    console.log({ isMMLike });
+
     // get table and refTable models
     const table = await Model.getWithInfo(context, {
       id: (param.column as LinkToAnotherColumnReqType).parentId,
@@ -4580,8 +4584,9 @@ export class ColumnsService implements IColumnsService {
     }
 
     if (
-      (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
-      (param.column as LinkToAnotherColumnReqType).type === 'bt'
+      ((param.column as LinkToAnotherColumnReqType).type === 'hm' ||
+        (param.column as LinkToAnotherColumnReqType).type === 'bt') &&
+      !isMMLike
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
@@ -4690,7 +4695,10 @@ export class ColumnsService implements IColumnsService {
         undefined,
         param.columnWebhookManager,
       );
-    } else if ((param.column as LinkToAnotherColumnReqType).type === 'oo') {
+    } else if (
+      !isMMLike &&
+      (param.column as LinkToAnotherColumnReqType).type === 'oo'
+    ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(
         await refTable.getColumns(refContext),
@@ -4797,7 +4805,10 @@ export class ColumnsService implements IColumnsService {
         undefined,
         param.columnWebhookManager,
       );
-    } else if ((param.column as LinkToAnotherColumnReqType).type === 'mm') {
+    } else if (
+      isMMLike ||
+      (param.column as LinkToAnotherColumnReqType).type === 'mm'
+    ) {
       const aTn = await getJunctionTableName(param, table, refTable);
       const aTnAlias = aTn;
 
@@ -4900,6 +4911,7 @@ export class ColumnsService implements IColumnsService {
         (c) => c.column_name === refColumnName,
       );
 
+      // todo: skip hm and bt if new type
       await createHmAndBtColumn(
         context,
         param.req,
@@ -4970,6 +4982,11 @@ export class ColumnsService implements IColumnsService {
         };
       }
 
+      const revType = getRevType(
+        (param.column as Pick<LinkToAnotherColumnReqType, 'type'>)
+          .type as RelationTypes,
+      );
+
       savedColumn = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await table.getColumns(context),
@@ -4977,7 +4994,7 @@ export class ColumnsService implements IColumnsService {
         ),
 
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: 'mm',
+        type: (param.column as Pick<LinkToAnotherColumnReqType, 'type'>).type,
 
         fk_model_id: table.id,
 
@@ -5014,7 +5031,7 @@ export class ColumnsService implements IColumnsService {
           pluralize(table.title),
         ),
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
-        type: 'mm',
+        type: revType,
 
         // ref_db_alias
         fk_model_id: refTable.id,

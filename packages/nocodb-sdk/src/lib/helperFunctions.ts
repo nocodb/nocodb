@@ -7,7 +7,7 @@ import {
   IntegrationsType,
   LinkToAnotherRecordType,
 } from './Api';
-import { FormulaDataTypes } from './formulaHelpers';
+import { FormulaDataTypes } from './formula/enums';
 import { ncIsNull, ncIsUndefined } from '~/lib/is';
 
 // import {RelationTypes} from "./globals";
@@ -259,7 +259,6 @@ const testDataBaseNames = {
   mysql: null,
   [ClientType.PG]: 'postgres',
   oracledb: 'xe',
-  [ClientType.MSSQL]: undefined,
   [ClientType.SQLITE]: 'a.sqlite',
 };
 
@@ -325,4 +324,15 @@ export function isCrossBaseLink(col: ColumnType) {
     (col.colOptions as LinkToAnotherRecordType)?.fk_related_base_id !==
       (col.colOptions as LinkToAnotherRecordType)?.base_id
   );
+}
+
+export function formatBytes(bytes, decimals = 2, base = 1000) {
+  if (bytes === 0) return '0 Bytes';
+
+  const k = base;
+  const dm = Math.max(0, decimals);
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return `${(bytes / k ** i).toFixed(dm)} ${sizes[i]}`;
 }

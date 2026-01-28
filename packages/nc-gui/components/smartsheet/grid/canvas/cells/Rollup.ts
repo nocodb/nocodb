@@ -20,6 +20,29 @@ export const RollupCellRenderer: CellRenderer = {
 
     const colOptions = column.colOptions as RollupType
 
+    // Check if the rollup column itself has a display_type set
+    const rollupColMeta = parseProp(column?.meta)
+    if (rollupColMeta?.display_type) {
+      // display_column_meta contains the format-specific settings (e.g., {meta: {currency_code, currency_locale}})
+      const displayColumnMeta = rollupColMeta.display_column_meta || {}
+      const renderProps: CellRendererOptions = {
+        ...props,
+        column: {
+          ...column,
+          uidt: rollupColMeta.display_type,
+          // Extract the nested meta from display_column_meta for cell renderers to read
+          meta: {
+            ...parseProp(displayColumnMeta.meta),
+            ...parseProp(displayColumnMeta.custom),
+          },
+        },
+        readonly: true,
+        formula: true,
+      }
+      renderCell(ctx, renderProps.column, renderProps)
+      return
+    }
+
     const relatedColObj = getMetaWithCompositeKey(metas, meta?.base_id, column.fk_model_id)?.columns?.find(
       (c: any) => c.id === colOptions?.fk_relation_column_id,
     ) as ColumnType

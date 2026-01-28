@@ -3,11 +3,12 @@ import { onMounted } from '@vue/runtime-core'
 import type { ColumnType, LinkToAnotherRecordType, RollupType, TableType } from 'nocodb-sdk'
 import {
   ColumnHelper,
+  FormulaDataTypes,
   PlanFeatureTypes,
   PlanTitles,
   UITypes,
   getAvailableRollupForColumn,
-  getRenderAsTextFunForUiType,
+  getUITypesForFormulaDataType,
   rollupAllFunctions,
 } from 'nocodb-sdk'
 
@@ -224,41 +225,88 @@ watch(
   },
 )
 
-// update datatype precision when precision is less than the new value
-// avoid downgrading precision if the new value is less than the current precision
-// to avoid fractional part data loss(eg. 1.2345 -> 1.23)
-const onPrecisionChange = (value: number) => {
-  vModel.value.dtxs = Math.max(value, vModel.value.dtxs)
-}
-
 // set default value
 vModel.value.meta = {
   ...ColumnHelper.getColumnDefaultMeta(UITypes.Rollup),
   ...(vModel.value.meta || {}),
 }
 
-const { isMetaReadOnly } = useRoles()
+const activeKey = ref('rollup')
 
-const precisionFormatsDisplay = makePrecisionFormatsDiplay(t)
+const rollupResultType = computed(() => {
+  if (!vModel.value.rollup_function) return FormulaDataTypes.UNKNOWN
+  const func = vModel.value.rollup_function
+
+  if (['count', 'countDistinct'].includes(func)) {
+    return FormulaDataTypes.NUMERIC
+  }
+
+  if (['sum', 'avg', 'sumDistinct', 'avgDistinct'].includes(func)) {
+    return FormulaDataTypes.NUMERIC
+  }
+
+  if (!vModel.value.fk_rollup_column_id) return FormulaDataTypes.UNKNOWN
+
+  const childCol = columns.value.find((c) => c.id === vModel.value.fk_rollup_column_id)
+  if (!childCol) return FormulaDataTypes.UNKNOWN
+
+  if (
+    [UITypes.Date, UITypes.DateTime, UITypes.Time, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(
+      childCol.uidt as UITypes,
+    )
+  ) {
+    return FormulaDataTypes.DATE
+  }
+
+  if (childCol.uidt === UITypes.Checkbox) {
+    return FormulaDataTypes.BOOLEAN
+  }
+
+  return FormulaDataTypes.NUMERIC
+})
 
 const enableFormattingOptions = computed(() => {
-  const relatedCol = filteredColumns.value?.find((col) => col.id === vModel.value.fk_rollup_column_id)
-
-  if (!relatedCol) return false
-
-  let uidt = relatedCol.uidt
-
-  if (relatedCol.uidt === UITypes.Formula) {
-    const colMeta = parseProp(relatedCol.meta)
-
-    if (colMeta?.display_type) {
-      uidt = colMeta?.display_type
-    }
-  }
-  const validFunctions = getRenderAsTextFunForUiType(uidt)
-
-  return validFunctions.includes(vModel.value.rollup_function)
+  return (
+    rollupResultType.value &&
+    rollupResultType.value !== FormulaDataTypes.UNKNOWN &&
+    rollupResultType.value !== FormulaDataTypes.STRING
+  )
 })
+
+// Get supported display types for numeric rollup results
+const supportedDisplayTypes = computed(() => {
+  if (!enableFormattingOptions.value) return []
+  try {
+    return getUITypesForFormulaDataType(rollupResultType.value).map((uidt) => {
+      return {
+        value: uidt,
+        label: t(`datatype.${uidt}`),
+        icon: h(resolveComponent('SmartsheetHeaderIcon'), {
+          column: {
+            uidt,
+          },
+        }),
+      }
+    })
+  } catch (e) {
+    return []
+  }
+})
+
+watch(
+  () => vModel.value.meta?.display_type,
+  (value, oldValue) => {
+    if (oldValue === undefined && !value) {
+      vModel.value.meta.display_column_meta = {
+        meta: {},
+        custom: {},
+      }
+    }
+  },
+  {
+    immediate: true,
+  },
+)
 
 const onFilterLabelClick = () => {
   if (!selectedTable.value) return
@@ -276,200 +324,247 @@ const handleScrollIntoView = () => {
 </script>
 
 <template>
-  <div v-if="refTables.length" class="flex flex-col gap-4">
-    <div class="w-full flex flex-row space-x-2">
-      <a-form-item
-        class="flex w-1/2 !max-w-[calc(50%_-_4px)] pb-2"
-        :label="`${$t('general.link')} ${$t('objects.field')}`"
-        v-bind="validateInfos.fk_relation_column_id"
-      >
-        <a-select
-          v-model:value="vModel.fk_relation_column_id"
-          placeholder="-select-"
-          dropdown-class-name="!w-64 nc-dropdown-relation-table !rounded-md"
-          @change="onRelationColChange"
-        >
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-          </template>
-          <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
-            <div class="flex gap-2 w-full justify-between truncate items-center">
-              <div class="min-w-1/2 flex items-center gap-2">
-                <SmartsheetHeaderIcon :column="table.column" class="!mx-0" color="text-nc-content-gray-subtle2" />
+  <div v-if="refTables.length" class="rollup-wrapper relative">
+    <NcTabs v-model:active-key="activeKey">
+      <a-tab-pane key="rollup">
+        <template #tab>
+          <div class="tab">
+            <div>{{ $t('datatype.Rollup') }}</div>
+          </div>
+        </template>
+        <div class="flex flex-col gap-4 px-0.5">
+          <div class="w-full flex flex-row space-x-2">
+            <a-form-item
+              class="flex w-1/2 !max-w-[calc(50%_-_4px)] pb-2"
+              :label="`${$t('general.link')} ${$t('objects.field')}`"
+              v-bind="validateInfos.fk_relation_column_id"
+            >
+              <a-select
+                v-model:value="vModel.fk_relation_column_id"
+                placeholder="-select-"
+                dropdown-class-name="!w-64 nc-dropdown-relation-table !rounded-md"
+                @change="onRelationColChange"
+              >
+                <template #suffixIcon>
+                  <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                </template>
+                <a-select-option v-for="(table, i) of refTables" :key="i" :value="table.col.fk_column_id">
+                  <div class="flex gap-2 w-full justify-between truncate items-center">
+                    <div class="min-w-1/2 flex items-center gap-2">
+                      <SmartsheetHeaderIcon :column="table.column" class="!mx-0" color="text-nc-content-gray-subtle2" />
 
-                <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
-                  <template #title>{{ table.column.title }}</template>
-                  {{ table.column.title }}
-                </NcTooltip>
-              </div>
-              <div class="inline-flex items-center truncate gap-2">
-                <div class="text-[0.65rem] leading-4 flex-1 truncate text-nc-content-gray-subtle2 nc-relation-details">
-                  <NcTooltip class="truncate" show-on-truncate-only>
-                    <template #title>{{ table.title || table.table_name }}</template>
-                    {{ table.title || table.table_name }}
-                  </NcTooltip>
+                      <NcTooltip class="truncate min-w-[calc(100%_-_24px)]" show-on-truncate-only>
+                        <template #title>{{ table.column.title }}</template>
+                        {{ table.column.title }}
+                      </NcTooltip>
+                    </div>
+                    <div class="inline-flex items-center truncate gap-2">
+                      <div class="text-[0.65rem] leading-4 flex-1 truncate text-nc-content-gray-subtle2 nc-relation-details">
+                        <NcTooltip class="truncate" show-on-truncate-only>
+                          <template #title>{{ table.title || table.table_name }}</template>
+                          {{ table.title || table.table_name }}
+                        </NcTooltip>
+                      </div>
+
+                      <component
+                        :is="iconMap.check"
+                        v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
+                        id="nc-selected-item-icon"
+                        class="text-primary w-4 h-4"
+                      />
+                    </div>
+                  </div>
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+
+            <a-form-item
+              class="flex w-1/2"
+              :label="`${$t('datatype.Rollup')} ${$t('objects.field')}`"
+              v-bind="vModel.fk_relation_column_id ? validateInfos.fk_rollup_column_id : undefined"
+            >
+              <a-select
+                v-model:value="vModel.fk_rollup_column_id"
+                name="fk_rollup_column_id"
+                placeholder="-select-"
+                :disabled="!vModel.fk_relation_column_id"
+                show-search
+                :filter-option="antSelectFilterOption"
+                dropdown-class-name="nc-dropdown-relation-column !rounded-xl"
+                @change="onDataTypeChange"
+              >
+                <template #suffixIcon>
+                  <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+                </template>
+                <a-select-option v-for="column of filteredColumns" :key="column.title" :value="column.id">
+                  <div class="w-full flex gap-2 truncate items-center justify-between">
+                    <div class="flex items-center gap-2 flex-1 truncate">
+                      <SmartsheetHeaderIcon :column="column" class="!mx-0" color="text-nc-content-gray-subtle2" />
+
+                      <div class="truncate flex-1">{{ column.title }}</div>
+                    </div>
+                    <component
+                      :is="iconMap.check"
+                      v-if="vModel.fk_rollup_column_id === column.id"
+                      id="nc-selected-item-icon"
+                      class="text-primary w-4 h-4"
+                    />
+                  </div>
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </div>
+
+          <a-form-item
+            :label="$t('labels.aggregateFunction')"
+            v-bind="vModel.fk_relation_column_id ? validateInfos.rollup_function : undefined"
+          >
+            <a-select
+              v-model:value="vModel.rollup_function"
+              :disabled="!vModel.fk_relation_column_id"
+              placeholder="-select-"
+              dropdown-class-name="nc-dropdown-rollup-function"
+              class="!mt-0.5"
+              @change="onRollupFunctionChange"
+            >
+              <template #suffixIcon>
+                <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+              </template>
+              <a-select-option v-for="(func, index) of aggFunctionsList" :key="index" :value="func.value">
+                <div class="flex gap-2 justify-between items-center">
+                  {{ func.text }}
+                  <component
+                    :is="iconMap.check"
+                    v-if="vModel.rollup_function === func.value"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
                 </div>
+              </a-select-option>
+            </a-select>
+          </a-form-item>
 
-                <component
-                  :is="iconMap.check"
-                  v-if="vModel.fk_relation_column_id === table.col.fk_column_id"
-                  id="nc-selected-item-icon"
-                  class="text-primary w-4 h-4"
+          <div v-if="isEeUI" class="w-full flex flex-col gap-4">
+            <div class="flex flex-col gap-2">
+              <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER">
+                <template #default="{ click }">
+                  <div class="flex gap-1 items-center whitespace-nowrap">
+                    <NcSwitch
+                      :checked="limitRecToCond"
+                      :disabled="!selectedTable"
+                      size="small"
+                      data-testid="nc-rollup-limit-record-filters"
+                      @change="
+                        (value) => {
+                          if (value && click(PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER)) return
+                          onFilterLabelClick()
+                        }
+                      "
+                    >
+                      {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
+                    </NcSwitch>
+
+                    <LazyPaymentUpgradeBadge
+                      v-if="!limitRecToCond"
+                      :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER"
+                      :content="
+                        $t('upgrade.upgradeToIncludeLinkedRecordsThatMeetSpecificConditions', {
+                          plan: getPlanTitle(PlanTitles.PLUS),
+                        })
+                      "
+                      class="ml-1"
+                    />
+                  </div>
+                </template>
+              </PaymentUpgradeBadgeProvider>
+
+              <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
+                <LazySmartsheetToolbarColumnFilter
+                  ref="filterRef"
+                  v-model="vModel.filters"
+                  class="!pl-10 !p-0 max-w-620px"
+                  :auto-save="false"
+                  :show-loading="false"
+                  link
+                  :show-dynamic-condition="false"
+                  :root-meta="meta"
+                  :link-col-id="vModel.id"
+                  @add-filter="handleScrollIntoView"
+                  @add-filter-group="handleScrollIntoView"
                 />
               </div>
             </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-
-      <a-form-item
-        class="flex w-1/2"
-        :label="`${$t('datatype.Rollup')} ${$t('objects.field')}`"
-        v-bind="vModel.fk_relation_column_id ? validateInfos.fk_rollup_column_id : undefined"
-      >
-        <a-select
-          v-model:value="vModel.fk_rollup_column_id"
-          name="fk_rollup_column_id"
-          placeholder="-select-"
-          :disabled="!vModel.fk_relation_column_id"
-          show-search
-          :filter-option="antSelectFilterOption"
-          dropdown-class-name="nc-dropdown-relation-column !rounded-xl"
-          @change="onDataTypeChange"
-        >
-          <template #suffixIcon>
-            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-          </template>
-          <a-select-option v-for="column of filteredColumns" :key="column.title" :value="column.id">
-            <div class="w-full flex gap-2 truncate items-center justify-between">
-              <div class="flex items-center gap-2 flex-1 truncate">
-                <SmartsheetHeaderIcon :column="column" class="!mx-0" color="text-nc-content-gray-subtle2" />
-
-                <div class="truncate flex-1">{{ column.title }}</div>
-              </div>
-              <component
-                :is="iconMap.check"
-                v-if="vModel.fk_rollup_column_id === column.id"
-                id="nc-selected-item-icon"
-                class="text-primary w-4 h-4"
-              />
-            </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-    </div>
-
-    <a-form-item
-      :label="$t('labels.aggregateFunction')"
-      v-bind="vModel.fk_relation_column_id ? validateInfos.rollup_function : undefined"
-    >
-      <a-select
-        v-model:value="vModel.rollup_function"
-        :disabled="!vModel.fk_relation_column_id"
-        placeholder="-select-"
-        dropdown-class-name="nc-dropdown-rollup-function"
-        class="!mt-0.5"
-        @change="onRollupFunctionChange"
-      >
-        <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-        </template>
-        <a-select-option v-for="(func, index) of aggFunctionsList" :key="index" :value="func.value">
-          <div class="flex gap-2 justify-between items-center">
-            {{ func.text }}
-            <component
-              :is="iconMap.check"
-              v-if="vModel.rollup_function === func.value"
-              id="nc-selected-item-icon"
-              class="text-primary w-4 h-4"
-            />
           </div>
-        </a-select-option>
-      </a-select>
-    </a-form-item>
-    <a-form-item v-if="enableFormattingOptions" :label="$t('placeholder.precision')">
-      <a-select
-        v-if="vModel.meta?.precision || vModel.meta?.precision === 0"
-        v-model:value="vModel.meta.precision"
-        :disabled="isMetaReadOnly"
-        dropdown-class-name="nc-dropdown-rollup-precision-format"
-        @change="onPrecisionChange"
-      >
-        <template #suffixIcon>
-          <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
-        </template>
-        <a-select-option v-for="(format, i) of precisionFormats" :key="i" :value="format">
-          <div class="flex gap-2 w-full justify-between items-center">
-            {{ (precisionFormatsDisplay as any)[format] }}
-            <component
-              :is="iconMap.check"
-              v-if="vModel.meta.precision === format"
-              id="nc-selected-item-icon"
-              class="text-primary w-4 h-4"
-            />
-          </div>
-        </a-select-option>
-      </a-select>
-    </a-form-item>
-    <a-form-item v-if="enableFormattingOptions">
-      <div class="flex items-center gap-1">
-        <NcSwitch v-if="vModel.meta" v-model:checked="vModel.meta.isLocaleString">
-          <div class="text-sm text-nc-content-gray select-none">{{ $t('labels.showThousandsSeparator') }}</div>
-        </NcSwitch>
-      </div>
-    </a-form-item>
-
-    <div v-if="isEeUI" class="w-full flex flex-col gap-4">
-      <div class="flex flex-col gap-2">
-        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER">
-          <template #default="{ click }">
-            <div class="flex gap-1 items-center whitespace-nowrap">
-              <NcSwitch
-                :checked="limitRecToCond"
-                :disabled="!selectedTable"
-                size="small"
-                data-testid="nc-rollup-limit-record-filters"
-                @change="
-                  (value) => {
-                    if (value && click(PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER)) return
-                    onFilterLabelClick()
-                  }
-                "
-              >
-                {{ $t('labels.onlyIncludeLinkedRecordsThatMeetSpecificConditions') }}
-              </NcSwitch>
-
-              <LazyPaymentUpgradeBadge
-                v-if="!limitRecToCond"
-                :feature="PlanFeatureTypes.FEATURE_ROLLUP_LIMIT_RECORDS_BY_FILTER"
-                :content="
-                  $t('upgrade.upgradeToIncludeLinkedRecordsThatMeetSpecificConditions', {
-                    plan: getPlanTitle(PlanTitles.PLUS),
-                  })
-                "
-                class="ml-1"
-              />
-            </div>
-          </template>
-        </PaymentUpgradeBadgeProvider>
-
-        <div v-if="limitRecToCond" class="overflow-auto nc-scrollbar-thin">
-          <LazySmartsheetToolbarColumnFilter
-            ref="filterRef"
-            v-model="vModel.filters"
-            class="!pl-10 !p-0 max-w-620px"
-            :auto-save="false"
-            :show-loading="false"
-            link
-            :show-dynamic-condition="false"
-            :root-meta="meta"
-            :link-col-id="vModel.id"
-            @add-filter="handleScrollIntoView"
-            @add-filter-group="handleScrollIntoView"
-          />
         </div>
-      </div>
-    </div>
+      </a-tab-pane>
+
+      <a-tab-pane key="format" :disabled="!enableFormattingOptions">
+        <template #tab>
+          <div class="tab">
+            <div>{{ $t('labels.formatting') }}</div>
+          </div>
+        </template>
+        <div class="flex flex-col px-0.5 gap-4 pb-0.5">
+          <a-form-item class="mt-4" :label="$t('general.format')">
+            <NcSelect
+              v-model:value="vModel.meta.display_type"
+              class="w-full nc-select-shadow"
+              :placeholder="$t('labels.selectAFormatType')"
+              allow-clear
+            >
+              <a-select-option v-for="option in supportedDisplayTypes" :key="option.value" :value="option.value">
+                <div class="flex w-full items-center gap-2 justify-between">
+                  <div class="w-full">
+                    <component :is="option.icon" class="w-4 h-4" color="text-nc-content-gray-subtle2" />
+                    {{ option.label }}
+                  </div>
+                  <component
+                    :is="iconMap.check"
+                    v-if="option.value === vModel.meta?.display_type"
+                    id="nc-selected-item-icon"
+                    class="text-primary w-4 h-4"
+                  />
+                </div>
+              </a-select-option>
+            </NcSelect>
+          </a-form-item>
+
+          <template v-if="enableFormattingOptions">
+            <SmartsheetColumnCurrencyOptions
+              v-if="vModel.meta.display_type === UITypes.Currency"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnDecimalOptions
+              v-else-if="vModel.meta.display_type === UITypes.Decimal"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnPercentOptions
+              v-else-if="vModel.meta.display_type === UITypes.Percent"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnRatingOptions
+              v-else-if="vModel.meta.display_type === UITypes.Rating"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnTimeOptions
+              v-else-if="vModel.meta.display_type === UITypes.Time"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnDateTimeOptions
+              v-else-if="vModel.meta.display_type === UITypes.DateTime"
+              :value="vModel.meta.display_column_meta"
+            />
+            <SmartsheetColumnDateOptions
+              v-else-if="vModel.meta.display_type === UITypes.Date"
+              :value="vModel.meta.display_column_meta"
+            />
+            <!-- Default options based on rollup result type when no specific display_type is selected -->
+            <SmartsheetColumnDateOptions v-else-if="rollupResultType === FormulaDataTypes.DATE" :value="vModel" />
+            <SmartsheetColumnDecimalOptions v-else-if="rollupResultType === FormulaDataTypes.NUMERIC" :value="vModel" />
+          </template>
+        </div>
+      </a-tab-pane>
+    </NcTabs>
   </div>
   <div v-else>
     <a-alert type="warning" show-icon>
@@ -487,6 +582,30 @@ const handleScrollIntoView = () => {
 </template>
 
 <style scoped lang="scss">
+:deep(.ant-tabs-nav-wrap) {
+  @apply !pl-0;
+}
+
+:deep(.ant-form-item-control-input) {
+  @apply h-full;
+}
+
+:deep(.ant-tabs-content-holder) {
+  @apply mt-4;
+}
+
+:deep(.ant-tabs-tab) {
+  @apply !pb-0 pt-1;
+}
+
+:deep(.ant-tabs-nav) {
+  @apply !mb-0 !pl-0;
+}
+
+:deep(.ant-tabs-tab-btn) {
+  @apply !mb-1;
+}
+
 :deep(.ant-select-selector .ant-select-selection-item .nc-relation-details) {
   @apply hidden;
 }

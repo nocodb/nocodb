@@ -9,6 +9,8 @@ const { base, isManagedAppMaster, isManagedAppInstaller, managedAppVersionsInfo 
 
 const isModalVisible = ref(false)
 
+const isDiscardDraftModalVisible = ref(false)
+
 const modalVariant = ref<'draftOrPublish' | 'versionHistory' | 'changelog' | undefined>(undefined)
 
 const isOpenDropdown = ref<boolean>(false)
@@ -28,6 +30,11 @@ const openModal = (variant?: 'draftOrPublish' | 'versionHistory' | 'changelog') 
 const loadManagedAppAndCurrentVersion = async () => {
   await loadManagedApp()
   await loadCurrentVersion()
+}
+
+const openDiscardDraftModal = () => {
+  isOpenDropdown.value = false
+  isDiscardDraftModalVisible.value = true
 }
 
 watch(
@@ -188,13 +195,14 @@ const badgeConfig = computed(() => {
             </SmartsheetTopbarManagedAppStatusMenuItem>
           </template>
 
-          <!-- Initial draft state  -->
+          <!-- Discard draft option (only when there's a published version to rollback to) -->
           <SmartsheetTopbarManagedAppStatusMenuItem
             v-if="managedAppVersionsInfo.published && isDraft"
             clickable
-            label="Discard Draft"
-            :subtext="`Return to v${managedAppVersionsInfo.published.version || '1.0.0'}`"
+            :label="$t('labels.discardDraft')"
+            :subtext="`${$t('labels.returnTo')} v${managedAppVersionsInfo.published.version || '1.0.0'}`"
             icon-wrapper-class="bg-nc-bg-gray-light"
+            @click="openDiscardDraftModal"
           >
             <template #icon>
               <GeneralIcon icon="delete" class="text-nc-content-gray-muted" />
@@ -272,6 +280,8 @@ const badgeConfig = computed(() => {
   </NcDropdown>
 
   <DlgManagedApp v-model:visible="isModalVisible" modal-size="sm" :variant="modalVariant"> </DlgManagedApp>
+
+  <DlgManagedAppDiscardDraft v-model:visible="isDiscardDraftModalVisible" />
 </template>
 
 <style lang="scss" scoped>

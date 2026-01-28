@@ -4991,10 +4991,20 @@ export class ColumnsService implements IColumnsService {
           .type as RelationTypes,
       );
 
+      const relationType = (param.column as Pick<LinkToAnotherColumnReqType, 'type'>).type as RelationTypes;
+
+      // Use singular for ONE_TO_ONE and MANY_TO_ONE, plural for others
+      const defaultTitle = [
+        RelationTypes.ONE_TO_ONE,
+        RelationTypes.MANY_TO_ONE,
+      ].includes(relationType)
+        ? singularize(refTable.title)
+        : pluralize(refTable.title);
+
       savedColumn = await Column.insert(context, {
         title: getUniqueColumnAliasName(
           await table.getColumns(context),
-          param.column.title ?? pluralize(refTable.title),
+          param.column.title ?? defaultTitle,
         ),
 
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
@@ -5025,6 +5035,14 @@ export class ColumnsService implements IColumnsService {
         ...crossBaseLinkProps,
       });
 
+      // Use singular for ONE_TO_ONE and MANY_TO_ONE, plural for others
+      const reverseDefaultTitle = [
+        RelationTypes.ONE_TO_ONE,
+        RelationTypes.MANY_TO_ONE,
+      ].includes(revType)
+        ? singularize(table.title)
+        : pluralize(table.title);
+
       const parentRelCol = await Column.insert(refContext, {
         title: getUniqueColumnAliasName(
           [
@@ -5032,7 +5050,7 @@ export class ColumnsService implements IColumnsService {
             // if self ref include saved column
             ...(table.id === refTable.id ? [savedColumn] : []),
           ],
-          pluralize(table.title),
+          reverseDefaultTitle,
         ),
         uidt: isLinks ? UITypes.Links : UITypes.LinkToAnotherRecord,
         type: revType,

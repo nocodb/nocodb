@@ -456,6 +456,15 @@ export function isLinksOrLTAR(
   );
 }
 
+export function isLinkV2(
+  colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
+) {
+  return (
+    <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt) ===
+    UITypes.Links
+  );
+}
+
 export function isSelfLinkCol(
   col: ColumnType & { colOptions: unknown }
 ): boolean {

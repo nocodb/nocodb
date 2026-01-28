@@ -30,6 +30,7 @@ import {
 import { UnifiedMetaType } from '~/lib/types';
 import { unifiedMeta } from '~/lib/unifiedMeta';
 import { getColOptions } from '~/lib/unifiedMeta/getColOptions';
+import { isMMOrMMLike } from '~/lib';
 
 async function extractColumnIdentifierType({
   col,
@@ -232,7 +233,13 @@ async function extractColumnIdentifierType({
               column: relationColumn,
             }
           );
-        res.isDataArray = ['hm', 'mm'].includes(relationColOptions.type);
+        const relationType = isMMOrMMLike({
+          ...relationColumn,
+          colOptions: relationColOptions,
+        })
+          ? 'mm'
+          : relationColOptions.type;
+        res.isDataArray = ['hm', 'mm'].includes(relationType);
       }
       res.referencedColumn = {
         id: lookupColumnIdentifierType?.referencedColumn?.id,
@@ -275,9 +282,12 @@ async function extractColumnIdentifierType({
         getMeta,
       });
       res.dataType = relatedColumnIdentifierType.dataType;
+      const relationType = isMMOrMMLike({ ...col, colOptions })
+        ? 'mm'
+        : colOptions.type;
       res.isDataArray =
         relatedColumnIdentifierType.isDataArray ||
-        ['hm', 'mm'].includes(colOptions.type);
+        ['hm', 'mm'].includes(relationType);
       res.referencedColumn = {
         id: relatedColumnIdentifierType?.referencedColumn?.id,
         uidt: relatedColumnIdentifierType?.referencedColumn?.uidt,

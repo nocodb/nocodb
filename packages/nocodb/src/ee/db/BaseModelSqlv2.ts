@@ -3265,7 +3265,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         const { childContext, refContext, mmContext } =
           await colOptions.getParentChildContext(this.context);
 
-          const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
+        const relationType = isMMOrMMLike(column) ? 'mm' : colOptions.type;
         switch (relationType) {
           case 'mm':
             {

@@ -19,6 +19,7 @@ import {
   shouldSkipField,
 } from '~/helpers/dbHelpers';
 import { sanitize } from '~/helpers/sqlSanitize';
+import { NC_MAX_TEXT_LENGTH } from '~/constants';
 
 export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
   return async ({
@@ -432,6 +433,41 @@ export const selectObject = (baseModel: IBaseModelSqlV2, logger: Logger) => {
               sanitize(column.column_name),
             ]);
           break;
+        }
+        case UITypes.LongText: {
+          if ((baseModel.dbDriver as any).isExternal) {
+            const colPath = sanitize(
+              `${alias || baseModel.tnPath}.${column.column_name}`,
+            );
+            if (baseModel.isPg) {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`SUBSTR(??::TEXT, 1, ?)`, [
+                  colPath,
+                  NC_MAX_TEXT_LENGTH,
+                ]);
+            } else if (baseModel.isMySQL) {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`SUBSTR(??, 1, ?)`, [
+                  colPath,
+                  NC_MAX_TEXT_LENGTH,
+                ]);
+            } else if (baseModel.isSqlite) {
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`SUBSTR(??, 1, ?)`, [
+                  colPath,
+                  NC_MAX_TEXT_LENGTH,
+                ]);
+            } else {
+              // SQL Server / other databases - use LEFT function
+              res[sanitize(getAs(column) || column.column_name)] =
+                baseModel.dbDriver.raw(`LEFT(??, ?)`, [
+                  colPath,
+                  NC_MAX_TEXT_LENGTH,
+                ]);
+            }
+            break;
+          }
+          // Else fall through
         }
         default:
           if (baseModel.isPg) {

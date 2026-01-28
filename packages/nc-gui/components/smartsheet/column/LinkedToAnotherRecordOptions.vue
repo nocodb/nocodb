@@ -453,17 +453,19 @@ const handleScrollIntoView = () => {
 
 <template>
   <div class="w-full flex flex-col gap-4">
-    <div class="flex flex-col gap-4 h-30">
+    <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
-        <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit">
-          <a-row :gutter="[16, 16]">
-            <a-radio value="mm" data-testid="Many to Many" :span="12">
-              <span class="nc-ltar-icon nc-mm-icon">
-                <GeneralIcon icon="mm_solid" />
-              </span>
-              {{ $t('title.manyToMany') }}
-            </a-radio>
-            <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord">
+        <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
+          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord">
+            <a-row :gutter="[8, 8]">
+              <a-col :span="12">
+                <a-radio value="mm" data-testid="Many to Many">
+                  <span class="nc-ltar-icon nc-mm-icon">
+                    <GeneralIcon icon="mm_solid" />
+                  </span>
+                  {{ $t('title.manyToMany') }}
+                </a-radio>
+              </a-col>
               <a-col :span="12">
                 <a-radio :value="RelationTypes.ONE_TO_MANY" data-testid="One to Many">
                   <span class="nc-ltar-icon nc-om-icon">
@@ -473,29 +475,51 @@ const handleScrollIntoView = () => {
                 </a-radio>
               </a-col>
               <a-col :span="12">
-                <a-radio :value="RelationTypes.MANY_TO_ONE" data-testid="Many to One" class="nc-relation-radio">
+                <a-radio :value="RelationTypes.MANY_TO_ONE" data-testid="Many to One">
                   <span class="nc-ltar-icon nc-mo-icon">
                     <GeneralIcon icon="bt_solid" />
                   </span>
                   {{ $t('title.manyToOne') }}
                 </a-radio>
               </a-col>
-            </template>
-            <template v-else>
-              <a-radio value="hm" data-testid="Has Many" :span="12">
-                <span class="nc-ltar-icon nc-hm-icon">
-                  <GeneralIcon icon="hm_solid" />
-                </span>
-                {{ $t('title.hasMany') }}
-              </a-radio>
-            </template>
-            <a-radio value="oo" data-testid="One to One" :span="12">
-              <span class="nc-ltar-icon nc-oo-icon">
-                <GeneralIcon icon="oneToOneSolid" />
-              </span>
-              {{ $t('title.oneToOne') }}
-            </a-radio>
-          </a-row>
+              <a-col :span="12">
+                <a-radio value="oo" data-testid="One to One">
+                  <span class="nc-ltar-icon nc-oo-icon">
+                    <GeneralIcon icon="oneToOneSolid" />
+                  </span>
+                  {{ $t('title.oneToOne') }}
+                </a-radio>
+              </a-col>
+            </a-row>
+          </template>
+          <template v-else>
+            <a-row :gutter="[8, 8]" class="nc-links-3-col">
+              <a-col :span="8">
+                <a-radio value="mm" data-testid="Many to Many">
+                  <span class="nc-ltar-icon nc-mm-icon">
+                    <GeneralIcon icon="mm_solid" />
+                  </span>
+                  {{ $t('title.manyToMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="8">
+                <a-radio value="hm" data-testid="Has Many">
+                  <span class="nc-ltar-icon nc-hm-icon">
+                    <GeneralIcon icon="hm_solid" />
+                  </span>
+                  {{ $t('title.hasMany') }}
+                </a-radio>
+              </a-col>
+              <a-col :span="8">
+                <a-radio value="oo" data-testid="One to One">
+                  <span class="nc-ltar-icon nc-oo-icon">
+                    <GeneralIcon icon="oneToOneSolid" />
+                  </span>
+                  {{ $t('title.oneToOne') }}
+                </a-radio>
+              </a-col>
+            </a-row>
+          </template>
         </a-radio-group>
       </a-form-item>
     </div>
@@ -887,13 +911,23 @@ const handleScrollIntoView = () => {
 }
 
 :deep(.nc-ltar-relation-type .ant-radio-group) {
-  @apply flex justify-between gap-2 children:(flex-1 m-0 px-2 py-1 border-1 border-nc-border-gray-medium rounded-lg);
+  .ant-row {
+    @apply flex flex-wrap;
+  }
+
+  .ant-col {
+    @apply flex;
+  }
 
   .ant-radio-wrapper {
-    @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3;
+    @apply transition-all flex-row-reverse justify-between items-center py-1 pl-1 pr-3 m-0 px-2 border-1 border-nc-border-gray-medium rounded-lg flex-1;
 
-    &.ant-radio-wrapper-checked:not(.ant-radio-wrapper-disabled):focus-within {
-      @apply border-nc-border-brand;
+    &.ant-radio-wrapper-checked {
+      @apply border-nc-border-brand bg-nc-bg-brand-light;
+
+      &:not(.ant-radio-wrapper-disabled):focus-within {
+        @apply border-nc-border-brand;
+      }
     }
 
     span:not(.ant-radio):not(.nc-ltar-icon) {
@@ -911,7 +945,7 @@ const handleScrollIntoView = () => {
 }
 
 :deep(.nc-ltar-relation-type .ant-col.ant-form-item-control) {
-  @apply h-8.5;
+  @apply flex-1;
 }
 </style>
 

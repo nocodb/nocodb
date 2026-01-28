@@ -1,5 +1,5 @@
 import { generateText, Output } from 'ai';
-import { createGroq } from '@ai-sdk/groq';
+import { createGroq, groq as groqProvider } from '@ai-sdk/groq';
 import {
   type AiGenerateObjectArgs,
   type AiGetModelArgs,
@@ -72,7 +72,7 @@ export class GroqAiIntegration extends AiIntegration {
   ];
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
-    const { messages, schema } = args;
+    const { messages, schema, websearch } = args;
 
     if (!this.model || args.customModel) {
       const model = args.customModel || this.config.models[0];
@@ -99,6 +99,11 @@ export class GroqAiIntegration extends AiIntegration {
       output: Output.object({ schema }),
       messages,
       temperature: 0.5,
+      ...(websearch && {
+        tools: {
+          browser_search: groqProvider.tools.browserSearch({}),
+        },
+      }),
     });
 
     return {
@@ -134,7 +139,7 @@ export class GroqAiIntegration extends AiIntegration {
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { system } = args;
+    const { system, websearch } = args;
 
     if (!this.model || args.customModel) {
       const model = args.customModel || this.config.models[0];
@@ -163,6 +168,11 @@ export class GroqAiIntegration extends AiIntegration {
       ...('messages' in args
         ? { messages: args.messages }
         : { prompt: args.prompt }),
+      ...(websearch && {
+        tools: {
+          browser_search: groqProvider.tools.browserSearch({}),
+        },
+      }),
     });
 
     return {

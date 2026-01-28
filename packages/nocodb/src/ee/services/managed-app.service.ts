@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { BaseVersion } from 'nocodb-sdk';
+import { BaseVersion, ManagedAppVersionStatus } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type { MetaTable } from '~/utils/globals';
@@ -37,7 +37,10 @@ export class ManagedAppService {
       throw new Error('Target base must be V3');
     }
 
-    const managedAppVersion = await ManagedAppVersion.getLatest(managedAppId);
+    const managedAppVersion = await ManagedAppVersion.getLatest(
+      managedAppId,
+      ManagedAppVersionStatus.PUBLISHED,
+    );
 
     if (!managedAppVersion) {
       throw new Error('Published managed app version not found');

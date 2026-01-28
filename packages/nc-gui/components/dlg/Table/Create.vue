@@ -488,8 +488,8 @@ watch(_baseId, () => {
 
             <NcListSourceSelector
               ref="sourceSelectorRef"
-              :base-id="baseId"
               v-model:source-id="sourceIdRef"
+              :base-id="baseId"
               :show-source-selector="showSourceSelector"
             />
           </template>

@@ -59,6 +59,9 @@ export default class Base implements BaseType {
   managed_app_id?: string; // Points to MANAGED_APPS (for both master and installed instances)
   managed_app_version_id?: string; // Current version ID from MANAGED_APP_VERSIONS
   auto_update?: boolean; // For installed instances: auto-update to new published versions
+  // managed app info (populated fields)
+  managed_app_version?: string; // Current version string
+  managed_app_published_at?: string; // When this version was published
   managed_app_schema_locked?: boolean; // Computed: whether schema modifications are allowed
 
   constructor(base: Partial<Base>) {
@@ -69,8 +72,8 @@ export default class Base implements BaseType {
     return base && new Base(base);
   }
 
-  public static async computeSchemaLocked(_base: Base): Promise<boolean> {
-    return false;
+  public static async populateManagedAppInfo(_base: Base): Promise<void> {
+    return;
   }
 
   public static async createProject(
@@ -289,9 +292,8 @@ export default class Base implements BaseType {
     }
     const base = this.castType(baseData);
 
-    // Compute managed_app_schema_locked
     if (base && base.managed_app_id) {
-      base.managed_app_schema_locked = await this.computeSchemaLocked(base);
+      await this.populateManagedAppInfo(base);
     }
 
     return base;
@@ -370,9 +372,8 @@ export default class Base implements BaseType {
     if (baseData) {
       const base = this.castType(baseData);
 
-      // Compute managed_app_schema_locked
       if (base.managed_app_id) {
-        base.managed_app_schema_locked = await this.computeSchemaLocked(base);
+        await this.populateManagedAppInfo(base);
       }
 
       await base.getSources(includeConfig, ncMeta);

@@ -18,7 +18,15 @@ export const useBase = defineStore('baseStore', () => {
 
   const basesStore = useBases()
 
+  const managedApp = ref<any>(null)
+
+  const managedAppVersions = ref<any[]>([])
+
+  const managedAppVersionsInfo = computed(() => {})
+
   const isManagedAppMaster = ref(false)
+
+  const isManagedAppInstaller = ref(false)
 
   const baseId = computed(() => {
     // In shared base mode, use activeProjectId from basesStore which has the correct base ID
@@ -268,6 +276,10 @@ export const useBase = defineStore('baseStore', () => {
     return `${basUrl}${projectPage ? `?page=${projectPage}` : ''}`
   }
 
+  const loadManagedApp = async () => {}
+
+  const loadCurrentVersion = async () => {}
+
   watch(
     () => route.value.params.baseType,
     (n) => {
@@ -343,6 +355,12 @@ export const useBase = defineStore('baseStore', () => {
     isPrivateBase,
     showBaseAccessRequestOverlay,
     isManagedAppMaster,
+    isManagedAppInstaller,
+    managedApp,
+    loadManagedApp,
+    loadCurrentVersion,
+    managedAppVersions,
+    managedAppVersionsInfo,
   }
 })
 

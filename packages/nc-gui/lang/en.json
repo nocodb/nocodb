@@ -813,6 +813,7 @@
     "isNotNull": "is not null"
   },
   "title": {
+    "discardDraft": "Discard Draft?",
     "setPassword": "Set Password",
     "externalIntegrations": "External Integrations",
     "mcpServer": "MCP Server",
@@ -1189,6 +1190,11 @@
     "live": "Live",
     "upToDate": "Up to date",
     "updateAvailable": "Update available",
+    "discardDraft": "Discard Draft",
+    "discarding": "Discarding",
+    "returnTo": "Return to",
+    "currentDraft": "Current Draft",
+    "rollbackTo": "Rollback to",
     "managedAppTitle": "Title",
     "managedAppDescription": "Description",
     "managedAppCategory": "Category",
@@ -2245,6 +2251,8 @@
     "searchTemplates": "Search templates"
   },
   "msg": {
+    "discardDraftConfirmation": "This will discard all changes made in the current draft and rollback to the latest published version. This action cannot be undone.",
+    "draftDiscardedSuccessfully": "Draft discarded successfully",
     "ssoTokenTooltip": "Generated after SSO login and can be used for accessing APIs under SSO-enabled workspace",
     "privateBaseAccessRestricted": "This is a private base. You do not have permission to view or invite members.",
     "userAlreadyExists": "{email} already has access to this {scope}",

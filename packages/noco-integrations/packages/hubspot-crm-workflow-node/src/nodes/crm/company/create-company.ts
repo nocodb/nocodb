@@ -165,6 +165,7 @@ export class CreateCompanyNode extends HubspotNodeBase<CreateCompanyConfig> {
       title: 'Create Company',
       description: 'Create a new company in HubSpot CRM',
       icon: 'hubspot',
+      hidden: true,
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,

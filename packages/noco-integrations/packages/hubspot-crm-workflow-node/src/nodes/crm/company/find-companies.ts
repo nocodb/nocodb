@@ -156,6 +156,7 @@ export class FindCompaniesNode extends HubspotNodeBase<FindCompaniesConfig> {
       title: 'Find Companies',
       description: 'Search for companies in HubSpot CRM',
       icon: 'hubspot',
+      hidden: true,
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,

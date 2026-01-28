@@ -58,6 +58,7 @@ export class GetContactNode extends HubspotNodeBase<GetContactConfig> {
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      hidden: true,
       keywords: ['hubspot', 'crm', 'contact', 'get', 'fetch', 'retrieve'],
     };
   }

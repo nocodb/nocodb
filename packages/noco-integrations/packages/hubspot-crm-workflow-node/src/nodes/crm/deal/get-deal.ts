@@ -131,6 +131,7 @@ export class GetDealNode extends HubspotNodeBase<GetDealConfig> {
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
+      hidden: true,
       keywords: ['hubspot', 'crm', 'deal', 'get', 'fetch', 'retrieve'],
     };
   }

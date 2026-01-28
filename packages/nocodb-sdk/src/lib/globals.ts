@@ -81,6 +81,11 @@ export enum RelationTypes {
   MANY_TO_ONE = 'mo',
 }
 
+export enum LinksVersion {
+  V1 = 1,
+  V2 = 2,
+}
+
 export const ExpandedFormMode = {
   FIELD: 'field',
   ATTACHMENT: 'attachment',

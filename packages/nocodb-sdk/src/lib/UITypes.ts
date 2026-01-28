@@ -456,6 +456,9 @@ export function isLinksOrLTAR(
   );
 }
 
+// Alias for isLinksOrLTAR
+export const isLTARType = isLinksOrLTAR;
+
 export function isLinkV2(
   colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string
 ) {
@@ -463,6 +466,22 @@ export function isLinkV2(
     <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt) ===
     UITypes.Links
   );
+}
+
+export function isMMOrMMLike(
+  col: ColumnType | { uidt: UITypes | string; colOptions?: any }
+): boolean {
+  if (typeof col === 'object') {
+    // Check if it's Links v2 (always MM-like)
+    if (col.uidt === UITypes.Links) {
+      return true;
+    }
+    // Check if it's LinkToAnotherRecord with MANY_TO_MANY type
+    if (col.uidt === UITypes.LinkToAnotherRecord && col.colOptions) {
+      return (col.colOptions as LinkToAnotherRecordType)?.type === RelationTypes.MANY_TO_MANY;
+    }
+  }
+  return false;
 }
 
 export function isSelfLinkCol(

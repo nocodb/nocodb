@@ -269,7 +269,7 @@ async function createDemoTable({
   }
 
   const BATCH_SIZE = 100;
-  for (let i = 0; i < rowAttributes.length; i += BATCH_SIZE) {
+  for (let i = 0; i < rowAttributes.length; i++) {
     await api.dbTableRow.bulkCreate(
       'noco',
       context.base.id,

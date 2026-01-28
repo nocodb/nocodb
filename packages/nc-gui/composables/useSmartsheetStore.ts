@@ -272,7 +272,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState(
   'smartsheet-store',
 )
 
-export { useProvideSmartsheetStore }
+export { useProvideSmartsheetStore, useSmartsheetStore }
 
 export function useSmartsheetStoreOrThrow() {
   const state = useSmartsheetStore()

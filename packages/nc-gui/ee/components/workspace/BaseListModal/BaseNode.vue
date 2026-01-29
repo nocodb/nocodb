@@ -21,6 +21,7 @@ const onSelect = () => {
     :tabindex="0"
     class="nc-base-node group relative flex items-center gap-3 p-3 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
     @click="onSelect"
+    @keydown.enter.stop="onSelect"
   >
     <GeneralProjectIcon :color="iconColor" class="flex-none" />
     <div class="flex-1 min-w-0">

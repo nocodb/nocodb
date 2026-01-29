@@ -26,6 +26,7 @@ const onSelect = () => {
         : 'hover:(bg-nc-bg-gray-light !border-nc-border-gray-medium)',
     ]"
     @click="onSelect"
+    @keydown.enter.stop="onSelect"
   >
     <GeneralWorkspaceIcon :workspace="workspace" size="large" class="flex-none" />
     <div class="flex flex-col flex-1 min-w-0">

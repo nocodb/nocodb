@@ -303,15 +303,15 @@ onBeforeUnmount(() => {
         class="flex items-center gap-4 p-4 border-t border-nc-border-gray-medium text-xs text-nc-content-gray-muted dark:bg-nc-bg-gray-extralight"
       >
         <div class="flex items-center gap-1">
-          <kbd class="px-1.5 py-1 bg-nc-bg-gray-medium rounded text-[10px]">↑↓</kbd>
-          <span>Navigate</span>
+          <kbd class="nc-keyboard-shortcut">Tab</kbd>
+          <span>{{ $t('labels.navigate') }}</span>
         </div>
         <div class="flex items-center gap-1">
-          <kbd class="px-1.5 py-1 bg-nc-bg-gray-medium rounded text-[10px]">Enter</kbd>
-          <span>Select</span>
+          <kbd class="nc-keyboard-shortcut">Enter</kbd>
+          <span>{{ $t('labels.select') }}</span>
         </div>
         <div class="flex items-center gap-1">
-          <kbd class="px-1.5 py-1 bg-nc-bg-gray-medium rounded text-[10px]">Esc</kbd>
+          <kbd class="nc-keyboard-shortcut">Esc</kbd>
           <span>{{ $t('general.close') }}</span>
         </div>
       </div>
@@ -323,6 +323,10 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
+.nc-keyboard-shortcut {
+  @apply px-2 py-1 bg-nc-bg-gray-light rounded border-1 border-nc-border-gray-medium text-tiny;
+}
+
 .nc-workspace-base-list-modal {
   @apply rounded-xl overflow-hidden;
 }

@@ -20,6 +20,8 @@ export interface CommandPaletteResult {
     base_meta: string;
     base_role: string;
     base_order: string;
+    base_managed_app_master: boolean;
+    base_managed_app_id: string;
   }[];
   items: {
     kind: string;
@@ -68,6 +70,8 @@ export async function getCommandPaletteForUserWorkspace(
           ELSE '${ProjectRoles.NO_ACCESS}'
           END as base_role`),
         'b.order as base_order',
+        'b.managed_app_master as base_managed_app_master',
+        'b.managed_app_id as base_managed_app_id',
       )
       .innerJoin(
         `${MetaTable.WORKSPACE_USER} as wu`,

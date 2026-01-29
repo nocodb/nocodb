@@ -421,7 +421,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             // if LTARv2 column update and relation type changed
             // then reload the reference table meta
             if (isMMOrMMLike(column.value))
-              getMeta((column.value?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id, true)
+              getMeta(
+                (column.value?.colOptions as LinkToAnotherRecordType)?.fk_related_base_id ?? column.value?.base_id,
+                (column.value?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id,
+                true,
+              )
 
             if (oldCol && [UITypes.Date, UITypes.DateTime, UITypes.CreatedTime, UITypes.LastModifiedTime].includes(oldCol.uidt)) {
               viewsStore.loadViews({

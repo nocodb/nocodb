@@ -3,33 +3,42 @@ export interface ScriptConfigItemBase {
     key: string
     label?: string
     description?: string
+    default?: ScriptConfigDefaultValue
 }
+
+export type ScriptConfigDefaultValue = string | number | boolean | string[] | null
 
 export interface ScriptConfigItemTable extends ScriptConfigItemBase {
     type: 'table'
+    default?: string // table id
 }
 
 export interface ScriptConfigItemField extends ScriptConfigItemBase {
     type: 'field'
     parentTable: string
+    default?: string // field id
 }
 
 export interface ScriptConfigItemView extends ScriptConfigItemBase {
     type: 'view'
     parentTable: string
+    default?: string // view id
 }
 
 export interface ScriptConfigItemSelect extends ScriptConfigItemBase {
     type: 'select'
     options: Array<{ value: string; label?: string }>
+    default?: string // must be one of options values
 }
 
 export interface ScriptConfigItemNumber extends ScriptConfigItemBase {
     type: 'number'
+    default?: number
 }
 
 export interface ScriptConfigItemText extends ScriptConfigItemBase {
     type: 'text'
+    default?: string
 }
 
 export type ScriptConfigItem =

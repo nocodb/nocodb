@@ -314,7 +314,15 @@ export class MetaService {
       };
       insertObj.push(tempObj);
     }
-    await this.knexConnection.batchInsert(target, insertObj);
+
+    const BATCH_SIZE =
+      this.knexConnection.client.config.client === 'sqlite3' ? 200 : 10000;
+    for (let i = 0; i < insertObj.length; i += BATCH_SIZE) {
+      await this.knexConnection.batchInsert(
+        target,
+        insertObj.slice(i, i + BATCH_SIZE),
+      );
+    }
 
     return insertObj;
   }

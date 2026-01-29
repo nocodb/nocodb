@@ -224,10 +224,6 @@ const refViews = computed(() => {
   return (views || []).filter((v) => v.type !== ViewTypes.FORM)
 })
 
-const filterOption = (value: string, option: { key: string }) => {
-  return option.key.toLowerCase().includes(value.toLowerCase())
-}
-
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
 
 watch(
@@ -529,7 +525,7 @@ const handleScrollIntoView = () => {
             v-model:value="referenceBaseId"
             show-search
             :disabled="isEdit"
-            :filter-option="filterOption"
+            :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
             placeholder="Select base"
             dropdown-class-name="nc-dropdown-ltar-child-table"
             @change="onBaseChange(referenceBaseId)"
@@ -539,7 +535,8 @@ const handleScrollIntoView = () => {
             </template>
             <a-select-option
               v-for="base of basesList"
-              :key="base.title"
+              :key="base.id"
+              :data-label="base.title"
               :disabled="!canCreateCrossBaseLink(base)"
               :value="base.id"
             >
@@ -581,7 +578,7 @@ const handleScrollIntoView = () => {
             v-model:value="referenceTableChildId"
             show-search
             :disabled="isEdit || isLinkedTablePrivate"
-            :filter-option="filterOption"
+            :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
             placeholder="select table to link"
             dropdown-class-name="nc-dropdown-ltar-child-table"
             @change="handleUpdateRefTable"
@@ -591,7 +588,8 @@ const handleScrollIntoView = () => {
             </template>
             <a-select-option
               v-for="table of refTables"
-              :key="table.title"
+              :key="table.id"
+              :data-label="table.title"
               :value="table.id"
               :disabled="(table as any).is_private"
             >
@@ -669,10 +667,16 @@ const handleScrollIntoView = () => {
             :placeholder="$t('labels.selectView')"
             show-search
             :disabled="isLinkedViewPrivate"
-            :filter-option="filterOption"
+            :filter-option="(input, option) => antSelectFilterOption(input, option, ['data-label'])"
             dropdown-class-name="nc-dropdown-ltar-child-view"
           >
-            <a-select-option v-for="view of refViews" :key="view.title" :value="view.id" :disabled="(view as any).is_private">
+            <a-select-option
+              v-for="view of refViews"
+              :key="view.id"
+              :value="view.id"
+              :data-label="view.title"
+              :disabled="(view as any).is_private"
+            >
               <div class="flex w-full items-center gap-2">
                 <div class="min-w-5 flex items-center justify-center">
                   <GeneralViewIcon

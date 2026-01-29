@@ -85,11 +85,11 @@ export async function serializeCellValue(
         .filter((attachment) => attachment)
         .map(
           (attachment) =>
-            `${attachment.title || 'Attachment'}(${encodeURI(
+            `${attachment.title || 'Attachment'}(${
               attachment.signedPath
-                ? `${siteUrl}/${attachment.signedPath}`
-                : attachment.signedUrl,
-            )})`,
+                ? encodeURI(`${siteUrl}/${attachment.signedPath}`)
+                : attachment.signedUrl
+            })`,
         )
         .join(', ');
     }

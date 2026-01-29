@@ -1,4 +1,3 @@
-/* eslint-disable no-constant-condition */
 import fs from 'fs';
 import { promisify } from 'util';
 import path from 'path';

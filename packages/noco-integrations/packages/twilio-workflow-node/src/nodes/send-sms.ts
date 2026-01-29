@@ -118,7 +118,6 @@ export class SendSmsNode extends WorkflowNodeIntegration<SendSmsNodeConfig> {
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/twilio',
       keywords: ['twilio', 'sms', 'text', 'message', 'send'],
-      hidden: true,
     };
   }
 

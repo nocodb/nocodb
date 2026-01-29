@@ -32,7 +32,6 @@ export class WebhookTriggerNode extends WorkflowNodeIntegration<WebhookTriggerCo
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       documentation:
         'https://nocodb.com/docs/workflows/nodes/trigger-nodes/webhook',
-      hidden: true,
       form: [],
       keywords: [
         'webhook',

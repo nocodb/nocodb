@@ -63,7 +63,6 @@ export class HttpRequest extends WorkflowNodeIntegration<HttpRequestConfig> {
       documentation:
         'https://nocodb.com/docs/workflows/nodes/action-nodes/http-request',
       form: [],
-      hidden: true,
       keywords: [
         'http',
         'request',

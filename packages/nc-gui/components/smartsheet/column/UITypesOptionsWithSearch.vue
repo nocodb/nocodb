@@ -86,7 +86,7 @@ const handleKeydownEnter = () => {
 
 onMounted(() => {
   searchQuery.value = ''
-  activeFieldIndex.value = options.value.findIndex((o) => o.name === UITypes.SingleLineText)
+  activeFieldIndex.value = options.value?.findIndex((o) => o.name === UITypes.SingleLineText) ?? -1
 })
 
 const { isSystem } = useColumnCreateStoreOrThrow()

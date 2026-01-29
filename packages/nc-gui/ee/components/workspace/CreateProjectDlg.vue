@@ -427,7 +427,7 @@ if (props.isCreateNewActionMenu) {
 
 .nc-create-project-dlg-wrapper-null {
   .ant-modal-content {
-    @apply !rounded-[12px];
+    @apply !rounded-[12px] border-1 border-solid border-nc-border-gray-medium;
   }
 }
 </style>

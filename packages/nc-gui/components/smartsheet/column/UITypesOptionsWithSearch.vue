@@ -123,7 +123,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
           alt="No search results found"
         />
 
-        {{ options.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
+        {{ options?.length ? $t('title.noResultsMatchedYourSearch') : 'The list is empty' }}
       </div>
       <GeneralSourceRestrictionTooltip
         v-for="(option, index) in filteredOptions"

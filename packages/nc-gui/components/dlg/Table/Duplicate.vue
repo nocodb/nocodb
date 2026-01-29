@@ -394,7 +394,14 @@ onMounted(() => {
               >
                 <template v-if="!!targetBase">
                   <div class="flex-1 capitalize truncate flex gap-1">
-                    <GeneralProjectIcon :color="parseProp(targetBase?.meta ?? {}).iconColor" size="small" />
+                    <GeneralProjectIcon
+                      :color="parseProp(targetBase?.meta ?? {}).iconColor"
+                      :managed-app="{
+                        managed_app_master: targetBase?.managed_app_master,
+                        managed_app_id: targetBase?.managed_app_id,
+                      }"
+                      size="small"
+                    />
                     {{ targetBase?.title }}
                   </div>
                 </template>
@@ -439,7 +446,14 @@ onMounted(() => {
                     </template>
 
                     <template #listItemExtraLeft="{ option: optionItem }">
-                      <GeneralProjectIcon :color="parseProp(optionItem.meta).iconColor" size="small" />
+                      <GeneralProjectIcon
+                        :color="parseProp(optionItem.meta).iconColor"
+                        :managed-app="{
+                          managed_app_master: optionItem.managed_app_master,
+                          managed_app_id: optionItem.managed_app_id,
+                        }"
+                        size="small"
+                      />
                     </template>
                     <template #listItemExtraRight="{ option: optionItem }">
                       <div v-if="activeBase?.id === optionItem.id" class="text-nc-content-gray-muted leading-4.5 text-xs">

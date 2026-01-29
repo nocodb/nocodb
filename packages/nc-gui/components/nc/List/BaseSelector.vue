@@ -141,7 +141,14 @@ defineExpose({
     <NcListDropdown v-model:is-open="isOpenBaseSelectDropdown" :disabled="disabled" :has-error="!!selectedBase?.ncItemDisabled">
       <div class="flex-1 flex items-center gap-2 min-w-0">
         <div v-if="selectedBase" class="min-w-5 flex items-center justify-center">
-          <GeneralProjectIcon :color="parseProp(selectedBase.meta).iconColor" size="small" />
+          <GeneralProjectIcon
+            :color="parseProp(selectedBase.meta).iconColor"
+            :managed-app="{
+              managed_app_master: selectedBase.managed_app_master,
+              managed_app_id: selectedBase.managed_app_id,
+            }"
+            size="small"
+          />
         </div>
         <NcTooltip hide-on-click class="flex-1 truncate" show-on-truncate-only>
           <span
@@ -178,7 +185,14 @@ defineExpose({
         >
           <template #listItemExtraLeft="{ option }">
             <div class="min-w-5 flex items-center justify-center">
-              <GeneralProjectIcon :color="parseProp(option.meta).iconColor" size="small" />
+              <GeneralProjectIcon
+                :color="parseProp(option.meta).iconColor"
+                :managed-app="{
+                  managed_app_master: option.managed_app_master,
+                  managed_app_id: option.managed_app_id,
+                }"
+                size="small"
+              />
             </div>
           </template>
         </NcList>

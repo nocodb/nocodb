@@ -5,12 +5,17 @@ const props = withDefaults(
   defineProps<{
     hoverable?: boolean
     color?: string
+    managedApp?: {
+      managed_app_master?: boolean
+      managed_app_id?: string
+    }
   }>(),
   {
     color: baseIconColors[0],
+    managedApp: () => ({}),
   },
 )
-const { color } = toRefs(props)
+const { color, managedApp } = toRefs(props)
 
 const iconColor = computed(() => {
   return color.value && tinycolor(color.value).isValid()
@@ -23,10 +28,18 @@ const iconColor = computed(() => {
         shade: tinycolor(baseIconColors[0]).darken(40).toHexString(),
       }
 })
+
+const managedAppInfo = computed(() => {
+  return {
+    isManagedApp: isEeUI && !!managedApp.value?.managed_app_id,
+    isMaster: !!managedApp.value?.managed_app_master && !!managedApp.value?.managed_app_id,
+  }
+})
 </script>
 
 <template>
   <svg
+    v-if="!managedAppInfo.isManagedApp"
     xmlns="http://www.w3.org/2000/svg"
     width="20"
     height="20"
@@ -46,11 +59,20 @@ const iconColor = computed(() => {
       :fill="iconColor.tint"
     />
   </svg>
+  <GeneralIcon
+    v-else
+    icon="ncBox"
+    class="h-4.5 w-4.5 nc-base-icon text-nc-content-gray-subtle2"
+    :class="{
+      'nc-base-icon-hoverable': hoverable,
+    }"
+    :style="!managedAppInfo.isMaster ? { color: iconColor.tint } : {}"
+  />
 </template>
 
 <style scoped>
 .nc-base-icon {
-  @apply text-xl;
+  @apply flex-none text-xl;
 }
 .nc-base-icon-hoverable {
   @apply cursor-pointer !hover:bg-nc-bg-gray-medium !hover:bg-opacity-50;

@@ -434,6 +434,10 @@ const showWorkspaceSelector = ref(false)
                 <GeneralProjectIcon
                   :color="option?.meta?.iconColor"
                   :type="option?.type || 'dataoption'"
+                  :managed-app="{
+                    managed_app_master: option?.managed_app_master,
+                    managed_app_id: option?.managed_app_id,
+                  }"
                   class="nc-view-icon flex-none"
                 />
 

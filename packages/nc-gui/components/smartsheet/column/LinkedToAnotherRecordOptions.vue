@@ -549,7 +549,15 @@ const handleScrollIntoView = () => {
                 </template>
                 <div class="flex w-full items-center gap-2">
                   <div class="min-w-5 flex items-center justify-center">
-                    <GeneralProjectIcon :color="parseProp(base.meta).iconColor" :type="base.type" class="nc-project-icon" />
+                    <GeneralProjectIcon
+                      :color="parseProp(base.meta).iconColor"
+                      :type="base.type"
+                      :managed-app="{
+                        managed_app_master: base.managed_app_master,
+                        managed_app_id: base.managed_app_id,
+                      }"
+                      class="nc-project-icon"
+                    />
                   </div>
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ base.title }}</template>

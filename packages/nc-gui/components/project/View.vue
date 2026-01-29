@@ -208,6 +208,10 @@ onMounted(() => {
           <GeneralProjectIcon
             :color="parseProp(currentBase?.meta).iconColor"
             :type="currentBase?.type"
+            :managed-app="{
+              managed_app_master: currentBase?.managed_app_master,
+              managed_app_id: currentBase?.managed_app_id,
+            }"
             class="h-6 w-6 md:(h-4 w-4) flex-none"
           />
           <NcTooltip

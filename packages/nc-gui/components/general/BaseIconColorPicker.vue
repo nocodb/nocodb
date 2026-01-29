@@ -7,6 +7,10 @@ const props = withDefaults(
     size?: 'xsmall' | 'small' | 'medium' | 'large' | 'xlarge'
     readonly?: boolean
     iconClass?: string
+    managedApp?: {
+      managed_app_master?: boolean
+      managed_app_id?: string
+    }
   }>(),
   {
     size: 'small',
@@ -75,8 +79,8 @@ watch(
         <NcTooltip placement="topLeft" :disabled="readonly || isOpen">
           <template #title> {{ $t('tooltip.changeIconColour') }} </template>
 
-          <div>
-            <GeneralProjectIcon :color="colorRef" :class="iconClass" />
+          <div class="flex items-center">
+            <GeneralProjectIcon :color="colorRef" :class="iconClass" :managed-app="managedApp" />
           </div>
         </NcTooltip>
       </div>

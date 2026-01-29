@@ -371,7 +371,7 @@ const getInheritanceInfo = (record: any) => {
     defaultBaseRole: base.value?.default_role,
   })
 
-  if (!effectiveRole || effectiveRole === ProjectRoles.INHERIT || effectiveRole === ProjectRoles.NO_ACCESS) {
+  if (!effectiveRole || effectiveRole === ProjectRoles.INHERIT) {
     return null
   }
 
@@ -734,48 +734,22 @@ onBeforeUnmount(() => {
                 />
               </template>
               <template v-else>
-                <div class="flex items-center gap-2">
+                <div class="flex flex-col gap-1">
                   <RolesBadge
                     :border="false"
-                    :role="getInheritanceInfo(record) ? ProjectRoles.INHERIT : record.roles"
-                    :inherit="!!getInheritanceInfo(record)"
+                    :role="getInheritanceInfo(record) ? getInheritanceInfo(record)?.effectiveRole : record.roles"
                   />
-                  <NcTooltip
+                  <div
                     v-if="isEeUI && getInheritanceInfo(record)"
-                    class="uppercase text-[10px] leading-4 text-nc-content-gray-muted"
-                    placement="bottom"
+                    class="flex items-center gap-1 text-xs text-nc-content-gray-muted"
                   >
-                    <template #title>
-                      <div class="flex flex-col gap-1">
-                        <div>
-                          {{
-                            getInheritanceInfo(record)?.source === 'team'
-                              ? $t('tooltip.roleInheritedFromTeam')
-                              : $t('tooltip.roleInheritedFromWorkspace')
-                          }}
-                        </div>
-                        <div v-if="getInheritanceInfo(record)?.effectiveRole" class="text-xs font-normal">
-                          {{
-                            $t('tooltip.effectiveRole', {
-                              role: $t(`objects.roleType.${getInheritanceInfo(record)?.effectiveRole}`),
-                            })
-                          }}
-                        </div>
-                      </div>
-                    </template>
-                    <div class="flex items-center gap-1">
-                      <RolesBadge
-                        v-if="getInheritanceInfo(record)?.effectiveRole"
-                        :border="false"
-                        :role="getInheritanceInfo(record)?.effectiveRole"
-                        icon-only
-                        nc-badge-class="!px-1"
-                      />
-                      <span>{{
-                        getInheritanceInfo(record)?.source === 'team' ? $t('objects.team') : $t('objects.workspace')
-                      }}</span>
-                    </div>
-                  </NcTooltip>
+                    <GeneralIcon icon="role_inherit" class="h-3 w-3" />
+                    <span>{{
+                      getInheritanceInfo(record)?.source === 'team'
+                        ? $t('tooltip.roleInheritedFromTeam')
+                        : $t('tooltip.roleInheritedFromWorkspace')
+                    }}</span>
+                  </div>
                 </div>
               </template>
             </div>

@@ -28,6 +28,7 @@ interface GenerateStructuredActionConfig extends WorkflowNodeConfig {
   integrationId: string;
   model?: string;
   schema: SchemaField[];
+  websearch?: boolean;
 }
 
 export class GenerateStructuredAction extends WorkflowNodeIntegration<GenerateStructuredActionConfig> {
@@ -253,6 +254,9 @@ export class GenerateStructuredAction extends WorkflowNodeIntegration<GenerateSt
         ],
         schema: zodSchema,
         customModel: model,
+        ...(config.websearch && {
+          websearch: true,
+        }),
       });
 
       logs.push({

@@ -1,5 +1,5 @@
 import { generateImage, generateText, Output } from 'ai';
-import { createOpenAI } from '@ai-sdk/openai';
+import { createOpenAI, openai as openaiProvider } from '@ai-sdk/openai';
 import {
   type AiGenerateImageArgs,
   type AiGenerateImageResponse,
@@ -88,7 +88,7 @@ export class OpenAIIntegration extends AiIntegration {
   ];
 
   public async generateObject<T = any>(args: AiGenerateObjectArgs) {
-    const { messages, schema } = args;
+    const { messages, schema, websearch } = args;
 
     if (!this.model || args.customModel) {
       const model = args.customModel || this.config.models[0];
@@ -115,6 +115,11 @@ export class OpenAIIntegration extends AiIntegration {
       output: Output.object({ schema }),
       messages,
       temperature: 0.5,
+      ...(websearch && {
+        tools: {
+          web_search: openaiProvider.tools.webSearch(),
+        },
+      }),
     });
 
     return {
@@ -129,7 +134,7 @@ export class OpenAIIntegration extends AiIntegration {
   }
 
   public async generateText(args: AiGenerateTextArgs) {
-    const { customModel } = args;
+    const { customModel, websearch } = args;
 
     if (!this.model || customModel) {
       const config = this.config;
@@ -159,6 +164,11 @@ export class OpenAIIntegration extends AiIntegration {
       ...('messages' in args
         ? { messages: args.messages }
         : { prompt: args.prompt }),
+      ...(websearch && {
+        tools: {
+          web_search: openaiProvider.tools.webSearch(),
+        },
+      }),
     });
 
     return {

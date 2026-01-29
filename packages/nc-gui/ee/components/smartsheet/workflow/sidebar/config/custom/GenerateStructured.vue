@@ -7,6 +7,7 @@ interface GenerateStructuredConfig {
   integrationId: string
   model?: string
   schema: SchemaField[]
+  websearch?: boolean
 }
 
 const { selectedNodeId, updateNode, selectedNode, fetchNodeIntegrationOptions, isWorkflowEditAllowed } = useWorkflowOrThrow()
@@ -253,6 +254,18 @@ const arrayItemTypeOptions = [
           </div>
         </a-select-option>
       </NcSelect>
+    </div>
+
+    <div v-if="config.integrationId" class="flex items-center justify-between gap-2">
+      <div class="flex flex-col">
+        <label class="text-sm font-medium text-nc-content-gray-emphasis">Enable Web Search</label>
+        <span class="text-xs text-nc-content-gray-muted">Allow the AI model to search the web for up-to-date information</span>
+      </div>
+      <NcSwitch
+        :checked="config.websearch"
+        :disabled="!isWorkflowEditAllowed"
+        @update:checked="updateConfig({ websearch: $event })"
+      />
     </div>
 
     <div class="flex flex-col gap-2">

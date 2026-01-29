@@ -438,15 +438,15 @@ onBeforeUnmount(() => {
         class="flex items-center gap-4 p-4 border-t border-nc-border-gray-medium text-xs text-nc-content-gray-muted dark:bg-nc-bg-gray-extralight"
       >
         <div class="flex items-center gap-1">
-          <kbd class="px-1.5 py-0.5 bg-nc-bg-gray-medium rounded text-[10px]">↑↓</kbd>
+          <kbd class="px-1.5 py-1 bg-nc-bg-gray-medium rounded text-[10px]">↑↓</kbd>
           <span>Navigate</span>
         </div>
         <div class="flex items-center gap-1">
-          <kbd class="px-1.5 py-0.5 bg-nc-bg-gray-medium rounded text-[10px]">Enter</kbd>
+          <kbd class="px-1.5 py-1 bg-nc-bg-gray-medium rounded text-[10px]">Enter</kbd>
           <span>Select</span>
         </div>
         <div class="flex items-center gap-1">
-          <kbd class="px-1.5 py-0.5 bg-nc-bg-gray-medium rounded text-[10px]">Esc</kbd>
+          <kbd class="px-1.5 py-1 bg-nc-bg-gray-medium rounded text-[10px]">Esc</kbd>
           <span>{{ $t('general.close') }}</span>
         </div>
       </div>

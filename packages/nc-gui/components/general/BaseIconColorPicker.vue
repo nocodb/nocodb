@@ -28,7 +28,7 @@ const isOpen = ref(false)
 const colorRef = ref(tinycolor(modelValue.value).isValid() ? modelValue.value : baseIconColors[0])
 
 const isMasterManagedApp = computed(() => {
-  return !!managedApp.value?.managed_app_id && !!managedApp.value?.managed_app_master
+  return isEeUI && !!managedApp.value?.managed_app_id && !!managedApp.value?.managed_app_master
 })
 
 const updateIconColor = (color: string) => {
@@ -92,6 +92,17 @@ watch(
           </div>
         </NcTooltip>
       </div>
+      <template #overlay>
+        <div class="flex justify-start">
+          <GeneralColorPicker
+            :model-value="colorRef"
+            :colors="baseIconColors"
+            :is-new-design="true"
+            class="nc-base-icon-color-picker"
+            @input="updateIconColor"
+          />
+        </div>
+      </template>
     </a-dropdown>
   </div>
 </template>

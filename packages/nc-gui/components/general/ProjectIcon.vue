@@ -17,23 +17,33 @@ const props = withDefaults(
 )
 const { color, managedApp } = toRefs(props)
 
-const iconColor = computed(() => {
-  return color.value && tinycolor(color.value).isValid()
-    ? {
-        tint: baseIconColors.includes(color.value) ? color.value : tinycolor(color.value).lighten(10).toHexString(),
-        shade: tinycolor(color.value).darken(40).toHexString(),
-      }
-    : {
-        tint: baseIconColors[0],
-        shade: tinycolor(baseIconColors[0]).darken(40).toHexString(),
-      }
-})
-
 const managedAppInfo = computed(() => {
   return {
     isManagedApp: isEeUI && !!managedApp.value?.managed_app_id,
     isMaster: !!managedApp.value?.managed_app_master && !!managedApp.value?.managed_app_id,
   }
+})
+
+const iconColor = computed(() => {
+  return color.value && tinycolor(color.value).isValid()
+    ? {
+        tint: baseIconColors.includes(color.value) ? color.value : tinycolor(color.value).lighten(10).toHexString(),
+        shade: tinycolor(color.value)
+          .darken(managedAppInfo.value.isManagedApp ? 30 : 40)
+          .toHexString(),
+      }
+    : {
+        tint: baseIconColors[0],
+        shade: tinycolor(baseIconColors[0])
+          .darken(managedAppInfo.value.isManagedApp ? 30 : 40)
+          .toHexString(),
+      }
+})
+
+// Unique gradient ID based on app ID and color to avoid SVG gradient conflicts
+const gradientId = computed(() => {
+  const colorHash = color.value?.replace('#', '') || 'default'
+  return `sphere-${managedApp.value?.managed_app_id || 'default'}-${colorHash}`
 })
 </script>
 
@@ -59,15 +69,38 @@ const managedAppInfo = computed(() => {
       :fill="iconColor.tint"
     />
   </svg>
+  <!-- Master managed app - keep original icon -->
   <GeneralIcon
-    v-else
+    v-else-if="managedAppInfo.isMaster"
     icon="ncBox"
     class="h-4.5 w-4.5 nc-base-icon text-nc-content-gray-subtle2"
     :class="{
       'nc-base-icon-hoverable': hoverable,
     }"
-    :style="!managedAppInfo.isMaster ? { color: iconColor.tint } : {}"
   />
+  <!-- 3D Sphere icon for installed managed apps -->
+  <svg
+    v-else
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    viewBox="0 0 20 20"
+    fill="none"
+    class="nc-base-icon"
+    :class="{
+      'nc-base-icon-hoverable': hoverable,
+    }"
+  >
+    <defs>
+      <!-- Radial gradient for 3D sphere effect - light from top-left -->
+      <radialGradient :id="gradientId" cx="30%" cy="30%" r="70%" fx="25%" fy="25%">
+        <stop offset="0%" :stop-color="iconColor.tint" />
+        <stop offset="100%" :stop-color="iconColor.shade" />
+      </radialGradient>
+    </defs>
+    <!-- Main sphere -->
+    <circle cx="10" cy="10" r="8" :fill="`url(#${gradientId})`" />
+  </svg>
 </template>
 
 <style scoped>

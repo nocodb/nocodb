@@ -1276,6 +1276,17 @@ const unique = computed({
                       }"
                     >
                       {{ UITypesName[opt.name] }}
+                      <span
+                        v-if="
+                          isEdit &&
+                          column &&
+                          column.uidt === UITypes.LinkToAnotherRecord &&
+                          opt.name === UITypes.LinkToAnotherRecord &&
+                          column.colOptions?.version !== 2
+                        "
+                        class="!text-xs !text-nc-content-brand-hover"
+                        >(Legacy)</span
+                      >
                     </div>
 
                     <div v-if="searchBasisInfoMap[opt.name]" class="flex-1 flex">

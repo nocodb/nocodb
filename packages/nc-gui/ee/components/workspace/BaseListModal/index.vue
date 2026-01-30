@@ -21,8 +21,34 @@ const { loadProjects, updateProject } = basesStore
 
 const { navigateToTable } = useTablesStore()
 
-const { navigateToProject } = useGlobal()
+const { navigateToProject, isMobileMode } = useGlobal()
 const { $e } = useNuxtApp()
+
+// Responsive breakpoint - show workspace panel on large screens only
+const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
+const isCompactView = computed(() => isMobileMode.value || windowWidth.value < 1024)
+
+// Update windowWidth on resize
+const onResize = () => {
+  windowWidth.value = window.innerWidth
+}
+
+// Keyboard navigation
+const handleKeydown = (e: KeyboardEvent) => {
+  if (e.key === 'Escape') {
+    visible.value = false
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('resize', onResize)
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onResize)
+  window.removeEventListener('keydown', handleKeydown)
+})
 
 const selectedWorkspaceId = ref<string | null>(null)
 const searchQuery = ref('')
@@ -283,21 +309,6 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
 
   navigateTo(`/${workspace.id}`)
 }
-
-// Keyboard navigation
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape') {
-    visible.value = false
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeydown)
-})
 </script>
 
 <template>
@@ -311,8 +322,11 @@ onBeforeUnmount(() => {
     @keydown.esc="visible = false"
   >
     <div class="nc-workspace-base-list-modal flex flex-col h-full w-full">
-      <!-- Header with Search -->
-      <div class="flex items-center px-4 py-3 border-b border-nc-border-gray-medium dark:bg-nc-bg-gray-extralight">
+      <!-- Header with Search (Desktop only) -->
+      <div
+        v-if="!isCompactView"
+        class="flex items-center px-4 py-3 border-b border-nc-border-gray-medium dark:bg-nc-bg-gray-extralight"
+      >
         <a-input
           v-model:value="searchQuery"
           class="nc-workspace-base-search"
@@ -328,8 +342,8 @@ onBeforeUnmount(() => {
 
       <!-- Main Content -->
       <div class="flex flex-1 min-h-0">
-        <!-- Left Panel - Workspaces -->
-        <div class="nc-workspace-panel w-[320px] border-r border-nc-border-gray-medium flex flex-col">
+        <!-- Left Panel - Workspaces (hidden on compact view) -->
+        <div v-if="!isCompactView" class="nc-workspace-panel w-[320px] border-r border-nc-border-gray-medium flex flex-col">
           <div class="px-4 pt-4 pb-1 text-xs font-medium text-nc-content-gray-muted uppercase tracking-wide">
             {{ $t('objects.workspaces') }}
           </div>
@@ -365,11 +379,23 @@ onBeforeUnmount(() => {
 
         <!-- Right Panel - Bases -->
         <div class="nc-bases-panel flex-1 flex flex-col min-w-0 bg-nc-bg-gray-extralight dark:bg-transparent">
-          <!-- Bases Header -->
+          <!-- Compact View: Workspace Selector -->
+          <WorkspaceBaseListModalWorkspaceSelector
+            v-if="isCompactView"
+            :workspaces="workspacesList"
+            :selected-workspace-id="selectedWorkspaceId"
+            :base-count="baseCount"
+            @select="onSelectWorkspace"
+            @create="onCreateWorkspace"
+          />
+
+          <!-- Bases Header (with search on compact view) -->
           <WorkspaceBaseListModalBasesHeader
+            v-model:search-query="searchQuery"
             :workspace="selectedWorkspace"
             :base-count="baseCount"
             :active-filter="activeFilter"
+            :is-compact-view="isCompactView"
             @update:active-filter="activeFilter = $event"
           />
 
@@ -487,8 +513,9 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
-      <!-- Footer with keyboard shortcuts -->
+      <!-- Footer with keyboard shortcuts (Desktop only) -->
       <div
+        v-if="!isCompactView"
         class="flex items-center gap-4 p-4 border-t border-nc-border-gray-medium text-xs text-nc-content-gray-muted dark:bg-nc-bg-gray-extralight"
       >
         <div class="flex items-center gap-1">

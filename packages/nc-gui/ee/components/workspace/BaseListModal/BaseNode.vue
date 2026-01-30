@@ -123,7 +123,7 @@ const onMenuClick = (e: Event) => {
 <template>
   <div
     :tabindex="0"
-    class="nc-base-node group relative flex items-center gap-3 px-3 py-4 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
+    class="nc-base-node group relative flex items-center gap-3 px-3 py-3 lg:py-4 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
     :class="{ 'is-marked': isMarked, 'is-editing': editMode }"
     @click="onSelect"
     @keydown.enter.stop="onSelect"
@@ -186,9 +186,10 @@ const onMenuClick = (e: Event) => {
       overlay-class-name="nc-base-node-menu"
     >
       <NcButton
+        :tabindex="-1"
         type="text"
         size="xsmall"
-        class="nc-base-node-menu-btn !opacity-0 group-hover:!opacity-100"
+        class="nc-base-node-menu-btn opacity-0 group-hover:!opacity-100"
         :class="{ '!opacity-100': isMenuOpen }"
         @click.stop="onMenuClick"
       >

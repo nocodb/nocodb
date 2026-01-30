@@ -191,7 +191,7 @@ onBeforeUnmount(() => {
       <GeneralIcon :icon="sectionConfig.icon" class="w-3.5 h-3.5" />
       <span>{{ sectionConfig.label }}</span>
     </div>
-    <div ref="gridRef" class="nc-bases-grid grid grid-cols-3 gap-3" :class="{ dragging }">
+    <div ref="gridRef" class="nc-bases-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" :class="{ dragging }">
       <WorkspaceBaseListModalBaseNode
         v-for="base in bases"
         :key="base.id"

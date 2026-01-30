@@ -38,7 +38,7 @@ export async function getFormulasReferredTheColumn(
     if (UITypes.Button === c.uidt && (formula as ButtonColumn)?.type !== 'url')
       return columns;
 
-    if (fn(formulaJsep(formula.formula))) {
+    if (formula.formula && fn(formulaJsep(formula.formula))) {
       columns.push(c);
     }
     return columns;

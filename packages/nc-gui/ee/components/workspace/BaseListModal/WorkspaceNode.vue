@@ -33,9 +33,14 @@ const onSelect = () => {
       <span class="text-sm font-medium text-nc-content-gray-extreme truncate capitalize">
         {{ workspace.title }}
       </span>
-      <span v-if="isSelected && baseCount !== undefined" class="text-xs text-nc-content-gray-muted">
-        {{ baseCount }} {{ baseCount !== 1 ? $t('objects.projects') : $t('objects.project') }}
-      </span>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-nc-content-gray-muted truncate">
+          {{ workspace.payment?.plan?.title || 'Free' }}
+        </span>
+        <span v-if="selected && baseCount !== undefined" class="text-xs text-nc-content-gray-muted">
+          {{ baseCount }} {{ baseCount !== 1 ? $t('objects.projects') : $t('objects.project') }}
+        </span>
+      </div>
     </div>
     <GeneralIcon v-if="isSelected" icon="check" class="text-nc-content-brand flex-none" />
     <GeneralIcon

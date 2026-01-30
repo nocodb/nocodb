@@ -21,8 +21,8 @@ const managedApp = ref({
       <GeneralBaseIconColorPicker
         :model-value="color1"
         type="database"
-        @update:model-value="color1 = $event"
         :managed-app="managedApp"
+        @update:model-value="color1 = $event"
       >
       </GeneralBaseIconColorPicker>
     </a-card>

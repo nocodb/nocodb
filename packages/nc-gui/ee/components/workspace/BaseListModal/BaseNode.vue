@@ -143,13 +143,13 @@ const onMenuClick = (e: Event) => {
       @click.stop
     />
 
-    <div class="flex-1 min-w-0">
+    <div class="flex-1 min-w-0 min-h-[28px] flex items-center">
       <!-- Inline Edit Input -->
       <a-input
         v-if="editMode"
         ref="inputRef"
         v-model:value="tempTitle"
-        class="!bg-transparent !text-sm !font-medium !rounded-md !px-1 !h-6"
+        class="!bg-transparent !text-sm !font-medium !rounded-md !px-1 !h-7 !-ml-1.2"
         @click.stop
         @keyup.enter="updateTitle"
         @keyup.esc="updateTitle"
@@ -157,100 +157,95 @@ const onMenuClick = (e: Event) => {
         @keydown.stop
       />
       <!-- Title Display -->
-      <NcTooltip v-else show-on-truncate-only class="truncate">
-        <div class="text-sm font-medium text-nc-content-gray-extreme truncate" @dblclick.stop="enableEditMode">
-          {{ base.title }}
-        </div>
+      <NcTooltip v-else show-on-truncate-only class="min-w-0 truncate text-sm font-medium">
+        {{ base.title }}
+
         <template #title>{{ base.title }}</template>
       </NcTooltip>
     </div>
 
-    <!-- Indicator icons when base has attribute but shown in another section -->
-    <div v-if="showStarIndicator || showPrivateIndicator" class="flex items-center gap-1">
-      <NcTooltip v-if="showStarIndicator" class="flex">
-        <GeneralIcon icon="star" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
-        <template #title>{{ $t('general.starred') }}</template>
-      </NcTooltip>
-      <NcTooltip v-if="showPrivateIndicator" class="flex">
-        <GeneralIcon icon="ncLock" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
-        <template #title>{{ $t('general.private') }}</template>
-      </NcTooltip>
-    </div>
+    <div class="flex items-center space-x-2">
+      <!-- Indicator icons when base has attribute but shown in another section -->
+      <div v-if="showStarIndicator || showPrivateIndicator" class="flex items-center gap-1">
+        <NcTooltip v-if="showStarIndicator" class="flex">
+          <GeneralIcon icon="star" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
+          <template #title>{{ $t('general.starred') }}</template>
+        </NcTooltip>
+        <NcTooltip v-if="showPrivateIndicator" class="flex">
+          <GeneralIcon icon="ncLock" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
+          <template #title>{{ $t('general.private') }}</template>
+        </NcTooltip>
+      </div>
 
-    <!-- More Options Button -->
-    <NcDropdown
-      v-if="!editMode"
-      v-model:visible="isMenuOpen"
-      :trigger="['click']"
-      placement="bottomRight"
-      overlay-class-name="nc-base-node-menu"
-    >
-      <NcButton
-        :tabindex="-1"
-        type="text"
-        size="xsmall"
-        class="nc-base-node-menu-btn opacity-0 group-hover:!opacity-100"
-        :class="{ '!opacity-100': isMenuOpen }"
-        @click.stop="onMenuClick"
-      >
-        <GeneralIcon icon="threeDotVertical" class="text-nc-content-gray-muted" />
-      </NcButton>
+      <!-- More Options Button -->
+      <div v-if="!editMode" class="nc-base-node-menu-wrapper" :class="{ 'is-open': isMenuOpen }">
+        <NcDropdown
+          v-model:visible="isMenuOpen"
+          :trigger="['click']"
+          placement="bottomRight"
+          overlay-class-name="nc-base-node-menu"
+        >
+          <NcButton :tabindex="-1" type="text" size="xsmall" class="nc-base-node-menu-btn" @click.stop="onMenuClick">
+            <GeneralIcon icon="threeDotVertical" class="text-nc-content-gray-muted" />
+          </NcButton>
 
-      <template #overlay>
-        <NcMenu class="!min-w-50" variant="small">
-          <!-- Copy Base ID -->
-          <NcMenuItemCopyId
-            :id="base.id"
-            :tooltip="$t('labels.clickToCopyBaseID')"
-            :label="$t('labels.baseIdColon', { baseId: base.id })"
-          />
-          <NcDivider />
+          <template #overlay>
+            <NcMenu class="!min-w-50" variant="small">
+              <!-- Copy Base ID -->
+              <NcMenuItemCopyId
+                :id="base.id"
+                :tooltip="$t('labels.clickToCopyBaseID')"
+                :label="$t('labels.baseIdColon', { baseId: base.id })"
+              />
+              <NcDivider />
 
-          <!-- Rename -->
-          <NcMenuItem v-if="isOptionVisible.baseRename" data-testid="nc-base-node-rename" @click="enableEditMode">
-            <GeneralIcon icon="rename" />
-            {{ $t('general.rename') }} {{ $t('objects.project').toLowerCase() }}
-          </NcMenuItem>
+              <!-- Rename -->
+              <NcMenuItem v-if="isOptionVisible.baseRename" data-testid="nc-base-node-rename" @click="enableEditMode">
+                <GeneralIcon icon="rename" />
+                {{ $t('general.rename') }} {{ $t('objects.project').toLowerCase() }}
+              </NcMenuItem>
 
-          <!-- Toggle Starred -->
-          <NcMenuItem data-testid="nc-base-node-starred" @click="onToggleStarred">
-            <GeneralIcon v-if="base.starred" icon="unStar" />
-            <GeneralIcon v-else icon="star" />
-            {{ base.starred ? $t('activity.removeFromStarred') : $t('activity.addToStarred') }}
-          </NcMenuItem>
+              <!-- Toggle Starred -->
+              <NcMenuItem data-testid="nc-base-node-starred" @click="onToggleStarred">
+                <GeneralIcon v-if="base.starred" icon="unStar" />
+                <GeneralIcon v-else icon="star" />
+                {{ base.starred ? $t('activity.removeFromStarred') : $t('activity.addToStarred') }}
+              </NcMenuItem>
 
-          <!-- Duplicate -->
-          <NcMenuItem v-if="isOptionVisible.baseDuplicate" data-testid="nc-base-node-duplicate" @click="onDuplicate">
-            <GeneralIcon icon="duplicate" />
-            {{ $t('general.duplicate') }} {{ $t('objects.project').toLowerCase() }}
-          </NcMenuItem>
+              <!-- Duplicate -->
+              <NcMenuItem v-if="isOptionVisible.baseDuplicate" data-testid="nc-base-node-duplicate" @click="onDuplicate">
+                <GeneralIcon icon="duplicate" />
+                {{ $t('general.duplicate') }} {{ $t('objects.project').toLowerCase() }}
+              </NcMenuItem>
 
-          <NcDivider />
+              <NcDivider />
 
-          <!-- ERD View -->
-          <NcMenuItem v-if="base?.sources?.[0]?.enabled" data-testid="nc-base-node-erd" @click="onOpenErd">
-            <GeneralIcon icon="ncErd" />
-            {{ $t('title.relations') }}
-          </NcMenuItem>
+              <!-- ERD View -->
+              <NcMenuItem v-if="base?.sources?.[0]?.enabled" data-testid="nc-base-node-erd" @click="onOpenErd">
+                <GeneralIcon icon="ncErd" />
+                {{ $t('title.relations') }}
+              </NcMenuItem>
 
-          <!-- Settings -->
-          <NcMenuItem v-if="isOptionVisible.baseMiscSettings" data-testid="nc-base-node-settings" @click="onOpenSettings">
-            <GeneralIcon icon="settings" />
-            {{ $t('activity.settings') }}
-          </NcMenuItem>
+              <!-- Settings -->
+              <NcMenuItem v-if="isOptionVisible.baseMiscSettings" data-testid="nc-base-node-settings" @click="onOpenSettings">
+                <GeneralIcon icon="settings" />
+                {{ $t('activity.settings') }}
+              </NcMenuItem>
 
-          <template v-if="isOptionVisible.baseDelete">
-            <NcDivider />
+              <template v-if="isOptionVisible.baseDelete">
+                <NcDivider />
 
-            <!-- Delete -->
-            <NcMenuItem danger data-testid="nc-base-node-delete" @click="onDelete">
-              <GeneralIcon icon="delete" />
-              {{ $t('general.delete') }} {{ $t('objects.project').toLowerCase() }}
-            </NcMenuItem>
+                <!-- Delete -->
+                <NcMenuItem danger data-testid="nc-base-node-delete" @click="onDelete">
+                  <GeneralIcon icon="delete" />
+                  {{ $t('general.delete') }} {{ $t('objects.project').toLowerCase() }}
+                </NcMenuItem>
+              </template>
+            </NcMenu>
           </template>
-        </NcMenu>
-      </template>
-    </NcDropdown>
+        </NcDropdown>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -258,12 +253,21 @@ const onMenuClick = (e: Event) => {
 .nc-base-node {
   @apply bg-white dark:bg-nc-bg-gray-light;
 
-  &:hover {
+  &:hover,
+  &:focus-within {
     @apply bg-nc-bg-gray-light dark:bg-nc-bg-gray-medium;
+
+    .nc-base-node-menu-wrapper {
+      @apply w-6 !flex;
+    }
   }
 
   &:focus-visible {
     @apply outline-none shadow-focus;
+
+    .nc-base-node-menu-wrapper {
+      @apply w-6 !flex;
+    }
   }
 
   &.is-marked {
@@ -272,6 +276,15 @@ const onMenuClick = (e: Event) => {
 
   &.is-editing {
     @apply cursor-default;
+  }
+}
+
+.nc-base-node-menu-wrapper {
+  @apply w-0 hidden overflow-hidden items-center justify-center;
+  @apply transition-all duration-200 ease-in-out;
+
+  &.is-open {
+    @apply w-6 !flex;
   }
 }
 </style>

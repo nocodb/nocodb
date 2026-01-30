@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { VNodeRef } from '@vue/runtime-core'
 import type { SourceType, WorkspaceType } from 'nocodb-sdk'
 import { ProjectRoles } from 'nocodb-sdk'
 
@@ -23,6 +24,10 @@ const { navigateToTable } = useTablesStore()
 
 const { navigateToProject, isMobileMode } = useGlobal()
 const { $e } = useNuxtApp()
+
+const focus: VNodeRef = (el) => {
+  el?.focus()
+}
 
 // Responsive breakpoint - show workspace panel on large screens only
 const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
@@ -127,9 +132,15 @@ const allManagedBases = computed(() => workspaceBases.value.filter((base) => isB
 const allOwnedBases = computed(() => workspaceBases.value.filter((base) => isBaseOwned(base)))
 
 // Apply search filter to "all" filtered bases
-const filteredAllStarredBases = computed(() => allStarredBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
-const filteredAllPrivateBases = computed(() => allPrivateBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
-const filteredAllManagedBases = computed(() => allManagedBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
+const filteredAllStarredBases = computed(() =>
+  allStarredBases.value.filter((base) => searchCompare(base.title, searchQuery.value)),
+)
+const filteredAllPrivateBases = computed(() =>
+  allPrivateBases.value.filter((base) => searchCompare(base.title, searchQuery.value)),
+)
+const filteredAllManagedBases = computed(() =>
+  allManagedBases.value.filter((base) => searchCompare(base.title, searchQuery.value)),
+)
 const filteredAllOwnedBases = computed(() => allOwnedBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
 
 // Get bases based on active filter
@@ -328,6 +339,7 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
         class="flex items-center px-4 py-3 border-b border-nc-border-gray-medium dark:bg-nc-bg-gray-extralight"
       >
         <a-input
+          :ref="focus"
           v-model:value="searchQuery"
           class="nc-workspace-base-search"
           :placeholder="$t('placeholder.searchWorkspacesAndBases')"
@@ -365,14 +377,14 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
               type="secondary"
               text-color="primary"
               full-width
-              inner-class="!gap-2"
-              class="w-full !border-nc-border-brand"
+              inner-class="children:justify-center"
+              class="w-full !border-nc-border-brand justify-center"
               @click="onCreateWorkspace"
             >
-              <template #icon>
+              <div class="flex items-center justify-center gap-2 text-center">
                 <GeneralIcon icon="plus" class="flex-none" />
-              </template>
-              <span class="text-sm font-medium">{{ $t('activity.newWorkspace') }}</span>
+                <span class="text-sm font-medium">{{ $t('activity.newWorkspace') }}</span>
+              </div>
             </NcButton>
           </div>
         </div>
@@ -538,18 +550,10 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate" />
 
   <!-- Duplicate Base Dialog -->
-  <DlgBaseDuplicate
-    v-if="selectedProjectToDuplicate"
-    v-model="isDuplicateDlgOpen"
-    :base="selectedProjectToDuplicate"
-  />
+  <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
 
   <!-- Delete Base Dialog -->
-  <DlgBaseDelete
-    v-if="selectedProjectToDelete"
-    v-model:visible="isDeleteDlgOpen"
-    :base-id="selectedProjectToDelete?.id"
-  />
+  <DlgBaseDelete v-if="selectedProjectToDelete" v-model:visible="isDeleteDlgOpen" :base-id="selectedProjectToDelete?.id" />
 </template>
 
 <style scoped lang="scss">

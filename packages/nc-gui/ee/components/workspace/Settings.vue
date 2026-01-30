@@ -376,7 +376,10 @@ const onCancel = () => {
                       class="flex items-center gap-1.5 text-bodyDefaultSm text-nc-content-gray-subtle2 cursor-pointer"
                       @click="copyBtnRef?.copyContent()"
                     >
-                      {{ $t('labels.workspaceId', { workspaceId: currentWorkspace.id }) }}
+                      <template v-if="!isMobileMode">
+                        {{ $t('labels.workspaceId', { workspaceId: currentWorkspace.id }) }}
+                      </template>
+                      <template v-else> Copy Id </template>
 
                       <GeneralCopyButton
                         ref="copyBtnRef"

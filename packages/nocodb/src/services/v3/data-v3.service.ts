@@ -341,7 +341,6 @@ export class DataV3Service {
       const parsedSort: any | any[] = Array.isArray(parsedSortJSON)
         ? parsedSortJSON
         : [parsedSortJSON];
-      fieldsArr = parsedSort.map((s) => s.field);
 
       if (
         parsedSort.some(

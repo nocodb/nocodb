@@ -2181,7 +2181,16 @@ export class ColumnsService implements IColumnsService {
         }
       }
 
+      const originalCdf = colBody.cdf;
       colBody = await getColumnPropsFromUIDT(colBody, source);
+
+      if (
+        typeof colBody.cdf !== 'undefined' &&
+        typeof originalCdf === 'undefined'
+      ) {
+        // do not override cdf when request is undefined
+        colBody.cdf = originalCdf;
+      }
 
       await this.updateMetaAndDatabase(context, {
         table,

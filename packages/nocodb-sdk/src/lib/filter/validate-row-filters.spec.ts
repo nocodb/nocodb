@@ -1,4 +1,4 @@
-import { validateRowFilters } from './validate-row-filters';
+import { RowFilterValidator, validateRowFilters } from '~/lib/filter/validate-row-filters';
 import { ColumnType, FilterType, LinkToAnotherRecordType } from '~/lib/Api';
 import UITypes from '~/lib/UITypes';
 import dayjs from 'dayjs';
@@ -37,6 +37,7 @@ const mockColumns: ColumnType[] = [
   },
   { id: '7', title: 'JsonData', uidt: UITypes.JSON },
   { id: '8', title: 'TimeData', uidt: UITypes.Time },
+  { id: '9', title: 'DateData', uidt: UITypes.Date },
 ];
 
 const mockMetas = {
@@ -1009,3 +1010,37 @@ describe('validateRowFilters', () => {
     });
   });
 });
+
+describe('RowFilterValidator', () => {
+  class RowFilterValidatorTester extends RowFilterValidator {
+    override dateNow(): Date {
+      const timestamp = 1769756211000; // Thursday, January 29, 2026 10:56:51 PM GMT-08:00
+      return new Date(timestamp);
+    }
+  }
+
+  const validator = new RowFilterValidatorTester();
+
+  describe('validateSync', () => {
+    it('will validate date time is on timezone', () => {
+      const filters: (FilterType & {meta?: any})[] = [{
+        fk_column_id: '9',
+        comparison_op: 'eq',
+        comparison_sub_op: 'today',
+        logical_op: 'and',
+        meta: {
+          timezone: 'America/Los_Angeles'
+        }
+      }];
+      const data = { DateData: '2026-01-29' };
+      const result = validator.validateSync({
+        filters,
+        data,
+        columns: mockColumns,
+        client: mockClient,
+        metas: mockMetas,
+      })
+      expect(result).toBe(true);
+    })
+  })
+})

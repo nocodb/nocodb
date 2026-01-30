@@ -72,6 +72,10 @@ const openBaseHomePage = async () => {
         }
       : undefined,
   )
+
+  if (isMobileMode.value && isLeftSidebarOpen.value) {
+    isLeftSidebarOpen.value = false
+  }
 }
 
 const isVisibleCreateNew = ref(false)

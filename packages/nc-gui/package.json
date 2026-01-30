@@ -221,7 +221,7 @@
     "@windicss/plugin-animations": "^1.0.9",
     "@windicss/plugin-question-mark": "^0.1.1",
     "@windicss/plugin-scrollbar": "^1.2.3",
-    "eslint": "^8.57.1",
+    "eslint": "^9.26.0",
     "eslint-config-prettier": "^8.10.0",
     "eslint-plugin-prettier": "^4.2.1",
     "happy-dom": "^17.1.8",

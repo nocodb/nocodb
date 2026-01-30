@@ -3,8 +3,14 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { isMobileMode } = useGlobal()
 
+const { showProjectList } = storeToRefs(useBases())
+
 const onClick = () => {
   if (isLeftSidebarOpen.value) return
+
+  if (isMobileMode.value && showProjectList.value) {
+    showProjectList.value = false
+  }
 
   isLeftSidebarOpen.value = !isLeftSidebarOpen.value
 }

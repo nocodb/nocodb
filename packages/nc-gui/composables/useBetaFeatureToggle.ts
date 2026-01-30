@@ -173,6 +173,15 @@ const FEATURES = [
     version: 3,
     isEE: true,
   },
+  {
+    id: 'ai_fill_handle',
+    title: 'AI Fill Handle',
+    description: 'Use AI to fill data in cells based on existing data patterns.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

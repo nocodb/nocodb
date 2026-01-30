@@ -152,6 +152,12 @@ const schemaHelpers: {
       helperMessage: 'must be a string with rich text support or null',
     };
   },
+  [UITypes.ID]: (_col) => {
+    return {
+      schema: z.union([z.string(), z.number()]).nullable(),
+      helperMessage: '',
+    };
+  },
 };
 
 const uidtHelper = (cols: Column[]) => {

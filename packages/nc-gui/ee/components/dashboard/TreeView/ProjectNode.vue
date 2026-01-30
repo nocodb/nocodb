@@ -610,6 +610,10 @@ defineExpose({
 
                 <div v-else>
                   <GeneralBaseIconColorPicker
+                    :managed-app="{
+                      managed_app_master: base.managed_app_master,
+                      managed_app_id: base.managed_app_id,
+                    }"
                     :key="`${base.id}_${parseProp(base.meta).iconColor}`"
                     :type="base?.type"
                     :model-value="parseProp(base.meta).iconColor"

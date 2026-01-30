@@ -2128,6 +2128,7 @@
     "clientCert": "Select .cert file",
     "clientCA": "Select CA file",
     "changeIconColour": "Change icon colour",
+    "changeIconColorNotSupportedForManagedMasterApp": "Change icon color is not supported for managed master app",
     "preFillFormInfo": "To get a prefilled link, make sure you’ve filled the necessary fields in the form view builder.",
     "surveyFormInfo": "Form mode with one field per page",
     "useFieldEditMenuToConfigFieldType": "Use field edit menu for type conversions after file is imported",

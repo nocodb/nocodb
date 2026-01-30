@@ -83,7 +83,15 @@ const viewModeInfo = computed(() => {
                 </span>
               </template>
 
-              <GeneralProjectIcon :type="base?.type" :color="parseProp(base.meta).iconColor" class="!grayscale min-w-4" />
+              <GeneralProjectIcon
+                :type="base?.type"
+                :color="parseProp(base.meta).iconColor"
+                :managed-app="{
+                  managed_app_master: base?.managed_app_master,
+                  managed_app_id: base?.managed_app_id,
+                }"
+                class="!grayscale min-w-4"
+              />
             </NcTooltip>
             <template v-if="isSharedBase">
               <NcTooltip

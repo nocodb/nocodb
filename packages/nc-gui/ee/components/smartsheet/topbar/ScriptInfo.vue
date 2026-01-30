@@ -34,7 +34,15 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
                 </span>
               </template>
 
-              <GeneralProjectIcon :type="base?.type" :color="parseProp(base.meta).iconColor" class="!grayscale min-w-5" />
+              <GeneralProjectIcon
+                :type="base?.type"
+                :color="parseProp(base.meta).iconColor"
+                :managed-app="{
+                  managed_app_master: base?.managed_app_master,
+                  managed_app_id: base?.managed_app_id,
+                }"
+                class="!grayscale min-w-5"
+              />
             </NcTooltip>
           </div>
         </template>

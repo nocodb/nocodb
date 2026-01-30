@@ -42,6 +42,8 @@ export class CommandPaletteService {
             title: string;
             workspace_id: string;
             meta: any;
+            managed_app_master?: boolean;
+            managed_app_id?: string;
           }
         >();
         const tables = new Map<
@@ -125,6 +127,8 @@ export class CommandPaletteService {
               title: wsAndBases.base_title,
               meta: deserializeJSON(wsAndBases.base_meta),
               workspace_id: wsAndBases.workspace_id,
+              managed_app_master: !!wsAndBases.base_managed_app_master,
+              managed_app_id: wsAndBases.base_managed_app_id,
             });
             // Store base role (should be consistent for all items in same base)
             if (wsAndBases.base_role && !baseRoleMap.has(wsAndBases.base_id)) {
@@ -297,6 +301,8 @@ export class CommandPaletteService {
             icon: 'project',
             iconColor: deserializeJSON(base.meta)?.iconColor,
             section: 'Bases',
+            managed_app_master: base.managed_app_master,
+            managed_app_id: base.managed_app_id,
           });
         }
 

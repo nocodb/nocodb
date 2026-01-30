@@ -569,7 +569,13 @@ onBeforeUnmount(() => {
         <NcPageHeader>
           <template #icon>
             <div class="nc-page-header-icon flex justify-center items-center h-5 w-5">
-              <GeneralBaseIconColorPicker readonly />
+              <GeneralBaseIconColorPicker
+                :managed-app="{
+                  managed_app_master: currentBase?.managed_app_master,
+                  managed_app_id: currentBase?.managed_app_id,
+                }"
+                readonly
+              />
             </div>
           </template>
           <template #title>

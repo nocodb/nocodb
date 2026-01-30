@@ -24,6 +24,8 @@ const baseOptions = computed(() => {
       label: base.title,
       value: base.id,
       meta: base.meta,
+      managed_app_master: base.managed_app_master,
+      managed_app_id: base.managed_app_id,
     }))
 })
 </script>
@@ -41,7 +43,14 @@ const baseOptions = computed(() => {
     <a-select-option v-for="option of baseOptions" :key="option.value" :value="option.value" :data-label="option.label">
       <div class="w-full flex gap-2 items-center" :data-testid="option.value">
         <div class="min-w-5 flex items-center justify-center">
-          <GeneralProjectIcon :color="parseProp(option.meta).iconColor" size="small" />
+          <GeneralProjectIcon
+            :color="parseProp(option.meta).iconColor"
+            :managed-app="{
+              managed_app_master: option.managed_app_master,
+              managed_app_id: option.managed_app_id,
+            }"
+            size="small"
+          />
         </div>
         <NcTooltip class="flex-1 truncate min-w-0" show-on-truncate-only>
           <template #title>

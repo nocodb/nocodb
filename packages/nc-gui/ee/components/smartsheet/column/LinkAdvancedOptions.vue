@@ -404,7 +404,14 @@ onMounted(async () => {
               <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
                 <div class="flex w-full items-center gap-2">
                   <div class="flex items-center justify-center">
-                    <GeneralProjectIcon :color="getBaseIconColor(base, vModel.custom.junc_base_id)" class="nc-project-icon" />
+                    <GeneralProjectIcon
+                      :color="getBaseIconColor(base, vModel.custom.junc_base_id)"
+                      :managed-app="{
+                        managed_app_master: base.managed_app_master,
+                        managed_app_id: base.managed_app_id,
+                      }"
+                      class="nc-project-icon"
+                    />
                   </div>
                   <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                     <template #title>{{ base.title }}</template>
@@ -574,7 +581,14 @@ onMounted(async () => {
             <a-select-option v-for="base of basesList" :key="base.title" :value="base.id">
               <div class="flex w-full items-center gap-2">
                 <div class="flex items-center justify-center">
-                  <GeneralProjectIcon :color="getBaseIconColor(base, vModel.custom.base_id)" class="nc-project-icon" />
+                  <GeneralProjectIcon
+                    :color="getBaseIconColor(base, vModel.custom.base_id)"
+                    :managed-app="{
+                      managed_app_master: base.managed_app_master,
+                      managed_app_id: base.managed_app_id,
+                    }"
+                    class="nc-project-icon"
+                  />
                 </div>
                 <NcTooltip class="flex-1 truncate" show-on-truncate-only>
                   <template #title>{{ base.title }}</template>

@@ -304,6 +304,42 @@ export class MailService {
             });
           }
           break;
+        case MailEvent.SEND_RECORD:
+          {
+            const {
+              senderName,
+              senderEmail,
+              emails,
+              model,
+              base,
+              message,
+              recordData,
+              rowId,
+              req,
+            } = payload;
+
+            const recordUrl = this.buildUrl(req, {
+              workspaceId: base.fk_workspace_id,
+              baseId: base.id,
+              tableId: model.id,
+              rowId,
+            });
+
+            await mailerAdapter.mailSend({
+              to: emails.join(','),
+              subject: `${senderName} shared a record from "${model.title}"`,
+              html: await this.renderMail('SendRecord', {
+                senderName,
+                senderEmail,
+                tableTitle: model.title,
+                baseTitle: base.title,
+                message,
+                recordData,
+                recordUrl,
+              }),
+            });
+          }
+          break;
       }
       return true;
     } catch (e) {

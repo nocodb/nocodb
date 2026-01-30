@@ -512,7 +512,7 @@ export function transformDataForMailRendering(
     let serializedValue: string | undefined;
 
     try {
-      serializedValue = ColumnHelper.serializeValue(data[col.title], {
+      serializedValue = ColumnHelper.parsePlainCellValue(data[col.title], {
         col,
         isMysql: () => source.type.startsWith('mysql'),
         isPg: () => source.type === 'pg',

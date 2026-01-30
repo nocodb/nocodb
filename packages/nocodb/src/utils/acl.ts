@@ -210,6 +210,9 @@ const permissionScopes = {
     'mcpCreate',
     'mcpUpdate',
     'mcpDelete',
+
+    // Send record email
+    'sendRecordEmail',
   ],
 };
 
@@ -297,6 +300,9 @@ const rolePermissions:
 
       // etc
       fetchViaUrl: true,
+
+      // Send record email
+      sendRecordEmail: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

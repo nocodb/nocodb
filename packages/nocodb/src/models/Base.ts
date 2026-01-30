@@ -64,6 +64,11 @@ export default class Base implements BaseType {
   managed_app_published_at?: string; // When this version was published
   managed_app_schema_locked?: boolean; // Computed: whether schema modifications are allowed
 
+  // sandbox props
+  fk_sandbox_id?: string; // Points to SANDBOXES.id if this base has an active sandbox
+  is_sandbox?: boolean; // Is this base a sandbox base?
+  sandbox_schema_locked?: boolean; // Computed: whether schema is locked due to active sandbox
+
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
   }
@@ -73,6 +78,10 @@ export default class Base implements BaseType {
   }
 
   public static async populateManagedAppInfo(_base: Base): Promise<void> {
+    return;
+  }
+
+  public static async populateSandboxInfo(_base: Base): Promise<void> {
     return;
   }
 
@@ -95,6 +104,8 @@ export default class Base implements BaseType {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
+      'fk_sandbox_id',
+      'is_sandbox',
     ]);
 
     if (!insertObj.order) {
@@ -476,6 +487,8 @@ export default class Base implements BaseType {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
+      'fk_sandbox_id',
+      'is_sandbox',
     ]);
 
     // stringify meta

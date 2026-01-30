@@ -29,7 +29,7 @@ import type {
   TeamV3ResponseType,
 } from '~/services/v3/teams-v3.types';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
-
+import type { BaseMetaDiff } from '~/helpers/baseMetaHelpers';
 export { INTERNAL_API_MODULE_PROVIDER_KEY } from 'src/utils/internal-type';
 import type {
   BaseTeamDetailV3Type,
@@ -89,6 +89,7 @@ export type InternalGETResponseType = Promise<
   | HookLog[]
   | SyncConfig[]
   | { hash: string }
+  | { diff: BaseMetaDiff }
 >;
 
 export type InternalPOSTResponseType = Promise<

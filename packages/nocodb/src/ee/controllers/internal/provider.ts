@@ -8,6 +8,8 @@ import { IntegrationPostOperations } from '~/controllers/internal/modules/Integr
 import { ManagedAppGetOperations } from '~/controllers/internal/modules/ManagedAppGet.operations';
 import { ManagedAppPostOperations } from '~/controllers/internal/modules/ManagedAppPost.operations';
 import { SendRecordEmailOperations } from '~/controllers/internal/modules/SendRecordEmail.operations';
+import { SandboxGetOperations } from '~/controllers/internal/modules/SandboxGet.operations';
+import { SandboxPostOperations } from '~/controllers/internal/modules/SandboxPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -20,6 +22,8 @@ export const InternalApiModules = [
   ManagedAppGetOperations,
   ManagedAppPostOperations,
   SendRecordEmailOperations,
+  SandboxGetOperations,
+  SandboxPostOperations,
 ];
 
 export const InternalApiModuleProvider = {

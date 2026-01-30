@@ -259,6 +259,7 @@ onMounted(() => {
       </div>
       <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
         <SmartsheetTopbarManagedAppStatus />
+        <SmartsheetTopbarSandboxStatus />
         <LazyGeneralShareProject />
       </div>
     </div>

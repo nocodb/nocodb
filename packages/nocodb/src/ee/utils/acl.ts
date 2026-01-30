@@ -387,6 +387,12 @@ const permissionScopes = {
     'managedAppPublish',
     'managedAppUnpublish',
 
+    // Sandbox
+    'sandboxGet',
+    'sandboxCreate',
+    'sandboxDiscard',
+    'sandboxMerge',
+
     // Audit Logs
     'baseAuditList',
 
@@ -633,6 +639,8 @@ const rolePermissions:
 
       // Send record email
       sendRecordEmail: true,
+      // Sandbox
+      sandboxGet: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -1167,6 +1175,13 @@ const permissionDescriptions: Record<string, string> = {
   managedAppUnpublish: 'unpublish a managed app from the app store',
   managedAppInstall: 'install a managed app as a new base',
   managedAppGetUpdates: 'check for updates to an installed managed app',
+
+  // Sandbox permissions
+  sandboxGet: 'view sandbox status and details',
+  sandboxCreate: 'create a sandbox environment for the base',
+  sandboxDiscard: 'discard an active sandbox environment',
+  sandboxMerge: 'merge sandbox changes back to the master base',
+
   viewRowColorInfo: 'view row colouring info',
   viewSettingOverride: 'copy view configuration from other view',
 

@@ -530,8 +530,12 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     await this.additionalValidation({ req, res, next });
 
     if (req.ncBase) {
-      req.context.schema_locked = !!(req.ncBase as Base)
-        .managed_app_schema_locked;
+      const base = req.ncBase as Base;
+      // Schema is locked if managed app is locked OR sandbox is active
+      req.context.schema_locked = !!(
+        base.managed_app_schema_locked ||
+        (base.fk_sandbox_id && !base.is_sandbox)
+      );
     }
 
     next();
@@ -1051,9 +1055,13 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     ) {
       req.ncBase = await Base.get(context, req.ncBaseId);
       if (req.ncBase) {
-        req.ncWorkspaceId = (req.ncBase as Base).fk_workspace_id;
-        // Read computed schema_locked property
-        req.ncSchemaLocked = !!(req.ncBase as Base).managed_app_schema_locked;
+        const base = req.ncBase as Base;
+        req.ncWorkspaceId = base.fk_workspace_id;
+        // Read computed schema_locked property (managed app OR sandbox)
+        req.ncSchemaLocked = !!(
+          base.managed_app_schema_locked ||
+          (base.fk_sandbox_id && !base.is_sandbox)
+        );
       } else {
         NcError.baseNotFound(req.ncBaseId);
       }

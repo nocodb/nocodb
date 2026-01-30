@@ -22,6 +22,8 @@ interface Emits {
   (e: 'delete'): void
   (e: 'toggleStarred', id: string): void
   (e: 'convertToManagedApp'): void
+  (e: 'createSandbox'): void
+  (e: 'goToSandbox'): void
 }
 
 const { dataReflectionState, dataReflectionText } = toRefs(props)
@@ -37,6 +39,10 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 const { isUIAllowed } = useRoles()
 
 const isOptionVisible = computed(() => {
+  const hasSandbox = !!base.value?.fk_sandbox_id
+  const isSandboxBase = !!base.value?.is_sandbox
+  const isInstalledManagedApp = !!base.value?.managed_app_id && !base.value?.managed_app_master
+
   return {
     baseDuplicate: isUIAllowed('baseDuplicate', { roles: baseRole.value }),
     convertToManagedApp:
@@ -44,6 +50,13 @@ const isOptionVisible = computed(() => {
       !base.value?.managed_app_id &&
       isUIAllowed('baseMiscSettings') &&
       isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS),
+    createSandbox:
+      base.value?.version === BaseVersion.V3 &&
+      !hasSandbox &&
+      !isSandboxBase &&
+      !isInstalledManagedApp &&
+      isUIAllowed('baseMiscSettings'),
+    goToSandbox: hasSandbox && !isSandboxBase,
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&
@@ -109,6 +122,16 @@ const isOptionVisible = computed(() => {
     >
       <GeneralIcon icon="ncBox" />
       Convert to managed app
+    </NcMenuItem>
+
+    <NcMenuItem v-if="isOptionVisible.createSandbox" data-testid="nc-sidebar-base-create-sandbox" @click="emits('createSandbox')">
+      <GeneralIcon icon="ncGitBranch" />
+      Create sandbox
+    </NcMenuItem>
+
+    <NcMenuItem v-if="isOptionVisible.goToSandbox" data-testid="nc-sidebar-base-go-to-sandbox" @click="emits('goToSandbox')">
+      <GeneralIcon icon="ncGitBranch" />
+      Go to sandbox
     </NcMenuItem>
 
     <NcDivider />

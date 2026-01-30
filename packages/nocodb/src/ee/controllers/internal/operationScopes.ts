@@ -95,4 +95,11 @@ export const OPERATION_SCOPES = {
   workflowExecutionGet: 'base',
   // Send Record Email
   sendRecordEmail: 'base',
+
+  // Sandbox operations
+  sandboxGet: 'base',
+  sandboxCreate: 'base',
+  sandboxDiscard: 'base',
+  sandboxMerge: 'base',
+  sandboxDiff: 'base',
 } as const;

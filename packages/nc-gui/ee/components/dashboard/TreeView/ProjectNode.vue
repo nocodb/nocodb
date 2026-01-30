@@ -23,7 +23,7 @@ const indicator = h(LoadingOutlined, {
 const router = useRouter()
 const route = router.currentRoute
 
-const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
+const { isSharedBase, isPrivateBase, sandboxInfo } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
 const { setMenuContext, duplicateTable, contextMenuTarget, tableRenameId } = inject(TreeViewInj)!
@@ -418,6 +418,66 @@ const convertToManagedApp = () => {
   isConvertToManagedAppDlgOpen.value = true
 }
 
+/* Sandbox */
+const { $api } = useNuxtApp()
+
+const workspaceStore = useWorkspace()
+const { activeWorkspaceId } = storeToRefs(workspaceStore)
+
+const isCreatingSandbox = ref(false)
+
+const createSandbox = async () => {
+  if (!base.value?.id || !activeWorkspaceId.value || isCreatingSandbox.value) return
+
+  try {
+    isCreatingSandbox.value = true
+
+    const response = await $api.internal.postOperation(
+      activeWorkspaceId.value,
+      base.value.id,
+      {
+        operation: 'sandboxCreate',
+      } as any,
+      {},
+    )
+
+    if (response?.sandbox_base_id) {
+      // Update the current base with sandbox reference
+      base.value.fk_sandbox_id = response.sandbox_base_id
+
+      // Load the sandbox base into the store
+      await basesStore.loadProject(response.sandbox_base_id, true)
+
+      message.success('Sandbox created successfully')
+
+      // Navigate to the sandbox base
+      await navigateTo(
+        baseUrl({
+          id: response.sandbox_base_id,
+          type: 'database',
+          isSharedBase: false,
+        }),
+      )
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isCreatingSandbox.value = false
+  }
+}
+
+const goToSandbox = async () => {
+  if (!sandboxInfo.value?.sandbox_base_id) return
+
+  await navigateTo(
+    baseUrl({
+      id: sandboxInfo.value.sandbox_base_id,
+      type: 'database',
+      isSharedBase: false,
+    }),
+  )
+}
+
 const getSource = (sourceId: string) => {
   return base.value.sources?.find((s) => s.id === sourceId)
 }
@@ -725,6 +785,8 @@ defineExpose({
                       @toggle-starred="toggleStarred($event)"
                       @duplicate-project="duplicateProject($event)"
                       @convert-to-managed-app="convertToManagedApp"
+                      @create-sandbox="createSandbox"
+                      @go-to-sandbox="goToSandbox"
                       @open-erd-view="openErdView($event)"
                       @on-data-reflection="onDataReflection"
                       @open-base-settings="openBaseSettings($event)"
@@ -792,6 +854,8 @@ defineExpose({
         @toggle-starred="toggleStarred($event)"
         @duplicate-project="duplicateProject($event)"
         @convert-to-managed-app="convertToManagedApp"
+        @create-sandbox="createSandbox"
+        @go-to-sandbox="goToSandbox"
         @open-erd-view="openErdView($event)"
         @on-data-reflection="onDataReflection"
         @open-base-settings="openBaseSettings($event)"

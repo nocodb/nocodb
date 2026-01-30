@@ -31,6 +31,7 @@ import {
   MCPToken,
   ModelStat,
   Permission,
+  Sandbox,
   Source,
   Workflow,
   Workspace,
@@ -74,6 +75,19 @@ export default class Base extends BaseCE {
         version?.status === ManagedAppVersionStatus.PUBLISHED;
       base.managed_app_version = version?.version || null;
       base.managed_app_published_at = version?.published_at || null;
+    }
+  }
+
+  public static async populateSandboxInfo(base: Base): Promise<void> {
+    // Default - not locked
+    base.sandbox_schema_locked = false;
+
+    // If base has an active sandbox, lock the master base
+    if (base.fk_sandbox_id) {
+      const sandbox = await Sandbox.get(base.fk_sandbox_id);
+      if (sandbox) {
+        base.sandbox_schema_locked = true;
+      }
     }
   }
 
@@ -163,6 +177,10 @@ export default class Base extends BaseCE {
           promises.push(Base.populateManagedAppInfo(base));
         }
 
+        if (base.fk_sandbox_id) {
+          promises.push(Base.populateSandboxInfo(base));
+        }
+
         return base;
       });
 
@@ -172,7 +190,9 @@ export default class Base extends BaseCE {
   }
 
   public static async createProject(
-    base: Partial<BaseType> & { fk_workspace_id?: string },
+    base: Partial<BaseType> & {
+      fk_workspace_id?: string;
+    },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseCE> {
     const insertObj = extractProps(base, [
@@ -194,6 +214,8 @@ export default class Base extends BaseCE {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
+      'fk_sandbox_id',
+      'is_sandbox',
     ]);
 
     // define base type as database if missing
@@ -289,6 +311,8 @@ export default class Base extends BaseCE {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
+      'fk_sandbox_id',
+      'is_sandbox',
     ]);
 
     if (+updateObj.version !== BaseVersion.V3) {
@@ -432,6 +456,24 @@ export default class Base extends BaseCE {
       NcError.baseNotFound(baseId);
     }
 
+    // --- SANDBOX LOGIC ---
+    // If this is a sandbox base, remove fk_sandbox_id from master and delete sandbox record only
+    if (base.is_sandbox) {
+      const sandbox = await Sandbox.getBySandboxBaseId(baseId, ncMeta);
+      if (sandbox) {
+        // Remove fk_sandbox_id from master base
+        await Base.update(
+          { ...context, base_id: sandbox.master_base_id },
+          sandbox.master_base_id,
+          { fk_sandbox_id: null },
+          ncMeta,
+        );
+        // Delete sandbox record
+        await Sandbox.delete(sandbox.id, ncMeta);
+      }
+    }
+
+    // --- NORMAL BASE DELETE LOGIC ---
     const users = await BaseUser.getUsersList(
       context,
       {
@@ -1040,6 +1082,10 @@ export default class Base extends BaseCE {
           if (base.managed_app_id) {
             promises.push(Base.populateManagedAppInfo(base));
           }
+
+          if (base.fk_sandbox_id) {
+            promises.push(Base.populateSandboxInfo(base));
+          }
           return base;
         });
 
@@ -1098,6 +1144,10 @@ export default class Base extends BaseCE {
 
           if (base.managed_app_id) {
             promises.push(Base.populateManagedAppInfo(base));
+          }
+
+          if (base.fk_sandbox_id) {
+            promises.push(Base.populateSandboxInfo(base));
           }
           return base;
         });

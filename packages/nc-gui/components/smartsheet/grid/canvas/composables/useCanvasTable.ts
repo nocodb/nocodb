@@ -240,6 +240,7 @@ export function useCanvasTable({
   const { meta: metaKey, ctrl: ctrlKey } = useMagicKeys()
   const { isDataReadOnly, isUIAllowed } = useRoles()
   const { isAiFeaturesEnabled, aiIntegrations, isNocoAiAvailable, generateRows: _generateRows } = useNocoAi()
+  const { isFeatureEnabled } = useBetaFeatureToggle()
   const scriptStore = useScriptStore()
   const tooltipStore = useTooltipStore()
   const { blockExternalSourceRecordVisibility, blockRowColoring } = useEeConfig()
@@ -327,7 +328,9 @@ export function useCanvasTable({
 
   const headerRowHeight = computed(() => (isMobileMode.value ? 40 : COLUMN_HEADER_HEIGHT_IN_PX))
 
-  const isAiFillMode = computed(() => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isAiFeaturesEnabled.value)
+  const isAiFillMode = computed(
+    () => (isMac() ? !!metaKey?.value : !!ctrlKey?.value) && isAiFeaturesEnabled && isFeatureEnabled(FEATURE_FLAG.AI_FILL_HANDLE),
+  )
 
   const fetchMetaIds = ref<string[][]>([])
   const isLoadingMetas = ref(false)

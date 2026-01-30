@@ -9,19 +9,50 @@ import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 export const useBases = defineStore('basesStore', () => {
   const { $api, $e } = useNuxtApp()
 
+  const router = useRouter()
+  const route = router.currentRoute
+
   const { loadRoles, isUIAllowed } = useRoles()
 
-  const { appInfo, user: currentUser } = useGlobal()
+  const { appInfo, user: currentUser, getBaseUrl, navigateToProject: _navigateToProject } = useGlobal()
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
+
+  const workspaceStore = useWorkspace()
+  const tableStore = useTablesStore()
+
+  const { api } = useApi()
 
   const baseCreateMode = ref<NcBaseCreateMode | null>(null)
 
   const baseRoles = ref<Record<string, any>>({})
 
-  const workspaceBasesMap = ref<Map<string, NcProject[]>>(new Map())
+  const workspaceBasesMap = ref<Map<string, Map<string, NcProject>>>(new Map())
 
-  const bases = ref<Map<string, NcProject>>(new Map())
+  const isSharedBase = computed(() => route.value.params.typeOrId === 'base' && route.value.params.baseId)
+
+  const bases = computed({
+    get: () => {
+      if (isSharedBase.value) {
+        return workspaceStore.activeWorkspace?.id!
+          ? workspaceBasesMap.value.get(workspaceStore.activeWorkspace?.id!) || new Map()
+          : new Map()
+      }
+
+      return workspaceStore.activeWorkspaceId || workspaceStore.activeWorkspace?.id
+        ? workspaceBasesMap.value.get(workspaceStore.activeWorkspaceId || workspaceStore.activeWorkspace?.id!) || new Map()
+        : new Map()
+    },
+    set: (value) => {
+      if (isSharedBase.value) {
+        return workspaceBasesMap.value.set(workspaceStore.activeWorkspace?.id!, value)
+      }
+
+      if (workspaceStore.activeWorkspaceId || workspaceStore.activeWorkspace?.id) {
+        workspaceBasesMap.value.set(workspaceStore.activeWorkspaceId || workspaceStore.activeWorkspace?.id!, value)
+      }
+    },
+  })
 
   const baseRoleLoadingStatus: Record<string, boolean> = {}
 
@@ -30,12 +61,10 @@ export const useBases = defineStore('basesStore', () => {
       (a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity),
     ),
   )
+
   const basesUser = ref<Map<string, User[]>>(new Map())
 
   const basesTeams = ref<Map<string, Record<string, any>[]>>(new Map())
-
-  const router = useRouter()
-  const route = router.currentRoute
 
   const isProjectsLoading = ref(false)
   const isProjectsLoaded = ref(false)
@@ -67,13 +96,6 @@ export const useBases = defineStore('basesStore', () => {
   })
 
   const isDataSourceLimitReached = computed(() => Number(openedProject.value?.sources?.length) > 9)
-
-  const workspaceStore = useWorkspace()
-  const tableStore = useTablesStore()
-
-  const { api } = useApi()
-
-  const { getBaseUrl, navigateToProject: _navigateToProject } = useGlobal()
 
   async function getBaseUsers({ baseId, searchText, force = false }: { baseId: string; searchText?: string; force?: boolean }) {
     if (!baseId) return { users: [], totalRows: 0 }
@@ -175,7 +197,7 @@ export const useBases = defineStore('basesStore', () => {
 
   const loadProjects = async (page?: 'recent' | 'shared' | 'starred' | 'workspace', workspaceId?: string) => {
     // if shared source then get the shared base and create a list
-    if (route.value.params.typeOrId === 'base' && route.value.params.baseId) {
+    if (isSharedBase.value) {
       try {
         const baseMeta = await $api.public.sharedBaseGet(route.value.params.baseId as string)
         if (!baseMeta?.base_id) return
@@ -189,17 +211,13 @@ export const useBases = defineStore('basesStore', () => {
           workspaceStore.workspaces.set(baseMeta.workspace.id, baseMeta.workspace)
         }
 
-        bases.value = [base].reduce((acc, base) => {
-          acc.set(base.id!, base)
-          return acc
-        }, new Map())
-
-        bases.value.set(base.id!, {
-          ...(bases.value.get(base.id!) || {}),
-          ...base,
-          isExpanded: true,
-          isLoading: false,
-        })
+        workspaceBasesMap.value.set(
+          base.fk_workspace_id!,
+          [base].reduce((acc, base) => {
+            acc.set(base.id!, { ...base, isExpanded: true, isLoading: false })
+            return acc
+          }, new Map()),
+        )
 
         return
       } catch (e: any) {
@@ -245,23 +263,22 @@ export const useBases = defineStore('basesStore', () => {
         _projects = list
       }
 
-      if (targetWorkspaceId) {
-        workspaceBasesMap.value.set(targetWorkspaceId, _projects)
-      }
-
       // Only update bases.value if the workspaceId matches activeWorkspace.id
-      if (!workspaceId || workspaceId === activeWorkspace?.id) {
-        bases.value = _projects.reduce((acc, base) => {
-          const existingProjectMeta = bases.value.get(base.id!) || {}
-          acc.set(base.id!, {
-            ...existingProjectMeta,
-            ...base,
-            sources: [...(base.sources ?? bases.value.get(base.id!)?.sources ?? [])],
-            isExpanded: route.value.params.baseId === base.id || bases.value.get(base.id!)?.isExpanded,
-            isLoading: false,
-          })
-          return acc
-        }, new Map())
+      if (targetWorkspaceId) {
+        workspaceBasesMap.value.set(
+          targetWorkspaceId,
+          _projects.reduce((acc, base) => {
+            const existingProjectMeta = bases.value.get(base.id!) || {}
+            acc.set(base.id!, {
+              ...existingProjectMeta,
+              ...base,
+              sources: [...(base.sources ?? bases.value.get(base.id!)?.sources ?? [])],
+              isExpanded: route.value.params.baseId === base.id || bases.value.get(base.id!)?.isExpanded,
+              isLoading: false,
+            })
+            return acc
+          }, new Map()),
+        )
 
         await updateIfBaseOrderIsNullOrDuplicate()
       }

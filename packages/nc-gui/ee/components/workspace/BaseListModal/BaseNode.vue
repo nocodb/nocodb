@@ -3,6 +3,7 @@ const props = defineProps<{
   base: NcProject
   isStarred?: boolean
   isPrivate?: boolean
+  isMarked?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -19,11 +20,19 @@ const onSelect = () => {
 <template>
   <div
     :tabindex="0"
-    class="nc-base-node group relative flex items-center gap-3 p-3 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
+    class="nc-base-node group relative flex items-center gap-3 px-3 py-4 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
+    :class="{ 'is-marked': isMarked }"
     @click="onSelect"
     @keydown.enter.stop="onSelect"
   >
-    <GeneralProjectIcon :color="iconColor" class="flex-none" />
+    <GeneralProjectIcon
+      :color="iconColor"
+      :managed-app="{
+        managed_app_master: base.managed_app_master,
+        managed_app_id: base.managed_app_id,
+      }"
+      class="flex-none"
+    />
     <div class="flex-1 min-w-0">
       <div class="text-sm font-medium text-nc-content-gray-extreme truncate">
         {{ base.title }}
@@ -46,6 +55,10 @@ const onSelect = () => {
 
   &:focus-visible {
     @apply outline-none shadow-focus;
+  }
+
+  &.is-marked {
+    @apply bg-nc-bg-gray-medium border-nc-border-brand;
   }
 }
 </style>

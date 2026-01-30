@@ -16,7 +16,7 @@ const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
 const { workspaceBasesMap } = storeToRefs(basesStore)
-const { loadProjects } = basesStore
+const { loadProjects, updateProject } = basesStore
 
 const { navigateToTable } = useTablesStore()
 
@@ -45,8 +45,8 @@ const selectedWorkspace = computed(() => {
 const workspaceBases = computed(() => {
   if (!selectedWorkspaceId.value) return []
 
-  return (workspaceBasesMap.value.get(selectedWorkspaceId.value) || []).filter(
-    (base) => base.fk_workspace_id === selectedWorkspaceId.value,
+  return Array.from((workspaceBasesMap.value.get(selectedWorkspaceId.value) || new Map()).values() || []).sort(
+    (a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity),
   )
 })
 
@@ -126,6 +126,12 @@ const onSelectBase = async (base: NcProject) => {
     baseId: base.id!,
     workspaceId: base.fk_workspace_id!,
   })
+}
+
+// Handle base reorder
+const onReorderBase = async (baseId: string, newOrder: number) => {
+  await updateProject(baseId, { order: newOrder })
+  $e('a:base:reorder')
 }
 
 // Handle creating new workspace
@@ -251,6 +257,7 @@ onBeforeUnmount(() => {
               type="starred"
               :bases="displayedBases.starred"
               @select="onSelectBase"
+              @reorder="onReorderBase"
             />
 
             <!-- Private Section -->
@@ -259,6 +266,7 @@ onBeforeUnmount(() => {
               type="private"
               :bases="displayedBases.private"
               @select="onSelectBase"
+              @reorder="onReorderBase"
             />
 
             <!-- Owned by Me Section -->
@@ -267,6 +275,7 @@ onBeforeUnmount(() => {
               type="owned"
               :bases="displayedBases.owned"
               @select="onSelectBase"
+              @reorder="onReorderBase"
             />
 
             <!-- Default Bases Section -->
@@ -275,6 +284,7 @@ onBeforeUnmount(() => {
               type="default"
               :bases="displayedBases.default"
               @select="onSelectBase"
+              @reorder="onReorderBase"
             />
 
             <!-- Empty State -->

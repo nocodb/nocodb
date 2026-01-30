@@ -349,11 +349,11 @@ const widgetColors = computed(() => {
                   }"
                 >
                   <img
-                    v-if="attachmentUrl(extractCurrentColumnValue(relatedRow))"
-                    :src="attachmentUrl(extractCurrentColumnValue(relatedRow))"
+                    v-if="attachmentUrl(relatedRow[relatedColumn.id!])"
+                    :src="attachmentUrl(relatedRow[relatedColumn.id!])"
                     class="h-full w-auto object-contain"
                   />
-                  <SmartsheetPlainCell v-else :column="relatedColumn" :model-value="extractCurrentColumnValue(relatedRow)" />
+                  <SmartsheetPlainCell v-else :column="relatedColumn" :model-value="relatedRow[relatedColumn.id!]" />
                 </td>
               </tr>
             </tbody>

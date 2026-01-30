@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { ProjectRoles, type WorkspaceType } from 'nocodb-sdk'
+import type { SourceType, WorkspaceType } from 'nocodb-sdk'
+import { ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
   visible: boolean
@@ -181,6 +182,82 @@ const onReorderBase = async (baseId: string, newOrder: number) => {
   $e('a:base:reorder')
 }
 
+// Handle base rename
+const onRenameBase = async (base: NcProject, title: string) => {
+  try {
+    await updateProject(base.id!, { title })
+    $e('a:base:rename')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+// Handle toggle starred
+const { toggleStarred } = basesStore
+const onToggleStarred = async (baseId: string) => {
+  await toggleStarred(baseId)
+  $e('a:base:starred:toggle')
+}
+
+// Handle base duplicate
+const isDuplicateDlgOpen = ref(false)
+const selectedProjectToDuplicate = ref<NcProject | null>(null)
+
+const onDuplicateBase = (base: NcProject) => {
+  selectedProjectToDuplicate.value = base
+  isDuplicateDlgOpen.value = true
+  $e('c:base:duplicate')
+}
+
+// Handle open ERD
+const onOpenErd = (base: NcProject, source: SourceType) => {
+  $e('c:project:relation')
+
+  const isOpen = ref(true)
+
+  const { close } = useDialog(resolveComponent('DlgBaseErd'), {
+    'modelValue': isOpen,
+    'sourceId': source.id,
+    'onUpdate:modelValue': () => closeDialog(),
+    'baseId': base.id,
+  })
+
+  function closeDialog() {
+    isOpen.value = false
+    close(1000)
+  }
+}
+
+// Handle open base settings
+const route = useRoute()
+const onOpenSettings = async (baseId: string) => {
+  visible.value = false
+  await navigateTo(`/${route.params.typeOrId}/${baseId}?page=base-settings`)
+}
+
+// Handle base delete
+const isDeleteDlgOpen = ref(false)
+const selectedProjectToDelete = ref<NcProject | null>(null)
+
+const onDeleteBase = (base: NcProject) => {
+  selectedProjectToDelete.value = base
+  isDeleteDlgOpen.value = true
+}
+
+// Handle base icon color update
+const onUpdateColor = async (base: NcProject, color: string) => {
+  try {
+    const meta = {
+      ...parseProp(base.meta),
+      iconColor: color,
+    }
+    await updateProject(base.id!, { meta: JSON.stringify(meta) })
+    $e('a:base:icon:color:modal', { iconColor: color })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 // Handle creating new workspace
 const createDlg = ref(false)
 const onCreateWorkspace = () => {
@@ -308,6 +385,13 @@ onBeforeUnmount(() => {
               :is-base-private="isBasePrivate"
               @select="onSelectBase"
               @reorder="onReorderBase"
+              @rename="onRenameBase"
+              @toggle-starred="onToggleStarred"
+              @duplicate="onDuplicateBase"
+              @open-erd="onOpenErd"
+              @open-settings="onOpenSettings"
+              @delete="onDeleteBase"
+              @update-color="onUpdateColor"
             />
 
             <!-- Private Section -->
@@ -319,6 +403,13 @@ onBeforeUnmount(() => {
               :is-base-private="isBasePrivate"
               @select="onSelectBase"
               @reorder="onReorderBase"
+              @rename="onRenameBase"
+              @toggle-starred="onToggleStarred"
+              @duplicate="onDuplicateBase"
+              @open-erd="onOpenErd"
+              @open-settings="onOpenSettings"
+              @delete="onDeleteBase"
+              @update-color="onUpdateColor"
             />
 
             <!-- Managed Section -->
@@ -330,6 +421,13 @@ onBeforeUnmount(() => {
               :is-base-private="isBasePrivate"
               @select="onSelectBase"
               @reorder="onReorderBase"
+              @rename="onRenameBase"
+              @toggle-starred="onToggleStarred"
+              @duplicate="onDuplicateBase"
+              @open-erd="onOpenErd"
+              @open-settings="onOpenSettings"
+              @delete="onDeleteBase"
+              @update-color="onUpdateColor"
             />
 
             <!-- Owned by Me Section -->
@@ -341,6 +439,13 @@ onBeforeUnmount(() => {
               :is-base-private="isBasePrivate"
               @select="onSelectBase"
               @reorder="onReorderBase"
+              @rename="onRenameBase"
+              @toggle-starred="onToggleStarred"
+              @duplicate="onDuplicateBase"
+              @open-erd="onOpenErd"
+              @open-settings="onOpenSettings"
+              @delete="onDeleteBase"
+              @update-color="onUpdateColor"
             />
 
             <!-- Default Bases Section (remaining) -->
@@ -352,6 +457,13 @@ onBeforeUnmount(() => {
               :is-base-private="isBasePrivate"
               @select="onSelectBase"
               @reorder="onReorderBase"
+              @rename="onRenameBase"
+              @toggle-starred="onToggleStarred"
+              @duplicate="onDuplicateBase"
+              @open-erd="onOpenErd"
+              @open-settings="onOpenSettings"
+              @delete="onDeleteBase"
+              @update-color="onUpdateColor"
             />
 
             <!-- Empty State -->
@@ -397,6 +509,20 @@ onBeforeUnmount(() => {
 
   <!-- Create Workspace Dialog -->
   <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate" />
+
+  <!-- Duplicate Base Dialog -->
+  <DlgBaseDuplicate
+    v-if="selectedProjectToDuplicate"
+    v-model="isDuplicateDlgOpen"
+    :base="selectedProjectToDuplicate"
+  />
+
+  <!-- Delete Base Dialog -->
+  <DlgBaseDelete
+    v-if="selectedProjectToDelete"
+    v-model:visible="isDeleteDlgOpen"
+    :base-id="selectedProjectToDelete?.id"
+  />
 </template>
 
 <style scoped lang="scss">

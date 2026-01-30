@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import type { SourceType } from 'nocodb-sdk'
 import Sortable, { type SortableEvent } from 'sortablejs'
 
 type SectionType = 'starred' | 'private' | 'owned' | 'managed' | 'default'
@@ -15,6 +16,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   select: [base: NcProject]
   reorder: [baseId: string, newOrder: number]
+  rename: [base: NcProject, title: string]
+  toggleStarred: [baseId: string]
+  duplicate: [base: NcProject]
+  openErd: [base: NcProject, source: SourceType]
+  openSettings: [baseId: string]
+  delete: [base: NcProject]
+  updateColor: [base: NcProject, color: string]
 }>()
 
 const { t } = useI18n()
@@ -196,6 +204,13 @@ onBeforeUnmount(() => {
         :show-star-indicator="shouldShowStarIndicator(base)"
         :show-private-indicator="shouldShowPrivateIndicator(base)"
         @select="onSelectBase"
+        @rename="(b, title) => emit('rename', b, title)"
+        @toggle-starred="(id) => emit('toggleStarred', id)"
+        @duplicate="(b) => emit('duplicate', b)"
+        @open-erd="(b, source) => emit('openErd', b, source)"
+        @open-settings="(id) => emit('openSettings', id)"
+        @delete="(b) => emit('delete', b)"
+        @update-color="(b, color) => emit('updateColor', b, color)"
       />
     </div>
   </div>

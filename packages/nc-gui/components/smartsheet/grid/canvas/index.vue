@@ -2436,6 +2436,14 @@ const bulkUpdataContext = (path: Array<number>) => {
   emits('bulkUpdateDlg', path)
 }
 
+const showSendRecordModal = ref(false)
+const sendRecordRowId = ref<string | null>(null)
+
+const handleSendRecord = (rowId: string) => {
+  sendRecordRowId.value = rowId
+  showSendRecordModal.value = true
+}
+
 watch([height, width, windowWidth, windowHeight], () => {
   nextTick(() => {
     calculateSlices()
@@ -2877,6 +2885,7 @@ watch(
               :clear-selected-range-of-cells="clearSelectedRangeOfCells"
               @click="isContextMenuOpen = false"
               @bulk-update-dlg="bulkUpdataContext"
+              @send-record="handleSendRecord"
             />
           </template>
         </NcDropdown>
@@ -3113,6 +3122,14 @@ watch(
       </PermissionsTooltip>
     </div>
   </div>
+
+  <DlgSendRecordEmail
+    v-if="meta && sendRecordRowId"
+    v-model="showSendRecordModal"
+    :meta="meta"
+    :view="view"
+    :row-id="sendRecordRowId"
+  />
 </template>
 
 <style scoped lang="scss">

@@ -85,6 +85,13 @@ const contextMenu = computed({
 })
 const contextMenuTarget = ref<{ row: RowType; index: number } | null>(null)
 
+const showSendRecordModal = ref(false)
+
+const contextMenuRowId = computed(() => {
+  if (!contextMenuTarget.value?.row) return null
+  return extractPkFromRow(contextMenuTarget.value.row.row, meta.value?.columns)
+})
+
 const showContextMenu = (e: MouseEvent, target?: { row: RowType; index: number }) => {
   if (isSqlView.value) return
   e.preventDefault()
@@ -422,6 +429,12 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
               {{ $t('activity.expandRecord') }}
             </div>
           </NcMenuItem>
+          <NcMenuItem v-if="contextMenuTarget && contextMenuRowId && !isPublic" @click="showSendRecordModal = true">
+            <div class="flex items-center gap-2">
+              <GeneralIcon icon="mail" class="flex" />
+              {{ $t('activity.sendRecord') }}
+            </div>
+          </NcMenuItem>
           <NcDivider />
           <PermissionsTooltip
             v-if="contextMenuTarget?.index !== undefined"
@@ -712,6 +725,14 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
       @prev="navigateToSiblingRow(NavigateDir.PREV)"
     />
   </Suspense>
+
+  <DlgSendRecordEmail
+    v-if="meta && contextMenuRowId"
+    v-model="showSendRecordModal"
+    :meta="meta"
+    :view="view"
+    :row-id="contextMenuRowId"
+  />
 </template>
 
 <style lang="scss" scoped>

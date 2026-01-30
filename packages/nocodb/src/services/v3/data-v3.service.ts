@@ -321,23 +321,28 @@ export class DataV3Service {
     const columns = param.modelInfo.columns;
     if (param.query.sort) {
       let fieldsArr: string[] = [];
-      if (typeof param.query.sort !== 'string') {
+      let parsedSortJSON;
+
+      if (typeof param.query.sort === 'string') {
+        try {
+          parsedSortJSON = JSON.parse(param.query.sort);
+        } catch {
+          NcError.get(context).invalidRequestBody(
+            `Query parameter 'sort' needs to a JSON string in format of [{"field": "fieldId", "direction": "asc"}]`,
+          );
+        }
+      } else if (typeof param.query.sort === 'object') {
+        parsedSortJSON = param.query.sort;
+      } else {
         NcError.get(context).invalidRequestBody(
           `Query parameter 'sort' needs to be a single string`,
         );
       }
-      let parsedSort: any | any[];
-      try {
-        const parsedSortJSON = JSON.parse(param.query.sort);
-        parsedSort = Array.isArray(parsedSortJSON)
-          ? parsedSortJSON
-          : [parsedSortJSON];
-        fieldsArr = parsedSort.map((s) => s.field);
-      } catch {
-        NcError.get(context).invalidRequestBody(
-          `Query parameter 'sort' needs to a JSON string in format of [{"field": "fieldId", "direction": "asc"}]`,
-        );
-      }
+      const parsedSort: any | any[] = Array.isArray(parsedSortJSON)
+        ? parsedSortJSON
+        : [parsedSortJSON];
+      fieldsArr = parsedSort.map((s) => s.field);
+
       if (
         parsedSort.some(
           (s) => s.direction && !['asc', 'desc'].includes(s.direction),

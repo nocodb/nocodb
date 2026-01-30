@@ -1,11 +1,15 @@
 <script lang="ts" setup>
 import Sortable, { type SortableEvent } from 'sortablejs'
 
-type SectionType = 'starred' | 'private' | 'owned' | 'default'
+type SectionType = 'starred' | 'private' | 'owned' | 'managed' | 'default'
 
 const props = defineProps<{
   type: SectionType
   bases: NcProject[]
+  // Functions to check if a base has starred/private attributes
+  // Used to show indicator icons when base is displayed in a lower-priority section
+  isBaseStarred?: (base: NcProject) => boolean
+  isBasePrivate?: (base: NcProject) => boolean
 }>()
 
 const emit = defineEmits<{
@@ -42,15 +46,20 @@ const sectionConfig = computed(() => {
         icon: 'star',
         label: t('general.starred'),
       }
-    case 'private':
-      return {
-        icon: 'lock',
-        label: t('general.private'),
-      }
     case 'owned':
       return {
-        icon: 'account',
+        icon: 'ncUser',
         label: t('activity.ownedByMe'),
+      }
+    case 'private':
+      return {
+        icon: 'ncLock',
+        label: t('general.private'),
+      }
+    case 'managed':
+      return {
+        icon: 'ncBox',
+        label: t('labels.managed'),
       }
     default:
       return {
@@ -63,6 +72,20 @@ const sectionConfig = computed(() => {
 const canReorder = computed(() => {
   return !isMobileMode.value && isUIAllowed('baseReorder') && props.bases.length > 1
 })
+
+// Determine if indicator icons should be shown based on section type
+// Starred section: No indicators (highest priority)
+// Private section: Show star indicator if base is starred
+// Other sections: Show both star and private indicators if applicable
+const shouldShowStarIndicator = (base: NcProject) => {
+  if (props.type === 'starred') return false
+  return props.isBaseStarred?.(base) ?? false
+}
+
+const shouldShowPrivateIndicator = (base: NcProject) => {
+  if (props.type === 'private') return false
+  return props.isBasePrivate?.(base) ?? false
+}
 
 /** Briefly highlight an item after sorting */
 function markItem(id: string) {
@@ -155,7 +178,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="bases.length" class="nc-bases-section mb-4">
+  <div v-if="bases.length" class="nc-bases-section mb-6">
     <div class="flex items-center gap-2 mb-4 text-xs font-medium text-nc-content-gray-muted uppercase tracking-wide">
       <GeneralIcon :icon="sectionConfig.icon" class="w-3.5 h-3.5" />
       <span>{{ sectionConfig.label }}</span>
@@ -170,6 +193,8 @@ onBeforeUnmount(() => {
         :is-starred="type === 'starred'"
         :is-private="type === 'private'"
         :is-marked="isMarked === base.id"
+        :show-star-indicator="shouldShowStarIndicator(base)"
+        :show-private-indicator="shouldShowPrivateIndicator(base)"
         @select="onSelectBase"
       />
     </div>

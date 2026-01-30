@@ -4,6 +4,9 @@ const props = defineProps<{
   isStarred?: boolean
   isPrivate?: boolean
   isMarked?: boolean
+  // Indicator icons - shown when base has attribute but displayed in another section
+  showStarIndicator?: boolean
+  showPrivateIndicator?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -38,10 +41,18 @@ const onSelect = () => {
         {{ base.title }}
       </div>
     </div>
-    <GeneralIcon v-if="isStarred" icon="starSolid" class="flex-none w-4 h-4 text-yellow-500" />
-    <NcBadge v-if="isPrivate" color="green" class="text-xs">
-      {{ $t('general.private') }}
-    </NcBadge>
+
+    <!-- Indicator icons when base has attribute but shown in another section -->
+    <div v-if="showStarIndicator || showPrivateIndicator" class="flex items-center gap-1">
+      <NcTooltip v-if="showStarIndicator" class="flex">
+        <GeneralIcon icon="star" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
+        <template #title>{{ $t('general.starred') }}</template>
+      </NcTooltip>
+      <NcTooltip v-if="showPrivateIndicator" class="flex">
+        <GeneralIcon icon="ncLock" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
+        <template #title>{{ $t('general.private') }}</template>
+      </NcTooltip>
+    </div>
   </div>
 </template>
 

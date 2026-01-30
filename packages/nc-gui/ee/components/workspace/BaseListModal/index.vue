@@ -25,7 +25,7 @@ const { $e } = useNuxtApp()
 
 const selectedWorkspaceId = ref<string | null>(null)
 const searchQuery = ref('')
-const activeFilter = ref<'all' | 'starred' | 'private' | 'owned'>('all')
+const activeFilter = ref<'all' | 'starred' | 'private' | 'owned' | 'managed'>('all')
 
 // Initialize selected workspace when modal opens
 watch(visible, (isVisible) => {
@@ -50,43 +50,81 @@ const workspaceBases = computed(() => {
   )
 })
 
-// Categorize bases
-const starredBases = computed(() => workspaceBases.value.filter((base) => base.starred))
+// Priority-based categorization (mutually exclusive)
+// Priority order: Starred → Private → Managed → Owned by Me → Default
+// Each base appears in only ONE category based on highest priority
 
-const privateBases = computed(() =>
-  workspaceBases.value.filter((base) => !base.starred && base.default_role === ProjectRoles.NO_ACCESS),
+// Helper functions to check base attributes
+const isBaseStarred = (base: NcProject) => !!base.starred
+const isBasePrivate = (base: NcProject) => base.default_role === ProjectRoles.NO_ACCESS
+const isBaseManaged = (base: NcProject) => !!base.managed_app_id
+const isBaseOwned = (base: NcProject) => base.project_role === ProjectRoles.OWNER || base.project_role === 'owner'
+
+// 1. Starred bases (highest priority)
+const starredBases = computed(() => workspaceBases.value.filter((base) => isBaseStarred(base)))
+
+// 2. Private bases (not starred)
+const privateBases = computed(() => workspaceBases.value.filter((base) => !isBaseStarred(base) && isBasePrivate(base)))
+
+// 3. Managed bases (not starred, not private)
+const managedBases = computed(() =>
+  workspaceBases.value.filter((base) => !isBaseStarred(base) && !isBasePrivate(base) && isBaseManaged(base)),
 )
 
+// 4. Owned bases (not starred, not private, not managed)
 const ownedBases = computed(() =>
-  workspaceBases.value.filter((base) => base.project_role === ProjectRoles.OWNER || base.project_role === 'owner'),
+  workspaceBases.value.filter(
+    (base) => !isBaseStarred(base) && !isBasePrivate(base) && !isBaseManaged(base) && isBaseOwned(base),
+  ),
 )
 
+// 5. Default bases (remaining - not in any other category)
 const defaultBases = computed(() =>
-  workspaceBases.value.filter((base) => !base.starred && base.default_role !== ProjectRoles.NO_ACCESS),
+  workspaceBases.value.filter(
+    (base) => !isBaseStarred(base) && !isBasePrivate(base) && !isBaseManaged(base) && !isBaseOwned(base),
+  ),
 )
 
-// Apply search filter
+// Apply search filter to each category
 const filteredStarredBases = computed(() => starredBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
-
-const filteredPrivateBases = computed(() => privateBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
-
 const filteredOwnedBases = computed(() => ownedBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
-
+const filteredPrivateBases = computed(() => privateBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
+const filteredManagedBases = computed(() => managedBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
 const filteredDefaultBases = computed(() => defaultBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
 
+// All bases matching each filter criteria (for filtered views)
+// These include ALL bases with the attribute, not priority-filtered
+const allStarredBases = computed(() => workspaceBases.value.filter((base) => isBaseStarred(base)))
+const allPrivateBases = computed(() => workspaceBases.value.filter((base) => isBasePrivate(base)))
+const allManagedBases = computed(() => workspaceBases.value.filter((base) => isBaseManaged(base)))
+const allOwnedBases = computed(() => workspaceBases.value.filter((base) => isBaseOwned(base)))
+
+// Apply search filter to "all" filtered bases
+const filteredAllStarredBases = computed(() => allStarredBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
+const filteredAllPrivateBases = computed(() => allPrivateBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
+const filteredAllManagedBases = computed(() => allManagedBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
+const filteredAllOwnedBases = computed(() => allOwnedBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
+
 // Get bases based on active filter
+// When 'all': Show priority-based sections (Starred → Private → Managed → Owned → Default)
+// When specific filter: Show ALL bases matching that criteria with indicators
 const displayedBases = computed(() => {
   switch (activeFilter.value) {
     case 'starred':
-      return { starred: filteredStarredBases.value }
+      return { starred: filteredAllStarredBases.value }
     case 'private':
-      return { private: filteredPrivateBases.value }
+      return { private: filteredAllPrivateBases.value }
+    case 'managed':
+      return { managed: filteredAllManagedBases.value }
     case 'owned':
-      return { owned: filteredOwnedBases.value }
+      return { owned: filteredAllOwnedBases.value }
     default:
+      // Show all categories in priority order
       return {
         starred: filteredStarredBases.value,
         private: filteredPrivateBases.value,
+        managed: filteredManagedBases.value,
+        owned: filteredOwnedBases.value,
         default: filteredDefaultBases.value,
       }
   }
@@ -95,14 +133,23 @@ const displayedBases = computed(() => {
 // Base count for the selected workspace
 const baseCount = computed(() => workspaceBases.value.length)
 
-// Check if there are no search results
+// Check if there are no search results based on active filter
 const hasNoSearchResults = computed(() => {
-  return (
-    workspaceBases.value.length > 0 &&
-    !filteredStarredBases.value.length &&
-    !filteredPrivateBases.value.length &&
-    !filteredDefaultBases.value.length
-  )
+  if (workspaceBases.value.length === 0) return false
+
+  if (activeFilter.value === 'all') {
+    return (
+      !filteredStarredBases.value.length &&
+      !filteredPrivateBases.value.length &&
+      !filteredManagedBases.value.length &&
+      !filteredOwnedBases.value.length &&
+      !filteredDefaultBases.value.length
+    )
+  }
+
+  // For specific filters, check if the filtered view is empty
+  const bases = displayedBases.value
+  return Object.values(bases).every((arr) => !arr?.length)
 })
 
 // Handle workspace selection
@@ -250,12 +297,15 @@ onBeforeUnmount(() => {
           />
 
           <!-- Bases Content -->
+          <!-- Priority Order: Starred → Private → Managed → Owned → Default -->
           <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4">
             <!-- Starred Section -->
             <WorkspaceBaseListModalBasesSection
               v-if="displayedBases.starred?.length"
               type="starred"
               :bases="displayedBases.starred"
+              :is-base-starred="isBaseStarred"
+              :is-base-private="isBasePrivate"
               @select="onSelectBase"
               @reorder="onReorderBase"
             />
@@ -265,6 +315,19 @@ onBeforeUnmount(() => {
               v-if="displayedBases.private?.length"
               type="private"
               :bases="displayedBases.private"
+              :is-base-starred="isBaseStarred"
+              :is-base-private="isBasePrivate"
+              @select="onSelectBase"
+              @reorder="onReorderBase"
+            />
+
+            <!-- Managed Section -->
+            <WorkspaceBaseListModalBasesSection
+              v-if="displayedBases.managed?.length"
+              type="managed"
+              :bases="displayedBases.managed"
+              :is-base-starred="isBaseStarred"
+              :is-base-private="isBasePrivate"
               @select="onSelectBase"
               @reorder="onReorderBase"
             />
@@ -274,15 +337,19 @@ onBeforeUnmount(() => {
               v-if="displayedBases.owned?.length"
               type="owned"
               :bases="displayedBases.owned"
+              :is-base-starred="isBaseStarred"
+              :is-base-private="isBasePrivate"
               @select="onSelectBase"
               @reorder="onReorderBase"
             />
 
-            <!-- Default Bases Section -->
+            <!-- Default Bases Section (remaining) -->
             <WorkspaceBaseListModalBasesSection
               v-if="displayedBases.default?.length"
               type="default"
               :bases="displayedBases.default"
+              :is-base-starred="isBaseStarred"
+              :is-base-private="isBasePrivate"
               @select="onSelectBase"
               @reorder="onReorderBase"
             />

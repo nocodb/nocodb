@@ -37,6 +37,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
+import debug from 'debug';
 import type {
   BulkAuditV1OperationTypes,
   DataBulkDeletePayload,
@@ -157,6 +158,8 @@ const MAX_RECURSION_DEPTH = 2;
 
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
+
+const debugCount = debug('nc:db:query:baseModel:count');
 
 /**
  * Base class for models
@@ -759,7 +762,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
       as: 'count',
     }).first();
-
+    debugCount(qb.toQuery());
     return (await this.execAndParse(qb, null, { raw: true, first: true }))
       ?.count;
   }

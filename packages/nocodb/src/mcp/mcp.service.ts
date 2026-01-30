@@ -22,6 +22,9 @@ import { serialize } from '~/helpers/serialize';
 import { AuditsService } from '~/services/audits.service';
 import { isEE } from '~/utils';
 import { aggregationDescription, whereDescription } from '~/mcp/descriptions';
+import Model from '~/models/Model';
+import Base from '~/models/Base';
+import { tableReadBuilder } from '~/utils/builders/table';
 
 @Injectable()
 export class McpService {
@@ -118,18 +121,39 @@ export class McpService {
       },
       async () => {
         try {
-          const tables = await this.tablesV3Service.getAccessibleTables(
-            context,
-            {
-              baseId: context.base_id,
-              roles: extractRolesObj(user?.base_roles),
-              user,
-              allSources: true,
-            },
+          // For MCP, list all tables from all sources without view-based filtering
+          // The standard getAccessibleTables filters by view visibility which may exclude tables
+          // that don't have any accessible views configured, even if the user has table-level access
+          const tableList = await Model.list(context, {
+            base_id: context.base_id,
+            source_id: undefined, // Get from all sources
+          });
+
+          // Filter out M2M tables
+          const filteredTables = tableList.filter((t) => !t.mm);
+
+          // Get meta source ID to exclude source_id for meta tables
+          const metaSourceId = (
+            await Base.get(context, context.base_id).then((base) =>
+              base?.getSources(),
+            )
+          )?.find((source) => source.isMeta)?.id;
+
+          // Transform tables using the same builder as the API
+          const transformedTables = tableReadBuilder().build(
+            filteredTables.map((table) => {
+              // Exclude source_id for tables from meta source
+              if (metaSourceId && table.source_id === metaSourceId) {
+                table.source_id = undefined;
+              }
+              return table;
+            }),
           );
 
           return {
-            content: [{ type: 'text', text: JSON.stringify(tables, null, 2) }],
+            content: [
+              { type: 'text', text: JSON.stringify(transformedTables, null, 2) },
+            ],
           };
         } catch (error) {
           return {

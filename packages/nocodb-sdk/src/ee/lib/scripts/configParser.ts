@@ -134,6 +134,33 @@ export const findConfigVariableName = (scriptContent: string): string | null => 
     return configVariableName
 }
 
+/**
+ * Apply default value for a config item, converting to the appropriate runtime format
+ */
+export const applyDefaultValue = (item: ScriptConfigItem): any => {
+    if (item.default === undefined) {
+        return undefined
+    }
+
+    switch (item.type) {
+        case 'table':
+            // For table, default is a table ID string, wrap in config format
+            return { type: 'table', value: item.default }
+        case 'field':
+            // For field, default is a field ID string, needs tableId from parentTable
+            // Note: tableId will be resolved at runtime from the parentTable config
+            return { type: 'field', value: item.default, tableId: '' }
+        case 'view':
+            // For view, default is a view ID string, needs tableId from parentTable
+            return { type: 'view', value: item.default, tableId: '' }
+        case 'text':
+        case 'number':
+        case 'select':
+            // For primitive types, return the default directly
+            return item.default
+    }
+}
+
 export const replaceConfigValues = (scriptContent: string, configValues: Record<string, any>): string => {
     const ast = acorn.parse(scriptContent, {
         ecmaVersion: 'latest',
@@ -205,11 +232,35 @@ export const replaceConfigValues = (scriptContent: string, configValues: Record<
         const scriptConfig = parseScript(scriptContent)
 
         // Only include values for keys that are actually defined in the script's config
+        // Apply default values when user-provided values are missing
         const filteredConfigValues: Record<string, any> = {}
         if (scriptConfig?.items) {
+            // First pass: process table configs (and other non-dependent types)
             scriptConfig.items.forEach((item: ScriptConfigItem) => {
-                if (Object.prototype.hasOwnProperty.call(configValues, item.key)) {
-                    filteredConfigValues[item.key] = configValues[item.key]
+                if (item.type !== 'field' && item.type !== 'view') {
+                    if (Object.prototype.hasOwnProperty.call(configValues, item.key) && configValues[item.key] != null) {
+                        filteredConfigValues[item.key] = configValues[item.key]
+                    } else if (item.default !== undefined) {
+                        filteredConfigValues[item.key] = applyDefaultValue(item)
+                    }
+                }
+            })
+
+            // Second pass: process field/view configs that depend on parent tables
+            scriptConfig.items.forEach((item: ScriptConfigItem) => {
+                if (item.type === 'field' || item.type === 'view') {
+                    if (Object.prototype.hasOwnProperty.call(configValues, item.key) && configValues[item.key] != null) {
+                        filteredConfigValues[item.key] = configValues[item.key]
+                    } else if (item.default !== undefined) {
+                        // Get tableId from parent table's config value
+                        const parentTableValue = filteredConfigValues[item.parentTable]
+                        const tableId = parentTableValue?.value || parentTableValue?.tableId || ''
+                        filteredConfigValues[item.key] = {
+                            type: item.type,
+                            value: item.default,
+                            tableId,
+                        }
+                    }
                 }
             })
         }
@@ -257,7 +308,7 @@ export const replaceConfigValues = (scriptContent: string, configValues: Record<
         }
       }
     })
-    
+
     ${scriptContent.slice(configEnd)}`
     }
 
@@ -269,13 +320,16 @@ export const validateConfigValues = (config: ScriptConfig, values: Record<string
     const tableValues = new Set<string>()
 
     config?.items?.forEach((item) => {
-        // Track table selections
-        if (item.type === 'table' && values[item.key]) {
+        const hasValue = values[item.key] != null && values[item.key] !== ''
+        const hasDefault = item.default !== undefined
+
+        // Track table selections (from value or default)
+        if (item.type === 'table' && (hasValue || hasDefault)) {
             tableValues.add(item.key)
         }
 
-        // Check required fields
-        if (!values[item.key]) {
+        // Check required fields - default satisfies requirement
+        if (!hasValue && !hasDefault) {
             errors.push(`Missing value for ${item.label || item.key}`)
         }
 

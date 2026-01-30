@@ -80,16 +80,68 @@ const triggerUpdate = async () => {
   }
 }
 
+const isConfigValueEmpty = (value: any): boolean => {
+  if (ncIsNullOrUndefined(value)) return true
+  if (ncIsString(value) && value === '') return true
+  if (ncIsObject(value) && (ncIsNullOrUndefined(value?.value) || value?.value === '')) return true
+  return false
+}
+
 onMounted(() => {
+  // First pass: Initialize table and primitive config items (with defaults if available)
   ;(props.config?.items ?? []).forEach((item) => {
+    const currentValue = configValue.value[item.key]
+
     if (item.type === 'table') {
-      configValue.value[item.key] = configValue.value[item.key] || { type: item.type, value: '' }
-    } else if (item.type === 'field' || item.type === 'view') {
+      // Apply default if value is empty and default exists
+      if (isConfigValueEmpty(currentValue) && item.default) {
+        configValue.value[item.key] = { type: item.type, value: item.default }
+      } else if (currentValue == null) {
+        configValue.value[item.key] = { type: item.type, value: '' }
+      }
+    } else if (item.type === 'text') {
+      // Apply default if value is empty and default exists
+      if (isConfigValueEmpty(currentValue) && item.default !== undefined) {
+        configValue.value[item.key] = item.default
+      } else if (currentValue == null) {
+        configValue.value[item.key] = ''
+      }
+    } else if (item.type === 'number') {
+      // Apply default if value is empty and default exists
+      if (isConfigValueEmpty(currentValue) && item.default !== undefined) {
+        configValue.value[item.key] = item.default
+      } else if (currentValue == null) {
+        configValue.value[item.key] = ''
+      }
+    } else if (item.type === 'select') {
+      // Apply default if value is empty and default exists
+      if (isConfigValueEmpty(currentValue) && item.default !== undefined) {
+        configValue.value[item.key] = item.default
+      } else if (currentValue == null) {
+        configValue.value[item.key] = undefined
+      }
+    }
+  })
+
+  // Second pass: Initialize field/view config items (which depend on parent tables)
+  ;(props.config?.items ?? []).forEach((item) => {
+    if (item.type === 'field' || item.type === 'view') {
+      const currentValue = configValue.value[item.key]
       const parentTableValue = configValue.value[item.parentTable]?.value
-      configValue.value[item.key] = configValue.value[item.key] || {
-        type: item.type,
-        value: '',
-        tableId: parentTableValue || '',
+
+      // Apply default if value is empty and default exists
+      if (isConfigValueEmpty(currentValue) && item.default) {
+        configValue.value[item.key] = {
+          type: item.type,
+          value: item.default,
+          tableId: parentTableValue || '',
+        }
+      } else if (currentValue == null) {
+        configValue.value[item.key] = {
+          type: item.type,
+          value: '',
+          tableId: parentTableValue || '',
+        }
       }
     }
   })

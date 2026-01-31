@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
 import { ProjectRoles } from 'nocodb-sdk'
-import { useProvideBaseActions } from './useBaseActions'
 
 const props = defineProps<{
   visible: boolean

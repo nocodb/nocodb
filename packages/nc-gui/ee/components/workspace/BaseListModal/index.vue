@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
 import { ProjectRoles } from 'nocodb-sdk'
-import { useBaseActionsProvider } from './useBaseActions'
+import { useProvideBaseActions } from './useBaseActions'
 
 const props = defineProps<{
   visible: boolean
@@ -41,7 +41,7 @@ const canCreateWorkspace = computed(() => {
 const closeModal = () => {
   visible.value = false
 }
-const { dialogState } = useBaseActionsProvider(closeModal)
+const { dialogState } = useProvideBaseActions(closeModal)
 
 // Autofocus search input
 const focus: VNodeRef = (el) => el?.focus()

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useBaseActions } from './useBaseActions'
+import { useBaseActionsOrThrow } from './useBaseActions'
 
 const props = defineProps<{
   base: NcProject
@@ -11,7 +11,7 @@ const props = defineProps<{
 
 // Get actions from provider
 const { onRename, onToggleStarred, onDuplicate, onOpenErd, onOpenSettings, onDelete, onUpdateColor, onSelect } =
-  useBaseActions()
+  useBaseActionsOrThrow()
 
 const { isUIAllowed } = useRoles()
 const { $e } = useNuxtApp()

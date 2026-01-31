@@ -1,24 +1,6 @@
 import type { SourceType } from 'nocodb-sdk'
-import type { InjectionKey } from 'vue'
 
-export interface BaseActionsContext {
-  // Actions
-  onRename: (base: NcProject, title: string) => Promise<void>
-  onToggleStarred: (base: NcProject) => Promise<void>
-  onDuplicate: (base: NcProject) => void
-  onOpenErd: (base: NcProject, source: SourceType) => void
-  onOpenSettings: (baseId: string) => Promise<void>
-  onDelete: (base: NcProject) => void
-  onUpdateColor: (base: NcProject, color: string) => Promise<void>
-  onReorder: (base: NcProject, newOrder: number) => Promise<void>
-  onSelect: (base: NcProject) => Promise<void>
-  // Close modal callback
-  closeModal: () => void
-}
-
-export const BaseActionsKey: InjectionKey<BaseActionsContext> = Symbol('BaseActions')
-
-export function useBaseActionsProvider(closeModal: () => void) {
+const [useProvideBaseActions, useBaseActions] = useInjectionState((closeModal: () => void) => {
   const basesStore = useBases()
   const { workspaceBasesMap } = storeToRefs(basesStore)
 
@@ -38,11 +20,6 @@ export function useBaseActionsProvider(closeModal: () => void) {
     },
   })
 
-  // Helper to get base from any workspace
-  const getBaseFromWorkspace = (workspaceId: string, baseId: string): NcProject | undefined => {
-    return workspaceBasesMap.value.get(workspaceId)?.get(baseId)
-  }
-
   // Helper to update base in its workspace
   const updateBaseInWorkspace = (base: NcProject, updates: Partial<NcProject>) => {
     const workspaceId = base.fk_workspace_id!
@@ -58,14 +35,10 @@ export function useBaseActionsProvider(closeModal: () => void) {
   // Actions
   const onRename = async (base: NcProject, title: string) => {
     try {
-      // Optimistically update UI
       updateBaseInWorkspace(base, { title })
-
-      // API call
       await $api.base.update(base.id!, { title })
       $e('a:base:rename')
     } catch (e: any) {
-      // Revert on error
       updateBaseInWorkspace(base, { title: base.title })
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -74,15 +47,10 @@ export function useBaseActionsProvider(closeModal: () => void) {
   const onToggleStarred = async (base: NcProject) => {
     try {
       const newStarredState = !base.starred
-
-      // Optimistically update UI
       updateBaseInWorkspace(base, { starred: newStarredState })
-
-      // API call
       await $api.base.userMetaUpdate(base.id!, { starred: newStarredState })
       $e('a:base:starred:toggle')
     } catch (e: any) {
-      // Revert on error
       updateBaseInWorkspace(base, { starred: base.starred })
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -128,15 +96,10 @@ export function useBaseActionsProvider(closeModal: () => void) {
         ...parseProp(base.meta),
         iconColor: color,
       }
-
-      // Optimistically update UI
       updateBaseInWorkspace(base, { meta: newMeta as any })
-
-      // API call
       await $api.base.update(base.id!, { meta: JSON.stringify(newMeta) })
       $e('a:base:icon:color:modal', { iconColor: color })
     } catch (e: any) {
-      // Revert on error
       updateBaseInWorkspace(base, { meta: base.meta })
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -144,16 +107,10 @@ export function useBaseActionsProvider(closeModal: () => void) {
 
   const onReorder = async (base: NcProject, newOrder: number) => {
     try {
-      const oldOrder = base.order
-
-      // Optimistically update UI
       updateBaseInWorkspace(base, { order: newOrder })
-
-      // API call
       await $api.base.update(base.id!, { order: newOrder })
       $e('a:base:reorder')
     } catch (e: any) {
-      // Revert on error
       updateBaseInWorkspace(base, { order: base.order })
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -169,7 +126,8 @@ export function useBaseActionsProvider(closeModal: () => void) {
     })
   }
 
-  const context: BaseActionsContext = {
+  return {
+    dialogState,
     onRename,
     onToggleStarred,
     onDuplicate,
@@ -181,20 +139,12 @@ export function useBaseActionsProvider(closeModal: () => void) {
     onSelect,
     closeModal,
   }
+}, 'baseActions')
 
-  // Provide context to child components
-  provide(BaseActionsKey, context)
+export { useProvideBaseActions, useBaseActions }
 
-  return {
-    dialogState,
-    ...context,
-  }
-}
-
-export function useBaseActions() {
-  const context = inject(BaseActionsKey)
-  if (!context) {
-    throw new Error('useBaseActions must be used within a BaseActionsProvider')
-  }
-  return context
+export function useBaseActionsOrThrow() {
+  const baseActions = useBaseActions()
+  if (baseActions == null) throw new Error('Please call `useProvideBaseActions` on the appropriate parent component')
+  return baseActions
 }

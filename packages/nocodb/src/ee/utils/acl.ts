@@ -388,6 +388,7 @@ const permissionScopes = {
     'managedAppUnpublish',
 
     // Sandbox
+    'sandboxList',
     'sandboxGet',
     'sandboxCreate',
     'sandboxDiscard',

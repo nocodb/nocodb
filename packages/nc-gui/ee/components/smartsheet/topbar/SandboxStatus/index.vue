@@ -15,8 +15,9 @@ const basesStore = useBases()
 const isOpenDropdown = ref<boolean>(false)
 
 const isPublishDialogOpen = ref(false)
-
 const isMerging = ref(false)
+const publishStatus = ref<'pending' | 'loading' | 'success' | 'error'>('pending')
+const publishErrorMessage = ref('')
 
 /* const fetchSandboxDiff = async () => {
   if (!base.value?.id || !activeWorkspaceId.value) return
@@ -38,6 +39,8 @@ const isMerging = ref(false)
 const openPublishDialog = async () => {
   isOpenDropdown.value = false
   isPublishDialogOpen.value = true
+  publishStatus.value = 'pending'
+  publishErrorMessage.value = ''
   // await fetchSandboxDiff()
 }
 
@@ -60,6 +63,8 @@ const mergeSandbox = async () => {
 
   try {
     isMerging.value = true
+    publishStatus.value = 'loading'
+    publishErrorMessage.value = ''
 
     await $api.internal.postOperation(
       activeWorkspaceId.value,
@@ -70,26 +75,44 @@ const mergeSandbox = async () => {
       {},
     )
 
-    message.success('Sandbox changes merged successfully')
-    isPublishDialogOpen.value = false
-
-    // Navigate to master base
-    if (sandboxInfo.value?.master_base_id) {
-      // Reload master base to get updated state
-      await basesStore.loadProject(sandboxInfo.value.master_base_id, true)
-
-      await navigateTo(
-        baseUrl({
-          id: sandboxInfo.value.master_base_id,
-          type: 'database',
-          isSharedBase: false,
-        }),
-      )
-    }
+    publishStatus.value = 'success'
+    // message.success('Sandbox changes merged successfully')
+    // isPublishDialogOpen.value = false
   } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
+    publishStatus.value = 'error'
+    publishErrorMessage.value = await extractSdkResponseErrorMsg(e)
+    // message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isMerging.value = false
+  }
+}
+
+const goToMasterBaseFromDialog = async () => {
+  if (!sandboxInfo.value?.master_base_id) return
+  isPublishDialogOpen.value = false
+  // Reload master base to get updated state
+  await basesStore.loadProject(sandboxInfo.value.master_base_id, true)
+  await navigateTo(
+    baseUrl({
+      id: sandboxInfo.value.master_base_id,
+      type: 'database',
+      isSharedBase: false,
+    }),
+  )
+}
+
+const handlePublishDialogAction = () => {
+  switch (publishStatus.value) {
+    case 'pending':
+      mergeSandbox()
+      break
+    case 'success':
+      goToMasterBaseFromDialog()
+      break
+    case 'error':
+      publishStatus.value = 'pending'
+      publishErrorMessage.value = ''
+      break
   }
 }
 
@@ -106,7 +129,26 @@ const discardSandbox = async () => {
       {},
     )
 
-    message.success('Sandbox discarded successfully')
+    message.success('Sandbox changes reverted successfully')
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+/* const deleteSandbox = async () => {
+  if (!base.value?.id || !activeWorkspaceId.value) return
+
+  try {
+    await $api.internal.postOperation(
+      activeWorkspaceId.value,
+      base.value.id,
+      {
+        operation: 'sandboxDelete',
+      } as any,
+      {},
+    )
+
+    message.success('Sandbox deleted successfully')
 
     // Navigate to master base
     if (sandboxInfo.value?.master_base_id) {
@@ -126,7 +168,7 @@ const discardSandbox = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
-}
+} */
 
 const colors = {
   orange: {
@@ -204,49 +246,101 @@ const colors = {
 
         <NcDivider class="!my-1" />
 
-        <!-- Discard sandbox -->
+        <!-- Discard changes (revert to master) -->
         <SmartsheetTopbarManagedAppStatusMenuItem
           clickable
-          label="Discard Sandbox"
-          subtext="Delete sandbox and return to master"
+          label="Discard Changes"
+          subtext="Revert all changes to match master"
           icon-wrapper-class="bg-nc-bg-gray-light"
           @click="discardSandbox"
+        >
+          <template #icon>
+            <GeneralIcon icon="ncRefreshCcw" class="text-nc-content-gray-muted" />
+          </template>
+        </SmartsheetTopbarManagedAppStatusMenuItem>
+
+        <!-- Delete sandbox
+        <SmartsheetTopbarManagedAppStatusMenuItem
+          clickable
+          label="Delete Sandbox"
+          subtext="Delete sandbox and return to master"
+          icon-wrapper-class="bg-nc-bg-gray-light"
+          @click="deleteSandbox"
         >
           <template #icon>
             <GeneralIcon icon="delete" class="text-nc-content-gray-muted" />
           </template>
         </SmartsheetTopbarManagedAppStatusMenuItem>
+        -->
       </div>
     </template>
   </NcDropdown>
 
   <!-- Publish Dialog -->
+
   <NcModal v-model:visible="isPublishDialogOpen" size="small" wrap-class-name="nc-modal-sandbox-publish">
     <div class="flex flex-col gap-4 p-1">
-      <div class="flex items-center gap-3">
-        <div class="flex items-center justify-center w-10 h-10 rounded-lg bg-green-50">
-          <GeneralIcon icon="ncArrowUp" class="w-5 h-5 text-green-600" />
-        </div>
-        <div>
-          <h3 class="text-base font-semibold text-nc-content-gray-emphasis">Publish Sandbox Changes</h3>
-          <p class="text-sm text-nc-content-gray-muted">Push your changes to the master base</p>
-        </div>
+      <!-- Header -->
+      <div class="text-base text-nc-content-gray-emphasis leading-6 font-bold">
+        <template v-if="['pending', 'loading'].includes(publishStatus)">
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="ncArrowUp" class="w-5 h-5 text-green-600" />
+            <span>Publish Sandbox Changes</span>
+          </div>
+        </template>
+        <template v-else-if="publishStatus === 'success'">
+          <div class="flex items-center gap-2">
+            <GeneralIcon class="text-green-600 w-6 h-6" icon="checkFill" />
+            <div class="text-nc-content-gray-emphasis font-semibold">Sandbox Changes Published</div>
+          </div>
+        </template>
+        <template v-else-if="publishStatus === 'error'">
+          <div class="flex items-center gap-2">
+            <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-6 h-6" />
+            <div class="text-nc-content-gray-emphasis font-semibold">Failed to Publish Changes</div>
+          </div>
+        </template>
       </div>
 
-      <NcAlert type="warning" class="!p-3">
-        <template #icon>
-          <GeneralIcon icon="ncAlertTriangle" class="w-4 h-4 text-nc-content-orange-dark" />
-        </template>
-        <template #description> This will merge all schema changes from this sandbox into the master base. </template>
-      </NcAlert>
+      <!-- Content -->
+      <template v-if="['pending', 'loading'].includes(publishStatus)">
+        <div class="mt-2">
+          <NcAlert type="warning" class="!p-3">
+            <template #icon>
+              <GeneralIcon icon="ncAlertTriangle" class="w-4 h-4 text-nc-content-orange-dark" />
+            </template>
+            <template #description> This will merge all schema changes from this sandbox into the master base. </template>
+          </NcAlert>
+        </div>
+      </template>
+      <template v-else-if="publishStatus === 'success'">
+        <div class="text-nc-content-gray-emphasis my-5 font-medium">
+          Sandbox changes have been published successfully.<br /><br />
+          You can now go to the master base to view the changes.
+        </div>
+      </template>
+      <template v-else-if="publishStatus === 'error'">
+        <div class="text-nc-content-gray-emphasis my-5 font-medium">
+          {{ publishErrorMessage }}
+        </div>
+      </template>
 
-      <div class="flex justify-end gap-2 mt-2">
-        <NcButton type="secondary" size="small" :disabled="isMerging" @click="isPublishDialogOpen = false"> Cancel </NcButton>
-        <NcButton type="primary" size="small" :loading="isMerging" @click="mergeSandbox">
-          <template #icon>
-            <GeneralIcon icon="ncArrowUp" />
+      <!-- Footer -->
+      <div class="flex flex-row gap-x-2 justify-end mt-5">
+        <NcButton v-if="!isMerging" type="secondary" size="small" @click="isPublishDialogOpen = false">
+          {{ publishStatus === 'success' ? 'Close' : $t('general.cancel') }}
+        </NcButton>
+        <NcButton size="small" :loading="isMerging" :disabled="isMerging" @click="handlePublishDialogAction">
+          <template v-if="publishStatus === 'pending'">
+            <GeneralIcon icon="ncArrowUp" class="w-4 h-4 mr-1" />
+            Publish Changes
           </template>
-          Publish Changes
+          <template v-else-if="publishStatus === 'loading'"> Publishing... </template>
+          <template v-else-if="publishStatus === 'success'">
+            <GeneralIcon icon="ncArrowRight" class="w-4 h-4 mr-1" />
+            Go to Master Base
+          </template>
+          <template v-else-if="publishStatus === 'error'"> Try Again </template>
         </NcButton>
       </div>
     </div>

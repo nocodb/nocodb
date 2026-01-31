@@ -531,10 +531,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
     if (req.ncBase) {
       const base = req.ncBase as Base;
-      // Schema is locked if managed app is locked OR sandbox is active
+      // Schema is locked if managed app is locked OR sandbox master is active
       req.context.schema_locked = !!(
-        base.managed_app_schema_locked ||
-        (base.fk_sandbox_id && !base.is_sandbox)
+        base.managed_app_schema_locked || base.is_sandbox_master
       );
     }
 
@@ -1057,10 +1056,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       if (req.ncBase) {
         const base = req.ncBase as Base;
         req.ncWorkspaceId = base.fk_workspace_id;
-        // Read computed schema_locked property (managed app OR sandbox)
+        // Read computed schema_locked property (managed app OR sandbox master)
         req.ncSchemaLocked = !!(
-          base.managed_app_schema_locked ||
-          (base.fk_sandbox_id && !base.is_sandbox)
+          base.managed_app_schema_locked || base.is_sandbox_master
         );
       } else {
         NcError.baseNotFound(req.ncBaseId);

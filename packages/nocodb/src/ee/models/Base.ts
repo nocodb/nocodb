@@ -78,19 +78,6 @@ export default class Base extends BaseCE {
     }
   }
 
-  public static async populateSandboxInfo(base: Base): Promise<void> {
-    // Default - not locked
-    base.sandbox_schema_locked = false;
-
-    // If base has an active sandbox, lock the master base
-    if (base.fk_sandbox_id) {
-      const sandbox = await Sandbox.get(base.fk_sandbox_id);
-      if (sandbox) {
-        base.sandbox_schema_locked = true;
-      }
-    }
-  }
-
   static async list(
     workspaceId?: string,
     ncMeta = Noco.ncMeta,
@@ -177,10 +164,6 @@ export default class Base extends BaseCE {
           promises.push(Base.populateManagedAppInfo(base));
         }
 
-        if (base.fk_sandbox_id) {
-          promises.push(Base.populateSandboxInfo(base));
-        }
-
         return base;
       });
 
@@ -214,7 +197,7 @@ export default class Base extends BaseCE {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'fk_sandbox_id',
+      'is_sandbox_master',
       'is_sandbox',
     ]);
 
@@ -311,7 +294,7 @@ export default class Base extends BaseCE {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
-      'fk_sandbox_id',
+      'is_sandbox_master',
       'is_sandbox',
     ]);
 
@@ -457,19 +440,41 @@ export default class Base extends BaseCE {
     }
 
     // --- SANDBOX LOGIC ---
-    // If this is a sandbox base, remove fk_sandbox_id from master and delete sandbox record only
+    // If this is a sandbox base, update master's is_sandbox_master flag and delete sandbox record
     if (base.is_sandbox) {
-      const sandbox = await Sandbox.getBySandboxBaseId(baseId, ncMeta);
+      const sandbox = await Sandbox.getBySandboxBaseId(base.id, ncMeta);
+
       if (sandbox) {
-        // Remove fk_sandbox_id from master base
-        await Base.update(
-          { ...context, base_id: sandbox.master_base_id },
-          sandbox.master_base_id,
-          { fk_sandbox_id: null },
-          ncMeta,
-        );
         // Delete sandbox record
         await Sandbox.delete(sandbox.id, ncMeta);
+
+        const remainingSandboxes = await Sandbox.listByMasterBaseId(
+          sandbox.master_base_id,
+          ncMeta,
+        );
+        if (remainingSandboxes.length === 0) {
+          await Base.update(
+            { ...context, base_id: sandbox.master_base_id },
+            sandbox.master_base_id,
+            { is_sandbox_master: false },
+            ncMeta,
+          );
+        }
+      }
+    }
+
+    // If this is a master base with sandboxes, delete all sandbox bases first
+    if (base.is_sandbox_master) {
+      const sandboxes = await Sandbox.listByMasterBaseId(baseId, ncMeta);
+      for (const sandbox of sandboxes) {
+        // Delete sandbox record
+        await Sandbox.delete(sandbox.id, ncMeta);
+        // Delete sandbox base (recursively)
+        await Base.delete(
+          { ...context, base_id: sandbox.sandbox_base_id },
+          sandbox.sandbox_base_id,
+          ncMeta,
+        );
       }
     }
 
@@ -1083,9 +1088,6 @@ export default class Base extends BaseCE {
             promises.push(Base.populateManagedAppInfo(base));
           }
 
-          if (base.fk_sandbox_id) {
-            promises.push(Base.populateSandboxInfo(base));
-          }
           return base;
         });
 
@@ -1146,9 +1148,6 @@ export default class Base extends BaseCE {
             promises.push(Base.populateManagedAppInfo(base));
           }
 
-          if (base.fk_sandbox_id) {
-            promises.push(Base.populateSandboxInfo(base));
-          }
           return base;
         });
 

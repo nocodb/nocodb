@@ -213,9 +213,8 @@ export const useRolesShared = createSharedComposable(() => {
       !args.skipBaseCheck &&
       activeBase &&
       activeBase.id &&
-      activeBase.managed_app_id &&
-      activeBase.managed_app_schema_locked &&
-      managedAppRestrictions[permission as Permission]
+      managedAppRestrictions[permission as Permission] &&
+      ((activeBase.managed_app_id && activeBase.managed_app_schema_locked) || activeBase.is_sandbox_master)
     ) {
       return false
     }

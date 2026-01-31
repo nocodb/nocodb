@@ -7,7 +7,6 @@ import {
   MetaTable,
   RootScopes,
 } from '~/utils/globals';
-import { NcError } from '~/helpers/catchError';
 import NocoCache from '~/cache/NocoCache';
 import {
   prepareForDb,
@@ -61,26 +60,7 @@ export default class Sandbox {
     return new Sandbox(sandbox);
   }
 
-  public static async getByMasterBaseId(
-    masterBaseId: string,
-    ncMeta = Noco.ncMeta,
-  ): Promise<Sandbox> {
-    const sandboxes = await ncMeta.metaList2(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.SANDBOXES,
-      {
-        xcCondition: {
-          _and: [{ master_base_id: { eq: masterBaseId } }],
-        },
-      },
-    );
-
-    if (!sandboxes || sandboxes.length === 0) return null;
-
-    return new Sandbox(prepareForResponse(sandboxes[0]));
-  }
-
+  // Each sandbox belongs to a unique master hence returns single record
   public static async getBySandboxBaseId(
     sandboxBaseId: string,
     ncMeta = Noco.ncMeta,
@@ -101,40 +81,25 @@ export default class Sandbox {
     return new Sandbox(prepareForResponse(sandboxes[0]));
   }
 
-  public static async list(
-    args?: {
-      workspaceId?: string;
-      userId?: string;
-      limit?: number;
-      offset?: number;
-    },
+  public static async listByMasterBaseId(
+    masterBaseId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<Sandbox[]> {
-    const conditions: any[] = [];
-
-    if (args?.workspaceId) {
-      conditions.push({ fk_workspace_id: { eq: args.workspaceId } });
-    }
-
-    if (args?.userId) {
-      conditions.push({ created_by: { eq: args.userId } });
-    }
-
-    const sandboxList = await ncMeta.metaList2(
+    const sandboxes = await ncMeta.metaList2(
       RootScopes.ROOT,
       RootScopes.ROOT,
       MetaTable.SANDBOXES,
       {
-        xcCondition: conditions.length ? { _and: conditions } : undefined,
-        limit: args?.limit,
-        offset: args?.offset,
+        xcCondition: {
+          _and: [{ master_base_id: { eq: masterBaseId } }],
+        },
         orderBy: { created_at: 'desc' },
       },
     );
 
-    return sandboxList.map(
-      (sandbox) => new Sandbox(prepareForResponse(sandbox)),
-    );
+    if (!sandboxes || sandboxes.length === 0) return [];
+
+    return sandboxes.map((sandbox) => new Sandbox(prepareForResponse(sandbox)));
   }
 
   public static async insert(
@@ -142,18 +107,6 @@ export default class Sandbox {
     sandbox: Partial<Sandbox>,
     ncMeta = Noco.ncMeta,
   ): Promise<Sandbox> {
-    // Check if master base already has an active sandbox
-    const existingSandbox = await this.getByMasterBaseId(
-      sandbox.master_base_id,
-      ncMeta,
-    );
-
-    if (existingSandbox) {
-      NcError.get(context).badRequest(
-        'Base already has an active sandbox. Delete the existing sandbox first.',
-      );
-    }
-
     const insertObj = extractProps(sandbox, [
       'master_base_id',
       'sandbox_base_id',

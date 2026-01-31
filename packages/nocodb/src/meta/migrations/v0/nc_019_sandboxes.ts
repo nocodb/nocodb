@@ -31,8 +31,8 @@ const up = async (knex: Knex) => {
 
   // Add sandbox-related columns to bases table (nc_bases_v2)
   await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
-    // Points to SANDBOXES.id if this base has an active sandbox
-    table.string('fk_sandbox_id', 20);
+    // Is this base a master base that has sandbox(es)?
+    table.boolean('is_sandbox_master').defaultTo(false);
 
     // Is this base a sandbox base?
     table.boolean('is_sandbox').defaultTo(false);
@@ -41,7 +41,7 @@ const up = async (knex: Knex) => {
   // Add indexes for sandbox relationship columns
   await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
     table.index(['is_sandbox'], 'nc_bases_is_sandbox_idx');
-    table.index(['fk_sandbox_id'], 'nc_bases_fk_sandbox_id_idx');
+    table.index(['is_sandbox_master'], 'nc_bases_is_sandbox_master_idx');
   });
 };
 
@@ -49,13 +49,13 @@ const down = async (knex: Knex) => {
   // Drop indexes from bases table
   await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
     table.dropIndex(['is_sandbox'], 'nc_bases_is_sandbox_idx');
-    table.dropIndex(['fk_sandbox_id'], 'nc_bases_fk_sandbox_id_idx');
+    table.dropIndex(['is_sandbox_master'], 'nc_bases_is_sandbox_master_idx');
   });
 
   // Drop sandbox columns from bases table
   await knex.schema.alterTable(MetaTable.PROJECT, (table) => {
     table.dropColumn('is_sandbox');
-    table.dropColumn('fk_sandbox_id');
+    table.dropColumn('is_sandbox_master');
   });
 
   // Drop sandboxes table

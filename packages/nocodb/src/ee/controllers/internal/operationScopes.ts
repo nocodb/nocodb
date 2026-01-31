@@ -97,9 +97,11 @@ export const OPERATION_SCOPES = {
   sendRecordEmail: 'base',
 
   // Sandbox operations
+  sandboxList: 'base',
   sandboxGet: 'base',
   sandboxCreate: 'base',
   sandboxDiscard: 'base',
+  sandboxDelete: 'base',
   sandboxMerge: 'base',
   sandboxDiff: 'base',
 } as const;

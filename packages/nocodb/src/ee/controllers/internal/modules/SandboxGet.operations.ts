@@ -13,6 +13,7 @@ export class SandboxGetOperations
 {
   httpMethod = 'GET' as const;
   operations = [
+    'sandboxList',
     'sandboxGet',
     'sandboxDiff',
   ] as (keyof typeof OPERATION_SCOPES)[];
@@ -33,12 +34,17 @@ export class SandboxGetOperations
     },
   ): InternalGETResponseType {
     switch (operation) {
+      case 'sandboxList':
+        return await this.sandboxesService.sandboxList({
+          baseId,
+        });
       case 'sandboxGet':
-        return await this.sandboxesService.sandboxGet(context, { baseId });
+        return await this.sandboxesService.sandboxGet(context, {
+          sandboxId: req.query?.sandboxId as string,
+        });
       case 'sandboxDiff':
         return {
           diff: await this.sandboxesService.sandboxDiff(context, {
-            baseId,
             user: req.user,
             req,
           }),

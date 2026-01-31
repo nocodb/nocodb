@@ -1,5 +1,5 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { BaseVersion, NcBaseError } from 'nocodb-sdk';
+import { BaseVersion } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Base, Sandbox } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -26,31 +26,64 @@ export class SandboxesService {
     protected readonly appHooksService: AppHooksService,
   ) {}
 
+  async sandboxList(param: { baseId: string }): Promise<Sandbox[] | null> {
+    const sandboxes = await Sandbox.listByMasterBaseId(param.baseId);
+
+    return sandboxes;
+  }
+
   async sandboxGet(
     context: NcContext,
-    param: { baseId: string },
-  ): Promise<Sandbox | null> {
-    const base = await Base.get(context, param.baseId);
-
-    if (!base) {
-      NcError.get(context).baseNotFound(param.baseId);
+    param: {
+      sandboxId: string;
+    },
+  ): Promise<Sandbox | Sandbox[] | null> {
+    if (param.sandboxId) {
+      const sandbox = await Sandbox.get(param.sandboxId);
+      return sandbox ?? null;
     }
 
-    let sandbox: Sandbox | null = null;
+    const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
+    return sandbox ?? null;
+  }
 
-    // If this base is a sandbox, get the sandbox record by sandbox_base_id
-    if (base.is_sandbox) {
-      sandbox = await Sandbox.getBySandboxBaseId(param.baseId);
-    } else {
-      // Otherwise, get sandbox for this master base
-      sandbox = await Sandbox.getByMasterBaseId(param.baseId);
-    }
+  async sandboxDelete(
+    context: NcContext,
+    _param: {
+      user: { id: string };
+      req: NcRequest;
+    },
+  ): Promise<boolean> {
+    const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
 
     if (!sandbox) {
-      return null;
+      NcError._.genericNotFound('Sandbox', context.base_id);
     }
 
-    return sandbox;
+    const ncMeta = await Noco.ncMeta.startTransaction();
+
+    try {
+      const base = await Base.get(context, sandbox.sandbox_base_id, ncMeta);
+      if (!base) {
+        NcError.get(context).baseNotFound(sandbox.sandbox_base_id);
+      }
+
+      const sandboxContext = {
+        ...context,
+        base_id: sandbox.sandbox_base_id,
+      };
+
+      // Hard delete the sandbox base
+      await Base.delete(sandboxContext, sandbox.sandbox_base_id, ncMeta);
+
+      await ncMeta.commit();
+
+      return true;
+    } catch (e) {
+      await ncMeta.rollback();
+      this.logger.error(e);
+      throw e;
+    }
   }
 
   async sandboxCreate(
@@ -59,12 +92,14 @@ export class SandboxesService {
       baseId: string;
       user: { id: string; email: string };
       req: NcRequest;
+      title?: string;
+      description?: string;
       options?: {
         excludeData?: boolean;
       };
     },
-  ): Promise<{ id: string; sandbox_base_id: string }> {
-    const { baseId, user, req, options = {} } = param;
+  ): Promise<{ id: string; sandbox_base_id: string; job_id: string }> {
+    const { baseId, user, req, title, description, options = {} } = param;
 
     // Validate base exists and is V3, not a sandbox, not a managed app install
     const base = await Base.get(context, baseId);
@@ -86,19 +121,16 @@ export class SandboxesService {
         'Sandbox is only supported for V3 bases.',
       );
     }
-    // Check if base already has an active sandbox
-    const existingSandbox = await Sandbox.getByMasterBaseId(baseId);
-    if (existingSandbox) {
-      NcError.get(context).badRequest(
-        'Base already has an active sandbox. Delete the existing sandbox first.',
-      );
-    }
-
     const baseSources = await base.getSources();
+
+    // Use provided title or generate default
+    const sandboxTitle = (title || `${base.title} (Sandbox)`)
+      .trim()
+      .substring(0, 50);
 
     const sandboxBase = await this.basesService.baseCreate({
       base: {
-        title: `${base.title} (Sandbox)`.trim().substring(0, 50),
+        title: sandboxTitle,
         type: 'database',
         ...{ fk_workspace_id: context.workspace_id },
         version: BaseVersion.V3,
@@ -108,14 +140,9 @@ export class SandboxesService {
       req: req,
     });
 
-    const sandboxContext = {
-      ...context,
-      base_id: sandboxBase.id,
-    };
-
     const ncMeta = await Noco.ncMeta.startTransaction();
     try {
-      // Create sandbox record
+      // Create sandbox record with optional description in meta
       const sandbox = await Sandbox.insert(
         context,
         {
@@ -123,22 +150,16 @@ export class SandboxesService {
           sandbox_base_id: sandboxBase.id,
           fk_workspace_id: context.workspace_id,
           created_by: user.id,
+          meta: description ? { description } : undefined,
         },
         ncMeta,
       );
-      // Update master base with fk_sandbox_id
-      await Base.update(context, baseId, { fk_sandbox_id: sandbox.id }, ncMeta);
-      // Update sandbox base with fk_sandbox_id
-      await Base.update(
-        sandboxContext,
-        sandboxBase.id,
-        { fk_sandbox_id: sandbox.id },
-        ncMeta,
-      );
+      // Update master base with is_sandbox_master flag
+      await Base.update(context, baseId, { is_sandbox_master: true }, ncMeta);
 
       await ncMeta.commit();
 
-      await this.jobsService.add(JobTypes.DuplicateBase, {
+      const job = await this.jobsService.add(JobTypes.DuplicateBase, {
         context,
         user,
         baseId: base.id,
@@ -156,7 +177,11 @@ export class SandboxesService {
         req,
       });
 
-      return { id: sandbox.id, sandbox_base_id: sandboxBase.id };
+      return {
+        id: sandbox.id,
+        sandbox_base_id: sandboxBase.id,
+        job_id: `${job.id}`,
+      };
     } catch (e) {
       await ncMeta.rollback();
       await this.basesService.baseSoftDelete(
@@ -177,78 +202,87 @@ export class SandboxesService {
 
   async sandboxDiscard(
     context: NcContext,
-    param: {
-      baseId: string;
+    _param: {
       user: { id: string };
       req: NcRequest;
     },
   ): Promise<boolean> {
-    const { baseId } = param;
+    const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
+    if (!sandbox) {
+      NcError._.genericNotFound('Sandbox', context.base_id);
+    }
 
+    const base = await Base.get(context, sandbox.sandbox_base_id);
+    if (!base) {
+      NcError.get(context).baseNotFound(sandbox.sandbox_base_id);
+    }
+
+    // Get the master base
+    const masterBase = await Base.get(context, sandbox.master_base_id);
+    if (!masterBase) {
+      NcError.get(context).badRequest('Master base not found.');
+    }
+
+    // Get NcContext for master base
+    const masterContext: NcContext = { ...context, base_id: masterBase.id };
+    const sandboxContext: NcContext = {
+      ...context,
+      base_id: sandbox.sandbox_base_id,
+    };
+
+    // Get sources for master base
+    const masterSources = await masterBase.getSources();
+    const masterSourceId = masterSources?.[0]?.id;
+    if (!masterSourceId) {
+      NcError.get(context).badRequest('No sources found in master base.');
+    }
+    // Get sources for sandbox base
+    const sandboxSources = await base.getSources();
+    const sandboxSourceId = sandboxSources?.[0]?.id;
+    if (!sandboxSourceId) {
+      NcError.get(context).badRequest('No sources found in sandbox base.');
+    }
+
+    // Serialize metadata from both bases
+    const masterMeta = await serializeMeta(masterContext, {
+      override: {
+        fk_workspace_id: sandboxContext.workspace_id,
+        base_id: base.id,
+        source_id: sandboxSourceId,
+      },
+      ...(masterBase.prefix
+        ? {
+            prefix: {
+              old: masterBase.prefix,
+              new: base.prefix || '',
+            },
+          }
+        : {}),
+    });
+    const sandboxMeta = await serializeMeta(sandboxContext, {
+      override: {
+        fk_workspace_id: sandboxContext.workspace_id,
+        base_id: base.id,
+        source_id: sandboxSourceId,
+      },
+      ...(base.prefix
+        ? {
+            prefix: {
+              old: base.prefix,
+              new: base.prefix || '',
+            },
+          }
+        : {}),
+    });
+
+    // Calculate diff (sandbox is current, master is target - we want to revert to master)
+    const diff = await diffMeta(sandboxMeta, masterMeta);
+
+    // Apply the diff in a transaction to revert sandbox to master state
     const ncMeta = await Noco.ncMeta.startTransaction();
-
     try {
-      const base = await Base.get(context, baseId, ncMeta);
-      if (!base) {
-        NcError.get(context).baseNotFound(baseId);
-      }
-
-      let sandbox;
-      let masterBaseId;
-      // If this base is a sandbox, get the sandbox record by sandbox_base_id
-      if (base.is_sandbox) {
-        sandbox = await Sandbox.getBySandboxBaseId(baseId, ncMeta);
-        if (!sandbox) {
-          NcError.get(context).badRequest(
-            'No active sandbox found for this base.',
-          );
-        }
-        masterBaseId = sandbox.master_base_id;
-      } else {
-        // Otherwise, get sandbox for this master base
-        sandbox = await Sandbox.getByMasterBaseId(baseId, ncMeta);
-        if (!sandbox) {
-          NcError.get(context).badRequest(
-            'No active sandbox found for this base.',
-          );
-        }
-        masterBaseId = baseId;
-      }
-
-      const masterContext = {
-        ...context,
-        base_id: masterBaseId,
-      };
-
-      const sandboxContext = {
-        ...context,
-        base_id: sandbox.sandbox_base_id,
-      };
-
-      // Remove fk_sandbox_id from master base first
-      await Base.update(
-        masterContext,
-        masterBaseId,
-        { fk_sandbox_id: null },
-        ncMeta,
-      );
-
-      // Hard delete the sandbox record
-      await Sandbox.delete(sandbox.id, ncMeta);
-
-      // Hard delete the sandbox base
-      await Base.delete(sandboxContext, sandbox.sandbox_base_id, ncMeta);
-
+      await applyMeta(sandboxContext, diff, ncMeta);
       await ncMeta.commit();
-
-      /* this.appHooksService.emit(AppEvents.SANDBOX_DISCARD, {
-        sandbox,
-        masterBase: base,
-        user,
-        req,
-        context,
-      }); */
-
       return true;
     } catch (e) {
       await ncMeta.rollback();
@@ -259,26 +293,21 @@ export class SandboxesService {
 
   async sandboxMerge(
     context: NcContext,
-    param: {
-      baseId: string;
+    _param: {
       user: { id: string };
       req: NcRequest;
     },
   ): Promise<boolean> {
-    const { baseId } = param;
-
-    const base = await Base.get(context, baseId);
-    if (!base) {
-      NcError.get(context).baseNotFound(baseId);
-    }
-    if (!base.is_sandbox) {
-      NcError.get(context).badRequest('This base is not a sandbox.');
-    }
-    // Get the sandbox record
-    const sandbox = await Sandbox.getBySandboxBaseId(baseId);
+    const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
     if (!sandbox) {
-      NcError.get(context).badRequest('Sandbox record not found.');
+      NcError._.genericNotFound('Sandbox', context.base_id);
     }
+
+    const base = await Base.get(context, sandbox.sandbox_base_id);
+    if (!base) {
+      NcError.get(context).baseNotFound(sandbox.sandbox_base_id);
+    }
+
     // Get the master base
     const masterBase = await Base.get(context, sandbox.master_base_id);
     if (!masterBase) {
@@ -356,25 +385,21 @@ export class SandboxesService {
    */
   async sandboxDiff(
     context: NcContext,
-    param: {
-      baseId: string;
+    _param: {
       user: { id: string };
       req: NcRequest;
     },
   ): Promise<BaseMetaDiff> {
-    const { baseId } = param;
-    const base = await Base.get(context, baseId);
-    if (!base) {
-      NcError.get(context).baseNotFound(baseId);
-    }
-    if (!base.is_sandbox) {
-      NcError.get(context).badRequest('This base is not a sandbox.');
-    }
-    // Get the sandbox record
-    const sandbox = await Sandbox.getBySandboxBaseId(baseId);
+    const sandbox = await Sandbox.getBySandboxBaseId(context.base_id);
     if (!sandbox) {
-      NcError.get(context).badRequest('Sandbox record not found.');
+      NcError._.genericNotFound('Sandbox', context.base_id);
     }
+
+    const base = await Base.get(context, sandbox.sandbox_base_id);
+    if (!base) {
+      NcError.get(context).baseNotFound(sandbox.sandbox_base_id);
+    }
+
     // Get the master base
     const masterBase = await Base.get(context, sandbox.master_base_id);
     if (!masterBase) {

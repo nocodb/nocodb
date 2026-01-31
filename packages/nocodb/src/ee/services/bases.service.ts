@@ -76,7 +76,7 @@ export class BasesService extends BasesServiceCE {
   async baseCreate(param: {
     base: ProjectReqType & {
       version?: BaseVersion;
-      fk_sandbox_id?: string;
+      is_sandbox_master?: boolean;
       is_sandbox?: boolean;
     };
     user: any;

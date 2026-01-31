@@ -15,6 +15,7 @@ export class SandboxPostOperations
   operations = [
     'sandboxCreate',
     'sandboxDiscard',
+    'sandboxDelete',
     'sandboxMerge',
   ] as (keyof typeof OPERATION_SCOPES)[];
 
@@ -41,17 +42,22 @@ export class SandboxPostOperations
           baseId,
           user: req.user,
           req,
+          title: payload?.title,
+          description: payload?.description,
           options: payload?.options,
         });
       case 'sandboxDiscard':
         return await this.sandboxesService.sandboxDiscard(context, {
-          baseId,
+          user: req.user,
+          req,
+        });
+      case 'sandboxDelete':
+        return await this.sandboxesService.sandboxDelete(context, {
           user: req.user,
           req,
         });
       case 'sandboxMerge':
         return await this.sandboxesService.sandboxMerge(context, {
-          baseId,
           user: req.user,
           req,
         });

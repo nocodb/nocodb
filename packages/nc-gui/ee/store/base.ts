@@ -84,14 +84,16 @@ export const useBase = defineStore('baseStore', () => {
 
   // Sandbox
   const isSandbox = computed(() => !!base.value?.is_sandbox)
+  const isSandboxMaster = computed(() => !!base.value?.is_sandbox_master)
 
   const sandboxInfo = ref<{ id: string; master_base_id: string; sandbox_base_id: string } | null>(null)
+  const sandboxList = ref<{ id: string; master_base_id: string; sandbox_base_id: string }[]>([])
 
   const loadSandboxInfo = async () => {
     if (!base.value?.id || !base.value?.fk_workspace_id) return
 
     try {
-      // Fetch sandbox record using sandboxGet operation (baseId here is the sandbox base)
+      // Fetch sandbox record using sandboxGet operation
       const response = await api.internal.getOperation(base.value.fk_workspace_id, base.value.id, {
         operation: 'sandboxGet',
       } as any)
@@ -268,7 +270,7 @@ export const useBase = defineStore('baseStore', () => {
         // ignore
       })
 
-    if (base.value?.fk_sandbox_id) {
+    if (base.value?.is_sandbox) {
       await loadSandboxInfo()
     }
 
@@ -476,7 +478,9 @@ export const useBase = defineStore('baseStore', () => {
     managedAppVersionsInfo,
     // Sandbox
     isSandbox,
+    isSandboxMaster,
     sandboxInfo,
+    sandboxList,
     loadSandboxInfo,
   }
 })

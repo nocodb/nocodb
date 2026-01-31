@@ -23,7 +23,7 @@ interface Emits {
   (e: 'toggleStarred', id: string): void
   (e: 'convertToManagedApp'): void
   (e: 'createSandbox'): void
-  (e: 'goToSandbox'): void
+  (e: 'viewAllSandboxes'): void
 }
 
 const { dataReflectionState, dataReflectionText } = toRefs(props)
@@ -39,7 +39,7 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 const { isUIAllowed } = useRoles()
 
 const isOptionVisible = computed(() => {
-  const hasSandbox = !!base.value?.fk_sandbox_id
+  const isSandboxMaster = !!base.value?.is_sandbox_master
   const isSandboxBase = !!base.value?.is_sandbox
   const isInstalledManagedApp = !!base.value?.managed_app_id && !base.value?.managed_app_master
 
@@ -51,12 +51,8 @@ const isOptionVisible = computed(() => {
       isUIAllowed('baseMiscSettings') &&
       isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS),
     createSandbox:
-      base.value?.version === BaseVersion.V3 &&
-      !hasSandbox &&
-      !isSandboxBase &&
-      !isInstalledManagedApp &&
-      isUIAllowed('baseMiscSettings'),
-    goToSandbox: hasSandbox && !isSandboxBase,
+      base.value?.version === BaseVersion.V3 && !isSandboxBase && !isInstalledManagedApp && isUIAllowed('baseMiscSettings'),
+    viewAllSandboxes: isSandboxMaster && !isSandboxBase,
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&
@@ -124,14 +120,20 @@ const isOptionVisible = computed(() => {
       Convert to managed app
     </NcMenuItem>
 
+    <NcDivider v-if="isOptionVisible.createSandbox || isOptionVisible.viewAllSandboxes" />
+
     <NcMenuItem v-if="isOptionVisible.createSandbox" data-testid="nc-sidebar-base-create-sandbox" @click="emits('createSandbox')">
       <GeneralIcon icon="ncGitBranch" />
-      Create sandbox
+      Create new sandbox
     </NcMenuItem>
 
-    <NcMenuItem v-if="isOptionVisible.goToSandbox" data-testid="nc-sidebar-base-go-to-sandbox" @click="emits('goToSandbox')">
-      <GeneralIcon icon="ncGitBranch" />
-      Go to sandbox
+    <NcMenuItem
+      v-if="isOptionVisible.viewAllSandboxes"
+      data-testid="nc-sidebar-base-view-all-sandboxes"
+      @click="emits('viewAllSandboxes')"
+    >
+      <GeneralIcon icon="ncList" />
+      View all sandboxes
     </NcMenuItem>
 
     <NcDivider />

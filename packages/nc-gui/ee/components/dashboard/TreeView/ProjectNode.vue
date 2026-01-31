@@ -23,7 +23,7 @@ const indicator = h(LoadingOutlined, {
 const router = useRouter()
 const route = router.currentRoute
 
-const { isSharedBase, isPrivateBase, sandboxInfo } = storeToRefs(useBase())
+const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 const { baseUrl } = useBase()
 
 const { setMenuContext, duplicateTable, contextMenuTarget, tableRenameId } = inject(TreeViewInj)!
@@ -419,63 +419,20 @@ const convertToManagedApp = () => {
 }
 
 /* Sandbox */
-const { $api } = useNuxtApp()
+const isSandboxCreateDlgOpen = ref(false)
+const isSandboxListDlgOpen = ref(false)
 
-const workspaceStore = useWorkspace()
-const { activeWorkspaceId } = storeToRefs(workspaceStore)
-
-const isCreatingSandbox = ref(false)
-
-const createSandbox = async () => {
-  if (!base.value?.id || !activeWorkspaceId.value || isCreatingSandbox.value) return
-
-  try {
-    isCreatingSandbox.value = true
-
-    const response = await $api.internal.postOperation(
-      activeWorkspaceId.value,
-      base.value.id,
-      {
-        operation: 'sandboxCreate',
-      } as any,
-      {},
-    )
-
-    if (response?.sandbox_base_id) {
-      // Update the current base with sandbox reference
-      base.value.fk_sandbox_id = response.sandbox_base_id
-
-      // Load the sandbox base into the store
-      await basesStore.loadProject(response.sandbox_base_id, true)
-
-      message.success('Sandbox created successfully')
-
-      // Navigate to the sandbox base
-      await navigateTo(
-        baseUrl({
-          id: response.sandbox_base_id,
-          type: 'database',
-          isSharedBase: false,
-        }),
-      )
-    }
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isCreatingSandbox.value = false
-  }
+const openSandboxCreateDialog = () => {
+  isSandboxCreateDlgOpen.value = true
 }
 
-const goToSandbox = async () => {
-  if (!sandboxInfo.value?.sandbox_base_id) return
+const openSandboxListDialog = () => {
+  isSandboxListDlgOpen.value = true
+}
 
-  await navigateTo(
-    baseUrl({
-      id: sandboxInfo.value.sandbox_base_id,
-      type: 'database',
-      isSharedBase: false,
-    }),
-  )
+const handleCreateSandboxFromList = () => {
+  isSandboxListDlgOpen.value = false
+  isSandboxCreateDlgOpen.value = true
 }
 
 const getSource = (sourceId: string) => {
@@ -785,8 +742,8 @@ defineExpose({
                       @toggle-starred="toggleStarred($event)"
                       @duplicate-project="duplicateProject($event)"
                       @convert-to-managed-app="convertToManagedApp"
-                      @create-sandbox="createSandbox"
-                      @go-to-sandbox="goToSandbox"
+                      @create-sandbox="openSandboxCreateDialog"
+                      @view-all-sandboxes="openSandboxListDialog"
                       @open-erd-view="openErdView($event)"
                       @on-data-reflection="onDataReflection"
                       @open-base-settings="openBaseSettings($event)"
@@ -854,8 +811,8 @@ defineExpose({
         @toggle-starred="toggleStarred($event)"
         @duplicate-project="duplicateProject($event)"
         @convert-to-managed-app="convertToManagedApp"
-        @create-sandbox="createSandbox"
-        @go-to-sandbox="goToSandbox"
+        @create-sandbox="openSandboxCreateDialog"
+        @view-all-sandboxes="openSandboxListDialog"
         @open-erd-view="openErdView($event)"
         @on-data-reflection="onDataReflection"
         @open-base-settings="openBaseSettings($event)"
@@ -946,6 +903,15 @@ defineExpose({
       alert-description="Convert this base into a living application that can be published to the App Store. You'll be able to manage versions and push updates to all installations."
     />
   </DlgManagedApp>
+
+  <!-- Sandbox Modals -->
+  <DlgSandboxCreate v-if="base?.id" v-model="isSandboxCreateDlgOpen" :base="base" />
+  <DlgSandboxList
+    v-if="base?.id"
+    v-model="isSandboxListDlgOpen"
+    :base="base"
+    @create-sandbox="handleCreateSandboxFromList"
+  />
 </template>
 
 <style lang="scss" scoped>

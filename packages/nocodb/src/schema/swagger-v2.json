@@ -18840,9 +18840,9 @@
             "$ref": "#/components/schemas/Bool",
             "description": "Indicates if the base is a sandbox"
           },
-          "fk_sandbox_id": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "If the base has a sandbox, this is the sandbox ID"
+          "is_sandbox_master": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates if the base is a sandbox master"
           }
         },
         "x-stoplight": {

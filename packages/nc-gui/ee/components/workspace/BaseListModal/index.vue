@@ -107,7 +107,7 @@ const baseCheckers = {
   starred: (base: NcProject) => !!base.starred,
   private: (base: NcProject) => base.default_role === ProjectRoles.NO_ACCESS,
   managed: (base: NcProject) => !!base.managed_app_id,
-  owned: (base: NcProject) => base.project_role === ProjectRoles.OWNER || base.project_role === 'owner',
+  owned: (base: NcProject) => base.project_role === ProjectRoles.OWNER,
 }
 
 // Helper to filter bases with search
@@ -162,7 +162,11 @@ const displayedSections = computed(() => {
 
   // Show only the selected filter category (all bases matching, not priority-filtered)
   const bases = filterWithSearch(allFilteredBases.value[filter] || [])
-  return bases.length > 0 ? [{ type: filter, bases }] : []
+  return [{ type: filter, bases }]
+})
+
+const emptyFilterResult = computed(() => {
+  return displayedSections.value.every((section) => section.bases.length === 0)
 })
 
 // Check if there are no search results
@@ -298,32 +302,34 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
           />
 
           <!-- Bases Content - Loop-based rendering -->
-          <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4">
+          <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 flex flex-col">
             <WorkspaceBaseListModalBasesSection
               v-for="section in displayedSections"
               :key="section.type"
               :type="section.type"
               :bases="section.bases"
+              :is-filter-applied="modalState.activeFilter !== 'all'"
               :is-base-starred="baseCheckers.starred"
               :is-base-private="baseCheckers.private"
             />
 
             <!-- Empty State -->
-            <div
-              v-if="!workspaceBases.length"
-              class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
-            >
-              <GeneralIcon icon="ncFolder" class="w-12 h-12 mb-2 opacity-50" />
-              <span class="text-sm">{{ $t('activity.noBases') }}</span>
+            <div v-if="emptyFilterResult" class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted">
+              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBases')" />
             </div>
 
             <!-- No Search Results -->
             <div
               v-else-if="hasNoSearchResults"
-              class="flex flex-col items-center justify-center h-full text-nc-content-gray-muted"
+              class="h-full px-2 py-6 text-nc-content-gray-muted flex flex-col items-center justify-center gap-6 text-center"
             >
-              <GeneralIcon icon="search" class="w-12 h-12 mb-2 opacity-50" />
-              <span class="text-sm">{{ $t('placeholder.noResultsFoundForYourSearch') }}</span>
+              <img
+                src="~assets/img/placeholder/no-search-result-found.png"
+                class="!w-[164px] flex-none"
+                alt="No search results found"
+              />
+
+              {{ $t('title.noResultsMatchedYourSearch') }}
             </div>
           </div>
         </div>

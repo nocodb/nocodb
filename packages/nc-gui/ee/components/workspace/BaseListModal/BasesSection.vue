@@ -7,11 +7,14 @@ type SectionType = 'starred' | 'private' | 'owned' | 'managed' | 'default'
 const props = defineProps<{
   type: SectionType
   bases: NcProject[]
+  isFilterApplied: boolean
   // Functions to check if a base has starred/private attributes
   // Used to show indicator icons when base is displayed in a lower-priority section
   isBaseStarred?: (base: NcProject) => boolean
   isBasePrivate?: (base: NcProject) => boolean
 }>()
+
+const { isFilterApplied } = toRefs(props)
 
 const { t } = useI18n()
 const { isUIAllowed } = useRoles()
@@ -145,12 +148,17 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div v-if="bases.length" class="nc-bases-section mb-6">
+  <div v-if="bases.length || isFilterApplied" class="nc-bases-section mb-6">
     <div class="flex items-center gap-2 mb-4 text-xs font-medium text-nc-content-gray-muted capitalize tracking-wide">
       <GeneralIcon :icon="sectionConfig.icon" class="w-3.5 h-3.5" />
       <span>{{ sectionConfig.label }}</span>
     </div>
-    <div ref="gridRef" class="nc-bases-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3" :class="{ dragging }">
+    <div
+      v-if="bases.length"
+      ref="gridRef"
+      class="nc-bases-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+      :class="{ dragging }"
+    >
       <WorkspaceBaseListModalBaseNode
         v-for="base in bases"
         :key="base.id"

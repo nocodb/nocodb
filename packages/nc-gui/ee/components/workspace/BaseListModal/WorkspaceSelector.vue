@@ -91,7 +91,7 @@ const onCreateWorkspace = () => {
             </span>
           </template>
           <template #listFooter v-if="canCreateWorkspace && !isMobileMode">
-            <NcDivider />
+            <NcDivider class="!my-0" />
             <div class="p-2">
               <NcButton type="text" size="small" class="w-full !justify-start" @click="onCreateWorkspace">
                 <template #icon>

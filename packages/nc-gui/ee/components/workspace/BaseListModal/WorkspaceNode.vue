@@ -93,7 +93,6 @@ const onSelect = () => {
     height: 16px !important;
   }
 
-  &.nc-selected-workspace-node,
   &:hover {
     .nc-workspace-id-copy-btn {
       @apply opacity-100;

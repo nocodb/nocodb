@@ -3104,7 +3104,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         const chunk = pkAndData.slice(i, i + readChunkSize);
         const pksToRead = chunk.map((v) => v.pk);
 
-        const oldRecords = await this.chunkList({ pks: pksToRead });
+        const oldRecordChunkList = await this.chunkList({ pks: pksToRead });
+
+        // get ast
+        const { ast, parsedQuery } = await getAst(this.context, {
+          model: this.model,
+          query: {},
+          extractOnlyPrimaries: false,
+        });
+        // nocoexecute
+        const oldRecords = await nocoExecute(
+          ast,
+          oldRecordChunkList,
+          {},
+          parsedQuery,
+        );
         const oldRecordsMap = new Map<string, any>(
           oldRecords.map((r) => [this.extractPksValues(r, true), r]),
         );
@@ -3191,11 +3205,24 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         for (let i = 0; i < updatePkValues.length; i += readChunkSize) {
           const pksChunk = updatePkValues.slice(i, i + readChunkSize);
 
-          const updatedRecords = await this.list(
+          const updatedRecordList = await this.list(
             { pks: pksChunk.join(',') },
             { limitOverride: pksChunk.length },
           );
 
+          // get ast
+          const { ast, parsedQuery } = await getAst(this.context, {
+            model: this.model,
+            query: {},
+            extractOnlyPrimaries: false,
+          });
+          // nocoexecute
+          const updatedRecords = await nocoExecute(
+            ast,
+            updatedRecordList,
+            {},
+            parsedQuery,
+          );
           const updatedRecordsMap = new Map(
             updatedRecords.map((record) => [
               this.extractPksValues(record, true),

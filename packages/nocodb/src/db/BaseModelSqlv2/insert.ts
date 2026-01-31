@@ -9,6 +9,8 @@ import { AttachmentUrlUploadPreparator } from './attachment-url-upload-preparato
 import type { Column } from 'src/models';
 import type { IBaseModelSqlV2 } from '../IBaseModelSqlV2';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
+import getAst from '~/helpers/getAst';
+import { nocoExecute } from '~/utils';
 
 export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
   const single = async (
@@ -397,13 +399,25 @@ export const baseModelInsert = (baseModel: IBaseModelSqlV2) => {
             req: cookie,
           });
         } else {
+          const insertResponseList = await baseModel.chunkList({
+            pks: responses.map((d) => baseModel.extractPksValues(d)),
+          });
+
+          // get ast
+          const { ast, parsedQuery } = await getAst(baseModel.context, {
+            model: baseModel.model,
+            query: {},
+            extractOnlyPrimaries: false,
+          });
+          // nocoexecute
+          const insertResponses = await nocoExecute(
+            ast,
+            insertResponseList,
+            {},
+            parsedQuery,
+          );
           await baseModel.afterBulkInsert(
-            insertDatas.map((data, index) => {
-              return {
-                ...responses[index],
-                ...data,
-              };
-            }),
+            insertResponses,
             baseModel.dbDriver,
             cookie,
           );

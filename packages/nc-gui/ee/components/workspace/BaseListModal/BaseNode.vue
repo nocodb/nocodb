@@ -1,42 +1,30 @@
 <script lang="ts" setup>
-import type { SourceType } from 'nocodb-sdk'
+import { useBaseActions } from './useBaseActions'
 
 const props = defineProps<{
   base: NcProject
-  isStarred?: boolean
-  isPrivate?: boolean
   isMarked?: boolean
   // Indicator icons - shown when base has attribute but displayed in another section
   showStarIndicator?: boolean
   showPrivateIndicator?: boolean
 }>()
 
-const emit = defineEmits<{
-  select: [base: NcProject]
-  rename: [base: NcProject, title: string]
-  toggleStarred: [baseId: string]
-  duplicate: [base: NcProject]
-  openErd: [base: NcProject, source: SourceType]
-  openSettings: [baseId: string]
-  delete: [base: NcProject]
-  updateColor: [base: NcProject, color: string]
-}>()
+// Get actions from provider
+const { onRename, onToggleStarred, onDuplicate, onOpenErd, onOpenSettings, onDelete, onUpdateColor, onSelect } =
+  useBaseActions()
 
 const { isUIAllowed } = useRoles()
-
 const { $e } = useNuxtApp()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
+// Local state
 const isMenuOpen = ref(false)
 const editMode = ref(false)
 const tempTitle = ref('')
 const inputRef = useTemplateRef('inputRef')
 
+// Computed
 const iconColor = computed(() => parseProp(props.base.meta).iconColor)
-
 const baseRole = computed(() => props.base.project_role)
 
 const isOptionVisible = computed(() => ({
@@ -46,9 +34,10 @@ const isOptionVisible = computed(() => ({
   baseDelete: isUIAllowed('baseDelete', { roles: baseRole.value }),
 }))
 
-const onSelect = () => {
+// Handlers
+const handleSelect = () => {
   if (editMode.value) return
-  emit('select', props.base)
+  onSelect(props.base)
 }
 
 const enableEditMode = () => {
@@ -75,44 +64,42 @@ const updateTitle = () => {
     return
   }
 
-  emit('rename', props.base, tempTitle.value)
+  onRename(props.base, tempTitle.value)
   editMode.value = false
   tempTitle.value = ''
-  $e('a:base:rename')
 }
 
-const onToggleStarred = () => {
-  emit('toggleStarred', props.base.id!)
+const handleToggleStarred = () => {
+  onToggleStarred(props.base)
   isMenuOpen.value = false
 }
 
-const onDuplicate = () => {
+const handleDuplicate = () => {
   if (showRecordPlanLimitExceededModal()) return
-
-  emit('duplicate', props.base)
+  onDuplicate(props.base)
   isMenuOpen.value = false
 }
 
-const onOpenErd = () => {
+const handleOpenErd = () => {
   const source = props.base.sources?.[0]
   if (source) {
-    emit('openErd', props.base, source)
+    onOpenErd(props.base, source)
   }
   isMenuOpen.value = false
 }
 
-const onOpenSettings = () => {
-  emit('openSettings', props.base.id!)
+const handleOpenSettings = () => {
+  onOpenSettings(props.base.id!)
   isMenuOpen.value = false
 }
 
-const onDelete = () => {
-  emit('delete', props.base)
+const handleDelete = () => {
+  onDelete(props.base)
   isMenuOpen.value = false
 }
 
-const onColorChange = (color: string) => {
-  emit('updateColor', props.base, color)
+const handleColorChange = (color: string) => {
+  onUpdateColor(props.base, color)
 }
 
 const onMenuClick = (e: Event) => {
@@ -125,8 +112,8 @@ const onMenuClick = (e: Event) => {
     :tabindex="0"
     class="nc-base-node group relative flex items-center gap-3 px-3 py-3 lg:py-4 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
     :class="{ 'is-marked': isMarked, 'is-editing': editMode }"
-    @click="onSelect"
-    @keydown.enter.stop="onSelect"
+    @click="handleSelect"
+    @keydown.enter.stop="handleSelect"
   >
     <!-- Project Icon with Color Picker -->
     <GeneralBaseIconColorPicker
@@ -139,7 +126,7 @@ const onMenuClick = (e: Event) => {
       :model-value="iconColor"
       size="small"
       :readonly="!isOptionVisible.baseRename"
-      @update:model-value="onColorChange"
+      @update:model-value="handleColorChange"
       @click.stop
     />
 
@@ -206,14 +193,14 @@ const onMenuClick = (e: Event) => {
               </NcMenuItem>
 
               <!-- Toggle Starred -->
-              <NcMenuItem data-testid="nc-base-node-starred" @click="onToggleStarred">
+              <NcMenuItem data-testid="nc-base-node-starred" @click="handleToggleStarred">
                 <GeneralIcon v-if="base.starred" icon="unStar" />
                 <GeneralIcon v-else icon="star" />
                 {{ base.starred ? $t('activity.removeFromStarred') : $t('activity.addToStarred') }}
               </NcMenuItem>
 
               <!-- Duplicate -->
-              <NcMenuItem v-if="isOptionVisible.baseDuplicate" data-testid="nc-base-node-duplicate" @click="onDuplicate">
+              <NcMenuItem v-if="isOptionVisible.baseDuplicate" data-testid="nc-base-node-duplicate" @click="handleDuplicate">
                 <GeneralIcon icon="duplicate" />
                 {{ $t('general.duplicate') }} {{ $t('objects.project').toLowerCase() }}
               </NcMenuItem>
@@ -221,13 +208,13 @@ const onMenuClick = (e: Event) => {
               <NcDivider />
 
               <!-- ERD View -->
-              <NcMenuItem v-if="base?.sources?.[0]?.enabled" data-testid="nc-base-node-erd" @click="onOpenErd">
+              <NcMenuItem v-if="base?.sources?.[0]?.enabled" data-testid="nc-base-node-erd" @click="handleOpenErd">
                 <GeneralIcon icon="ncErd" />
                 {{ $t('title.relations') }}
               </NcMenuItem>
 
               <!-- Settings -->
-              <NcMenuItem v-if="isOptionVisible.baseMiscSettings" data-testid="nc-base-node-settings" @click="onOpenSettings">
+              <NcMenuItem v-if="isOptionVisible.baseMiscSettings" data-testid="nc-base-node-settings" @click="handleOpenSettings">
                 <GeneralIcon icon="settings" />
                 {{ $t('activity.settings') }}
               </NcMenuItem>
@@ -236,7 +223,7 @@ const onMenuClick = (e: Event) => {
                 <NcDivider />
 
                 <!-- Delete -->
-                <NcMenuItem danger data-testid="nc-base-node-delete" @click="onDelete">
+                <NcMenuItem danger data-testid="nc-base-node-delete" @click="handleDelete">
                   <GeneralIcon icon="delete" />
                   {{ $t('general.delete') }} {{ $t('objects.project').toLowerCase() }}
                 </NcMenuItem>

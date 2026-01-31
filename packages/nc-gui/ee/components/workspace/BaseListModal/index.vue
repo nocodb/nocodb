@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import type { SourceType, WorkspaceType } from 'nocodb-sdk'
+import type { WorkspaceType } from 'nocodb-sdk'
 import { ProjectRoles } from 'nocodb-sdk'
+import { useBaseActionsProvider } from './useBaseActions'
 
 const props = defineProps<{
   visible: boolean
@@ -11,6 +12,7 @@ const emits = defineEmits(['update:visible'])
 
 const visible = useVModel(props, 'visible', emits)
 
+// Stores
 const workspaceStore = useWorkspace()
 const basesStore = useBases()
 
@@ -18,27 +20,37 @@ const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
 const { workspaceBasesMap } = storeToRefs(basesStore)
-const { loadProjects, updateProject } = basesStore
+const { loadProjects } = basesStore
 
 const { navigateToTable } = useTablesStore()
-
-const { navigateToProject, isMobileMode } = useGlobal()
+const { isMobileMode } = useGlobal()
 const { $e } = useNuxtApp()
 
-const focus: VNodeRef = (el) => {
-  el?.focus()
+// Provide base actions to child components
+const closeModal = () => {
+  visible.value = false
 }
+const { dialogState } = useBaseActionsProvider(closeModal)
 
-// Responsive breakpoint - show workspace panel on large screens only
+// Autofocus search input
+const focus: VNodeRef = (el) => el?.focus()
+
+// Responsive state
 const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
 const isCompactView = computed(() => isMobileMode.value || windowWidth.value < 1024)
 
-// Update windowWidth on resize
+// Modal state - consolidated
+const modalState = reactive({
+  selectedWorkspaceId: null as string | null,
+  searchQuery: '',
+  activeFilter: 'all' as 'all' | 'starred' | 'private' | 'owned' | 'managed',
+})
+
+// Event handlers
 const onResize = () => {
   windowWidth.value = window.innerWidth
 }
 
-// Keyboard navigation
 const handleKeydown = (e: KeyboardEvent) => {
   if (e.key === 'Escape') {
     visible.value = false
@@ -55,248 +67,110 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeydown)
 })
 
-const selectedWorkspaceId = ref<string | null>(null)
-const searchQuery = ref('')
-const activeFilter = ref<'all' | 'starred' | 'private' | 'owned' | 'managed'>('all')
-
-// Initialize selected workspace when modal opens
+// Reset state when modal opens
 watch(visible, (isVisible) => {
   if (isVisible) {
-    selectedWorkspaceId.value = activeWorkspaceId.value || workspacesList.value[0]?.id || null
-    searchQuery.value = ''
-    activeFilter.value = 'all'
+    modalState.selectedWorkspaceId = activeWorkspaceId.value || workspacesList.value[0]?.id || null
+    modalState.searchQuery = ''
+    modalState.activeFilter = 'all'
   }
 })
 
-// Get the selected workspace
+// Computed
 const selectedWorkspace = computed(() => {
-  return workspacesList.value.find((ws) => ws.id === selectedWorkspaceId.value)
+  return workspacesList.value.find((ws) => ws.id === modalState.selectedWorkspaceId)
 })
 
-// Filter bases for the selected workspace
 const workspaceBases = computed(() => {
-  if (!selectedWorkspaceId.value) return []
+  if (!modalState.selectedWorkspaceId) return []
 
-  return Array.from((workspaceBasesMap.value.get(selectedWorkspaceId.value) || new Map()).values() || []).sort(
+  return Array.from((workspaceBasesMap.value.get(modalState.selectedWorkspaceId) || new Map()).values() || []).sort(
     (a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity),
   )
 })
 
-// Priority-based categorization (mutually exclusive)
-// Priority order: Starred → Private → Managed → Owned by Me → Default
-// Each base appears in only ONE category based on highest priority
-
-// Helper functions to check base attributes
-const isBaseStarred = (base: NcProject) => !!base.starred
-const isBasePrivate = (base: NcProject) => base.default_role === ProjectRoles.NO_ACCESS
-const isBaseManaged = (base: NcProject) => !!base.managed_app_id
-const isBaseOwned = (base: NcProject) => base.project_role === ProjectRoles.OWNER || base.project_role === 'owner'
-
-// 1. Starred bases (highest priority)
-const starredBases = computed(() => workspaceBases.value.filter((base) => isBaseStarred(base)))
-
-// 2. Private bases (not starred)
-const privateBases = computed(() => workspaceBases.value.filter((base) => !isBaseStarred(base) && isBasePrivate(base)))
-
-// 3. Managed bases (not starred, not private)
-const managedBases = computed(() =>
-  workspaceBases.value.filter((base) => !isBaseStarred(base) && !isBasePrivate(base) && isBaseManaged(base)),
-)
-
-// 4. Owned bases (not starred, not private, not managed)
-const ownedBases = computed(() =>
-  workspaceBases.value.filter(
-    (base) => !isBaseStarred(base) && !isBasePrivate(base) && !isBaseManaged(base) && isBaseOwned(base),
-  ),
-)
-
-// 5. Default bases (remaining - not in any other category)
-const defaultBases = computed(() =>
-  workspaceBases.value.filter(
-    (base) => !isBaseStarred(base) && !isBasePrivate(base) && !isBaseManaged(base) && !isBaseOwned(base),
-  ),
-)
-
-// Apply search filter to each category
-const filteredStarredBases = computed(() => starredBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
-const filteredOwnedBases = computed(() => ownedBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
-const filteredPrivateBases = computed(() => privateBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
-const filteredManagedBases = computed(() => managedBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
-const filteredDefaultBases = computed(() => defaultBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
-
-// All bases matching each filter criteria (for filtered views)
-// These include ALL bases with the attribute, not priority-filtered
-const allStarredBases = computed(() => workspaceBases.value.filter((base) => isBaseStarred(base)))
-const allPrivateBases = computed(() => workspaceBases.value.filter((base) => isBasePrivate(base)))
-const allManagedBases = computed(() => workspaceBases.value.filter((base) => isBaseManaged(base)))
-const allOwnedBases = computed(() => workspaceBases.value.filter((base) => isBaseOwned(base)))
-
-// Apply search filter to "all" filtered bases
-const filteredAllStarredBases = computed(() =>
-  allStarredBases.value.filter((base) => searchCompare(base.title, searchQuery.value)),
-)
-const filteredAllPrivateBases = computed(() =>
-  allPrivateBases.value.filter((base) => searchCompare(base.title, searchQuery.value)),
-)
-const filteredAllManagedBases = computed(() =>
-  allManagedBases.value.filter((base) => searchCompare(base.title, searchQuery.value)),
-)
-const filteredAllOwnedBases = computed(() => allOwnedBases.value.filter((base) => searchCompare(base.title, searchQuery.value)))
-
-// Get bases based on active filter
-// When 'all': Show priority-based sections (Starred → Private → Managed → Owned → Default)
-// When specific filter: Show ALL bases matching that criteria with indicators
-const displayedBases = computed(() => {
-  switch (activeFilter.value) {
-    case 'starred':
-      return { starred: filteredAllStarredBases.value }
-    case 'private':
-      return { private: filteredAllPrivateBases.value }
-    case 'managed':
-      return { managed: filteredAllManagedBases.value }
-    case 'owned':
-      return { owned: filteredAllOwnedBases.value }
-    default:
-      // Show all categories in priority order
-      return {
-        starred: filteredStarredBases.value,
-        private: filteredPrivateBases.value,
-        managed: filteredManagedBases.value,
-        owned: filteredOwnedBases.value,
-        default: filteredDefaultBases.value,
-      }
-  }
-})
-
-// Base count for the selected workspace
 const baseCount = computed(() => workspaceBases.value.length)
 
-// Check if there are no search results based on active filter
-const hasNoSearchResults = computed(() => {
-  if (workspaceBases.value.length === 0) return false
+// Base attribute checkers
+const baseCheckers = {
+  starred: (base: NcProject) => !!base.starred,
+  private: (base: NcProject) => base.default_role === ProjectRoles.NO_ACCESS,
+  managed: (base: NcProject) => !!base.managed_app_id,
+  owned: (base: NcProject) => base.project_role === ProjectRoles.OWNER || base.project_role === 'owner',
+}
 
-  if (activeFilter.value === 'all') {
-    return (
-      !filteredStarredBases.value.length &&
-      !filteredPrivateBases.value.length &&
-      !filteredManagedBases.value.length &&
-      !filteredOwnedBases.value.length &&
-      !filteredDefaultBases.value.length
-    )
-  }
+// Helper to filter bases with search
+const filterWithSearch = (bases: NcProject[]) => {
+  return bases.filter((base) => searchCompare(base.title, modalState.searchQuery))
+}
 
-  // For specific filters, check if the filtered view is empty
-  const bases = displayedBases.value
-  return Object.values(bases).every((arr) => !arr?.length)
+// Priority-based categorization using a single computed
+// Each base appears in only ONE category based on highest priority
+const categorizedBases = computed(() => {
+  const bases = workspaceBases.value
+  const { starred, private: isPrivate, managed, owned } = baseCheckers
+
+  // Priority order: Starred → Private → Managed → Owned → Default
+  const starredBases = bases.filter(starred)
+  const privateBases = bases.filter((b) => !starred(b) && isPrivate(b))
+  const managedBases = bases.filter((b) => !starred(b) && !isPrivate(b) && managed(b))
+  const ownedBases = bases.filter((b) => !starred(b) && !isPrivate(b) && !managed(b) && owned(b))
+  const defaultBases = bases.filter((b) => !starred(b) && !isPrivate(b) && !managed(b) && !owned(b))
+
+  return { starred: starredBases, private: privateBases, managed: managedBases, owned: ownedBases, default: defaultBases }
 })
 
-// Handle workspace selection
-const onSelectWorkspace = async (workspaceId: string) => {
-  selectedWorkspaceId.value = workspaceId
+// All bases matching specific filter (not priority-based)
+const allFilteredBases = computed(() => {
+  const bases = workspaceBases.value
+  return {
+    starred: bases.filter(baseCheckers.starred),
+    private: bases.filter(baseCheckers.private),
+    managed: bases.filter(baseCheckers.managed),
+    owned: bases.filter(baseCheckers.owned),
+  }
+})
 
-  if (workspaceBasesMap.value.get(selectedWorkspaceId.value)) {
-    return
+// Section types for loop rendering
+type SectionType = 'starred' | 'private' | 'managed' | 'owned' | 'default'
+const sectionOrder: SectionType[] = ['starred', 'private', 'managed', 'owned', 'default']
+
+// Get displayed bases based on active filter
+const displayedSections = computed(() => {
+  const filter = modalState.activeFilter
+
+  if (filter === 'all') {
+    // Show all categories with search filter applied
+    return sectionOrder
+      .map((type) => ({
+        type,
+        bases: filterWithSearch(categorizedBases.value[type]),
+      }))
+      .filter((section) => section.bases.length > 0)
   }
 
-  // Load bases for the selected workspace
+  // Show only the selected filter category (all bases matching, not priority-filtered)
+  const bases = filterWithSearch(allFilteredBases.value[filter] || [])
+  return bases.length > 0 ? [{ type: filter, bases }] : []
+})
+
+// Check if there are no search results
+const hasNoSearchResults = computed(() => {
+  if (workspaceBases.value.length === 0) return false
+  return displayedSections.value.length === 0 && modalState.searchQuery.length > 0
+})
+
+// Workspace handlers
+const onSelectWorkspace = async (workspaceId: string) => {
+  modalState.selectedWorkspaceId = workspaceId
+
+  if (workspaceBasesMap.value.get(workspaceId)) return
   await loadProjects('workspace', workspaceId)
 }
 
-// Handle base selection
-const onSelectBase = async (base: NcProject) => {
-  $e('a:workspace:base:select')
-  visible.value = false
-
-  await navigateToProject({
-    baseId: base.id!,
-    workspaceId: base.fk_workspace_id!,
-  })
-}
-
-// Handle base reorder
-const onReorderBase = async (baseId: string, newOrder: number) => {
-  await updateProject(baseId, { order: newOrder })
-  $e('a:base:reorder')
-}
-
-// Handle base rename
-const onRenameBase = async (base: NcProject, title: string) => {
-  try {
-    await updateProject(base.id!, { title })
-    $e('a:base:rename')
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-// Handle toggle starred
-const { toggleStarred } = basesStore
-const onToggleStarred = async (baseId: string) => {
-  await toggleStarred(baseId)
-  $e('a:base:starred:toggle')
-}
-
-// Handle base duplicate
-const isDuplicateDlgOpen = ref(false)
-const selectedProjectToDuplicate = ref<NcProject | null>(null)
-
-const onDuplicateBase = (base: NcProject) => {
-  selectedProjectToDuplicate.value = base
-  isDuplicateDlgOpen.value = true
-  $e('c:base:duplicate')
-}
-
-// Handle open ERD
-const onOpenErd = (base: NcProject, source: SourceType) => {
-  $e('c:project:relation')
-
-  const isOpen = ref(true)
-
-  const { close } = useDialog(resolveComponent('DlgBaseErd'), {
-    'modelValue': isOpen,
-    'sourceId': source.id,
-    'onUpdate:modelValue': () => closeDialog(),
-    'baseId': base.id,
-  })
-
-  function closeDialog() {
-    isOpen.value = false
-    close(1000)
-  }
-}
-
-// Handle open base settings
-const route = useRoute()
-const onOpenSettings = async (baseId: string) => {
-  visible.value = false
-  await navigateTo(`/${route.params.typeOrId}/${baseId}?page=base-settings`)
-}
-
-// Handle base delete
-const isDeleteDlgOpen = ref(false)
-const selectedProjectToDelete = ref<NcProject | null>(null)
-
-const onDeleteBase = (base: NcProject) => {
-  selectedProjectToDelete.value = base
-  isDeleteDlgOpen.value = true
-}
-
-// Handle base icon color update
-const onUpdateColor = async (base: NcProject, color: string) => {
-  try {
-    const meta = {
-      ...parseProp(base.meta),
-      iconColor: color,
-    }
-    await updateProject(base.id!, { meta: JSON.stringify(meta) })
-    $e('a:base:icon:color:modal', { iconColor: color })
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-// Handle creating new workspace
+// Workspace creation
 const createDlg = ref(false)
+
 const onCreateWorkspace = () => {
   $e('c:workspace:create:modal')
   createDlg.value = true
@@ -306,7 +180,6 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   createDlg.value = false
   await loadWorkspaces()
 
-  // TODO: Add to swagger
   const base = (workspace as any).bases?.[0]
   const table = base?.tables?.[0]
 
@@ -340,7 +213,7 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
       >
         <a-input
           :ref="focus"
-          v-model:value="searchQuery"
+          v-model:value="modalState.searchQuery"
           class="nc-workspace-base-search"
           :placeholder="$t('placeholder.searchWorkspacesAndBases')"
           allow-clear
@@ -365,8 +238,8 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
               v-for="workspace in workspacesList"
               :key="workspace.id"
               :workspace="workspace"
-              :is-selected="selectedWorkspaceId === workspace.id"
-              :base-count="workspace.id === selectedWorkspaceId ? baseCount : undefined"
+              :is-selected="modalState.selectedWorkspaceId === workspace.id"
+              :base-count="workspace.id === modalState.selectedWorkspaceId ? baseCount : undefined"
               @select="onSelectWorkspace"
             />
           </div>
@@ -395,7 +268,7 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
           <WorkspaceBaseListModalWorkspaceSelector
             v-if="isCompactView"
             :workspaces="workspacesList"
-            :selected-workspace-id="selectedWorkspaceId"
+            :selected-workspace-id="modalState.selectedWorkspaceId"
             :base-count="baseCount"
             @select="onSelectWorkspace"
             @create="onCreateWorkspace"
@@ -403,105 +276,23 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
 
           <!-- Bases Header (with search on compact view) -->
           <WorkspaceBaseListModalBasesHeader
-            v-model:search-query="searchQuery"
+            v-model:search-query="modalState.searchQuery"
             :workspace="selectedWorkspace"
             :base-count="baseCount"
-            :active-filter="activeFilter"
+            :active-filter="modalState.activeFilter"
             :is-compact-view="isCompactView"
-            @update:active-filter="activeFilter = $event"
+            @update:active-filter="modalState.activeFilter = $event"
           />
 
-          <!-- Bases Content -->
-          <!-- Priority Order: Starred → Private → Managed → Owned → Default -->
+          <!-- Bases Content - Loop-based rendering -->
           <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4">
-            <!-- Starred Section -->
             <WorkspaceBaseListModalBasesSection
-              v-if="displayedBases.starred?.length"
-              type="starred"
-              :bases="displayedBases.starred"
-              :is-base-starred="isBaseStarred"
-              :is-base-private="isBasePrivate"
-              @select="onSelectBase"
-              @reorder="onReorderBase"
-              @rename="onRenameBase"
-              @toggle-starred="onToggleStarred"
-              @duplicate="onDuplicateBase"
-              @open-erd="onOpenErd"
-              @open-settings="onOpenSettings"
-              @delete="onDeleteBase"
-              @update-color="onUpdateColor"
-            />
-
-            <!-- Private Section -->
-            <WorkspaceBaseListModalBasesSection
-              v-if="displayedBases.private?.length"
-              type="private"
-              :bases="displayedBases.private"
-              :is-base-starred="isBaseStarred"
-              :is-base-private="isBasePrivate"
-              @select="onSelectBase"
-              @reorder="onReorderBase"
-              @rename="onRenameBase"
-              @toggle-starred="onToggleStarred"
-              @duplicate="onDuplicateBase"
-              @open-erd="onOpenErd"
-              @open-settings="onOpenSettings"
-              @delete="onDeleteBase"
-              @update-color="onUpdateColor"
-            />
-
-            <!-- Managed Section -->
-            <WorkspaceBaseListModalBasesSection
-              v-if="displayedBases.managed?.length"
-              type="managed"
-              :bases="displayedBases.managed"
-              :is-base-starred="isBaseStarred"
-              :is-base-private="isBasePrivate"
-              @select="onSelectBase"
-              @reorder="onReorderBase"
-              @rename="onRenameBase"
-              @toggle-starred="onToggleStarred"
-              @duplicate="onDuplicateBase"
-              @open-erd="onOpenErd"
-              @open-settings="onOpenSettings"
-              @delete="onDeleteBase"
-              @update-color="onUpdateColor"
-            />
-
-            <!-- Owned by Me Section -->
-            <WorkspaceBaseListModalBasesSection
-              v-if="displayedBases.owned?.length"
-              type="owned"
-              :bases="displayedBases.owned"
-              :is-base-starred="isBaseStarred"
-              :is-base-private="isBasePrivate"
-              @select="onSelectBase"
-              @reorder="onReorderBase"
-              @rename="onRenameBase"
-              @toggle-starred="onToggleStarred"
-              @duplicate="onDuplicateBase"
-              @open-erd="onOpenErd"
-              @open-settings="onOpenSettings"
-              @delete="onDeleteBase"
-              @update-color="onUpdateColor"
-            />
-
-            <!-- Default Bases Section (remaining) -->
-            <WorkspaceBaseListModalBasesSection
-              v-if="displayedBases.default?.length"
-              type="default"
-              :bases="displayedBases.default"
-              :is-base-starred="isBaseStarred"
-              :is-base-private="isBasePrivate"
-              @select="onSelectBase"
-              @reorder="onReorderBase"
-              @rename="onRenameBase"
-              @toggle-starred="onToggleStarred"
-              @duplicate="onDuplicateBase"
-              @open-erd="onOpenErd"
-              @open-settings="onOpenSettings"
-              @delete="onDeleteBase"
-              @update-color="onUpdateColor"
+              v-for="section in displayedSections"
+              :key="section.type"
+              :type="section.type"
+              :bases="section.bases"
+              :is-base-starred="baseCheckers.starred"
+              :is-base-private="baseCheckers.private"
             />
 
             <!-- Empty State -->
@@ -550,10 +341,14 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
   <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate" />
 
   <!-- Duplicate Base Dialog -->
-  <DlgBaseDuplicate v-if="selectedProjectToDuplicate" v-model="isDuplicateDlgOpen" :base="selectedProjectToDuplicate" />
+  <DlgBaseDuplicate v-if="dialogState.duplicate.base" v-model="dialogState.duplicate.isOpen" :base="dialogState.duplicate.base" />
 
   <!-- Delete Base Dialog -->
-  <DlgBaseDelete v-if="selectedProjectToDelete" v-model:visible="isDeleteDlgOpen" :base-id="selectedProjectToDelete?.id" />
+  <DlgBaseDelete
+    v-if="dialogState.delete.base"
+    v-model:visible="dialogState.delete.isOpen"
+    :base-id="dialogState.delete.base?.id"
+  />
 </template>
 
 <style scoped lang="scss">

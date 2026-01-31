@@ -2,7 +2,9 @@ import type { SourceType } from 'nocodb-sdk'
 
 const [useProvideBaseActions, useBaseActions] = useInjectionState((closeModal: () => void) => {
   const basesStore = useBases()
-  const { workspaceBasesMap } = storeToRefs(basesStore)
+  const { workspaceBasesMap, bases } = storeToRefs(basesStore)
+
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   const { navigateToProject } = useGlobal()
   const { $api, $e } = useNuxtApp()
@@ -29,6 +31,10 @@ const [useProvideBaseActions, useBaseActions] = useInjectionState((closeModal: (
       if (existingBase) {
         workspaceBases.set(base.id, { ...existingBase, ...updates })
       }
+    }
+
+    if (activeWorkspaceId.value === workspaceId) {
+      bases.value.set(base.id!, { ...(bases.value.get(base.id!) || base), ...updates })
     }
   }
 

@@ -17,7 +17,7 @@ const basesStore = useBases()
 const { workspacesList, activeWorkspaceId } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { workspaceBasesMap } = storeToRefs(basesStore)
+const { workspaceBasesMap, basesList } = storeToRefs(basesStore)
 const { loadProjects } = basesStore
 
 const { navigateToTable } = useTablesStore()
@@ -93,6 +93,11 @@ const selectedWorkspace = computed(() => {
 
 const workspaceBases = computed(() => {
   if (!modalState.selectedWorkspaceId) return []
+
+  // to reflect changes immediately
+  if (activeWorkspaceId.value === modalState.selectedWorkspaceId) {
+    return basesList.value
+  }
 
   return Array.from((workspaceBasesMap.value.get(modalState.selectedWorkspaceId) || new Map()).values() || []).sort(
     (a, b) => (a.order != null ? a.order : Infinity) - (b.order != null ? b.order : Infinity),

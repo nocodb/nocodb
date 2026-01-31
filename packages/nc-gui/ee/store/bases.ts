@@ -31,28 +31,7 @@ export const useBases = defineStore('basesStore', () => {
 
   const isSharedBase = computed(() => route.value.params.typeOrId === 'base' && route.value.params.baseId)
 
-  const bases = computed({
-    get: () => {
-      if (isSharedBase.value) {
-        return workspaceStore.activeWorkspace?.id!
-          ? workspaceBasesMap.value.get(workspaceStore.activeWorkspace?.id!) || new Map()
-          : new Map()
-      }
-
-      return workspaceStore.activeWorkspaceId || workspaceStore.activeWorkspace?.id
-        ? workspaceBasesMap.value.get(workspaceStore.activeWorkspaceId || workspaceStore.activeWorkspace?.id!) || new Map()
-        : new Map()
-    },
-    set: (value) => {
-      if (isSharedBase.value) {
-        return workspaceBasesMap.value.set(workspaceStore.activeWorkspace?.id!, value)
-      }
-
-      if (workspaceStore.activeWorkspaceId || workspaceStore.activeWorkspace?.id) {
-        workspaceBasesMap.value.set(workspaceStore.activeWorkspaceId || workspaceStore.activeWorkspace?.id!, value)
-      }
-    },
-  })
+  const bases = ref<Map<string, NcProject>>(new Map())
 
   const baseRoleLoadingStatus: Record<string, boolean> = {}
 
@@ -211,6 +190,18 @@ export const useBases = defineStore('basesStore', () => {
           workspaceStore.workspaces.set(baseMeta.workspace.id, baseMeta.workspace)
         }
 
+        bases.value = [base].reduce((acc, base) => {
+          acc.set(base.id!, base)
+          return acc
+        }, new Map())
+
+        bases.value.set(base.id!, {
+          ...(bases.value.get(base.id!) || {}),
+          ...base,
+          isExpanded: true,
+          isLoading: false,
+        })
+
         workspaceBasesMap.value.set(
           base.fk_workspace_id!,
           [base].reduce((acc, base) => {
@@ -279,6 +270,21 @@ export const useBases = defineStore('basesStore', () => {
             return acc
           }, new Map()),
         )
+      }
+
+      // Only update bases.value if the workspaceId matches activeWorkspace.id
+      if (!workspaceId || workspaceId === activeWorkspace?.id) {
+        bases.value = _projects.reduce((acc, base) => {
+          const existingProjectMeta = bases.value.get(base.id!) || {}
+          acc.set(base.id!, {
+            ...existingProjectMeta,
+            ...base,
+            sources: [...(base.sources ?? bases.value.get(base.id!)?.sources ?? [])],
+            isExpanded: route.value.params.baseId === base.id || bases.value.get(base.id!)?.isExpanded,
+            isLoading: false,
+          })
+          return acc
+        }, new Map())
 
         await updateIfBaseOrderIsNullOrDuplicate()
       }

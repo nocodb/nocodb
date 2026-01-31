@@ -321,21 +321,27 @@ export class DataV3Service {
     const columns = param.modelInfo.columns;
     if (param.query.sort) {
       let fieldsArr: string[] = [];
-      if (typeof param.query.sort !== 'string') {
-        NcError.get(context).invalidRequestBody(
-          `Query parameter 'sort' needs to be a single string`,
-        );
-      }
-      let parsedSort: any | any[];
+      let parsedSort: any[] = [];
+
       try {
-        const parsedSortJSON = JSON.parse(param.query.sort);
-        parsedSort = Array.isArray(parsedSortJSON)
-          ? parsedSortJSON
-          : [parsedSortJSON];
+        if (typeof param.query.sort === 'string') {
+          const parsed = JSON.parse(param.query.sort);
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            parsedSort = [parsed];
+          } else if (Array.isArray(parsed)) {
+            parsedSort = parsed;
+          } else {
+            throw new Error('Invalid sort format');
+          }
+        } else if (Array.isArray(param.query.sort)) {
+          parsedSort = param.query.sort;
+        } else if (param.query.sort && typeof param.query.sort === 'object') {
+          parsedSort = [param.query.sort];
+        }
         fieldsArr = parsedSort.map((s) => s.field);
       } catch {
         NcError.get(context).invalidRequestBody(
-          `Query parameter 'sort' needs to a JSON string in format of [{"field": "fieldId", "direction": "asc"}]`,
+          `Query parameter 'sort' needs to be a JSON string, object, or array in format [{"field": "fieldId", "direction": "asc"}]`,
         );
       }
       if (

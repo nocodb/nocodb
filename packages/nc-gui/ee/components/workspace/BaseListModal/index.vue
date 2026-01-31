@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import type { WorkspaceType } from 'nocodb-sdk'
 import { ProjectRoles } from 'nocodb-sdk'
 import { useBaseActionsProvider } from './useBaseActions'
 
@@ -23,8 +22,20 @@ const { workspaceBasesMap } = storeToRefs(basesStore)
 const { loadProjects } = basesStore
 
 const { navigateToTable } = useTablesStore()
-const { isMobileMode } = useGlobal()
+const { isMobileMode, appInfo } = useGlobal()
 const { $e } = useNuxtApp()
+
+const { orgRoles } = useRoles()
+
+const isSuper = computed(() => orgRoles.value?.[OrgUserRoles.SUPER_ADMIN])
+
+const canCreateWorkspace = computed(() => {
+  if (appInfo.value.restrictWorkspaceCreation !== true) {
+    return true
+  }
+
+  return !!isSuper.value
+})
 
 // Provide base actions to child components
 const closeModal = () => {
@@ -172,11 +183,12 @@ const onSelectWorkspace = async (workspaceId: string) => {
 const createDlg = ref(false)
 
 const onCreateWorkspace = () => {
-  $e('c:workspace:create:modal')
+  $e('c:workspace:create')
+
   createDlg.value = true
 }
 
-const onWorkspaceCreate = async (workspace: WorkspaceType) => {
+const onWorkspaceCreate = async (workspace: NcWorkspace) => {
   createDlg.value = false
   await loadWorkspaces()
 
@@ -245,7 +257,7 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
           </div>
 
           <!-- New Workspace Button -->
-          <div class="px-2 py-2 w-full">
+          <div v-if="canCreateWorkspace" class="px-2 py-2 w-full">
             <NcButton
               type="secondary"
               text-color="primary"
@@ -270,6 +282,7 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
             :workspaces="workspacesList"
             :selected-workspace-id="modalState.selectedWorkspaceId"
             :base-count="baseCount"
+            :can-create-workspace="canCreateWorkspace"
             @select="onSelectWorkspace"
             @create="onCreateWorkspace"
           />

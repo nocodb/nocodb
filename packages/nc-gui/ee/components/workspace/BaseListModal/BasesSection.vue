@@ -146,7 +146,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="bases.length" class="nc-bases-section mb-6">
-    <div class="flex items-center gap-2 mb-4 text-xs font-medium text-nc-content-gray-muted uppercase tracking-wide">
+    <div class="flex items-center gap-2 mb-4 text-xs font-medium text-nc-content-gray-muted capitalize tracking-wide">
       <GeneralIcon :icon="sectionConfig.icon" class="w-3.5 h-3.5" />
       <span>{{ sectionConfig.label }}</span>
     </div>

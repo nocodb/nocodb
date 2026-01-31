@@ -110,7 +110,7 @@ const onMenuClick = (e: Event) => {
 <template>
   <div
     :tabindex="0"
-    class="nc-base-node group relative flex items-center gap-3 px-3 py-3 lg:py-4 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
+    class="nc-base-node group relative flex items-center gap-3 p-3 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
     :class="{ 'is-marked': isMarked, 'is-editing': editMode }"
     @click="handleSelect"
     @keydown.enter.stop="handleSelect"

@@ -5,6 +5,7 @@ const props = defineProps<{
   workspaces: WorkspaceType[]
   selectedWorkspaceId: string | null
   baseCount: number
+  canCreateWorkspace: boolean
 }>()
 
 const emit = defineEmits<{
@@ -12,7 +13,11 @@ const emit = defineEmits<{
   create: []
 }>()
 
+const { canCreateWorkspace } = toRefs(props)
+
 const { t } = useI18n()
+
+const { isMobileMode } = useGlobal()
 
 const isDropdownOpen = ref(false)
 
@@ -42,11 +47,7 @@ const onCreateWorkspace = () => {
 
 <template>
   <div class="nc-workspace-selector flex items-center gap-2 px-4 py-3 border-b border-nc-border-gray-medium">
-    <NcListDropdown
-      v-model:is-open="isDropdownOpen"
-      :default-slot-wrapper="false"
-      class="flex-1"
-    >
+    <NcListDropdown v-model:is-open="isDropdownOpen" :default-slot-wrapper="false" class="flex-1">
       <div
         class="flex items-center gap-3 px-3 py-2 rounded-lg border-1 border-nc-border-gray-medium hover:border-nc-border-gray-dark cursor-pointer transition-all"
         :class="{ 'border-nc-border-brand shadow-selected': isDropdownOpen }"
@@ -82,26 +83,17 @@ const onCreateWorkspace = () => {
           @escape="onEsc"
         >
           <template #listItemExtraLeft="{ option }">
-            <GeneralWorkspaceIcon
-              :workspace="workspaces.find((ws) => ws.id === option.value)"
-              size="small"
-              class="flex-none"
-            />
+            <GeneralWorkspaceIcon :workspace="workspaces.find((ws) => ws.id === option.value)" size="small" class="flex-none" />
           </template>
           <template #listItemExtraRight="{ option }">
             <span class="text-xs text-nc-content-gray-muted">
               {{ option.ncItemExtra }}
             </span>
           </template>
-          <template #listFooter>
+          <template #listFooter v-if="canCreateWorkspace && isMobileMode">
             <NcDivider />
             <div class="p-2">
-              <NcButton
-                type="text"
-                size="small"
-                class="w-full !justify-start"
-                @click="onCreateWorkspace"
-              >
+              <NcButton type="text" size="small" class="w-full !justify-start" @click="onCreateWorkspace">
                 <template #icon>
                   <GeneralIcon icon="plus" class="flex-none" />
                 </template>

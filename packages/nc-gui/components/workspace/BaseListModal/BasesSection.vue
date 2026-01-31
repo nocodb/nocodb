@@ -35,7 +35,7 @@ const sectionConfigs: Record<SectionType, { icon: string; labelKey: string }> = 
   owned: { icon: 'ncUser', labelKey: 'activity.ownedByMe' },
   private: { icon: 'ncLock', labelKey: 'general.private' },
   managed: { icon: 'ncBox', labelKey: 'labels.managed' },
-  default: { icon: 'ncFolder', labelKey: 'objects.projects' },
+  default: { icon: 'ncList', labelKey: 'general.all' },
 }
 
 const sectionConfig = computed(() => {

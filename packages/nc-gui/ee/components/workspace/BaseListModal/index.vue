@@ -294,12 +294,20 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
           <!-- Bases Header (with search on compact view) -->
           <WorkspaceBaseListModalBasesHeader
             v-model:search-query="modalState.searchQuery"
-            :workspace="selectedWorkspace"
             :base-count="baseCount"
             :active-filter="modalState.activeFilter"
             :is-compact-view="isCompactView"
             @update:active-filter="modalState.activeFilter = $event"
-          />
+          >
+            <template #baseListHeader>
+              <span class="text-nc-content-gray-subtle">
+                {{ $t('activity.basesIn') }}
+              </span>
+              <span v-if="selectedWorkspace" class="text-nc-content-gray-extreme capitalize">
+                {{ selectedWorkspace?.title ?? 'Current Workspace' }}
+              </span>
+            </template>
+          </WorkspaceBaseListModalBasesHeader>
 
           <!-- Bases Content - Loop-based rendering -->
           <div class="flex-1 overflow-y-auto nc-scrollbar-thin p-4 flex flex-col">
@@ -336,23 +344,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
       </div>
 
       <!-- Footer with keyboard shortcuts (Desktop only) -->
-      <div
-        v-if="!isCompactView"
-        class="flex items-center gap-4 p-4 border-t border-nc-border-gray-medium text-xs text-nc-content-gray-muted dark:bg-nc-bg-gray-extralight"
-      >
-        <div class="flex items-center gap-1">
-          <kbd class="nc-keyboard-shortcut">Tab</kbd>
-          <span>{{ $t('labels.navigate') }}</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <kbd class="nc-keyboard-shortcut">Enter</kbd>
-          <span>{{ $t('labels.select') }}</span>
-        </div>
-        <div class="flex items-center gap-1">
-          <kbd class="nc-keyboard-shortcut">Esc</kbd>
-          <span>{{ $t('general.close') }}</span>
-        </div>
-      </div>
+      <WorkspaceBaseListModalFooter v-if="!isCompactView" />
     </div>
   </NcModal>
 
@@ -371,10 +363,6 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
 </template>
 
 <style scoped lang="scss">
-.nc-keyboard-shortcut {
-  @apply px-2 py-1 bg-nc-bg-gray-light rounded border-1 border-nc-border-gray-medium text-tiny;
-}
-
 .nc-workspace-base-list-modal {
   @apply rounded-xl overflow-hidden;
 }

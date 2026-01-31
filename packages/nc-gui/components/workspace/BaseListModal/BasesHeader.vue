@@ -1,10 +1,7 @@
 <script lang="ts" setup>
-import type { WorkspaceType } from 'nocodb-sdk'
-
 type FilterType = 'all' | 'starred' | 'private' | 'owned' | 'managed'
 
 const props = defineProps<{
-  workspace: WorkspaceType | undefined
   baseCount: number
   activeFilter: FilterType
   isCompactView?: boolean
@@ -16,7 +13,7 @@ const emit = defineEmits<{
   'update:searchQuery': [query: string]
 }>()
 
-const { workspace } = toRefs(props)
+const vSearchQuery = useVModel(props, 'searchQuery', emit)
 
 const { t } = useI18n()
 
@@ -46,11 +43,6 @@ const activeFilterIcon = computed(() => {
 const onFilterChange = (value: string) => {
   emit('update:activeFilter', value as FilterType)
 }
-
-const localSearchQuery = computed({
-  get: () => props.searchQuery || '',
-  set: (value: string) => emit('update:searchQuery', value),
-})
 </script>
 
 <template>
@@ -58,12 +50,7 @@ const localSearchQuery = computed({
     <!-- Desktop: Show "Bases in {workspace}" -->
     <template v-if="!isCompactView">
       <div class="flex-1 flex items-center gap-2 text-bodyDefaultSm font-medium">
-        <span class="text-nc-content-gray-subtle">
-          {{ $t('activity.basesIn') }}
-        </span>
-        <span class="text-nc-content-gray-extreme capitalize">
-          {{ workspace?.title }}
-        </span>
+        <slot name="baseListHeader"> </slot>
         <span class="font-normal text-nc-content-gray-muted">({{ baseCount }})</span>
       </div>
 
@@ -72,7 +59,7 @@ const localSearchQuery = computed({
         <NcButton size="small" type="secondary">
           <div class="flex items-center gap-1">
             <GeneralIcon :icon="activeFilterIcon" class="w-4 h-4" />
-            <span>{{ selectedFilter?.label }}</span>
+            <span class="text-bodyDefaultSm">{{ selectedFilter?.label }}</span>
             <GeneralIcon
               icon="chevronDown"
               class="w-4 h-4 transition-transform"
@@ -103,7 +90,7 @@ const localSearchQuery = computed({
     <template v-else>
       <!-- Search Input -->
       <a-input
-        v-model:value="localSearchQuery"
+        v-model:value="vSearchQuery"
         class="nc-bases-search nc-input-sm flex-1"
         :placeholder="$t('activity.searchProject')"
         allow-clear
@@ -120,7 +107,7 @@ const localSearchQuery = computed({
         <NcButton size="small" type="secondary" class="flex-none">
           <div class="flex items-center gap-1">
             <GeneralIcon :icon="activeFilterIcon" class="w-4 h-4" />
-            <template v-if="(!isSearchFocused && !localSearchQuery) || !isMobileMode">
+            <template v-if="(!isSearchFocused && !vSearchQuery) || !isMobileMode">
               <span class="max-w-20 truncate">{{ selectedFilter?.label }}</span>
               <GeneralIcon
                 icon="chevronDown"

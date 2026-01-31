@@ -22,7 +22,7 @@ const onSelect = () => {
     :class="[
       'nc-workspace-node group flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer my-1 border-1 border-transparent',
       isSelected
-        ? 'bg-nc-bg-gray-light !border-nc-border-gray-medium'
+        ? 'nc-selected-workspace-node bg-nc-bg-gray-light !border-nc-border-gray-medium'
         : 'hover:(bg-nc-bg-gray-light !border-nc-border-gray-medium)',
     ]"
     @click="onSelect"
@@ -30,20 +30,33 @@ const onSelect = () => {
   >
     <GeneralWorkspaceIcon :workspace="workspace" size="large" class="flex-none" />
     <div class="flex flex-col flex-1 min-w-0">
-      <NcTooltip show-on-truncate-only class="min-w-0 text-sm font-medium text-nc-content-gray-extreme truncate capitalize">
-        <template #title>
+      <div class="flex items-center gap-1">
+        <NcTooltip show-on-truncate-only class="min-w-0 text-sm font-medium text-nc-content-gray-extreme truncate capitalize">
+          <template #title>
+            {{ workspace.title }}
+          </template>
           {{ workspace.title }}
-        </template>
-
-        {{ workspace.title }}
-      </NcTooltip>
-      <div class="flex items-center gap-2">
-        <span class="text-xs text-nc-content-gray-muted truncate">
+        </NcTooltip>
+      </div>
+      <div class="flex items-center gap-1 text-xs text-nc-content-gray-muted mt-1">
+        <span class="truncate">
           {{ workspace.payment?.plan?.title || 'Free' }}
         </span>
-        <span v-if="selected && baseCount !== undefined" class="text-xs text-nc-content-gray-muted">
-          {{ baseCount }} {{ baseCount !== 1 ? $t('objects.projects') : $t('objects.project') }}
-        </span>
+        <span> - </span>
+        <div class="flex items-center gap-1.5 cursor-pointer">
+          {{ $t('datatype.ID') }}: {{ workspace.id }}
+
+          <NcTooltip :title="$t('labels.clickToCopyWorkspaceID')" hide-on-click class="flex" placement="right">
+            <GeneralCopyButton
+              type="text"
+              size="xxsmall"
+              class="nc-workspace-id-copy-btn"
+              icon-class="!w-3.5 !h-3.5"
+              :content="workspace.id"
+              :show-toast="false"
+            />
+          </NcTooltip>
+        </div>
       </div>
     </div>
     <NcTooltip v-if="workspace.roles === WorkspaceUserRoles.OWNER">
@@ -67,6 +80,27 @@ const onSelect = () => {
 
   &:focus-visible {
     @apply outline-none shadow-focus;
+  }
+
+  .nc-copy-id-btn {
+    @apply transition-opacity duration-200;
+  }
+
+  .nc-workspace-id-copy-btn {
+    @apply opacity-0 transition-opacity duration-200 !p-0 min-w-4;
+    width: 16px !important;
+    height: 16px !important;
+  }
+
+  &.nc-selected-workspace-node,
+  &:hover {
+    .nc-workspace-id-copy-btn {
+      @apply opacity-100;
+    }
+  }
+
+  &:hover .nc-copy-id-btn {
+    @apply opacity-100;
   }
 }
 </style>

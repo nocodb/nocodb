@@ -5,11 +5,13 @@ export interface GeneralCopyButtonProps extends NcButtonProps {
   content?: string | number
   timeout?: number
   showToast?: boolean
+  iconClass?: string
 }
 const props = withDefaults(defineProps<GeneralCopyButtonProps>(), {
   size: 'xsmall',
   type: 'text',
   innerClass: 'justify-center',
+  iconClass: '',
   showToast: true,
   bordered: true,
 })
@@ -60,10 +62,10 @@ defineExpose({
 
 <template>
   <NcButton v-bind="restButtonProps" :size="size" @click="copyContent()">
-    <div class="flex children:flex-none relative h-4 w-4">
+    <div class="flex children:flex-none relative h-4 w-4" :class="iconClass">
       <Transition name="icon-fade" :duration="200">
-        <GeneralIcon v-if="isCopied" icon="check" class="h-4 w-4 opacity-80" />
-        <GeneralIcon v-else icon="copy" class="h-4 w-4 opacity-80" />
+        <GeneralIcon v-if="isCopied" icon="check" class="h-4 w-4 opacity-80" :class="iconClass" />
+        <GeneralIcon v-else icon="copy" class="h-4 w-4 opacity-80" :class="iconClass" />
       </Transition>
     </div>
   </NcButton>

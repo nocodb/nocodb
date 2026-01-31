@@ -282,6 +282,18 @@ export async function validateCondition(
               res = false; // Unsupported operation for User fields
           }
         } else {
+          const isBlank = (dataValue: any) => {
+            if (
+              dataValue === '' ||
+              dataValue === null ||
+              dataValue === undefined
+            ) {
+              return true;
+            } else if (Array.isArray(dataValue)) {
+              return dataValue.filter((v) => !isBlank(v)).length === 0;
+            }
+            return false;
+          };
           switch (filter.comparison_op) {
             case 'eq':
               res = val == filter.value;
@@ -305,18 +317,11 @@ export async function validateCondition(
               break;
             case 'empty':
             case 'blank':
-              res =
-                data[field] === '' ||
-                data[field] === null ||
-                data[field] === undefined;
+              res = isBlank(data[field]);
               break;
             case 'notempty':
             case 'notblank':
-              res = !(
-                data[field] === '' ||
-                data[field] === null ||
-                data[field] === undefined
-              );
+              res = !isBlank(data[field]);
               break;
             case 'checked':
               res = !!data[field];

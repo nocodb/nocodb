@@ -54,6 +54,7 @@ const onSelect = () => {
               icon-class="!w-3.5 !h-3.5"
               :content="workspace.id"
               :show-toast="false"
+              @click.stop
             />
           </NcTooltip>
         </div>

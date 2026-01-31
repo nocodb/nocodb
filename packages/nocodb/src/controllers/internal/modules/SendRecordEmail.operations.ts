@@ -1,6 +1,17 @@
 import { Injectable } from '@nestjs/common';
-import { isSystemColumn, UITypes, ColumnHelper } from 'nocodb-sdk';
-import type { ColumnType, NcContext, NcRequest, TableType } from 'nocodb-sdk';
+import {
+  isSystemColumn,
+  UITypes,
+  ColumnHelper,
+  RelationTypes,
+} from 'nocodb-sdk';
+import type {
+  ColumnType,
+  LinkToAnotherRecordType,
+  NcContext,
+  NcRequest,
+  TableType,
+} from 'nocodb-sdk';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import type {
   InternalApiModule,
@@ -18,6 +29,7 @@ interface SendRecordEmailPayload {
   viewId?: string;
   rowId: string;
   emails: string[];
+  subject?: string;
   message?: string;
   sendCopyToSelf?: boolean;
 }
@@ -59,7 +71,8 @@ export class SendRecordEmailOperations
     payload: SendRecordEmailPayload,
     req: NcRequest,
   ) {
-    const { tableId, viewId, rowId, emails, message, sendCopyToSelf } = payload;
+    const { tableId, viewId, rowId, emails, subject, message, sendCopyToSelf } =
+      payload;
 
     if (!emails || emails.length === 0) {
       NcError.get(context).badRequest(
@@ -158,6 +171,7 @@ export class SendRecordEmailOperations
         emails: finalEmails,
         model,
         base,
+        subject,
         message,
         recordData,
         rowId,
@@ -184,11 +198,13 @@ export class SendRecordEmailOperations
     parsedValue?: any;
     columnTitle: string;
     uidt: UITypes | string;
+    relationType?: RelationTypes;
   }> {
     const transformedData: Array<{
       parsedValue?: any;
       columnTitle: string;
       uidt: UITypes | string;
+      relationType?: RelationTypes;
     }> = [];
 
     for (const col of columns) {
@@ -225,10 +241,20 @@ export class SendRecordEmailOperations
       }
 
       if (serializedValue !== undefined && serializedValue !== '') {
+        // Extract relation type for Links/LinkToAnotherRecord columns
+        let relationType: RelationTypes | undefined;
+        if (
+          col.uidt === UITypes.Links ||
+          col.uidt === UITypes.LinkToAnotherRecord
+        ) {
+          relationType = (col.colOptions as LinkToAnotherRecordType)?.type;
+        }
+
         transformedData.push({
           parsedValue: serializedValue,
           uidt: col.uidt,
           columnTitle: col.title,
+          relationType,
         });
       }
     }

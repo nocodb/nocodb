@@ -12,11 +12,12 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
-import { UITypes } from 'nocodb-sdk';
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
   RootWrapper,
+  getFieldIconUrl,
 } from '~/services/mail/templates/components';
 import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
 
@@ -30,6 +31,7 @@ interface SendRecordTemplateProps {
     parsedValue?: any;
     columnTitle: string;
     uidt: UITypes | string;
+    relationType?: RelationTypes;
   }>;
   recordUrl?: string;
 }
@@ -123,7 +125,7 @@ const SendRecord = ({
                         className="align-middle"
                         width={16}
                         height={16}
-                        src={`${NC_EMAIL_ASSETS_BASE_URL}/icons/${field.uidt}.png`}
+                        src={getFieldIconUrl(field.uidt, field.relationType)}
                       />
                       <Section className="!ml-2 truncate inline-block text-[13px] !my-0 !mr-0 leading-4.5 text-gray-600 align-middle">
                         {field.columnTitle}

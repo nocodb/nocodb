@@ -17,6 +17,7 @@ import {
   ContentWrapper,
   Footer,
   RootWrapper,
+  getFieldIconUrl,
 } from '~/services/mail/templates/components';
 import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
 
@@ -108,7 +109,7 @@ const FormSubmission = ({
                         className="align-middle"
                         width={16}
                         height={16}
-                        src={`${NC_EMAIL_ASSETS_BASE_URL}/icons/${s.uidt}.png`}
+                        src={getFieldIconUrl(s.uidt)}
                       />
                       <Section className="!ml-2 truncate inline-block text-[13px] !my-0 !mr-0 leading-4.5 text-gray-600 align-middle">
                         {s.columnTitle}

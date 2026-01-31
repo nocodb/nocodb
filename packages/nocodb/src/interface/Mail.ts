@@ -111,6 +111,7 @@ interface SendRecordPayload {
   model: TableType;
   base: BaseType;
   message?: string;
+  subject?: string;
   recordData: {
     parsedValue?: any;
     columnTitle: string;

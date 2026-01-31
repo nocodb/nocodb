@@ -312,6 +312,7 @@ export class MailService {
               emails,
               model,
               base,
+              subject,
               message,
               recordData,
               rowId,
@@ -325,9 +326,12 @@ export class MailService {
               rowId,
             });
 
+            const emailSubject =
+              subject || `${senderName} shared a record from "${model.title}"`;
+
             await mailerAdapter.mailSend({
               to: emails.join(','),
-              subject: `${senderName} shared a record from "${model.title}"`,
+              subject: emailSubject,
               html: await this.renderMail('SendRecord', {
                 senderName,
                 senderEmail,

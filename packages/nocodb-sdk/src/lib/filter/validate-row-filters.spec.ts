@@ -1012,35 +1012,60 @@ describe('validateRowFilters', () => {
 });
 
 describe('RowFilterValidator', () => {
+  let timestamp = {
+    value: 1769756211000 // Thursday, January 29, 2026 10:56:51 PM GMT-08:00
+  };
   class RowFilterValidatorTester extends RowFilterValidator {
     override dateNow(): Date {
-      const timestamp = 1769756211000; // Thursday, January 29, 2026 10:56:51 PM GMT-08:00
-      return new Date(timestamp);
+      return new Date(timestamp.value);
     }
   }
 
   const validator = new RowFilterValidatorTester();
 
   describe('validateSync', () => {
-    it('will validate date time is on timezone', () => {
-      const filters: (FilterType & {meta?: any})[] = [{
-        fk_column_id: '9',
-        comparison_op: 'eq',
-        comparison_sub_op: 'today',
-        logical_op: 'and',
-        meta: {
+    it('will validate date time is today on timezone', () => {
+      const testCases = [
+        {
+          expected: true,
+          timestamp: 1769756211000, // Thursday, January 29, 2026 10:56:51 PM GMT-08:00
+          data: '2026-01-29',
+          timezone: 'America/Los_Angeles'
+        },
+        {
+          expected: true,
+          timestamp: 1769839576361, // Friday, January 30, 2026 10:06:16.361 PM
+          data: '2026-01-30',
           timezone: 'America/Los_Angeles'
         }
-      }];
-      const data = { DateData: '2026-01-29' };
-      const result = validator.validateSync({
-        filters,
-        data,
-        columns: mockColumns,
-        client: mockClient,
-        metas: mockMetas,
-      })
-      expect(result).toBe(true);
+      ]
+      for(const testCase of testCases) {
+        timestamp.value = testCase.timestamp;
+
+        const filters: (FilterType & {meta?: any})[] = [{
+          fk_column_id: '9',
+          comparison_op: 'eq',
+          comparison_sub_op: 'today',
+          logical_op: 'and',
+          meta: {
+            timezone: testCase.timezone
+          }
+        }];
+        const data = { DateData: testCase.data };
+        const result = validator.validateSync({
+          filters,
+          data,
+          columns: mockColumns,
+          client: mockClient,
+          metas: mockMetas,
+        })
+        try {
+          expect(result).toBe(true);
+        } catch(ex) {
+          console.error(ex.message, testCase);
+          throw ex;
+        }
+      }
     })
   })
 })

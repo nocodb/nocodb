@@ -36,8 +36,8 @@ jobs:
           PREV_TAG=${{github.event.inputs.prev_tag}}
 
           if [[ ${PREV_TAG} == '' ]]; then
-            # fetch the latest version
-            PREV_TAG=$(basename $(curl -fs -o/dev/null -w %{redirect_url} https://github.com/nocodb/nocodb/releases/latest))
+            # fetch the latest version from this repo
+            PREV_TAG=$(basename $(curl -fs -o/dev/null -w %{redirect_url} https://github.com/${{ github.repository }}/releases/latest))
           fi
 
           if [[ ${TARGET_TAG} == '' ]]; then
@@ -60,24 +60,14 @@ jobs:
       tag: ${{ needs.process-input.outputs.target_tag }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
 
-  # Build, install, publish frontend and backend to npm
-  release-npm:
-    needs: [pr-to-master, process-input]
-    uses: ./.github/workflows/release-npm.yml
-    with:
-      tag: ${{ needs.process-input.outputs.target_tag }}
-      targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
-    secrets:
-      NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
-
   # Create a PR to sync changes back to develop branch from master
   sync-to-develop:
-    needs: [release-npm, process-input]
+    needs: [pr-to-master, process-input]
     uses: ./.github/workflows/sync-to-develop.yml
 
   # Draft Release Note
   release-draft-note:
-    needs: [release-npm, process-input]
+    needs: [pr-to-master, process-input]
     uses: ./.github/workflows/release-draft.yml
     with:
       tag: ${{ needs.process-input.outputs.target_tag }}

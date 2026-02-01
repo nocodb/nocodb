@@ -393,6 +393,7 @@ const permissionScopes = {
     'sandboxCreate',
     'sandboxDiscard',
     'sandboxMerge',
+    'sandboxDiff',
 
     // Audit Logs
     'baseAuditList',
@@ -1178,10 +1179,12 @@ const permissionDescriptions: Record<string, string> = {
   managedAppGetUpdates: 'check for updates to an installed managed app',
 
   // Sandbox permissions
+  sandboxList: 'view list of sandboxes for the base',
   sandboxGet: 'view sandbox status and details',
   sandboxCreate: 'create a sandbox environment for the base',
   sandboxDiscard: 'discard an active sandbox environment',
   sandboxMerge: 'merge sandbox changes back to the master base',
+  sandboxDiff: 'view differences between sandbox and master base',
 
   viewRowColorInfo: 'view row colouring info',
   viewSettingOverride: 'copy view configuration from other view',

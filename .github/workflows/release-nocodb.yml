@@ -85,15 +85,6 @@ jobs:
       tag: ${{ needs.process-input.outputs.target_tag }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
 
-  # Build executables and publish to GitHub
-  release-executables:
-    needs: [release-draft-note, process-input]
-    uses: ./.github/workflows/release-executables.yml
-    with:
-      tag: ${{ needs.process-input.outputs.target_tag }}
-    secrets:
-      NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
-
   # Close all issues with target tags 'Status: Ready for Next Release'
   # close-issues:
   #   needs: [release-docker, process-input]

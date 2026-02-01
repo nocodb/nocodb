@@ -84,29 +84,17 @@ jobs:
         with:
           node-version: 22.12.0
 
-      - name: upgrade packages for nightly build or pr build
-        if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
+      - name: Build SDK and GUI from source
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
-          NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
-          pnpm --filter=${NOCODB_SDK_PKG_NAME} install --ignore-scripts --no-frozen-lockfile --ignore-workspace && pnpm --filter=${NOCODB_SDK_PKG_NAME} run build &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
-          pnpm --filter=nc-gui install --ignore-scripts --no-frozen-lockfile &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm --filter=nc-gui run build:copy &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
+          pnpm --filter=nocodb-sdk install --ignore-scripts && pnpm --filter=nocodb-sdk run build
+          pnpm --filter=nc-gui install --ignore-scripts && pnpm --filter=nc-gui run build:copy
 
       - name: Build nocodb integrations
         working-directory: ${{ env.working-directory }}
         run: |
           cd ../noco-integrations/core
-          # extract nocodb-sdk or nocodbsdk-daily package name based on env
-          NOCODB_SDK_PKG_NAME=nocodb-sdk
-          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
-            NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
-          fi
-          pnpm install ${NOCODB_SDK_PKG_NAME}@${{ github.event.inputs.tag || inputs.tag }}
+          pnpm install
           cd ../../..
           pnpm run integrations:build && pnpm run registerIntegrations
 

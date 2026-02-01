@@ -60,9 +60,6 @@ jobs:
       tag: ${{ needs.set-tag.outputs.target_tag }}
       targetEnv: 'DEV'
       isDaily: 'N'
-    secrets:
-      DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
-      DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"
 
   # Build executables and publish to GitHub
   # release-executables:
@@ -85,7 +82,7 @@ jobs:
           body: |
             The PR changes have been deployed. Please run the following command to verify:
             ```
-            docker run -d -p 8888:8080 nocodb/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
+            docker run -d -p 8888:8080 ghcr.io/${{ github.repository_owner }}/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
             ```
 
   # Create a preview for the pull request
@@ -101,7 +98,7 @@ jobs:
         uses: actions/checkout@v3
       - name: Render Compose File
         run: |
-          NOCODB_IMAGE=nocodb/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
+          NOCODB_IMAGE=ghcr.io/${{ github.repository_owner }}/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
           export NOCODB_IMAGE
           # Render simple template from environment variables.
           envsubst < .github/uffizzi/docker-compose.uffizzi.yml > docker-compose.rendered.yml

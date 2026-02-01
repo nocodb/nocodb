@@ -94,9 +94,6 @@ jobs:
       currentVersion: 'N/A'
       tag: ${{ needs.process-input.outputs.target_tag }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
-    secrets:
-      DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
-      DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"
 
   # Build executables and publish to GitHub
   release-executables:

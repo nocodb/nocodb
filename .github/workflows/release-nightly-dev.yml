@@ -62,6 +62,3 @@ jobs:
       tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
       targetEnv: 'DEV'
       isDaily: ${{ needs.set-tag.outputs.is_daily }}
-    secrets:
-      DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
-      DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"

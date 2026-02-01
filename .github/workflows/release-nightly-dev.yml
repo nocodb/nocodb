@@ -53,10 +53,10 @@ jobs:
 #    secrets:
 #      NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
-  # Build docker image and push to docker hub
+  # Build docker image and push to GHCR
   release-docker:
     needs: [set-tag]
-    uses: ./.github/workflows/release-timely-docker.yml
+    uses: ./.github/workflows/release-docker.yml
     with:
       currentVersion: ${{ needs.set-tag.outputs.current_version }}
       tag: ${{ needs.set-tag.outputs.nightly_build_tag }}

@@ -55,15 +55,15 @@ jobs:
           IS_DAILY=${{ inputs.isDaily || 'N' }}
 
           if [[ "$TARGET_ENV" == 'PROD' ]]; then
-            DOCKER_REPOSITORY=nocodb
+            DOCKER_REPOSITORY=nocodb-fanjam
             DOCKERFILE=Dockerfile
             PLATFORMS="linux/amd64,linux/arm64,linux/arm/v7"
           elif [[ "$IS_DAILY" == 'Y' ]]; then
-            DOCKER_REPOSITORY=nocodb-daily
+            DOCKER_REPOSITORY=nocodb-fanjam-daily
             DOCKERFILE=Dockerfile.timely
             PLATFORMS="linux/amd64,linux/arm64"
           else
-            DOCKER_REPOSITORY=nocodb-timely
+            DOCKER_REPOSITORY=nocodb-fanjam-timely
             DOCKERFILE=Dockerfile.timely
             PLATFORMS="linux/amd64,linux/arm64"
           fi

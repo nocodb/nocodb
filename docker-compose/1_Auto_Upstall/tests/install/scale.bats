@@ -25,6 +25,6 @@ teardown() {
     cd "${NOCO_HOME}"
 
     # Get scale from docker compose ps
-    scale=$(docker compose ps | grep -c "ghcr.io/justlark/nocodb")
+    scale=$(docker compose ps | grep -c "ghcr.io/justlark/nocodb-fanjam")
     [ "$scale" -eq 2 ]
 }

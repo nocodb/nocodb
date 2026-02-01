@@ -28,6 +28,6 @@ teardown() {
 
     cd "${NOCO_HOME}" || exit 1
 
-    result=$(docker compose ps | grep -c "ghcr.io/justlark/nocodb")
+    result=$(docker compose ps | grep -c "ghcr.io/justlark/nocodb-fanjam")
     [ "${result}" -eq 3 ]
 }

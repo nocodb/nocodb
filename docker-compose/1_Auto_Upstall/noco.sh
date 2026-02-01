@@ -560,7 +560,7 @@ check_existing_installation() {
 	if [ -d "$NOCO_HOME" ]; then
 		NOCO_FOUND=true
 	elif $CONFIG_DOCKER_COMMAND ps --format '{{.Names}}' | grep -q "nocodb"; then
-		NOCO_ID="$($CONFIG_DOCKER_COMMAND ps | grep "ghcr.io/justlark/nocodb" | cut -d ' ' -f 1)"
+		NOCO_ID="$($CONFIG_DOCKER_COMMAND ps | grep "ghcr.io/justlark/nocodb-fanjam" | cut -d ' ' -f 1)"
 		CUSTOM_HOME="$($CONFIG_DOCKER_COMMAND inspect --format='{{index .Mounts 0}}' "$NOCO_ID" | cut -d ' ' -f 3)"
 		PARENT_DIR="$(dirname "$CUSTOM_HOME")"
 
@@ -807,9 +807,9 @@ generate_credentials() {
 create_docker_compose_file() {
 
 	if [ "${CONFIG_EDITION}" = "EE" ]; then
-		image="ghcr.io/justlark/nocodb-ee:latest"
+		image="ghcr.io/justlark/nocodb-fanjam-ee:latest"
 	else
-		image="ghcr.io/justlark/nocodb:latest"
+		image="ghcr.io/justlark/nocodb-fanjam:latest"
 	fi
 
 	# for easier string interpolation

@@ -23,6 +23,6 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Docker retag and push
         run: |
-          docker pull ghcr.io/${{ github.repository_owner }}/nocodb:${{ github.event.inputs.tag }}
-          docker image tag ghcr.io/${{ github.repository_owner }}/nocodb:${{ github.event.inputs.tag }} ghcr.io/${{ github.repository_owner }}/nocodb:latest
-          docker push ghcr.io/${{ github.repository_owner }}/nocodb:latest
+          docker pull ghcr.io/${{ github.repository_owner }}/nocodb-fanjam:${{ github.event.inputs.tag }}
+          docker image tag ghcr.io/${{ github.repository_owner }}/nocodb-fanjam:${{ github.event.inputs.tag }} ghcr.io/${{ github.repository_owner }}/nocodb-fanjam:latest
+          docker push ghcr.io/${{ github.repository_owner }}/nocodb-fanjam:latest

@@ -57,15 +57,15 @@ jobs:
           if [[ "$TARGET_ENV" == 'PROD' ]]; then
             DOCKER_REPOSITORY=nocodb-fanjam
             DOCKERFILE=Dockerfile
-            PLATFORMS="linux/amd64,linux/arm64,linux/arm/v7"
+            PLATFORMS="linux/amd64"
           elif [[ "$IS_DAILY" == 'Y' ]]; then
             DOCKER_REPOSITORY=nocodb-fanjam-daily
             DOCKERFILE=Dockerfile.timely
-            PLATFORMS="linux/amd64,linux/arm64"
+            PLATFORMS="linux/amd64"
           else
             DOCKER_REPOSITORY=nocodb-fanjam-timely
             DOCKERFILE=Dockerfile.timely
-            PLATFORMS="linux/amd64,linux/arm64"
+            PLATFORMS="linux/amd64"
           fi
 
           DOCKER_BUILD_TAG=${{ github.event.inputs.tag || inputs.tag }}
@@ -147,9 +147,6 @@ jobs:
           # Update version in package.json
           jq --arg VERSION "${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}" '.version = $VERSION' package.json > tmp.json
           mv tmp.json package.json
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2.1.0
 
       - name: Set up Docker Buildx
         id: buildx

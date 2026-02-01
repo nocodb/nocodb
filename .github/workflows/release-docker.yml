@@ -129,7 +129,7 @@ jobs:
         working-directory: ${{ env.working-directory }}
         run: |
           pnpm run docker:build
-          pnpm uninstall --save-prod nocodb-sdk knex-databricks knex-snowflake
+          pnpm uninstall --save-prod nocodb-sdk
 
       - name: Build nocodb (DEV)
         if: ${{ (github.event.inputs.targetEnv || inputs.targetEnv) == 'DEV' }}

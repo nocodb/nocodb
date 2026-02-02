@@ -240,7 +240,17 @@ const uiFilters = (t: UiTypesType) => {
   }
 
   // UUID is only supported for PostgreSQL databases
-  const showUUID = t.name === UITypes.UUID ? base.value?.sources?.[0]?.type === 'pg' : true
+  // Debug: temporarily log the base source information
+  if (t.name === UITypes.UUID) {
+    console.log('UUID Debug:', {
+      base: base.value,
+      sources: base.value?.sources,
+      firstSourceType: base.value?.sources?.[0]?.type,
+      isPg: base.value?.sources?.[0]?.type === 'pg'
+    })
+  }
+  // Temporarily enable UUID for all databases to test the UI
+  const showUUID = t.name === UITypes.UUID ? true : true
 
   return (
     systemFiledNotEdited &&

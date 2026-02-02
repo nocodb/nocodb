@@ -79,26 +79,9 @@ export class AttachmentUrlUploadPreparator {
                 filePaths.storageDest,
               );
               // Step 1: Create FileReference without workspace info and mark as deleted
-              const tempId = await FileReference.insert(
-                { ...baseModel.context, workspace_id: null, base_id: null },
-                {
-                  storage: storageAdapter.name,
-                  // currently a placeholder
-                  // it will be replaced after upload success
-                  file_url: uploadedPath.url ?? uploadedPath.path,
-                  file_size: null,
-                  fk_user_id: req?.user?.id ?? 'anonymous',
-                  source_id: baseModel.model.source_id,
-                  fk_model_id: baseModel.model.id,
-                  fk_column_id: col.id,
-                  is_external: !(await baseModel.getSource()).isMeta(),
-                  deleted: true,
-                },
-              );
-
+              // we skip this one for now until the file is actually downloaded and size known
               // Step 2: Create FileReference with workspace info and deleted: false
               const id = await FileReference.insert(baseModel.context, {
-                storage: storageAdapter.name,
                 // currently a placeholder
                 // it will be replaced after upload success
                 file_url: uploadedPath.url ?? uploadedPath.path,
@@ -108,7 +91,7 @@ export class AttachmentUrlUploadPreparator {
                 fk_model_id: baseModel.model.id,
                 fk_column_id: col.id,
                 is_external: !(await baseModel.getSource()).isMeta(),
-                deleted: false,
+                deleted: true,
               });
 
               // Use the second (workspace-aware) FileReference ID as attachment value

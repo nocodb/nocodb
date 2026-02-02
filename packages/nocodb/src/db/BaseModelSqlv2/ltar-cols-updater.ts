@@ -49,15 +49,23 @@ export const LTARColsUpdater = (param: {
 
           profiler.log(`${col.colOptions.type} list start`);
           if (col.colOptions.type === RelationTypes.MANY_TO_MANY) {
-            existingLinks = await trxBaseModel.mmList({
-              colId: col.id,
-              parentId: rowId,
-            });
+            existingLinks = await trxBaseModel.mmList(
+              {
+                colId: col.id,
+                parentId: rowId,
+              },
+              undefined,
+              true,
+            );
           } else if (col.colOptions.type === RelationTypes.HAS_MANY) {
-            existingLinks = await trxBaseModel.hmList({
-              colId: col.id,
-              id: rowId,
-            });
+            existingLinks = await trxBaseModel.hmList(
+              {
+                colId: col.id,
+                id: rowId,
+              },
+              undefined,
+              true,
+            );
           } else {
             existingLinks = await trxBaseModel.btRead({
               colId: col.id,

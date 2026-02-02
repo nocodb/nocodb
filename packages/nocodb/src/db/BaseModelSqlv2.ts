@@ -1304,8 +1304,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       nested?: boolean;
     },
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
+    selectAllRecords = false,
   ) {
-    return relationDataFetcher({ baseModel: this, logger }).hmList(param, args);
+    return relationDataFetcher({ baseModel: this, logger }).hmList(
+      param,
+      args,
+      selectAllRecords,
+    );
   }
 
   async hmListCount({ colId, id }, args) {

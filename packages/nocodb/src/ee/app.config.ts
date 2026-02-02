@@ -20,34 +20,28 @@ const config: AppConfig = {
     data: {
       ttl:
         +process.env.NC_RATE_LIMIT_DATA_API_DURATION ||
-        +process.env.NC_THROTTLE_DATA_API_TTL ||
         +process.env.NC_DATA_API_TTL ||
         1000,
       max_apis:
         +process.env.NC_RATE_LIMIT_DATA_API_MAX_REQUESTS ||
-        +process.env.NC_THROTTLE_DATA_API_LIMIT ||
         +process.env.NC_DATA_COUNT ||
         5,
       block_duration:
         +process.env.NC_RATE_LIMIT_DATA_API_BLOCK_DURATION ||
-        +process.env.NC_THROTTLE_DATA_API_BLOCK_DURATION ||
         +process.env.NC_DATA_BLOCK_DURATION ||
         30000,
     },
     meta: {
       ttl:
         +process.env.NC_RATE_LIMIT_META_API_DURATION ||
-        +process.env.NC_THROTTLE_META_API_TTL ||
         +process.env.NC_META_API_TTL ||
         60000,
       max_apis:
         +process.env.NC_RATE_LIMIT_META_API_MAX_REQUESTS ||
-        +process.env.NC_THROTTLE_META_API_LIMIT ||
         +process.env.NC_META_COUNT ||
         60,
       block_duration:
         +process.env.NC_RATE_LIMIT_META_API_BLOCK_DURATION ||
-        +process.env.NC_THROTTLE_META_API_BLOCK_DURATION ||
         +process.env.NC_META_BLOCK_DURATION ||
         30000,
     },
@@ -61,51 +55,42 @@ const config: AppConfig = {
     data_gui: {
       ttl:
         +process.env.NC_RATE_LIMIT_DATA_GUI_DURATION ||
-        +process.env.NC_THROTTLE_DATA_GUI_TTL ||
         +process.env.NC_DATA_GUI_API_TTL ||
         1000,
       max_apis:
         +process.env.NC_RATE_LIMIT_DATA_GUI_MAX_REQUESTS ||
-        +process.env.NC_THROTTLE_DATA_GUI_LIMIT ||
         +process.env.NC_DATA_GUI_COUNT ||
         30000,
       block_duration:
         +process.env.NC_RATE_LIMIT_DATA_GUI_BLOCK_DURATION ||
-        +process.env.NC_THROTTLE_DATA_GUI_BLOCK_DURATION ||
         +process.env.NC_DATA_GUI_BLOCK_DURATION ||
         0,
     },
     meta_gui: {
       ttl:
         +process.env.NC_RATE_LIMIT_META_GUI_DURATION ||
-        +process.env.NC_THROTTLE_META_GUI_TTL ||
         +process.env.NC_META_GUI_API_TTL ||
         1000,
       max_apis:
         +process.env.NC_RATE_LIMIT_META_GUI_MAX_REQUESTS ||
-        +process.env.NC_THROTTLE_META_GUI_LIMIT ||
         +process.env.NC_META_GUI_COUNT ||
         1000,
       block_duration:
         +process.env.NC_RATE_LIMIT_META_GUI_BLOCK_DURATION ||
-        +process.env.NC_THROTTLE_META_GUI_BLOCK_DURATION ||
         +process.env.NC_META_GUI_BLOCK_DURATION ||
         0,
     },
     public: {
       ttl:
         +process.env.NC_RATE_LIMIT_PUBLIC_API_DURATION ||
-        +process.env.NC_THROTTLE_PUBLIC_API_TTL ||
         +process.env.NC_PUBLIC_API_TTL ||
         1000,
       max_apis:
         +process.env.NC_RATE_LIMIT_PUBLIC_API_MAX_REQUESTS ||
-        +process.env.NC_THROTTLE_PUBLIC_API_LIMIT ||
         +process.env.NC_PUBLIC_COUNT ||
         10,
       block_duration:
         +process.env.NC_RATE_LIMIT_PUBLIC_API_BLOCK_DURATION ||
-        +process.env.NC_THROTTLE_PUBLIC_API_BLOCK_DURATION ||
         +process.env.NC_PUBLIC_BLOCK_DURATION ||
         0,
     },

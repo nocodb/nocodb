@@ -6,31 +6,45 @@ interface Props {
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
-const column = inject(ColumnInj)!
+const column = inject(ColumnInj, ref())
 const readOnly = inject(ReadonlyInj, ref(false))
 const editEnabled = inject(EditModeInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const colourMeta = computed(() => {
-  const meta = parseProp(column.value?.meta)
-  return {
-    displayFormat: meta?.displayFormat || 'swatch_hex',
-    swatchStyle: meta?.swatchStyle || 'circle',
-    swatchSize: meta?.swatchSize || 'medium',
-    defaultColor: meta?.defaultColor || '#ffffff',
-    ...meta,
+  try {
+    const meta = column.value?.meta ? parseProp(column.value.meta) : {}
+    return {
+      displayFormat: meta?.displayFormat || 'swatch_hex',
+      swatchStyle: meta?.swatchStyle || 'circle',
+      swatchSize: meta?.swatchSize || 'medium',
+      defaultColor: meta?.defaultColor || '#3366FF',
+      ...meta,
+    }
+  } catch (e) {
+    console.error('Error parsing colour meta:', e)
+    return {
+      displayFormat: 'swatch_hex',
+      swatchStyle: 'circle',
+      swatchSize: 'medium',
+      defaultColor: '#3366FF',
+    }
   }
 })
 
 const vModel = computed({
   get: () => {
-    const value = props.modelValue || colourMeta.value.defaultColor
+    const value = props.modelValue || colourMeta.value.defaultColor || '#3366FF'
     // Normalize to hex format
-    if (value && value.startsWith('#') && value.length === 7) {
+    if (value && typeof value === 'string' && value.startsWith('#') && value.length === 7) {
       return value.toUpperCase()
     }
-    return '#FFFFFF'
+    // If value doesn't start with #, try to add it
+    if (value && typeof value === 'string' && /^[0-9A-Fa-f]{6}$/.test(value)) {
+      return `#${value.toUpperCase()}`
+    }
+    return '#3366FF'
   },
   set: (val) => {
     // Validate hex color format
@@ -56,12 +70,27 @@ const shapeClass = computed(() => {
   return colourMeta.value.swatchStyle === 'square' ? 'rounded-sm' : 'rounded-full'
 })
 
+// Always show both swatch and hex by default for debugging
 const showSwatch = computed(() => {
-  return colourMeta.value.displayFormat === 'swatch_hex' || colourMeta.value.displayFormat === 'swatch_only'
+  try {
+    const format = colourMeta.value?.displayFormat
+    // Default to true if format is undefined or matches expected values
+    return format !== 'hex_only'
+  } catch (e) {
+    console.error('Error in showSwatch:', e)
+    return true
+  }
 })
 
 const showHex = computed(() => {
-  return colourMeta.value.displayFormat === 'swatch_hex' || colourMeta.value.displayFormat === 'hex_only'
+  try {
+    const format = colourMeta.value?.displayFormat
+    // Default to true if format is undefined or matches expected values
+    return format !== 'swatch_only'
+  } catch (e) {
+    console.error('Error in showHex:', e)
+    return true
+  }
 })
 
 const openColorPicker = () => {
@@ -92,7 +121,7 @@ watch(editEnabled, (enabled) => {
 </script>
 
 <template>
-  <div class="nc-cell-field flex items-center gap-2 py-1 w-full">
+  <div class="nc-cell-field flex items-center gap-2 py-1 w-full relative">
     <!-- Color Display -->
     <div
       class="flex items-center gap-2 cursor-pointer w-full"
@@ -105,7 +134,7 @@ watch(editEnabled, (enabled) => {
         :style="{ backgroundColor: vModel }"
         class="border border-gray-300 flex-shrink-0"
       />
-      
+
       <span
         v-if="showHex"
         class="text-sm font-mono truncate flex-1"
@@ -113,14 +142,24 @@ watch(editEnabled, (enabled) => {
         {{ vModel }}
       </span>
     </div>
-
-    <!-- Color Picker Dropdown -->
-    <LazyGeneralAdvanceColorPicker
-      v-model="isOpen"
-      :value="vModel"
-      :advanced="false"
-      @input="onColorChange"
-      @close="onClose"
-    />
+    <!-- Color Picker Modal -->
+    <a-modal
+      v-model:open="isOpen"
+      :footer="null"
+      :closable="true"
+      :destroy-on-close="true"
+      :width="400"
+      wrap-class-name="nc-colour-picker-modal"
+      @cancel="onClose"
+    >
+      <div v-if="isOpen" class="p-2">
+        <GeneralAdvanceColorPicker
+          :model-value="vModel"
+          :is-open="isOpen"
+          @input="onColorChange"
+          @close-modal="onClose"
+        />
+      </div>
+    </a-modal>
   </div>
 </template>

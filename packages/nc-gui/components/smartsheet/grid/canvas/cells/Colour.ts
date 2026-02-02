@@ -82,7 +82,7 @@ export const ColourCellRenderer: CellRenderer = {
       let tagWidth = swatchSize + tagPaddingX * 2
       
       // Add space for hex code if display format includes it
-      if (colorValue && (columnMeta.displayFormat === 'swatch_and_hex' || columnMeta.displayFormat === 'hex_only')) {
+      if (colorValue && (columnMeta.displayFormat === 'swatch_hex' || columnMeta.displayFormat === 'hex_only')) {
         const hexText = colorValue.toUpperCase()
         ctx.font = '12px Inter'
         const hexTextWidth = ctx.measureText(hexText).width
@@ -177,19 +177,26 @@ export const ColourCellRenderer: CellRenderer = {
     }
   },
 
-  async handleClick({ mousePosition, column, row, readonly, formula, updateOrSaveRow, path }) {
-    if (!row || !column || readonly || formula || !column.isCellEditable || column.isSyncedColumn) return false
+  async handleClick({ row, column, makeCellEditable, selected, readonly, formula }) {
+    if (!row || !column || readonly || formula || column.readonly || column.columnObj?.readonly || !column.isCellEditable || column.isSyncedColumn || !selected) {
+      return false
+    }
 
-    // Open color picker (this would typically trigger a modal or dropdown)
-    // For now, we'll just demonstrate that the click is handled
-    return false
+    makeCellEditable(row, column)
+    return true
   },
 
   async handleKeyDown(ctx) {
-    const { e, row, column, readonly } = ctx
-    if (column.readonly || readonly || !column.isCellEditable || column.isSyncedColumn) return
+    const { e, row, column, readonly, makeCellEditable } = ctx
+    if (column.readonly || readonly || column.columnObj?.readonly || !column.isCellEditable || column.isSyncedColumn) return false
 
-    // Handle common color shortcuts (could be extended)
+    // Open color picker on Enter
+    if (e.key === 'Enter') {
+      makeCellEditable(row, column)
+      return true
+    }
+
+    // Handle Delete/Backspace to clear the value
     if (e.key === 'Delete' || e.key === 'Backspace') {
       row.row[column.title] = null
       try {

@@ -205,6 +205,7 @@ const cellType = computed(() => {
   if (isPhoneNumber(column.value)) return 'phoneNumber'
   if (isPercent(column.value)) return 'percent'
   if (isCurrency(column.value)) return 'currency'
+  if (isColour(column.value)) return 'colour'
   if (isUser(column.value)) return 'user'
   if (isDecimal(column.value)) return 'decimal'
   if (isInt(column.value, abstractType.value)) return 'integer'
@@ -441,6 +442,11 @@ const cellClassName = computed(() => {
       <template v-else-if="cellType === 'currency'">
         <CellCurrencyReadonly v-if="showReadonlyField" :model-value="vModel" />
         <CellCurrencyEditor v-else v-model="vModel" @save="emitSave" />
+      </template>
+
+      <template v-else-if="cellType === 'colour'">
+        <CellColourReadonly v-if="showReadonlyField" :model-value="vModel" />
+        <CellColourEditor v-else v-model="vModel" />
       </template>
 
       <LazyCellUser

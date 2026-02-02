@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { User, Workflow, WorkflowSubscriber } from '~/models';
-import { processConcurrently } from '~/utils'
+import { BaseUser, User, Workflow, WorkflowSubscriber } from '~/models';
+import { processConcurrently } from '~/utils';
 
 @Injectable()
 export class WorkflowSubscribersService {
@@ -42,9 +42,15 @@ export class WorkflowSubscribersService {
       NcError.get(context).workflowNotFound(workflowId);
     }
 
+    const baseUsers = await BaseUser.getUsersList(context, {
+      base_id: context.base_id,
+    });
+    const validUserIds = new Set(baseUsers.map((bu) => bu.id));
+    const filteredUserIds = userIds.filter((id) => validUserIds.has(id));
+
     const results = [];
 
-    for (const userId of userIds) {
+    for (const userId of filteredUserIds) {
       const existingSubscription =
         await WorkflowSubscriber.getByWorkflowAndUser(
           context,

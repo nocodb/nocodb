@@ -36,6 +36,7 @@ export interface ModelMeta {
  */
 export interface DataRecordV3 {
   id?: string | number | null;
+  id_fields?: Record<string, any>;
   fields: Record<string, any>;
 }
 
@@ -244,7 +245,14 @@ export function recordV2ToV3(
 
   const id = getCompositePkValue(primaryKeys, record, { useColumnId });
 
-  return { id, fields: transformedFields };
+  // Build id_fields with individual PK values
+  const id_fields: Record<string, any> = {};
+  for (const pk of primaryKeys) {
+    const key = getKey(pk);
+    id_fields[key] = record[pk.title!] ?? record[pk.column_name!] ?? record[pk.id!];
+  }
+
+  return { id, id_fields, fields: transformedFields };
 }
 
 /**

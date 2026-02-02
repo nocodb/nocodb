@@ -233,6 +233,8 @@ const parseConditionV2 = async (
         UITypes.User,
         UITypes.DateTime,
         UITypes.Date,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
       ].includes(column.uidt) ||
       ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
         !customWhereClause)

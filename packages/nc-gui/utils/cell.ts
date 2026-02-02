@@ -32,6 +32,7 @@ export {
   isDuration,
   isGeoData,
   isPercent,
+  isColour,
   isSpecificDBType,
   isGeometry,
   isUser,

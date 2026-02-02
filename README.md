@@ -8,6 +8,6 @@ under the AGPLv3, before the project switched to a proprietary source-available
 license.
 
 This fork is intended to be FanJam-specific, not a general-purpose continuation
-of the upstream project. Features, target platforms, and other complexity may
-be trimmed out to reduce the burden of maintaining such a large codebase.
-Changes and new feature development may be specific to FanJam.
+of the upstream project. Features, installation methods, target platforms, and
+other complexity may be trimmed out to reduce the burden of maintaining such a
+large codebase. Changes and new feature development may be specific to FanJam.

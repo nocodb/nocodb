@@ -46,7 +46,9 @@ export class UsersService {
 
   // allow signup/signin only if email matches against pattern
   validateEmailPattern(email: string) {
-    const emailPattern = process.env.NC_AUTH_EMAIL_PATTERN;
+    const emailPattern =
+      process.env.NC_USER_ALLOWED_EMAIL_PATTERN ||
+      process.env.NC_AUTH_EMAIL_PATTERN;
     if (emailPattern) {
       const regex = new RegExp(emailPattern);
       if (!regex.test(email)) {

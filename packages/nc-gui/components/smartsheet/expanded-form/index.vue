@@ -735,7 +735,7 @@ const visibleMoreOptions = computed(() => {
   const result = {
     reloadRecord: !isEeUI,
     copyRecordUrl: !isNew.value && !!rowId.value,
-    sendRecord: !isNew.value && !!rowId.value && !isPublic.value,
+    sendRecord: isEeUI && !isNew.value && !!rowId.value && !isPublic.value,
     duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
     deleteRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }

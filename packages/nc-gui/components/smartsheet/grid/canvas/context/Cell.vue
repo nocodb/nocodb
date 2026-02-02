@@ -653,7 +653,7 @@ const execBulkAction = async (path: Array<number>) => {
         </div>
       </NcMenuItem>
       <NcMenuItem
-        v-if="contextMenuRowId && !isPublic"
+        v-if="isEeUI && contextMenuRowId && !isPublic"
         key="send-record"
         class="nc-base-menu-item"
         @click="emits('sendRecord', contextMenuRowId)"

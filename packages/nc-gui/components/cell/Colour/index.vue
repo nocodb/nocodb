@@ -34,6 +34,7 @@ const colourMeta = computed(() => {
 const vModel = computed({
   get: () => {
     const value = modelValue || colourMeta.value.defaultColor || '#3366FF'
+    console.log('vModel get - modelValue:', modelValue, 'returning:', value)
     // Normalize to hex format
     if (value && typeof value === 'string' && value.startsWith('#') && value.length === 7) {
       return value.toUpperCase()
@@ -45,11 +46,26 @@ const vModel = computed({
     return '#3366FF'
   },
   set: (val) => {
-    // Validate hex color format
-    if (val && /^#[0-9A-Fa-f]{6}$/.test(val)) {
-      emit('update:modelValue', val.toUpperCase())
-    } else if (!val) {
+    console.log('vModel set - received:', val, 'type:', typeof val)
+
+    if (!val) {
       emit('update:modelValue', null)
+      return
+    }
+
+    // Convert to string if not already
+    const colorStr = String(val).trim()
+
+    // Check if it's a valid hex color (6 or 8 digits, with or without #)
+    // 8 digits includes alpha channel (RRGGBBAA) - we'll strip the alpha
+    const hexMatch = colorStr.match(/^#?([0-9A-Fa-f]{6})([0-9A-Fa-f]{2})?$/)
+    if (hexMatch) {
+      // Use only the RGB part (first 6 digits), ignore alpha channel if present
+      const normalized = `#${hexMatch[1].toUpperCase()}`
+      console.log('Emitting color:', normalized)
+      emit('update:modelValue', normalized)
+    } else {
+      console.warn('Invalid color format:', colorStr)
     }
   },
 })
@@ -98,20 +114,23 @@ const openColorPicker = () => {
 }
 
 const onColorChange = (color: string) => {
+  console.log('Color changed to:', color)
   vModel.value = color
-  isOpen.value = false
-  editEnabled.value = false
+  // Don't close immediately - let user continue selecting
 }
 
 const onClose = () => {
+  console.log('Closing color picker')
   isOpen.value = false
   editEnabled.value = false
 }
 
 // Handle cell click to open color picker
 const onClick = () => {
-  if (!readOnly.value && !editEnabled.value) {
-    openColorPicker()
+  console.log('onClick triggered, readOnly:', readOnly.value, 'isOpen before:', isOpen.value)
+  if (!readOnly.value) {
+    isOpen.value = true
+    console.log('isOpen set to:', isOpen.value)
   }
 }
 
@@ -150,12 +169,13 @@ watch(editEnabled, (enabled) => {
 
     <!-- Color Picker Modal -->
     <a-modal
-      v-model:open="isOpen"
+      :visible="isOpen"
       :footer="null"
       :closable="true"
       :destroy-on-close="true"
       :width="400"
       wrap-class-name="nc-colour-picker-modal"
+      @update:visible="(val) => isOpen = val"
       @cancel="onClose"
     >
       <div v-if="isOpen" class="p-2">

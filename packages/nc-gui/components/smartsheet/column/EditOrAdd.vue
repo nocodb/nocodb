@@ -139,7 +139,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const readOnly = computed(() => props.readonly)
 
-const { base, isMysql, isDatabricks, isXcdbBase } = useBase()
+const { base, isMysql, isPg, isDatabricks, isXcdbBase } = useBase()
 
 const { canEnableUniqueConstraint, isUniqueConstraintSupportedType } = useUniqueConstraintHelpers()
 
@@ -240,17 +240,7 @@ const uiFilters = (t: UiTypesType) => {
   }
 
   // UUID is only supported for PostgreSQL databases
-  // Debug: temporarily log the base source information
-  if (t.name === UITypes.UUID) {
-    console.log('UUID Debug:', {
-      base: base.value,
-      sources: base.value?.sources,
-      firstSourceType: base.value?.sources?.[0]?.type,
-      isPg: base.value?.sources?.[0]?.type === 'pg'
-    })
-  }
-  // Temporarily enable UUID for all databases to test the UI
-  const showUUID = t.name === UITypes.UUID ? true : true
+  const showUUID = t.name === UITypes.UUID ? isPg() : true
 
   return (
     systemFiledNotEdited &&

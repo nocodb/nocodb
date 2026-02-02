@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { RoleLabels } from 'nocodb-sdk';
-import type { MailParams } from '~/interface/Mail';
+import type { MailParams, WorkflowErrorDigestPayload } from '~/interface/Mail';
 import { MailEvent } from '~/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
 import { Base, BaseUser, Workspace } from '~/models';
@@ -391,6 +391,42 @@ export class MailService extends MailServiceCE {
                 workspaceId: base.fk_workspace_id,
                 baseId: base.id,
               }),
+            }),
+          });
+          break;
+        }
+
+        case MailEvent.WORKFLOW_ERROR_DIGEST: {
+          const {
+            user,
+            workflow,
+            workspace,
+            failureCount,
+            firstFailureTime,
+            lastFailureTime,
+            lastFailureId,
+            baseId,
+            workspaceId,
+            req,
+          } = params.payload as WorkflowErrorDigestPayload;
+
+          const link = this.buildUrl(req, {
+            workspaceId,
+            baseId,
+            automationId: workflow.id,
+            executionId: lastFailureId,
+          })
+
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `Something went wrong with an automation: ${workflow.title}`,
+            html: await this.renderMail('WorkflowErrorDigest', {
+              workflowTitle: workflow.title,
+              baseTitle: workspace?.title || 'Base',
+              failureCount,
+              firstFailureTime,
+              lastFailureTime,
+              link,
             }),
           });
           break;

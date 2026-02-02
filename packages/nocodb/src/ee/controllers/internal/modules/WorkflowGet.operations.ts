@@ -7,6 +7,7 @@ import type {
 } from '~/utils/internal-type';
 import { WorkflowsService } from '~/services/workflows.service';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
+import { WorkflowSubscribersService } from '~/services/workflow-subscribers.service';
 
 @Injectable()
 export class WorkflowGetOperations
@@ -16,12 +17,14 @@ export class WorkflowGetOperations
     private readonly workflowsService: WorkflowsService,
     @Inject('WorkflowExecutionService')
     private readonly workflowExecutionService: WorkflowExecutionService,
+    private readonly workflowSubscribersService: WorkflowSubscribersService,
   ) {}
   operations = [
     'workflowList' as const,
     'workflowGet' as const,
     'workflowExecutionList' as const,
     'workflowNodes' as const,
+    'workflowListSubscribers' as const,
   ];
   httpMethod = 'GET' as const;
 
@@ -58,6 +61,11 @@ export class WorkflowGetOperations
         });
       case 'workflowNodes':
         return await this.workflowExecutionService.getWorkflowNodes(context);
+      case 'workflowListSubscribers':
+        return await this.workflowSubscribersService.listSubscribers(
+          context,
+          req.query.workflowId as string,
+        );
     }
   }
 }

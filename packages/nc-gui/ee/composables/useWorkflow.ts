@@ -34,7 +34,7 @@ const [useProvideWorkflow, useWorkflow] = useInjectionState((workflow: ComputedR
 
   const selectedNodeId = ref<string | null>(null)
 
-  const activeTab = ref<'editor' | 'logs'>('editor')
+  const activeTab = ref<'editor' | 'logs' | 'settings'>('editor')
 
   const isSaving = ref(false)
 

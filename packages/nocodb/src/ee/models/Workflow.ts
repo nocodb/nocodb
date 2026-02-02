@@ -11,7 +11,7 @@ import { extractProps } from '~/helpers/extractProps';
 import { prepareForDb, prepareForResponse } from '~/utils/modelUtils';
 import Noco from '~/Noco';
 import NocoCache from '~/cache/NocoCache';
-import { WorkflowExecution } from '~/models';
+import { WorkflowExecution, WorkflowSubscriber } from '~/models';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -256,8 +256,23 @@ export default class Workflow extends WorkflowCE implements WorkflowType {
     });
 
     await WorkflowExecution.deleteByWorkflow(context, workflowId, ncMeta);
+    await WorkflowSubscriber.deleteByWorkflow(context, workflowId, ncMeta);
 
     return res;
+  }
+
+  public static async deleteByBaseId(
+    context: NcContext,
+    baseId: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const workflows = await this.list(context, baseId, ncMeta);
+
+    for (const workflow of workflows) {
+      await this.delete(context, workflow.id, ncMeta);
+    }
+
+    return true;
   }
 
   public static async findByTrigger(

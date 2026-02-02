@@ -87,6 +87,9 @@ export const OPERATION_SCOPES = {
   workflowTestNode: 'base',
   workflowPublish: 'base',
   workflowNodes: 'base',
+  workflowListSubscribers: 'base',
+  workflowAddSubscribers: 'base',
+  workflowRemoveSubscriber: 'base',
 
   workflowExecutionList: 'base',
 } as const;

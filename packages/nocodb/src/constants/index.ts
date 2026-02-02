@@ -3,7 +3,9 @@ import { PublicAttachmentScope } from 'nocodb-sdk';
 export const NC_LICENSE_KEY = 'nc-license-key';
 export const NC_APP_SETTINGS = 'nc-app-settings';
 export const NC_NON_ATTACHMENT_FIELD_SIZE =
-  +process.env['NC_NON_ATTACHMENT_FIELD_SIZE'] || 10 * 1024 * 1024; // 10 MB
+  +process.env['NC_FORM_FIELD_MAX_SIZE'] ||
+  +process.env['NC_NON_ATTACHMENT_FIELD_SIZE'] ||
+  10 * 1024 * 1024; // 10 MB
 export const NC_ATTACHMENT_FIELD_SIZE =
   +process.env['NC_ATTACHMENT_FIELD_SIZE'] || 20 * 1024 * 1024; // 20 MB
 export const NC_MAX_ATTACHMENTS_ALLOWED =
@@ -32,9 +34,13 @@ export const S3_PATCH_KEYS = [
 ];
 
 export const V1_V2_DATA_PAYLOAD_LIMIT =
-  +process.env['NC_DATA_PAYLOAD_LIMIT'] || 100;
+  +process.env['NC_API_BULK_OPERATION_MAX_RECORDS'] ||
+  +process.env['NC_DATA_PAYLOAD_LIMIT'] ||
+  100;
 export const V3_DATA_PAYLOAD_LIMIT =
-  +process.env['NC_DATA_PAYLOAD_LIMIT'] || 10;
+  +process.env['NC_API_BULK_OPERATION_MAX_RECORDS'] ||
+  +process.env['NC_DATA_PAYLOAD_LIMIT'] ||
+  10;
 export const V3_META_REQUEST_LIMIT = 10;
 export const MAX_NESTING_DEPTH = 3;
 export const MAX_CONCURRENT_TRANSFORMS = 50;

@@ -27,7 +27,7 @@ export async function prepareEnv({
 }
 
 export function getToolDir() {
-  return process.env.NC_TOOL_DIR || process.cwd();
+  return process.env.NC_DATA_DIR || process.env.NC_TOOL_DIR || process.cwd();
 }
 
 export function jdbcToXcConfig(url: string): DbConfig {

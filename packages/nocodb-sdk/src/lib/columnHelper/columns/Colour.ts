@@ -6,7 +6,7 @@ import AbstractColumnHelper, {
 export class ColourHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
     color: '#3366FF',
-    displayFormat: 'swatch_and_hex', // 'swatch_and_hex' | 'swatch_only' | 'hex_only'
+    displayFormat: 'swatch_hex', // 'swatch_hex' | 'swatch_only' | 'hex_only'
     swatchStyle: 'circle', // 'circle' | 'square'
     swatchSize: 'medium', // 'small' | 'medium' | 'large'
   };

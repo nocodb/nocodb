@@ -33,7 +33,7 @@ const iconColor = computed(() => {
 })
 
 const displayFormatOptions = [
-  { label: 'Color swatch + hex code', value: 'swatch_and_hex' },
+  { label: 'Color swatch + hex code', value: 'swatch_hex' },
   { label: 'Color swatch only', value: 'swatch_only' },
   { label: 'Hex code only', value: 'hex_only' },
 ]

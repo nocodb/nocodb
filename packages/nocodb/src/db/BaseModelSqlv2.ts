@@ -144,6 +144,8 @@ import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { isTransientError } from '~/helpers/db-error/utils';
 
+const debugCount = debug('nc:db:query:basemodel:count');
+
 dayjs.extend(utc);
 
 dayjs.extend(timezone);
@@ -759,6 +761,13 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
+    debugCount(
+      qb
+        .count(sanitize(this.model.primaryKey?.column_name) || '*', {
+          as: 'count',
+        })
+        .toQuery(),
+    );
     qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
       as: 'count',
     }).first();

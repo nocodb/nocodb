@@ -4,6 +4,7 @@ import {
   type LinkToAnotherRecordType,
   type LookupType,
   type ViewType,
+  ViewLockType,
   getEquivalentUIType,
   isDateType,
   parseProp,
@@ -69,6 +70,8 @@ export function useViewFilters(
 
   const { isUIAllowed } = useRoles()
 
+  const { isUserViewOwner } = useViewsStore()
+
   const { getMeta, getMetaByKey } = useMetas()
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
@@ -77,7 +80,33 @@ export function useViewFilters(
 
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
-  const nestedMode = computed(() => isTemp.value || !isUIAllowed('filterList') || !isUIAllowed('filterChildrenList'))
+  // Check if user can list/sync filters based on role OR personal view ownership
+  const canListFilter = computed(() => {
+    // If user has role permission, allow it
+    if (isUIAllowed('filterList')) return true
+    // If this is a personal view owned by current user, allow it
+    if (view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value)) return true
+    return false
+  })
+
+  const canListFilterChildren = computed(() => {
+    // If user has role permission, allow it
+    if (isUIAllowed('filterChildrenList')) return true
+    // If this is a personal view owned by current user, allow it
+    if (view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value)) return true
+    return false
+  })
+
+  // Check if user can sync (create/update/delete) filters based on role OR personal view ownership
+  const canSyncFilter = computed(() => {
+    // If user has role permission to sync, allow it
+    if (isUIAllowed('filterSync')) return true
+    // If this is a personal view owned by current user, allow sync
+    if (view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value)) return true
+    return false
+  })
+
+  const nestedMode = computed(() => isTemp.value || !canListFilter.value || !canListFilterChildren.value)
 
   // Tracks if any filter has been updated - used for webhook save state management
   const isFilterUpdated = ref<boolean>(false)
@@ -383,7 +412,7 @@ export function useViewFilters(
 
     if (!view.value?.id || !meta.value) return
     if (
-      (nestedMode.value && (isTemp.value || !isUIAllowed('filterChildrenList'))) ||
+      (nestedMode.value && (isTemp.value || !canListFilterChildren.value)) ||
       (isForm.value && !isWebhook) ||
       isWorkflow
     ) {
@@ -1146,5 +1175,6 @@ export function useViewFilters(
     btLookupTypesMap,
     types,
     isFilterUpdated,
+    canSyncFilter,
   }
 }

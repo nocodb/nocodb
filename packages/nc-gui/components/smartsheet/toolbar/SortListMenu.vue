@@ -14,7 +14,7 @@ const { eventBus } = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
-const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort, canSyncSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const { showSystemFields, metaColumnById } = useViewColumnsOrThrow()
 
@@ -28,7 +28,7 @@ const { getPlanLimit } = useWorkspace()
 
 const isCalendar = inject(IsCalendarInj, ref(false))
 
-const isRestrictedEditor = computed(() => isLocked.value || !isUIAllowed('sortSync'))
+const isRestrictedEditor = computed(() => isLocked.value || !canSyncSort.value)
 
 const existingSorts = computed(() => sorts.value.filter((s) => s.id))
 const localSorts = computed(() => sorts.value.filter((s) => !s.id))

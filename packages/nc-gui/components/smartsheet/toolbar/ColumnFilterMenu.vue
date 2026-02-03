@@ -31,7 +31,7 @@ const {
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
 
 // todo: avoid duplicate api call by keeping a filter store
-const { nonDeletedFilters, loadFilters } = useViewFilters(
+const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
   activeView!,
   undefined,
   computed(() => true),
@@ -42,7 +42,7 @@ const { nonDeletedFilters, loadFilters } = useViewFilters(
 
 const filtersLength = ref(0)
 // If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
-const isRestrictedEditor = computed(() => !isUIAllowed('filterSync'))
+const isRestrictedEditor = computed(() => !canSyncFilter.value)
 
 watch(
   () => activeView?.value?.id,

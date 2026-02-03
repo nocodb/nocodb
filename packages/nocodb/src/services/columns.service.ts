@@ -2714,17 +2714,66 @@ export class ColumnsService implements IColumnsService {
         });
         break;
       case UITypes.UUID:
-        // UUID is only supported for PostgreSQL databases
-        if (source.type !== 'pg') {
-          NcError.get(context).badRequest(
-            'UUID field type is supported only for PostgreSQL databases'
+        {
+          // UUID is only supported for PostgreSQL databases
+          if (source.type !== 'pg') {
+            NcError.get(context).badRequest(
+              'UUID field type is supported only for PostgreSQL databases',
+            );
+          }
+
+          // Get column properties from UI type (sets dt='uuid', cdf='gen_random_uuid()')
+          colBody = await getColumnPropsFromUIDT(colBody, source);
+
+          // UUID fields must have unique constraint (per PRD requirement DR-2)
+          colBody.unique = true;
+
+          // Generate column ID upfront for unique constraint name
+          const columnId = await ncMeta.genNanoid(MetaTable.COLUMNS);
+          (colBody as any).base_id = context.base_id;
+          (colBody as any).fk_model_id = table.id;
+          (colBody as any).id = columnId;
+
+          // Generate unique constraint name and store in internal_meta
+          const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
+            context,
+            {
+              base_id: context.base_id,
+              fk_model_id: table.id,
+              id: columnId,
+            },
           );
+          colBody.internal_meta = internalMeta;
+
+          // Create the physical column in the database
+          const tableUpdateBody = {
+            ...table,
+            tn: table.table_name,
+            originalColumns: table.columns.map((c) => ({
+              ...c,
+              cn: c.column_name,
+            })),
+            columns: [
+              ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
+              {
+                ...colBody,
+                cn: colBody.column_name,
+                altered: Altered.NEW_COLUMN,
+              },
+            ],
+          };
+
+          const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+            ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
+          );
+          await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+          // Save the column metadata
+          savedColumn = await Column.insert(context, {
+            ...colBody,
+            fk_model_id: table.id,
+          });
         }
-        
-        savedColumn = await Column.insert(context, {
-          ...colBody,
-          fk_model_id: table.id,
-        });
         break;
       case UITypes.Formula:
         try {

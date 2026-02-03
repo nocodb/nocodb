@@ -1,3 +1,4 @@
+import { deprecate } from 'util';
 import dayjs from 'dayjs';
 import timezone from 'dayjs/plugin/timezone';
 import utc from 'dayjs/plugin/utc.js';
@@ -231,6 +232,9 @@ const parseConditionV2 = async (
         UITypes.Percent,
         UITypes.User,
         UITypes.DateTime,
+        UITypes.Date,
+        UITypes.CreatedTime,
+        UITypes.LastModifiedTime,
       ].includes(column.uidt) ||
       ([UITypes.Rollup, UITypes.Formula, UITypes.Links].includes(column.uidt) &&
         !customWhereClause)
@@ -450,83 +454,89 @@ const parseConditionV2 = async (
               UITypes.LastModifiedTime,
             ].includes(column.uidt)
           ) {
-            let now = dayjs(new Date()).utc();
-            const dateFormatFromMeta = column?.meta?.date_format;
-            if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
-              // reset to 1st
-              now = dayjs(now).date(1);
-              if (val) genVal = dayjs(val).date(1);
-            }
-            // handle sub operation
-            switch (filter.comparison_sub_op) {
-              case 'today':
-                genVal = now;
-                break;
-              case 'tomorrow':
-                genVal = now.add(1, 'day');
-                break;
-              case 'yesterday':
-                genVal = now.add(-1, 'day');
-                break;
-              case 'oneWeekAgo':
-                genVal = now.add(-1, 'week');
-                break;
-              case 'oneWeekFromNow':
-                genVal = now.add(1, 'week');
-                break;
-              case 'oneMonthAgo':
-                genVal = now.add(-1, 'month');
-                break;
-              case 'oneMonthFromNow':
-                genVal = now.add(1, 'month');
-                break;
-              case 'daysAgo':
-                if (!val) return;
-                genVal = now.add(-genVal, 'day');
-                break;
-              case 'daysFromNow':
-                if (!val) return;
-                genVal = now.add(genVal, 'day');
-                break;
-              case 'exactDate':
-                if (!genVal) return;
-                break;
-              // sub-ops for `isWithin` comparison
-              case 'pastWeek':
-                genVal = now.add(-1, 'week');
-                break;
-              case 'pastMonth':
-                genVal = now.add(-1, 'month');
-                break;
-              case 'pastYear':
-                genVal = now.add(-1, 'year');
-                break;
-              case 'nextWeek':
-                genVal = now.add(1, 'week');
-                break;
-              case 'nextMonth':
-                genVal = now.add(1, 'month');
-                break;
-              case 'nextYear':
-                genVal = now.add(1, 'year');
-                break;
-              case 'pastNumberOfDays':
-                if (!val) return;
-                genVal = now.add(-genVal, 'day');
-                break;
-              case 'nextNumberOfDays':
-                if (!genVal) return;
-                genVal = now.add(genVal, 'day');
-                break;
-            }
+            // should not be called anymore
+            const legacyDateFilter = deprecate(() => {
+              let now = dayjs(new Date()).utc();
+              const dateFormatFromMeta = column?.meta?.date_format;
+              if (dateFormatFromMeta && isDateMonthFormat(dateFormatFromMeta)) {
+                // reset to 1st
+                now = dayjs(now).date(1);
+                if (val) genVal = dayjs(val).date(1);
+              }
+              // handle sub operation
+              switch (filter.comparison_sub_op) {
+                case 'today':
+                  genVal = now;
+                  break;
+                case 'tomorrow':
+                  genVal = now.add(1, 'day');
+                  break;
+                case 'yesterday':
+                  genVal = now.add(-1, 'day');
+                  break;
+                case 'oneWeekAgo':
+                  genVal = now.add(-1, 'week');
+                  break;
+                case 'oneWeekFromNow':
+                  genVal = now.add(1, 'week');
+                  break;
+                case 'oneMonthAgo':
+                  genVal = now.add(-1, 'month');
+                  break;
+                case 'oneMonthFromNow':
+                  genVal = now.add(1, 'month');
+                  break;
+                case 'daysAgo':
+                  if (!val) return;
+                  genVal = now.add(-genVal, 'day');
+                  break;
+                case 'daysFromNow':
+                  if (!val) return;
+                  genVal = now.add(genVal, 'day');
+                  break;
+                case 'exactDate':
+                  if (!genVal) return;
+                  break;
+                // sub-ops for `isWithin` comparison
+                case 'pastWeek':
+                  genVal = now.add(-1, 'week');
+                  break;
+                case 'pastMonth':
+                  genVal = now.add(-1, 'month');
+                  break;
+                case 'pastYear':
+                  genVal = now.add(-1, 'year');
+                  break;
+                case 'nextWeek':
+                  genVal = now.add(1, 'week');
+                  break;
+                case 'nextMonth':
+                  genVal = now.add(1, 'month');
+                  break;
+                case 'nextYear':
+                  genVal = now.add(1, 'year');
+                  break;
+                case 'pastNumberOfDays':
+                  if (!val) return;
+                  genVal = now.add(-genVal, 'day');
+                  break;
+                case 'nextNumberOfDays':
+                  if (!genVal) return;
+                  genVal = now.add(genVal, 'day');
+                  break;
+              }
 
-            if (dayjs.isDayjs(genVal)) {
-              // turn `val` in dayjs object format to string
-              genVal = genVal.format(dateFormat).toString();
-              // keep YYYY-MM-DD only for date
-              genVal =
-                column.uidt === UITypes.Date ? genVal.substring(0, 10) : genVal;
-            }
+              if (dayjs.isDayjs(genVal)) {
+                // turn `val` in dayjs object format to string
+                genVal = genVal.format(dateFormat).toString();
+                // keep YYYY-MM-DD only for date
+                genVal =
+                  column.uidt === UITypes.Date
+                    ? genVal.substring(0, 10)
+                    : genVal;
+              }
+            }, `legacy date filter is deprecated, should not be called, stack: ${new Error().stack}`);
+            legacyDateFilter();
           }
 
           if (

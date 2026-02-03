@@ -453,7 +453,10 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
     // when the given filter value has time component,
     // we use it raw as comparison
-    if (rootArgs.filter.value?.replace('T', ' ').split(' ')[1]) {
+    if (
+      typeof rootArgs.filter.value === 'string' &&
+      rootArgs.filter.value?.replace('T', ' ').split(' ')[1]
+    ) {
       rangeDate = this.parseFilterValue(
         rootArgs.filter.value,
         rootArgs.knex,
@@ -490,7 +493,10 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
     // when the given filter value has time component,
     // we use it raw as comparison
-    if (rootArgs.filter.value?.replace('T', ' ').split(' ')[1]) {
+    if (
+      typeof rootArgs.filter.value === 'string' &&
+      rootArgs.filter.value?.replace('T', ' ').split(' ')[1]
+    ) {
       rangeDate = this.parseFilterValue(
         rootArgs.filter.value,
         rootArgs.knex,
@@ -527,7 +533,10 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
     // when the given filter value has time component,
     // we use it raw as comparison
-    if (rootArgs.filter.value?.replace('T', ' ').split(' ')[1]) {
+    if (
+      typeof rootArgs.filter.value === 'string' &&
+      rootArgs.filter.value?.replace('T', ' ').split(' ')[1]
+    ) {
       rangeDate = this.parseFilterValue(
         rootArgs.filter.value,
         rootArgs.knex,
@@ -564,7 +573,10 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
 
     // when the given filter value has time component,
     // we use it raw as comparison
-    if (rootArgs.filter.value?.replace('T', ' ').split(' ')[1]) {
+    if (
+      typeof rootArgs.filter.value === 'string' &&
+      rootArgs.filter.value?.replace('T', ' ').split(' ')[1]
+    ) {
       rangeDate = this.parseFilterValue(
         rootArgs.filter.value,
         rootArgs.knex,

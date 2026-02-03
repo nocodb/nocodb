@@ -240,7 +240,7 @@ const uiFilters = (t: UiTypesType) => {
   }
 
   // UUID is only supported for PostgreSQL databases
-  const showUUID = t.name === UITypes.UUID ? isPg() : true
+  const showUUID = t.name !== UITypes.UUID || isPg(meta.value?.source_id)
 
   return (
     systemFiledNotEdited &&
@@ -817,7 +817,7 @@ const unique = computed({
       data-testid="add-or-edit-column"
       class="flex flex-col gap-4 h-full"
     >
-      <template v-if="!isEdit && !props.fromTableExplorer && (aiAutoSuggestMode || !formState.uidt)">
+          <template v-if="!isEdit && !props.fromTableExplorer && (aiAutoSuggestMode || !formState.uidt)">
         <div
           class="flex flex-col gap-4"
           :class="{

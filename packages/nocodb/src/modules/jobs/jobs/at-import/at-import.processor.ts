@@ -249,13 +249,14 @@ export class AtImportProcessor {
       }
       atFieldAliasToNcFieldAlias[ncTableTitle][atFieldAlias] = ncFieldAlias;
     };
+    const uniqueTableNameGen = getUniqueNameGenerator('sheet');
 
     const getNcFieldAlias = (ncTableTitle, atFieldAlias) => {
       return atFieldAliasToNcFieldAlias[ncTableTitle][atFieldAlias];
     };
 
     // Track existing table names (populate at start with existing tables)
-    const existingTableNames: string[] = [];
+    const existingTableTitles: string[] = [];
 
     // Track view names per table (key: tableId, value: array of view names)
     const viewNamesByTable = new Map<string, string[]>();
@@ -566,8 +567,16 @@ export class AtImportProcessor {
           rtc.view.total = tblSchema.length;
         }
 
+        // set tblSchema[i].name to not be duplicated with existing tables
+        tblSchema[i].name = generateUniqueCopyName(
+          tblSchema[i].name,
+          existingTableTitles,
+        );
         // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
         table.title = tblSchema[i].name;
+        // Track this table name for subsequent imports in this session
+        existingTableTitles.push(table.title);
+
         let sanitizedName = sanitizeColumnName(
           tblSchema[i].name,
           getRootDbType(),
@@ -576,16 +585,8 @@ export class AtImportProcessor {
         // truncate to 47 chars to leave room for _XX suffix (e.g., _2, _10)
         sanitizedName = sanitizedName?.slice(0, 47);
 
-        // Generate unique table name by checking against:
-        // 1. Existing tables in the database (if importing to existing base)
-        // 2. Tables created earlier in this import session
-        table.table_name = generateUniqueCopyName(
-          sanitizedName.toLowerCase(),
-          existingTableNames,
-        );
-
-        // Track this table name for subsequent imports in this session
-        existingTableNames.push(table.table_name);
+        // check for duplicate and populate a unique name if already exist
+        table.table_name = uniqueTableNameGen(sanitizedName);
 
         // add description to table
         if (tblSchema[i].description) {

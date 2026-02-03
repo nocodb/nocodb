@@ -1,5 +1,10 @@
 import moment from 'moment';
-import { AuditV1OperationTypes, SqlUiFactory, UITypes } from 'nocodb-sdk';
+import {
+  AuditV1OperationTypes,
+  generateUniqueCopyName,
+  SqlUiFactory,
+  UITypes,
+} from 'nocodb-sdk';
 import hash from 'object-hash';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -249,7 +254,19 @@ export class AtImportProcessor {
       return atFieldAliasToNcFieldAlias[ncTableTitle][atFieldAlias];
     };
 
-    const uniqueTableNameGen = getUniqueNameGenerator('sheet');
+    // Track existing table names (populate at start with existing tables)
+    const existingTableNames: string[] = [];
+
+    // Track view names per table (key: tableId, value: array of view names)
+    const viewNamesByTable = new Map<string, string[]>();
+
+    // Helper to get or initialize view names array for a table
+    const getViewNames = (tableId: string): string[] => {
+      if (!viewNamesByTable.has(tableId)) {
+        viewNamesByTable.set(tableId, []);
+      }
+      return viewNamesByTable.get(tableId)!;
+    };
 
     // run time counter (statistics)
     const rtc = {
@@ -556,13 +573,19 @@ export class AtImportProcessor {
           getRootDbType(),
         );
 
-        // truncate to 50 chars if character if exceeds above 50
-        // upto 64 should be fine but we are keeping it to 50 since
-        // meta base adds prefix as well
-        sanitizedName = sanitizedName?.slice(0, 50);
+        // truncate to 47 chars to leave room for _XX suffix (e.g., _2, _10)
+        sanitizedName = sanitizedName?.slice(0, 47);
 
-        // check for duplicate and populate a unique name if already exist
-        table.table_name = uniqueTableNameGen(sanitizedName);
+        // Generate unique table name by checking against:
+        // 1. Existing tables in the database (if importing to existing base)
+        // 2. Tables created earlier in this import session
+        table.table_name = generateUniqueCopyName(
+          sanitizedName.toLowerCase(),
+          existingTableNames,
+        );
+
+        // Track this table name for subsequent imports in this session
+        existingTableNames.push(table.table_name);
 
         // add description to table
         if (tblSchema[i].description) {
@@ -738,6 +761,13 @@ export class AtImportProcessor {
         recordPerfStats(_perfStart, 'dbTable.create');
 
         updateNcTblSchema(table);
+
+        // Register table's default grid view in tracking map
+        const viewNames = getViewNames(table.id);
+        const defaultView = table.views?.[0]; // First view is default grid
+        if (defaultView?.title) {
+          viewNames.push(defaultView.title);
+        }
 
         // update mapping table
         await sMap.addToMappingTbl(aTblSchema[idx].id, table.id, table.title);
@@ -1751,7 +1781,13 @@ export class AtImportProcessor {
             (x) => x.id === galleryViews[i].id,
           );
 
-          const viewName = aView?.name;
+          const viewNames = getViewNames(tblId);
+          const viewName = generateUniqueCopyName(
+            aView?.name || 'Gallery',
+            viewNames,
+            { prefix: null, separator: '_', counterFormat: '{counter}' },
+          );
+          viewNames.push(viewName); // Add to tracking
           const viewDescription = aView?.description;
 
           logBasic(
@@ -1797,7 +1833,14 @@ export class AtImportProcessor {
           const aView = aTblSchema[idx].views.find(
             (x) => x.id === formViews[i].id,
           );
-          const viewName = aView?.name;
+
+          const viewNames = getViewNames(tblId);
+          const viewName = generateUniqueCopyName(
+            aView?.name || 'Form',
+            viewNames,
+            { prefix: null, separator: '_', counterFormat: '{counter}' },
+          );
+          viewNames.push(viewName); // Add to tracking
           const viewDescription = aView?.description;
 
           logBasic(
@@ -1882,7 +1925,14 @@ export class AtImportProcessor {
           const aView = aTblSchema[idx].views.find(
             (x) => x.id === gridViews[i].id,
           );
-          const viewName = aView?.name;
+
+          const viewNames = getViewNames(tblId);
+          const viewName = generateUniqueCopyName(
+            aView?.name || 'Grid',
+            viewNames,
+            { prefix: null, separator: '_', counterFormat: '{counter}' },
+          );
+          viewNames.push(viewName); // Add to tracking
           const viewDescription = aView?.description;
 
           const _perfStart = recordPerfStart();
@@ -2557,6 +2607,19 @@ export class AtImportProcessor {
         syncDB.sourceId =
           syncDB.sourceId || ncCreatedProjectSchema.sources[0].id;
         logDetailed('Getting existing base meta');
+
+        // Fetch existing table names to prevent duplicates
+        const existingModels = await Model.list(context, {
+          base_id: syncDB.baseId,
+          source_id: syncDB.sourceId,
+        });
+
+        // Populate existingTableNames array
+        existingTableNames.push(
+          ...existingModels.map((model) => model.table_name.toLowerCase()),
+        );
+
+        logDetailed(`Found ${existingTableNames.length} existing tables`);
       }
 
       logBasic('Importing Tables...');

@@ -2615,12 +2615,14 @@ export class AtImportProcessor {
           source_id: syncDB.sourceId,
         });
 
-        // Populate existingTableNames array
-        existingTableNames.push(
-          ...existingModels.map((model) => model.table_name.toLowerCase()),
-        );
+        // Populate unique table names array
+        for (const existingModel of existingModels) {
+          uniqueTableNameGen(existingModel.table_name);
+        }
 
-        logDetailed(`Found ${existingTableNames.length} existing tables`);
+        // Populate existingTableTitles array
+        existingTableTitles.push(...existingModels.map((model) => model.title));
+        logDetailed(`Found ${existingTableTitles.length} existing tables`);
       }
 
       logBasic('Importing Tables...');

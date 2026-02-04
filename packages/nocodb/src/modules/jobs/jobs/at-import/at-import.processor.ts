@@ -571,6 +571,7 @@ export class AtImportProcessor {
         tblSchema[i].name = generateUniqueCopyName(
           tblSchema[i].name,
           existingTableTitles,
+          { prefix: null, separator: '_', counterFormat: '{counter}' },
         );
         // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
         table.title = tblSchema[i].name;

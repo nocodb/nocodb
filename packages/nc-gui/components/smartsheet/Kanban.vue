@@ -1291,7 +1291,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 {{ $t('activity.expandRecord') }}
               </div>
             </NcMenuItem>
-            <NcMenuItem v-if="contextMenuTarget && contextMenuRowId && !isPublic" @click="showSendRecordModal = true">
+            <NcMenuItem v-if="contextMenuTarget && contextMenuRowId && !isPublic && isEeUI" @click="showSendRecordModal = true">
               <div class="flex items-center gap-2 nc-kanban-context-menu-item">
                 <GeneralIcon icon="mail" class="flex" />
                 {{ $t('activity.sendRecord') }}

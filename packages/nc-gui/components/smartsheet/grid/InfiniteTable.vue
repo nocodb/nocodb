@@ -3122,7 +3122,11 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   {{ $t('general.add') }} {{ $t('general.comment').toLowerCase() }}
                 </div>
               </NcMenuItem>
-              <NcMenuItem v-if="contextMenuRowId && !isPublicView" class="nc-base-menu-item" @click="showSendRecordModal = true">
+              <NcMenuItem
+                v-if="contextMenuRowId && !isPublicView && isEeUI"
+                class="nc-base-menu-item"
+                @click="showSendRecordModal = true"
+              >
                 <div class="flex gap-2 items-center">
                   <GeneralIcon icon="mail" class="h-4 w-4" />
                   {{ $t('activity.sendRecord') }}

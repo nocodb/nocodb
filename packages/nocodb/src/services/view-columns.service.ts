@@ -7,6 +7,7 @@ import {
   ViewTypes,
 } from 'nocodb-sdk';
 import { Logger } from '@nestjs/common';
+import { bulkUpdateViewColumns } from 'src/models/View/bulkUpdateViewColumns';
 import GridViewColumn from '../models/GridViewColumn';
 import GalleryViewColumn from '../models/GalleryViewColumn';
 import KanbanViewColumn from '../models/KanbanViewColumn';
@@ -25,12 +26,21 @@ import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { validatePayload } from '~/helpers';
+import { validatePayload, validatePayloadArr } from '~/helpers';
 import { CalendarViewColumn, Column, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import NocoSocket from '~/socket/NocoSocket';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
+
+const validationSchemaMap = new Map<ViewTypes, string>([
+  [ViewTypes.GRID, 'swagger.json#/components/schemas/GridColumnReq'],
+  [ViewTypes.GALLERY, 'swagger.json#/components/schemas/GalleryColumnReq'],
+  [ViewTypes.KANBAN, 'swagger.json#/components/schemas/KanbanColumnReq'],
+  [ViewTypes.FORM, 'swagger.json#/components/schemas/FormColumnReq'],
+  [ViewTypes.MAP, 'swagger.json#/components/schemas/MapColumn'],
+  [ViewTypes.CALENDAR, 'swagger.json#/components/schemas/CalendarColumnReq'],
+]);
 
 @Injectable()
 export class ViewColumnsService {
@@ -239,8 +249,6 @@ export class ViewColumnsService {
 
     const view = await View.get(context, viewId);
 
-    const updateOrInsertOptions: Promise<any>[] = [];
-
     let result: any;
     const ncMeta = await Noco.ncMeta.startTransaction();
 
@@ -262,186 +270,18 @@ export class ViewColumnsService {
     }
 
     try {
-      const table = View.extractViewColumnsTableName(view);
-
-      // iterate over view columns and update/insert accordingly
-      for (const [indexOrId, column] of Object.entries(columns)) {
-        const columnId = Array.isArray(param.columns)
-          ? column['id']
-          : indexOrId;
-
-        const existingCol = await ncMeta.metaGet2(
-          context.workspace_id,
-          context.base_id,
-          table,
-          {
-            fk_view_id: viewId,
-            fk_column_id: columnId,
-          },
-        );
-
-        switch (view.type) {
-          case ViewTypes.GRID:
-            validatePayload(
-              'swagger.json#/components/schemas/GridColumnReq',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                GridViewColumn.update(context, existingCol.id, column, ncMeta),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                GridViewColumn.insert(
-                  context,
-                  {
-                    ...(column as GridColumnReqType),
-                    fk_view_id: viewId,
-                    fk_column_id: columnId,
-                  },
-                  ncMeta,
-                ),
-              );
-            }
-            break;
-          case ViewTypes.GALLERY:
-            validatePayload(
-              'swagger.json#/components/schemas/GalleryColumnReq',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                GalleryViewColumn.update(
-                  context,
-                  existingCol.id,
-                  column,
-                  ncMeta,
-                ),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                GalleryViewColumn.insert(
-                  context,
-                  {
-                    ...(column as GalleryColumnReqType),
-                    fk_view_id: viewId,
-                    fk_column_id: columnId,
-                  },
-                  ncMeta,
-                ),
-              );
-            }
-            break;
-          case ViewTypes.KANBAN:
-            validatePayload(
-              'swagger.json#/components/schemas/KanbanColumnReq',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                KanbanViewColumn.update(
-                  context,
-                  existingCol.id,
-                  column,
-                  ncMeta,
-                ),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                KanbanViewColumn.insert(
-                  context,
-                  {
-                    ...(column as KanbanColumnReqType),
-                    fk_view_id: viewId,
-                    fk_column_id: columnId,
-                  },
-                  ncMeta,
-                ),
-              );
-            }
-            break;
-          case ViewTypes.MAP:
-            validatePayload(
-              'swagger.json#/components/schemas/MapColumn',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                MapViewColumn.update(context, existingCol.id, column, ncMeta),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                MapViewColumn.insert(
-                  context,
-                  {
-                    ...(column as MapViewColumn),
-                    fk_view_id: viewId,
-                    fk_column_id: columnId,
-                  },
-                  ncMeta,
-                ),
-              );
-            }
-            break;
-          case ViewTypes.FORM:
-            validatePayload(
-              'swagger.json#/components/schemas/FormColumnReq',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                FormViewColumn.update(context, existingCol.id, column, ncMeta),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                FormViewColumn.insert(
-                  context,
-                  {
-                    ...(column as FormColumnReqType),
-                    fk_view_id: viewId,
-                    fk_column_id: columnId,
-                  },
-                  ncMeta,
-                ),
-              );
-            }
-            break;
-          case ViewTypes.CALENDAR:
-            validatePayload(
-              'swagger.json#/components/schemas/CalendarColumnReq',
-              column,
-            );
-            if (existingCol) {
-              updateOrInsertOptions.push(
-                CalendarViewColumn.update(
-                  context,
-                  existingCol.id,
-                  column,
-                  ncMeta,
-                ),
-              );
-            } else {
-              updateOrInsertOptions.push(
-                CalendarViewColumn.insert(
-                  context,
-                  {
-                    ...(column as CalendarColumnReqType),
-                    fk_view_id: viewId,
-                    fk_column_id: columnId,
-                  },
-                  ncMeta,
-                ),
-              );
-            }
-            break;
-        }
-      }
-
-      await Promise.all(updateOrInsertOptions);
-
+      // validate the payload array based on view type
+      validatePayloadArr(context, {
+        schema: validationSchemaMap.get(view.type),
+        payload: columns,
+      });
+      // bulk update view columns and reset cache
+      result = await bulkUpdateViewColumns(context, {
+        viewId: view.id,
+        view: view,
+        columns,
+      });
       await ncMeta.commit();
-
-      await View.clearSingleQueryCache(context, view.fk_model_id, [view]);
 
       if (viewWebhookManager) {
         (

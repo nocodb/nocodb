@@ -2688,7 +2688,7 @@ export default class View implements ViewType {
     return table;
   }
 
-  protected static extractViewColumnsTableNameScope(view: View) {
+  public static extractViewColumnsTableNameScope(view: View) {
     let scope;
     switch (view.type) {
       case ViewTypes.GRID:

@@ -82,6 +82,47 @@ export const validatePayload = (
   }
 };
 
+// a function to validate the payload against the schema
+export const validatePayloadArr = (
+  context: { api_version?: NcApiVersion } = {},
+  {
+    schema,
+    payload,
+    humanReadableError = false,
+  }: {
+    schema: string;
+    payload: any[];
+    humanReadableError?: boolean;
+  },
+) => {
+  const arrSchema = {
+    type: 'array',
+    items: {
+      $ref: schema,
+    },
+  };
+  const validate = ajv.compile(arrSchema);
+  if (!validate) {
+    NcError.get(context).genericNotFound('Validation schema', schema);
+  }
+
+  // Validate the request body against the schema
+  const valid = validate(payload);
+
+  // If the request body is not valid, throw error
+  if (!valid) {
+    const errors: ErrorObject[] | null | undefined =
+      ajv.errors || validate.errors;
+
+    // If the request body is invalid, throw error with error message  and errors
+    NcError.get(context).ajvValidationError({
+      message: 'Invalid request body',
+      errors,
+      humanReadableError,
+    });
+  }
+};
+
 /**
  * Extracts API token from request headers.
  * - Prefers `xc-token` header

@@ -19,7 +19,7 @@ import type { INcAxios } from './ncAxios';
 const API_VERSION = 'v3';
 const debugMode = true;
 
-describe('dataApiV3', () => {
+describe.only('dataApiV3', () => {
   describe('list-and-crud', () => {
     let testContext: ITestContext;
     let testAxios: INcAxios;
@@ -688,11 +688,11 @@ describe('dataApiV3', () => {
         expect(rspFromRecordAPI.body).not.to.have.property('next');
 
         let citiesExpected = [
-          { id: 1, fields: { City: 'City 1' } },
-          { id: 2, fields: { City: 'City 2' } },
-          { id: 3, fields: { City: 'City 3' } },
-          { id: 4, fields: { City: 'City 4' } },
-          { id: 5, fields: { City: 'City 5' } },
+          { id: 1, id_fields: { Id: 1 }, fields: { City: 'City 1' } },
+          { id: 2, id_fields: { Id: 2 }, fields: { City: 'City 2' } },
+          { id: 3, id_fields: { Id: 3 }, fields: { City: 'City 3' } },
+          { id: 4, id_fields: { Id: 4 }, fields: { City: 'City 4' } },
+          { id: 5, id_fields: { Id: 5 }, fields: { City: 'City 5' } },
         ];
 
         // links
@@ -722,6 +722,7 @@ describe('dataApiV3', () => {
           if (i <= 5) {
             expect(rspFromLinkAPI.body.record).to.deep.equal({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
 
@@ -730,6 +731,7 @@ describe('dataApiV3', () => {
               rspFromRecordAPI.body.records[0].fields['Country'],
             ).to.deep.eq({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
           } else {
@@ -769,13 +771,13 @@ describe('dataApiV3', () => {
         });
 
         citiesExpected = [
-          { id: 1, fields: { City: 'City 1' } },
-          { id: 2, fields: { City: 'City 2' } },
-          { id: 3, fields: { City: 'City 3' } },
-          { id: 4, fields: { City: 'City 4' } },
-          { id: 5, fields: { City: 'City 5' } },
-          { id: 6, fields: { City: 'City 6' } },
-          { id: 7, fields: { City: 'City 7' } },
+          { id: 1, id_fields: { Id: 1 }, fields: { City: 'City 1' } },
+          { id: 2, id_fields: { Id: 2 }, fields: { City: 'City 2' } },
+          { id: 3, id_fields: { Id: 3 }, fields: { City: 'City 3' } },
+          { id: 4, id_fields: { Id: 4 }, fields: { City: 'City 4' } },
+          { id: 5, id_fields: { Id: 5 }, fields: { City: 'City 5' } },
+          { id: 6, id_fields: { Id: 6 }, fields: { City: 'City 6' } },
+          { id: 7, id_fields: { Id: 7 }, fields: { City: 'City 7' } },
         ];
 
         expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
@@ -804,6 +806,7 @@ describe('dataApiV3', () => {
           if (i <= 7) {
             expect(rspFromLinkAPI.body.record).to.deep.equal({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
 
@@ -812,6 +815,7 @@ describe('dataApiV3', () => {
               rspFromRecordAPI.body.records[0].fields['Country'],
             ).to.deep.eq({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
           } else {
@@ -851,9 +855,9 @@ describe('dataApiV3', () => {
         });
 
         citiesExpected = [
-          { id: 2, fields: { City: 'City 2' } },
-          { id: 4, fields: { City: 'City 4' } },
-          { id: 6, fields: { City: 'City 6' } },
+          { id: 2, id_fields: { Id: 2 }, fields: { City: 'City 2' } },
+          { id: 4, id_fields: { Id: 4 }, fields: { City: 'City 4' } },
+          { id: 6, id_fields: { Id: 6 }, fields: { City: 'City 6' } },
         ];
         expect(rspFromLinkAPI.body.records).to.deep.equal(citiesExpected);
 
@@ -880,6 +884,7 @@ describe('dataApiV3', () => {
           if (i % 2 === 0 && i <= 6) {
             expect(rspFromLinkAPI.body.record).to.deep.equal({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
 
@@ -888,6 +893,7 @@ describe('dataApiV3', () => {
               rspFromRecordAPI.body.records[0].fields['Country'],
             ).to.deep.eq({
               id: 1,
+              id_fields: { Id: 1 },
               fields: { Country: `Country 1` },
             });
           } else {

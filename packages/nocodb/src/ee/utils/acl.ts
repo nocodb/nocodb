@@ -368,6 +368,7 @@ const permissionScopes = {
     'workflowUpdate',
     'workflowDelete',
     'workflowExecutionList',
+    'workflowExecutionGet',
     'workflowNodes',
     'workflowExecute',
     'workflowTestNode',
@@ -1140,6 +1141,7 @@ const permissionDescriptions: Record<string, string> = {
   workflowUpdate: 'update workflow details',
   workflowDelete: 'delete a workflow',
   workflowExecutionList: 'view workflow execution logs',
+  workflowExecutionGet: 'view workflow execution details',
 
   baseAuditList: 'view audit log for a base',
 };

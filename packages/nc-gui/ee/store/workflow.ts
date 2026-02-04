@@ -414,6 +414,23 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
+  const getWorkflowExecution = async (params: { workflowId: string; executionId: string }) => {
+    if (!activeWorkspaceId.value || !activeProjectId.value) return null
+    if (!isUIAllowed('workflowExecutionList')) return null
+    try {
+      const response = await $api.internal.getOperation(activeWorkspaceId.value, activeProjectId.value, {
+        operation: 'workflowExecutionGet',
+        workflowId: params.workflowId,
+        executionId: params.executionId,
+      })
+
+      return response || null
+    } catch (e) {
+      console.error(e)
+      return null
+    }
+  }
+
   const executeWorkflow = async (workflowId: string) => {
     if (!activeWorkspaceId.value || !activeProjectId.value) return
     try {
@@ -644,6 +661,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     executeWorkflow,
     // Execution Logs
     loadWorkflowExecutions,
+    getWorkflowExecution,
   }
 })
 

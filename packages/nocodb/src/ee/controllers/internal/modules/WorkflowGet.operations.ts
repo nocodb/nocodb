@@ -23,6 +23,7 @@ export class WorkflowGetOperations
     'workflowList' as const,
     'workflowGet' as const,
     'workflowExecutionList' as const,
+    'workflowExecutionGet' as const,
     'workflowNodes' as const,
     'workflowListSubscribers' as const,
   ];
@@ -58,6 +59,11 @@ export class WorkflowGetOperations
           offset: req.query.offset
             ? parseInt(req.query.offset as string, 10) || 0
             : 0,
+        });
+      case 'workflowExecutionGet':
+        return await this.workflowsService.getExecution(context, {
+          workflowId: req.query.workflowId as string,
+          executionId: req.query.executionId as string,
         });
       case 'workflowNodes':
         return await this.workflowExecutionService.getWorkflowNodes(context);

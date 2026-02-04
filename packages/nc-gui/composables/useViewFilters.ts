@@ -376,6 +376,15 @@ export function useViewFilters(
     loadAllFilters?: boolean
     isLink?: boolean
   } = {}) => {
+    // Wait for meta to be available before loading filters (up to 5 seconds)
+    if (!meta.value && view.value?.id) {
+      const metaLoaded = await until(meta)
+        .toBeTruthy()
+        .timeout(5000)
+        .catch(() => false)
+      if (!metaLoaded) return
+    }
+
     if (!view.value?.id || !meta.value) return
     if (
       (nestedMode.value && (isTemp.value || !isUIAllowed('filterChildrenList'))) ||
@@ -445,12 +454,17 @@ export function useViewFilters(
               })
             ).list as ColumnFilterType[]
           } else {
+            if (!isUIAllowed('filterList')) {
+              return
+            }
+
             filters.value = (
               await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
                 operation: 'filterList',
                 viewId: view.value!.id!,
               })
             ).list as ColumnFilterType[]
+
             if (loadAllFilters) {
               allFilters.value = [...filters.value] as FilterType[]
               await loadAllChildFilters(allFilters.value as ColumnFilterType[])

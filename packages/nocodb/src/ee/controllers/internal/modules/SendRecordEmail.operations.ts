@@ -247,7 +247,7 @@ export class SendRecordEmailOperations
           col.uidt === UITypes.Links ||
           col.uidt === UITypes.LinkToAnotherRecord
         ) {
-          relationType = (col.colOptions as LinkToAnotherRecordType)?.type;
+          relationType = (col.colOptions as LinkToAnotherRecordType)?.type as RelationTypes;
         }
 
         transformedData.push({

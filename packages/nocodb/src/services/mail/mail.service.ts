@@ -288,62 +288,22 @@ export class MailService {
           });
           break;
         }
-        case MailEvent.FORM_SUBMISSION:
-          {
-            const { formView, data, model, emails, base } = payload;
+        case MailEvent.FORM_SUBMISSION: {
+          const { formView, data, model, emails, base } = payload;
 
-            await mailerAdapter.mailSend({
-              to: emails.join(','),
-              subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
-              html: await this.renderMail('FormSubmission', {
-                formTitle: formView.title,
-                tableTitle: model.title,
-                submissionData: data,
-                baseTitle: base.title,
-              }),
-            });
-          }
+          await mailerAdapter.mailSend({
+            to: emails.join(','),
+            subject: `NocoDB Forms: Someone has responded to ${formView.title}`,
+            html: await this.renderMail('FormSubmission', {
+              formTitle: formView.title,
+              tableTitle: model.title,
+              submissionData: data,
+              baseTitle: base.title,
+            }),
+          });
+
           break;
-        case MailEvent.SEND_RECORD:
-          {
-            const {
-              senderName,
-              senderEmail,
-              emails,
-              model,
-              base,
-              subject,
-              message,
-              recordData,
-              rowId,
-              req,
-            } = payload;
-
-            const recordUrl = this.buildUrl(req, {
-              workspaceId: base.fk_workspace_id,
-              baseId: base.id,
-              tableId: model.id,
-              rowId,
-            });
-
-            const emailSubject =
-              subject || `${senderName} shared a record from "${model.title}"`;
-
-            await mailerAdapter.mailSend({
-              to: emails.join(','),
-              subject: emailSubject,
-              html: await this.renderMail('SendRecord', {
-                senderName,
-                senderEmail,
-                tableTitle: model.title,
-                baseTitle: base.title,
-                message,
-                recordData,
-                recordUrl,
-              }),
-            });
-          }
-          break;
+        }
       }
       return true;
     } catch (e) {

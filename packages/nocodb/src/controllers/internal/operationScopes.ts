@@ -143,7 +143,4 @@ export const OPERATION_SCOPES = {
   managedAppDeployments: 'base',
   managedAppVersionDeployments: 'base',
   managedAppDeploymentLogs: 'base',
-
-  // Send Record Email
-  sendRecordEmail: 'base',
 } as const;

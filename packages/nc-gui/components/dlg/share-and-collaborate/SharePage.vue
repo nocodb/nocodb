@@ -201,6 +201,58 @@ const surveyMode = computed({
   },
 })
 
+const themeOptions = [
+  { label: 'Light', value: 'light' },
+  { label: 'Dark', value: 'dark' },
+]
+
+const themeSetLocal = ref(false)
+
+const themeSet = computed(() => {
+  return !!activeView.value?.meta?.defaultTheme || themeSetLocal.value
+})
+
+const toggleThemeSet = async () => {
+  themeSetLocal.value = !themeSet.value
+  if (!activeView.value) return
+  if (isUpdating.value.language) return
+
+  isUpdating.value.language = true
+  try {
+    if (!themeSetLocal.value) {
+      activeView.value = { ...(activeView.value as any), meta: { ...activeView.value.meta, defaultTheme: null } }
+    } else {
+      activeView.value = { ...(activeView.value as any), meta: { ...activeView.value.meta, defaultTheme: 'light' } }
+    }
+
+    await updateSharedView()
+  } finally {
+    isUpdating.value.language = false
+  }
+}
+
+const defaultTheme = computed({
+  get: () => {
+    if (!activeView.value?.meta) return null
+
+    if (typeof activeView.value?.meta === 'string') {
+      activeView.value.meta = JSON.parse(activeView.value.meta)
+    }
+
+    return (activeView.value?.meta as any)?.defaultTheme
+  },
+  set: (theme) => {
+    if (!activeView.value?.meta) return
+
+    if (typeof activeView.value?.meta === 'string') {
+      activeView.value.meta = JSON.parse(activeView.value.meta)
+    }
+
+    activeView.value.meta = { ...(activeView.value.meta as any), defaultTheme: theme }
+    updateSharedView()
+  },
+})
+
 const formPreFill = computed({
   get: () => ({
     preFillEnabled: parseProp(activeView.value?.meta)?.preFillEnabled ?? false,
@@ -260,9 +312,21 @@ function sharedViewUrl(withPrefill = true) {
       viewType = 'view'
   }
 
-  return `${encodeURI(`${dashboardUrl.value}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`)}${
-    withPrefill && preFillFormSearchParams.value ? `?${preFillFormSearchParams.value}` : ''
-  }`
+  const baseUrl = `${dashboardUrl.value}#/nc/${viewType}/${activeView.value.uuid}${surveyMode.value ? '/survey' : ''}`
+  const queryParams = []
+
+  // Add prefill parameters
+  if (withPrefill && preFillFormSearchParams.value) {
+    queryParams.push(preFillFormSearchParams.value)
+  }
+
+  // Add theme parameter if defaultTheme is set
+  // Use 'nc-theme' to avoid conflicts with user form fields named 'theme'
+  if (defaultTheme.value) {
+    queryParams.push(`nc-theme=${defaultTheme.value}`)
+  }
+
+  return `${encodeURI(baseUrl)}${queryParams.length > 0 ? `?${queryParams.join('&')}` : ''}`
 }
 
 const toggleViewShare = async () => {
@@ -522,6 +586,41 @@ const copyCustomUrl = async (custUrl = '') => {
             >
             </a-switch>
           </div>
+        </div>
+
+        <div
+          v-if="activeView?.type === ViewTypes.FORM"
+          class="flex flex-col justify-between gap-y-3 mt-1 py-2 px-3 bg-nc-bg-gray-extralight rounded-md"
+        >
+          <div class="flex flex-row items-center justify-between">
+            <div class="text-nc-content-gray-extreme flex items-center space-x-1">
+              <div>Default Theme</div>
+              <NcTooltip class="flex items-center">
+                <template #title>Set the default theme (light or dark) for this shared form. Adds ?nc-theme=light or ?nc-theme=dark to the URL.</template>
+                <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
+              </NcTooltip>
+            </div>
+            <a-switch
+              v-e="['c:share:view:theme:toggle']"
+              :checked="themeSet"
+              :loading="isUpdating.language"
+              data-testid="nc-modal-share-view__themeToggle"
+              size="small"
+              :disabled="isReadOnly"
+              @click="toggleThemeSet"
+            />
+          </div>
+          <Transition mode="out-in" name="layout">
+            <div v-if="themeSet" class="flex gap-2 mt-2 w-2/3">
+              <NcSelect
+                v-model:value="defaultTheme"
+                data-testid="nc-modal-share-view__themeSelect"
+                :options="themeOptions"
+                class="w-full nc-select-shadow"
+                :disabled="isReadOnly"
+              />
+            </div>
+          </Transition>
         </div>
 
         <div

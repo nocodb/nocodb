@@ -13,6 +13,7 @@ import { isLinksOrLTAR } from 'nocodb-sdk';
 import debug from 'debug';
 import { Injectable, Logger } from '@nestjs/common';
 import PQueue from 'p-queue';
+import { bulkUpdateViewColumns } from 'src/models/View/bulkUpdateViewColumns';
 import { JobsLogService } from '../jobs-log.service';
 import FetchAT from './helpers/fetchAT';
 import { importData } from './helpers/readAndProcessData';
@@ -2502,68 +2503,46 @@ export class AtImportProcessor {
         recordPerfStats(_perfStart, 'dbView.gridColumnsList');
       }
 
-      // nc-specific columns; default hide.
-      for (let j = 0; j < hiddenColumns.length; j++) {
-        const ncColumnId = ncTbl.columns.find(
-          (x) => x.title === hiddenColumns[j],
-        ).id;
-        const ncViewColumnId = viewDetails.find(
-          (x) => x.fk_column_id === ncColumnId,
-        )?.id;
-        if (ncViewColumnId === undefined) continue;
-
-        // first two positions held by record id & record hash
-        const _perfStart = recordPerfStart();
-        await this.viewColumnsService.columnUpdate(context, {
-          viewId: viewId,
-          columnId: ncViewColumnId,
-          internal: true,
-          column: {
+      const columnsToUpdate = hiddenColumns
+        .map((colId, i) => {
+          const ncColumnId = ncTbl.columns.find(
+            (x) => x.title === hiddenColumns[i],
+          ).id;
+          const ncViewColumnId = viewDetails.find(
+            (x) => x.fk_column_id === ncColumnId,
+          )?.id;
+          if (ncViewColumnId === undefined) return undefined;
+          return {
+            fk_column_id: ncColumnId,
             show: false,
-            order: j + 1 + c.length,
-          },
-          req,
-        });
-        recordPerfStats(_perfStart, 'dbViewColumn.update');
-      }
+            order: i + 1 + c.length,
+          };
+        })
+        .filter((col) => col);
 
       // rest of the columns from airtable- retain order & visibility property
       for (let j = 0; j < c.length; j++) {
         const ncColumnId = await sMap.getNcIdFromAtId(c[j].columnId);
-        const ncViewColumnId = await nc_getViewColumnId(
-          viewId,
-          viewType,
-          ncColumnId,
-        );
-        if (ncViewColumnId === undefined) continue;
 
         // first two positions held by record id & record hash
         const configData = { show: c[j].visibility, order: j + 1 };
         if (viewType === 'form') {
           if (_c?.metadata?.form?.fieldsByColumnId?.[c[j].columnId]) {
             const x = _c.metadata.form.fieldsByColumnId[c[j].columnId];
-            const formData = { ...configData };
-            if (x?.title) formData[`label`] = x.title;
-            if (x?.required) formData[`required`] = x.required;
-            if (x?.description) formData[`description`] = x.description;
-            const _perfStart = recordPerfStart();
-            await this.formColumnsService.columnUpdate(context, {
-              formViewColumnId: ncViewColumnId,
-              formViewColumn: formData,
-              req,
-            });
-            recordPerfStats(_perfStart, 'dbView.formColumnUpdate');
+            if (x?.title) configData[`label`] = x.title;
+            if (x?.required) configData[`required`] = x.required;
+            if (x?.description) configData[`description`] = x.description;
           }
         }
-        const _perfStart = recordPerfStart();
-        await this.viewColumnsService.columnUpdate(context, {
-          viewId: viewId,
-          columnId: ncViewColumnId,
-          column: configData,
-          req,
+        columnsToUpdate.push({
+          fk_column_id: ncColumnId,
+          ...configData,
         });
-        recordPerfStats(_perfStart, 'dbViewColumn.update');
       }
+      await bulkUpdateViewColumns(context, {
+        columns: columnsToUpdate,
+        viewId,
+      });
     };
 
     ///////////////////////////////////////////////////////////////////////////////

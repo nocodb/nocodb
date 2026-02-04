@@ -506,7 +506,7 @@ export class WorkflowsService implements OnModuleInit {
     const execution = await WorkflowExecution.get(context, executionId);
 
     if (!execution || execution.fk_workflow_id !== workflowId) {
-      NcError.get(context).genericNotFound(workflowId);
+      NcError.get(context).genericNotFound('Workflow Execution', executionId);
     }
 
     return execution;

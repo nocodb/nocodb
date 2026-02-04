@@ -373,6 +373,16 @@ export interface IBaseModelSqlV2 {
       [key: string]: any;
     }
   >;
+  readRecord(params: {
+    idOrRecord: string | Record<string, any>;
+    fieldsSet?: Set<string>;
+    ignoreView?: boolean;
+    getHiddenColumn?: boolean;
+    validateFormula?: boolean;
+    source: Source;
+    disableOptimization?: boolean;
+    view?: View;
+  }): Promise<any>;
 
   broadcastLinkUpdates(ids: Array<string>): Promise<void>;
   getSource(): Promise<Source>;

@@ -104,6 +104,7 @@ describe('dataApiV3', () => {
         });
         expect(recordAfterUpdate.body).to.deep.equal({
           id: 1,
+          id_fields: { Id: 1 },
           fields: {
             ...recordBeforeUpdate.body.fields,
             SingleLineText: 'some text',
@@ -135,19 +136,17 @@ describe('dataApiV3', () => {
         expect(rsp.body.records).to.have.length(2);
         expect(rsp.body.records[0]).to.have.property('id', 1);
         expect(rsp.body.records[1]).to.have.property('id', 2);
-        rsp.body.records.forEach(record => {
+        rsp.body.records.forEach((record) => {
           expect(record).to.have.property('fields');
         });
       });
 
       it('Update: single with column id', async function () {
         const idMap = {
-
-            SingleLineText: columns.find(
-              (col) => col.title === 'SingleLineText',
-            )?.id,
-            MultiLineText: columns.find((col) => col.title === 'MultiLineText')
-              ?.id,
+          SingleLineText: columns.find((col) => col.title === 'SingleLineText')
+            ?.id,
+          MultiLineText: columns.find((col) => col.title === 'MultiLineText')
+            ?.id,
         };
 
         const updatePayload = {
@@ -207,7 +206,7 @@ describe('dataApiV3', () => {
         expect(rsp.body.records).to.have.length(2);
         expect(rsp.body.records[0]).to.have.property('id', 1);
         expect(rsp.body.records[1]).to.have.property('id', 2);
-        rsp.body.records.forEach(record => {
+        rsp.body.records.forEach((record) => {
           expect(record).to.have.property('fields');
         });
         const rspGet = await ncAxiosGet({

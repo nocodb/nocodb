@@ -1503,34 +1503,6 @@ export class AtImportProcessor {
       }
     };
 
-    // retrieve nc-view column ID from corresponding nc-column ID
-    const nc_getViewColumnId = async (viewId, viewType, ncColumnId) => {
-      // retrieve view Info
-      let viewDetails;
-
-      const _perfStart = recordPerfStart();
-      if (viewType === 'form') {
-        viewDetails = (
-          await this.formsService.formViewGet(context, { formViewId: viewId })
-        ).columns;
-        recordPerfStats(_perfStart, 'dbView.formRead');
-      } else if (viewType === 'gallery') {
-        viewDetails = (
-          await this.galleriesService.galleryViewGet(context, {
-            galleryViewId: viewId,
-          })
-        ).columns;
-        recordPerfStats(_perfStart, 'dbView.galleryRead');
-      } else {
-        viewDetails = await this.viewColumnsService.columnList(context, {
-          viewId: viewId,
-        });
-        recordPerfStats(_perfStart, 'dbView.gridColumnsList');
-      }
-
-      return viewDetails.find((x) => x.fk_column_id === ncColumnId)?.id;
-    };
-
     //////////  Data processing
 
     const nocoBaseDataProcessing_v2 = async (sDB, table, record) => {

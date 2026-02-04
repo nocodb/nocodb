@@ -75,15 +75,29 @@ const scheduledChangeInfo = computed(() => {
   }
 })
 
+const isTrialing = computed(() => activeSubscription.value?.status === 'trialing')
+
+const trialEndInfo = computed(() => {
+  const trialEnd = activeSubscription.value?.trial_end_at || activeSubscription.value?.billing_cycle_anchor
+  if (!trialEnd) return null
+  const trialEndDate = dayjs(trialEnd)
+  return {
+    date: trialEndDate.format('DD MMMM YYYY'),
+    daysRemaining: trialEndDate.diff(dayjs(), 'day'),
+  }
+})
+
 const nextInvoiceInfo = computed(() => {
   if (!activeSubscription.value) return null
+  if (!activeSubscription.value.upcoming_invoice_at) return null
   const nextInvoiceDate = dayjs(activeSubscription.value.upcoming_invoice_at)
+  if (!nextInvoiceDate.isValid()) return null
   return {
     date: `${nextInvoiceDate.format('DD MMMM YYYY')}`,
     amount: new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: activeSubscription.value.upcoming_invoice_currency || 'USD',
-    }).format(activeSubscription.value.upcoming_invoice_amount / 100),
+    }).format((activeSubscription.value.upcoming_invoice_amount || 0) / 100),
   }
 })
 
@@ -296,7 +310,14 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
             {{ $t(`objects.paymentPlan.${activePlanTitle}`) }}
           </span>
           <NcBadge
-            v-if="activeSubscription?.period"
+            v-if="isTrialing"
+            :border="false"
+            class="text-nc-content-purple-dark !bg-nc-bg-purple-light text-[10px] leading-[14px] !h-[18px] font-semibold"
+          >
+            Trial
+          </NcBadge>
+          <NcBadge
+            v-else-if="activeSubscription?.period"
             :border="false"
             class="text-nc-content-gray-subtle2 !bg-nc-bg-gray-medium text-[10px] leading-[14px] !h-[18px] font-semibold"
           >
@@ -372,13 +393,25 @@ const onUpdateSubscription = async (planId: string, stripePriceId: string, type:
         }"
       >
         <PaymentPlanUsageRow v-if="currentPlanTitle !== PlanTitles.FREE" :plan-meta="activePlanMeta">
-          <template #label> {{ $t('objects.currentPlan.nextInvoice') }} </template>
+          <template #label>
+            {{ isTrialing ? 'Trial Ends' : $t('objects.currentPlan.nextInvoice') }}
+          </template>
           <template #value>
             <div v-if="!activeSubscription">-</div>
             <div v-else-if="activeSubscription?.canceled_at" class="text-nc-content-red-medium">
               Marked for cancellation, due {{ new Date(activeSubscription.canceled_at).toLocaleDateString() }}
             </div>
-            <div v-else>{{ nextInvoiceInfo?.amount }}, {{ nextInvoiceInfo?.date }}</div>
+            <div v-else-if="isTrialing && trialEndInfo" class="flex items-center gap-2">
+              <span>{{ trialEndInfo.date }}</span>
+              <NcBadge
+                :border="false"
+                class="text-nc-content-purple-dark !bg-nc-bg-purple-light text-[10px] leading-[14px] !h-[18px] font-semibold"
+              >
+                {{ trialEndInfo.daysRemaining }} days left
+              </NcBadge>
+            </div>
+            <div v-else-if="nextInvoiceInfo">{{ nextInvoiceInfo.amount }}, {{ nextInvoiceInfo.date }}</div>
+            <div v-else>-</div>
           </template>
         </PaymentPlanUsageRow>
 

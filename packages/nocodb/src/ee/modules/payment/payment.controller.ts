@@ -91,6 +91,20 @@ export class PaymentController {
   }
 
   @UseGuards(AuthGuard('basic'))
+  @Post('/api/internal/payment/:workspaceOrOrgId/trial')
+  async addTrial(
+    @Param('workspaceOrOrgId') workspaceOrOrgId: string,
+    @Body() payload: { plan: string; days: number; period?: 'month' | 'year' },
+  ) {
+    return this.paymentService.addTrial(
+      workspaceOrOrgId,
+      payload.plan,
+      payload.days,
+      payload.period,
+    );
+  }
+
+  @UseGuards(AuthGuard('basic'))
   @Post('/api/internal/payment/:workspaceOrOrgId/reseat')
   async reseatSubscription(
     @Param('workspaceOrOrgId') workspaceOrOrgId: string,

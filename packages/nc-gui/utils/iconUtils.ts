@@ -60,6 +60,7 @@ import Up from '~icons/material-symbols/keyboard-arrow-up-rounded'
 import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 import PhTriangleFill from '~icons/ph/triangle-fill'
 import LcSend from '~icons/lucide/send'
+import LcFingerprint from '~icons/lucide/fingerprint'
 import MdiPuzzle from '~icons/mdi/puzzle'
 import MaterialSymbolsArrowDropUp from '~icons/material-symbols/arrow-drop-up'
 import MaterialSymbolsArrowDropDown from '~icons/material-symbols/arrow-drop-down'
@@ -1001,6 +1002,7 @@ export const iconMap = {
   'cellRollup': h(NcCellRollup, { stroke: 'transparent' }),
   'cellSingleSelect': NcCellSingleSelect,
   'cellText': NcCellText,
+  'cellUuid': LcFingerprint,
   'cellTime': NcCellTime,
   'cellUrl': NcCellUrl,
   'cellUser': NcCellUser,

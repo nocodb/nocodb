@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   APIContext,
   AppEvents,
@@ -6,13 +6,7 @@ import {
   NcBaseError,
   ViewTypes,
 } from 'nocodb-sdk';
-import { Logger } from '@nestjs/common';
 import { bulkUpdateViewColumns } from 'src/models/View/bulkUpdateViewColumns';
-import GridViewColumn from '../models/GridViewColumn';
-import GalleryViewColumn from '../models/GalleryViewColumn';
-import KanbanViewColumn from '../models/KanbanViewColumn';
-import MapViewColumn from '../models/MapViewColumn';
-import FormViewColumn from '../models/FormViewColumn';
 import type {
   CalendarColumnReqType,
   FormColumnReqType,
@@ -25,11 +19,11 @@ import type {
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { MetaService } from '~/meta/meta.service';
 import type { ViewWebhookManager } from '~/utils/view-webhook-manager';
-import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload, validatePayloadArr } from '~/helpers';
-import { CalendarViewColumn, Column, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { Column, View } from '~/models';
 import Noco from '~/Noco';
+import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import NocoSocket from '~/socket/NocoSocket';
 import { ViewWebhookManagerBuilder } from '~/utils/view-webhook-manager';
 
@@ -241,7 +235,14 @@ export class ViewColumnsService {
 
     const columns = Array.isArray(param.columns)
       ? param.columns
-      : param.columns?.[APIContext.VIEW_COLUMNS];
+      : Object.entries(
+          param.columns?.[APIContext.VIEW_COLUMNS] as Record<string, any>,
+        ).map(([key, val]) => {
+          return {
+            ...val,
+            fk_column_id: key,
+          };
+        });
 
     if (!columns) {
       NcError.get(context).badRequest('Invalid request - fields not found');

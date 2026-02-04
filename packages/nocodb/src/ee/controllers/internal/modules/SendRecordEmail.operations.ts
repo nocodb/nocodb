@@ -80,8 +80,14 @@ export class SendRecordEmailOperations
       );
     }
 
-    if (emails.length > 15) {
-      NcError.get(context).badRequest('Maximum 15 recipients allowed');
+    const maxRecipients = parseInt(
+      process.env.NC_SEND_RECORD_MAX_RECIPIENTS || '15',
+      10,
+    );
+    if (emails.length > maxRecipients) {
+      NcError.get(context).badRequest(
+        `Maximum ${maxRecipients} recipients allowed`,
+      );
     }
 
     const user = req.user;

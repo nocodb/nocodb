@@ -321,8 +321,9 @@ function sharedViewUrl(withPrefill = true) {
   }
 
   // Add theme parameter if defaultTheme is set
+  // Use 'nc-theme' to avoid conflicts with user form fields named 'theme'
   if (defaultTheme.value) {
-    queryParams.push(`theme=${defaultTheme.value}`)
+    queryParams.push(`nc-theme=${defaultTheme.value}`)
   }
 
   return `${encodeURI(baseUrl)}${queryParams.length > 0 ? `?${queryParams.join('&')}` : ''}`
@@ -595,7 +596,7 @@ const copyCustomUrl = async (custUrl = '') => {
             <div class="text-nc-content-gray-extreme flex items-center space-x-1">
               <div>Default Theme</div>
               <NcTooltip class="flex items-center">
-                <template #title>Set the default theme (light or dark) for this shared form</template>
+                <template #title>Set the default theme (light or dark) for this shared form. Adds ?nc-theme=light or ?nc-theme=dark to the URL.</template>
                 <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
               </NcTooltip>
             </div>

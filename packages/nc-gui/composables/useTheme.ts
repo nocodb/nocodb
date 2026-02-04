@@ -237,8 +237,10 @@ export const useTheme = createSharedComposable(() => {
     }
 
     // Check for theme query parameter on shared views (without persisting to localStorage)
-    if (isSharedViewRoute(route.value) && route.value.query?.theme) {
-      const queryTheme = route.value.query.theme as string
+    // Use 'nc-theme' to avoid conflicts with user form fields named 'theme'
+    const themeParam = route.value.query?.['nc-theme'] || route.value.query?.theme
+    if (isSharedViewRoute(route.value) && themeParam) {
+      const queryTheme = themeParam as string
       if (['light', 'dark'].includes(queryTheme)) {
         selectedTheme.value = queryTheme as 'light' | 'dark'
       }

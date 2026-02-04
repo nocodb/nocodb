@@ -145,7 +145,7 @@ const sendRecord = async () => {
         <label class="text-nc-content-gray text-sm font-medium">{{ $t('labels.to') }}</label>
 
         <div class="border-1 border-nc-border-gray-medium rounded-lg overflow-hidden">
-          <div class="p-2.5 border-b border-nc-border-gray-medium bg-nc-bg-gray-extralight min-h-12">
+          <div class="p-2 border-b border-nc-border-gray-medium bg-nc-bg-gray-extralight min-h-12">
             <div v-if="selectedUsers.length > 0" class="flex flex-wrap gap-2">
               <div
                 v-for="selectedUser in selectedUsers"

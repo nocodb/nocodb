@@ -442,9 +442,9 @@ const showSendRecordModal = ref(false)
 
 const contextMenuRowId = computed(() => {
   if (!contextMenuTarget.value || contextMenuTarget.value.row === -1) return null
-  const row = dataRef.value.get(contextMenuTarget.value.row)
+  const row = cachedRows.value.get(contextMenuTarget.value.row)
   if (!row) return null
-  return extractPkFromRow(row.row, meta.value?.columns)
+  return extractPkFromRow(row.row, meta.value?.columns || [])
 })
 
 const contextMenu = computed({

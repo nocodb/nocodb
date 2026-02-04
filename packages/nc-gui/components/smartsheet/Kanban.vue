@@ -1370,13 +1370,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
     </template>
   </GeneralDeleteModal>
 
-  <DlgSendRecordEmail
-    v-if="meta && contextMenuRowId"
-    v-model="showSendRecordModal"
-    :meta="meta"
-    :view="view"
-    :row-id="contextMenuRowId"
-  />
+  <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="contextMenuRowId" />
 </template>
 
 <style lang="scss" scoped>

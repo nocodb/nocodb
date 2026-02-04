@@ -383,6 +383,7 @@ export interface IBaseModelSqlV2 {
     disableOptimization?: boolean;
     view?: View;
   }): Promise<any>;
+  nestedInsert(data, request: NcRequest, _trx?, param?): Promise<any>;
 
   broadcastLinkUpdates(ids: Array<string>): Promise<void>;
   getSource(): Promise<Source>;

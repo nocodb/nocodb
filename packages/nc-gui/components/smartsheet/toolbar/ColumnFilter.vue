@@ -131,7 +131,7 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
-const { isUIAllowed, baseRoles } = useRoles()
+const { isUIAllowed } = useRoles()
 
 const { nestedFilters, isForm, eventBus } =
   widget.value || workflow.value
@@ -306,8 +306,8 @@ const filterUpdateCondition = (filter: FilterType, i: number) => {
 }
 
 watch(
-  [() => activeView.value?.id, baseRoles],
-  ([viewId], [oldViewId]) => {
+  () => activeView.value?.id,
+  (viewId, oldViewId) => {
     // if nested no need to reload since it will get reloaded from parent
     // if isViewFilter (toolbar), rely on ColumnFilterMenu to load filters
     if (
@@ -328,7 +328,7 @@ watch(
         isLink: link.value,
       })
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 )
 
 const allFilters: Ref<Record<string, FilterType[]>> = inject(AllFiltersInj, ref({}))

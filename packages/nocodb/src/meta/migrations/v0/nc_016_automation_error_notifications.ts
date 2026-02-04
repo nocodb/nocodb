@@ -12,6 +12,10 @@ const up = async (knex: Knex) => {
     );
   });
 
+  await knex(MetaTable.AUTOMATION_EXECUTIONS)
+    .where('status', 'error')
+    .update({ error_notified_at: knex.fn.now() });
+
   await knex.schema.createTable(
     MetaTable.AUTOMATION_SUBSCRIBERS,
     (table) => {

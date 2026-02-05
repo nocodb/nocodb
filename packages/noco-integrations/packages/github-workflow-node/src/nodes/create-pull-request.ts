@@ -60,7 +60,7 @@ export class CreatePullRequestNode extends WorkflowNodeIntegration<CreatePullReq
       },
       {
         type: FormBuilderInputType.Select,
-        label: 'Target Branch (usually main)',
+        label: 'Target Branch',
         model: 'config.baseBranch',
         placeholder: 'Select target branch (e.g., main)',
         fetchOptionsKey: 'baseBranches',

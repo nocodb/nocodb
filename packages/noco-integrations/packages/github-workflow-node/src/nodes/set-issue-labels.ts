@@ -78,7 +78,7 @@ export class SetIssueLabelsNode extends GitHubIssueLabelActionNode<SetIssueLabel
 
     return {
       id: 'github.action.set_issue_labels',
-      title: 'Set Issue Labels',
+      title: 'Set issue labels',
       description:
         'Replace all labels on an issue in a GitHub repository',
       icon: 'githubSolid',

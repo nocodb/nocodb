@@ -1,11 +1,13 @@
 import { Inject, Logger } from '@nestjs/common';
-import { EventType } from 'nocodb-sdk';
+import { EventType, NOCO_SERVICE_USERS, ServiceUserType } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { Job } from 'bull';
-import type { HeartbeatWorkflowJobData } from '~/interface/Jobs';
+import type { HeartbeatWorkflowJobData, PollWorkflowJobData } from '~/interface/Jobs';
 import {
   type ExecuteWorkflowJobData,
   type ResumeWorkflowJobData,
+  type TestWorkflowNodeJobData,
+  JobTypes,
 } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import Workflow from '~/models/Workflow';
@@ -211,6 +213,155 @@ export class WorkflowProcessor {
       await this.workflowExecutionService.heartbeatWorkflow(context, workflow);
     } catch (error) {
       this.logger.error(`Failed to execute workflow ${workflowId}:`, error);
+      throw error;
+    }
+  }
+
+  async pollWorkflow(job: Job<PollWorkflowJobData>) {
+    const { context, workflowId, triggerNodeId, activationState } = job.data;
+
+    const workflow = await Workflow.get(context, workflowId);
+    if (!workflow) {
+      this.logger.error(`Workflow not found for id: ${workflowId}`);
+      return;
+    }
+
+    if (!workflow.enabled) {
+      this.logger.warn(
+        `Workflow ${workflowId} is disabled, skipping poll`,
+      );
+      return;
+    }
+
+    try {
+      // Get trigger node from workflow
+      const triggerNode = workflow.nodes?.find(
+        (node) => node.id === triggerNodeId,
+      );
+      if (!triggerNode) {
+        this.logger.error(
+          `Trigger node ${triggerNodeId} not found in workflow ${workflowId}`,
+        );
+        return;
+      }
+
+      // Get the node wrapper
+      const wrapper = this.workflowExecutionService.getNodeWrapper(
+        context,
+        triggerNode.type,
+        triggerNode.data?.config,
+      );
+
+      if (!wrapper) {
+        this.logger.error(
+          `Failed to get wrapper for trigger node ${triggerNodeId}`,
+        );
+        return;
+      }
+
+      if (typeof wrapper.poll !== 'function') {
+        this.logger.error(
+          `Trigger node ${triggerNodeId} does not implement poll() method`,
+        );
+        return;
+      }
+
+      // Call poll() with previous cursor
+      const pollResult = await wrapper.poll({
+        workflowId,
+        nodeId: triggerNodeId,
+        previousCursor: activationState?.cursor || null,
+        scheduledTime: new Date().toISOString(),
+      });
+
+      this.logger.debug(
+        `Poll returned ${pollResult.items.length} items for workflow ${workflowId}`,
+      );
+
+      // Update cursor in activation state
+      const updatedActivationState = {
+        ...activationState,
+        cursor: pollResult.cursor,
+        lastPollAt: new Date().toISOString(),
+        lastItemCount: pollResult.items.length,
+      };
+
+      // Save updated cursor
+      await Workflow.trackExternalTrigger(context, workflowId, {
+        nodeId: triggerNodeId,
+        nodeType: triggerNode.type,
+        activationState: updatedActivationState,
+      });
+
+      // Queue workflow executions for detected items
+      if (pollResult.items.length > 0) {
+        const batchMode = pollResult.batchMode || activationState?.batchMode || 'single';
+
+        if (batchMode === 'batch') {
+          // All items in a single workflow execution
+          await this.jobsService.add(JobTypes.ExecuteWorkflow, {
+            context,
+            workflowId,
+            triggerNodeId,
+            triggerInputs: {
+              items: pollResult.items,
+              itemCount: pollResult.items.length,
+              timestamp: new Date().toISOString(),
+              batchMode: true,
+            },
+            user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+          });
+
+          this.logger.debug(
+            `Queued batch workflow execution for ${pollResult.items.length} items`,
+          );
+        } else {
+          // One workflow execution per item
+          for (const item of pollResult.items) {
+            await this.jobsService.add(JobTypes.ExecuteWorkflow, {
+              context,
+              workflowId,
+              triggerNodeId,
+              triggerInputs: {
+                item,
+                timestamp: new Date().toISOString(),
+                batchMode: false,
+              },
+              user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+            });
+          }
+
+          this.logger.debug(
+            `Queued ${pollResult.items.length} individual workflow executions`,
+          );
+        }
+      }
+
+      return { itemsFound: pollResult.items.length };
+    } catch (error) {
+      this.logger.error(`Failed to poll workflow ${workflowId}:`, error);
+
+      // Update activation state with error info
+      try {
+        const errorState = {
+          ...activationState,
+          lastPollAt: new Date().toISOString(),
+          lastError: error.message,
+          consecutiveErrors: (activationState?.consecutiveErrors || 0) + 1,
+        };
+
+        await Workflow.trackExternalTrigger(context, workflowId, {
+          nodeId: triggerNodeId,
+          nodeType: workflow.nodes?.find((n) => n.id === triggerNodeId)?.type,
+          activationState: errorState,
+        });
+      } catch (updateError) {
+        this.logger.error(
+          `Failed to update error state for workflow ${workflowId}:`,
+          updateError,
+        );
+      }
+
       throw error;
     }
   }

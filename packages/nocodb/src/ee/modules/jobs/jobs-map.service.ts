@@ -163,6 +163,10 @@ export class JobsMap extends JobsMapCE {
         this: this.workflowProcessor,
         fn: 'heartbeatWorkflow',
       },
+      [JobTypes.PollWorkflow]: {
+        this: this.workflowProcessor,
+        fn: 'pollWorkflow',
+      },
     };
   }
 }

@@ -63,7 +63,19 @@ export class WorkflowScheduleProcessor {
         }
 
         const scheduledTime = trigger.queryable_field_2;
-        if (activationState?.heartbeat) {
+        if (activationState?.polling) {
+          const job = await this.jobsService.add(JobTypes.PollWorkflow, {
+            context,
+            workflowId: trigger.source_id,
+            triggerNodeId: nodeId,
+            activationState,
+            user: NOCO_SERVICE_USERS[ServiceUserType.WORKFLOW_USER],
+          });
+
+          this.logger.debug(
+            `Queued polling workflow ${trigger.source_id} with job ${job.id}`,
+          );
+        } else if (activationState?.heartbeat) {
           // some trigger need heartbeat
           await this.jobsService.add(JobTypes.HeartbeatWorkflow, {
             context,

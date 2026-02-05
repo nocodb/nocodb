@@ -782,6 +782,13 @@ export class WorkflowsService implements OnModuleInit {
             triggerNode,
             wrapper,
           );
+        } else if (activationType === TriggerActivationType.POLLING) {
+          await this.activatePollingTrigger(
+            context,
+            workflow,
+            triggerNode,
+            wrapper,
+          );
         }
       } catch (error) {
         console.error(
@@ -852,6 +859,42 @@ export class WorkflowsService implements OnModuleInit {
     });
 
     if (!activationState?.cronExpression) return;
+
+    const interval = CronExpressionParser.parse(
+      activationState.cronExpression,
+      {
+        tz: activationState.timezone,
+        currentDate: new Date(),
+      },
+    );
+    const nextSyncAt = interval.next().toISOString();
+    await Workflow.trackExternalTrigger(context, workflow.id, {
+      nodeId: triggerNode.id,
+      nodeType: triggerNode.type,
+      nextSyncAt,
+      activationState,
+    });
+  }
+
+  /**
+   * Activate a polling-based trigger
+   */
+  private async activatePollingTrigger(
+    context: NcContext,
+    workflow: Workflow,
+    triggerNode: any,
+    wrapper: any,
+  ): Promise<void> {
+    // Call onActivateHook to get polling configuration
+    const activationState = await wrapper.onActivateHook({
+      workflowId: workflow.id,
+      nodeId: triggerNode.id,
+    });
+
+    if (!activationState?.cronExpression) return;
+
+    // Mark as polling trigger
+    activationState.polling = true;
 
     const interval = CronExpressionParser.parse(
       activationState.cronExpression,

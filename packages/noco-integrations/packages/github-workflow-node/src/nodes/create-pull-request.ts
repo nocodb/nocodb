@@ -60,7 +60,7 @@ export class CreatePullRequestNode extends WorkflowNodeIntegration<CreatePullReq
       },
       {
         type: FormBuilderInputType.Select,
-        label: 'Base Branch',
+        label: 'Target Branch (usually main)',
         model: 'config.baseBranch',
         placeholder: 'Select target branch (e.g., main)',
         fetchOptionsKey: 'baseBranches',
@@ -74,7 +74,7 @@ export class CreatePullRequestNode extends WorkflowNodeIntegration<CreatePullReq
       },
       {
         type: FormBuilderInputType.Select,
-        label: 'Head Branch',
+        label: 'Source Branch',
         model: 'config.headBranch',
         placeholder: 'Select source branch to merge',
         fetchOptionsKey: 'headBranches',
@@ -82,7 +82,7 @@ export class CreatePullRequestNode extends WorkflowNodeIntegration<CreatePullReq
         validators: [
           {
             type: FormBuilderValidatorType.Required,
-            message: 'Head branch is required',
+            message: 'Source branch is required',
           },
         ],
       },
@@ -305,7 +305,7 @@ export class CreatePullRequestNode extends WorkflowNodeIntegration<CreatePullReq
           {
             key: 'pr.base.ref',
             type: NocoSDK.VariableType.String,
-            name: 'Target Branch (usually main)',
+            name: 'Target Branch',
             extra: {
               icon: 'ncBranch',
             },

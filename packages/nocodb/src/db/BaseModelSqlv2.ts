@@ -161,8 +161,6 @@ const MAX_RECURSION_DEPTH = 2;
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
 
-const debugCount = debug('nc:db:query:baseModel:count');
-
 /**
  * Base class for models
  *

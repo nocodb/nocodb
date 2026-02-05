@@ -1572,6 +1572,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                       <div class="flex justify-between items-center mt-6 !px-8 !lg:px-12">
                         <NcButton
+                          v-if="!parseProp(formViewData?.meta)?.hide_clear_button"
                           type="secondary"
                           size="small"
                           :disabled="disableFormSubmit"
@@ -1580,7 +1581,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           data-title="nc-form-clear"
                           @click.stop="clearForm"
                         >
-                          {{ $t('activity.clearForm') }}
+                          {{ parseProp(formViewData?.meta)?.custom_clear_text || $t('activity.clearForm') }}
                         </NcButton>
 
                         <NcButton
@@ -1593,7 +1594,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                           data-title="nc-form-submit"
                           @click.stop="submitForm"
                         >
-                          {{ $t('general.submit') }}
+                          {{ parseProp(formViewData?.meta)?.custom_submit_text || $t('general.submit') }}
                         </NcButton>
                       </div>
                     </a-form>
@@ -2143,6 +2144,70 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 data-testid="nc-form-checkbox-show-blank-form"
                                 :disabled="isLocked || !isEditable"
                                 @change="updateView"
+                              />
+                            </div>
+
+                            <!-- Button Customization -->
+                            <div class="flex items-center justify-between gap-3">
+                              <!-- Hide Clear Form button -->
+                              <span>{{ $t('general.hide') }} {{ $t('activity.clearForm') }} {{ $t('objects.button') }}</span>
+                              <a-switch
+                                v-e="[`a:form-view:hide-clear-button`]"
+                                :checked="parseProp(formViewData.meta)?.hide_clear_button"
+                                size="small"
+                                class="nc-form-hide-clear-button"
+                                data-testid="nc-form-hide-clear-button"
+                                :disabled="isLocked || !isEditable"
+                                @change="(value) => {
+                                  if (isLocked || !isEditable) return
+                                  
+                                  (formViewData!.meta as Record<string,any>).hide_clear_button = value
+                                  updateView()
+                                }"
+                              />
+                            </div>
+
+                            <div class="flex flex-col gap-3">
+                              <!-- Custom Clear Form button text -->
+                              <div class="flex items-center justify-between gap-3">
+                                <span>{{ $t('activity.clearForm') }} {{ $t('objects.button') }} {{ $t('labels.text') }}</span>
+                              </div>
+                              <a-input
+                                v-e="[`a:form-view:custom-clear-text`]"
+                                :value="parseProp(formViewData.meta)?.custom_clear_text || ''"
+                                :placeholder="$t('activity.clearForm')"
+                                size="small"
+                                class="nc-form-custom-clear-text"
+                                data-testid="nc-form-custom-clear-text"
+                                :disabled="isLocked || !isEditable"
+                                @blur="(e) => {
+                                  if (isLocked || !isEditable) return
+                                  
+                                  (formViewData!.meta as Record<string,any>).custom_clear_text = e.target.value
+                                  updateView()
+                                }"
+                              />
+                            </div>
+
+                            <div class="flex flex-col gap-3">
+                              <!-- Custom Submit button text -->
+                              <div class="flex items-center justify-between gap-3">
+                                <span>{{ $t('general.submit') }} {{ $t('objects.button') }} {{ $t('labels.text') }}</span>
+                              </div>
+                              <a-input
+                                v-e="[`a:form-view:custom-submit-text`]"
+                                :value="parseProp(formViewData.meta)?.custom_submit_text || ''"
+                                :placeholder="$t('general.submit')"
+                                size="small"
+                                class="nc-form-custom-submit-text"
+                                data-testid="nc-form-custom-submit-text"
+                                :disabled="isLocked || !isEditable"
+                                @blur="(e) => {
+                                  if (isLocked || !isEditable) return
+                                  
+                                  (formViewData!.meta as Record<string,any>).custom_submit_text = e.target.value
+                                  updateView()
+                                }"
                               />
                             </div>
                           </template>

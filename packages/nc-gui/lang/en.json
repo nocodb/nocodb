@@ -488,6 +488,7 @@
     "scripts": "Scripts",
     "automation": "Automation",
     "automations": "Automations",
+    "button": "Button",
     "dashboard": "Dashboard",
     "dashboards": "Dashboards",
     "workflow": "Workflow",

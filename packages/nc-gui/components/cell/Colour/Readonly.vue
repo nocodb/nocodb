@@ -62,8 +62,8 @@ const showHex = computed(() => {
     <div
       v-if="showSwatch && displayValue"
       :class="[sizeClass, shapeClass]"
-      :style="{ backgroundColor: displayValue }"
-      class="border border-gray-300 flex-shrink-0"
+      :style="{ backgroundColor: displayValue, borderColor: displayValue === '#FFFFFF' ? '#d1d5db' : '#d1d5db' }"
+      class="border flex-shrink-0"
     />
     
     <span

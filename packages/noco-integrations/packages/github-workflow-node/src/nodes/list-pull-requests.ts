@@ -226,16 +226,25 @@ export class ListPullRequestsNode extends WorkflowNodeIntegration<ListPullReques
               key: 'id',
               type: NocoSDK.VariableType.Number,
               name: 'ID',
+              extra: {
+                icon: 'ncHash',
+              },
             },
             {
               key: 'number',
               type: NocoSDK.VariableType.Number,
               name: 'PR Number',
+              extra: {
+                icon: 'ncHash',
+              },
             },
             {
               key: 'title',
               type: NocoSDK.VariableType.String,
               name: 'Title',
+              extra: {
+                icon: 'cellText',
+              },
             },
             {
               key: 'body',
@@ -246,16 +255,41 @@ export class ListPullRequestsNode extends WorkflowNodeIntegration<ListPullReques
               key: 'state',
               type: NocoSDK.VariableType.String,
               name: 'State',
+              extra: {
+                icon: 'ncInfo',
+              },
             },
             {
               key: 'draft',
               type: NocoSDK.VariableType.Boolean,
               name: 'Is Draft',
+              extra: {
+                icon: 'cellCheckbox',
+              },
             },
             {
               key: 'html_url',
               type: NocoSDK.VariableType.String,
               name: 'URL',
+              extra: {
+                icon: 'ncLink',
+              },
+            },
+            {
+              key: 'base.ref',
+              type: NocoSDK.VariableType.String,
+              name: 'Target Branch',
+              extra: {
+                icon: 'ncBranch',
+              },
+            },
+            {
+              key: 'head.ref',
+              type: NocoSDK.VariableType.String,
+              name: 'Source Branch',
+              extra: {
+                icon: 'ncBranch',
+              },
             },
             {
               key: 'created_at',

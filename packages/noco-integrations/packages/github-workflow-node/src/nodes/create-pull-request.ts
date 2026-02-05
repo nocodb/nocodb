@@ -279,6 +279,11 @@ export class CreatePullRequestNode extends WorkflowNodeIntegration<CreatePullReq
             },
           },
           {
+            key: 'pr.body',
+            type: NocoSDK.VariableType.String,
+            name: 'Body',
+          },
+          {
             key: 'pr.html_url',
             type: NocoSDK.VariableType.String,
             name: 'URL',

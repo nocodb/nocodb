@@ -239,9 +239,27 @@ export class AddIssueLabelsNode extends WorkflowNodeIntegration<AddIssueLabelsNo
         key: 'labels',
         type: NocoSDK.VariableType.Array,
         name: 'Labels',
+        isArray: true,
         extra: {
           icon: 'ncTag',
           description: 'Updated list of labels on the issue',
+          itemSchema: [
+            {
+              key: 'name',
+              type: NocoSDK.VariableType.String,
+              name: 'Name',
+            },
+            {
+              key: 'color',
+              type: NocoSDK.VariableType.String,
+              name: 'Color',
+            },
+            {
+              key: 'description',
+              type: NocoSDK.VariableType.String,
+              name: 'Description',
+            },
+          ]
         },
       },
     ];

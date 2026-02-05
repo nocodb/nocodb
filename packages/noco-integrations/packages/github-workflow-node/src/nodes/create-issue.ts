@@ -119,7 +119,7 @@ export class CreateIssueNode extends WorkflowNodeIntegration<CreateIssueNodeConf
 
     return {
       id: 'github.action.create_issue',
-      title: 'Create Issue',
+      title: 'Create issue',
       description: 'Create a new issue in a GitHub repository',
       icon: 'githubSolid',
       category: WorkflowNodeCategory.ACTION,

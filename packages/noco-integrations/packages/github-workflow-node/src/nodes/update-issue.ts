@@ -15,6 +15,10 @@ import type {
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
+import { fetchRepo } from './utils/fetch-repo';
+import { fetchLabel } from './utils/fetch-label';
+import { fetchMilestone } from './utils/fetch-milestone';
+import { fetchAssignee } from './utils/fetch-assignee';
 
 const STATE_OPTIONS = [
   { label: 'Open', value: 'open' },
@@ -157,118 +161,17 @@ export class UpdateIssueNode extends WorkflowNodeIntegration<UpdateIssueNodeConf
       await this.getIntegration<GithubAuthIntegration>(authIntegrationId);
 
     switch (key) {
-      case 'repos': {
-        try {
-          const options: { label: string; value: string }[] = [];
+      case 'repos':
+        return fetchRepo(auth);
 
-          const reposIterator = await auth.use(async (octokit) => {
-            return octokit.paginate.iterator(
-              octokit.rest.repos.listForAuthenticatedUser,
-              {
-                per_page: 100,
-                sort: 'updated',
-                direction: 'desc',
-              },
-            );
-          });
+      case 'milestones':
+        return this.config.repo ? fetchMilestone(auth, this.config) : [];
 
-          for await (const { data: repos } of reposIterator) {
-            for (const repo of repos) {
-              if (
-                repo.permissions?.admin ||
-                repo.permissions?.maintain ||
-                repo.permissions?.push
-              ) {
-                options.push({
-                  label: `${repo.owner.login}/${repo.name}`,
-                  value: `${repo.owner.login}/${repo.name}`,
-                });
-              }
-            }
-          }
+      case 'labels':
+        return this.config.repo ? fetchLabel(auth, this.config) : [];
 
-          return options;
-        } catch (error) {
-          console.error('[GitHub] Error fetching repositories:', error);
-          return [];
-        }
-      }
-
-      case 'milestones': {
-        if (!this.config.repo) return [];
-
-        try {
-          const [owner, repo] = this.config.repo.split('/');
-
-          const milestones = await auth.use(async (octokit) => {
-            const response = await octokit.rest.issues.listMilestones({
-              owner,
-              repo,
-              state: 'open',
-              per_page: 100,
-            });
-            return response.data;
-          });
-
-          return milestones.map((milestone) => ({
-            label: milestone.title,
-            value: milestone.number,
-          }));
-        } catch (error) {
-          console.error('[GitHub] Error fetching milestones:', error);
-          return [];
-        }
-      }
-
-      case 'labels': {
-        if (!this.config.repo) return [];
-
-        try {
-          const [owner, repo] = this.config.repo.split('/');
-
-          const labels = await auth.use(async (octokit) => {
-            const response = await octokit.rest.issues.listLabelsForRepo({
-              owner,
-              repo,
-              per_page: 100,
-            });
-            return response.data;
-          });
-
-          return labels.map((label) => ({
-            label: label.name,
-            value: label.name,
-          }));
-        } catch (error) {
-          console.error('[GitHub] Error fetching labels:', error);
-          return [];
-        }
-      }
-
-      case 'assignees': {
-        if (!this.config.repo) return [];
-
-        try {
-          const [owner, repo] = this.config.repo.split('/');
-
-          const assignees = await auth.use(async (octokit) => {
-            const response = await octokit.rest.repos.listCollaborators({
-              owner,
-              repo,
-              per_page: 100,
-            });
-            return response.data;
-          });
-
-          return assignees.map((user) => ({
-            label: user.login,
-            value: user.login,
-          }));
-        } catch (error) {
-          console.error('[GitHub] Error fetching assignees:', error);
-          return [];
-        }
-      }
+      case 'assignees':
+        return this.config.repo ? fetchAssignee(auth, this.config) : [];
 
       default:
         return [];

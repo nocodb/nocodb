@@ -62,6 +62,8 @@ export enum JobTypes {
   ResumeWorkflow = 'resume-workflow',
   TestWorkflowNode = 'test-workflow-node',
   HeartbeatWorkflow = 'heartbeat-workflow',
+  PollWorkflow = 'poll-workflow',
+  WorkflowErrorNotification = 'workflow-error-notification',
 }
 
 export const SKIP_STORING_JOB_META = [
@@ -81,6 +83,8 @@ export const SKIP_STORING_JOB_META = [
   JobTypes.WorkflowResumeSchedule,
   JobTypes.ResumeWorkflow,
   JobTypes.HeartbeatWorkflow,
+  JobTypes.PollWorkflow,
+  JobTypes.WorkflowErrorNotification,
 ];
 
 export enum JobStatus {

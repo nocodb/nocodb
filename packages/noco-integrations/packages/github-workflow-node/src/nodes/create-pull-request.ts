@@ -305,7 +305,7 @@ export class CreatePullRequestNode extends WorkflowNodeIntegration<CreatePullReq
           {
             key: 'pr.base.ref',
             type: NocoSDK.VariableType.String,
-            name: 'Base Branch',
+            name: 'Target Branch (usually main)',
             extra: {
               icon: 'ncBranch',
             },
@@ -313,7 +313,7 @@ export class CreatePullRequestNode extends WorkflowNodeIntegration<CreatePullReq
           {
             key: 'pr.head.ref',
             type: NocoSDK.VariableType.String,
-            name: 'Head Branch',
+            name: 'Source Branch',
             extra: {
               icon: 'ncBranch',
             },

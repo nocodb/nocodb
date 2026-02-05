@@ -105,11 +105,12 @@ export class MailService {
         }
       }
 
-      if(params.automationId){
-        url += `/workflows/${params.automationId}`
+      if (params.automationId) {
+        url += `/workflows/${params.automationId}`;
 
-        if(params.executionId){
+        if (params.executionId) {
           const searchParams = new URLSearchParams();
+          searchParams.set('tab', 'logs');
           searchParams.set('executionId', params.executionId);
           url += `?${searchParams.toString()}`;
         }

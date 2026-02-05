@@ -317,7 +317,6 @@ export class UpdateDealNode extends HubspotNodeBase<UpdateDealConfig> {
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
-      hidden: true,
       keywords: ['hubspot', 'crm', 'deal', 'update', 'edit', 'modify'],
     };
   }

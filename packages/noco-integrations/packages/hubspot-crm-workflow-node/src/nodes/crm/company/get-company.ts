@@ -55,7 +55,6 @@ export class GetCompanyNode extends HubspotNodeBase<GetCompanyConfig> {
       title: 'Get Company',
       description: 'Get a company by ID from HubSpot CRM',
       icon: 'hubspot',
-      hidden: true,
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,

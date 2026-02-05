@@ -83,7 +83,7 @@ export class AddIssueLabelsNode extends GitHubIssueLabelActionNode<AddIssueLabel
 
     return {
       id: 'github.action.add_issue_labels',
-      title: 'Add Issue Labels',
+      title: 'Add issue labels',
       description: 'Add labels to an existing issue in a GitHub repository',
       icon: 'githubSolid',
       category: WorkflowNodeCategory.ACTION,

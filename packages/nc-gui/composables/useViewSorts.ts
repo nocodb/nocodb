@@ -34,11 +34,11 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
     // Wait for meta to be available before loading sorts (up to 5 seconds)
     if (!meta.value && view?.value) {
-      const metaLoaded = await Promise.race([
-        until(meta).toBeTruthy(),
-        new Promise((resolve) => setTimeout(() => resolve(false), 5000)),
-      ])
-      if (!metaLoaded) return
+      try {
+        await until(meta).toBeTruthy({ timeout: 5000, throwOnTimeout: true })
+      } catch {
+        return
+      }
     }
 
     try {

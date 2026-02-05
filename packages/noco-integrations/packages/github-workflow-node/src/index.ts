@@ -5,7 +5,10 @@ import {
 import { manifest } from './manifest';
 import { AddIssueLabelsNode } from './nodes/add-issue-labels';
 import { CreateIssueNode } from './nodes/create-issue';
+import { CreatePullRequestNode } from './nodes/create-pull-request';
 import { GitHubTriggerNode } from './nodes/github-trigger';
+import { ListIssuesNode } from './nodes/list-issues';
+import { ListPullRequestsNode } from './nodes/list-pull-requests';
 import { RemoveIssueLabelNode } from './nodes/remove-issue-label';
 import { SetIssueLabelsNode } from './nodes/set-issue-labels';
 import { UpdateIssueNode } from './nodes/update-issue';
@@ -85,6 +88,45 @@ export const entries: IntegrationEntry[] = [
       title: 'Remove Issue Label',
       icon: 'githubSolid',
       order: 6,
+    },
+    packageManifest: manifest,
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'github.action.create_pull_request',
+    wrapper: CreatePullRequestNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'Create Pull Request',
+      icon: 'githubSolid',
+      order: 7,
+    },
+    packageManifest: manifest,
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'github.action.list_issues',
+    wrapper: ListIssuesNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'List Issues',
+      icon: 'githubSolid',
+      order: 8,
+    },
+    packageManifest: manifest,
+  },
+  {
+    type: IntegrationType.WorkflowNode,
+    sub_type: 'github.action.list_pull_requests',
+    wrapper: ListPullRequestsNode,
+    form: [],
+    manifest: {
+      ...manifest,
+      title: 'List Pull Requests',
+      icon: 'githubSolid',
+      order: 9,
     },
     packageManifest: manifest,
   },

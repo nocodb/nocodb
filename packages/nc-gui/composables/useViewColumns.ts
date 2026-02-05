@@ -363,10 +363,18 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       set(v: boolean) {
         if (view?.value?.id) {
           if (!isLocalMode.value) {
-            $api.dbView
-              .update(view.value.id, {
-                show_system_fields: v,
-              })
+            $api.internal
+              .postOperation(
+                view.value.fk_workspace_id!,
+                view.value.base_id!,
+                {
+                  operation: 'viewUpdate',
+                  viewId: view.value.id,
+                },
+                {
+                  show_system_fields: v,
+                },
+              )
               .finally(() => {
                 loadViewColumns()
                 reloadData?.()

@@ -52,6 +52,21 @@ const swatchSizeOptions = [
 
 <template>
   <div class="w-full">
+    <!-- 
+    Hidden configuration options as requested - keeping code but commenting out UI:
+    - Default color
+    - Display format  
+    - Swatch style
+    - Swatch size
+    
+    These will use the defaults set in the column helper:
+    - defaultColor: '#FFFFFF' (white)
+    - displayFormat: 'swatch_hex' (Color swatch + hex code)
+    - swatchStyle: 'circle' 
+    - swatchSize: 'medium'
+    -->
+    
+    <!--
     <a-row :gutter="8">
       <a-col :span="12">
         <a-form-item :label="$t('labels.defaultColor')">
@@ -173,6 +188,7 @@ const swatchSizeOptions = [
         </a-form-item>
       </a-col>
     </a-row>
+    -->
   </div>
 </template>
 

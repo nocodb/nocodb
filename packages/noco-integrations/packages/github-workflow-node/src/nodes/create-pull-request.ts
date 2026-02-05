@@ -129,7 +129,7 @@ export class CreatePullRequestNode extends WorkflowNodeIntegration<CreatePullReq
 
     return {
       id: 'github.action.create_pull_request',
-      title: 'Create Pull Request',
+      title: 'Create pull request',
       description: 'Create a new pull request in a GitHub repository',
       icon: 'githubSolid',
       category: WorkflowNodeCategory.ACTION,

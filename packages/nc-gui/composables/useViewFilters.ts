@@ -378,11 +378,7 @@ export function useViewFilters(
   } = {}) => {
     // Wait for meta to be available before loading filters (up to 5 seconds)
     if (!meta.value && view.value?.id) {
-      try {
-        await until(meta).toBeTruthy({ timeout: 5000, throwOnTimeout: true })
-      } catch {
-        return
-      }
+      await until(meta).toBeTruthy({ timeout: 5000 })
     }
 
     if (!view.value?.id || !meta.value) return

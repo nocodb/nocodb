@@ -212,14 +212,6 @@ const isGridCellMouseDown = ref(false)
 // #Context Menu
 const contextMenuClosing = ref(false)
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
-const showSendRecordModal = ref(false)
-
-const contextMenuRowId = computed(() => {
-  if (!contextMenuTarget.value || contextMenuTarget.value.row === -1) return null
-  const row = dataRef.value[contextMenuTarget.value.row]
-  if (!row) return null
-  return extractPkFromRow(row.row, meta.value?.columns)
-})
 
 const _contextMenu = ref(false)
 
@@ -2710,12 +2702,6 @@ onKeyStroke('ArrowDown', onDown)
                   {{ $t('general.add') }} {{ $t('general.comment').toLowerCase() }}
                 </div>
               </NcMenuItem>
-              <NcMenuItem v-if="contextMenuRowId && !isPublicView" class="nc-base-menu-item" @click="showSendRecordModal = true">
-                <div class="flex gap-2 items-center">
-                  <GeneralIcon icon="mail" class="h-4 w-4" />
-                  {{ $t('activity.sendRecord') }}
-                </div>
-              </NcMenuItem>
             </template>
 
             <template v-if="hasEditPermission && !isDataReadOnly">
@@ -2931,14 +2917,6 @@ onKeyStroke('ArrowDown', onDown)
       </NcDropdown>
     </div>
   </div>
-
-  <DlgSendRecordEmail
-    v-if="meta && contextMenuRowId"
-    v-model="showSendRecordModal"
-    :meta="meta"
-    :view="view"
-    :row-id="contextMenuRowId"
-  />
 </template>
 
 <style lang="scss">

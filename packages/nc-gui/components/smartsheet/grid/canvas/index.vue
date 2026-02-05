@@ -3123,13 +3123,7 @@ watch(
     </div>
   </div>
 
-  <DlgSendRecordEmail
-    v-if="meta && sendRecordRowId"
-    v-model="showSendRecordModal"
-    :meta="meta"
-    :view="view"
-    :row-id="sendRecordRowId"
-  />
+  <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="sendRecordRowId" />
 </template>
 
 <style scoped lang="scss">

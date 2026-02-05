@@ -3283,7 +3283,6 @@ const headerFilteredOrSortedClass = (colId: string) => {
   </div>
 
   <DlgSendRecordEmail
-    v-if="meta && contextMenuRowId"
     v-model="showSendRecordModal"
     :meta="meta"
     :view="view"

@@ -144,6 +144,21 @@ const onClose = () => {
   editEnabled.value = false
 }
 
+// Handle keyboard events for Enter (save) and Escape (cancel)
+const onKeyDown = (e: KeyboardEvent) => {
+  if (!isOpen.value) return
+  
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    e.stopPropagation()
+    onSave()
+  } else if (e.key === 'Escape') {
+    e.preventDefault()
+    e.stopPropagation()
+    onClose()
+  }
+}
+
 // Auto-open color picker when cell becomes editable
 watch(
   editEnabled,
@@ -165,6 +180,20 @@ watch(isOpen, (open) => {
   if (open && !editEnabled.value) {
     editEnabled.value = true
   }
+})
+
+// Add keyboard event listener when modal is open
+watch(isOpen, (open) => {
+  if (open) {
+    document.addEventListener('keydown', onKeyDown)
+  } else {
+    document.removeEventListener('keydown', onKeyDown)
+  }
+})
+
+// Clean up event listener on unmount
+onUnmounted(() => {
+  document.removeEventListener('keydown', onKeyDown)
 })
 </script>
 

@@ -691,12 +691,16 @@ export class ColumnsService implements IColumnsService {
 
     // Check if default value is being set when unique constraint is enabled
     // Exclude UUID fields which are allowed to have both unique constraint and auto-generation
+    // Also check the original column type to handle cases where uidt might not be sent in the update request
+    const isUUIDColumn =
+      (param.column.uidt || column.uidt) === UITypes.UUID ||
+      column.uidt === UITypes.UUID;
     if (
       'cdf' in param.column &&
       param.column.cdf !== null &&
       param.column.cdf !== undefined &&
       param.column.cdf !== '' &&
-      (param.column.uidt || column.uidt) !== UITypes.UUID
+      !isUUIDColumn
     ) {
       const currentUnique =
         param.column.unique !== undefined ? param.column.unique : column.unique;

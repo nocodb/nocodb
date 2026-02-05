@@ -5,25 +5,24 @@ import {
   IntegrationType,
   NocoSDK,
   WorkflowNodeCategory,
-  WorkflowNodeIntegration,
 } from '@noco-integrations/core';
 import type {
-  WorkflowNodeConfig,
   WorkflowNodeDefinition,
   WorkflowNodeLog,
   WorkflowNodeResult,
   WorkflowNodeRunContext,
 } from '@noco-integrations/core';
 import type { GithubAuthIntegration } from '@noco-integrations/github-auth';
+import {
+  GitHubIssueLabelActionNode,
+  type GitHubIssueLabelBaseConfig,
+} from './abstract/issue-labels';
 
-interface AddIssueLabelsNodeConfig extends WorkflowNodeConfig {
-  authIntegrationId: string;
-  repo: string;
-  issueNumber: string;
+interface AddIssueLabelsNodeConfig extends GitHubIssueLabelBaseConfig {
   labels: string[];
 }
 
-export class AddIssueLabelsNode extends WorkflowNodeIntegration<AddIssueLabelsNodeConfig> {
+export class AddIssueLabelsNode extends GitHubIssueLabelActionNode<AddIssueLabelsNodeConfig> {
   public async definition(): Promise<WorkflowNodeDefinition> {
     const form: FormDefinition = [
       {
@@ -96,84 +95,6 @@ export class AddIssueLabelsNode extends WorkflowNodeIntegration<AddIssueLabelsNo
     };
   }
 
-  public async fetchOptions(key: string): Promise<unknown> {
-    const authIntegrationId = this.config.authIntegrationId;
-
-    if (!authIntegrationId) {
-      return [];
-    }
-
-    const auth =
-      await this.getIntegration<GithubAuthIntegration>(authIntegrationId);
-
-    switch (key) {
-      case 'repos': {
-        try {
-          const options: { label: string; value: string }[] = [];
-
-          const reposIterator = await auth.use(async (octokit) => {
-            return octokit.paginate.iterator(
-              octokit.rest.repos.listForAuthenticatedUser,
-              {
-                per_page: 100,
-                sort: 'updated',
-                direction: 'desc',
-              },
-            );
-          });
-
-          for await (const { data: repos } of reposIterator) {
-            for (const repo of repos) {
-              if (
-                repo.permissions?.admin ||
-                repo.permissions?.maintain ||
-                repo.permissions?.push
-              ) {
-                options.push({
-                  label: `${repo.owner.login}/${repo.name}`,
-                  value: `${repo.owner.login}/${repo.name}`,
-                });
-              }
-            }
-          }
-
-          return options;
-        } catch (error) {
-          console.error('[GitHub] Error fetching repositories:', error);
-          return [];
-        }
-      }
-
-      case 'labels': {
-        if (!this.config.repo) return [];
-
-        try {
-          const [owner, repo] = this.config.repo.split('/');
-
-          const labels = await auth.use(async (octokit) => {
-            const response = await octokit.rest.issues.listLabelsForRepo({
-              owner,
-              repo,
-              per_page: 100,
-            });
-            return response.data;
-          });
-
-          return labels.map((label) => ({
-            label: label.name,
-            value: label.name,
-          }));
-        } catch (error) {
-          console.error('[GitHub] Error fetching labels:', error);
-          return [];
-        }
-      }
-
-      default:
-        return [];
-    }
-  }
-
   public async validate(config: AddIssueLabelsNodeConfig) {
     const errors: { path?: string; message: string }[] = [];
 
@@ -217,49 +138,6 @@ export class AddIssueLabelsNode extends WorkflowNodeIntegration<AddIssueLabelsNo
         extra: {
           icon: 'ncHash',
           description: 'Issue number to add labels to',
-        },
-      },
-    ];
-  }
-
-  public async generateOutputVariables(): Promise<
-    NocoSDK.VariableDefinition[]
-  > {
-    return [
-      {
-        key: 'success',
-        type: NocoSDK.VariableType.Boolean,
-        name: 'Success',
-        extra: {
-          icon: 'cellCheckbox',
-          description: 'Whether the labels were added successfully',
-        },
-      },
-      {
-        key: 'labels',
-        type: NocoSDK.VariableType.Array,
-        name: 'Labels',
-        isArray: true,
-        extra: {
-          icon: 'ncTag',
-          description: 'Updated list of labels on the issue',
-          itemSchema: [
-            {
-              key: 'name',
-              type: NocoSDK.VariableType.String,
-              name: 'Name',
-            },
-            {
-              key: 'color',
-              type: NocoSDK.VariableType.String,
-              name: 'Color',
-            },
-            {
-              key: 'description',
-              type: NocoSDK.VariableType.String,
-              name: 'Description',
-            },
-          ]
         },
       },
     ];

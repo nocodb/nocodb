@@ -225,7 +225,6 @@ export class CreateDealNode extends HubspotNodeBase<CreateDealConfig> {
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
-      hidden: true,
       keywords: [
         'hubspot',
         'crm',

@@ -74,7 +74,6 @@ export class NewEventWebhookNode extends WorkflowNodeIntegration<NewEventWebhook
       ],
       activationType: TriggerActivationType.WEBHOOK,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
-      hidden: true,
       form,
       documentation:
         'https://nocodb.com/docs/workflows/nodes/integration-nodes/google-calendar',

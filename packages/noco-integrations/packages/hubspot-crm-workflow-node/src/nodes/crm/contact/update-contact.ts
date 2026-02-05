@@ -160,7 +160,6 @@ export class UpdateContactNode extends HubspotNodeBase<UpdateContactConfig> {
       category: WorkflowNodeCategory.ACTION,
       ports: [{ id: 'output', direction: 'output', order: 0 }],
       form,
-      hidden: true,
       keywords: ['hubspot', 'crm', 'contact', 'update', 'edit', 'modify'],
     };
   }

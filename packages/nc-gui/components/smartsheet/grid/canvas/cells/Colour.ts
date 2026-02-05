@@ -43,10 +43,8 @@ export const ColourCellRenderer: CellRenderer = {
     const isValidColor = colorValue && /^#[0-9A-Fa-f]{6}$/.test(colorValue)
     const displayColor = isValidColor ? colorValue : columnMeta.defaultColor || '#3366FF'
 
-    // Don't render anything if no value and not hovered/selected
-    if (!colorValue && !isRowHovered && !selected && !renderAsTag) {
-      return
-    } else if ((isRowHovered || selected) && !colorValue && readonly && !renderAsTag) {
+    // Don't render anything if no value - even on hover/select for empty cells
+    if (!colorValue) {
       return
     }
 
@@ -142,8 +140,8 @@ export const ColourCellRenderer: CellRenderer = {
         y: y + tagHeight + tagSpacing,
       }
     } else {
-      // Regular cell rendering
-      if (colorValue || isRowHovered || selected) {
+      // Regular cell rendering - only render if there's a color value
+      if (colorValue) {
         let contentX = swatchX
 
         if (columnMeta.displayFormat !== 'hex_only') {

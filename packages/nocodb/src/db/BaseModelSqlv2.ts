@@ -144,6 +144,8 @@ import { supportsThumbnails } from '~/utils/attachmentUtils';
 import { Profiler } from '~/helpers/profiler';
 import { isTransientError } from '~/helpers/db-error/utils';
 
+const debugCount = debug('nc:db:query:basemodel:count');
+
 dayjs.extend(utc);
 
 dayjs.extend(timezone);
@@ -158,8 +160,6 @@ const MAX_RECURSION_DEPTH = 2;
 
 const SELECT_REGEX = /^(\(|)select/i;
 const INSERT_REGEX = /^(\(|)insert/i;
-
-const debugCount = debug('nc:db:query:baseModel:count');
 
 /**
  * Base class for models

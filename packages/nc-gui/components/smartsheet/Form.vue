@@ -2161,7 +2161,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                             <div class="flex flex-col gap-3">
                               <div class="flex items-center justify-between gap-3">
                                 <span class="flex items-center gap-3">
-                                  {{ $t('labels.customizeSubmitButton') }}
+                                  {{ $t('activity.customizeSubmitButton') }}
                                   <LazyPaymentUpgradeBadge
                                     :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL"
                                     :content="
@@ -2200,7 +2200,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                               
                               <div v-if="parseProp(formViewData.meta)?.custom_submit_enabled" class="flex flex-col gap-2">
                                 <div class="text-nc-content-gray text-sm">
-                                  {{ $t('labels.submitButtonLabel') }}
+                                  {{ $t('activity.submitButtonLabel') }}
                                 </div>
                                 <a-input
                                   :value="parseProp(formViewData.meta)?.submit_button_label || $t('general.submit')"

@@ -1868,8 +1868,8 @@
     "refreshProject": "Refresh Base",
     "saveProject": "Save Base",
     "saveAndQuit": "Save & Quit",
-    "customizeSubmitButton": "Customize Submit Button",
-    "submitButtonLabel": "Submit Button Label",
+    "customizeSubmitButton": "Customize Submit button",
+    "submitButtonLabel": "Submit button label",
     "deleteKanbanStack": "Delete stack?",
     "createProjectExtended": {
       "extDB": "Create By Connecting <br>To An External Database",

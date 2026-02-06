@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
 import { ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{

@@ -51,6 +51,7 @@ export interface AppInfo {
   disableOnboardingFlow: boolean
   iframeWhitelistDomains?: Array<string>
   disableGroupByAggregation?: boolean
+  sendRecordMaxRecipients?: number
 }
 
 export interface StoredState {

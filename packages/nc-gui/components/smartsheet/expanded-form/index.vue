@@ -729,17 +729,21 @@ function onTouchEnd() {
   }
 }
 
+const showSendRecordModal = ref(false)
+
 const visibleMoreOptions = computed(() => {
   const result = {
     reloadRecord: !isEeUI,
     copyRecordUrl: !isNew.value && !!rowId.value,
+    sendRecord: isEeUI && !isNew.value && !!rowId.value && !isPublic.value,
     duplicateRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value && !isMobileMode.value,
     deleteRecord: isUIAllowed('dataEdit', baseRoles.value) && !isSqlView.value,
   }
   return {
     ...result,
-    showMoreOptionsMenu: result.reloadRecord || result.copyRecordUrl || result.duplicateRecord || result.deleteRecord,
-    allHiddenExceptCopyRecordUrl: !result.reloadRecord && !result.duplicateRecord && !result.deleteRecord,
+    showMoreOptionsMenu:
+      result.reloadRecord || result.copyRecordUrl || result.sendRecord || result.duplicateRecord || result.deleteRecord,
+    allHiddenExceptCopyRecordUrl: !result.reloadRecord && !result.sendRecord && !result.duplicateRecord && !result.deleteRecord,
   }
 })
 
@@ -931,6 +935,16 @@ export default {
                     {{ $t('labels.copyRecordURL') }}
                   </div>
                 </NcMenuItem>
+                <NcMenuItem v-if="visibleMoreOptions.sendRecord" :disabled="isLoading" @click="showSendRecordModal = true">
+                  <div
+                    v-e="['c:row-expand:send-record']"
+                    data-testid="nc-expanded-form-send-record"
+                    class="flex gap-2 items-center"
+                  >
+                    <GeneralIcon icon="mail" class="cursor-pointer" />
+                    {{ $t('activity.sendRecord') }}
+                  </div>
+                </NcMenuItem>
                 <NcTooltip v-if="visibleMoreOptions.duplicateRecord && meta?.synced" placement="left">
                   <template #title>
                     {{ $t('msg.info.duplicateNotAvailableForSyncedTable') }}
@@ -1096,6 +1110,13 @@ export default {
       </div>
     </div>
   </NcModal>
+  <DlgSendRecordEmail
+    v-if="visibleMoreOptions.sendRecord && primaryKey"
+    v-model="showSendRecordModal"
+    :meta="meta"
+    :view="view"
+    :row-id="primaryKey"
+  />
 </template>
 
 <style lang="scss">

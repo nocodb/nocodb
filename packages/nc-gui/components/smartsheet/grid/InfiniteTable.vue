@@ -438,6 +438,14 @@ const selectedRows = toRef(props, 'selectedRows')
 const contextMenuClosing = ref(false)
 
 const contextMenuTarget = ref<{ row: number; col: number } | null>(null)
+const showSendRecordModal = ref(false)
+
+const contextMenuRowId = computed(() => {
+  if (!contextMenuTarget.value || contextMenuTarget.value.row === -1) return null
+  const row = cachedRows.value.get(contextMenuTarget.value.row)
+  if (!row) return null
+  return extractPkFromRow(row.row, meta.value?.columns || [])
+})
 
 const contextMenu = computed({
   get: () => {
@@ -3114,6 +3122,16 @@ const headerFilteredOrSortedClass = (colId: string) => {
                   {{ $t('general.add') }} {{ $t('general.comment').toLowerCase() }}
                 </div>
               </NcMenuItem>
+              <NcMenuItem
+                v-if="contextMenuRowId && !isPublicView && isEeUI"
+                class="nc-base-menu-item"
+                @click="showSendRecordModal = true"
+              >
+                <div class="flex gap-2 items-center">
+                  <GeneralIcon icon="mail" class="h-4 w-4" />
+                  {{ $t('activity.sendRecord') }}
+                </div>
+              </NcMenuItem>
             </template>
 
             <template v-if="hasEditPermission && !isDataReadOnly">
@@ -3263,6 +3281,13 @@ const headerFilteredOrSortedClass = (colId: string) => {
       :selected-cell-count="selectedRange.cellCount"
     />
   </div>
+
+  <DlgSendRecordEmail
+    v-model="showSendRecordModal"
+    :meta="meta"
+    :view="view"
+    :row-id="contextMenuRowId"
+  />
 </template>
 
 <style lang="scss">

@@ -93,4 +93,6 @@ export const OPERATION_SCOPES = {
 
   workflowExecutionList: 'base',
   workflowExecutionGet: 'base',
+  // Send Record Email
+  sendRecordEmail: 'base',
 } as const;

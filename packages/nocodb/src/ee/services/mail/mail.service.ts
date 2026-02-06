@@ -431,7 +431,46 @@ export class MailService extends MailServiceCE {
           });
           break;
         }
+        case MailEvent.SEND_RECORD:
+        {
+          const {
+            senderName,
+            senderEmail,
+            emails,
+            model,
+            base,
+            subject,
+            message,
+            recordData,
+            rowId,
+            req,
+          } = params.payload as any;
 
+          const recordUrl = this.buildUrl(req, {
+            workspaceId: base.fk_workspace_id,
+            baseId: base.id,
+            tableId: model.id,
+            rowId,
+          });
+
+          const emailSubject =
+            subject || `${senderName} shared a record from "${model.title}"`;
+
+          await mailerAdapter.mailSend({
+            to: emails.join(','),
+            subject: emailSubject,
+            html: await this.renderMail('SendRecord', {
+              senderName,
+              senderEmail,
+              tableTitle: model.title,
+              baseTitle: base.title,
+              message,
+              recordData,
+              recordUrl,
+            }),
+          });
+          break;
+        }
         default:
           return await super.sendMail(params);
       }

@@ -209,6 +209,13 @@ const contextMenu = computed({
 
 const contextMenuTarget = ref<RowType | null>(null)
 
+const showSendRecordModal = ref(false)
+
+const contextMenuRowId = computed(() => {
+  if (!contextMenuTarget.value) return null
+  return extractPkFromRow(contextMenuTarget.value.row, meta.value?.columns)
+})
+
 const showContextMenu = (e: MouseEvent, target?: RowType) => {
   e.preventDefault()
   if (target) {
@@ -1284,6 +1291,12 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                 {{ $t('activity.expandRecord') }}
               </div>
             </NcMenuItem>
+            <NcMenuItem v-if="contextMenuTarget && contextMenuRowId && !isPublic && isEeUI" @click="showSendRecordModal = true">
+              <div class="flex items-center gap-2 nc-kanban-context-menu-item">
+                <GeneralIcon icon="mail" class="flex" />
+                {{ $t('activity.sendRecord') }}
+              </div>
+            </NcMenuItem>
             <NcDivider />
             <PermissionsTooltip
               v-if="contextMenuTarget"
@@ -1356,6 +1369,8 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
       </div>
     </template>
   </GeneralDeleteModal>
+
+  <DlgSendRecordEmail v-model="showSendRecordModal" :meta="meta" :view="view" :row-id="contextMenuRowId" />
 </template>
 
 <style lang="scss" scoped>

@@ -384,6 +384,9 @@ const permissionScopes = {
 
     // Audit Logs
     'baseAuditList',
+
+    // Send record email
+    'sendRecordEmail'
   ],
 };
 
@@ -622,6 +625,9 @@ const rolePermissions:
       // Base Teams
       baseTeamList: true,
       baseTeamGet: true,
+
+      // Send record email
+      sendRecordEmail: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

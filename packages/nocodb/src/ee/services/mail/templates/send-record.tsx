@@ -12,7 +12,7 @@ import {
   Text,
 } from '@react-email/components';
 import * as React from 'react';
-import { UITypes } from 'nocodb-sdk';
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 import {
   ContentWrapper,
   Footer,
@@ -21,32 +21,41 @@ import {
 } from '~/services/mail/templates/components';
 import { NC_EMAIL_ASSETS_BASE_URL } from '~/constants';
 
-interface FormSubmissionTemplateProps {
-  formTitle: string;
+interface SendRecordTemplateProps {
+  senderName: string;
+  senderEmail: string;
   tableTitle: string;
   baseTitle: string;
-  submissionData: Array<{
+  message?: string;
+  recordData: Array<{
     parsedValue?: any;
     columnTitle: string;
     uidt: UITypes | string;
+    relationType?: RelationTypes;
   }>;
+  recordUrl?: string;
 }
 
-const FormSubmission = ({
-  formTitle,
-  baseTitle,
+const SendRecord = ({
+  senderName,
+  senderEmail,
   tableTitle,
-  submissionData,
-}: FormSubmissionTemplateProps) => (
+  baseTitle,
+  message,
+  recordData,
+  recordUrl,
+}: SendRecordTemplateProps) => (
   <Html>
     <RootWrapper>
       <Head />
-      <Preview>You have a new response!</Preview>
+      <Preview>
+        {senderName} shared a record from {tableTitle}
+      </Preview>
       <Body className="bg-white">
         <ContentWrapper disableContainerPadding>
           <Section className="p-6 mx-auto">
             <Heading className="text-gray-900 text-center font-bold m-auto text-xl md:text-2xl">
-              You have a new response!
+              {senderName} shared a record with you
             </Heading>
 
             <Section
@@ -62,8 +71,8 @@ const FormSubmission = ({
                 <tr>
                   <td style={{ paddingRight: '8px', verticalAlign: 'middle' }}>
                     <Img
-                      src={`${NC_EMAIL_ASSETS_BASE_URL}/icons/form-view.png`}
-                      alt="Form View Icon"
+                      src={`${NC_EMAIL_ASSETS_BASE_URL}/icons/table.png`}
+                      alt="Table Icon"
                       height={24}
                       width={24}
                       className="!h-6 inline-block"
@@ -79,7 +88,7 @@ const FormSubmission = ({
                         lineHeight: '28px',
                       }}
                     >
-                      {formTitle}
+                      {tableTitle}
                     </span>
                   </td>
                 </tr>
@@ -87,32 +96,39 @@ const FormSubmission = ({
             </Section>
 
             <Text className="text-center font-weight-thin text-gray-600 !my-0">
-              Someone has responded to your form, a record has been added to
+              <span className="font-bold text-gray-800">{senderName}</span> (
+              {senderEmail}) has shared a record from
               <span className="font-bold text-gray-800"> {tableTitle} </span>
               in
               <span className="font-bold text-gray-800"> {baseTitle}</span>.
             </Text>
+
+            {message && (
+              <Section className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <Text className="text-gray-700 !my-0 italic">"{message}"</Text>
+              </Section>
+            )}
           </Section>
 
           <Hr />
 
           <Section className="p-6 mx-auto">
             <Text className="text-lg font-bold text-center !my-0">
-              Here is a copy of the response
+              Record Details
             </Text>
             <Section>
-              {submissionData.map((s) => (
-                <Section className="mt-6" key={s.columnTitle}>
+              {recordData.map((field) => (
+                <Section className="mt-6" key={field.columnTitle}>
                   <Row>
                     <Column className="flex align-middle items-center">
                       <Img
                         className="align-middle"
                         width={16}
                         height={16}
-                        src={getFieldIconUrl(s.uidt)}
+                        src={getFieldIconUrl(field.uidt, field.relationType)}
                       />
                       <Section className="!ml-2 truncate inline-block text-[13px] !my-0 !mr-0 leading-4.5 text-gray-600 align-middle">
-                        {s.columnTitle}
+                        {field.columnTitle}
                       </Section>
                     </Column>
                   </Row>
@@ -124,13 +140,31 @@ const FormSubmission = ({
                   >
                     <Column>
                       <Text className="text-gray-800 max-w-xs truncate !my-0">
-                        {s.parsedValue}
+                        {field.parsedValue || '-'}
                       </Text>
                     </Column>
                   </Row>
                 </Section>
               ))}
             </Section>
+
+            {recordUrl && (
+              <Section className="mt-8 text-center">
+                <a
+                  href={recordUrl}
+                  className="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg no-underline"
+                  style={{
+                    backgroundColor: '#3366FF',
+                    color: '#ffffff',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    textDecoration: 'none',
+                  }}
+                >
+                  View Record in NocoDB
+                </a>
+              </Section>
+            )}
           </Section>
         </ContentWrapper>
         <Footer />
@@ -139,22 +173,30 @@ const FormSubmission = ({
   </Html>
 );
 
-FormSubmission.PreviewProps = {
-  formTitle: 'Form Name',
-  tableTitle: 'Table Name',
-  baseTitle: 'Base Name',
-  submissionData: [
+SendRecord.PreviewProps = {
+  senderName: 'John Doe',
+  senderEmail: 'john@example.com',
+  tableTitle: 'Contacts',
+  baseTitle: 'My Base',
+  message: "Here's the contact information you requested.",
+  recordData: [
     {
-      parsedValue: '$344',
-      uidt: UITypes.Currency,
-      columnTitle: 'Currency',
+      parsedValue: 'Jane Smith',
+      uidt: UITypes.SingleLineText,
+      columnTitle: 'Name',
     },
     {
-      parsedValue: 'Checked',
-      uidt: UITypes.Checkbox,
-      columnTitle: 'Checkbox',
+      parsedValue: 'jane@example.com',
+      uidt: UITypes.Email,
+      columnTitle: 'Email',
+    },
+    {
+      parsedValue: '+1 234 567 8900',
+      uidt: UITypes.PhoneNumber,
+      columnTitle: 'Phone',
     },
   ],
+  recordUrl: 'https://app.nocodb.com/#/workspace/base/table?rowId=123',
 };
 
-export default FormSubmission;
+export default SendRecord;

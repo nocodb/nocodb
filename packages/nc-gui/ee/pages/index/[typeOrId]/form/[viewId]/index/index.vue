@@ -296,17 +296,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                 </div>
 
                 <div class="flex justify-between items-center mt-6">
-                  <NcButton
-                    html-type="reset"
-                    type="secondary"
-                    :size="isMobileMode ? 'medium' : 'small'"
-                    :disabled="isLoading || !isAddingEmptyRowPermitted"
-                    class="nc-shared-form-button shared-form-clear-button"
-                    data-testid="shared-form-clear-button"
-                    @click="clearForm"
-                  >
-                    {{ $t('activity.clearForm') }}
-                  </NcButton>
+                  <div></div>
 
                   <NcButton
                     :disabled="progress || blockAddNewRecord || !isAddingEmptyRowPermitted"
@@ -316,7 +306,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                     data-testid="shared-form-submit-button"
                     @click="submitForm"
                   >
-                    {{ $t('general.submit') }}
+                    {{ sharedFormView?.meta && parseProp(sharedFormView.meta)?.submit_button_label || $t('general.submit') }}
                   </NcButton>
                 </div>
               </div>

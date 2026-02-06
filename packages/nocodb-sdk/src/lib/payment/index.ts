@@ -42,6 +42,7 @@ export enum PlanFeatureTypes {
   FEATURE_FILE_MODE = 'feature_file_mode',
   FEATURE_FORM_URL_REDIRECTION = 'feature_form_url_redirection',
   FEATURE_FORM_CUSTOM_LOGO = 'feature_form_custom_logo',
+  FEATURE_FORM_CUSTOM_SUBMIT_LABEL = 'feature_form_custom_submit_label',
   FEATURE_FORM_FIELD_ON_CONDITION = 'feature_form_field_on_condition',
   FEATURE_FORM_FIELD_VALIDATION = 'feature_form_field_validation',
   FEATURE_GROUP_BY_AGGREGATIONS = 'feature_group_by_aggregations',
@@ -243,6 +244,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_FORM_URL_REDIRECTION]:
     'to access redirect after form submission feature',
   [PlanFeatureTypes.FEATURE_FORM_CUSTOM_LOGO]: 'to add a custom logo to forms.',
+  [PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL]: 'to customize the submit button label.',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]:
     'to access conditional form fields feature',
   [PlanFeatureTypes.FEATURE_FORM_FIELD_VALIDATION]:

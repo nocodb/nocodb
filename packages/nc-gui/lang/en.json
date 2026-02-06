@@ -105,6 +105,7 @@
     "upgradeToAddCustomLogoSubtitle": "Upload your Logo on the form by upgrading your workspace  to the {plan} plan.",
     "upgradeToHideFormBrandingSubtitle": "Hide NocoDB branding by upgrading your workspace  to the {plan} plan.",
     "upgradeToAddRedirectUrlSubtitle": "Redirect your users to another webpage after filling out the form by upgrading to the {plan} plan.",
+    "upgradeToCustomizeSubmitButtonSubtitle": "Customize the submit button label by upgrading your workspace to the {plan} plan.",
     "upgradeToAddCustomValidationSubtitle": "Add custom validations by upgrading your workspace to the {plan} plan.",
     "upgradeToAddCustomUrlSubtitle": "Create custom URL by upgrading your workspace to the {plan} plan.",
     "upgradeToAccessPersonalViewSubtitle": "Access Personal view feature by upgrading your workspace to the {plan} plan.",
@@ -1867,6 +1868,8 @@
     "refreshProject": "Refresh Base",
     "saveProject": "Save Base",
     "saveAndQuit": "Save & Quit",
+    "customizeSubmitButton": "Customize Submit Button",
+    "submitButtonLabel": "Submit Button Label",
     "deleteKanbanStack": "Delete stack?",
     "createProjectExtended": {
       "extDB": "Create By Connecting <br>To An External Database",

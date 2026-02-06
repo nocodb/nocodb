@@ -275,7 +275,7 @@ watch(
         </template>
         <template v-else>
           <template v-if="!!filtersLength">
-            <div class="px-2 mt-2" :class="{ 'mb-0': !showTempFilters }">
+            <div class="mt-2" :class="{ 'px-2': showTempFilters, 'mb-0': !showTempFilters }">
               <div
                 class="leading-5 font-semibold inline-flex w-full items-center cursor-pointer px-2"
                 :class="{ 'pb-3': !viewFilterOpen }"

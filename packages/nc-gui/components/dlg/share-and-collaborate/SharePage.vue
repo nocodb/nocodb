@@ -596,7 +596,10 @@ const copyCustomUrl = async (custUrl = '') => {
             <div class="text-nc-content-gray-extreme flex items-center space-x-1">
               <div>Default Theme</div>
               <NcTooltip class="flex items-center">
-                <template #title>Set the default theme (light or dark) for this shared form. Adds ?nc-theme=light or ?nc-theme=dark to the URL.</template>
+                <template #title
+                  >Set the default theme (light or dark) for this shared form. Adds ?nc-theme=light or ?nc-theme=dark to the
+                  URL.</template
+                >
                 <GeneralIcon icon="info" class="flex-none text-gray-400 cursor-pointer"></GeneralIcon>
               </NcTooltip>
             </div>

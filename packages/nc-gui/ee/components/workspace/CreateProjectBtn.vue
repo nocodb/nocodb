@@ -17,9 +17,6 @@ const { baseCreateMode } = storeToRefs(useBases())
 const baseStore = useBase()
 const { isSharedBase } = storeToRefs(baseStore)
 
-const workspaceStore = useWorkspace()
-const { activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
-
 const baseCreateDlg = ref(false)
 
 const isVisibleCreateBase = ref(false)

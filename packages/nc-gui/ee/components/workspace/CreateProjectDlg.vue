@@ -7,6 +7,7 @@ const props = defineProps<{
   modelValue: boolean
   isCreateNewActionMenu?: boolean
   defaultBaseCreateMode?: NcBaseCreateMode | null
+  workspaceId?: string
 }>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -24,6 +25,10 @@ const { isUIAllowed, isBaseRolesLoaded } = useRoles()
 
 const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
+
+const activeWorkspaceId = computed(() => {
+  return props.workspaceId ?? activeWorkspace.value?.id
+})
 
 const basesStore = useBases()
 const { createProject: _createProject } = basesStore
@@ -90,14 +95,14 @@ const createProject = async () => {
   try {
     const base = await _createProject({
       title: formState.value.title,
-      workspaceId: activeWorkspace.value!.id!,
+      workspaceId: activeWorkspaceId.value!,
       meta: formState.value.meta,
       ...(!blockPrivateBases.value ? { default_role: formState.value.default_role } : {}),
     })
 
     navigateToProject({
       baseId: base.id!,
-      workspaceId: activeWorkspace.value!.id!,
+      workspaceId: activeWorkspaceId.value!,
     })
 
     refreshCommandPalette()
@@ -140,7 +145,7 @@ const onManagedAppInstalled = async (_managedApp: any) => {
   // TODO: Once install returns the new baseId, navigate to it
   // if (managedApp.installedBaseId) {
   //   await navigateToProject({
-  //     workspaceId: activeWorkspace.value?.id,
+  //     workspaceId: activeWorkspaceId.value,
   //     baseId: managedApp.installedBaseId,
   //   })
   // }
@@ -269,7 +274,7 @@ if (props.isCreateNewActionMenu) {
     :wrap-class-name="`nc-create-project-dlg-wrapper nc-create-project-dlg-wrapper-${baseCreateMode}`"
   >
     <template v-if="baseCreateMode === null">
-      <!-- <WorkspaceProjectCreateMode v-model:ai-mode="aiMode" :workspace-id="activeWorkspace?.id"
+      <!-- <WorkspaceProjectCreateMode v-model:ai-mode="aiMode" :workspace-id="activeWorkspaceId"
         @managed-app-installed="onManagedAppInstalled" @close="dialogShow = false" /> -->
 
       <WorkspaceProjectCreateMenu v-model:visible="dialogShow" v-model:base-create-mode="baseCreateMode" variant="modal" />
@@ -383,19 +388,19 @@ if (props.isCreateNewActionMenu) {
         v-model:base-create-mode="baseCreateMode"
         v-model:dialog-show="dialogShow"
         :is-create-new-action-menu="isCreateNewActionMenu"
-        :workspace-id="activeWorkspace!.id"
+        :workspace-id="activeWorkspaceId"
         :initial-value="aiModeInitialValue"
       />
     </template>
     <template v-if="baseCreateMode === NcBaseCreateMode.FROM_APP_STORE">
       <WorkspaceProjectAppMarket
         v-model:visible="dialogShow"
-        :workspace-id="activeWorkspace!.id!"
+        :workspace-id="activeWorkspaceId!"
         @installed="onManagedAppInstalled"
       />
     </template>
     <template v-if="baseCreateMode === NcBaseCreateMode.MANAGED_APP">
-      <WorkspaceProjectCreateManagedApp v-model:visible="dialogShow" />
+      <WorkspaceProjectCreateManagedApp v-model:visible="dialogShow" workspace-id="activeWorkspaceId" />
     </template>
   </NcModal>
 </template>

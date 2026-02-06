@@ -759,13 +759,6 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       );
     }
 
-    debugCount(
-      qb
-        .count(sanitize(this.model.primaryKey?.column_name) || '*', {
-          as: 'count',
-        })
-        .toQuery(),
-    );
     qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
       as: 'count',
     }).first();

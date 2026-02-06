@@ -240,6 +240,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = view.source_id;
+
+        // if view API and view is personal view then check if user has access to view
+        if (view && view.lock_type === ViewLockType.Personal) {
+          req[VIEW_KEY] = view;
+        }
       } else if (
         formViewId ||
         gridViewId ||
@@ -267,6 +272,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = view.source_id;
+
+        // if view API and view is personal view then check if user has access to view
+        if (view && view.lock_type === ViewLockType.Personal) {
+          req[VIEW_KEY] = view;
+        }
       } else if (publicDataUuid) {
         const view = await View.getByUUID(context, publicDataUuid);
 

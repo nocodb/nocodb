@@ -4,6 +4,7 @@ interface Props {
   visible: boolean
   variant: 'modal' | 'dropdown'
   baseCreateMode: NcBaseCreateMode | null
+  workspaceId?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {

@@ -13,7 +13,7 @@ const emit = defineEmits<{
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
-const { switchWorkspace } = useBaseActionsOrThrow()
+const { switchWorkspace } = useWsBaseListActionsOrThrow()
 
 const isActiveWorkspace = computed(() => {
   return activeWorkspaceId.value === props.workspace?.id

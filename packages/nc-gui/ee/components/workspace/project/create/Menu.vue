@@ -4,6 +4,7 @@ interface Props {
   visible: boolean
   variant: 'modal' | 'dropdown'
   baseCreateMode: NcBaseCreateMode | null
+  workspaceId?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -19,11 +20,15 @@ const vVisible = useVModel(props, 'visible', emits)
 
 const baseCreateMode = useVModel(props, 'baseCreateMode', emits)
 
+const { workspaceId } = toRefs(props)
+
 const workspaceStore = useWorkspace()
 
 const { navigateToTemplates } = workspaceStore
 
 const { isTemplatesFeatureEnabled } = storeToRefs(workspaceStore)
+
+const baseActions = useWsBaseListActions()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -32,7 +37,11 @@ const { isAiFeaturesEnabled } = useNocoAi()
 const onClickOption = (mode: NcBaseCreateMode) => {
   if (isTemplatesFeatureEnabled.value && mode === NcBaseCreateMode.FROM_TEMPLATE) {
     vVisible.value = false
-    navigateToTemplates()
+    navigateToTemplates(workspaceId.value)
+
+    if (baseActions) {
+      baseActions.closeModal()
+    }
 
     return
   }

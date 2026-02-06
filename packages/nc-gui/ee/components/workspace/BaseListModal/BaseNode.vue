@@ -9,7 +9,7 @@ const props = defineProps<{
 
 // Get actions from provider
 const { onRename, onToggleStarred, onDuplicate, onOpenErd, onOpenSettings, onDelete, onUpdateColor, onSelect } =
-  useBaseActionsOrThrow()
+  useWsBaseListActionsOrThrow()
 
 const { isUIAllowed } = useRoles()
 const { $e } = useNuxtApp()

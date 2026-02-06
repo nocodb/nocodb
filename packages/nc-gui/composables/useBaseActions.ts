@@ -1,6 +1,6 @@
 import type { SourceType } from 'nocodb-sdk'
 
-const [useProvideBaseActions, useBaseActions] = useInjectionState((closeModal: () => void) => {
+const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((closeModal: () => void) => {
   const basesStore = useBases()
   const { workspaceBasesMap, bases } = storeToRefs(basesStore)
 
@@ -160,10 +160,10 @@ const [useProvideBaseActions, useBaseActions] = useInjectionState((closeModal: (
   }
 }, 'baseActions')
 
-export { useProvideBaseActions, useBaseActions }
+export { useProvideWsBaseListActions, useWsBaseListActions }
 
-export function useBaseActionsOrThrow() {
-  const baseActions = useBaseActions()
-  if (baseActions == null) throw new Error('Please call `useProvideBaseActions` on the appropriate parent component')
+export function useWsBaseListActionsOrThrow() {
+  const baseActions = useWsBaseListActions()
+  if (baseActions == null) throw new Error('Please call `useProvideWsBaseListActions` on the appropriate parent component')
   return baseActions
 }

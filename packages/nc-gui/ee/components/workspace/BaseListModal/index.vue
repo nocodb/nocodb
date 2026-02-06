@@ -41,7 +41,7 @@ const canCreateWorkspace = computed(() => {
 const closeModal = () => {
   visible.value = false
 }
-const { dialogState, switchWorkspace } = useProvideBaseActions(closeModal)
+const { dialogState, switchWorkspace } = useProvideWsBaseListActions(closeModal)
 
 const searchInputRef = ref<HTMLInputElement>()
 

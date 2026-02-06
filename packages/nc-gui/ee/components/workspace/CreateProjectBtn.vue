@@ -69,6 +69,7 @@ const hasAccess = computed(() => {
         v-model:visible="isVisibleCreateBase"
         v-model:base-create-mode="baseCreateMode"
         variant="dropdown"
+        :workspace-id="workspaceId"
         @update:base-create-mode="baseCreateDlg = true"
       />
     </template>

@@ -129,7 +129,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
         <NcTooltip placement="right" hide-on-click :arrow="false">
           <template #title>
             <div class="flex gap-1.5">
-              {{ $t('labels.baseList') }}
+              {{ $t('objects.project') }}
               <div class="px-1 text-bodySmBold text-white bg-gray-700 rounded">{{ renderAltOrOptlKey(true) }} B</div>
             </div>
           </template>

@@ -41,7 +41,7 @@ const canCreateWorkspace = computed(() => {
 const closeModal = () => {
   visible.value = false
 }
-const { dialogState } = useProvideBaseActions(closeModal)
+const { dialogState, switchWorkspace } = useProvideBaseActions(closeModal)
 
 const searchInputRef = ref<HTMLInputElement>()
 
@@ -320,7 +320,15 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
               <span class="text-nc-content-gray-subtle">
                 {{ $t('activity.basesIn') }}
               </span>
-              <span v-if="selectedWorkspace" class="text-nc-content-gray-extreme capitalize">
+              <span
+                v-if="selectedWorkspace"
+                class="text-nc-content-gray-extreme capitalize"
+                :class="{
+                  'text-nc-content-brand': activeWorkspaceId === selectedWorkspace?.id,
+                  'underline cursor-pointer hover:text-nc-content-brand': activeWorkspaceId !== selectedWorkspace?.id,
+                }"
+                @click="switchWorkspace(selectedWorkspace?.id)"
+              >
                 {{ selectedWorkspace?.title ?? 'Current Workspace' }}
               </span>
             </template>

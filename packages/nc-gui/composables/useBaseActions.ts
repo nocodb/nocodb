@@ -132,6 +132,18 @@ const [useProvideBaseActions, useBaseActions] = useInjectionState((closeModal: (
     })
   }
 
+  const switchWorkspace = async (workspaceId?: string) => {
+    if (!workspaceId || activeWorkspaceId.value === workspaceId) return
+
+    $e('a:workspace:switch')
+
+    closeModal()
+
+    navigateToProject({
+      workspaceId,
+    })
+  }
+
   return {
     dialogState,
     onRename,
@@ -144,6 +156,7 @@ const [useProvideBaseActions, useBaseActions] = useInjectionState((closeModal: (
     onReorder,
     onSelect,
     closeModal,
+    switchWorkspace,
   }
 }, 'baseActions')
 

@@ -11,6 +11,14 @@ const emit = defineEmits<{
   select: [workspaceId: string]
 }>()
 
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
+const { switchWorkspace } = useBaseActionsOrThrow()
+
+const isActiveWorkspace = computed(() => {
+  return activeWorkspaceId.value === props.workspace?.id
+})
+
 const onSelect = () => {
   emit('select', props.workspace.id!)
 }
@@ -48,6 +56,7 @@ const onSelect = () => {
 
           <NcTooltip :title="$t('labels.clickToCopyWorkspaceID')" hide-on-click class="flex" placement="right">
             <GeneralCopyButton
+              :tabindex="-1"
               type="text"
               size="xxsmall"
               class="nc-workspace-id-copy-btn"
@@ -71,7 +80,19 @@ const onSelect = () => {
         />
       </div>
     </NcTooltip>
-    <GeneralIcon icon="arrowRight" class="text-nc-content-gray-muted flex-none" />
+    <NcTooltip hide-on-click class="flex">
+      <template #title>
+        {{ isActiveWorkspace ? 'Active Workspace' : 'Click to navigate to this workspace' }}
+      </template>
+      <GeneralIcon
+        :icon="isActiveWorkspace ? 'ncCheck' : 'arrowRight'"
+        class="text-nc-content-gray-muted flex-none h-4 w-4"
+        :class="{
+          'text-nc-content-brand': isActiveWorkspace,
+        }"
+        @click.stop="switchWorkspace(workspace.id)"
+      />
+    </NcTooltip>
   </div>
 </template>
 

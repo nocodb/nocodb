@@ -32,6 +32,7 @@ import {
   ModelStat,
   Permission,
   Source,
+  Workflow,
   Workspace,
 } from '~/models';
 import NocoCache from '~/cache/NocoCache';
@@ -455,6 +456,7 @@ export default class Base extends BaseCE {
     );
 
     await Dashboard.deleteByBaseId(context, baseId, ncMeta);
+    await Workflow.deleteByBaseId(context, baseId, ncMeta);
 
     const sources = await Source.list(
       context,

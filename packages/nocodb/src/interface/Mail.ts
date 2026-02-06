@@ -35,6 +35,7 @@ enum MailEvent {
   WORKSPACE_TEAM_ROLE_UPDATE = 'WORKSPACE_TEAM_ROLE_UPDATE',
   BASE_TEAM_REMOVED = 'BASE_TEAM_REMOVED',
   BASE_TEAM_ROLE_UPDATE = 'BASE_TEAM_ROLE_UPDATE',
+  WORKFLOW_ERROR_DIGEST = 'WORKFLOW_ERROR_DIGEST',
 }
 
 interface CommentPayload {
@@ -101,7 +102,6 @@ interface FormSubmissionPayload {
     uidt: UITypes | string;
   }[];
 }
-
 type MailParams =
   | {
       mailEvent: MailEvent.COMMENT_CREATE | MailEvent.COMMENT_UPDATE;
@@ -150,4 +150,9 @@ interface RawMailParams {
   bcc?: string | string[];
 }
 
-export { MailEvent, MailParams, FormSubmissionPayload, RawMailParams };
+export {
+  MailEvent,
+  MailParams,
+  FormSubmissionPayload,
+  RawMailParams,
+};

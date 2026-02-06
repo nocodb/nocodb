@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import Canvas from '~/components/smartsheet/workflow/canvas/index.vue'
 import Sidebar from '~/components/smartsheet/workflow/sidebar/index.vue'
+import Settings from '~/components/smartsheet/workflow/sidebar/Settings.vue'
 
 const route = useRoute()
 
 const workflowStore = useWorkflowStore()
 
-const { edges, nodes, isWorkflowEditAllowed } = useWorkflowOrThrow()
+const { edges, nodes, isWorkflowEditAllowed, activeTab } = useWorkflowOrThrow()
 
 const { loadWorkflow } = workflowStore
 
@@ -52,8 +53,13 @@ onMounted(async () => {
       </GeneralOverlay>
       <SmartsheetWorkflowTopbar />
       <div v-if="activeWorkflow" class="flex w-full relative main-wrapper">
-        <Canvas />
-        <Sidebar />
+        <template v-if="activeTab === 'settings'">
+          <Settings class="flex-1" />
+        </template>
+        <template v-else>
+          <Canvas />
+          <Sidebar />
+        </template>
       </div>
     </div>
   </div>

@@ -50,6 +50,8 @@ export class MailService {
       columnId?: string;
       resetPassword?: string;
       verificationToken?: string;
+      automationId?: string;
+      executionId?: string;
     } = {},
   ) {
     const dashboardPath = Noco.getConfig()?.dashboardPath;
@@ -58,7 +60,7 @@ export class MailService {
       return `${req.ncSiteUrl}${dashboardPath}#/signup/${params.token}`;
     }
 
-    let url = req.ncSiteUrl;
+    let url = req?.ncSiteUrl || process.env.NC_PUBLIC_URL;
 
     // Reset password link is served from the backend. So no need to append the dashboard path
     if (params.resetPassword) {
@@ -99,6 +101,17 @@ export class MailService {
           searchParams.set('columnId', params.columnId);
         }
         if (searchParams.toString()) {
+          url += `?${searchParams.toString()}`;
+        }
+      }
+
+      if (params.automationId) {
+        url += `/workflows/${params.automationId}`;
+
+        if (params.executionId) {
+          const searchParams = new URLSearchParams();
+          searchParams.set('tab', 'logs');
+          searchParams.set('executionId', params.executionId);
           url += `?${searchParams.toString()}`;
         }
       }

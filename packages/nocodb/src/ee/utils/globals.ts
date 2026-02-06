@@ -107,6 +107,7 @@ export enum MetaTable {
   MANAGED_APPS = 'nc_managed_apps',
   MANAGED_APP_VERSIONS = 'nc_managed_app_versions',
   MANAGED_APP_DEPLOYMENT_LOGS = 'nc_managed_app_deployment_logs',
+  AUTOMATION_SUBSCRIBERS = 'nc_automation_subscribers',
 }
 
 export const BaseRelatedMetaTables = [
@@ -312,6 +313,7 @@ export enum CacheScope {
   MANAGED_APP = 'managedApp',
   MANAGED_APP_VERSION = 'managedAppVersion',
   MANAGED_APP_DEPLOYMENT_LOG = 'managedAppDeploymentLog',
+  AUTOMATION_SUBSCRIBER = 'automationSubscriber',
 }
 
 export const RootScopeTables = {

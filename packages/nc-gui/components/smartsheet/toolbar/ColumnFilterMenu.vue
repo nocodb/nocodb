@@ -42,6 +42,17 @@ const filtersLength = ref(0)
 // If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
 const isRestrictedEditor = computed(() => isLocked.value || !canSyncFilter.value)
 
+// Show temp filters only for collaborative views, not for personal views
+// For personal views, non-assigned users should not see temp filters at all
+const showTempFilters = computed(() => {
+  // If user has full access, don't need temp filters section (they have full editor)
+  if (!isRestrictedEditor.value) return false
+  // If restricted AND it's a personal view, hide temp filters (non-assigned user)
+  if (activeView.value?.lock_type === 'personal') return false
+  // If restricted AND it's NOT a personal view, show temp filters (editor on collaborative view)
+  return true
+})
+
 watch(
   () => activeView?.value?.id,
   async (viewId) => {
@@ -304,20 +315,22 @@ watch(
                 </SmartsheetToolbarColumnFilter>
               </div>
             </div>
-            <a-divider class="!my-1" />
+            <a-divider v-if="showTempFilters" class="!my-1" />
           </template>
-          <SmartsheetToolbarColumnFilter
-            ref="filterComp"
-            v-model="localFilters"
-            v-model:draft-filter="draftFilter"
-            v-model:is-open="open"
-            class="nc-table-toolbar-menu"
-            :auto-save="false"
-            data-testid="nc-filter-menu"
-            :is-view-filter="false"
-            :is-temp-filters="true"
-          >
-          </SmartsheetToolbarColumnFilter>
+          <template v-if="showTempFilters">
+            <SmartsheetToolbarColumnFilter
+              ref="filterComp"
+              v-model="localFilters"
+              v-model:draft-filter="draftFilter"
+              v-model:is-open="open"
+              class="nc-table-toolbar-menu"
+              :auto-save="false"
+              data-testid="nc-filter-menu"
+              :is-view-filter="false"
+              :is-temp-filters="true"
+            >
+            </SmartsheetToolbarColumnFilter>
+          </template>
         </template>
         <template v-if="filtersFromUrlParams">
           <a-divider class="!my-1" />

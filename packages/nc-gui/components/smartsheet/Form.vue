@@ -2212,6 +2212,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   :placeholder="$t('general.submit')"
                                   data-testid="nc-form-submit-button-label"
                                   :disabled="isLocked || !isEditable"
+                                  :maxlength="50"
                                   @update:value="(value) => {
                                     const meta = parseProp(formViewData.meta) || {}
                                     meta.submit_button_label = value

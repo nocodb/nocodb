@@ -12,7 +12,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 const clone = rfdc()
 const { eventBus } = useSmartsheetStoreOrThrow()
 
-const { isUIAllowed, baseRoles } = useRoles()
+const { isUIAllowed } = useRoles()
 
 const { sorts, saveOrUpdate, loadSorts, addSort: _addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
@@ -125,13 +125,13 @@ watch(open, () => {
 const getSortIndex = (sort: any) => sorts.value.findIndex((s) => s === sort)
 
 watch(
-  [() => view?.value?.id, baseRoles],
-  ([viewId]) => {
+  () => view?.value?.id,
+  (viewId) => {
     if (viewId) {
       loadSorts()
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 )
 </script>
 

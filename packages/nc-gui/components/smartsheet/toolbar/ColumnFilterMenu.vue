@@ -44,11 +44,9 @@ const filtersLength = ref(0)
 // If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
 const isRestrictedEditor = computed(() => !isUIAllowed('filterSync'))
 
-const { baseRoles } = useRoles()
-
 watch(
-  [() => activeView?.value?.id, baseRoles],
-  async ([viewId]) => {
+  () => activeView?.value?.id,
+  async (viewId) => {
     if (viewId) {
       await loadFilters({
         hookId: undefined,
@@ -58,7 +56,7 @@ watch(
       filtersLength.value = nonDeletedFilters.value.length || 0
     }
   },
-  { immediate: true, deep: true },
+  { immediate: true },
 )
 
 const existingFilters = computed(() => {

@@ -32,6 +32,11 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
       return
     }
 
+    // Wait for meta to be available before loading sorts (up to 5 seconds)
+    if (!meta.value && view?.value) {
+      await until(meta).toBeTruthy({ timeout: 5000 })
+    }
+
     try {
       if (!isUIAllowed('sortList')) {
         return

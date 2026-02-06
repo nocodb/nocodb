@@ -2203,9 +2203,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                               </div>
                               
                               <div v-if="parseProp(formViewData.meta)?.custom_submit_enabled" class="flex flex-col gap-2">
-                                <div class="text-nc-content-gray text-sm">
+                                <!-- <div class="text-nc-content-gray text-sm">
                                   {{ $t('activity.submitButtonLabel') }}
-                                </div>
+                                </div> -->
                                 <a-input
                                   :value="parseProp(formViewData.meta)?.submit_button_label || $t('general.submit')"
                                   class="!h-8 !px-3 !py-1 !rounded-lg"

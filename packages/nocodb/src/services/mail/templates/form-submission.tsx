@@ -110,7 +110,7 @@ const FormSubmission = ({
                         height={16}
                         src={`${NC_EMAIL_ASSETS_BASE_URL}/icons/${s.uidt}.png`}
                       />
-                      <Section className="!ml-2 inline-block text-[13px] !my-0 !mr-0 leading-4.5 text-gray-600 align-middle">
+                      <Section className="!ml-2 inline-block text-[13px] !my-0 !mr-0 leading-4.5 text-gray-600 align-middle max-w-xs whitespace-pre-wrap">
                         {s.columnTitle}
                       </Section>
                     </Column>

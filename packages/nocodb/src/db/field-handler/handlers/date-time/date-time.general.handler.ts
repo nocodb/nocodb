@@ -7,6 +7,7 @@ import {
   parseDateTimeValue,
   parseProp,
 } from 'nocodb-sdk';
+import debug from 'debug';
 import type { NcContext } from 'nocodb-sdk';
 import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { MetaService } from '~/meta/meta.service';
@@ -24,6 +25,8 @@ import { GenericFieldHandler } from '~/db/field-handler/handlers/generic';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+const dateTimeHandlerDebug = debug('nc:DateTimeGeneralHandler');
 
 export class DateTimeGeneralHandler extends GenericFieldHandler {
   dateValueFormat = 'YYYY-MM-DD HH:mm:ss';
@@ -166,11 +169,20 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
   ) {
     const { context } = options;
 
-    return getNodejsTimezone(
+    const timezone = getNodejsTimezone(
       parseProp(filter.meta).timezone,
       parseProp(column.meta).timezone,
       context.timezone,
     );
+    dateTimeHandlerDebug(
+      'timezone: ' +
+        JSON.stringify([
+          parseProp(filter.meta).timezone,
+          parseProp(column.meta).timezone,
+          context.timezone,
+        ]),
+    );
+    return timezone;
   }
 
   protected parseFilterValue(
@@ -182,11 +194,34 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
   ) {
     // if the time provided has timezone, return as is
     if (isDateTimeStringHasTimezone(value)) {
-      return dayjs(value).tz(this.getTimezone(_knex, filter, column, options));
+      const result = dayjs(value).tz(
+        this.getTimezone(_knex, filter, column, options),
+      );
+      dateTimeHandlerDebug(
+        'parseFilterValue ' +
+          value +
+          ' DateTimeStringHasTimezone: ' +
+          result +
+          ' ' +
+          result.format(this.dateValueFormat),
+      );
+      return result;
     }
     // assume local
     else {
-      return dayjs.tz(value, this.getTimezone(_knex, filter, column, options));
+      const result = dayjs.tz(
+        value,
+        this.getTimezone(_knex, filter, column, options),
+      );
+      dateTimeHandlerDebug(
+        'parseFilterValue ' +
+          value +
+          ' withoutTimezone: ' +
+          result +
+          ' ' +
+          result.format(this.dateValueFormat),
+      );
+      return result;
     }
   }
 
@@ -311,6 +346,9 @@ export class DateTimeGeneralHandler extends GenericFieldHandler {
           options,
         );
         anchorDate = filter.groupby ? anchorDate : anchorDate.startOf('day');
+        dateTimeHandlerDebug(
+          'exactDate anchorDate ' + anchorDate.format(this.dateValueFormat),
+        );
         break;
       // sub-ops for `isWithin` comparison
       case 'pastWeek':

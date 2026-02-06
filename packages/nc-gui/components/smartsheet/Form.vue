@@ -1571,17 +1571,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                       </Draggable>
 
                       <div class="flex justify-between items-center mt-6 !px-8 !lg:px-12">
-                        <NcButton
-                          type="secondary"
-                          size="small"
-                          :disabled="disableFormSubmit"
-                          class="nc-form-clear nc-form-focus-element"
-                          data-testid="nc-form-clear"
-                          data-title="nc-form-clear"
-                          @click.stop="clearForm"
-                        >
-                          {{ $t('activity.clearForm') }}
-                        </NcButton>
+                        <div></div>
 
                         <NcButton
                           type="primary"
@@ -1593,7 +1583,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                           data-title="nc-form-submit"
                           @click.stop="submitForm"
                         >
-                          {{ $t('general.submit') }}
+                          {{
+                            parseProp(formViewData?.meta)?.custom_submit_enabled
+                              ? parseProp(formViewData?.meta)?.submit_button_label || $t('general.submit')
+                              : $t('general.submit')
+                          }}
                         </NcButton>
                       </div>
                     </a-form>
@@ -2009,7 +2003,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   data-testid="nc-form-hide-branding"
                                   :disabled="isLocked || !isEditable"
                                   @change="(value) => {
-                                    if (isLocked || !isEditable || click(PlanFeatureTypes.FEATURE_HIDE_BRANDING)) return
+                                    if (click(PlanFeatureTypes.FEATURE_HIDE_BRANDING)) return
 
                                     (formViewData!.meta as Record<string,any>).hide_branding = value
                                     updateView()
@@ -2164,6 +2158,76 @@ const { message: templatedMessage } = useTemplatedMessage(
                             />
                           </div>
                         </div>
+
+                        <!-- Submit Button Customization -->
+                        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL">
+                          <template #default="{ click, isFeatureEnabled }">
+                            <div class="flex flex-col gap-3">
+                              <div class="flex items-center justify-between gap-3">
+                                <span class="flex items-center gap-3">
+                                  {{ $t('activity.customizeSubmitButton') }}
+                                  <LazyPaymentUpgradeBadge
+                                    :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL"
+                                    :content="
+                                      $t('upgrade.upgradeToCustomizeSubmitButtonSubtitle', {
+                                        plan: getPlanTitle(PlanTitles.PLUS),
+                                      })
+                                    "
+                                  />
+                                </span>
+                                <a-switch
+                                  v-if="isEeUI"
+                                  v-e="[`a:form-view:custom-submit-label`]"
+                                  :checked="parseProp(formViewData.meta)?.custom_submit_enabled"
+                                  size="small"
+                                  class="nc-form-custom-submit-enabled"
+                                  data-testid="nc-form-custom-submit-enabled"
+                                  :disabled="isLocked || !isEditable"
+                                  @change="
+                                    (value) => {
+                                      if (!parseProp(formViewData.meta)?.custom_submit_enabled && click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL)) return
+
+                                      const meta = parseProp(formViewData!.meta) || {}
+                                      meta.custom_submit_enabled = value
+                                      formViewData!.meta = meta
+                                      updateView()
+                                    }
+                                  "
+                                />
+                                <NcTooltip v-else placement="top">
+                                  <template #title>
+                                    <div class="text-center">
+                                      {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                                    </div>
+                                  </template>
+                                  <a-switch :checked="false" size="small" :disabled="true" />
+                                </NcTooltip>
+                              </div>
+
+                              <div
+                                v-if="isEeUI && parseProp(formViewData.meta)?.custom_submit_enabled"
+                                class="flex flex-col gap-2"
+                              >
+                                <a-input
+                                  :value="parseProp(formViewData.meta)?.submit_button_label || $t('general.submit')"
+                                  class="!h-8 !px-3 !py-1 !rounded-lg"
+                                  :placeholder="$t('general.submit')"
+                                  data-testid="nc-form-submit-button-label"
+                                  :disabled="isLocked || !isEditable || !isFeatureEnabled"
+                                  :maxlength="50"
+                                  @update:value="
+                                    (value) => {
+                                      const meta = parseProp(formViewData!.meta) || {}
+                                      meta.submit_button_label = value
+                                      formViewData!.meta = meta
+                                      updateView()
+                                    }
+                                  "
+                                />
+                              </div>
+                            </div>
+                          </template>
+                        </PaymentUpgradeBadgeProvider>
 
                         <!-- Show this message -->
                         <div v-if="!isOpenRedirectUrl" class="pb-10">

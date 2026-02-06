@@ -392,7 +392,7 @@ export const useBases = defineStore('basesStore', () => {
       },
     )
 
-    await loadProjects()
+    await loadProjects('workspace', basePayload.workspaceId)
     return result
   }
 

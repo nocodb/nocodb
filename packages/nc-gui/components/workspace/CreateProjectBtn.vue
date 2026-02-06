@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const props = defineProps<{
-  activeWorkspaceId?: string | undefined
+  workspaceId?: string | undefined
   modal?: boolean
   type?: string
   isOpen: boolean
@@ -10,15 +10,12 @@ const props = defineProps<{
 
 const { isUIAllowed } = useRoles()
 
-const { orgRoles, workspaceRoles } = useRoles()
+const { orgRoles } = useRoles()
 
 const { baseCreateMode } = storeToRefs(useBases())
 
 const baseStore = useBase()
 const { isSharedBase } = storeToRefs(baseStore)
-
-const workspaceStore = useWorkspace()
-const { activeWorkspaceId: _activeWorkspaceId } = storeToRefs(workspaceStore)
 
 const baseCreateDlg = ref(false)
 
@@ -32,7 +29,7 @@ onMounted(() => {
 
 <template>
   <NcButton
-    v-if="isUIAllowed('baseCreate', { roles: workspaceRoles ?? orgRoles }) && !isSharedBase"
+    v-if="isUIAllowed('baseCreate', { roles: orgRoles }) && !isSharedBase"
     v-e="['c:base:create']"
     type="text"
     :size="size"

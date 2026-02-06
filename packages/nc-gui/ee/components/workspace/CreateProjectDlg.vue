@@ -12,7 +12,9 @@ const props = defineProps<{
 
 const emit = defineEmits(['update:modelValue'])
 
-const { defaultBaseCreateMode } = toRefs(props)
+const { defaultBaseCreateMode, workspaceId } = toRefs(props)
+
+const isWsBaseListModal = inject(IsWsBaseListModalInj, ref(false))
 
 const router = useRouter()
 const route = router.currentRoute
@@ -27,11 +29,11 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace } = storeToRefs(workspaceStore)
 
 const activeWorkspaceId = computed(() => {
-  return props.workspaceId ?? activeWorkspace.value?.id
+  return workspaceId.value ?? activeWorkspace.value?.id
 })
 
 const basesStore = useBases()
-const { createProject: _createProject } = basesStore
+const { createProject: _createProject, loadProjects } = basesStore
 
 const { baseCreateMode } = storeToRefs(basesStore)
 
@@ -100,10 +102,14 @@ const createProject = async () => {
       ...(!blockPrivateBases.value ? { default_role: formState.value.default_role } : {}),
     })
 
-    navigateToProject({
-      baseId: base.id!,
-      workspaceId: activeWorkspaceId.value!,
-    })
+    if (!isWsBaseListModal.value) {
+      navigateToProject({
+        baseId: base.id!,
+        workspaceId: activeWorkspaceId.value!,
+      })
+    } else {
+      loadProjects()
+    }
 
     refreshCommandPalette()
 
@@ -398,7 +404,7 @@ if (props.isCreateNewActionMenu) {
       />
     </template>
     <template v-if="baseCreateMode === NcBaseCreateMode.MANAGED_APP">
-      <WorkspaceProjectCreateManagedApp v-model:visible="dialogShow" workspace-id="activeWorkspaceId" />
+      <WorkspaceProjectCreateManagedApp v-model:visible="dialogShow" :workspace-id="activeWorkspaceId!" />
     </template>
   </NcModal>
 </template>

@@ -15,7 +15,11 @@ const props = withDefaults(
   },
 )
 
+const { workspaceId } = toRefs(props)
+
 const { isUIAllowed } = useRoles()
+
+const { activeWorkspaceId, workspaces } = storeToRefs(useWorkspace())
 
 const { baseCreateMode } = storeToRefs(useBases())
 
@@ -28,10 +32,16 @@ const isVisibleCreateBase = ref(false)
 
 const size = computed(() => props.size || 'small')
 const centered = computed(() => props.centered ?? true)
+
+const hasAccess = computed(() => {
+  if (!workspaceId.value || workspaceId.value === activeWorkspaceId.value) return isUIAllowed('baseCreate') && !isSharedBase.value
+
+  return isUIAllowed('baseCreate', { roles: workspaces.value.get(workspaceId.value)?.roles })
+})
 </script>
 
 <template>
-  <NcDropdown v-if="isUIAllowed('baseCreate') && !isSharedBase" v-model:visible="isVisibleCreateBase">
+  <NcDropdown v-if="hasAccess" v-model:visible="isVisibleCreateBase">
     <NcButton
       v-e="['c:base:create']"
       :type="type"

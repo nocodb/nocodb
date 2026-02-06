@@ -279,17 +279,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                 </div>
 
                 <div class="flex justify-between items-center mt-6">
-                  <NcButton
-                    html-type="reset"
-                    type="secondary"
-                    :size="isMobileMode ? 'medium' : 'small'"
-                    :disabled="isLoading"
-                    class="nc-shared-form-button shared-form-clear-button"
-                    data-testid="shared-form-clear-button"
-                    @click="clearForm"
-                  >
-                    {{ $t('activity.clearForm') }}
-                  </NcButton>
+                  <div></div>
 
                   <NcButton
                     :disabled="progress"
@@ -299,9 +289,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                     data-testid="shared-form-submit-button"
                     @click="submitForm"
                   >
-                    {{
-                      parseProp(sharedFormView?.meta)?.custom_submit_enabled
-                        ? parseProp(sharedFormView.meta)?.submit_button_label || $t('general.submit')
+                    {{ 
+                      parseProp(sharedFormView?.meta)?.custom_submit_enabled 
+                        ? (parseProp(sharedFormView.meta)?.submit_button_label || $t('general.submit'))
                         : $t('general.submit')
                     }}
                   </NcButton>

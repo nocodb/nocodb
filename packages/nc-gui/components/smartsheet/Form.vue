@@ -1571,18 +1571,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                       </Draggable>
 
                       <div class="flex justify-between items-center mt-6 !px-8 !lg:px-12">
-                        <NcButton
-                          v-if="!isEeUI || !parseProp(formViewData.meta)?.hide_clear_form_button"
-                          type="secondary"
-                          size="small"
-                          :disabled="disableFormSubmit"
-                          class="nc-form-clear nc-form-focus-element"
-                          data-testid="nc-form-clear"
-                          data-title="nc-form-clear"
-                          @click.stop="clearForm"
-                        >
-                          {{ $t('activity.clearForm') }}
-                        </NcButton>
+                        <div></div>
 
                         <NcButton
                           type="primary"
@@ -2236,52 +2225,6 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   "
                                 />
                               </div>
-                            </div>
-                          </template>
-                        </PaymentUpgradeBadgeProvider>
-
-                        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_HIDE_CLEAR_FORM_BUTTON">
-                          <template #default="{ click }">
-                            <div class="flex items-center justify-between gap-3">
-                              <!-- Hide Clear Form Button -->
-
-                              <span class="flex items-center gap-3">
-                                {{ $t('activity.hideClearFormButton') }}
-
-                                <LazyPaymentUpgradeBadge
-                                  :feature="PlanFeatureTypes.FEATURE_FORM_HIDE_CLEAR_FORM_BUTTON"
-                                  :content="
-                                    $t('upgrade.upgradeToHideClearFormButtonSubtitle', {
-                                      plan: getPlanTitle(PlanTitles.PLUS),
-                                    })
-                                  "
-                                />
-                              </span>
-
-                              <a-switch
-                                v-if="isEeUI"
-                                v-e="[`a:form-view:hide-clear-form-button`]"
-                                :checked="parseProp(formViewData.meta)?.hide_clear_form_button"
-                                size="small"
-                                class="nc-form-hide-clear-form-button"
-                                data-testid="nc-form-hide-clear-form-button"
-                                :disabled="isLocked || !isEditable"
-                                @change="(value) => {
-                                    if (click(PlanFeatureTypes.FEATURE_FORM_HIDE_CLEAR_FORM_BUTTON)) return
-
-                                    (formViewData!.meta as Record<string,any>).hide_clear_form_button = value
-                                    updateView()
-                                  }"
-                              />
-
-                              <NcTooltip v-else placement="top">
-                                <template #title>
-                                  <div class="text-center">
-                                    {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
-                                  </div>
-                                </template>
-                                <a-switch :checked="false" size="small" :disabled="true" />
-                              </NcTooltip>
                             </div>
                           </template>
                         </PaymentUpgradeBadgeProvider>

@@ -111,7 +111,7 @@ const FormSubmission = ({
                         height={16}
                         src={getFieldIconUrl(s.uidt)}
                       />
-                      <Section className="!ml-2 truncate inline-block text-[13px] !my-0 !mr-0 leading-4.5 text-gray-600 align-middle">
+                      <Section className="!ml-2 inline-block text-[13px] !my-0 !mr-0 leading-4.5 text-gray-600 align-middle max-w-xs whitespace-pre-wrap">
                         {s.columnTitle}
                       </Section>
                     </Column>
@@ -123,7 +123,7 @@ const FormSubmission = ({
                     }}
                   >
                     <Column>
-                      <Text className="text-gray-800 max-w-xs truncate !my-0">
+                      <Text className="text-gray-800 !my-0 max-w-xs whitespace-pre-wrap">
                         {s.parsedValue}
                       </Text>
                     </Column>

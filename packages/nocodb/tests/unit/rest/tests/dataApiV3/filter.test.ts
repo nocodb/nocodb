@@ -16,13 +16,20 @@ describe('dataApiV3', () => {
     let urlPrefix: string;
     let ncAxiosGet: INcAxios['ncAxiosGet'];
     let ncAxiosPost: INcAxios['ncAxiosPost'];
+    let systemTz: string = 'Etc/Utc';
 
     beforeEach(async () => {
+      systemTz = process.env.TZ || systemTz;
+      process.env.TZ = 'Etc/Utc';
       testContext = await dataApiV3BeforeEach();
       testAxios = ncAxios(testContext);
       urlPrefix = `/api/${API_VERSION}/data/${testContext.base.id}`;
       ncAxiosGet = testAxios.ncAxiosGet;
       ncAxiosPost = testAxios.ncAxiosPost;
+    });
+
+    afterEach(() => {
+      process.env.TZ = systemTz;
     });
 
     it('should filter eq by exactDate with IST timezone', async function () {
@@ -101,7 +108,7 @@ describe('dataApiV3', () => {
       expect(filterResponse.body.records[0].fields.Date).to.eq('2026-01-15');
     });
 
-    it.only('should filter gte by exactDate with IST timezone', async function () {
+    it('should filter gte by exactDate with IST timezone', async function () {
       // Create table with Date column (IST timezone)
       const table = await createTable(testContext.context, testContext.base, {
         table_name: 'dateFilterTest',

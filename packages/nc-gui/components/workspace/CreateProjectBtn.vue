@@ -1,12 +1,17 @@
 <script setup lang="ts">
-const props = defineProps<{
-  workspaceId?: string | undefined
-  modal?: boolean
-  type?: string
-  isOpen: boolean
-  size?: NcButtonSize
-  centered?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    workspaceId?: string | undefined
+    modal?: boolean
+    type?: string
+    isOpen: boolean
+    size?: NcButtonSize
+    centered?: boolean
+  }>(),
+  {
+    type: 'text',
+  },
+)
 
 const { isUIAllowed } = useRoles()
 
@@ -31,7 +36,7 @@ onMounted(() => {
   <NcButton
     v-if="isUIAllowed('baseCreate', { roles: orgRoles }) && !isSharedBase"
     v-e="['c:base:create']"
-    type="text"
+    :type="type"
     :size="size"
     :centered="centered"
     full-width

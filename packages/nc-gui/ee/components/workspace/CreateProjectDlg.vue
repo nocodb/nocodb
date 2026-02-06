@@ -169,6 +169,10 @@ const handleResetInitialValue = () => {
 watch(dialogShow, async (n, o) => {
   if (n === o && !n) return
 
+  if (n && baseCreateMode.value === NcBaseCreateMode.FROM_SCRATCH) {
+    onInit()
+  }
+
   // If ai prompt is set, don't reset the aiMode value
   if (n && aiModeInitialValue.value.basePrompt) return
 
@@ -179,12 +183,6 @@ watch(dialogShow, async (n, o) => {
   if (defaultBaseCreateMode.value) return
 
   baseCreateMode.value = null
-})
-
-watch(baseCreateMode, () => {
-  if (baseCreateMode.value !== NcBaseCreateMode.FROM_SCRATCH) return
-
-  onInit()
 })
 
 const isOpenBaseAccessDropdown = ref(false)

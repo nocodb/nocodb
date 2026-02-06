@@ -186,4 +186,4 @@ const exportFile = async (exportType: ExportTypes) => {
       JSON
     </div>
   </NcMenuItem>
-</template>
+  <NcMenuItem v-e="['a:download:excel']" @click.stop="exportFile(ExportTypes.EXCEL)">\n    <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">\n      <GeneralLoader v-if="isExporting" size="regular" />\n      <component :is="iconMap.ncFileTypeExcel" v-else class="w-4" />\n      <!-- Download as Excel -->\n      Excel\n    </div>\n  </NcMenuItem>\n</template>

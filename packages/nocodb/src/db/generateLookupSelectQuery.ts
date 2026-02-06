@@ -26,8 +26,15 @@ export async function getDisplayValueOfRefTable(
   context: NcContext,
   relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>,
 ) {
+  // For cross-base links, the relationCol belongs to the original base,
+  // but context might be the related table's base context.
+  // We need to use the column's own base context to get its options.
+  const colContext = relationCol.base_id
+    ? { ...context, base_id: relationCol.base_id }
+    : context;
+
   return await relationCol
-    .getColOptions(context)
+    .getColOptions(colContext)
     .then((colOpt) => colOpt.getRelatedTable(context))
     .then((model) => model.getColumns(context))
     .then((cols) => cols.find((col) => col.pv) || cols[0]);
@@ -222,8 +229,12 @@ export default async function generateLookupSelectQuery({
 
     // if lookup column is qr code or barcode extract the referencing column
     if ([UITypes.QrCode, UITypes.Barcode].includes(lookupColumn.uidt)) {
+      // For cross-base lookups, lookupColumn might belong to a different base than context
+      const lookupColContext = lookupColumn.base_id
+        ? { ...context, base_id: lookupColumn.base_id }
+        : context;
       lookupColumn = await lookupColumn
-        .getColOptions<BarcodeColumn | QrCodeColumn>(context)
+        .getColOptions<BarcodeColumn | QrCodeColumn>(lookupColContext)
         .then((barcode) => barcode.getValueColumn(refContext));
     }
     {

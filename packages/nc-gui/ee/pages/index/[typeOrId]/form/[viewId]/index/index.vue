@@ -7,7 +7,6 @@ import { StreamBarcodeReader } from 'vue-barcode-reader'
 const {
   sharedFormView,
   submitForm,
-  clearForm,
   formState,
   notFound,
   formColumns,

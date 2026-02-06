@@ -10,4 +10,5 @@ export const dataApiV3Test = runOnSet(2, async () => {
   await import('./list-and-crud.test');
   await import('./attachment.test');
   await import('./audit-log.test');
+  await import('./filter.test');
 });

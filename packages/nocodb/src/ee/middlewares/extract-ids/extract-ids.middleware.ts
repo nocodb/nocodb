@@ -1308,6 +1308,11 @@ export class AclMiddleware implements NestInterceptor {
       'hideAllColumns',
       'showAllColumns',
       'gridColumnUpdate',
+      'gridViewUpdate',
+      'galleryViewUpdate',
+      'kanbanViewUpdate',
+      'mapViewUpdate',
+      'calendarViewUpdate',
     ];
 
     // For editors: restrict filter/sort operations to personal views they own
@@ -1403,6 +1408,12 @@ export class AclMiddleware implements NestInterceptor {
       'viewColumnUpdate',
       'hideAllColumns',
       'showAllColumns',
+      'gridColumnUpdate',
+      'gridViewUpdate',
+      'galleryViewUpdate',
+      'kanbanViewUpdate',
+      'mapViewUpdate',
+      'calendarViewUpdate',
     ];
     const isPersonalViewOwnerAllowed =
       isPersonalViewOwner &&

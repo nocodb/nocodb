@@ -109,7 +109,7 @@ const exportFile = async (exportType: ExportTypes) => {
       )
     }
 
-    message.info('Preparing CSV for download...')
+    message.info(`Preparing ${exportType.toUpperCase()} for download...`)
 
     $poller.subscribe(
       { id: jobData.id },
@@ -158,6 +158,15 @@ const exportFile = async (exportType: ExportTypes) => {
       <component :is="iconMap.ncFileTypeCsvSmall" v-else class="w-4" />
       <!-- Download as CSV -->
       CSV
+    </div>
+  </NcMenuItem>
+
+  <NcMenuItem v-e="['a:download:json']" @click.stop="exportFile(ExportTypes.JSON)">
+    <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
+      <GeneralLoader v-if="isExporting" size="regular" />
+      <component :is="iconMap.ncFileTypeJson" v-else class="w-4" />
+      <!-- Download as JSON -->
+      JSON
     </div>
   </NcMenuItem>
 </template>

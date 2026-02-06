@@ -91,6 +91,7 @@ export type ExpandedFormModeType =
 export enum ExportTypes {
   EXCEL = 'excel',
   CSV = 'csv',
+  JSON = 'json',
 }
 
 export enum PluginCategory {

@@ -948,6 +948,9 @@ const { message: templatedMessage } = useTemplatedMessage(
   computed(() => formViewData?.value?.success_msg),
   computed(() => formState.value),
 )
+
+// Temp disabled
+const showCustomizeSubmitBtnOption = false
 </script>
 
 <template>
@@ -2039,6 +2042,78 @@ const { message: templatedMessage } = useTemplatedMessage(
                                 }"
                             />
                           </div>
+                          <!-- Submit Button Customization -->
+                          <PaymentUpgradeBadgeProvider
+                            v-if="showCustomizeSubmitBtnOption"
+                            :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL"
+                          >
+                            <template #default="{ click, isFeatureEnabled }">
+                              <div class="flex flex-col gap-3">
+                                <div class="flex items-center justify-between gap-3">
+                                  <span class="flex items-center gap-3">
+                                    {{ $t('activity.customizeSubmitButton') }}
+                                    <LazyPaymentUpgradeBadge
+                                      :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL"
+                                      :content="
+                                        $t('upgrade.upgradeToCustomizeSubmitButtonSubtitle', {
+                                          plan: getPlanTitle(PlanTitles.PLUS),
+                                        })
+                                      "
+                                    />
+                                  </span>
+                                  <a-switch
+                                    v-if="isEeUI"
+                                    v-e="[`a:form-view:custom-submit-label`]"
+                                    :checked="parseProp(formViewData.meta)?.custom_submit_enabled"
+                                    size="small"
+                                    class="nc-form-custom-submit-enabled"
+                                    data-testid="nc-form-custom-submit-enabled"
+                                    :disabled="isLocked || !isEditable"
+                                    @change="
+                                    (value) => {
+                                      if (!parseProp(formViewData.meta)?.custom_submit_enabled && click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL)) return
+
+                                      const meta = parseProp(formViewData!.meta) || {}
+                                      meta.custom_submit_enabled = value
+                                      formViewData!.meta = meta
+                                      updateView()
+                                    }
+                                  "
+                                  />
+                                  <NcTooltip v-else placement="top">
+                                    <template #title>
+                                      <div class="text-center">
+                                        {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
+                                      </div>
+                                    </template>
+                                    <a-switch :checked="false" size="small" :disabled="true" />
+                                  </NcTooltip>
+                                </div>
+
+                                <div
+                                  v-if="isEeUI && parseProp(formViewData.meta)?.custom_submit_enabled"
+                                  class="flex flex-col gap-2"
+                                >
+                                  <a-input
+                                    :value="parseProp(formViewData.meta)?.submit_button_label || $t('general.submit')"
+                                    class="!h-8 !px-3 !py-1 !rounded-lg"
+                                    :placeholder="$t('general.submit')"
+                                    data-testid="nc-form-submit-button-label"
+                                    :disabled="isLocked || !isEditable || !isFeatureEnabled"
+                                    :maxlength="50"
+                                    @update:value="
+                                    (value) => {
+                                      const meta = parseProp(formViewData!.meta) || {}
+                                      meta.submit_button_label = value
+                                      formViewData!.meta = meta
+                                      updateView()
+                                    }
+                                  "
+                                  />
+                                </div>
+                              </div>
+                            </template>
+                          </PaymentUpgradeBadgeProvider>
                         </div>
                       </div>
 
@@ -2158,76 +2233,6 @@ const { message: templatedMessage } = useTemplatedMessage(
                             />
                           </div>
                         </div>
-
-                        <!-- Submit Button Customization -->
-                        <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL">
-                          <template #default="{ click, isFeatureEnabled }">
-                            <div class="flex flex-col gap-3">
-                              <div class="flex items-center justify-between gap-3">
-                                <span class="flex items-center gap-3">
-                                  {{ $t('activity.customizeSubmitButton') }}
-                                  <LazyPaymentUpgradeBadge
-                                    :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL"
-                                    :content="
-                                      $t('upgrade.upgradeToCustomizeSubmitButtonSubtitle', {
-                                        plan: getPlanTitle(PlanTitles.PLUS),
-                                      })
-                                    "
-                                  />
-                                </span>
-                                <a-switch
-                                  v-if="isEeUI"
-                                  v-e="[`a:form-view:custom-submit-label`]"
-                                  :checked="parseProp(formViewData.meta)?.custom_submit_enabled"
-                                  size="small"
-                                  class="nc-form-custom-submit-enabled"
-                                  data-testid="nc-form-custom-submit-enabled"
-                                  :disabled="isLocked || !isEditable"
-                                  @change="
-                                    (value) => {
-                                      if (!parseProp(formViewData.meta)?.custom_submit_enabled && click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL)) return
-
-                                      const meta = parseProp(formViewData!.meta) || {}
-                                      meta.custom_submit_enabled = value
-                                      formViewData!.meta = meta
-                                      updateView()
-                                    }
-                                  "
-                                />
-                                <NcTooltip v-else placement="top">
-                                  <template #title>
-                                    <div class="text-center">
-                                      {{ $t('msg.info.thisFeatureIsOnlyAvailableInEnterpriseEdition') }}
-                                    </div>
-                                  </template>
-                                  <a-switch :checked="false" size="small" :disabled="true" />
-                                </NcTooltip>
-                              </div>
-
-                              <div
-                                v-if="isEeUI && parseProp(formViewData.meta)?.custom_submit_enabled"
-                                class="flex flex-col gap-2"
-                              >
-                                <a-input
-                                  :value="parseProp(formViewData.meta)?.submit_button_label || $t('general.submit')"
-                                  class="!h-8 !px-3 !py-1 !rounded-lg"
-                                  :placeholder="$t('general.submit')"
-                                  data-testid="nc-form-submit-button-label"
-                                  :disabled="isLocked || !isEditable || !isFeatureEnabled"
-                                  :maxlength="50"
-                                  @update:value="
-                                    (value) => {
-                                      const meta = parseProp(formViewData!.meta) || {}
-                                      meta.submit_button_label = value
-                                      formViewData!.meta = meta
-                                      updateView()
-                                    }
-                                  "
-                                />
-                              </div>
-                            </div>
-                          </template>
-                        </PaymentUpgradeBadgeProvider>
 
                         <!-- Show this message -->
                         <div v-if="!isOpenRedirectUrl" class="pb-10">

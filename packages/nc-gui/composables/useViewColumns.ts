@@ -1,5 +1,5 @@
 import type { ButtonType, ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
-import { CommonAggregations, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
+import { CommonAggregations, ViewLockType, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
@@ -50,9 +50,20 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { addUndo, defineViewScope } = useUndoRedo()
 
+    const { isUserViewOwner } = useViewsStore()
+
     const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
 
     const hasViewFieldDataEditPermission = computed(() => isUIAllowed('viewFieldDataEdit'))
+
+    // Check if user can update view meta (row height, etc.) based on role OR personal view ownership
+    const canUpdateViewMeta = computed(() => {
+      // If user has role permission to update views, allow it
+      if (isUIAllowed('viewCreateOrEdit')) return true
+      // If this is a personal view owned by current user, allow updates
+      if (view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value)) return true
+      return false
+    })
 
     const localChanges = ref<Record<string, Field>>({})
 
@@ -691,6 +702,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       updateDefaultViewColumnMeta,
       hidingViewColumnsMap,
       hasViewFieldDataEditPermission,
+      canUpdateViewMeta,
     }
   },
   'useViewColumnsOrThrow',

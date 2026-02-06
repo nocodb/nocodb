@@ -32,14 +32,16 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const isLocked = inject(IsLockedInj, ref(false))
 
-const { isUIAllowed } = useRoles()
+const { canUpdateViewMeta } = useViewColumnsOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
+
+const isRestrictedEditor = computed(() => isLocked.value || !canUpdateViewMeta.value)
 
 const open = ref(false)
 
 const updateRowHeight = async (rh: number, undo = false) => {
-  if (isLocked.value) return
+  if (isRestrictedEditor.value) return
 
   if (view.value?.id) {
     if (rh === (view.value.view as GridType).row_height) return
@@ -65,7 +67,7 @@ const updateRowHeight = async (rh: number, undo = false) => {
           row_height: rh,
         },
         {
-          skipNetworkCall: isPublic.value || isSharedBase.value || !isUIAllowed('viewCreateOrEdit'),
+          skipNetworkCall: isPublic.value || isSharedBase.value || !canUpdateViewMeta.value,
         },
       )
 
@@ -93,7 +95,7 @@ useMenuCloseOnEsc(open)
         class="nc-height-menu-btn nc-toolbar-btn !border-0 !h-7 !px-1.5 !min-w-7"
         size="small"
         type="secondary"
-        :show-as-disabled="isLocked"
+        :show-as-disabled="isRestrictedEditor"
       >
         <div class="flex items-center gap-0.5">
           <component :is="iconMap.rowHeight" class="!h-3.75 !w-3.75" />

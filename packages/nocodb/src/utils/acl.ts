@@ -342,7 +342,7 @@ const rolePermissions:
       // etc
       fetchViaUrl: true,
 
-      // Sort/Filter/ViewColumn operations for personal views (middleware handles ownership check)
+      // Sort/Filter/ViewColumn/View operations for personal views (middleware handles ownership check)
       sortCreate: true,
       sortUpdate: true,
       sortDelete: true,
@@ -353,6 +353,11 @@ const rolePermissions:
       hideAllColumns: true,
       showAllColumns: true,
       gridColumnUpdate: true,
+      gridViewUpdate: true,
+      galleryViewUpdate: true,
+      kanbanViewUpdate: true,
+      mapViewUpdate: true,
+      calendarViewUpdate: true,
     },
   },
   [ProjectRoles.CREATOR]: {

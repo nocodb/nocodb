@@ -59,7 +59,7 @@ export class InternalController {
     req: NcRequest,
     scope?: string,
   ) {
-    // For filter/sort operations, extract view to check personal view ownership
+    // For filter/sort/view operations, extract view to check personal view ownership
     const filterSortOperations = [
       'filterList',
       'filterChildrenList',
@@ -73,6 +73,12 @@ export class InternalController {
       'viewColumnUpdate',
       'hideAllColumns',
       'showAllColumns',
+      'gridViewUpdate',
+      'gridColumnUpdate',
+      'galleryViewUpdate',
+      'kanbanViewUpdate',
+      'mapViewUpdate',
+      'calendarViewUpdate',
     ];
 
     if (filterSortOperations.includes(operation as string)) {

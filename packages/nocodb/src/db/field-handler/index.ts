@@ -182,10 +182,16 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.SQLITE]: DateTimeSQLiteHandler,
   },
   [UITypes.CreatedTime]: {
-    [CLIENT_DEFAULT]: ComputedFieldHandler,
+    [CLIENT_DEFAULT]: DateTimeGeneralHandler,
+    [ClientType.PG]: DateTimePGHandler,
+    [ClientType.MYSQL]: DateTimeMySQLHandler,
+    [ClientType.SQLITE]: DateTimeSQLiteHandler,
   },
   [UITypes.LastModifiedTime]: {
-    [CLIENT_DEFAULT]: ComputedFieldHandler,
+    [CLIENT_DEFAULT]: DateTimeGeneralHandler,
+    [ClientType.PG]: DateTimePGHandler,
+    [ClientType.MYSQL]: DateTimeMySQLHandler,
+    [ClientType.SQLITE]: DateTimeSQLiteHandler,
   },
   [UITypes.AutoNumber]: {},
   [UITypes.Geometry]: {},

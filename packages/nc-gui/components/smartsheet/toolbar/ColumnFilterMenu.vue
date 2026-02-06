@@ -17,8 +17,6 @@ const { isMobileMode } = useGlobal()
 
 const filterComp = ref<typeof ColumnFilter>()
 
-const { isUIAllowed } = useRoles()
-
 const {
   allFilters: smatsheetAllFilters,
   nestedFilters,
@@ -42,7 +40,7 @@ const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
 
 const filtersLength = ref(0)
 // If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
-const isRestrictedEditor = computed(() => !canSyncFilter.value)
+const isRestrictedEditor = computed(() => isLocked.value || !canSyncFilter.value)
 
 watch(
   () => activeView?.value?.id,
@@ -209,7 +207,7 @@ watch(
         class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7 group"
         size="small"
         type="secondary"
-        :show-as-disabled="isLocked"
+        :show-as-disabled="isRestrictedEditor"
         :class="{
           [filteredOrSortedAppearanceConfig.FILTERED.toolbarBgClass]: combinedFilterLength,
         }"

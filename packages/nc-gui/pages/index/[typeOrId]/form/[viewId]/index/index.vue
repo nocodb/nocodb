@@ -289,7 +289,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                     data-testid="shared-form-submit-button"
                     @click="submitForm"
                   >
-                    {{ sharedFormView?.meta && parseProp(sharedFormView.meta)?.submit_button_label || $t('general.submit') }}
+                    {{ 
+                      parseProp(sharedFormView?.meta)?.custom_submit_enabled 
+                        ? (parseProp(sharedFormView.meta)?.submit_button_label || $t('general.submit'))
+                        : $t('general.submit')
+                    }}
                   </NcButton>
                 </div>
               </div>

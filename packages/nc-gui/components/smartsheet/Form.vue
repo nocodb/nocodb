@@ -1583,7 +1583,11 @@ const { message: templatedMessage } = useTemplatedMessage(
                           data-title="nc-form-submit"
                           @click.stop="submitForm"
                         >
-                          {{ parseProp(formViewData?.meta)?.submit_button_label || $t('general.submit') }}
+                          {{ 
+                            parseProp(formViewData?.meta)?.custom_submit_enabled 
+                              ? (parseProp(formViewData?.meta)?.submit_button_label || $t('general.submit'))
+                              : $t('general.submit')
+                          }}
                         </NcButton>
                       </div>
                     </a-form>

@@ -1,14 +1,19 @@
 <script setup lang="ts">
 import type { ButtonType } from 'ant-design-vue/lib/button'
 
-const props = defineProps<{
-  activeWorkspaceId?: string
-  modal?: boolean
-  type?: ButtonType
-  size?: NcButtonSize
-  centered?: boolean
-  // isOpen: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    workspaceId?: string
+    modal?: boolean
+    type?: ButtonType
+    size?: NcButtonSize
+    centered?: boolean
+    // isOpen: boolean
+  }>(),
+  {
+    type: 'text',
+  },
+)
 
 const { isUIAllowed } = useRoles()
 
@@ -29,7 +34,7 @@ const centered = computed(() => props.centered ?? true)
   <NcDropdown v-if="isUIAllowed('baseCreate') && !isSharedBase" v-model:visible="isVisibleCreateBase">
     <NcButton
       v-e="['c:base:create']"
-      type="text"
+      :type="type"
       data-testid="nc-sidebar-create-base-btn"
       :size="size"
       :centered="centered"
@@ -47,7 +52,7 @@ const centered = computed(() => props.centered ?? true)
         </div>
       </slot>
 
-      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :default-base-create-mode="baseCreateMode" />
+      <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :default-base-create-mode="baseCreateMode" :workspace-id="workspaceId" />
     </NcButton>
     <template #overlay>
       <WorkspaceProjectCreateMenu

@@ -301,6 +301,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
             :base-count="baseCount"
             :active-filter="modalState.activeFilter"
             :is-compact-view="isCompactView"
+            :selected-workspace-id="modalState.selectedWorkspaceId ?? undefined"
             @update:active-filter="modalState.activeFilter = $event"
           >
             <template #baseListHeader>

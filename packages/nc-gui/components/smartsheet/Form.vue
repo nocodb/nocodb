@@ -1583,9 +1583,9 @@ const { message: templatedMessage } = useTemplatedMessage(
                           data-title="nc-form-submit"
                           @click.stop="submitForm"
                         >
-                          {{ 
-                            parseProp(formViewData?.meta)?.custom_submit_enabled 
-                              ? (parseProp(formViewData?.meta)?.submit_button_label || $t('general.submit'))
+                          {{
+                            parseProp(formViewData?.meta)?.custom_submit_enabled
+                              ? parseProp(formViewData?.meta)?.submit_button_label || $t('general.submit')
                               : $t('general.submit')
                           }}
                         </NcButton>
@@ -2003,7 +2003,7 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   data-testid="nc-form-hide-branding"
                                   :disabled="isLocked || !isEditable"
                                   @change="(value) => {
-                                    if (isLocked || !isEditable || click(PlanFeatureTypes.FEATURE_HIDE_BRANDING)) return
+                                    if (click(PlanFeatureTypes.FEATURE_HIDE_BRANDING)) return
 
                                     (formViewData!.meta as Record<string,any>).hide_branding = value
                                     updateView()
@@ -2161,7 +2161,7 @@ const { message: templatedMessage } = useTemplatedMessage(
 
                         <!-- Submit Button Customization -->
                         <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL">
-                          <template #default="{ click }">
+                          <template #default="{ click, isFeatureEnabled }">
                             <div class="flex flex-col gap-3">
                               <div class="flex items-center justify-between gap-3">
                                 <span class="flex items-center gap-3">
@@ -2183,14 +2183,16 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   class="nc-form-custom-submit-enabled"
                                   data-testid="nc-form-custom-submit-enabled"
                                   :disabled="isLocked || !isEditable"
-                                  @change="(value) => {
-                                    if (isLocked || !isEditable || click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL)) return
-                                    
-                                    const meta = parseProp(formViewData.meta) || {}
-                                    meta.custom_submit_enabled = value
-                                    formViewData.meta = meta
-                                    updateView()
-                                  }"
+                                  @change="
+                                    (value) => {
+                                      if (!parseProp(formViewData.meta)?.custom_submit_enabled && click(PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL)) return
+
+                                      const meta = parseProp(formViewData!.meta) || {}
+                                      meta.custom_submit_enabled = value
+                                      formViewData!.meta = meta
+                                      updateView()
+                                    }
+                                  "
                                 />
                                 <NcTooltip v-else placement="top">
                                   <template #title>
@@ -2201,24 +2203,26 @@ const { message: templatedMessage } = useTemplatedMessage(
                                   <a-switch :checked="false" size="small" :disabled="true" />
                                 </NcTooltip>
                               </div>
-                              
-                              <div v-if="parseProp(formViewData.meta)?.custom_submit_enabled" class="flex flex-col gap-2">
-                                <!-- <div class="text-nc-content-gray text-sm">
-                                  {{ $t('activity.submitButtonLabel') }}
-                                </div> -->
+
+                              <div
+                                v-if="isEeUI && parseProp(formViewData.meta)?.custom_submit_enabled"
+                                class="flex flex-col gap-2"
+                              >
                                 <a-input
                                   :value="parseProp(formViewData.meta)?.submit_button_label || $t('general.submit')"
                                   class="!h-8 !px-3 !py-1 !rounded-lg"
                                   :placeholder="$t('general.submit')"
                                   data-testid="nc-form-submit-button-label"
-                                  :disabled="isLocked || !isEditable"
+                                  :disabled="isLocked || !isEditable || !isFeatureEnabled"
                                   :maxlength="50"
-                                  @update:value="(value) => {
-                                    const meta = parseProp(formViewData.meta) || {}
-                                    meta.submit_button_label = value
-                                    formViewData.meta = meta
-                                    updateView()
-                                  }"
+                                  @update:value="
+                                    (value) => {
+                                      const meta = parseProp(formViewData!.meta) || {}
+                                      meta.submit_button_label = value
+                                      formViewData!.meta = meta
+                                      updateView()
+                                    }
+                                  "
                                 />
                               </div>
                             </div>

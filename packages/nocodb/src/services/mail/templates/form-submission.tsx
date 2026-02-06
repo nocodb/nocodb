@@ -122,7 +122,7 @@ const FormSubmission = ({
                     }}
                   >
                     <Column>
-                      <Text className="text-gray-800 !my-0 whitespace-pre-wrap">
+                      <Text className="text-gray-800 !my-0 max-w-xs whitespace-pre-wrap">
                         {s.parsedValue}
                       </Text>
                     </Column>

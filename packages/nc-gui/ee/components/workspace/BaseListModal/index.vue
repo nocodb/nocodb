@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import type { VNodeRef } from '@vue/runtime-core'
 import { ProjectRoles } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -42,8 +41,7 @@ const closeModal = () => {
 }
 const { dialogState } = useProvideBaseActions(closeModal)
 
-// Autofocus search input
-const focus: VNodeRef = (el) => el?.focus()
+const searchInputRef = ref<HTMLInputElement>()
 
 // Responsive state
 const windowWidth = ref(typeof window !== 'undefined' ? window.innerWidth : 1024)
@@ -85,6 +83,18 @@ watch(visible, (isVisible) => {
     modalState.activeFilter = 'all'
   }
 })
+
+watch(
+  searchInputRef,
+  () => {
+    if (!searchInputRef.value) return
+
+    searchInputRef.value.focus()
+  },
+  {
+    immediate: true,
+  },
+)
 
 // Computed
 const selectedWorkspace = computed(() => {
@@ -232,7 +242,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
         class="flex items-center px-4 py-3 border-b border-nc-border-gray-medium dark:bg-nc-bg-gray-extralight"
       >
         <a-input
-          :ref="focus"
+          ref="searchInputRef"
           v-model:value="modalState.searchQuery"
           class="nc-workspace-base-search"
           :placeholder="$t('placeholder.searchWorkspacesAndBases')"

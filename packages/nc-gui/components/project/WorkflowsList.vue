@@ -129,16 +129,16 @@ const handleToggleStatus = async (workflow: WorkflowType, newStatus?: boolean) =
     isToggling.value = workflow.id
     $e('a:workflow:toggle-status')
     
-    // Use provided status or toggle current status
-    const targetStatus = newStatus !== undefined ? newStatus : !workflow.active
+    // Use provided status or toggle current enabled status
+    const targetStatus = newStatus !== undefined ? newStatus : !workflow.enabled
     
     if (!targetStatus) {
-      // Disable workflow - just update active status
-      await updateWorkflow(baseId.value, workflow.id, { active: false })
+      // Disable workflow - update enabled status
+      await updateWorkflow(baseId.value, workflow.id, { enabled: false })
       message.success(t('msg.success.workflowDisabled'))
     } else {
-      // Enable workflow - publish it
-      await publishWorkflow(workflow.id)
+      // Enable workflow - update enabled status
+      await updateWorkflow(baseId.value, workflow.id, { enabled: true })
       message.success(t('msg.success.workflowEnabled'))
     }
     
@@ -304,7 +304,7 @@ watch(baseId, async (newBaseId) => {
             title: $t('labels.status'),
             dataIndex: 'status', 
             key: 'status',
-            width: '15%',
+            width: 80,
           },
           {
             title: $t('general.name'),
@@ -338,7 +338,7 @@ watch(baseId, async (newBaseId) => {
           <div v-if="column.key === 'status'" @click.stop>
             <NcSwitch
               size="small"
-              :checked="!!record.active"
+              :checked="!!record.enabled"
               :disabled="isToggling === record.id"
               @change="(checked) => handleToggleStatus(record, checked)"
             />
@@ -382,8 +382,8 @@ watch(baseId, async (newBaseId) => {
                   </NcMenuItem>
                   <NcMenuItem :disabled="isToggling === record.id" @click="() => handleToggleStatus(record)">
                     <div class="flex items-center gap-2">
-                      <GeneralIcon :icon="record.active ? 'ncPause' : 'ncPlay'" />
-                      {{ record.active ? $t('general.disable') : $t('general.enable') }}
+                      <GeneralIcon :icon="record.enabled ? 'ncPause' : 'ncPlay'" />
+                      {{ record.enabled ? $t('general.disable') : $t('general.enable') }}
                     </div>
                   </NcMenuItem>
                   <NcMenuItem :disabled="isDuplicating === record.id" @click="handleDuplicate(record)">

@@ -72,6 +72,36 @@ const handleEdit = (workflow: WorkflowType) => {
   })
 }
 
+const handleLogs = (workflow: WorkflowType) => {
+  $e('a:workflow:logs')
+  // Navigate to workflow logs tab
+  const { ncNavigateTo } = useGlobal()
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+  
+  ncNavigateTo({
+    workspaceId: activeWorkspaceId.value!,
+    baseId: baseId.value!,
+    workflowId: workflow.id!,
+    workflowTitle: workflow.title,
+    params: { tab: 'logs' }
+  })
+}
+
+const handleSettings = (workflow: WorkflowType) => {
+  $e('a:workflow:settings')
+  // Navigate to workflow settings tab
+  const { ncNavigateTo } = useGlobal()
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+  
+  ncNavigateTo({
+    workspaceId: activeWorkspaceId.value!,
+    baseId: baseId.value!,
+    workflowId: workflow.id!,
+    workflowTitle: workflow.title,
+    params: { tab: 'settings' }
+  })
+}
+
 const isDeleting = ref<string | null>(null)
 const handleDelete = async (workflow: WorkflowType) => {
   if (!baseId.value || !workflow.id || isDeleting.value === workflow.id) return
@@ -400,6 +430,19 @@ watch(baseId, async (newBaseId) => {
                       {{ $t('general.edit') }}
                     </div>
                   </NcMenuItem>
+                  <NcMenuItem @click="handleLogs(record)">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="ncListView" />
+                      {{ $t('general.logs') }}
+                    </div>
+                  </NcMenuItem>
+                  <NcMenuItem @click="handleSettings(record)">
+                    <div class="flex items-center gap-2">
+                      <GeneralIcon icon="ncSettings" />
+                      {{ $t('general.settings') }}
+                    </div>
+                  </NcMenuItem>
+                  <NcMenuDivider />
                   <NcMenuItem :disabled="isToggling === record.id" @click="() => handleToggleStatus(record)">
                     <div class="flex items-center gap-2">
                       <GeneralIcon :icon="record.enabled ? 'ncPause' : 'ncPlay'" />

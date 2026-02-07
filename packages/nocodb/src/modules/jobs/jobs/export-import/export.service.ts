@@ -1286,79 +1286,66 @@ export class ExportService {
       sortArrJson: any;
     },
   ): Promise<void> {
-    return new Promise<void>((resolve, reject) => {
-      this.datasService
-        .dataList(context, {
-          model,
-          view,
-          query: {
-            limit,
-            offset,
-            fields,
-            filterArrJson: param?.filterArrJson,
-            sortArrJson: param?.sortArrJson,
-          },
-          baseModel,
-          ignoreViewFilterAndSort: false,
-          limitOverride: limit,
-          skipSortBasedOnOrderCol: true,
-        })
-        .then(async (result) => {
-          try {
-            if (result.list.length === 0 && offset === 0) {
-              // Empty result, just return empty array
-              stream.push('[]');
-              stream.push(null);
-              resolve();
-              return;
-            }
-
-            const { data } = await formatter(result.list);
-
-            if (isFirst) {
-              // Start JSON array
-              stream.push('[\n');
-            }
-
-            if (data.length > 0) {
-              // Add comma if not the first batch
-              if (offset > 0) {
-                stream.push(',\n');
-              }
-
-              // Write JSON objects
-              const jsonRows = data.map(row => JSON.stringify(row)).join(',\n');
-              stream.push(jsonRows);
-            }
-
-            if (result.pageInfo.isLastPage) {
-              // Close JSON array
-              stream.push('\n]');
-              stream.push(null);
-              resolve();
-            } else {
-              this.recursiveReadForJson(
-                context,
-                formatter,
-                baseModel,
-                stream,
-                model,
-                view,
-                offset + limit,
-                limit,
-                fields,
-                false,
-                param,
-              )
-                .then(resolve)
-                .catch(reject);
-            }
-          } catch (e) {
-            reject(e);
-          }
-        })
-        .catch(reject);
+    const result = await this.datasService.dataList(context, {
+      model,
+      view,
+      query: {
+        limit,
+        offset,
+        fields,
+        filterArrJson: param?.filterArrJson,
+        sortArrJson: param?.sortArrJson,
+      },
+      baseModel,
+      ignoreViewFilterAndSort: false,
+      limitOverride: limit,
+      skipSortBasedOnOrderCol: true,
     });
+
+    if (result.list.length === 0 && offset === 0) {
+      // Empty result, just return empty array
+      stream.push('[]');
+      stream.push(null);
+      return;
+    }
+
+    const { data } = await formatter(result.list);
+
+    if (isFirst) {
+      // Start JSON array
+      stream.push('[\n');
+    }
+
+    if (data.length > 0) {
+      // Add comma if not the first batch
+      if (offset > 0) {
+        stream.push(',\n');
+      }
+
+      // Write JSON objects
+      const jsonRows = data.map((row) => JSON.stringify(row)).join(',\n');
+      stream.push(jsonRows);
+    }
+
+    if (result.pageInfo.isLastPage) {
+      // Close JSON array
+      stream.push('\n]');
+      stream.push(null);
+    } else {
+      await this.recursiveReadForJson(
+        context,
+        formatter,
+        baseModel,
+        stream,
+        model,
+        view,
+        offset + limit,
+        limit,
+        fields,
+        false,
+        param,
+      );
+    }
   }
 
   private filterOutCrossBaseColumns(model: Model) {

@@ -37,7 +37,8 @@ export class DataExportProcessor {
       ncSiteUrl,
     } = job.data;
 
-    if (exportAs !== 'csv' && exportAs !== 'json') NcError.notImplemented(`Export as ${exportAs}`);
+    if (exportAs !== 'csv' && exportAs !== 'json')
+      NcError.notImplemented(`Export as ${exportAs}`);
 
     const hrTime = initTime();
 
@@ -143,7 +144,7 @@ export class DataExportProcessor {
       // if url is not defined, it is local attachment
       const mimetype = exportAs === 'json' ? 'application/json' : 'text/csv';
       const filenameWithExt = `${filename}.${fileExtension}`;
-      
+
       if (!url) {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: path.join(destPath.replace('nc/uploads/', '')),

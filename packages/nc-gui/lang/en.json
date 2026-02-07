@@ -1071,6 +1071,7 @@
     "syncFailed": "Sync Failed",
     "triggerSync": "Trigger Sync",
     "lastModified": "Last Modified",
+    "lastExecuted": "Last Executed On",
     "updateSync": "Update Sync",
     "sources": "Sources",
     "schema": "Schema",
@@ -2211,6 +2212,7 @@
     "syncScopeNotEditableInEditMode": "Sync scope can't be modified"
   },
   "placeholder": {
+    "searchWorkflows": "Search Workflows",
     "searchByTitle": "Search by title or description",
     "enterSyncName": "Enter sync name",
     "searchIcons": "Search icons",

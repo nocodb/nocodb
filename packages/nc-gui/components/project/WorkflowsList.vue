@@ -301,7 +301,7 @@ watch(baseId, async (newBaseId) => {
         :data-source="filteredWorkflows"
         :columns="[
           {
-            title: $t('general.status'),
+            title: $t('labels.status'),
             dataIndex: 'status', 
             key: 'status',
             width: '15%',
@@ -318,7 +318,7 @@ watch(baseId, async (newBaseId) => {
             width: '20%',
           },
           {
-            title: $t('general.lastRun'),
+            title: $t('labels.lastExecuted'),
             dataIndex: 'lastRun',
             key: 'lastRun', 
             width: '20%',

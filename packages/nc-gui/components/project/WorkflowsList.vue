@@ -21,10 +21,13 @@ const { isUIAllowed } = useRoles()
 // Workflow store
 const workflowStore = useWorkflowStore()
 const { activeBaseWorkflows, isLoadingWorkflow } = storeToRefs(workflowStore)
-const { loadWorkflows, openNewWorkflowModal, updateWorkflow, deleteWorkflow, duplicateWorkflow, publishWorkflow } = workflowStore
+const { loadWorkflows, openNewWorkflowModal, updateWorkflow, deleteWorkflow, duplicateWorkflow, publishWorkflow, loadWorkflowExecutions } = workflowStore
 
 // Search functionality
 const searchQuery = ref('')
+
+// Workflow execution history storage
+const workflowExecutions = ref<Map<string, any[]>>(new Map())
 
 // Get workflows for current base
 const workflows = computed(() => {
@@ -92,32 +95,53 @@ const handleDuplicate = async (workflow: WorkflowType) => {
   try {
     isDuplicating.value = workflow.id
     $e('a:workflow:duplicate')
-    await duplicateWorkflow(baseId.value, workflow.id)
+    
+    // Store the current duplicateWorkflow method
+    const originalDuplicate = workflowStore.duplicateWorkflow
+    
+    // Override temporarily to prevent navigation
+    workflowStore.duplicateWorkflow = async (baseId: string, workflowId: string) => {
+      const result = await originalDuplicate.call(workflowStore, baseId, workflowId)
+      // Don't navigate - just reload workflows
+      await loadWorkflows({ baseId, force: true })
+      return result
+    }
+    
+    await workflowStore.duplicateWorkflow(baseId.value, workflow.id)
+    
+    // Restore original method
+    workflowStore.duplicateWorkflow = originalDuplicate
+    
     message.success(t('msg.success.workflowDuplicated'))
   } catch (error) {
     console.error('Error duplicating workflow:', error)
+    message.error(t('msg.error.workflowDuplicateFailed'))
   } finally {
     isDuplicating.value = null
   }
 }
 
 const isToggling = ref<string | null>(null)
-const handleToggleStatus = async (workflow: WorkflowType) => {
+const handleToggleStatus = async (workflow: WorkflowType, newStatus?: boolean) => {
   if (!baseId.value || !workflow.id || isToggling.value === workflow.id) return
   
   try {
     isToggling.value = workflow.id
     $e('a:workflow:toggle-status')
     
-    if (workflow.active) {
+    // Use provided status or toggle current status
+    const targetStatus = newStatus !== undefined ? newStatus : !workflow.active
+    
+    if (!targetStatus) {
       // Disable workflow - just update active status
       await updateWorkflow(baseId.value, workflow.id, { active: false })
+      message.success(t('msg.success.workflowDisabled'))
     } else {
       // Enable workflow - publish it
       await publishWorkflow(workflow.id)
+      message.success(t('msg.success.workflowEnabled'))
     }
     
-    message.success(workflow.active ? t('msg.success.workflowDisabled') : t('msg.success.workflowEnabled'))
   } catch (error) {
     console.error('Error toggling workflow status:', error)
     message.error(t('msg.error.workflowToggleFailed'))
@@ -168,22 +192,74 @@ const getTriggerType = (workflow: WorkflowType) => {
 
 // Get last run display
 const getLastRunDisplay = (workflow: WorkflowType) => {
-  // For now, return placeholder. In a real implementation,
-  // this would come from workflow execution logs
-  return '—'
+  if (!workflow.id) return '—'
+  
+  const executions = workflowExecutions.value.get(workflow.id) || []
+  if (executions.length === 0) return '—'
+  
+  const lastExecution = executions[0] // Most recent execution
+  if (!lastExecution.finished_at) return 'Running...'
+  
+  const timeAgo = dayjs(lastExecution.finished_at).fromNow()
+  const status = lastExecution.status
+  
+  // Create a status badge with color
+  const statusColors: Record<string, string> = {
+    'success': 'text-green-600',
+    'error': 'text-red-600', 
+    'in_progress': 'text-blue-600',
+    'cancelled': 'text-gray-600',
+    'pending': 'text-yellow-600',
+    'waiting': 'text-orange-600'
+  }
+  
+  return {
+    timeAgo,
+    status,
+    statusColor: statusColors[status] || 'text-gray-600'
+  }
+}
+
+// Load workflow execution data
+const loadWorkflowExecutionData = async (workflowId: string) => {
+  try {
+    const executions = await loadWorkflowExecutions({ 
+      workflowId, 
+      limit: 1 // Only get the most recent execution
+    })
+    workflowExecutions.value.set(workflowId, executions)
+  } catch (error) {
+    console.error('Error loading workflow executions:', error)
+    workflowExecutions.value.set(workflowId, [])
+  }
+}
+
+// Load workflows and their execution data
+const loadAllWorkflowData = async (baseId: string) => {
+  await loadWorkflows({ baseId })
+  // Load execution data for all workflows
+  const promises = workflows.value.map(workflow => 
+    workflow.id ? loadWorkflowExecutionData(workflow.id) : Promise.resolve()
+  )
+  await Promise.all(promises)
+}
+
+// Handle table row click to edit workflow  
+const handleRowClick = (workflow: WorkflowType) => {
+  handleEdit(workflow)
 }
 
 // Load workflows on mount
 onMounted(async () => {
   if (baseId.value) {
-    await loadWorkflows({ baseId: baseId.value })
+    await loadAllWorkflowData(baseId.value)
   }
 })
 
 // Watch for baseId changes
 watch(baseId, async (newBaseId) => {
   if (newBaseId) {
-    await loadWorkflows({ baseId: newBaseId })
+    await loadAllWorkflowData(newBaseId)
   }
 }, { immediate: true })
 </script>
@@ -225,16 +301,16 @@ watch(baseId, async (newBaseId) => {
         :data-source="filteredWorkflows"
         :columns="[
           {
-            title: $t('general.name'),
-            dataIndex: 'title',
-            key: 'title',
-            width: '35%',
-          },
-          {
             title: $t('general.status'),
             dataIndex: 'status', 
             key: 'status',
             width: '15%',
+          },
+          {
+            title: $t('general.name'),
+            dataIndex: 'title',
+            key: 'title',
+            width: '35%',
           },
           {
             title: $t('general.trigger'),
@@ -256,20 +332,20 @@ watch(baseId, async (newBaseId) => {
         :pagination="false"
         class="nc-workflows-table"
         size="small"
+        :customRow="(record) => ({ onClick: () => handleRowClick(record) })"
       >
         <template #bodyCell="{ column, record }">
-          <div v-if="column.key === 'title'" class="flex items-center gap-2">
-            <GeneralIcon icon="ncAutomation" class="text-nc-content-brand" />
-            <span class="font-medium">{{ record.title }}</span>
-          </div>
-          
-          <div v-else-if="column.key === 'status'" @click.stop>
+          <div v-if="column.key === 'status'" @click.stop>
             <NcSwitch
               size="small"
               :checked="!!record.active"
               :disabled="isToggling === record.id"
-              @change="handleToggleStatus(record)"
+              @change="(checked) => handleToggleStatus(record, checked)"
             />
+          </div>
+          <div v-else-if="column.key === 'title'" class="flex items-center gap-2">
+            <GeneralIcon icon="ncAutomation" class="text-nc-content-brand" />
+            <span class="font-medium">{{ record.title }}</span>
           </div>
           
           <div v-else-if="column.key === 'trigger'">
@@ -277,7 +353,15 @@ watch(baseId, async (newBaseId) => {
           </div>
           
           <div v-else-if="column.key === 'lastRun'">
-            <span class="text-gray-600">{{ getLastRunDisplay(record) }}</span>
+            <template v-if="typeof getLastRunDisplay(record) === 'object'">
+              <div class="flex flex-col">
+                <span :class="getLastRunDisplay(record).statusColor" class="text-xs font-medium">
+                  {{ getLastRunDisplay(record).status }}
+                </span>
+                <span class="text-gray-500 text-xs">{{ getLastRunDisplay(record).timeAgo }}</span>
+              </div>
+            </template>
+            <span v-else class="text-gray-600 text-sm">{{ getLastRunDisplay(record) }}</span>
           </div>
           
           <div v-else-if="column.key === 'actions'">
@@ -294,7 +378,7 @@ watch(baseId, async (newBaseId) => {
                       {{ $t('general.edit') }}
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem :disabled="isToggling === record.id" @click="handleToggleStatus(record)">
+                  <NcMenuItem :disabled="isToggling === record.id" @click="() => handleToggleStatus(record)">
                     <div class="flex items-center gap-2">
                       <GeneralIcon :icon="record.active ? 'ncPause' : 'ncPlay'" />
                       {{ record.active ? $t('general.disable') : $t('general.enable') }}
@@ -367,7 +451,7 @@ watch(baseId, async (newBaseId) => {
   }
   
   .ant-table-tbody > tr {
-    @apply hover:!bg-gray-50;
+    @apply hover:!bg-gray-50 cursor-pointer;
     
     > td {
       @apply !border-gray-200;

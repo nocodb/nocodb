@@ -345,7 +345,9 @@ watch(baseId, async (newBaseId) => {
           </div>
           <div v-else-if="column.key === 'title'" class="flex items-center gap-2">
             <GeneralIcon icon="ncAutomation" class="text-nc-content-brand" />
-            <span class="font-medium">{{ record.title }}</span>
+            <span class="font-medium cursor-pointer hover:text-nc-content-brand" @click.stop="handleEdit(record)">
+              {{ record.title }}
+            </span>
           </div>
           
           <div v-else-if="column.key === 'trigger'">
@@ -364,7 +366,7 @@ watch(baseId, async (newBaseId) => {
             <span v-else class="text-gray-600 text-sm">{{ getLastRunDisplay(record) }}</span>
           </div>
           
-          <div v-else-if="column.key === 'actions'">
+          <div v-else-if="column.key === 'actions'" @click.stop>
             <NcDropdown>
               <NcButton type="text" size="small">
                 <GeneralIcon icon="threeDotVertical" />

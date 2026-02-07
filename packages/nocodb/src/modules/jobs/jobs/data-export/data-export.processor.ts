@@ -85,6 +85,7 @@ export class DataExportProcessor {
           : dataStream;
 
       if (
+        exportAs === 'csv' &&
         (!options?.encoding || options.encoding === 'utf-8') &&
         options.includeByteOrderMark
       ) {

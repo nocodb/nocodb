@@ -439,7 +439,7 @@ watch(baseId, async (newBaseId) => {
                   <NcMenuItem @click="handleSettings(record)">
                     <div class="flex items-center gap-2">
                       <GeneralIcon icon="ncSettings" />
-                      {{ $t('general.settings') }}
+                      {{ $t('labels.settings') }}
                     </div>
                   </NcMenuItem>
                   <NcMenuDivider />

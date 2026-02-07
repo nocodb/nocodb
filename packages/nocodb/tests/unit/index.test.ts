@@ -9,6 +9,7 @@ import { processorTests } from './processor/index.test';
 import { errorTests } from './error/index.test';
 import { rollupTests } from './rollup/index.test';
 import { linksTests } from './links/index.test';
+import { crossBaseLinkTests } from './crossBaseLink/index.spec';
 import { dbQueryClientTests } from './dbQueryClient/index.test';
 import { helperTests } from './helpersTest/index.test';
 
@@ -30,6 +31,7 @@ dotenv.config({
   formulaTests();
   dbQueryClientTests();
   linksTests();
+  crossBaseLinkTests();
   rollupTests();
   errorTests();
   restTests();

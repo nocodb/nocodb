@@ -272,10 +272,14 @@ watch(baseId, async (newBaseId) => {
         <a-input
           v-model:value="searchQuery"
           :placeholder="$t('placeholder.searchWorkflows')"
-          class="nc-workflows-search"
+          allow-clear
+          class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
         >
           <template #prefix>
-            <GeneralIcon icon="search" class="text-gray-400" />
+            <GeneralIcon
+              icon="search"
+              class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
+            />
           </template>
         </a-input>
       </div>
@@ -304,7 +308,7 @@ watch(baseId, async (newBaseId) => {
             title: $t('labels.status'),
             dataIndex: 'status', 
             key: 'status',
-            width: 80,
+            width: 40,
           },
           {
             title: $t('general.name'),
@@ -455,9 +459,7 @@ watch(baseId, async (newBaseId) => {
   @apply p-4;
 }
 
-.nc-workflows-search {
-  @apply !h-8;
-}
+/* Search styling now handled by nc-input-border-on-value classes */
 
 :deep(.nc-workflows-table) {
   .ant-table {

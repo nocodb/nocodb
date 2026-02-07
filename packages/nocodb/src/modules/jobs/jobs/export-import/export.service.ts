@@ -16,6 +16,7 @@ import {
   type WidgetType,
 } from 'nocodb-sdk';
 import { unparse } from 'papaparse';
+import * as XLSX from 'xlsx';
 import { elapsedTime, initTime } from '../../helpers';
 import type { LookupType, NcRequest, RollupType } from 'nocodb-sdk';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
@@ -1271,6 +1272,217 @@ export class ExportService {
     } catch (e) {
       this.debugLog(e);
       throw e;
+    }
+  }
+
+  async streamModelDataAsExcel(
+    context: NcContext,
+    param: {
+      dataStream: Readable;
+      baseId: string;
+      modelId: string;
+      viewId?: string;
+      ncSiteUrl?: string;
+      includeCrossBaseColumns?: boolean;
+      filterArrJson?: any;
+      sortArrJson?: any;
+    },
+  ) {
+    context = { ...context, cache: true };
+
+    const { dataStream } = param;
+
+    const { model, view } = await getViewAndModelByAliasOrId(context, {
+      baseName: param.baseId,
+      tableName: param.modelId,
+      viewName: param.viewId,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    await model.getColumns(context);
+
+    if (!param.includeCrossBaseColumns) {
+      model.columns = this.filterOutCrossBaseColumns(model);
+    } else {
+      model.columns = [...model.columns];
+    }
+
+    const refView =
+      view ?? (await View.getFirstCollaborativeView(context, model.id));
+
+    const viewCols = await refView.getColumns(context);
+
+    const hideSystemFields = view.show_system_fields
+      ? model.columns
+          .filter(
+            (c) =>
+              isSystemColumn(c) &&
+              c.uidt === UITypes.LinkToAnotherRecord &&
+              c.colOptions?.fk_related_model_id !== model.id,
+          )
+          .map((c) => c.id)
+      : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
+
+    const fields = viewCols
+      .sort((a, b) => a.order - b.order)
+      .filter((c) => c.show && !hideSystemFields.includes(c.fk_column_id))
+      .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id)?.title)
+      .filter(Boolean);
+
+    const formatAndSerialize = async (data: any) => {
+      const includedColumns: {
+        col: Column;
+        viewOrder: number;
+      }[] = [];
+      for (const row of data) {
+        for (const [k, v] of Object.entries(row)) {
+          const col = model.columns.find((c) => c.title === k);
+          if (col) {
+            row[k] = await serializeCellValue(context, {
+              value: v,
+              column: col,
+              siteUrl: param.ncSiteUrl,
+            });
+            includedColumns.push({
+              col,
+              viewOrder:
+                viewCols.find((vCol) => vCol.fk_column_id === col.id)?.order ??
+                includedColumns.length + 1,
+            });
+          }
+        }
+      }
+      const orderedColumns = includedColumns.sort(
+        (a, b) => a.viewOrder - b.viewOrder,
+      );
+      return {
+        data: data.map((row) => {
+          return orderedColumns.reduce((acc, cur) => {
+            acc[cur.col.title] = row[cur.col.title];
+            return acc;
+          }, {});
+        }),
+      };
+    };
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const limit = 200;
+    const offset = 0;
+
+    try {
+      await this.recursiveReadForExcel(
+        context,
+        formatAndSerialize,
+        baseModel,
+        dataStream,
+        model,
+        view,
+        offset,
+        limit,
+        fields,
+        {
+          filterArrJson: param.filterArrJson,
+          sortArrJson: param.sortArrJson,
+        },
+      );
+    } catch (e) {
+      this.debugLog(e);
+      throw e;
+    }
+  }
+
+  async recursiveReadForExcel(
+    context: NcContext,
+    formatter: (data: any) => Promise<{ data: any }>,
+    baseModel: BaseModelSqlv2,
+    stream: Readable,
+    model: Model,
+    view: View,
+    offset: number,
+    limit: number,
+    fields: string[],
+    param?: {
+      filterArrJson: any;
+      sortArrJson: any;
+    },
+    allRows: Record<string, any>[] = [],
+    headers: string[] = [],
+  ): Promise<void> {
+    const result = await this.datasService.dataList(context, {
+      model,
+      view,
+      query: {
+        limit,
+        offset,
+        fields,
+        filterArrJson: param?.filterArrJson,
+        sortArrJson: param?.sortArrJson,
+      },
+      baseModel,
+      ignoreViewFilterAndSort: false,
+      limitOverride: limit,
+      skipSortBasedOnOrderCol: true,
+    });
+
+    if (result.list.length === 0 && offset === 0) {
+      // Empty result - generate Excel with just headers
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.aoa_to_sheet([fields]);
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+      const excelBuffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      });
+      stream.push(excelBuffer);
+      stream.push(null);
+      return;
+    }
+
+    const { data } = await formatter(result.list);
+
+    // Capture headers from the first batch (preserves view column order)
+    if (offset === 0 && data.length > 0) {
+      headers.push(...Object.keys(data[0]));
+    }
+
+    allRows.push(...data);
+
+    if (result.pageInfo.isLastPage) {
+      // All data collected — generate Excel workbook
+      const workbook = XLSX.utils.book_new();
+      const worksheet = XLSX.utils.json_to_sheet(allRows, {
+        header: headers,
+      });
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
+
+      const excelBuffer = XLSX.write(workbook, {
+        type: 'buffer',
+        bookType: 'xlsx',
+      });
+
+      stream.push(excelBuffer);
+      stream.push(null);
+    } else {
+      await this.recursiveReadForExcel(
+        context,
+        formatter,
+        baseModel,
+        stream,
+        model,
+        view,
+        offset + limit,
+        limit,
+        fields,
+        param,
+        allRows,
+        headers,
+      );
     }
   }
 

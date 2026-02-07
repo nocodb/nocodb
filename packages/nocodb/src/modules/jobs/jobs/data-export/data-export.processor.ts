@@ -5,7 +5,6 @@ import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
-import * as XLSX from 'xlsx';
 import type { Job } from 'bull';
 
 dayjs.extend(utc);
@@ -13,10 +12,9 @@ dayjs.extend(timezone);
 import { type DataExportJobData } from '~/interface/Jobs';
 import { elapsedTime, initTime } from '~/modules/jobs/helpers';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
-import { Base, Model, PresignedUrl, View, Source } from '~/models';
+import { Base, Model, PresignedUrl, View } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcPluginMgrv2 from '~/helpers/NcPluginMgrv2';
-import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 
 function getViewTitle(view: View) {
   return view?.title;
@@ -39,7 +37,7 @@ export class DataExportProcessor {
       ncSiteUrl,
     } = job.data;
 
-    if (exportAs !== 'csv' && exportAs !== 'json' && exportAs !== 'xlsx')
+    if (exportAs !== 'csv' && exportAs !== 'json' && exportAs !== 'excel')
       NcError.notImplemented(`Export as ${exportAs}`);
 
     const hrTime = initTime();
@@ -72,91 +70,102 @@ export class DataExportProcessor {
     let url = null;
 
     try {
-      if (exportAs === 'excel') {
-        url = await this.exportAsExcel(context, {
-          model,
-          view,
-          options,
-          storageAdapter,
-          destPath,
-        });
-      } else {
-        const dataStream = new Readable({
-          read() {},
-        });
+      const dataStream = new Readable({
+        read() {},
+      });
 
+      // Excel outputs binary data, so only set encoding for text-based formats
+      if (exportAs !== 'excel') {
         dataStream.setEncoding('utf8');
+      }
 
-        const encodedStream =
-          options?.encoding &&
-          options.encoding !== 'utf-8' &&
-          iconv.encodingExists(options.encoding)
-            ? dataStream
-                .pipe(iconv.decodeStream('utf-8'))
-                .pipe(iconv.encodeStream(options?.encoding || 'utf-8'))
-            : dataStream;
+      const encodedStream =
+        exportAs !== 'excel' &&
+        options?.encoding &&
+        options.encoding !== 'utf-8' &&
+        iconv.encodingExists(options.encoding)
+          ? dataStream
+              .pipe(iconv.decodeStream('utf-8'))
+              .pipe(iconv.encodeStream(options?.encoding || 'utf-8'))
+          : dataStream;
 
-        if (
-          ['csv', 'xlsx'].includes(exportAs) &&
-          (!options?.encoding || options.encoding === 'utf-8') &&
-          options.includeByteOrderMark
-        ) {
-          // Push UTF-8 BOM at the start
-          dataStream.push('\uFEFF');
-        }
+      if (
+        exportAs === 'csv' &&
+        (!options?.encoding || options.encoding === 'utf-8') &&
+        options.includeByteOrderMark
+      ) {
+        // Push UTF-8 BOM at the start (only for CSV text format)
+        dataStream.push('\uFEFF');
+      }
 
-        let error = null;
+      let error = null;
 
-        const uploadFilePromise = (storageAdapter as any)
-          .fileCreateByStream(destPath, encodedStream)
+      const uploadFilePromise = (storageAdapter as any)
+        .fileCreateByStream(destPath, encodedStream)
+        .catch((e) => {
+          this.logger.error(e);
+          error = e;
+        });
+
+      if (exportAs === 'json') {
+        this.exportService
+          .streamModelDataAsJson(context, {
+            dataStream,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            includeCrossBaseColumns: true,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          })
           .catch((e) => {
-            this.logger.error(e);
+            this.logger.debug(e);
+            dataStream.push(null);
             error = e;
           });
+      } else if (exportAs === 'excel') {
+        this.exportService
+          .streamModelDataAsExcel(context, {
+            dataStream,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            includeCrossBaseColumns: true,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          })
+          .catch((e) => {
+            this.logger.debug(e);
+            dataStream.push(null);
+            error = e;
+          });
+      } else {
+        this.exportService
+          .streamModelDataAsCsv(context, {
+            dataStream,
+            linkStream: null,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            delimiter: options?.delimiter,
+            includeCrossBaseColumns: true,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          })
+          .catch((e) => {
+            this.logger.debug(e);
+            dataStream.push(null);
+            error = e;
+          });
+      }
 
-        if (exportAs === 'json') {
-          this.exportService
-            .streamModelDataAsJson(context, {
-              dataStream,
-              baseId: model.base_id,
-              modelId: model.id,
-              viewId: view.id,
-              ncSiteUrl: ncSiteUrl,
-              includeCrossBaseColumns: true,
-              filterArrJson: options.filterArrJson,
-              sortArrJson: options.sortArrJson,
-            })
-            .catch((e) => {
-              this.logger.debug(e);
-              dataStream.push(null);
-              error = e;
-            });
-        } else {
-          this.exportService
-            .streamModelDataAsCsv(context, {
-              dataStream,
-              linkStream: null,
-              baseId: model.base_id,
-              modelId: model.id,
-              viewId: view.id,
-              ncSiteUrl: ncSiteUrl,
-              delimiter: options?.delimiter,
-              includeCrossBaseColumns: true,
-              filterArrJson: options.filterArrJson,
-              sortArrJson: options.sortArrJson,
-            })
-            .catch((e) => {
-              this.logger.debug(e);
-              dataStream.push(null);
-              error = e;
-            });
-        }
+      url = await uploadFilePromise;
 
-        url = await uploadFilePromise;
-
-        if (error) {
-          throw error;
-        }
+      if (error) {
+        throw error;
       }
 
       // if url is not defined, it is local attachment
@@ -211,111 +220,6 @@ export class DataExportProcessor {
       type: exportAs,
       title: filename,
       url,
-    };
-  }
-
-  private async exportAsExcel(
-    context,
-    param: {
-      model: any;
-      view: any;
-      options: any;
-      storageAdapter: any;
-      destPath: string;
-    },
-  ): Promise<string> {
-    const { model, view, options, storageAdapter, destPath } = param;
-
-    const allData = await this.getAllDataForExcel(context, {
-      model,
-      view,
-      options,
-    });
-
-    const workbook = XLSX.utils.book_new();
-    const worksheet = XLSX.utils.json_to_sheet(allData.rows, {
-      header: allData.headers,
-    });
-
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data');
-
-    const excelBuffer = XLSX.write(workbook, {
-      type: 'buffer',
-      bookType: 'xlsx',
-    });
-
-    const dataStream = new Readable({
-      read() {},
-    });
-    dataStream.push(excelBuffer);
-    dataStream.push(null);
-
-    return await (storageAdapter as any).fileCreateByStream(
-      destPath,
-      dataStream,
-    );
-  }
-
-  private async getAllDataForExcel(
-    context,
-    param: {
-      model: any;
-      view: any;
-      options: any;
-    },
-  ) {
-    const { model, view, options } = param;
-
-    const allRows = [];
-    let headers = [];
-    let offset = 0;
-    const limit = 1000;
-    let hasMore = true;
-
-    const source = await Source.get(context, model.source_id);
-    const baseModel = await Model.getBaseModelSQL(context, {
-      id: model.id,
-      viewId: view.id,
-      dbDriver: await NcConnectionMgrv2.get(source),
-    });
-
-    while (hasMore) {
-      const result = await this.exportService.getDataList(context, {
-        model,
-        view,
-        query: {
-          limit,
-          offset,
-          filterArrJson: options.filterArrJson,
-          sortArrJson: options.sortArrJson,
-        },
-        baseModel,
-        ignoreViewFilterAndSort: false,
-        limitOverride: limit,
-        skipSortBasedOnOrderCol: true,
-      });
-
-      if (result.list.length === 0) {
-        hasMore = false;
-        break;
-      }
-
-      if (offset === 0 && result.list.length > 0) {
-        headers = Object.keys(result.list[0]);
-      }
-
-      allRows.push(...result.list);
-
-      if (result.pageInfo.isLastPage) {
-        hasMore = false;
-      } else {
-        offset += limit;
-      }
-    }
-
-    return {
-      headers,
-      rows: allRows,
     };
   }
 }

@@ -43,7 +43,7 @@ const handleDownload = async (url: string) => {
   document.body.removeChild(link)
 }
 
-const isExporting = ref(false)
+const activeExportType = ref<ExportTypes | null>(null)
 
 /**
  * This component is lazy loaded and might be initialized after the view is effectively unmounted.
@@ -58,9 +58,9 @@ const { isUIAllowed } = useRoles()
 
 const exportFile = async (exportType: ExportTypes) => {
   try {
-    if (isExporting.value || !selectedView.value.id) return
+    if (activeExportType.value || !selectedView.value.id) return
 
-    isExporting.value = true
+    activeExportType.value = exportType
 
     const filenameTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
@@ -109,7 +109,7 @@ const exportFile = async (exportType: ExportTypes) => {
       )
     }
 
-    message.info(`Preparing ${exportType.toUpperCase()} for download...`)
+    message.toast(`Preparing ${exportType.toUpperCase()} for download...`)
 
     $poller.subscribe(
       { id: jobData.id },
@@ -127,22 +127,22 @@ const exportFile = async (exportType: ExportTypes) => {
         if (data.status !== 'close') {
           if (data.status === JobStatus.COMPLETED) {
             // Export completed successfully
-            message.info('Successfully exported data!')
+            message.toast('Successfully exported data!')
 
             handleDownload(data.data?.result?.url)
 
-            isExporting.value = false
+            activeExportType.value = null
           } else if (data.status === JobStatus.FAILED) {
             message.error('Failed to export data!')
 
-            isExporting.value = false
+            activeExportType.value = null
           }
         }
       },
     )
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
-    isExporting.value = false
+    activeExportType.value = null
   }
 }
 </script>
@@ -154,7 +154,7 @@ const exportFile = async (exportType: ExportTypes) => {
 
   <NcMenuItem v-e="['a:download:csv']" @click.stop="exportFile(ExportTypes.CSV)">
     <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
-      <GeneralLoader v-if="isExporting" size="regular" />
+      <GeneralLoader v-if="activeExportType === ExportTypes.CSV" size="regular" />
       <component :is="iconMap.ncFileTypeCsvSmall" v-else class="w-4" />
       <!-- Download as CSV -->
       CSV
@@ -163,7 +163,7 @@ const exportFile = async (exportType: ExportTypes) => {
 
   <NcMenuItem v-e="['a:download:json']" @click.stop="exportFile(ExportTypes.JSON)">
     <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
-      <GeneralLoader v-if="isExporting" size="regular" />
+      <GeneralLoader v-if="activeExportType === ExportTypes.JSON" size="regular" />
       <svg 
         v-else 
         xmlns="http://www.w3.org/2000/svg" 
@@ -188,7 +188,7 @@ const exportFile = async (exportType: ExportTypes) => {
   </NcMenuItem>
   <NcMenuItem v-e="['a:download:excel']" @click.stop="exportFile(ExportTypes.EXCEL)">
     <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
-      <GeneralLoader v-if="isExporting" size="regular" />
+      <GeneralLoader v-if="activeExportType === ExportTypes.EXCEL" size="regular" />
       <component :is="iconMap.ncFileTypeExcel" v-else class="w-4" />
       <!-- Download as Excel -->
       Excel

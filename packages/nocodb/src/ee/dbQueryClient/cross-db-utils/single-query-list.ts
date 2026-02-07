@@ -314,11 +314,8 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     const limitOffsetPlaceholder =
       Math.floor(Math.random() * 8999999) + 1000000;
     if (!ctx.ignorePagination) {
-      if (ctx.limitOverride) {
-        rootQb.limit(ctx.limitOverride);
-        rootQb.offset(+listArgs.offset);
-      } else if (skipCache) {
-        rootQb.limit(+listArgs.limit);
+      if (skipCache) {
+        rootQb.limit(ctx.limitOverride || +listArgs.limit);
         rootQb.offset(+listArgs.offset);
       } else {
         rootQb.limit(limitOffsetPlaceholder);

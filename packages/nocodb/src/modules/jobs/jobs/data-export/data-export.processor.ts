@@ -37,7 +37,8 @@ export class DataExportProcessor {
       ncSiteUrl,
     } = job.data;
 
-    if (exportAs !== 'csv') NcError.notImplemented(`Export as ${exportAs}`);
+    if (exportAs !== 'csv' && exportAs !== 'json')
+      NcError.notImplemented(`Export as ${exportAs}`);
 
     const hrTime = initTime();
 
@@ -62,7 +63,8 @@ export class DataExportProcessor {
       view,
     )}) ${date}`;
 
-    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}.csv`;
+    const fileExtension = exportAs === 'json' ? 'json' : 'csv';
+    const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}.${fileExtension}`;
 
     let url = null;
 
@@ -83,6 +85,7 @@ export class DataExportProcessor {
           : dataStream;
 
       if (
+        exportAs === 'csv' &&
         (!options?.encoding || options.encoding === 'utf-8') &&
         options.includeByteOrderMark
       ) {
@@ -99,44 +102,66 @@ export class DataExportProcessor {
           error = e;
         });
 
-      this.exportService
-        .streamModelDataAsCsv(context, {
-          dataStream,
-          linkStream: null,
-          baseId: model.base_id,
-          modelId: model.id,
-          viewId: view.id,
-          ncSiteUrl: ncSiteUrl,
-          delimiter: options?.delimiter,
-          includeCrossBaseColumns: true,
-          filterArrJson: options.filterArrJson,
-          sortArrJson: options.sortArrJson,
-        })
-        .catch((e) => {
-          this.logger.debug(e);
-          dataStream.push(null);
-          error = e;
-        });
+      if (exportAs === 'json') {
+        this.exportService
+          .streamModelDataAsJson(context, {
+            dataStream,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            includeCrossBaseColumns: true,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          })
+          .catch((e) => {
+            this.logger.debug(e);
+            dataStream.push(null);
+            error = e;
+          });
+      } else {
+        this.exportService
+          .streamModelDataAsCsv(context, {
+            dataStream,
+            linkStream: null,
+            baseId: model.base_id,
+            modelId: model.id,
+            viewId: view.id,
+            ncSiteUrl: ncSiteUrl,
+            delimiter: options?.delimiter,
+            includeCrossBaseColumns: true,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          })
+          .catch((e) => {
+            this.logger.debug(e);
+            dataStream.push(null);
+            error = e;
+          });
+      }
 
       url = await uploadFilePromise;
 
       // if url is not defined, it is local attachment
+      const mimetype = exportAs === 'json' ? 'application/json' : 'text/csv';
+      const filenameWithExt = `${filename}.${fileExtension}`;
+
       if (!url) {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: path.join(destPath.replace('nc/uploads/', '')),
-          filename: `${filename}.csv`,
+          filename: filenameWithExt,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
-          mimetype: 'text/csv',
+          mimetype,
           encoding: options?.encoding || 'utf-8',
         });
       } else {
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: url,
-          filename: `${filename}.csv`,
+          filename: filenameWithExt,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
-          mimetype: 'text/csv',
+          mimetype,
           encoding: options?.encoding || 'utf-8',
         });
       }

@@ -1132,6 +1132,222 @@ export class ExportService {
     }
   }
 
+  async streamModelDataAsJson(
+    context: NcContext,
+    param: {
+      dataStream: Readable;
+      baseId: string;
+      modelId: string;
+      viewId?: string;
+      handledMmList?: string[];
+      _fieldIds?: string[];
+      ncSiteUrl?: string;
+      excludeUsers?: boolean;
+      includeCrossBaseColumns?: boolean;
+      filterArrJson?: any;
+      sortArrJson?: any;
+    },
+  ) {
+    context = { ...context, cache: true };
+
+    const { dataStream, handledMmList } = param;
+
+    const { model, view } = await getViewAndModelByAliasOrId(context, {
+      baseName: param.baseId,
+      tableName: param.modelId,
+      viewName: param.viewId,
+    });
+
+    const source = await Source.get(context, model.source_id);
+
+    await model.getColumns(context);
+
+    if (!param.includeCrossBaseColumns) {
+      model.columns = this.filterOutCrossBaseColumns(model);
+    } else {
+      model.columns = [...model.columns];
+    }
+
+    let fields = param._fieldIds
+      ? model.columns
+          .filter((c) => param._fieldIds?.includes(c.id))
+          .map((c) => c.title)
+      : model.columns
+          .filter((c) => !isLinksOrLTAR(c) && !isVirtualCol(c))
+          .map((c) => c.title);
+
+    const refView =
+      view ?? (await View.getFirstCollaborativeView(context, model.id));
+
+    const viewCols = await refView.getColumns(context);
+
+    const hideSystemFields = view.show_system_fields
+      ? // at minimum filter mm fields used in Links field
+        model.columns
+          .filter(
+            (c) =>
+              isSystemColumn(c) &&
+              c.uidt === UITypes.LinkToAnotherRecord &&
+              c.colOptions?.fk_related_model_id !== model.id,
+          )
+          .map((c) => c.id)
+      : model.columns.filter((c) => isSystemColumn(c)).map((c) => c.id);
+
+    fields = viewCols
+      .sort((a, b) => a.order - b.order)
+      .filter((c) => c.show && !hideSystemFields.includes(c.fk_column_id))
+      .map((vc) => model.columns.find((c) => c.id === vc.fk_column_id)?.title)
+      // to filter out undefined values(cross base link)
+      .filter(Boolean);
+
+    dataStream.setEncoding('utf8');
+
+    const formatAndSerializeForJson = async (data: any) => {
+      const includedColumns: {
+        col: Column;
+        viewOrder: number;
+      }[] = [];
+      for (const row of data) {
+        for (const [k, v] of Object.entries(row)) {
+          const col = model.columns.find((c) => c.title === k);
+          if (col) {
+            row[k] = await serializeCellValue(context, {
+              value: v,
+              column: col,
+              siteUrl: param.ncSiteUrl,
+            });
+            includedColumns.push({
+              col,
+              viewOrder:
+                viewCols.find((vCol) => vCol.fk_column_id === col.id)?.order ??
+                includedColumns.length + 1,
+            });
+          }
+        }
+      }
+      const orderedColumns = includedColumns.sort(
+        (a, b) => a.viewOrder - b.viewOrder,
+      );
+      return {
+        data: data.map((row) => {
+          return orderedColumns.reduce((acc, cur) => {
+            acc[cur.col.title] = row[cur.col.title];
+            return acc;
+          }, {});
+        }),
+      };
+    };
+
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+    });
+
+    const limit = 200;
+    const offset = 0;
+
+    try {
+      await this.recursiveReadForJson(
+        context,
+        formatAndSerializeForJson,
+        baseModel,
+        dataStream,
+        model,
+        view,
+        offset,
+        limit,
+        fields,
+        true,
+        {
+          filterArrJson: param.filterArrJson,
+          sortArrJson: param.sortArrJson,
+        },
+      );
+    } catch (e) {
+      this.debugLog(e);
+      throw e;
+    }
+  }
+
+  async recursiveReadForJson(
+    context: NcContext,
+    formatter: (data: any) => Promise<{ data: any }>,
+    baseModel: BaseModelSqlv2,
+    stream: Readable,
+    model: Model,
+    view: View,
+    offset: number,
+    limit: number,
+    fields: string[],
+    isFirst = false,
+    param?: {
+      filterArrJson: any;
+      sortArrJson: any;
+    },
+  ): Promise<void> {
+    const result = await this.datasService.dataList(context, {
+      model,
+      view,
+      query: {
+        limit,
+        offset,
+        fields,
+        filterArrJson: param?.filterArrJson,
+        sortArrJson: param?.sortArrJson,
+      },
+      baseModel,
+      ignoreViewFilterAndSort: false,
+      limitOverride: limit,
+      skipSortBasedOnOrderCol: true,
+    });
+
+    if (result.list.length === 0 && offset === 0) {
+      // Empty result, just return empty array
+      stream.push('[]');
+      stream.push(null);
+      return;
+    }
+
+    const { data } = await formatter(result.list);
+
+    if (isFirst) {
+      // Start JSON array
+      stream.push('[\n');
+    }
+
+    if (data.length > 0) {
+      // Add comma if not the first batch
+      if (offset > 0) {
+        stream.push(',\n');
+      }
+
+      // Write JSON objects
+      const jsonRows = data.map((row) => JSON.stringify(row)).join(',\n');
+      stream.push(jsonRows);
+    }
+
+    if (result.pageInfo.isLastPage) {
+      // Close JSON array
+      stream.push('\n]');
+      stream.push(null);
+    } else {
+      await this.recursiveReadForJson(
+        context,
+        formatter,
+        baseModel,
+        stream,
+        model,
+        view,
+        offset + limit,
+        limit,
+        fields,
+        false,
+        param,
+      );
+    }
+  }
+
   private filterOutCrossBaseColumns(model: Model) {
     const crossbaseLinkIds = new Set(
       model.columns.filter((c) => isCrossBaseLink(c)).map((c) => c.id),

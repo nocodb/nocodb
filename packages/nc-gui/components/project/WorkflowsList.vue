@@ -419,11 +419,15 @@ watch(baseId, async (newBaseId) => {
           </div>
           
           <div v-else-if="column.key === 'trigger'" class="flex items-center gap-2">
-            <GeneralIcon 
+            <div 
               v-if="getTriggerType(record).icon" 
-              :icon="getTriggerType(record).icon" 
-              class="w-4 h-4 text-nc-content-gray-muted flex-none"
-            />
+              class="bg-nc-bg-brand text-nc-content-brand-disabled w-6 h-6 flex items-center justify-center rounded-md p-1 flex-none"
+            >
+              <GeneralIcon 
+                :icon="getTriggerType(record).icon" 
+                class="!w-5 !h-5"
+              />
+            </div>
             <span class="truncate">{{ getTriggerType(record).text }}</span>
           </div>
           

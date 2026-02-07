@@ -82,9 +82,6 @@ const permissionScopes = {
     'mcpRootList',
 
     'getUserProfile',
-
-    // etc
-    'fetchViaUrl',
   ],
   base: [
     'nestedDataListCopyPasteOrDeleteAll',
@@ -210,6 +207,9 @@ const permissionScopes = {
     'mcpCreate',
     'mcpUpdate',
     'mcpDelete',
+
+    // etc
+    'fetchViaUrl',
   ],
 };
 
@@ -294,9 +294,6 @@ const rolePermissions:
       mcpCreate: true,
       mcpUpdate: true,
       mcpDelete: true,
-
-      // etc
-      fetchViaUrl: true,
     },
   },
   [ProjectRoles.COMMENTER]: {
@@ -341,6 +338,9 @@ const rolePermissions:
 
       // Extensions
       extensionUpdate: true,
+
+      // etc
+      fetchViaUrl: true,
     },
   },
   [ProjectRoles.CREATOR]: {

@@ -66,13 +66,13 @@ export class DataExportProcessor {
     )}) ${date}`;
 
     const fileExtension =
-      exportAs === 'json' ? 'json' : exportAs === 'xlsx' ? 'xlsx' : 'csv';
+      exportAs === 'json' ? 'json' : exportAs === 'excel' ? 'xlsx' : 'csv';
     const destPath = `nc/uploads/data-export/${dateFolder}/${modelId}/${filename}.${fileExtension}`;
 
     let url = null;
 
     try {
-      if (exportAs === 'xlsx') {
+      if (exportAs === 'excel') {
         url = await this.exportAsExcel(context, {
           model,
           view,
@@ -114,24 +114,24 @@ export class DataExportProcessor {
             error = e;
           });
 
-      if (exportAs === 'json') {
-        this.exportService
-          .streamModelDataAsJson(context, {
-            dataStream,
-            baseId: model.base_id,
-            modelId: model.id,
-            viewId: view.id,
-            ncSiteUrl: ncSiteUrl,
-            includeCrossBaseColumns: true,
-            filterArrJson: options.filterArrJson,
-            sortArrJson: options.sortArrJson,
-          })
-          .catch((e) => {
-            this.logger.debug(e);
-            dataStream.push(null);
-            error = e;
-          });
-      } else {
+        if (exportAs === 'json') {
+          this.exportService
+            .streamModelDataAsJson(context, {
+              dataStream,
+              baseId: model.base_id,
+              modelId: model.id,
+              viewId: view.id,
+              ncSiteUrl: ncSiteUrl,
+              includeCrossBaseColumns: true,
+              filterArrJson: options.filterArrJson,
+              sortArrJson: options.sortArrJson,
+            })
+            .catch((e) => {
+              this.logger.debug(e);
+              dataStream.push(null);
+              error = e;
+            });
+        } else {
           this.exportService
             .streamModelDataAsCsv(context, {
               dataStream,
@@ -150,7 +150,7 @@ export class DataExportProcessor {
               dataStream.push(null);
               error = e;
             });
-      }
+        }
 
         url = await uploadFilePromise;
 
@@ -160,34 +160,33 @@ export class DataExportProcessor {
       }
 
       // if url is not defined, it is local attachment
-      const mimetype = exportAs === 'json' ? 'application/json' : 'text/csv';
+      const mimetype =
+        exportAs === 'json'
+          ? 'application/json'
+          : exportAs === 'csv'
+          ? 'text/csv'
+          : 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
       const filenameWithExt = `${filename}.${fileExtension}`;
 
       if (!url) {
-        const mimeType =
-          exportAs === 'xlsx'
-            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            : 'text/csv';
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: path.join(destPath.replace('nc/uploads/', '')),
           filename: filenameWithExt,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype,
-          encoding: options?.encoding || 'utf-8',
+          encoding:
+            exportAs === 'excel' ? undefined : options?.encoding || 'utf-8',
         });
       } else {
-        const mimeType =
-          exportAs === 'xlsx'
-            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            : 'text/csv';
         url = await PresignedUrl.getSignedUrl({
           pathOrUrl: url,
           filename: filenameWithExt,
           expireSeconds: 3 * 60 * 60, // 3 hours
           preview: false,
           mimetype,
-          encoding: options?.encoding || 'utf-8',
+          encoding:
+            exportAs === 'excel' ? undefined : options?.encoding || 'utf-8',
         });
       }
 
@@ -281,21 +280,20 @@ export class DataExportProcessor {
     });
 
     while (hasMore) {
-      const result = await this.exportService
-        .getDataList(context, {
-          model,
-          view,
-          query: {
-            limit,
-            offset,
-            filterArrJson: options.filterArrJson,
-            sortArrJson: options.sortArrJson,
-          },
-          baseModel,
-          ignoreViewFilterAndSort: false,
-          limitOverride: limit,
-          skipSortBasedOnOrderCol: true,
-        });
+      const result = await this.exportService.getDataList(context, {
+        model,
+        view,
+        query: {
+          limit,
+          offset,
+          filterArrJson: options.filterArrJson,
+          sortArrJson: options.sortArrJson,
+        },
+        baseModel,
+        ignoreViewFilterAndSort: false,
+        limitOverride: limit,
+        skipSortBasedOnOrderCol: true,
+      });
 
       if (result.list.length === 0) {
         hasMore = false;

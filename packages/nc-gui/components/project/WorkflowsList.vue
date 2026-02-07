@@ -180,9 +180,9 @@ const handleToggleStatus = async (workflow: WorkflowType, newStatus?: boolean) =
   }
 }
 
-// Get trigger type display
+// Get trigger type display with icon
 const getTriggerType = (workflow: WorkflowType) => {
-  if (!workflow.nodes || !Array.isArray(workflow.nodes)) return '—'
+  if (!workflow.nodes || !Array.isArray(workflow.nodes)) return { text: '—', icon: null }
   
   // Find trigger node (nodes with no incoming edges or specific trigger types)
   const triggerNode = workflow.nodes.find(node => {
@@ -191,7 +191,7 @@ const getTriggerType = (workflow: WorkflowType) => {
     // Check if this is a trigger node type
     const triggerTypes = [
       'recordCreated', 'recordUpdated', 'recordDeleted',
-      'schedule', 'webhook', 'manual'
+      'schedule', 'webhook', 'manual', 'after_insert', 'after_update', 'after_delete', 'cron'
     ]
     
     return triggerTypes.some(type => node.type.includes(type)) ||
@@ -199,25 +199,29 @@ const getTriggerType = (workflow: WorkflowType) => {
            node.type.includes('Trigger')
   })
   
-  if (!triggerNode) return '—'
+  if (!triggerNode) return { text: '—', icon: null }
   
-  // Map node types to display names
-  const typeMap: Record<string, string> = {
-    'recordCreated': 'Record Created',
-    'recordUpdated': 'Record Updated', 
-    'recordDeleted': 'Record Deleted',
-    'schedule': 'Scheduled',
-    'webhook': 'Webhook',
-    'manual': 'Manual'
+  // Map node types to display names and icons
+  const typeMap: Record<string, { text: string, icon: string }> = {
+    'after_insert': { text: 'Record Created', icon: 'ncRecordCreate' },
+    'recordCreated': { text: 'Record Created', icon: 'ncRecordCreate' },
+    'after_update': { text: 'Record Updated', icon: 'ncRecordUpdate' },
+    'recordUpdated': { text: 'Record Updated', icon: 'ncRecordUpdate' },
+    'after_delete': { text: 'Record Deleted', icon: 'ncRecordDelete' },
+    'recordDeleted': { text: 'Record Deleted', icon: 'ncRecordDelete' },
+    'cron': { text: 'At scheduled time', icon: 'ncClock' },
+    'schedule': { text: 'At scheduled time', icon: 'ncClock' },
+    'webhook': { text: 'When webhook received', icon: 'ncWebhook' },
+    'manual': { text: 'When manually triggered', icon: 'ncPlay' }
   }
   
-  for (const [type, display] of Object.entries(typeMap)) {
+  for (const [type, config] of Object.entries(typeMap)) {
     if (triggerNode.type.includes(type)) {
-      return display
+      return config
     }
   }
   
-  return triggerNode.data?.title || triggerNode.type || '—'
+  return { text: triggerNode.data?.title || triggerNode.type || '—', icon: null }
 }
 
 // Get last run display
@@ -394,14 +398,22 @@ watch(baseId, async (newBaseId) => {
           </div>
           
           <div v-else-if="column.key === 'createdBy'">
-            <span v-if="record.created_by_user" class="text-gray-600">
-              {{ record.created_by_user.display_name || record.created_by_user.email }}
-            </span>
+            <div v-if="record.created_by_user" class="flex gap-3 items-center">
+              <GeneralUserIcon size="small" :user="record.created_by_user" class="flex-none" />
+              <span class="truncate text-nc-content-gray font-medium">
+                {{ record.created_by_user.display_name || record.created_by_user.email }}
+              </span>
+            </div>
             <span v-else class="text-gray-400">—</span>
           </div>
           
-          <div v-else-if="column.key === 'trigger'">
-            {{ getTriggerType(record) }}
+          <div v-else-if="column.key === 'trigger'" class="flex items-center gap-2">
+            <GeneralIcon 
+              v-if="getTriggerType(record).icon" 
+              :icon="getTriggerType(record).icon" 
+              class="w-4 h-4 text-nc-content-gray-muted flex-none"
+            />
+            <span class="truncate">{{ getTriggerType(record).text }}</span>
           </div>
           
           <div v-else-if="column.key === 'lastRun'">

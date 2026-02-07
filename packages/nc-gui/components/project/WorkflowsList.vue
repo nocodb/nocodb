@@ -80,7 +80,7 @@ const handleDelete = async (workflow: WorkflowType) => {
     isDeleting.value = workflow.id
     $e('a:workflow:delete')
     await deleteWorkflow(baseId.value, workflow.id)
-    message.success(t('msg.success.workflowDeleted'))
+    message.toast(t('msg.success.workflowDeleted'))
   } catch (error) {
     console.error('Error deleting workflow:', error)
   } finally {
@@ -112,10 +112,10 @@ const handleDuplicate = async (workflow: WorkflowType) => {
     // Restore original method
     workflowStore.duplicateWorkflow = originalDuplicate
     
-    message.success(t('msg.success.workflowDuplicated'))
+    message.toast(t('msg.success.workflowDuplicated'))
   } catch (error) {
     console.error('Error duplicating workflow:', error)
-    message.error(t('msg.error.workflowDuplicateFailed'))
+    message.toast(t('msg.error.workflowDuplicateFailed'))
   } finally {
     isDuplicating.value = null
   }
@@ -135,16 +135,16 @@ const handleToggleStatus = async (workflow: WorkflowType, newStatus?: boolean) =
     if (!targetStatus) {
       // Disable workflow - update enabled status
       await updateWorkflow(baseId.value, workflow.id, { enabled: false })
-      message.success(t('msg.success.workflowDisabled'))
+      message.toast(t('msg.success.workflowDisabled'))
     } else {
       // Enable workflow - update enabled status
       await updateWorkflow(baseId.value, workflow.id, { enabled: true })
-      message.success(t('msg.success.workflowEnabled'))
+      message.toast(t('msg.success.workflowEnabled'))
     }
     
   } catch (error) {
     console.error('Error toggling workflow status:', error)
-    message.error(t('msg.error.workflowToggleFailed'))
+    message.toast(t('msg.error.workflowToggleFailed'))
   } finally {
     isToggling.value = null
   }

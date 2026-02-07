@@ -1,6 +1,10 @@
 <script lang="ts" setup>
 import type { WorkflowType } from 'nocodb-sdk'
-import { formatDistanceToNow } from 'date-fns'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import { storeToRefs } from 'pinia'
+
+dayjs.extend(relativeTime)
 
 const props = defineProps<{
   baseId?: string

@@ -2876,6 +2876,10 @@
       "nCellsCopied": "{n} cells copied"
     },
     "success": {
+      "workflowDisabled": "Workflow de-activated successfully",
+      "workflowEnabled": "Workflow activated successfully",
+      "workflowDuplicated": "Workflow duplicated successfully",
+      "workflowDeleted": "Workflow deleted successfully",
       "passwordSet": "Password set successfully",
       "managedAppCreated": "Managed App created successfully",
       "managedAppUpdated": "Managed App updated successfully",

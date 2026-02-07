@@ -1,5 +1,5 @@
 import { type ColumnType, type TableType, UITypes, type UserType, type ViewType, isAIPromptCol } from 'nocodb-sdk'
-import { renderSingleLineText, renderSpinner, roundedRect } from '../utils/canvas'
+import { renderSingleLineText, renderSpinner, renderTag, roundedRect } from '../utils/canvas'
 import type { ActionManager } from '../loaders/ActionManager'
 import type { ImageWindowLoader } from '../loaders/ImageLoader'
 import type { MarkdownLoader } from '../loaders/markdownLoader'
@@ -224,16 +224,16 @@ export function useGridCellHandler(params: {
       } else if (!rowMeta?.isValidationFailed && isRootCell) {
         // First check for cell-specific coloring
         const cellColorInfo = isRowColouringEnabled.value ? getEvaluatedCellColorInfo(row, column.id) : null
-        
+
         let backgroundColorToRender: string | null = null
         let hoverColorToRender: string | null = null
-        
+
         if (cellColorInfo?.cellBgColor) {
-          // Cell-specific color takes precedence
+          // Cell-specific background color takes precedence
           backgroundColorToRender = cellColorInfo.cellBgColor
           hoverColorToRender = cellColorInfo.cellHoverColor
-        } else {
-          // Fall back to row coloring
+        } else if (!cellColorInfo?.cellLeftBorderColor) {
+          // Fall back to row coloring only if no cell-specific color at all
           const rowColor =
             rowMeta?.is_set_as_background &&
             (selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected)
@@ -242,7 +242,7 @@ export function useGridCellHandler(params: {
           backgroundColorToRender = rowColor
         }
 
-        // Apply the final color (cell or row)
+        // Apply the final background color (cell or row)
         const finalColor =
           selected || isRowHovered || isRowChecked || isCellInSelectionRange || isRowCellSelected
             ? hoverColorToRender || backgroundColorToRender
@@ -259,6 +259,21 @@ export function useGridCellHandler(params: {
               bottom: true,
               left: true,
             },
+          })
+        }
+
+        // Render cell left-border indicator when not in background mode
+        if (cellColorInfo?.cellLeftBorderColor && !cellColorInfo.is_set_as_background) {
+          const cellBorderHeight = height - 8
+          renderTag(ctx, {
+            x: x + 2,
+            radius: 4,
+            y: y + (height - cellBorderHeight) / 2,
+            height: cellBorderHeight,
+            width: 3,
+            fillStyle: cellColorInfo.cellLeftBorderColor,
+            borderColor: cellColorInfo.cellLeftBorderColor,
+            borderWidth: 0,
           })
         }
       }

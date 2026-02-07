@@ -17,6 +17,7 @@ import * as nc_016_automation_error_notifications from './v0/nc_016_automation_e
 import * as nc_017_add_canonical_email_to_users from './v0/nc_017_add_canonical_email_to_users';
 import * as nc_018_add_enabled_to_filter_exp_v2 from './v0/nc_018_add_enabled_to_filter_exp_v2';
 import * as nc_019_sandboxes from './v0/nc_019_sandboxes';
+import * as nc_020_add_cell_coloring_fields_to_row_color_conditions from './v0/nc_020_add_cell_coloring_fields_to_row_color_conditions';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -45,6 +46,7 @@ export default class XcMigrationSourcev0 {
       'nc_017_add_canonical_email_to_users',
       'nc_018_add_enabled_to_filter_exp_v2',
       'nc_019_sandboxes',
+      'nc_020_add_cell_coloring_fields_to_row_color_conditions',
     ]);
   }
 
@@ -92,6 +94,8 @@ export default class XcMigrationSourcev0 {
         return nc_018_add_enabled_to_filter_exp_v2;
       case 'nc_019_sandboxes':
         return nc_019_sandboxes;
+      case 'nc_020_add_cell_coloring_fields_to_row_color_conditions':
+        return nc_020_add_cell_coloring_fields_to_row_color_conditions;
     }
   }
 }

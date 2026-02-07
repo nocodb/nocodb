@@ -68,7 +68,7 @@ export function useViewRowColorRender() {
 
       for (const eachCondition of filterRowColorInfo.conditions) {
         // For cell-type coloring, check if this condition applies to the specified column
-        if (eachCondition.type === 'cell' && columnId && eachCondition.fk_column_id !== columnId) {
+        if (eachCondition.type === 'cell' && columnId && eachCondition.fk_target_column_id !== columnId) {
           continue
         }
         // For row-type coloring when checking a specific column, skip cell-specific conditions
@@ -109,7 +109,7 @@ export function useViewRowColorRender() {
           return {
             is_set_as_background: eachCondition.is_set_as_background,
             type: eachCondition.type || 'row',
-            fk_column_id: eachCondition.fk_column_id,
+            fk_target_column_id: eachCondition.fk_target_column_id,
             color,
             hoverColor,
             rawColor: eachCondition.color,
@@ -165,9 +165,10 @@ export function useViewRowColorRender() {
   const getEvaluatedCellColorInfo = (row: any, columnId: string) => {
     const result = {
       is_set_as_background: false,
-      cellBgColor: null,
-      cellBorderColor: null,
-      cellHoverColor: null,
+      cellBgColor: null as string | null,
+      cellBorderColor: null as string | null,
+      cellHoverColor: null as string | null,
+      cellLeftBorderColor: null as string | null,
     }
 
     if (!row || !isRowColouringEnabled.value || !columnId) return result
@@ -182,6 +183,7 @@ export function useViewRowColorRender() {
       cellBgColor: cellColorResult.is_set_as_background ? cellColorResult.color ?? null : null,
       cellBorderColor: cellColorResult.is_set_as_background ? cellColorResult.borderColor ?? null : null,
       cellHoverColor: cellColorResult.hoverColor ?? null,
+      cellLeftBorderColor: cellColorResult.rawColor ?? null,
     }
   }
 

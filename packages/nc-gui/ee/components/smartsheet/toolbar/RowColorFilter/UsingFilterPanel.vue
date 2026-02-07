@@ -15,7 +15,7 @@ interface Props {
   isLoadingFilter?: boolean
   handler: {
     conditionAdd: () => void
-    conditionUpdate: (params: { index: number; color: string; is_set_as_background: boolean; nc_order?: number }) => void
+    conditionUpdate: (params: { index: number; color: string; is_set_as_background: boolean; nc_order?: number; type?: string; fk_target_column_id?: string }) => void
     conditionDelete: (index: number) => void
     conditionCopy: (index: number) => void
     allConditionDeleted: () => void
@@ -316,11 +316,11 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                   </div>
                   <div v-if="rowColorConfig.type === 'cell'" class="flex items-center cursor-pointer select-none text-nc-content-gray">
                     <NcSelect
-                      :value="rowColorConfig.fk_column_id || ''"
+                      :value="rowColorConfig.fk_target_column_id || ''"
                       class="!w-32"
                       size="small"
                       :placeholder="$t('objects.field')"
-                      @change="updateColor(i, 'fk_column_id', $event)"
+                      @change="updateColor(i, 'fk_target_column_id', $event)"
                     >
                       <template #suffixIcon>
                         <GeneralIcon icon="arrowDown" class="text-gray-700" />

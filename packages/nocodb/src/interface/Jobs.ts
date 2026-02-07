@@ -230,7 +230,7 @@ export interface DataExportJobData extends JobData {
   };
   modelId: string;
   viewId: string;
-  exportAs: 'csv' | 'json' | 'xlsx';
+  exportAs: 'csv' | 'json' | 'excel';
   ncSiteUrl: string;
 }
 

@@ -1,5 +1,4 @@
 import debug from 'debug';
-import { nanoid } from 'nanoid';
 import {
   extractFilterFromXwhere,
   isOrderCol,
@@ -309,6 +308,11 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       alias: ROOT_ALIAS,
       apiVersion: ctx.apiVersion,
     });
+    // Random non-zero integer sentinel for limit/offset used when caching.
+    // After toQuery() resolves all bindings, we find `limit X offset X` in
+    // the SQL and replace it with `limit ? offset ?` for later injection.
+    const limitOffsetPlaceholder =
+      Math.floor(Math.random() * 8999999) + 1000000;
     if (!ctx.ignorePagination) {
       if (ctx.limitOverride) {
         rootQb.limit(ctx.limitOverride);
@@ -317,10 +321,8 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
         rootQb.limit(+listArgs.limit);
         rootQb.offset(+listArgs.offset);
       } else {
-        // provide some dummy non-zero value to limit and offset to populate bindings,
-        // if offset is 0 then it will ignore bindings
-        rootQb.limit(9999);
-        rootQb.offset(9999);
+        rootQb.limit(limitOffsetPlaceholder);
+        rootQb.offset(limitOffsetPlaceholder);
       }
     }
     profiler.log('apply sort');
@@ -359,20 +361,14 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     knex.applyCte(finalQb);
     let dataQuery = finalQb.toQuery();
     if (!skipCache) {
-      const { sql, bindings } = finalQb.toSQL();
-
-      // get unique placeholder for limit and offset which is not present in query
-      const placeholder = nanoid();
-
-      // bind all params and replace limit and offset with placeholders
-      // and in generated sql replace placeholders with bindings
-      dataQuery = knex
-        .raw(sql, [...bindings.slice(0, -2), placeholder, placeholder])
-        .toQuery()
-        // escape any `?` in the query to avoid replacing them with bindings
+      // dataQuery (from finalQb.toQuery()) has all bindings resolved,
+      // including the unique placeholder for limit/offset.
+      // Escape any literal ? to prevent them from being treated as bindings,
+      // then replace the placeholder limit/offset with binding placeholders.
+      dataQuery = dataQuery
         .replace(/\?/g, '\\?')
         .replace(
-          `limit '${placeholder}' offset '${placeholder}'`,
+          `limit ${limitOffsetPlaceholder} offset ${limitOffsetPlaceholder}`,
           'limit ? offset ?',
         );
     }

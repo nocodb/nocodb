@@ -398,11 +398,22 @@ watch(baseId, async (newBaseId) => {
           </div>
           
           <div v-else-if="column.key === 'createdBy'">
-            <div v-if="record.created_by_user" class="flex gap-3 items-center">
-              <GeneralUserIcon size="small" :user="record.created_by_user" class="flex-none" />
-              <span class="truncate text-nc-content-gray font-medium">
-                {{ record.created_by_user.display_name || record.created_by_user.email }}
-              </span>
+            <div v-if="record.created_by_user" class="w-full flex gap-3 items-center users-email-grid">
+              <div class="nc-user-avatar w-8 h-8 flex-none" :style="{ backgroundColor: record.created_by_user.avatar_color || 'rgb(101, 76, 23)' }">
+                <div class="font-semibold !text-md text-white">
+                  {{ (record.created_by_user.display_name || record.created_by_user.email || '').substring(0, 2).toLowerCase() }}
+                </div>
+              </div>
+              <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
+                <div class="flex gap-3">
+                  <div class="truncate max-w-full text-nc-content-gray capitalize font-semibold">
+                    {{ record.created_by_user.display_name || record.created_by_user.email?.split('@')[0] || 'Unknown' }}
+                  </div>
+                </div>
+                <div class="truncate max-w-full text-xs text-nc-content-gray-subtle2">
+                  {{ record.created_by_user.email || '—' }}
+                </div>
+              </div>
             </div>
             <span v-else class="text-gray-400">—</span>
           </div>

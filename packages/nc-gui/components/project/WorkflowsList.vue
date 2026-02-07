@@ -83,7 +83,7 @@ const handleLogs = (workflow: WorkflowType) => {
     baseId: baseId.value!,
     workflowId: workflow.id!,
     workflowTitle: workflow.title,
-    params: { tab: 'logs' }
+    query: { tab: 'logs' }
   })
 }
 
@@ -98,7 +98,7 @@ const handleSettings = (workflow: WorkflowType) => {
     baseId: baseId.value!,
     workflowId: workflow.id!,
     workflowTitle: workflow.title,
-    params: { tab: 'settings' }
+    query: { tab: 'settings' }
   })
 }
 

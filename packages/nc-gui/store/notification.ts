@@ -25,6 +25,9 @@ export const useNotification = defineStore('notificationStore', () => {
 
   let cancelTokenSource: CancelTokenSource | null
 
+  // Guard to prevent multiple concurrent poll loops
+  let isPolling = false
+
   const pollNotificationsApiCall = async () => {
     // set up cancel token for polling to cancel when token changes/token is removed
     cancelTokenSource = CancelToken.source()
@@ -39,8 +42,14 @@ export const useNotification = defineStore('notificationStore', () => {
   })
 
   const pollNotifications = async () => {
+    if (isPolling) return
+    isPolling = true
+
     try {
-      if (!token.value) return
+      if (!token.value) {
+        isPolling = false
+        return
+      }
 
       const res = await sharedExecutionPollNotificationsApiCall()
 
@@ -52,8 +61,12 @@ export const useNotification = defineStore('notificationStore', () => {
         unreadCount.value = unreadCount.value + 1
       }
 
-      timeOutId = setTimeout(pollNotifications, 0)
+      isPolling = false
+      // Use a minimum 1s delay to prevent tight loops when the server
+      // or a CDN proxy responds faster than the expected 30s hold.
+      timeOutId = setTimeout(pollNotifications, 1000)
     } catch (e) {
+      isPolling = false
       // If request is cancelled, do nothing
       if (axios.isCancel(e)) return
       // If network error, retry after 2 seconds
@@ -186,6 +199,8 @@ export const useNotification = defineStore('notificationStore', () => {
       clearTimeout(timeOutId)
       timeOutId = null
     }
+    // Reset the guard so a new poll loop can start after clearing
+    isPolling = false
     // take a reference of the cancel token source and set the current one to null
     // so that we can cancel the polling request even if token changes
     const source = cancelTokenSource
@@ -200,7 +215,7 @@ export const useNotification = defineStore('notificationStore', () => {
     // For playwright, polling will cause the test to hang indefinitely
     // as we wait for the networkidle event. So, we disable polling for playwright
     if (!ncIsPlaywright()) {
-      clearPolling().catch((e) => console.log(e))
+      await clearPolling()
       pollNotifications().catch((e) => console.log(e))
     }
   }

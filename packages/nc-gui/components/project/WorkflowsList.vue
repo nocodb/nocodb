@@ -310,18 +310,23 @@ watch(baseId, async (newBaseId) => {
             title: $t('general.name'),
             dataIndex: 'title',
             key: 'title',
-            width: '35%',
+            width: '30%',
+          },
+          {
+            title: $t('labels.createdBy'),
+            key: 'createdBy',
+            width: '15%',
           },
           {
             title: $t('general.trigger'),
             key: 'trigger',
-            width: '20%',
+            width: '15%',
           },
           {
             title: $t('labels.lastExecuted'),
             dataIndex: 'lastRun',
             key: 'lastRun', 
-            width: '20%',
+            width: '15%',
           },
           {
             title: $t('general.actions'),
@@ -345,9 +350,20 @@ watch(baseId, async (newBaseId) => {
           </div>
           <div v-else-if="column.key === 'title'" class="flex items-center gap-2">
             <GeneralIcon icon="ncAutomation" class="text-nc-content-brand" />
-            <span class="font-medium cursor-pointer hover:text-nc-content-brand" @click.stop="handleEdit(record)">
+            <span 
+              :title="record.title" 
+              class="font-medium cursor-pointer hover:text-nc-content-brand truncate" 
+              @click.stop="handleEdit(record)"
+            >
               {{ record.title }}
             </span>
+          </div>
+          
+          <div v-else-if="column.key === 'createdBy'">
+            <span v-if="record.created_by_user" class="text-gray-600">
+              {{ record.created_by_user.display_name || record.created_by_user.email }}
+            </span>
+            <span v-else class="text-gray-400">—</span>
           </div>
           
           <div v-else-if="column.key === 'trigger'">

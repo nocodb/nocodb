@@ -60,6 +60,10 @@ export class ExportService {
 
   constructor(protected datasService: DatasService) {}
 
+  async getDataList(context: NcContext, param: any) {
+    return this.datasService.dataList(context, param);
+  }
+
   async serializeScripts(context: NcContext) {
     const serializedScripts = [];
 

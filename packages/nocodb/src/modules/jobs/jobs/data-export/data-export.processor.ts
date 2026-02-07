@@ -153,6 +153,10 @@ export class DataExportProcessor {
       }
 
         url = await uploadFilePromise;
+
+        if (error) {
+          throw error;
+        }
       }
 
       // if url is not defined, it is local attachment
@@ -185,10 +189,6 @@ export class DataExportProcessor {
           mimetype,
           encoding: options?.encoding || 'utf-8',
         });
-      }
-
-      if (error) {
-        throw error;
       }
 
       elapsedTime(
@@ -281,20 +281,21 @@ export class DataExportProcessor {
     });
 
     while (hasMore) {
-      const result = await this.exportService.datasService.dataList(context, {
-        model,
-        view,
-        query: {
-          limit,
-          offset,
-          filterArrJson: options.filterArrJson,
-          sortArrJson: options.sortArrJson,
-        },
-        baseModel,
-        ignoreViewFilterAndSort: false,
-        limitOverride: limit,
-        skipSortBasedOnOrderCol: true,
-      });
+      const result = await this.exportService
+        .getDataList(context, {
+          model,
+          view,
+          query: {
+            limit,
+            offset,
+            filterArrJson: options.filterArrJson,
+            sortArrJson: options.sortArrJson,
+          },
+          baseModel,
+          ignoreViewFilterAndSort: false,
+          limitOverride: limit,
+          skipSortBasedOnOrderCol: true,
+        });
 
       if (result.list.length === 0) {
         hasMore = false;

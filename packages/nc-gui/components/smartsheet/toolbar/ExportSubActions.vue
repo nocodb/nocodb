@@ -164,7 +164,24 @@ const exportFile = async (exportType: ExportTypes) => {
   <NcMenuItem v-e="['a:download:json']" @click.stop="exportFile(ExportTypes.JSON)">
     <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
       <GeneralLoader v-if="isExporting" size="regular" />
-      <component :is="iconMap.ncFileTypeJson" v-else class="w-4" />
+      <svg 
+        v-else 
+        xmlns="http://www.w3.org/2000/svg" 
+        width="16" 
+        height="16" 
+        viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="#0b48c1" 
+        stroke-width="2" 
+        stroke-linecap="round" 
+        stroke-linejoin="round" 
+        class="lucide lucide-file-braces-icon lucide-file-braces w-4"
+      >
+        <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/>
+        <path d="M14 2v5a1 1 0 0 0 1 1h5"/>
+        <path d="M10 12a1 1 0 0 0-1 1v1a1 1 0 0 1-1 1 1 1 0 0 1 1 1v1a1 1 0 0 0 1 1"/>
+        <path d="M14 18a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1 1 1 0 0 1-1-1v-1a1 1 0 0 0-1-1"/>
+      </svg>
       <!-- Download as JSON -->
       JSON
     </div>

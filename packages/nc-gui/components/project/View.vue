@@ -79,6 +79,11 @@ const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
 const isAuditsTabVisible = computed(() => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList'))
 
+const isWorkflowsTabVisible = computed(() => isEeUI && isUIAllowed('workflowCreateOrEdit') && !isMobileMode.value)
+
+// Mock workflow count for now - will be replaced with actual workflow store
+const workflowCount = ref(3)
+
 const projectPageTab = computed({
   get() {
     return _projectPageTab.value
@@ -93,6 +98,10 @@ const projectPageTab = computed({
     }
 
     if (value === 'audits' && !isAuditsTabVisible.value) {
+      return
+    }
+
+    if (value === 'workflows' && !isWorkflowsTabVisible.value) {
       return
     }
 
@@ -134,6 +143,8 @@ watch(
         projectPageTab.value = 'base-settings'
       } else if (newVal === 'audits' && isAuditsTabVisible.value) {
         projectPageTab.value = 'audits'
+      } else if (newVal === 'workflows' && isWorkflowsTabVisible.value) {
+        projectPageTab.value = 'workflows'
       } else {
         projectPageTab.value = 'collaborator'
       }
@@ -285,6 +296,25 @@ onMounted(() => {
             </div>
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
+        </a-tab-pane>
+        <a-tab-pane v-if="isWorkflowsTabVisible && base.id" key="workflows">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__workflows">
+              <GeneralIcon icon="ncAutomation" />
+              <div>{{ $t('objects.workflows') }}</div>
+              <div
+                v-if="workflowCount"
+                class="tab-info"
+                :class="{
+                  'bg-primary-selected': projectPageTab === 'workflows',
+                  'bg-nc-bg-gray-extralight': projectPageTab !== 'workflows',
+                }"
+              >
+                {{ workflowCount }}
+              </div>
+            </div>
+          </template>
+          <ProjectWorkflowsList :base-id="base.id" />
         </a-tab-pane>
         <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="permissions">
           <template #tab>

@@ -39,7 +39,7 @@ const onSelect = () => {
     <GeneralWorkspaceIcon :workspace="workspace" size="large" class="flex-none" />
     <div class="flex flex-col flex-1 min-w-0">
       <div class="flex items-center gap-1">
-        <NcTooltip show-on-truncate-only class="min-w-0 text-sm font-medium text-nc-content-gray-extreme truncate capitalize">
+        <NcTooltip show-on-truncate-only class="nc-workspace-node-title min-w-0 text-sm font-medium text-nc-content-gray-extreme truncate capitalize">
           <template #title>
             {{ workspace.title }}
           </template>
@@ -89,6 +89,7 @@ const onSelect = () => {
         class="text-nc-content-gray-muted flex-none h-4 w-4"
         :class="{
           'text-nc-content-brand': isActiveWorkspace,
+          'nc-workspace-node-navigate-icon': !isActiveWorkspace,
         }"
         @click.stop="switchWorkspace(workspace.id)"
       />

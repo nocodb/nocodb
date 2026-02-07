@@ -1,9 +1,9 @@
 import { expect, Locator } from '@playwright/test';
 import { DashboardPage } from '../../index';
 import BasePage from '../../../Base';
-import { getTextExcludeIconText } from '../../../../tests/utils/general';
 import { isEE } from '../../../../setup/db';
 import { NcContext } from '../../../../setup';
+import { BaseListModalPage } from '../BaseListModal';
 
 type MiniSidebarActionType =
   | 'ws'
@@ -20,6 +20,7 @@ type MiniSidebarActionType =
 export class LeftSidebarPage extends BasePage {
   readonly base: any;
   readonly dashboard: DashboardPage;
+  readonly baseListModal: BaseListModalPage;
 
   readonly btn_workspace: Locator;
   readonly btn_newProject: Locator;
@@ -27,6 +28,7 @@ export class LeftSidebarPage extends BasePage {
   readonly btn_teamAndSettings: Locator;
 
   readonly modal_workspace: Locator;
+  readonly modal_baseList: Locator;
 
   readonly miniSidebar: Locator;
 
@@ -35,13 +37,17 @@ export class LeftSidebarPage extends BasePage {
   constructor(dashboard: DashboardPage) {
     super(dashboard.rootPage);
     this.dashboard = dashboard;
+    this.baseListModal = new BaseListModalPage(dashboard);
 
     this.btn_workspace = this.get().locator('.nc-workspace-menu');
-    this.btn_newProject = this.get().locator('[data-testid="nc-sidebar-create-base-btn"]');
+    // Create button is now inside the modal's header, not the sidebar
+    // Using rootPage to search anywhere in the page (modal or sidebar)
+    this.btn_newProject = this.rootPage.locator('[data-testid="nc-sidebar-create-base-btn"]');
     // this.btn_cmdK = this.get().locator('[data-testid="nc-sidebar-search-btn"]');
     this.btn_teamAndSettings = this.get().locator('[data-testid="nc-sidebar-team-settings-btn"]');
 
     this.modal_workspace = this.rootPage.locator('.nc-dropdown-workspace-menu');
+    this.modal_baseList = this.rootPage.locator('.nc-workspace-base-list-modal-wrapper');
 
     this.miniSidebar = this.dashboard.get().locator('[data-testid="nc-mini-sidebar"]');
 
@@ -64,25 +70,51 @@ export class LeftSidebarPage extends BasePage {
     return (await this.miniSidebar.count()) > 0;
   }
 
+  /**
+   * Opens or verifies the base list modal is open
+   * @param open - If true, opens the modal if it's not already open
+   * @returns boolean indicating if modal is open
+   */
   async verifyBaseListOpen(open: boolean = false) {
     if (!(await this.isNewSidebar())) return true;
 
-    if (!(await this.get().isVisible())) {
-      await this.miniSidebarActionClick({ type: 'base' });
+    const isModalOpen = await this.modal_baseList.isVisible();
+
+    if (!isModalOpen && open) {
+      // Click workspace menu to open the base list modal
+      await this.miniSidebarActionClick({ type: 'ws' });
+      await this.baseListModal.waitForOpen();
     }
 
-    const classAttr = await this.get().locator('.nc-treeview-container').getAttribute('class');
+    // Wait for the modal transition to complete
+    await this.rootPage.waitForTimeout(300);
 
-    const isListOpen = classAttr?.includes('nc-treeview-container-base-list') ?? false;
+    return await this.modal_baseList.isVisible();
+  }
 
-    if (!isListOpen && open) {
-      await this.miniSidebarActionClick({ type: 'base' });
+  /**
+   * Opens the base list modal
+   */
+  async openBaseListModal() {
+    if (!(await this.modal_baseList.isVisible())) {
+      await this.miniSidebarActionClick({ type: 'ws' });
+      await this.baseListModal.waitForOpen();
     }
+  }
 
-    // Wait for the sidebar list transition to complete
-    await this.rootPage.waitForTimeout(500);
+  /**
+   * Closes the base list modal if open
+   */
+  async closeBaseListModal() {
+    await this.baseListModal.close();
+  }
 
-    return isListOpen;
+  /**
+   * Opens the create base menu using keyboard shortcut (Option/Alt + D)
+   */
+  async openCreateBaseMenuViaShortcut() {
+    await this.rootPage.keyboard.press('Alt+d');
+    await this.rootPage.waitForTimeout(300);
   }
 
   async createProject({ title, context }: { title: string; context: NcContext }) {
@@ -146,10 +178,15 @@ export class LeftSidebarPage extends BasePage {
   }
 
   async createWorkspace({ title }: { title: string }) {
-    await this.clickWorkspace();
-    await this.modal_workspace.locator('.ant-dropdown-menu-item:has-text("Create New Workspace")').waitFor();
-    await this.modal_workspace.locator('.ant-dropdown-menu-item:has-text("Create New Workspace")').click();
+    // Open the base list modal
+    await this.openBaseListModal();
 
+    // Click the "New Workspace" button in the modal
+    const newWorkspaceBtn = this.modal_baseList.locator('button:has-text("New Workspace")');
+    await newWorkspaceBtn.waitFor();
+    await newWorkspaceBtn.click();
+
+    // Fill in the workspace creation dialog
     const inputModal = this.rootPage.locator('div.ant-modal.active');
     await inputModal.waitFor();
     await inputModal.locator('input').clear();
@@ -158,43 +195,72 @@ export class LeftSidebarPage extends BasePage {
   }
 
   async verifyWorkspaceCount({ count }: { count: number }) {
-    await this.clickWorkspace();
+    // Open the base list modal
+    await this.openBaseListModal();
 
-    // TODO: THere is one extra html attribute
-    await expect(this.rootPage.getByTestId('nc-workspace-list')).toHaveCount(count + 1);
+    // Count workspace nodes in the modal
+    const workspaceNodes = this.modal_baseList.locator('.nc-workspace-node');
+    await expect(workspaceNodes).toHaveCount(count);
+
+    // Close the modal
+    await this.closeBaseListModal();
+  }
+
+  getWorkspaceNode(workspaceTitle: string) {
+    // Use the title class for precise matching
+    return this.modal_baseList.locator('.nc-workspace-node').filter({
+      has: this.rootPage.locator('.nc-workspace-node-title', { hasText: workspaceTitle }),
+    });
+  }
+
+  async isWorkspaceSelected(workspaceTitle: string): Promise<boolean> {
+    const workspaceNode = this.getWorkspaceNode(workspaceTitle);
+    const classAttr = await workspaceNode.getAttribute('class');
+    return classAttr?.includes('nc-selected-workspace-node') ?? false;
   }
 
   async getWorkspaceList() {
-    const ws = [];
-    await this.clickWorkspace();
-    const nodes = this.modal_workspace.locator('[data-testid="nc-workspace-list"]');
+    const ws: string[] = [];
 
-    for (let i = 0; i < (await nodes.count()); i++) {
-      ws.push(await getTextExcludeIconText(nodes.nth(i)));
+    // Open the base list modal
+    await this.openBaseListModal();
+
+    // Get workspace titles from the modal using the title class
+    const titles = this.modal_baseList.locator('.nc-workspace-node-title');
+    const count = await titles.count();
+
+    for (let i = 0; i < count; i++) {
+      const title = await titles.nth(i).textContent();
+      if (title) ws.push(title.trim());
     }
 
-    ws.push(await this.getWorkspaceName());
-    await this.rootPage.keyboard.press('Escape');
+    // Close the modal
+    await this.closeBaseListModal();
 
     return ws;
   }
 
-  async openWorkspace(param: { title: any }) {
-    await this.clickWorkspace();
-    const nodes = this.modal_workspace.locator('[data-testid="nc-workspace-list"]');
+  async openWorkspace(param: { title: string }) {
+    // Open the base list modal
+    await this.openBaseListModal();
+    await this.rootPage.waitForTimeout(300);
 
+    // Check if this workspace is already selected/active
+    if (await this.isWorkspaceSelected(param.title)) {
+      // Already on this workspace, just close the modal
+      await this.closeBaseListModal();
+      return;
+    }
+
+    // Find and click the navigate icon for the workspace
+    const workspaceNode = this.getWorkspaceNode(param.title);
+    await workspaceNode.locator('.nc-workspace-node-navigate-icon').click();
+
+    // Wait for navigation
     await this.rootPage.waitForTimeout(2000);
 
-    for (let i = 0; i < (await nodes.count()); i++) {
-      const text = await getTextExcludeIconText(nodes.nth(i).getByTestId('nc-workspace-list-title'));
-      if (text.toLowerCase() === param.title.toLowerCase()) {
-        await nodes.nth(i).click({ force: true });
-        break;
-      }
-    }
-    await this.rootPage.keyboard.press('Escape');
-
-    await this.rootPage.waitForTimeout(3500);
+    // Close modal if still open
+    await this.closeBaseListModal();
   }
 
   async getMiniSidebarActionLocator({ type }: { type: MiniSidebarActionType }): Promise<Locator | undefined> {

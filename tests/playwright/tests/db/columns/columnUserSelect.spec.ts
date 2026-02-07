@@ -47,9 +47,8 @@ async function beforeEachInit({ page }: { page: any }) {
 
     await dashboard.leftSidebar.clickTeamAndSettings();
 
-    for (const user of roleDb) {
-      await collaborationPage.addUsers(user.email, user.role);
-    }
+    // Since all are editor role, add bulk users
+    await collaborationPage.addUsers(users.join(', '), 'editor');
   }
 
   return { dashboard, context, api };

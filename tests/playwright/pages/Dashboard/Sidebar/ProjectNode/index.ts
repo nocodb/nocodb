@@ -34,25 +34,20 @@ export class SidebarProjectNodeObject extends BasePage {
   }
 
   async verifyTableAddBtn({ baseTitle, visible }: { baseTitle: string; visible: boolean }) {
-    await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(true);
+    await this.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
 
     await this.get({
       baseTitle,
     }).waitFor({ state: 'visible' });
-    await this.get({
-      baseTitle,
-    }).scrollIntoViewIfNeeded();
-    await this.get({
-      baseTitle,
-    }).hover();
 
-    const addBtn = this.get({
-      baseTitle,
-    }).getByTestId('nc-sidebar-add-base-entity');
+    // The createNewButton (.nc-home-create-new-btn) is now used to add tables
+    const createNewBtn = this.sidebar.dashboard.get().locator('.nc-home-create-new-btn');
 
     if (visible) {
-      await expect(addBtn).toBeVisible();
-    } else await expect(addBtn).toHaveCount(0);
+      await expect(createNewBtn).toBeVisible();
+    } else {
+      await expect(createNewBtn).toHaveCount(0);
+    }
   }
 
   async verifyProjectOptions({
@@ -165,33 +160,34 @@ export class SidebarProjectNodeObject extends BasePage {
   async verifyActiveProject({ baseTitle, open = false }: { baseTitle: string; open?: boolean }) {
     if (!(await this.sidebar.dashboard.leftSidebar.isMiniSidebarVisible())) return true;
 
-    const isBaseListSidebar = await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(false);
-    // If base home page sidebar is open then verify base title is same as baseTitle
-    if (!isBaseListSidebar) {
-      const baseLocator = await this.get({ baseTitle }).getAttribute('class');
+    const baseMiniSidebarItem = await this.sidebar.dashboard.leftSidebar.getMiniSidebarActionLocator({ type: 'base' });
 
-      // If active project is same as baseTitle then return true
-      if (baseLocator?.includes('nc-project-header')) return true;
+    const isActive = (await baseMiniSidebarItem.locator('.nc-mini-sidebar-btn').getAttribute('class')).includes(
+      'active-base'
+    );
 
-      if (!open) return false;
-
-      // If it is not same base home page sidebar then go to base list and open
-      await this.sidebar.dashboard.leftSidebar.verifyBaseListOpen(true);
+    // If base sidebar is not visible click base minisidebar icon
+    if (!isActive) {
+      await baseMiniSidebarItem.click();
     }
+
+    const ncProjectHeader = this.sidebar.get().locator('.nc-project-header');
+
+    await ncProjectHeader.waitFor();
+
+    const isActiveProject =
+      (await ncProjectHeader.getAttribute('data-testid')) === `nc-sidebar-base-title-${baseTitle}`;
+
+    // If active project is same as baseTitle then return true
+    if (isActiveProject) return true;
 
     if (!open) return false;
 
-    await this.get({
-      baseTitle,
-    }).waitFor({ state: 'visible' });
+    // If it is not the same base, open the base list modal and navigate to it
+    await this.sidebar.dashboard.leftSidebar.openBaseListModal();
+    await this.sidebar.dashboard.rootPage.waitForTimeout(300);
 
-    await this.get({
-      baseTitle,
-    }).scrollIntoViewIfNeeded();
-
-    await this.get({
-      baseTitle,
-    }).click();
+    await this.sidebar.dashboard.leftSidebar.baseListModal.clickBase(baseTitle);
 
     await this.sidebar.dashboard.leftSidebar.active_base.waitFor({ state: 'visible' });
 

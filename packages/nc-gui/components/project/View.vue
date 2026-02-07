@@ -81,8 +81,13 @@ const isAuditsTabVisible = computed(() => isEeUI && !isAdminPanel.value && isWsA
 
 const isWorkflowsTabVisible = computed(() => isEeUI && isUIAllowed('workflowCreateOrEdit') && !isMobileMode.value)
 
-// Mock workflow count for now - will be replaced with actual workflow store
-const workflowCount = ref(3)
+// Get actual workflow count
+const workflowStore = useWorkflowStore()
+const { activeBaseWorkflows } = storeToRefs(workflowStore)
+
+const workflowCount = computed(() => {
+  return activeBaseWorkflows.value?.length ?? 0
+})
 
 const projectPageTab = computed({
   get() {

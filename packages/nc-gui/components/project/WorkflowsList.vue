@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { WorkflowType } from 'nocodb-sdk'
+import { formatDistanceToNow } from 'date-fns'
 
 const props = defineProps<{
   baseId?: string
@@ -13,36 +14,18 @@ const { t } = useI18n()
 
 const { isUIAllowed } = useRoles()
 
+// Workflow store
+const workflowStore = useWorkflowStore()
+const { activeBaseWorkflows, isLoadingWorkflow } = storeToRefs(workflowStore)
+const { loadWorkflows, openNewWorkflowModal, updateWorkflow, deleteWorkflow, duplicateWorkflow, publishWorkflow } = workflowStore
+
 // Search functionality
 const searchQuery = ref('')
 
-// Mock data for now - will be replaced with actual workflow store
-const workflows = ref<(WorkflowType & { lastRun?: string, status?: 'Active' | 'Inactive' })[]>([
-  {
-    id: '1',
-    title: 'Email notification on new record',
-    status: 'Active',
-    lastRun: '2 hours ago',
-    created_at: '2024-01-15T10:30:00Z',
-    updated_at: '2024-02-06T15:45:00Z',
-  },
-  {
-    id: '2', 
-    title: 'Update status on completion',
-    status: 'Inactive',
-    lastRun: '1 day ago',
-    created_at: '2024-01-10T14:20:00Z',
-    updated_at: '2024-02-05T09:30:00Z',
-  },
-  {
-    id: '3',
-    title: 'Slack notification for urgent tasks',
-    status: 'Active',
-    lastRun: '30 minutes ago', 
-    created_at: '2024-01-20T09:15:00Z',
-    updated_at: '2024-02-07T02:15:00Z',
-  },
-])
+// Get workflows for current base
+const workflows = computed(() => {
+  return activeBaseWorkflows.value || []
+})
 
 // Filtered workflows based on search
 const filteredWorkflows = computed(() => {
@@ -57,43 +40,148 @@ const filteredWorkflows = computed(() => {
 const workflowCount = computed(() => workflows.value.length)
 
 // Handle create workflow
-const handleCreateWorkflow = () => {
+const handleCreateWorkflow = async () => {
+  if (!baseId.value) return
+  
   $e('a:workflow:create')
-  // TODO: Open create workflow modal
-  console.log('Create workflow')
+  await openNewWorkflowModal({
+    baseId: baseId.value,
+    loadWorkflowsOnClose: true
+  })
 }
 
 // Handle workflow actions
 const handleEdit = (workflow: WorkflowType) => {
   $e('a:workflow:edit')
-  console.log('Edit workflow:', workflow.id)
+  // Navigate to workflow editor
+  const { ncNavigateTo } = useGlobal()
+  const { activeWorkspaceId } = storeToRefs(useWorkspace())
+  
+  ncNavigateTo({
+    workspaceId: activeWorkspaceId.value!,
+    baseId: baseId.value!,
+    workflowId: workflow.id!,
+    workflowTitle: workflow.title
+  })
 }
 
-const handleDelete = (workflow: WorkflowType) => {
-  $e('a:workflow:delete') 
-  console.log('Delete workflow:', workflow.id)
+const isDeleting = ref<string | null>(null)
+const handleDelete = async (workflow: WorkflowType) => {
+  if (!baseId.value || !workflow.id || isDeleting.value === workflow.id) return
+  
+  try {
+    isDeleting.value = workflow.id
+    $e('a:workflow:delete')
+    await deleteWorkflow(baseId.value, workflow.id)
+    message.success(t('msg.success.workflowDeleted'))
+  } catch (error) {
+    console.error('Error deleting workflow:', error)
+  } finally {
+    isDeleting.value = null
+  }
 }
 
-const handleDuplicate = (workflow: WorkflowType) => {
-  $e('a:workflow:duplicate')
-  console.log('Duplicate workflow:', workflow.id)
+const isDuplicating = ref<string | null>(null)
+const handleDuplicate = async (workflow: WorkflowType) => {
+  if (!baseId.value || !workflow.id || isDuplicating.value === workflow.id) return
+  
+  try {
+    isDuplicating.value = workflow.id
+    $e('a:workflow:duplicate')
+    await duplicateWorkflow(baseId.value, workflow.id)
+    message.success(t('msg.success.workflowDuplicated'))
+  } catch (error) {
+    console.error('Error duplicating workflow:', error)
+  } finally {
+    isDuplicating.value = null
+  }
 }
 
-const handleToggleStatus = (workflow: WorkflowType & { status?: 'Active' | 'Inactive' }) => {
-  $e('a:workflow:toggle-status')
-  workflow.status = workflow.status === 'Active' ? 'Inactive' : 'Active'
-}
-
-// Get status badge color
-const getStatusColor = (status: 'Active' | 'Inactive') => {
-  return status === 'Active' ? 'green' : 'gray'
+const isToggling = ref<string | null>(null)
+const handleToggleStatus = async (workflow: WorkflowType) => {
+  if (!baseId.value || !workflow.id || isToggling.value === workflow.id) return
+  
+  try {
+    isToggling.value = workflow.id
+    $e('a:workflow:toggle-status')
+    
+    if (workflow.active) {
+      // Disable workflow - just update active status
+      await updateWorkflow(baseId.value, workflow.id, { active: false })
+    } else {
+      // Enable workflow - publish it
+      await publishWorkflow(workflow.id)
+    }
+    
+    message.success(workflow.active ? t('msg.success.workflowDisabled') : t('msg.success.workflowEnabled'))
+  } catch (error) {
+    console.error('Error toggling workflow status:', error)
+    message.error(t('msg.error.workflowToggleFailed'))
+  } finally {
+    isToggling.value = null
+  }
 }
 
 // Get trigger type display
 const getTriggerType = (workflow: WorkflowType) => {
-  // TODO: Extract actual trigger type from workflow
-  return 'Record Created'
+  if (!workflow.nodes || !Array.isArray(workflow.nodes)) return '—'
+  
+  // Find trigger node (nodes with no incoming edges or specific trigger types)
+  const triggerNode = workflow.nodes.find(node => {
+    if (!node.type) return false
+    
+    // Check if this is a trigger node type
+    const triggerTypes = [
+      'recordCreated', 'recordUpdated', 'recordDeleted',
+      'schedule', 'webhook', 'manual'
+    ]
+    
+    return triggerTypes.some(type => node.type.includes(type)) ||
+           node.type.includes('trigger') ||
+           node.type.includes('Trigger')
+  })
+  
+  if (!triggerNode) return '—'
+  
+  // Map node types to display names
+  const typeMap: Record<string, string> = {
+    'recordCreated': 'Record Created',
+    'recordUpdated': 'Record Updated', 
+    'recordDeleted': 'Record Deleted',
+    'schedule': 'Scheduled',
+    'webhook': 'Webhook',
+    'manual': 'Manual'
+  }
+  
+  for (const [type, display] of Object.entries(typeMap)) {
+    if (triggerNode.type.includes(type)) {
+      return display
+    }
+  }
+  
+  return triggerNode.data?.title || triggerNode.type || '—'
 }
+
+// Get last run display
+const getLastRunDisplay = (workflow: WorkflowType) => {
+  // For now, return placeholder. In a real implementation,
+  // this would come from workflow execution logs
+  return '—'
+}
+
+// Load workflows on mount
+onMounted(async () => {
+  if (baseId.value) {
+    await loadWorkflows({ baseId: baseId.value })
+  }
+})
+
+// Watch for baseId changes
+watch(baseId, async (newBaseId) => {
+  if (newBaseId) {
+    await loadWorkflows({ baseId: newBaseId })
+  }
+}, { immediate: true })
 </script>
 
 <template>
@@ -171,13 +259,13 @@ const getTriggerType = (workflow: WorkflowType) => {
             <span class="font-medium">{{ record.title }}</span>
           </div>
           
-          <div v-else-if="column.key === 'status'">
-            <NcBadge
-              :color="getStatusColor(record.status)"
-              class="capitalize"
-            >
-              {{ record.status }}
-            </NcBadge>
+          <div v-else-if="column.key === 'status'" @click.stop>
+            <NcSwitch
+              size="small"
+              :checked="!!record.active"
+              :disabled="isToggling === record.id"
+              @change="handleToggleStatus(record)"
+            />
           </div>
           
           <div v-else-if="column.key === 'trigger'">
@@ -185,7 +273,7 @@ const getTriggerType = (workflow: WorkflowType) => {
           </div>
           
           <div v-else-if="column.key === 'lastRun'">
-            <span class="text-gray-600">{{ record.lastRun || '-' }}</span>
+            <span class="text-gray-600">{{ getLastRunDisplay(record) }}</span>
           </div>
           
           <div v-else-if="column.key === 'actions'">
@@ -202,20 +290,20 @@ const getTriggerType = (workflow: WorkflowType) => {
                       {{ $t('general.edit') }}
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem @click="handleToggleStatus(record)">
+                  <NcMenuItem :disabled="isToggling === record.id" @click="handleToggleStatus(record)">
                     <div class="flex items-center gap-2">
-                      <GeneralIcon :icon="record.status === 'Active' ? 'ncPause' : 'ncPlay'" />
-                      {{ record.status === 'Active' ? $t('general.disable') : $t('general.enable') }}
+                      <GeneralIcon :icon="record.active ? 'ncPause' : 'ncPlay'" />
+                      {{ record.active ? $t('general.disable') : $t('general.enable') }}
                     </div>
                   </NcMenuItem>
-                  <NcMenuItem @click="handleDuplicate(record)">
+                  <NcMenuItem :disabled="isDuplicating === record.id" @click="handleDuplicate(record)">
                     <div class="flex items-center gap-2">
                       <GeneralIcon icon="ncCopy" />
                       {{ $t('general.duplicate') }}
                     </div>
                   </NcMenuItem>
                   <NcMenuDivider />
-                  <NcMenuItem class="!text-red-500" @click="handleDelete(record)">
+                  <NcMenuItem class="!text-red-500" :disabled="isDeleting === record.id" @click="handleDelete(record)">
                     <div class="flex items-center gap-2">
                       <GeneralIcon icon="ncTrash" />
                       {{ $t('general.delete') }}

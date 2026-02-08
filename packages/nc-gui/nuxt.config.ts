@@ -154,6 +154,7 @@ export default defineNuxtConfig({
         ignoreTryCatch: true,
       },
       minify: true,
+      sourcemap: true,
       rollupOptions: {},
     },
     plugins: [

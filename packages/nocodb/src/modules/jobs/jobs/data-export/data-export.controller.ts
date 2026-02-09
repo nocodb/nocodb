@@ -36,7 +36,7 @@ export class DataExportController {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('viewId') viewId: string,
-    @Param('exportAs') exportAs: 'csv' | 'json' | 'xlsx',
+    @Param('exportAs') exportAs: 'csv' | 'json' | 'excel',
     @Body() options: DataExportJobData['options'],
   ) {
     const view = await View.get(context, viewId);

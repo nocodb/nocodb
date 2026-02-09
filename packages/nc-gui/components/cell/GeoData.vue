@@ -114,6 +114,106 @@ function destroyMap() {
   }
 }
 
+// --- Geocoding search (Nominatim / OpenStreetMap) ---
+interface NominatimResult {
+  place_id: number
+  lat: string
+  lon: string
+  display_name: string
+  type: string
+}
+
+const searchQuery = ref('')
+const searchResults = ref<NominatimResult[]>([])
+const isSearching = ref(false)
+const showSearchResults = ref(false)
+const searchInputRef = ref<HTMLInputElement>()
+
+const NOMINATIM_API = 'https://nominatim.openstreetmap.org/search'
+
+const performSearch = useDebounceFn(async () => {
+  const query = searchQuery.value.trim()
+  if (query.length < 3) {
+    searchResults.value = []
+    showSearchResults.value = false
+    return
+  }
+
+  isSearching.value = true
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      format: 'json',
+      limit: '5',
+      addressdetails: '0',
+    })
+
+    const response = await fetch(`${NOMINATIM_API}?${params.toString()}`, {
+      headers: {
+        'Accept-Language': navigator.language || 'en',
+      },
+    })
+
+    if (!response.ok) throw new Error('Geocoding request failed')
+
+    const data: NominatimResult[] = await response.json()
+    searchResults.value = data
+    showSearchResults.value = data.length > 0
+  } catch (err) {
+    console.error('Geocoding error:', err)
+    searchResults.value = []
+    showSearchResults.value = false
+  } finally {
+    isSearching.value = false
+  }
+}, 400)
+
+function selectSearchResult(result: NominatimResult) {
+  const lat = parseFloat(result.lat)
+  const lng = parseFloat(result.lon)
+
+  // Update form state
+  syncToFormState(lat, lng)
+
+  // Update map
+  updateMarkerPosition(lat, lng)
+  mapInstanceRef.value?.setView([lat, lng], LOCATION_ZOOM)
+
+  // Clear search
+  searchQuery.value = result.display_name
+  showSearchResults.value = false
+}
+
+function onSearchKeydown(e: KeyboardEvent) {
+  // Prevent overlay from closing on Escape when search has results
+  if (e.key === 'Escape' && showSearchResults.value) {
+    e.stopPropagation()
+    showSearchResults.value = false
+    return
+  }
+  // Prevent form submission on Enter in search
+  if (e.key === 'Enter') {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+}
+
+function onSearchBlur() {
+  // Delay hiding to allow click on result
+  setTimeout(() => {
+    showSearchResults.value = false
+  }, 200)
+}
+
+watch(searchQuery, () => {
+  if (searchQuery.value.trim().length >= 3) {
+    performSearch()
+  } else {
+    searchResults.value = []
+    showSearchResults.value = false
+  }
+})
+
 // Debounced sync: input fields -> map
 const syncMapFromInputs = useDebounceFn(() => {
   if (isUpdatingFromMap.value || !mapInstanceRef.value) return
@@ -397,6 +497,43 @@ onBeforeUnmount(() => {
               </a-form-item>
             </a-row>
 
+            <!-- Location search bar -->
+            <div v-if="!readonly" class="nc-geodata-search-wrapper px-3 mb-2">
+              <div class="nc-geodata-search-container">
+                <div class="nc-geodata-search-input-row">
+                  <GeneralIcon icon="search" class="nc-geodata-search-icon" />
+                  <input
+                    ref="searchInputRef"
+                    v-model="searchQuery"
+                    data-testid="nc-geo-data-search"
+                    type="text"
+                    class="nc-geodata-search-input"
+                    placeholder="Search for a place..."
+                    @keydown="onSearchKeydown"
+                    @blur="onSearchBlur"
+                    @keydown.stop
+                    @mousedown.stop
+                  />
+                  <GeneralIcon
+                    v-if="isSearching"
+                    icon="loading"
+                    class="nc-geodata-search-spinner animate-spin"
+                  />
+                </div>
+                <div v-if="showSearchResults" class="nc-geodata-search-results">
+                  <div
+                    v-for="result in searchResults"
+                    :key="result.place_id"
+                    class="nc-geodata-search-result-item"
+                    @mousedown.prevent="selectSearchResult(result)"
+                  >
+                    <GeneralIcon icon="ncMapPin" class="nc-geodata-result-icon" />
+                    <span class="nc-geodata-result-text">{{ result.display_name }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <!-- Interactive map picker -->
             <div
               ref="mapContainerRef"
@@ -465,6 +602,119 @@ input[type='number'] {
 
 :deep(.ant-form-item-label > label) {
   @apply !text-small !leading-[18px] mb-2 text-nc-content-gray flex;
+}
+
+/* Location search bar */
+.nc-geodata-search-wrapper {
+  position: relative;
+}
+
+.nc-geodata-search-container {
+  position: relative;
+}
+
+.nc-geodata-search-input-row {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0 10px;
+  height: 36px;
+  background: #fff;
+  transition: border-color 0.2s;
+
+  &:focus-within {
+    border-color: #3366ff;
+    box-shadow: 0 0 0 2px rgba(51, 102, 255, 0.1);
+  }
+}
+
+.nc-geodata-search-icon {
+  color: #9ca3af;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.nc-geodata-search-spinner {
+  color: #9ca3af;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.nc-geodata-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 13px;
+  padding: 0 8px;
+  background: transparent;
+  color: #333;
+  min-width: 0;
+
+  &::placeholder {
+    color: #9ca3af;
+  }
+}
+
+.nc-geodata-search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 10;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.nc-geodata-search-result-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover {
+    background: #f3f4f6;
+  }
+
+  &:first-child {
+    border-radius: 8px 8px 0 0;
+  }
+
+  &:last-child {
+    border-radius: 0 0 8px 8px;
+  }
+
+  &:only-child {
+    border-radius: 8px;
+  }
+}
+
+.nc-geodata-result-icon {
+  color: #6b7280;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.nc-geodata-result-text {
+  font-size: 12px;
+  color: #374151;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 /* Interactive map picker */

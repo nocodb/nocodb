@@ -45,7 +45,7 @@ const workflows = computed(() => {
 const filteredWorkflows = computed(() => {
   if (!searchQuery.value) return workflows.value
 
-  return workflows.value.filter((workflow) => workflow.title?.toLowerCase().includes(searchQuery.value.toLowerCase()))
+  return workflows.value.filter((workflow) => searchCompare(workflow.title, searchQuery.value))
 })
 
 // Workflow count
@@ -362,7 +362,33 @@ watch(
 </script>
 
 <template>
-  <div class="nc-workflows-list h-full flex flex-col">
+  <div class="nc-workflows-list h-full flex flex-col items-center gap-6">
+    <div class="w-full flex justify-between items-center max-w-full gap-3">
+      <a-input
+        v-model:value="searchQuery"
+        :placeholder="$t('placeholder.searchWorkflows')"
+        allow-clear
+        class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+      >
+        <template #prefix>
+          <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme" />
+        </template>
+      </a-input>
+
+      <NcButton
+        v-if="isUIAllowed('workflowCreateOrEdit')"
+        type="primary"
+        size="small"
+        class="nc-workflows-create-btn"
+        @click="handleCreateWorkflow"
+      >
+        <template #icon>
+          <GeneralIcon icon="plus" />
+        </template>
+        {{ $t('activity.createWorkflow') }}
+      </NcButton>
+    </div>
+
     <NcTable
       v-model:order-by="orderBy"
       :is-data-loading="isLoadingWorkflow"
@@ -374,47 +400,21 @@ watch(
       :pagination-offset="25"
       class="flex-1 nc-workflows-table max-w-full"
     >
-      <template #tableToolbar>
-        <div class="flex items-center justify-between gap-3">
-          <a-input
-            v-model:value="searchQuery"
-            :placeholder="$t('placeholder.searchWorkflows')"
-            allow-clear
-            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
-          >
-            <template #prefix>
-              <GeneralIcon
-                icon="search"
-                class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
-              />
-            </template>
-          </a-input>
-
-          <NcButton
-            v-if="isUIAllowed('workflowCreateOrEdit')"
-            type="primary"
-            size="small"
-            class="nc-workflows-create-btn"
-            @click="handleCreateWorkflow"
-          >
-            <template #icon>
-              <GeneralIcon icon="plus" />
-            </template>
-            {{ $t('activity.createWorkflow') }}
-          </NcButton>
-        </div>
-      </template>
-
       <template #emptyText>
         <div class="flex flex-col items-center justify-center text-center py-8">
-          <GeneralIcon icon="ncAutomation" class="text-6xl text-gray-300 mb-4" />
+          <GeneralIcon icon="ncAutomation" class="h-15 w-15 text-gray-300 mb-4" />
           <h3 class="text-lg font-medium text-gray-900 mb-2">
-            {{ searchQuery ? $t('msg.info.noWorkflowsFound') : $t('msg.info.noWorkflows') }}
+            {{ searchQuery ? $t('placeholder.noWorkflowsFound') : $t('placeholder.noWorkflows') }}
           </h3>
           <p class="text-gray-500 mb-4">
-            {{ searchQuery ? $t('msg.info.tryDifferentSearch') : $t('msg.info.createFirstWorkflow') }}
+            {{ searchQuery ? $t('placeholder.tryDifferentSearch') : $t('placeholder.createWorkflow') }}
           </p>
-          <NcButton v-if="!searchQuery && isUIAllowed('workflowCreateOrEdit')" type="primary" @click="handleCreateWorkflow">
+          <NcButton
+            v-if="!searchQuery && isUIAllowed('workflowCreateOrEdit')"
+            type="primary"
+            size="small"
+            @click="handleCreateWorkflow"
+          >
             <template #icon>
               <GeneralIcon icon="plus" />
             </template>
@@ -461,7 +461,7 @@ watch(
         <div v-else-if="column.key === 'lastRun'">
           <template v-if="typeof getLastRunDisplay(record) === 'object'">
             <div class="flex flex-col">
-              <span :class="getLastRunDisplay(record).statusColor" class="text-xs font-medium">
+              <span :class="getLastRunDisplay(record).statusColor" class="text-xs font-medium capitalize">
                 {{ getLastRunDisplay(record).status }}
               </span>
               <span class="text-nc-content-gray-muted text-xs">{{ getLastRunDisplay(record).timeAgo }}</span>
@@ -479,42 +479,30 @@ watch(
             <template #overlay>
               <NcMenu variant="small">
                 <NcMenuItem @click="handleEdit(record)">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="ncEdit" />
-                    {{ $t('general.edit') }}
-                  </div>
+                  <GeneralIcon icon="ncEdit" />
+                  {{ $t('general.edit') }}
                 </NcMenuItem>
                 <NcMenuItem @click="handleLogs(record)">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="audit" />
-                    {{ $t('general.logs') }}
-                  </div>
+                  <GeneralIcon icon="audit" />
+                  {{ $t('general.logs') }}
                 </NcMenuItem>
                 <NcMenuItem @click="handleSettings(record)">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="ncSettings" />
-                    {{ $t('labels.settings') }}
-                  </div>
+                  <GeneralIcon icon="ncSettings" />
+                  {{ $t('labels.settings') }}
                 </NcMenuItem>
                 <NcMenuDivider />
                 <NcMenuItem :disabled="isToggling === record.id" @click="() => handleToggleStatus(record)">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon :icon="record.enabled ? 'ncPause' : 'ncPlay'" />
-                    {{ record.enabled ? $t('general.disable') : $t('general.enable') }}
-                  </div>
+                  <GeneralIcon :icon="record.enabled ? 'ncPause' : 'ncPlay'" />
+                  {{ record.enabled ? $t('general.disable') : $t('general.enable') }}
                 </NcMenuItem>
                 <NcMenuItem :disabled="isDuplicating === record.id" @click="handleDuplicate(record)">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="ncCopy" />
-                    {{ $t('general.duplicate') }}
-                  </div>
+                  <GeneralIcon icon="ncCopy" />
+                  {{ $t('general.duplicate') }}
                 </NcMenuItem>
                 <NcMenuDivider />
                 <NcMenuItem class="!text-red-500" :disabled="isDeleting === record.id" @click="handleDelete(record)">
-                  <div class="flex items-center gap-2">
-                    <GeneralIcon icon="ncTrash" />
-                    {{ $t('general.delete') }}
-                  </div>
+                  <GeneralIcon icon="delete" />
+                  {{ $t('general.delete') }}
                 </NcMenuItem>
               </NcMenu>
             </template>

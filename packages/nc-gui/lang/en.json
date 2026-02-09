@@ -2285,6 +2285,8 @@
     "noTables": "No tables",
     "noAutomations": "No automations",
     "noWorkflows": "No workflows",
+    "noWorkflowsFound": "No workflows found",
+    "tryDifferentSearch": "Try different search",
     "emptyTablePlaceholder": "This base is empty—for now.",
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access.",
     "noDashboards": "No dashboards",

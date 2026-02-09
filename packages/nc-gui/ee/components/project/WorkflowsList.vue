@@ -1,9 +1,6 @@
 <script lang="ts" setup>
-import { timeAgo, type WorkflowType } from 'nocodb-sdk'
-import dayjs from 'dayjs'
+import { type WorkflowType, timeAgo } from 'nocodb-sdk'
 import relativeTime from 'dayjs/plugin/relativeTime'
-
-dayjs.extend(relativeTime)
 
 const props = defineProps<{
   baseId?: string

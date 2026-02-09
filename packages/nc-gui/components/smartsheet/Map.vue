@@ -195,8 +195,6 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
     return
   }
 
-  resetZoomAndCenterBasedOnLocalStorage()
-
   markersClusterGroupRef.value?.clearLayers()
 
   formattedData.value?.forEach((row) => {
@@ -213,6 +211,15 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
     addMarker(lat, long, row)
   })
+
+  // Auto-fit map to show all markers, or fall back to saved/default position
+  const layers = markersClusterGroupRef.value?.getLayers() ?? []
+  if (layers.length > 0) {
+    const bounds = markersClusterGroupRef.value!.getBounds()
+    myMapRef.value?.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 })
+  } else {
+    resetZoomAndCenterBasedOnLocalStorage()
+  }
 })
 
 watch(view, async (nextView) => {

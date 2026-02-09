@@ -90,20 +90,66 @@ const expandedFormOnRowIdDlg = computed({
   },
 })
 
+const MAX_TOOLTIP_FIELDS = 4
+const MAX_TOOLTIP_VALUE_LENGTH = 50
+
+const buildTooltipContent = (row: Row, lat: number, long: number): string => {
+  const visibleFields = fields.value ?? []
+  const geoTitle = geoDataFieldColumn.value?.title
+
+  // Show up to MAX_TOOLTIP_FIELDS visible fields, excluding the geo column itself
+  const tooltipFields = visibleFields
+    .filter((f) => f.title !== geoTitle)
+    .slice(0, MAX_TOOLTIP_FIELDS)
+
+  if (tooltipFields.length === 0) {
+    return `<div class="nc-map-tooltip-content"><span class="nc-map-tooltip-coords">${lat}, ${long}</span></div>`
+  }
+
+  const lines = tooltipFields
+    .map((f) => {
+      const rawValue = row.row[f.title!]
+      if (rawValue == null || rawValue === '') return null
+
+      let displayValue = String(rawValue)
+      if (displayValue.length > MAX_TOOLTIP_VALUE_LENGTH) {
+        displayValue = displayValue.substring(0, MAX_TOOLTIP_VALUE_LENGTH) + '…'
+      }
+
+      // Escape HTML to prevent XSS
+      const escaped = displayValue.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      const label = (f.title ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+
+      return `<div class="nc-map-tooltip-row"><span class="nc-map-tooltip-label">${label}</span><span class="nc-map-tooltip-value">${escaped}</span></div>`
+    })
+    .filter(Boolean)
+    .join('')
+
+  return `<div class="nc-map-tooltip-content">${lines || `<span class="nc-map-tooltip-coords">${lat}, ${long}</span>`}</div>`
+}
+
 const addMarker = (lat: number, long: number, row: Row) => {
   if (markersClusterGroupRef.value == null) {
     throw new Error('Marker cluster is null')
   }
+  const tooltipHtml = buildTooltipContent(row, lat, long)
   const newMarker = L.marker([lat, long], {
     alt: `${lat}, ${long}`,
-  }).on('click', () => {
-    if (newMarker && isPublic.value) {
-      popUpRow.value = row
-      popupIsOpen.value = true
-    } else {
-      expandForm(row)
-    }
   })
+    .bindTooltip(tooltipHtml, {
+      direction: 'top',
+      offset: L.point(0, -10),
+      opacity: 0.95,
+      className: 'nc-map-marker-tooltip',
+    })
+    .on('click', () => {
+      if (newMarker && isPublic.value) {
+        popUpRow.value = row
+        popupIsOpen.value = true
+      } else {
+        expandForm(row)
+      }
+    })
   markersClusterGroupRef.value?.addLayer(newMarker)
 }
 
@@ -197,13 +243,16 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
 
   markersClusterGroupRef.value?.clearLayers()
 
+  const primaryGeoDataColumnTitle = geoDataFieldColumn.value?.title
+
+  // When a view is duplicated or first loading, geoDataFieldColumn may not
+  // be populated yet. Return early — the watcher will re-fire once
+  // loadMapMeta() completes and geoDataFieldColumn is set.
+  if (primaryGeoDataColumnTitle == null) {
+    return
+  }
+
   formattedData.value?.forEach((row) => {
-    const primaryGeoDataColumnTitle = geoDataFieldColumn.value?.title
-
-    if (primaryGeoDataColumnTitle == null) {
-      throw new Error('Cannot find primary geo data column title')
-    }
-
     const primaryGeoDataValue = row.row[primaryGeoDataColumnTitle]
     if (primaryGeoDataValue == null) {
       return
@@ -296,6 +345,57 @@ const count = computed(() => paginationData.value.totalRows)
 .leaflet-popup-content-wrapper {
   max-height: 255px;
   overflow: scroll;
+}
+
+/* Marker hover tooltip */
+.nc-map-marker-tooltip {
+  padding: 0 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #e5e7eb !important;
+  max-width: 280px;
+}
+
+.nc-map-tooltip-content {
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.nc-map-tooltip-row {
+  display: flex;
+  gap: 6px;
+  padding: 2px 0;
+  align-items: baseline;
+}
+
+.nc-map-tooltip-row + .nc-map-tooltip-row {
+  border-top: 1px solid #f3f4f6;
+  margin-top: 2px;
+  padding-top: 4px;
+}
+
+.nc-map-tooltip-label {
+  color: #6b7280;
+  font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+
+.nc-map-tooltip-label::after {
+  content: ':';
+}
+
+.nc-map-tooltip-value {
+  color: #1f2937;
+  word-break: break-word;
+}
+
+.nc-map-tooltip-coords {
+  color: #6b7280;
+  font-family: monospace;
+  font-size: 11px;
 }
 
 .popup-content {

@@ -52,7 +52,17 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { isUserViewOwner } = useViewsStore()
 
-    const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
+    const isPersonalViewOwner = computed(
+      () => view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value),
+    )
+
+    const canEditViewFields = computed(() => {
+      if (isUIAllowed('viewFieldEdit')) return true
+      if (isPersonalViewOwner.value) return true
+      return false
+    })
+
+    const isLocalMode = computed(() => isPublic || !canEditViewFields.value || isSharedBase.value)
 
     const hasViewFieldDataEditPermission = computed(() => isUIAllowed('viewFieldDataEdit'))
 
@@ -324,7 +334,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         localChanges.value[field.fk_column_id] = field
       }
 
-      if (isUIAllowed('viewFieldEdit')) {
+      if (canEditViewFields.value) {
         if (field.id && view?.value?.id) {
           await $api.internal.postOperation(
             meta.value!.fk_workspace_id!,
@@ -598,7 +608,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
       try {
         // sync with server if allowed
-        if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
+        if (!isPublic.value && canEditViewFields.value && gridViewCols.value[id]?.id) {
           await $api.internal.postOperation(
             view.value!.fk_workspace_id!,
             view.value!.base_id!,

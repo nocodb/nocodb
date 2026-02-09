@@ -1071,6 +1071,7 @@
     "syncFailed": "Sync Failed",
     "triggerSync": "Trigger Sync",
     "lastModified": "Last Modified",
+    "lastExecuted": "Last Executed On",
     "updateSync": "Update Sync",
     "sources": "Sources",
     "schema": "Schema",
@@ -2211,6 +2212,7 @@
     "syncScopeNotEditableInEditMode": "Sync scope can't be modified"
   },
   "placeholder": {
+    "searchWorkflows": "Search Workflows",
     "searchByTitle": "Search by title or description",
     "enterSyncName": "Enter sync name",
     "searchIcons": "Search icons",
@@ -2283,6 +2285,8 @@
     "noTables": "No tables",
     "noAutomations": "No automations",
     "noWorkflows": "No workflows",
+    "noWorkflowsFound": "No workflows found",
+    "tryDifferentSearch": "Try different search",
     "emptyTablePlaceholder": "This base is empty—for now.",
     "emptyTablePlaceholderSubtitle": "Tables may not have been added yet or might be hidden based on your access.",
     "noDashboards": "No dashboards",
@@ -2874,6 +2878,10 @@
       "nCellsCopied": "{n} cells copied"
     },
     "success": {
+      "workflowDisabled": "Workflow de-activated successfully",
+      "workflowEnabled": "Workflow activated successfully",
+      "workflowDuplicated": "Workflow duplicated successfully",
+      "workflowDeleted": "Workflow deleted successfully",
       "passwordSet": "Password set successfully",
       "managedAppCreated": "Managed App created successfully",
       "managedAppUpdated": "Managed App updated successfully",

@@ -155,7 +155,7 @@ const exportFile = async (exportType: ExportTypes) => {
   <NcMenuItem v-e="['a:download:csv']" @click.stop="exportFile(ExportTypes.CSV)">
     <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
       <GeneralLoader v-if="activeExportType === ExportTypes.CSV" size="regular" />
-      <GeneralIcon icon="ncFileTypeCsvSmall" v-else class="w-4" />
+      <GeneralIcon v-else icon="ncFileTypeCsvSmall" class="w-4" />
       <!-- Download as CSV -->
       CSV
     </div>
@@ -173,7 +173,7 @@ const exportFile = async (exportType: ExportTypes) => {
   <NcMenuItem v-e="['a:download:excel']" @click.stop="exportFile(ExportTypes.EXCEL)">
     <div class="flex flex-row items-center nc-base-menu-item !py-0 children:flex-none">
       <GeneralLoader v-if="activeExportType === ExportTypes.EXCEL" size="regular" />
-      <GeneralIcon icon="ncFileTypeExcel" v-else class="w-4" />
+      <GeneralIcon v-else icon="ncFileTypeExcel" class="w-4" />
       <!-- Download as Excel -->
       Excel
     </div>

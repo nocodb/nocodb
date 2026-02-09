@@ -18,6 +18,8 @@ const { openedProject, activeProjectId, basesUser, bases, basesTeams } = storeTo
 const { activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace, isTeamsEnabled } = storeToRefs(useWorkspace())
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { $e, $api } = useNuxtApp()
@@ -79,6 +81,18 @@ const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
 const isAuditsTabVisible = computed(() => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList'))
 
+const isWorkflowsTabVisible = computed(
+  () => isEeUI && isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) && isUIAllowed('workflowCreateOrEdit') && !isMobileMode.value,
+)
+
+// Get actual workflow count
+const workflowStore = useWorkflowStore()
+const { activeBaseWorkflows } = storeToRefs(workflowStore)
+
+const workflowCount = computed(() => {
+  return activeBaseWorkflows.value?.length ?? 0
+})
+
 const projectPageTab = computed({
   get() {
     return _projectPageTab.value
@@ -93,6 +107,10 @@ const projectPageTab = computed({
     }
 
     if (value === 'audits' && !isAuditsTabVisible.value) {
+      return
+    }
+
+    if (value === 'workflows' && !isWorkflowsTabVisible.value) {
       return
     }
 
@@ -113,7 +131,9 @@ watch(
      * We are waiting for base role load and their might be the case that,
      * on navigating to different page this watch get called which will overwrite projectPageTab value and navigateToProjectPage fn get called
      */
-    if (route.value.params.viewId) return
+    if (['viewId', 'workflowId', 'scriptId', 'dashboardId'].some((key) => route.value.params[key])) {
+      return
+    }
 
     // In mobile mode we only show collaborator tab
     if (isMobileMode.value && newVal !== 'collaborator') {
@@ -134,6 +154,8 @@ watch(
         projectPageTab.value = 'base-settings'
       } else if (newVal === 'audits' && isAuditsTabVisible.value) {
         projectPageTab.value = 'audits'
+      } else if (newVal === 'workflows' && isWorkflowsTabVisible.value) {
+        projectPageTab.value = 'workflows'
       } else {
         projectPageTab.value = 'collaborator'
       }
@@ -285,6 +307,25 @@ onMounted(() => {
             </div>
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
+        </a-tab-pane>
+        <a-tab-pane v-if="isWorkflowsTabVisible && base.id" key="workflows">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__workflows">
+              <GeneralIcon icon="ncAutomation" />
+              <div>{{ $t('objects.workflows') }}</div>
+              <div
+                v-if="workflowCount"
+                class="tab-info"
+                :class="{
+                  'bg-primary-selected': projectPageTab === 'workflows',
+                  'bg-nc-bg-gray-extralight': projectPageTab !== 'workflows',
+                }"
+              >
+                {{ workflowCount }}
+              </div>
+            </div>
+          </template>
+          <ProjectWorkflowsList :base-id="base.id" />
         </a-tab-pane>
         <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="permissions">
           <template #tab>

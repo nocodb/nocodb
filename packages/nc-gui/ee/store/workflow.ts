@@ -9,6 +9,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   const { ncNavigateTo } = useGlobal()
 
+  const { t } = useI18n()
+
   const { refreshCommandPalette } = useCommandPalette()
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
@@ -305,7 +307,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     }
   }
 
-  const duplicateWorkflow = async (baseId: string, workflowId: string) => {
+  const duplicateWorkflow = async (baseId: string, workflowId: string, navigate = true) => {
     if (!activeWorkspaceId.value) return null
 
     try {
@@ -324,12 +326,16 @@ export const useWorkflowStore = defineStore('workflow', () => {
       baseWorkflows.push(created)
       workflows.value.set(baseId, baseWorkflows)
 
-      ncNavigateTo({
-        workspaceId: activeWorkspaceId.value,
-        baseId: activeProjectId.value,
-        workflowId: created.id,
-        workflowTitle: created.title,
-      })
+      if (navigate) {
+        ncNavigateTo({
+          workspaceId: activeWorkspaceId.value,
+          baseId: activeProjectId.value,
+          workflowId: created.id,
+          workflowTitle: created.title,
+        })
+      } else {
+        message.toast(t('msg.success.workflowDuplicated'))
+      }
 
       await refreshCommandPalette()
 

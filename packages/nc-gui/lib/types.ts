@@ -280,7 +280,15 @@ interface Users {
   invitationToken?: string
 }
 
-type ProjectPageType = 'overview' | 'collaborator' | 'data-source' | 'base-settings' | 'syncs' | 'permissions' | 'audits'
+type ProjectPageType =
+  | 'overview'
+  | 'collaborator'
+  | 'data-source'
+  | 'base-settings'
+  | 'syncs'
+  | 'permissions'
+  | 'audits'
+  | 'workflows'
 
 type ViewPageType = 'view' | 'webhook' | 'api' | 'field' | 'relation' | 'permissions'
 

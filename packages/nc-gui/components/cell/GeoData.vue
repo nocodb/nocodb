@@ -1,5 +1,8 @@
 <script lang="ts" setup>
+import 'leaflet/dist/leaflet.css'
+import L from 'leaflet'
 import { type GeoLocationType, TypeConversionError, convertGeoNumberToString, latLongToJoinedString } from 'nocodb-sdk'
+import { useDebounceFn } from '@vueuse/core'
 
 interface Props {
   modelValue?: string | null
@@ -26,6 +29,103 @@ const readonly = inject(ReadonlyInj, ref(false))
 const isExpanded = ref(false)
 
 const isLoading = ref(false)
+
+// --- Map picker state ---
+const mapContainerRef = ref<HTMLElement>()
+const mapInstanceRef = ref<L.Map>()
+const markerRef = ref<L.Marker>()
+const isUpdatingFromMap = ref(false)
+
+const DEFAULT_CENTER: [number, number] = [20, 0]
+const DEFAULT_ZOOM = 2
+const LOCATION_ZOOM = 15
+
+function syncToFormState(lat: number, lng: number) {
+  isUpdatingFromMap.value = true
+  formState.latitude = convertGeoNumberToString(lat)
+  formState.longitude = convertGeoNumberToString(lng)
+  nextTick(() => {
+    isUpdatingFromMap.value = false
+  })
+}
+
+function setupMarkerDrag(marker: L.Marker) {
+  marker.on('dragend', () => {
+    const pos = marker.getLatLng()
+    syncToFormState(pos.lat, pos.lng)
+  })
+}
+
+function updateMarkerPosition(lat: number, lng: number) {
+  if (!mapInstanceRef.value) return
+  if (markerRef.value) {
+    markerRef.value.setLatLng([lat, lng])
+  } else {
+    const marker = L.marker([lat, lng], { draggable: !readonly.value }).addTo(mapInstanceRef.value)
+    setupMarkerDrag(marker)
+    markerRef.value = marker
+  }
+}
+
+function onMapClick(e: L.LeafletMouseEvent) {
+  if (readonly.value) return
+  const { lat, lng } = e.latlng
+  updateMarkerPosition(lat, lng)
+  syncToFormState(lat, lng)
+}
+
+function initMap() {
+  if (!mapContainerRef.value || mapInstanceRef.value) return
+
+  const hasCoords = formState.latitude && formState.longitude
+  const lat = parseFloat(formState.latitude)
+  const lng = parseFloat(formState.longitude)
+  const validCoords = hasCoords && !isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180
+  const center: [number, number] = validCoords ? [lat, lng] : DEFAULT_CENTER
+  const zoom = validCoords ? LOCATION_ZOOM : DEFAULT_ZOOM
+
+  const map = L.map(mapContainerRef.value, {
+    center,
+    zoom,
+    zoomControl: true,
+    attributionControl: true,
+  })
+
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(map)
+
+  if (validCoords) {
+    const marker = L.marker(center, { draggable: !readonly.value }).addTo(map)
+    setupMarkerDrag(marker)
+    markerRef.value = marker
+  }
+
+  map.on('click', onMapClick)
+  mapInstanceRef.value = map
+}
+
+function destroyMap() {
+  if (mapInstanceRef.value) {
+    mapInstanceRef.value.remove()
+    mapInstanceRef.value = undefined
+    markerRef.value = undefined
+  }
+}
+
+// Debounced sync: input fields -> map
+const syncMapFromInputs = useDebounceFn(() => {
+  if (isUpdatingFromMap.value || !mapInstanceRef.value) return
+
+  const lat = parseFloat(formState.latitude)
+  const lng = parseFloat(formState.longitude)
+  if (isNaN(lat) || isNaN(lng)) return
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return
+
+  updateMarkerPosition(lat, lng)
+  mapInstanceRef.value.setView([lat, lng], Math.max(mapInstanceRef.value.getZoom(), LOCATION_ZOOM))
+}, 500)
 
 const identifier = computed(() => {
   return {
@@ -186,11 +286,38 @@ const handleKeyDown = (e: KeyboardEvent) => {
     isExpanded.value = !isExpanded.value
   }
 }
+
+// --- Map lifecycle: init when overlay opens, destroy when it closes ---
+watch(isExpanded, async (expanded) => {
+  if (expanded) {
+    await nextTick()
+    // Leaflet needs the container to be fully rendered and sized
+    setTimeout(() => {
+      initMap()
+      mapInstanceRef.value?.invalidateSize()
+    }, 150)
+  } else {
+    destroyMap()
+  }
+})
+
+// --- Bidirectional sync: input fields -> map (debounced) ---
+watch(
+  () => [formState.latitude, formState.longitude],
+  () => {
+    syncMapFromInputs()
+  },
+)
+
+// --- Cleanup on unmount ---
+onBeforeUnmount(() => {
+  destroyMap()
+})
 </script>
 
 <template>
   <div tabindex="0" class="focus-visible:outline-none" @paste="handlePaste" @keydown="handleKeyDown">
-    <NcDropdown v-model:visible="isExpanded" :disabled="readonly" overlay-class-name="!min-w-[27.25rem]">
+    <NcDropdown v-model:visible="isExpanded" :disabled="readonly" overlay-class-name="!min-w-[28rem]">
       <div
         v-if="!isLocationSet"
         :class="{
@@ -269,6 +396,14 @@ const handleKeyDown = (e: KeyboardEvent) => {
                 />
               </a-form-item>
             </a-row>
+
+            <!-- Interactive map picker -->
+            <div
+              ref="mapContainerRef"
+              data-testid="nc-geo-data-map-picker"
+              class="nc-geodata-map-picker"
+            />
+
             <NcDivider />
 
             <div class="flex px-3 mt-2 flex-col gap-2">
@@ -330,5 +465,26 @@ input[type='number'] {
 
 :deep(.ant-form-item-label > label) {
   @apply !text-small !leading-[18px] mb-2 text-nc-content-gray flex;
+}
+
+/* Interactive map picker */
+.nc-geodata-map-picker {
+  height: 250px;
+  width: calc(100% - 24px);
+  margin: 0 12px 8px 12px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid #e5e7eb;
+  z-index: 0;
+}
+
+:deep(.nc-geodata-map-picker .leaflet-control-zoom) {
+  border: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+:deep(.nc-geodata-map-picker .leaflet-control-attribution) {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.8);
 }
 </style>

@@ -57,6 +57,7 @@ const handleError = async () => {
         [props.class]: props.class,
       }"
       class="videoplayer !min-w-128 !min-h-72 w-full h-auto"
+      @error="handleError"
     ></video>
   </template>
   <video

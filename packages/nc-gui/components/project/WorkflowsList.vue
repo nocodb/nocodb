@@ -2,7 +2,6 @@
 import type { WorkflowType } from 'nocodb-sdk'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import { storeToRefs } from 'pinia'
 
 dayjs.extend(relativeTime)
 
@@ -21,7 +20,15 @@ const { isUIAllowed } = useRoles()
 // Workflow store
 const workflowStore = useWorkflowStore()
 const { activeBaseWorkflows, isLoadingWorkflow } = storeToRefs(workflowStore)
-const { loadWorkflows, openNewWorkflowModal, updateWorkflow, deleteWorkflow, duplicateWorkflow, publishWorkflow, loadWorkflowExecutions } = workflowStore
+const {
+  loadWorkflows,
+  openNewWorkflowModal,
+  updateWorkflow,
+  deleteWorkflow,
+  duplicateWorkflow,
+  publishWorkflow,
+  loadWorkflowExecutions,
+} = workflowStore
 
 // Search functionality
 const searchQuery = ref('')
@@ -37,10 +44,8 @@ const workflows = computed(() => {
 // Filtered workflows based on search
 const filteredWorkflows = computed(() => {
   if (!searchQuery.value) return workflows.value
-  
-  return workflows.value.filter(workflow => 
-    workflow.title?.toLowerCase().includes(searchQuery.value.toLowerCase())
-  )
+
+  return workflows.value.filter((workflow) => workflow.title?.toLowerCase().includes(searchQuery.value.toLowerCase()))
 })
 
 // Workflow count
@@ -49,11 +54,11 @@ const workflowCount = computed(() => workflows.value.length)
 // Handle create workflow
 const handleCreateWorkflow = async () => {
   if (!baseId.value) return
-  
+
   $e('a:workflow:create')
   await openNewWorkflowModal({
     baseId: baseId.value,
-    loadWorkflowsOnClose: true
+    loadWorkflowsOnClose: true,
   })
 }
 
@@ -63,12 +68,12 @@ const handleEdit = (workflow: WorkflowType) => {
   // Navigate to workflow editor
   const { ncNavigateTo } = useGlobal()
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
-  
+
   ncNavigateTo({
     workspaceId: activeWorkspaceId.value!,
     baseId: baseId.value!,
     workflowId: workflow.id!,
-    workflowTitle: workflow.title
+    workflowTitle: workflow.title,
   })
 }
 
@@ -77,13 +82,13 @@ const handleLogs = (workflow: WorkflowType) => {
   // Navigate to workflow logs tab
   const { ncNavigateTo } = useGlobal()
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
-  
+
   ncNavigateTo({
     workspaceId: activeWorkspaceId.value!,
     baseId: baseId.value!,
     workflowId: workflow.id!,
     workflowTitle: workflow.title,
-    query: { tab: 'logs' }
+    query: { tab: 'logs' },
   })
 }
 
@@ -92,20 +97,20 @@ const handleSettings = (workflow: WorkflowType) => {
   // Navigate to workflow settings tab
   const { ncNavigateTo } = useGlobal()
   const { activeWorkspaceId } = storeToRefs(useWorkspace())
-  
+
   ncNavigateTo({
     workspaceId: activeWorkspaceId.value!,
     baseId: baseId.value!,
     workflowId: workflow.id!,
     workflowTitle: workflow.title,
-    query: { tab: 'settings' }
+    query: { tab: 'settings' },
   })
 }
 
 const isDeleting = ref<string | null>(null)
 const handleDelete = async (workflow: WorkflowType) => {
   if (!baseId.value || !workflow.id || isDeleting.value === workflow.id) return
-  
+
   try {
     isDeleting.value = workflow.id
     $e('a:workflow:delete')
@@ -121,14 +126,14 @@ const handleDelete = async (workflow: WorkflowType) => {
 const isDuplicating = ref<string | null>(null)
 const handleDuplicate = async (workflow: WorkflowType) => {
   if (!baseId.value || !workflow.id || isDuplicating.value === workflow.id) return
-  
+
   try {
     isDuplicating.value = workflow.id
     $e('a:workflow:duplicate')
-    
+
     // Store the current duplicateWorkflow method
     const originalDuplicate = workflowStore.duplicateWorkflow
-    
+
     // Override temporarily to prevent navigation
     workflowStore.duplicateWorkflow = async (baseId: string, workflowId: string) => {
       const result = await originalDuplicate.call(workflowStore, baseId, workflowId)
@@ -136,12 +141,12 @@ const handleDuplicate = async (workflow: WorkflowType) => {
       await loadWorkflows({ baseId, force: true })
       return result
     }
-    
+
     await workflowStore.duplicateWorkflow(baseId.value, workflow.id)
-    
+
     // Restore original method
     workflowStore.duplicateWorkflow = originalDuplicate
-    
+
     message.toast(t('msg.success.workflowDuplicated'))
   } catch (error) {
     console.error('Error duplicating workflow:', error)
@@ -154,14 +159,14 @@ const handleDuplicate = async (workflow: WorkflowType) => {
 const isToggling = ref<string | null>(null)
 const handleToggleStatus = async (workflow: WorkflowType, newStatus?: boolean) => {
   if (!baseId.value || !workflow.id || isToggling.value === workflow.id) return
-  
+
   try {
     isToggling.value = workflow.id
     $e('a:workflow:toggle-status')
-    
+
     // Use provided status or toggle current enabled status
     const targetStatus = newStatus !== undefined ? newStatus : !workflow.enabled
-    
+
     if (!targetStatus) {
       // Disable workflow - update enabled status
       await updateWorkflow(baseId.value, workflow.id, { enabled: false })
@@ -171,7 +176,6 @@ const handleToggleStatus = async (workflow: WorkflowType, newStatus?: boolean) =
       await updateWorkflow(baseId.value, workflow.id, { enabled: true })
       message.toast(t('msg.success.workflowEnabled'))
     }
-    
   } catch (error) {
     console.error('Error toggling workflow status:', error)
     message.toast(t('msg.error.workflowToggleFailed'))
@@ -183,83 +187,89 @@ const handleToggleStatus = async (workflow: WorkflowType, newStatus?: boolean) =
 // Get trigger type display with icon
 const getTriggerType = (workflow: WorkflowType) => {
   if (!workflow.nodes || !Array.isArray(workflow.nodes)) return { text: '—', icon: null }
-  
+
   // Find trigger node (nodes with no incoming edges or specific trigger types)
-  const triggerNode = workflow.nodes.find(node => {
+  const triggerNode = workflow.nodes.find((node) => {
     if (!node.type) return false
-    
+
     // Check if this is a trigger node type
     const triggerTypes = [
-      'recordCreated', 'recordUpdated', 'recordDeleted',
-      'schedule', 'webhook', 'manual', 'after_insert', 'after_update', 'after_delete', 'cron'
+      'recordCreated',
+      'recordUpdated',
+      'recordDeleted',
+      'schedule',
+      'webhook',
+      'manual',
+      'after_insert',
+      'after_update',
+      'after_delete',
+      'cron',
     ]
-    
-    return triggerTypes.some(type => node.type.includes(type)) ||
-           node.type.includes('trigger') ||
-           node.type.includes('Trigger')
+
+    return triggerTypes.some((type) => node.type.includes(type)) || node.type.includes('trigger') || node.type.includes('Trigger')
   })
-  
+
   if (!triggerNode) return { text: '—', icon: null }
-  
+
   // Map node types to display names and icons
-  const typeMap: Record<string, { text: string, icon: string }> = {
-    'after_insert': { text: 'Record Created', icon: 'ncRecordCreate' },
-    'recordCreated': { text: 'Record Created', icon: 'ncRecordCreate' },
-    'after_update': { text: 'Record Updated', icon: 'ncRecordUpdate' },
-    'recordUpdated': { text: 'Record Updated', icon: 'ncRecordUpdate' },
-    'after_delete': { text: 'Record Deleted', icon: 'ncRecordDelete' },
-    'recordDeleted': { text: 'Record Deleted', icon: 'ncRecordDelete' },
-    'cron': { text: 'At scheduled time', icon: 'ncClock' },
-    'schedule': { text: 'At scheduled time', icon: 'ncClock' },
-    'webhook': { text: 'When webhook received', icon: 'ncWebhook' },
-    'manual': { text: 'When manually triggered', icon: 'ncPlay' }
+  const typeMap: Record<string, { text: string; icon: string }> = {
+    after_insert: { text: 'Record Created', icon: 'ncRecordCreate' },
+    recordCreated: { text: 'Record Created', icon: 'ncRecordCreate' },
+    after_update: { text: 'Record Updated', icon: 'ncRecordUpdate' },
+    recordUpdated: { text: 'Record Updated', icon: 'ncRecordUpdate' },
+    after_delete: { text: 'Record Deleted', icon: 'ncRecordDelete' },
+    recordDeleted: { text: 'Record Deleted', icon: 'ncRecordDelete' },
+    cron: { text: 'At scheduled time', icon: 'ncClock' },
+    schedule: { text: 'At scheduled time', icon: 'ncClock' },
+    webhook: { text: 'When webhook received', icon: 'ncWebhook' },
+    manual: { text: 'When manually triggered', icon: 'ncPlay' },
   }
-  
+
   for (const [type, config] of Object.entries(typeMap)) {
     if (triggerNode.type.includes(type)) {
       return config
     }
   }
-  
+
   return { text: triggerNode.data?.title || triggerNode.type || '—', icon: null }
 }
 
 // Get last run display
 const getLastRunDisplay = (workflow: WorkflowType) => {
   if (!workflow.id) return '—'
-  
+
   const executions = workflowExecutions.value.get(workflow.id) || []
   if (executions.length === 0) return '—'
-  
+
   const lastExecution = executions[0] // Most recent execution
   if (!lastExecution.finished_at) return 'Running...'
-  
+
   const timeAgo = dayjs(lastExecution.finished_at).fromNow()
   const status = lastExecution.status
-  
+
   // Create a status badge with color
   const statusColors: Record<string, string> = {
-    'success': 'text-green-600',
-    'error': 'text-red-600', 
-    'in_progress': 'text-blue-600',
-    'cancelled': 'text-gray-600',
-    'pending': 'text-yellow-600',
-    'waiting': 'text-orange-600'
+    success: 'text-green-600',
+    error: 'text-red-600',
+    in_progress: 'text-blue-600',
+    cancelled: 'text-gray-600',
+    pending: 'text-yellow-600',
+    waiting: 'text-orange-600',
   }
-  
+
   return {
     timeAgo,
     status,
-    statusColor: statusColors[status] || 'text-gray-600'
+    statusColor: statusColors[status] || 'text-gray-600',
   }
 }
 
 // Load workflow execution data
 const loadWorkflowExecutionData = async (workflowId: string) => {
   try {
-    const executions = await loadWorkflowExecutions({ 
-      workflowId, 
-      limit: 1 // Only get the most recent execution
+    const executions = await loadWorkflowExecutions({
+      workflowId,
+      limit: 1, // Only get the most recent execution
     })
     workflowExecutions.value.set(workflowId, executions)
   } catch (error) {
@@ -272,15 +282,64 @@ const loadWorkflowExecutionData = async (workflowId: string) => {
 const loadAllWorkflowData = async (baseId: string) => {
   await loadWorkflows({ baseId })
   // Load execution data for all workflows
-  const promises = workflows.value.map(workflow => 
-    workflow.id ? loadWorkflowExecutionData(workflow.id) : Promise.resolve()
-  )
+  const promises = workflows.value.map((workflow) => (workflow.id ? loadWorkflowExecutionData(workflow.id) : Promise.resolve()))
   await Promise.all(promises)
 }
 
-// Handle table row click to edit workflow  
-const handleRowClick = (workflow: WorkflowType) => {
-  handleEdit(workflow)
+// Table columns definition
+const columns = [
+  {
+    key: 'status',
+    title: t('labels.status'),
+    width: 80,
+    minWidth: 80,
+  },
+  {
+    key: 'title',
+    title: t('general.name'),
+    minWidth: 180,
+    dataIndex: 'title',
+    showOrderBy: true,
+  },
+  {
+    key: 'createdBy',
+    title: t('labels.createdBy'),
+    basis: '20%',
+    minWidth: 200,
+  },
+  {
+    key: 'trigger',
+    title: t('general.trigger'),
+    basis: '20%',
+    minWidth: 180,
+  },
+  {
+    key: 'lastRun',
+    title: t('labels.lastExecuted'),
+    basis: '20%',
+    minWidth: 180,
+  },
+  {
+    key: 'action',
+    title: t('general.actions'),
+    width: 80,
+    minWidth: 80,
+    justify: 'justify-end',
+  },
+] as NcTableColumnProps[]
+
+const orderBy = ref<Record<string, SordDirectionType>>({})
+
+const customRow = (record: Record<string, any>) => ({
+  class: 'workflow-row cursor-pointer',
+  onClick: (e: Event) => {
+    e.stopPropagation()
+    onRowClick(record)
+  },
+})
+
+const onRowClick = (record: Record<string, any>) => {
+  handleEdit(record as WorkflowType)
 }
 
 // Load workflows on mount
@@ -291,261 +350,183 @@ onMounted(async () => {
 })
 
 // Watch for baseId changes
-watch(baseId, async (newBaseId) => {
-  if (newBaseId) {
-    await loadAllWorkflowData(newBaseId)
-  }
-}, { immediate: true })
+watch(
+  baseId,
+  async (newBaseId) => {
+    if (newBaseId) {
+      await loadAllWorkflowData(newBaseId)
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
   <div class="nc-workflows-list h-full flex flex-col">
-    <!-- Header with search and create button -->
-    <div class="flex items-center justify-between mb-4 gap-3">
-      <div class="flex-1 max-w-96">
-        <a-input
-          v-model:value="searchQuery"
-          :placeholder="$t('placeholder.searchWorkflows')"
-          allow-clear
-          class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
-        >
-          <template #prefix>
-            <GeneralIcon
-              icon="search"
-              class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
-            />
-          </template>
-        </a-input>
-      </div>
-      
-      <NcButton
-        v-if="isUIAllowed('workflowCreateOrEdit')"
-        type="primary"
-        size="small"
-        class="nc-workflows-create-btn"
-        @click="handleCreateWorkflow"
-      >
-        <template #icon>
-          <GeneralIcon icon="plus" />
-        </template>
-        {{ $t('activity.createWorkflow') }}
-      </NcButton>
-    </div>
-
-    <!-- Workflows table -->
-    <div class="flex-1 overflow-auto">
-      <a-table
-        v-if="filteredWorkflows.length"
-        :data-source="filteredWorkflows"
-        :columns="[
-          {
-            title: $t('labels.status'),
-            dataIndex: 'status', 
-            key: 'status',
-            width: 40,
-          },
-          {
-            title: $t('general.name'),
-            dataIndex: 'title',
-            key: 'title',
-            width: '30%',
-          },
-          {
-            title: $t('labels.createdBy'),
-            key: 'createdBy',
-            width: '15%',
-          },
-          {
-            title: $t('general.trigger'),
-            key: 'trigger',
-            width: '15%',
-          },
-          {
-            title: $t('labels.lastExecuted'),
-            dataIndex: 'lastRun',
-            key: 'lastRun', 
-            width: '15%',
-          },
-          {
-            title: $t('general.actions'),
-            key: 'actions',
-            width: '10%',
-          },
-        ]"
-        :pagination="false"
-        class="nc-workflows-table"
-        size="small"
-        :customRow="(record) => ({ onClick: () => handleRowClick(record) })"
-      >
-        <template #bodyCell="{ column, record }">
-          <div v-if="column.key === 'status'" @click.stop>
-            <NcSwitch
-              size="small"
-              :checked="!!record.enabled"
-              :disabled="isToggling === record.id"
-              @change="(checked) => handleToggleStatus(record, checked)"
-            />
-          </div>
-          <div v-else-if="column.key === 'title'" class="flex items-center gap-2">
-            <GeneralIcon icon="ncAutomation" class="text-nc-content-brand" />
-            <span 
-              :title="record.title" 
-              class="font-medium cursor-pointer hover:text-nc-content-brand truncate" 
-              @click.stop="handleEdit(record)"
-            >
-              {{ record.title }}
-            </span>
-          </div>
-          
-          <div v-else-if="column.key === 'createdBy'">
-            <div v-if="record.created_by_user" class="w-full flex gap-3 items-center users-email-grid">
-              <div class="nc-user-avatar w-8 h-8 flex-none" :style="{ backgroundColor: record.created_by_user.avatar_color || 'rgb(101, 76, 23)' }">
-                <div class="font-semibold !text-md text-white">
-                  {{ (record.created_by_user.display_name || record.created_by_user.email || '').substring(0, 2).toLowerCase() }}
-                </div>
-              </div>
-              <div class="flex flex-col flex-1 max-w-[calc(100%_-_44px)]">
-                <div class="flex gap-3">
-                  <div class="truncate max-w-full text-nc-content-gray capitalize font-semibold">
-                    {{ record.created_by_user.display_name || record.created_by_user.email?.split('@')[0] || 'Unknown' }}
-                  </div>
-                </div>
-                <div class="truncate max-w-full text-xs text-nc-content-gray-subtle2">
-                  {{ record.created_by_user.email || '—' }}
-                </div>
-              </div>
-            </div>
-            <span v-else class="text-gray-400">—</span>
-          </div>
-          
-          <div v-else-if="column.key === 'trigger'" class="flex items-center gap-2">
-            <div 
-              v-if="getTriggerType(record).icon" 
-              class="bg-nc-bg-brand text-nc-content-brand-disabled w-6 h-6 flex items-center justify-center rounded-md p-1 flex-none"
-            >
-              <GeneralIcon 
-                :icon="getTriggerType(record).icon" 
-                class="!w-5 !h-5"
+    <NcTable
+      v-model:order-by="orderBy"
+      :is-data-loading="isLoadingWorkflow"
+      :columns="columns"
+      :data="filteredWorkflows"
+      :bordered="false"
+      :custom-row="customRow"
+      :pagination="true"
+      :pagination-offset="25"
+      class="flex-1 nc-workflows-table max-w-full"
+    >
+      <template #tableToolbar>
+        <div class="flex items-center justify-between gap-3">
+          <a-input
+            v-model:value="searchQuery"
+            :placeholder="$t('placeholder.searchWorkflows')"
+            allow-clear
+            class="nc-input-border-on-value !max-w-90 !h-8 !px-3 !py-1 !rounded-lg"
+          >
+            <template #prefix>
+              <GeneralIcon
+                icon="search"
+                class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
               />
-            </div>
-            <span class="truncate">{{ getTriggerType(record).text }}</span>
-          </div>
-          
-          <div v-else-if="column.key === 'lastRun'">
-            <template v-if="typeof getLastRunDisplay(record) === 'object'">
-              <div class="flex flex-col">
-                <span :class="getLastRunDisplay(record).statusColor" class="text-xs font-medium">
-                  {{ getLastRunDisplay(record).status }}
-                </span>
-                <span class="text-gray-500 text-xs">{{ getLastRunDisplay(record).timeAgo }}</span>
-              </div>
             </template>
-            <span v-else class="text-gray-600 text-sm">{{ getLastRunDisplay(record) }}</span>
+          </a-input>
+
+          <NcButton
+            v-if="isUIAllowed('workflowCreateOrEdit')"
+            type="primary"
+            size="small"
+            class="nc-workflows-create-btn"
+            @click="handleCreateWorkflow"
+          >
+            <template #icon>
+              <GeneralIcon icon="plus" />
+            </template>
+            {{ $t('activity.createWorkflow') }}
+          </NcButton>
+        </div>
+      </template>
+
+      <template #emptyText>
+        <div class="flex flex-col items-center justify-center text-center py-8">
+          <GeneralIcon icon="ncAutomation" class="text-6xl text-gray-300 mb-4" />
+          <h3 class="text-lg font-medium text-gray-900 mb-2">
+            {{ searchQuery ? $t('msg.info.noWorkflowsFound') : $t('msg.info.noWorkflows') }}
+          </h3>
+          <p class="text-gray-500 mb-4">
+            {{ searchQuery ? $t('msg.info.tryDifferentSearch') : $t('msg.info.createFirstWorkflow') }}
+          </p>
+          <NcButton v-if="!searchQuery && isUIAllowed('workflowCreateOrEdit')" type="primary" @click="handleCreateWorkflow">
+            <template #icon>
+              <GeneralIcon icon="plus" />
+            </template>
+            {{ $t('activity.createWorkflow') }}
+          </NcButton>
+        </div>
+      </template>
+
+      <template #bodyCell="{ column, record }">
+        <div v-if="column.key === 'status'" @click.stop>
+          <NcSwitch
+            size="small"
+            :checked="!!record.enabled"
+            :disabled="isToggling === record.id"
+            @change="(checked) => handleToggleStatus(record, checked)"
+          />
+        </div>
+
+        <div v-else-if="column.key === 'title'" class="flex items-center gap-2">
+          <GeneralIcon icon="ncAutomation" class="flex-none text-nc-content-brand" />
+          <NcTooltip class="truncate font-medium min-w-0" show-on-truncate-only>
+            <template #title>
+              {{ record.title }}
+            </template>
+            {{ record.title }}
+          </NcTooltip>
+        </div>
+
+        <div v-else-if="column.key === 'createdBy'">
+          <NcUserInfo v-if="record.created_by_user" :user="record.created_by_user" />
+          <span v-else class="text-nc-content-gray-muted">—</span>
+        </div>
+
+        <div v-else-if="column.key === 'trigger'" class="flex items-center gap-2">
+          <div
+            v-if="getTriggerType(record).icon"
+            class="bg-nc-bg-brand text-nc-content-brand-disabled w-6 h-6 flex items-center justify-center rounded-md p-1 flex-none"
+          >
+            <GeneralIcon :icon="getTriggerType(record).icon" class="!w-5 !h-5" />
           </div>
-          
-          <div v-else-if="column.key === 'actions'" @click.stop>
-            <NcDropdown>
-              <NcButton type="text" size="small">
-                <GeneralIcon icon="threeDotVertical" />
-              </NcButton>
-              
-              <template #overlay>
-                <NcMenu>
-                  <NcMenuItem @click="handleEdit(record)">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="ncEdit" />
-                      {{ $t('general.edit') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcMenuItem @click="handleLogs(record)">
-                    <div class="flex items-center gap-2">
-                      <svg class="nc-icon" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M10.6667 2.66669H12C12.3536 2.66669 12.6928 2.80716 12.9428 3.05721C13.1929 3.30726 13.3333 3.6464 13.3333 4.00002V7M6.50001 14.6667H4C3.64638 14.6667 3.30724 14.5262 3.05719 14.2762C2.80714 14.0261 2.66667 13.687 2.66667 13.3334V4.00002C2.66667 3.6464 2.80714 3.30726 3.05719 3.05721C3.30724 2.80716 3.64638 2.66669 4 2.66669H5.33333" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 1.33331H6C5.63181 1.33331 5.33333 1.63179 5.33333 1.99998V3.33331C5.33333 3.7015 5.63181 3.99998 6 3.99998H10C10.3682 3.99998 10.6667 3.7015 10.6667 3.33331V1.99998C10.6667 1.63179 10.3682 1.33331 10 1.33331Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"></path><path d="M10 14C11.6569 14 13 12.6569 13 11C13 9.34315 11.6569 8 10 8C8.34315 8 7 9.34315 7 11C7 12.6569 8.34315 14 10 14Z" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"></path><path d="M14 15L12 13" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                      {{ $t('general.logs') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcMenuItem @click="handleSettings(record)">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="ncSettings" />
-                      {{ $t('labels.settings') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcMenuDivider />
-                  <NcMenuItem :disabled="isToggling === record.id" @click="() => handleToggleStatus(record)">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon :icon="record.enabled ? 'ncPause' : 'ncPlay'" />
-                      {{ record.enabled ? $t('general.disable') : $t('general.enable') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcMenuItem :disabled="isDuplicating === record.id" @click="handleDuplicate(record)">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="ncCopy" />
-                      {{ $t('general.duplicate') }}
-                    </div>
-                  </NcMenuItem>
-                  <NcMenuDivider />
-                  <NcMenuItem class="!text-red-500" :disabled="isDeleting === record.id" @click="handleDelete(record)">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="ncTrash" />
-                      {{ $t('general.delete') }}
-                    </div>
-                  </NcMenuItem>
-                </NcMenu>
-              </template>
-            </NcDropdown>
-          </div>
-        </template>
-      </a-table>
-      
-      <!-- Empty state -->
-      <div v-else class="h-full flex flex-col items-center justify-center text-center">
-        <GeneralIcon icon="ncAutomation" class="text-6xl text-gray-300 mb-4" />
-        <h3 class="text-lg font-medium text-gray-900 mb-2">
-          {{ searchQuery ? $t('msg.info.noWorkflowsFound') : $t('msg.info.noWorkflows') }}
-        </h3>
-        <p class="text-gray-500 mb-4">
-          {{ 
-            searchQuery 
-              ? $t('msg.info.tryDifferentSearch')
-              : $t('msg.info.createFirstWorkflow') 
-          }}
-        </p>
-        <NcButton
-          v-if="!searchQuery && isUIAllowed('workflowCreateOrEdit')" 
-          type="primary"
-          @click="handleCreateWorkflow"
-        >
-          <template #icon>
-            <GeneralIcon icon="plus" />
+          <span class="truncate">{{ getTriggerType(record).text }}</span>
+        </div>
+
+        <div v-else-if="column.key === 'lastRun'">
+          <template v-if="typeof getLastRunDisplay(record) === 'object'">
+            <div class="flex flex-col">
+              <span :class="getLastRunDisplay(record).statusColor" class="text-xs font-medium">
+                {{ getLastRunDisplay(record).status }}
+              </span>
+              <span class="text-nc-content-gray-muted text-xs">{{ getLastRunDisplay(record).timeAgo }}</span>
+            </div>
           </template>
-          {{ $t('activity.createWorkflow') }}
-        </NcButton>
-      </div>
-    </div>
+          <span v-else class="text-nc-content-gray-muted text-sm">{{ getLastRunDisplay(record) }}</span>
+        </div>
+
+        <div v-else-if="column.key === 'action'" @click.stop>
+          <NcDropdown placement="bottomRight">
+            <NcButton size="small" type="secondary">
+              <component :is="iconMap.ncMoreVertical" />
+            </NcButton>
+
+            <template #overlay>
+              <NcMenu variant="small">
+                <NcMenuItem @click="handleEdit(record)">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="ncEdit" />
+                    {{ $t('general.edit') }}
+                  </div>
+                </NcMenuItem>
+                <NcMenuItem @click="handleLogs(record)">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="audit" />
+                    {{ $t('general.logs') }}
+                  </div>
+                </NcMenuItem>
+                <NcMenuItem @click="handleSettings(record)">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="ncSettings" />
+                    {{ $t('labels.settings') }}
+                  </div>
+                </NcMenuItem>
+                <NcMenuDivider />
+                <NcMenuItem :disabled="isToggling === record.id" @click="() => handleToggleStatus(record)">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon :icon="record.enabled ? 'ncPause' : 'ncPlay'" />
+                    {{ record.enabled ? $t('general.disable') : $t('general.enable') }}
+                  </div>
+                </NcMenuItem>
+                <NcMenuItem :disabled="isDuplicating === record.id" @click="handleDuplicate(record)">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="ncCopy" />
+                    {{ $t('general.duplicate') }}
+                  </div>
+                </NcMenuItem>
+                <NcMenuDivider />
+                <NcMenuItem class="!text-red-500" :disabled="isDeleting === record.id" @click="handleDelete(record)">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="ncTrash" />
+                    {{ $t('general.delete') }}
+                  </div>
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
+        </div>
+      </template>
+    </NcTable>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .nc-workflows-list {
-  @apply p-4;
-}
-
-/* Search styling now handled by nc-input-border-on-value classes */
-
-:deep(.nc-workflows-table) {
-  .ant-table {
-    @apply !bg-transparent;
-  }
-  
-  .ant-table-thead > tr > th {
-    @apply !bg-gray-50 !border-gray-200 !text-gray-700 !font-medium;
-  }
-  
-  .ant-table-tbody > tr {
-    @apply hover:!bg-gray-50 cursor-pointer;
-    
-    > td {
-      @apply !border-gray-200;
-    }
-  }
+  @apply px-4 md:px-6 pt-6;
 }
 </style>

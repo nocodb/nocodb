@@ -231,19 +231,23 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
         req.ncSourceId = model.source_id;
       } else if (viewId) {
-        const view =
+        const viewOrModel =
           (await View.get(context, viewId)) ||
           (await Model.get(context, viewId));
 
-        if (!view) {
+        if (!viewOrModel) {
           NcError.get(context).viewNotFound(viewId);
         }
 
-        req.ncSourceId = view.source_id;
+        req.ncSourceId = viewOrModel.source_id;
 
         // if view API and view is personal view then check if user has access to view
-        if (view && view.lock_type === ViewLockType.Personal) {
-          req[VIEW_KEY] = view;
+        if (
+          viewOrModel &&
+          viewOrModel instanceof View &&
+          viewOrModel.lock_type === ViewLockType.Personal
+        ) {
+          req[VIEW_KEY] = viewOrModel;
         }
       } else if (
         formViewId ||

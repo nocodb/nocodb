@@ -304,28 +304,59 @@ const handleClose = (e: MouseEvent) => {
 
 useEventListener(document, 'click', handleClose, true)
 
+/**
+ * Parse a pasted string into "lat;lng" format.
+ * Accepts: "lat;lng", "lat,lng", "lat, lng", or "lat lng"
+ * Returns the normalised "lat;lng" string, or null if unparseable.
+ */
+function parseGeoString(raw: string): string | null {
+  const trimmed = raw.trim()
+
+  // Try convertCellData first (handles NocoDB internal formats) — but only when column metadata is available
+  if (column?.value?.uidt) {
+    try {
+      const converted = convertCellData(
+        { value: trimmed, to: column.value.uidt, column: column.value },
+        false,
+      )
+      if (converted) return converted
+    } catch {
+      // fall through to manual parsing
+    }
+  }
+
+  // Manual parsing: split on ; or , or whitespace
+  const parts = trimmed.split(/[;,\s]+/).filter(Boolean)
+  if (parts.length === 2) {
+    const lat = parseFloat(parts[0])
+    const lng = parseFloat(parts[1])
+    if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      return `${convertGeoNumberToString(lat)};${convertGeoNumberToString(lng)}`
+    }
+  }
+  return null
+}
+
 const handlePaste = (e: ClipboardEvent) => {
   if ([identifier.value.latitude, identifier.value.longitude].includes(e.target?.id)) {
     return
   }
   const clipboardData = e.clipboardData?.getData('text/plain') || ''
-  if (isExpanded.value) {
-    try {
-      const value = convertCellData(
-        {
-          value: clipboardData,
-          to: column.value.uidt,
-          column: column.value,
-        },
-        false,
-      )
-      if (value) {
-        formState.latitude = value.split(';')[0]
-        formState.longitude = value.split(';')[1]
-      }
-    } catch (ex) {
-      if (ex instanceof TypeConversionError !== true) {
-        throw ex
+  if (!clipboardData) return
+
+  // Allow paste both when overlay is open AND when in expanded form (overlay may be closed)
+  if (isExpanded.value || isExpandedForm.value) {
+    const value = parseGeoString(clipboardData)
+    if (value) {
+      const pastedLat = value.split(';')[0]
+      const pastedLng = value.split(';')[1]
+      formState.latitude = pastedLat
+      formState.longitude = pastedLng
+
+      // In expanded form with overlay closed, commit directly
+      if (isExpandedForm.value && !isExpanded.value) {
+        e.preventDefault()
+        vModel.value = latLongToJoinedString(parseFloat(pastedLat), parseFloat(pastedLng))
       }
     }
   }
@@ -371,7 +402,34 @@ watch(
   },
 )
 
+const isCopied = ref(false)
+
+const copyCoordinates = (e: Event) => {
+  e.stopPropagation()
+  const text = latLongStr.value
+  if (text && text !== 'Set location') {
+    navigator.clipboard.writeText(text).then(() => {
+      isCopied.value = true
+      setTimeout(() => {
+        isCopied.value = false
+      }, 2000)
+    })
+  }
+}
+
+const openEditor = (e: Event) => {
+  e.stopPropagation()
+  if (!readonly.value) {
+    isExpanded.value = true
+  }
+}
+
 const handleKeyDown = (e: KeyboardEvent) => {
+  // Allow copy shortcuts to pass through
+  if ((e.metaKey || e.ctrlKey) && e.key === 'c') {
+    return
+  }
+
   if (e.key === 'Escape' && isExpanded.value) {
     e.preventDefault()
     e.stopImmediatePropagation()
@@ -452,7 +510,33 @@ onBeforeUnmount(() => {
         }"
         class="nc-cell-field h-full w-full flex items-center focus-visible:!outline-none focus:!outline-none"
       >
-        {{ latLongStr }}
+        <!-- Expanded form: selectable text with copy + edit buttons -->
+        <template v-if="isExpandedForm">
+          <span class="nc-geodata-selectable-text" @click.stop>{{ latLongStr }}</span>
+          <div class="nc-geodata-action-icons" @click.stop>
+            <NcTooltip>
+              <template #title>{{ isCopied ? 'Copied!' : 'Copy coordinates' }}</template>
+              <GeneralIcon
+                :icon="isCopied ? 'check' : 'copy'"
+                class="nc-geodata-action-icon"
+                :class="{ 'text-green-600': isCopied }"
+                @click="copyCoordinates"
+              />
+            </NcTooltip>
+            <NcTooltip v-if="!readonly">
+              <template #title>Edit location</template>
+              <GeneralIcon
+                icon="ncEdit"
+                class="nc-geodata-action-icon"
+                @click="openEditor"
+              />
+            </NcTooltip>
+          </div>
+        </template>
+        <!-- Grid view: click anywhere to open editor (existing behavior) -->
+        <template v-else>
+          {{ latLongStr }}
+        </template>
       </div>
       <template #overlay>
         <div class="flex rounded-md nc-geodata-picker-overlay py-3" @click.stop @paste="handlePaste">
@@ -604,6 +688,37 @@ input[type='number'] {
   @apply !text-small !leading-[18px] mb-2 text-nc-content-gray flex;
 }
 
+/* Selectable coordinate text in expanded form */
+.nc-geodata-selectable-text {
+  user-select: text;
+  cursor: text;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nc-geodata-action-icons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.nc-geodata-action-icon {
+  width: 16px;
+  height: 16px;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: color 0.15s;
+
+  &:hover {
+    color: #374151;
+  }
+}
+
 /* Location search bar */
 .nc-geodata-search-wrapper {
   position: relative;
@@ -731,6 +846,10 @@ input[type='number'] {
 :deep(.nc-geodata-map-picker .leaflet-control-zoom) {
   border: none;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+
+  a {
+    text-decoration: none !important;
+  }
 }
 
 :deep(.nc-geodata-map-picker .leaflet-control-attribution) {

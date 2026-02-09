@@ -20,15 +20,11 @@ const { isUIAllowed } = useRoles()
 // Workflow store
 const workflowStore = useWorkflowStore()
 const { activeBaseWorkflows, isLoadingWorkflow } = storeToRefs(workflowStore)
-const {
-  loadWorkflows,
-  openNewWorkflowModal,
-  updateWorkflow,
-  deleteWorkflow,
-  duplicateWorkflow,
-  publishWorkflow,
-  loadWorkflowExecutions,
-} = workflowStore
+const { loadWorkflows, openNewWorkflowModal, updateWorkflow, deleteWorkflow, duplicateWorkflow, loadWorkflowExecutions } =
+  workflowStore
+
+const { ncNavigateTo } = useGlobal()
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 // Search functionality
 const searchQuery = ref('')
@@ -48,9 +44,6 @@ const filteredWorkflows = computed(() => {
   return workflows.value.filter((workflow) => searchCompare(workflow.title, searchQuery.value))
 })
 
-// Workflow count
-const workflowCount = computed(() => workflows.value.length)
-
 // Handle create workflow
 const handleCreateWorkflow = async () => {
   if (!baseId.value) return
@@ -65,9 +58,6 @@ const handleCreateWorkflow = async () => {
 // Handle workflow actions
 const handleEdit = (workflow: WorkflowType) => {
   $e('a:workflow:edit')
-  // Navigate to workflow editor
-  const { ncNavigateTo } = useGlobal()
-  const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
   ncNavigateTo({
     workspaceId: activeWorkspaceId.value!,
@@ -127,33 +117,10 @@ const isDuplicating = ref<string | null>(null)
 const handleDuplicate = async (workflow: WorkflowType) => {
   if (!baseId.value || !workflow.id || isDuplicating.value === workflow.id) return
 
-  try {
-    isDuplicating.value = workflow.id
-    $e('a:workflow:duplicate')
+  isDuplicating.value = workflow.id
+  await duplicateWorkflow(baseId.value, workflow.id, false)
 
-    // Store the current duplicateWorkflow method
-    const originalDuplicate = workflowStore.duplicateWorkflow
-
-    // Override temporarily to prevent navigation
-    workflowStore.duplicateWorkflow = async (baseId: string, workflowId: string) => {
-      const result = await originalDuplicate.call(workflowStore, baseId, workflowId)
-      // Don't navigate - just reload workflows
-      await loadWorkflows({ baseId, force: true })
-      return result
-    }
-
-    await workflowStore.duplicateWorkflow(baseId.value, workflow.id)
-
-    // Restore original method
-    workflowStore.duplicateWorkflow = originalDuplicate
-
-    message.toast(t('msg.success.workflowDuplicated'))
-  } catch (error) {
-    console.error('Error duplicating workflow:', error)
-    message.toast(t('msg.error.workflowDuplicateFailed'))
-  } finally {
-    isDuplicating.value = null
-  }
+  isDuplicating.value = null
 }
 
 const isToggling = ref<string | null>(null)
@@ -297,14 +264,14 @@ const columns = [
   {
     key: 'title',
     title: t('general.name'),
-    minWidth: 180,
+    minWidth: 200,
     dataIndex: 'title',
     showOrderBy: true,
   },
   {
     key: 'createdBy',
     title: t('labels.createdBy'),
-    basis: '20%',
+    basis: '22%',
     minWidth: 200,
   },
   {
@@ -316,7 +283,7 @@ const columns = [
   {
     key: 'lastRun',
     title: t('labels.lastExecuted'),
-    basis: '20%',
+    basis: '15%',
     minWidth: 180,
   },
   {
@@ -330,6 +297,10 @@ const columns = [
 
 const orderBy = ref<Record<string, SordDirectionType>>({})
 
+const onRowClick = (record: Record<string, any>) => {
+  handleEdit(record as WorkflowType)
+}
+
 const customRow = (record: Record<string, any>) => ({
   class: 'workflow-row cursor-pointer',
   onClick: (e: Event) => {
@@ -337,10 +308,6 @@ const customRow = (record: Record<string, any>) => ({
     onRowClick(record)
   },
 })
-
-const onRowClick = (record: Record<string, any>) => {
-  handleEdit(record as WorkflowType)
-}
 
 // Load workflows on mount
 onMounted(async () => {
@@ -433,9 +400,9 @@ watch(
           />
         </div>
 
-        <div v-else-if="column.key === 'title'" class="flex items-center gap-2">
+        <div v-else-if="column.key === 'title'" class="flex items-center gap-2 w-full">
           <GeneralIcon icon="ncAutomation" class="flex-none text-nc-content-brand" />
-          <NcTooltip class="truncate font-medium min-w-0" show-on-truncate-only>
+          <NcTooltip class="font-medium min-w-0 truncate" show-on-truncate-only>
             <template #title>
               {{ record.title }}
             </template>
@@ -443,12 +410,12 @@ watch(
           </NcTooltip>
         </div>
 
-        <div v-else-if="column.key === 'createdBy'">
+        <div v-else-if="column.key === 'createdBy'" class="w-full">
           <NcUserInfo v-if="record.created_by_user" :user="record.created_by_user" />
           <span v-else class="text-nc-content-gray-muted">—</span>
         </div>
 
-        <div v-else-if="column.key === 'trigger'" class="flex items-center gap-2">
+        <div v-else-if="column.key === 'trigger'" class="flex items-center gap-2 w-full">
           <div
             v-if="getTriggerType(record).icon"
             class="bg-nc-bg-brand text-nc-content-brand-disabled w-6 h-6 flex items-center justify-center rounded-md p-1 flex-none"

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   type LinkToAnotherRecordType,
+  LinksVersion,
   ModelTypes,
   PlanFeatureTypes,
   PlanTitles,
@@ -225,6 +226,23 @@ const refViews = computed(() => {
 })
 
 const isLinks = computed(() => vModel.value.uidt === UITypes.Links && vModel.value.type !== RelationTypes.ONE_TO_ONE)
+
+const isLtarV2Enabled = computed(() => isFeatureEnabled(FEATURE_FLAG.LTAR_V2))
+
+// Set version based on feature flag and relation type
+watch(
+  [() => vModel.value.type, isLtarV2Enabled],
+  () => {
+    if (isEdit.value) return
+
+    if (isLtarV2Enabled.value) {
+      vModel.value.version = LinksVersion.V2
+    } else {
+      delete vModel.value.version
+    }
+  },
+  { immediate: true },
+)
 
 watch(
   () => (vModel.value?.is_custom_link ? vModel.value?.custom?.ref_model_id : vModel.value?.childId),

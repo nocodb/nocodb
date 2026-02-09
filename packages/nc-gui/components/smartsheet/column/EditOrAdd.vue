@@ -1278,6 +1278,7 @@ const unique = computed({
                       {{ UITypesName[opt.name] }}
                       <span
                         v-if="
+                          isFeatureEnabled(FEATURE_FLAG.LTAR_V2) &&
                           isEdit &&
                           column &&
                           column.uidt === UITypes.LinkToAnotherRecord &&

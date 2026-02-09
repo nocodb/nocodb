@@ -4603,16 +4603,13 @@ export class ColumnsService implements IColumnsService {
 
     const reuse = param.reuse ?? {};
 
-    // in new LTAR type we treat all relation similar to mm, so check if it's new type
-    // version 1 is deprecated and will be removed in future
+    // v2 LTAR uses junction table for all relation types (like mm)
+    // v1 is the default - v2 is only used when explicitly requested via version param
     const isMMLike =
-      (!(param.column as any).version &&
-        isLTARType(param.column) &&
-        ![RelationTypes.HAS_MANY, RelationTypes.BELONGS_TO].includes(
-          (param.column as LinkToAnotherColumnReqType).type as RelationTypes,
-        )) ||
-      ((param.column as any).version &&
-        (param.column as any).version !== LinksVersion.V1);
+      (param.column as any).version === LinksVersion.V2 ||
+      // traditional MM is always treated as MM-like regardless of version
+      (param.column as LinkToAnotherColumnReqType).type ===
+        RelationTypes.MANY_TO_MANY;
 
     // get table and refTable models
     const table = await Model.getWithInfo(context, {
@@ -4679,8 +4676,9 @@ export class ColumnsService implements IColumnsService {
     }
 
     if (
-      (param.column as LinkToAnotherColumnReqType).type === 'hm' ||
-      (param.column as LinkToAnotherColumnReqType).type === 'bt'
+      !isMMLike &&
+      ((param.column as LinkToAnotherColumnReqType).type === 'hm' ||
+        (param.column as LinkToAnotherColumnReqType).type === 'bt')
     ) {
       // populate fk column name
       const fkColName = getUniqueColumnName(

@@ -271,7 +271,7 @@ export default async function generateLookupSelectQuery({
         const {
           parentContext,
           childContext,
-          refContext: _refContext,
+          refContext: nestedRefContext,
           mmContext,
         } = await relation.getParentChildContext(context, relationCol);
 
@@ -376,14 +376,16 @@ export default async function generateLookupSelectQuery({
         }
 
         if (lookupColumn.uidt === UITypes.Lookup)
-          lookupColumn = await nestedLookupColOpt.getLookupColumn(refContext);
+          lookupColumn = await nestedLookupColOpt.getLookupColumn(
+            nestedRefContext,
+          );
         else
           lookupColumn = await getDisplayValueOfRefTable(
-            refContext,
+            nestedRefContext,
             relationCol,
           );
         prevAlias = nestedAlias;
-        context = _refContext;
+        context = nestedRefContext;
       }
 
       {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewSettingOverrideOptions } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -14,6 +14,8 @@ const isToolbarIconMode = inject(
 const reloadViewDataEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const { isMobileMode } = useGlobal()
+
+const { isUserViewOwner } = useViewsStore()
 
 const filterComp = ref<typeof ColumnFilter>()
 
@@ -41,6 +43,11 @@ const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
 const filtersLength = ref(0)
 // If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
 const isRestrictedEditor = computed(() => isLocked.value || !canSyncFilter.value)
+
+// True when user is viewing a personal view they don't own
+const isPersonalViewNonOwner = computed(
+  () => activeView.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(activeView.value),
+)
 
 // Show temp filters only for collaborative views, not for personal views
 // For personal views, non-assigned users should not see temp filters at all
@@ -275,7 +282,7 @@ watch(
         </template>
         <template v-else>
           <template v-if="!!filtersLength">
-            <div class="mt-2" :class="{ 'px-2': showTempFilters, 'mb-0': !showTempFilters }">
+            <div class="px-2 mt-2">
               <div
                 class="leading-5 font-semibold inline-flex w-full items-center cursor-pointer px-2"
                 :class="{ 'pb-3': !viewFilterOpen }"
@@ -308,7 +315,7 @@ watch(
                   class="nc-table-toolbar-menu !pl-2 !w-full"
                   :model-value="existingFilters"
                   :auto-save="false"
-                  :is-view-filter="true"
+                  :is-view-filter="!isPersonalViewNonOwner"
                   read-only
                   @update:filters-length="filtersLength = $event || 0"
                 >
@@ -331,8 +338,8 @@ watch(
             >
             </SmartsheetToolbarColumnFilter>
           </template>
+          <GeneralLockedViewFooter v-if="isPersonalViewNonOwner" @on-open="open = false" />
         </template>
-        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" />
         <template v-if="filtersFromUrlParams">
           <a-divider class="!my-1" />
           <div class="px-2 pb-2">

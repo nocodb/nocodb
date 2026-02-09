@@ -26,7 +26,7 @@ import {
   InternalGETResponseType,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
-import { Filter, Sort, View } from '~/models';
+import { Filter, GridViewColumn, Sort, View } from '~/models';
 import { RootScopes } from '~/utils/globals';
 
 @Controller()
@@ -107,6 +107,14 @@ export class InternalController {
         );
         if (sort?.fk_view_id) {
           view = await View.get(bypassContext, sort.fk_view_id);
+        }
+      } else if (req.query.gridViewColumnId) {
+        const gridCol = await GridViewColumn.get(
+          bypassContext,
+          req.query.gridViewColumnId as string,
+        );
+        if (gridCol?.fk_view_id) {
+          view = await View.get(bypassContext, gridCol.fk_view_id);
         }
       }
 

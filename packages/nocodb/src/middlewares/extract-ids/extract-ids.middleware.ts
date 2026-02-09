@@ -49,6 +49,7 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { RootScopes } from '~/utils/globals';
 import MCPToken from '~/models/MCPToken';
 import Noco from '~/Noco';
+export const VIEW_KEY = Symbol.for('nc:view');
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -65,8 +66,6 @@ export const rolesLabel = {
   [ProjectRoles.EDITOR]: 'Base Editor',
   [ProjectRoles.COMMENTER]: 'Base Commenter',
 };
-
-export const VIEW_KEY = Symbol('view');
 
 export function getRolesLabels(
   roles: (OrgUserRoles | WorkspaceUserRoles | ProjectRoles | string)[],
@@ -908,7 +907,47 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       req.ncBaseId = base.id;
     }
 
-    // if view API and view is pesonal view then check if user has access to view
+    // When viewId is present but wasn't the primary entity in the if-else
+    // chain (e.g., internal API with viewId/filterId/sortId/gridViewColumnId
+    // in query params), extract the view for personal-view permission checks.
+    if (!view && (params.viewId || req.query.viewId)) {
+      const viewFromId = await View.get(
+        context,
+        params.viewId || req.query.viewId,
+      );
+      if (viewFromId instanceof View) {
+        view = viewFromId;
+      }
+    } else if (!view && req.query.filterId) {
+      const filter = await Filter.get(context, req.query.filterId);
+      if (filter?.fk_view_id) {
+        const viewFromFilter = await View.get(context, filter.fk_view_id);
+        if (viewFromFilter instanceof View) {
+          view = viewFromFilter;
+        }
+      }
+    } else if (!view && req.query.sortId) {
+      const sort = await Sort.get(context, req.query.sortId);
+      if (sort?.fk_view_id) {
+        const viewFromSort = await View.get(context, sort.fk_view_id);
+        if (viewFromSort instanceof View) {
+          view = viewFromSort;
+        }
+      }
+    } else if (!view && req.query.gridViewColumnId) {
+      const gridCol = await GridViewColumn.get(
+        context,
+        req.query.gridViewColumnId,
+      );
+      if (gridCol?.fk_view_id) {
+        const viewFromGridCol = await View.get(context, gridCol.fk_view_id);
+        if (viewFromGridCol instanceof View) {
+          view = viewFromGridCol;
+        }
+      }
+    }
+
+    // if view API and view is personal view then check if user has access to view
     if (view && view.lock_type === ViewLockType.Personal) {
       req[VIEW_KEY] = view;
     }

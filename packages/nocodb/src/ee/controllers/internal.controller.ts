@@ -109,14 +109,7 @@ export class InternalController extends InternalControllerCE {
     if (scope === 'ncSkipAcl') {
       return;
     }
-    await this.aclMiddleware.aclFn(
-      operation,
-      {
-        scope,
-      },
-      null,
-      req,
-    );
+    await super.checkAcl(operation as any, req, scope);
   }
 
   @Get(['/api/v2/internal/:workspaceId/:baseId'])

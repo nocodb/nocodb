@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type LinkToAnotherRecordType, UITypesName, ViewSettingOverrideOptions } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, UITypesName, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import { PlanLimitTypes, RelationTypes, UITypes, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import rfdc from 'rfdc'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
@@ -28,7 +28,14 @@ const { getPlanLimit } = useWorkspace()
 
 const isCalendar = inject(IsCalendarInj, ref(false))
 
+const { isUserViewOwner } = useViewsStore()
+
 const isRestrictedEditor = computed(() => isLocked.value || !canSyncSort.value)
+
+// True when user is viewing a personal view they don't own
+const isPersonalViewNonOwner = computed(
+  () => view.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(view.value),
+)
 
 const existingSorts = computed(() => sorts.value.filter((s) => s.id))
 const localSorts = computed(() => sorts.value.filter((s) => !s.id))
@@ -186,7 +193,7 @@ watch(
           'nc-locked-view': isLocked,
         }"
       >
-        <SmartsheetToolbarCreateSort v-if="!sorts.length" :sorts="sorts" :is-parent-open="open" @created="addSort" />
+        <SmartsheetToolbarCreateSort v-if="!sorts.length && !isPersonalViewNonOwner" :sorts="sorts" :is-parent-open="open" @created="addSort" />
         <div v-else class="pt-2 pb-2 pl-4 nc-filter-list max-h-[max(80vh,30rem)] min-w-102" data-testid="nc-sorts-menu">
           <div class="sort-grid max-h-120 nc-scrollbar-thin pr-4 my-2 py-1" @click.stop>
             <template v-if="!isRestrictedEditor">
@@ -245,7 +252,8 @@ watch(
               </div>
             </template>
             <template v-else>
-              <!-- Local Sorts (Editable) -->
+              <!-- Local Sorts (Editable) - hidden for personal view non-owners -->
+              <template v-if="!isPersonalViewNonOwner">
               <div v-for="(sort, k) of localSorts" :key="`local-${k}`" class="flex first:mb-0 !mb-1.5 !last:mb-0 items-center">
                 <SmartsheetToolbarFieldListAutoCompleteDropdown
                   v-model="sort.fk_column_id"
@@ -299,6 +307,7 @@ watch(
                   </NcButton>
                 </NcTooltip>
               </div>
+              </template>
 
               <!-- Existing Sorts (Read Only) -->
               <div
@@ -356,7 +365,7 @@ watch(
             </template>
           </div>
 
-          <div class="flex items-center justify-between empty:hidden pr-4 mt-1 mb-2">
+          <div v-if="!isPersonalViewNonOwner" class="flex items-center justify-between empty:hidden pr-4 mt-1 mb-2">
             <NcDropdown
               v-if="availableColumns.length"
               v-model:visible="showCreateSort"

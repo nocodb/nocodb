@@ -71,6 +71,7 @@ import MCPToken from '~/models/MCPToken';
 import Widget from '~/models/Widget';
 import { isMuxEnabled } from '~/utils/envs';
 import { hasTableVisibilityAccess } from '~/helpers/tableHelpers';
+export const VIEW_KEY = Symbol.for('nc:view');
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -87,8 +88,6 @@ export const rolesLabel = {
   [ProjectRoles.EDITOR]: 'Base Editor',
   [ProjectRoles.COMMENTER]: 'Base Commenter',
 };
-
-export const VIEW_KEY = Symbol('view');
 
 export function getRolesLabels(
   roles: (OrgUserRoles | WorkspaceUserRoles | ProjectRoles | string)[],
@@ -436,6 +435,16 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
         if (!extension) {
           NcError.genericNotFound('Extension', extensionId);
+        }
+      }
+
+      // When viewId is present but wasn't the primary entity in the if-else
+      // chain (e.g., V3 routes with both :tableId and :viewId), extract the
+      // view separately so personal-view permission checks still work.
+      if (!view && viewId) {
+        const viewFromId = await View.get(context, viewId);
+        if (viewFromId instanceof View) {
+          view = viewFromId;
         }
       }
 
@@ -1105,7 +1114,48 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
     }
 
-    // if view API and view is pesonal view then check if user has access to view
+    // When viewId is present but wasn't the primary entity in the if-else
+    // chain (e.g., routes with both :baseId and :viewId, or internal API
+    // with viewId/filterId/sortId/gridViewColumnId in query params), extract
+    // the view separately so personal-view permission checks still work.
+    if (!view && (params.viewId || req.query.viewId)) {
+      const viewFromId = await View.get(
+        context,
+        params.viewId || req.query.viewId,
+      );
+      if (viewFromId instanceof View) {
+        view = viewFromId;
+      }
+    } else if (!view && req.query.filterId) {
+      const filter = await Filter.get(context, req.query.filterId);
+      if (filter?.fk_view_id) {
+        const viewFromFilter = await View.get(context, filter.fk_view_id);
+        if (viewFromFilter instanceof View) {
+          view = viewFromFilter;
+        }
+      }
+    } else if (!view && req.query.sortId) {
+      const sort = await Sort.get(context, req.query.sortId);
+      if (sort?.fk_view_id) {
+        const viewFromSort = await View.get(context, sort.fk_view_id);
+        if (viewFromSort instanceof View) {
+          view = viewFromSort;
+        }
+      }
+    } else if (!view && req.query.gridViewColumnId) {
+      const gridCol = await GridViewColumn.get(
+        context,
+        req.query.gridViewColumnId,
+      );
+      if (gridCol?.fk_view_id) {
+        const viewFromGridCol = await View.get(context, gridCol.fk_view_id);
+        if (viewFromGridCol instanceof View) {
+          view = viewFromGridCol;
+        }
+      }
+    }
+
+    // if view API and view is personal view then check if user has access to view
     if (view && view.lock_type === ViewLockType.Personal) {
       req[VIEW_KEY] = view;
     }

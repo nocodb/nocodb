@@ -99,10 +99,11 @@ export function useViewFilters(
 
   // Check if user can sync (create/update/delete) filters based on role OR personal view ownership
   const canSyncFilter = computed(() => {
-    // If user has role permission to sync, allow it
-    if (isUIAllowed('filterSync')) return true
     // If this is a personal view owned by current user, allow sync
     if (view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value)) return true
+
+    // If user has role permission to sync, allow it
+    if (isUIAllowed('filterSync')) return true
     return false
   })
 
@@ -479,7 +480,7 @@ export function useViewFilters(
               })
             ).list as ColumnFilterType[]
           } else {
-            if (!isUIAllowed('filterList')) {
+            if (!canListFilter.value) {
               return
             }
 

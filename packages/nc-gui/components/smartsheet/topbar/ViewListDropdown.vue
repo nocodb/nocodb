@@ -19,6 +19,8 @@ const { navigateToView, onOpenViewCreateModal } = viewsStore
 
 const { isAiFeaturesEnabled } = useNocoAi()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const isOpen = ref<boolean>(false)
 
 const activeSource = computed(() => {
@@ -254,7 +256,11 @@ async function onOpenModal({
                     </a-menu-item>
                   </NcTooltip>
                 </template>
-                <a-menu-item data-testid="topbar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
+                <a-menu-item
+                  v-if="isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
+                  data-testid="topbar-view-create-map"
+                  @click="onOpenModal({ type: ViewTypes.MAP })"
+                >
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}

@@ -127,7 +127,9 @@ watch(
      * We are waiting for base role load and their might be the case that,
      * on navigating to different page this watch get called which will overwrite projectPageTab value and navigateToProjectPage fn get called
      */
-    if (route.value.params.viewId) return
+    if (['viewId', 'workflowId', 'scriptId', 'dashboardId'].some((key) => route.value.params[key])) {
+      return
+    }
 
     // In mobile mode we only show collaborator tab
     if (isMobileMode.value && newVal !== 'collaborator') {

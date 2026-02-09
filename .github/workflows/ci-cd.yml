@@ -34,7 +34,7 @@ jobs:
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
 
@@ -65,11 +65,11 @@ jobs:
         with:
           version: 9
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: remove use-node-version from .npmrc
@@ -78,7 +78,7 @@ jobs:
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-      - uses: actions/cache@v3
+      - uses: actions/cache@v5
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}
@@ -100,11 +100,11 @@ jobs:
         with:
           version: 9
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: remove use-node-version from .npmrc
@@ -113,7 +113,7 @@ jobs:
         shell: bash
         run: |
           echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-      - uses: actions/cache@v3
+      - uses: actions/cache@v5
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}

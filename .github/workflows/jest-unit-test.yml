@@ -21,11 +21,11 @@ jobs:
     if: ${{ github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'trigger-CI') || !github.event.pull_request.draft || inputs.force == true }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
       - name: Setup pnpm
@@ -37,7 +37,7 @@ jobs:
         timeout-minutes: 1
         run: |
           echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
-      - uses: actions/cache@v3
+      - uses: actions/cache@v5
         name: Setup pnpm cache
         with:
           path: ${{ env.STORE_PATH }}

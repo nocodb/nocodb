@@ -14,7 +14,7 @@ jobs:
       matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Prepare matrix for test files
         id: set-matrix
@@ -31,7 +31,7 @@ jobs:
         test: ${{fromJson(needs.prepare.outputs.matrix)}}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install BATS
         run: |

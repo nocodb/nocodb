@@ -24,7 +24,7 @@ jobs:
     runs-on: 'ubuntu-22.04'
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
         with:
           fetch-depth: 1
           ref: ${{ github.ref }}
@@ -98,7 +98,7 @@ jobs:
       compose-file-cache-key:  ${{ env.COMPOSE_FILE_HASH }}
     steps:
       - name: Checkout git repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v6
       - name: Render Compose File
         run: |
           NOCODB_IMAGE=nocodb/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
@@ -107,7 +107,7 @@ jobs:
           envsubst < .github/uffizzi/docker-compose.uffizzi.yml > docker-compose.rendered.yml
           cat docker-compose.rendered.yml
       - name: Upload Rendered Compose File as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: preview-spec-docker-compose
           path: docker-compose.rendered.yml
@@ -118,7 +118,7 @@ jobs:
           ${{ toJSON(github.event) }}
           EOF
       - name: Upload PR Event as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: preview-spec-event
           path: event.json
@@ -174,7 +174,7 @@ jobs:
 
           EOF
       - name: Upload PR Event as Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: preview-spec-event
           path: event.json

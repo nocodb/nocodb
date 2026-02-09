@@ -21,13 +21,13 @@ jobs:
   build-executables:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
         with:
           token: ${{ secrets.NC_GITHUB_TOKEN }}
           repository: 'nocodb/nocodb-timely'
       - name: Cache node modules
         id: cache-npm
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         env:
           cache-name: cache-node-modules
         with:
@@ -40,7 +40,7 @@ jobs:
             ${{ runner.os }}-
       - name: Cache pkg modules
         id: cache-pkg
-        uses: actions/cache@v3
+        uses: actions/cache@v5
         env:
           cache-name: cache-pkg
         with:
@@ -62,7 +62,7 @@ jobs:
           ./make.sh
           sudo cp ./ldid /usr/local/bin
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v6
         with:
           node-version: 22.12.0
 

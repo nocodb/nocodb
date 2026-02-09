@@ -332,6 +332,7 @@ watch(
             </SmartsheetToolbarColumnFilter>
           </template>
         </template>
+        <GeneralLockedViewFooter v-if="isLocked" @on-open="open = false" />
         <template v-if="filtersFromUrlParams">
           <a-divider class="!my-1" />
           <div class="px-2 pb-2">

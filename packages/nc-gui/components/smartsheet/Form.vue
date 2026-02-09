@@ -948,9 +948,6 @@ const { message: templatedMessage } = useTemplatedMessage(
   computed(() => formViewData?.value?.success_msg),
   computed(() => formState.value),
 )
-
-// Temp disabled
-const showCustomizeSubmitBtnOption = false
 </script>
 
 <template>
@@ -2043,10 +2040,7 @@ const showCustomizeSubmitBtnOption = false
                             />
                           </div>
                           <!-- Submit Button Customization -->
-                          <PaymentUpgradeBadgeProvider
-                            v-if="showCustomizeSubmitBtnOption"
-                            :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL"
-                          >
+                          <PaymentUpgradeBadgeProvider :feature="PlanFeatureTypes.FEATURE_FORM_CUSTOM_SUBMIT_LABEL">
                             <template #default="{ click, isFeatureEnabled }">
                               <div class="flex flex-col gap-3">
                                 <div class="flex items-center justify-between gap-3">

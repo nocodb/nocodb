@@ -18,6 +18,8 @@ const { openedProject, activeProjectId, basesUser, bases, basesTeams } = storeTo
 const { activeTable } = storeToRefs(useTablesStore())
 const { activeWorkspace, isTeamsEnabled } = storeToRefs(useWorkspace())
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { $e, $api } = useNuxtApp()
@@ -79,7 +81,9 @@ const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
 
 const isAuditsTabVisible = computed(() => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList'))
 
-const isWorkflowsTabVisible = computed(() => isEeUI && isUIAllowed('workflowCreateOrEdit') && !isMobileMode.value)
+const isWorkflowsTabVisible = computed(
+  () => isEeUI && isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) && isUIAllowed('workflowCreateOrEdit') && !isMobileMode.value,
+)
 
 // Get actual workflow count
 const workflowStore = useWorkflowStore()

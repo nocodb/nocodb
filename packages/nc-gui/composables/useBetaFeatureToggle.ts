@@ -182,6 +182,15 @@ const FEATURES = [
     isEngineering: true,
     isEE: true,
   },
+  {
+    id: 'workflows_tab',
+    title: 'Workflows tab',
+    description: 'Enable workflows tab in base overview to manage workflows.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
 ] as const
 
 export const FEATURE_FLAG = Object.fromEntries(FEATURES.map((feature) => [feature.id.toUpperCase(), feature.id])) as Record<

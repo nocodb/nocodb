@@ -86,6 +86,8 @@ import * as nc_094_add_meta_to_filter_exp_v2 from '~/meta/migrations/v2/nc_094_a
 import * as nc_096_deprecate_unused from '~/meta/migrations/v2/nc_096_deprecate_unused';
 import * as nc_097_unify_schema from '~/meta/migrations/v2/nc_097_unify_schema';
 import * as nc_098_default_workspace from '~/meta/migrations/v2/nc_098_default_workspace';
+import * as nc_099_map_view_columns_rename from '~/meta/migrations/v2/nc_099_map_view_columns_rename';
+import * as nc_100_map_view_columns_add_source_id from '~/meta/migrations/v2/nc_100_map_view_columns_add_source_id';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -181,6 +183,8 @@ export default class XcMigrationSourcev2 {
       'nc_096_deprecate_unused',
       'nc_097_unify_schema',
       'nc_098_default_workspace',
+      'nc_099_map_view_columns_rename',
+      'nc_100_map_view_columns_add_source_id',
     ]);
   }
 
@@ -362,6 +366,10 @@ export default class XcMigrationSourcev2 {
         return nc_097_unify_schema;
       case 'nc_098_default_workspace':
         return nc_098_default_workspace;
+      case 'nc_099_map_view_columns_rename':
+        return nc_099_map_view_columns_rename;
+      case 'nc_100_map_view_columns_add_source_id':
+        return nc_100_map_view_columns_add_source_id;
     }
   }
 }

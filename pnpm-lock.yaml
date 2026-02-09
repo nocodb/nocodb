@@ -55,7 +55,7 @@ overrides:
 
 patchedDependencies:
   splitpanes@3.1.5:
-    hash: zu73sk5alagbc353ggqtiornzy
+    hash: 9e3e16bbb7cd0cc38fc9cd177e8ddd3429de7dea1a7cf1764220cbae4c2279a9
     path: packages/nc-gui/.patches/splitpanes@3.1.5.patch
 
 importers:

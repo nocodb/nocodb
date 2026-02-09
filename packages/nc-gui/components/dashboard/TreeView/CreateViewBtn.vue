@@ -217,6 +217,17 @@ function onCreateSection() {
             </NcMenuItem>
           </NcTooltip>
         </template>
+        <NcMenuItem data-testid="sidebar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
+          <div class="item">
+            <div class="item-inner">
+              <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
+              <div>{{ $t('objects.viewType.map') }}</div>
+            </div>
+
+            <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
+            <GeneralIcon v-else class="plus" icon="plus" />
+          </div>
+        </NcMenuItem>
 
         <template v-if="isEeUI">
           <!-- Section -->

@@ -785,7 +785,7 @@ const up = async (knex: Knex) => {
   await knex.schema.createTable(MetaTable.MAP_VIEW_COLUMNS, (table) => {
     table.string('id', 20).notNullable();
     table.string('base_id', 20);
-    table.string('project_id', 128);
+    table.string('source_id', 20);
     table.string('fk_view_id', 20);
     table.string('fk_column_id', 20);
     table.string('uuid', 255);

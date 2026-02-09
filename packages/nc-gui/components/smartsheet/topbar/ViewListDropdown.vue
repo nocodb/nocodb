@@ -254,6 +254,12 @@ async function onOpenModal({
                     </a-menu-item>
                   </NcTooltip>
                 </template>
+                <a-menu-item data-testid="topbar-view-create-map" @click="onOpenModal({ type: ViewTypes.MAP })">
+                  <div class="nc-viewlist-submenu-popup-item">
+                    <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
+                    {{ $t('objects.viewType.map') }}
+                  </div>
+                </a-menu-item>
 
                 <template v-if="isAiFeaturesEnabled">
                   <NcDivider />

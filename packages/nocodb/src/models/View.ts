@@ -2940,8 +2940,10 @@ export default class View implements ViewType {
         NcError.get(context).internalServerError('Failed to Duplicate View');
       }
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      logger.error('Failed to create View', e);
-      NcError.get(context).internalServerError('Failed to create View');
+      logger.error(e, 'Failed to create View');
+      NcError.get(context).internalServerError(
+        `Failed to create View: ${e.message}`,
+      );
     }
   }
 

@@ -26,18 +26,15 @@ export async function getDisplayValueOfRefTable(
   context: NcContext,
   relationCol: Column<LinkToAnotherRecordColumn | LinksColumn>,
 ) {
-  // For cross-base links, the relationCol belongs to the original base,
-  // but context might be the related table's base context.
-  // We need to use the column's own base context to get its options.
-  const colContext = relationCol.base_id
-    ? { ...context, base_id: relationCol.base_id }
-    : context;
-
-  return await relationCol
-    .getColOptions(colContext)
-    .then((colOpt) => colOpt.getRelatedTable(context))
-    .then((model) => model.getColumns(context))
-    .then((cols) => cols.find((col) => col.pv) || cols[0]);
+  // Use the column's own base_id for getColOptions since the relation metadata
+  // is stored in the column's base, not the related table's base (cross-base links)
+  const colOpt = await relationCol.getColOptions<
+    LinkToAnotherRecordColumn | LinksColumn
+  >({ ...context, base_id: relationCol.base_id });
+  const model = await colOpt.getRelatedTable(context);
+  const modelContext = { ...context, base_id: model.base_id };
+  const cols = await model.getColumns(modelContext);
+  return cols.find((col) => col.pv) || cols[0];
 }
 
 // this function will generate the query for lookup column

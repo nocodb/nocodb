@@ -150,10 +150,9 @@ export const useInfiniteGroups = (
         let group: CanvasGroup = {} as any
 
         if (groupCol.column.uidt === UITypes.LinkToAnotherRecord) {
-          const relatedTableMeta = await getMeta(
-            base.value?.id as string,
-            (groupCol.column.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
-          )
+          const colOpts = groupCol.column.colOptions as LinkToAnotherRecordType
+          const relatedBaseId = colOpts?.fk_related_base_id || (base.value?.id as string)
+          const relatedTableMeta = await getMeta(relatedBaseId, colOpts.fk_related_model_id as string)
           if (!relatedTableMeta) continue
           group.relatedTableMeta = relatedTableMeta
           const col = relatedTableMeta.columns?.find((c) => c.pv) || relatedTableMeta.columns?.[0]
@@ -182,10 +181,9 @@ export const useInfiniteGroups = (
 
           // Check if the lookup column is a LinkToAnotherRecord
           if (lookupColumn.uidt === UITypes.LinkToAnotherRecord) {
-            const targetTableMeta = await getMeta(
-              base.value?.id as string,
-              (lookupColumn.colOptions as LinkToAnotherRecordType).fk_related_model_id as string,
-            )
+            const lookupColOpts = lookupColumn.colOptions as LinkToAnotherRecordType
+            const targetBaseId = lookupColOpts?.fk_related_base_id || relatedBaseId
+            const targetTableMeta = await getMeta(targetBaseId, lookupColOpts.fk_related_model_id as string)
             if (targetTableMeta) {
               finalTableMeta = targetTableMeta
               finalColumn = targetTableMeta.columns?.find((c) => c.pv) || targetTableMeta.columns?.[0]

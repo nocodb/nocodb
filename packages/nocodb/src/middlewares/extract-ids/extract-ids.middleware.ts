@@ -1149,7 +1149,7 @@ export class AclMiddleware implements NestInterceptor {
       req.params?.workspaceUserId &&
       req.params?.workspaceUserId === req.user?.id;
 
-    // Personal view owners can manage filters, sorts, and view columns regardless of role
+    // Personal view owners can manage filters, sorts, view columns, and view-specific settings regardless of role
     const personalViewOwnerAllowedPermissions = [
       'filterList',
       'filterGet',
@@ -1164,8 +1164,21 @@ export class AclMiddleware implements NestInterceptor {
       'sortDelete',
       'columnList',
       'viewColumnUpdate',
+      'viewColumnCreate',
       'hideAllColumns',
       'showAllColumns',
+      'gridColumnUpdate',
+      'gridViewUpdate',
+      'galleryViewUpdate',
+      'kanbanViewUpdate',
+      'mapViewUpdate',
+      'calendarViewUpdate',
+      'viewRowColorConditionAdd',
+      'viewRowColorConditionUpdate',
+      'viewRowColorConditionDelete',
+      'viewRowColorSelectAdd',
+      'viewRowColorInfoDelete',
+      'rowColorConditionsFilterCreate',
     ];
     const isPersonalViewOwnerAllowed =
       isPersonalViewOwner &&

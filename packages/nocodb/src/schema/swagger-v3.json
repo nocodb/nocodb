@@ -21,7 +21,8 @@
         "View Sorts",
         "Scripts",
         "Dashboards",
-        "Documents"
+        "Documents",
+        "Hooks"
       ]
     },
     {
@@ -2430,6 +2431,385 @@
           },
           "404": {
             "description": "Field not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/hooks": {
+      "get": {
+        "summary": "List hooks",
+        "operationId": "hooks-list",
+        "tags": [
+          "Hooks"
+        ],
+        "description": "Retrieve a list of all hooks for a specific table.",
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of hooks retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookV3List"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "list": [
+                        {
+                          "id": "hk1abc123xyz",
+                          "table_id": "tbl456def",
+                          "title": "Send Email on Insert",
+                          "description": "Sends email notification when a new record is inserted",
+                          "event": "after",
+                          "operation": ["insert"],
+                          "notification": {
+                            "type": "URL",
+                            "payload": {
+                              "path": "https://example.com/webhook"
+                            }
+                          },
+                          "active": true,
+                          "async": false,
+                          "version": "v3",
+                          "created_at": "2025-01-16T06:04:18.000Z",
+                          "updated_at": "2025-01-16T06:04:18.000Z"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "post": {
+        "summary": "Create hook",
+        "description": "Create a new hook for a table.",
+        "operationId": "hook-create",
+        "tags": [
+          "Hooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the table."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HookV3Create"
+              },
+              "examples": {
+                "Webhook Example": {
+                  "value": {
+                    "title": "New Record Webhook",
+                    "event": "after",
+                    "operation": ["insert"],
+                    "notification": {
+                      "type": "URL",
+                      "payload": {
+                        "path": "https://example.com/webhook",
+                        "method": "POST"
+                      }
+                    },
+                    "active": true,
+                    "version": "v3"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hook created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookV3"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "hk1abc123xyz",
+                      "table_id": "tbl456def",
+                      "title": "New Record Webhook",
+                      "event": "after",
+                      "operation": ["insert"],
+                      "notification": {
+                        "type": "URL",
+                        "payload": {
+                          "path": "https://example.com/webhook",
+                          "method": "POST"
+                        }
+                      },
+                      "active": true,
+                      "async": false,
+                      "version": "v3",
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Table not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/hooks/{hookId}": {
+      "get": {
+        "summary": "Get hook",
+        "description": "Retrieve the details of a specific hook.",
+        "operationId": "hook-read",
+        "tags": [
+          "Hooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "hookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the hook."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Hook details retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookV3"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "hk1abc123xyz",
+                      "table_id": "tbl456def",
+                      "title": "Send Email on Insert",
+                      "description": "Sends email notification when a new record is inserted",
+                      "event": "after",
+                      "operation": ["insert"],
+                      "notification": {
+                        "type": "URL",
+                        "payload": {
+                          "path": "https://example.com/webhook"
+                        }
+                      },
+                      "active": true,
+                      "async": false,
+                      "version": "v3",
+                      "trigger_fields": ["fldAbc123"],
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Hook not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "patch": {
+        "summary": "Update hook",
+        "description": "Update the details of a specific hook.",
+        "operationId": "hook-update",
+        "tags": [
+          "Hooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "hookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the hook."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HookV3Update"
+              },
+              "examples": {
+                "Update Title": {
+                  "value": {
+                    "title": "Updated Hook Title"
+                  }
+                },
+                "Update Active Status": {
+                  "value": {
+                    "active": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Hook updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HookV3"
+                },
+                "examples": {
+                  "Example 1": {
+                    "value": {
+                      "id": "hk1abc123xyz",
+                      "table_id": "tbl456def",
+                      "title": "Updated Hook Title",
+                      "event": "after",
+                      "operation": ["insert"],
+                      "notification": {
+                        "type": "URL",
+                        "payload": {
+                          "path": "https://example.com/webhook"
+                        }
+                      },
+                      "active": true,
+                      "async": false,
+                      "version": "v3",
+                      "created_at": "2025-01-16T06:04:18.000Z",
+                      "updated_at": "2025-01-16T06:04:18.000Z"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request body."
+          },
+          "404": {
+            "description": "Hook not found."
+          },
+          "500": {
+            "description": "Server error."
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete hook",
+        "description": "Delete a specific hook.",
+        "operationId": "hook-delete",
+        "tags": [
+          "Hooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the base."
+          },
+          {
+            "name": "hookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Unique identifier for the hook."
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Hook deleted successfully."
+          },
+          "404": {
+            "description": "Hook not found."
           },
           "500": {
             "description": "Server error."
@@ -8350,6 +8730,196 @@
         "required": [
           "id"
         ]
+      },
+      "HookV3": {
+        "type": "object",
+        "description": "Hook configuration for table-level event triggers.",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the hook."
+          },
+          "table_id": {
+            "type": "string",
+            "description": "Unique identifier of the associated table."
+          },
+          "title": {
+            "type": "string",
+            "description": "Title of the hook."
+          },
+          "description": {
+            "type": ["string", "null"],
+            "description": "Description of the hook."
+          },
+          "event": {
+            "type": "string",
+            "enum": ["after", "before", "manual"],
+            "description": "Event trigger type."
+          },
+          "operation": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["insert", "update", "delete"]
+            },
+            "description": "Operations that trigger the hook."
+          },
+          "notification": {
+            "type": "object",
+            "description": "Notification configuration including type and payload."
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Indicates if the hook is active."
+          },
+          "async": {
+            "type": "boolean",
+            "description": "Indicates if the hook executes asynchronously."
+          },
+          "version": {
+            "type": "string",
+            "enum": ["v1", "v2", "v3"],
+            "description": "Hook payload version."
+          },
+          "trigger_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Field IDs that trigger the hook when modified."
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the hook was created."
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp when the hook was last updated."
+          }
+        },
+        "required": ["id", "table_id", "title", "event", "operation"]
+      },
+      "HookV3List": {
+        "type": "object",
+        "description": "List response containing hooks.",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/HookV3"
+            },
+            "description": "Array of hooks."
+          }
+        },
+        "required": ["list"]
+      },
+      "HookV3Create": {
+        "type": "object",
+        "description": "Request body for creating a new hook.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the hook."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the hook."
+          },
+          "event": {
+            "type": "string",
+            "enum": ["after", "before", "manual"],
+            "description": "Event trigger type."
+          },
+          "operation": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["insert", "update", "delete"]
+            },
+            "description": "Operations that trigger the hook."
+          },
+          "notification": {
+            "type": "object",
+            "description": "Notification configuration including type and payload."
+          },
+          "active": {
+            "type": "boolean",
+            "default": true,
+            "description": "Indicates if the hook is active."
+          },
+          "async": {
+            "type": "boolean",
+            "default": false,
+            "description": "Indicates if the hook executes asynchronously."
+          },
+          "version": {
+            "type": "string",
+            "enum": ["v1", "v2", "v3"],
+            "default": "v3",
+            "description": "Hook payload version."
+          },
+          "trigger_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Field IDs that trigger the hook when modified."
+          }
+        },
+        "required": ["title", "event", "operation", "notification"]
+      },
+      "HookV3Update": {
+        "type": "object",
+        "description": "Request body for updating an existing hook.",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Title of the hook."
+          },
+          "description": {
+            "type": "string",
+            "description": "Description of the hook."
+          },
+          "event": {
+            "type": "string",
+            "enum": ["after", "before", "manual"],
+            "description": "Event trigger type."
+          },
+          "operation": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["insert", "update", "delete"]
+            },
+            "description": "Operations that trigger the hook."
+          },
+          "notification": {
+            "type": "object",
+            "description": "Notification configuration including type and payload."
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Indicates if the hook is active."
+          },
+          "async": {
+            "type": "boolean",
+            "description": "Indicates if the hook executes asynchronously."
+          },
+          "version": {
+            "type": "string",
+            "enum": ["v1", "v2", "v3"],
+            "description": "Hook payload version."
+          },
+          "trigger_fields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Field IDs that trigger the hook when modified."
+          }
+        }
       },
       "ViewSummary": {
         "type": "object",

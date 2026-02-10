@@ -30,6 +30,7 @@ export const OPERATION_SCOPES = {
   filterChildrenList: 'base',
   sortList: 'base',
   hookList: 'base',
+  hookRead: 'base',
   hookLogList: 'base',
   hookFilterList: 'base',
   buttonFilterList: 'base',

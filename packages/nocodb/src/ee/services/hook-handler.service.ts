@@ -369,7 +369,7 @@ export class HookHandlerService extends HookHandlerServiceCE {
       const workflows = await Workflow.findByTrigger(
         context,
         triggerType,
-        view.id,
+        view.fk_model_id,
       );
 
       if (workflows.length === 0) {

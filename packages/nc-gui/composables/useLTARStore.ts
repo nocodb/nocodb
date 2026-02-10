@@ -595,7 +595,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
       try {
         isChildrenLoading.value = true
-        if (isSingleTargetRelation.value) return
+        if (isSingleTargetRelation.value && !isLinkV2(column.value)) return
         if (!column.value) return
         let offset = childrenListPagination.size * (childrenListPagination.page - 1) + childrenListOffsetCount.value
         if (offset < 0 || resetOffset) {

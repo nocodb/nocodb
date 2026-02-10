@@ -1030,11 +1030,33 @@ export class AclMiddleware implements NestInterceptor {
 
     // if view API and view is personal view then check if user has access to view
     // if user is not owner of view then restrict write operations
+    // Exclude view operations as they are checked later by personalViewOwnerAllowedPermissions
+    const viewOperationsExcludedFromPersonalViewCheck = [
+      'viewUpdate',
+      'viewDelete',
+      'dataList',
+      'viewColumnUpdate',
+      'viewColumnCreate',
+      'hideAllColumns',
+      'showAllColumns',
+      'gridColumnUpdate',
+      'gridViewUpdate',
+      'galleryViewUpdate',
+      'kanbanViewUpdate',
+      'mapViewUpdate',
+      'calendarViewUpdate',
+      'viewRowColorConditionAdd',
+      'viewRowColorConditionUpdate',
+      'viewRowColorConditionDelete',
+      'viewRowColorSelectAdd',
+      'viewRowColorInfoDelete',
+      'rowColorConditionsFilterCreate',
+    ];
     if (
       req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
       req[VIEW_KEY].owned_by !== req.user?.id &&
       ['POST', 'PATCH', 'DELETE', 'PUT'].includes(req.method) &&
-      !['viewUpdate', 'viewDelete', 'dataList'].includes(permissionName)
+      !viewOperationsExcludedFromPersonalViewCheck.includes(permissionName)
     ) {
       NcError.forbidden('Unauthorized access');
     }

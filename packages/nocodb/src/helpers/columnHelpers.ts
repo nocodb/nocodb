@@ -232,7 +232,7 @@ export async function createOOColumn(
   // save bt column
   {
     const title = getUniqueColumnAliasName(
-      await child.getColumns(parentContext),
+      await child.getColumns(childContext),
       `${parent.title}`,
     );
 

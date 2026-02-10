@@ -1058,6 +1058,12 @@ export class AclMiddleware implements NestInterceptor {
       'kanbanViewUpdate',
       'mapViewUpdate',
       'calendarViewUpdate',
+      'viewRowColorConditionAdd',
+      'viewRowColorConditionUpdate',
+      'viewRowColorConditionDelete',
+      'viewRowColorSelectAdd',
+      'viewRowColorInfoDelete',
+      'rowColorConditionsFilterCreate',
     ];
 
     // For editors: restrict filter/sort operations to personal views they own

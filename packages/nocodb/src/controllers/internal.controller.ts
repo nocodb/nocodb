@@ -79,6 +79,12 @@ export class InternalController {
       'kanbanViewUpdate',
       'mapViewUpdate',
       'calendarViewUpdate',
+      'viewRowColorConditionAdd',
+      'viewRowColorConditionUpdate',
+      'viewRowColorConditionDelete',
+      'viewRowColorSelectAdd',
+      'viewRowColorInfoDelete',
+      'rowColorConditionsFilterCreate',
     ];
 
     if (filterSortOperations.includes(operation as string)) {

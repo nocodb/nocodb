@@ -333,6 +333,12 @@ const permissionScopes = {
     'mcpDelete',
 
     'viewRowColorInfo',
+    'viewRowColorConditionAdd',
+    'viewRowColorConditionUpdate',
+    'viewRowColorConditionDelete',
+    'viewRowColorSelectAdd',
+    'viewRowColorInfoDelete',
+    'rowColorConditionsFilterCreate',
     'viewSettingOverride',
 
     // Dashboard
@@ -700,6 +706,14 @@ const rolePermissions:
       kanbanViewUpdate: true,
       mapViewUpdate: true,
       calendarViewUpdate: true,
+
+      // Row color operations for personal views (middleware handles ownership check)
+      viewRowColorConditionAdd: true,
+      viewRowColorConditionUpdate: true,
+      viewRowColorConditionDelete: true,
+      viewRowColorSelectAdd: true,
+      viewRowColorInfoDelete: true,
+      rowColorConditionsFilterCreate: true,
     },
   },
   [ProjectRoles.CREATOR]: {

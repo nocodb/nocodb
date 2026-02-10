@@ -19,7 +19,8 @@
         "Fields",
         "View Filters",
         "View Sorts",
-        "Scripts"
+        "Scripts",
+        "Webhooks"
       ]
     },
     {
@@ -5761,6 +5762,495 @@
           }
         }
       }
+    },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/hooks": {
+      "get": {
+        "summary": "List webhooks",
+        "operationId": "webhook-list-v3",
+        "description": "Retrieve a list of all webhooks within a specified table.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The base ID"
+          },
+          {
+            "name": "tableId", 
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The table ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhooks retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookListResponseV3"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      },
+      "post": {
+        "summary": "Create webhook",
+        "operationId": "webhook-create-v3",
+        "description": "Create a new webhook for a specific table.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The base ID"
+          },
+          {
+            "name": "tableId",
+            "in": "path", 
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The table ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookCreateV3"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookV3"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/hooks/{hookId}": {
+      "patch": {
+        "summary": "Update webhook",
+        "operationId": "webhook-update-v3",
+        "description": "Update an existing webhook.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The base ID"
+          },
+          {
+            "name": "hookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string" 
+            },
+            "description": "The webhook ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookUpdateV3"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookV3"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      },
+      "delete": {
+        "summary": "Delete webhook",
+        "operationId": "webhook-delete-v3",
+        "description": "Delete a webhook.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The base ID"
+          },
+          {
+            "name": "hookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The webhook ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook deleted successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "Hook deleted successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/hooks/test": {
+      "post": {
+        "summary": "Test webhook",
+        "operationId": "webhook-test-v3",
+        "description": "Test a webhook configuration.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The base ID"
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The table ID"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WebhookTestV3"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Webhook tested successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "The hook has been tested successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/tables/{tableId}/hooks/samplePayload/{event}/{operation}/{version}": {
+      "get": {
+        "summary": "Get sample payload",
+        "operationId": "webhook-sample-payload-v3",
+        "description": "Get a sample payload for webhook configuration.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The base ID"
+          },
+          {
+            "name": "tableId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The table ID"
+          },
+          {
+            "name": "event",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["before", "after"]
+            },
+            "description": "Event type"
+          },
+          {
+            "name": "operation",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["insert", "update", "delete", "bulkInsert", "bulkUpdate", "bulkDelete"]
+            },
+            "description": "Operation type"
+          },
+          {
+            "name": "version",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": ["v1", "v2"]
+            },
+            "description": "Webhook version"
+          },
+          {
+            "name": "includeUser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": ["true", "false"]
+            },
+            "description": "Include user information in payload"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sample payload retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookSamplePayloadV3"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/hooks/{hookId}/logs": {
+      "get": {
+        "summary": "Get webhook logs",
+        "operationId": "webhook-logs-v3",
+        "description": "Retrieve execution logs for a webhook.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The base ID"
+          },
+          {
+            "name": "hookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The webhook ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook logs retrieved successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookLogsResponseV3"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
+    },
+    "/api/v3/meta/bases/{baseId}/hooks/{hookId}/trigger/{rowId}": {
+      "post": {
+        "summary": "Trigger webhook",
+        "operationId": "webhook-trigger-v3",
+        "description": "Manually trigger a webhook for a specific row.",
+        "tags": [
+          "Webhooks"
+        ],
+        "parameters": [
+          {
+            "name": "baseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The base ID"
+          },
+          {
+            "name": "hookId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The webhook ID"
+          },
+          {
+            "name": "rowId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "The row ID"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Webhook triggered successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": {
+                      "type": "string",
+                      "example": "Hook triggered successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestV3"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFoundV3"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorV3"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -11162,6 +11652,456 @@
         },
         "message": {
           "type": "string"
+        }
+      }
+    },
+    "WebhookV3": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the webhook"
+        },
+        "title": {
+          "type": "string",
+          "description": "Webhook title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Webhook description"
+        },
+        "event": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["before", "after"]
+          },
+          "description": "Event types for the webhook"
+        },
+        "operation": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["insert", "update", "delete", "bulkInsert", "bulkUpdate", "bulkDelete"]
+          },
+          "description": "Operation types for the webhook"
+        },
+        "async": {
+          "type": "boolean",
+          "description": "Whether the webhook is asynchronous"
+        },
+        "retries": {
+          "type": "integer",
+          "description": "Number of retry attempts"
+        },
+        "retry_interval": {
+          "type": "integer",
+          "description": "Retry interval in milliseconds"
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Webhook timeout in milliseconds"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the webhook is active"
+        },
+        "notification": {
+          "$ref": "#/components/schemas/WebhookNotificationV3"
+        },
+        "condition": {
+          "type": "boolean",
+          "description": "Webhook condition"
+        },
+        "version": {
+          "type": "string",
+          "enum": ["v1", "v2"],
+          "description": "Webhook version"
+        },
+        "fk_model_id": {
+          "type": "string",
+          "description": "Associated table/model ID"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      }
+    },
+    "WebhookCreateV3": {
+      "type": "object",
+      "required": ["title", "event", "operation", "notification"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Webhook title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Webhook description"
+        },
+        "event": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["before", "after"]
+          },
+          "description": "Event types for the webhook"
+        },
+        "operation": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["insert", "update", "delete", "bulkInsert", "bulkUpdate", "bulkDelete"]
+          },
+          "description": "Operation types for the webhook"
+        },
+        "async": {
+          "type": "boolean",
+          "default": false,
+          "description": "Whether the webhook is asynchronous"
+        },
+        "retries": {
+          "type": "integer",
+          "default": 10,
+          "description": "Number of retry attempts"
+        },
+        "retry_interval": {
+          "type": "integer",
+          "default": 60000,
+          "description": "Retry interval in milliseconds"
+        },
+        "timeout": {
+          "type": "integer",
+          "default": 60000,
+          "description": "Webhook timeout in milliseconds"
+        },
+        "active": {
+          "type": "boolean",
+          "default": true,
+          "description": "Whether the webhook is active"
+        },
+        "notification": {
+          "$ref": "#/components/schemas/WebhookNotificationV3"
+        },
+        "condition": {
+          "type": "boolean",
+          "default": false,
+          "description": "Webhook condition"
+        },
+        "version": {
+          "type": "string",
+          "enum": ["v1", "v2"],
+          "default": "v2",
+          "description": "Webhook version"
+        }
+      }
+    },
+    "WebhookUpdateV3": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Webhook title"
+        },
+        "description": {
+          "type": "string",
+          "description": "Webhook description"
+        },
+        "event": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["before", "after"]
+          },
+          "description": "Event types for the webhook"
+        },
+        "operation": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["insert", "update", "delete", "bulkInsert", "bulkUpdate", "bulkDelete"]
+          },
+          "description": "Operation types for the webhook"
+        },
+        "async": {
+          "type": "boolean",
+          "description": "Whether the webhook is asynchronous"
+        },
+        "retries": {
+          "type": "integer",
+          "description": "Number of retry attempts"
+        },
+        "retry_interval": {
+          "type": "integer",
+          "description": "Retry interval in milliseconds"
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Webhook timeout in milliseconds"
+        },
+        "active": {
+          "type": "boolean",
+          "description": "Whether the webhook is active"
+        },
+        "notification": {
+          "$ref": "#/components/schemas/WebhookNotificationV3"
+        },
+        "condition": {
+          "type": "boolean",
+          "description": "Webhook condition"
+        },
+        "version": {
+          "type": "string",
+          "enum": ["v1", "v2"],
+          "description": "Webhook version"
+        }
+      }
+    },
+    "WebhookNotificationV3": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["URL", "Email", "Slack", "Discord", "Teams", "Mattermost"],
+          "description": "Notification type"
+        },
+        "payload": {
+          "type": "object",
+          "description": "Notification payload configuration",
+          "properties": {
+            "method": {
+              "type": "string",
+              "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"],
+              "description": "HTTP method for URL notifications"
+            },
+            "body": {
+              "type": "string",
+              "description": "Request body template"
+            },
+            "headers": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              },
+              "description": "HTTP headers"
+            },
+            "parameters": {
+              "type": "array",
+              "items": {
+                "type": "object"
+              },
+              "description": "URL parameters"
+            },
+            "auth": {
+              "type": "string",
+              "description": "Authentication configuration"
+            },
+            "path": {
+              "type": "string",
+              "description": "Webhook URL or notification endpoint"
+            }
+          }
+        }
+      }
+    },
+    "WebhookTestV3": {
+      "type": "object",
+      "required": ["notification"],
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Test webhook title"
+        },
+        "event": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["before", "after"]
+          },
+          "description": "Event types for the webhook"
+        },
+        "operation": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["insert", "update", "delete", "bulkInsert", "bulkUpdate", "bulkDelete"]
+          },
+          "description": "Operation types for the webhook"
+        },
+        "notification": {
+          "$ref": "#/components/schemas/WebhookNotificationV3"
+        },
+        "payload": {
+          "type": "object",
+          "description": "Test payload data",
+          "properties": {
+            "data": {
+              "type": "object",
+              "description": "Data payload"
+            },
+            "user": {
+              "type": "object",
+              "description": "User information"
+            }
+          }
+        }
+      }
+    },
+    "WebhookListResponseV3": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/WebhookV3"
+          },
+          "description": "List of webhooks"
+        },
+        "pageInfo": {
+          "$ref": "#/components/schemas/PaginationInfoV3"
+        }
+      }
+    },
+    "WebhookSamplePayloadV3": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Event type identifier"
+        },
+        "id": {
+          "type": "string",
+          "description": "Unique identifier"
+        },
+        "data": {
+          "type": "object",
+          "description": "Sample data payload",
+          "properties": {
+            "table_id": {
+              "type": "string",
+              "description": "Table ID"
+            },
+            "table_name": {
+              "type": "string",
+              "description": "Table name"
+            },
+            "view_id": {
+              "type": "string",
+              "description": "View ID"
+            },
+            "view_name": {
+              "type": "string",
+              "description": "View name"
+            }
+          }
+        },
+        "user": {
+          "type": "object",
+          "description": "User information",
+          "properties": {
+            "id": {
+              "type": "string",
+              "description": "User ID"
+            },
+            "email": {
+              "type": "string",
+              "description": "User email"
+            }
+          }
+        }
+      }
+    },
+    "WebhookLogV3": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Log entry ID"
+        },
+        "fk_hook_id": {
+          "type": "string",
+          "description": "Webhook ID"
+        },
+        "type": {
+          "type": "string",
+          "description": "Notification type"
+        },
+        "payload": {
+          "type": "string",
+          "description": "Request payload"
+        },
+        "response": {
+          "type": "string",
+          "description": "Response received"
+        },
+        "triggered_by": {
+          "type": "string",
+          "description": "User who triggered the webhook"
+        },
+        "test_call": {
+          "type": "boolean",
+          "description": "Whether this was a test call"
+        },
+        "execution_time": {
+          "type": "integer",
+          "description": "Execution time in milliseconds"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp"
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp"
+        }
+      }
+    },
+    "WebhookLogsResponseV3": {
+      "type": "object",
+      "properties": {
+        "list": {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/WebhookLogV3"
+          },
+          "description": "List of webhook logs"
+        },
+        "pageInfo": {
+          "$ref": "#/components/schemas/PaginationInfoV3"
+        }
+      }
+    },
+    "PaginationInfoV3": {
+      "type": "object",
+      "properties": {
+        "totalRows": {
+          "type": "integer",
+          "description": "Total number of rows"
+        },
+        "page": {
+          "type": "integer",
+          "description": "Current page number"
+        },
+        "pageSize": {
+          "type": "integer",
+          "description": "Number of items per page"
+        },
+        "isFirstPage": {
+          "type": "boolean",
+          "description": "Whether this is the first page"
+        },
+        "isLastPage": {
+          "type": "boolean",
+          "description": "Whether this is the last page"
         }
       }
     },

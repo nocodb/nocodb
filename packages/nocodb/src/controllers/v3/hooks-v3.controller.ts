@@ -1,11 +1,26 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { HookReqType, HookTestReqType } from 'nocodb-sdk';
+import type { HookType } from 'nocodb-sdk';
+import { NcError } from '~/helpers/ncError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { HooksService } from '~/services/hooks.service';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
-import { NcContext } from '~/interface/config';
+import { NcContext, NcRequest } from '~/interface/config';
 import { PREFIX_APIV3_METABASE } from '~/constants/controllers';
 
 @Controller()
@@ -22,5 +37,131 @@ export class HooksController {
     return new PagedResponseImpl(
       await this.hooksService.hookList(context, { tableId }),
     );
+  }
+
+  @Post(`${PREFIX_APIV3_METABASE}/tables/:tableId/hooks`)
+  @HttpCode(200)
+  @Acl('hookCreate')
+  async hookCreate(
+    @TenantContext() context: NcContext,
+    @Param('tableId') tableId: string,
+    @Body() body: HookReqType,
+    @Req() req: NcRequest,
+  ) {
+    const hook = await this.hooksService.hookCreate(context, {
+      hook: body,
+      tableId,
+      req,
+    });
+    return hook;
+  }
+
+
+  @Patch(`${PREFIX_APIV3_METABASE}/hooks/:hookId`)
+  @Acl('hookUpdate')
+  async hookUpdate(
+    @TenantContext() context: NcContext,
+    @Param('hookId') hookId: string,
+    @Body() body: HookReqType,
+    @Req() req: NcRequest,
+  ) {
+    return await this.hooksService.hookUpdate(context, {
+      hookId,
+      hook: body,
+      req,
+    });
+  }
+
+  @Delete(`${PREFIX_APIV3_METABASE}/hooks/:hookId`)
+  @Acl('hookDelete')
+  async hookDelete(
+    @TenantContext() context: NcContext,
+    @Param('hookId') hookId: string,
+    @Req() req: NcRequest,
+  ) {
+    return await this.hooksService.hookDelete(context, { hookId, req });
+  }
+
+  @Post(`${PREFIX_APIV3_METABASE}/tables/:tableId/hooks/test`)
+  @HttpCode(200)
+  @Acl('hookTest')
+  async hookTest(
+    @TenantContext() context: NcContext,
+    @Param('tableId') tableId: string,
+    @Body() body: HookTestReqType,
+    @Req() req: NcRequest,
+  ) {
+    try {
+      await this.hooksService.hookTest(context, {
+        hookTest: {
+          ...body,
+          payload: {
+            ...body.payload,
+            user: (req as any)?.user,
+          },
+        },
+        tableId,
+        req,
+      });
+      return { msg: 'The hook has been tested successfully' };
+    } catch (e) {
+      console.error(e);
+      NcError.get(context).webhookError(e.message);
+    }
+  }
+
+  @Get(`${PREFIX_APIV3_METABASE}/tables/:tableId/hooks/samplePayload/:event/:operation/:version`)
+  @Acl('tableSampleData')
+  async tableSampleData(
+    @TenantContext() context: NcContext,
+    @Param('tableId') tableId: string,
+    @Param('event') event: HookType['event'][number],
+    @Param('operation') operation: HookType['operation'][number],
+    @Param('version') version: HookType['version'],
+    @Query('includeUser') includeUser: string,
+  ) {
+    return await this.hooksService.tableSampleData(context, {
+      tableId,
+      event,
+      operation,
+      version,
+      includeUser: includeUser === 'true',
+    });
+  }
+
+  @Get(`${PREFIX_APIV3_METABASE}/hooks/:hookId/logs`)
+  @Acl('hookLogList')
+  async hookLogList(
+    @TenantContext() context: NcContext,
+    @Param('hookId') hookId: string,
+    @Req() req: NcRequest,
+  ) {
+    return new PagedResponseImpl(
+      await this.hooksService.hookLogList(context, {
+        query: req.query,
+        hookId,
+      }),
+      {
+        ...req.query,
+        count: await this.hooksService.hookLogCount(context, {
+          hookId,
+        }),
+      },
+    );
+  }
+
+  @Post(`${PREFIX_APIV3_METABASE}/hooks/:hookId/trigger/:rowId`)
+  @Acl('hookTrigger')
+  async hookTrigger(
+    @TenantContext() context: NcContext,
+    @Param('hookId') hookId: string,
+    @Param('rowId') rowId: string,
+    @Req() req: NcRequest,
+  ) {
+    return await this.hooksService.hookTrigger(context, {
+      hookId,
+      req,
+      rowId,
+    });
   }
 }

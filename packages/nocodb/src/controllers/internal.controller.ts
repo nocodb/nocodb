@@ -107,10 +107,7 @@ export class InternalController {
           view = await View.get(bypassContext, filter.fk_view_id);
         }
       } else if (req.query.sortId) {
-        const sort = await Sort.get(
-          bypassContext,
-          req.query.sortId as string,
-        );
+        const sort = await Sort.get(bypassContext, req.query.sortId as string);
         if (sort?.fk_view_id) {
           view = await View.get(bypassContext, sort.fk_view_id);
         }

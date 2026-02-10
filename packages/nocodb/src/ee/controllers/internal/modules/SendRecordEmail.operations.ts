@@ -1,15 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import {
-  isSystemColumn,
-  UITypes,
-  ColumnHelper,
-  RelationTypes,
-} from 'nocodb-sdk';
+import { ColumnHelper, isSystemColumn, UITypes } from 'nocodb-sdk';
 import type {
   ColumnType,
   LinkToAnotherRecordType,
   NcContext,
   NcRequest,
+  RelationTypes,
   TableType,
 } from 'nocodb-sdk';
 import type { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
@@ -127,7 +123,9 @@ export class SendRecordEmailOperations
 
     if (invalidEmails.length > 0) {
       NcError.get(context).badRequest(
-        `The following email(s) are not members of this base: ${invalidEmails.join(', ')}`,
+        `The following email(s) are not members of this base: ${invalidEmails.join(
+          ', ',
+        )}`,
       );
     }
 
@@ -253,7 +251,8 @@ export class SendRecordEmailOperations
           col.uidt === UITypes.Links ||
           col.uidt === UITypes.LinkToAnotherRecord
         ) {
-          relationType = (col.colOptions as LinkToAnotherRecordType)?.type as RelationTypes;
+          relationType = (col.colOptions as LinkToAnotherRecordType)
+            ?.type as RelationTypes;
         }
 
         transformedData.push({

@@ -391,7 +391,7 @@ const permissionScopes = {
     'baseAuditList',
 
     // Send record email
-    'sendRecordEmail'
+    'sendRecordEmail',
   ],
 };
 

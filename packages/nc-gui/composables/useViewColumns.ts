@@ -52,9 +52,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { isUserViewOwner } = useViewsStore()
 
-    const isPersonalViewOwner = computed(
-      () => view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value),
-    )
+    const isPersonalViewOwner = computed(() => view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value))
 
     const canEditViewFields = computed(() => {
       if (isUIAllowed('viewFieldEdit')) return true

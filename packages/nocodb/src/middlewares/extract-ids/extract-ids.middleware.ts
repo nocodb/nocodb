@@ -205,7 +205,11 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
         // if view API and view is personal view then check if user has access to view
         // Check if it's a View (not a Model) by checking for lock_type property
-        if (view && 'lock_type' in view && view.lock_type === ViewLockType.Personal) {
+        if (
+          view &&
+          'lock_type' in view &&
+          view.lock_type === ViewLockType.Personal
+        ) {
           req[VIEW_KEY] = view;
         }
       } else if (

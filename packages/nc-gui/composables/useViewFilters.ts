@@ -3,8 +3,8 @@ import {
   type FilterType,
   type LinkToAnotherRecordType,
   type LookupType,
-  type ViewType,
   ViewLockType,
+  type ViewType,
   getEquivalentUIType,
   isDateType,
   parseProp,
@@ -412,11 +412,7 @@ export function useViewFilters(
     }
 
     if (!view.value?.id || !meta.value) return
-    if (
-      (nestedMode.value && (isTemp.value || !canListFilterChildren.value)) ||
-      (isForm.value && !isWebhook) ||
-      isWorkflow
-    ) {
+    if ((nestedMode.value && (isTemp.value || !canListFilterChildren.value)) || (isForm.value && !isWebhook) || isWorkflow) {
       // ignore restoring if not root filter group
       return
     }

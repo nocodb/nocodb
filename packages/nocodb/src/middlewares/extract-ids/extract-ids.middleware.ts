@@ -1163,6 +1163,7 @@ export class AclMiddleware implements NestInterceptor {
       'sortUpdate',
       'sortDelete',
       'columnList',
+      'viewUpdate',
       'viewColumnUpdate',
       'viewColumnCreate',
       'hideAllColumns',

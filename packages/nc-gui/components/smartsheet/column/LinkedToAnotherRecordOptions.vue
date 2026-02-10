@@ -470,7 +470,7 @@ const handleScrollIntoView = () => {
     <div class="flex flex-col gap-4">
       <a-form-item :label="$t('labels.relationType')" class="nc-ltar-relation-type">
         <a-radio-group v-model:value="linkType" name="type" :disabled="isEdit" class="w-full">
-          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord">
+          <template v-if="vModel.uidt === UITypes.LinkToAnotherRecord && isLtarV2Enabled">
             <a-row :gutter="[8, 8]">
               <a-col :span="12">
                 <a-radio value="mm" data-testid="Many to Many">

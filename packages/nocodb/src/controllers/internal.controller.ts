@@ -100,6 +100,9 @@ export class InternalController {
       // Extract view based on the operation parameters
       if (req.query.viewId) {
         view = await View.get(bypassContext, req.query.viewId as string);
+      } else if (req.body?.fk_view_id) {
+        // For create operations (filterCreate, sortCreate, etc.) where viewId is in body
+        view = await View.get(bypassContext, req.body.fk_view_id);
       } else if (req.query.filterId) {
         const filter = await Filter.get(
           bypassContext,

@@ -117,9 +117,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const colOptions = computed(() => column.value?.colOptions as LinkToAnotherRecordType)
 
-    const type = computed(() =>
-      isLinkV2(column.value) ? 'ln' : (colOptions.value?.type as RelationTypes)
-    )
+    const type = computed(() => (isLinkV2(column.value) ? 'ln' : (colOptions.value?.type as RelationTypes)))
 
     const isSingleTargetRelation = computed(() => {
       return (
@@ -556,9 +554,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           // compare all keys and values
           childrenExcludedList.value.list.forEach((row: any, index: number) => {
             const found = (
-              isSingleTargetRelation.value
-                ? [activeState[column.value.title]]
-                : activeState[column.value.title]
+              isSingleTargetRelation.value ? [activeState[column.value.title]] : activeState[column.value.title]
             ).find((a: any) => {
               let isSame = true
 

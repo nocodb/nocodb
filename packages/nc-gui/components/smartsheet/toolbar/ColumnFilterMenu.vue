@@ -315,7 +315,7 @@ watch(
                   class="nc-table-toolbar-menu !pl-2 !w-full"
                   :model-value="existingFilters"
                   :auto-save="false"
-                  :is-view-filter="!isPersonalViewNonOwner"
+                  :is-view-filter="!isPersonalViewNonOwner && !isLocked"
                   read-only
                   @update:filters-length="filtersLength = $event || 0"
                 >
@@ -338,7 +338,7 @@ watch(
             >
             </SmartsheetToolbarColumnFilter>
           </template>
-          <GeneralLockedViewFooter v-if="isPersonalViewNonOwner" @on-open="open = false" />
+          <GeneralLockedViewFooter v-if="isLocked || isPersonalViewNonOwner" @on-open="open = false" />
         </template>
         <template v-if="filtersFromUrlParams">
           <a-divider class="!my-1" />

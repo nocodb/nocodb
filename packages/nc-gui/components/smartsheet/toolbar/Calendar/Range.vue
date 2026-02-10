@@ -17,13 +17,16 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { loadViewColumns } = useViewColumnsOrThrow()
+const { loadViewColumns, canUpdateViewMeta } = useViewColumnsOrThrow()
 
 const viewStore = useViewsStore()
 
 const { updateViewMeta } = viewStore
 
 const { loadCalendarData, loadSidebarData, fetchActiveDates, viewMetaProperties } = useCalendarViewStoreOrThrow()
+
+// Check if user can update calendar settings based on role OR personal view ownership
+const isRestrictedEditor = computed(() => isLocked.value && !canUpdateViewMeta.value)
 
 const calendarRangeDropdown = ref(false)
 
@@ -197,7 +200,7 @@ const onValueChange = async () => {
         size="small"
         type="secondary"
         data-testid="nc-calendar-range-btn"
-        :show-as-disabled="isLocked"
+        :show-as-disabled="isRestrictedEditor"
       >
         <div class="flex items-center gap-2">
           <component :is="iconMap.calendar" class="h-4 w-4" />
@@ -226,7 +229,7 @@ const onValueChange = async () => {
             dropdown-class-name="!rounded-lg"
             :placeholder="$t('placeholder.notSelected')"
             data-testid="nc-calendar-range-from-field-select"
-            :disabled="isLocked"
+            :disabled="isRestrictedEditor"
             @change="
               () => {
                 onValueChange()
@@ -274,7 +277,7 @@ const onValueChange = async () => {
                   data-testid="nc-calendar-range-add-end-date"
                   type="text"
                   :shadow="false"
-                  :disabled="isLocked"
+                  :disabled="isRestrictedEditor"
                   @click="
                     click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, () => {
                       range.fk_to_column_id = undefined
@@ -361,7 +364,7 @@ const onValueChange = async () => {
         </div>
 
         <div>
-          <NcSwitch v-model:checked="showWeekends" :disabled="isLocked">
+          <NcSwitch v-model:checked="showWeekends" :disabled="isRestrictedEditor">
             <span class="text-nc-content-gray font-semibold">
               {{ $t('activity.showSaturdaysAndSundays') }}
             </span>
@@ -371,7 +374,7 @@ const onValueChange = async () => {
         <!--
         <div class="text-[13px] text-nc-content-gray-muted py-2">Records in this view will be based on the specified date field.</div>
 -->
-        <GeneralLockedViewFooter v-if="isLocked" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
+        <GeneralLockedViewFooter v-if="isRestrictedEditor" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
       </div>
     </template>
   </NcDropdown>

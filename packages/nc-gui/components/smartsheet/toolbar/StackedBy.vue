@@ -18,13 +18,16 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow(activeView, meta)
+const { fields, loadViewColumns, metaColumnById, canUpdateViewMeta } = useViewColumnsOrThrow(activeView, meta)
 
 const { kanbanMetaData, updateKanbanMeta, groupingField } = useKanbanViewStoreOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
 const open = ref(false)
+
+// Check if user can update kanban settings based on role OR personal view ownership
+const isRestrictedEditor = computed(() => isLocked.value && !canUpdateViewMeta.value)
 
 useMenuCloseOnEsc(open)
 
@@ -137,7 +140,7 @@ const handleChange = () => {
         class="nc-kanban-stacked-by-menu-btn nc-toolbar-btn !border-0 !h-7 group"
         size="small"
         type="secondary"
-        :show-as-disabled="isLocked"
+        :show-as-disabled="isRestrictedEditor"
       >
         <div class="flex items-center gap-2">
           <GeneralIcon icon="settings" class="h-4 w-4" />
@@ -148,7 +151,7 @@ const handleChange = () => {
             <div
               class="flex items-center rounded-md transition-colors duration-0.3s bg-nc-bg-gray-light px-1 min-h-5 max-w-[108px]"
               :class="{
-                'group-hover:bg-nc-bg-gray-medium': !isLocked,
+                'group-hover:bg-nc-bg-gray-medium': !isRestrictedEditor,
               }"
             >
               <span class="!text-[13px] font-medium truncate !leading-5">{{ groupingField }}</span>
@@ -171,7 +174,7 @@ const handleChange = () => {
                 class="nc-select-shadow w-full nc-kanban-grouping-field-select !rounded-lg"
                 dropdown-class-name="!rounded-lg"
                 placeholder="Select a Grouping Field"
-                :disabled="isLocked"
+                :disabled="isRestrictedEditor"
                 @change="handleChange"
                 @click.stop
               >
@@ -210,7 +213,7 @@ const handleChange = () => {
             size="small"
             class="nc-switch"
             :loading="isLoading === 'hideEmptyStack'"
-            :disabled="isLocked"
+            :disabled="isRestrictedEditor"
           >
             <div class="text-sm text-nc-content-gray">
               {{ $t('general.hide') }}
@@ -219,7 +222,7 @@ const handleChange = () => {
             </div>
           </NcSwitch>
         </div>
-        <GeneralLockedViewFooter v-if="isLocked" class="-mb-4 -mx-4" @on-open="open = false" />
+        <GeneralLockedViewFooter v-if="isRestrictedEditor" class="-mb-4 -mx-4" @on-open="open = false" />
       </div>
     </template>
   </NcDropdown>

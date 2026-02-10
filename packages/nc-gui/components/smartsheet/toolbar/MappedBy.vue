@@ -13,9 +13,12 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const IsPublic = inject(IsPublicInj, ref(false))
 
-const { fields, loadViewColumns, metaColumnById } = useViewColumnsOrThrow()
+const { fields, loadViewColumns, metaColumnById, canUpdateViewMeta } = useViewColumnsOrThrow()
 
 const { loadMapData, loadMapMeta, updateMapMeta, mapMetaData, geoDataFieldColumn } = useMapViewStoreOrThrow()
+
+// Check if user can update map settings based on role OR personal view ownership
+const isRestrictedEditor = computed(() => isLocked.value && !canUpdateViewMeta.value)
 
 const mappedByDropdown = ref(false)
 
@@ -63,7 +66,7 @@ const handleChange = () => {
 <template>
   <a-dropdown v-if="!IsPublic" v-model:visible="mappedByDropdown" :trigger="['click']" class="!xs:hidden">
     <div class="nc-map-btn">
-      <a-button v-e="['c:map:change-grouping-field']" class="nc-map-stacked-by-menu-btn nc-toolbar-btn" :disabled="isLocked">
+      <a-button v-e="['c:map:change-grouping-field']" class="nc-map-stacked-by-menu-btn nc-toolbar-btn" :disabled="isRestrictedEditor">
         <div class="flex items-center gap-1">
           <mdi-arrow-down-drop-circle-outline />
           <span class="text-capitalize !text-sm font-weight-normal">

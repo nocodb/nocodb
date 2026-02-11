@@ -713,10 +713,9 @@ watch(
           />
 
           <!-- Child views of this section -->
-          <template v-if="expandedSections[item.id]">
+          <template v-for="view of getViewsInSection(item.id)" :key="view.id">
             <DashboardTreeViewViewsNode
-              v-for="view of getViewsInSection(item.id)"
-              :key="view.id"
+              v-if="expandedSections[item.id] || activeView?.id === view.id"
               :data-id="view.id"
               :data-order="view.order"
               :data-title="view.title"

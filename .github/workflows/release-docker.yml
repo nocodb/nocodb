@@ -63,18 +63,23 @@ jobs:
           version: 9
       - name: Get Docker Repository
         id: get-docker-repository
+        env:
+          INPUT_TAG: ${{ github.event.inputs.tag || inputs.tag }}
+          INPUT_TARGET_ENV: ${{ github.event.inputs.targetEnv || inputs.targetEnv }}
+          INPUT_CURRENT_VERSION: ${{ github.event.inputs.currentVersion || inputs.currentVersion || 'N/A' }}
+          INPUT_IS_DAILY: ${{ inputs.isDaily || 'N' }}
         run: |
           DOCKER_REPOSITORY=nocodb
-          DOCKER_BUILD_TAG=${{ github.event.inputs.tag || inputs.tag }}
+          DOCKER_BUILD_TAG="$INPUT_TAG"
           DOCKER_BUILD_LATEST_TAG=latest
           if [[ "$DOCKER_BUILD_TAG" =~ "-beta." ]]; then
-            DOCKER_BUILD_LATEST_TAG=$(echo $DOCKER_BUILD_TAG | awk -F '-beta.' '{print $1}')-beta.latest
+            DOCKER_BUILD_LATEST_TAG=$(echo "$DOCKER_BUILD_TAG" | awk -F '-beta.' '{print $1}')-beta.latest
           fi
-          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
-            if [[ ${{ github.event.inputs.currentVersion || inputs.currentVersion || 'N/A' }} != 'N/A' ]]; then
-              DOCKER_BUILD_TAG=${{ github.event.inputs.currentVersion || inputs.currentVersion }}-${{ github.event.inputs.tag || inputs.tag }}
+          if [[ "$INPUT_TARGET_ENV" == 'DEV' ]]; then
+            if [[ "$INPUT_CURRENT_VERSION" != 'N/A' ]]; then
+              DOCKER_BUILD_TAG="${INPUT_CURRENT_VERSION}-${INPUT_TAG}"
             fi
-            if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then
+            if [[ "$INPUT_IS_DAILY" == 'Y' ]]; then
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
             else
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
@@ -83,9 +88,6 @@ jobs:
           echo "DOCKER_REPOSITORY=${DOCKER_REPOSITORY}" >> $GITHUB_OUTPUT
           echo "DOCKER_BUILD_TAG=${DOCKER_BUILD_TAG}" >> $GITHUB_OUTPUT
           echo "DOCKER_BUILD_LATEST_TAG=${DOCKER_BUILD_LATEST_TAG}" >> $GITHUB_OUTPUT
-          echo DOCKER_REPOSITORY: ${DOCKER_REPOSITORY}
-          echo DOCKER_BUILD_TAG: ${DOCKER_BUILD_TAG}
-          echo DOCKER_BUILD_LATEST_TAG: ${DOCKER_BUILD_LATEST_TAG}
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -93,34 +95,40 @@ jobs:
           fetch-depth: 1
           ref: ${{ github.ref }}
 
-      - name: Use Node.js ${{ matrix.node-version }}
+      - name: Use Node.js 22.12.0
         uses: actions/setup-node@v3
         with:
           node-version: 22.12.0
 
       - name: upgrade packages for nightly build or pr build
         if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
+        env:
+          TARGET_ENV: ${{ github.event.inputs.targetEnv || inputs.targetEnv }}
+          TARGET_VERSION: ${{ github.event.inputs.tag || inputs.tag }}
         run: |
           export NODE_OPTIONS="--max_old_space_size=16384"
           NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
+          targetEnv="$TARGET_ENV" targetVersion="$TARGET_VERSION" node scripts/bumpNocodbSdkVersion.js &&
           pnpm --filter=${NOCODB_SDK_PKG_NAME} install --ignore-scripts --no-frozen-lockfile --ignore-workspace && pnpm --filter=${NOCODB_SDK_PKG_NAME} run build &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNcGuiVersion.js &&
+          targetEnv="$TARGET_ENV" node scripts/upgradeNocodbSdk.js &&
+          targetEnv="$TARGET_ENV" targetVersion="$TARGET_VERSION" node scripts/bumpNcGuiVersion.js &&
           pnpm --filter=nc-gui install --ignore-scripts --no-frozen-lockfile &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} pnpm --filter=nc-gui run build:copy &&
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
+          targetEnv="$TARGET_ENV" targetVersion="$TARGET_VERSION" pnpm --filter=nc-gui run build:copy &&
+          targetEnv="$TARGET_ENV" node scripts/upgradeNcGui.js
 
       - name: Build nocodb integrations
         working-directory: ${{ env.working-directory }}
+        env:
+          TARGET_ENV: ${{ github.event.inputs.targetEnv || inputs.targetEnv }}
+          TARGET_VERSION: ${{ github.event.inputs.tag || inputs.tag }}
         run: |
           cd ../noco-integrations/core
           # extract nocodb-sdk or nocodbsdk-daily package name based on env
           NOCODB_SDK_PKG_NAME=nocodb-sdk
-          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
+          if [[ "$TARGET_ENV" == 'DEV' ]]; then
             NOCODB_SDK_PKG_NAME=nocodb-sdk-daily
           fi
-          pnpm install ${NOCODB_SDK_PKG_NAME}@${{ github.event.inputs.tag || inputs.tag }}
+          pnpm install "${NOCODB_SDK_PKG_NAME}@${TARGET_VERSION}"
           cd ../../..
           pnpm run integrations:build && pnpm run registerIntegrations
 

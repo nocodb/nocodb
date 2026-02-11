@@ -1961,13 +1961,10 @@ export default class View implements ViewType {
       view_columns.unshift(...temp_pv);
     }
 
-    // Update order values in memory
-    view_columns.forEach((col, index) => {
-      col.order = index + 1;
-    });
-
     // Prepare parallel order updates
-    view_columns.forEach((col) => {
+    view_columns.forEach((col, index) => {
+      // Update order values in memory
+      col.order = index + 1;
       const updateObj = {
         order: col.order,
         ...(col.order === 1 ? { show: true } : {}),

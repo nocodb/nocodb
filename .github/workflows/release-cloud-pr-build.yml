@@ -22,7 +22,7 @@ concurrency:
 
 jobs:
   cloud-docker-build:
-    if: ${{ github.event.label.name == 'trigger-dev-env' || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'trigger-dev-env')) }}
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'trigger-dev-env') }}
     runs-on: [k8s-builders]
     env:
       working-directory: ./packages/nocodb

@@ -70,18 +70,11 @@ export class RedisRateLimiter extends AbstractRateLimiter {
   }
 
   /**
-   * Executes the handler function with rate limiting applied
-   * Uses Redis to store rate limit state and Redlock for distributed locking
-   *
-   * @param handle - Function to execute if rate limit is not exceeded
-   * @param key - Rate limit key (string or function returning string)
-   * @returns Result of the handler function
-   * @throws NcError.rateLimitReached if rate limit is exceeded
+   * validate if given key can execute
+   * @param key key to validate execution
+   * @returns true if valid to execute, otherwise throws error
    */
-  async withRateLimited<T>(
-    handle: () => Promise<T>,
-    key: string | (() => string),
-  ): Promise<T> {
+  async validate(key: string | (() => string)): Promise<boolean> {
     const { maxHit, intervalMs, blockDurationMs } = this.config;
     const rateLimitKey = typeof key === 'string' ? key : key();
 
@@ -112,7 +105,6 @@ export class RedisRateLimiter extends AbstractRateLimiter {
     if (allowed === 0) {
       throw NcError.get().rateLimitReached();
     }
-
-    return handle();
+    return true;
   }
 }

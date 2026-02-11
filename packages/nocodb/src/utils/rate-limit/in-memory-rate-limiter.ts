@@ -13,10 +13,7 @@ const rateLimitMap: Record<string, RateLimitState> = {};
 export class InMemoryRateLimiter extends AbstractRateLimiter {
   protected config: RateLimitConfig;
 
-  async withRateLimited<T>(
-    handle: () => Promise<T>,
-    key: string | (() => string),
-  ): Promise<T> {
+  async validate(key: string | (() => string)): Promise<boolean> {
     const { maxHit, intervalMs, blockDurationMs } = this.config;
     const rateLimitKey = typeof key === 'string' ? key : key();
     const now = Date.now();
@@ -48,7 +45,6 @@ export class InMemoryRateLimiter extends AbstractRateLimiter {
     }
 
     state.hits += 1;
-
-    return handle();
+    return true;
   }
 }

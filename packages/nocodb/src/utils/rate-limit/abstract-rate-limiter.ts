@@ -9,8 +9,5 @@ export abstract class AbstractRateLimiter {
     this.config = config;
   }
   protected config: RateLimitConfig;
-  abstract withRateLimited<T>(
-    handle: () => Promise<T>,
-    key: string | (() => string),
-  ): Promise<T>;
+  abstract validate(key: string | (() => string)): Promise<boolean>;
 }

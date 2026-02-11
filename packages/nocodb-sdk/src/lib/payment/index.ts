@@ -71,6 +71,7 @@ export enum PlanFeatureTypes {
   FEATURE_CARD_FIELD_HEADER_VISIBILITY = 'feature_card_field_header_visibility',
   FEATURE_SYNC = 'feature_sync',
   FEATURE_UNIQUE = 'feature_unique',
+  FEATURE_UNRATED_INVITE = 'feature_unrated_invite',
 }
 
 export enum PlanTitles {
@@ -289,6 +290,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to hide field headers in Gallery and Kanban views.',
   [PlanFeatureTypes.FEATURE_SYNC]: 'to use sync feature.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
+  [PlanFeatureTypes.FEATURE_UNRATED_INVITE]:
+    'to send invites without rate limited.',
 };
 
 export const getUpgradeMessage = (

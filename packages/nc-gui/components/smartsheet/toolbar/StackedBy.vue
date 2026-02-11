@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { KanbanType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, ViewLockType } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 provide(IsKanbanInj, ref(true))
@@ -28,6 +28,11 @@ const open = ref(false)
 
 // Check if user can update kanban settings based on role OR personal view ownership
 const isRestrictedEditor = computed(() => isLocked.value && !canUpdateViewMeta.value)
+
+// Show locked footer for locked views OR personal views not owned by current user
+const shouldShowLockedFooter = computed(
+  () => isLocked.value || (activeView.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(activeView.value)),
+)
 
 useMenuCloseOnEsc(open)
 
@@ -222,7 +227,7 @@ const handleChange = () => {
             </div>
           </NcSwitch>
         </div>
-        <GeneralLockedViewFooter v-if="isLocked" class="-mb-4 -mx-4" @on-open="open = false" />
+        <GeneralLockedViewFooter v-if="shouldShowLockedFooter" class="-mb-4 -mx-4" @on-open="open = false" />
       </div>
     </template>
   </NcDropdown>

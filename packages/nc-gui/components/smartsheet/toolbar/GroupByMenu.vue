@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, ViewSettingOverrideOptions, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { RelationTypes, UITypes, ViewLockType, ViewSettingOverrideOptions, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
@@ -23,6 +23,11 @@ const { $e } = useNuxtApp()
 
 // Check if user can update group by based on role OR personal view ownership
 const isRestrictedEditor = computed(() => isLocked.value && !canUpdateViewMeta.value)
+
+// Show locked footer for locked views OR personal views not owned by current user
+const shouldShowLockedFooter = computed(
+  () => isLocked.value || (view.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(view.value)),
+)
 
 interface Group {
   fk_column_id?: string
@@ -393,7 +398,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
           </div>
         </div>
         <GeneralLockedViewFooter
-          v-if="isLocked"
+          v-if="shouldShowLockedFooter"
           :class="{
             '-mt-2': _groupBy.length,
           }"

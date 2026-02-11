@@ -1,5 +1,13 @@
 <script lang="ts" setup>
-import { type CalendarRangeType, FormulaDataTypes, PlanFeatureTypes, PlanTitles, UITypes, ViewTypes } from 'nocodb-sdk'
+import {
+  type CalendarRangeType,
+  FormulaDataTypes,
+  PlanFeatureTypes,
+  PlanTitles,
+  UITypes,
+  ViewLockType,
+  ViewTypes,
+} from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())
@@ -27,6 +35,11 @@ const { loadCalendarData, loadSidebarData, fetchActiveDates, viewMetaProperties 
 
 // Check if user can update calendar settings based on role OR personal view ownership
 const isRestrictedEditor = computed(() => isLocked.value && !canUpdateViewMeta.value)
+
+// Show locked footer for locked views OR personal views not owned by current user
+const shouldShowLockedFooter = computed(
+  () => isLocked.value || (activeView.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(activeView.value)),
+)
 
 const calendarRangeDropdown = ref(false)
 
@@ -374,7 +387,7 @@ const onValueChange = async () => {
         <!--
         <div class="text-[13px] text-nc-content-gray-muted py-2">Records in this view will be based on the specified date field.</div>
 -->
-        <GeneralLockedViewFooter v-if="isLocked" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
+        <GeneralLockedViewFooter v-if="shouldShowLockedFooter" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
       </div>
     </template>
   </NcDropdown>

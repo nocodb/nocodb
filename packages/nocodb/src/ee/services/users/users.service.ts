@@ -30,6 +30,7 @@ import type { BaseType, MetaType, SignUpReqType, UserType } from 'nocodb-sdk';
 import type { AppConfig, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
 import { T } from '~/utils';
+import { normalizeEmail } from '~/utils/emailUtils';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -295,7 +296,7 @@ export class UsersService extends UsersServiceCE {
       NcError.badRequest(`Invalid email`);
     }
 
-    const email = _email.toLowerCase();
+    const email = normalizeEmail(_email);
 
     this.validateEmailPattern(email);
 

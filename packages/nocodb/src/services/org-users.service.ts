@@ -16,6 +16,7 @@ import { validatePayload } from '~/helpers';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
+import { normalizeEmail } from '~/utils/emailUtils';
 import { BaseUser, PresignedUrl, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
@@ -135,9 +136,9 @@ export class OrgUsersService {
 
     // extract emails from request body
     const emails = (param.user.email || '')
-      .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim());
+      .map((v) => normalizeEmail(v.trim()))
+      .filter(Boolean);
 
     // check for invalid emails
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));

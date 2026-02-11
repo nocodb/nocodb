@@ -20,6 +20,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { randomTokenString } from '~/helpers/stringHelpers';
 import { Base, BaseUser, User, Workspace, WorkflowSubscriber } from '~/models';
+import { normalizeEmail } from '~/utils/emailUtils';
 import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
@@ -108,9 +109,9 @@ export class BaseUsersService extends BaseUsersServiceCE {
     }
 
     const emails = (param.baseUser.email || '')
-      .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim());
+      .map((v) => normalizeEmail(v.trim()))
+      .filter(Boolean);
 
     // check for invalid emails
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));

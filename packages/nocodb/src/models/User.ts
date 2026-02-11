@@ -20,6 +20,7 @@ import {
 } from '~/utils/globals';
 import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { normalizeEmail } from '~/utils/emailUtils';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 
 export default class User implements UserType {
@@ -83,7 +84,7 @@ export default class User implements UserType {
     }
 
     if (insertObj.email) {
-      insertObj.email = insertObj.email.toLowerCase();
+      insertObj.email = normalizeEmail(insertObj.email);
     }
 
     const { id } = await ncMeta.metaInsert2(
@@ -128,7 +129,7 @@ export default class User implements UserType {
     ]);
 
     if (updateObj.email) {
-      updateObj.email = updateObj.email.toLowerCase();
+      updateObj.email = normalizeEmail(updateObj.email);
 
       // check if the target email addr is in use or not
       const targetUser = await this.getByEmail(updateObj.email, ncMeta);
@@ -161,7 +162,7 @@ export default class User implements UserType {
   }
 
   public static async getByEmail(_email: string, ncMeta = Noco.ncMeta) {
-    const email = _email?.toLowerCase();
+    const email = _email ? normalizeEmail(_email) : _email;
     let user =
       email &&
       (await NocoCache.get(

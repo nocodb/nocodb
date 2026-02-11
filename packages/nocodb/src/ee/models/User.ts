@@ -18,6 +18,7 @@ import {
 } from '~/utils/globals';
 import { Base, BaseUser, OrgUser, WorkspaceUser } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { normalizeEmail } from '~/utils/emailUtils';
 import { mapWorkspaceRolesObjToProjectRolesObj } from '~/utils/roleHelper';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 import { extractUserTeamRoles } from '~/utils/team-role-extractor';
@@ -65,7 +66,7 @@ export default class User extends UserCE implements UserType {
     }
 
     if (insertObj.email) {
-      insertObj.email = insertObj.email.toLowerCase();
+      insertObj.email = normalizeEmail(insertObj.email);
     }
 
     const { id } = await ncMeta.metaInsert2(
@@ -112,7 +113,7 @@ export default class User extends UserCE implements UserType {
     }
 
     if (updateObj.email) {
-      updateObj.email = updateObj.email.toLowerCase();
+      updateObj.email = normalizeEmail(updateObj.email);
 
       // check if the target email addr is in use or not
       const targetUser = await this.getByEmail(updateObj.email, ncMeta);

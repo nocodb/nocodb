@@ -46,6 +46,7 @@ import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { normalizeEmail } from '~/utils/emailUtils';
 import { MailService } from '~/services/mail/mail.service';
 import { UsersService } from '~/services/users/users.service';
 import NocoSocket from '~/socket/NocoSocket';
@@ -557,9 +558,9 @@ export class WorkspaceUsersService {
     }
 
     const emails = (email || '')
-      .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => v.trim());
+      .map((v) => normalizeEmail(v.trim()))
+      .filter(Boolean);
 
     // check for invalid emails
     const invalidEmails = emails.filter((v) => !validator.isEmail(v));

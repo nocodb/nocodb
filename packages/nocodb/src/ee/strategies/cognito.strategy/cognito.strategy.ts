@@ -12,6 +12,7 @@ import { UsersService } from '~/services/users/users.service';
 import { User } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { isDisposableEmail } from '~/helpers';
+import { normalizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
@@ -43,14 +44,20 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
         });
 
         const payload = await verifier.verify(req.headers['xc-cognito']);
-        const email = (payload as any)['email']?.toLowerCase();
+        const rawEmail = (payload as any)['email']?.toLowerCase();
 
-        if (!email) {
+        if (!rawEmail) {
           return callback('Invalid token');
         }
 
-        if (/\+/.test(email.split('@')[0])) {
-          return callback(new Error("Emails with '+' are not allowed"));
+        const email = normalizeEmail(rawEmail);
+
+        if (email !== rawEmail) {
+          return callback(
+            new Error(
+              'Email aliases are not allowed. Please use your primary email address.',
+            ),
+          );
         }
 
         // check if email is disposable and throw error

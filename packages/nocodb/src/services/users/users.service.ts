@@ -14,6 +14,7 @@ import type {
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
+import { normalizeEmail } from '~/utils/emailUtils';
 import { isEE, T } from '~/utils';
 import { genJwt, setTokenCookie } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -53,7 +54,7 @@ export class UsersService {
   }
 
   async findOne(_email: string) {
-    const email = _email.toLowerCase();
+    const email = normalizeEmail(_email);
     const user = await this.metaService.metaGet(
       RootScopes.ROOT,
       RootScopes.ROOT,
@@ -87,7 +88,7 @@ export class UsersService {
       MetaTable.USERS,
       {
         ...param,
-        email: param.email?.toLowerCase(),
+        email: param.email ? normalizeEmail(param.email) : undefined,
       },
     );
   }
@@ -269,7 +270,7 @@ export class UsersService {
       NcError.badRequest('Please enter your email address.');
     }
 
-    const email = _email.toLowerCase();
+    const email = normalizeEmail(_email);
     const user = await User.getByEmail(email);
 
     if (user) {
@@ -499,7 +500,7 @@ export class UsersService {
       NcError.badRequest(`Invalid email`);
     }
 
-    const email = _email.toLowerCase();
+    const email = normalizeEmail(_email);
 
     this.validateEmailPattern(email);
 

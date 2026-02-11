@@ -20,6 +20,7 @@ import {
 } from '~/utils/globals';
 import { Base, BaseUser, PresignedUrl, UserRefreshToken } from '~/models';
 import { sanitiseUserObj } from '~/utils';
+import { normalizeEmail } from '~/utils/emailUtils';
 import { parseMetaProp, prepareForDb } from '~/utils/modelUtils';
 
 export default class User implements UserType {
@@ -46,6 +47,7 @@ export default class User implements UserType {
   blocked_reason?: string;
 
   is_new_user?: boolean;
+  canonical_email?: string;
 
   deleted_at?: Date;
   is_deleted?: boolean;
@@ -63,6 +65,7 @@ export default class User implements UserType {
     const insertObj = extractProps(user, [
       'id',
       'email',
+      'canonical_email',
       'password',
       'salt',
       'invite_token',
@@ -84,6 +87,7 @@ export default class User implements UserType {
 
     if (insertObj.email) {
       insertObj.email = insertObj.email.toLowerCase();
+      insertObj.canonical_email = normalizeEmail(insertObj.email);
     }
 
     const { id } = await ncMeta.metaInsert2(
@@ -111,6 +115,7 @@ export default class User implements UserType {
   public static async update(id, user: Partial<User>, ncMeta = Noco.ncMeta) {
     const updateObj = extractProps(user, [
       'email',
+      'canonical_email',
       'password',
       'salt',
       'invite_token',
@@ -129,10 +134,20 @@ export default class User implements UserType {
 
     if (updateObj.email) {
       updateObj.email = updateObj.email.toLowerCase();
+      updateObj.canonical_email = normalizeEmail(updateObj.email);
 
       // check if the target email addr is in use or not
       const targetUser = await this.getByEmail(updateObj.email, ncMeta);
       if (targetUser && targetUser.id !== id) {
+        NcError.badRequest('email is in use');
+      }
+
+      // check if a user with the same canonical email already exists
+      const canonicalUser = await this.getByCanonicalEmail(
+        updateObj.email,
+        ncMeta,
+      );
+      if (canonicalUser && canonicalUser.id !== id) {
         NcError.badRequest('email is in use');
       }
     } else {
@@ -184,6 +199,52 @@ export default class User implements UserType {
       }
 
       await NocoCache.set('root', `${CacheScope.USER}:${email}`, user);
+    }
+
+    if (user?.is_deleted) {
+      return null;
+    }
+
+    return this.castType(user);
+  }
+
+  /**
+   * Look up a user by canonical (normalized) email.
+   * Normalizes the input so any alias variant finds the right user.
+   */
+  public static async getByCanonicalEmail(
+    _email: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    if (!_email || _email === '') return null;
+
+    const canonical = normalizeEmail(_email);
+    let user =
+      canonical &&
+      (await NocoCache.get(
+        'root',
+        `${CacheScope.USER}:canonical:${canonical}`,
+        CacheGetType.TYPE_OBJECT,
+      ));
+    if (!user) {
+      user = await ncMeta.metaGet2(
+        RootScopes.ROOT,
+        RootScopes.ROOT,
+        MetaTable.USERS,
+        {
+          canonical_email: canonical,
+        },
+      );
+
+      if (user) {
+        user.meta = parseMetaProp(user);
+      }
+
+      await NocoCache.set(
+        'root',
+        `${CacheScope.USER}:canonical:${canonical}`,
+        user,
+      );
     }
 
     if (user?.is_deleted) {
@@ -418,6 +479,12 @@ export default class User implements UserType {
     // clear all user related cache
     await NocoCache.del('root', `${CacheScope.USER}:${userId}`);
     await NocoCache.del('root', `${CacheScope.USER}:${user.email}`);
+    if (user.email) {
+      await NocoCache.del(
+        'root',
+        `${CacheScope.USER}:canonical:${normalizeEmail(user.email)}`,
+      );
+    }
   }
 
   public static async signUserImage(

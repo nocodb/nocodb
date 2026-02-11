@@ -32,25 +32,25 @@ export class SqliteDBQueryClient
     if (!data.length) return null;
 
     // generate the update objects
-    const updatingObjects = this.massUpdateGenerateTempTable({
+    const updatingInfo = this.massUpdateGenerateTempTable({
       data,
       updatingColumns,
       primaryKeyColumns,
     });
 
-    if (!updatingObjects.length) return null;
+    if (!updatingInfo.data.length) return null;
 
     // Prepare all fields for temporary table: PKs + columns + flags
     const tempFields = [
       ...primaryKeyColumns,
-      ...updatingColumns,
-      ...updatingColumns.map((col) => `__upd__${col}`),
+      ...updatingInfo.updatingColumns,
+      ...updatingInfo.updatingColumns.map((col) => `__upd__${col}`),
     ];
 
     // Generate temporary table raw SQL
     const tempTableRaw = this.temporaryTableRaw({
       knex,
-      data: updatingObjects,
+      data: updatingInfo.data,
       fields: tempFields,
       alias: '_src',
     });
@@ -65,7 +65,7 @@ export class SqliteDBQueryClient
     // Database-specific query construction
     // SQLite: UPDATE table SET col = (SELECT ... FROM ... WHERE ...) WHERE EXISTS (...)
     // More complex - each column needs a subquery
-    const setSubqueries = updatingColumns.map((col) =>
+    const setSubqueries = updatingInfo.updatingColumns.map((col) =>
       knex.raw(
         `?? = (SELECT CASE ?? WHEN ? THEN ?? ELSE ?? END FROM ${tempTableRaw.toString()} WHERE ${pkMatchConditions.join(
           ' AND ',

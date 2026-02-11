@@ -1,7 +1,10 @@
 import { ClientType } from 'nocodb-sdk';
+import debug from 'debug';
 import type { Knex } from 'knex';
 import type { DBQueryClient } from '~/dbQueryClient/types';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
+
+const debugPGDBQueryClient = debug('nc:db:query:PGDBQueryClient');
 
 export class PGDBQueryClient
   extends GenericDBQueryClient
@@ -35,25 +38,25 @@ export class PGDBQueryClient
     if (!data.length) return null;
 
     // generate the update objects
-    const updatingObjects = this.massUpdateGenerateTempTable({
+    const updatingInfo = this.massUpdateGenerateTempTable({
       data,
       updatingColumns,
       primaryKeyColumns,
     });
 
-    if (!updatingObjects.length) return null;
+    if (!updatingInfo.data.length) return null;
 
     // Prepare all fields for temporary table: PKs + columns + flags
     const tempFields = [
       ...primaryKeyColumns,
-      ...updatingColumns,
-      ...updatingColumns.map((col) => `__upd__${col}`),
+      ...updatingInfo.updatingColumns,
+      ...updatingInfo.updatingColumns.map((col) => `__upd__${col}`),
     ];
 
     // Generate temporary table raw SQL
     const tempTableRaw = this.temporaryTableRaw({
       knex,
-      data: updatingObjects,
+      data: updatingInfo.data,
       fields: tempFields,
       alias: '_src',
     });
@@ -66,7 +69,7 @@ export class PGDBQueryClient
     ]);
 
     // Build SET clause with CASE statements
-    const setStatements = updatingColumns.map((col) => {
+    const setStatements = updatingInfo.updatingColumns.map((col) => {
       // Use 1/0 for boolean comparison (works across all DBs)
       return knex.raw(`?? = CASE ?? WHEN ? THEN ?? ELSE ?? END`, [
         col,
@@ -87,7 +90,7 @@ export class PGDBQueryClient
       )}`,
       [tableName, ...pkMatchParams],
     );
-
+    debugPGDBQueryClient(updateQuery.toQuery());
     await updateQuery;
   }
 }

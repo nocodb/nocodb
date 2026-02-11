@@ -97,39 +97,41 @@ export abstract class GenericDBQueryClient implements DBQueryClient {
     updatingColumns: string[];
     primaryKeyColumns: string[];
   }) {
+    const resultUpdatingColumns = new Set<string>();
     // generate the update objects
-    return (
-      data
-        .map((d) => {
-          const eachResult: any = {};
-          // populate for primary key columns
-          for (const primaryKeyColumn of primaryKeyColumns) {
-            const pkValue = d[primaryKeyColumn];
-            if (ncIsNullOrUndefined(pkValue)) {
-              // when the row has a missing pk value, we skip
-              return undefined;
-            } else {
-              eachResult[primaryKeyColumn] = pkValue;
-            }
+    const resultData = data
+      .map((d) => {
+        const eachResult: any = {};
+        // populate for primary key columns
+        for (const primaryKeyColumn of primaryKeyColumns) {
+          const pkValue = d[primaryKeyColumn];
+          if (ncIsNullOrUndefined(pkValue)) {
+            // when the row has a missing pk value, we skip
+            return undefined;
+          } else {
+            eachResult[primaryKeyColumn] = pkValue;
           }
-          // populate for every updating columns
-          for (const updatingColumn of updatingColumns) {
-            const updatingValue = d[updatingColumn];
-            if (ncIsUndefined(updatingValue)) {
-              eachResult[updatingColumn] = null;
-              // if it has no value (undefined) we skip update
-              eachResult[`__upd__${updatingColumn}`] = false;
-            } else {
-              eachResult[updatingColumn] = updatingValue;
-              // however if it has value then we mark to update
-              eachResult[`__upd__${updatingColumn}`] = true;
-            }
+        }
+        // populate for every updating columns
+        for (const updatingColumn of updatingColumns) {
+          const updatingValue = d[updatingColumn];
+          if (ncIsUndefined(updatingValue)) {
+            eachResult[updatingColumn] = null;
+            // if it has no value (undefined) we skip update
+            eachResult[`__upd__${updatingColumn}`] = false;
+          } else {
+            eachResult[updatingColumn] = updatingValue;
+            // however if it has value then we mark to update
+            eachResult[`__upd__${updatingColumn}`] = true;
+            // only column with value will be added to query
+            resultUpdatingColumns.add(updatingColumn);
           }
-          return eachResult;
-        })
-        // filter out all undefined
-        .filter((r) => r)
-    );
+        }
+        return eachResult;
+      })
+      // filter out all undefined
+      .filter((r) => r);
+    return { data: resultData, updatingColumns: [...resultUpdatingColumns] };
   }
 
   async massUpdate({

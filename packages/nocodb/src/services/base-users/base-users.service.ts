@@ -26,7 +26,6 @@ import { randomTokenString } from '~/helpers/stringHelpers';
 import { Base, BaseUser, PresignedUrl, User } from '~/models';
 import { MetaTable } from '~/utils/globals';
 import { extractProps } from '~/helpers/extractProps';
-import { normalizeEmail } from '~/utils/emailUtils';
 import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
@@ -94,8 +93,9 @@ export class BaseUsersService {
     }
 
     const emails = (param.baseUser.email || '')
+      .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => normalizeEmail(v.trim()))
+      .map((v) => v.trim())
       .filter(Boolean);
 
     // check for invalid emails
@@ -123,8 +123,8 @@ export class BaseUsersService {
     }
 
     for (const email of emails) {
-      // add user to base if user already exist
-      const user = await User.getByEmail(email, ncMeta);
+      // add user to base if user already exist (canonical lookup handles alias variants)
+      const user = await User.getByCanonicalEmail(email, ncMeta);
 
       const base = await Base.get(context, param.baseId, ncMeta);
 

@@ -14,7 +14,6 @@ import type {
 } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
 import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
-import { normalizeEmail } from '~/utils/emailUtils';
 import { isEE, T } from '~/utils';
 import { genJwt, setTokenCookie } from '~/services/users/helpers';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -54,15 +53,11 @@ export class UsersService {
   }
 
   async findOne(_email: string) {
-    const email = normalizeEmail(_email);
-    const user = await this.metaService.metaGet(
-      RootScopes.ROOT,
-      RootScopes.ROOT,
-      MetaTable.USERS,
-      {
-        email,
-      },
-    );
+    // Try canonical lookup first (handles alias variants),
+    // then fall back to exact email match for backward compat.
+    const user =
+      (await User.getByCanonicalEmail(_email)) ||
+      (await User.getByEmail(_email));
 
     await PresignedUrl.signMetaIconImage(user);
 
@@ -88,7 +83,7 @@ export class UsersService {
       MetaTable.USERS,
       {
         ...param,
-        email: param.email ? normalizeEmail(param.email) : undefined,
+        email: param.email?.toLowerCase(),
       },
     );
   }
@@ -270,7 +265,7 @@ export class UsersService {
       NcError.badRequest('Please enter your email address.');
     }
 
-    const email = normalizeEmail(_email);
+    const email = _email.toLowerCase();
     const user = await User.getByEmail(email);
 
     if (user) {
@@ -500,11 +495,18 @@ export class UsersService {
       NcError.badRequest(`Invalid email`);
     }
 
-    const email = normalizeEmail(_email);
+    // Reject plus addressing (always abusive)
+    if (_email.split('@')[0].includes('+')) {
+      NcError.badRequest('Email aliases with "+" are not allowed');
+    }
+
+    const email = _email.toLowerCase();
 
     this.validateEmailPattern(email);
 
-    let user = await User.getByEmail(email);
+    // Check for existing user by canonical email to prevent alias abuse
+    let user =
+      (await User.getByCanonicalEmail(email)) || (await User.getByEmail(email));
 
     if (user) {
       if (token) {

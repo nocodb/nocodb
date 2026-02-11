@@ -41,6 +41,7 @@ export default class User extends UserCE implements UserType {
     const insertObj = extractProps(user, [
       'id',
       'email',
+      'canonical_email',
       'password',
       'salt',
       'user_name',
@@ -66,7 +67,8 @@ export default class User extends UserCE implements UserType {
     }
 
     if (insertObj.email) {
-      insertObj.email = normalizeEmail(insertObj.email);
+      insertObj.email = insertObj.email.toLowerCase();
+      insertObj.canonical_email = normalizeEmail(insertObj.email);
     }
 
     const { id } = await ncMeta.metaInsert2(
@@ -84,6 +86,7 @@ export default class User extends UserCE implements UserType {
   public static async update(id, user: Partial<User>, ncMeta = Noco.ncMeta) {
     const updateObj = extractProps(user, [
       'email',
+      'canonical_email',
       'password',
       'salt',
       'avatar',
@@ -113,7 +116,8 @@ export default class User extends UserCE implements UserType {
     }
 
     if (updateObj.email) {
-      updateObj.email = normalizeEmail(updateObj.email);
+      updateObj.email = updateObj.email.toLowerCase();
+      updateObj.canonical_email = normalizeEmail(updateObj.email);
 
       // check if the target email addr is in use or not
       const targetUser = await this.getByEmail(updateObj.email, ncMeta);

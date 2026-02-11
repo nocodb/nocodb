@@ -46,7 +46,6 @@ import PrincipalAssignment from '~/ee/models/PrincipalAssignment';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 import { PaymentService } from '~/modules/payment/payment.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
-import { normalizeEmail } from '~/utils/emailUtils';
 import { MailService } from '~/services/mail/mail.service';
 import { UsersService } from '~/services/users/users.service';
 import NocoSocket from '~/socket/NocoSocket';
@@ -558,8 +557,9 @@ export class WorkspaceUsersService {
     }
 
     const emails = (email || '')
+      .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => normalizeEmail(v.trim()))
+      .map((v) => v.trim())
       .filter(Boolean);
 
     // check for invalid emails
@@ -696,8 +696,8 @@ export class WorkspaceUsersService {
     const registeredEmails = [];
 
     for (const email of emails) {
-      // register user if not exists
-      let user = await User.getByEmail(email, ncMeta);
+      // register user if not exists (canonical lookup handles alias variants)
+      let user = await User.getByCanonicalEmail(email, ncMeta);
       if (!user) {
         const salt = await promisify(bcrypt.genSalt)(10);
         user = await this.usersService.registerNewUserIfAllowed(
@@ -879,8 +879,8 @@ export class WorkspaceUsersService {
     const postOperations = [];
     let isUserCreated = false;
 
-    // register user if not exists
-    let user = await User.getByEmail(email, ncMeta);
+    // register user if not exists (canonical lookup handles alias variants)
+    let user = await User.getByCanonicalEmail(email, ncMeta);
     if (!user) {
       const salt = await promisify(bcrypt.genSalt)(10);
       user = await this.usersService.registerNewUserIfAllowed(

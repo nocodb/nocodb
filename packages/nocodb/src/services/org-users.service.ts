@@ -16,7 +16,6 @@ import { validatePayload } from '~/helpers';
 import { NcBaseError, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { normalizeEmail } from '~/utils/emailUtils';
 import { BaseUser, PresignedUrl, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
@@ -136,8 +135,9 @@ export class OrgUsersService {
 
     // extract emails from request body
     const emails = (param.user.email || '')
+      .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => normalizeEmail(v.trim()))
+      .map((v) => v.trim())
       .filter(Boolean);
 
     // check for invalid emails
@@ -155,7 +155,7 @@ export class OrgUsersService {
 
     for (const email of emails) {
       // add user to base if user already exist
-      let user = await User.getByEmail(email);
+      let user = await User.getByCanonicalEmail(email);
 
       if (user) {
         NcError.badRequest('User already exist');

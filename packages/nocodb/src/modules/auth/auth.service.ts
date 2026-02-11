@@ -7,7 +7,6 @@ import { v4 as uuidv4 } from 'uuid';
 import Noco from '~/Noco';
 import { genJwt } from '~/services/users/helpers';
 import { UsersService } from '~/services/users/users.service';
-import { normalizeEmail } from '~/utils/emailUtils';
 import { NcError } from '~/helpers/ncError';
 
 export class CreateUserDto {
@@ -56,7 +55,7 @@ export class AuthService {
 
     let { password } = createUserDto;
 
-    const email = normalizeEmail(_email);
+    const email = _email.toLowerCase();
 
     let user = await this.usersService.findOne(email);
 

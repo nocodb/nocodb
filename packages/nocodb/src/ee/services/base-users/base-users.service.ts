@@ -19,8 +19,7 @@ import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { NcError } from '~/helpers/catchError';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { Base, BaseUser, User, Workspace, WorkflowSubscriber } from '~/models';
-import { normalizeEmail } from '~/utils/emailUtils';
+import { Base, BaseUser, User, WorkflowSubscriber, Workspace } from '~/models';
 import { getProjectRole, getProjectRolePower } from '~/utils/roleHelper';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
@@ -109,8 +108,9 @@ export class BaseUsersService extends BaseUsersServiceCE {
     }
 
     const emails = (param.baseUser.email || '')
+      .toLowerCase()
       .split(/\s*,\s*/)
-      .map((v) => normalizeEmail(v.trim()))
+      .map((v) => v.trim())
       .filter(Boolean);
 
     // check for invalid emails
@@ -332,8 +332,8 @@ export class BaseUsersService extends BaseUsersServiceCE {
       roles,
       base,
     } = param;
-    // add user to base if user already exist
-    const user = await User.getByEmail(email, ncMeta);
+    // add user to base if user already exist (canonical lookup handles alias variants)
+    const user = await User.getByCanonicalEmail(email, ncMeta);
     if (user) {
       emailUserMap?.set(email, user);
       // check if this user has been added to this base

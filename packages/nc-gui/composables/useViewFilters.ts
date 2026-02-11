@@ -289,6 +289,7 @@ export function useViewFilters(
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value } : {}),
       ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
       order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
+      enabled: true,
     }
 
     // Set timezone for DateTime columns
@@ -317,6 +318,7 @@ export function useViewFilters(
       ...(parentColId?.value ? { fk_parent_column_id: parentColId.value, children: [] } : {}),
       ...(widgetId?.value ? { fk_widget_id: widgetId.value } : {}),
       order: (filters.value.length ? Math.max(...filters.value.map((item) => item?.order ?? 0)) : 0) + 1,
+      enabled: true,
     }
   }
 
@@ -623,7 +625,7 @@ export function useViewFilters(
 
         if (keys.length > 0) {
           // Define extra keys to track
-          const extraKeys = ['value', 'order', 'logical_op']
+          const extraKeys = ['value', 'order', 'logical_op', 'enabled']
 
           // Always include the 0th key + any of the extra ones present
           const targetKeys = Array.from(

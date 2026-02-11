@@ -49,6 +49,7 @@ export default class Filter implements FilterType {
   column?: Column;
   order?: number;
   meta?: any;
+  enabled?: BoolType;
 
   constructor(data: Filter | FilterType) {
     Object.assign(this, data);
@@ -105,6 +106,7 @@ export default class Filter implements FilterType {
       'source_id',
       'order',
       'meta',
+      'enabled',
     ]);
 
     const referencedModelColName = [
@@ -333,6 +335,7 @@ export default class Filter implements FilterType {
       'fk_value_col_id',
       'meta',
       'order',
+      'enabled',
     ]);
 
     if (typeof updateObj.value === 'string') {

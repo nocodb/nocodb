@@ -60,6 +60,7 @@ export default class Filter extends FilterCE implements FilterType {
       'source_id',
       'order',
       'meta',
+      'enabled',
     ]);
 
     let referencedModelColName = 'fk_view_id';

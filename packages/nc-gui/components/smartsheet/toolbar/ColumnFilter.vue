@@ -593,6 +593,11 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
   await saveOrUpdate(filter, index)
 }
 
+const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
+  filter.enabled = filter.enabled === false ? true : false
+  await saveOrUpdate(filter, index)
+}
+
 function onMoveCallback(event: any) {
   // disable nested drag drop for now
   if (event.from !== event.to) {
@@ -890,7 +895,10 @@ defineExpose({
       <template #item="{ element: filter, index: i }">
         <div v-if="filter.status !== 'delete'" :key="i" class="nc-column-filter-item min-w-full w-min max-w-full">
           <template v-if="filter.is_group">
-            <div class="flex flex-col min-w-full w-min max-w-full gap-y-2">
+            <div
+              class="flex flex-col min-w-full w-min max-w-full gap-y-2"
+              :class="{ 'nc-filter-disabled-row': filter.enabled === false }"
+            >
               <div
                 class="flex rounded-lg p-2 min-w-full w-min max-w-full border-1"
                 :class="[`nc-filter-nested-level-${nestedLevel}`]"
@@ -922,6 +930,15 @@ defineExpose({
                   :is-temp-filters="isTempFilters"
                 >
                   <template #start>
+                    <div class="flex items-center pl-1 pr-1 nc-filter-enabled-checkbox-wrapper">
+                      <NcCheckbox
+                        :checked="filter.enabled !== false"
+                        size="default"
+                        :disabled="isLockedView || readOnly"
+                        class="nc-filter-enabled-checkbox"
+                        @change="onEnabledChange(filter, i)"
+                      />
+                    </div>
                     <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{
                       $t('labels.where')
                     }}</span>
@@ -997,8 +1014,24 @@ defineExpose({
             </div>
           </template>
 
-          <div v-else class="flex flex-row gap-x-0 w-full nc-filter-wrapper" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
-            <div v-if="!visibleFilters.indexOf(filter)" class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label">
+          <div
+            v-else
+            class="flex flex-row gap-x-0 w-full nc-filter-wrapper"
+            :class="[
+              `nc-filter-wrapper-${filter.fk_column_id}`,
+              { 'nc-filter-disabled-row': filter.enabled === false },
+            ]"
+          >
+            <div class="flex items-center pl-2 pr-1 nc-filter-enabled-checkbox-wrapper">
+              <NcCheckbox
+                :checked="filter.enabled !== false"
+                size="default"
+                :disabled="isLockedView || readOnly"
+                class="nc-filter-enabled-checkbox"
+                @change="onEnabledChange(filter, i)"
+              />
+            </div>
+            <div v-if="!visibleFilters.indexOf(filter)" class="flex items-center !min-w-18 !max-w-18 pl-1 nc-filter-where-label">
               {{ $t('labels.where') }}
             </div>
 
@@ -1478,7 +1511,7 @@ defineExpose({
     box-shadow: none !important;
   }
 
-  & > :not(:last-child):not(:empty) {
+  & > :not(:last-child):not(:empty):not(.nc-filter-enabled-checkbox-wrapper) {
     border-right: 1px solid var(--nc-border-gray-medium) !important;
     border-bottom-right-radius: 0 !important;
     border-top-right-radius: 0 !important;
@@ -1574,6 +1607,26 @@ defineExpose({
 
 .nc-btn-focus:focus {
   @apply !text-nc-content-brand !shadow-none;
+}
+
+.nc-filter-disabled-row.nc-filter-wrapper {
+  & > *:not(.nc-filter-enabled-checkbox-wrapper) {
+    @apply opacity-40 pointer-events-none;
+  }
+}
+
+// group disabled state — dim the entire group container
+.nc-filter-disabled-row:not(.nc-filter-wrapper) {
+  & > * {
+    @apply opacity-40 pointer-events-none;
+  }
+  :deep(.nc-filter-enabled-checkbox-wrapper) {
+    @apply opacity-100 pointer-events-auto;
+  }
+}
+
+.nc-filter-enabled-checkbox-wrapper {
+  @apply opacity-100 pointer-events-auto;
 }
 </style>
 

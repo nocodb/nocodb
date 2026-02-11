@@ -41,6 +41,7 @@ const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
 )
 
 const filtersLength = ref(0)
+const enabledFiltersLength = ref(0)
 // If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
 const isRestrictedEditor = computed(() => isLocked.value || !canSyncFilter.value)
 
@@ -70,6 +71,7 @@ watch(
         loadAllFilters: true,
       })
       filtersLength.value = nonDeletedFilters.value.length || 0
+      enabledFiltersLength.value = nonDeletedFilters.value.filter((f) => f.enabled !== false).length
     }
   },
   { immediate: true },
@@ -145,6 +147,17 @@ const combinedFilterLength = computed(() => {
   return filtersLength.value
 })
 
+const filterCountDisplay = computed(() => {
+  const total = combinedFilterLength.value
+  if (!total) return ''
+
+  const enabled = enabledFiltersLength.value
+  if (enabled < total) {
+    return `${enabled}/${total}`
+  }
+  return `${total}`
+})
+
 const isCurrentUserFilterPresent = ref(false)
 
 const checkForCurrentUserFilter = (currentFilters: FilterType[] = []) => {
@@ -202,10 +215,26 @@ if (isEeUI) {
 }
 
 watch(
-  () => nonDeletedFilters.value.length,
+  nonDeletedFilters,
   () => {
     filtersLength.value = nonDeletedFilters.value.length || 0
+    enabledFiltersLength.value = nonDeletedFilters.value.filter((f) => f.enabled !== false).length
   },
+  { deep: true },
+)
+
+// Watch allFilters (populated by ColumnFilter.vue via AllFiltersInj) to keep
+// enabled count in sync when individual filters are toggled on/off
+watch(
+  allFilters,
+  () => {
+    const flatFilters = Object.values(allFilters.value).flat() as FilterType[]
+    if (flatFilters.length) {
+      filtersLength.value = flatFilters.filter((f) => !f.is_group).length
+      enabledFiltersLength.value = flatFilters.filter((f) => !f.is_group && f.enabled !== false).length
+    }
+  },
+  { deep: true },
 )
 </script>
 
@@ -250,7 +279,7 @@ watch(
                 [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
               }"
             >
-              {{ combinedFilterLength }}
+              {{ filterCountDisplay }}
               <span v-if="isCurrentUserFilterPresent" class="ml-1 pb-0.6">{{ '@' }}</span>
             </span>
           </NcTooltip>

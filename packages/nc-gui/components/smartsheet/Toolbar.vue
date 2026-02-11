@@ -111,6 +111,8 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
 
+        <SmartsheetToolbarPinnedFilters v-if="isEeUI && (isGrid || isGallery || isKanban || isMap)" />
+
         <div class="flex-1" />
       </template>
 

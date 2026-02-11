@@ -111,6 +111,11 @@ export const presetErrorCodexMap: Partial<
     message: (field: string) => `Field '${field}' is required`,
     code: 422,
   },
+  [NcErrorType.ERR_RATE_LIMIT_REACHED]: {
+    message: (message?: string) =>
+      message ?? `Rate limit reached for this operation`,
+    code: 429,
+  },
   [NcErrorType.ERR_DUPLICATE_RECORD]: {
     message: (...ids: string[]) => {
       const isMultiple = Array.isArray(ids) && ids.length > 1;

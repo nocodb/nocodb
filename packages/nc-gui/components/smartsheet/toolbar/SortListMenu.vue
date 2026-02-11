@@ -166,7 +166,7 @@ watch(
         class="nc-sort-menu-btn nc-toolbar-btn !h-7 group"
         size="small"
         type="secondary"
-        :show-as-disabled="isRestrictedEditor"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">

@@ -225,7 +225,7 @@ watch(
         class="nc-filter-menu-btn nc-toolbar-btn !border-0 !h-7 group"
         size="small"
         type="secondary"
-        :show-as-disabled="isRestrictedEditor"
+        :show-as-disabled="isLocked"
         :class="{
           [filteredOrSortedAppearanceConfig.FILTERED.toolbarBgClass]: combinedFilterLength,
         }"

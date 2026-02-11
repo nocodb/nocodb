@@ -36,12 +36,10 @@ const { canUpdateViewMeta } = useViewColumnsOrThrow()
 
 const { addUndo, defineViewScope } = useUndoRedo()
 
-const isRestrictedEditor = computed(() => isLocked.value || !canUpdateViewMeta.value)
-
 const open = ref(false)
 
 const updateRowHeight = async (rh: number, undo = false) => {
-  if (isRestrictedEditor.value) return
+  if (isLocked.value) return
 
   if (view.value?.id) {
     if (rh === (view.value.view as GridType).row_height) return
@@ -95,7 +93,7 @@ useMenuCloseOnEsc(open)
         class="nc-height-menu-btn nc-toolbar-btn !border-0 !h-7 !px-1.5 !min-w-7"
         size="small"
         type="secondary"
-        :show-as-disabled="isRestrictedEditor"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-0.5">
           <component :is="iconMap.rowHeight" class="!h-3.75 !w-3.75" />

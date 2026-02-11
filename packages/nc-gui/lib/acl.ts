@@ -122,10 +122,6 @@ const rolePermissions = {
 
       // Extensions
       extensionUpdate: true,
-
-      // Sort/Filter sync for personal views (middleware handles non-personal view restrictions)
-      //   sortSync: true,
-      //   filterSync: true,
     },
   },
   [ProjectRoles.COMMENTER]: {

@@ -1,13 +1,5 @@
 <script lang="ts" setup>
-import {
-  type CalendarRangeType,
-  FormulaDataTypes,
-  PlanFeatureTypes,
-  PlanTitles,
-  UITypes,
-  ViewLockType,
-  ViewTypes,
-} from 'nocodb-sdk'
+import { type CalendarRangeType, FormulaDataTypes, PlanFeatureTypes, PlanTitles, UITypes, ViewTypes } from 'nocodb-sdk'
 import type { SelectProps } from 'ant-design-vue'
 
 const meta = inject(MetaInj, ref())
@@ -25,21 +17,13 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { loadViewColumns, canUpdateViewMeta } = useViewColumnsOrThrow()
+const { loadViewColumns } = useViewColumnsOrThrow()
 
 const viewStore = useViewsStore()
 
 const { updateViewMeta } = viewStore
 
 const { loadCalendarData, loadSidebarData, fetchActiveDates, viewMetaProperties } = useCalendarViewStoreOrThrow()
-
-// Check if user can update calendar settings based on role OR personal view ownership
-const isRestrictedEditor = computed(() => isLocked.value && !canUpdateViewMeta.value)
-
-// Show locked footer for locked views OR personal views not owned by current user
-const shouldShowLockedFooter = computed(
-  () => isLocked.value || (activeView.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(activeView.value)),
-)
 
 const calendarRangeDropdown = ref(false)
 
@@ -213,7 +197,7 @@ const onValueChange = async () => {
         size="small"
         type="secondary"
         data-testid="nc-calendar-range-btn"
-        :show-as-disabled="isRestrictedEditor"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-2">
           <component :is="iconMap.calendar" class="h-4 w-4" />
@@ -242,7 +226,7 @@ const onValueChange = async () => {
             dropdown-class-name="!rounded-lg"
             :placeholder="$t('placeholder.notSelected')"
             data-testid="nc-calendar-range-from-field-select"
-            :disabled="isRestrictedEditor"
+            :disabled="isLocked"
             @change="
               () => {
                 onValueChange()
@@ -290,7 +274,7 @@ const onValueChange = async () => {
                   data-testid="nc-calendar-range-add-end-date"
                   type="text"
                   :shadow="false"
-                  :disabled="isRestrictedEditor"
+                  :disabled="isLocked"
                   @click="
                     click(PlanFeatureTypes.FEATURE_CALENDAR_RANGE, () => {
                       range.fk_to_column_id = undefined
@@ -377,7 +361,7 @@ const onValueChange = async () => {
         </div>
 
         <div>
-          <NcSwitch v-model:checked="showWeekends" :disabled="isRestrictedEditor">
+          <NcSwitch v-model:checked="showWeekends" :disabled="isLocked">
             <span class="text-nc-content-gray font-semibold">
               {{ $t('activity.showSaturdaysAndSundays') }}
             </span>
@@ -387,7 +371,7 @@ const onValueChange = async () => {
         <!--
         <div class="text-[13px] text-nc-content-gray-muted py-2">Records in this view will be based on the specified date field.</div>
 -->
-        <GeneralLockedViewFooter v-if="shouldShowLockedFooter" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
+        <GeneralLockedViewFooter v-if="isLocked" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
       </div>
     </template>
   </NcDropdown>

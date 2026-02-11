@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { RelationTypes, UITypes, ViewLockType, ViewSettingOverrideOptions, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
+import { RelationTypes, UITypes, ViewSettingOverrideOptions, isLinksOrLTAR, isSystemColumn } from 'nocodb-sdk'
 import Draggable from 'vuedraggable'
 import { getColumnUidtByID as sortGetColumnUidtByID } from '~/utils/sortUtils'
 
@@ -15,19 +15,11 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields, canUpdateViewMeta } = useViewColumnsOrThrow()
+const { gridViewCols, updateGridViewColumn, metaColumnById, showSystemFields } = useViewColumnsOrThrow()
 
 const { fieldsToGroupBy, groupByLimit } = useViewGroupByOrThrow()
 
 const { $e } = useNuxtApp()
-
-// Check if user can update group by based on role OR personal view ownership
-const isRestrictedEditor = computed(() => isLocked.value && !canUpdateViewMeta.value)
-
-// Show locked footer for locked views OR personal views not owned by current user
-const shouldShowLockedFooter = computed(
-  () => isLocked.value || (view.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(view.value)),
-)
 
 interface Group {
   fk_column_id?: string
@@ -227,7 +219,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
         class="nc-group-by-menu-btn nc-toolbar-btn !border-0 !h-7"
         size="small"
         type="secondary"
-        :show-as-disabled="isRestrictedEditor"
+        :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-1 min-h-5">
           <div class="flex items-center gap-2">
@@ -247,14 +239,14 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
     <template #overlay>
       <div
         :class="{
-          'nc-locked-view': isRestrictedEditor,
+          'nc-locked-view': isLocked,
         }"
       >
         <SmartsheetToolbarCreateGroupBy
           v-if="!_groupBy.length"
           :is-parent-open="open"
           :columns="getFieldsToGroupBy({})"
-          :disabled="isRestrictedEditor"
+          :disabled="isLocked"
           @created="addFieldToGroupBy"
         />
         <div
@@ -267,7 +259,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               :model-value="_groupBy"
               item-key="fk_column_id"
               ghost-class="bg-nc-bg-gray-extralight"
-              :disabled="isRestrictedEditor || !isEeUI"
+              :disabled="isLocked || !isEeUI"
               @change="onMove($event)"
             >
               <template #item="{ element: group }">
@@ -278,7 +270,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                     size="small"
                     class="!border-r-transparent !rounded-r-none"
                     :shadow="false"
-                    :disabled="isRestrictedEditor"
+                    :disabled="isLocked"
                   >
                     <component :is="iconMap.drag" />
                   </NcButton>
@@ -289,7 +281,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                     :columns="getFieldsToGroupBy(group)"
                     :allow-empty="true"
                     :meta="meta"
-                    :disabled="isRestrictedEditor"
+                    :disabled="isLocked"
                     @change="saveGroupBy"
                     @click.stop
                   />
@@ -299,7 +291,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                     class="flex flex-grow-1 w-full nc-group-sort-dir-select"
                     :label="$t('labels.operation')"
                     dropdown-class-name="sort-dir-dropdown nc-dropdown-group-sort-dir"
-                    :disabled="!group.fk_column_id || isRestrictedEditor"
+                    :disabled="!group.fk_column_id || isLocked"
                     @change="saveGroupBy"
                     @click.stop
                   >
@@ -345,7 +337,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                       size="small"
                       type="secondary"
                       :shadow="false"
-                      :disabled="isRestrictedEditor"
+                      :disabled="isLocked"
                       @click.stop="removeFieldFromGroupBy(group)"
                     >
                       <component :is="iconMap.deleteListItem" />
@@ -361,7 +353,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
               v-model:visible="showCreateGroupBy"
               :trigger="['click']"
               overlay-class-name="nc-toolbar-dropdown"
-              :disabled="isRestrictedEditor"
+              :disabled="isLocked"
             >
               <NcButton
                 v-e="['c:group-by:add']"
@@ -370,9 +362,9 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
                 style="width: fit-content"
                 class="nc-add-group-by-btn"
                 :class="{
-                  '!text-nc-content-brand': !isRestrictedEditor,
+                  '!text-nc-content-brand': !isLocked,
                 }"
-                :disabled="isRestrictedEditor"
+                :disabled="isLocked"
                 @click.stop="showCreateGroupBy = true"
               >
                 <div class="flex gap-1 items-center">
@@ -398,7 +390,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
           </div>
         </div>
         <GeneralLockedViewFooter
-          v-if="shouldShowLockedFooter"
+          v-if="isLocked"
           :class="{
             '-mt-2': _groupBy.length,
           }"

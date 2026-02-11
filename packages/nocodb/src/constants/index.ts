@@ -16,8 +16,7 @@ if (!NC_REFRESH_TOKEN_EXP_IN_DAYS || NC_REFRESH_TOKEN_EXP_IN_DAYS <= 0) {
   throw new Error('NC_REFRESH_TOKEN_EXP_IN_DAYS must be a positive number');
 }
 
-export const NC_MAX_TEXT_LENGTH =
-  +process.env['NC_MAX_TEXT_LENGTH'] || 100000;
+export const NC_MAX_TEXT_LENGTH = +process.env['NC_MAX_TEXT_LENGTH'] || 100000;
 
 export const NC_EMAIL_ASSETS_BASE_URL = 'https://cdn.nocodb.com/emails/v2';
 
@@ -48,3 +47,10 @@ export const CONTEXT_INFO_EXTRACT_COLUMN_ALIAS = 'extractColumnAlias';
 export const CONTEXT_INFO_IS_CACHE_EXTRACT_COLUMN = 'isCacheExtractColumn';
 
 export const META_COL_NAME = 'nc_row_meta';
+
+export const INVITE_RATE_LIMIT = {
+  maxHit: process.env.NC_THROTTLE_USER_INVITE_HIT || 10, // 10 hits
+  blockDurationMs:
+    process.env.NC_THROTTLE_USER_INVITE_BLOCK_DURATION || 15 * 60 * 1000, // also block by 15 mins
+  intervalMs: process.env.NC_THROTTLE_USER_INVITE_INTERVAL || 15 * 60 * 1000, // per 15 mins
+};

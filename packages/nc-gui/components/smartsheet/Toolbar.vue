@@ -5,7 +5,8 @@ defineProps<{
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isGrid, isGallery, isKanban, isMap, isCalendar, isForm, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+const { isGrid, isGallery, isKanban, isMap, isCalendar, isForm, isViewOperationsAllowed, allFilters } =
+  useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -34,8 +35,15 @@ const isTab = computed(() => {
   return width.value > 1200
 })
 
+const hasPinnedFilters = computed(() => {
+  return allFilters.value.some((f) => f.id && !f.is_group && parseProp(f.meta)?.pinned === true)
+})
+
 const isToolbarIconMode = computed(() => {
   if (width.value < 768) {
+    return true
+  }
+  if (hasPinnedFilters.value) {
     return true
   }
   return false

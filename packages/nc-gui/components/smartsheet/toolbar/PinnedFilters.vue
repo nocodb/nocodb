@@ -252,67 +252,69 @@ const unpinFilter = async (filter: FilterType) => {
       @update:visible="(val) => { if (!val) closeDropdown() }"
     >
       <!-- ====== PILL TRIGGER ====== -->
-      <div
-        class="nc-pinned-filter-pill flex items-center gap-1.5 h-8 py-1 pl-2.5 pr-1.5 rounded-lg border-1 cursor-pointer select-none"
-        :class="{
-          'border-primary bg-white shadow-sm': openFilterId === filter.id,
-          'border-nc-border-gray-medium bg-white hover:border-nc-border-gray-dark': openFilterId !== filter.id,
-          'opacity-60': filter.enabled === false,
-        }"
-        @click="toggleDropdown(filter.id)"
-      >
-        <!-- Field name -->
-        <span class="text-xs text-nc-content-gray-subtle whitespace-nowrap">
-          {{ getColumn(filter)?.title }}
-        </span>
-
-        <!-- Value display for select types -->
-        <template v-if="isSelectType(filter) && getSelectValueDisplay(filter)">
-          <span class="text-nc-content-gray-muted text-xs">·</span>
-          <a-tag
-            v-if="getSelectValueOption(filter)"
-            class="rounded-tag-sm max-w-28"
-            :color="getSelectValueOption(filter).bgColor"
-          >
-            <span :style="{ color: getSelectValueOption(filter).textColor }" class="text-[11px] leading-tight truncate">
+      <NcTooltip :disabled="openFilterId === filter.id" placement="bottom">
+        <template #title>
+          {{ getColumn(filter)?.title }} {{ getComparisonOpLabel(filter) }}
+        </template>
+        <div
+          class="nc-pinned-filter-pill nc-toolbar-btn flex items-center gap-0.5 !h-7 py-1 pl-2.5 pr-1.5 rounded-lg cursor-pointer select-none"
+          :class="{
+            'bg-nc-bg-gray-extralight !text-nc-content-gray': openFilterId === filter.id,
+            'opacity-60': filter.enabled === false,
+          }"
+          @click="toggleDropdown(filter.id)"
+        >
+          <!-- Value display for select types -->
+          <template v-if="isSelectType(filter) && getSelectValueDisplay(filter)">
+            <a-tag
+              v-if="getSelectValueOption(filter)"
+              class="rounded-tag-sm max-w-28"
+              :color="getSelectValueOption(filter).bgColor"
+            >
+              <span :style="{ color: getSelectValueOption(filter).textColor }" class="text-[11px] leading-tight truncate">
+                {{ getSelectValueDisplay(filter) }}
+              </span>
+            </a-tag>
+            <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
               {{ getSelectValueDisplay(filter) }}
             </span>
-          </a-tag>
-          <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
-            {{ getSelectValueDisplay(filter) }}
-          </span>
-        </template>
+          </template>
 
-        <!-- Value display for user type -->
-        <template v-else-if="isUserType(filter) && getUserValueDisplay(filter)">
-          <span class="text-nc-content-gray-muted text-xs">·</span>
-          <a-tag
-            v-if="getUserValueUser(filter)"
-            class="rounded-tag-sm max-w-32 !pl-0"
-            :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
-          >
-            <span class="flex items-center gap-1">
-              <GeneralUserIcon
-                :user="getUserValueUser(filter)"
-                size="small"
-                class="!text-[0.45rem]"
-              />
-              <span class="text-[11px] text-nc-content-gray truncate leading-tight">
-                {{ getUserValueDisplay(filter) }}
+          <!-- Value display for user type -->
+          <template v-else-if="isUserType(filter) && getUserValueDisplay(filter)">
+            <a-tag
+              v-if="getUserValueUser(filter)"
+              class="rounded-tag-sm max-w-32 !pl-0"
+              :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
+            >
+              <span class="flex items-center gap-1">
+                <GeneralUserIcon
+                  :user="getUserValueUser(filter)"
+                  size="small"
+                  class="!text-[0.45rem]"
+                />
+                <span class="text-[11px] text-nc-content-gray truncate leading-tight">
+                  {{ getUserValueDisplay(filter) }}
+                </span>
               </span>
+            </a-tag>
+            <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
+              {{ getUserValueDisplay(filter) }}
             </span>
-          </a-tag>
-          <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
-            {{ getUserValueDisplay(filter) }}
-          </span>
-        </template>
+          </template>
 
-        <!-- Chevron -->
-        <GeneralIcon
-          :icon="openFilterId === filter.id ? 'chevronUpSmall' : 'chevronDownSmall'"
-          class="h-4 w-4 text-nc-content-gray-subtle2 flex-none"
-        />
-      </div>
+          <!-- Fallback: show field name if no value -->
+          <span v-else class="text-xs text-nc-content-gray-subtle whitespace-nowrap">
+            {{ getColumn(filter)?.title }}
+          </span>
+
+          <!-- Chevron -->
+          <GeneralIcon
+            :icon="openFilterId === filter.id ? 'arrowUp' : 'arrowDown'"
+            class="h-3.5 w-3.5 text-nc-content-gray-subtle2 flex-none"
+          />
+        </div>
+      </NcTooltip>
 
       <!-- ====== DROPDOWN PANEL ====== -->
       <template #overlay>
@@ -477,7 +479,6 @@ const unpinFilter = async (filter: FilterType) => {
 
 <style lang="scss" scoped>
 .nc-pinned-filter-pill {
-  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.04);
   transition: all 0.15s ease;
 }
 

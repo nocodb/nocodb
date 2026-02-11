@@ -2,12 +2,15 @@ import { Inject, Logger } from '@nestjs/common';
 import { EventType, NOCO_SERVICE_USERS, ServiceUserType } from 'nocodb-sdk';
 import type { NcContext } from 'nocodb-sdk';
 import type { Job } from 'bull';
-import type { HeartbeatWorkflowJobData, PollWorkflowJobData } from '~/interface/Jobs';
+import type {
+  HeartbeatWorkflowJobData,
+  PollWorkflowJobData,
+} from '~/interface/Jobs';
 import {
   type ExecuteWorkflowJobData,
+  JobTypes,
   type ResumeWorkflowJobData,
   type TestWorkflowNodeJobData,
-  JobTypes,
 } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import Workflow from '~/models/Workflow';
@@ -227,9 +230,7 @@ export class WorkflowProcessor {
     }
 
     if (!workflow.enabled) {
-      this.logger.warn(
-        `Workflow ${workflowId} is disabled, skipping poll`,
-      );
+      this.logger.warn(`Workflow ${workflowId} is disabled, skipping poll`);
       return;
     }
 
@@ -295,7 +296,8 @@ export class WorkflowProcessor {
 
       // Queue workflow executions for detected items
       if (pollResult.items.length > 0) {
-        const batchMode = pollResult.batchMode || activationState?.batchMode || 'single';
+        const batchMode =
+          pollResult.batchMode || activationState?.batchMode || 'single';
 
         if (batchMode === 'batch') {
           // All items in a single workflow execution

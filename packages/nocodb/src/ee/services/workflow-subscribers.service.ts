@@ -19,7 +19,6 @@ export class WorkflowSubscribersService {
       return [];
     }
 
-
     return await processConcurrently(subscribers, async (subscriber) => {
       const user = await User.get(subscriber.fk_user_id);
       return {
@@ -27,8 +26,8 @@ export class WorkflowSubscribersService {
         fk_user_id: subscriber.fk_user_id,
         email: user?.email ?? null,
         display_name: user?.display_name ?? null,
-      }
-    })
+      };
+    });
   }
 
   async addSubscribers(

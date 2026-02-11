@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewSettingOverrideOptions } from 'nocodb-sdk'
+import { CURRENT_USER_TOKEN, type ColumnType, type FilterType, ViewLockType, ViewSettingOverrideOptions } from 'nocodb-sdk'
 import type ColumnFilter from './ColumnFilter.vue'
 
 const isLocked = inject(IsLockedInj, ref(false))
@@ -15,9 +15,9 @@ const reloadViewDataEventHook = inject(ReloadViewDataHookInj, createEventHook())
 
 const { isMobileMode } = useGlobal()
 
-const filterComp = ref<typeof ColumnFilter>()
+const { isUserViewOwner } = useViewsStore()
 
-const { isUIAllowed } = useRoles()
+const filterComp = ref<typeof ColumnFilter>()
 
 const {
   allFilters: smatsheetAllFilters,
@@ -31,7 +31,7 @@ const {
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
 
 // todo: avoid duplicate api call by keeping a filter store
-const { nonDeletedFilters, loadFilters } = useViewFilters(
+const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
   activeView!,
   undefined,
   computed(() => true),
@@ -42,7 +42,23 @@ const { nonDeletedFilters, loadFilters } = useViewFilters(
 
 const filtersLength = ref(0)
 // If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
-const isRestrictedEditor = computed(() => !isUIAllowed('filterSync'))
+const isRestrictedEditor = computed(() => isLocked.value || !canSyncFilter.value)
+
+// True when user is viewing a personal view they don't own
+const isPersonalViewNonOwner = computed(
+  () => activeView.value?.lock_type === ViewLockType.Personal && !isUserViewOwner(activeView.value),
+)
+
+// Show temp filters only for collaborative views, not for personal views
+// For personal views, non-assigned users should not see temp filters at all
+const showTempFilters = computed(() => {
+  // If user has full access, don't need temp filters section (they have full editor)
+  if (!isRestrictedEditor.value) return false
+  // If restricted AND it's a personal view, hide temp filters (non-assigned user)
+  if (activeView.value?.lock_type === 'personal') return false
+  // If restricted AND it's NOT a personal view, show temp filters (editor on collaborative view)
+  return true
+})
 
 watch(
   () => activeView?.value?.id,
@@ -299,27 +315,30 @@ watch(
                   class="nc-table-toolbar-menu !pl-2 !w-full"
                   :model-value="existingFilters"
                   :auto-save="false"
-                  :is-view-filter="true"
+                  :is-view-filter="!isPersonalViewNonOwner && !isLocked"
                   read-only
                   @update:filters-length="filtersLength = $event || 0"
                 >
                 </SmartsheetToolbarColumnFilter>
               </div>
             </div>
-            <a-divider class="!my-1" />
+            <a-divider v-if="showTempFilters" class="!my-1" />
           </template>
-          <SmartsheetToolbarColumnFilter
-            ref="filterComp"
-            v-model="localFilters"
-            v-model:draft-filter="draftFilter"
-            v-model:is-open="open"
-            class="nc-table-toolbar-menu"
-            :auto-save="false"
-            data-testid="nc-filter-menu"
-            :is-view-filter="false"
-            :is-temp-filters="true"
-          >
-          </SmartsheetToolbarColumnFilter>
+          <template v-if="showTempFilters">
+            <SmartsheetToolbarColumnFilter
+              ref="filterComp"
+              v-model="localFilters"
+              v-model:draft-filter="draftFilter"
+              v-model:is-open="open"
+              class="nc-table-toolbar-menu"
+              :auto-save="false"
+              data-testid="nc-filter-menu"
+              :is-view-filter="false"
+              :is-temp-filters="true"
+            >
+            </SmartsheetToolbarColumnFilter>
+          </template>
+          <GeneralLockedViewFooter v-if="isLocked || isPersonalViewNonOwner" @on-open="open = false" />
         </template>
         <template v-if="filtersFromUrlParams">
           <a-divider class="!my-1" />

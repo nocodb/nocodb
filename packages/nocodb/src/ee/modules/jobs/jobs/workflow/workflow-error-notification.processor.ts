@@ -2,10 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
-import { User, Workflow, Workspace, WorkflowSubscriber } from '~/models';
+import { User, Workflow, WorkflowSubscriber, Workspace } from '~/models';
 import { MailService } from '~/services/mail/mail.service';
 import { MailEvent } from '~/interface/Mail';
-import { processConcurrently } from '~/utils'
+import { processConcurrently } from '~/utils';
 
 interface FailedExecutionGroup {
   fk_workflow_id: string;
@@ -33,11 +33,7 @@ export class WorkflowErrorNotificationProcessor {
     // Query to get grouped failed executions where the LAST error is older than 5 minutes
     // This ensures we wait for a "quiet period" before sending notification (debounce)
     const failedGroups: FailedExecutionGroup[] = await ncMeta.knexConnection
-      .select(
-        'fk_workflow_id',
-        'fk_workspace_id',
-        'base_id',
-      )
+      .select('fk_workflow_id', 'fk_workspace_id', 'base_id')
       .count('* as failure_count')
       .min('finished_at as first_failure')
       .max('finished_at as last_failure')
@@ -56,7 +52,8 @@ export class WorkflowErrorNotificationProcessor {
     // Get the last failure ID for each group in a single query using DISTINCT ON (PostgreSQL)
     // or a subquery approach for cross-database compatibility
     const workflowIds = failedGroups.map((g) => g.fk_workflow_id);
-    const lastFailures = await ncMeta.knexConnection(MetaTable.AUTOMATION_EXECUTIONS)
+    const lastFailures = await ncMeta
+      .knexConnection(MetaTable.AUTOMATION_EXECUTIONS)
       .select('id', 'fk_workflow_id', 'base_id')
       .where('status', 'error')
       .whereNull('error_notified_at')
@@ -85,7 +82,6 @@ export class WorkflowErrorNotificationProcessor {
 
     for (const group of failedGroups) {
       try {
-
         const context = {
           workspace_id: group.fk_workspace_id,
           base_id: group.base_id,
@@ -93,7 +89,9 @@ export class WorkflowErrorNotificationProcessor {
 
         const workflow = await Workflow.get(context, group.fk_workflow_id);
         if (!workflow) {
-          this.logger.warn(`Workflow ${group.fk_workflow_id} not found, skipping`);
+          this.logger.warn(
+            `Workflow ${group.fk_workflow_id} not found, skipping`,
+          );
           await this.markAsNotified(group, cutoffTime);
           continue;
         }
@@ -115,7 +113,9 @@ export class WorkflowErrorNotificationProcessor {
 
         // Get user emails for subscribers
         const userIds = subscribers.map((s) => s.fk_user_id);
-        const users = await processConcurrently(userIds, (userId) => User.get(userId))
+        const users = await processConcurrently(userIds, (userId) =>
+          User.get(userId),
+        );
         const validUsers = users.filter((u) => u?.email);
 
         if (validUsers.length === 0) {
@@ -146,8 +146,12 @@ export class WorkflowErrorNotificationProcessor {
                   title: workspace.title,
                 },
                 failureCount: Number(group.failure_count),
-                firstFailureTime: firstFailure.format('MM/DD/YYYY [at] h:mm A [UTC]'),
-                lastFailureTime: lastFailure.format('MM/DD/YYYY [at] h:mm A [UTC]'),
+                firstFailureTime: firstFailure.format(
+                  'MM/DD/YYYY [at] h:mm A [UTC]',
+                ),
+                lastFailureTime: lastFailure.format(
+                  'MM/DD/YYYY [at] h:mm A [UTC]',
+                ),
                 lastFailureId: group.last_failure_id,
                 baseId: group.base_id,
                 workspaceId: group.fk_workspace_id,
@@ -177,10 +181,14 @@ export class WorkflowErrorNotificationProcessor {
     this.logger.debug('WorkflowErrorNotificationProcessor job completed');
   }
 
-  private async markAsNotified(group: FailedExecutionGroup, cutoffTime: string) {
+  private async markAsNotified(
+    group: FailedExecutionGroup,
+    cutoffTime: string,
+  ) {
     const ncMeta = Noco.ncMeta;
 
-    await ncMeta.knexConnection(MetaTable.AUTOMATION_EXECUTIONS)
+    await ncMeta
+      .knexConnection(MetaTable.AUTOMATION_EXECUTIONS)
       .where('fk_workflow_id', group.fk_workflow_id)
       .where('base_id', group.base_id)
       .where('status', 'error')

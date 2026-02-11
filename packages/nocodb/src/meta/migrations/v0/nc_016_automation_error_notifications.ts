@@ -16,30 +16,24 @@ const up = async (knex: Knex) => {
     .where('status', 'error')
     .update({ error_notified_at: knex.fn.now() });
 
-  await knex.schema.createTable(
-    MetaTable.AUTOMATION_SUBSCRIBERS,
-    (table) => {
-      table.string('id', 20)
-      table.string('fk_workspace_id', 20);
-      table.string('base_id', 20)
-      table.string('fk_automation_id', 20)
-      table.string('fk_user_id', 20)
-      table.boolean('notify_on_error').defaultTo(true);
-      table.timestamps({ defaultToNow: true, useTimestamps: true})
+  await knex.schema.createTable(MetaTable.AUTOMATION_SUBSCRIBERS, (table) => {
+    table.string('id', 20);
+    table.string('fk_workspace_id', 20);
+    table.string('base_id', 20);
+    table.string('fk_automation_id', 20);
+    table.string('fk_user_id', 20);
+    table.boolean('notify_on_error').defaultTo(true);
+    table.timestamps({ defaultToNow: true, useTimestamps: true });
 
-      table.primary(['base_id', 'id']);
-    },
-  );
+    table.primary(['base_id', 'id']);
+  });
 
   await knex.schema.alterTable(MetaTable.AUTOMATION_SUBSCRIBERS, (table) => {
     table.index(
       ['fk_automation_id'],
       'nc_automation_subscribers_automation_idx',
     );
-    table.index(
-      ['fk_user_id'],
-      'nc_automation_subscribers_user_idx',
-    );
+    table.index(['fk_user_id'], 'nc_automation_subscribers_user_idx');
     table.unique(['fk_automation_id', 'fk_user_id'], {
       indexName: 'nc_automation_subscribers_unique_idx',
     });

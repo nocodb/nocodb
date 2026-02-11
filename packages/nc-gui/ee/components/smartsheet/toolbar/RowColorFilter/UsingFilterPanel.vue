@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import type { ClientType, RowColoringInfoFilter, RowColoringInfoFilterRow } from 'nocodb-sdk'
+import { ViewLockType } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
 import Draggable from 'vuedraggable'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
@@ -38,9 +39,17 @@ const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
+const activeView = inject(ActiveViewInj, ref())
+
 const { isUIAllowed } = useRoles()
 
-const hasPermission = computed(() => isUIAllowed('rowColourUpdate'))
+const { isUserViewOwner } = useViewsStore()
+
+const isPersonalViewOwner = computed(
+  () => activeView.value?.lock_type === ViewLockType.Personal && isUserViewOwner(activeView.value),
+)
+
+const hasPermission = computed(() => isUIAllowed('rowColourUpdate') || isPersonalViewOwner.value)
 
 const readOnlyFilter = computed(() => props.isLockedView || props.disabled)
 

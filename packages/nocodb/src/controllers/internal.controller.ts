@@ -10,7 +10,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { NcContext, NcRequest } from 'nocodb-sdk';
+import { NcContext, NcRequest, ViewLockType } from 'nocodb-sdk';
 import type { InternalApiModule } from '~/utils/internal-type';
 import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
@@ -18,11 +18,16 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcError } from '~/helpers/catchError';
-import { AclMiddleware } from '~/middlewares/extract-ids/extract-ids.middleware';
+import {
+  AclMiddleware,
+  VIEW_KEY,
+} from '~/middlewares/extract-ids/extract-ids.middleware';
 import {
   InternalGETResponseType,
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
+import { Filter, GridViewColumn, Sort, View } from '~/models';
+import { RootScopes } from '~/utils/globals';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -54,6 +59,79 @@ export class InternalController {
     req: NcRequest,
     scope?: string,
   ) {
+    // For filter/sort/view operations, extract view to check personal view ownership
+    const filterSortOperations = [
+      'filterList',
+      'filterChildrenList',
+      'filterCreate',
+      'filterUpdate',
+      'filterDelete',
+      'sortList',
+      'sortCreate',
+      'sortUpdate',
+      'sortDelete',
+      'viewUpdate',
+      'viewColumnUpdate',
+      'viewColumnCreate',
+      'hideAllColumns',
+      'showAllColumns',
+      'gridViewUpdate',
+      'gridColumnUpdate',
+      'galleryViewUpdate',
+      'kanbanViewUpdate',
+      'mapViewUpdate',
+      'calendarViewUpdate',
+      'viewRowColorConditionAdd',
+      'viewRowColorConditionUpdate',
+      'viewRowColorConditionDelete',
+      'viewRowColorSelectAdd',
+      'viewRowColorInfoDelete',
+      'rowColorConditionsFilterCreate',
+    ];
+
+    if (filterSortOperations.includes(operation as string)) {
+      const bypassContext = {
+        workspace_id: RootScopes.BYPASS,
+        base_id: RootScopes.BYPASS,
+      };
+
+      let view: View | null = null;
+
+      // Extract view based on the operation parameters
+      if (req.query.viewId) {
+        view = await View.get(bypassContext, req.query.viewId as string);
+      } else if (req.body?.fk_view_id) {
+        // For create operations (filterCreate, sortCreate, etc.) where viewId is in body
+        view = await View.get(bypassContext, req.body.fk_view_id);
+      } else if (req.query.filterId) {
+        const filter = await Filter.get(
+          bypassContext,
+          req.query.filterId as string,
+        );
+        if (filter?.fk_view_id) {
+          view = await View.get(bypassContext, filter.fk_view_id);
+        }
+      } else if (req.query.sortId) {
+        const sort = await Sort.get(bypassContext, req.query.sortId as string);
+        if (sort?.fk_view_id) {
+          view = await View.get(bypassContext, sort.fk_view_id);
+        }
+      } else if (req.query.gridViewColumnId) {
+        const gridCol = await GridViewColumn.get(
+          bypassContext,
+          req.query.gridViewColumnId as string,
+        );
+        if (gridCol?.fk_view_id) {
+          view = await View.get(bypassContext, gridCol.fk_view_id);
+        }
+      }
+
+      // Set view in request for personal view ownership check in ACL middleware
+      if (view && view.lock_type === ViewLockType.Personal) {
+        req[VIEW_KEY] = view;
+      }
+    }
+
     await this.aclMiddleware.aclFn(
       operation,
       {

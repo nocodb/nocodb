@@ -1,5 +1,5 @@
 import type { ButtonType, ColumnType, GridColumnReqType, GridColumnType, MapType, TableType, ViewType } from 'nocodb-sdk'
-import { CommonAggregations, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
+import { CommonAggregations, ViewLockType, ViewTypes, getFirstNonPersonalView, isHiddenCol, isSystemColumn } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 
 const [useProvideViewColumns, useViewColumns] = useInjectionState(
@@ -50,9 +50,28 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
 
     const { addUndo, defineViewScope } = useUndoRedo()
 
-    const isLocalMode = computed(() => isPublic || !isUIAllowed('viewFieldEdit') || isSharedBase.value)
+    const { isUserViewOwner } = useViewsStore()
+
+    const isPersonalViewOwner = computed(() => view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value))
+
+    const canEditViewFields = computed(() => {
+      if (isUIAllowed('viewFieldEdit')) return true
+      if (isPersonalViewOwner.value) return true
+      return false
+    })
+
+    const isLocalMode = computed(() => isPublic || !canEditViewFields.value || isSharedBase.value)
 
     const hasViewFieldDataEditPermission = computed(() => isUIAllowed('viewFieldDataEdit'))
+
+    // Check if user can update view meta (row height, etc.) based on role OR personal view ownership
+    const canUpdateViewMeta = computed(() => {
+      // If user has role permission to update views, allow it
+      if (isUIAllowed('viewCreateOrEdit')) return true
+      // If this is a personal view owned by current user, allow updates
+      if (view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value)) return true
+      return false
+    })
 
     const localChanges = ref<Record<string, Field>>({})
 
@@ -313,7 +332,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
         localChanges.value[field.fk_column_id] = field
       }
 
-      if (isUIAllowed('viewFieldEdit')) {
+      if (canEditViewFields.value) {
         if (field.id && view?.value?.id) {
           await $api.internal.postOperation(
             meta.value!.fk_workspace_id!,
@@ -587,7 +606,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       }
       try {
         // sync with server if allowed
-        if (!isPublic.value && isUIAllowed('viewFieldEdit') && gridViewCols.value[id]?.id) {
+        if (!isPublic.value && canEditViewFields.value && gridViewCols.value[id]?.id) {
           await $api.internal.postOperation(
             view.value!.fk_workspace_id!,
             view.value!.base_id!,
@@ -691,6 +710,7 @@ const [useProvideViewColumns, useViewColumns] = useInjectionState(
       updateDefaultViewColumnMeta,
       hidingViewColumnsMap,
       hasViewFieldDataEditPermission,
+      canUpdateViewMeta,
     }
   },
   'useViewColumnsOrThrow',

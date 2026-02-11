@@ -415,7 +415,7 @@ export class MailService extends MailServiceCE {
             baseId,
             automationId: workflow.id,
             executionId: lastFailureId,
-          })
+          });
 
           await mailerAdapter.mailSend({
             to: user.email,
@@ -431,8 +431,7 @@ export class MailService extends MailServiceCE {
           });
           break;
         }
-        case MailEvent.SEND_RECORD:
-        {
+        case MailEvent.SEND_RECORD: {
           const {
             senderName,
             senderEmail,

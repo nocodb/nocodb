@@ -7,6 +7,7 @@ interface Props {
   isExpanded: boolean
   allExpanded: boolean
   allCollapsed: boolean
+  isDefault?: boolean
 }
 
 interface Emits {
@@ -64,7 +65,7 @@ const focusInput = () => {
 
 /** Enable editing section name on dbl click */
 function onDblClick() {
-  if (isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
+  if (props.isDefault || isMobileMode.value || !isUIAllowed('viewCreateOrEdit')) return
 
   if (!isEditing.value) {
     isEditing.value = true
@@ -276,31 +277,33 @@ const onCollapseAll = () => {
                   <GeneralIcon icon="ncMinimize2" class="opacity-80" />
                   {{ $t('activity.kanban.collapseAll') }}
                 </NcMenuItem>
-                <NcDivider v-if="isUIAllowed('viewCreateOrEdit')" />
-                <NcMenuItem
-                  v-if="isUIAllowed('viewCreateOrEdit')"
-                  @click="onRenameMenuClick"
-                >
-                  <GeneralIcon icon="rename" class="opacity-80" />
-                  {{
-                    $t('general.renameEntity', {
-                      entity: $t('objects.section').toLowerCase(),
-                    })
-                  }}
-                </NcMenuItem>
-                <NcDivider v-if="isUIAllowed('viewCreateOrEdit')" />
-                <NcMenuItem
-                  v-if="isUIAllowed('viewCreateOrEdit')"
-                  danger
-                  @click="onDelete"
-                >
-                  <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />
-                  {{
-                    $t('general.deleteEntity', {
-                      entity: $t('objects.section').toLowerCase(),
-                    })
-                  }}
-                </NcMenuItem>
+                <template v-if="!isDefault">
+                  <NcDivider v-if="isUIAllowed('viewCreateOrEdit')" />
+                  <NcMenuItem
+                    v-if="isUIAllowed('viewCreateOrEdit')"
+                    @click="onRenameMenuClick"
+                  >
+                    <GeneralIcon icon="rename" class="opacity-80" />
+                    {{
+                      $t('general.renameEntity', {
+                        entity: $t('objects.section').toLowerCase(),
+                      })
+                    }}
+                  </NcMenuItem>
+                  <NcDivider v-if="isUIAllowed('viewCreateOrEdit')" />
+                  <NcMenuItem
+                    v-if="isUIAllowed('viewCreateOrEdit')"
+                    danger
+                    @click="onDelete"
+                  >
+                    <GeneralIcon class="nc-view-delete-icon opacity-80" icon="delete" />
+                    {{
+                      $t('general.deleteEntity', {
+                        entity: $t('objects.section').toLowerCase(),
+                      })
+                    }}
+                  </NcMenuItem>
+                </template>
               </NcMenu>
             </template>
           </NcDropdown>

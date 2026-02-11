@@ -96,40 +96,48 @@ const toggleSectionExpanded = (sectionId?: string) => {
   saveExpandedSections()
 }
 
+/** Get all section IDs including the virtual default section */
+const allSectionIds = computed(() => {
+  const ids = sections.value.map((s) => s.id).filter(Boolean) as string[]
+  if (showDefaultFolder.value) {
+    ids.push(DEFAULT_SECTION_ID)
+  }
+  return ids
+})
+
 /** Expand all sections */
 const expandAllSections = () => {
-  for (const section of sections.value) {
-    if (section.id) {
-      expandedSections.value[section.id] = true
-    }
+  for (const id of allSectionIds.value) {
+    expandedSections.value[id] = true
   }
   saveExpandedSections()
 }
 
 /** Collapse all sections */
 const collapseAllSections = () => {
-  for (const section of sections.value) {
-    if (section.id) {
-      expandedSections.value[section.id] = false
-    }
+  for (const id of allSectionIds.value) {
+    expandedSections.value[id] = false
   }
   saveExpandedSections()
 }
 
 /** Whether all sections are currently expanded */
 const allSectionsExpanded = computed(() => {
-  if (!sections.value.length) return false
-  return sections.value.every((s) => s.id && expandedSections.value[s.id])
+  if (!allSectionIds.value.length) return false
+  return allSectionIds.value.every((id) => expandedSections.value[id])
 })
 
 /** Whether all sections are currently collapsed */
 const allSectionsCollapsed = computed(() => {
-  if (!sections.value.length) return false
-  return sections.value.every((s) => !s.id || !expandedSections.value[s.id])
+  if (!allSectionIds.value.length) return false
+  return allSectionIds.value.every((id) => !expandedSections.value[id])
 })
 
 /** Get views for a specific section */
 const getViewsInSection = (sectionId?: string) => {
+  if (sectionId === DEFAULT_SECTION_ID) {
+    return getTopLevelViews()
+  }
   return views.value.filter((v) => v.fk_view_section_id === sectionId)
 }
 
@@ -137,6 +145,20 @@ const getViewsInSection = (sectionId?: string) => {
 const getTopLevelViews = () => {
   return views.value.filter((v) => !v.fk_view_section_id)
 }
+
+/** Virtual section ID for the default folder that holds unassigned views */
+const DEFAULT_SECTION_ID = '__default__'
+
+/** Virtual default section data */
+const defaultSection = computed<ViewSectionType>(() => ({
+  id: DEFAULT_SECTION_ID,
+  title: 'Default',
+  order: Number.MAX_SAFE_INTEGER,
+  fk_model_id: table.value.id,
+} as ViewSectionType))
+
+/** Whether the default folder should be shown (only when at least one real section exists) */
+const showDefaultFolder = computed(() => sections.value.length > 0)
 
 /** Compute top-level items (sections and top-level views) sorted by order */
 const topLevelItems = computed(() => {
@@ -152,14 +174,24 @@ const topLevelItems = computed(() => {
     })
   }
 
-  // Add top-level views
-  for (const view of getTopLevelViews()) {
+  if (showDefaultFolder.value) {
+    // When sections exist, unassigned views go into the default folder (appended last)
     items.push({
-      type: 'view',
-      id: view.id || '',
-      order: view.order || 0,
-      data: view,
+      type: 'section',
+      id: DEFAULT_SECTION_ID,
+      order: Number.MAX_SAFE_INTEGER,
+      data: defaultSection.value,
     })
+  } else {
+    // No sections — flat list of views
+    for (const view of getTopLevelViews()) {
+      items.push({
+        type: 'view',
+        id: view.id || '',
+        order: view.order || 0,
+        data: view,
+      })
+    }
   }
 
   // Sort by order
@@ -614,6 +646,12 @@ watch(
         baseId: table.value.base_id!,
       })
       loadExpandedSections()
+
+      // Auto-expand the default folder if not yet set
+      if (expandedSections.value[DEFAULT_SECTION_ID] === undefined) {
+        expandedSections.value[DEFAULT_SECTION_ID] = true
+        saveExpandedSections()
+      }
     }
   },
   { immediate: true },
@@ -665,6 +703,7 @@ watch(
             :is-expanded="!!expandedSections[item.id]"
             :all-expanded="allSectionsExpanded"
             :all-collapsed="allSectionsCollapsed"
+            :is-default="item.id === DEFAULT_SECTION_ID"
             @expand-toggle="toggleSectionExpanded(item.id)"
             @rename="onRenameSection(item.data as ViewSectionType, $event)"
             @delete="openDeleteSectionDialog(item.data as ViewSectionType)"

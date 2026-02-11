@@ -1442,7 +1442,7 @@ defineExpose({
                 @click.stop="togglePinFilter(filter, i)"
               >
                 <GeneralIcon
-                  icon="ncMapPin"
+                  :icon="parseProp(filter.meta)?.pinned ? 'ncPinOff' : 'ncPin'"
                   class="h-3.5 w-3.5"
                   :class="parseProp(filter.meta)?.pinned ? 'text-primary' : 'text-nc-content-gray-subtle2'"
                 />

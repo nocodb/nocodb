@@ -808,7 +808,7 @@ defineExpose({
     }"
   >
     <div v-if="nested" class="flex min-w-full w-min items-center gap-1 mb-2">
-      <div :class="[`nc-filter-logical-op-level-${nestedLevel}`]">
+      <div class="flex items-center" :class="[`nc-filter-logical-op-level-${nestedLevel}`]">
         <slot name="start"></slot>
       </div>
       <div class="flex-grow"></div>
@@ -897,7 +897,7 @@ defineExpose({
           <template v-if="filter.is_group">
             <div
               class="flex flex-col min-w-full w-min max-w-full gap-y-2"
-              :class="{ 'nc-filter-disabled-row': filter.enabled === false }"
+              :class="{ 'nc-filter-disabled-group': filter.enabled === false }"
             >
               <div
                 class="flex rounded-lg p-2 min-w-full w-min max-w-full border-1"
@@ -930,31 +930,34 @@ defineExpose({
                   :is-temp-filters="isTempFilters"
                 >
                   <template #start>
-                    <div class="flex items-center pl-1 pr-1 nc-filter-enabled-checkbox-wrapper">
-                      <NcCheckbox
-                        :checked="filter.enabled !== false"
-                        size="default"
-                        :disabled="isLockedView || readOnly"
-                        class="nc-filter-enabled-checkbox"
-                        @change="onEnabledChange(filter, i)"
-                      />
-                    </div>
-                    <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{
-                      $t('labels.where')
-                    }}</span>
-                    <div v-else :key="`${i}nested`" class="flex nc-filter-logical-op">
+                    <div class="flex items-center nc-filter-group-header-wrapper">
+                      <div class="flex items-center pl-2 pr-1 nc-filter-enabled-checkbox-wrapper">
+                        <NcCheckbox
+                          :checked="filter.enabled !== false"
+                          size="default"
+                          :disabled="isLockedView || readOnly"
+                          class="nc-filter-enabled-checkbox"
+                          @change="onEnabledChange(filter, i)"
+                        />
+                      </div>
+                      <span
+                        v-if="!visibleFilters.indexOf(filter)"
+                        class="flex items-center !min-w-18 !max-w-18 pl-1 nc-filter-where-label"
+                        >{{ $t('labels.where') }}</span
+                      >
                       <NcSelect
+                        v-else
+                        :key="`${i}nested`"
                         v-model:value="filter.logical_op"
                         v-e="['c:filter:logical-op:select']"
                         :dropdown-match-select-width="false"
-                        class="min-w-18 capitalize"
+                        class="h-full !min-w-18 !max-w-18 capitalize"
                         placeholder="Group op"
+                        hide-details
                         dropdown-class-name="nc-dropdown-filter-logical-op-group"
                         :disabled="(i > 1 && !isLogicalOpChangeAllowed) || isLockedView || readOnly"
                         :class="{
                           'nc-disabled-logical-op': filter.readOnly || (i > 1 && !isLogicalOpChangeAllowed),
-                          '!max-w-18': !webHook,
-                          '!w-full': webHook,
                         }"
                         @click.stop
                         @change="onLogicalOpUpdate(filter, i)"
@@ -1615,8 +1618,8 @@ defineExpose({
   }
 }
 
-// group disabled state — dim the entire group container
-.nc-filter-disabled-row:not(.nc-filter-wrapper) {
+// group disabled state — dim the entire group container but keep checkbox interactive
+.nc-filter-disabled-group {
   & > * {
     @apply opacity-40 pointer-events-none;
   }
@@ -1627,6 +1630,16 @@ defineExpose({
 
 .nc-filter-enabled-checkbox-wrapper {
   @apply opacity-100 pointer-events-auto;
+}
+
+.nc-filter-group-header-wrapper {
+  @apply bg-nc-bg-default !rounded-lg border-1px border-nc-border-gray-medium;
+
+  & > *,
+  :deep(.ant-select-selector) {
+    @apply !border-none;
+    box-shadow: none !important;
+  }
 }
 </style>
 

@@ -1102,6 +1102,7 @@
     "pinNotSupported": "Pin is supported for Single Select, Multi Select, User, Created By, and Last Modified By fields only",
     "parentGroupDisabled": "Parent filter group is disabled",
     "fieldAlreadyPinned": "This field is already pinned by another filter",
+    "sectionName": "Section name",
     "appMarket": "App Market",
     "installs": "installs",
     "checkingDependencies": "Checking Dependencies",

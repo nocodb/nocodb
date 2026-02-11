@@ -116,6 +116,18 @@ const collapseAllSections = () => {
   saveExpandedSections()
 }
 
+/** Whether all sections are currently expanded */
+const allSectionsExpanded = computed(() => {
+  if (!sections.value.length) return false
+  return sections.value.every((s) => s.id && expandedSections.value[s.id])
+})
+
+/** Whether all sections are currently collapsed */
+const allSectionsCollapsed = computed(() => {
+  if (!sections.value.length) return false
+  return sections.value.every((s) => !s.id || !expandedSections.value[s.id])
+})
+
 /** Get views for a specific section */
 const getViewsInSection = (sectionId?: string) => {
   return views.value.filter((v) => v.fk_view_section_id === sectionId)
@@ -651,6 +663,8 @@ watch(
           <DashboardTreeViewViewsSectionNode
             :section="item.data as ViewSectionType"
             :is-expanded="!!expandedSections[item.id]"
+            :all-expanded="allSectionsExpanded"
+            :all-collapsed="allSectionsCollapsed"
             @expand-toggle="toggleSectionExpanded(item.id)"
             @rename="onRenameSection(item.data as ViewSectionType, $event)"
             @delete="openDeleteSectionDialog(item.data as ViewSectionType)"

@@ -5,6 +5,8 @@ import type { WritableComputedRef } from '@vue/reactivity'
 interface Props {
   section: ViewSectionType
   isExpanded: boolean
+  allExpanded: boolean
+  allCollapsed: boolean
 }
 
 interface Emits {
@@ -268,11 +270,11 @@ const onCollapseAll = () => {
 
             <template #overlay>
               <NcMenu class="!rounded-lg" variant="small">
-                <NcMenuItem @click="onExpandAll">
+                <NcMenuItem :disabled="allExpanded" @click="onExpandAll">
                   <GeneralIcon icon="ncMaximize2" class="opacity-80" />
                   {{ $t('activity.kanban.expandAll') }}
                 </NcMenuItem>
-                <NcMenuItem @click="onCollapseAll">
+                <NcMenuItem :disabled="allCollapsed" @click="onCollapseAll">
                   <GeneralIcon icon="ncMinimize2" class="opacity-80" />
                   {{ $t('activity.kanban.collapseAll') }}
                 </NcMenuItem>

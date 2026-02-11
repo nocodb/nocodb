@@ -1062,6 +1062,10 @@
     "relevantDocumentation": "Relevant documentation"
   },
   "labels": {
+    "pinToToolbar": "Pin to toolbar",
+    "unpinFromToolbar": "Unpin from toolbar",
+    "maxPinnedFilters": "Max {count} filters can be pinned",
+    "pinNotSupported": "Pin is supported for Single Select, Multi Select, and User fields only",
     "appMarket": "App Market",
     "installs": "installs",
     "checkingDependencies": "Checking Dependencies",
@@ -2089,10 +2093,7 @@
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
     "navigateToBilling": "Navigate to billing",
-    "goBackHome": "Go back home",
-    "pinToToolbar": "Pin to toolbar",
-    "unpinFromToolbar": "Unpin from toolbar",
-    "maxPinnedFilters": "Max {count} filters can be pinned"
+    "goBackHome": "Go back home"
   },
   "tooltip": {
     "notHaveAccess": "You don’t have access to this {context}",

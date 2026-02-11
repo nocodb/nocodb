@@ -1965,9 +1965,12 @@ export default class View implements ViewType {
     view_columns.forEach((col, index) => {
       // Update order values in memory
       col.order = index + 1;
+      if (col.order === 1) {
+        col.show = true;
+      }
       const updateObj = {
         order: col.order,
-        ...(col.order === 1 ? { show: true } : {}),
+        ...(col.order === 1 ? { show: col.show } : {}),
       };
       dbOperations.push(
         ncMeta.metaUpdate(

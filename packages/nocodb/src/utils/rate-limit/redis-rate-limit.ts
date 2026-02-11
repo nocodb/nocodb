@@ -18,9 +18,11 @@ if redis.call("EXISTS", KEYS[2]) == 1 then
 end
 
 local hits = redis.call("INCR", KEYS[1])
+local ttl = redis.call("PTTL", KEYS[1])
 
-if hits == 1 then
-  redis.call("PEXPIRE", KEYS[1], ARGV[1])
+-- Set expiry if key is new or has no expiry
+if ttl == -1 then
+  redis.call("PEXPIRE", KEYS[1], ARGV[1])  -- ARGV[1] should be in milliseconds
 end
 
 if hits > tonumber(ARGV[2]) then
@@ -101,7 +103,6 @@ export class RedisRateLimiter extends AbstractRateLimiter {
     }
 
     const [allowed] = result;
-
     if (allowed === 0) {
       throw NcError.get().rateLimitReached();
     }

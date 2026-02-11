@@ -8,6 +8,6 @@ function _rollupTests() {
   rollupErrorTest();
 }
 
-export const rollupTests = runOnSet(2, function () {
+export const rollupTests = runOnSet(2, () => {
   describe('Rollup', _rollupTests);
 });

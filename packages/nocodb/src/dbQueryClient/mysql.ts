@@ -1,6 +1,6 @@
 import { ClientType } from 'nocodb-sdk';
 import type { DBQueryClient } from '~/dbQueryClient/types';
-import type { Knex } from 'knex';
+import type { Knex, XKnex } from '~/db/CustomKnex';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
 
 export class MySqlDBQueryClient
@@ -22,6 +22,30 @@ export class MySqlDBQueryClient
   simpleCast(field: string, asType: string) {
     const useAsType = asType.toUpperCase() === 'TEXT' ? 'CHAR' : asType;
     return `CAST(${field} as ${useAsType})`;
+  }
+  temporaryTableRaw({
+    knex,
+    data,
+    fields,
+    alias,
+  }: {
+    data: Record<string, any>[];
+    fields: string[];
+    alias: string;
+    knex: XKnex;
+  }) {
+    const rowQuery = `SELECT ${fields.map(() => `? as ??`).join(', ')}`;
+    const fieldParams: any[] = [];
+    for (const row of data) {
+      for (const field of fields) {
+        fieldParams.push(row[field]);
+        fieldParams.push(field);
+      }
+    }
+    return knex.raw(`(${data.map(() => rowQuery).join(' UNION ALL ')}) AS ??`, [
+      ...fieldParams,
+      alias,
+    ]);
   }
   override async massUpdate({
     knex,
@@ -73,7 +97,7 @@ export class MySqlDBQueryClient
     const setStatements = updatingInfo.updatingColumns.map((col) => {
       // Use 1/0 for boolean comparison (works across all DBs)
       return knex.raw(`?? = CASE ?? WHEN ? THEN ?? ELSE ?? END`, [
-        col,
+        typeof tableName === 'string' ? `${tableName}.${col}` : col,
         `_src.__upd__${col}`,
         true,
         `_src.${col}`,

@@ -69,6 +69,36 @@ async function onMoveToSection(sectionId: string | null) {
 
   emits('closeModal')
 }
+
+async function onMoveToNewSection() {
+  if (!view.value?.id || !table.value?.id) return
+
+  try {
+    const allSections = sections.value || []
+    const lastOrder = Math.max(
+      ...allSections.map((s) => s.order || 0),
+      view.value.order || 0,
+      0,
+    )
+
+    const section = await viewSectionsStore.createSection(table.value.id, {
+      title: viewSectionsStore.getNextSectionTitle(),
+      order: lastOrder + 1,
+    })
+
+    if (section?.id) {
+      await updateView(view.value.id, {
+        fk_view_section_id: section.id,
+      } as Partial<ViewType>)
+
+      $e('a:view:move-to-new-section')
+    }
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+
+  emits('closeModal')
+}
 // --- End EE: View Sections ---
 
 const lockType = computed(() => (view.value?.lock_type as LockType) || LockType.Collaborative)
@@ -367,39 +397,36 @@ defineOptions({
         </NcMenuItem>
 
         <!-- EE: Move to Section submenu -->
-        <NcSubMenu v-if="inSidebar && sections.length > 0" key="move-to-section" variant="small">
+        <NcSubMenu v-if="inSidebar" key="move-to-section" variant="small">
           <template #title>
             <div class="nc-base-menu-item group">
-              <GeneralIcon icon="ncFolder" class="opacity-80" />
-              {{ $t('labels.moveToSection') }}
+              <GeneralIcon icon="ncArrowRight" class="opacity-80" />
+              {{ $t('labels.moveTo') }}
             </div>
           </template>
 
-          <NcMenuItemLabel>
-            {{ $t('labels.moveToSection') }}
-          </NcMenuItemLabel>
+          <!-- Existing sections -->
+          <template v-if="sections.length > 0">
+            <NcMenuItem
+              v-for="section in sections"
+              :key="section.id"
+              @click="onMoveToSection(section.id || null)"
+            >
+              {{ section.title }}
+            </NcMenuItem>
+            <NcDivider />
+          </template>
 
-          <!-- None option (remove from section) -->
-          <NcMenuItem
-            :class="{ '!text-nc-content-brand font-semibold': !currentSectionId }"
-            @click="onMoveToSection(null)"
-          >
-            <GeneralIcon icon="close" class="opacity-80" />
-            {{ $t('general.none') }}
-            <GeneralIcon v-if="!currentSectionId" icon="check" class="ml-auto text-nc-content-brand" />
+          <!-- New section -->
+          <NcMenuItem @click="onMoveToNewSection">
+            <GeneralIcon icon="plus" class="opacity-80" />
+            {{ $t('labels.newSection') }}
           </NcMenuItem>
-          <NcDivider />
 
-          <!-- Section options -->
-          <NcMenuItem
-            v-for="section in sections"
-            :key="section.id"
-            :class="{ '!text-nc-content-brand font-semibold': currentSectionId === section.id }"
-            @click="onMoveToSection(section.id || null)"
-          >
-            <GeneralIcon icon="ncFolder" class="opacity-80" />
-            {{ section.title }}
-            <GeneralIcon v-if="currentSectionId === section.id" icon="check" class="ml-auto text-nc-content-brand" />
+          <!-- Remove from section (only if view is in a section) -->
+          <NcMenuItem v-if="currentSectionId" @click="onMoveToSection(null)">
+            <GeneralIcon icon="minus" class="opacity-80" />
+            {{ $t('labels.removeFromSection') }}
           </NcMenuItem>
         </NcSubMenu>
         <!-- End EE: Move to Section -->

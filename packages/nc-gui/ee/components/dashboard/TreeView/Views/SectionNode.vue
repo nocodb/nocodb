@@ -12,6 +12,8 @@ interface Emits {
   (event: 'rename', title: string): void
   (event: 'delete'): void
   (event: 'open-menu'): void
+  (event: 'expand-all'): void
+  (event: 'collapse-all'): void
 }
 
 const props = defineProps<Props>()
@@ -162,6 +164,16 @@ const onDelete = () => {
   isDropdownOpen.value = false
   emits('delete')
 }
+
+const onExpandAll = () => {
+  isDropdownOpen.value = false
+  emits('expand-all')
+}
+
+const onCollapseAll = () => {
+  isDropdownOpen.value = false
+  emits('collapse-all')
+}
 </script>
 
 <template>
@@ -256,6 +268,15 @@ const onDelete = () => {
 
             <template #overlay>
               <NcMenu class="!rounded-lg" variant="small">
+                <NcMenuItem @click="onExpandAll">
+                  <GeneralIcon icon="ncMaximize2" class="opacity-80" />
+                  {{ $t('activity.kanban.expandAll') }}
+                </NcMenuItem>
+                <NcMenuItem @click="onCollapseAll">
+                  <GeneralIcon icon="ncMinimize2" class="opacity-80" />
+                  {{ $t('activity.kanban.collapseAll') }}
+                </NcMenuItem>
+                <NcDivider v-if="isUIAllowed('viewCreateOrEdit')" />
                 <NcMenuItem
                   v-if="isUIAllowed('viewCreateOrEdit')"
                   @click="onRenameMenuClick"

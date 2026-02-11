@@ -96,6 +96,26 @@ const toggleSectionExpanded = (sectionId?: string) => {
   saveExpandedSections()
 }
 
+/** Expand all sections */
+const expandAllSections = () => {
+  for (const section of sections.value) {
+    if (section.id) {
+      expandedSections.value[section.id] = true
+    }
+  }
+  saveExpandedSections()
+}
+
+/** Collapse all sections */
+const collapseAllSections = () => {
+  for (const section of sections.value) {
+    if (section.id) {
+      expandedSections.value[section.id] = false
+    }
+  }
+  saveExpandedSections()
+}
+
 /** Get views for a specific section */
 const getViewsInSection = (sectionId?: string) => {
   return views.value.filter((v) => v.fk_view_section_id === sectionId)
@@ -545,7 +565,7 @@ async function onCreateSection() {
     )
 
     const section = await viewSectionsStore.createSection(table.value.id, {
-      title: 'Untitled Section',
+      title: viewSectionsStore.getNextSectionTitle(),
       order: lastOrder + 1,
     })
 
@@ -612,11 +632,7 @@ watch(
           <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
             <GeneralIcon icon="plus" class="nc-create-view-btn-icon" />
             <div class="pl-1.75">
-              {{
-                $t('general.createEntity', {
-                  entity: $t('objects.view'),
-                })
-              }}
+              {{ $t('general.create') }}
             </div>
           </div>
         </div>
@@ -639,6 +655,8 @@ watch(
             @rename="onRenameSection(item.data as ViewSectionType, $event)"
             @delete="openDeleteSectionDialog(item.data as ViewSectionType)"
             @open-menu="null"
+            @expand-all="expandAllSections"
+            @collapse-all="collapseAllSections"
           />
 
           <!-- Child views of this section -->

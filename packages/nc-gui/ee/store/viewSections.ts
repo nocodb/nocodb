@@ -190,6 +190,20 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     }
   }
 
+  /** Generate a unique default section title like "View section", "View section 2", etc. */
+  const getNextSectionTitle = () => {
+    const baseName = 'View section'
+    const existingTitles = new Set(sections.value.map((s) => s.title?.trim()))
+
+    if (!existingTitles.has(baseName)) return baseName
+
+    let counter = 2
+    while (existingTitles.has(`${baseName} ${counter}`)) {
+      counter++
+    }
+    return `${baseName} ${counter}`
+  }
+
   return {
     // State
     sectionsByTable,
@@ -203,6 +217,7 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     updateSection,
     deleteSection,
     reorderSection,
+    getNextSectionTitle,
   }
 })
 

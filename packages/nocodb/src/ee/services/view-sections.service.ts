@@ -34,6 +34,12 @@ export class ViewSectionsService {
       NcError.badRequest('Title is required');
     }
 
+    // Check for duplicate title within the same table
+    const existingSections = await ViewSection.list(context, tableId);
+    if (existingSections.some((s) => s.title?.trim() === title)) {
+      NcError.badRequest('A section with this name already exists');
+    }
+
     // Look up the table to get source_id
     const model = await Model.get(context, tableId);
 
@@ -86,6 +92,22 @@ export class ViewSectionsService {
       if (!title) {
         NcError.badRequest('Title cannot be empty');
       }
+
+      // Check for duplicate title within the same table (exclude self)
+      if (title !== existingSection.title?.trim()) {
+        const existingSections = await ViewSection.list(
+          context,
+          existingSection.fk_model_id,
+        );
+        if (
+          existingSections.some(
+            (s) => s.id !== sectionId && s.title?.trim() === title,
+          )
+        ) {
+          NcError.badRequest('A section with this name already exists');
+        }
+      }
+
       updateData.title = title;
     }
 

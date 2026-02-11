@@ -16,6 +16,7 @@ const up = async (knex: Knex) => {
     const users = await knex(MetaTable.USERS)
       .select('id', 'email')
       .whereNull('canonical_email')
+      .whereNotNull('email')
       .limit(BATCH_SIZE);
 
     if (users.length === 0) break;
@@ -23,7 +24,6 @@ const up = async (knex: Knex) => {
     // Group by canonical value to batch updates where possible
     const updatesByCanonical = new Map<string, string[]>();
     for (const user of users) {
-      if (!user.email) continue;
       const canonical = normalizeEmail(user.email);
       if (!updatesByCanonical.has(canonical)) {
         updatesByCanonical.set(canonical, []);

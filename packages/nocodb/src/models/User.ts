@@ -207,7 +207,9 @@ export default class User implements UserType {
     _email: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const canonical = _email ? normalizeEmail(_email) : _email;
+    if (!_email || _email === '') return null;
+
+    const canonical = normalizeEmail(_email);
     let user =
       canonical &&
       (await NocoCache.get(

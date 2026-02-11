@@ -221,8 +221,6 @@ const onCollapseAll = () => {
           </NcButton>
         </div>
 
-        <GeneralIcon icon="folder" class="w-4 h-4 flex-none" />
-
         <a-input
           v-if="isEditing"
           ref="input"

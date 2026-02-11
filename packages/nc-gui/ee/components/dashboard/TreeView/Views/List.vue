@@ -737,7 +737,7 @@ watch(
           v-if="sectionToDelete"
           class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle"
         >
-          <GeneralIcon icon="ncFolder" class="w-4 min-h-4" />
+          <GeneralIcon icon="ncFolder" class="w-4 min-h-4" style="color: #3f8292" />
           <div
             class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

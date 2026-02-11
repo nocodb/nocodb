@@ -412,6 +412,7 @@ defineOptions({
               :key="section.id"
               @click="onMoveToSection(section.id || null)"
             >
+              <GeneralIcon icon="ncFolder" class="opacity-80" style="color: #3f8292" />
               {{ section.title }}
             </NcMenuItem>
             <NcDivider />

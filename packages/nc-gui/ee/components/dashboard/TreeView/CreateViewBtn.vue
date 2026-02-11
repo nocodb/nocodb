@@ -180,7 +180,7 @@ function onCreateSection() {
         <NcMenuItem data-testid="sidebar-view-create-section" @click="onCreateSection">
           <div class="item">
             <div class="item-inner">
-              <GeneralIcon icon="ncFolder" class="!w-4 !h-4" />
+              <GeneralIcon icon="ncFolder" class="!w-4 !h-4" style="color: #3f8292" />
               <div>{{ $t('objects.section') }}</div>
             </div>
 

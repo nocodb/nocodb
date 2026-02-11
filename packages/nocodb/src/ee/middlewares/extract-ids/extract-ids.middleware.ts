@@ -446,6 +446,36 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         if (viewFromId instanceof View) {
           view = viewFromId;
         }
+      } else if (!view && gridViewColumnId) {
+        const gridCol = await GridViewColumn.get(context, gridViewColumnId);
+        if (gridCol?.fk_view_id) {
+          const viewFromGridCol = await View.get(context, gridCol.fk_view_id);
+          if (viewFromGridCol instanceof View) {
+            view = viewFromGridCol;
+          }
+        }
+      } else if (!view && formViewColumnId) {
+        const formCol = await FormViewColumn.get(context, formViewColumnId);
+        if (formCol?.fk_view_id) {
+          const viewFromFormCol = await View.get(context, formCol.fk_view_id);
+          if (viewFromFormCol instanceof View) {
+            view = viewFromFormCol;
+          }
+        }
+      } else if (!view && galleryViewColumnId) {
+        const galleryCol = await GalleryViewColumn.get(
+          context,
+          galleryViewColumnId,
+        );
+        if (galleryCol?.fk_view_id) {
+          const viewFromGalleryCol = await View.get(
+            context,
+            galleryCol.fk_view_id,
+          );
+          if (viewFromGalleryCol instanceof View) {
+            view = viewFromGalleryCol;
+          }
+        }
       }
 
       // if view API and view is personal view then check if user has access to view
@@ -1116,7 +1146,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
     // When viewId is present but wasn't the primary entity in the if-else
     // chain (e.g., routes with both :baseId and :viewId, or internal API
-    // with viewId/filterId/sortId/gridViewColumnId in query params), extract
+    // with viewId/filterId/sortId/viewColumnId in query params), extract
     // the view separately so personal-view permission checks still work.
     if (!view && (params.viewId || req.query.viewId)) {
       const viewFromId = await View.get(
@@ -1151,6 +1181,31 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         const viewFromGridCol = await View.get(context, gridCol.fk_view_id);
         if (viewFromGridCol instanceof View) {
           view = viewFromGridCol;
+        }
+      }
+    } else if (!view && req.query.formViewColumnId) {
+      const formCol = await FormViewColumn.get(
+        context,
+        req.query.formViewColumnId,
+      );
+      if (formCol?.fk_view_id) {
+        const viewFromFormCol = await View.get(context, formCol.fk_view_id);
+        if (viewFromFormCol instanceof View) {
+          view = viewFromFormCol;
+        }
+      }
+    } else if (!view && req.query.galleryViewColumnId) {
+      const galleryCol = await GalleryViewColumn.get(
+        context,
+        req.query.galleryViewColumnId,
+      );
+      if (galleryCol?.fk_view_id) {
+        const viewFromGalleryCol = await View.get(
+          context,
+          galleryCol.fk_view_id,
+        );
+        if (viewFromGalleryCol instanceof View) {
+          view = viewFromGalleryCol;
         }
       }
     }

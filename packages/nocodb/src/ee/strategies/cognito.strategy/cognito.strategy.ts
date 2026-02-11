@@ -12,7 +12,6 @@ import { UsersService } from '~/services/users/users.service';
 import { User } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import { isDisposableEmail } from '~/helpers';
-import { normalizeEmail } from '~/utils/emailUtils';
 
 @Injectable()
 export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
@@ -50,15 +49,16 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
           return callback('Invalid token');
         }
 
-        const email = normalizeEmail(rawEmail);
-
-        if (email !== rawEmail) {
+        // Reject plus addressing (always abusive)
+        if (rawEmail.split('@')[0].includes('+')) {
           return callback(
             new Error(
-              'Email aliases are not allowed. Please use your primary email address.',
+              'Email aliases with "+" are not allowed. Please use your primary email address.',
             ),
           );
         }
+
+        const email = rawEmail;
 
         // check if email is disposable and throw error
         if (isDisposableEmail(email)) {
@@ -67,37 +67,39 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
           );
         }
 
-        // get user by email
-        await User.getByEmail(email).then(async (user) => {
-          if (user) {
-            return callback(null, {
-              ...sanitiseUserObj(user),
-              provider: 'cognito',
-            });
-          } else {
-            try {
-              // if user not found create new user
-              const salt = await promisify(bcrypt.genSalt)(10);
-              const user = await this.usersService.registerNewUserIfAllowed({
-                email,
-                password: '',
-                email_verification_token: null,
-                avatar: (payload as any)['picture'],
-                user_name: null,
-                display_name: (payload as any)['name'],
-                salt,
-                req,
-              });
+        // Look up existing user by canonical email (catches dot/googlemail aliases)
+        const user =
+          (await User.getByCanonicalEmail(email)) ||
+          (await User.getByEmail(email));
 
-              return callback(null, {
-                ...sanitiseUserObj(user),
-                provider: 'cognito',
-              });
-            } catch (err) {
-              return callback(new Error('Token validation failed'));
-            }
-          }
-        });
+        if (user) {
+          return callback(null, {
+            ...sanitiseUserObj(user),
+            provider: 'cognito',
+          });
+        }
+
+        try {
+          // if user not found create new user
+          const salt = await promisify(bcrypt.genSalt)(10);
+          const newUser = await this.usersService.registerNewUserIfAllowed({
+            email,
+            password: '',
+            email_verification_token: null,
+            avatar: (payload as any)['picture'],
+            user_name: null,
+            display_name: (payload as any)['name'],
+            salt,
+            req,
+          });
+
+          return callback(null, {
+            ...sanitiseUserObj(newUser),
+            provider: 'cognito',
+          });
+        } catch (err) {
+          return callback(new Error('Token validation failed'));
+        }
       } else {
         return callback(new Error('No token found'));
       }

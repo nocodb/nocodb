@@ -126,6 +126,7 @@ export default class View implements ViewType {
   show_system_fields?: boolean;
   meta?: any;
   fk_custom_url_id?: string;
+  fk_view_section_id?: string;
 
   constructor(data: View) {
     Object.assign(this, data);
@@ -1572,6 +1573,7 @@ export default class View implements ViewType {
       expanded_record_mode?: ExpandedFormModeType;
       attachment_mode_column_id?: string;
       fk_custom_url_id?: string;
+      fk_view_section_id?: string | null;
       row_coloring_mode?: ROW_COLORING_MODE;
     },
     includeCreatedByAndUpdateBy = false,
@@ -1588,6 +1590,7 @@ export default class View implements ViewType {
       'uuid',
       'row_coloring_mode',
       ...(isEE ? ['fk_custom_url_id'] : []),
+      ...(isEE ? ['fk_view_section_id'] : []),
       ...(includeCreatedByAndUpdateBy ? ['owned_by', 'created_by'] : []),
       ...(isEE ? ['expanded_record_mode', 'attachment_mode_column_id'] : []),
     ]);

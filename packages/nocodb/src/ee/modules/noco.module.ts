@@ -95,6 +95,10 @@ import { RecordTemplatesService } from '~/services/record-templates/record-templ
 import { ListsService } from '~/ee/services/lists.service';
 import { ListDatasService } from '~/ee/services/list-datas.service';
 
+/* View Sections */
+import { ViewSectionsService } from '~/ee/services/view-sections.service';
+import { ViewSectionsController } from '~/ee/controllers/view-sections.controller';
+
 import { ActionsService } from '~/services/actions.service';
 
 /* SCIM */
@@ -187,6 +191,9 @@ export const nocoModuleEeMetadata = {
     ListsService,
     ListDatasService,
 
+    /* View Sections */
+    ViewSectionsService,
+
     ActionsService,
 
     /* SCIM */
@@ -250,6 +257,9 @@ export const nocoModuleEeMetadata = {
 
     /* Record Templates */
     RecordTemplatesController,
+
+    /* View Sections */
+    ViewSectionsController,
 
     // NOTE: COMMENTED OUT FOR NOW - ONLY USED FOR TESTING PURPOSES
     // /* Workspace Teams V3 */

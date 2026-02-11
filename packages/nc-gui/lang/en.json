@@ -215,6 +215,7 @@
     "upgradeToUseRlsSubtitle": "Upgrade to the {plan} plan to define row-level security policies that control which rows users can access."
   },
   "general": {
+    "none": "None",
     "done": "Done",
     "properties": "Properties",
     "authorization": "Authorization",
@@ -553,6 +554,8 @@
     "recordTemplates": "Record Templates",
     "view": "View",
     "views": "Views",
+    "section": "Section",
+    "sections": "Sections",
     "sidebar": "Sidebar",
     "viewType": {
       "grid": "Grid",
@@ -1528,6 +1531,7 @@
     "clickToCopyViewID": "Click to copy View ID",
     "clickToCopyExtensionID": "Click to copy Extension ID",
     "viewMode": "View mode",
+    "moveToSection": "Move to section",
     "assignAsPersonalView": "Assign as personal view",
     "reAssignView": "Re-assign personal view",
     "reAssignThisView": "Re-assign this view",
@@ -2602,6 +2606,7 @@
       "noTemplatesDesc": "Create a template to quickly add records with pre-filled values",
       "nestedRecordConfigPlaceholder": "Configure the fields for the linked record",
       "deleteTemplateConfirm": "Are you sure you want to delete this template? This action cannot be undone.",
+      "sectionDeleteConfirmation": "Views in this section will be moved to the top level.",
       "noEditableCellsToClear": "No editable cells to clear",
       "defaultValSyncedCol": "Default values cannot be set for fields synced from external sources",
       "uniqueConstraintTooltip": "Prevents duplicate non-empty values across records. Empty cells are allowed.",

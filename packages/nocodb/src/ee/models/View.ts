@@ -18,6 +18,7 @@ import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 export default class View extends ViewCE implements ViewType {
   expanded_record_mode?: ExpandedFormModeType;
   attachment_mode_column_id?: string;
+  fk_view_section_id?: string;
 
   static async insert(
     context: NcContext,

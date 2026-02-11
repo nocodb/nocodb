@@ -3901,6 +3901,123 @@
           "required": true
         }
       ]
+    },
+    "/api/v2/meta/tables/{tableId}/view-sections": {
+      "get": {
+        "summary": "List View Sections",
+        "operationId": "db-view-section-list",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewSectionList"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB View Section"
+        ],
+        "description": "List all view sections for a table"
+      },
+      "post": {
+        "summary": "Create View Section",
+        "operationId": "db-view-section-create",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewSection"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewSectionCreateReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB View Section"
+        ],
+        "description": "Create a new view section (folder) for a table"
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableId",
+          "in": "path",
+          "required": true,
+          "description": "Unique Table ID"
+        }
+      ]
+    },
+    "/api/v2/meta/view-sections/{sectionId}": {
+      "patch": {
+        "summary": "Update View Section",
+        "operationId": "db-view-section-update",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ViewSection"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ViewSectionUpdateReq"
+              }
+            }
+          }
+        },
+        "tags": [
+          "DB View Section"
+        ],
+        "description": "Update a view section"
+      },
+      "delete": {
+        "summary": "Delete View Section",
+        "operationId": "db-view-section-delete",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": [
+          "DB View Section"
+        ],
+        "description": "Delete a view section. Child views are moved to top-level."
+      },
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sectionId",
+          "in": "path",
+          "required": true,
+          "description": "Unique View Section ID"
+        }
+      ]
     }
   },
   "components": {
@@ -5832,6 +5949,123 @@
           }
         }
       },
+      "View": {
+        "description": "Model for View",
+        "title": "View Model",
+        "type": "object",
+        "properties": {
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Source ID"
+          },
+          "fk_model_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Model ID"
+          },
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID for View"
+          },
+          "lock_type": {
+            "description": "Lock Type of the view",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ],
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta data for this view"
+          },
+          "order": {
+            "description": "The order of the list of views",
+            "type": "number"
+          },
+          "description": {
+            "description": "View Description",
+            "$ref": "#/components/schemas/TextOrNull"
+          },
+          "password": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Password for protecting the view"
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique Base ID"
+          },
+          "show": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "If this view is shown?"
+          },
+          "show_system_fields": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Should show system fields in this view?"
+          },
+          "title": {
+            "description": "View Title",
+            "type": "string"
+          },
+          "type": {
+            "description": "View Type",
+            "type": "number"
+          },
+          "uuid": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "UUID of the view"
+          },
+          "view": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Form"
+              },
+              {
+                "$ref": "#/components/schemas/Gallery"
+              },
+              {
+                "$ref": "#/components/schemas/Grid"
+              },
+              {
+                "$ref": "#/components/schemas/Kanban"
+              },
+              {
+                "$ref": "#/components/schemas/Map"
+              },
+              {
+                "$ref": "#/components/schemas/Calendar"
+              }
+            ],
+            "description": "Associated View Model"
+          },
+          "owned_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of view owner user"
+          },
+          "row_coloring_mode": {
+            "type": "string",
+            "enum": [
+              "filter",
+              "select"
+            ],
+            "description": "The row coloring mode whether it is select, condition or not set"
+          },
+          "fk_custom_url_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "ID of custom url"
+          },
+          "fk_view_section_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to View Section (folder)"
+          }
+        },
+        "required": [
+          "fk_model_id",
+          "show",
+          "title",
+          "type"
+        ]
+      },
       "ViewUpdateReq": {
         "description": "Model for View Update Request",
         "x-stoplight": {
@@ -5923,6 +6157,10 @@
           "attachment_mode_column_id": {
             "$ref": "#/components/schemas/Id",
             "description": "ID of column used for attachment mode"
+          },
+          "fk_view_section_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to View Section (folder)"
           }
         }
       },
@@ -6313,6 +6551,136 @@
           "custom_path": {
             "type": "string",
             "description": "Custom url path"
+          }
+        }
+      },
+      "ViewSection": {
+        "description": "Model for View Section",
+        "title": "View Section Model",
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Unique ID"
+          },
+          "fk_workspace_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Workspace ID",
+            "readOnly": true
+          },
+          "base_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Base ID",
+            "readOnly": true
+          },
+          "source_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Source ID",
+            "readOnly": true
+          },
+          "fk_model_id": {
+            "$ref": "#/components/schemas/Id",
+            "description": "Foreign Key to Model (table)"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "description": "Section Title"
+          },
+          "order": {
+            "type": "number",
+            "description": "Display Order"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info"
+          },
+          "created_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of user who created this section",
+            "readOnly": true
+          },
+          "updated_by": {
+            "$ref": "#/components/schemas/Id",
+            "description": "ID of user who last updated this section",
+            "readOnly": true
+          },
+          "created_at": {
+            "type": "string",
+            "description": "Created At timestamp",
+            "readOnly": true
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "Updated At timestamp",
+            "readOnly": true
+          }
+        },
+        "required": [
+          "fk_model_id",
+          "title"
+        ]
+      },
+      "ViewSectionList": {
+        "description": "Model for View Section List",
+        "title": "View Section List Model",
+        "type": "object",
+        "properties": {
+          "list": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ViewSection"
+            }
+          }
+        },
+        "required": [
+          "list"
+        ]
+      },
+      "ViewSectionCreateReq": {
+        "description": "Model for View Section Create Request",
+        "title": "View Section Create Request Model",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "description": "Section Title"
+          },
+          "order": {
+            "type": "number",
+            "description": "Display Order",
+            "minimum": 0
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info"
+          }
+        },
+        "required": [
+          "title"
+        ]
+      },
+      "ViewSectionUpdateReq": {
+        "description": "Model for View Section Update Request",
+        "title": "View Section Update Request Model",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "description": "Section Title"
+          },
+          "order": {
+            "type": "number",
+            "description": "Display Order",
+            "minimum": 0
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta",
+            "description": "Meta info"
           }
         }
       }

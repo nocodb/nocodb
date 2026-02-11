@@ -300,6 +300,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = gridViewColumn?.source_id;
+
+        if (gridViewColumn?.fk_view_id) {
+          view = await View.get(context, gridViewColumn.fk_view_id);
+        }
       } else if (formViewColumnId) {
         const formViewColumn = await FormViewColumn.get(
           context,
@@ -311,6 +315,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = formViewColumn.source_id;
+
+        if (formViewColumn?.fk_view_id) {
+          view = await View.get(context, formViewColumn.fk_view_id);
+        }
       } else if (galleryViewColumnId) {
         const galleryViewColumn = await GalleryViewColumn.get(
           context,
@@ -322,6 +330,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
 
         req.ncSourceId = galleryViewColumn.source_id;
+
+        if (galleryViewColumn?.fk_view_id) {
+          view = await View.get(context, galleryViewColumn.fk_view_id);
+        }
       } else if (columnId) {
         const column = await Column.get(context, { colId: columnId });
 
@@ -936,42 +948,6 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         const viewFromSort = await View.get(context, sort.fk_view_id);
         if (viewFromSort instanceof View) {
           view = viewFromSort;
-        }
-      }
-    } else if (!view && req.query.gridViewColumnId) {
-      const gridCol = await GridViewColumn.get(
-        context,
-        req.query.gridViewColumnId,
-      );
-      if (gridCol?.fk_view_id) {
-        const viewFromGridCol = await View.get(context, gridCol.fk_view_id);
-        if (viewFromGridCol instanceof View) {
-          view = viewFromGridCol;
-        }
-      }
-    } else if (!view && req.query.formViewColumnId) {
-      const formCol = await FormViewColumn.get(
-        context,
-        req.query.formViewColumnId,
-      );
-      if (formCol?.fk_view_id) {
-        const viewFromFormCol = await View.get(context, formCol.fk_view_id);
-        if (viewFromFormCol instanceof View) {
-          view = viewFromFormCol;
-        }
-      }
-    } else if (!view && req.query.galleryViewColumnId) {
-      const galleryCol = await GalleryViewColumn.get(
-        context,
-        req.query.galleryViewColumnId,
-      );
-      if (galleryCol?.fk_view_id) {
-        const viewFromGalleryCol = await View.get(
-          context,
-          galleryCol.fk_view_id,
-        );
-        if (viewFromGalleryCol instanceof View) {
-          view = viewFromGalleryCol;
         }
       }
     }

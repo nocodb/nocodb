@@ -454,7 +454,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       // view separately so personal-view permission checks still work.
       if (!view && viewId) {
         const viewFromId = await View.get(context, viewId);
-        if (viewFromId instanceof View) {
+        if (viewFromId) {
           view = viewFromId;
         }
       }
@@ -1134,14 +1134,14 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         context,
         params.viewId || req.query.viewId,
       );
-      if (viewFromId instanceof View) {
+      if (viewFromId) {
         view = viewFromId;
       }
     } else if (!view && req.query.filterId) {
       const filter = await Filter.get(context, req.query.filterId);
       if (filter?.fk_view_id) {
         const viewFromFilter = await View.get(context, filter.fk_view_id);
-        if (viewFromFilter instanceof View) {
+        if (viewFromFilter) {
           view = viewFromFilter;
         }
       }
@@ -1149,7 +1149,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       const sort = await Sort.get(context, req.query.sortId);
       if (sort?.fk_view_id) {
         const viewFromSort = await View.get(context, sort.fk_view_id);
-        if (viewFromSort instanceof View) {
+        if (viewFromSort) {
           view = viewFromSort;
         }
       }

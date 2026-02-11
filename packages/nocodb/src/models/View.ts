@@ -1962,6 +1962,7 @@ export default class View implements ViewType {
     }
 
     // Prepare parallel order updates
+    const rowsToUpdate: any[] = [];
     view_columns.forEach((col, index) => {
       // Update order values in memory
       col.order = index + 1;
@@ -1969,18 +1970,17 @@ export default class View implements ViewType {
         col.show = true;
       }
       const updateObj = {
+        id: col.id,
         order: col.order,
         ...(col.order === 1 ? { show: col.show } : {}),
       };
-      dbOperations.push(
-        ncMeta.metaUpdate(
-          context.workspace_id,
-          context.base_id,
-          MetaTable.GRID_VIEW_COLUMNS,
-          updateObj,
-          col.id,
-        ),
-      );
+      rowsToUpdate.push(updateObj);
+    });
+    await ncMeta.massMetaUpdate(context.workspace_id, context.base_id, {
+      primaryKeyColumns: ['id'],
+      data: rowsToUpdate,
+      tableName: MetaTable.GRID_VIEW_COLUMNS,
+      updatingColumns: ['order', 'show'],
     });
 
     // Execute all database operations in parallel

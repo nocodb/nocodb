@@ -1,6 +1,6 @@
 import { ClientType } from 'nocodb-sdk';
 import type { DBQueryClient } from '~/dbQueryClient/types';
-import type { Knex } from 'knex';
+import type { Knex, XKnex } from '~/db/CustomKnex';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
 
 export class SqliteDBQueryClient
@@ -15,6 +15,30 @@ export class SqliteDBQueryClient
   }
   simpleCast(field: string, asType: string) {
     return `CAST(${field} as ${asType})`;
+  }
+  temporaryTableRaw({
+    knex,
+    data,
+    fields,
+    alias,
+  }: {
+    data: Record<string, any>[];
+    fields: string[];
+    alias: string;
+    knex: XKnex;
+  }) {
+    const rowQuery = `SELECT ${fields.map(() => `? as ??`).join(', ')}`;
+    const fieldParams: any[] = [];
+    for (const row of data) {
+      for (const field of fields) {
+        fieldParams.push(row[field]);
+        fieldParams.push(field);
+      }
+    }
+    return knex.raw(`(${data.map(() => rowQuery).join(' UNION ALL ')}) AS ??`, [
+      ...fieldParams,
+      alias,
+    ]);
   }
   override async massUpdate({
     knex,

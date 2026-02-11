@@ -216,8 +216,9 @@ const onCollapseAll = () => {
         >
           <NcButton type="text" size="xsmall" class="!px-0">
             <GeneralIcon
-              :icon="isExpanded ? 'chevronDown' : 'chevronRight'"
+              :icon="isExpanded ? 'ncFolderOpen' : 'ncFolderClosed'"
               class="w-4 h-4"
+              style="color: #3f8292"
             />
           </NcButton>
         </div>

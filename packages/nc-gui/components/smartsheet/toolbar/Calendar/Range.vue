@@ -374,7 +374,7 @@ const onValueChange = async () => {
         <!--
         <div class="text-[13px] text-nc-content-gray-muted py-2">Records in this view will be based on the specified date field.</div>
 -->
-        <GeneralLockedViewFooter v-if="isRestrictedEditor" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
+        <GeneralLockedViewFooter v-if="isLocked" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
       </div>
     </template>
   </NcDropdown>

@@ -222,7 +222,7 @@ const handleChange = () => {
             </div>
           </NcSwitch>
         </div>
-        <GeneralLockedViewFooter v-if="isRestrictedEditor" class="-mb-4 -mx-4" @on-open="open = false" />
+        <GeneralLockedViewFooter v-if="isLocked" class="-mb-4 -mx-4" @on-open="open = false" />
       </div>
     </template>
   </NcDropdown>

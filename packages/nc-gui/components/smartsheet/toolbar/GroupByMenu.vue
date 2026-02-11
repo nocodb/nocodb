@@ -393,7 +393,7 @@ const getFieldsToGroupBy = (currentGroup: Group) => {
           </div>
         </div>
         <GeneralLockedViewFooter
-          v-if="isRestrictedEditor"
+          v-if="isLocked"
           :class="{
             '-mt-2': _groupBy.length,
           }"

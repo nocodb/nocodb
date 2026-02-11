@@ -20,4 +20,18 @@ export interface DBQueryClient {
 
   concat(fields: string[]);
   simpleCast(field: string, asType: string);
+
+  massUpdate({
+    knex,
+    tableName,
+    data,
+    updatingColumns,
+    primaryKeyColumns,
+  }: {
+    knex: Knex;
+    tableName: string | Knex.Raw<any>;
+    data: Record<string, any>[];
+    updatingColumns: string[];
+    primaryKeyColumns: string[];
+  }): Promise<undefined>;
 }

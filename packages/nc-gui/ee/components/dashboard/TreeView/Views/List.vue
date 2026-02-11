@@ -474,6 +474,20 @@ async function onRenameSection(section: ViewSectionType, newTitle: string) {
   }
 }
 
+/** Change section folder icon color */
+async function onChangeSectionColor(section: ViewSectionType, color: string) {
+  if (!section.id) return
+
+  try {
+    const currentMeta = parseProp(section.meta)
+    await viewSectionsStore.updateSection(section.id, {
+      meta: { ...currentMeta, iconColor: color },
+    })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
 /** Section pending delete (for dialog) */
 const sectionToDelete = ref<ViewSectionType | null>(null)
 const showDeleteSectionModal = ref(false)
@@ -710,6 +724,7 @@ watch(
             @open-menu="null"
             @expand-all="expandAllSections"
             @collapse-all="collapseAllSections"
+            @change-color="onChangeSectionColor(item.data as ViewSectionType, $event)"
           />
 
           <!-- Child views of this section -->
@@ -775,7 +790,7 @@ watch(
           v-if="sectionToDelete"
           class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle"
         >
-          <GeneralIcon icon="ncFolder" class="w-4 min-h-4" style="color: #3f8292" />
+          <GeneralIcon icon="ncFolder" class="w-4 min-h-4" :style="{ color: parseProp(sectionToDelete?.meta)?.iconColor || '#3f8292' }" />
           <div
             class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

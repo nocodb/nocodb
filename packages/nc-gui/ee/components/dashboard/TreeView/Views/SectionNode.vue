@@ -17,6 +17,7 @@ interface Emits {
   (event: 'open-menu'): void
   (event: 'expand-all'): void
   (event: 'collapse-all'): void
+  (event: 'change-color', color: string): void
 }
 
 const props = defineProps<Props>()
@@ -177,6 +178,16 @@ const onCollapseAll = () => {
   isDropdownOpen.value = false
   emits('collapse-all')
 }
+
+const DEFAULT_ICON_COLOR = '#3f8292'
+
+const iconColor = computed(() => {
+  return parseProp(props.section.meta)?.iconColor || DEFAULT_ICON_COLOR
+})
+
+const onChangeColor = (color: string) => {
+  emits('change-color', color)
+}
 </script>
 
 <template>
@@ -218,7 +229,7 @@ const onCollapseAll = () => {
             <GeneralIcon
               :icon="isExpanded ? 'ncFolderOpen' : 'ncFolderClosed'"
               class="w-4 h-4"
-              style="color: #3f8292"
+              :style="{ color: iconColor }"
             />
           </NcButton>
         </div>
@@ -279,6 +290,20 @@ const onCollapseAll = () => {
                   {{ $t('activity.kanban.collapseAll') }}
                 </NcMenuItem>
                 <template v-if="!isDefault">
+                  <NcDivider />
+                  <div class="nc-section-color-picker-row flex items-center gap-2 px-2 py-1.5">
+                    <GeneralIcon icon="ncFolderClosed" class="opacity-80 w-4 h-4 flex-none" :style="{ color: iconColor }" />
+                    <span class="text-sm text-nc-content-gray-subtle flex-1">{{ $t('tooltip.changeIconColour') }}</span>
+                  </div>
+                  <div class="px-2 pb-1.5">
+                    <GeneralColorPicker
+                      :model-value="iconColor"
+                      :colors="baseIconColors"
+                      :is-new-design="true"
+                      class="nc-section-icon-color-picker"
+                      @input="onChangeColor"
+                    />
+                  </div>
                   <NcDivider v-if="isUIAllowed('viewCreateOrEdit')" />
                   <NcMenuItem
                     v-if="isUIAllowed('viewCreateOrEdit')"

@@ -243,9 +243,9 @@ const unpinFilter = async (filter: FilterType) => {
     <!-- Vertical separator -->
     <div class="h-5 w-px bg-nc-border-gray-medium mx-0.5 flex-none" />
 
+    <template v-for="(filter, idx) in pinnedFilters" :key="filter.id">
+      <div v-if="idx > 0" class="h-5 w-px bg-nc-border-gray-medium flex-none" />
     <NcDropdown
-      v-for="filter in pinnedFilters"
-      :key="filter.id"
       :visible="openFilterId === filter.id"
       placement="bottomLeft"
       overlay-class-name="nc-pinned-filter-dropdown-overlay"
@@ -474,6 +474,10 @@ const unpinFilter = async (filter: FilterType) => {
         </div>
       </template>
     </NcDropdown>
+    </template>
+
+    <!-- Trailing separator -->
+    <div class="h-5 w-px bg-nc-border-gray-medium mx-0.5 flex-none" />
   </div>
 </template>
 

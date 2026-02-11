@@ -58,19 +58,15 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
           );
         }
 
-        const email = rawEmail;
-
         // check if email is disposable and throw error
-        if (isDisposableEmail(email)) {
+        if (isDisposableEmail(rawEmail)) {
           NcError.badRequest(
             'For the security and integrity of NocoDB platform, we require users to sign up with a permanent email address. Please provide a valid, long-term email address to continue.',
           );
         }
 
-        // Look up existing user by canonical email (catches dot/googlemail aliases)
-        const user =
-          (await User.getByCanonicalEmail(email)) ||
-          (await User.getByEmail(email));
+        // Login: use exact email match to avoid returning wrong user
+        const user = await User.getByEmail(rawEmail);
 
         if (user) {
           return callback(null, {
@@ -83,7 +79,7 @@ export class CognitoStrategy extends PassportStrategy(Strategy, 'cognito') {
           // if user not found create new user
           const salt = await promisify(bcrypt.genSalt)(10);
           const newUser = await this.usersService.registerNewUserIfAllowed({
-            email,
+            email: rawEmail,
             password: '',
             email_verification_token: null,
             avatar: (payload as any)['picture'],

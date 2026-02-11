@@ -53,11 +53,7 @@ export class UsersService {
   }
 
   async findOne(_email: string) {
-    // Try canonical lookup first (handles alias variants),
-    // then fall back to exact email match for backward compat.
-    const user =
-      (await User.getByCanonicalEmail(_email)) ||
-      (await User.getByEmail(_email));
+    const user = await User.getByEmail(_email);
 
     await PresignedUrl.signMetaIconImage(user);
 

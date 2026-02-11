@@ -121,7 +121,16 @@ export default class User extends UserCE implements UserType {
 
       // check if the target email addr is in use or not
       const targetUser = await this.getByEmail(updateObj.email, ncMeta);
-      if (targetUser.id !== id) {
+      if (targetUser && targetUser.id !== id) {
+        NcError.badRequest('email is in use');
+      }
+
+      // check if a user with the same canonical email already exists
+      const canonicalUser = await this.getByCanonicalEmail(
+        updateObj.email,
+        ncMeta,
+      );
+      if (canonicalUser && canonicalUser.id !== id) {
         NcError.badRequest('email is in use');
       }
     } else {
@@ -688,6 +697,12 @@ export default class User extends UserCE implements UserType {
       `${CacheScope.USER}:${user.email}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
+    if (user.email) {
+      await NocoCache.del(
+        'root',
+        `${CacheScope.USER}:canonical:${normalizeEmail(user.email)}`,
+      );
+    }
   }
 
   public static async softDelete(userId: string, ncMeta = Noco.ncMeta) {

@@ -141,6 +141,15 @@ export default class User implements UserType {
       if (targetUser && targetUser.id !== id) {
         NcError.badRequest('email is in use');
       }
+
+      // check if a user with the same canonical email already exists
+      const canonicalUser = await this.getByCanonicalEmail(
+        updateObj.email,
+        ncMeta,
+      );
+      if (canonicalUser && canonicalUser.id !== id) {
+        NcError.badRequest('email is in use');
+      }
     } else {
       // set email prop to avoid generation of invalid cache key
       updateObj.email = (await this.get(id, ncMeta))?.email?.toLowerCase();
@@ -470,6 +479,12 @@ export default class User implements UserType {
     // clear all user related cache
     await NocoCache.del('root', `${CacheScope.USER}:${userId}`);
     await NocoCache.del('root', `${CacheScope.USER}:${user.email}`);
+    if (user.email) {
+      await NocoCache.del(
+        'root',
+        `${CacheScope.USER}:canonical:${normalizeEmail(user.email)}`,
+      );
+    }
   }
 
   public static async signUserImage(

@@ -282,11 +282,11 @@ const onChangeColor = (color: string) => {
             <template #overlay>
               <NcMenu class="!rounded-lg" variant="small">
                 <NcMenuItem :disabled="allExpanded" @click="onExpandAll">
-                  <GeneralIcon icon="ncMaximize2" class="opacity-80" />
+                  <GeneralIcon icon="ncFolderOpen" class="opacity-80" style="color: #3f8292" />
                   {{ $t('activity.kanban.expandAll') }}
                 </NcMenuItem>
                 <NcMenuItem :disabled="allCollapsed" @click="onCollapseAll">
-                  <GeneralIcon icon="ncMinimize2" class="opacity-80" />
+                  <GeneralIcon icon="ncFolderClosed" class="opacity-80" style="color: #3f8292" />
                   {{ $t('activity.kanban.collapseAll') }}
                 </NcMenuItem>
                 <template v-if="!isDefault">

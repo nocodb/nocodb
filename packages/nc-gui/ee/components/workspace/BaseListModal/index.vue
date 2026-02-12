@@ -238,31 +238,27 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
     @keydown.esc="visible = false"
   >
     <div class="nc-workspace-base-list-modal flex flex-col h-full w-full">
-      <!-- Header with Search (Desktop only) -->
-      <div
-        v-if="!isCompactView"
-        class="flex items-center px-4 py-3 border-b border-nc-border-gray-medium dark:bg-nc-bg-gray-extralight"
-      >
-        <a-input
-          ref="searchInputRef"
-          v-model:value="modalState.searchQuery"
-          class="nc-workspace-base-search"
-          :placeholder="$t('placeholder.searchWorkspacesAndBases')"
-          allow-clear
-          size="large"
-        >
-          <template #prefix>
-            <GeneralIcon icon="search" class="text-nc-content-gray-muted mr-1" />
-          </template>
-        </a-input>
-      </div>
-
       <!-- Main Content -->
       <div class="flex flex-1 min-h-0">
         <!-- Left Panel - Workspaces (hidden on compact view) -->
         <div v-if="!isCompactView" class="nc-workspace-panel w-[320px] border-r border-nc-border-gray-medium flex flex-col">
-          <div class="px-3 pt-3 pb-1 text-xs font-medium text-nc-content-gray-muted tracking-wide">
+          <div class="px-3 pt-3 pb-1.5 text-small font-medium text-nc-content-gray-muted tracking-wide">
             {{ $t('objects.workspaces') }}
+          </div>
+
+          <!-- Search -->
+          <div class="px-2 pb-1.5">
+            <a-input
+              ref="searchInputRef"
+              v-model:value="modalState.searchQuery"
+              class="nc-workspace-base-search"
+              :placeholder="$t('placeholder.searchWorkspacesAndBases')"
+              allow-clear
+            >
+              <template #prefix>
+                <GeneralIcon icon="search" class="text-nc-content-gray-muted mr-1" />
+              </template>
+            </a-input>
           </div>
 
           <div class="flex-1 overflow-y-auto nc-scrollbar-thin flex flex-col px-2 py-1">
@@ -368,8 +364,6 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
         </div>
       </div>
 
-      <!-- Footer with keyboard shortcuts (Desktop only) -->
-      <WorkspaceBaseListModalFooter v-if="!isCompactView" />
     </div>
   </NcModal>
 
@@ -396,11 +390,11 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
   @apply !rounded-lg dark:!bg-nc-bg-gray-dark;
 
   :deep(.ant-input) {
-    @apply !border-none !shadow-none !text-body dark:!bg-nc-bg-gray-dark;
+    @apply !border-none !shadow-none !text-small dark:!bg-nc-bg-gray-dark;
   }
 
   :deep(.ant-input-affix-wrapper) {
-    @apply !border-none !shadow-none rounded-lg px-3 py-2 dark:!bg-nc-bg-gray-dark;
+    @apply !border-none !shadow-none rounded-lg px-2 py-1 dark:!bg-nc-bg-gray-dark;
   }
 }
 
@@ -418,6 +412,11 @@ kbd {
   @apply !transition-none;
 
   backdrop-filter: blur(4px);
+
+  .nc-modal {
+    max-height: min(90vh, 600px) !important;
+    height: min(90vh, 600px) !important;
+  }
 
   .ant-modal-content {
     @apply !p-0 !rounded-xl overflow-hidden;

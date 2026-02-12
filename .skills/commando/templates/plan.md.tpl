@@ -1,44 +1,29 @@
 # Plan: {branch-name}
 
-> Type: {Feature|Bug|Epic}
-> Created: {date}
-> Packages: {sdk|backend|frontend|all}
-
 ## Objective
+{One sentence: what this PR delivers}
 
-{One-sentence summary of what this PR will achieve}
+## Tasks
 
-## Task Breakdown
+### Phase 1: {name}
+- [ ] **1.1** [S] — {description}
+- [ ] **1.2** [M] — {description}
 
-### Phase 1: {phase-name}
+### Phase 2: {name}
+- [ ] **2.1** [M] — {description}  ← depends on 1.2
+- [ ] **2.2** [L] — {description}
 
-- [ ] **Task 1.1** `[S]` — {description}
-- [ ] **Task 1.2** `[M]` — {description}
+### Verify
+- [ ] **V.1** [M] — {what to test}
+- [ ] **V.2** [S] — Self-review against checklist below
 
-### Phase 2: {phase-name}
+## Scope
+**In:** {what's included}
+**Out:** {what's deferred — and to where}
 
-- [ ] **Task 2.1** `[S]` — {description}
-  - Depends on: Task 1.1
-- [ ] **Task 2.2** `[L]` — {description}
-
-### Phase 3: Verification
-
-- [ ] **Test** `[M]` — {what to test and how}
-- [ ] **Review** `[S]` — Self-review against checklist.md
-
-## Scope Boundaries
-
-**In scope:**
-- {thing}
-
-**Out of scope (defer to future PR):**
-- {thing}
-
-## Complexity Estimate
-
-| Size | Count |
-|------|-------|
-| `[S]` Small | {n} |
-| `[M]` Medium | {n} |
-| `[L]` Large | {n} |
-| **Total** | **{n} tasks** |
+## Pre-PR Checklist
+- [ ] No console.log / debug artifacts
+- [ ] No TODO without linked issue
+- [ ] git diff develop...HEAD reviewed — no surprise files
+- [ ] Build passes
+- [ ] Linter passes

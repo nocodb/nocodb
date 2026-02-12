@@ -11,164 +11,307 @@ description: |
 > You are a staff-level engineering copilot. Your job is to set up a developer for success
 > on a new branch by gathering context, planning work, and maintaining a living working
 > memory throughout the PR lifecycle.
+>
+> **Your critical constraint:** You have no memory between conversations. The `.skills/branches/{branch}/`
+> folder IS your memory. If it's not written there, it doesn't exist next time.
 
-## Trigger
+---
 
-When a developer says **"commando"** (or any trigger phrase above), execute the phases below **in strict order**. Do not skip phases. Do not rush. Ask questions — the 5 minutes spent here saves 5 hours later.
+## Flow
+
+```
+Developer says "commando"
+        │
+        ▼
+  Phase 0 ─── Dirty tree? → Stash / Commit / Abandon / Stay
+        │
+  Phase 1 ─── git checkout develop && git pull
+        │
+  Phase 2 ─── Branch: new / existing / help me name it
+        │
+  Phase 3 ─── Type: Feature / Bug / Epic
+        │
+  Phase 4 ─── Discovery questions (2-3 batched asks)
+        │
+  Phase 5 ─── Create .skills/branches/{name}/ → 4 files
+        │
+  Phase 6 ─── Summary → start Task 1
+```
 
 ---
 
 ## Phase 0: Working Tree Triage
 
-Before anything, check if the developer has uncommitted work.
-
 ```bash
 git status --short
 ```
 
-**If the working tree is dirty**, present these options using `AskUserQuestion`:
+**If dirty**, ask with `AskUserQuestion`:
 
-| Option | What it does |
+| Option | Action |
+|--------|--------|
+| **Stash** | `git stash push -m "commando-{timestamp}"` |
+| **Commit** | Quick commit on current branch, then switch |
+| **Abandon** | `git checkout -- .` — confirm twice, destructive |
+| **Stay here** | Skip Phase 1, set up commando on current branch |
+
+**If clean**, proceed.
+
+---
+
+## Phase 1: Sync
+
+```bash
+git checkout develop && git pull origin develop
+```
+
+If `develop` doesn't exist, detect default: `git remote show origin | grep 'HEAD branch' | awk '{print $NF}'`
+
+Pull fails? Stop. Resolve before continuing.
+
+---
+
+## Phase 2: Branch
+
+Ask with `AskUserQuestion`:
+
+| Option | What happens |
 |--------|-------------|
-| **Stash it** | `git stash push -m "commando-{timestamp}"` — saves work, clean slate |
-| **Commit it** | Quick commit on current branch before switching |
-| **Abandon it** | `git checkout -- .` — ⚠️ destructive, confirm twice |
-| **Stay here** | Don't switch branches — set up commando on the *current* branch |
+| **Existing branch** | `git checkout {name}` → check for `.skills/branches/{name}/`. Exists? Jump to **Resume Protocol**. Doesn't? Run Phase 3-5. |
+| **New branch** | Get name → `git checkout -b {name}` |
+| **Help me name it** | Do Phase 3-4 first, then suggest `{type}/{kebab-description}` |
 
-**If the working tree is clean**, proceed to Phase 1.
+Naming convention: `feat/inline-cell-editing`, `fix/calendar-crash`, `epic/automations-v2`
 
 ---
 
-## Phase 1: Sync with Develop
+## Phase 3: Type
+
+Ask with `AskUserQuestion`:
+
+| Type | When |
+|------|------|
+| **Feature** | New capability |
+| **Bug** | Something broken |
+| **Epic** | Large, multi-PR work |
+
+---
+
+## Phase 4: Discovery
+
+**Mandatory.** Batch into 2-3 `AskUserQuestion` calls — never ask 6 questions one at a time.
+
+### Feature
+1. What problem does this solve? (user-facing)
+2. Who asked for it? (customer / internal / tech debt)
+3. Which packages? (SDK / Backend / Frontend / All)
+4. Existing codebase pattern to follow?
+5. Smallest shippable slice?
+6. Known risks or dependencies?
+
+### Bug
+1. Expected vs actual behavior
+2. Steps to reproduce
+3. Which package?
+4. Workaround exists?
+5. Severity: P0 / P1 / P2 / P3
+
+### Epic
+1. What does "done" look like?
+2. Major milestones
+3. Which packages?
+4. Prerequisites or migrations?
+5. Stakeholders
+6. Rough timeline
+
+### Always ask (all types)
+7. Related issues, PRs, Figma, Slack threads?
+8. Anything else before I plan?
+
+---
+
+## Phase 5: Create Branch Memory
 
 ```bash
-git checkout develop
-git pull origin develop
+mkdir -p .skills/branches/{branch-name}
 ```
 
-If `develop` is not the default branch, detect it:
-```bash
-git remote show origin | grep 'HEAD branch' | awk '{print $NF}'
-```
-
-Confirm success before moving on. If pull fails (conflicts, auth), stop and help resolve.
-
----
-
-## Phase 2: Branch Identity
-
-Ask the developer using `AskUserQuestion`:
-
-**"Do you have a branch name in mind?"**
-
-| Option | Behavior |
-|--------|----------|
-| **Yes, existing branch** | `git checkout {name}` — rehydrate from `.skills/branches/{name}/` if it exists |
-| **Yes, new branch** | Ask for the name, then `git checkout -b {name}` |
-| **No, help me name it** | Gather info first (Phase 3), then suggest a name using convention below |
-
-### Branch Naming Convention
-
-```
-{type}/{short-description}
-```
-
-Examples:
-- `feat/inline-cell-editing`
-- `fix/calendar-view-crash`
-- `epic/automations-v2`
-
----
-
-## Phase 3: Work Type Classification
-
-Ask using `AskUserQuestion`:
-
-**"What type of work is this?"**
-
-| Type | Description |
-|------|-------------|
-| **Feature** | New capability that doesn't exist yet |
-| **Bug** | Something is broken and needs fixing |
-| **Epic** | Large body of work, likely multiple PRs |
-
----
-
-## Phase 4: Discovery Questions
-
-Based on the work type, ask targeted discovery questions. These are **not optional** — they populate `context.md` and drive the plan.
-
-### If Feature:
-
-1. **What problem does this solve?** (user-facing description)
-2. **Who asked for it?** (customer, internal, tech debt)
-3. **Which packages will this touch?** (SDK / Backend / Frontend / All)
-4. **Is there an existing pattern in the codebase we should follow?** (similar feature to reference)
-5. **What's the smallest shippable slice?** (MVP scope)
-6. **Any known risks or dependencies?** (external APIs, migrations, etc.)
-
-### If Bug:
-
-1. **What's the expected behavior?**
-2. **What's the actual behavior?**
-3. **Steps to reproduce?**
-4. **Which package is likely affected?** (Backend / Frontend / SDK)
-5. **Is there a workaround currently?**
-6. **Severity?** (P0-blocker / P1-high / P2-medium / P3-low)
-
-### If Epic:
-
-1. **What's the north star outcome?** (what does "done" look like)
-2. **What are the major milestones?** (break it into phases)
-3. **Which packages will this touch?** (SDK / Backend / Frontend / All)
-4. **Are there any prerequisites or migrations?**
-5. **Who are the stakeholders?**
-6. **What's the rough timeline?**
-
----
-
-## Phase 5: Create Branch Working Memory
-
-Create the folder `.skills/branches/{branch-name}/` and populate it from templates.
+### The 4 Files
 
 ```
 .skills/branches/{branch-name}/
-├── plan.md          # What we're building, broken into tasks
-├── context.md       # All discovery answers, scope, type classification
-├── changelog.md     # Timestamped log of every significant action
-├── decisions.md     # ADR-lite: what we chose and why
-├── checklist.md     # Pre-PR quality gate
-└── artifacts/       # Scratch space for diffs, notes, diagrams
+├── index.md      # READ FIRST — 10-second orientation for Claude
+├── context.md    # WHY — discovery answers, immutable after creation
+├── plan.md       # WHAT — tasks, status, scope, pre-PR checklist
+└── log.md        # WHEN — reverse-chron timeline: actions, decisions, notes
 ```
 
-### File Population Rules
-
-1. **context.md** — Populate immediately from Phase 3 + 4 answers. This is the source of truth for "why are we doing this?"
-
-2. **plan.md** — After discovery, generate a task breakdown:
-   - Read relevant skill files (`.skills/nocohub-backend/SKILL.md`, etc.) based on which packages are involved
-   - Break work into numbered tasks with clear scope
-   - Each task should be completable in one sitting
-   - Mark dependencies between tasks
-   - Include estimated complexity: `[S]` / `[M]` / `[L]`
-
-3. **changelog.md** — Add the first entry:
-   ```
-   ## {date} — Branch Created
-   - Type: {Feature|Bug|Epic}
-   - Branch: {branch-name}
-   - Created from: develop @ {commit-sha}
-   ```
-
-4. **decisions.md** — Leave empty with header. Populate as decisions arise during development.
-
-5. **checklist.md** — Pre-populate based on work type and packages involved.
+Each file has one job. No overlap.
 
 ---
 
-## Phase 6: Confirm & Launch
+### index.md — Claude's Cold Start
 
-Present a summary to the developer:
+**Purpose:** When Claude opens a branch in a new conversation, this is the ONLY file it needs to read to know where it is. It's a dashboard, not a document.
+
+**Structure:**
+```markdown
+# {branch-name}
+
+> **Type:** Feature | Bug | Epic
+> **Status:** In Progress | Review Ready | Blocked
+> **Packages:** SDK / Backend / Frontend
+> **Created:** {date} from develop @ {short-sha}
+
+## Current Focus
+Task {X.Y}: {description}
+
+## Progress
+{n}/{total} tasks complete
+
+## Quick Pointers
+- Why this exists → context.md
+- Full task list → plan.md
+- What happened so far → log.md
+
+## Blockers / Open Questions
+- {any active blockers, or "None"}
+```
+
+**Update rules:**
+- Update `Current Focus` every time a task changes
+- Update `Progress` count every time a task completes
+- Update `Blockers` whenever something is stuck or resolved
+- Update `Status` when moving to review or getting blocked
+
+---
+
+### context.md — The Brief
+
+**Purpose:** The developer's words about why this work exists. Written once during discovery. Rarely changed. The source of truth for PR descriptions.
+
+**Structure:**
+```markdown
+# Context: {branch-name}
+
+## Classification
+- **Type:** {Feature | Bug | Epic}
+- **Branch:** {branch-name}
+- **Base:** develop @ {commit-sha}
+- **Date:** {date}
+
+## Discovery
+{developer's answers to Phase 4 questions — use their exact words}
+
+## References
+- Issue: {link or TBD}
+- Figma: {link or TBD}
+- Slack: {link or TBD}
+- Related PRs: {links or TBD}
+```
+
+**Key rule:** Write the developer's answers verbatim. Don't summarize. Their phrasing carries intent.
+
+---
+
+### plan.md — The Work
+
+**Purpose:** Living task list with status. Also contains scope boundaries and pre-PR checklist. This is the file Claude checks to know "what's next."
+
+**Structure:**
+```markdown
+# Plan: {branch-name}
+
+## Objective
+{One sentence: what this PR delivers}
+
+## Tasks
+
+### Phase 1: {name}
+- [ ] **1.1** [S] — {description}
+- [ ] **1.2** [M] — {description}
+
+### Phase 2: {name}
+- [ ] **2.1** [M] — {description}  ← depends on 1.2
+- [ ] **2.2** [L] — {description}
+
+### Verify
+- [ ] **V.1** [M] — {what to test}
+- [ ] **V.2** [S] — Self-review against checklist below
+
+## Scope
+**In:** {what's included}
+**Out:** {what's deferred — and to where}
+
+## Pre-PR Checklist
+- [ ] No console.log / debug artifacts
+- [ ] No TODO without linked issue
+- [ ] git diff develop...HEAD reviewed — no surprise files
+- [ ] Build passes
+- [ ] Linter passes
+{type-specific items:}
+- [ ] {e.g., SDK rebuilt if touched}
+- [ ] {e.g., CE/EE separation if backend}
+- [ ] {e.g., Loading/error states if frontend}
+```
+
+**Task sizes:** `[S]` = < 30 min, `[M]` = 30 min - 2 hrs, `[L]` = 2+ hrs (consider splitting)
+
+**Update rules:**
+- Flip `[ ]` → `[x]` when a task completes
+- If a task turns out to be wrong, strikethrough and add a replacement — don't silently delete
+- If scope changes, update the Scope section and note the change in log.md
+
+---
+
+### log.md — The Timeline
+
+**Purpose:** Reverse-chronological journal of everything that happened. Actions, decisions, blockers, investigations — all in one stream. When it's time to create a PR, this file + context.md writes the PR description.
+
+**Structure:**
+```markdown
+# Log: {branch-name}
+
+---
+
+## {YYYY-MM-DD HH:MM} — Branch Created
+- **Type:** {action}
+- Created from develop @ {short-sha}
+- Discovery: {one-line summary}
+
+---
+
+{newest entries at the top}
+```
+
+**Entry types** (use the `Type` field):
+
+| Type | When |
+|------|------|
+| `action` | Code written, file created, commit made |
+| `decision` | A non-obvious choice was made — include options considered + rationale |
+| `investigation` | Explored something — what was found, even dead ends |
+| `blocker` | Something is stuck — what, why, possible unblocks |
+| `resolved` | A blocker was cleared |
+| `scope-change` | Plan was updated — what changed and why |
+
+**Entry format:**
+```markdown
+## {YYYY-MM-DD HH:MM} — {Title}
+- **Type:** {action | decision | investigation | blocker | resolved | scope-change}
+- {What happened}
+- {Files touched, if any}
+- {Commit: short-sha, if any}
+- {Rationale or notes}
+```
+
+**Key rule:** Log even when nothing productive happened. "Investigated X, dead end because Y" is gold for the next session.
+
+---
+
+## Phase 6: Launch
+
+Present:
 
 ```
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -176,63 +319,100 @@ Present a summary to the developer:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Branch:  {branch-name}
   Type:    {Feature|Bug|Epic}
-  Scope:   {packages involved}
-  Tasks:   {count} tasks planned
+  Scope:   {packages}
+  Tasks:   {n} planned
   Memory:  .skills/branches/{branch-name}/
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
-Ask: **"Ready to start on Task 1, or want to review/adjust the plan first?"**
+Ask: **"Ready to start on Task 1, or review the plan first?"**
 
 ---
 
-## Ongoing: Living Memory Protocol
+## Resume Protocol
 
-While working on the branch, Claude should **continuously maintain** the branch working memory:
+**The most important section.** This is what makes commando useful across conversations.
 
-### After every significant action:
-- Append to `changelog.md` with timestamp and what was done
-- Update `plan.md` task status: `[ ]` → `[x]`
+### When a developer mentions or switches to a branch:
 
-### When a design choice is made:
-- Add entry to `decisions.md` with context, options considered, and rationale
+```bash
+ls .skills/branches/{branch-name}/ 2>/dev/null
+```
 
-### Before creating PR:
-- Walk through `checklist.md` item by item
-- Ensure all tasks in `plan.md` are complete or explicitly deferred
-- Generate a PR description from `context.md` + `changelog.md`
+### Memory exists → Resume
 
-### When resuming work on an existing branch:
-- Read all files in `.skills/branches/{branch-name}/`
-- Present current status: completed tasks, next task, open decisions
-- Ask: "Pick up where we left off?"
+1. **Read index.md** — get oriented in 10 seconds
+2. **Read plan.md** — see full task list and what's next
+3. **Skim log.md** (last 3-5 entries) — understand recent context
+4. (Only read context.md if you need to understand the "why" again)
+5. **Present:**
+   ```
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     COMMANDO RESUMED
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+     Branch:   {branch-name}
+     Progress: {n}/{total} tasks
+     Next:     Task {X.Y} — {description}
+     Last:     {last log entry summary}
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ```
+6. **Ask:** "Pick up where we left off?"
+
+### Memory doesn't exist → Retrofit
+
+"This branch doesn't have commando memory. Want me to set it up? Quick discovery — 2-3 questions."
+
+Run Phase 3-5.
 
 ---
 
-## Template Reference
+## PR Creation Protocol
 
-Templates live in `.skills/commando/templates/`. When creating a new branch folder, read these templates and populate them with the gathered context. Do not copy them verbatim — adapt them to the specific branch.
+When the developer says "create PR" or "ready for PR":
+
+1. Walk `plan.md` checklist — check off or note deferrals
+2. Run `git diff develop...HEAD` — flag surprise files
+3. Build PR from sources:
+   - **Title:** from plan.md objective
+   - **Body:** context.md (the why) + log.md (the what changed) + checklist status
+4. Use `gh pr create` with the assembled description
 
 ---
 
-## Integration with Existing Skills
+## Integration with Domain Skills
 
-Commando doesn't replace domain skills — it orchestrates them:
+Commando orchestrates — domain skills have the patterns:
 
-| When plan involves... | Also read... |
-|----------------------|-------------|
-| Backend work | `.skills/nocohub-backend/SKILL.md` |
-| Frontend work | `.skills/nocohub-frontend/SKILL.md` |
-| Multi-package changes | `.skills/compound-engineering/SKILL.md` |
-| Automation nodes | `.skills/nocohub-automations/SKILL.md` |
-| CE/EE sync concerns | `.skills/nocohub-sync/SKILL.md` |
+| Plan involves | Read |
+|--------------|------|
+| Backend | `.skills/nocohub-backend/SKILL.md` |
+| Frontend | `.skills/nocohub-frontend/SKILL.md` |
+| Multi-package | `.skills/compound-engineering/SKILL.md` |
+| Automations | `.skills/nocohub-automations/SKILL.md` |
+| CE/EE sync | `.skills/nocohub-sync/SKILL.md` |
+
+Read during Phase 5 when generating the plan.
+
+---
+
+## Edge Cases
+
+| Situation | Handle |
+|-----------|--------|
+| Network down during pull | Use local develop, note in log.md base may be stale |
+| Branch exists locally + remote | Ask: use local or reset to remote? |
+| Plan changes mid-flight | Update plan.md, log the scope-change in log.md |
+| "commando" on managed branch | Treat as resume |
+| Multiple devs, same branch | Memory is local (gitignored) — each dev has their own |
+| Developer provides a GitHub issue URL | Pull title + description into context.md references |
 
 ---
 
 ## Anti-Patterns
 
-- **Don't skip discovery.** A 2-line bug description leads to a 200-line wrong fix.
-- **Don't let plan.md go stale.** If the plan changes, update the plan.
-- **Don't commit branch memory.** `.skills/branches/` is gitignored for a reason — it's Claude's scratchpad, not a deliverable.
-- **Don't create the branch folder without discovery.** The whole point is that context populates the memory.
-- **Don't work on two tasks simultaneously.** Finish one, log it, move to the next.
+- **Don't skip discovery.** 2-line description → 200-line wrong fix.
+- **Don't let plan.md go stale.** Reality changed? Update the plan.
+- **Don't commit branch memory.** `.skills/branches/` is gitignored.
+- **Don't create memory without discovery.** Context drives the files.
+- **Don't assume context from previous conversations.** If it's not in the 4 files, you don't know it.
+- **Don't read all 4 files on resume.** Read index.md first. It tells you what else you need.

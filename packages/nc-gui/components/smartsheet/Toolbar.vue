@@ -19,8 +19,6 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isViewActionsEnabled } = useActionPane()
 
-const { isLocalMode } = useViewColumnsOrThrow()
-
 const containerRef = ref<HTMLElement>()
 
 const { width } = useElementSize(containerRef)

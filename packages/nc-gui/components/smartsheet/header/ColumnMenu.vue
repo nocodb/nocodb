@@ -517,16 +517,20 @@ const isFilterLimitExceeded = computed(
 )
 
 const isGroupedByThisField = computed(() => {
-  if (localGroupBy.value.length) {
-    return localGroupBy.value.some((g) => g.column.id === column?.value?.id)
+  if (!localGroupBy.value?.length) {
+    return !!gridViewCols.value[column?.value?.id]?.group_by
   }
-  return !!gridViewCols.value[column?.value?.id]?.group_by
+  return localGroupBy.value.some((g) => g.column.id === column?.value?.id)
 })
 
 const isGroupBySupported = computed(() => !!(fieldsToGroupBy.value || []).find((f) => f.id === column?.value?.id))
 
 const isGroupByLimitExceeded = computed(() => {
-  return !(fieldsToGroupBy.value.length && fieldsToGroupBy.value.length > groupBy.value.length && groupBy.value.length < groupByLimit)
+  return !(
+    fieldsToGroupBy.value.length &&
+    fieldsToGroupBy.value.length > groupBy.value.length &&
+    groupBy.value.length < groupByLimit
+  )
 })
 
 const filterOrGroupByThisField = (event: SmartsheetStoreEvents) => {

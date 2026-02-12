@@ -53,7 +53,7 @@ const syncedGroupByEntries = computed<Group[]>(() => {
 
 // All group-by column IDs for badge count and column filtering
 const groupedByColumnIds = computed(() => {
-  if (localGroupBy.value.length) {
+  if (localGroupBy.value?.length) {
     return localGroupBy.value.map((g) => g.column.id).filter(Boolean)
   }
   return syncedGroupByEntries.value.map((g) => g.fk_column_id).filter(Boolean)
@@ -159,6 +159,10 @@ const saveGroupBy = async () => {
 
     $e('a:group-by:update', { groupBy: _groupBy.value, local: true })
 
+    // Wait for Vue to process the reactive updates (e.g. isGroupBy → false)
+    // before emitting reload, so the non-grouped grid component is mounted
+    await nextTick()
+
     eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
   }
 }
@@ -184,7 +188,7 @@ const removeFieldFromGroupBy = async (group: Group) => {
 
 watch(open, () => {
   if (open.value) {
-    if (isRestrictedEditor.value && localGroupBy.value.length) {
+    if (isRestrictedEditor.value && !!localGroupBy.value?.length) {
       // Restricted editors with local overrides: load from local state
       _groupBy.value = localGroupBy.value.map((e, i) => ({
         fk_column_id: e.column.id,

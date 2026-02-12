@@ -44,7 +44,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
     const canSyncGroupBy = hasPersonalViewPermission('groupBySync')
 
-    const localGroupBy = ref<{ column: ColumnType; sort: string; order: number }[]>([])
+    const localGroupBy = ref<{ column: ColumnType; sort: string; order: number }[] | null>(null)
 
     const syncedGroupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
       const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
@@ -65,7 +65,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     })
 
     const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
-      if (localGroupBy.value.length) {
+      if (localGroupBy.value?.length) {
         return localGroupBy.value.map((e, i) => ({
           column: e.column,
           sort: e.sort,
@@ -549,7 +549,10 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     watch(
       () => groupBy.value.length,
       async () => {
-        if (!groupBy.value.length) return
+        if (!groupBy.value.length) {
+          nextTick(() => reloadViewDataHook?.trigger())
+          return
+        }
 
         rootGroup.value.paginationData = { page: 1, pageSize: groupByGroupLimit.value }
         rootGroup.value.column = {} as any
@@ -562,7 +565,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     watch(
       () => view.value?.id,
       () => {
-        localGroupBy.value = []
+        localGroupBy.value = null
       },
     )
 

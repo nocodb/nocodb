@@ -199,14 +199,20 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     }
 
     let viewFilters: Filter[] = [];
+    // allViewFilters will have every filters defined in a view in a flatten form
+    // used to verify whether cache will be skipped
+    let allViewFilters: Filter[] = [];
 
     if (ctx.view?.id && !ctx.ignoreViewFilterAndSort) {
       viewFilters = await Filter.rootFilterList(context, {
         viewId: ctx.view?.id,
       });
+      allViewFilters = await Filter.allViewFilterList(context, {
+        viewId: ctx.view?.id,
+      });
     }
 
-    if (viewFilters?.length && checkForStaticDateValFilters(viewFilters)) {
+    if (viewFilters?.length && checkForStaticDateValFilters(allViewFilters)) {
       skipCache = true;
     }
 
@@ -240,7 +246,10 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     ];
 
     if (
-      await checkForCurrentUserFilters({ context, filters: aggrConditionObj })
+      await checkForCurrentUserFilters({
+        context,
+        filters: [...aggrConditionObj, ...allViewFilters],
+      })
     ) {
       skipCache = true;
     }

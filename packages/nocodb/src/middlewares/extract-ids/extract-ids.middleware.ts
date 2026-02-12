@@ -12,6 +12,14 @@ import {
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
 import RowColorCondition from 'src/models/RowColorCondition';
+import {
+  checkIsPersonalViewOwner,
+  editorPersonalViewOnlyPermissions,
+  markPersonalViewIfNeeded,
+  personalViewOwnerAllowedPermissions,
+  personalViewOwnerOnlyOps,
+  VIEW_KEY,
+} from './extract-ids.helpers';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -49,7 +57,8 @@ import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { RootScopes } from '~/utils/globals';
 import MCPToken from '~/models/MCPToken';
 import Noco from '~/Noco';
-export const VIEW_KEY = Symbol.for('nc:view');
+// Re-export VIEW_KEY for external consumers (previously defined here)
+export { VIEW_KEY };
 
 export const rolesLabel = {
   [OrgUserRoles.SUPER_ADMIN]: 'Super Admin',
@@ -203,15 +212,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
         req.ncSourceId = view.source_id;
 
-        // if view API and view is personal view then check if user has access to view
-        // Check if it's a View (not a Model) by checking for lock_type property
-        if (
-          view &&
-          'lock_type' in view &&
-          view.lock_type === ViewLockType.Personal
-        ) {
-          req[VIEW_KEY] = view;
-        }
+        markPersonalViewIfNeeded(req, view);
       } else if (
         formViewId ||
         gridViewId ||
@@ -240,10 +241,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
 
         req.ncSourceId = view.source_id;
 
-        // if view API and view is personal view then check if user has access to view
-        if (view && view.lock_type === ViewLockType.Personal) {
-          req[VIEW_KEY] = view;
-        }
+        markPersonalViewIfNeeded(req, view);
       } else if (publicDataUuid) {
         const view = await View.getByUUID(context, publicDataUuid);
 
@@ -400,10 +398,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
         }
       }
 
-      // if view API and view is personal view then check if user has access to view
-      if (view && view.lock_type === ViewLockType.Personal) {
-        req[VIEW_KEY] = view;
-      }
+      markPersonalViewIfNeeded(req, view);
     } else {
       await this.legacyExtractIds(req);
     }
@@ -952,10 +947,7 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
       }
     }
 
-    // if view API and view is personal view then check if user has access to view
-    if (view && view.lock_type === ViewLockType.Personal) {
-      req[VIEW_KEY] = view;
-    }
+    markPersonalViewIfNeeded(req, view);
 
     if (!req.ncWorkspaceId) {
       req.ncWorkspaceId = Noco.ncDefaultWorkspaceId;
@@ -1029,73 +1021,18 @@ export class AclMiddleware implements NestInterceptor {
       NcError.unauthorized('Invalid token');
     }
 
-    // if view API and view is personal view then check if user has access to view
-    // if user is not owner of view then restrict write operations
-    // Exclude view operations as they are checked later by personalViewOwnerAllowedPermissions
-    const viewOperationsExcludedFromPersonalViewCheck = [
-      'viewUpdate',
-      'viewDelete',
-      'dataList',
-      'viewColumnUpdate',
-      'viewColumnCreate',
-      'hideAllColumns',
-      'showAllColumns',
-      'gridColumnUpdate',
-      'gridViewUpdate',
-      'galleryViewUpdate',
-      'kanbanViewUpdate',
-      'mapViewUpdate',
-      'calendarViewUpdate',
-      'viewRowColorConditionAdd',
-      'viewRowColorConditionUpdate',
-      'viewRowColorConditionDelete',
-      'viewRowColorSelectAdd',
-      'viewRowColorInfoDelete',
-      'rowColorConditionsFilterCreate',
-    ];
+    // Block non-owners from modifying filters/sorts on someone else's personal view
     if (
       req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
       req[VIEW_KEY].owned_by !== req.user?.id &&
-      ['POST', 'PATCH', 'DELETE', 'PUT'].includes(req.method) &&
-      !viewOperationsExcludedFromPersonalViewCheck.includes(permissionName)
+      personalViewOwnerOnlyOps.includes(permissionName)
     ) {
       NcError.forbidden('Unauthorized access');
     }
 
-    // Check if user is the owner of a personal view
-    // If so, allow filter/sort operations regardless of role-based permissions
-    const isPersonalViewOwner =
-      req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
-      req[VIEW_KEY].owned_by === req.user?.id;
+    const isPersonalViewOwner = checkIsPersonalViewOwner(req);
 
-    // List of permissions that editors can only use on their personal views
-    const editorPersonalViewOnlyPermissions = [
-      'sortCreate',
-      'sortUpdate',
-      'sortDelete',
-      'filterCreate',
-      'filterUpdate',
-      'filterDelete',
-      'viewColumnUpdate',
-      'hideAllColumns',
-      'showAllColumns',
-      'gridColumnUpdate',
-      'gridViewUpdate',
-      'galleryViewUpdate',
-      'kanbanViewUpdate',
-      'mapViewUpdate',
-      'calendarViewUpdate',
-      'viewRowColorConditionAdd',
-      'viewRowColorConditionUpdate',
-      'viewRowColorConditionDelete',
-      'viewRowColorSelectAdd',
-      'viewRowColorInfoDelete',
-      'rowColorConditionsFilterCreate',
-    ];
-
-    // For editors: restrict filter/sort operations to personal views they own
-    // If VIEW_KEY is set, it means we have view context - check ownership
-    // If VIEW_KEY is not set and user is editor, block these operations
+    // For editors: restrict filter/sort/view-management operations to personal views they own
     const userBaseRoles = extractRolesObj(req.user?.base_roles);
     const isEditor =
       userBaseRoles?.[ProjectRoles.EDITOR] &&
@@ -1172,38 +1109,6 @@ export class AclMiddleware implements NestInterceptor {
       req.params?.workspaceUserId &&
       req.params?.workspaceUserId === req.user?.id;
 
-    // Personal view owners can manage filters, sorts, view columns, and view-specific settings regardless of role
-    const personalViewOwnerAllowedPermissions = [
-      'filterList',
-      'filterGet',
-      'filterChildrenList',
-      'filterCreate',
-      'filterUpdate',
-      'filterDelete',
-      'sortList',
-      'sortGet',
-      'sortCreate',
-      'sortUpdate',
-      'sortDelete',
-      'columnList',
-      'viewUpdate',
-      'viewColumnUpdate',
-      'viewColumnCreate',
-      'hideAllColumns',
-      'showAllColumns',
-      'gridColumnUpdate',
-      'gridViewUpdate',
-      'galleryViewUpdate',
-      'kanbanViewUpdate',
-      'mapViewUpdate',
-      'calendarViewUpdate',
-      'viewRowColorConditionAdd',
-      'viewRowColorConditionUpdate',
-      'viewRowColorConditionDelete',
-      'viewRowColorSelectAdd',
-      'viewRowColorInfoDelete',
-      'rowColorConditionsFilterCreate',
-    ];
     const isPersonalViewOwnerAllowed =
       isPersonalViewOwner &&
       personalViewOwnerAllowedPermissions.includes(permissionName);

@@ -1,5 +1,4 @@
 import type { ColumnType, SortType, ViewType } from 'nocodb-sdk'
-import { ViewLockType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { UndoRedoAction } from '~/lib/types'
@@ -9,31 +8,15 @@ export function useViewSorts(view: Ref<ViewType | undefined>, reloadData?: () =>
 
   const { $api, $e, $eventBus } = useNuxtApp()
 
-  const { isUIAllowed } = useRoles()
-
   const { isSharedBase } = storeToRefs(useBase())
 
-  const { isUserViewOwner } = useViewsStore()
+  const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
 
   const { addUndo, clone, defineViewScope } = useUndoRedo()
 
-  // Check if user can sync based on role OR personal view ownership
-  const canSyncSort = computed(() => {
-    // If user has role permission to sync, allow it
-    if (isUIAllowed('sortSync')) return true
-    // If this is a personal view owned by current user, allow sync
-    if (view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value)) return true
-    return false
-  })
+  const canSyncSort = hasPersonalViewPermission('sortSync')
 
-  // Check if user can list sorts based on role OR personal view ownership
-  const canListSort = computed(() => {
-    // If user has role permission to list, allow it
-    if (isUIAllowed('sortList')) return true
-    // If this is a personal view owned by current user, allow listing
-    if (view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value)) return true
-    return false
-  })
+  const canListSort = hasPersonalViewPermission('sortList')
 
   const reloadHook = inject(ReloadViewDataHookInj)
 

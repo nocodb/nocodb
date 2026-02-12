@@ -73,12 +73,7 @@ const onSelect = () => {
       <template #title>
         {{ $t('objects.roleType.owner') }}
       </template>
-      <div class="h-6.5 px-1 py-0.25 rounded-lg bg-nc-purple-50">
-        <GeneralIcon
-          icon="role_owner"
-          class="min-w-4.5 min-h-4.5 text-xl !text-nc-content-purple-dark !hover:text-nc-content-purple-dark"
-        />
-      </div>
+      <GeneralIcon icon="role_owner" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
     </NcTooltip>
     <NcTooltip hide-on-click class="flex">
       <template #title>

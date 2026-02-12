@@ -84,7 +84,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
           <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-          <SmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
+          <SmartsheetToolbarGroupByMenu v-if="isGrid" />
 
           <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 

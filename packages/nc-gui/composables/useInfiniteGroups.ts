@@ -61,23 +61,9 @@ export const useInfiniteGroups = (
     }, {})
   })
 
-  const groupByColumns = computed(() => {
-    const tempGroupBy: { column: ColumnType; sort: string; order?: number }[] = []
-    Object.values(gridViewCols.value).forEach((col) => {
-      if (col.group_by) {
-        const column = meta?.value?.columns?.find((f) => f.id === col.fk_column_id)
-        if (column) {
-          tempGroupBy.push({
-            column,
-            sort: col.group_by_sort || 'asc',
-            order: col.group_by_order || 1,
-          })
-        }
-      }
-    })
-    tempGroupBy.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
-    return tempGroupBy
-  })
+  const { groupBy: injectedGroupBy } = useViewGroupByOrThrow()
+
+  const groupByColumns = computed(() => injectedGroupBy.value)
 
   const cachedGroups = ref<Map<number, CanvasGroup>>(new Map())
   const totalGroups = ref(0)

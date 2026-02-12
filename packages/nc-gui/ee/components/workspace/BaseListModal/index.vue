@@ -261,7 +261,7 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
       <div class="flex flex-1 min-h-0">
         <!-- Left Panel - Workspaces (hidden on compact view) -->
         <div v-if="!isCompactView" class="nc-workspace-panel w-[320px] border-r border-nc-border-gray-medium flex flex-col">
-          <div class="px-4 pt-4 pb-1 text-xs font-medium text-nc-content-gray-muted uppercase tracking-wide">
+          <div class="px-4 pt-4 pb-1 text-xs font-medium text-nc-content-gray-muted tracking-wide">
             {{ $t('objects.workspaces') }}
           </div>
 
@@ -317,12 +317,12 @@ const onWorkspaceCreate = async (workspace: NcWorkspace) => {
             @update:active-filter="modalState.activeFilter = $event"
           >
             <template #baseListHeader>
-              <span class="text-nc-content-gray-subtle">
+              <span class="text-nc-content-gray-muted">
                 {{ $t('activity.basesIn') }}
               </span>
               <span
                 v-if="selectedWorkspace"
-                class="text-nc-content-gray-extreme capitalize"
+                class="text-nc-content-gray-muted capitalize"
                 :class="{
                   'text-nc-content-brand': activeWorkspaceId === selectedWorkspace?.id,
                   'underline cursor-pointer hover:text-nc-content-brand': activeWorkspaceId !== selectedWorkspace?.id,

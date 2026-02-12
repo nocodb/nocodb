@@ -52,7 +52,7 @@ const onFilterChange = (value: string) => {
   <div class="nc-bases-header flex items-center gap-2 px-4 py-2 border-b border-nc-border-gray-medium">
     <!-- Desktop: Show "Bases in {workspace}" -->
     <template v-if="!isCompactView">
-      <div class="flex-1 flex items-center gap-2 text-bodyDefaultSm font-medium">
+      <div class="flex-1 flex items-center gap-2 text-xs font-medium tracking-wide">
         <slot name="baseListHeader"> </slot>
         <span class="font-normal text-nc-content-gray-muted">({{ baseCount }})</span>
       </div>

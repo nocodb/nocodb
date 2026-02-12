@@ -65,16 +65,14 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     })
 
     const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
-      if (!localGroupBy.value.length) return syncedGroupBy.value
-
-      return [
-        ...syncedGroupBy.value,
-        ...localGroupBy.value.map((e, i) => ({
+      if (localGroupBy.value.length) {
+        return localGroupBy.value.map((e, i) => ({
           column: e.column,
           sort: e.sort,
-          order: syncedGroupBy.value.length + i + 1,
-        })),
-      ]
+          order: e.order || i + 1,
+        }))
+      }
+      return syncedGroupBy.value
     })
 
     const isGroupBy = computed(() => !!groupBy.value.length)
@@ -560,7 +558,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       },
     )
 
-    // Clear ephemeral group-bys on view change
+    // Clear local group-bys on view change
     watch(
       () => view.value?.id,
       () => {

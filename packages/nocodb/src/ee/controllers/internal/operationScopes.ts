@@ -93,6 +93,10 @@ export const OPERATION_SCOPES = {
 
   workflowExecutionList: 'base',
   workflowExecutionGet: 'base',
+  // Hook subscriber operations
+  hookListSubscribers: 'base',
+  hookAddSubscribers: 'base',
+  hookRemoveSubscriber: 'base',
 
   // Send Record Email
   sendRecordEmail: 'base',

@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import type { OnModuleInit } from '@nestjs/common';
 import { HooksService as HooksServiceCE } from 'src/services/hooks.service';
 import type { HookReqType } from 'nocodb-sdk';
 import type { NcRequest } from '~/interface/config';
@@ -13,15 +14,32 @@ import { MetaTable, RootScopes } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
 import { DatasService } from '~/services/datas.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
+import { NocoJobsService } from '~/services/noco-jobs.service';
+import { JobTypes } from '~/interface/Jobs';
+import { HookSubscribersService } from '~/services/hook-subscribers.service';
 
 @Injectable()
-export class HooksService extends HooksServiceCE {
+export class HooksService extends HooksServiceCE implements OnModuleInit {
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected readonly datasService: DatasService,
     @Inject('JobsService') protected readonly jobsService: IJobsService,
+    protected readonly nocoJobsService: NocoJobsService,
+    protected readonly hookSubscribersService: HookSubscribersService,
   ) {
     super(appHooksService, datasService, jobsService);
+  }
+
+  async onModuleInit() {
+    this.nocoJobsService.jobsQueue.add(
+      {
+        jobName: JobTypes.HookErrorNotification,
+      },
+      {
+        jobId: JobTypes.HookErrorNotification,
+        repeat: { cron: '* * * * *' },
+      },
+    );
   }
 
   @EEOnly()
@@ -100,6 +118,32 @@ export class HooksService extends HooksServiceCE {
       );
     }
 
-    return await super.hookCreate(context, param, option);
+    const hook = await super.hookCreate(context, param, option);
+
+    if (hook?.id && param.req?.user?.id) {
+      try {
+        await this.hookSubscribersService.addSubscribers(
+          context,
+          hook.id,
+          [param.req.user.id],
+        );
+      } catch {}
+    }
+
+    return hook;
+  }
+
+  async hookDelete(
+    context: NcContext,
+    param: { hookId: string; req: NcRequest },
+  ) {
+    try {
+      await this.hookSubscribersService.deleteAllSubscribers(
+        context,
+        param.hookId,
+      );
+    } catch {}
+
+    return await super.hookDelete(context, param);
   }
 }

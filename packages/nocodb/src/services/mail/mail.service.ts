@@ -52,6 +52,8 @@ export class MailService {
       verificationToken?: string;
       automationId?: string;
       executionId?: string;
+      hookId?: string;
+      hookTab?: string;
     } = {},
   ) {
     const dashboardPath = Noco.getConfig()?.dashboardPath;
@@ -89,19 +91,28 @@ export class MailService {
       if (params.tableId) {
         url += `/${params.tableId}`;
 
-        const searchParams = new URLSearchParams();
-
-        if (params.rowId) {
-          searchParams.set('rowId', params.rowId);
-        }
-        if (params.commentId) {
-          searchParams.set('commentId', params.commentId);
-        }
-        if (params.columnId) {
-          searchParams.set('columnId', params.columnId);
-        }
-        if (searchParams.toString()) {
+        if (params.hookId) {
+          const searchParams = new URLSearchParams();
+          searchParams.set('hookId', params.hookId);
+          if (params.hookTab) {
+            searchParams.set('hookTab', params.hookTab);
+          }
           url += `?${searchParams.toString()}`;
+        } else {
+          const searchParams = new URLSearchParams();
+
+          if (params.rowId) {
+            searchParams.set('rowId', params.rowId);
+          }
+          if (params.commentId) {
+            searchParams.set('commentId', params.commentId);
+          }
+          if (params.columnId) {
+            searchParams.set('columnId', params.columnId);
+          }
+          if (searchParams.toString()) {
+            url += `?${searchParams.toString()}`;
+          }
         }
       }
 

@@ -63,6 +63,29 @@ interface WorkflowErrorDigestPayload {
   workspaceId: string;
 }
 
+interface HookErrorDigestPayload {
+  req?: NcRequest;
+  user: UserType;
+  hook: {
+    id: string;
+    title: string;
+  };
+  table: {
+    id: string;
+    title: string;
+  };
+  workspace: {
+    id: string;
+    title: string;
+  };
+  failureCount: number;
+  firstFailureTime: string;
+  lastFailureTime: string;
+  baseId: string;
+  workspaceId: string;
+}
+
+
 type MailParams =
   | CEMailParams // Base CE types
   | {
@@ -173,10 +196,12 @@ type MailParams =
         oldBaseRole: string;
         baseRole: string;
       };
-    }
-  | {
-      mailEvent: MailEvent.WORKFLOW_ERROR_DIGEST;
-      payload: WorkflowErrorDigestPayload;
-    };
+    } | {
+  mailEvent: MailEvent.WORKFLOW_ERROR_DIGEST;
+  payload: WorkflowErrorDigestPayload;
+} | {
+  mailEvent: MailEvent.HOOK_ERROR_DIGEST;
+  payload: HookErrorDigestPayload;
+};
 
-export { MailEvent, MailParams, RawMailParams, WorkflowErrorDigestPayload };
+export { MailEvent, MailParams, RawMailParams, WorkflowErrorDigestPayload, HookErrorDigestPayload };

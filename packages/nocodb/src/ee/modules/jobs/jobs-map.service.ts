@@ -30,6 +30,7 @@ import { WorkflowScheduleProcessor } from '~/modules/jobs/jobs/workflow/workflow
 import { WorkflowResumeProcessor } from '~/modules/jobs/jobs/workflow/workflow-resume.processor';
 import { WorkflowTestProcessor } from '~/modules/jobs/jobs/workflow/workflow-test.processor';
 import { WorkflowErrorNotificationProcessor } from '~/modules/jobs/jobs/workflow/workflow-error-notification.processor';
+import { HookErrorNotificationProcessor } from '~/modules/jobs/jobs/hook-error-notification.processor';
 
 @Injectable()
 export class JobsMap extends JobsMapCE {
@@ -64,6 +65,7 @@ export class JobsMap extends JobsMapCE {
     protected readonly workflowResumeProcessor: WorkflowResumeProcessor,
     protected readonly workflowTestProcessor: WorkflowTestProcessor,
     protected readonly workflowErrorNotificationProcessor: WorkflowErrorNotificationProcessor,
+    protected readonly hookErrorNotificationProcessor: HookErrorNotificationProcessor,
   ) {
     super(
       duplicateProcessor,
@@ -171,6 +173,9 @@ export class JobsMap extends JobsMapCE {
       },
       [JobTypes.WorkflowErrorNotification]: {
         this: this.workflowErrorNotificationProcessor,
+      },
+      [JobTypes.HookErrorNotification]: {
+        this: this.hookErrorNotificationProcessor,
       },
     };
   }

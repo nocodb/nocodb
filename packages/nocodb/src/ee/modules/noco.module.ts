@@ -82,6 +82,7 @@ import { ManagedAppService } from '~/services/managed-app.service';
 import { WorkflowsService } from '~/services/workflows.service';
 import { WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { WorkflowSubscribersService } from '~/services/workflow-subscribers.service';
+import { HookSubscribersService } from '~/services/hook-subscribers.service';
 import { WorkflowWebhookController } from '~/controllers/workflow-webhook.controller';
 
 /* Dashboards */
@@ -184,6 +185,7 @@ export const nocoModuleEeMetadata = {
     /* Workflows */
     WorkflowsService,
     WorkflowSubscribersService,
+    HookSubscribersService,
 
     {
       provide: 'WorkflowExecutionService',
@@ -284,6 +286,7 @@ export const nocoModuleEeMetadata = {
     WorkflowsService,
     ListsService,
     WorkflowSubscribersService,
+    HookSubscribersService,
     'WorkflowExecutionService',
     DashboardsService,
     TimelinesService,

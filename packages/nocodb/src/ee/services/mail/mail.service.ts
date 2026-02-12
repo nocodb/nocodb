@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { RoleLabels } from 'nocodb-sdk';
-import type { WorkflowErrorDigestPayload } from '~/interface/Mail';
+import type { WorkflowErrorDigestPayload, HookErrorDigestPayload } from '~/interface/Mail';
 import { EEOnly } from '~/decorators/ee-only.decorator';
 import { MailEvent, MailParams } from '~/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
@@ -424,6 +424,43 @@ export class MailService extends MailServiceCE {
             subject: `Something went wrong with an automation: ${workflow.title}`,
             html: await this.renderMail('WorkflowErrorDigest', {
               workflowTitle: workflow.title,
+              baseTitle: workspace?.title || 'Base',
+              failureCount,
+              firstFailureTime,
+              lastFailureTime,
+              link,
+            }),
+          });
+          break;
+        }
+        case MailEvent.HOOK_ERROR_DIGEST: {
+          const {
+            user,
+            hook,
+            table,
+            workspace,
+            failureCount,
+            firstFailureTime,
+            lastFailureTime,
+            baseId,
+            workspaceId,
+            req,
+          } = params.payload as HookErrorDigestPayload;
+
+          const link = this.buildUrl(req, {
+            workspaceId,
+            baseId,
+            tableId: table.id,
+            hookId: hook.id,
+            hookTab: 'log',
+          });
+
+          await mailerAdapter.mailSend({
+            to: user.email,
+            subject: `Something went wrong with a webhook: ${hook.title}`,
+            html: await this.renderMail('HookErrorDigest', {
+              hookTitle: hook.title,
+              tableName: table.title,
               baseTitle: workspace?.title || 'Base',
               failureCount,
               firstFailureTime,

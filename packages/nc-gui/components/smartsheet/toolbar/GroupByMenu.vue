@@ -149,7 +149,7 @@ const saveGroupBy = async () => {
   } else {
     // Local mode: update localGroupBy ref
     const allColumns = meta.value?.columns || []
-    localGroupBy.value = _groupBy.value
+    const newLocalGroupBy = _groupBy.value
       .filter((g) => g.fk_column_id)
       .map((g, i) => ({
         column: allColumns.find((c) => c.id === g.fk_column_id)!,
@@ -158,11 +158,15 @@ const saveGroupBy = async () => {
       }))
       .filter((g) => g.column)
 
+    localGroupBy.value = newLocalGroupBy
+
     $e('a:group-by:update', { groupBy: _groupBy.value, local: true })
 
-    // Wait for Vue to process the reactive updates (e.g. isGroupBy → false)
-    // before emitting reload, so the non-grouped grid component is mounted
-    await nextTick()
+    // When transitioning from grouped to non-grouped, wait for Vue to unmount
+    // the grouped component and mount the normal grid before emitting reload
+    if (newLocalGroupBy.length === 0) {
+      await nextTick()
+    }
 
     eventBus.emit(SmartsheetStoreEvents.GROUP_BY_RELOAD)
   }

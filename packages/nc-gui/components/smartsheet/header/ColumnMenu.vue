@@ -517,10 +517,11 @@ const isFilterLimitExceeded = computed(
 )
 
 const isGroupedByThisField = computed(() => {
-  if (!localGroupBy.value?.length) {
-    return !!gridViewCols.value[column?.value?.id]?.group_by
+  // null = no override (use synced), [] = override with empty (no grouping)
+  if (localGroupBy.value !== null) {
+    return localGroupBy.value.some((g) => g.column.id === column?.value?.id)
   }
-  return localGroupBy.value.some((g) => g.column.id === column?.value?.id)
+  return !!gridViewCols.value[column?.value?.id]?.group_by
 })
 
 const isGroupBySupported = computed(() => !!(fieldsToGroupBy.value || []).find((f) => f.id === column?.value?.id))

@@ -17,8 +17,8 @@ import {
   editorPersonalViewOnlyPermissions,
   markPersonalViewIfNeeded,
   personalViewOwnerAllowedPermissions,
+  personalViewOwnerOnlyOps,
   VIEW_KEY,
-  viewOperationsExcludedFromPersonalViewCheck,
 } from './extract-ids.helpers';
 import type { Observable } from 'rxjs';
 import type {
@@ -1021,13 +1021,11 @@ export class AclMiddleware implements NestInterceptor {
       NcError.unauthorized('Invalid token');
     }
 
-    // If user is not owner of a personal view, restrict write operations
-    // (excluding view management ops checked later by personalViewOwnerAllowedPermissions)
+    // Block non-owners from modifying filters/sorts on someone else's personal view
     if (
       req[VIEW_KEY]?.lock_type === ViewLockType.Personal &&
       req[VIEW_KEY].owned_by !== req.user?.id &&
-      ['POST', 'PATCH', 'DELETE', 'PUT'].includes(req.method) &&
-      !viewOperationsExcludedFromPersonalViewCheck.includes(permissionName)
+      personalViewOwnerOnlyOps.includes(permissionName)
     ) {
       NcError.forbidden('Unauthorized access');
     }

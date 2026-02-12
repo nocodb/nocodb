@@ -142,6 +142,7 @@ const rolePermissions = {
     include: {
       sortSync: true,
       filterSync: true,
+      groupBySync: true,
       viewFieldEdit: true,
       fieldUpdate: true,
       hookList: true,

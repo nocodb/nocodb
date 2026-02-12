@@ -13,6 +13,7 @@ Before working on any task, read the relevant skill file(s) from `.skills/`:
 | Multi-package / End-to-end features | `.skills/compound-engineering/SKILL.md` |
 | Automations (nodes, workflows) | `.skills/nocohub-automations/SKILL.md` |
 | CE/EE sync patterns | `.skills/nocohub-sync/SKILL.md` |
+| **New PR / branch setup ("commando")** | **`.skills/commando/SKILL.md`** |
 
 ## Repository Structure
 
@@ -25,6 +26,8 @@ nocohub/
 │   ├── noco-integrations/   # External integrations
 │   └── ...                  # Support packages
 ├── .skills/                 # Claude skills (READ THESE!)
+│   ├── commando/            # PR lifecycle management (say "commando")
+│   ├── branches/            # Per-branch working memory (gitignored)
 │   ├── nocohub-backend/
 │   ├── nocohub-frontend/
 │   ├── compound-engineering/

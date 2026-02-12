@@ -353,6 +353,13 @@ const onForgotPasswordClicked = (): void => {
   @apply !text-nc-content-gray !hover:text-nc-content-brand;
 }
 
+.amplify-button[data-variation='default'],
+.amplify-button:not([data-variation]) {
+  @apply bg-nc-bg-default border-1 border-nc-border-gray-medium text-nc-content-gray;
+  @apply hover:bg-nc-bg-gray-extralight hover:border-nc-border-gray-extralight;
+  @apply focus:bg-nc-bg-gray-extralight focus:border-nc-border-gray-extralight;
+}
+
 .amplify-tabs-item {
   @apply border-transparent;
 }

@@ -47,7 +47,9 @@ const PERSONAL_VIEW_MANAGEMENT_PERMISSIONS = [
 
 // Operations that only personal view owners can perform.
 // Non-owners cannot modify filters or sorts on someone else's personal view.
-// Everything else (data ops, view management) is governed by role-based checks.
+// Other view operations (e.g. view management) are restricted in the UI;
+// in the future we plan to include the rest of the view permissions here except data ops.
+// Everything else (data ops) is governed by role-based checks.
 export const personalViewOwnerOnlyOps = [
   'filterCreate',
   'filterUpdate',

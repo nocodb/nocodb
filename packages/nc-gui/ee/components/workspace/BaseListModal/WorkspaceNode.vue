@@ -28,15 +28,15 @@ const onSelect = () => {
   <div
     :tabindex="0"
     :class="[
-      'nc-workspace-node group flex items-center gap-2 px-2 py-2 rounded-lg cursor-pointer my-1 border-1 border-transparent',
+      'nc-workspace-node group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer my-0.5 border-1 border-transparent',
       isSelected
-        ? 'nc-selected-workspace-node bg-nc-bg-gray-light !border-nc-border-gray-medium'
+        ? 'nc-selected-workspace-node is-selected !border-nc-border-brand/30'
         : 'hover:(bg-nc-bg-gray-light !border-nc-border-gray-medium)',
     ]"
     @click="onSelect"
     @keydown.enter.stop="onSelect"
   >
-    <GeneralWorkspaceIcon :workspace="workspace" size="large" class="flex-none" />
+    <GeneralWorkspaceIcon :workspace="workspace" size="medium" class="flex-none" />
     <div class="flex flex-col flex-1 min-w-0">
       <div class="flex items-center gap-1">
         <NcTooltip show-on-truncate-only class="nc-workspace-node-title min-w-0 text-sm font-medium text-nc-content-gray-extreme truncate capitalize">
@@ -46,27 +46,22 @@ const onSelect = () => {
           {{ workspace.title }}
         </NcTooltip>
       </div>
-      <div class="flex items-center gap-1 text-xs text-nc-content-gray-muted mt-1">
-        <span class="truncate">
-          {{ workspace.payment?.plan?.title || 'Free' }}
-        </span>
-        <span> - </span>
-        <div class="flex items-center gap-1.5 cursor-pointer">
-          {{ $t('datatype.ID') }}: {{ workspace.id }}
-
-          <NcTooltip :title="$t('labels.clickToCopyWorkspaceID')" hide-on-click class="flex" placement="right">
-            <GeneralCopyButton
-              :tabindex="-1"
-              type="text"
-              size="xxsmall"
-              class="nc-workspace-id-copy-btn"
-              icon-class="!w-3.5 !h-3.5"
-              :content="workspace.id"
-              :show-toast="false"
-              @click.stop
-            />
-          </NcTooltip>
-        </div>
+      <div class="flex items-center gap-1 text-xs text-nc-content-gray-muted mt-0.5">
+        <span class="truncate">{{ workspace.payment?.plan?.title || 'Free' }} Plan</span>
+        <span>·</span>
+        <span class="truncate">{{ workspace.id }}</span>
+        <NcTooltip :title="$t('labels.clickToCopyWorkspaceID')" hide-on-click class="flex" placement="right">
+          <GeneralCopyButton
+            :tabindex="-1"
+            type="text"
+            size="xxsmall"
+            class="nc-workspace-id-copy-btn"
+            icon-class="!w-3 !h-3"
+            :content="workspace.id"
+            :show-toast="false"
+            @click.stop
+          />
+        </NcTooltip>
       </div>
     </div>
     <NcTooltip v-if="workspace.roles === WorkspaceUserRoles.OWNER">
@@ -75,26 +70,25 @@ const onSelect = () => {
       </template>
       <GeneralIcon icon="role_owner" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
     </NcTooltip>
-    <NcTooltip hide-on-click class="flex">
-      <template #title>
-        {{ isActiveWorkspace ? 'Active Workspace' : 'Click to navigate to this workspace' }}
-      </template>
-      <GeneralIcon
-        :icon="isActiveWorkspace ? 'ncCheck' : 'arrowRight'"
-        class="text-nc-content-gray-muted flex-none h-4 w-4"
-        :class="{
-          'text-nc-content-brand': isActiveWorkspace,
-          'nc-workspace-node-navigate-icon': !isActiveWorkspace,
-        }"
-        @click.stop="switchWorkspace(workspace.id)"
-      />
-    </NcTooltip>
+    <GeneralIcon
+      icon="arrowRight"
+      class="nc-workspace-node-navigate-icon text-nc-content-gray-muted flex-none h-4 w-4"
+      @click.stop="switchWorkspace(workspace.id)"
+    />
   </div>
 </template>
 
 <style scoped lang="scss">
 .nc-workspace-node {
   @apply outline-none;
+
+  &.is-selected {
+    background-color: rgba(51, 102, 255, 0.08);
+
+    :global(.dark) & {
+      background-color: rgba(51, 102, 255, 0.1);
+    }
+  }
 
   &:focus-visible {
     @apply outline-none shadow-focus;

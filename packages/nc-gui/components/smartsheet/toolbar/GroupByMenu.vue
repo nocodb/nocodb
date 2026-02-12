@@ -53,7 +53,8 @@ const syncedGroupByEntries = computed<Group[]>(() => {
 
 // All group-by column IDs for badge count and column filtering
 const groupedByColumnIds = computed(() => {
-  if (localGroupBy.value?.length) {
+  // null = no override (use synced), [] = override with empty (no grouping)
+  if (localGroupBy.value !== null) {
     return localGroupBy.value.map((g) => g.column.id).filter(Boolean)
   }
   return syncedGroupByEntries.value.map((g) => g.fk_column_id).filter(Boolean)
@@ -188,15 +189,15 @@ const removeFieldFromGroupBy = async (group: Group) => {
 
 watch(open, () => {
   if (open.value) {
-    if (isRestrictedEditor.value && !!localGroupBy.value?.length) {
-      // Restricted editors with local overrides: load from local state
+    if (isRestrictedEditor.value && localGroupBy.value !== null) {
+      // Restricted editors with local override (including empty []): load from local state
       _groupBy.value = localGroupBy.value.map((e, i) => ({
         fk_column_id: e.column.id,
         sort: e.sort,
         order: i + 1,
       }))
     } else {
-      // Creators or restricted editors without local overrides: load from synced
+      // Creators or restricted editors without local overrides (null): load from synced
       _groupBy.value = [...syncedGroupByEntries.value]
     }
   } else {

@@ -65,7 +65,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
     })
 
     const groupBy = computed<{ column: ColumnType; sort: string; order?: number }[]>(() => {
-      if (localGroupBy.value?.length) {
+      // null = no override (use synced), [] = override with empty (no grouping)
+      if (localGroupBy.value !== null) {
         return localGroupBy.value.map((e, i) => ({
           column: e.column,
           sort: e.sort,

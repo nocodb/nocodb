@@ -3,7 +3,6 @@ import {
   type FilterType,
   type LinkToAnotherRecordType,
   type LookupType,
-  ViewLockType,
   type ViewType,
   getEquivalentUIType,
   isDateType,
@@ -68,9 +67,7 @@ export function useViewFilters(
 
   const { $api, $e, $eventBus } = useNuxtApp()
 
-  const { isUIAllowed } = useRoles()
-
-  const { isUserViewOwner } = useViewsStore()
+  const { hasPersonalViewPermission } = usePersonalViewPermissions(view)
 
   const { getMeta, getMetaByKey } = useMetas()
 
@@ -80,32 +77,11 @@ export function useViewFilters(
 
   const _filters = ref<ColumnFilterType[]>([...(currentFilters.value || [])])
 
-  // Check if user can list/sync filters based on role OR personal view ownership
-  const canListFilter = computed(() => {
-    // If user has role permission, allow it
-    if (isUIAllowed('filterList')) return true
-    // If this is a personal view owned by current user, allow it
-    if (view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value)) return true
-    return false
-  })
+  const canListFilter = hasPersonalViewPermission('filterList')
 
-  const canListFilterChildren = computed(() => {
-    // If user has role permission, allow it
-    if (isUIAllowed('filterChildrenList')) return true
-    // If this is a personal view owned by current user, allow it
-    if (view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value)) return true
-    return false
-  })
+  const canListFilterChildren = hasPersonalViewPermission('filterChildrenList')
 
-  // Check if user can sync (create/update/delete) filters based on role OR personal view ownership
-  const canSyncFilter = computed(() => {
-    // If this is a personal view owned by current user, allow sync
-    if (view.value?.lock_type === ViewLockType.Personal && isUserViewOwner(view.value)) return true
-
-    // If user has role permission to sync, allow it
-    if (isUIAllowed('filterSync')) return true
-    return false
-  })
+  const canSyncFilter = hasPersonalViewPermission('filterSync')
 
   const nestedMode = computed(() => isTemp.value || !canListFilter.value || !canListFilterChildren.value)
 

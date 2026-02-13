@@ -465,14 +465,20 @@ const unpinFilter = async (filter: FilterType) => {
       <template #overlay>
         <div class="nc-pinned-filter-panel bg-white rounded-lg w-64 overflow-hidden" @click.stop>
           <!-- Header -->
-          <div class="flex items-center gap-1.5 px-3 py-2 border-b border-nc-border-gray-medium">
-            <span class="text-xs font-semibold text-nc-content-gray-subtle uppercase tracking-wide truncate">
-              {{ getColumn(filter)?.title }}
-            </span>
-            <span class="text-xs text-nc-content-gray-muted">·</span>
-            <span class="text-xs text-nc-content-gray-muted truncate">
-              {{ getComparisonOpLabel(filter) }}
-            </span>
+          <div class="flex items-center gap-1.5 px-3 py-2 border-b border-nc-border-gray-medium min-w-0">
+            <NcTooltip class="truncate" placement="bottom">
+              <template #title>{{ getColumn(filter)?.title }}</template>
+              <span class="text-xs font-semibold text-nc-content-gray-subtle uppercase tracking-wide truncate">
+                {{ getColumn(filter)?.title }}
+              </span>
+            </NcTooltip>
+            <span class="text-xs text-nc-content-gray-muted flex-none">·</span>
+            <NcTooltip class="truncate" placement="bottom">
+              <template #title>{{ getComparisonOpLabel(filter) }}</template>
+              <span class="text-xs text-nc-content-gray-muted truncate">
+                {{ getComparisonOpLabel(filter) }}
+              </span>
+            </NcTooltip>
             <div class="flex-1" />
 
             <!-- Enable/Disable toggle -->
@@ -683,5 +689,11 @@ const unpinFilter = async (filter: FilterType) => {
 
 :deep(.nc-user-avatar) {
   @apply min-h-4.2;
+}
+</style>
+
+<style lang="scss">
+.nc-pinned-filter-dropdown-overlay.nc-dropdown {
+  @apply !border-0 !shadow-none !bg-transparent !rounded-none !p-0;
 }
 </style>

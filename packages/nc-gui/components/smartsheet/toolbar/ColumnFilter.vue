@@ -772,6 +772,8 @@ defineExpose({
   parentId,
   addFilterGroup,
   addFilter,
+  deleteFilter,
+  filters,
   isFilterUpdated,
 })
 </script>

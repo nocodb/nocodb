@@ -308,8 +308,11 @@ export const useNocoAi = createSharedComposable(() => {
    * Predict filter conditions from a natural-language description using AI.
    * Calls the backend 'predictFilters' operation, which uses the table schema
    * to generate structured filters (column, operator, value, logical_op).
-   * Returns an array of filter objects with column titles (not IDs) — the caller
-   * is responsible for resolving titles to fk_column_id before applying.
+   *
+   * Returns { action, filters } where:
+   * - action: 'add' (append), 'replace' (clear + add), or 'clear' (remove all)
+   * - filters: array of filter objects with column titles (not IDs) — the caller
+   *   is responsible for resolving titles to fk_column_id before applying.
    */
   const predictFilters = async (
     tableId: string,
@@ -317,20 +320,28 @@ export const useNocoAi = createSharedComposable(() => {
     viewId?: string,
     baseId?: string,
     skipMsgToast = true,
-  ) => {
+  ): Promise<{
+    action: 'add' | 'replace' | 'clear'
+    filters: {
+      column: string
+      comparison_op: string
+      comparison_sub_op: string | null
+      value: string | null
+      logical_op: string
+    }[]
+  }> => {
     const res = await callAiSchemaApi('predictFilters', { tableId, viewId, description }, baseId, skipMsgToast)
 
-    if (res?.filters) {
-      return res.filters as {
+    return {
+      action: (res?.action as 'add' | 'replace' | 'clear') || 'add',
+      filters: (res?.filters as {
         column: string
         comparison_op: string
         comparison_sub_op: string | null
         value: string | null
         logical_op: string
-      }[]
+      }[]) || [],
     }
-
-    return []
   }
 
   const generatingRows = ref<string[]>([])

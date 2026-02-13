@@ -213,11 +213,29 @@ watch(
 // ----- EE: AI Filter Prediction -----
 //
 // Handles AI-generated filter predictions from the AiFilterPrompt component.
-// The AI returns filters as { column (title), comparison_op, comparison_sub_op, value, logical_op }.
+// The AI returns { action, filters } where:
+//   - action: 'add' (append to existing), 'replace' (clear all + add new), 'clear' (remove all)
+//   - filters: array of { column (title), comparison_op, comparison_sub_op, value, logical_op }
 // This handler resolves column titles → fk_column_id, builds draft FilterType objects,
-// and appends them to the existing filter list via ColumnFilter's addFilter().
+// and manages the filter list via ColumnFilter's exposed addFilter/deleteFilter/filters.
 
-const handleAiFilters = async (
+/**
+ * Delete all existing filters in the current view (iterates in reverse to avoid index shifting).
+ */
+const clearAllFilters = async () => {
+  if (!filterComp.value?.filters?.length) return
+
+  // Delete in reverse order so indices remain valid as filters are removed
+  for (let i = filterComp.value.filters.length - 1; i >= 0; i--) {
+    await filterComp.value.deleteFilter(filterComp.value.filters[i], i)
+  }
+}
+
+/**
+ * Add an array of AI-generated filters to the view.
+ * Resolves column titles to fk_column_id and calls addFilter for each.
+ */
+const addAiFilters = async (
   aiFilters: {
     column: string
     comparison_op: string
@@ -251,6 +269,33 @@ const handleAiFilters = async (
     // otherwise reset comparison_op to the column's default and clear value to null.
     // The AI draft already has the correct operator, value, and logical_op.
     await filterComp.value.addFilter(draft, true)
+  }
+}
+
+const handleAiFilters = async (payload: {
+  action: 'add' | 'replace' | 'clear'
+  filters: {
+    column: string
+    comparison_op: string
+    comparison_sub_op: string | null
+    value: string | null
+    logical_op: string
+  }[]
+}) => {
+  if (!filterComp.value) return
+
+  const { action, filters: aiFilters } = payload
+
+  if (action === 'clear') {
+    // Remove all existing filters
+    await clearAllFilters()
+  } else if (action === 'replace') {
+    // Remove all existing filters, then add the new ones
+    await clearAllFilters()
+    await addAiFilters(aiFilters)
+  } else {
+    // Default: append new filters to existing ones
+    await addAiFilters(aiFilters)
   }
 }
 </script>

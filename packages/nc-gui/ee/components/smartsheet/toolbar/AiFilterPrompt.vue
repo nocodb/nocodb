@@ -15,13 +15,16 @@ import type { ColumnType, FilterType } from 'nocodb-sdk'
 
 const emit = defineEmits<{
   'applyFilters': [
-    filters: {
-      column: string
-      comparison_op: string
-      comparison_sub_op: string | null
-      value: string | null
-      logical_op: string
-    }[],
+    payload: {
+      action: 'add' | 'replace' | 'clear'
+      filters: {
+        column: string
+        comparison_op: string
+        comparison_sub_op: string | null
+        value: string | null
+        logical_op: string
+      }[]
+    },
   ]
 }>()
 
@@ -54,8 +57,9 @@ const handleSubmit = async () => {
   isLoading.value = true
 
   try {
-    // Call the backend AI predictFilters operation via useNocoAi composable
-    const filters = await predictFilters(
+    // Call the backend AI predictFilters operation via useNocoAi composable.
+    // Returns { action, filters } where action is 'add', 'replace', or 'clear'.
+    const result = await predictFilters(
       tableId,
       description,
       activeView.value?.id,
@@ -63,8 +67,10 @@ const handleSubmit = async () => {
       false, // skipMsgToast — show errors to user
     )
 
-    if (filters?.length) {
-      emit('applyFilters', filters)
+    // For 'clear' action, emit even with empty filters array so the handler can delete existing ones.
+    // For 'add'/'replace', only emit if there are actual filters to apply.
+    if (result.action === 'clear' || result.action === 'replace' || result.filters?.length) {
+      emit('applyFilters', result)
       prompt.value = ''
     } else {
       message.info('No matching filters could be generated for that description.')

@@ -598,6 +598,7 @@ export class AiSchemaService {
       req?: any;
     },
   ): Promise<{
+    action: 'add' | 'replace' | 'clear';
     filters: {
       column: string;
       comparison_op: string;
@@ -663,7 +664,9 @@ export class AiSchemaService {
     // Use Zod schema for structured output validation.
     // All fields use z.string().nullable() instead of .optional() because
     // OpenAI structured outputs require every property in the 'required' array.
+    // The 'action' field tells the frontend whether to add, replace, or clear filters.
     const { data, usage } = await wrapper.generateObject<{
+      action: 'add' | 'replace' | 'clear';
       filters: {
         column: string;
         comparison_op: string;
@@ -673,6 +676,7 @@ export class AiSchemaService {
       }[];
     }>({
       schema: z.object({
+        action: z.enum(['add', 'replace', 'clear']),
         filters: z.array(
           z.object({
             column: z.string(),
@@ -718,7 +722,7 @@ export class AiSchemaService {
       return exists;
     });
 
-    return { filters: validFilters };
+    return { action: data.action || 'add', filters: validFilters };
   }
 
   async createViews(

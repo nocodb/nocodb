@@ -425,7 +425,7 @@ defineOptions({
                   :key="section.id"
                   @click="click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => onMoveToSection(section.id || null))"
                 >
-                  <GeneralIcon icon="ncFolder" class="opacity-80" :style="{ color: parseProp(section.meta)?.iconColor || '#3f8292' }" />
+                  <GeneralIcon icon="ncFolderOpen" class="opacity-80" :style="{ color: parseProp(section.meta)?.iconColor || '#3f8292' }" />
                   {{ section.title }}
                 </NcMenuItem>
                 <NcDivider />

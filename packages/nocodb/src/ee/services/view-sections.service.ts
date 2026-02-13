@@ -34,9 +34,9 @@ export class ViewSectionsService {
       NcError.badRequest('Title is required');
     }
 
-    // Check for duplicate title within the same table
-    const existingSections = await ViewSection.list(context, tableId);
-    if (existingSections.some((s) => s.title?.trim() === title)) {
+    // Check for duplicate title within the same table using direct query
+    const duplicate = await ViewSection.findByTitle(context, tableId, title);
+    if (duplicate) {
       NcError.badRequest('A section with this name already exists');
     }
 
@@ -95,15 +95,13 @@ export class ViewSectionsService {
 
       // Check for duplicate title within the same table (exclude self)
       if (title !== existingSection.title?.trim()) {
-        const existingSections = await ViewSection.list(
+        const duplicate = await ViewSection.findByTitle(
           context,
           existingSection.fk_model_id,
+          title,
+          sectionId,
         );
-        if (
-          existingSections.some(
-            (s) => s.id !== sectionId && s.title?.trim() === title,
-          )
-        ) {
+        if (duplicate) {
           NcError.badRequest('A section with this name already exists');
         }
       }

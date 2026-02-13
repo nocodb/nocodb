@@ -16,6 +16,9 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
   // State
   const sectionsByTable = ref<Map<string, ViewSectionType[]>>(new Map())
 
+  // Reverse index: sectionId -> table key for O(1) lookups
+  const sectionTableIndex = ref<Map<string, string>>(new Map())
+
   // Computed properties
   const sections = computed({
     get: () => {
@@ -62,6 +65,12 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
       if (response.data?.list) {
         const sortedSections = (response.data.list as ViewSectionType[]).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
         sectionsByTable.value.set(key, sortedSections)
+
+        // Update reverse index
+        for (const s of sortedSections) {
+          if (s.id) sectionTableIndex.value.set(s.id, key)
+        }
+
         return sortedSections
       }
 
@@ -91,6 +100,9 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
         const updatedSections = [...currentSections, section].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
         sectionsByTable.value.set(key, updatedSections)
 
+        // Update reverse index
+        sectionTableIndex.value.set(section.id, key)
+
         return section
       }
 
@@ -117,12 +129,16 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
       const updatedSection = response.data as ViewSectionType
 
       if (updatedSection && updatedSection.id) {
-        // Update all matching sections in all tables
-        for (const [key, sections] of sectionsByTable.value) {
-          const index = sections.findIndex((s) => s.id === sectionId)
-          if (index !== -1) {
-            sections[index] = updatedSection
-            sectionsByTable.value.set(key, [...sections])
+        // Use reverse index for O(1) lookup instead of iterating all tables
+        const tableKey = sectionTableIndex.value.get(sectionId)
+        if (tableKey) {
+          const sections = sectionsByTable.value.get(tableKey)
+          if (sections) {
+            const index = sections.findIndex((s) => s.id === sectionId)
+            if (index !== -1) {
+              sections[index] = updatedSection
+              sectionsByTable.value.set(tableKey, [...sections])
+            }
           }
         }
 
@@ -143,11 +159,15 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     try {
       await $api.instance.delete(`/api/v1/db/meta/view-sections/${sectionId}`)
 
-      // Remove section from all tables
-      for (const [key, sections] of sectionsByTable.value) {
-        const filtered = sections.filter((s) => s.id !== sectionId)
-        sectionsByTable.value.set(key, filtered)
+      // Use reverse index for O(1) lookup
+      const tableKey = sectionTableIndex.value.get(sectionId)
+      if (tableKey) {
+        const sections = sectionsByTable.value.get(tableKey)
+        if (sections) {
+          sectionsByTable.value.set(tableKey, sections.filter((s) => s.id !== sectionId))
+        }
       }
+      sectionTableIndex.value.delete(sectionId)
 
       return true
     } catch (e: any) {
@@ -169,13 +189,17 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
       const updatedSection = response.data as ViewSectionType
 
       if (updatedSection && updatedSection.id) {
-        // Update all matching sections in all tables
-        for (const [key, sections] of sectionsByTable.value) {
-          const index = sections.findIndex((s) => s.id === sectionId)
-          if (index !== -1) {
-            sections[index] = updatedSection
-            sections.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-            sectionsByTable.value.set(key, [...sections])
+        // Use reverse index for O(1) lookup
+        const tableKey = sectionTableIndex.value.get(sectionId)
+        if (tableKey) {
+          const sections = sectionsByTable.value.get(tableKey)
+          if (sections) {
+            const index = sections.findIndex((s) => s.id === sectionId)
+            if (index !== -1) {
+              sections[index] = updatedSection
+              sections.sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+              sectionsByTable.value.set(tableKey, [...sections])
+            }
           }
         }
 

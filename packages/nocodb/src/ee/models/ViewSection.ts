@@ -96,9 +96,6 @@ export default class ViewSection
           condition: {
             fk_model_id: modelId,
           },
-          orderBy: {
-            order: 'asc',
-          },
         },
       );
       for (let section of sectionsList) {
@@ -117,6 +114,32 @@ export default class ViewSection
         (b.order != null ? b.order : Infinity),
     );
     return sectionsList?.map((s) => new ViewSection(s));
+  }
+
+  public static async findByTitle(
+    context: NcContext,
+    modelId: string,
+    title: string,
+    excludeId?: string,
+    ncMeta = Noco.ncMeta,
+  ) {
+    const condition: Record<string, any> = {
+      fk_model_id: modelId,
+      title,
+    };
+
+    const section = await ncMeta.metaGet2(
+      context.workspace_id,
+      context.base_id,
+      MetaTable.VIEW_SECTIONS,
+      condition,
+    );
+
+    if (section && excludeId && section.id === excludeId) {
+      return null;
+    }
+
+    return section ? new ViewSection(section) : null;
   }
 
   static async insert(
@@ -213,20 +236,25 @@ export default class ViewSection
       },
     );
 
-    for (const view of viewsInSection) {
-      await ncMeta.metaUpdate(
+    if (viewsInSection.length) {
+      // Bulk update all views in a single query instead of N+1
+      const viewIds = viewsInSection.map((v) => v.id);
+      await ncMeta.bulkMetaUpdate(
         context.workspace_id,
         context.base_id,
         MetaTable.VIEWS,
         { fk_view_section_id: null },
-        { id: view.id },
+        viewIds,
       );
-      // Invalidate view cache
-      await NocoCache.update(
-        context,
-        `${CacheScope.VIEW}:${view.id}`,
-        { fk_view_section_id: null },
-      );
+
+      // Invalidate cache for each view
+      for (const view of viewsInSection) {
+        await NocoCache.update(
+          context,
+          `${CacheScope.VIEW}:${view.id}`,
+          { fk_view_section_id: null },
+        );
+      }
     }
 
     // Delete the section

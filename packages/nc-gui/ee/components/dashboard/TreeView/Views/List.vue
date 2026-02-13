@@ -82,12 +82,12 @@ const loadExpandedSections = () => {
   }
 }
 
-/** Save expanded sections to localStorage */
-const saveExpandedSections = () => {
+/** Save expanded sections to localStorage (debounced to avoid blocking main thread) */
+const saveExpandedSections = useDebounceFn(() => {
   if (!table.value.base_id || !table.value.id) return
   const key = `view-sections-expanded-${table.value.base_id}:${table.value.id}`
   localStorage.setItem(key, JSON.stringify(expandedSections.value))
-}
+}, 300)
 
 /** Toggle section expanded state */
 const toggleSectionExpanded = (sectionId?: string) => {
@@ -790,7 +790,7 @@ watch(
           v-if="sectionToDelete"
           class="flex flex-row items-center py-2 px-3 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle"
         >
-          <GeneralIcon icon="ncFolder" class="w-4 min-h-4" :style="{ color: parseProp(sectionToDelete?.meta)?.iconColor || '#3f8292' }" />
+          <GeneralIcon icon="ncFolderOpen" class="w-4 min-h-4" :style="{ color: parseProp(sectionToDelete?.meta)?.iconColor || '#3f8292' }" />
           <div
             class="capitalize text-ellipsis overflow-hidden select-none w-full pl-3"
             :style="{ wordBreak: 'keep-all', whiteSpace: 'nowrap', display: 'inline' }"

@@ -35,16 +35,24 @@ export async function runExternal(
     );
     return data;
   } catch (e) {
+    // Unwrap the real error from sql-executor response.
+    // Axios wraps it: e.message = 'Request failed with status code 500',
+    // e.code = 'ERR_BAD_RESPONSE'. The actual error is in e.response.data.error.
+    const rawError = e.response?.data?.error;
+    const errorMessage = rawError?.message || e?.message || '';
+    const errorType = rawError?._errorType;
+
     // Timeout check first — covers both axios timeout (no response) and
     // sql-executor timeout errors (KnexTimeoutError with message containing "timeout")
-    if (e?.message?.includes('timeout')) {
+    if (errorMessage.includes('timeout')) {
       NcError._.externalTimeOut(
         'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
       );
     }
 
-    // Network-level errors reaching the sql-executor (connection refused,
-    // reset, DNS failure, etc.) are transient infrastructure issues
+    // Network-level connection errors — check both:
+    // - e.code: when NocoDB instance can't reach sql-executor (no response)
+    // - rawError.code: when sql-executor can't reach the external DB
     const networkErrorCodes = [
       'ECONNREFUSED',
       'ECONNRESET',
@@ -57,30 +65,28 @@ export async function runExternal(
       'EPIPE',
       'EAI_AGAIN',
     ];
-    if (e?.code && networkErrorCodes.includes(e.code)) {
+    const errorCode = rawError?.code || e?.code;
+    if (errorCode && networkErrorCodes.includes(errorCode)) {
       NcError._.externalTimeOut(
         'External source is not reachable. Confirm if source is accessible.',
       );
     }
 
-    // Only extract DB-specific errors for actual DatabaseError types
-    // (e.g. PG/MySQL errors with proper error codes)
-    if (e.response?.data?.error) {
-      const { _errorType } = e.response.data.error;
-      if (_errorType === 'DatabaseError') {
-        NcError._.externalError(
-          DBErrorExtractor.get().extractDbError(e.response.data.error, {
-            clientType: config.client,
-            ignoreDefault: false,
-          }) as any as Error,
-        );
-      }
+    // Extract DB-specific errors for actual DatabaseError types
+    // (e.g. PG/MySQL errors with proper error codes like 42703)
+    if (rawError && errorType === 'DatabaseError') {
+      NcError._.externalError(
+        DBErrorExtractor.get().extractDbError(rawError, {
+          clientType: config.client,
+          ignoreDefault: false,
+        }) as any as Error,
+      );
     }
 
     logger.error({
       query,
       sourceId,
-      msg: e.message,
+      msg: errorMessage,
     });
 
     NcError._.externalError(

@@ -89,10 +89,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
     <NcMenuItem inner-class="w-full" data-testid="create-new-dashboard" @click="emits('emptyDashboard')">
       <GeneralIcon icon="dashboards" />
       {{ $t('labels.dashboard') }}
-      <NcTooltip v-if="isEEFeatureBlocked">
-        <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
-        <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
-      </NcTooltip>
+      <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
     </NcMenuItem>
     <NcMenuItem
       class="nc-menu-item-integration"
@@ -103,10 +100,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
       <GeneralIcon icon="ncAutomation" />
       {{ $t('general.workflow') }}
       <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
-      <NcTooltip v-if="isEEFeatureBlocked">
-        <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
-        <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
-      </NcTooltip>
+      <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
       <div class="flex-1 w-full" />
       <div class="flex items-center">
         <div v-for="icon in automationIcons" :key="icon" class="nc-integration-icon-wrapper">
@@ -133,10 +127,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
         >
           <GeneralIcon icon="ncZap" />
           {{ $t('labels.sync') }}
-          <NcTooltip v-if="isEEFeatureBlocked">
-        <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
-        <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
-      </NcTooltip>
+          <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
           <div class="flex-1 w-full" />
           <div class="flex items-center">
             <div v-for="icon in syncIcons" :key="icon" class="nc-integration-icon-wrapper">
@@ -152,10 +143,7 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
         <div class="flex-1 flex items-center gap-2 cursor-pointer">
           <GeneralIcon icon="ncScript" />
           {{ $t('objects.script') }}
-          <NcTooltip v-if="isEEFeatureBlocked">
-        <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
-        <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
-      </NcTooltip>
+          <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
         </div>
 
         <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>

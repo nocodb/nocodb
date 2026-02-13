@@ -218,10 +218,7 @@ watchEffect(() => {
                   <div>
                     {{ $t('objects.script') }}
                   </div>
-                  <NcTooltip v-if="isEEFeatureBlocked">
-                    <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
-                    <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
-                  </NcTooltip>
+                  <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
                 </div>
 
                 <GeneralIcon class="plus" icon="plus" />
@@ -235,10 +232,7 @@ watchEffect(() => {
                     {{ $t('objects.workflow') }}
                   </div>
                   <NcBadgeBeta />
-                  <NcTooltip v-if="isEEFeatureBlocked">
-                    <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
-                    <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
-                  </NcTooltip>
+                  <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
                 </div>
                 <GeneralIcon class="plus" icon="plus" />
               </div>

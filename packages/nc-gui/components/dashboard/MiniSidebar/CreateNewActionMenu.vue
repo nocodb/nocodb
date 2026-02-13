@@ -206,10 +206,7 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="dashboards" />
                 {{ $t('general.dashboard') }}
-                <NcTooltip v-if="isEEFeatureBlocked">
-                  <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
-                  <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
-                </NcTooltip>
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
           </template>
@@ -312,10 +309,7 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="ncScript" />
                 {{ $t('general.script') }}
-                <NcTooltip v-if="isEEFeatureBlocked">
-                  <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
-                  <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
-                </NcTooltip>
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
             <NcTooltip
@@ -334,10 +328,7 @@ const hasDashboardCreateAccess = computed(() => {
               >
                 <GeneralIcon icon="ncAutomation" />
                 {{ $t('general.workflow') }}
-                <NcTooltip v-if="isEEFeatureBlocked">
-                  <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
-                  <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
-                </NcTooltip>
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" show-as-lock remove-click />
               </NcMenuItem>
             </NcTooltip>
           </template>

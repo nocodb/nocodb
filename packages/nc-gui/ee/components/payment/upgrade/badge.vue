@@ -25,6 +25,8 @@ interface Props {
   featureEnabledCallback?: () => boolean
   onClickCallback?: () => void
   size?: 'xs' | 'sm' | 'md' | 'lg'
+  /** When true, renders a lock icon instead of the text badge when isEEFeatureBlocked */
+  showAsLock?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -86,8 +88,12 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <NcTooltip v-if="!isFeatureEnabled && showAsLock && isEEFeatureBlocked" @click="showUpgradeModal">
+    <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
+    <GeneralIcon icon="ncLock" class="h-3.5 w-3.5 cursor-pointer" style="color: #c86827" />
+  </NcTooltip>
   <NcBadge
-    v-if="!isFeatureEnabled && (isPaymentEnabled || isOnPrem)"
+    v-else-if="!isFeatureEnabled && (isPaymentEnabled || isOnPrem)"
     :size="size"
     :border="false"
     class="nc-upgrade-badge cursor-pointer select-none"

@@ -9,6 +9,7 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import { ViewRowColorService as ViewRowColorServiceCE } from 'src/services/view-row-color.service';
+import { EEOnly } from '~/ee/decorators/ee-only.decorator';
 import type {
   ColumnReqType,
   FilterType,
@@ -37,6 +38,7 @@ import NocoSocket from '~/socket/NocoSocket';
 export class ViewRowColorService extends ViewRowColorServiceCE {
   protected logger = new Logger(ViewRowColorService.name);
 
+  @EEOnly()
   async getByViewId(params: {
     context: NcContext;
     fk_view_id?: string;
@@ -140,6 +142,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
   }
 
+  @EEOnly()
   async addRowColoringCondition(params: {
     context: NcContext;
     fk_view_id?: string;
@@ -291,6 +294,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
   }
 
+  @EEOnly()
   async updateRowColoringCondition(params: {
     context: NcContext;
     fk_view_id?: string;
@@ -382,6 +386,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     return rowColorCondition;
   }
 
+  @EEOnly()
   async deleteRowColoringCondition(params: {
     context: NcContext;
     fk_view_id?: string;
@@ -448,6 +453,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
   }
 
+  @EEOnly()
   async setRowColoringSelect(params: {
     context: NcContext;
     fk_view_id?: string;
@@ -525,6 +531,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
   }
 
+  @EEOnly()
   async removeRowColorInfo(params: {
     context: NcContext;
     fk_view_id?: string;
@@ -649,6 +656,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
   }
 
+  @EEOnly()
   async checkIfColumnInvolved(param: {
     context: NcContext;
     existingColumn: Column;

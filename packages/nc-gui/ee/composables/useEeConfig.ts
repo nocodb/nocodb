@@ -195,6 +195,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockRowColoring = computed(() => {
+    if (isEEFeatureBlocked.value) return true
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_ROW_COLOUR)
   })
 
@@ -1105,14 +1106,21 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseRowColoring = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockRowColoring.value) return
 
-    handleUpgradePlan({
-      title: t('upgrade.upgradeToUseRowColoring'),
-      content: t('upgrade.upgradeToUseRowColoringSubtitle', {
-        plan: PlanTitles.PLUS,
-      }),
-      callback,
-      limitOrFeature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
-    })
+    if (isEEFeatureBlocked.value) {
+      handleOnPremUpgrade({
+        title: t('upgrade.enterpriseFeatureTitle'),
+        content: t('upgrade.upgradeToUseRowColoringSubtitle', { plan: PlanTitles.ENTERPRISE }),
+      })
+    } else {
+      handleUpgradePlan({
+        title: t('upgrade.upgradeToUseRowColoring'),
+        content: t('upgrade.upgradeToUseRowColoringSubtitle', {
+          plan: PlanTitles.PLUS,
+        }),
+        callback,
+        limitOrFeature: PlanFeatureTypes.FEATURE_ROW_COLOUR,
+      })
+    }
 
     return true
   }

@@ -231,7 +231,7 @@ const contextMenu = computed({
   },
 })
 
-const showContextMenu = (e: MouseEvent, target?: { row: number; col: number }) => {
+const showContextMenu = (e: MouseEvent | PointerEvent, target?: { row: number; col: number }) => {
   if (isSqlView.value) return
   e.preventDefault()
   if (target) {
@@ -1638,7 +1638,7 @@ useEventListener(scrollWrapper, 'scroll', (e) => {
   })
 })
 
-useEventListener(document, 'mousedown', (e) => {
+useEventListener(document, 'pointerdown', (e) => {
   if (e.offsetX > (e.target as HTMLElement)?.clientWidth || e.offsetY > (e.target as HTMLElement)?.clientHeight) {
     scrolling.value = true
   }
@@ -1648,7 +1648,7 @@ useEventListener(document, 'mousedown', (e) => {
   }
 })
 
-useEventListener(document, 'mouseup', () => {
+useEventListener(document, 'pointerup', () => {
   isGridCellMouseDown.value = false
   // wait for click event to finish before setting scrolling to false
   setTimeout(() => {
@@ -1832,7 +1832,7 @@ const expandAndLooseFocus = (row: Row, col: Record<string, any>) => {
   selectedRange.clear()
 }
 
-const handleCellClick = (event: MouseEvent, row: number, col: number) => {
+const handleCellClick = (event: MouseEvent | PointerEvent, row: number, col: number) => {
   const rowData = dataRef.value[row]
 
   if (isMobileMode.value) {

@@ -39,6 +39,8 @@ import {
   generateTablesPrompt,
   generateTablesSystemMessage,
   generateViewsSystemMessage,
+  predictFiltersPrompt,
+  predictFiltersSystemMessage,
   predictSchemaPrompt,
   predictSchemaSystemMessage,
   predictViewsPrompt,
@@ -568,6 +570,155 @@ export class AiSchemaService {
     }
 
     return data;
+  }
+
+  /**
+   * AI Filter Prediction
+   *
+   * Converts a natural-language description into structured filter conditions
+   * for the given table. Uses the AI integration to generate filters via
+   * OpenAI structured outputs (Zod schema validation).
+   *
+   * Flow:
+   * 1. Serialize the target table's column schema (titles, types, select options)
+   * 2. Send schema + user description to AI with the predictFilters prompt
+   * 3. Validate that all AI-referenced column names actually exist in the table
+   * 4. Return valid filters (with column titles — frontend resolves to fk_column_id)
+   *
+   * Note: comparison_sub_op uses z.string().nullable() (not .optional()) because
+   * OpenAI structured outputs require all properties to be in the 'required' array.
+   */
+  async predictFilters(
+    context: NcContext,
+    params: {
+      baseId: string;
+      tableId: string;
+      viewId?: string;
+      description: string;
+      req?: any;
+    },
+  ): Promise<{
+    filters: {
+      column: string;
+      comparison_op: string;
+      comparison_sub_op: string | null;
+      value: string | null;
+      logical_op: string;
+    }[];
+  }> {
+    const { baseId, tableId, description, req } = params;
+
+    const base = await Base.get(context, baseId);
+
+    if (!base) {
+      NcError.get(context).baseNotFound(baseId);
+    }
+
+    const integration = await Integration.getCategoryDefault(
+      context,
+      IntegrationCategoryType.AI,
+    );
+
+    if (!integration) {
+      NcError.get(context).integrationNotFound('AI');
+    }
+
+    const wrapper = await integration.getIntegrationWrapper<AiIntegration>();
+
+    // Serialize only the target table's columns (exclude system, FK, and relation columns)
+    const tables = await Model.list(context, {
+      base_id: base.id,
+    });
+
+    const table = tables.find((t) => t.id === tableId);
+
+    if (!table) {
+      NcError.get(context).tableNotFound(tableId);
+    }
+
+    const columns = (await table.getColumns(context)).filter(
+      (col) =>
+        !col.system &&
+        col.uidt !== UITypes.ForeignKey &&
+        !['mm', 'hm', 'oo', 'bt'].includes(col.colOptions?.type),
+    );
+
+    // Build a minimal schema for the AI: column titles, types, and select options
+    const tableSchema = {
+      title: table.title,
+      columns: columns.map((column) => ({
+        title: column.title,
+        type: column.uidt,
+        ...(column.colOptions?.options &&
+        column.colOptions?.options.length > 0
+          ? {
+              options: column.colOptions.options.map(
+                (option) => option.title,
+              ),
+            }
+          : {}),
+      })),
+    };
+
+    // Use Zod schema for structured output validation.
+    // All fields use z.string().nullable() instead of .optional() because
+    // OpenAI structured outputs require every property in the 'required' array.
+    const { data, usage } = await wrapper.generateObject<{
+      filters: {
+        column: string;
+        comparison_op: string;
+        comparison_sub_op: string | null;
+        value: string | null;
+        logical_op: string;
+      }[];
+    }>({
+      schema: z.object({
+        filters: z.array(
+          z.object({
+            column: z.string(),
+            comparison_op: z.string(),
+            comparison_sub_op: z.string().nullable(),
+            value: z.string().nullable(),
+            logical_op: z.string(),
+          }),
+        ),
+      }),
+      messages: [
+        {
+          role: 'system',
+          content: predictFiltersSystemMessage(),
+        },
+        {
+          role: 'user',
+          content: predictFiltersPrompt(
+            JSON.stringify(tableSchema),
+            description,
+          ),
+        },
+      ],
+    });
+
+    await integration.storeInsert(context, params.req?.user?.id, usage);
+
+    // Log raw AI response for debugging filter generation issues
+    console.log(
+      '[predictFilters] AI response:',
+      JSON.stringify(data.filters, null, 2),
+    );
+
+    // Validate that all AI-referenced column names exist in the table.
+    // Filters with non-existent columns are silently dropped with a warning.
+    const validFilters = (data.filters || []).filter((filter) => {
+      const exists = columns.some((col) => col.title === filter.column);
+      if (!exists) {
+        console.warn(
+          `[predictFilters] Dropping filter — column "${filter.column}" not found in table schema`,
+        );
+      }
+      return exists;
+    });
+
+    return { filters: validFilters };
   }
 
   async createViews(

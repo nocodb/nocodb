@@ -37,7 +37,7 @@ const { disabled, removeClick } = toRefs(props)
 
 const planUpgraderClick = inject(PlanUpgraderClickHookInj, createEventHook())
 
-const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled, isOnPrem } = useEeConfig()
+const { handleUpgradePlan, getFeature, getPlanTitle, isPaymentEnabled, isOnPrem, isEEFeatureBlocked } = useEeConfig()
 
 const isFeatureEnabled = computed(() => {
   if (ncIsFunction(props.featureEnabledCallback)) {
@@ -47,7 +47,9 @@ const isFeatureEnabled = computed(() => {
   return props.feature && getFeature(props.feature)
 })
 
-const activePlanMeta = computed(() => PlanMeta[props.planTitle])
+const effectivePlanTitle = computed(() => (isEEFeatureBlocked.value ? PlanTitles.ENTERPRISE : props.planTitle))
+
+const activePlanMeta = computed(() => PlanMeta[effectivePlanTitle.value])
 
 const showUpgradeModal = (e?: MouseEvent) => {
   if (e) {
@@ -56,7 +58,8 @@ const showUpgradeModal = (e?: MouseEvent) => {
     e.stopPropagation()
   }
 
-  if (isFeatureEnabled.value || !isPaymentEnabled.value) return
+  if (isFeatureEnabled.value) return
+  if (!isPaymentEnabled.value && !isOnPrem.value) return
 
   if (props.onClickCallback) {
     props.onClickCallback()
@@ -89,7 +92,7 @@ onBeforeUnmount(() => {
     :border="false"
     class="nc-upgrade-badge cursor-pointer select-none"
     :class="[
-      `nc-upgrade-${planTitle}-badge nc-size-${size}`,
+      `nc-upgrade-${effectivePlanTitle}-badge nc-size-${size}`,
       {
         'opacity-75': disabled,
       },
@@ -101,7 +104,7 @@ onBeforeUnmount(() => {
     @click="showUpgradeModal"
   >
     <!-- <GeneralIcon  icon="ncArrowUpCircle" class="h-4 w-4 mr-1" /> -->
-    {{ getPlanTitle(planTitle) }}
+    {{ getPlanTitle(effectivePlanTitle) }}
   </NcBadge>
 </template>
 

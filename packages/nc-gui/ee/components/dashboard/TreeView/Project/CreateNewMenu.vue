@@ -21,6 +21,10 @@ const { isUIAllowed } = useRoles()
 
 const { isMarketVisible } = storeToRefs(useScriptStore())
 
+const { appInfo } = useGlobal()
+
+const { isEEFeatureBlocked, showUpgradeToUseScripts, showUpgradeToUseSync } = useEeConfig()
+
 const showBaseOption = (source: SourceType) => {
   return (
     (source.enabled || (base.value.sources || []).length > 1) &&
@@ -30,6 +34,12 @@ const showBaseOption = (source: SourceType) => {
 
 const openMarketPlace = () => {
   vVisible.value = false
+
+  if (!appInfo.value?.ee) {
+    showUpgradeToUseScripts()
+    return
+  }
+
   isMarketVisible.value = true
 }
 
@@ -79,6 +89,10 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
     <NcMenuItem inner-class="w-full" data-testid="create-new-dashboard" @click="emits('emptyDashboard')">
       <GeneralIcon icon="dashboards" />
       {{ $t('labels.dashboard') }}
+      <NcTooltip v-if="isEEFeatureBlocked">
+        <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
+        <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
+      </NcTooltip>
     </NcMenuItem>
     <NcMenuItem
       class="nc-menu-item-integration"
@@ -89,6 +103,10 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
       <GeneralIcon icon="ncAutomation" />
       {{ $t('general.workflow') }}
       <NcBadgeBeta class="!text-nc-content-brand-disabled !bg-nc-bg-brand" />
+      <NcTooltip v-if="isEEFeatureBlocked">
+        <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
+        <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
+      </NcTooltip>
       <div class="flex-1 w-full" />
       <div class="flex items-center">
         <div v-for="icon in automationIcons" :key="icon" class="nc-integration-icon-wrapper">
@@ -105,12 +123,20 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
           data-testid="create-new-sync"
           @click="
             () => {
+              if (!appInfo.value?.ee) {
+                showUpgradeToUseSync()
+                return
+              }
               createSyncClick()
             }
           "
         >
           <GeneralIcon icon="ncZap" />
           {{ $t('labels.sync') }}
+          <NcTooltip v-if="isEEFeatureBlocked">
+        <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
+        <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
+      </NcTooltip>
           <div class="flex-1 w-full" />
           <div class="flex items-center">
             <div v-for="icon in syncIcons" :key="icon" class="nc-integration-icon-wrapper">
@@ -126,6 +152,10 @@ const automationIcons = [SyncDataType.SLACK, SyncDataType.GMAIL, SyncDataType.OP
         <div class="flex-1 flex items-center gap-2 cursor-pointer">
           <GeneralIcon icon="ncScript" />
           {{ $t('objects.script') }}
+          <NcTooltip v-if="isEEFeatureBlocked">
+        <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
+        <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
+      </NcTooltip>
         </div>
 
         <div class="px-1 cursor-default flex items-center h-9 -my-2" @click.stop>

@@ -257,6 +257,9 @@ export const useWorkspace = defineStore('workspaceStore', () => {
     params?: { offset?: number; limit?: number; ignoreLoading?: boolean; includeDeleted?: boolean },
     workspaceId?: string,
   ) => {
+    // Skip workspace user loading when unlicensed — workspace users API is EE-only
+    if (!appInfo.value?.ee) return
+
     if (!workspaceId && !activeWorkspace.value?.id) {
       throw new Error('Workspace not selected')
     }

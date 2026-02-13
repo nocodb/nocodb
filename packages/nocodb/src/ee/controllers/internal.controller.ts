@@ -97,6 +97,27 @@ const LICENSE_REQUIRED_OPS = new Set([
   // Workspace Audit (Enterprise only)
   'workspaceAuditList',
   'baseAuditList',
+  // Scripts (Enterprise only)
+  'listScripts',
+  'getScript',
+  'createScript',
+  'updateScript',
+  'deleteScript',
+  'duplicateScript',
+  // Dashboards (Enterprise only)
+  'dashboardList',
+  'dashboardGet',
+  'dashboardCreate',
+  'dashboardUpdate',
+  'dashboardDelete',
+  'dashboardShare',
+  'widgetList',
+  'widgetGet',
+  'widgetCreate',
+  'widgetDuplicate',
+  'widgetUpdate',
+  'widgetDelete',
+  'widgetDataGet',
 ]);
 
 @Controller()

@@ -13,6 +13,8 @@ const { $e } = useNuxtApp()
 
 const { isMobileMode } = useGlobal()
 
+const { isEEFeatureBlocked } = useEeConfig()
+
 const { isUIAllowed } = useRoles()
 
 const isScriptsCreateOrEditAllowed = computed(() => isUIAllowed('scriptCreateOrEdit'))
@@ -216,6 +218,10 @@ watchEffect(() => {
                   <div>
                     {{ $t('objects.script') }}
                   </div>
+                  <NcTooltip v-if="isEEFeatureBlocked">
+                    <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
+                    <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
+                  </NcTooltip>
                 </div>
 
                 <GeneralIcon class="plus" icon="plus" />
@@ -229,6 +235,10 @@ watchEffect(() => {
                     {{ $t('objects.workflow') }}
                   </div>
                   <NcBadgeBeta />
+                  <NcTooltip v-if="isEEFeatureBlocked">
+                    <template #title>{{ $t('upgrade.enterpriseFeatureTitle') }}</template>
+                    <GeneralIcon icon="ncLock" class="h-3.5 w-3.5" style="color: #c86827" />
+                  </NcTooltip>
                 </div>
                 <GeneralIcon class="plus" icon="plus" />
               </div>

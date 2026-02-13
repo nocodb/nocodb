@@ -3,26 +3,37 @@ interface Props {
   baseId?: string
 }
 defineProps<Props>()
+
+const { isEEFeatureBlocked, showUpgradeToUseSync } = useEeConfig()
+
+const { appInfo } = useGlobal()
 </script>
 
 <template>
   <ProjectSyncCreateProvider :base-id="baseId">
     <template #default="{ createSyncClick }">
-      <ProjectActionItem
-        v-e="['c:table:create-sync']"
-        data-testid="proj-view-btn__create-sync"
-        :label="$t('labels.syncData')"
-        :subtext="$t('msg.subText.syncData')"
-        @click="
-          () => {
-            createSyncClick()
-          }
-        "
-      >
-        <template #icon>
-          <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-nc-content-green-dark" />
-        </template>
-      </ProjectActionItem>
+      <div class="relative">
+        <ProjectActionItem
+          v-e="['c:table:create-sync']"
+          data-testid="proj-view-btn__create-sync"
+          :label="$t('labels.syncData')"
+          :subtext="$t('msg.subText.syncData')"
+          @click="
+            () => {
+              if (!appInfo?.ee) {
+                showUpgradeToUseSync()
+                return
+              }
+              createSyncClick()
+            }
+          "
+        >
+          <template #icon>
+            <GeneralIcon icon="ncZap" class="!h-7 !w-7 !text-nc-content-green-dark" />
+          </template>
+        </ProjectActionItem>
+        <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" class="absolute right-2 top-2" />
+      </div>
     </template>
   </ProjectSyncCreateProvider>
 </template>

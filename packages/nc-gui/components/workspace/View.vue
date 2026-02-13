@@ -25,8 +25,15 @@ const { loadCollaborators, loadWorkspace } = workspaceStore
 const orgStore = useOrg()
 const { orgId, org } = storeToRefs(orgStore)
 
-const { isWsAuditEnabled, handleUpgradePlan, isPaymentEnabled, getFeature, blockTeamsManagement, showUpgradeToUseTeams } =
-  useEeConfig()
+const {
+  isWsAuditEnabled,
+  handleUpgradePlan,
+  isPaymentEnabled,
+  getFeature,
+  blockTeamsManagement,
+  showUpgradeToUseTeams,
+  isEEFeatureBlocked,
+} = useEeConfig()
 
 const hasTeamsEditPermission = computed(() => {
   return isEeUI && isTeamsEnabled.value && isUIAllowed('teamCreate')
@@ -218,6 +225,7 @@ onBeforeUnmount(() => {
             <div class="tab-title">
               <GeneralIcon icon="ncBuilding" class="h-4 w-4" />
               {{ $t('general.teams') }}
+              <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
             </div>
           </template>
 

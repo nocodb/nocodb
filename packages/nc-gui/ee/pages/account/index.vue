@@ -16,7 +16,7 @@ const workspaceStore = useWorkspace()
 const { workspacesList } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
-const { isPaymentEnabled } = useEeConfig()
+const { isPaymentEnabled, isEEFeatureBlocked, showUpgradeToUseSSO } = useEeConfig()
 
 const filteredWorkspaces = computed(() => workspacesList.value.filter((w) => w.roles === WorkspaceUserRoles.OWNER))
 
@@ -200,12 +200,13 @@ onMounted(() => {
                   active: $route.params.page === 'authentication',
                 }"
                 class="item"
-                @click="navigateTo('/account/authentication')"
+                @click="isEEFeatureBlocked ? showUpgradeToUseSSO() : navigateTo('/account/authentication')"
               >
                 <div class="flex items-center space-x-2">
                   <component :is="iconMap.ncLock" />
 
                   <div class="select-none text-sm">{{ $t('title.sso') }}</div>
+                  <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
                 </div>
               </NcMenuItem>
 

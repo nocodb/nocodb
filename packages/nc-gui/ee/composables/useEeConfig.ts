@@ -48,6 +48,9 @@ export const useEeConfig = createSharedComposable(() => {
 
   const isOnPrem = computed(() => appInfo.value?.isOnPrem)
 
+  /** True when running on-prem without a valid enterprise license (CE mode) */
+  const isEEFeatureBlocked = computed(() => isOnPrem.value && !appInfo.value?.ee)
+
   // Will only consider ws owner not super admin
   const isWsOwner = computed(() =>
     isUIAllowed('workspaceBilling', {
@@ -85,6 +88,8 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const isWsAuditEnabled = computed(() => {
+    if (isEEFeatureBlocked.value) return false
+
     return (isPaymentEnabled.value && getFeature(PlanFeatureTypes.FEATURE_AUDIT_WORKSPACE)) || appInfo.value?.isOnPrem
   })
 
@@ -214,7 +219,9 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockTableAndFieldPermissions = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS)
+    return (
+      isEEFeatureBlocked.value || (isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS))
+    )
   })
 
   const blockPrivateBases = computed(() => {
@@ -260,6 +267,8 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockTeamsManagement = computed(() => {
+    if (isEEFeatureBlocked.value) return true
+
     // Teams api allow only in paid plan, so better to mark it as block so that we don't call the api
     if (!isPaymentEnabled.value && !isOnPrem.value) return true
 
@@ -284,7 +293,7 @@ export const useEeConfig = createSharedComposable(() => {
   })
 
   const blockSync = computed(() => {
-    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SYNC)
+    return isEEFeatureBlocked.value || (isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SYNC))
   })
 
   const blockRls = computed(() => {
@@ -312,6 +321,15 @@ export const useEeConfig = createSharedComposable(() => {
   const blockMapView = computed(() => {
     return (isPaymentEnabled.value || isOnPrem.value) && !getFeature(PlanFeatureTypes.FEATURE_MAP_VIEW)
   })
+
+  /** EE-only feature blocks — gated by license on self-hosted */
+  const blockSSO = computed(() => isEEFeatureBlocked.value)
+  const blockSnapshots = computed(() => isEEFeatureBlocked.value)
+  const blockCustomUrls = computed(() => isEEFeatureBlocked.value)
+  const blockScripts = computed(() => isEEFeatureBlocked.value)
+  const blockWorkflows = computed(() => isEEFeatureBlocked.value)
+  const blockWorkspaceCreate = computed(() => isEEFeatureBlocked.value)
+  const blockWorkspaceMembers = computed(() => isEEFeatureBlocked.value)
 
   function calculatePrice(priceObj: any, seatCount: number, mode: 'year' | 'month') {
     // TODO: calculate price when tiers_mode is `volume`
@@ -383,6 +401,9 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   function getFeature(type: PlanFeatureTypes, workspace?: NcWorkspace | null) {
+    // On-prem without license: all EE features blocked
+    if (isEEFeatureBlocked.value) return false
+
     if (!isPaymentEnabled.value && !isOnPrem.value) return true
 
     if (!workspace) {
@@ -592,41 +613,28 @@ export const useEeConfig = createSharedComposable(() => {
   }
 
   const handleOnPremUpgrade = ({
-    currentPlanTitle,
     title,
     content,
-    requiredPlan,
-  }: Pick<NcConfirmModalProps, 'content' | 'okText' | 'focusBtn' | 'maskClosable' | 'keyboard'> & {
+  }: {
     title?: string
-    currentPlanTitle?: PlanTitles | OnPremPlanTitles
-    newPlanTitle?: PlanTitles | OnPremPlanTitles
-    workspaceId?: string
-    requiredPlan?: PlanTitles | OnPremPlanTitles
     content?: string
-    limitOrFeature?: PlanLimitTypes | PlanFeatureTypes
   } = {}) => {
-    // if already on required plan it means we hit the limit so show higher plan
-    if (requiredPlan && requiredPlan === (currentPlanTitle ?? activePlanTitle.value)) {
-      requiredPlan = undefined
-    }
-
-    const higherPlan = requiredPlan ?? HigherPlan[currentPlanTitle ?? activePlanTitle.value]
-    if (!higherPlan) {
-      return
-    }
-
     const isOpen = ref(true)
 
-    const modalTitle = ref(title)
+    const modalTitle = ref(title || t('upgrade.enterpriseFeatureTitle'))
 
-    const modalContent = ref(content)
+    const modalContent = ref(content || t('upgrade.enterpriseFeatureSubtitle'))
 
     const { close } = useDialog(NcModalConfirm, {
       'visible': isOpen,
       'title': modalTitle,
       'content': modalContent,
-      'okClass': '!hidden',
-      'cancelText': 'Close',
+      'okText': t('upgrade.enterLicense'),
+      'onOk': () => {
+        toggleDialog()
+        navigateTo('/account/license')
+      },
+      'cancelText': t('general.close'),
       'onCancel': toggleDialog,
       'update:visible': toggleDialog,
       'showIcon': false,
@@ -673,6 +681,11 @@ export const useEeConfig = createSharedComposable(() => {
     isSharedFormView?: boolean
     requiredPlan?: PlanTitles
   } = {}) => {
+    // On-prem without license: show license upgrade modal instead of cloud pricing
+    if (isEEFeatureBlocked.value) {
+      return handleOnPremUpgrade({ title, content })
+    }
+
     // if already on required plan it means we hit the limit so show higher plan
     if (requiredPlan && requiredPlan === (currentPlanTitle ?? activePlanTitle.value)) {
       requiredPlan = undefined
@@ -1155,14 +1168,21 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseTableAndFieldPermissions = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockTableAndFieldPermissions.value) return
 
-    handleUpgradePlan({
-      title: t('upgrade.upgradeToUseTableAndFieldPermissions'),
-      content: t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
-        plan: PlanTitles.PLUS,
-      }),
-      callback,
-      limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
-    })
+    if (isEEFeatureBlocked.value) {
+      handleOnPremUpgrade({
+        title: t('upgrade.enterpriseFeatureTitle'),
+        content: t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', { plan: PlanTitles.ENTERPRISE }),
+      })
+    } else {
+      handleUpgradePlan({
+        title: t('upgrade.upgradeToUseTableAndFieldPermissions'),
+        content: t('upgrade.upgradeToUseTableAndFieldPermissionsSubtitle', {
+          plan: PlanTitles.PLUS,
+        }),
+        callback,
+        limitOrFeature: PlanFeatureTypes.FEATURE_TABLE_AND_FIELD_PERMISSIONS,
+      })
+    }
 
     return true
   }
@@ -1200,8 +1220,6 @@ export const useEeConfig = createSharedComposable(() => {
       handleOnPremUpgrade({
         title: t('upgrade.upgradeLicenseToUsePrivateBases'),
         content: t('upgrade.upgradeLicenseToUsePrivateBasesSubtitle'),
-        requiredPlan: PlanTitles.ENTERPRISE,
-        limitOrFeature: PlanFeatureTypes.FEATURE_PRIVATE_BASES,
       })
     } else {
       handleUpgradePlan({
@@ -1348,15 +1366,22 @@ export const useEeConfig = createSharedComposable(() => {
       return
     }
 
-    handleUpgradePlan({
-      title: t('upgrade.upgradeToUseTeams'),
-      content: t('upgrade.upgradeToUseTeamsSubtitle', {
-        plan: PlanTitles.BUSINESS,
-      }),
-      callback,
-      limitOrFeature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
-      requiredPlan: PlanTitles.BUSINESS,
-    })
+    if (isEEFeatureBlocked.value) {
+      handleOnPremUpgrade({
+        title: t('upgrade.enterpriseFeatureTitle'),
+        content: t('upgrade.upgradeToUseTeamsSubtitle', { plan: PlanTitles.ENTERPRISE }),
+      })
+    } else {
+      handleUpgradePlan({
+        title: t('upgrade.upgradeToUseTeams'),
+        content: t('upgrade.upgradeToUseTeamsSubtitle', {
+          plan: PlanTitles.BUSINESS,
+        }),
+        callback,
+        limitOrFeature: PlanFeatureTypes.FEATURE_TEAM_MANAGEMENT,
+        requiredPlan: PlanTitles.BUSINESS,
+      })
+    }
 
     return true
   }
@@ -1565,6 +1590,51 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  /** EE-only upgrade prompts for self-hosted CE mode */
+  const showUpgradeForEEFeature = (featureTitle: string) => {
+    handleOnPremUpgrade({
+      title: t('upgrade.enterpriseFeatureTitle'),
+      content: t('upgrade.enterpriseFeatureSubtitle', { feature: featureTitle }),
+    })
+
+    return true
+  }
+
+  const showUpgradeToUseSSO = () => {
+    if (!blockSSO.value) return
+    return showUpgradeForEEFeature(t('upgrade.features.sso'))
+  }
+
+  const showUpgradeToUseSnapshots = () => {
+    if (!blockSnapshots.value) return
+    return showUpgradeForEEFeature(t('upgrade.features.snapshots'))
+  }
+
+  const showUpgradeToUseCustomUrls = () => {
+    if (!blockCustomUrls.value) return
+    return showUpgradeForEEFeature(t('upgrade.features.customUrls'))
+  }
+
+  const showUpgradeToUseScripts = () => {
+    if (!blockScripts.value) return
+    return showUpgradeForEEFeature(t('upgrade.features.scripts'))
+  }
+
+  const showUpgradeToUseWorkflows = () => {
+    if (!blockWorkflows.value) return
+    return showUpgradeForEEFeature(t('upgrade.features.workflows'))
+  }
+
+  const showUpgradeToCreateWorkspace = () => {
+    if (!blockWorkspaceCreate.value) return
+    return showUpgradeForEEFeature(t('upgrade.features.multipleWorkspaces'))
+  }
+
+  const showUpgradeToManageWorkspaceMembers = () => {
+    if (!blockWorkspaceMembers.value) return
+    return showUpgradeForEEFeature(t('upgrade.features.workspaceMembers'))
+  }
+
   return {
     isWsOwner,
     calculatePrice,
@@ -1671,5 +1741,21 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseViewSections,
     blockMapView,
     showUpgradeToUseMapView,
+    isEEFeatureBlocked,
+    blockSSO,
+    blockSnapshots,
+    blockCustomUrls,
+    blockScripts,
+    blockWorkflows,
+    blockWorkspaceCreate,
+    blockWorkspaceMembers,
+    showUpgradeToUseSSO,
+    showUpgradeToUseSnapshots,
+    showUpgradeToUseCustomUrls,
+    showUpgradeToUseScripts,
+    showUpgradeToUseWorkflows,
+    showUpgradeToCreateWorkspace,
+    showUpgradeToManageWorkspaceMembers,
+    showUpgradeForEEFeature,
   }
 })

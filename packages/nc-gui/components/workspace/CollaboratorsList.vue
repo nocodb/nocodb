@@ -50,6 +50,8 @@ const {
   navigateToPricing,
   isTopBannerVisible,
   showUpgradeToUseTeams,
+  isEEFeatureBlocked,
+  showUpgradeToManageWorkspaceMembers,
 } = useEeConfig()
 
 const currentWorkspace = computedAsync(async () => {
@@ -483,11 +485,12 @@ watch(inviteDlg, (newVal) => {
               :disabled="isCollaboratorsLoading"
               data-testid="nc-add-member-btn"
               :text-color="isTeamsEnabled ? 'primary' : undefined"
-              @click="inviteDlg = true"
+              @click="isEEFeatureBlocked ? showUpgradeToManageWorkspaceMembers() : (inviteDlg = true)"
             >
               <div class="flex items-center gap-2">
                 <GeneralIcon :icon="isTeamsEnabled ? 'ncUsers' : 'plus'" class="h-4 w-4" />
                 {{ $t('activity.addMembers') }}
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
               </div>
             </NcButton>
 

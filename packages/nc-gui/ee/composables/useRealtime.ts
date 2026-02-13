@@ -5,7 +5,7 @@ import { extensionUserPrefsManager } from '~/helpers/extensionUserPrefsManager'
 export const useRealtime = createSharedComposable(() => {
   const { $ncSocket, $eventBus } = useNuxtApp()
 
-  const { user, ncNavigateTo } = useGlobal()
+  const { user, ncNavigateTo, appInfo } = useGlobal()
 
   const { loadRoles } = useRoles()
 
@@ -107,6 +107,42 @@ export const useRealtime = createSharedComposable(() => {
           }
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+        })
+      }
+    } else if (event.action === 'base_full_reload') {
+      const { payload } = event
+      const baseId = payload.base_id
+      if (baseId && activeBaseId.value === baseId) {
+        // Clear all cached metadata first to ensure fresh data
+        clearAllMeta()
+        // Clear local caches
+        scriptStore.scripts.clear()
+        workflowStore.workflows.clear()
+        dashboardStore.dashboards.clear()
+
+        // Reload everything in the base
+        loadProjectTables(baseId, true).then(async () => {
+          // Reload all table metadata
+          const tables = baseTables.value.get(baseId)
+          for (const table of tables || []) {
+            if (table.id) {
+              getMeta(baseId, table.id, true)
+            }
+          }
+
+          // Reload scripts, workflows, and dashboards with force flag (only when licensed)
+          if (appInfo.value?.ee) {
+            await Promise.all([
+              scriptStore.loadScripts({ baseId, force: true }),
+              workflowStore.loadWorkflows({ baseId, force: true }),
+              dashboardStore.loadDashboards({ baseId, force: true }),
+            ])
+          }
+
+          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
+          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+
+          refreshCommandPalette()
         })
       }
     } else if (event.action === 'table_create') {

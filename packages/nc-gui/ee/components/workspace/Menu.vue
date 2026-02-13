@@ -8,6 +8,11 @@ const workspaceStore = useWorkspace()
 const { activeWorkspace, workspacesList } = storeToRefs(workspaceStore)
 const { loadWorkspaces } = workspaceStore
 
+const { appInfo } = useGlobal()
+
+const { isEEFeatureBlocked, showUpgradeToCreateWorkspace } = useEeConfig()
+
+
 const { isDark } = useTheme()
 
 const { navigateToTable } = useTablesStore()
@@ -38,6 +43,51 @@ const onWorkspaceCreate = async (workspace: WorkspaceType) => {
 const baseStore = useBase()
 
 const { isSharedBase } = storeToRefs(baseStore)
+
+const switchWorkspace = async (workspaceId: string) => {
+  $e('a:workspace:switch')
+
+  navigateToProject({
+    workspaceId,
+  })
+}
+
+watch(leftSidebarState, () => {
+  if (leftSidebarState.value === 'peekCloseEnd') {
+    isWorkspaceDropdownOpen.value = false
+  }
+})
+
+function onWindowResize() {
+  viewportWidth.value = window.innerWidth
+}
+
+onMounted(() => {
+  window.addEventListener('resize', onWindowResize)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', onWindowResize)
+})
+
+const onWorkspaceCreateClick = () => {
+  if (isEEFeatureBlocked.value) {
+    showUpgradeToCreateWorkspace()
+    return
+  }
+
+  $e('c:workspace:create')
+
+  createDlg.value = true
+}
+
+const canCreateWorkspace = computed(() => {
+  if (appInfo.value.restrictWorkspaceCreation !== true) {
+    return true
+  }
+
+  return !!isSuper.value
+})
 </script>
 
 <template>
@@ -106,7 +156,129 @@ const { isSharedBase } = storeToRefs(baseStore)
           <GeneralIcon icon="chevronDown" class="mt-0.5 ml-1 min-w-6 text-lg !text-nc-gray-500/75" />
         </div>
       </div>
-    </div>
+
+      <template #overlay>
+        <NcMenu class="nc-workspace-dropdown-inner w-[348px]" @click="isWorkspaceDropdownOpen = false">
+          <a-menu-item-group class="!border-t-0 w-full">
+            <div class="pl-4 pr-3 min-w-0 w-full py-1">
+              <div class="flex gap-x-3 w-full items-center">
+                <GeneralWorkspaceIcon :workspace="activeWorkspace" size="large" />
+                <div class="flex-1 flex flex-col gap-y-0 max-w-[calc(100%-5.6rem)]">
+                  <div
+                    class="mt-0.5 flex w-full capitalize mb-0 nc-workspace-title truncate min-w-10 text-sm text-nc-content-gray-extreme font-medium"
+                    style="line-height: 1.5rem"
+                    data-testid="nc-workspace-list"
+                  >
+                    <span data-testid="nc-workspace-list-title" class="truncate">
+                      {{ activeWorkspace?.title }}
+                    </span>
+                  </div>
+                  <div class="flex flex-row items-center gap-x-2">
+                    <template v-if="appInfo.isOnPrem">
+                      <template v-if="workspaceUserCount !== undefined">
+                        <div class="nc-workspace-dropdown-active-workspace-info">
+                          {{ workspaceUserCount }}
+                          {{ workspaceUserCount > 1 ? $t('labels.members').toLowerCase() : $t('objects.member').toLowerCase() }}
+                        </div>
+                      </template>
+                    </template>
+                    <template v-else>
+                      <div class="nc-workspace-dropdown-active-workspace-info truncate">
+                        {{ activeWorkspace.payment?.plan?.title || 'Free Plan' }}
+                      </div>
+                      <template v-if="workspaceUserCount !== undefined">
+                        <div class="nc-workspace-dropdown-active-workspace-info">-</div>
+                        <div class="nc-workspace-dropdown-active-workspace-info truncate">
+                          {{ workspaceUserCount }}
+                          {{ workspaceUserCount > 1 ? $t('labels.members').toLowerCase() : $t('objects.member').toLowerCase() }}
+                        </div>
+                      </template>
+                    </template>
+                  </div>
+                </div>
+
+                <NcTooltip v-if="activeWorkspace.roles === WorkspaceUserRoles.OWNER" class="!z-1" placement="bottomRight">
+                  <template #title>
+                    {{ $t('objects.roleType.owner') }}
+                  </template>
+                  <div class="h-6.5 px-1 py-0.25 rounded-lg bg-nc-purple-50">
+                    <GeneralIcon
+                      icon="role_owner"
+                      class="min-w-4.5 min-h-4.5 text-xl !text-nc-content-purple-dark !hover:text-nc-content-purple-dark"
+                    />
+                  </div>
+                </NcTooltip>
+              </div>
+
+              <div class="flex mt-1">
+                <NcTooltip :title="$t('labels.clickToCopyWorkspaceID')" placement="top" hide-on-click class="flex">
+                  <div
+                    class="flex items-center gap-1.5 nc-workspace-dropdown-active-workspace-info cursor-pointer"
+                    @click="copyBtnRef?.copyContent()"
+                  >
+                    {{ $t('labels.workspaceId', { workspaceId: activeWorkspace.id }) }}
+
+                    <GeneralCopyButton
+                      ref="copyBtnRef"
+                      type="text"
+                      size="xxsmall"
+                      :content="activeWorkspace.id"
+                      :show-toast="false"
+                    />
+                  </div>
+                </NcTooltip>
+              </div>
+            </div>
+
+            <NcDivider v-if="!isMobileMode" class="!mb-0" />
+
+            <UseVirtualList
+              :list="otherWorkspaces"
+              height="auto"
+              :options="{ itemHeight: 40 }"
+              class="my-1 max-h-[min(60vh,600px)] nc-scrollbar-md w-full"
+            >
+              <template #default="{ data: workspace }">
+                <NcMenuItem :key="workspace.id!" class="!h-[40px]" inner-class="w-full" @click="switchWorkspace(workspace.id!)">
+                  <div
+                    class="nc-workspace-menu-item group capitalize flex items-center w-full max-w-full"
+                    data-testid="nc-workspace-list"
+                  >
+                    <div class="flex flex-row w-[calc(100%-2rem)] truncate items-center gap-2">
+                      <GeneralWorkspaceIcon :workspace="workspace" size="medium" />
+                      <span data-testid="nc-workspace-list-title" class="capitalize mb-0 nc-workspace-title truncate min-w-10">
+                        {{ workspace?.title }}
+                      </span>
+                    </div>
+
+                    <NcTooltip v-if="workspace.roles === WorkspaceUserRoles.OWNER" class="!z-1" placement="bottomRight">
+                      <template #title>
+                        {{ $t('objects.roleType.owner') }}
+                      </template>
+                      <div class="h-6.5 px-1 py-0.25 rounded-lg bg-nc-purple-50">
+                        <GeneralIcon
+                          icon="role_owner"
+                          class="min-w-4.5 min-h-4.5 text-xl !text-nc-content-purple-dark !hover:text-nc-content-purple-dark"
+                        />
+                      </div>
+                    </NcTooltip>
+                  </div>
+                </NcMenuItem>
+              </template>
+            </UseVirtualList>
+            <NcDivider v-if="otherWorkspaces.length && !isMobileMode && canCreateWorkspace" class="!mt-0" />
+            <NcMenuItem v-if="!isMobileMode && canCreateWorkspace" @click="onWorkspaceCreateClick">
+              <div v-e="['c:workspace:create']" class="nc-workspace-menu-item group">
+                <GeneralIcon icon="plusSquare" class="!text-inherit" />
+
+                <div class="">{{ $t('general.create') }} {{ $t('general.new') }} {{ $t('objects.workspace') }}</div>
+                <LazyPaymentUpgradeBadge :feature-enabled-callback="() => !isEEFeatureBlocked" remove-click />
+              </div>
+            </NcMenuItem>
+          </a-menu-item-group>
+        </NcMenu>
+      </template>
+    </NcDropdown>
   </div>
   <WorkspaceCreateDlg v-model="createDlg" @success="onWorkspaceCreate" />
   <WorkspaceBaseListModal v-model:visible="isBaseListModalOpen" />

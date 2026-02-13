@@ -5,7 +5,7 @@ const router = useRouter()
 
 const route = router.currentRoute
 
-const { navigateToProject, isMobileMode } = useGlobal()
+const { navigateToProject, isMobileMode, appInfo } = useGlobal()
 
 const { meta: metaKey, control } = useMagicKeys()
 
@@ -52,6 +52,11 @@ const navigateToProjectPage = () => {
 }
 
 const navigateToSettings = () => {
+  if (isEeUI && !appInfo.value?.ee) {
+    navigateTo('/account/users/list')
+    return
+  }
+
   const cmdOrCtrl = isMac() ? metaKey.value : control.value
 
   navigateToWorkspaceSettings('', cmdOrCtrl)

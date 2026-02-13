@@ -4,9 +4,9 @@ import { DlgDashboardCreate } from '#components'
 export const useDashboardStore = defineStore('dashboard', () => {
   const { $api, $e, $poller } = useNuxtApp()
 
-  const { ncNavigateTo } = useGlobal()
+  const { ncNavigateTo, appInfo } = useGlobal()
 
-  const { showDashboardPlanLimitExceededModal, updateStatLimit } = useEeConfig()
+  const { showDashboardPlanLimitExceededModal, showUpgradeForEEFeature, updateStatLimit } = useEeConfig()
 
   const { refreshCommandPalette } = useCommandPalette()
 
@@ -386,6 +386,11 @@ export const useDashboardStore = defineStore('dashboard', () => {
     navigateToNewDashboard?: boolean
   }) {
     if (!baseId || showDashboardPlanLimitExceededModal()) return
+
+    if (!appInfo.value?.ee) {
+      showUpgradeForEEFeature('Dashboards')
+      return
+    }
     const isDlgOpen = ref(true)
 
     const { close } = useDialog(DlgDashboardCreate, {

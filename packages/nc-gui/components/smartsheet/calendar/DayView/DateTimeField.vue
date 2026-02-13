@@ -637,7 +637,7 @@ const calculateNewRow = (event: MouseEvent, skipChangeCheck?: boolean) => {
   return { newRow, updateProperty }
 }
 
-const onResize = (event: MouseEvent) => {
+const onResize = (event: MouseEvent | PointerEvent) => {
   if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
   if (resizeRecord.value.rowMeta.range?.is_readonly) return
 
@@ -736,7 +736,7 @@ const onResizeStart = (direction: 'right' | 'left', _event: MouseEvent | Pointer
   document.addEventListener('pointercancel', onResizeEnd)
 }
 
-const onDrag = (event: MouseEvent) => {
+const onDrag = (event: MouseEvent | PointerEvent) => {
   if (!isUIAllowed('dataEdit') || !container.value || !dragRecord.value) return
   const { top, bottom } = container.value.getBoundingClientRect()
 

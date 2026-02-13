@@ -209,7 +209,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
 }, 500)
 
 // This function is used to calculate the new start and end date of a record when resizing
-const onResize = (event: MouseEvent) => {
+const onResize = (event: MouseEvent | PointerEvent) => {
   if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value) return
 
   const { width, left } = container.value.getBoundingClientRect()
@@ -382,7 +382,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBarData?: boolean) => {
   return { updateProperty, newRow }
 }
 
-const onDrag = (event: MouseEvent) => {
+const onDrag = (event: MouseEvent | PointerEvent) => {
   if (!isUIAllowed('dataEdit')) return
   if (!container.value || !dragRecord.value) return
   event.preventDefault()

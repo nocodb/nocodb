@@ -506,7 +506,7 @@ const calculateNewRow = (event: MouseEvent, updateSideBar?: boolean, skipChangeC
   }
 }
 
-const onDrag = (event: MouseEvent) => {
+const onDrag = (event: MouseEvent | PointerEvent) => {
   if (!isUIAllowed('dataEdit') || !dragRecord.value) return
 
   calculateNewRow(event, false)
@@ -516,7 +516,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
   updateRowProperty(row, updateProperty, isDelete)
 }, 500)
 
-const onResize = (event: MouseEvent) => {
+const onResize = (event: MouseEvent | PointerEvent) => {
   if (!isUIAllowed('dataEdit') || !resizeRecord.value) return
 
   const { top, height, width, left } = calendarGridContainer.value.getBoundingClientRect()

@@ -646,7 +646,7 @@ const useDebouncedRowUpdate = useDebounceFn((row: Row, updateProperty: string[],
   updateRowProperty(row, updateProperty, isDelete)
 }, 500)
 
-const onResize = (event: MouseEvent) => {
+const onResize = (event: MouseEvent | PointerEvent) => {
   if (!isUIAllowed('dataEdit') || !container.value || !resizeRecord.value || !scrollContainer.value) return
   if (resizeRecord.value.rowMeta.range?.is_readonly) return
 
@@ -840,7 +840,7 @@ const calculateNewRow = (
   return { newRow, updatedProperty }
 }
 
-const onDrag = (event: MouseEvent) => {
+const onDrag = (event: MouseEvent | PointerEvent) => {
   if (!isUIAllowed('dataEdit') || !scrollContainer.value || !dragRecord.value) return
 
   const containerRect = scrollContainer.value.getBoundingClientRect()

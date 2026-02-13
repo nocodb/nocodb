@@ -13,7 +13,9 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import validator from 'validator';
 import type { ProjectUserReqType, ProjectUserUpdateReqType } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import { validatePayload } from '~/helpers';
 import Noco from '~/Noco';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -57,6 +59,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
       'User management is restricted to base owners in private bases',
     );
   }
+  @EEOnly()
   async preUserInvite(
     context: NcContext,
     param: {
@@ -132,6 +135,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     return { base, emails, workspace };
   }
 
+  @EEOnly()
   async userInvite(
     context: NcContext,
     param: {
@@ -230,6 +234,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     }
   }
 
+  @EEOnly()
   async prepareUserInviteByEmail(
     context: NcContext,
     param: {
@@ -307,6 +312,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     };
   }
 
+  @EEOnly()
   async unhandledUserInviteByEmail(
     context: NcContext,
     param: {
@@ -571,6 +577,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     };
   }
 
+  @EEOnly()
   async baseUserUpdate(
     context: NcContext,
     param: {
@@ -763,6 +770,7 @@ export class BaseUsersService extends BaseUsersServiceCE {
     };
   }
 
+  @EEOnly()
   async baseUserDelete(
     context: NcContext,
     param: {

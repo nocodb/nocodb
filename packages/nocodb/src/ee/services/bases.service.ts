@@ -19,7 +19,9 @@ import type {
   ProjectUpdateReqType,
   UserType,
 } from 'nocodb-sdk';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import { populateMeta, validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { getFeature, getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
@@ -61,6 +63,7 @@ export class BasesService extends BasesServiceCE {
     super(appHooksService, metaService, tablesService);
   }
 
+  @EEOnly()
   async baseList(
     context: NcContext,
     param: {
@@ -73,6 +76,7 @@ export class BasesService extends BasesServiceCE {
     return bases;
   }
 
+  @EEOnly()
   async baseCreate(param: {
     base: ProjectReqType & {
       version?: BaseVersion;
@@ -338,6 +342,7 @@ export class BasesService extends BasesServiceCE {
     }
   }
 
+  @EEOnly()
   async baseSoftDelete(
     context: NcContext,
     param: { baseId: any; user: UserType; req: NcRequest },
@@ -446,6 +451,7 @@ export class BasesService extends BasesServiceCE {
     return true;
   }
 
+  @EEOnly()
   async baseUpdate(
     context: NcContext,
     param: {

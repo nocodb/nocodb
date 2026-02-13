@@ -20,8 +20,10 @@ import type {
   UserType,
 } from 'nocodb-sdk';
 import type { ReusableParams } from '~/services/columns.service.type';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import {
   Base,
   Column,
@@ -75,6 +77,7 @@ export class ColumnsService extends ColumnsServiceCE {
     );
   }
 
+  @EEOnly()
   async columnAdd<T extends NcApiVersion = NcApiVersion | null | undefined>(
     context: NcContext,
     param: {
@@ -261,6 +264,7 @@ export class ColumnsService extends ColumnsServiceCE {
     }
   }
 
+  @EEOnly()
   async createLTARColumn(
     context: NcContext,
     param: {

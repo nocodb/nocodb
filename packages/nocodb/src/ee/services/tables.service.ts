@@ -3,7 +3,9 @@ import { TablesService as TableServiceCE } from 'src/services/tables.service';
 import type { NcApiVersion } from 'nocodb-sdk';
 import type { TableReqType, UserType } from 'nocodb-sdk';
 import type { User } from '~/models';
-import type { NcContext, NcRequest } from '~/interface/config';
+import type { NcRequest } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import { NcError } from '~/helpers/catchError';
 import { Base } from '~/models';
 import { MetaDiffsService } from '~/services/meta-diffs.service';
@@ -23,6 +25,7 @@ export class TablesService extends TableServiceCE {
     super(metaDiffServiceEE, appHooksServiceEE, columnsServiceEE);
   }
 
+  @EEOnly()
   async tableCreate(
     context: NcContext,
     param: {

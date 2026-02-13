@@ -3,6 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { DuplicateProcessor as DuplicateProcessorCE } from 'src/modules/jobs/jobs/export-import/duplicate.processor';
 import { AppEvents, generateUniqueCopyName } from 'nocodb-sdk';
 import { BaseVersion } from 'nocodb-sdk';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import type { Job } from 'bull';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Source } from '~/models';
@@ -217,6 +218,7 @@ export class DuplicateProcessor extends DuplicateProcessorCE {
     }
   }
 
+  @EEOnly()
   async duplicateBaseJob({
     sourceBase,
     targetBase,

@@ -5,6 +5,7 @@ import { GlobalGuard } from '~/guards/global/global.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { License } from '~/decorators/license.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Model } from '~/models';
@@ -13,6 +14,7 @@ import { HooksService } from '~/services/hooks.service';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License('actions')
 export class ActionsController {
   constructor(
     private readonly aiDataService: AiDataService,

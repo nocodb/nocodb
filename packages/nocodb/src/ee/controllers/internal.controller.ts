@@ -3,6 +3,8 @@ import {
   Controller,
   Get,
   HttpCode,
+  HttpException,
+  HttpStatus,
   Inject,
   Param,
   Post,
@@ -60,6 +62,42 @@ import { OPERATION_SCOPES } from '~/controllers/internal/operationScopes';
 import { WorkspaceTeamsV3Service } from '~/services/v3/workspace-teams-v3.service';
 import { BaseTeamsV3Service } from '~/services/v3/base-teams-v3.service';
 import { UtilsService } from '~/services/utils.service';
+import NocoLicense from '~/NocoLicense';
+
+/**
+ * Operations that require an active Enterprise license.
+ * Based on pricing grid: permissions, teams, workspace audit are Enterprise-only.
+ */
+const LICENSE_REQUIRED_OPS = new Set([
+  // Table/Field Permissions (Enterprise only)
+  'setPermission',
+  'dropPermission',
+  'bulkDropPermissions',
+  // Teams (Enterprise only)
+  'teamList',
+  'teamGet',
+  'teamCreate',
+  'teamUpdate',
+  'teamDelete',
+  'teamMembersAdd',
+  'teamMembersRemove',
+  'teamMembersUpdate',
+  // Workspace Teams (Enterprise only)
+  'workspaceTeamList',
+  'workspaceTeamGet',
+  'workspaceTeamAdd',
+  'workspaceTeamUpdate',
+  'workspaceTeamRemove',
+  // Base Teams (Enterprise only)
+  'baseTeamList',
+  'baseTeamGet',
+  'baseTeamAdd',
+  'baseTeamUpdate',
+  'baseTeamRemove',
+  // Workspace Audit (Enterprise only)
+  'workspaceAuditList',
+  'baseAuditList',
+]);
 
 @Controller()
 export class InternalController extends InternalControllerCE {
@@ -112,6 +150,18 @@ export class InternalController extends InternalControllerCE {
     await super.checkAcl(operation as any, req, scope);
   }
 
+  private requireLicense(operation: string) {
+    if (LICENSE_REQUIRED_OPS.has(operation) && !NocoLicense.isEE) {
+      throw new HttpException(
+        {
+          msg: `The "${operation}" feature requires an Enterprise license.`,
+          code: 'LICENSE_REQUIRED',
+        },
+        HttpStatus.PAYMENT_REQUIRED,
+      );
+    }
+  }
+
   @Get(['/api/v2/internal/:workspaceId/:baseId'])
   protected async internalAPI(
     @TenantContext() context: NcContext,
@@ -120,6 +170,7 @@ export class InternalController extends InternalControllerCE {
     @Query('operation') operation: string,
     @Req() req: NcRequest,
   ): InternalGETResponseType {
+    this.requireLicense(operation);
     await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
 
     switch (operation) {
@@ -251,6 +302,7 @@ export class InternalController extends InternalControllerCE {
     @Body() payload: any,
     @Req() req: NcRequest,
   ): InternalPOSTResponseType {
+    this.requireLicense(operation);
     await this.checkAcl(operation, req, OPERATION_SCOPES[operation]);
 
     switch (operation) {

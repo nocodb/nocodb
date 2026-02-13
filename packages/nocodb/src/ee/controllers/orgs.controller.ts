@@ -13,6 +13,7 @@ import {
 import { DomainReqType } from 'nocodb-sdk';
 import { AuthGuard } from '@nestjs/passport';
 import { PagedResponseImpl } from '~/helpers/PagedResponse';
+import { License } from '~/decorators/license.decorator';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -21,6 +22,7 @@ import { NcRequest } from '~/interface/config';
 import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 
 @Controller()
+@License('organizations')
 export class OrgsController {
   constructor(protected readonly orgsService: OrgsService) {}
 

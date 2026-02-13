@@ -18,7 +18,6 @@ export class UtilsService extends UtilsServiceEE {
     result.isTrial = NocoLicense.isTrial();
     result.isTrialExpired = NocoLicense.isExpired;
     result.licenseExpiryTime = NocoLicense.getExpiry();
-    // result.licenseIssuedTime = NocoLicense.getIssuedTime();
     result.iframeWhitelistDomains = NC_IFRAME_WHITELIST_DOMAINS.split(',');
 
     return result;

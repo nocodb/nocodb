@@ -11,6 +11,7 @@ import {
 import { AuthGuard } from '@nestjs/passport';
 import { encryptPropIfRequired } from '~/utils/encryptDecrypt';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { License } from '~/decorators/license.decorator';
 import { DbServer } from '~/models';
 import { jdbcToXcConfig, metaUrlToDbConfig } from '~/utils/nc-config';
 import { NcError } from '~/helpers/ncError';
@@ -18,6 +19,7 @@ import { JobTypes } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 
 @Controller()
+@License('db-server')
 export class DbServerController {
   constructor(
     @Inject('JobsService') protected readonly jobsService: IJobsService,

@@ -20,8 +20,10 @@ import { PagedResponseImpl } from '~/helpers/PagedResponse';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { OrgSSOClientService } from '~/services/org-sso-client.service';
 import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
+@License('sso')
 export class SsoClientController {
   constructor(
     private readonly ssoClientService: SSOClientService,

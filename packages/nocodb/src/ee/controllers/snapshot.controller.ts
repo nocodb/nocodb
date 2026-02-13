@@ -12,6 +12,7 @@ import { NcRequest } from 'nocodb-sdk';
 import type { SnapshotType } from 'nocodb-sdk';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { GlobalGuard } from '~/guards/global/global.guard';
+import { License } from '~/decorators/license.decorator';
 import { SnapshotService } from '~/services/snapshot.service';
 import { NcContext } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
@@ -19,6 +20,7 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
+@License('snapshots')
 export class SnapshotController {
   constructor(private readonly snapshotService: SnapshotService) {}
 

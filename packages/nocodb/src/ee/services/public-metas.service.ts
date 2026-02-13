@@ -14,8 +14,9 @@ import {
   YearValidationType,
 } from 'nocodb-sdk';
 import { ViewRowColorService } from './view-row-color.service';
-import type { NcContext } from '~/interface/config';
 import type { CalendarRange, FormView, FormViewColumn, View } from '~/models';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import {
   Base,
   Column,
@@ -34,6 +35,7 @@ export class PublicMetasService extends PublicMetasServiceCE {
     super();
   }
 
+  @EEOnly()
   async viewMetaGet(
     context: NcContext,
     param: { sharedViewUuid: string; password: string },

@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { MailService as MailServiceCE } from 'src/services/mail/mail.service';
 import { RoleLabels } from 'nocodb-sdk';
-import type { MailParams, WorkflowErrorDigestPayload } from '~/interface/Mail';
-import { MailEvent } from '~/interface/Mail';
+import type { WorkflowErrorDigestPayload } from '~/interface/Mail';
+import { EEOnly } from '~/decorators/ee-only.decorator';
+import { MailEvent, MailParams } from '~/interface/Mail';
 import { extractMentions } from '~/utils/richTextHelper';
 import { Base, BaseUser, Workspace } from '~/models';
 import { extractDisplayNameFromEmail } from '~/utils';
@@ -10,6 +11,7 @@ import Noco from '~/Noco';
 
 @Injectable()
 export class MailService extends MailServiceCE {
+  @EEOnly()
   async sendMail(params: MailParams, ncMeta = Noco.ncMeta) {
     const mailerAdapter = await this.getAdapter(ncMeta);
     if (!mailerAdapter) {

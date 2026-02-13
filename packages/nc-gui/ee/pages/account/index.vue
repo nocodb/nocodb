@@ -209,6 +209,22 @@ onMounted(() => {
                 </div>
               </NcMenuItem>
 
+              <NcMenuItem
+                v-if="isUIAllowed('superAdminSetup') && appInfo.isOnPrem"
+                key="license"
+                :class="{
+                  active: $route.params.page === 'license',
+                }"
+                class="item"
+                @click="navigateTo('/account/license')"
+              >
+                <div class="flex items-center space-x-2">
+                  <GeneralIcon icon="ncKey2" class="h-4 w-4 flex-none" />
+
+                  <div class="select-none">{{ $t('title.license') }}</div>
+                </div>
+              </NcMenuItem>
+
               <a-sub-menu
                 v-if="!appInfo.disableEmailAuth || isUIAllowed('superAdminAppSettings')"
                 key="users"

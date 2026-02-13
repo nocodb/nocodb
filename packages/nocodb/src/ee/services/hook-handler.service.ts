@@ -6,8 +6,9 @@ import {
   ViewTypes,
   WebhookEvents,
 } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
 import type { WorkflowNodeRunContext } from '@noco-local-integrations/core';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 // @ts-ignore importing directly will cause circular dependency error
 import { type WorkflowExecutionService } from '~/services/workflow-execution.service';
 import { JobTypes } from '~/interface/Jobs';
@@ -40,6 +41,7 @@ export class HookHandlerService extends HookHandlerServiceCE {
     super(eventEmitter, jobsService, mailService);
   }
 
+  @EEOnly()
   override async handleViewHooks(
     context: NcContext,
     param: { hookName; prevData; newData; user; modelId },
@@ -76,6 +78,7 @@ export class HookHandlerService extends HookHandlerServiceCE {
     }
   }
 
+  @EEOnly()
   override async handleHooks(
     context: NcContext,
     param: { hookName; prevData; newData; user; viewId; modelId },

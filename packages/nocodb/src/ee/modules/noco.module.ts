@@ -119,6 +119,9 @@ import { ScimSchemasController } from '~/ee/controllers/v3/scim-schemas-v3.contr
 import { ScimServiceProviderConfigController } from '~/ee/controllers/v3/scim-service-provider-config-v3.controller';
 import { ScimResourceTypesController } from '~/ee/controllers/v3/scim-resource-types-v3.controller';
 
+/* License */
+import { LicenseInterceptor } from '~/interceptors/license/license.interceptor';
+
 export const nocoModuleEeMetadata = {
   imports: [
     NocoAiModule,
@@ -127,6 +130,9 @@ export const nocoModuleEeMetadata = {
     ...nocoModuleMetadata.imports,
   ],
   providers: [
+    /* License */
+    LicenseInterceptor,
+
     /* Generic */
     CustomUrlsService,
 

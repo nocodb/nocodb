@@ -17,6 +17,7 @@ import type {
   WorkspaceTeamInviteEvent,
 } from '~/services/app-hooks/interfaces';
 import type { NcRequest } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import { extractMentions } from '~/utils/richTextHelper';
 import { DatasService } from '~/services/datas.service';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -44,6 +45,7 @@ export class NotificationsService extends NotificationsServiceCE {
     super(appHooks);
   }
 
+  @EEOnly()
   onModuleInit() {
     super.onModuleInit();
     // Explicitly set up PROJECT_INVITE to ensure it uses EE's hookHandler

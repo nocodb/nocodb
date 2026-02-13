@@ -69,6 +69,44 @@ export default class NocoLicense {
     return this._isExpired;
   }
 
+  /** EE is active when license is initialized, not expired, and not suspended */
+  public static get isEE(): boolean {
+    if (!this.licenseData) return false;
+    return !this._isExpired && !this.isSuspended;
+  }
+
+  /** License is suspended or revoked */
+  public static get isSuspended(): boolean {
+    if (!this.licenseData) return false;
+    return (
+      this.licenseData.status === InstallationStatus.SUSPENDED ||
+      this.licenseData.status === InstallationStatus.REVOKED
+    );
+  }
+
+  /** Human-readable license status for API responses */
+  public static get licenseStatus(): string {
+    if (!this.licenseData) return 'none';
+    if (this.isSuspended) return 'suspended';
+    if (this._isExpired) return 'expired';
+    return 'active';
+  }
+
+  /**
+   * Reset license state so init() can be called again with a new key.
+   * Stops heartbeat timer and clears all cached data.
+   */
+  public static reset(): void {
+    if (this.heartbeatTimer) {
+      clearTimeout(this.heartbeatTimer);
+      this.heartbeatTimer = null;
+    }
+    this.licenseData = null;
+    this._isExpired = false;
+    this.heartbeatState = null;
+    this.currentHeartbeatInterval = this.HEARTBEAT_INTERVAL_NORMAL_MS;
+  }
+
   /**
    * Initialize license system on startup
    * - Loads cached license data from nc_store
@@ -931,6 +969,10 @@ export default class NocoLicense {
     }
   }
 
+  public static isInitialized(): boolean {
+    return this.licenseData !== null;
+  }
+
   public static getLicenseData(): LicenseData {
     if (!this.licenseData) {
       throw new Error('License not initialized');
@@ -939,20 +981,24 @@ export default class NocoLicense {
   }
 
   public static isTrial(): boolean {
-    return this.getLicenseData().license_type === LicenseType.ENTERPRISE_TRIAL;
+    if (!this.licenseData) return false;
+    return this.licenseData.license_type === LicenseType.ENTERPRISE_TRIAL;
   }
 
   public static getSeatCount(): number {
-    return this.getLicenseData().seat_count;
+    if (!this.licenseData) return 0;
+    return this.licenseData.seat_count;
   }
 
   public static getExpiry(): Date | undefined {
-    const expiresAt = this.getLicenseData().expires_at;
+    if (!this.licenseData) return undefined;
+    const expiresAt = this.licenseData.expires_at;
     return expiresAt ? new Date(expiresAt) : undefined;
   }
 
   public static getDaysUntilExpiration(): number | null {
-    const expiresAt = this.getLicenseData().expires_at;
+    if (!this.licenseData) return null;
+    const expiresAt = this.licenseData.expires_at;
     if (!expiresAt) return null;
 
     const now = new Date();
@@ -968,15 +1014,18 @@ export default class NocoLicense {
   }
 
   public static isValid(): boolean {
-    return this.isValidStatus(this.getLicenseData().status);
+    if (!this.licenseData) return false;
+    return this.isValidStatus(this.licenseData.status);
   }
 
-  public static getStatus(): InstallationStatus {
-    return this.getLicenseData().status;
+  public static getStatus(): InstallationStatus | undefined {
+    if (!this.licenseData) return undefined;
+    return this.licenseData.status;
   }
 
-  public static getLicenseType(): string {
-    return this.getLicenseData().license_type;
+  public static getLicenseType(): string | undefined {
+    if (!this.licenseData) return undefined;
+    return this.licenseData.license_type;
   }
 
   public static getHeartbeatInterval(): number {
@@ -984,7 +1033,8 @@ export default class NocoLicense {
   }
 
   public static getWorkspaceLimit(): number | undefined {
-    return this.getLicenseData().config?.limit_workspace;
+    if (!this.licenseData) return undefined;
+    return this.licenseData.config?.limit_workspace;
   }
 
   public static getOneWorkspace(): boolean {
@@ -993,8 +1043,8 @@ export default class NocoLicense {
 
   public static shouldBlockAccess(): boolean {
     if (!this.licenseData) {
-      // No license data loaded - block access
-      return true;
+      // No license data loaded — CE mode, don't block
+      return false;
     }
 
     // Always block if explicitly revoked or suspended

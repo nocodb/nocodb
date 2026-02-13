@@ -13,11 +13,13 @@ import { ApiTokensV3CreateRequest } from '~/services/v3/api-tokens-v3.type';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
+import { License } from '~/decorators/license.decorator';
 import { ApiTokensV3Service } from '~/services/v3/api-tokens-v3.service';
 import { GlobalGuard } from '~/guards/global/global.guard';
 
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
 @Controller()
+@License('api-tokens')
 export class ApiTokensV3Controller {
   constructor(private readonly apiTokensV3Service: ApiTokensV3Service) {}
 

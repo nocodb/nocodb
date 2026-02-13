@@ -2,7 +2,8 @@ import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ViewTypes, type WidgetType } from 'nocodb-sdk';
 import { PublicDatasService as PublicDatasServiceCE } from 'src/services/public-datas.service';
 import type { NcRequest } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import { Base, Dashboard, Model, Source, View, Widget } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
@@ -29,6 +30,7 @@ export class PublicDatasService extends PublicDatasServiceCE {
     super(dataService, jobsService, attachmentsService, publicMetasService);
   }
 
+  @EEOnly()
   async dataList(
     context: NcContext,
     param: {

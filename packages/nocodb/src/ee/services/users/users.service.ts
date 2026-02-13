@@ -27,8 +27,10 @@ import bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { setTokenCookie } from './helpers';
 import type { BaseType, MetaType, SignUpReqType, UserType } from 'nocodb-sdk';
-import type { AppConfig, NcRequest } from '~/interface/config';
+import type { AppConfig } from '~/interface/config';
 import type { Source } from '~/models';
+import { NcRequest } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import { T } from '~/utils';
 import { validatePayload } from '~/helpers';
 import { MetaService } from '~/meta/meta.service';
@@ -164,6 +166,7 @@ export class UsersService extends UsersServiceCE {
     }
   }
 
+  @EEOnly()
   async registerNewUserIfAllowed(
     {
       avatar,
@@ -265,6 +268,7 @@ export class UsersService extends UsersServiceCE {
     return user;
   }
 
+  @EEOnly()
   async signup(param: {
     body: SignUpReqType;
     req: any;
@@ -412,6 +416,7 @@ export class UsersService extends UsersServiceCE {
     return { ...(await this.login(user, param.req)), createdWorkspace };
   }
 
+  @EEOnly()
   async login(
     user: UserType & { provider?: string; extra?: Record<string, any> },
     req: NcRequest,
@@ -586,6 +591,7 @@ export class UsersService extends UsersServiceCE {
     return toBeDeleted;
   }
 
+  @EEOnly()
   async userDelete(param: { id: string; req: NcRequest }) {
     if (param.id !== param.req.user.id) {
       NcError.notAllowed('Not allowed to delete other user');
@@ -810,6 +816,7 @@ export class UsersService extends UsersServiceCE {
     }
   }
 
+  @EEOnly()
   async passwordChange(param: {
     body: PasswordChangeReqType;
     user: UserType;

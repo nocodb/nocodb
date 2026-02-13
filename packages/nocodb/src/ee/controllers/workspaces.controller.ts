@@ -24,6 +24,7 @@ import { WorkspaceUsersService } from '~/services/workspace-users.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { NcRequest } from '~/interface/config';
 import { BasesService } from '~/services/bases.service';
+import { License } from '~/decorators/license.decorator';
 
 @Controller()
 export class WorkspacesController {
@@ -78,6 +79,7 @@ export class WorkspacesController {
 
   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
   @Post(['/api/v1/workspaces/', '/api/v2/meta/workspaces/'])
+  @License('workspaces')
   @Acl('workspaceCreate', {
     scope: 'org',
     blockApiTokenAccess: true,
@@ -95,6 +97,7 @@ export class WorkspacesController {
     '/api/v1/workspaces/:workspaceId',
     '/api/v2/meta/workspaces/:workspaceId',
   ])
+  @License('workspaces')
   @Acl('workspaceUpdate', {
     scope: 'workspace',
     blockApiTokenAccess: true,
@@ -133,6 +136,7 @@ export class WorkspacesController {
     '/api/v1/workspaces/:workspaceId',
     '/api/v2/meta/workspaces/:workspaceId',
   ])
+  @License('workspaces')
   @Acl('workspaceDelete', {
     scope: 'workspace',
     blockApiTokenAccess: true,
@@ -153,6 +157,7 @@ export class WorkspacesController {
     '/api/v1/workspaces/:workspaceId/bases/:baseId/move',
     '/api/v2/meta/workspaces/:workspaceId/bases/:baseId/move',
   ])
+  @License('workspaces')
   @Acl('moveProjectToWorkspace', {
     scope: 'workspace',
     blockApiTokenAccess: true,
@@ -214,6 +219,7 @@ export class WorkspacesController {
     '/api/v1/workspaces/:workspaceId/status',
     '/api/v2/meta/workspaces/:workspaceId/status',
   ])
+  @License('workspaces')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async updateStatus(
     @Req() req: NcRequest,
@@ -264,6 +270,7 @@ export class WorkspacesController {
   }
 
   @Post('/internal/workspaces/deprecate')
+  @License('workspaces')
   @UseGuards(MetaApiLimiterGuard, AuthGuard('basic'))
   async deleteDeprecatedWorkspaces() {
     try {

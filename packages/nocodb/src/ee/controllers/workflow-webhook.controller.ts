@@ -12,6 +12,7 @@ import type { NcContext } from 'nocodb-sdk';
 import { NcRequest } from '~/interface/config';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
+import { License } from '~/decorators/license.decorator';
 import { NcError } from '~/helpers/catchError';
 import { WorkflowsService } from '~/services/workflows.service';
 import NocoCache from '~/cache/NocoCache';
@@ -19,6 +20,7 @@ import { CacheGetType, CacheScope } from '~/utils/globals';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
+@License('workflows')
 export class WorkflowWebhookController {
   constructor(private readonly workflowsService: WorkflowsService) {}
 

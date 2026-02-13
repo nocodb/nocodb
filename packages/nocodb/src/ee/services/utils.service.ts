@@ -5,6 +5,7 @@ import { getCircularReplacer } from 'nocodb-sdk';
 import { useAgent } from 'request-filtering-agent';
 import { UtilsService as UtilsServiceCE } from 'src/services/utils.service';
 import type { AppConfig, NcRequest } from '~/interface/config';
+import { EEOnly } from '~/decorators/ee-only.decorator';
 import SSOClient from '~/models/SSOClient';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import NocoCache from '~/cache/NocoCache';
@@ -140,6 +141,7 @@ export class UtilsService extends UtilsServiceCE {
     });
   };
 
+  @EEOnly()
   async appInfo(param: { req: { ncSiteUrl: string; user?: any } }) {
     const result: any = await super.appInfo(param);
 

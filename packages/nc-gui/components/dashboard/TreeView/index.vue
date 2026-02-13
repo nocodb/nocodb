@@ -274,7 +274,7 @@ useEventListener(document, 'keydown', async (e: KeyboardEvent) => {
   }
 })
 
-const handleContext = (e: MouseEvent) => {
+const handleContext = (e: MouseEvent | PointerEvent) => {
   if (!document.querySelector('.source-context, .table-context')?.contains(e.target as Node)) {
     setMenuContext('main')
   }

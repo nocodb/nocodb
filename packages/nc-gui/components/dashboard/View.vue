@@ -104,7 +104,7 @@ watch(
   },
 )
 
-function handleMouseMove(e: MouseEvent) {
+function handleMouseMove(e: MouseEvent | PointerEvent) {
   if (isMobileMode.value) return
   if (!wrapperRef.value) return
   if (isFullScreen.value) return

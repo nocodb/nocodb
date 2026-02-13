@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, type FilterType, UITypes } from 'nocodb-sdk'
+import { type ColumnType, CURRENT_USER_TOKEN, type FilterType, UITypes } from 'nocodb-sdk'
 
 // ============ Data Sources ============
 const { allFilters, $api } = useSmartsheetStoreOrThrow()
@@ -17,6 +17,8 @@ const isLocked = inject(IsLockedInj, ref(false))
 const { base } = storeToRefs(useBase())
 
 const { basesUser } = storeToRefs(useBases())
+
+const { user: currentUser } = useGlobal()
 
 const { t } = useI18n()
 
@@ -140,7 +142,12 @@ const getSelectedUsers = (filter: FilterType) => {
   if (!filter.value) return []
   const values = String(filter.value).split(',').filter(Boolean)
   return values
-    .map((v) => userOptions.value.find((u: any) => u.id === v || u.email === v))
+    .map((v) => {
+      if (v === CURRENT_USER_TOKEN) {
+        return { id: CURRENT_USER_TOKEN, email: CURRENT_USER_TOKEN, display_name: '@me', is_me_token: true }
+      }
+      return userOptions.value.find((u: any) => u.id === v || u.email === v)
+    })
     .filter(Boolean)
 }
 
@@ -170,8 +177,9 @@ const getUserValueDisplay = (filter: FilterType) => {
   if (!filter.value) return null
   const values = String(filter.value).split(',').filter(Boolean)
   if (values.length === 0) return null
-  const firstUser = userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0])
   if (values.length > 1) return `${values.length} selected`
+  if (values[0] === CURRENT_USER_TOKEN) return '@me'
+  const firstUser = userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0])
   return getUserDisplayName(firstUser) || values[0]
 }
 
@@ -179,6 +187,9 @@ const getUserValueUser = (filter: FilterType) => {
   if (!filter.value) return null
   const values = String(filter.value).split(',').filter(Boolean)
   if (values.length !== 1) return null
+  if (values[0] === CURRENT_USER_TOKEN) {
+    return { id: CURRENT_USER_TOKEN, email: CURRENT_USER_TOKEN, display_name: '@me', is_me_token: true }
+  }
   return userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0]) || null
 }
 
@@ -235,6 +246,38 @@ const filteredUserOptions = computed(() => {
     (u: any) => u.display_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q),
   )
 })
+
+const currentUserForAvatar = computed(() => {
+  if (!currentUser.value) return null
+  return userOptions.value.find((u: any) => u.email === currentUser.value?.email) || null
+})
+
+const showMeOption = computed(() => {
+  if (!currentUser.value) return false
+  if (!searchQuery.value) return true
+  const q = searchQuery.value.toLowerCase()
+  return '@me'.includes(q) || 'me'.includes(q)
+})
+
+const isMeSelected = (filter: FilterType) => {
+  if (!filter.value) return false
+  const values = String(filter.value).split(',')
+  return values.includes(CURRENT_USER_TOKEN)
+}
+
+const selectMe = async (filter: FilterType) => {
+  if (isMultiValueOp(filter)) {
+    const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
+    const idx = values.indexOf(CURRENT_USER_TOKEN)
+    if (idx >= 0) values.splice(idx, 1)
+    else values.push(CURRENT_USER_TOKEN)
+    filter.value = values.join(',') || null
+  } else {
+    filter.value = CURRENT_USER_TOKEN
+    closeDropdown()
+  }
+  await saveFilter(filter)
+}
 
 // ============ Selection Checking ============
 const isSelectOptionSelected = (filter: FilterType, option: any) => {
@@ -573,6 +616,37 @@ const unpinFilter = async (filter: FilterType) => {
             v-else-if="isUserType(filter)"
             class="max-h-48 overflow-y-auto nc-scrollbar-thin"
           >
+            <!-- @me option -->
+            <div
+              v-if="showMeOption"
+              class="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
+              :class="{ 'bg-nc-bg-gray-light': isMeSelected(filter) }"
+              @click.stop="selectMe(filter)"
+            >
+              <a-tag
+                class="rounded-tag max-w-full !pl-0"
+                :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
+              >
+                <span class="flex items-stretch gap-2">
+                  <div v-if="currentUserForAvatar" class="flex-none">
+                    <GeneralUserIcon
+                      :user="currentUserForAvatar"
+                      size="auto"
+                      class="!text-[0.5rem] !h-[16.8px]"
+                    />
+                  </div>
+                  <span class="text-small text-nc-content-gray truncate">
+                    @me
+                  </span>
+                </span>
+              </a-tag>
+              <div class="flex-1" />
+              <GeneralIcon
+                v-if="isMeSelected(filter)"
+                icon="check"
+                class="h-4 w-4 text-primary flex-none"
+              />
+            </div>
             <div
               v-for="user in filteredUserOptions"
               :key="user.id"

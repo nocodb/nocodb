@@ -662,9 +662,19 @@ const isPinnableType = (filter: ColumnFilterType): boolean => {
   return !!col && PINNABLE_TYPES.includes(col.uidt as UITypes)
 }
 
+const isFieldAlreadyPinned = (filter: ColumnFilterType): boolean => {
+  if (!filter.fk_column_id) return false
+  const isPinned = parseProp(filter.meta)?.pinned
+  if (isPinned) return false // this filter itself is the pinned one
+  return smartsheetAllFilters.value.some(
+    (f) => f.id !== filter.id && f.fk_column_id === filter.fk_column_id && !f.is_group && parseProp(f.meta)?.pinned === true,
+  )
+}
+
 const canPinFilter = (filter: ColumnFilterType): boolean => {
   if (filter.is_group) return false
   if (!isPinnableType(filter)) return false
+  if (isFieldAlreadyPinned(filter)) return false
   const meta = parseProp(filter.meta)
   return meta?.pinned || pinnedFilterCount.value < MAX_PINNED_FILTERS
 }
@@ -1428,9 +1438,11 @@ defineExpose({
                     ? $t('labels.pinNotSupported')
                     : parseProp(filter.meta)?.pinned
                       ? $t('labels.unpinFromToolbar')
-                      : canPinFilter(filter)
-                        ? $t('labels.pinToToolbar')
-                        : $t('labels.maxPinnedFilters', { count: MAX_PINNED_FILTERS })
+                      : isFieldAlreadyPinned(filter)
+                        ? $t('labels.fieldAlreadyPinned')
+                        : canPinFilter(filter)
+                          ? $t('labels.pinToToolbar')
+                          : $t('labels.maxPinnedFilters', { count: MAX_PINNED_FILTERS })
                 }}
               </template>
               <NcButton

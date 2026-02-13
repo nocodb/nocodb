@@ -182,6 +182,27 @@ const getUserValueUser = (filter: FilterType) => {
   return userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0]) || null
 }
 
+// ============ Pill Overflow (show limited chips + "+N") ============
+const MAX_VISIBLE_CHIPS = 2
+
+const getVisibleSelectOptions = (filter: FilterType) => {
+  return getSelectedSelectOptions(filter).slice(0, MAX_VISIBLE_CHIPS)
+}
+
+const getOverflowSelectCount = (filter: FilterType) => {
+  const total = getSelectedSelectOptions(filter).length
+  return total > MAX_VISIBLE_CHIPS ? total - MAX_VISIBLE_CHIPS : 0
+}
+
+const getVisibleUsers = (filter: FilterType) => {
+  return getSelectedUsers(filter).slice(0, MAX_VISIBLE_CHIPS)
+}
+
+const getOverflowUserCount = (filter: FilterType) => {
+  const total = getSelectedUsers(filter).length
+  return total > MAX_VISIBLE_CHIPS ? total - MAX_VISIBLE_CHIPS : 0
+}
+
 // ============ Dropdown State ============
 const openFilterId = ref<string | null>(null)
 const searchQuery = ref('')
@@ -299,7 +320,7 @@ const unpinFilter = async (filter: FilterType) => {
 </script>
 
 <template>
-  <div v-if="pinnedFilters.length" class="nc-pinned-filters flex items-center gap-1.5">
+  <div v-if="pinnedFilters.length" class="nc-pinned-filters flex items-center gap-1.5 overflow-hidden flex-nowrap">
     <!-- Vertical separator -->
     <div class="h-5 w-px bg-nc-border-gray-medium mx-0.5 flex-none" />
 
@@ -317,7 +338,7 @@ const unpinFilter = async (filter: FilterType) => {
     >
       <!-- ====== PILL TRIGGER ====== -->
         <div
-          class="nc-pinned-filter-pill nc-toolbar-btn flex items-center flex-wrap gap-0.5 !h-auto min-h-7 py-0.5 pl-1.5 pr-1.5 rounded-lg cursor-pointer select-none"
+          class="nc-pinned-filter-pill nc-toolbar-btn flex items-center gap-0.5 !h-7 py-0.5 pl-1.5 pr-1.5 rounded-lg cursor-pointer select-none overflow-hidden"
           :class="{
             'bg-nc-bg-gray-extralight !text-nc-content-gray': openFilterId === filter.id,
             'opacity-60': !isEffectivelyEnabled(filter),
@@ -329,7 +350,7 @@ const unpinFilter = async (filter: FilterType) => {
           <template v-if="isSelectType(filter) && (isMultiValueOp(filter) ? getSelectedSelectOptions(filter).length : getSelectValueDisplay(filter))">
             <template v-if="isMultiValueOp(filter)">
               <a-tag
-                v-for="opt in getSelectedSelectOptions(filter)"
+                v-for="opt in getVisibleSelectOptions(filter)"
                 :key="opt.title"
                 class="nc-pinned-select-tag max-w-28"
                 :class="{ 'nc-negated-tag': isNegatedOp(filter) }"
@@ -347,6 +368,12 @@ const unpinFilter = async (filter: FilterType) => {
                   />
                 </span>
               </a-tag>
+              <span
+                v-if="getOverflowSelectCount(filter)"
+                class="text-[11px] text-nc-content-gray-subtle2 font-medium whitespace-nowrap flex-none"
+              >
+                +{{ getOverflowSelectCount(filter) }}
+              </span>
             </template>
             <template v-else>
               <a-tag
@@ -369,7 +396,7 @@ const unpinFilter = async (filter: FilterType) => {
           <template v-else-if="isUserType(filter) && (isMultiValueOp(filter) ? getSelectedUsers(filter).length : getUserValueDisplay(filter))">
             <template v-if="isMultiValueOp(filter)">
               <a-tag
-                v-for="user in getSelectedUsers(filter)"
+                v-for="user in getVisibleUsers(filter)"
                 :key="user.id"
                 class="nc-pinned-user-tag max-w-32"
                 :class="{ 'nc-negated-tag': isNegatedOp(filter) }"
@@ -391,6 +418,12 @@ const unpinFilter = async (filter: FilterType) => {
                   />
                 </span>
               </a-tag>
+              <span
+                v-if="getOverflowUserCount(filter)"
+                class="text-[11px] text-nc-content-gray-subtle2 font-medium whitespace-nowrap flex-none"
+              >
+                +{{ getOverflowUserCount(filter) }}
+              </span>
             </template>
             <template v-else>
               <a-tag

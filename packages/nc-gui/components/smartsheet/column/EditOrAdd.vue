@@ -1429,8 +1429,8 @@ const unique = computed({
                       <GeneralIcon
                         icon="info"
                         class="h-3.5 w-3.5 text-nc-content-gray-muted"
-                        @mouseover="onMouseOverUniqueValuesInfoIcon = true"
-                        @mouseleave="onMouseOverUniqueValuesInfoIcon = false"
+                        @pointerover="onMouseOverUniqueValuesInfoIcon = true"
+                        @pointerleave="onMouseOverUniqueValuesInfoIcon = false"
                       />
                     </NcTooltip>
 

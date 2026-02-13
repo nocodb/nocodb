@@ -916,8 +916,8 @@ useEventListener(
 
 useEventListener(
   document,
-  'mousedown',
-  (e: MouseEvent) => {
+  'pointerdown',
+  (e: PointerEvent) => {
     if (
       (draggableRef.value?.targetDomElement && draggableRef.value?.targetDomElement.contains(e.target)) ||
       (e.target as HTMLElement)?.closest(
@@ -932,7 +932,7 @@ useEventListener(
   true,
 )
 
-const handleOnClick = (e: MouseEvent) => {
+const handleOnClick = (e: MouseEvent | PointerEvent) => {
   if (isSidebarVisible.value) return
 
   const target = e.target as HTMLElement

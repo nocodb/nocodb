@@ -100,7 +100,7 @@ function toggle(value?: boolean) {
   }
 }
 
-function shadeClick(e: MouseEvent) {
+function shadeClick(e: MouseEvent | PointerEvent) {
   if (e.target === wrapper.value && props.exitOnClickWrapper) {
     exit()
   }

@@ -316,7 +316,7 @@ export const presetErrorCodexMap: Partial<
     message: (message: string) =>
       message ||
       'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
-    code: 504,
+    code: 408,
   },
   [NcErrorType.ERR_RELATION_FIELD_NOT_FOUND]: {
     message: (id: string) => `Relation Field '${id}' not found`,

@@ -696,7 +696,7 @@ watch(
           <div class="flex flex-row items-center pl-1.25 !py-1.5 text-inherit">
             <GeneralIcon icon="plus" class="nc-create-view-btn-icon" />
             <div class="pl-1.75">
-              {{ $t('general.create') }}
+              {{ $t('general.createEntity', { entity: $t('objects.view') }) }}
             </div>
           </div>
         </div>

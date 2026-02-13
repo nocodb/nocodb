@@ -1536,6 +1536,7 @@
     "moveTo": "Move to...",
     "newSection": "New section",
     "removeFromSection": "Remove from section",
+    "iconColour": "Icon colour",
     "assignAsPersonalView": "Assign as personal view",
     "reAssignView": "Re-assign personal view",
     "reAssignThisView": "Re-assign this view",

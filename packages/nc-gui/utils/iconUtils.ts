@@ -549,6 +549,7 @@ import NcChromeIcon from '~icons/nc-icons-v2/chrome.svg'
 import NcFolderIcon from '~icons/nc-icons-v2/folder.svg'
 import NcFolderClosedIcon from '~icons/nc-icons-v2/folder-closed.svg'
 import NcFolderOpenIcon from '~icons/nc-icons-v2/folder-open.svg'
+import NcPaletteIcon from '~icons/nc-icons-v2/palette.svg'
 import NcUsersIcon from '~icons/nc-icons-v2/users.svg'
 import NcCornerDownLeftIcon from '~icons/nc-icons-v2/corner-down-left.svg'
 import NcMonitorIcon from '~icons/nc-icons-v2/monitor.svg'
@@ -1604,6 +1605,7 @@ export const iconMap = {
   'ncFolder': NcFolderIcon,
   'ncFolderClosed': NcFolderClosedIcon,
   'ncFolderOpen': NcFolderOpenIcon,
+  'ncPalette': NcPaletteIcon,
   'ncUsers': NcUsersIcon,
   'ncCornerDownLeft': NcCornerDownLeftIcon,
   'ncMonitor': NcMonitorIcon,

@@ -282,20 +282,20 @@ const onChangeColor = (color: string) => {
             <template #overlay>
               <NcMenu class="!rounded-lg" variant="small">
                 <NcMenuItem :disabled="allExpanded" @click="onExpandAll">
-                  <GeneralIcon icon="ncFolderOpen" class="opacity-80" style="color: #3f8292" />
+                  <GeneralIcon icon="ncFolderOpen" class="opacity-80" />
                   {{ $t('activity.kanban.expandAll') }}
                 </NcMenuItem>
                 <NcMenuItem :disabled="allCollapsed" @click="onCollapseAll">
-                  <GeneralIcon icon="ncFolderClosed" class="opacity-80" style="color: #3f8292" />
+                  <GeneralIcon icon="ncFolderClosed" class="opacity-80" />
                   {{ $t('activity.kanban.collapseAll') }}
                 </NcMenuItem>
                 <template v-if="!isDefault">
                   <NcDivider />
-                  <div class="nc-section-color-picker-row flex items-center gap-2 px-2 py-1.5">
-                    <GeneralIcon icon="ncFolderClosed" class="opacity-80 w-4 h-4 flex-none" :style="{ color: iconColor }" />
-                    <span class="text-sm text-nc-content-gray-subtle flex-1">{{ $t('tooltip.changeIconColour') }}</span>
-                  </div>
-                  <div class="px-2 pb-1.5">
+                  <NcMenuItem class="!hover:bg-transparent !cursor-default !pb-0.5">
+                    <GeneralIcon icon="ncPalette" class="opacity-80" />
+                    {{ $t('labels.iconColour') }}
+                  </NcMenuItem>
+                  <div class="px-3.5 pb-0.5">
                     <GeneralColorPicker
                       :model-value="iconColor"
                       :colors="baseIconColors"
@@ -338,3 +338,29 @@ const onChangeColor = (color: string) => {
     </NcTooltip>
   </div>
 </template>
+
+<style lang="scss">
+.nc-section-icon-color-picker {
+  @apply !p-0;
+
+  .color-picker-row {
+    @apply !space-x-0.5;
+  }
+
+  .color-selector {
+    @apply !h-5 !w-5 !rounded;
+  }
+
+  .color-picker-row > div {
+    @apply !p-0.5 !h-auto;
+  }
+
+  .nc-more-colors-trigger {
+    @apply !h-5 !w-5;
+
+    .w-4 {
+      @apply !w-3 !h-3;
+    }
+  }
+}
+</style>

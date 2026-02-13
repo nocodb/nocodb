@@ -36,7 +36,7 @@ const isStringDataType = computed(() => {
   )
 })
 
-const openLongText = (event: MouseEvent) => {
+const openLongText = (event: MouseEvent | PointerEvent) => {
   if (!isStringDataType.value) return
 
   const target = event.target as HTMLElement

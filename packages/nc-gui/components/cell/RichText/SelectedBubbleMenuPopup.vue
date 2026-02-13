@@ -38,7 +38,7 @@ watchDebounced(
   },
 )
 
-const handleEditorMouseDown = (e: MouseEvent) => {
+const handleEditorMouseDown = (e: MouseEvent | PointerEvent) => {
   const domsInEvent = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[]
   const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
   if (isBubble || isSelectAllShortcut.value) {
@@ -50,7 +50,7 @@ const handleEditorMouseDown = (e: MouseEvent) => {
   pageContent?.classList.add('bubble-menu-hidden')
 }
 
-const handleEditorMouseUp = (e: MouseEvent) => {
+const handleEditorMouseUp = (e: MouseEvent | PointerEvent) => {
   const domsInEvent = document.elementsFromPoint(e.clientX, e.clientY) as HTMLElement[]
   const isBubble = domsInEvent.some((dom) => dom?.classList?.contains('bubble-menu'))
 

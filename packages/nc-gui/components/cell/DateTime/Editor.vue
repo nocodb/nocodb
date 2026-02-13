@@ -316,7 +316,7 @@ onUnmounted(() => {
   cellClickHook?.off(cellClickHandler)
 })
 
-const clickHandler = (e: MouseEvent, _isDatePicker = false) => {
+const clickHandler = (e: MouseEvent | PointerEvent, _isDatePicker = false) => {
   isDatePicker.value = _isDatePicker
 
   if (cellClickHook) {

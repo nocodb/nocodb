@@ -210,7 +210,7 @@ const onExpand = () => {
   isVisible.value = true
 }
 
-const onMouseMove = (e: MouseEvent) => {
+const onMouseMove = (e: MouseEvent | PointerEvent) => {
   if (!isDragging.value) return
 
   e.stopPropagation()

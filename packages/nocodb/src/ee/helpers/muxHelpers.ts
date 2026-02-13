@@ -55,6 +55,26 @@ export async function runExternal(
       );
     }
 
+    // Network-level errors reaching the sql-executor (connection refused,
+    // reset, DNS failure, etc.) are transient infrastructure issues
+    const networkErrorCodes = [
+      'ECONNREFUSED',
+      'ECONNRESET',
+      'ETIMEDOUT',
+      'ENOTFOUND',
+      'EHOSTUNREACH',
+      'ENETUNREACH',
+      'ECONNABORTED',
+      'EHOSTDOWN',
+      'EPIPE',
+      'EAI_AGAIN',
+    ];
+    if (e?.code && networkErrorCodes.includes(e.code)) {
+      NcError._.externalTimeOut(
+        'External source is not reachable. Confirm if source is accessible.',
+      );
+    }
+
     logger.error({
       query,
       sourceId,

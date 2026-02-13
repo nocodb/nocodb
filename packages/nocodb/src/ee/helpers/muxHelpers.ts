@@ -35,21 +35,9 @@ export async function runExternal(
     );
     return data;
   } catch (e) {
-    if (e.response?.data?.error) {
-      const { _errorType } = e.response.data.error;
-      if (_errorType !== 'DatabaseError') {
-        NcError._.externalError(e.response.data.error);
-      } else {
-        NcError._.externalError(
-          DBErrorExtractor.get().extractDbError(e.response.data.error, {
-            clientType: config.client,
-            ignoreDefault: false,
-          }) as any as Error,
-        );
-      }
-    }
-
-    if (e?.message.includes('timeout')) {
+    // Timeout check first — covers both axios timeout (no response) and
+    // sql-executor timeout errors (KnexTimeoutError with message containing "timeout")
+    if (e?.message?.includes('timeout')) {
       NcError._.externalTimeOut(
         'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
       );
@@ -73,6 +61,20 @@ export async function runExternal(
       NcError._.externalTimeOut(
         'External source is not reachable. Confirm if source is accessible.',
       );
+    }
+
+    // Only extract DB-specific errors for actual DatabaseError types
+    // (e.g. PG/MySQL errors with proper error codes)
+    if (e.response?.data?.error) {
+      const { _errorType } = e.response.data.error;
+      if (_errorType === 'DatabaseError') {
+        NcError._.externalError(
+          DBErrorExtractor.get().extractDbError(e.response.data.error, {
+            clientType: config.client,
+            ignoreDefault: false,
+          }) as any as Error,
+        );
+      }
     }
 
     logger.error({

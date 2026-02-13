@@ -706,7 +706,9 @@ export class AiSchemaService {
 
     // Log raw AI response for debugging filter generation issues
     console.log(
-      '[predictFilters] AI response:',
+      '[predictFilters] AI response — action:',
+      data.action,
+      'filters:',
       JSON.stringify(data.filters, null, 2),
     );
 

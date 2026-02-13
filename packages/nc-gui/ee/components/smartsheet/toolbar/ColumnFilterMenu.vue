@@ -272,6 +272,11 @@ const addAiFilters = async (
   }
 }
 
+/**
+ * Main dispatcher for AI filter predictions.
+ * Called by AiFilterPrompt's @applyFilters event with { action, filters }.
+ * Routes to clearAllFilters/addAiFilters based on the AI-determined action.
+ */
 const handleAiFilters = async (payload: {
   action: 'add' | 'replace' | 'clear'
   filters: {

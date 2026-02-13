@@ -767,6 +767,9 @@ const changeToDynamic = async (filter, i) => {
   await saveOrUpdate(filter, i)
 }
 
+// Expose internal state and methods for parent components.
+// `deleteFilter` and `filters` are exposed for EE AI filter management
+// (ColumnFilterMenu.vue uses them to clear/replace filters programmatically).
 defineExpose({
   applyChanges,
   parentId,

@@ -11,8 +11,6 @@
  * Visibility: only shown when EE UI is active, AI features are enabled,
  * and an AI integration is configured in the workspace.
  */
-import type { ColumnType, FilterType } from 'nocodb-sdk'
-
 const emit = defineEmits<{
   'applyFilters': [
     payload: {
@@ -68,7 +66,8 @@ const handleSubmit = async () => {
     )
 
     // For 'clear' action, emit even with empty filters array so the handler can delete existing ones.
-    // For 'add'/'replace', only emit if there are actual filters to apply.
+    // For 'replace', emit even if filters are empty — caller needs to clear existing filters first.
+    // For 'add', only emit if there are actual filters to append.
     if (result.action === 'clear' || result.action === 'replace' || result.filters?.length) {
       emit('applyFilters', result)
       prompt.value = ''

@@ -40,11 +40,17 @@ export async function runExternal(
     // e.code = 'ERR_BAD_RESPONSE'. The actual error is in e.response.data.error.
     const rawError = e.response?.data?.error;
     const errorMessage = rawError?.message || e?.message || '';
+    const errorMessageLowerCase = `${errorMessage}`.toLowerCase();
     const errorType = rawError?._errorType;
 
-    // Timeout check first — covers both axios timeout (no response) and
-    // sql-executor timeout errors (KnexTimeoutError with message containing "timeout")
-    if (errorMessage.includes('timeout')) {
+    // Timeout check first — KnexTimeoutError from sql-executor or specific
+    // timeout patterns. Avoid broad 'timeout' match to prevent false positives
+    // (e.g. column named 'session_timeout' in a missing column error).
+    if (
+      errorType === 'KnexTimeoutError' ||
+      errorMessageLowerCase.includes('timeout acquiring a connection') ||
+      errorMessageLowerCase.includes('the pool is probably full')
+    ) {
       NcError._.externalTimeOut(
         'External source taking long to respond. Reconsider sorts/filters for this view and confirm if source is accessible.',
       );

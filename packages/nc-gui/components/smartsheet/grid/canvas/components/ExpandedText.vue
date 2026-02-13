@@ -32,7 +32,7 @@ const isSizeUpdated = ref(false)
  */
 const skipSizeUpdate = ref(true)
 
-const onMouseMove = (e: MouseEvent) => {
+const onMouseMove = (e: MouseEvent | PointerEvent) => {
   if (!isDragging.value) return
 
   e.stopPropagation()

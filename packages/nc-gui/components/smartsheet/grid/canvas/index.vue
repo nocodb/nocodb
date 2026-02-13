@@ -1000,6 +1000,8 @@ let lastTapPosition = { x: 0, y: 0 }
 const DOUBLE_TAP_DELAY = 300
 const DOUBLE_TAP_THRESHOLD = 10
 
+const iosFocusProxyRef = ref<HTMLInputElement>()
+
 async function handlePointerDown(e: PointerEvent) {
   const _elementMap = new CanvasElement(elementMap.elements)
   pointerUpListener = (ev) => handlePointerUp(ev, _elementMap)
@@ -1263,11 +1265,15 @@ async function handlePointerUp(e: PointerEvent, _elementMap: CanvasElement) {
       if (timeSinceLastTap < DOUBLE_TAP_DELAY && distance < DOUBLE_TAP_THRESHOLD) {
         // Double-tap detected - make cell editable
         if (y > headerRowHeight.value && y < height.value - 36 && x > rowMetaColumnWidth.value) {
-          const element = _elementMap.findElementAt(x, y, [ElementTypes.ROW])
+          const element =
+            _elementMap.findElementAt(x, y, [ElementTypes.ROW]) || elementMap.findElementAt(x, y, [ElementTypes.ROW])
           const row = element?.row
           if (row) {
             const clickedColumn = findColumnAtPosition(x)
             if (clickedColumn && !clickedColumn.virtual) {
+              if (iosFocusProxyRef.value) {
+                iosFocusProxyRef.value.focus()
+              }
               makeCellEditable(row, clickedColumn)
               await nextTick()
               const inputEl = document.querySelector('.nc-cell-field input, .nc-cell-field textarea') as HTMLInputElement
@@ -1280,6 +1286,8 @@ async function handlePointerUp(e: PointerEvent, _elementMap: CanvasElement) {
         }
         lastTapTime = 0
         lastTapPosition = { x: 0, y: 0 }
+
+        if (editEnabled.value) return
       } else {
         lastTapTime = now
         lastTapPosition = { x, y }
@@ -2317,7 +2325,7 @@ function addEmptyColumn(columnOrderData: Pick<ColumnReqType, 'column_order'> | n
   }
 }
 
-function handleEditColumn(_e: MouseEvent, isDescription = false, column: ColumnType, clickedXOffset?: number) {
+function handleEditColumn(_e: MouseEvent | PointerEvent, isDescription = false, column: ColumnType, clickedXOffset?: number) {
   if (
     isUIAllowed('fieldEdit') &&
     !isMobileMode.value &&
@@ -2637,7 +2645,7 @@ const toggleGroupExpandAll = (path: number[], isExpand?: boolean) => {
 
 onClickOutside(
   wrapperRef,
-  (e: MouseEvent) => {
+  (e: MouseEvent | PointerEvent) => {
     const element = e.target as HTMLElement
     if (
       isDrawerOrModalExist() ||
@@ -2880,6 +2888,12 @@ watch(
             <Tooltip v-if="tooltipStore.tooltipText" ref="tooltipRef" :tooltip-style="floatingStyles" />
           </Transition>
         </Teleport>
+        <input
+          ref="iosFocusProxyRef"
+          aria-hidden="true"
+          tabindex="-1"
+          style="position: fixed; left: -9999px; top: -9999px; width: 1px; height: 1px"
+        />
         <NcDropdown
           v-model:visible="isContextMenuOpen"
           :trigger="['contextmenu']"

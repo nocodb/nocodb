@@ -382,7 +382,7 @@ export function useGridCellHandler(params: {
   }
 
   const handleCellClick = async (ctx: {
-    event: MouseEvent
+    event: MouseEvent | PointerEvent
     row: Row
     column: CanvasGridColumn
     value: any
@@ -459,7 +459,7 @@ export function useGridCellHandler(params: {
   }
 
   const handleCellHover = async (ctx: {
-    event: MouseEvent
+    event: MouseEvent | PointerEvent
     row: Row
     column: CanvasGridColumn
     value: any

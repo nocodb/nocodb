@@ -397,39 +397,54 @@ defineOptions({
         </NcMenuItem>
 
         <!-- EE: Move to Section submenu -->
-        <NcSubMenu v-if="inSidebar" key="move-to-section" variant="small">
-          <template #title>
-            <div class="nc-base-menu-item group">
-              <GeneralIcon icon="ncArrowRight" class="opacity-80" />
-              {{ $t('labels.moveTo') }}
-            </div>
+        <PaymentUpgradeBadgeProvider v-if="inSidebar" :feature="PlanFeatureTypes.FEATURE_VIEW_SECTIONS">
+          <template #default="{ click }">
+            <NcSubMenu key="move-to-section" variant="small">
+              <template #title>
+                <div class="nc-base-menu-item group w-full flex items-center">
+                  <GeneralIcon icon="ncArrowRight" class="opacity-80" />
+                  <span class="flex-1">{{ $t('labels.moveTo') }}</span>
+                  <LazyPaymentUpgradeBadge
+                    :feature="PlanFeatureTypes.FEATURE_VIEW_SECTIONS"
+                    :plan-title="PlanTitles.BUSINESS"
+                    :limit-or-feature="PlanFeatureTypes.FEATURE_VIEW_SECTIONS"
+                    :content="
+                      $t('upgrade.upgradeToAccessViewSectionsSubtitle', {
+                        plan: getPlanTitle(PlanTitles.BUSINESS),
+                      })
+                    "
+                    :on-click-callback="() => emits('closeModal')"
+                  />
+                </div>
+              </template>
+
+              <!-- Existing sections -->
+              <template v-if="sections.length > 0">
+                <NcMenuItem
+                  v-for="section in sections"
+                  :key="section.id"
+                  @click="click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => onMoveToSection(section.id || null))"
+                >
+                  <GeneralIcon icon="ncFolder" class="opacity-80" :style="{ color: parseProp(section.meta)?.iconColor || '#3f8292' }" />
+                  {{ section.title }}
+                </NcMenuItem>
+                <NcDivider />
+              </template>
+
+              <!-- New section -->
+              <NcMenuItem @click="click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => onMoveToNewSection())">
+                <GeneralIcon icon="plus" class="opacity-80" />
+                {{ $t('labels.newSection') }}
+              </NcMenuItem>
+
+              <!-- Remove from section (only if view is in a section) -->
+              <NcMenuItem v-if="currentSectionId" @click="click(PlanFeatureTypes.FEATURE_VIEW_SECTIONS, () => onMoveToSection(null))">
+                <GeneralIcon icon="minus" class="opacity-80" />
+                {{ $t('labels.removeFromSection') }}
+              </NcMenuItem>
+            </NcSubMenu>
           </template>
-
-          <!-- Existing sections -->
-          <template v-if="sections.length > 0">
-            <NcMenuItem
-              v-for="section in sections"
-              :key="section.id"
-              @click="onMoveToSection(section.id || null)"
-            >
-              <GeneralIcon icon="ncFolder" class="opacity-80" :style="{ color: parseProp(section.meta)?.iconColor || '#3f8292' }" />
-              {{ section.title }}
-            </NcMenuItem>
-            <NcDivider />
-          </template>
-
-          <!-- New section -->
-          <NcMenuItem @click="onMoveToNewSection">
-            <GeneralIcon icon="plus" class="opacity-80" />
-            {{ $t('labels.newSection') }}
-          </NcMenuItem>
-
-          <!-- Remove from section (only if view is in a section) -->
-          <NcMenuItem v-if="currentSectionId" @click="onMoveToSection(null)">
-            <GeneralIcon icon="minus" class="opacity-80" />
-            {{ $t('labels.removeFromSection') }}
-          </NcMenuItem>
-        </NcSubMenu>
+        </PaymentUpgradeBadgeProvider>
         <!-- End EE: Move to Section -->
       </template>
 

@@ -1,4 +1,4 @@
-import { IsObject, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class UpdateRecordTemplateDto {
   @IsString()
@@ -12,4 +12,8 @@ export class UpdateRecordTemplateDto {
   @IsObject()
   @IsOptional()
   template_data?: Record<string, any>;
+
+  @IsBoolean()
+  @IsOptional()
+  enabled?: boolean;
 }

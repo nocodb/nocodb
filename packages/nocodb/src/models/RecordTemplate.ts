@@ -18,6 +18,7 @@ export default class RecordTemplate {
   description?: string;
   template_data: string | Record<string, any>;
   usage_count?: number;
+  enabled?: boolean;
   created_by?: string;
   created_at?: Date;
   updated_at?: Date;
@@ -38,6 +39,7 @@ export default class RecordTemplate {
       'title',
       'description',
       'template_data',
+      'enabled',
       'created_by',
     ]);
 
@@ -159,6 +161,7 @@ export default class RecordTemplate {
       'title',
       'description',
       'template_data',
+      'enabled',
     ]);
 
     // Ensure template_data is stored as string

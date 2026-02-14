@@ -38,6 +38,12 @@ const PAGE_SIZE = 5
 // --- Table Columns ---
 const columns = computed<NcTableColumnProps[]>(() => [
   {
+    key: 'enabled',
+    title: '',
+    width: 56,
+    dataIndex: 'enabled',
+  },
+  {
     key: 'title',
     title: t('general.name'),
     minWidth: 200,
@@ -59,12 +65,6 @@ const columns = computed<NcTableColumnProps[]>(() => [
     width: 100,
     dataIndex: 'usage_count',
     showOrderBy: true,
-  },
-  {
-    key: 'enabled',
-    title: t('general.enabled'),
-    width: 100,
-    dataIndex: 'enabled',
   },
   {
     key: 'action',
@@ -378,6 +378,11 @@ const customRow = (record: Record<string, any>) => ({
           class="nc-record-templates-table"
         >
           <template #bodyCell="{ column, record: tmpl }">
+            <!-- Enabled toggle -->
+            <div v-if="column.key === 'enabled'" class="flex items-center" @click.stop>
+              <NcSwitch :checked="tmpl.enabled !== false" size="small" @update:checked="toggleEnabled(tmpl)" />
+            </div>
+
             <!-- Name -->
             <div v-if="column.key === 'title'" class="w-full flex items-center gap-3">
               <NcTooltip placement="bottom" class="truncate !text-nc-content-gray font-semibold" show-on-truncate-only>
@@ -396,11 +401,6 @@ const customRow = (record: Record<string, any>) => ({
             <span v-if="column.key === 'usage_count'" class="text-nc-content-gray-subtle2">
               {{ tmpl.usage_count || 0 }}
             </span>
-
-            <!-- Enabled toggle -->
-            <div v-if="column.key === 'enabled'" class="flex items-center" @click.stop>
-              <NcSwitch :checked="tmpl.enabled !== false" size="small" @update:checked="toggleEnabled(tmpl)" />
-            </div>
 
             <!-- Actions -->
             <div v-if="column.key === 'action'" class="flex items-center justify-end" @click.stop>

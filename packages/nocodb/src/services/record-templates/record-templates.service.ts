@@ -106,6 +106,7 @@ export class RecordTemplatesService {
         title: param.body.title,
         description: param.body.description,
         template_data: param.body.template_data,
+        enabled: param.body.enabled,
       },
     );
 

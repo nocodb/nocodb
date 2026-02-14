@@ -238,6 +238,27 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
           }
           break;
         }
+        case UITypes.UUID: {
+          const uuidColumnName = await getColumnName(
+            baseModel.context,
+            column,
+            columns,
+          );
+          // Cast UUID to text for PostgreSQL to avoid type mismatch errors
+          if (baseModel.isPg) {
+            columnQuery = baseModel.dbDriver.raw('(??)::text', [
+              uuidColumnName,
+            ]);
+          } else {
+            columnQuery = baseModel.dbDriver.raw('??', [uuidColumnName]);
+          }
+          if (!isSubGroup) {
+            selectors.push(
+              baseModel.dbDriver.raw(`?? as ??`, [columnQuery, alias]),
+            );
+          }
+          break;
+        }
         default: {
           const defaultColumnName = await getColumnName(
             baseModel.context,
@@ -652,6 +673,27 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
             }
             break;
           }
+          case UITypes.UUID: {
+            const columnName = await getColumnName(
+              baseModel.context,
+              column,
+              columns,
+            );
+            if (baseModel.isPg) {
+              selectors.push(
+                baseModel.dbDriver.raw('(??)::text as ??', [
+                  columnName,
+                  getAs(column),
+                ]),
+              );
+            } else {
+              selectors.push(
+                baseModel.dbDriver.raw('?? as ??', [columnName, getAs(column)]),
+              );
+            }
+            groupBySelectors.push(getAs(column));
+            break;
+          }
           default:
             {
               const columnName = await getColumnName(
@@ -930,6 +972,30 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   groupBySelectors.push(getAs(column));
                 }
                 break;
+              case UITypes.UUID: {
+                const columnName = await getColumnName(
+                  baseModel.context,
+                  column,
+                  columns,
+                );
+                if (baseModel.isPg) {
+                  colSelectors.push(
+                    baseModel.dbDriver.raw('(??)::text as ??', [
+                      columnName,
+                      getAs(column),
+                    ]),
+                  );
+                } else {
+                  colSelectors.push(
+                    baseModel.dbDriver.raw('?? as ??', [
+                      columnName,
+                      getAs(column),
+                    ]),
+                  );
+                }
+                groupBySelectors.push(getAs(column));
+                break;
+              }
               default: {
                 const columnName = await getColumnName(
                   baseModel.context,
@@ -1267,6 +1333,30 @@ export const groupBy = (baseModel: IBaseModelSqlV2, logger: Logger) => {
                   groupBySelectors.push(getAs(column));
                 }
                 break;
+              case UITypes.UUID: {
+                const columnName = await getColumnName(
+                  baseModel.context,
+                  column,
+                  columns,
+                );
+                if (baseModel.isPg) {
+                  colSelectors.push(
+                    baseModel.dbDriver.raw('(??)::text as ??', [
+                      columnName,
+                      getAs(column),
+                    ]),
+                  );
+                } else {
+                  colSelectors.push(
+                    baseModel.dbDriver.raw('?? as ??', [
+                      columnName,
+                      getAs(column),
+                    ]),
+                  );
+                }
+                groupBySelectors.push(getAs(column));
+                break;
+              }
               default: {
                 const columnName = await getColumnName(
                   baseModel.context,

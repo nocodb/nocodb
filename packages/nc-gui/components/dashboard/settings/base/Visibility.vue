@@ -18,7 +18,11 @@ watch(includeM2M, async () => await loadTables())
 
 onMounted(async () => {
   await until(() => !!baseId.value).toBeTruthy()
-  await basesStore.loadProject(baseId.value!, true)
+  try {
+    await basesStore.loadProject(baseId.value!, true)
+  } catch (e: any) {
+    // ignore
+  }
   showNullAndEmptyInFilter.value = basesStore.getProjectMeta(baseId.value!)?.showNullAndEmptyInFilter
 })
 
@@ -67,7 +71,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
             </span>
           </NcSwitch>
         </div>
-        <span class="text-gray-500 pl-10">{{ $t('msg.info.showM2mTablesDesc') }}</span>
+        <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showM2mTablesDesc') }}</span>
       </div>
 
       <div class="flex w-full px-3 border-t-1 border-nc-border-gray-medium py-2 gap-2 flex-col">
@@ -78,7 +82,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
             </span>
           </NcSwitch>
         </div>
-        <span class="text-gray-500 pl-10">{{ $t('msg.info.showNullInCellsDesc') }}</span>
+        <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showNullInCellsDesc') }}</span>
       </div>
 
       <div class="flex w-full px-3 py-2 border-t-1 border-nc-border-gray-medium gap-2 flex-col">
@@ -94,7 +98,7 @@ async function showNullAndEmptyInFilterOnChange(evt: boolean) {
             </span>
           </NcSwitch>
         </div>
-        <span class="text-gray-500 pl-10">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>
+        <span class="text-nc-content-gray-muted pl-10">{{ $t('msg.info.showNullAndEmptyInFilterDesc') }}</span>
       </div>
     </div>
   </div>

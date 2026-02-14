@@ -7,6 +7,8 @@ interface Props {
 
 const { modelValue: _modelValue } = defineProps<Props>()
 
+const { isDark, getColor } = useTheme()
+
 const column = inject(ColumnInj)
 
 const isForm = inject(IsFormInj)
@@ -28,11 +30,20 @@ const isGrid = inject(IsGridInj, ref(false))
 const checkboxMeta = computed(() => {
   const icon = extractCheckboxIcon(column?.value?.meta)
 
-  return {
+  const result = {
     color: 'primary',
     ...parseProp(column?.value?.meta),
     icon,
   }
+
+  if (isDark.value) {
+    result.color =
+      result.color === '#777'
+        ? getColor(themeV4Colors.gray['600'])
+        : getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), result.color, ['#4a5268', '#d5dce8'])
+  }
+
+  return result
 })
 
 const modelValue = computed(() => !!_modelValue && _modelValue !== '0' && _modelValue !== 0 && _modelValue !== 'false')

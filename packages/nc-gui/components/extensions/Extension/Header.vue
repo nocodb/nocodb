@@ -14,13 +14,18 @@ withDefaults(defineProps<Props>(), {
   isFullscreen: true,
 })
 
-const { $e } = useNuxtApp()
-
 const { eventBus, getExtensionAssetsUrl, duplicateExtension, showExtensionDetails, extensionAccess } = useExtensions()
 
-const { fullscreen, collapsed, extension, extensionManifest, activeError, showExpandBtn, disableToggleFullscreenBtn } =
-  useExtensionHelperOrThrow()
-const EXTENSION_ID = extension.value.extensionId
+const {
+  fullscreen,
+  collapsed,
+  extension,
+  extensionManifest,
+  activeError,
+  showExpandBtn,
+  disableToggleFullscreenBtn,
+  toggleFullScreen,
+} = useExtensionHelperOrThrow()
 
 const titleInput = ref<HTMLInputElement | null>(null)
 
@@ -71,11 +76,6 @@ const handleDuplicateExtension = async (id: string, open = false) => {
     })
   }
 }
-
-const toggleFullScreen = () => {
-  fullscreen.value = true
-  $e(`c:extensions:${EXTENSION_ID}:full-screen`)
-}
 </script>
 
 <template>
@@ -98,7 +98,7 @@ const toggleFullScreen = () => {
       class="nc-extension-drag-handler !px-1"
       @click.stop
     >
-      <GeneralIcon icon="ncDrag" class="flex-none text-gray-500" />
+      <GeneralIcon icon="ncDrag" class="flex-none text-nc-content-gray-muted" />
     </NcButton>
 
     <img

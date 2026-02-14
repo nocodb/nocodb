@@ -209,10 +209,12 @@ export default class FileReference {
     if (context.workspace_id) {
       if (size === -1) {
         await NocoCache.del(
+          'root',
           `${CacheScope.STORAGE_STATS}:workspace:${context.workspace_id}`,
         );
       } else {
         await NocoCache.incrHashField(
+          'root',
           `${CacheScope.STORAGE_STATS}:workspace:${context.workspace_id}`,
           PlanLimitTypes.LIMIT_STORAGE_PER_WORKSPACE,
           decrement ? -(size ?? 0) : size ?? 0,

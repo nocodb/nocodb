@@ -38,7 +38,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       'Failed to fetch dynamically imported module',
     ]
     for (const message of reload_error_list) {
-      if (error.message.includes(message)) {
+      if (ncIsString(error?.message) && error.message.includes(message)) {
         reload()
       }
     }

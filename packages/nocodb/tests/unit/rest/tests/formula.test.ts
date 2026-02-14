@@ -58,7 +58,10 @@ function formulaRegExpBased() {
     const rowAttributes = [];
     for (let i = 0; i < 100; i++) {
       const row = {
-        Title: rowMixedValue(columns[6], i),
+        Title: rowMixedValue(
+          columns.find((c) => c.title === 'Title'),
+          i,
+        ),
       };
       rowAttributes.push(row);
     }
@@ -115,7 +118,7 @@ function formulaRegExpBased() {
     for (let i = 0; i < formulaList.length; i++) {
       await updateColumn(context, {
         table,
-        column: columns[7],
+        column: columns.find((c) => c.title === 'formula'),
         attr: {
           formula: formulaList[i],
           formula_raw: formulaList[i],

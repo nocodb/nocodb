@@ -172,8 +172,8 @@ export class FormPage extends BasePage {
         await this.formHeading.fill(param.title);
         await this.formSubHeading.click();
       },
-      requestUrlPathToMatch: '/api/v1/db/meta/forms',
-      httpMethodsToMatch: ['PATCH'],
+      requestUrlPathToMatch: 'operation=formViewUpdate',
+      httpMethodsToMatch: ['POST'],
     });
     await this.waitForResponse({
       uiAction: async () => {
@@ -181,8 +181,8 @@ export class FormPage extends BasePage {
         await this.formSubHeading.fill(param.subtitle);
         await this.formHeading.click();
       },
-      requestUrlPathToMatch: '/api/v1/db/meta/forms',
-      httpMethodsToMatch: ['PATCH'],
+      requestUrlPathToMatch: 'operation=formViewUpdate',
+      httpMethodsToMatch: ['POST'],
     });
   }
 
@@ -252,8 +252,8 @@ export class FormPage extends BasePage {
     const waitForResponse = async (action: () => Promise<any>) =>
       await this.waitForResponse({
         uiAction: action,
-        requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
-        httpMethodsToMatch: ['PATCH'],
+        requestUrlPathToMatch: 'operation=formColumnUpdate',
+        httpMethodsToMatch: ['POST'],
       });
 
     await this.selectVisibleField({ title: field });
@@ -315,8 +315,8 @@ export class FormPage extends BasePage {
         await this.afterSubmitMsg.click();
         await this.afterSubmitMsg.fill(param.message);
       },
-      requestUrlPathToMatch: '/api/v1/db/meta/forms',
-      httpMethodsToMatch: ['PATCH'],
+      requestUrlPathToMatch: 'operation=formViewUpdate',
+      httpMethodsToMatch: ['POST'],
     });
   }
 
@@ -575,8 +575,8 @@ export class FormPage extends BasePage {
             uiAction: async () => {
               await validateBtn.click();
             },
-            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
-            httpMethodsToMatch: ['PATCH'],
+            requestUrlPathToMatch: 'operation=formColumnUpdate',
+            httpMethodsToMatch: ['POST'],
           });
         }
       },
@@ -617,8 +617,8 @@ export class FormPage extends BasePage {
             uiAction: async () => {
               await validateWorkEmailBtn.click();
             },
-            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
-            httpMethodsToMatch: ['PATCH'],
+            requestUrlPathToMatch: 'operation=formColumnUpdate',
+            httpMethodsToMatch: ['POST'],
           });
         }
       },
@@ -701,8 +701,8 @@ export class FormPage extends BasePage {
             await fieldLocator.locator(`input`).fill(value);
             await this.rootPage.keyboard.press('Enter');
           },
-          requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
-          httpMethodsToMatch: ['PATCH'],
+          requestUrlPathToMatch: 'operation=formColumnUpdate',
+          httpMethodsToMatch: ['POST'],
         });
       }
     }
@@ -734,8 +734,8 @@ export class FormPage extends BasePage {
             uiAction: async () => {
               await validateBtn.click();
             },
-            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
-            httpMethodsToMatch: ['PATCH'],
+            requestUrlPathToMatch: 'operation=formColumnUpdate',
+            httpMethodsToMatch: ['POST'],
           });
         }
       },
@@ -798,8 +798,8 @@ export class FormPage extends BasePage {
             uiAction: async () => {
               await validateBtn.click();
             },
-            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
-            httpMethodsToMatch: ['PATCH'],
+            requestUrlPathToMatch: 'operation=formColumnUpdate',
+            httpMethodsToMatch: ['POST'],
           });
         }
         if (enable && fillValue !== undefined) {
@@ -809,8 +809,8 @@ export class FormPage extends BasePage {
             uiAction: async () => {
               await validationWrapper.locator('input').fill(fillValue);
             },
-            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
-            httpMethodsToMatch: ['PATCH'],
+            requestUrlPathToMatch: 'operation=formColumnUpdate',
+            httpMethodsToMatch: ['POST'],
           });
         }
       },
@@ -857,8 +857,8 @@ export class FormPage extends BasePage {
             uiAction: async () => {
               await validateBtn.click();
             },
-            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
-            httpMethodsToMatch: ['PATCH'],
+            requestUrlPathToMatch: 'operation=formColumnUpdate',
+            httpMethodsToMatch: ['POST'],
           });
         }
         if (enable && fillValue !== undefined) {
@@ -868,8 +868,8 @@ export class FormPage extends BasePage {
             uiAction: async () => {
               await validationWrapper.locator('input').fill(fillValue);
             },
-            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
-            httpMethodsToMatch: ['PATCH'],
+            requestUrlPathToMatch: 'operation=formColumnUpdate',
+            httpMethodsToMatch: ['POST'],
           });
         }
       },
@@ -924,8 +924,8 @@ export class FormPage extends BasePage {
             uiAction: async () => {
               await validateBtn.click();
             },
-            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
-            httpMethodsToMatch: ['PATCH'],
+            requestUrlPathToMatch: 'operation=formColumnUpdate',
+            httpMethodsToMatch: ['POST'],
           });
         }
 
@@ -944,8 +944,8 @@ export class FormPage extends BasePage {
             uiAction: async () => {
               await validationWrapper.locator('.nc-validation-input-wrapper input').fill(fillValue);
             },
-            requestUrlPathToMatch: '/api/v1/db/meta/form-columns',
-            httpMethodsToMatch: ['PATCH'],
+            requestUrlPathToMatch: 'operation=formColumnUpdate',
+            httpMethodsToMatch: ['POST'],
           });
         }
       },

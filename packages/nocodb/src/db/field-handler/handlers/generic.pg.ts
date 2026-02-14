@@ -101,7 +101,7 @@ export class GenericPgFieldHandler
 
     // Condition for filter, without negation
     const condition = (builder: Knex.QueryBuilder) => {
-      let items = val?.split(',');
+      let items = val?.split(',') ?? [];
       if (['enum', 'set'].includes(column.dt?.toLowerCase())) {
         items = items.map((item) => item.trimEnd());
       }

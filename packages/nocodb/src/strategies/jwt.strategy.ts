@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-jwt';
 import { User } from '~/models';
 import { UsersService } from '~/services/users/users.service';
+import { NcError } from '~/helpers/ncError';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -14,9 +15,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(req, jwtPayload) {
-    if (!jwtPayload?.email || jwtPayload?.is_api_token) {
+    if (
+      !jwtPayload?.email ||
+      jwtPayload?.is_api_token ||
+      jwtPayload?.is_oauth_token
+    )
       return jwtPayload;
-    }
 
     const user = await User.getByEmail(jwtPayload?.email);
 
@@ -25,7 +29,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       !jwtPayload.token_version ||
       user.token_version !== jwtPayload.token_version
     ) {
-      throw new Error('Token Expired. Please login again.');
+      NcError.unauthorized('Token Expired. Please login again.');
     }
     const userWithRoles = await User.getWithRoles(req.context, user.id, {
       user,

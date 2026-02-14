@@ -3,7 +3,7 @@ import { defaultOffscreen2DContext, isBoxHovered, renderSingleLineText, renderTa
 
 export const YearCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { selected, value, x, y, width, height, pv, padding, readonly, textColor = '#4a5268' } = props
+    const { selected, value, x, y, width, height, pv, padding, readonly, textColor = themeV4Colors.gray['600'], getColor } = props
 
     let text = ''
 
@@ -15,7 +15,7 @@ export const YearCellRenderer: CellRenderer = {
     }
 
     if (!value && selected && !readonly) {
-      ctx.fillStyle = '#989FB1'
+      ctx.fillStyle = getColor(themeV4Colors.gray['400'])
       ctx.font = '400 13px Inter'
       ctx.textBaseline = 'middle'
       const placeholderY = Math.max(y, 36)
@@ -40,7 +40,7 @@ export const YearCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: pv ? '#3366FF' : textColor,
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
       })
 

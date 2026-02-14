@@ -8,6 +8,7 @@ import type {
   LiteralNode,
   MemberExpressionNode,
   ParsedFormulaNode,
+  UITypes,
   UnaryExpressionNode,
 } from 'nocodb-sdk';
 import type { BaseUser, Column, Model, User } from '~/models';
@@ -31,8 +32,10 @@ export interface FormulaQueryBuilderBaseParams extends FormulaBaseParams {
   _tree;
   model: Model;
   aliasToColumn?: TAliasToColumn;
+  columnIdToUidt?: Record<string, UITypes>;
   parsedTree?: ParsedFormulaNode;
   column?: Column;
+  columns: Column[];
   parentColumns: CircularRefContext;
   getAliasCount: () => number;
 }

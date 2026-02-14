@@ -36,9 +36,7 @@ const aiPromptInputRef = ref<HTMLElement>()
 
 const sourceSelectorRef = ref()
 
-const customSourceId = computed(() => {
-  return sourceSelectorRef.value?.customSourceId || props.sourceId
-})
+const sourceIdRef = ref(props.sourceId)
 
 const workspaceStore = useWorkspace()
 
@@ -62,7 +60,7 @@ const onTableCreate = async (table: TableType) => {
 
 const { table, createTable, generateUniqueTitle, tables, base, openTable } = useTableNew({
   onTableCreate,
-  sourceId: customSourceId,
+  sourceId: sourceIdRef,
   baseId: props.baseId,
 })
 
@@ -139,7 +137,7 @@ const predictNextTables = async (): Promise<AiSuggestedTableType[]> => {
       activeTabPredictHistory.value.map(({ title }) => title),
       props.baseId,
       activeAiTab.value === AiWizardTabsType.PROMPT ? prompt.value : undefined,
-      customSourceId.value,
+      sourceIdRef.value,
     )
   )
     .filter((t) => !ncIsArrayIncludes(activeTabPredictedTables.value, t.title, 'title'))
@@ -278,7 +276,7 @@ const onAiEnter = async () => {
       undefined,
       onAiTableCreate,
       props.baseId,
-      customSourceId.value,
+      sourceIdRef.value,
     )
   }
 }
@@ -300,9 +298,7 @@ const validators = computed(() => {
         validator: (_: any, value: any) => {
           // validate duplicate alias
           return new Promise((resolve, reject) => {
-            if (
-              (tables.value || []).some((t) => t.title?.trim() === (value || '').trim() && t.source_id === customSourceId.value)
-            ) {
+            if ((tables.value || []).some((t) => t.title?.trim() === (value || '').trim() && t.source_id === sourceIdRef.value)) {
               return reject(new Error('Duplicate table alias'))
             }
             return resolve(true)
@@ -313,9 +309,9 @@ const validators = computed(() => {
         validator: (rule: any, value: any) => {
           return new Promise<void>((resolve, reject) => {
             let tableNameLengthLimit = 255
-            if (isMysql(customSourceId.value)) {
+            if (isMysql(sourceIdRef.value)) {
               tableNameLengthLimit = 64
-            } else if (isPg(customSourceId.value)) {
+            } else if (isPg(sourceIdRef.value)) {
               tableNameLengthLimit = 63
             }
             const basePrefix = base?.value?.prefix || ''
@@ -492,8 +488,8 @@ watch(_baseId, () => {
 
             <NcListSourceSelector
               ref="sourceSelectorRef"
+              v-model:source-id="sourceIdRef"
               :base-id="baseId"
-              :source-id="sourceId"
               :show-source-selector="showSourceSelector"
             />
           </template>
@@ -509,7 +505,7 @@ watch(_baseId, () => {
               <template #AutoSuggestedContent>
                 <div class="px-5 pt-5 pb-2">
                   <div v-if="aiError" class="w-full flex items-center gap-3">
-                    <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+                    <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-4 h-4" />
 
                     <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
                       <template #title>
@@ -652,7 +648,7 @@ watch(_baseId, () => {
                       "
                     >
                       <template #loadingIcon>
-                        <GeneralLoader class="!text-purple-700" size="medium" />
+                        <GeneralLoader class="!text-nc-content-purple-dark" size="medium" />
                       </template>
                       <template #icon>
                         <GeneralIcon icon="send" class="flex-none h-4 w-4" />
@@ -661,7 +657,7 @@ watch(_baseId, () => {
                   </div>
 
                   <div v-if="aiError" class="w-full flex items-center gap-3">
-                    <GeneralIcon icon="ncInfoSolid" class="flex-none !text-nc-content-red-dark w-4 h-4" />
+                    <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-4 h-4" />
 
                     <NcTooltip class="truncate flex-1 text-sm text-nc-content-gray-subtle" show-on-truncate-only>
                       <template #title>
@@ -718,7 +714,7 @@ watch(_baseId, () => {
           <a-form-item
             v-if="enableDescription && !aiMode"
             v-bind="validateInfos.description"
-            :class="{ '!mb-1': isSnowflake(customSourceId), '!mb-0': !isSnowflake(customSourceId) }"
+            :class="{ '!mb-1': isSnowflake(sourceIdRef), '!mb-0': !isSnowflake(sourceIdRef) }"
           >
             <div class="flex gap-3 text-nc-content-gray h-7 mb-1 items-center justify-between">
               <span>
@@ -739,7 +735,7 @@ watch(_baseId, () => {
             />
           </a-form-item>
 
-          <template v-if="isSnowflake(customSourceId)">
+          <template v-if="isSnowflake(sourceIdRef)">
             <a-checkbox v-model:checked="table.is_hybrid" class="!flex flex-row items-center"> Hybrid Table </a-checkbox>
           </template>
         </div>
@@ -874,7 +870,7 @@ watch(_baseId, () => {
 :deep(.ant-form-item.nc-table-input-wrapper) {
   &.nc-ai-mode {
     .nc-ai-mode-table-input-wrapper {
-      @apply shadow-default hover:shadow-hover focus-within:(!shadow-selected border-brand-500);
+      @apply shadow-default hover:shadow-hover focus-within:(!shadow-selected border-nc-border-brand);
     }
   }
 }

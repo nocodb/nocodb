@@ -27,6 +27,7 @@ export interface NcButtonProps {
   iconOnly?: boolean
   iconPosition?: 'left' | 'right'
   theme?: 'default' | 'ai'
+  textColor?: 'primary'
   bordered?: boolean
   shadow?: boolean
   innerClass?: string
@@ -110,6 +111,7 @@ useEventListener(NcButton, 'mousedown', () => {
       'bordered': bordered,
       'nc-btn-shadow': shadow,
       'nc-show-as-disabled': props.showAsDisabled,
+      'nc-text-primary': textColor === 'primary',
     }"
     :disabled="props.disabled"
     :loading="loading"
@@ -261,6 +263,13 @@ useEventListener(NcButton, 'mousedown', () => {
     @apply bg-nc-bg-purple-light text-nc-content-purple-light md:(hover:bg-nc-bg-purple-light);
   }
 }
+.nc-button.ant-btn.nc-text-primary {
+  &:not(.nc-show-as-disabled):not(:disabled) {
+    &.theme-default {
+      @apply text-nc-content-brand md:(hover:text-nc-content-brand);
+    }
+  }
+}
 
 .nc-button.ant-btn-text.ant-btn[disabled],
 .nc-button.ant-btn-text.ant-btn.nc-show-as-disabled {
@@ -290,7 +299,7 @@ useEventListener(NcButton, 'mousedown', () => {
     @apply bg-nc-bg-purple-light hover:bg-nc-bg-purple-light text-nc-content-purple-light;
 
     &.bordered {
-      @apply border-purple-100;
+      @apply border-nc-border-purple-light;
     }
   }
 }
@@ -303,7 +312,7 @@ useEventListener(NcButton, 'mousedown', () => {
   }
 
   &.theme-ai {
-    @apply bg-nc-fill-purple-dark md:(hover:bg-nc-purple-800);
+    @apply bg-purple-700 md:(hover:bg-purple-800);
   }
 }
 
@@ -326,7 +335,7 @@ useEventListener(NcButton, 'mousedown', () => {
     @apply bg-nc-bg-purple-light text-nc-content-purple-dark md:(hover:bg-nc-bg-purple-dark);
 
     &.bordered {
-      @apply border-purple-200;
+      @apply border-nc-border-purple-medium;
     }
   }
 }

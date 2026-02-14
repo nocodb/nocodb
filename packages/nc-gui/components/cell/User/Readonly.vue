@@ -15,6 +15,8 @@ const { modelValue, forceMulti, options: userOptions } = defineProps<Props>()
 
 const { t } = useI18n()
 
+const { getColor } = useTheme()
+
 const meta = inject(MetaInj)!
 
 const column = inject(ColumnInj)!
@@ -111,7 +113,7 @@ const isCollaborator = (userIdOrEmail) => {
             <a-tag class="rounded-tag max-w-full !pl-0" color="'#ccc'">
               <span
                 :style="{
-                  color: getSelectTypeOptionTextColor('#ccc'),
+                  color: getSelectTypeOptionTextColor('#ccc', getColor),
                 }"
                 class="flex items-stretch gap-2 text-small"
               >
@@ -124,7 +126,7 @@ const isCollaborator = (userIdOrEmail) => {
                   </template>
                   <span
                     :class="{
-                      'text-gray-600': !isCollaborator(op.id || op.email),
+                      'text-nc-content-gray-subtle2': !isCollaborator(op.id || op.email),
                     }"
                     :style="{
                       wordBreak: 'keep-all',
@@ -170,15 +172,13 @@ const isCollaborator = (userIdOrEmail) => {
           :color="
             selectedOpt.value === CURRENT_USER_TOKEN
               ? themeV4Colors.brand[50]
-              : location === 'filter'
-              ? themeV4Colors.gray[200]
-              : '#ccc'
+              : getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')
           "
         >
           <span
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
             :style="{
-              color: getSelectTypeOptionTextColor('#ccc'),
+              color: getSelectTypeOptionTextColor(getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)'), getColor),
             }"
             class="flex items-stretch gap-2"
           >
@@ -194,7 +194,7 @@ const isCollaborator = (userIdOrEmail) => {
                 }"
                 class="!text-[0.5rem] !h-[16.8px]"
                 :class="{
-                  '!bg-white': selectedOpt.value === CURRENT_USER_TOKEN,
+                  '!bg-nc-bg-default': selectedOpt.value === CURRENT_USER_TOKEN,
                 }"
                 :show-placeholder-icon="selectedOpt.value === CURRENT_USER_TOKEN"
               />
@@ -205,7 +205,7 @@ const isCollaborator = (userIdOrEmail) => {
               </template>
               <span
                 :class="{
-                  'text-gray-500': !isCollaborator(selectedOpt.value) && selectedOpt.value !== CURRENT_USER_TOKEN,
+                  'text-nc-content-gray-muted': !isCollaborator(selectedOpt.value) && selectedOpt.value !== CURRENT_USER_TOKEN,
                   'text-nc-content-brand': selectedOpt.value === CURRENT_USER_TOKEN,
                   'font-600': isInFilter,
                 }"
@@ -228,7 +228,7 @@ const isCollaborator = (userIdOrEmail) => {
 
 <style lang="scss" scoped>
 .ms-close-icon {
-  color: rgba(0, 0, 0, 0.25);
+  color: rgba(var(--rgb-base), 0.25);
   cursor: pointer;
   display: flex;
   font-size: 12px;
@@ -249,7 +249,7 @@ const isCollaborator = (userIdOrEmail) => {
 }
 
 .ms-close-icon:hover {
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(var(--rgb-base), 0.45);
 }
 
 .read-only {
@@ -259,15 +259,11 @@ const isCollaborator = (userIdOrEmail) => {
 }
 
 .rounded-tag {
-  @apply bg-gray-200 px-2 rounded-[12px];
+  @apply bg-nc-bg-gray-medium px-2 rounded-[12px];
 }
 
 :deep(.ant-tag) {
   @apply "rounded-tag" my-[1px];
-}
-
-:deep(.ant-tag-close-icon) {
-  @apply "text-slate-500";
 }
 
 :deep(.nc-user-avatar) {

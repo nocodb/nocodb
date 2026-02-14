@@ -36,6 +36,7 @@ export interface AppInfo {
   mainSubDomain?: string
   dashboardPath: string
   inviteOnlySignup: boolean
+  restrictWorkspaceCreation: boolean
   samlAuthEnabled: boolean
   samlProviderName: string | null
   giftUrl: string
@@ -44,10 +45,13 @@ export interface AppInfo {
   isOnPrem: boolean
   stripePublishableKey?: string
   marketingRootUrl?: string
+  templatesRootUrl?: string
   openReplayKey?: string | null
   disableSupportChat: boolean
   disableOnboardingFlow: boolean
   iframeWhitelistDomains?: Array<string>
+  disableGroupByAggregation?: boolean
+  sendRecordMaxRecipients?: number
 }
 
 export interface StoredState {
@@ -71,6 +75,7 @@ export interface StoredState {
   syncDataUpvotes: string[]
   giftBannerDismissedCount: number
   isLeftSidebarOpen: boolean
+  lastUsedAuthMethod: 'google' | 'oidc' | 'sso' | 'email' | null
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {
@@ -86,6 +91,7 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
 
 export interface Getters {
   signedIn: ComputedRef<boolean>
+  isSsoUser: ComputedRef<boolean>
   isLoading: WritableComputedRef<boolean>
 }
 
@@ -108,7 +114,7 @@ export interface Actions {
   setIsMobileMode: (isMobileMode: boolean) => void
   navigateToProject: (params: { workspaceId?: string; baseId?: string; query?: any }) => void
   /**
-   * params `tableTitle, viewTitle, automationTitle,dashboardTitle` will be used for readable url slug
+   * params `tableTitle, viewTitle, scriptTitle ,dashboardTitle,workflowTitle` will be used for readable url slug
    */
   ncNavigateTo: (params: {
     workspaceId?: string
@@ -118,11 +124,13 @@ export interface Actions {
     tableTitle?: string
     viewId?: string
     viewTitle?: string
-    automationId?: string
-    automationTitle?: string
-    replace?: boolean
+    scriptId?: string
+    scriptTitle?: string
     dashboardId?: string
     dashboardTitle?: string
+    workflowId?: string
+    workflowTitle?: string
+    replace?: boolean
     newTab?: boolean
   }) => void
   getBaseUrl: (workspaceId: string) => string | undefined

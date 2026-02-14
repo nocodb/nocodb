@@ -147,12 +147,12 @@ watch(
         v-for="(option, index) in filteredOptions"
         :key="index"
         v-e="optionConfig.selectOptionEvent"
-        class="flex w-full py-[5px] items-center justify-between px-2 hover:bg-gray-100 cursor-pointer rounded-md"
+        class="flex w-full py-[5px] items-center justify-between px-2 hover:bg-nc-bg-gray-light cursor-pointer rounded-md"
         :class="[
           `${optionConfig.optionClassName}`,
           `nc-unified-list-option-${index}`,
           {
-            'bg-gray-100 nc-unified-list-option-active': activeOptionIndex === index,
+            'bg-nc-bg-gray-light nc-unified-list-option-active': activeOptionIndex === index,
           },
         ]"
         @click="onClick(option)"

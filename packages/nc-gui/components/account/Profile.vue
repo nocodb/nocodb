@@ -216,7 +216,7 @@ const onCancel = () => {
                       </a-form-item>
                     </div>
                     <div>
-                      <div class="text-gray-800 mb-2" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
+                      <div class="text-nc-content-gray mb-2" data-rec="true">{{ $t('labels.accountEmailID') }}</div>
                       <a-input
                         v-model:value="email"
                         class="w-full !rounded-lg !px-4 h-10"

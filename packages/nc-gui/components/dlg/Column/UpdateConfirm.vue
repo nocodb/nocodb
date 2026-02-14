@@ -17,13 +17,13 @@ const visible = useVModel(props, 'visible', emit)
 
     <div class="flex flex-col" @click.stop>
       <div
-        class="text-gray-800"
+        class="text-nc-content-gray"
         :class="{
           'mb-3': $slots['entity-preview'],
         }"
       >
         <div class="flex item-center gap-2">
-          <GeneralIcon id="nc-selected-item-icon" icon="alertTriangle" class="h-10 w-10 text-yellow-500" />
+          <GeneralIcon id="nc-selected-item-icon" icon="alertTriangle" class="h-10 w-10 text-nc-content-yellow-medium" />
           This action cannot be undone. Converting data types may result in data loss; any incompatible filters will be removed.
           Proceed with caution!
         </div>

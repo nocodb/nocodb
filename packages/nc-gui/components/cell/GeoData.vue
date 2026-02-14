@@ -207,7 +207,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
           data-testid="nc-geo-data-set-location-button"
         >
           <div class="flex items-center px-2 gap-2">
-            <GeneralIcon class="text-gray-500 h-3.5 w-3.5" icon="ncMapPin" />
+            <GeneralIcon class="text-nc-content-gray-muted h-3.5 w-3.5" icon="ncMapPin" />
             <span class="text-tiny">
               {{ latLongStr }}
             </span>

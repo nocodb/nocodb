@@ -3,6 +3,7 @@ import { CommonAggregations, UITypes, getAvailableAggregations } from 'nocodb-sd
 import type { ColumnType } from 'nocodb-sdk'
 
 interface Props {
+  baseId?: string
   tableId?: string
   columnId?: string
   value?: string
@@ -52,7 +53,7 @@ const loadAggregationList = async () => {
   try {
     isLoading.value = true
 
-    const tableMeta = await getMeta(props.tableId, undefined, undefined, undefined, true)
+    const tableMeta = await getMeta(props.baseId, props.tableId, undefined, false, true)
     if (!tableMeta) {
       aggregationList.value = []
       return
@@ -202,20 +203,6 @@ defineExpose({
           @update:value="handleValueUpdate"
           @escape="onEsc"
         >
-          <template #item="{ item }">
-            <div class="w-full flex items-center gap-2">
-              <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                <template #title>{{ item.label }}</template>
-                <span>{{ item.label }}</span>
-              </NcTooltip>
-              <component
-                :is="iconMap.check"
-                v-if="modelValue === item.value"
-                id="nc-selected-item-icon"
-                class="flex-none text-primary w-4 h-4"
-              />
-            </div>
-          </template>
         </NcList>
       </template>
     </NcListDropdown>

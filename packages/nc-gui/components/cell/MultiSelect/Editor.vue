@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import tinycolor from 'tinycolor2'
 import type { Select as AntSelect } from 'ant-design-vue'
 import { type LocalSelectOptionType, type SelectInputOptionType, getOptions, getSelectedTitles } from './utils'
 import MdiCloseCircle from '~icons/mdi/close-circle'
@@ -20,6 +19,8 @@ const { isMobileMode } = useGlobal()
 
 const column = inject(ColumnInj)!
 
+const meta = inject(MetaInj)!
+
 const readOnly = inject(ReadonlyInj)!
 
 const isEditable = inject(EditModeInj, ref(false))
@@ -27,6 +28,8 @@ const isEditable = inject(EditModeInj, ref(false))
 const activeCell = inject(ActiveCellInj, ref(false))
 
 const isForm = inject(IsFormInj, ref(false))
+
+const { isDark, getColor } = useTheme()
 
 // use both ActiveCellInj or EditModeInj to determine the active state
 // since active will be false in case of form view
@@ -66,7 +69,7 @@ const isNewOptionCreateEnabled = computed(
 )
 
 const options = computed(() => {
-  return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value)
+  return selectOptions ?? getOptions(column.value, isEditColumn.value, isForm.value, isDark.value, getColor)
 })
 
 const optionsMap = computed(() => {
@@ -228,8 +231,13 @@ async function addIfMissingAndSave() {
         }
       }
 
-      const data = await $api.dbTableColumn.update(
-        (column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string),
+      const data = await $api.internal.postOperation(
+        meta.value!.fk_workspace_id!,
+        meta.value!.base_id!,
+        {
+          operation: 'columnUpdate',
+          columnId: (column.value as { fk_column_id?: string })?.fk_column_id || (column.value?.id as string),
+        },
         updatedColMeta,
       )
 
@@ -390,12 +398,10 @@ onMounted(() => {
         :class="`nc-select-option-${column.title}-${op.title}`"
         @click.stop
       >
-        <a-tag class="rounded-tag max-w-full" :color="op.color">
+        <a-tag class="rounded-tag max-w-full" :color="op.bgColor">
           <span
             :style="{
-              color: tinycolor.isReadable(op.color || '#ccc', '#fff', { level: 'AA', size: 'large' })
-                ? '#fff'
-                : tinycolor.mostReadable(op.color || '#ccc', ['#0b1d05', '#fff']).toHex8String(),
+              color: op.textColor,
             }"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >
@@ -423,7 +429,7 @@ onMounted(() => {
         :key="searchVal"
         :value="searchVal"
       >
-        <div class="flex gap-2 text-gray-500 items-center h-full">
+        <div class="flex gap-2 text-nc-content-gray-muted dark:text-nc-content-gray-subtle2 items-center h-full">
           <component :is="iconMap.plusThick" class="min-w-4" />
           <div class="text-xs whitespace-normal">
             {{ $t('msg.selectOption.createNewOptionNamed') }} <strong>{{ searchVal }}</strong>
@@ -439,7 +445,7 @@ onMounted(() => {
             '!my-0': !rowHeight || rowHeight === 1,
           }"
           :style="{ display: 'flex', alignItems: 'center' }"
-          :color="options.find((el) => el.title === val)?.color"
+          :color="options.find((el) => el.title === val)?.bgColor"
           :closable="editAllowed && (vModel.length > 1 || !column?.rqd)"
           :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
           @click="onTagClick($event, onClose)"
@@ -447,14 +453,7 @@ onMounted(() => {
         >
           <span
             :style="{
-              color: tinycolor.isReadable(options.find((el) => el.title === val)?.color || '#ccc', '#fff', {
-                level: 'AA',
-                size: 'large',
-              })
-                ? '#fff'
-                : tinycolor
-                    .mostReadable(options.find((el) => el.title === val)?.color || '#ccc', ['#0b1d05', '#fff'])
-                    .toHex8String(),
+              color: options.find((el) => el.title === val)?.textColor,
             }"
             :class="{ 'text-sm': isKanban, 'text-small': !isKanban }"
           >
@@ -468,7 +467,7 @@ onMounted(() => {
 
 <style scoped lang="scss">
 .ms-close-icon {
-  color: rgba(0, 0, 0, 0.25);
+  color: rgba(var(--rgb-base), 0.25);
   cursor: pointer;
   display: flex;
   font-size: 12px;
@@ -489,7 +488,7 @@ onMounted(() => {
 }
 
 .ms-close-icon:hover {
-  color: rgba(0, 0, 0, 0.45);
+  color: rgba(var(--rgb-base), 0.45);
 }
 
 .read-only {
@@ -504,10 +503,6 @@ onMounted(() => {
 
 :deep(.ant-tag) {
   @apply "rounded-tag" my-[1px];
-}
-
-:deep(.ant-tag-close-icon) {
-  @apply "text-slate-500";
 }
 
 :deep(.ant-select-selection-overflow-item) {

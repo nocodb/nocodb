@@ -7,8 +7,8 @@ const config: XcPluginConfig = {
   id: 'backblaze',
   title: 'Backblaze',
   recoveryTitle: 'Backblaze B2',
-  version: '0.0.5',
-  logo: 'plugins/backblaze.jpeg',
+  version: '0.0.6',
+  logo: 'plugins/backblaze.png',
   tags: 'Storage',
   description:
     'Backblaze B2 is enterprise-grade, S3 compatible storage that companies around the world use to store and serve data while improving their cloud OpEx vs. Amazon S3 and others.',

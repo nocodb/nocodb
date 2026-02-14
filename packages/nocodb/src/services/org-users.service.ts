@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   AppEvents,
   extractRolesObj,
@@ -12,12 +12,11 @@ import type { NcRequest } from '~/interface/config';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { MailService } from '~/services/mail/mail.service';
-import { NC_APP_SETTINGS } from '~/constants';
 import { validatePayload } from '~/helpers';
-import { NcError } from '~/helpers/catchError';
+import { NcBaseError, NcError } from '~/helpers/catchError';
 import { extractProps } from '~/helpers/extractProps';
 import { randomTokenString } from '~/helpers/stringHelpers';
-import { BaseUser, PresignedUrl, Store, SyncSource, User } from '~/models';
+import { BaseUser, PresignedUrl, SyncSource, User } from '~/models';
 
 import Noco from '~/Noco';
 import { MetaTable, RootScopes } from '~/utils/globals';
@@ -25,6 +24,7 @@ import { MailEvent } from '~/interface/Mail';
 
 @Injectable()
 export class OrgUsersService {
+  private logger = new Logger(OrgUsersService.name);
   constructor(
     protected readonly baseUsersService: BaseUsersService,
     protected readonly appHooksService: AppHooksService,
@@ -135,7 +135,9 @@ async updateUserEmail(param: {
       await ncMeta.commit();
     } catch (e) {
       await ncMeta.rollback(e);
-      throw e;
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error deleting user', e);
+      NcError.orgUserError('Bad Request');
     }
 
     return true;
@@ -234,7 +236,7 @@ async updateUserEmail(param: {
         } catch (e) {
           console.log(e);
           if (emails.length === 1) {
-            throw e;
+            NcError.orgUserError('Bad Request');
           } else {
             error.push({ email, error: e.message });
           }
@@ -326,18 +328,11 @@ async updateUserEmail(param: {
   }
 
   async appSettingsGet() {
-    let settings = {};
-    try {
-      settings = JSON.parse((await Store.get(NC_APP_SETTINGS))?.value);
-    } catch {}
-    return settings;
+    return await Noco.getAppSettings();
   }
 
   async appSettingsSet(param: { settings: any }) {
-    await Store.saveOrUpdate({
-      value: JSON.stringify(param.settings),
-      key: NC_APP_SETTINGS,
-    });
+    await Noco.updateAppSettings(param.settings);
     return true;
   }
 }

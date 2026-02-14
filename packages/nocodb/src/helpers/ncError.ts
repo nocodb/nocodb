@@ -69,6 +69,10 @@ export class NcError {
     return NcError._.userNotFound(id, args);
   }
 
+  static teamNotFound(id: string, args?: NcErrorArgs): never {
+    return NcError._.teamNotFound(id, args);
+  }
+
   static viewNotFound(id: string, args?: NcErrorArgs): never {
     return NcError._.viewNotFound(id, args);
   }
@@ -217,11 +221,23 @@ export class NcError {
   static allowedOnlySSOGeneratedToken(ncWorkspaceId: string): never {
     return NcError._.allowedOnlySSOGeneratedToken(ncWorkspaceId);
   }
-  static maxInsertLimitExceeded(limit: number, args?: NcErrorArgs): never {
-    return NcError._.maxInsertLimitExceeded(limit, args);
+  static maxPayloadLimitExceeded(limit: number, args?: NcErrorArgs): never {
+    return NcError._.maxPayloadLimitExceeded(limit, args);
   }
   static baseUserError(message: string, args?: NcErrorArgs) {
     return NcError._.baseUserError(message, args);
+  }
+
+  static orgUserError(message: string, args?: NcErrorArgs) {
+    return NcError._.orgUserError(message, args);
+  }
+
+  static tableError(message: string, args?: NcErrorArgs) {
+    return NcError._.tableError(message, args);
+  }
+
+  static columnError(message: string, args?: NcErrorArgs) {
+    return NcError._.columnError(message, args);
   }
 
   static maxWorkspaceLimitReached(args?: NcErrorArgs): never {
@@ -292,6 +308,18 @@ export class NcError {
     humanReadableError: boolean;
   }): never {
     return NcError._.ajvValidationError(param);
+  }
+
+  static externalError(message: string, args?: NcErrorArgs): never {
+    return NcError._.externalError(message, args);
+  }
+
+  static externalTimeOut(message?: string, args?: NcErrorArgs): never {
+    return NcError._.externalTimeOut(message, args);
+  }
+
+  static pluginTestError(message: string, args?: NcErrorArgs): never {
+    return NcError._.pluginTestError(message, args);
   }
   /* endregion statics */
 }

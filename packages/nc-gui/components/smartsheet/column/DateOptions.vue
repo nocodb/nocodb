@@ -28,7 +28,7 @@ const { isSystem } = useColumnCreateStoreOrThrow()
       dropdown-class-name="nc-dropdown-date-format"
     >
       <template #suffixIcon>
-        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+        <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
       </template>
       <a-select-option v-for="(format, i) of [...dateFormats, ...dateMonthFormats]" :key="i" :value="format">
         <div class="w-full flex gap-2 justify-between items-center">

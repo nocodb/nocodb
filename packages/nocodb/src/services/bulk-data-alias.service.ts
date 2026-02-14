@@ -3,7 +3,10 @@ import type { NcApiVersion, NcRequest } from 'nocodb-sdk';
 import type { PathParams } from '~/helpers/dataHelpers';
 import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { NcContext } from '~/interface/config';
-import { getViewAndModelByAliasOrId } from '~/helpers/dataHelpers';
+import {
+  getViewAndModelByAliasOrId,
+  validateV1V2DataPayloadLimit,
+} from '~/helpers/dataHelpers';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Model, Source } from '~/models';
 
@@ -54,6 +57,8 @@ export class BulkDataAliasService {
       undo?: boolean;
     },
   ) {
+    validateV1V2DataPayloadLimit(context, param);
+
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkInsert',
@@ -82,6 +87,8 @@ export class BulkDataAliasService {
       apiVersion?: NcApiVersion;
     },
   ) {
+    validateV1V2DataPayloadLimit(context, param);
+
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpdate',
@@ -127,6 +134,8 @@ export class BulkDataAliasService {
       cookie: NcRequest;
     },
   ) {
+    validateV1V2DataPayloadLimit(context, param);
+
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkDelete',
@@ -163,6 +172,8 @@ export class BulkDataAliasService {
       undo: boolean;
     },
   ) {
+    validateV1V2DataPayloadLimit(context, param);
+
     return await this.executeBulkOperation(context, {
       ...param,
       operation: 'bulkUpsert',

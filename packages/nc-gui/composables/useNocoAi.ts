@@ -1,4 +1,4 @@
-import type { IntegrationType, SerializedAiViewType, TableType } from 'nocodb-sdk'
+import { BaseVersion, type IntegrationType, type SerializedAiViewType, type TableType } from 'nocodb-sdk'
 
 const aiIntegrationNotFound = 'AI integration not found'
 
@@ -13,7 +13,7 @@ export const useNocoAi = createSharedComposable(() => {
 
   const { isFeatureEnabled } = useBetaFeatureToggle()
 
-  const isAiFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_FEATURES))
+  const isAiFeaturesEnabled = computed(() => isEeUI)
 
   const isAiBetaFeaturesEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.AI_BETA_FEATURES))
 
@@ -110,7 +110,11 @@ export const useNocoAi = createSharedComposable(() => {
       aiLoading.value = true
       aiError.value = ''
 
-      const res = await $api.ai.schemaCreate(workspaceStore.activeWorkspaceId, { operation, input })
+      const res = await $api.ai.schemaCreate(workspaceStore.activeWorkspaceId, {
+        operation,
+        input,
+        ...(isFeatureEnabled(FEATURE_FLAG.BASES_V3) ? { version: BaseVersion.V3 } : {}),
+      })
 
       return res
     } catch (e) {

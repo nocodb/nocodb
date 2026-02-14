@@ -1,7 +1,7 @@
-import { isNumericCol, numericUITypes, UITypes } from '~/lib';
+import UITypes, { isNumericCol, numericUITypes } from '~/lib/UITypes';
 import type { Api, ColumnType, FilterType } from '~/lib/Api';
-import { isDateMonthFormat } from '~/lib';
-import { parseProp } from '~/lib';
+import { isDateMonthFormat } from '~/lib/dateTimeHelper';
+import { parseProp } from '~/lib/helperFunctions';
 
 export interface ComparisonOpUiType {
   text: string;
@@ -35,7 +35,8 @@ export interface FilterRowChangeEvent {
     | 'value'
     | 'dynamic'
     | 'child_add'
-    | 'child_delete';
+    | 'child_delete'
+    | 'order';
   prevValue: any;
   value: any;
   index: number;
@@ -930,4 +931,6 @@ export const deleteFilterWithSub = async (
 
 // Type definitions for compatibility
 export type Filter = FilterType;
-export type ColumnFilterType = FilterType;
+export type ColumnFilterType = FilterType & {
+  tmp_id?: string; // will be used for reordering draft filters
+};

@@ -1,6 +1,7 @@
 import { ProjectRoles, WorkspaceUserRoles } from '../enums';
 
 export enum PermissionKey {
+  TABLE_VISIBILITY = 'TABLE_VISIBILITY',
   TABLE_RECORD_ADD = 'TABLE_RECORD_ADD',
   TABLE_RECORD_DELETE = 'TABLE_RECORD_DELETE',
   RECORD_FIELD_EDIT = 'RECORD_FIELD_EDIT',
@@ -28,10 +29,12 @@ export enum PermissionRole {
 // Permission option values used across the application
 export enum PermissionOptionValue {
   VIEWERS_AND_UP = 'viewers_and_up',
+  COMMENTERS_AND_UP = 'commenters_and_up',
   EDITORS_AND_UP = 'editors_and_up',
   CREATORS_AND_UP = 'creators_and_up',
   SPECIFIC_USERS = 'specific_users',
   NOBODY = 'nobody',
+  EVERYONE = 'everyone',
 }
 
 export interface PermissionOption {
@@ -59,7 +62,8 @@ export const PermissionOptions: PermissionOption[] = [
   {
     value: PermissionOptionValue.VIEWERS_AND_UP,
     label: 'Viewers and up',
-    description: 'Members with Viewer, Editor, Creator or Owner role',
+    description:
+      'Members with Viewer, Commenter, Editor, Creator or Owner role',
     icon: 'role_viewer',
   },
   {
@@ -67,6 +71,13 @@ export const PermissionOptions: PermissionOption[] = [
     label: 'Specific users',
     description: 'Specific set of members',
     icon: 'ncUsers',
+  },
+  {
+    value: PermissionOptionValue.EVERYONE,
+    label: 'Everyone',
+    description: 'All members can access',
+    icon: 'ncUsers',
+    isDefault: true,
   },
   {
     value: PermissionOptionValue.NOBODY,
@@ -98,6 +109,13 @@ export const PermissionRoleMap = {
 };
 
 export const PermissionMeta = {
+  [PermissionKey.TABLE_VISIBILITY]: {
+    minimumRole: PermissionRole.VIEWER,
+    label: 'Who can view table',
+    description: 'can view table',
+    userSelectorDescription:
+      'Only members selected here will be able to view and access this table.',
+  },
   [PermissionKey.TABLE_RECORD_ADD]: {
     minimumRole: PermissionRole.EDITOR,
     label: 'Who can create records',
@@ -143,6 +161,8 @@ export const getPermissionOptionValue = (
   if (grantedType === PermissionGrantedType.ROLE) {
     if (grantedRole === PermissionRole.VIEWER) {
       return PermissionOptionValue.VIEWERS_AND_UP;
+    } else if (grantedRole === PermissionRole.COMMENTER) {
+      return PermissionOptionValue.COMMENTERS_AND_UP;
     } else if (grantedRole === PermissionRole.CREATOR) {
       return PermissionOptionValue.CREATORS_AND_UP;
     } else {
@@ -153,5 +173,6 @@ export const getPermissionOptionValue = (
   } else if (grantedType === PermissionGrantedType.NOBODY) {
     return PermissionOptionValue.NOBODY;
   }
+  // Default for table visibility is everyone, for others it's editors and up
   return PermissionOptionValue.EDITORS_AND_UP;
 };

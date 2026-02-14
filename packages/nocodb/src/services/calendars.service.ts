@@ -44,6 +44,10 @@ export class CalendarsService {
       param.calendar,
     );
 
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
     const model = await Model.get(context, param.tableId, ncMeta);
 
     param.calendar.title = param.calendar.title?.trim();
@@ -96,6 +100,7 @@ export class CalendarsService {
     const view = await View.get(context, id, ncMeta);
 
     await NocoCache.appendToList(
+      context,
       CacheScope.VIEW,
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,

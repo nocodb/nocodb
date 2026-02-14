@@ -53,11 +53,7 @@ export class SourceCreateController {
       user: req.user,
       baseId,
       source: body,
-      req: {
-        user: req.user,
-        clientIp: req.clientIp,
-        headers: req.headers,
-      },
+      req,
     });
 
     return { id: job.id };

@@ -42,7 +42,7 @@ async function changeLanguage(lang: string) {
       <div class="nc-base-menu-item w-fit capitalize">
         {{ Language[key] || lang }}
       </div>
-      <component :is="iconMap.check" v-if="key === locale" class="text-primary w-4 h-4" />
+      <component :is="iconMap.check" v-if="key === locale" class="text-nc-content-brand w-4 h-4" />
     </div>
   </a-menu-item>
 </template>

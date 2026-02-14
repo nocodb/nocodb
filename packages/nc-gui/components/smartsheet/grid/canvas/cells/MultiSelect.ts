@@ -4,7 +4,7 @@ import type { RenderRectangleProps } from '../utils/types'
 
 export const MultiSelectCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, x: _x, y: _y, width: _width, height, pv, padding } = props
+    const { column, x: _x, y: _y, width: _width, height, pv, padding, getColor, isDark } = props
     let x = _x + padding
     let y = _y
     let width = _width - padding * 2
@@ -62,13 +62,16 @@ export const MultiSelectCellRenderer: CellRenderer = {
         line += 1
       }
 
+      const opColor = optionsMap[text]?.color ?? defaultColor
+      const opBgColor = !isDark ? opColor : getAdaptiveTint(opColor, { isDarkMode: isDark, shade: -10 })
+
       renderTag(ctx, {
         x,
         y: y + topPadding,
         width: optionWidth + tagPadding * 2,
         height: tagHeight,
         radius: 12,
-        fillStyle: optionsMap[text]?.color ?? defaultColor,
+        fillStyle: opBgColor,
       })
 
       renderSingleLineText(ctx, {
@@ -79,7 +82,9 @@ export const MultiSelectCellRenderer: CellRenderer = {
         textAlign: 'left',
         verticalAlign: 'middle',
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: getSelectTypeOptionTextColor(optionsMap[text]?.color ?? defaultColor),
+        fillStyle: !isDark
+          ? getSelectTypeOptionTextColor(opColor, getColor, true)
+          : getOppositeColorOfBackground(opBgColor, opColor),
         height,
       })
 
@@ -192,13 +197,13 @@ export const MultiSelectCellRenderer: CellRenderer = {
   },
 
   async handleClick({ row, column, makeCellEditable, selected }) {
-    if (column.columnObj?.readonly || !column?.isCellEditable || !selected) return false
+    if (column.columnObj?.readonly || !column?.isCellEditable || !selected || column.isSyncedColumn) return false
     makeCellEditable(row, column)
     return true
   },
 
   async handleKeyDown({ e, row, column, makeCellEditable }) {
-    if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable) return false
+    if (column.readonly || column.columnObj?.readonly || !column?.isCellEditable || column.isSyncedColumn) return false
     if (e.key.length === 1 || e.key === 'Enter') {
       makeCellEditable(row, column)
       return true

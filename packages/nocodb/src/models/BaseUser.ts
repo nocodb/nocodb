@@ -65,6 +65,7 @@ export default class BaseUser {
 
     for (const fk of uniqueFks) {
       await NocoCache.deepDel(
+        context,
         `${CacheScope.BASE_USER}:${fk}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
@@ -72,11 +73,13 @@ export default class BaseUser {
 
     for (const d of bulkData) {
       await NocoCache.set(
+        context,
         `${CacheScope.BASE_USER}:${d.base_id}:${d.fk_user_id}`,
         d,
       );
 
       await NocoCache.appendToList(
+        context,
         CacheScope.BASE_USER,
         [d.base_id],
         `${CacheScope.BASE_USER}:${d.base_id}:${d.fk_user_id}`,
@@ -111,13 +114,14 @@ export default class BaseUser {
       true,
     );
 
-    const res = await this.get(context, base_id, fk_user_id, ncMeta);
-
-    await NocoCache.appendToList(
-      CacheScope.BASE_USER,
-      [base_id],
-      `${CacheScope.BASE_USER}:${base_id}:${fk_user_id}`,
+    // delete list to fetch updated list next time
+    await NocoCache.deepDel(
+      context,
+      `${CacheScope.BASE_USER}:${base_id}:list`,
+      CacheDelDirection.PARENT_TO_CHILD,
     );
+
+    const res = await this.get(context, base_id, fk_user_id, ncMeta);
 
     cleanCommandPaletteCacheForUser(fk_user_id).catch(() => {
       logger.error('Error cleaning command palette cache');
@@ -139,6 +143,7 @@ export default class BaseUser {
       baseId &&
       userId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.BASE_USER}:${baseId}:${userId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -177,6 +182,7 @@ export default class BaseUser {
         baseUser.meta = parseMetaProp(baseUser);
 
         await NocoCache.set(
+          context,
           `${CacheScope.BASE_USER}:${baseId}:${userId}`,
           baseUser,
         );
@@ -210,10 +216,13 @@ export default class BaseUser {
       include_ws_deleted?: boolean;
       include_internal_user?: boolean;
       user_ids?: string[];
+      include_team_users?: boolean;
     },
     ncMeta = Noco.ncMeta,
   ): Promise<(Partial<User> & BaseUser & { deleted?: boolean })[]> {
-    const cachedList = await NocoCache.getList(CacheScope.BASE_USER, [base_id]);
+    const cachedList = await NocoCache.getList(context, CacheScope.BASE_USER, [
+      base_id,
+    ]);
     let { list: baseUsers } = cachedList;
     const { isNoneList } = cachedList;
 
@@ -259,10 +268,13 @@ export default class BaseUser {
       });
 
       if (!strict_in_record) {
-        await NocoCache.setList(CacheScope.BASE_USER, [base_id], baseUsers, [
-          'base_id',
-          'id',
-        ]);
+        await NocoCache.setList(
+          context,
+          CacheScope.BASE_USER,
+          [base_id],
+          baseUsers,
+          ['base_id', 'id'],
+        );
       }
     }
 
@@ -337,9 +349,13 @@ export default class BaseUser {
       },
     );
 
-    await NocoCache.update(`${CacheScope.BASE_USER}:${baseId}:${userId}`, {
-      roles,
-    });
+    await NocoCache.update(
+      context,
+      `${CacheScope.BASE_USER}:${baseId}:${userId}`,
+      {
+        roles,
+      },
+    );
 
     cleanCommandPaletteCacheForUser(userId).catch(() => {
       logger.error('Error cleaning command palette cache');
@@ -370,6 +386,7 @@ export default class BaseUser {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.BASE_USER}:${baseId}:${userId}`,
       updateObj,
     );
@@ -396,6 +413,7 @@ export default class BaseUser {
 
     // delete list cache to refresh list
     await NocoCache.deepDel(
+      context,
       `${CacheScope.BASE_USER}:${baseId}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );
@@ -427,17 +445,7 @@ export default class BaseUser {
     // TODO implement CacheScope.USER_BASE
     const qb = ncMeta
       .knex(MetaTable.PROJECT)
-      .select(`${MetaTable.PROJECT}.id`)
-      .select(`${MetaTable.PROJECT}.title`)
-      .select(`${MetaTable.PROJECT}.prefix`)
-      .select(`${MetaTable.PROJECT}.status`)
-      .select(`${MetaTable.PROJECT}.description`)
-      .select(`${MetaTable.PROJECT}.meta`)
-      .select(`${MetaTable.PROJECT}.order`)
-      .select(`${MetaTable.PROJECT}.color`)
-      .select(`${MetaTable.PROJECT}.is_meta`)
-      .select(`${MetaTable.PROJECT}.created_at`)
-      .select(`${MetaTable.PROJECT}.updated_at`)
+      .select(`${MetaTable.PROJECT}.*`)
       .select(`${MetaTable.PROJECT_USERS}.starred`)
       .select(`${MetaTable.PROJECT_USERS}.roles as project_role`)
       .select(`${MetaTable.PROJECT_USERS}.updated_at as last_accessed`)

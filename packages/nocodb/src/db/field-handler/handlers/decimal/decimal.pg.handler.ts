@@ -12,4 +12,5 @@ export class DecimalPgHandler extends GenericPgFieldHandler {
 
   override filterBlank = this.decimalGeneralHandler.filterBlank;
   override filterNotblank = this.decimalGeneralHandler.filterNotblank;
+  override filterNeq = this.decimalGeneralHandler.filterNeq;
 }

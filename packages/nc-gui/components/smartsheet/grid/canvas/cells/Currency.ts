@@ -3,7 +3,7 @@ import { renderSingleLineText, renderTagLabel } from '../utils/canvas'
 
 export const CurrencyRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, value, x, y, width, height, pv, padding, textColor = '#4a5268' } = props
+    const { column, value, x, y, width, height, pv, padding, textColor = themeV4Colors.gray['600'], getColor } = props
 
     if (!isValidValue(value) || isNaN(value)) {
       return {
@@ -51,7 +51,7 @@ export const CurrencyRenderer: CellRenderer = {
         text: formattedValue,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: pv ? '#3366FF' : textColor,
+        fillStyle: pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
       })
 

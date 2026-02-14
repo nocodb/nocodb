@@ -5,7 +5,7 @@ defineProps<{
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isGrid, isGallery, isKanban, isMap, isCalendar, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+const { isGrid, isGallery, isKanban, isMap, isCalendar, isForm, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -19,8 +19,6 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isViewActionsEnabled } = useActionPane()
 
-const { isLocalMode } = useViewColumnsOrThrow()
-
 const containerRef = ref<HTMLElement>()
 
 const { width } = useElementSize(containerRef)
@@ -28,7 +26,7 @@ const { width } = useElementSize(containerRef)
 const router = useRouter()
 
 const disableToolbar = computed(
-  () => router.currentRoute.value.query?.disableToolbar === 'true' || (isCalendar.value && isMobileMode.value),
+  () => router.currentRoute.value.query?.disableToolbar === 'true' || (isCalendar.value && isMobileMode.value) || isForm.value,
 )
 
 const isTab = computed(() => {
@@ -84,7 +82,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
           <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery || isKanban || isMap" />
 
-          <SmartsheetToolbarGroupByMenu v-if="isGrid && !isLocalMode" />
+          <SmartsheetToolbarGroupByMenu v-if="isGrid" />
 
           <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery || isKanban" />
 

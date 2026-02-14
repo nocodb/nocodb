@@ -5,7 +5,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { toggleFeature, features, isEngineeringModeOn } = useBetaFeatureToggle()
+const { toggleFeature, features, isEngineeringModeOn, isAdvancedModeOn } = useBetaFeatureToggle()
 
 const value = useVModel(props, 'value')
 
@@ -23,7 +23,12 @@ const isEnabledOnPremFeature = (feature: BetaFeatureType) => {
 }
 
 const isFeatureVisible = (feature: BetaFeatureType) => {
-  return (!feature?.isEE || isEeUI) && (!feature?.isEngineering || isEngineeringModeOn.value) && isEnabledOnPremFeature(feature)
+  return (
+    (!feature?.isEE || isEeUI) &&
+    (!feature?.isEngineering || isEngineeringModeOn.value) &&
+    (!feature?.isAdvanced || isAdvancedModeOn.value) &&
+    isEnabledOnPremFeature(feature)
+  )
 }
 
 const filteredFeatures = computed(() => {
@@ -120,6 +125,26 @@ const handleClick = () => {
   }
 }
 
+const advancedClickCount = ref(0)
+const advancedClickTimer = ref<NodeJS.Timeout | undefined>(undefined)
+const handleAdvancedClick = () => {
+  advancedClickCount.value++
+  if (advancedClickCount.value === 1) {
+    if (advancedClickTimer.value) clearTimeout(advancedClickTimer.value)
+    advancedClickTimer.value = setTimeout(() => {
+      advancedClickCount.value = 0
+    }, 3000)
+  }
+  if (advancedClickCount.value >= 3) {
+    isAdvancedModeOn.value = !isAdvancedModeOn.value
+    advancedClickCount.value = 0
+    if (advancedClickTimer.value) {
+      clearTimeout(advancedClickTimer.value)
+      advancedClickTimer.value = undefined
+    }
+  }
+}
+
 useEventListener('keydown', (e: KeyboardEvent) => {
   if (isActiveInputElementExist()) return
   if (e.shiftKey && e.altKey && e.code === 'KeyE') {
@@ -153,6 +178,7 @@ onUnmounted(() => {
 
       <div
         class="text-sm font-weight-500 text-nc-content-gray-subtle2 leading-5 m-4 mb-0 flex items-center justify-between gap-3 pr-3"
+        @click="handleAdvancedClick"
       >
         <span>
           {{ $t('labels.toggleExperimentalFeature') }}
@@ -226,7 +252,7 @@ onUnmounted(() => {
 <style lang="scss">
 .nc-features-drawer {
   .ant-drawer-content-wrapper {
-    @apply !rounded-l-xl overflow-hidden mt-[48px] h-[calc(100vh_-_48px)];
+    @apply !rounded-l-xl overflow-hidden mt-[48px] h-[calc(100vh_-_48px)] border-1 border-r-0 border-nc-border-gray-medium;
     .ant-drawer-body {
       @apply p-0;
     }

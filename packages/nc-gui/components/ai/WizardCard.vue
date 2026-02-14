@@ -76,7 +76,7 @@ const handleChangeTab = (tab: string) => {
       @apply relative px-4 py-2 text-sm cursor-pointer rounded-t-lg border-t-1 border-x-1;
 
       &.active-tab {
-        @apply text-nc-content-purple-dark bg-nc-bg-default border-nc-border-purple-medium font-semibold;
+        @apply text-nc-content-purple-dark dark:text-nc-content-purple-medium bg-nc-bg-default border-nc-border-purple-medium font-semibold;
 
         &::after {
           @apply absolute content-[''] -bottom-[1px] left-0 right-0 border-b-1 border-nc-bg-default;

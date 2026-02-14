@@ -600,7 +600,7 @@ const customRow = (record: Record<string, any>) => ({
     <NcModal v-model:visible="successConfirmModal.isOpen" centered size="small" @keydown.esc="successConfirmModal.isOpen = false">
       <div class="flex gap-4">
         <div>
-          <GeneralIcon icon="circleCheckSolid" class="flex-none !text-nc-content-green-dark mt-0.5 !h-6 !w-6" />
+          <GeneralIcon icon="circleCheckSolid" class="flex-none !text-green-700 mt-0.5 !h-6 !w-6" />
         </div>
 
         <div class="flex flex-col gap-3">

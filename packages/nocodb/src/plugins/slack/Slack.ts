@@ -12,12 +12,8 @@ export default class Slack implements IWebhookNotificationAdapter {
       try {
         return await axios.post(webhook_url, {
           text,
-          httpAgent: useAgent(webhook_url, {
-            stopPortScanningByUrlRedirection: true,
-          }),
-          httpsAgent: useAgent(webhook_url, {
-            stopPortScanningByUrlRedirection: true,
-          }),
+          httpAgent: useAgent(webhook_url),
+          httpsAgent: useAgent(webhook_url),
         });
       } catch (e) {
         console.log(e);

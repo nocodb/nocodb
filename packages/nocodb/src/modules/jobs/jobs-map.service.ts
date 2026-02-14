@@ -57,6 +57,10 @@ export class JobsMap {
       [JobTypes.MetaSync]: {
         this: this.metaSyncProcessor,
       },
+      [JobTypes.MetaDiff]: {
+        this: this.metaSyncProcessor,
+        fn: 'metaDiffJob',
+      },
       [JobTypes.SourceCreate]: {
         this: this.sourceCreateProcessor,
       },

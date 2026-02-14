@@ -21,6 +21,9 @@ const { toggleRead } = notificationStore
     <NotificationItemMentionEvent v-else-if="['mention'].includes(item.type)" :item="item" />
     <NotificationItemRowMentionEvent v-else-if="AppEvents.ROW_USER_MENTION === item.type" :item="item" />
     <NotificationItemWorkspaceUpgradeRequest v-else-if="item.type === AppEvents.WORKSPACE_UPGRADE_REQUEST" :item="item" />
+    <NotificationItemWorkspaceTeamInvite v-else-if="item.type === AppEvents.WORKSPACE_TEAM_INVITE" :item="item" />
+    <NotificationItemProjectTeamInvite v-else-if="item.type === AppEvents.PROJECT_TEAM_INVITE" :item="item" />
+    <NotificationItemTeamMemberInvite v-else-if="item.type === AppEvents.TEAM_MEMBER_ADD" :item="item" />
     <span v-else />
   </div>
 </template>

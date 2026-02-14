@@ -1,5 +1,6 @@
 import type { Api } from 'nocodb-sdk'
 import { NcErrorType } from 'nocodb-sdk'
+import type { UseGlobalReturn } from '../composables/useGlobal/types'
 import type { Actions } from '~/composables/useGlobal/types'
 
 /**
@@ -53,7 +54,7 @@ export default defineNuxtRouteMiddleware(async (to, from) => {
   }
 
   /** Try token population based on short-lived-token */
-  await tryShortTokenAuth(api, state.signIn)
+  await tryShortTokenAuth(api, state.signIn, state)
 
   /** if public allow all visitors */
   if (to.meta.public) return
@@ -167,7 +168,7 @@ async function tryGoogleAuth(api: Api<any>, signIn: Actions['signIn']) {
 /**
  * If short-token present, try using it to generate long-living token before navigating to the next page
  */
-async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
+async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn'], state: UseGlobalReturn) {
   const { setError } = useSsoError()
 
   if (window.location.search && /\bshort-token=/.test(window.location.search)) {
@@ -189,12 +190,14 @@ async function tryShortTokenAuth(api: Api<any>, signIn: Actions['signIn']) {
       // if extra prop is null/undefined set it as an empty object as fallback
       extraProps = extra || {}
 
+      if (state.lastUsedAuthMethod) state.lastUsedAuthMethod.value = 'sso'
+
       signIn(token)
     } catch (e: any) {
-      if (e?.response?.data?.error === NcErrorType.MAX_WORKSPACE_LIMIT_REACHED) {
+      if (e?.response?.data?.error === NcErrorType.ERR_MAX_WORKSPACE_LIMIT_REACHED) {
         // Store error information in global state
         setError({
-          type: NcErrorType.MAX_WORKSPACE_LIMIT_REACHED,
+          type: NcErrorType.ERR_MAX_WORKSPACE_LIMIT_REACHED,
           message: e?.response?.data?.message || 'Maximum workspace limit reached',
         })
         // navigate to sso page and display the error details

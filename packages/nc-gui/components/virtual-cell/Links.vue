@@ -44,7 +44,7 @@ const { t } = useI18n()
 
 const { state, isNew } = useSmartsheetRowStoreOrThrow()
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTableDisplayValueProp, meta } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -58,7 +58,10 @@ const relatedTableDisplayColumn = computed(
 loadRelatedTableMeta()
 
 const hasEditPermission = computed(() => {
-  return (!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)
+  return (
+    ((!readOnly.value && isUIAllowed('dataEdit') && !isUnderLookup.value) || (isForm.value && !readOnly.value)) &&
+    !(column.value?.readonly && meta.value?.synced)
+  )
 })
 
 const textVal = computed(() => {
@@ -201,7 +204,7 @@ onUnmounted(() => {
             v-e="['c:cell:links:modal:open']"
             :title="textVal"
             class="text-center nc-datatype-link underline-transparent nc-canvas-links-text font-weight-500"
-            :class="{ '!text-gray-300': !textVal }"
+            :class="{ '!text-nc-content-brand-hover': !textVal }"
             :tabindex="readOnly ? -1 : 0"
             @click.stop.prevent="isForm && !isExpandedFormOpen && hasEditPermission ? openListDlg() : openChildList()"
             @keydown.enter.stop.prevent="isForm && !isExpandedFormOpen && hasEditPermission ? openListDlg() : openChildList"
@@ -219,7 +222,7 @@ onUnmounted(() => {
           @keydown.enter.stop="openListDlg"
         >
           <MdiPlus
-            class="select-none !text-md text-gray-700 nc-action-icon nc-plus !xs:visible invisible group-hover:visible group-focus:visible"
+            class="select-none !text-md text-nc-content-gray-subtle nc-action-icon nc-plus !xs:visible invisible group-hover:visible group-focus:visible"
             @click.stop="openListDlg"
           />
         </div>

@@ -11,6 +11,8 @@ const container = ref()
 
 const { isUIAllowed } = useRoles()
 
+const { $e } = useNuxtApp()
+
 const { selectedDate, formattedData, formattedSideBarData, calendarRange, updateRowProperty, isSyncedFromColumn } =
   useCalendarViewStoreOrThrow()
 

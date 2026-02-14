@@ -146,9 +146,9 @@ const handleChange = () => {
               {{ $t('activity.kanban.stackedBy') }}
             </span>
             <div
-              class="flex items-center rounded-md transition-colors duration-0.3s bg-gray-100 px-1 min-h-5 max-w-[108px]"
+              class="flex items-center rounded-md transition-colors duration-0.3s bg-nc-bg-gray-light px-1 min-h-5 max-w-[108px]"
               :class="{
-                'group-hover:bg-gray-200': !isLocked,
+                'group-hover:bg-nc-bg-gray-medium': !isLocked,
               }"
             >
               <span class="!text-[13px] font-medium truncate !leading-5">{{ groupingField }}</span>
@@ -159,7 +159,7 @@ const handleChange = () => {
     </NcTooltip>
 
     <template #overlay>
-      <div v-if="open" class="p-4 w-90 bg-white nc-table-toolbar-menu rounded-lg flex flex-col gap-5" @click.stop>
+      <div v-if="open" class="p-4 w-90 bg-nc-bg-default nc-table-toolbar-menu rounded-lg flex flex-col gap-5" @click.stop>
         <div class="flex flex-col gap-2">
           <div>
             {{ $t('general.groupingField') }}
@@ -175,7 +175,7 @@ const handleChange = () => {
                 @change="handleChange"
                 @click.stop
               >
-                <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+                <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
                 <a-select-option v-for="option of singleSelectFieldOptions" :key="option.value" :value="option.value">
                   <div class="w-full flex gap-2 items-center justify-between" :title="option.label">
                     <div class="flex items-center gap-1 max-w-[calc(100%_-_20px)]">
@@ -212,7 +212,7 @@ const handleChange = () => {
             :loading="isLoading === 'hideEmptyStack'"
             :disabled="isLocked"
           >
-            <div class="text-sm text-gray-800">
+            <div class="text-sm text-nc-content-gray">
               {{ $t('general.hide') }}
               {{ $t('general.empty').toLowerCase() }}
               {{ $t('general.stack').toLowerCase() }}

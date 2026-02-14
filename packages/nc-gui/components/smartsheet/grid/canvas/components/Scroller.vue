@@ -219,7 +219,7 @@ const startDragging = (axis: 'vertical' | 'horizontal', event: DragEvent | Touch
 }
 
 function handleDrag(event: MouseEvent | TouchEvent) {
-  if (!isDragging.value) return
+  if (!isDragging.value || !contentWrapper.value || !wrapperRef.value) return
 
   // normalize again
   const clientY = (event as TouchEvent).touches ? (event as TouchEvent).touches[0].clientY : (event as MouseEvent).clientY
@@ -548,7 +548,7 @@ defineExpose({
 
 .custom-scrollbar-thumb {
   position: absolute;
-  background: rgba(0, 0, 0, 0.4);
+  background: rgba(var(--rgb-base), 0.4);
   border-radius: 4px;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -556,7 +556,7 @@ defineExpose({
 }
 
 .custom-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(var(--rgb-base), 0.6);
 }
 
 .custom-scrollbar-thumb.vertical {

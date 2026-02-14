@@ -94,8 +94,11 @@ const [useProvideViewAggregate, useViewAggregate] = useInjectionState(
 
           try {
             const data = !isPublic.value
-              ? await api.dbDataTableAggregate.dbDataTableAggregate(meta.value.id, {
+              ? await api.internal.getOperation(meta.value.fk_workspace_id!, meta.value.base_id!, {
+                  operation: 'dataAggregate',
+                  tableId: meta.value.id,
                   viewId: view.value.id,
+                  baseId: meta.value.base_id!,
                   where: where?.value,
                   ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
                   ...(fields ? { aggregation: fields } : {}),

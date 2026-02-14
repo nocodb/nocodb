@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { type FilterType, UITypes } from 'nocodb-sdk'
+import Draggable from 'vuedraggable'
+import { type FilterType, UITypes, parseProp } from 'nocodb-sdk'
 import { type GroupEmits, type GroupProps } from './types'
 import { SmartsheetToolbarFilterGroupRow } from '#components'
+
 const props = defineProps<GroupProps>()
 const emits = defineEmits<GroupEmits>()
 const vModel = useVModel(props, 'modelValue', emits)
@@ -23,8 +25,10 @@ const nested = computed(() => props.nestedLevel > 0)
 const visibleFilters = computed(() => vModel.value.filter((filter) => filter.status !== 'delete'))
 
 const scrollToBottom = () => {
-  wrapperDomRef.value?.scrollTo({
-    top: wrapperDomRef.value.scrollHeight,
+  const wrapperDomRefEl = wrapperDomRef.value?.$el as HTMLDivElement
+
+  wrapperDomRefEl?.scrollTo({
+    top: wrapperDomRefEl?.scrollHeight,
     behavior: 'smooth',
   })
 }
@@ -85,6 +89,14 @@ const handleFilterChange = async (filter) => {
         filter.comparison_sub_op = 'exactDate'
       }
     }
+
+    // Initialize filter.meta if it doesn't exist
+    if (!filter.meta) {
+      filter.meta = {}
+    }
+    if (!filter.meta.timezone) {
+      filter.meta.timezone = getTimezoneFromColumn(col)
+    }
   }
 
   filterPrevComparisonOp.value[filter.id!] = filter.comparison_op!
@@ -115,8 +127,12 @@ const onLockedViewFooterOpen = () => {}
 
 const innerAdd = async (isGroup: boolean) => {
   const prevValue = [...vModel.value]
+
+  const tmp_id = generateUniqueRandomUUID(vModel.value || [], ['id', 'tmp_id'])
+
   if (isGroup && props.handler?.addFilterGroup) {
     await props.handler.addFilterGroup({
+      tmp_id,
       type: 'add',
       filter: null,
       filters: vModel.value,
@@ -128,6 +144,7 @@ const innerAdd = async (isGroup: boolean) => {
     })
   } else if (!isGroup && props.handler?.addFilter) {
     await props.handler.addFilter({
+      tmp_id,
       type: 'add',
       filter: null,
       filters: vModel.value,
@@ -140,6 +157,7 @@ const innerAdd = async (isGroup: boolean) => {
   } else {
     const newFilter = isGroup
       ? {
+          tmp_id,
           _id: Math.random().toString(36).substring(2, 15),
           is_group: true,
           logical_op: vModel.value[0]?.logical_op ?? 'and',
@@ -149,6 +167,7 @@ const innerAdd = async (isGroup: boolean) => {
           order: (vModel.value?.[vModel.value?.length - 1]?.order ?? 0) + 1,
         }
       : {
+          tmp_id,
           _id: Math.random().toString(36).substring(2, 15),
           is_group: false,
           logical_op: vModel.value[0]?.logical_op ?? 'and',
@@ -195,6 +214,7 @@ const addFilter = async () => {
 const addFilterGroup = async () => {
   return innerAdd(true)
 }
+
 const onFilterDelete = async (
   event: {
     filter: ColumnFilterType
@@ -228,6 +248,98 @@ const onFilterDelete = async (
       fk_parent_id: props.fkParentId,
       prevValue,
     })
+  }
+}
+
+const onFilterCopy = async (
+  event: {
+    filter: ColumnFilterType
+    index: number
+  },
+  index: number,
+) => {
+  const prevValue = [...vModel.value]
+
+  if (props.handler?.copyFilter) {
+    await props.handler?.copyFilter({
+      type: 'copy',
+      filter: vModel.value[index],
+      filters: vModel.value,
+      index: props.index,
+      value: [...vModel.value],
+      parentFilter: props.parentFilter,
+      fk_parent_id: props.fkParentId,
+      prevValue,
+    })
+  } else {
+    const copiedFilter = vModel.value.splice(index, 1)
+
+    emits('change', {
+      type: 'copy',
+      filter: copiedFilter,
+      filters: [...vModel.value],
+      index: props.index,
+      value: [...vModel.value],
+      parentFilter: props.parentFilter,
+      fk_parent_id: props.fkParentId,
+      prevValue,
+    })
+  }
+}
+
+function onMoveCallback(event: any) {
+  // disable nested drag drop for now
+  if (event.from !== event.to) {
+    return false
+  }
+}
+
+const onMove = async (event: { moved: { newIndex: number; oldIndex: number; element: ColumnFilterType } }) => {
+  /**
+   * If event has moved property that means reorder is on same level
+   */
+  if (event.moved) {
+    const {
+      moved: { newIndex = 0, oldIndex = 0, element },
+    } = event
+
+    if (!element || (!element.id && !element.tmp_id) || visibleFilters.value.length === 1) return
+
+    const oldOrder = element.order
+
+    let nextOrder: number
+
+    // set new order value based on the new order of the items
+    if (visibleFilters.value.length - 1 === newIndex) {
+      // If moving to the end, set nextOrder greater than the maximum order in the list
+      nextOrder = Math.max(...visibleFilters.value.map((item) => item?.order ?? 0)) + 1
+    } else if (newIndex === 0) {
+      // If moving to the beginning, set nextOrder smaller than the minimum order in the list
+      nextOrder = Math.min(...visibleFilters.value.map((item) => item?.order ?? 0)) / 2
+    } else {
+      nextOrder =
+        (parseFloat(String(visibleFilters.value[newIndex - 1]?.order ?? 0)) +
+          parseFloat(String(visibleFilters.value[newIndex + 1]?.order ?? 0))) /
+        2
+    }
+
+    const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
+
+    element.order = _nextOrder
+
+    const elementIndex =
+      vModel.value.findIndex((item) => item?.id === element?.id) ||
+      vModel.value.findIndex((item) => item?.tmp_id === element?.tmp_id)
+
+    if (props.handler?.rowChange) {
+      props.handler.rowChange({
+        filter: element,
+        type: 'order',
+        prevValue: oldOrder,
+        value: _nextOrder,
+        index: elementIndex,
+      })
+    }
   }
 }
 // #endregion
@@ -314,18 +426,26 @@ const onFilterDelete = async (
       <slot name="root-header"></slot>
     </template>
     <!-- #region filter group rows -->
-    <div
+    <Draggable
       v-if="visibleFilters && visibleFilters.length"
       ref="wrapperDomRef"
+      :list="vModel"
+      v-bind="getDraggableAutoScrollOptions({ scrollSensitivity: 100 })"
+      group="nc-filter-group-rows"
+      ghost-class="bg-nc-bg-gray-extralight"
+      draggable=".nc-filter-group-row"
+      handle=".nc-filter-group-row-drag-handler"
       class="flex flex-col gap-y-1.5 nc-filter-grid min-w-full w-min"
       :class="{
         'max-h-420px nc-scrollbar-thin nc-filter-top-wrapper pr-4 mt-1 mb-2 py-1': !nested && !queryFilter,
         '!pr-0': webHook && !nested,
       }"
+      :move="onMoveCallback"
+      @change="onMove($event)"
       @click.stop
     >
-      <template v-for="(filter, i) in vModel" :key="i">
-        <template v-if="filter.status !== 'delete'">
+      <template #item="{ element: filter, index: i }">
+        <div v-if="filter.status !== 'delete'" :key="i" class="nc-filter-group-row min-w-full w-min max-w-full">
           <template v-if="filter.is_group">
             <slot name="filterGroupRow"> </slot>
             <template v-if="!slotHasChildren('filterGroupRow')">
@@ -347,12 +467,14 @@ const onFilterDelete = async (
                 :filter-per-view-limit="filterPerViewLimit"
                 :disable-add-new-filter="disableAddNewFilter"
                 :filters-count="filtersCount"
+                :visible-filter-count="visibleFilters.length"
                 :query-filter="queryFilter"
                 :handler="handler"
                 :is-colour-filter="isColourFilter"
                 :is-loading-filter="isLoadingFilter"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
+                @copy="onFilterCopy($event, i)"
               />
             </template>
           </template>
@@ -372,16 +494,18 @@ const onFilterDelete = async (
                 :widget="widget"
                 :link="link"
                 :handler="handler"
+                :visible-filter-count="visibleFilters.length"
                 :is-colour-filter="isColourFilter"
                 :is-loading-filter="isLoadingFilter"
                 @change="onFilterRowChange($event, i)"
                 @delete="onFilterDelete($event, i)"
+                @copy="onFilterCopy($event, i)"
               />
             </template>
           </template>
-        </template>
+        </div>
       </template>
-    </div>
+    </Draggable>
     <!-- #endregion filter group rows -->
     <template v-if="!nested">
       <template v-if="isEeUI && !isPublic">
@@ -477,7 +601,7 @@ const onFilterDelete = async (
     </template>
     <div
       v-if="!visibleFilters || !visibleFilters.length"
-      class="flex flex-row text-gray-400 mt-2"
+      class="flex flex-row text-nc-content-gray-disabled mt-2"
       :class="{
         'ml-1': nested,
         'ml-0.5': !nested,
@@ -501,11 +625,13 @@ const onFilterDelete = async (
 
 <style lang="scss" scoped>
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
-.nc-filter-item-remove-btn {
-  @apply text-gray-600 hover:text-gray-800;
+.nc-filter-item-remove-btn,
+.nc-filter-item-reorder-btn,
+.nc-filter-item-copy-btn {
+  @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 
 .nc-filter-grid {
@@ -525,7 +651,7 @@ const onFilterDelete = async (
 }
 
 .nc-filter-wrapper {
-  @apply bg-white !rounded-lg border-1px border-[#E7E7E9];
+  @apply bg-nc-bg-default !rounded-lg border-1px border-nc-border-gray-medium;
 
   & > *,
   .nc-filter-value-select {
@@ -539,13 +665,13 @@ const onFilterDelete = async (
   }
 
   & > :not(:last-child):not(:empty) {
-    border-right: 1px solid #eee !important;
+    border-right: 1px solid var(--nc-border-gray-medium) !important;
     border-bottom-right-radius: 0 !important;
     border-top-right-radius: 0 !important;
   }
 
   .nc-settings-dropdown {
-    border-left: 1px solid #eee !important;
+    border-left: 1px solid var(--nc-border-gray-medium) !important;
     border-radius: 0 !important;
   }
 
@@ -558,7 +684,7 @@ const onFilterDelete = async (
     @apply relative;
     &::after {
       content: '';
-      @apply absolute h-full w-1px bg-[#eee] -left-1px top-0;
+      @apply absolute h-full w-1px bg-[var(--nc-bg-gray-medium)] -left-1px top-0;
     }
   }
 
@@ -577,23 +703,23 @@ const onFilterDelete = async (
   :deep(.nc-select:not(.nc-disabled-logical-op):not(.ant-select-disabled):hover) {
     &,
     .ant-select-selector {
-      @apply bg-gray-50;
+      @apply bg-nc-bg-gray-extralight;
     }
   }
 }
 
 .nc-filter-nested-level-0 {
-  @apply bg-[#f9f9fa];
+  @apply bg-nc-bg-gray-extralight;
 }
 
 .nc-filter-nested-level-1,
 .nc-filter-nested-level-3 {
-  @apply bg-gray-[#f4f4f5];
+  @apply bg-nc-bg-gray-light;
 }
 
 .nc-filter-nested-level-2,
 .nc-filter-nested-level-4 {
-  @apply bg-gray-[#e7e7e9];
+  @apply bg-nc-bg-gray-medium;
 }
 
 .nc-filter-logical-op-level-3,
@@ -604,11 +730,11 @@ const onFilterDelete = async (
 }
 
 .nc-filter-where-label {
-  @apply text-gray-400;
+  @apply text-nc-content-gray-disabled;
 }
 
 :deep(.ant-select-disabled.ant-select:not(.ant-select-customize-input) .ant-select-selector) {
-  @apply bg-transparent text-gray-400;
+  @apply bg-transparent text-nc-content-gray-disabled;
 }
 
 :deep(.nc-filter-logical-op .nc-select.ant-select .ant-select-selector) {
@@ -616,14 +742,14 @@ const onFilterDelete = async (
 }
 
 :deep(.nc-select-expand-btn) {
-  @apply text-gray-500;
+  @apply text-nc-content-gray-muted;
 }
 
 .menu-filter-dropdown {
   input:not(:disabled),
   select:not(:disabled),
   .ant-select:not(.ant-select-disabled) {
-    @apply text-[#4A5268];
+    @apply text-nc-content-gray-subtle2;
   }
 }
 
@@ -634,6 +760,6 @@ const onFilterDelete = async (
 }
 
 .nc-btn-focus:focus {
-  @apply !text-brand-500 !shadow-none;
+  @apply !text-nc-content-brand !shadow-none;
 }
 </style>

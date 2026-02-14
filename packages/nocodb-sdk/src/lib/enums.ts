@@ -13,6 +13,7 @@ export enum CloudOrgUserRoles {
 export enum ProjectRoles {
   OWNER = 'owner',
   CREATOR = 'creator',
+  INHERIT = 'inherit',
   EDITOR = 'editor',
   COMMENTER = 'commenter',
   VIEWER = 'viewer',
@@ -22,10 +23,16 @@ export enum ProjectRoles {
 export enum WorkspaceUserRoles {
   OWNER = 'workspace-level-owner',
   CREATOR = 'workspace-level-creator',
+  INHERIT = 'workspace-level-inherit',
   EDITOR = 'workspace-level-editor',
   COMMENTER = 'workspace-level-commenter',
   VIEWER = 'workspace-level-viewer',
   NO_ACCESS = 'workspace-level-no-access',
+}
+
+export enum TeamUserRoles {
+  MEMBER = 'member',
+  OWNER = 'owner',
 }
 
 export enum AppEvents {
@@ -33,6 +40,9 @@ export enum AppEvents {
   PROJECT_INVITE = 'base.invite',
   PROJECT_USER_UPDATE = 'base.user.update',
   PROJECT_USER_RESEND_INVITE = 'base.user.resend.invite',
+  PROJECT_TEAM_INVITE = 'base.team.invite',
+  PROJECT_TEAM_UPDATE = 'base.team.update',
+  PROJECT_TEAM_DELETE = 'base.team.delete',
   PROJECT_DELETE = 'base.delete',
   PROJECT_UPDATE = 'base.update',
   PROJECT_CLONE = 'base.clone',
@@ -42,6 +52,9 @@ export enum AppEvents {
   WORKSPACE_USER_INVITE = 'workspace.invite',
   WORKSPACE_USER_UPDATE = 'workspace.user.update',
   WORKSPACE_USER_DELETE = 'workspace.user.delete',
+  WORKSPACE_TEAM_INVITE = 'workspace.team.invite',
+  WORKSPACE_TEAM_UPDATE = 'workspace.team.update',
+  WORKSPACE_TEAM_DELETE = 'workspace.team.delete',
   WORKSPACE_CREATE = 'workspace.create',
   WORKSPACE_DELETE = 'workspace.delete',
   WORKSPACE_UPDATE = 'workspace.update',
@@ -56,6 +69,13 @@ export enum AppEvents {
   USER_PASSWORD_FORGOT = 'user.password.forgot',
   USER_DELETE = 'user.delete',
   USER_EMAIL_VERIFICATION = 'user.email.verification',
+
+  TEAM_CREATE = 'team.create',
+  TEAM_UPDATE = 'team.update',
+  TEAM_DELETE = 'team.delete',
+  TEAM_MEMBER_ADD = 'team.member.add',
+  TEAM_MEMBER_UPDATE = 'team.member.update',
+  TEAM_MEMBER_DELETE = 'team.member.delete',
 
   TABLE_CREATE = 'table.create',
   TABLE_DELETE = 'table.delete',
@@ -229,6 +249,12 @@ export enum AppEvents {
   PERMISSION_CREATE = 'permission.create',
   PERMISSION_UPDATE = 'permission.update',
   PERMISSION_DELETE = 'permission.delete',
+
+  WORKFLOW_CREATE = 'workflow.create',
+  WORKFLOW_UPDATE = 'workflow.update',
+  WORKFLOW_DELETE = 'workflow.delete',
+  WORKFLOW_DUPLICATE = 'workflow.duplicate',
+  WORKFLOW_EXECUTE = 'workflow.execute',
 }
 
 export enum ClickhouseTables {
@@ -260,12 +286,14 @@ export const RoleLabels = {
   [WorkspaceUserRoles.EDITOR]: 'editor',
   [WorkspaceUserRoles.COMMENTER]: 'commenter',
   [WorkspaceUserRoles.VIEWER]: 'viewer',
+  [WorkspaceUserRoles.INHERIT]: 'inherit',
   [WorkspaceUserRoles.NO_ACCESS]: 'noaccess',
   [ProjectRoles.OWNER]: 'owner',
   [ProjectRoles.CREATOR]: 'creator',
   [ProjectRoles.EDITOR]: 'editor',
   [ProjectRoles.COMMENTER]: 'commenter',
   [ProjectRoles.VIEWER]: 'viewer',
+  [ProjectRoles.INHERIT]: 'inherit',
   [ProjectRoles.NO_ACCESS]: 'noaccess',
   [OrgUserRoles.SUPER_ADMIN]: 'superAdmin',
   [OrgUserRoles.CREATOR]: 'creator',
@@ -281,12 +309,14 @@ export const RoleColors = {
   [WorkspaceUserRoles.EDITOR]: 'green',
   [WorkspaceUserRoles.COMMENTER]: 'orange',
   [WorkspaceUserRoles.VIEWER]: 'yellow',
+  [WorkspaceUserRoles.INHERIT]: 'gray',
   [WorkspaceUserRoles.NO_ACCESS]: 'red',
   [ProjectRoles.OWNER]: 'purple',
   [ProjectRoles.CREATOR]: 'blue',
   [ProjectRoles.EDITOR]: 'green',
   [ProjectRoles.COMMENTER]: 'orange',
   [ProjectRoles.VIEWER]: 'yellow',
+  [ProjectRoles.INHERIT]: 'gray',
   [OrgUserRoles.SUPER_ADMIN]: 'maroon',
   [ProjectRoles.NO_ACCESS]: 'red',
   [OrgUserRoles.CREATOR]: 'blue',
@@ -306,6 +336,8 @@ export const RoleDescriptions = {
   [WorkspaceUserRoles.COMMENTER]:
     'Can view and comment on records within workspace bases',
   [WorkspaceUserRoles.VIEWER]: 'Can only view records within workspace bases',
+  [WorkspaceUserRoles.INHERIT]:
+    'Inherits role from workspace-level team assignment',
   [WorkspaceUserRoles.NO_ACCESS]: 'No access to this workspace',
 
   [ProjectRoles.OWNER]:
@@ -315,6 +347,8 @@ export const RoleDescriptions = {
     'Can add, edit, and delete records, but cannot modify base configurations',
   [ProjectRoles.COMMENTER]: 'Can view and comment on records within the base',
   [ProjectRoles.VIEWER]: 'Can only view records within the base',
+  [ProjectRoles.INHERIT]:
+    'Inherits role from base-level team, or workspace level if no base-level team',
   [ProjectRoles.NO_ACCESS]: 'No access to this base',
 
   [OrgUserRoles.SUPER_ADMIN]: 'Full access to all',
@@ -333,12 +367,14 @@ export const RoleIcons = {
   [WorkspaceUserRoles.EDITOR]: 'role_editor',
   [WorkspaceUserRoles.COMMENTER]: 'role_commenter',
   [WorkspaceUserRoles.VIEWER]: 'role_viewer',
+  [WorkspaceUserRoles.INHERIT]: 'role_inherit',
   [WorkspaceUserRoles.NO_ACCESS]: 'role_no_access',
   [ProjectRoles.OWNER]: 'role_owner',
   [ProjectRoles.CREATOR]: 'role_creator',
   [ProjectRoles.EDITOR]: 'role_editor',
   [ProjectRoles.COMMENTER]: 'role_commenter',
   [ProjectRoles.VIEWER]: 'role_viewer',
+  [ProjectRoles.INHERIT]: 'role_inherit',
   [ProjectRoles.NO_ACCESS]: 'role_no_access',
   [OrgUserRoles.SUPER_ADMIN]: 'role_super',
   [OrgUserRoles.CREATOR]: 'role_creator',
@@ -356,11 +392,13 @@ export const WorkspaceRolesToProjectRoles = {
   [WorkspaceUserRoles.COMMENTER]: ProjectRoles.COMMENTER,
   [WorkspaceUserRoles.VIEWER]: ProjectRoles.VIEWER,
   [WorkspaceUserRoles.NO_ACCESS]: ProjectRoles.NO_ACCESS,
+  [WorkspaceUserRoles.INHERIT]: ProjectRoles.INHERIT,
 };
 
 export const OrderedWorkspaceRoles = [
   WorkspaceUserRoles.OWNER,
   WorkspaceUserRoles.CREATOR,
+  WorkspaceUserRoles.INHERIT,
   WorkspaceUserRoles.EDITOR,
   WorkspaceUserRoles.COMMENTER,
   WorkspaceUserRoles.VIEWER,
@@ -376,6 +414,7 @@ export const OrderedOrgRoles = [
 export const OrderedProjectRoles = [
   ProjectRoles.OWNER,
   ProjectRoles.CREATOR,
+  ProjectRoles.INHERIT,
   ProjectRoles.EDITOR,
   ProjectRoles.COMMENTER,
   ProjectRoles.VIEWER,
@@ -502,6 +541,7 @@ export enum PublicAttachmentScope {
   WORKSPACEPICS = 'workspacePics',
   PROFILEPICS = 'profilePics',
   ORGANIZATIONPICS = 'organizationPics',
+  OAUTHCLIENTS = 'oauthClients',
 }
 
 export enum IconType {
@@ -546,4 +586,20 @@ export enum ViewSettingOverrideOptions {
   SORT = 'sort',
   GROUP = 'group',
   ROW_COLORING = 'rowColoring',
+}
+
+export enum MetaEventType {
+  COLUMN_ADDED = 'COLUMN_ADDED',
+  COLUMN_UPDATED = 'COLUMN_UPDATED',
+  COLUMN_DELETED = 'COLUMN_DELETED',
+}
+
+export enum MetaEntityType {
+  BASE = 'BASE',
+  TABLE = 'TABLE',
+  COLUMN = 'COLUMN',
+  VIEW = 'VIEW',
+  FILTER = 'FILTER',
+  SORT = 'SORT',
+  VIEW_ROW_COLOR = 'VIEW_ROW_COLOR',
 }

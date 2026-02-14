@@ -20,7 +20,7 @@ type TemplateProps<K extends keyof typeof MailTemplates> = ComponentProps<
 @Injectable()
 export class MailService {
   protected logger = new Logger(MailService.name);
-  async getAdapter(ncMeta = Noco.ncMeta) {
+  protected async getAdapter(ncMeta = Noco.ncMeta) {
     try {
       return await NcPluginMgrv2.emailAdapter(undefined, ncMeta);
     } catch (e) {
@@ -29,7 +29,7 @@ export class MailService {
     }
   }
 
-  async renderMail<K extends keyof typeof MailTemplates>(
+  protected async renderMail<K extends keyof typeof MailTemplates>(
     template: K,
     props: TemplateProps<K>,
   ) {
@@ -50,6 +50,8 @@ export class MailService {
       columnId?: string;
       resetPassword?: string;
       verificationToken?: string;
+      automationId?: string;
+      executionId?: string;
     } = {},
   ) {
     const dashboardPath = Noco.getConfig()?.dashboardPath;
@@ -58,7 +60,7 @@ export class MailService {
       return `${req.ncSiteUrl}${dashboardPath}#/signup/${params.token}`;
     }
 
-    let url = req.ncSiteUrl;
+    let url = req?.ncSiteUrl || process.env.NC_PUBLIC_URL;
 
     // Reset password link is served from the backend. So no need to append the dashboard path
     if (params.resetPassword) {
@@ -99,6 +101,17 @@ export class MailService {
           searchParams.set('columnId', params.columnId);
         }
         if (searchParams.toString()) {
+          url += `?${searchParams.toString()}`;
+        }
+      }
+
+      if (params.automationId) {
+        url += `/workflows/${params.automationId}`;
+
+        if (params.executionId) {
+          const searchParams = new URLSearchParams();
+          searchParams.set('tab', 'logs');
+          searchParams.set('executionId', params.executionId);
           url += `?${searchParams.toString()}`;
         }
       }
@@ -299,6 +312,8 @@ export class MailService {
               email: user.email
             }),
           });
+
+          break;
         }
       }
       return true;

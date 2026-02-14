@@ -19,3 +19,63 @@ export const isValidURL = (str: string, extraProps?: IsURLOptions) => {
     protocols: ['http', 'https', 'ftp', 'file', 'tel'],
   });
 };
+
+export const isValidImageURL = async (
+  url: string,
+  options: {
+    allowDataUrl?: boolean;
+    timeout?: number;
+  } = {
+    allowDataUrl: false,
+    timeout: 5000,
+  }
+) => {
+  if (!url || typeof url !== 'string') return false;
+
+  const trimmed = url.trim();
+
+  // 🚫 Always block dangerous / local schemes
+  if (trimmed.startsWith('javascript:') || trimmed.startsWith('blob:')) {
+    return false;
+  }
+
+  // 🚫 Block data URLs unless explicitly allowed
+  if (!options.allowDataUrl && trimmed.startsWith('data:')) {
+    return false;
+  }
+
+  // If data URLs are allowed, validate image data URL explicitly
+  if (options.allowDataUrl && trimmed.startsWith('data:')) {
+    return /^data:image\/[a-zA-Z0-9.+-]+;base64,/.test(trimmed);
+  }
+
+  // Normal URL validation
+  if (
+    !isURL(trimmed, {
+      protocols: ['http', 'https'],
+      require_protocol: true,
+    })
+  ) {
+    return false;
+  }
+
+  return new Promise<boolean>((resolve) => {
+    const img = new Image();
+    const timeout = setTimeout(() => {
+      img.src = '';
+      resolve(false);
+    }, options.timeout);
+
+    img.onload = () => {
+      clearTimeout(timeout);
+      resolve(true);
+    };
+
+    img.onerror = () => {
+      clearTimeout(timeout);
+      resolve(false);
+    };
+
+    img.src = trimmed;
+  });
+};

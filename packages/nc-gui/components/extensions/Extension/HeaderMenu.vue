@@ -33,6 +33,7 @@ const { extensionAccess } = useExtensions()
               })
             "
           />
+          <NcDivider v-if="extensionAccess.create || extensionAccess.update || extensionAccess.delete" />
           <template v-if="!activeError">
             <NcMenuItem v-if="extensionAccess.create" data-rec="true" @click="emits('rename')">
               <GeneralIcon icon="edit" />

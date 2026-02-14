@@ -53,6 +53,7 @@ export default class FormulaColumn {
     let column =
       columnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.COL_FORMULA}:${columnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -65,7 +66,11 @@ export default class FormulaColumn {
       );
       if (column) {
         column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
-        await NocoCache.set(`${CacheScope.COL_FORMULA}:${columnId}`, column);
+        await NocoCache.set(
+          context,
+          `${CacheScope.COL_FORMULA}:${columnId}`,
+          column,
+        );
       }
     }
 
@@ -112,7 +117,11 @@ export default class FormulaColumn {
       updateObj.parsed_tree = parseMetaProp(updateObj, 'parsed_tree', null);
     }
 
-    await NocoCache.update(`${CacheScope.COL_FORMULA}:${columnId}`, updateObj);
+    await NocoCache.update(
+      context,
+      `${CacheScope.COL_FORMULA}:${columnId}`,
+      updateObj,
+    );
   }
 
   public getParsedTree() {

@@ -52,6 +52,7 @@ enum UITypes {
   CreatedBy = 'CreatedBy',
   LastModifiedBy = 'LastModifiedBy',
   Order = 'Order',
+  Meta = 'Meta',
 }
 
 export const UITypesName = {
@@ -98,6 +99,7 @@ export const UITypesName = {
   [UITypes.User]: 'User',
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
+  [UITypes.Meta]: 'Row Meta',
   AIButton: 'AI Button',
   AIPrompt: 'AI Text',
 };
@@ -307,6 +309,7 @@ export const FieldNameFromUITypes: Record<UITypes, string> = {
   [UITypes.CreatedBy]: 'Created by',
   [UITypes.LastModifiedBy]: 'Last modified by',
   [UITypes.Order]: 'Order',
+  [UITypes.Meta]: 'Row Meta',
 };
 
 export const numericUITypes = [
@@ -436,7 +439,7 @@ export function isHiddenCol(
     return col.colOptions?.type === RelationTypes.HAS_MANY;
   }
 
-  if (col.uidt === UITypes.Order) {
+  if (col.uidt === UITypes.Order || col.uidt === UITypes.Meta) {
     return true;
   }
 
@@ -489,6 +492,17 @@ export const isSelectTypeCol = (
     <UITypes>(typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
   );
 };
+
+export const isInUIType = <T extends UITypes>(
+  colOrUidt: ColumnType | { uidt: UITypes | string } | UITypes | string,
+  types: T | readonly T[]
+): colOrUidt is (ColumnType & { uidt: T }) | { uidt: T } | T => {
+  const uidt = <UITypes>(
+    (typeof colOrUidt === 'object' ? colOrUidt?.uidt : colOrUidt)
+  );
+  return Array.isArray(types) ? types.includes(uidt as T) : uidt === types;
+};
+
 export default UITypes;
 
 export const readonlyMetaAllowedTypes = [
@@ -766,3 +780,6 @@ export const customLinkSupportedTypes: UITypes[] = [
   UITypes.ID,
   UITypes.ForeignKey,
 ];
+
+// column types that are not shown in the GUI
+export const hiddenColumnTypes: UITypes[] = [UITypes.Meta];

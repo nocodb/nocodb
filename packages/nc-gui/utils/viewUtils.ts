@@ -6,14 +6,14 @@ import UsersIcon from '~icons/nc-icons/users'
 import LockIcon from '~icons/nc-icons-v2/lock'
 import PersonalIcon from '~icons/nc-icons/personal'
 
-export const viewIcons: Record<number | string, { icon: any; color: string }> = {
-  [ViewTypes.GRID]: { icon: iconMap.grid, color: '#36BFFF' },
-  [ViewTypes.FORM]: { icon: iconMap.form, color: '#7D26CD' },
-  [ViewTypes.CALENDAR]: { icon: iconMap.calendar, color: '#B33771' },
-  [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: '#FC3AC6' },
-  [ViewTypes.MAP]: { icon: iconMap.map, color: 'blue' },
-  [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: '#FF9052' },
-  view: { icon: iconMap.view, color: 'blue' },
+export const viewIcons: Record<number | string, { icon: any; color: string; darkColor?: string }> = {
+  [ViewTypes.GRID]: { icon: iconMap.grid, color: 'var(--color-view-icon-grid)' },
+  [ViewTypes.FORM]: { icon: iconMap.form, color: 'var(--color-view-icon-form)' },
+  [ViewTypes.CALENDAR]: { icon: iconMap.calendar, color: 'var(--color-view-icon-calendar)' },
+  [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: 'var(--color-view-icon-gallery)' },
+  [ViewTypes.MAP]: { icon: iconMap.map, color: 'var(--color-view-icon-map)' },
+  [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: 'var(--color-view-icon-kanban)' },
+  view: { icon: iconMap.view, color: 'var(--color-view-icon-view)' },
 }
 
 export const isRtlLang = (lang: keyof typeof Language) => ['fa', 'ar'].includes(lang)

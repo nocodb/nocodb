@@ -7,7 +7,7 @@ const apiPlugin = (nuxtApp) => {
   nuxtApp.provide('api', api)
 }
 
-declare module '#app' {
+declare module _NuxtApp {
   interface NuxtApp {
     $api: Api<any>
   }

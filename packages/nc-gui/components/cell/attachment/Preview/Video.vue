@@ -47,7 +47,21 @@ const handleError = async () => {
 </script>
 
 <template>
+  <template v-if="mimeType === 'video/quicktime' && props.src?.length">
+    <video
+      ref="videoPlayer"
+      controls
+      playsinline
+      :src="props.src[0]"
+      :class="{
+        [props.class]: props.class,
+      }"
+      class="videoplayer !min-w-128 !min-h-72 w-full h-auto"
+      @error="handleError"
+    ></video>
+  </template>
   <video
+    v-else
     ref="videoPlayer"
     controls
     playsinline

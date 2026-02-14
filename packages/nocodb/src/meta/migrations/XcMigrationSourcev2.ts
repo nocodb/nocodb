@@ -67,6 +67,7 @@ import * as nc_077_column_index_name from '~/meta/migrations/v2/nc_077_column_in
 import * as nc_078_mcp_tokens from '~/meta/migrations/v2/nc_078_mcp_tokens';
 import * as nc_079_cross_base_link from '~/meta/migrations/v2/nc_079_cross_base_link';
 import * as nc_080_sync_mappings from '~/meta/migrations/v2/nc_080_sync_mappings';
+
 import * as nc_081_audit from '~/meta/migrations/v2/nc_081_audit';
 import * as nc_082_row_color_conditions from '~/meta/migrations/v2/nc_082_row_color_conditions';
 import * as nc_083_permissions from '~/meta/migrations/v2/nc_083_permissions';
@@ -78,6 +79,13 @@ import * as nc_088_add_sso_client_to_api_tokens from '~/meta/migrations/v2/nc_08
 import * as nc_089_dashboard_sharing from '~/meta/migrations/v2/nc_089_dashboard_sharing';
 import * as nc_090_add_is_new_user_to_users from '~/meta/migrations/v2/nc_090_add_is_new_user_to_users';
 import * as nc_091_unify_model from '~/meta/migrations/v2/nc_091_unify_model';
+import * as nc_092_composite_pk from '~/meta/migrations/v2/nc_092_composite_pk';
+import * as nc_093_oauth_server from '~/meta/migrations/v2/nc_093_oauth_server';
+import * as nc_094_add_meta_to_filter_exp_v2 from '~/meta/migrations/v2/nc_094_add_meta_to_filter_exp_v2';
+
+import * as nc_096_deprecate_unused from '~/meta/migrations/v2/nc_096_deprecate_unused';
+import * as nc_097_unify_schema from '~/meta/migrations/v2/nc_097_unify_schema';
+import * as nc_098_default_workspace from '~/meta/migrations/v2/nc_098_default_workspace';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -167,6 +175,12 @@ export default class XcMigrationSourcev2 {
       'nc_089_dashboard_sharing',
       'nc_090_add_is_new_user_to_users',
       'nc_091_unify_model',
+      'nc_092_composite_pk',
+      'nc_093_oauth_server',
+      'nc_094_add_meta_to_filter_exp_v2',
+      'nc_096_deprecate_unused',
+      'nc_097_unify_schema',
+      'nc_098_default_workspace',
     ]);
   }
 
@@ -336,6 +350,18 @@ export default class XcMigrationSourcev2 {
         return nc_090_add_is_new_user_to_users;
       case 'nc_091_unify_model':
         return nc_091_unify_model;
+      case 'nc_092_composite_pk':
+        return nc_092_composite_pk;
+      case 'nc_093_oauth_server':
+        return nc_093_oauth_server;
+      case 'nc_094_add_meta_to_filter_exp_v2':
+        return nc_094_add_meta_to_filter_exp_v2;
+      case 'nc_096_deprecate_unused':
+        return nc_096_deprecate_unused;
+      case 'nc_097_unify_schema':
+        return nc_097_unify_schema;
+      case 'nc_098_default_workspace':
+        return nc_098_default_workspace;
     }
   }
 }

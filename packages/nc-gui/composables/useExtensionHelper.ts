@@ -8,8 +8,10 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     activeError: Ref<any>,
     hasAccessToExtension: ComputedRef<boolean>,
   ) => {
-    const { $api } = useNuxtApp()
+    const { $api, $e } = useNuxtApp()
     const route = useRoute()
+
+    const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
     const basesStore = useBases()
 
@@ -46,21 +48,30 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     })
 
     const getViewsForTable = async (tableId: string) => {
-      if (viewsByTable.value.has(tableId)) {
-        return viewsByTable.value.get(tableId) as ViewType[]
+      // Find the table to get its base_id
+      const table = tables.value.find((t) => t.id === tableId)
+      if (!table?.base_id) {
+        console.warn('Could not find base_id for table:', tableId)
+        return []
       }
 
-      await viewStore.loadViews({ tableId, ignoreLoading: true })
-      return viewsByTable.value.get(tableId) as ViewType[]
+      const key = `${table.base_id}:${tableId}`
+      if (viewsByTable.value.has(key)) {
+        return viewsByTable.value.get(key) as ViewType[]
+      }
+
+      await viewStore.loadViews({ tableId, baseId: table.base_id, ignoreLoading: true })
+      return viewsByTable.value.get(key) as ViewType[]
     }
 
     const getData = async (params: {
       tableId: string
       viewId?: string
+      where?: string
       eachPage: (records: Record<string, any>[], nextPage: () => void) => Promise<void> | void
       done: () => Promise<void> | void
     }) => {
-      const { tableId, viewId, eachPage, done } = params
+      const { tableId, viewId, where, eachPage, done } = params
 
       let page = 1
 
@@ -73,6 +84,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
           {
             offset: (page - 1) * 100,
             limit: 100,
+            where,
           } as any,
         )
 
@@ -89,7 +101,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
     }
 
     const getTableMeta = async (tableId: string) => {
-      return getMeta(tableId)
+      return getMeta(baseId.value!, tableId)
     }
 
     const insertData = async (params: { tableId: string; data: Record<string, any>[]; autoInsertOption?: boolean }) => {
@@ -106,7 +118,16 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       for (const chunk of chunks) {
         inserted += chunk.length
-        await $api.dbDataTableRow.create(tableId, chunk, params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined)
+        await $api.internal.postOperation(
+          activeWorkspaceId.value!,
+          baseId.value!,
+          {
+            operation: 'dataInsert',
+            tableId,
+            ...(params.autoInsertOption ? { typecast: 'true' } : {}),
+          },
+          chunk,
+        )
       }
 
       return {
@@ -128,7 +149,15 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       for (const chunk of chunks) {
         updated += chunk.length
-        await $api.dbDataTableRow.update(tableId, chunk)
+        await $api.internal.postOperation(
+          activeWorkspaceId.value!,
+          baseId.value!,
+          {
+            operation: 'dataUpdate',
+            tableId,
+          },
+          chunk,
+        )
       }
 
       return {
@@ -146,7 +175,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
 
       const chunkSize = 100
 
-      const tableMeta = await getMeta(tableId)
+      const tableMeta = await getMeta(baseId.value!, tableId)
 
       if (!tableMeta?.columns) throw new Error('Table not found')
 
@@ -156,10 +185,15 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       if (insert.length) {
         insertCounter += insert.length
         while (insert.length) {
-          await $api.dbDataTableRow.create(
-            tableId,
+          await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            baseId.value!,
+            {
+              operation: 'dataInsert',
+              tableId,
+              ...(params.autoInsertOption ? { typecast: 'true' } : {}),
+            },
             insert.splice(0, chunkSize),
-            params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
           )
         }
       }
@@ -167,10 +201,15 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       if (update.length) {
         updateCounter += update.length
         while (update.length) {
-          await $api.dbDataTableRow.update(
-            tableId,
+          await $api.internal.postOperation(
+            activeWorkspaceId.value!,
+            baseId.value!,
+            {
+              operation: 'dataUpdate',
+              tableId,
+              ...(params.autoInsertOption ? { typecast: 'true' } : {}),
+            },
             update.splice(0, chunkSize),
-            params.autoInsertOption ? ({ typecast: 'true' } as any) : undefined,
           )
         }
       }
@@ -186,6 +225,11 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
     }
 
+    const toggleFullScreen = () => {
+      fullscreen.value = !fullscreen.value
+      $e(`c:extensions:${extension.value.extensionId}:full-screen`)
+    }
+
     return {
       $api,
       fullscreen,
@@ -196,6 +240,8 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       tables,
       showExpandBtn,
       fullscreenModalSize,
+      activeWorkspaceId,
+      activeBaseId: baseId,
       activeTableId,
       activeViewId,
       getViewsForTable,
@@ -209,6 +255,7 @@ const [useProvideExtensionHelper, useExtensionHelper] = useInjectionState(
       eventBus,
       hasAccessToExtension,
       disableToggleFullscreenBtn,
+      toggleFullScreen,
     }
   },
   'extension-helper',

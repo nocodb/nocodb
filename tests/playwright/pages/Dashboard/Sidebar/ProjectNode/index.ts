@@ -12,7 +12,7 @@ export class SidebarProjectNodeObject extends BasePage {
   }
 
   get({ baseTitle }: { baseTitle: string }) {
-    return this.sidebar.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`);
+    return this.sidebar.get().getByTestId(`nc-sidebar-base-title-${baseTitle}`).last();
   }
 
   async click({ baseTitle }: { baseTitle: string }) {

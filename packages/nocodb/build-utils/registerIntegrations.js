@@ -153,9 +153,12 @@ async function registerIntegrations(EE = false) {
   // Import IntegrationEntry type
   indexContent += `import type { IntegrationEntry } from '@noco-local-integrations/core';\n\n`;
 
-  // Add export statement
+  // Add export statement with array flattening
+  // Some packages export an array of entries (e.g., workflow-node packages)
   indexContent += `export default [
-${exportEntries.map((entry) => `  ${entry},`).join('\n')}
+${exportEntries
+  .map((entry) => `  ...(Array.isArray(${entry}) ? ${entry} : [${entry}]),`)
+  .join('\n')}
 ] as IntegrationEntry[];\n`;
 
   // Write the generated content to index.ts

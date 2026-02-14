@@ -78,7 +78,11 @@ export class UpdateWebhookHandler {
   }
   sendWebhook(hookName: string, prevData: any, nextData?: any) {
     Noco.eventEmitter.emit(HANDLE_WEBHOOK, {
-      context: this.webhookContext.context,
+      context: {
+        ...this.webhookContext.context,
+        cache: false,
+        cacheMap: undefined,
+      },
       hookName,
       prevData,
       newData: nextData,

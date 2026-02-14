@@ -481,10 +481,18 @@ export const usePredictFields = createSharedComposable(
         })
 
       try {
-        const res = await $api.dbTableColumn.bulk(meta.value?.id, {
-          hash: columnsHash.value,
-          ops: payload,
-        })
+        const res = await $api.internal.postOperation(
+          meta.value!.fk_workspace_id!,
+          meta.value!.base_id!,
+          {
+            operation: 'columnsBulk',
+            tableId: meta.value?.id,
+          },
+          {
+            hash: columnsHash.value,
+            ops: payload,
+          },
+        )
 
         if (res && res.failedOps?.length) {
           const failedColumnTitle = res.failedOps.filter((o) => o?.column?.ai_temp_id).map((o) => o.column.ai_temp_id)
@@ -563,7 +571,12 @@ export const usePredictFields = createSharedComposable(
       meta,
       async (newMeta) => {
         if (newMeta?.id) {
-          columnsHash.value = (await $api.dbTableColumn.hash(newMeta.id)).hash
+          columnsHash.value = (
+            await $api.internal.getOperation(newMeta.fk_workspace_id!, newMeta.base_id!, {
+              operation: 'columnsHash',
+              tableId: newMeta.id,
+            })
+          ).hash
           predictHistory.value = []
         }
       },

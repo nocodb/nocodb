@@ -20,10 +20,11 @@ interface CellUpdate {
 
 export class ActionManager {
   private api: Api<any>
-  private readonly loadAutomation: (id: string) => Promise<any>
+  private readonly loadScript: (id: string) => Promise<any>
   private readonly generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>
   private readonly triggerRefreshCanvas: () => void
   private meta: Ref<TableType>
+  private baseInfo: { baseId: string; workspaceId: string } | null = null
   private readonly getDataCache: (path?: Array<number>) => {
     cachedRows: Ref<Map<number, Row>>
     totalRows: Ref<number>
@@ -47,7 +48,7 @@ export class ActionManager {
 
   constructor(
     api: Api<any>,
-    loadAutomation: (id: string) => Promise<any>,
+    loadScript: (id: string) => Promise<any>,
     generateRows: (columnId: string, rowIds: string[]) => Promise<Array<Record<string, any>>>,
     meta: Ref<TableType>,
     triggerRefreshCanvas: () => void,
@@ -62,7 +63,7 @@ export class ActionManager {
     userSync?: any,
   ) {
     this.api = api
-    this.loadAutomation = loadAutomation
+    this.loadScript = loadScript
     this.generateRows = generateRows
     this.meta = meta
     this.triggerRefreshCanvas = triggerRefreshCanvas
@@ -71,6 +72,10 @@ export class ActionManager {
     this.userSync = userSync
 
     this.setupEventListeners()
+  }
+
+  setBaseInfo(baseId: string, workspaceId: string) {
+    this.baseInfo = { baseId, workspaceId }
   }
 
   private eventMap = {
@@ -306,13 +311,28 @@ export class ActionManager {
           if (!webhookId) throw new Error('No webhook configured')
 
           for (const rowId of rowIds) {
-            await this.executeAction(rowId, column.id, [], () => this.api.dbTableWebhook.trigger(webhookId, rowId))
+            await this.executeAction(rowId, column.id, [], async () => {
+              if (!this.baseInfo) {
+                throw new Error('Base information not available. Call setBaseInfo() first.')
+              }
+
+              return this.api.internal.postOperation(
+                this.baseInfo.workspaceId,
+                this.baseInfo.baseId,
+                {
+                  operation: 'hookTrigger',
+                  hookId: webhookId,
+                  rowId,
+                },
+                {},
+              )
+            })
           }
           break
         }
 
         case 'script': {
-          const script = await this.loadAutomation(colOptions.fk_script_id)
+          const script = await this.loadScript(colOptions.fk_script_id)
 
           for (let i = 0; i < rowIds.length; i++) {
             const rowId = rowIds[i]!

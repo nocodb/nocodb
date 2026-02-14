@@ -33,7 +33,7 @@ export class PublicDataExportController {
     @TenantContext() context: NcContext,
     @Req() req: NcRequest,
     @Param('publicDataUuid') publicDataUuid: string,
-    @Param('exportAs') exportAs: 'csv' | 'json' | 'xlsx',
+    @Param('exportAs') exportAs: 'csv' | 'json' | 'excel',
     @Body() options: DataExportJobData['options'],
   ) {
     const view = await View.getByUUID(context, publicDataUuid);
@@ -61,7 +61,11 @@ export class PublicDataExportController {
 
     const job = await this.jobsService.add(JobTypes.DataExport, {
       context,
-      options,
+      options: {
+        ...(options ?? {}),
+        // includeByteOrderMark when export is triggered from controller
+        includeByteOrderMark: true,
+      },
       modelId: view.fk_model_id,
       viewId: view.id,
       user: req.user,

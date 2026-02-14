@@ -126,7 +126,7 @@ onMounted(() => {
         </div>
         <div class="flex-1"></div>
         <NcButton class="nc-qrcode-close !px-1" type="text" size="xs" @click="modalVisible = false">
-          <GeneralIcon class="text-md text-gray-700 h-4 w-4" icon="close" />
+          <GeneralIcon class="text-md text-nc-content-gray-subtle h-4 w-4" icon="close" />
         </NcButton>
       </div>
     </template>
@@ -215,7 +215,7 @@ onMounted(() => {
   <div v-if="showClearNonEditableFieldWarning" class="text-left text-wrap mt-2 text-[#e65100] text-xs">
     {{ $t('msg.warning.nonEditableFields.qrFieldsCannotBeDirectlyChanged') }}
   </div>
-  <a-tooltip v-else-if="!showQrCode && qrValue === 'ERR!'" placement="bottom" class="text-orange-700">
+  <a-tooltip v-else-if="!showQrCode && qrValue === 'ERR!'" placement="bottom" class="text-nc-content-orange-dark">
     <template #title>
       <span class="font-bold">Please select a target field!</span>
     </template>
@@ -227,11 +227,12 @@ onMounted(() => {
 .qrcode-modal .ant-modal-content {
   padding: 0 !important;
   .ant-modal-header {
+    @apply border-b-1 border-b-nc-border-gray-medium;
     position: relative;
     padding: 8px 16px;
     border-top-left-radius: 1em;
     border-top-right-radius: 1em;
-    border-bottom: 1px solid #e7e7e9;
+
     .ant-modal-title {
       height: 30px;
       display: flex;

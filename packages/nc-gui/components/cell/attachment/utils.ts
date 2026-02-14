@@ -286,7 +286,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     function updateAttachmentTitle(idx: number, title: string) {
-      attachments.value[idx]!.title = title
+      if (attachments.value[idx]) {
+        attachments.value[idx]!.title = title
+      }
+
       updateModelValue(attachments.value)
     }
 
@@ -332,7 +335,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       if (droppedFiles) {
         // set files
         await onFileSelect(droppedFiles)
-      } else {
+      } else if (event) {
         event.preventDefault()
 
         // Sanitize the dataTransfer HTML string

@@ -32,6 +32,7 @@ export default class Extension {
     ncMeta = Noco.ncMeta,
   ) {
     let extension = await NocoCache.get(
+      context,
       `${CacheScope.EXTENSION}:${extensionId}`,
       CacheGetType.TYPE_OBJECT,
     );
@@ -46,7 +47,11 @@ export default class Extension {
 
       if (extension) {
         extension = prepareForResponse(extension, ['kv_store', 'meta']);
-        NocoCache.set(`${CacheScope.EXTENSION}:${extensionId}`, extension);
+        NocoCache.set(
+          context,
+          `${CacheScope.EXTENSION}:${extensionId}`,
+          extension,
+        );
       }
     }
 
@@ -54,7 +59,9 @@ export default class Extension {
   }
 
   static async list(context: NcContext, baseId: string, ncMeta = Noco.ncMeta) {
-    const cachedList = await NocoCache.getList(CacheScope.EXTENSION, [baseId]);
+    const cachedList = await NocoCache.getList(context, CacheScope.EXTENSION, [
+      baseId,
+    ]);
     let { list: extensionList } = cachedList;
     const { isNoneList } = cachedList;
     if (!isNoneList && !extensionList.length) {
@@ -76,7 +83,12 @@ export default class Extension {
         extensionList = extensionList.map((extension) =>
           prepareForResponse(extension, ['kv_store', 'meta']),
         );
-        await NocoCache.setList(CacheScope.EXTENSION, [baseId], extensionList);
+        await NocoCache.setList(
+          context,
+          CacheScope.EXTENSION,
+          [baseId],
+          extensionList,
+        );
       }
     }
 
@@ -115,6 +127,7 @@ export default class Extension {
     );
 
     await NocoCache.incrHashField(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE,
       1,
@@ -122,6 +135,7 @@ export default class Extension {
 
     return this.get(context, id, ncMeta).then(async (res) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.EXTENSION,
         [extension.base_id],
         `${CacheScope.EXTENSION}:${id}`,
@@ -155,6 +169,7 @@ export default class Extension {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.EXTENSION}:${extensionId}`,
       prepareForResponse(updateObj, ['kv_store', 'meta']),
     );
@@ -175,11 +190,13 @@ export default class Extension {
     );
 
     await NocoCache.deepDel(
+      context,
       `${CacheScope.EXTENSION}:${extensionId}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
 
     await NocoCache.incrHashField(
+      'root',
       `${CacheScope.RESOURCE_STATS}:workspace:${context.workspace_id}`,
       PlanLimitTypes.LIMIT_EXTENSION_PER_WORKSPACE,
       -1,
@@ -204,6 +221,7 @@ export default class Extension {
 
     // clear cache
     await NocoCache.deepDel(
+      context,
       `${CacheScope.EXTENSION}:${baseId}:list`,
       CacheDelDirection.PARENT_TO_CHILD,
     );

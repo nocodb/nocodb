@@ -1,10 +1,11 @@
-import { UserType } from '~/lib/Api';
+import { UserType, NotificationType } from '~/lib/Api';
 
 export enum EventType {
   HANDSHAKE = 'handshake',
   CONNECTION_WELCOME = 'connection-welcome',
   CONNECTION_ERROR = 'connection-error',
   NOTIFICATION = 'notification',
+  NOTIFICATION_EVENT = 'event-notification',
   USER_EVENT = 'event-user',
   DATA_EVENT = 'event-data',
   META_EVENT = 'event-meta',
@@ -12,6 +13,9 @@ export enum EventType {
   DASHBOARD_EVENT = 'event-dashboard',
   WIDGET_EVENT = 'event-widget',
   SCRIPT_EVENT = 'event-script',
+  TEAM_EVENT = 'event-team',
+  WORKFLOW_EVENT = 'event-workflow',
+  WORKFLOW_EXECUTION_EVENT = 'event-workflow-execution',
 }
 
 // Base payload interface for all socket events
@@ -57,8 +61,11 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'source_create'
     | 'source_update'
     | 'source_delete'
+    | 'source_meta_sync'
+    | 'base_full_reload'
     | 'table_create'
     | 'table_update'
+    | 'table_permission_update'
     | 'table_delete'
     | 'column_add'
     | 'column_update'
@@ -75,7 +82,10 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'sort_delete'
     | 'view_column_update'
     | 'view_column_refresh' // hide/show all
-    | 'row_color_update';
+    | 'row_color_update'
+    | 'extension_update'
+    | 'extension_create'
+    | 'extension_delete';
   payload: T;
   baseId?: string;
 }
@@ -95,16 +105,23 @@ export interface UserEventPayload<T = any> extends BaseSocketPayload {
   workspaceId?: string;
 }
 
+export interface NotificationPayload extends BaseSocketPayload {
+  action: 'create';
+  payload: Partial<NotificationType>;
+}
+
 // Union type for all socket event payloads
 export type SocketEventPayload =
   | ConnectionWelcomePayload
   | ConnectionErrorPayload
   | DataPayload
   | MetaPayload
-  | CommentPayload;
+  | CommentPayload
+  | NotificationPayload;
 
 // Type mapping for event types to their corresponding payloads
 export type SocketEventPayloadMap = {
+  [EventType.NOTIFICATION_EVENT]: NotificationPayload;
   [EventType.CONNECTION_WELCOME]: ConnectionWelcomePayload;
   [EventType.CONNECTION_ERROR]: ConnectionErrorPayload;
   [EventType.DATA_EVENT]: DataPayload;

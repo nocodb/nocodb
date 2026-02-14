@@ -5,7 +5,7 @@ export const useAntDvTheme = createGlobalState((config?: Partial<ThemeConfig>) =
   const primaryColor = useCssVar('--color-primary', typeof document !== 'undefined' ? document.documentElement : null)
   const accentColor = useCssVar('--color-accent', typeof document !== 'undefined' ? document.documentElement : null)
   const defaultTheme = {
-    primaryColor: themeV2Colors['royal-blue'].DEFAULT,
+    primaryColor: themeV3Colors.brand[500],
     accentColor: themeV2Colors.pink['500'],
   }
 
@@ -17,13 +17,11 @@ export const useAntDvTheme = createGlobalState((config?: Partial<ThemeConfig>) =
 
   /** set theme */
   function setTheme(theme?: Partial<ThemeConfig>) {
-    const themePrimary = theme?.primaryColor ? tinycolor(theme.primaryColor) : tinycolor(themeV2Colors['royal-blue'].DEFAULT)
+    const themePrimary = theme?.primaryColor ? tinycolor(theme.primaryColor) : tinycolor(themeV3Colors.brand[500])
     const themeAccent = theme?.accentColor ? tinycolor(theme.accentColor) : tinycolor(themeV2Colors.pink['500'])
 
     // convert hex colors to rgb values
-    primaryColor.value = themePrimary.isValid()
-      ? hexToRGB(themePrimary.toHex8String())
-      : hexToRGB(themeV2Colors['royal-blue'].DEFAULT)
+    primaryColor.value = themePrimary.isValid() ? hexToRGB(themePrimary.toHex8String()) : hexToRGB(themeV3Colors.brand[500])
     accentColor.value = themeAccent.isValid() ? hexToRGB(themeAccent.toHex8String()) : hexToRGB(themeV2Colors.pink['500'])
 
     currentTheme.value = {

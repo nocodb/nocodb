@@ -85,8 +85,8 @@ export class SidebarPage extends BasePage {
     }
 
     if (isEE()) {
-      await this.rootPage.locator('.nc-create-base').waitFor();
-      await this.rootPage.locator('.nc-create-base').click();
+      await this.rootPage.getByTestId('nc-base-create-menu').waitFor();
+      await this.rootPage.getByTestId('nc-base-create-menu').getByTestId('nc-menu-from-scratch').click();
     }
 
     await this.dashboard.get().locator('.nc-metadb-base-name').clear();
@@ -157,7 +157,7 @@ export class SidebarPage extends BasePage {
       this.rootPage.locator('.ant-modal-content').locator('button.ant-btn.ant-btn-primary').click();
     await this.waitForResponse({
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: '/api/v1/db/meta/tables/',
+      requestUrlPathToMatch: 'ViewCreate',
       uiAction: submitAction,
       responseJsonMatcher: json => json.title === title,
     });

@@ -9,6 +9,7 @@ interface Props {
    * Class to be applied to the default slot wrapper.
    */
   defaultSlotWrapperClass?: string
+  tooltipWrapperClass?: string
   disabled?: boolean
   showAsDisabled?: boolean
   borderOnHover?: boolean
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
   isOpen: undefined,
   defaultSlotWrapper: true,
   defaultSlotWrapperClass: '',
+  tooltipWrapperClass: '',
   disabled: false,
   showAsDisabled: true,
   borderOnHover: false,
@@ -88,10 +90,10 @@ watch(vModelIsOpen, (newVal) => {
           'nc-has-error': hasError,
           'cursor-not-allowed bg-nc-bg-gray-light text-nc-content-gray-muted children:opacity-60': disabled && showAsDisabled,
           'cursor-pointer text-nc-content-gray': !disabled,
-          'border-brand-500 shadow-selected': vModelIsOpen && !disabled && !hasError,
+          'border-nc-border-brand shadow-selected': vModelIsOpen && !disabled && !hasError,
           'border-error shadow-error': vModelIsOpen && !disabled && hasError,
           'nc-list-dropdown-wrapper-default-state': !vModelIsOpen && !disabled && !borderOnHover,
-          'hover:(border-brand-500 shadow-selected)': vModelIsOpen && !disabled && borderOnHover,
+          'hover:(border-nc-border-brand shadow-selected)': vModelIsOpen && !disabled && borderOnHover,
           'hover:(shadow-default hover:shadow-hover)': !vModelIsOpen && !disabled && borderOnHover,
           'border-transparent hover:(border-nc-gray-medium)': (borderOnHover || vModelIsOpen) && !disabled,
           'border-nc-gray-medium': !borderOnHover && !hasError,
@@ -141,7 +143,7 @@ watch(vModelIsOpen, (newVal) => {
       @apply outline-none;
 
       &:not(.nc-has-error) {
-        @apply border-brand-500 shadow-selected;
+        @apply border-nc-border-brand shadow-selected;
       }
 
       &.nc-has-error {

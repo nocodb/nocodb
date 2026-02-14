@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { isEE } from 'playwright/setup/db';
+import { isEE } from '../../../utils/helpers';
 import { type INcAxios, ncAxios } from '../dataApiV3/ncAxios';
 import { beforeEach as initBeforeEach } from './beforeEach';
 import type { ITestContext } from './helpers';
@@ -43,7 +43,7 @@ export function paymentTest() {
         url: `/api/payment/${testContext.ctx.workspace_id}/invoice`,
         status: 404,
       });
-      expect(result.body.error).to.eq('GENERIC_NOT_FOUND');
+      expect(result.body.error).to.eq('ERR_GENERIC_NOT_FOUND');
       expect(result.body.message).to.eq(
         `Subscription '${testContext.ctx.workspace_id}' not found`,
       );

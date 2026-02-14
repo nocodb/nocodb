@@ -1,7 +1,7 @@
 import { isAIPromptCol, UITypes } from 'nocodb-sdk';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Knex } from 'knex';
 import type { ButtonColumn, FormulaColumn, RollupColumn } from '~/models';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import { Base, BaseUser, Sort } from '~/models';
 import { NcError } from '~/helpers/catchError';
 import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
@@ -11,7 +11,7 @@ import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import { getRefColumnIfAlias } from '~/helpers';
 
 export default async function sortV2(
-  baseModelSqlv2: BaseModelSqlv2,
+  baseModelSqlv2: IBaseModelSqlV2,
   sortList: Sort[],
   qb: Knex.QueryBuilder,
   alias?: string,

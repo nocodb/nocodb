@@ -31,7 +31,7 @@ const firstErrorMsg = computed(() => {
           </div>
         </template>
         <div
-          class="nc-field-config-error validation-error text-[#CB3F36] bg-[#FFF2F1] rounded-lg inline-flex items-center gap-2 px-2 py-1"
+          class="nc-field-config-error validation-error text-nc-content-red-dark bg-nc-bg-red-light rounded-lg inline-flex items-center gap-2 px-2 py-1"
         >
           <GeneralIcon icon="alertTriangle" />
           <div class="flex">Configuration error</div>
@@ -43,7 +43,7 @@ const firstErrorMsg = computed(() => {
     <GeneralIcon
       v-if="Object.keys(visibilityError ?? {}).length"
       icon="alertTriangle"
-      class="ml-1 flex-none !text-red-500 h-3.5 w-3.5"
+      class="ml-1 flex-none !text-nc-content-red-medium h-3.5 w-3.5"
     />
   </template>
 </template>

@@ -81,8 +81,6 @@ function getIconsData({
   }
 }
 
-const inactiveColor = '#d9d9d9'
-
 export const RatingCellRenderer: CellRenderer = {
   render(ctx: CanvasRenderingContext2D, props: CellRendererOptions) {
     const {
@@ -101,6 +99,8 @@ export const RatingCellRenderer: CellRenderer = {
       cellRenderStore,
       selected,
       isRowHovered,
+      getColor,
+      isDark,
     } = props
 
     const {
@@ -108,11 +108,13 @@ export const RatingCellRenderer: CellRenderer = {
       tagPaddingX = 6,
       tagHeight = 20,
       tagRadius = 6,
-      tagBgColor = '#f4f4f0',
+      tagBgColor = getColor('#f4f4f0', themeV4Colors.base.white),
       tagSpacing = 4,
       tagBorderColor,
       tagBorderWidth,
     } = tag
+
+    const inactiveColor = getColor('#d9d9d9', 'var(--nc-bg-gray-medium)')
 
     const iconsData = getIconsData({ height, width, x, y, column, padding, selected, isRowHovered, value, readonly })!
     if (!iconsData) return
@@ -188,14 +190,21 @@ export const RatingCellRenderer: CellRenderer = {
       let iconColor
 
       if (isHovered) {
-        iconColor = ratingMeta.color
+        iconColor = isDark
+          ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), ratingMeta.color, ['#4a5268', '#d5dce8'])
+          : ratingMeta.color
         if (!readonly) {
           setCursor('pointer')
         }
       } else {
         iconColor = inactiveColor
       }
-      if (hoveredIconIndex === -1) iconColor = isActive ? ratingMeta.color : inactiveColor
+      if (hoveredIconIndex === -1)
+        iconColor = isActive
+          ? isDark
+            ? getOppositeColorOfBackground(getColor('var(--nc-bg-default)'), ratingMeta.color, ['#4a5268', '#d5dce8'])
+            : ratingMeta.color
+          : inactiveColor
 
       if (row < maxRows) {
         const x = startX + col * iconWidthWithSpacing
@@ -216,7 +225,7 @@ export const RatingCellRenderer: CellRenderer = {
       const lastColInRow = (iconsToShow - 1) % iconsPerRow
 
       ctx.font = '500 13px Inter'
-      ctx.fillStyle = '#4a5268'
+      ctx.fillStyle = getColor(themeV4Colors.gray['600'])
       ctx.textBaseline = 'middle'
       ctx.fillText(
         '...',
@@ -245,7 +254,7 @@ export const RatingCellRenderer: CellRenderer = {
     path,
     formula,
   }) {
-    if (!row || !column || readonly || formula || !column.isCellEditable) return false
+    if (!row || !column || readonly || formula || !column.isCellEditable || column.isSyncedColumn) return false
 
     const { x, y, width, height } = getCellPosition(column, row.rowMeta.rowIndex!)
     const iconsData = getIconsData({ x, y, width, height, column: column.columnObj, padding: 10 })
@@ -284,12 +293,16 @@ export const RatingCellRenderer: CellRenderer = {
 
   async handleKeyDown(ctx) {
     const { e, row, column, updateOrSaveRow, readonly, path } = ctx
-    if (column.readonly || readonly || !column.isCellEditable) return
+    if (column.readonly || readonly || !column.isCellEditable || column.isSyncedColumn) return
     const columnObj = column.columnObj
 
     if (/^[0-9]$/.test(e.key)) {
       row.row[columnObj.title!] = Number(e.key)
-      await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, path)
+      try {
+        await updateOrSaveRow(row, columnObj.title, undefined, undefined, undefined, path)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
       return true
     }
 

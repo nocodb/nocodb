@@ -78,7 +78,7 @@ const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
     />
     <NcTooltip
       v-if="showInherit && isEeUI && inheritRef === role"
-      class="uppercase text-[10px] leading-4 text-gray-500"
+      class="uppercase text-[10px] leading-4 text-nc-content-gray-muted"
       placement="bottom"
     >
       <template #title>
@@ -112,7 +112,7 @@ const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
             <RolesBadge disabled :border="false" :inherit="inheritRef === rl" :role="rl" />
             <GeneralIcon v-if="!newRole && rl === roleRef" icon="check" class="text-primary" />
           </div>
-          <div v-if="descriptionRef" class="text-gray-500 text-xs">{{ RoleDescriptions[rl] }}</div>
+          <div v-if="descriptionRef" class="text-nc-content-gray-muted text-xs">{{ RoleDescriptions[rl] }}</div>
         </div>
       </a-select-option>
       <a-select-option
@@ -137,7 +137,7 @@ const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
 
             <GeneralIcon v-else-if="!newRole && rl === roleRef" icon="check" class="text-primary" />
           </div>
-          <div v-if="descriptionRef" class="text-gray-500 text-xs">{{ RoleDescriptions[rl] }}</div>
+          <div v-if="descriptionRef" class="text-nc-content-gray-muted text-xs">{{ RoleDescriptions[rl] }}</div>
         </div>
       </a-select-option>
     </a-select>
@@ -162,10 +162,10 @@ const closeOnClickOption = (optionValue: keyof typeof RoleLabels) => {
     }
     &::-webkit-scrollbar-thumb {
       width: 4px;
-      @apply bg-gray-200 rounded-md;
+      @apply bg-nc-bg-gray-medium rounded-md;
     }
     &::-webkit-scrollbar-thumb:hover {
-      @apply bg-gray-300;
+      @apply bg-nc-bg-gray-dark;
     }
   }
 }

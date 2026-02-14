@@ -118,6 +118,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           );
 
           qb.select(`${alias}.${childColumn.column_name}`);
+          qb.whereNotNull(`${alias}.${childColumn.column_name}`);
         }
 
         const conditionJoinResult = await nestedConditionJoin({
@@ -186,6 +187,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
             ]),
           );
           qb.select(`${alias}.${parentColumn.column_name}`);
+          qb.whereNotNull(`${alias}.${parentColumn.column_name}`);
         }
 
         const conditionJoinResult = await nestedConditionJoin({
@@ -252,6 +254,7 @@ export class LookupGeneralHandler extends ComputedFieldHandler {
           ]),
         )
           .select(`${alias}.${mmChildColumn.column_name}`)
+          .whereNotNull(`${alias}.${mmChildColumn.column_name}`)
           .join(
             knex.raw(`?? as ??`, [
               parentBaseModel.getTnPath(parentModel.table_name),

@@ -424,8 +424,8 @@ export class ToolbarFilterPage extends BasePage {
     if (networkValidation) {
       await this.waitForResponse({
         uiAction: async () => await this.get().locator('.nc-filter-item-remove-btn').click(),
-        httpMethodsToMatch: ['DELETE'],
-        requestUrlPathToMatch: '/api/v1/db/meta/filters/',
+        httpMethodsToMatch: ['POST'],
+        requestUrlPathToMatch: 'filterDelete',
       });
     } else {
       await this.get().locator('.nc-filter-item-remove-btn').click();
@@ -440,8 +440,8 @@ export class ToolbarFilterPage extends BasePage {
     if (networkValidation) {
       await this.waitForResponse({
         uiAction: async () => await this.get().locator('.nc-filter-item-remove-btn').click(),
-        httpMethodsToMatch: ['DELETE'],
-        requestUrlPathToMatch: '/api/v1/db/meta/filters/',
+        httpMethodsToMatch: ['POST'],
+        requestUrlPathToMatch: 'filterDelete',
       });
     } else {
       await this.get().locator('.nc-filter-item-remove-btn').click();

@@ -9,21 +9,19 @@ const route = router.currentRoute
 
 const { showOnboardingFlow } = useOnboardingFlow()
 
+const { hideSharedBaseBtn } = storeToRefs(useConfigStore())
+
 const disableBaseLayout = computed(
   () => route.value.path.startsWith('/nc/view') || route.value.path.startsWith('/nc/form') || showOnboardingFlow.value,
 )
 
-const { isExperimentalFeatureModalOpen, initializeFeatures, isFeatureEnabled } = useBetaFeatureToggle()
+const { isExperimentalFeatureModalOpen, initializeFeatures } = useBetaFeatureToggle()
 
 initializeFeatures()
 
 useAntDvTheme()
 
-const isDarkModeEnabled = computed(() => isFeatureEnabled(FEATURE_FLAG.DARK_MODE))
-
-if (isDarkModeEnabled.value) {
-  useTheme()
-}
+useTheme()
 
 const { commandPalette, cmdData, cmdPlaceholder, activeScope, loadTemporaryScope } = useCommandPalette()
 
@@ -39,6 +37,10 @@ const { chatwootInit } = useProvideChatwoot()
 
 onMounted(() => {
   window.addEventListener('chatwoot:ready', chatwootInit)
+
+  if (route.value.query.hideSharedBaseBtn === 'true') {
+    hideSharedBaseBtn.value = true
+  }
 })
 
 onBeforeUnmount(() => {

@@ -1,10 +1,16 @@
 import type { ColumnType, SelectOptionType, SelectOptionsType } from 'nocodb-sdk'
 
-export type LocalSelectOptionType = SelectOptionType & { value?: string }
+export type LocalSelectOptionType = SelectOptionType & { value?: string; bgColor?: string; textColor?: string }
 
 export type SelectInputOptionType = { label: string; value: string } & SelectOptionType
 
-export const getOptions = (column: ColumnType, isEditColumn: boolean, isForm: boolean) => {
+export const getOptions = (
+  column: ColumnType,
+  isEditColumn: boolean,
+  isForm: boolean,
+  isDark: boolean,
+  getColor: GetColorType,
+) => {
   if (column && column?.colOptions) {
     const opts = column.colOptions
       ? (column.colOptions as SelectOptionsType).options.filter((el: SelectOptionType) => el.title !== '') || []
@@ -42,10 +48,17 @@ export const getOptions = (column: ColumnType, isEditColumn: boolean, isForm: bo
           ...o,
           value: o.title,
           order: o.id && limitOptionsById[o.id] ? limitOptionsById[o.id]?.order : order++,
+          bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark }),
+          textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor }),
         }))
         .sort((a, b) => a.order - b.order)
     } else {
-      return opts.map((o: SelectOptionType) => ({ ...o, value: o.title }))
+      return opts.map((o: SelectOptionType) => ({
+        ...o,
+        value: o.title,
+        bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark }),
+        textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor }),
+      }))
     }
   }
   return []

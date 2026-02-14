@@ -25,6 +25,7 @@ export const isActiveElementInsideExtension = () =>
   ['.extension-modal', '.nc-extension-pane', '.nc-modal-extension-market', '.nc-modal-share-collaborate'].some((selector) =>
     document.querySelector(selector)?.contains(document.activeElement),
   )
+export const isActiveElementInsideScriptPane = () => document.querySelector('.nc-action-pane')?.contains(document.activeElement)
 export const isTiptapDropdownExistInsideEditor = () => {
   return document.querySelector('.tippy-box')
 }
@@ -216,3 +217,24 @@ export const removeQueryParamsFromURL = (keysToRemove: string[]) => {
 
 // Feature detection.
 export const supportsKeyboardLock = 'keyboard' in navigator && navigator.keyboard && 'lock' in (navigator.keyboard as any)
+
+export const openContactSalesEmail = (email: string = 'support@nocodb.com') => {
+  const a = document.createElement('a')
+  a.href = `mailto:${email}`
+  a.target = '_blank'
+  a.click()
+}
+
+export const getValidSlotName = (name: string, prefix?: string, suffix?: string): string => {
+  let slotName = name.replace(/\./g, '__')
+
+  if (prefix) {
+    slotName = `${prefix}-${slotName}`
+  }
+
+  if (suffix) {
+    slotName = `${slotName}-${suffix}`
+  }
+
+  return slotName
+}

@@ -144,7 +144,7 @@ const savingValue = ref()
 
 function saveChanges(val?: dayjs.Dayjs, saveOnChange = false) {
   if (!val) {
-    if (savingValue.value === null) {
+    if (savingValue.value === val && !ncIsUndefined(val)) {
       return
     }
 
@@ -337,7 +337,7 @@ const handleKeydown = (e: KeyboardEvent, _open?: boolean, _isDatePicker = false)
         e.stopPropagation()
       }
 
-      localState.value = tempDate.value
+      localState.value = tempDate.value ?? dayjs(new Date())
       if (!_isDatePicker) {
         e.stopPropagation()
         timePickerRef.value?.blur?.()

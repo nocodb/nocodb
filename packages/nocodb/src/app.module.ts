@@ -20,10 +20,12 @@ import { RawBodyMiddleware } from '~/middlewares/raw-body.middleware';
 import { JsonBodyMiddleware } from '~/middlewares/json-body.middleware';
 
 import { UrlEncodeMiddleware } from '~/middlewares/url-encode.middleware';
+import { OAuthModule } from '~/modules/oauth/oauth.module';
 
 export const ceModuleConfig = {
   imports: [
     AuthModule,
+    OAuthModule,
     NocoModule,
     EventEmitterModule,
     JobsModule,

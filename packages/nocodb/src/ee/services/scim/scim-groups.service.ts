@@ -1,8 +1,7 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Team, WorkspaceUser } from '~/ee/models';
-import Noco from '~/Noco';
 import { PrincipalAssignment } from '~/ee/models';
 import { PrincipalType, ResourceType } from '~/utils/globals';
 
@@ -27,8 +26,6 @@ interface ScimGroupResource {
 
 @Injectable()
 export class ScimGroupsService {
-  protected logger = new Logger(ScimGroupsService.name);
-
   constructor() {}
 
   /**
@@ -287,8 +284,6 @@ export class ScimGroupsService {
     teamId: string,
     workspaceId: string,
   ): Promise<any[]> {
-    const ncMeta = Noco.ncMeta;
-
     // Get team user assignments
     const assignments = await PrincipalAssignment.list(context, {
       resource_type: ResourceType.TEAM,
@@ -362,7 +357,7 @@ export class ScimGroupsService {
           resource_id: teamId,
           principal_type: PrincipalType.USER,
           principal_ref_id: member.fk_user_id,
-          roles: null, // Team role, not individual role
+          roles: 'member',
         });
       }
     }
@@ -370,6 +365,7 @@ export class ScimGroupsService {
 
   /**
    * Apply SCIM PATCH operations
+   * Handles Replace, Add, and Remove operations per RFC 7644 Section 3.5.2
    */
   private async applyPatchOperations(
     context: NcContext,
@@ -378,13 +374,47 @@ export class ScimGroupsService {
     operations: any[],
   ) {
     for (const op of operations) {
-      if (op.path === 'members') {
-        if (op.op === 'add') {
-          // Add members
+      const opName = op.op?.toLowerCase();
+
+      // Handle member operations (path = "members" or "members[value eq ...]")
+      if (op.path === 'members' || op.path?.startsWith('members[')) {
+        if (opName === 'add') {
           await this.addTeamMembers(context, team.id, workspaceId, op.value);
-        } else if (op.op === 'remove') {
-          // Remove members
-          await this.removeTeamMembers(context, team.id, workspaceId, op.value);
+        } else if (opName === 'remove') {
+          if (op.path?.startsWith('members[')) {
+            // Parse filter: members[value eq "userId"]
+            const filterMatch = op.path.match(
+              /members\[value\s+eq\s+"([^"]+)"\]/i,
+            );
+            if (filterMatch) {
+              await this.removeTeamMembers(context, team.id, workspaceId, [
+                { value: filterMatch[1] },
+              ]);
+            }
+          } else if (op.value) {
+            await this.removeTeamMembers(
+              context,
+              team.id,
+              workspaceId,
+              op.value,
+            );
+          }
+        }
+      }
+      // Handle Replace operations on group attributes (no specific path)
+      else if (
+        opName === 'replace' &&
+        !op.path &&
+        op.value &&
+        typeof op.value === 'object'
+      ) {
+        const updateData: any = {};
+        if (op.value.displayName) {
+          updateData.title = op.value.displayName;
+          updateData.scim_display_name = op.value.displayName;
+        }
+        if (Object.keys(updateData).length > 0) {
+          await Team.update(context, team.id, updateData);
         }
       }
     }
@@ -413,7 +443,7 @@ export class ScimGroupsService {
           resource_id: teamId,
           principal_type: PrincipalType.USER,
           principal_ref_id: wu.fk_user_id,
-          roles: null,
+          roles: 'member',
         });
       }
     }

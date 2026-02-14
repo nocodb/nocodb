@@ -18,6 +18,12 @@ export class ScimAuthGuard extends AuthGuard('scim-bearer') {
     // Store workspace ID for strategy access
     request.workspaceId = workspaceId;
 
+    // Set request.context so @TenantContext() decorator works for SCIM controllers
+    request.context = {
+      workspace_id: workspaceId,
+      base_id: null,
+    };
+
     return super.canActivate(context);
   }
 

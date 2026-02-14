@@ -158,6 +158,7 @@ export class ScimUsersService {
       scim_user_name: scimUser.userName,
       scim_meta: {
         name: scimUser.name,
+        displayName: scimUser.displayName,
         active: scimUser.active !== false,
       },
     });
@@ -180,7 +181,7 @@ export class ScimUsersService {
   }
 
   /**
-   * Update user (PATCH - partial update)
+   * Update user (PATCH - partial update, supports SCIM PatchOp format)
    */
   async patchUser(
     context: NcContext,
@@ -190,6 +191,35 @@ export class ScimUsersService {
       scimUser: any;
     },
   ) {
+    const { scimUser } = param;
+
+    // If the body contains Operations array, parse it into a flat user object
+    if (scimUser.Operations) {
+      const flatUser: any = {};
+      for (const op of scimUser.Operations) {
+        if (op.op?.toLowerCase() === 'replace') {
+          if (op.path) {
+            // Single-value operation: { op: "Replace", path: "active", value: "False" }
+            let val = op.value;
+            // Handle string booleans (Entra ID sends "True"/"False")
+            if (typeof val === 'string') {
+              if (val.toLowerCase() === 'false') val = false;
+              else if (val.toLowerCase() === 'true') val = true;
+            }
+            flatUser[op.path] = val;
+          } else if (typeof op.value === 'object') {
+            // Bulk operation: { op: "Replace", value: { displayName: "...", active: false } }
+            Object.assign(flatUser, op.value);
+          }
+        }
+      }
+      return this.updateUser(context, {
+        ...param,
+        scimUser: flatUser,
+        isPatch: true,
+      });
+    }
+
     return this.updateUser(context, { ...param, isPatch: true });
   }
 
@@ -207,9 +237,10 @@ export class ScimUsersService {
   ) {
     const { workspaceId, scimId, scimUser } = param;
 
-    // Find workspace user
+    // Find workspace user (include deleted so we can reactivate them)
     const workspaceUsers = await WorkspaceUser.userList({
       fk_workspace_id: workspaceId,
+      include_deleted: true,
     });
 
     const workspaceUser = workspaceUsers.find(
@@ -221,14 +252,25 @@ export class ScimUsersService {
     }
 
     // Build update object
+    const existingMeta = (workspaceUser.scim_meta as any) || {};
     const updateData: any = {
-      scim_user_name: scimUser.userName,
       scim_meta: {
-        ...(workspaceUser.scim_meta as any),
-        name: scimUser.name,
-        active: scimUser.active !== false,
+        ...existingMeta,
+        active: scimUser.active !== undefined ? scimUser.active !== false : existingMeta.active,
       },
     };
+
+    if (scimUser.userName !== undefined) {
+      updateData.scim_user_name = scimUser.userName;
+    }
+
+    if (scimUser.name !== undefined) {
+      updateData.scim_meta.name = scimUser.name;
+    }
+
+    if (scimUser.displayName !== undefined) {
+      updateData.scim_meta.displayName = scimUser.displayName;
+    }
 
     // Handle active status (deactivation)
     if (scimUser.active === false) {
@@ -246,7 +288,21 @@ export class ScimUsersService {
       updateData,
     );
 
-    // Get updated user
+    // After deactivation, WorkspaceUser.get() filters out deleted users,
+    // so we construct a merged object from the existing data + updates.
+    if (updateData.deleted) {
+      const mergedUser = {
+        ...workspaceUser,
+        ...updateData,
+        scim_meta:
+          typeof updateData.scim_meta === 'object'
+            ? updateData.scim_meta
+            : workspaceUser.scim_meta,
+      };
+      return this.toScimUser(mergedUser, workspaceId);
+    }
+
+    // For non-deactivation updates, fetch the latest from DB
     const updatedUser = await WorkspaceUser.get(
       workspaceId,
       workspaceUser.fk_user_id,
@@ -296,7 +352,7 @@ export class ScimUsersService {
       name: scimMeta.name || {
         formatted: workspaceUser.display_name,
       },
-      displayName: workspaceUser.display_name,
+      displayName: scimMeta.displayName || workspaceUser.display_name,
       emails: [
         {
           value: workspaceUser.email,

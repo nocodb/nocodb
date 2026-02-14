@@ -72,7 +72,6 @@ export default class Team {
       RootScopes.ROOT,
       MetaTable.TEAMS,
       preparedTeam,
-      true,
     );
 
     // Get the full record with timestamps

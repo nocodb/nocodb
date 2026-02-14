@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -32,6 +33,7 @@ export class ScimConfigController {
   }
 
   @Post('/api/v3/meta/workspaces/:workspaceId/scim/config')
+  @HttpCode(200)
   @Acl('scimConfigCreate', {
     scope: 'workspace',
   })
@@ -47,6 +49,7 @@ export class ScimConfigController {
   }
 
   @Post('/api/v3/meta/workspaces/:workspaceId/scim/config/token/regenerate')
+  @HttpCode(200)
   @Acl('scimConfigUpdate', {
     scope: 'workspace',
   })

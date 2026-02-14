@@ -11,13 +11,13 @@ export class ScimBearerStrategy extends PassportStrategy(
   'scim-bearer',
 ) {
   constructor(private scimConfigService: ScimConfigService) {
-    super();
+    super({ passReqToCallback: true });
   }
 
-  async validate(token: string, done: any) {
+  async validate(req: any, token: string, done: any) {
     try {
-      // Extract workspace ID from request (will be set by controller)
-      const workspaceId = (this as any).workspaceId;
+      // Extract workspace ID from request (set by ScimAuthGuard)
+      const workspaceId = req.workspaceId;
 
       if (!workspaceId) {
         return done(

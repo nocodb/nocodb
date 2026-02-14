@@ -115,6 +115,8 @@
     "airtable": "^0.12.2",
     "ajv": "^8.17.1",
     "ajv-formats": "^2.1.1",
+    "scim-patch": "^0.8.3",
+    "scim2-parse-filter": "^0.2.10",
     "auto-bind": "^4.0.0",
     "aws-jwt-verify": "^4.0.1",
     "aws-kcl": "^2.2.7",

@@ -169,7 +169,6 @@ const openUpdateModal = (user: User) => {
     showUserModal.value = true
     userMadalKey.value++
     selectedUser.value=user
-    console.log('Editing user:', user)
 }
 
 const orderBy = computed<Record<string, SordDirectionType>>({

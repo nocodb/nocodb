@@ -728,6 +728,15 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.SANDBOX_DISCARD, data: SandboxDiscardEvent): void;
   emit(event: AppEvents.SANDBOX_MERGE, data: SandboxMergeEvent): void;
 
+  emit(
+    event:
+      | AppEvents.RECORD_TEMPLATE_CREATE
+      | AppEvents.RECORD_TEMPLATE_UPDATE
+      | AppEvents.RECORD_TEMPLATE_DELETE
+      | AppEvents.RECORD_TEMPLATE_USE,
+    data: any,
+  ): void;
+
   emit(event, data): void {
     return super.emit(event, data);
   }

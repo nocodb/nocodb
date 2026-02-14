@@ -1051,6 +1051,20 @@ const up = async (knex: Knex) => {
     table.primary(['base_id', 'id']);
   });
 
+  await knex.schema.createTable(MetaTable.RECORD_TEMPLATES, (table) => {
+    table.string('id', 20).notNullable();
+    table.string('base_id', 20).notNullable();
+    table.string('fk_workspace_id', 20);
+    table.string('source_id', 20).notNullable();
+    table.string('title', 255).notNullable();
+    table.text('description');
+    table.text('template_data').notNullable();
+    table.integer('usage_count').defaultTo(0);
+    table.string('created_by', 20);
+    table.timestamps(true, true);
+    table.primary(['base_id', 'id']);
+  });
+
   await knex.schema.createTable(MetaTable.SNAPSHOT, (table) => {
     table.string('id', 20).notNullable().primary();
     table.string('title', 512);
@@ -2155,6 +2169,7 @@ const down = async (knex: Knex) => {
   await knex.schema.dropTableIfExists(MetaTable.SOURCES);
   await knex.schema.dropTableIfExists(MetaTable.SORT);
   await knex.schema.dropTableIfExists(MetaTable.SNAPSHOT);
+  await knex.schema.dropTableIfExists(MetaTable.RECORD_TEMPLATES);
   await knex.schema.dropTableIfExists(MetaTableOldV2.SCRIPTS);
   await knex.schema.dropTableIfExists(MetaTable.PLUGIN);
   await knex.schema.dropTableIfExists(MetaTable.ORG_USERS);

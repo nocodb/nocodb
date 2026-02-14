@@ -13,6 +13,10 @@ export interface UseExpandedFormDetachedProps {
   'onUpdate:modelValue'?: Function
   'maintainDefaultViewOrder'?: boolean
   'skipReload'?: boolean
+  'templateMode'?: boolean
+  'templateName'?: string
+  'newRecordSubmitBtnText'?: string
+  'newRecordHeader'?: string
   'createdRecord'?: (row: Row['row']) => void
 }
 

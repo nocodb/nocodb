@@ -1067,6 +1067,7 @@ export const iconMap = {
   'unStar': NcUnStar,
   'sortDesc': MsSort,
   'article': NcArticle,
+  'template': h('span', { class: 'material-symbols' }, 'content_copy'),
   'triangleFill': PhTriangleFill,
   'sortAsc': h('span', { class: 'material-symbols', style: { transform: 'scaleY(-1)' } }, 'sort'),
   'contentSaveExit': h('span', { class: 'material-symbols' }, 'save'),

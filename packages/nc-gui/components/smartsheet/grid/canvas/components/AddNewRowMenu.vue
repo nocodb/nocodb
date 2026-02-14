@@ -6,6 +6,7 @@ const props = withDefaults(
     path?: Array<number> | null
     onNewRecordToGridClick: () => void
     onNewRecordToFormClick: () => void
+    onOpenTemplateManager?: () => void
     removeInlineAddRecord?: boolean
   }>(),
   {
@@ -16,6 +17,61 @@ const props = withDefaults(
 const { removeInlineAddRecord } = toRefs(props)
 
 const { isAddNewRecordGridMode } = useGlobal()
+const { base } = storeToRefs(useBase())
+const { meta } = useSmartsheetStoreOrThrow()
+const { t } = useI18n()
+
+const templates = ref<any[]>([])
+
+const { $api } = useNuxtApp()
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
+
+// Load templates on mount - wrapped in try/catch since API may not be available
+onMounted(async () => {
+  try {
+    if (base.value?.id && meta.value?.id && $api.recordTemplates?.recordTemplateList) {
+      const response = await $api.recordTemplates.recordTemplateList(base.value.id, meta.value.id)
+      templates.value = ((response as any)?.list || []).filter((t: any) => t.enabled !== false)
+    }
+  } catch (e) {
+    // silently ignore - templates may not be available
+  }
+})
+
+const parseTemplateData = (tmpl: any): { fields: Record<string, any>; ltarState: Record<string, any> } => {
+  const data = typeof tmpl.template_data === 'string' ? JSON.parse(tmpl.template_data) : tmpl.template_data || {}
+  return {
+    fields: data.fields || {},
+    ltarState: data.ltarState || {},
+  }
+}
+
+const handleUseTemplate = async (tmpl: any) => {
+  if (!base.value?.id || !meta.value?.id || !tmpl?.id) return
+  try {
+    const { fields, ltarState } = parseTemplateData(tmpl)
+
+    // Create record via standard row creation API (handles LTAR/Links natively)
+    await $api.dbTableRow.create('noco', base.value.id, meta.value.id, {
+      ...fields,
+      ...ltarState,
+    })
+
+    // Increment template usage count
+    try {
+      await $api.recordTemplates.recordTemplateUse(base.value.id, tmpl.id)
+    } catch {
+      // Usage count increment is non-critical
+    }
+
+    message.toast('Record created from template')
+    reloadViewDataHook?.trigger()
+  } catch (e: any) {
+    console.error(e)
+    message.toast(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
@@ -40,6 +96,31 @@ const { isAddNewRecordGridMode } = useGlobal()
       </div>
 
       <GeneralIcon v-if="!isAddNewRecordGridMode" icon="check" class="w-4 h-4 text-primary" />
+    </NcMenuItem>
+
+    <!-- Record Templates (when available) -->
+    <template v-if="templates.length > 0">
+      <NcDivider />
+      <NcMenuItem
+        v-for="tmpl in templates"
+        :key="tmpl.id"
+        class="nc-template-menu-item"
+        @click="handleUseTemplate(tmpl)"
+      >
+        <div class="flex items-center gap-2">
+          <GeneralIcon icon="template" class="w-4 h-4" />
+          <span class="truncate flex-1">{{ tmpl.title }}</span>
+        </div>
+      </NcMenuItem>
+    </template>
+
+    <!-- Manage Templates -->
+    <NcDivider />
+    <NcMenuItem class="nc-manage-templates" @click="onOpenTemplateManager?.()">
+      <div class="flex items-center gap-2">
+        <GeneralIcon icon="template" class="w-4 h-4" />
+        <span>{{ $t('activity.manageTemplates') }}</span>
+      </div>
     </NcMenuItem>
   </NcMenu>
 </template>

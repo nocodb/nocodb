@@ -128,6 +128,8 @@ provide(IsToolbarIconMode, isToolbarIconMode)
       <template v-if="!isMobileMode">
         <SmartsheetToolbarRowHeight v-if="isGrid && isViewOperationsAllowed" />
 
+        <SmartsheetToolbarRecordTemplatesButton v-if="isGrid && isViewOperationsAllowed && !isPublic && !isSharedBase" />
+
         <template v-if="!isCalendar">
           <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
           <SmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />

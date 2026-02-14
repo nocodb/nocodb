@@ -117,6 +117,7 @@ export class MetaService extends MetaServiceCE {
       [MetaTable.MANAGED_APP_DEPLOYMENT_LOGS]: 'madl',
       [MetaTable.SANDBOXES]: 'sb',
       [MetaTable.SCIM_CONFIG]: 'scfg',
+      [MetaTable.RECORD_TEMPLATES]: 'rt',
     };
 
     const prefix = prefixMap[target] || 'nc';

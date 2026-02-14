@@ -744,6 +744,13 @@ function onNewRecordToFormClick(path: Array<number> = []) {
   isDropdownVisible.value = false
 }
 
+function onOpenTemplateManager() {
+  openAddNewRowDropdown.value = null
+  isDropdownVisible.value = false
+  const { openManager } = useRecordTemplate()
+  openManager()
+}
+
 const onVisibilityChange = (value: boolean) => {
   if (value) {
     isDropdownVisible.value = true
@@ -3013,6 +3020,7 @@ watch(
             :path="openAddNewRowDropdown"
             :on-new-record-to-grid-click="onNewRecordToGridClick"
             :on-new-record-to-form-click="onNewRecordToFormClick"
+            :on-open-template-manager="onOpenTemplateManager"
           />
           <GroupContextMenu
             v-else-if="openGroupContextMenuDropdown"
@@ -3115,6 +3123,7 @@ watch(
                 :path="openAddNewRowDropdown"
                 :on-new-record-to-grid-click="onNewRecordToGridClick"
                 :on-new-record-to-form-click="onNewRecordToFormClick"
+                :on-open-template-manager="onOpenTemplateManager"
               />
             </template>
           </NcDropdown>

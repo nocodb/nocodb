@@ -19,6 +19,14 @@ const permissionScopes = {
     'apiTokenCreate',
     'apiTokenDelete',
 
+    // Record Templates
+    'recordTemplateList',
+    'recordTemplateGet',
+    'recordTemplateCreate',
+    'recordTemplateUpdate',
+    'recordTemplateDelete',
+    'recordTemplateUse',
+
     'oAuthAuthorizationList',
     'oAuthAuthorizationRevoke',
     'oAuthClientRegenerateSecret',
@@ -357,6 +365,14 @@ const rolePermissions:
       kanbanViewUpdate: true,
       mapViewUpdate: true,
       calendarViewUpdate: true,
+
+      // Record Templates
+      recordTemplateList: true,
+      recordTemplateGet: true,
+      recordTemplateCreate: true,
+      recordTemplateUpdate: true,
+      recordTemplateDelete: true,
+      recordTemplateUse: true,
     },
   },
   [ProjectRoles.CREATOR]: {
@@ -631,6 +647,13 @@ const permissionDescriptions: Record<string, string> = {
 
   apiTokenList: 'view list of API tokens',
   apiTokenCreate: 'create a new API token',
+
+  recordTemplateList: 'view list of record templates',
+  recordTemplateGet: 'view a record template',
+  recordTemplateCreate: 'create a new record template',
+  recordTemplateUpdate: 'update a record template',
+  recordTemplateDelete: 'delete a record template',
+  recordTemplateUse: 'use a record template to create records',
   apiTokenDelete: 'delete an API token',
 
   passwordChange: 'change your password',

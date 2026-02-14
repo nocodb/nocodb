@@ -32,6 +32,7 @@ import {
 } from '~/constants';
 import { ApiDocsController } from '~/controllers/api-docs/api-docs.controller';
 import { ApiTokensController } from '~/controllers/api-tokens.controller';
+import { RecordTemplatesController } from '~/controllers/record-templates.controller';
 import { AttachmentsSecureController } from '~/controllers/attachments-secure.controller';
 import { AttachmentsController } from '~/controllers/attachments.controller';
 import { BaseUsersController } from '~/controllers/base-users.controller';
@@ -70,6 +71,7 @@ import { ViewsController } from '~/controllers/views.controller';
 import { MetaService } from '~/meta/meta.service';
 import { ApiDocsService } from '~/services/api-docs/api-docs.service';
 import { ApiTokensService } from '~/services/api-tokens.service';
+import { RecordTemplatesService } from '~/services/record-templates/record-templates.service';
 import { AttachmentsService } from '~/services/attachments.service';
 import { AuditsService } from '~/services/audits.service';
 import { BaseUsersService } from '~/services/base-users/base-users.service';
@@ -194,6 +196,7 @@ export const nocoModuleMetadata = {
           /* Metas */
           ApiDocsController,
           ApiTokensController,
+          RecordTemplatesController,
           ...(process.env.NC_SECURE_ATTACHMENTS === 'true'
             ? [AttachmentsSecureController]
             : [AttachmentsController]),
@@ -278,6 +281,7 @@ export const nocoModuleMetadata = {
     /* Metas */
     ApiDocsService,
     ApiTokensService,
+    RecordTemplatesService,
     AttachmentsService,
     AuditsService,
     SourcesService,

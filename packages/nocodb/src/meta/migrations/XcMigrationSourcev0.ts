@@ -19,6 +19,7 @@ import * as nc_018_add_enabled_to_filter_exp_v2 from './v0/nc_018_add_enabled_to
 import * as nc_019_sandboxes from './v0/nc_019_sandboxes';
 import * as nc_020_add_cell_coloring_fields_to_row_color_conditions from './v0/nc_020_add_cell_coloring_fields_to_row_color_conditions';
 import * as nc_021_scim_support from './v0/nc_021_scim_support';
+import * as nc_021_record_templates from './v0/nc_021_record_templates';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -49,6 +50,7 @@ export default class XcMigrationSourcev0 {
       'nc_019_sandboxes',
       'nc_020_add_cell_coloring_fields_to_row_color_conditions',
       'nc_021_scim_support',
+      'nc_021_record_templates',
     ]);
   }
 
@@ -100,6 +102,8 @@ export default class XcMigrationSourcev0 {
         return nc_020_add_cell_coloring_fields_to_row_color_conditions;
       case 'nc_021_scim_support':
         return nc_021_scim_support;
+      case 'nc_021_record_templates':
+        return nc_021_record_templates;
     }
   }
 }

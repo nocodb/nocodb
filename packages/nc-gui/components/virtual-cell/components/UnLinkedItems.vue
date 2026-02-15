@@ -506,6 +506,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
               v-if="
                 !isPublic &&
                 !isDataReadOnly &&
+                !isTemplateMode &&
                 isUIAllowed('dataEdit', externalBaseUserRoles) &&
                 !isForm &&
                 !relatedTableMeta?.synced
@@ -536,6 +537,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
             v-if="
               !isPublic &&
               !isDataReadOnly &&
+              !isTemplateMode &&
               isUIAllowed('dataEdit', externalBaseUserRoles) &&
               !isForm &&
               !relatedTableMeta?.synced
@@ -557,17 +559,19 @@ const handleKeyDown = (e: KeyboardEvent) => {
               </NcButton>
             </template>
           </PermissionsTooltip>
-          <NcButton
-            v-if="isTemplateMode && isLinkedTableAccessible"
-            size="small"
-            class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
-            type="secondary"
-            @click="addNewBlueprintRecord"
-          >
-            <div class="flex items-center gap-1">
-              <MdiPlus v-if="!isMobileMode" class="h-4 w-4" /> Link a New Record
-            </div>
-          </NcButton>
+          <NcTooltip v-if="isTemplateMode && isLinkedTableAccessible">
+            <template #title>Define a new record that will be created and linked each time this template is used</template>
+            <NcButton
+              size="small"
+              class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
+              type="secondary"
+              @click="addNewBlueprintRecord"
+            >
+              <div class="flex items-center gap-1">
+                <MdiPlus v-if="!isMobileMode" class="h-4 w-4" /> Add Blueprint
+              </div>
+            </NcButton>
+          </NcTooltip>
         </div>
         <template
           v-if="

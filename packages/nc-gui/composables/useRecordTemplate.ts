@@ -5,15 +5,31 @@ const showRecordTemplateManager = ref(false)
 // Shared reactive template list — mutated by the manager, read by menus
 const templates = ref<any[]>([])
 
+// Tracks the last-used template ID for the "New record" button default action
+const selectedTemplateId = ref<string | null>(null)
+
 export function useRecordTemplate() {
   const openManager = () => {
     showRecordTemplateManager.value = true
+  }
+
+  // The selected template object (resolved from ID against current templates list)
+  const selectedTemplate = computed(() => {
+    if (!selectedTemplateId.value) return null
+    return templates.value.find((t) => t.id === selectedTemplateId.value && t.enabled !== false) || null
+  })
+
+  const setSelectedTemplate = (templateId: string | null) => {
+    selectedTemplateId.value = templateId
   }
 
   return {
     showRecordTemplateManager,
     templates,
     openManager,
+    selectedTemplate,
+    selectedTemplateId,
+    setSelectedTemplate,
   }
 }
 

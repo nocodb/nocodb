@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = withDefaults(
@@ -47,15 +48,70 @@ const parseTemplateData = (tmpl: any): { fields: Record<string, any>; ltarState:
   }
 }
 
+const resolveBlueprintsInLtarState = async (ltarState: Record<string, any>): Promise<Record<string, any>> => {
+  if (!base.value?.id || !meta.value?.columns) return ltarState
+
+  const resolvedState: Record<string, any> = {}
+
+  for (const [colTitle, linkedData] of Object.entries(ltarState)) {
+    const column = meta.value.columns.find((c: ColumnType) => c.title === colTitle)
+    if (!column) {
+      resolvedState[colTitle] = linkedData
+      continue
+    }
+
+    const colOptions = column.colOptions as LinkToAnotherRecordType
+    const relatedTableId = colOptions?.fk_related_model_id
+
+    if (!relatedTableId) {
+      resolvedState[colTitle] = linkedData
+      continue
+    }
+
+    if (Array.isArray(linkedData)) {
+      const resolvedItems = []
+      for (const item of linkedData) {
+        if (item?._isBlueprint) {
+          const { _isBlueprint, ...recordData } = item
+          try {
+            const created = await $api.dbTableRow.create('noco', base.value.id, relatedTableId, recordData)
+            resolvedItems.push(created)
+          } catch (e: any) {
+            console.error(`Failed to create blueprint record in table ${relatedTableId}:`, e)
+          }
+        } else {
+          resolvedItems.push(item)
+        }
+      }
+      resolvedState[colTitle] = resolvedItems
+    } else if (linkedData?._isBlueprint) {
+      const { _isBlueprint, ...recordData } = linkedData
+      try {
+        const created = await $api.dbTableRow.create('noco', base.value.id, relatedTableId, recordData)
+        resolvedState[colTitle] = created
+      } catch (e: any) {
+        console.error(`Failed to create blueprint record in table ${relatedTableId}:`, e)
+      }
+    } else {
+      resolvedState[colTitle] = linkedData
+    }
+  }
+
+  return resolvedState
+}
+
 const handleUseTemplate = async (tmpl: any) => {
   if (!base.value?.id || !meta.value?.id || !tmpl?.id) return
   try {
     const { fields, ltarState } = parseTemplateData(tmpl)
 
+    // Resolve any blueprint records — create real records in linked tables first
+    const resolvedLtarState = await resolveBlueprintsInLtarState(ltarState)
+
     // Create record via standard row creation API (handles LTAR/Links natively)
     await $api.dbTableRow.create('noco', base.value.id, meta.value.id, {
       ...fields,
-      ...ltarState,
+      ...resolvedLtarState,
     })
 
     // Increment template usage count

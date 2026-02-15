@@ -60,9 +60,13 @@ const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isTemplateMode = inject(IsTemplateModeInj, ref(false))
+
 const isExpandedFormCloseAfterSave = ref(false)
 
 const isNewRecord = ref(false)
+
+const isBlueprintMode = ref(false)
 
 isChildrenExcludedLoading.value = true
 
@@ -234,9 +238,30 @@ const addNewRecord = () => {
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
   isNewRecord.value = true
+  isBlueprintMode.value = false
+}
+
+const addNewBlueprintRecord = () => {
+  if (!isLinkedTableAccessible.value) return
+
+  expandedFormRow.value = {}
+  expandedFormDlg.value = true
+  isExpandedFormCloseAfterSave.value = true
+  isNewRecord.value = true
+  isBlueprintMode.value = true
 }
 
 const onCreatedRecord = (record: any) => {
+  // Blueprint mode: store the record data as a blueprint in ltarState (no real record created)
+  if (isBlueprintMode.value) {
+    const blueprint = { ...record, _isBlueprint: true }
+    addLTARRef(blueprint, injectedColumn?.value as ColumnType)
+    isBlueprintMode.value = false
+    isNewRecord.value = false
+    vModel.value = false
+    return
+  }
+
   addLTARRef(record, injectedColumn?.value as ColumnType)
 
   reloadTrigger?.trigger({
@@ -531,6 +556,17 @@ const handleKeyDown = (e: KeyboardEvent) => {
               </NcButton>
             </template>
           </PermissionsTooltip>
+          <NcButton
+            v-if="isTemplateMode && isLinkedTableAccessible"
+            size="small"
+            class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
+            type="secondary"
+            @click="addNewBlueprintRecord"
+          >
+            <div class="flex items-center gap-1">
+              <MdiPlus v-if="!isMobileMode" class="h-4 w-4" /> Link a New Record
+            </div>
+          </NcButton>
         </div>
         <template
           v-if="
@@ -561,16 +597,10 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <LazySmartsheetExpandedForm
         v-if="expandedFormDlg"
         v-model="expandedFormDlg"
-        :load-row="!isPublic"
+        :load-row="!isPublic && !isBlueprintMode"
         :close-after-save="isExpandedFormCloseAfterSave"
         :meta="relatedTableMeta"
-        :new-record-header="
-          isExpandedFormCloseAfterSave
-            ? $t('activity.tableNameCreateNewRecord', {
-                tableName: relatedTableMeta?.title,
-              })
-            : undefined
-        "
+        :new-record-header="isBlueprintMode ? `New ${relatedTableMeta?.title} (Blueprint)` : isExpandedFormCloseAfterSave ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title }) : undefined"
         :row="{
           row: expandedFormRow,
           oldRow: {},
@@ -582,10 +612,11 @@ const handleKeyDown = (e: KeyboardEvent) => {
         }"
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="newRowState"
+        :blueprint-mode="isBlueprintMode"
         use-meta-fields
         maintain-default-view-order
         skip-reload
-        :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
+        :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Blueprint' : 'Create & Link'"
         @deleted-record="onDeletedRecord"
         @created-record="onCreatedRecord"
       />

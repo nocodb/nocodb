@@ -23,6 +23,7 @@ interface Props {
   newRecordSubmitBtnText?: string
   templateMode?: boolean
   templateName?: string
+  blueprintMode?: boolean
   expandForm?: (row: Row) => void
   maintainDefaultViewOrder?: boolean
   allowNullFieldIds?: string[]
@@ -110,6 +111,8 @@ const isKanban = inject(IsKanbanInj, ref(false))
 const isPublic = inject(IsPublicInj, ref(false))
 
 provide(MetaInj, activeMeta)
+
+provide(IsTemplateModeInj, computed(() => !!props.templateMode || !!props.blueprintMode))
 
 // override cell event hook to avoid unexpected behavior at form fields
 // issue happens when opening expanded form from cell (LTAR/Links)
@@ -264,8 +267,8 @@ const isLTARChanged = computed(() => {
 })
 
 const isSaveRecordBtnDisabled = computed(() => {
-  // In template mode, always allow saving (even empty template)
-  if (props.templateMode) return false
+  // In template/blueprint mode, always allow saving (even empty)
+  if (props.templateMode || props.blueprintMode) return false
   return changedColumns.value.size === 0 && !isUnsavedFormExist.value && !isLTARChanged.value
 })
 
@@ -323,6 +326,18 @@ const save = async () => {
         _templateName: editableTemplateName.value.trim(),
         _tableId: activeMeta.value?.id,
         _ltarState: rowState.value,
+      })
+      isSaving.value = false
+      return
+    }
+
+    // Blueprint mode: emit row data as a blueprint (used for LTAR "link a new record" inside templates)
+    if (props.blueprintMode) {
+      isUnsavedFormExist.value = false
+      isExpanded.value = false
+      emits('createdRecord', {
+        ..._row.value.row,
+        _isBlueprint: true,
       })
       isSaving.value = false
       return
@@ -564,8 +579,8 @@ useActiveKeydownListener(
 
       e.stopPropagation()
 
-      // In template mode, use the save() function which handles template logic
-      if (props.templateMode) {
+      // In template/blueprint mode, use the save() function which handles template/blueprint logic
+      if (props.templateMode || props.blueprintMode) {
         await save()
         return
       }
@@ -808,8 +823,8 @@ function onTouchEnd() {
 const showSendRecordModal = ref(false)
 
 const visibleMoreOptions = computed(() => {
-  // In template mode, hide all extra options
-  if (props.templateMode) {
+  // In template/blueprint mode, hide all extra options
+  if (props.templateMode || props.blueprintMode) {
     return {
       reloadRecord: false,
       copyRecordUrl: false,
@@ -854,7 +869,7 @@ export default {
     :closable="false"
     :footer="null"
     :visible="isExpanded"
-    :width="templateMode ? 'min(65vw,700px)' : commentsDrawer && isUIAllowed('commentList', baseRoles) ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
+    :width="(templateMode || blueprintMode) ? 'min(65vw,700px)' : commentsDrawer && isUIAllowed('commentList', baseRoles) ? 'min(80vw,1280px)' : 'min(70vw,768px)'"
     class="nc-drawer-expanded-form"
     :size="isMobileMode ? 'medium' : 'small'"
     v-bind="modalProps"
@@ -970,7 +985,7 @@ export default {
             </div>
           </div>
         </div>
-        <div v-if="!templateMode" class="ml-auto">
+        <div v-if="!templateMode && !blueprintMode" class="ml-auto">
           <SmartsheetExpandedFormViewModeSelector v-model="activeViewMode" :view="view" class="nc-expanded-form-mode-switch" />
         </div>
         <div v-else class="ml-auto" />

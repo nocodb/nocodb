@@ -15,6 +15,7 @@ export interface UseExpandedFormDetachedProps {
   'skipReload'?: boolean
   'templateMode'?: boolean
   'templateName'?: string
+  'blueprintMode'?: boolean
   'newRecordSubmitBtnText'?: string
   'newRecordHeader'?: string
   'createdRecord'?: (row: Row['row']) => void

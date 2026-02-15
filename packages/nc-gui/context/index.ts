@@ -150,6 +150,8 @@ export const ExtensionConfigInj: InjectionKey<Ref<ExtensionConfigInjType> | Comp
 
 export const IsOrgBillingInj: InjectionKey<Ref<boolean>> = Symbol('is-org-billing-injection')
 
+export const IsTemplateModeInj: InjectionKey<Ref<boolean>> = Symbol('is-template-mode-injection')
+
 export const WorkflowVariableInj: InjectionKey<{
   selectedNodeId: Ref<string | null>
   getAvailableVariablesFlat: (nodeId: string) => any[]

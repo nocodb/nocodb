@@ -25,9 +25,13 @@ const isForm = inject(IsFormInj, ref(false))
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const isTemplateMode = inject(IsTemplateModeInj, ref(false))
+
 const isExpandedFormCloseAfterSave = ref(false)
 
 const isNewRecord = ref(false)
+
+const isBlueprintMode = ref(false)
 
 const injectedColumn = inject(ColumnInj, ref())
 
@@ -168,6 +172,17 @@ const addNewRecord = () => {
   expandedFormDlg.value = true
   isExpandedFormCloseAfterSave.value = true
   isNewRecord.value = true
+  isBlueprintMode.value = false
+}
+
+const addNewBlueprintRecord = () => {
+  if (!isLinkedTableAccessible.value) return
+
+  expandedFormRow.value = {}
+  expandedFormDlg.value = true
+  isExpandedFormCloseAfterSave.value = true
+  isNewRecord.value = true
+  isBlueprintMode.value = true
 }
 
 const reloadViewDataListener = withLoading((params) => {
@@ -184,6 +199,16 @@ onBeforeUnmount(() => {
 })
 
 const onCreatedRecord = async (record: any) => {
+  // Blueprint mode: store the record data as a blueprint in ltarState (no real record created)
+  if (isBlueprintMode.value) {
+    const blueprint = { ...record, _isBlueprint: true }
+    await addLTARRef(blueprint, injectedColumn?.value as ColumnType)
+    loadChildrenList(false, state.value)
+    isBlueprintMode.value = false
+    isNewRecord.value = false
+    return
+  }
+
   reloadTrigger?.trigger({
     shouldShowLoading: false,
   })
@@ -549,6 +574,17 @@ const handleKeyDown = (e: KeyboardEvent) => {
               {{ isMobileMode ? $t('title.linkMore') : $t('title.linkMoreRecords') }}
             </div>
           </NcButton>
+          <NcButton
+            v-if="isTemplateMode && isLinkedTableAccessible"
+            size="small"
+            class="!hover:(bg-nc-bg-default text-nc-content-brand) !h-7 !text-small"
+            type="secondary"
+            @click="addNewBlueprintRecord"
+          >
+            <div class="flex items-center gap-1">
+              <MdiPlus v-if="!isMobileMode" class="h-4 w-4" /> Link a New Record
+            </div>
+          </NcButton>
         </div>
         <template v-if="!isNew && childrenList?.pageInfo && +childrenList.pageInfo.totalRows! > childrenListPagination.size">
           <div class="flex justify-center items-center">
@@ -567,16 +603,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
       <LazySmartsheetExpandedForm
         v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
-        :load-row="!isPublic"
+        :load-row="!isPublic && !isBlueprintMode"
         :close-after-save="isExpandedFormCloseAfterSave"
         :meta="relatedTableMeta"
-        :new-record-header="
-          isExpandedFormCloseAfterSave
-            ? $t('activity.tableNameCreateNewRecord', {
-                tableName: relatedTableMeta?.title,
-              })
-            : undefined
-        "
         :row="{
           row: expandedFormRow,
           oldRow: expandedFormRow,
@@ -591,7 +620,9 @@ const handleKeyDown = (e: KeyboardEvent) => {
         use-meta-fields
         skip-reload
         maintain-default-view-order
-        :new-record-submit-btn-text="!isNewRecord ? undefined : 'Create & Link'"
+        :blueprint-mode="isBlueprintMode"
+        :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Blueprint' : 'Create & Link'"
+        :new-record-header="isBlueprintMode ? `New ${relatedTableMeta?.title} (Blueprint)` : isExpandedFormCloseAfterSave ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title }) : undefined"
         @created-record="onCreatedRecord"
         @deleted-record="onDeletedRecord"
       />

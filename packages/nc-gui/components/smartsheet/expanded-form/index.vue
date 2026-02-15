@@ -1217,6 +1217,14 @@ export default {
           <SmartsheetExpandedFormPresentorsDiscussion :is-unsaved-duplicated-record-exist="isUnsavedDuplicatedRecordExist" />
         </template>
       </div>
+      <div
+        v-if="templateMode || blueprintMode"
+        class="nc-expanded-form-template-notice flex items-center justify-center gap-2 px-4 py-1.5 border-t-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight text-nc-content-gray-muted text-[11px] flex-shrink-0"
+      >
+        <GeneralIcon icon="info" class="flex-none w-3.5 h-3.5" />
+        <span v-if="templateMode">You are editing a record template. Changes here define default values for new records.</span>
+        <span v-else>You are editing a blueprint. A new record will be created from this data each time the template is used.</span>
+      </div>
     </div>
   </component>
 

@@ -611,8 +611,8 @@ const handleKeyDown = (e: KeyboardEvent) => {
         skip-reload
         maintain-default-view-order
         :blueprint-mode="isBlueprintMode"
-        :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Blueprint' : 'Create & Link'"
-        :new-record-header="isBlueprintMode ? `New ${relatedTableMeta?.title} (Blueprint)` : isExpandedFormCloseAfterSave ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title }) : undefined"
+        :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Record' : 'Create & Link'"
+        :new-record-header="isBlueprintMode ? `New ${relatedTableMeta?.title} Record` : isExpandedFormCloseAfterSave ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title }) : undefined"
         @created-record="onCreatedRecord"
         @deleted-record="onDeletedRecord"
       />

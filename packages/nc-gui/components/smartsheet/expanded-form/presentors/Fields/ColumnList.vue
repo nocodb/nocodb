@@ -65,8 +65,8 @@ const addBlueprintForColumn = async (col: ColumnType) => {
       useMetaFields: true,
       blueprintMode: true,
       blueprintParentTableId: meta.value?.id,
-      newRecordSubmitBtnText: 'Save Blueprint',
-      newRecordHeader: `New ${relatedMeta.title} (Blueprint)`,
+      newRecordSubmitBtnText: 'Save Record',
+      newRecordHeader: `New ${relatedMeta.title} Record`,
       createdRecord: (record: Record<string, any>) => {
         const blueprint = { ...record, _isBlueprint: true }
         // Ensure ltarState structure exists
@@ -256,19 +256,22 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
         v-if="!props.forceVerticalMode"
         class="flex-none w-45 <lg:hidden sm:mx-2"
       />
-      <div class="flex items-center gap-2">
-        <NcButton type="secondary" size="small" class="!mt-1" @click.stop="addBlueprintForColumn(col)">
-          <div class="flex items-center gap-1">
-            <GeneralIcon icon="plus" class="h-3.5 w-3.5" />
-            <span>Add {{ getRelatedTableName(col) }} Template</span>
-          </div>
-        </NcButton>
-        <NcTooltip placement="bottom" class="flex items-center !mt-1">
-          <template #title>
-            A new {{ getRelatedTableName(col) }} record will be created and linked each time this template is used
-          </template>
-          <GeneralIcon icon="info" class="h-3.5 w-3.5 text-nc-content-gray-subtle" />
-        </NcTooltip>
+      <div class="flex flex-col gap-1.5 mt-3">
+        <span class="text-[11px] text-nc-content-gray-muted">Or, create and link a new record</span>
+        <div class="flex items-center gap-2">
+          <NcButton type="secondary" size="small" @click.stop="addBlueprintForColumn(col)">
+            <div class="flex items-center gap-1">
+              <GeneralIcon icon="plus" class="h-3.5 w-3.5" />
+              <span>New {{ getRelatedTableName(col) }} Record</span>
+            </div>
+          </NcButton>
+          <NcTooltip placement="bottom" class="flex items-center">
+            <template #title>
+              A new {{ getRelatedTableName(col) }} record will be created and linked each time this template is used
+            </template>
+            <GeneralIcon icon="info" class="h-3.5 w-3.5 text-nc-content-gray-subtle" />
+          </NcTooltip>
+        </div>
       </div>
     </div>
   </div>

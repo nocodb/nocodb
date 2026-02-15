@@ -77,8 +77,8 @@ function openBlueprintEditor() {
     useMetaFields: true,
     blueprintMode: true,
     blueprintParentTableId: parentTableMeta.value?.id,
-    newRecordSubmitBtnText: 'Save Blueprint',
-    newRecordHeader: `Edit ${relatedTableMeta.value?.title} (Blueprint)`,
+    newRecordSubmitBtnText: 'Save Record',
+    newRecordHeader: `Edit ${relatedTableMeta.value?.title} Record`,
     createdRecord: (record: Record<string, any>) => {
       const updatedBlueprint = { ...record, _isBlueprint: true }
       const colTitle = injectedColumn.value?.title

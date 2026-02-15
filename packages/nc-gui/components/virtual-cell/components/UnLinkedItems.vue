@@ -592,7 +592,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         :load-row="!isPublic && !isBlueprintMode"
         :close-after-save="isExpandedFormCloseAfterSave"
         :meta="relatedTableMeta"
-        :new-record-header="isBlueprintMode ? `New ${relatedTableMeta?.title} (Blueprint)` : isExpandedFormCloseAfterSave ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title }) : undefined"
+        :new-record-header="isBlueprintMode ? `New ${relatedTableMeta?.title} Record` : isExpandedFormCloseAfterSave ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title }) : undefined"
         :row="{
           row: expandedFormRow,
           oldRow: {},
@@ -608,7 +608,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         use-meta-fields
         maintain-default-view-order
         skip-reload
-        :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Blueprint' : 'Create & Link'"
+        :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Record' : 'Create & Link'"
         @deleted-record="onDeletedRecord"
         @created-record="onCreatedRecord"
       />

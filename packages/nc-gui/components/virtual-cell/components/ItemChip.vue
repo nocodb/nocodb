@@ -47,6 +47,7 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
+/** Whether this chip represents a blueprint (unsaved sub-record template) vs. an existing record */
 const isBlueprint = computed(() => !!item.value?._isBlueprint)
 
 const isClickDisabled = computed(() => {
@@ -55,10 +56,15 @@ const isClickDisabled = computed(() => {
 
 const { open } = useExpandedFormDetached()
 
+/**
+ * Open the blueprint editor for this chip's blueprint data.
+ * Strips internal flags (_isBlueprint, _ltarState) before populating the form,
+ * and passes nested ltarState so sub-blueprints are preserved for editing.
+ * On save, the updated blueprint replaces the original in the parent's ltarState.
+ */
 function openBlueprintEditor() {
   if (isClickDisabled.value) return
 
-  // Clone the blueprint data (exclude internal flags for the form)
   const { _isBlueprint, _ltarState, ...blueprintData } = item.value
   const nestedLtarState = _ltarState && Object.keys(_ltarState).length ? _ltarState : undefined
 

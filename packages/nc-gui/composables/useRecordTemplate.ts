@@ -1,19 +1,32 @@
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Module-level shared state (singleton across the app)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Controls visibility of the "Manage Templates" modal */
 const showRecordTemplateManager = ref(false)
 
-// Shared reactive template list — mutated by the manager, read by menus
+/**
+ * Shared reactive template list.
+ * Populated by RecordTemplatesButton (manager), consumed by AddNewRowMenu and canvas grid.
+ * Contains all templates across all tables in the current base.
+ */
 const templates = ref<any[]>([])
 
-// Tracks the last-used template ID for the "New record" button default action
+/** Tracks the last-used template ID for the "+" button's default action */
 const selectedTemplateId = ref<string | null>(null)
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Composable
+// ──────────────────────────────────────────────────────────────────────────────
 
 export function useRecordTemplate() {
   const openManager = () => {
     showRecordTemplateManager.value = true
   }
 
-  // The selected template object (resolved from ID against current templates list)
+  /** Resolved template object from selectedTemplateId (only if enabled) */
   const selectedTemplate = computed(() => {
     if (!selectedTemplateId.value) return null
     return templates.value.find((t) => t.id === selectedTemplateId.value && t.enabled !== false) || null
@@ -33,8 +46,15 @@ export function useRecordTemplate() {
   }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Pure utility functions (no Vue reactivity dependencies)
+// ──────────────────────────────────────────────────────────────────────────────
+
 /**
- * Parse template_data from a record template into fields and ltarState.
+ * Parse a record template's `template_data` JSON into its constituent parts.
+ *
+ * @returns `fields` — column name → default value mapping
+ * @returns `ltarState` — LTAR column title → linked record(s) or blueprint(s)
  */
 export function parseRecordTemplateData(tmpl: { template_data: Record<string, any> | string }): {
   fields: Record<string, any>
@@ -48,9 +68,106 @@ export function parseRecordTemplateData(tmpl: { template_data: Record<string, an
 }
 
 /**
- * Resolve blueprint records in ltarState.
- * Creates real records in linked tables for items marked with _isBlueprint,
- * then returns a new ltarState with those replaced by the created records.
+ * Count the total number of blueprint sub-records in an ltarState object.
+ * Only counts items marked with `_isBlueprint` (new records to be created),
+ * skipping links to existing records. Recurses through nested `_ltarState`.
+ *
+ * Used by the "Sub Records" column in the manage templates table.
+ */
+export function countBlueprintsInLtarState(ltarState: Record<string, any>): number {
+  let count = 0
+  for (const linkedData of Object.values(ltarState)) {
+    if (Array.isArray(linkedData)) {
+      // HM or MM — array of linked items
+      for (const item of linkedData) {
+        if (item?._isBlueprint) {
+          count++
+          if (item._ltarState && typeof item._ltarState === 'object') {
+            count += countBlueprintsInLtarState(item._ltarState)
+          }
+        }
+      }
+    } else if (linkedData?._isBlueprint) {
+      // BT or OO — single linked item
+      count++
+      if (linkedData._ltarState && typeof linkedData._ltarState === 'object') {
+        count += countBlueprintsInLtarState(linkedData._ltarState)
+      }
+    }
+  }
+  return count
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Template usage: create a real record from a template
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Create a new record from a template.
+ *
+ * This is the shared "use template" logic consumed by:
+ *   - RecordTemplatesButton (manage modal "+" action)
+ *   - AddNewRowMenu (dropdown template items)
+ *   - Canvas grid (selected template "+" button click)
+ *
+ * Steps:
+ *   1. Parse template_data into fields and ltarState
+ *   2. Resolve blueprints — recursively create real records for sub-record blueprints
+ *   3. Create the main record with resolved LTAR links
+ *   4. Increment the template's usage counter (non-critical)
+ */
+export async function createRecordFromTemplate(params: {
+  tmpl: { id?: string; template_data: Record<string, any> | string }
+  api: any
+  baseId: string
+  tableId: string
+  columns: ColumnType[]
+  getMeta: (baseId: string, tableId: string) => Promise<any>
+}): Promise<void> {
+  const { tmpl, api, baseId, tableId, columns, getMeta } = params
+
+  // Step 1: Parse template data
+  const { fields, ltarState } = parseRecordTemplateData(tmpl)
+
+  // Step 2: Resolve blueprint sub-records into real records
+  const resolvedLtarState = await resolveBlueprintsInLtarState(ltarState, columns, api, baseId, getMeta)
+
+  // Step 3: Create the main record
+  await api.dbTableRow.create('noco', baseId, tableId, {
+    ...fields,
+    ...resolvedLtarState,
+  })
+
+  // Step 4: Increment usage count (fire-and-forget; non-critical)
+  if (tmpl.id) {
+    try {
+      await api.recordTemplates.recordTemplateUse(baseId, tmpl.id)
+    } catch {
+      // Usage count increment failure is non-critical
+    }
+  }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Blueprint resolution (internal to template usage)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Resolve blueprint records in an ltarState object.
+ *
+ * Blueprints are placeholder records stored in template_data with `_isBlueprint: true`.
+ * When a template is "used", each blueprint is created as a real record in its linked table,
+ * and the ltarState is returned with blueprints replaced by the created records.
+ *
+ * Supports up to 3 levels of nesting (e.g., Project → Tasks → Sub-tasks).
+ * Existing record links (without `_isBlueprint`) are passed through unchanged.
+ *
+ * @param ltarState   - LTAR column title → linked record(s) mapping
+ * @param columns     - Column definitions for the current table (to resolve LTAR → related table ID)
+ * @param api         - NocoDB API client
+ * @param baseId      - Current base ID
+ * @param getMeta     - Async function to fetch table metadata (for nested resolution)
+ * @param depth       - Current recursion depth (internal, starts at 0)
  */
 export async function resolveBlueprintsInLtarState(
   ltarState: Record<string, any>,
@@ -60,13 +177,11 @@ export async function resolveBlueprintsInLtarState(
   getMeta?: (baseId: string, tableId: string) => Promise<any>,
   depth: number = 0,
 ): Promise<Record<string, any>> {
-  // Guard against infinite recursion (max 3 levels deep)
   if (depth > 3) return {}
 
   const resolvedState: Record<string, any> = {}
 
   for (const [colTitle, linkedData] of Object.entries(ltarState)) {
-    // Find the LTAR column by title to get the related table ID
     const column = columns.find((c: ColumnType) => c.title === colTitle)
     if (!column) {
       resolvedState[colTitle] = linkedData
@@ -75,7 +190,6 @@ export async function resolveBlueprintsInLtarState(
 
     const colOptions = column.colOptions as LinkToAnotherRecordType
     const relatedTableId = colOptions?.fk_related_model_id
-
     if (!relatedTableId) {
       resolvedState[colTitle] = linkedData
       continue
@@ -93,12 +207,13 @@ export async function resolveBlueprintsInLtarState(
             console.error(`Failed to create blueprint record in table ${relatedTableId}:`, e)
           }
         } else {
+          // Existing record link — pass through unchanged
           resolvedItems.push(item)
         }
       }
       resolvedState[colTitle] = resolvedItems
     } else if (linkedData?._isBlueprint) {
-      // BT or OO — single linked record
+      // BT or OO — single blueprint record
       try {
         const created = await resolveSingleBlueprint(linkedData, relatedTableId, api, baseId, getMeta, depth)
         resolvedState[colTitle] = created
@@ -106,6 +221,7 @@ export async function resolveBlueprintsInLtarState(
         console.error(`Failed to create blueprint record in table ${relatedTableId}:`, e)
       }
     } else {
+      // Existing record link — pass through unchanged
       resolvedState[colTitle] = linkedData
     }
   }
@@ -114,8 +230,10 @@ export async function resolveBlueprintsInLtarState(
 }
 
 /**
- * Resolve a single blueprint record: if it has nested _ltarState, recursively resolve those first,
- * then create the record with resolved nested links.
+ * Resolve a single blueprint into a real record.
+ *
+ * If the blueprint contains nested `_ltarState` (sub-blueprints), those are
+ * resolved recursively first, then the record is created with all nested links.
  */
 async function resolveSingleBlueprint(
   blueprint: Record<string, any>,
@@ -127,7 +245,7 @@ async function resolveSingleBlueprint(
 ): Promise<any> {
   const { _isBlueprint, _ltarState, ...recordData } = blueprint
 
-  // If this blueprint has nested blueprints, resolve them first
+  // Recursively resolve nested blueprints before creating this record
   if (_ltarState && Object.keys(_ltarState).length && getMeta) {
     const relatedMeta = await getMeta(baseId, relatedTableId)
     const relatedColumns = relatedMeta?.columns || []
@@ -139,7 +257,6 @@ async function resolveSingleBlueprint(
       getMeta,
       depth + 1,
     )
-    // Merge resolved nested links into the record data
     Object.assign(recordData, resolvedNestedState)
   }
 

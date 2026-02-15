@@ -116,6 +116,11 @@ export default class RecordTemplate {
     return template && this.castType(template);
   }
 
+  /**
+   * List templates for a base, optionally filtered by table (source_id).
+   * When source_id is omitted, returns ALL templates across all tables in the base.
+   * Cache key uses 'all' as the source_id placeholder for base-level queries.
+   */
   public static async list(
     context: NcContext,
     param: { base_id: string; source_id?: string },

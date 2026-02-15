@@ -31,12 +31,22 @@ const { open: openExpandedFormDetached } = useExpandedFormDetached()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
 
+/**
+ * Check if an LTAR column points back to the parent table that opened this blueprint form.
+ * Such columns are auto-linked and should be disabled (read-only) in the blueprint editor
+ * to prevent circular linking.
+ */
 const isParentLtarColumn = (col: ColumnType): boolean => {
   if (!blueprintParentTableId.value || !isLinksOrLTAR(col)) return false
   const colOptions = col.colOptions as LinkToAnotherRecordType
   return colOptions?.fk_related_model_id === blueprintParentTableId.value
 }
 
+/**
+ * Open a nested blueprint form for the given LTAR column.
+ * When saved, the blueprint is added to the parent row's ltarState,
+ * which will later be resolved into a real record when the template is used.
+ */
 const addBlueprintForColumn = async (col: ColumnType) => {
   const colOptions = col.colOptions as LinkToAnotherRecordType
   const relatedTableId = colOptions?.fk_related_model_id

@@ -1,14 +1,38 @@
+<!--
+  RecordTemplatesButton.vue — Toolbar button + Manage Templates modal
+
+  This component provides:
+  1. A toolbar button that opens the "Manage Templates" modal
+  2. The modal itself: base-level listing of all record templates with
+     search, table filter, sort, pagination, CRUD actions
+  3. Template creation/editing via expanded form (in template mode)
+  4. Template usage ("+") to create records with pre-filled values and sub-records
+
+  Templates are stored at the base level (not table-scoped) so the manager
+  shows templates across all tables. Each template has a `source_id` that
+  references the table it belongs to.
+
+  Sub-record blueprints: Templates can include LTAR blueprints that define
+  linked records to create automatically. These support up to 3 levels of
+  nesting (e.g., Project → Tasks → Sub-tasks).
+-->
 <script setup lang="ts">
 import dayjs from 'dayjs'
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { parseRecordTemplateData, resolveBlueprintsInLtarState } from '../../../composables/useRecordTemplate'
+import {
+  countBlueprintsInLtarState,
+  createRecordFromTemplate,
+  parseRecordTemplateData,
+} from '../../../composables/useRecordTemplate'
 import type { NcTableColumnProps } from '../../../lib/types'
 
+/** Shape of a record template as returned by the API */
 interface TemplateType {
   id?: string
   title: string
   description?: string
   template_data: Record<string, any> | string
+  /** Table ID this template belongs to (named source_id for historical reasons) */
   source_id?: string
   usage_count?: number
   enabled?: boolean
@@ -27,44 +51,27 @@ const { t } = useI18n()
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const { open: openExpandedForm } = useExpandedFormDetached()
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Resolve a table ID (source_id) to its display name */
 const getTableName = (sourceId?: string) => {
   if (!sourceId || !base.value?.id) return ''
   const tables = baseTables.value.get(base.value.id) || []
   return tables.find((t) => t.id === sourceId)?.title || ''
 }
 
-/**
- * Count blueprint items (sub-records that will be newly created) in an ltarState object.
- * Only counts items with _isBlueprint flag, recursively through nested _ltarState.
- */
-const countBlueprints = (ltarState: Record<string, any>): number => {
-  let count = 0
-  for (const linkedData of Object.values(ltarState)) {
-    if (Array.isArray(linkedData)) {
-      for (const item of linkedData) {
-        if (item?._isBlueprint) {
-          count++
-          if (item._ltarState && typeof item._ltarState === 'object') {
-            count += countBlueprints(item._ltarState)
-          }
-        }
-      }
-    } else if (linkedData?._isBlueprint) {
-      count++
-      if (linkedData._ltarState && typeof linkedData._ltarState === 'object') {
-        count += countBlueprints(linkedData._ltarState)
-      }
-    }
-  }
-  return count
-}
-
+/** Count blueprint sub-records in a template (for the "Sub Records" column) */
 const getSubRecordCount = (tmpl: TemplateType): number => {
   const { ltarState } = parseRecordTemplateData(tmpl)
-  return countBlueprints(ltarState)
+  return countBlueprintsInLtarState(ltarState)
 }
 
-// --- State ---
+// ──────────────────────────────────────────────────────────────────────────────
+// State
+// ──────────────────────────────────────────────────────────────────────────────
+
 const { showRecordTemplateManager: showManager, templates } = useRecordTemplate()
 const showDeleteConfirm = ref(false)
 const isLoading = ref(false)
@@ -157,21 +164,19 @@ const filteredTemplates = computed(() => {
   // Apply sort from NcTable orderBy
   const sortKeys = Object.keys(orderBy.value)
   if (sortKeys.length) {
-    const sortKey = sortKeys[0] as keyof TemplateType
-    const sortDir = orderBy.value[sortKeys[0]]
+    const sortKey = sortKeys[0]
+    const sortDir = orderBy.value[sortKey]
+
+    // Resolve the display/sort value for virtual columns (table name, sub-record count)
+    const getSortValue = (tmpl: TemplateType): any => {
+      if (sortKey === 'source_id') return getTableName(tmpl.source_id)
+      if (sortKey === 'sub_records') return getSubRecordCount(tmpl)
+      return (tmpl as any)[sortKey] ?? ''
+    }
+
     result.sort((a, b) => {
-      let aVal: any =
-        sortKey === 'source_id'
-          ? getTableName(a.source_id)
-          : sortKey === ('sub_records' as any)
-            ? getSubRecordCount(a)
-            : (a[sortKey] ?? '')
-      let bVal: any =
-        sortKey === 'source_id'
-          ? getTableName(b.source_id)
-          : sortKey === ('sub_records' as any)
-            ? getSubRecordCount(b)
-            : (b[sortKey] ?? '')
+      const aVal = getSortValue(a)
+      const bVal = getSortValue(b)
 
       if (typeof aVal === 'number' && typeof bVal === 'number') {
         return sortDir === 'asc' ? aVal - bVal : bVal - aVal
@@ -215,7 +220,15 @@ const nextTemplateNumber = computed(() => {
   return existingNumbers.length ? Math.max(...existingNumbers) + 1 : 1
 })
 
-// --- API ---
+// ──────────────────────────────────────────────────────────────────────────────
+// API: Load templates (base-level)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch all templates for the current base from the API.
+ * Uses the base-level `/record-templates/all` endpoint (no table filter)
+ * via a raw request because the SDK method hasn't been rebuilt yet.
+ */
 const loadTemplates = async () => {
   if (!base.value?.id) return
   isLoading.value = true
@@ -234,12 +247,12 @@ const loadTemplates = async () => {
   }
 }
 
-// Load templates on mount so the shared list is available to AddNewRowMenu
+// Load on mount so the shared template list is available to AddNewRowMenu immediately
 onMounted(() => {
   loadTemplates()
 })
 
-// Always reload from API when manager opens to get fresh data; reset sort to Name ascending
+// Always reload fresh data when the manager opens (backend cache may have stale data)
 watch(showManager, (val) => {
   if (val) {
     orderBy.value = { title: 'asc' }
@@ -247,8 +260,17 @@ watch(showManager, (val) => {
   }
 })
 
-// --- Helpers ---
+// ──────────────────────────────────────────────────────────────────────────────
+// API: Save template (create or update)
+// ──────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Save a record template (create new or update existing).
+ * Called by the expanded form's `createdRecord` callback when in template mode.
+ *
+ * @param rowData      - Row data from the expanded form (includes _templateName, _tableId, _ltarState)
+ * @param editingTmpl  - Existing template being edited (null for new templates)
+ */
 const saveTemplate = async (rowData: Record<string, any>, editingTmpl: TemplateType | null) => {
   const tableId = rowData._tableId || meta.value?.id
   if (!base.value?.id || !tableId) return
@@ -311,11 +333,19 @@ const saveTemplate = async (rowData: Record<string, any>, editingTmpl: TemplateT
   }
 }
 
-// --- Handlers ---
+// ──────────────────────────────────────────────────────────────────────────────
+// Handlers
+// ──────────────────────────────────────────────────────────────────────────────
+
 const openManager = () => {
   showManager.value = true
 }
 
+/**
+ * Open the expanded form in template mode for creating or editing a template.
+ * When editing, pre-populates fields and ltarState from the existing template.
+ * The form's table may differ from the current view's table for cross-table templates.
+ */
 const openTemplateForm = async (editingTmpl: TemplateType | null = null) => {
   const { fields: existingFields, ltarState } = editingTmpl
     ? parseRecordTemplateData(editingTmpl)
@@ -381,43 +411,33 @@ const onDeleteConfirm = async () => {
   }
 }
 
+/**
+ * Use a template to create a new record.
+ * Resolves the correct table meta (template may belong to a different table),
+ * delegates to shared createRecordFromTemplate, then updates local state.
+ */
 const handleUseTemplate = async (tmpl: TemplateType) => {
   if (!tmpl.id || !base.value?.id) return
   const tableId = tmpl.source_id || meta.value?.id
   if (!tableId) return
   try {
-    // Resolve the table meta for this template
+    // Resolve the table meta — template may belong to a different table than the current view
     let tableMeta: TableType | undefined
     if (tmpl.source_id && tmpl.source_id !== meta.value?.id) {
       tableMeta = (await getMeta(base.value.id!, tmpl.source_id)) as TableType
     }
     tableMeta = tableMeta || (meta.value as TableType)
 
-    const { fields, ltarState } = parseRecordTemplateData(tmpl)
-
-    // Resolve any blueprint records — create real records in linked tables first
-    const resolvedLtarState = await resolveBlueprintsInLtarState(
-      ltarState,
-      (tableMeta.columns || []) as ColumnType[],
-      $api,
-      base.value.id,
+    await createRecordFromTemplate({
+      tmpl,
+      api: $api,
+      baseId: base.value.id,
+      tableId,
+      columns: (tableMeta.columns || []) as ColumnType[],
       getMeta,
-    )
-
-    // Create record via standard row creation API (handles LTAR/Links natively)
-    await $api.dbTableRow.create('noco', base.value.id, tableId, {
-      ...fields,
-      ...resolvedLtarState,
     })
 
-    // Increment template usage count
-    try {
-      await $api.recordTemplates.recordTemplateUse(base.value.id, tmpl.id)
-    } catch {
-      // Usage count increment is non-critical
-    }
-
-    // Update usage count locally
+    // Update usage count in local state for immediate UI feedback
     templates.value = templates.value.map((t) =>
       t.id === tmpl.id ? { ...t, usage_count: (t.usage_count || 0) + 1 } : t,
     )

@@ -27,6 +27,11 @@ export class RecordTemplatesController {
     private readonly recordTemplatesService: RecordTemplatesService,
   ) {}
 
+  /**
+   * List ALL templates in a base (across all tables).
+   * Used by the "Manage Templates" modal which shows a base-level view.
+   * The v2 path uses `/all` suffix to avoid conflict with the `:templateId` param route.
+   */
   @Get([
     '/api/v1/db/meta/bases/:baseId/record-templates',
     '/api/v2/meta/bases/:baseId/record-templates/all',
@@ -46,6 +51,7 @@ export class RecordTemplatesController {
     );
   }
 
+  /** List templates scoped to a specific table (source_id) */
   @Get([
     '/api/v1/db/meta/bases/:baseId/tables/:sourceId/record-templates',
     '/api/v2/meta/bases/:baseId/tables/:sourceId/record-templates',

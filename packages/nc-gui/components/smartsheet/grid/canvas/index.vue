@@ -36,7 +36,7 @@ import { calculateGroupRowTop, comparePath, findGroupByPath, generateGroupPath, 
 import { CanvasElement, ElementTypes } from './utils/CanvasElement'
 import AddNewRowMenu from './components/AddNewRowMenu.vue'
 import GroupContextMenu from './components/GroupHeaderMenu.vue'
-import { parseRecordTemplateData, resolveBlueprintsInLtarState } from '../../../../composables/useRecordTemplate'
+import { createRecordFromTemplate } from '../../../../composables/useRecordTemplate'
 import type { Row } from '#imports'
 
 const props = defineProps<{
@@ -754,30 +754,20 @@ function onOpenTemplateManager() {
   openManager()
 }
 
+/** Create a record using the currently selected template (delegates to shared utility) */
 async function onSelectedTemplateClick() {
   const tmpl = selectedTemplate.value
   if (!tmpl || !base.value?.id || !meta.value?.id) return
 
   try {
-    const { fields, ltarState } = parseRecordTemplateData(tmpl)
-    const resolvedLtarState = await resolveBlueprintsInLtarState(
-      ltarState,
-      (meta.value.columns || []) as ColumnType[],
-      $api,
-      base.value.id,
+    await createRecordFromTemplate({
+      tmpl,
+      api: $api,
+      baseId: base.value.id,
+      tableId: meta.value.id,
+      columns: (meta.value.columns || []) as ColumnType[],
       getMeta,
-    )
-
-    await $api.dbTableRow.create('noco', base.value.id, meta.value.id, {
-      ...fields,
-      ...resolvedLtarState,
     })
-
-    try {
-      await $api.recordTemplates.recordTemplateUse(base.value.id, tmpl.id)
-    } catch {
-      // Usage count increment is non-critical
-    }
 
     message.toast('Record created from template')
     reloadViewDataHook?.trigger()

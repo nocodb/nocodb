@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { parseRecordTemplateData, resolveBlueprintsInLtarState } from '../../../../../composables/useRecordTemplate'
+import { createRecordFromTemplate } from '../../../../../composables/useRecordTemplate'
 
 const props = withDefaults(
   defineProps<{
@@ -25,7 +25,11 @@ const { t } = useI18n()
 
 const { templates: allTemplates, selectedTemplate, setSelectedTemplate } = useRecordTemplate()
 
-// Filter to only enabled templates for the current table
+/**
+ * Filter the base-level template list to only show enabled templates
+ * for the current table. The shared `allTemplates` contains templates
+ * across all tables, so we filter by source_id (table ID).
+ */
 const templates = computed(() =>
   allTemplates.value.filter((t: any) => t.enabled !== false && t.source_id === meta.value?.id),
 )
@@ -35,32 +39,18 @@ const { getMeta } = useMetas()
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
+/** Create a record using the selected template (delegates to shared utility) */
 const handleUseTemplate = async (tmpl: any) => {
   if (!base.value?.id || !meta.value?.id || !tmpl?.id) return
   try {
-    const { fields, ltarState } = parseRecordTemplateData(tmpl)
-
-    // Resolve any blueprint records — create real records in linked tables first
-    const resolvedLtarState = await resolveBlueprintsInLtarState(
-      ltarState,
-      (meta.value.columns || []) as ColumnType[],
-      $api,
-      base.value.id,
+    await createRecordFromTemplate({
+      tmpl,
+      api: $api,
+      baseId: base.value.id,
+      tableId: meta.value.id,
+      columns: (meta.value.columns || []) as ColumnType[],
       getMeta,
-    )
-
-    // Create record via standard row creation API (handles LTAR/Links natively)
-    await $api.dbTableRow.create('noco', base.value.id, meta.value.id, {
-      ...fields,
-      ...resolvedLtarState,
     })
-
-    // Increment template usage count
-    try {
-      await $api.recordTemplates.recordTemplateUse(base.value.id, tmpl.id)
-    } catch {
-      // Usage count increment is non-critical
-    }
 
     message.toast('Record created from template')
     reloadViewDataHook?.trigger()

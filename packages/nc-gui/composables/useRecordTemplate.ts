@@ -1,27 +1,23 @@
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, RecordTemplateType } from 'nocodb-sdk'
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Module-level shared state (singleton across the app)
+// Composable (shared singleton via createSharedComposable)
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Controls visibility of the "Manage Templates" modal */
-const showRecordTemplateManager = ref(false)
+export const useRecordTemplate = createSharedComposable(() => {
+  /** Controls visibility of the "Manage Templates" modal */
+  const showRecordTemplateManager = ref(false)
 
-/**
- * Shared reactive template list.
- * Populated by RecordTemplatesButton (manager), consumed by AddNewRowMenu and canvas grid.
- * Contains all templates across all tables in the current base.
- */
-const templates = ref<any[]>([])
+  /**
+   * Shared reactive template list.
+   * Populated by RecordTemplatesButton (manager), consumed by AddNewRowMenu and canvas grid.
+   * Contains all templates across all tables in the current base.
+   */
+  const templates = ref<RecordTemplateType[]>([])
 
-/** Tracks the last-used template ID for the "+" button's default action */
-const selectedTemplateId = ref<string | null>(null)
+  /** Tracks the last-used template ID for the "+" button's default action */
+  const selectedTemplateId = ref<string | null>(null)
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Composable
-// ──────────────────────────────────────────────────────────────────────────────
-
-export function useRecordTemplate() {
   const openManager = () => {
     showRecordTemplateManager.value = true
   }
@@ -44,7 +40,7 @@ export function useRecordTemplate() {
     selectedTemplateId,
     setSelectedTemplate,
   }
-}
+})
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Pure utility functions (no Vue reactivity dependencies)

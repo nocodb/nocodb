@@ -71,6 +71,7 @@ export class RecordTemplatesService {
 
     const template = await RecordTemplate.insert(param.context, {
       base_id: param.baseId,
+      fk_workspace_id: param.context.workspace_id,
       source_id: param.sourceId,
       title: param.body.title,
       description: param.body.description,
@@ -222,12 +223,23 @@ export class RecordTemplatesService {
   }
 
   /**
-   * Validates template data structure.
+   * Validates template data structure and size.
    * Template data format: { fields: Record<string, any>, ltarState?: Record<string, any> }
+   *
+   * Size limit: 256 KB (generous for deeply nested templates with sub-records).
    */
   private validateTemplateData(templateData: Record<string, any>) {
     if (!templateData || typeof templateData !== 'object') {
       NcError.badRequest('Template data is required and must be an object');
+    }
+
+    // Enforce size limit to prevent oversized payloads
+    const serialized = JSON.stringify(templateData);
+    const MAX_TEMPLATE_DATA_SIZE = 256 * 1024; // 256 KB
+    if (serialized.length > MAX_TEMPLATE_DATA_SIZE) {
+      NcError.badRequest(
+        `Template data exceeds maximum size of ${MAX_TEMPLATE_DATA_SIZE / 1024} KB`,
+      );
     }
   }
 

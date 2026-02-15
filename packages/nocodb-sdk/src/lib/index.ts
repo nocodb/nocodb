@@ -88,3 +88,4 @@ export * from '~/lib/CircularRefContext';
 export * from '~/lib/viewUtils';
 export * from '~/lib/workflow';
 export * from '~/lib/uniqueConstraintHelpers';
+export * from '~/lib/recordTemplate';

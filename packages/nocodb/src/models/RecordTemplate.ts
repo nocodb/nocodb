@@ -13,6 +13,7 @@ import { extractProps } from '~/helpers/extractProps';
 export default class RecordTemplate {
   id?: string;
   base_id: string;
+  fk_workspace_id?: string;
   source_id: string;
   title: string;
   description?: string;
@@ -35,6 +36,7 @@ export default class RecordTemplate {
     const insertObj = extractProps(template, [
       'id',
       'base_id',
+      'fk_workspace_id',
       'source_id',
       'title',
       'description',
@@ -267,7 +269,7 @@ export default class RecordTemplate {
     return this.get(context, id, ncMeta);
   }
 
-  public static castType(template: any): RecordTemplate {
+  public static castType(template: any): RecordTemplate | null {
     if (!template) return null;
 
     // Parse template_data if it's a string

@@ -61,6 +61,14 @@ export class RecordTemplatesService {
     // Validate template data structure
     this.validateTemplateData(param.body.template_data);
 
+    // Enforce unique template name per table
+    await this.ensureUniqueTitle(
+      param.context,
+      param.baseId,
+      param.sourceId,
+      param.body.title,
+    );
+
     const template = await RecordTemplate.insert(param.context, {
       base_id: param.baseId,
       source_id: param.sourceId,
@@ -97,6 +105,17 @@ export class RecordTemplatesService {
     // Validate template data structure if provided
     if (param.body.template_data) {
       this.validateTemplateData(param.body.template_data);
+    }
+
+    // Enforce unique template name per table (if title is being changed)
+    if (param.body.title && param.body.title !== existingTemplate.title) {
+      await this.ensureUniqueTitle(
+        param.context,
+        existingTemplate.base_id,
+        existingTemplate.source_id,
+        param.body.title,
+        param.templateId,
+      );
     }
 
     const template = await RecordTemplate.update(
@@ -171,6 +190,35 @@ export class RecordTemplatesService {
     } as any);
 
     return updatedTemplate;
+  }
+
+  /**
+   * Ensures no other template in the same table has the same title (case-insensitive).
+   * Optionally excludes a specific template (for updates).
+   */
+  private async ensureUniqueTitle(
+    context: NcContext,
+    baseId: string,
+    sourceId: string,
+    title: string,
+    excludeTemplateId?: string,
+  ) {
+    const existing = await RecordTemplate.list(context, {
+      base_id: baseId,
+      source_id: sourceId,
+    });
+
+    const duplicate = existing.find(
+      (t) =>
+        t.title?.trim().toLowerCase() === title.trim().toLowerCase() &&
+        t.id !== excludeTemplateId,
+    );
+
+    if (duplicate) {
+      NcError.badRequest(
+        `A template with the name "${title.trim()}" already exists`,
+      );
+    }
   }
 
   /**

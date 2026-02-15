@@ -174,6 +174,15 @@ const saveTemplate = async (rowData: Record<string, any>, editingTmpl: TemplateT
   // Extract template name from the special _templateName field
   const title = rowData._templateName?.trim() || `Record Template #${nextTemplateNumber.value}`
 
+  // Enforce unique template name (client-side check)
+  const duplicate = templates.value.find(
+    (t) => t.title?.trim().toLowerCase() === title.toLowerCase() && t.id !== editingTmpl?.id,
+  )
+  if (duplicate) {
+    message.toast(`A template with the name "${title}" already exists`)
+    return
+  }
+
   // Extract LTAR state (linked records) before filtering
   const ltarState = rowData._ltarState || {}
 
@@ -230,6 +239,11 @@ const openTemplateForm = (editingTmpl: TemplateType | null = null) => {
     : { fields: {}, ltarState: {} }
   const templateName = editingTmpl?.title || `Record Template #${nextTemplateNumber.value}`
 
+  // Collect existing template names for duplicate validation (exclude current template when editing)
+  const existingTemplateNames = templates.value
+    .filter((t) => t.id !== editingTmpl?.id)
+    .map((t) => t.title || '')
+
   openExpandedForm({
     isOpen: true,
     row: {
@@ -243,6 +257,7 @@ const openTemplateForm = (editingTmpl: TemplateType | null = null) => {
     skipReload: true,
     templateMode: true,
     templateName,
+    existingTemplateNames,
     newRecordSubmitBtnText: editingTmpl ? 'Save Template' : 'Create Template',
     createdRecord: async (rowData: Record<string, any>) => {
       await saveTemplate(rowData, editingTmpl)

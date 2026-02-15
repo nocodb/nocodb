@@ -22,6 +22,8 @@ const shouldClose = (isVisible: boolean, i: number) => {
       :template-mode="state.templateMode"
       :template-name="state.templateName"
       :blueprint-mode="state.blueprintMode"
+      :existing-template-names="state.existingTemplateNames"
+      :editing-template-id="state.editingTemplateId"
       :new-record-submit-btn-text="state.newRecordSubmitBtnText"
       :new-record-header="state.newRecordHeader"
       @update:model-value="shouldClose($event, i)"

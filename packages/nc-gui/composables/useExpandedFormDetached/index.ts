@@ -18,6 +18,8 @@ export interface UseExpandedFormDetachedProps {
   'blueprintMode'?: boolean
   'newRecordSubmitBtnText'?: string
   'newRecordHeader'?: string
+  'existingTemplateNames'?: string[]
+  'editingTemplateId'?: string
   'createdRecord'?: (row: Row['row']) => void
 }
 

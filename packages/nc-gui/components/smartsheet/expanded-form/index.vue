@@ -24,6 +24,8 @@ interface Props {
   templateMode?: boolean
   templateName?: string
   blueprintMode?: boolean
+  existingTemplateNames?: string[]
+  editingTemplateId?: string
   expandForm?: (row: Row) => void
   maintainDefaultViewOrder?: boolean
   allowNullFieldIds?: string[]
@@ -124,6 +126,14 @@ const isSaving = ref(false)
 
 // Template mode: editable template name in the header
 const editableTemplateName = ref(props.templateName || '')
+
+// Template name duplicate detection
+const isDuplicateTemplateName = computed(() => {
+  if (!props.templateMode || !props.existingTemplateNames?.length) return false
+  const trimmed = editableTemplateName.value.trim().toLowerCase()
+  if (!trimmed) return false
+  return props.existingTemplateNames.some((name) => name.trim().toLowerCase() === trimmed)
+})
 
 const expandedFormStore = useProvideExpandedFormStore(
   activeMeta,
@@ -267,8 +277,10 @@ const isLTARChanged = computed(() => {
 })
 
 const isSaveRecordBtnDisabled = computed(() => {
-  // In template/blueprint mode, always allow saving (even empty)
-  if (props.templateMode || props.blueprintMode) return false
+  // In template mode, disable if duplicate name
+  if (props.templateMode) return isDuplicateTemplateName.value
+  // In blueprint mode, always allow saving
+  if (props.blueprintMode) return false
   return changedColumns.value.size === 0 && !isUnsavedFormExist.value && !isLTARChanged.value
 })
 
@@ -316,6 +328,11 @@ const save = async () => {
     if (props.templateMode) {
       if (!editableTemplateName.value.trim()) {
         message.toast('Template name is required')
+        isSaving.value = false
+        return
+      }
+      if (isDuplicateTemplateName.value) {
+        message.toast('A template with this name already exists')
         isSaving.value = false
         return
       }
@@ -960,14 +977,18 @@ export default {
             </div>
             <div
               v-if="templateMode"
-              class="flex items-center truncate font-bold text-nc-content-gray text-xl overflow-hidden"
+              class="flex flex-col truncate overflow-hidden"
             >
               <input
                 ref="templateNameInputRef"
                 v-model="editableTemplateName"
-                class="bg-transparent border-none outline-none font-bold text-xl text-nc-content-gray w-full placeholder-gray-300"
+                class="bg-transparent border-none outline-none font-bold text-xl w-full placeholder-gray-300"
+                :class="isDuplicateTemplateName ? 'text-red-500' : 'text-nc-content-gray'"
                 placeholder="Enter template name..."
               />
+              <span v-if="isDuplicateTemplateName" class="text-red-500 text-[11px] pl-0.5">
+                A template with this name already exists
+              </span>
             </div>
             <div
               v-else-if="row.rowMeta?.new || props.newRecordHeader"

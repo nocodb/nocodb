@@ -128,8 +128,6 @@ provide(IsToolbarIconMode, isToolbarIconMode)
       <template v-if="!isMobileMode">
         <SmartsheetToolbarRowHeight v-if="isGrid && isViewOperationsAllowed" />
 
-        <SmartsheetToolbarRecordTemplatesButton v-if="isGrid && isViewOperationsAllowed && !isPublic && !isSharedBase" />
-
         <template v-if="!isCalendar">
           <SmartsheetToolbarExport v-if="!isViewOperationsAllowed" is-in-toolbar />
           <SmartsheetToolbarOpenedViewAction :show-only-copy-id="!isViewOperationsAllowed" />
@@ -167,6 +165,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
         <SmartsheetToolbarCalendarToggleSideBar />
       </template>
+      <SmartsheetToolbarRecordTemplatesButton v-if="isGrid && isViewOperationsAllowed && !isPublic && !isSharedBase && !isMobileMode" />
       <NcFullScreenToggleButton v-if="showFullScreenToggle" />
     </template>
   </div>

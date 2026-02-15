@@ -30,7 +30,7 @@ const showDeleteConfirm = ref(false)
 const isLoading = ref(false)
 const templateToDelete = ref<TemplateType | null>(null)
 const searchQuery = ref('')
-const orderBy = ref<Record<string, 'asc' | 'desc'>>({})
+const orderBy = ref<Record<string, 'asc' | 'desc'>>({ title: 'asc' })
 const currentPage = ref(1)
 const PAGE_SIZE = 5
 
@@ -155,10 +155,13 @@ onMounted(() => {
   loadTemplates()
 })
 
-// Reload from API only if list is empty (e.g. edge case recovery)
+// Reload from API only if list is empty; reset sort to Name ascending on every open
 watch(showManager, (val) => {
-  if (val && !templates.value.length) {
-    loadTemplates()
+  if (val) {
+    orderBy.value = { title: 'asc' }
+    if (!templates.value.length) {
+      loadTemplates()
+    }
   }
 })
 
@@ -310,7 +313,7 @@ const toggleEnabled = async (tmpl: TemplateType) => {
   if (!tmpl.id || !base.value?.id) return
   const newEnabled = tmpl.enabled === false
   try {
-    await $api.recordTemplates.recordTemplateUpdate(base.value.id, tmpl.id, { enabled: newEnabled } as any)
+    await $api.recordTemplates.recordTemplateUpdate(base.value.id, tmpl.id, { enabled: newEnabled })
     templates.value = templates.value.map((t) => (t.id === tmpl.id ? { ...t, enabled: newEnabled } : t))
   } catch (e: any) {
     console.error(e)

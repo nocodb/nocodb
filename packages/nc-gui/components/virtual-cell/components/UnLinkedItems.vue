@@ -3,7 +3,13 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { PermissionEntity, PermissionKey, RelationTypes, isDateOrDateTimeCol, isLinksOrLTAR } from 'nocodb-sdk'
 import InboxIcon from '~icons/nc-icons/inbox'
 
-const props = defineProps<{ modelValue: boolean; column: any; hideBackBtn?: boolean }>()
+const props = defineProps<{
+  modelValue: boolean
+  column: any
+  hideBackBtn?: boolean
+  /** Breadcrumb trail passed from parent (across dropdown teleport boundary) */
+  parentBreadcrumbs?: string[]
+}>()
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord', 'attachLinkedRecord', 'escape'])
 
@@ -61,6 +67,9 @@ const { showRecordPlanLimitExceededModal } = useEeConfig()
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isTemplateMode = inject(IsTemplateModeInj, ref(false))
+
+// Use prop-based breadcrumbs (injection doesn't work across dropdown teleport boundary)
+const parentBreadcrumbs = computed(() => props.parentBreadcrumbs || [])
 
 const isExpandedFormCloseAfterSave = ref(false)
 
@@ -605,6 +614,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         :row-id="extractPkFromRow(expandedFormRow, relatedTableMeta.columns as ColumnType[])"
         :state="newRowState"
         :blueprint-mode="isBlueprintMode"
+        :breadcrumbs="isBlueprintMode ? [...parentBreadcrumbs, meta?.title || ''] : undefined"
         use-meta-fields
         maintain-default-view-order
         skip-reload

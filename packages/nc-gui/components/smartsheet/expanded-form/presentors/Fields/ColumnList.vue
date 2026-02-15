@@ -21,6 +21,8 @@ const isTemplateMode = inject(IsTemplateModeInj, ref(false))
 
 const blueprintParentTableId = inject(BlueprintParentTableIdInj, ref())
 
+const parentBreadcrumbs = inject(TemplateBreadcrumbsInj, ref([]))
+
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
@@ -57,6 +59,9 @@ const addBlueprintForColumn = async (col: ColumnType) => {
     const relatedMeta = (await getMeta(baseId, relatedTableId)) as TableType
     if (!relatedMeta) return
 
+    // Build breadcrumb trail: append current table name to parent trail
+    const breadcrumbs = [...parentBreadcrumbs.value, meta.value?.title || '']
+
     openExpandedFormDetached({
       isOpen: true,
       row: { row: {}, oldRow: {}, rowMeta: { new: true } },
@@ -65,6 +70,7 @@ const addBlueprintForColumn = async (col: ColumnType) => {
       useMetaFields: true,
       blueprintMode: true,
       blueprintParentTableId: meta.value?.id,
+      breadcrumbs,
       newRecordSubmitBtnText: 'Save Record',
       newRecordHeader: `New ${relatedMeta.title} Record`,
       createdRecord: (record: Record<string, any>) => {

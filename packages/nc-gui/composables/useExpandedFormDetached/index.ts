@@ -21,6 +21,7 @@ export interface UseExpandedFormDetachedProps {
   'existingTemplateNames'?: string[]
   'editingTemplateId'?: string
   'blueprintParentTableId'?: string
+  'breadcrumbs'?: string[]
   'createdRecord'?: (row: Row['row']) => void
 }
 

@@ -7,6 +7,8 @@ interface Prop {
   cellValue: any
   column: any
   items: number
+  /** Breadcrumb trail passed from parent (across dropdown teleport boundary) */
+  parentBreadcrumbs?: string[]
 }
 
 const props = defineProps<Prop>()
@@ -26,6 +28,9 @@ const isForm = inject(IsFormInj, ref(false))
 const isPublic = inject(IsPublicInj, ref(false))
 
 const isTemplateMode = inject(IsTemplateModeInj, ref(false))
+
+// Use prop-based breadcrumbs (injection doesn't work across dropdown teleport boundary)
+const parentBreadcrumbs = computed(() => props.parentBreadcrumbs || [])
 
 const isExpandedFormCloseAfterSave = ref(false)
 
@@ -611,6 +616,7 @@ const handleKeyDown = (e: KeyboardEvent) => {
         skip-reload
         maintain-default-view-order
         :blueprint-mode="isBlueprintMode"
+        :breadcrumbs="isBlueprintMode ? [...parentBreadcrumbs, meta?.title || ''] : undefined"
         :new-record-submit-btn-text="!isNewRecord ? undefined : isBlueprintMode ? 'Save Record' : 'Create & Link'"
         :new-record-header="isBlueprintMode ? `New ${relatedTableMeta?.title} Record` : isExpandedFormCloseAfterSave ? $t('activity.tableNameCreateNewRecord', { tableName: relatedTableMeta?.title }) : undefined"
         @created-record="onCreatedRecord"

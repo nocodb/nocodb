@@ -27,6 +27,8 @@ interface Props {
   existingTemplateNames?: string[]
   editingTemplateId?: string
   blueprintParentTableId?: string
+  /** Breadcrumb trail showing the parent chain (e.g., ['Project Template', 'Tasks']) */
+  breadcrumbs?: string[]
   expandForm?: (row: Row) => void
   maintainDefaultViewOrder?: boolean
   allowNullFieldIds?: string[]
@@ -118,6 +120,9 @@ provide(MetaInj, activeMeta)
 provide(IsTemplateModeInj, computed(() => !!props.templateMode || !!props.blueprintMode))
 
 provide(BlueprintParentTableIdInj, computed(() => props.blueprintParentTableId))
+
+// Provide current breadcrumb trail so nested sub-record forms can extend it
+provide(TemplateBreadcrumbsInj, computed(() => props.breadcrumbs || []))
 
 // override cell event hook to avoid unexpected behavior at form fields
 // issue happens when opening expanded form from cell (LTAR/Links)
@@ -1000,9 +1005,18 @@ export default {
             </div>
             <div
               v-else-if="row.rowMeta?.new || props.newRecordHeader"
-              class="flex items-center truncate font-bold text-nc-content-gray text-xl overflow-hidden"
+              class="flex flex-col truncate overflow-hidden"
             >
-              {{ props.newRecordHeader ?? $t('activity.newRecord') }}
+              <!-- Breadcrumb trail for nested sub-record forms (e.g., Project Template > Tasks) -->
+              <div v-if="props.breadcrumbs?.length" class="flex items-center gap-1 text-[11px] text-nc-content-gray-muted leading-tight">
+                <template v-for="(crumb, idx) in props.breadcrumbs" :key="idx">
+                  <span class="truncate max-w-[140px]">{{ crumb }}</span>
+                  <GeneralIcon icon="chevronRight" class="flex-none h-3 w-3 text-nc-content-gray-muted" />
+                </template>
+              </div>
+              <span class="font-bold text-nc-content-gray text-xl truncate">
+                {{ props.newRecordHeader ?? $t('activity.newRecord') }}
+              </span>
             </div>
             <div
               v-else-if="displayValue && !row?.rowMeta?.new"

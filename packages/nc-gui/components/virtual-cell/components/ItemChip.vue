@@ -47,6 +47,8 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
+const parentBreadcrumbs = inject(TemplateBreadcrumbsInj, ref([]))
+
 /** Whether this chip represents a blueprint (unsaved sub-record template) vs. an existing record */
 const isBlueprint = computed(() => !!item.value?._isBlueprint)
 
@@ -68,6 +70,9 @@ function openBlueprintEditor() {
   const { _isBlueprint, _ltarState, ...blueprintData } = item.value
   const nestedLtarState = _ltarState && Object.keys(_ltarState).length ? _ltarState : undefined
 
+  // Build breadcrumb trail: append current (parent) table name
+  const breadcrumbs = [...parentBreadcrumbs.value, parentTableMeta.value?.title || '']
+
   open({
     isOpen: true,
     row: { row: { ...blueprintData }, oldRow: {}, rowMeta: { new: true, ltarState: nestedLtarState } },
@@ -77,6 +82,7 @@ function openBlueprintEditor() {
     useMetaFields: true,
     blueprintMode: true,
     blueprintParentTableId: parentTableMeta.value?.id,
+    breadcrumbs,
     newRecordSubmitBtnText: 'Save Record',
     newRecordHeader: `Edit ${relatedTableMeta.value?.title} Record`,
     createdRecord: (record: Record<string, any>) => {

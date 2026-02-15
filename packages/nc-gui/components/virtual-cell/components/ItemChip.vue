@@ -59,11 +59,13 @@ function openBlueprintEditor() {
   if (isClickDisabled.value) return
 
   // Clone the blueprint data (exclude internal flags for the form)
-  const { _isBlueprint, ...blueprintData } = item.value
+  const { _isBlueprint, _ltarState, ...blueprintData } = item.value
+  const nestedLtarState = _ltarState && Object.keys(_ltarState).length ? _ltarState : undefined
 
   open({
     isOpen: true,
-    row: { row: { ...blueprintData }, oldRow: {}, rowMeta: { new: true } },
+    row: { row: { ...blueprintData }, oldRow: {}, rowMeta: { new: true, ltarState: nestedLtarState } },
+    state: nestedLtarState,
     meta: relatedTableMeta.value,
     loadRow: false,
     useMetaFields: true,

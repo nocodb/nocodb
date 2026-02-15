@@ -9,6 +9,7 @@ interface TemplateType {
   title: string
   description?: string
   template_data: Record<string, any> | string
+  source_id?: string
   usage_count?: number
   enabled?: boolean
   created_by?: string
@@ -19,10 +20,18 @@ const isLocked = inject(IsLockedInj, ref(false))
 
 const { meta } = useSmartsheetStoreOrThrow()
 const { base } = storeToRefs(useBase())
+const { baseTables } = storeToRefs(useTablesStore())
+const { getMeta } = useMetas()
 const { $api } = useNuxtApp()
 const { t } = useI18n()
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const { open: openExpandedForm } = useExpandedFormDetached()
+
+const getTableName = (sourceId?: string) => {
+  if (!sourceId || !base.value?.id) return ''
+  const tables = baseTables.value.get(base.value.id) || []
+  return tables.find((t) => t.id === sourceId)?.title || ''
+}
 
 // --- State ---
 const { showRecordTemplateManager: showManager, templates } = useRecordTemplate()
@@ -30,9 +39,17 @@ const showDeleteConfirm = ref(false)
 const isLoading = ref(false)
 const templateToDelete = ref<TemplateType | null>(null)
 const searchQuery = ref('')
+const selectedTableFilter = ref<string>('')
 const orderBy = ref<Record<string, 'asc' | 'desc'>>({ title: 'asc' })
 const currentPage = ref(1)
 const PAGE_SIZE = 5
+
+// Tables that have at least one template
+const tablesWithTemplates = computed(() => {
+  const tableIds = new Set(templates.value.map((t) => t.source_id).filter(Boolean))
+  const tables = baseTables.value.get(base.value?.id || '') || []
+  return tables.filter((t) => tableIds.has(t.id))
+})
 
 // --- Table Columns ---
 const columns = computed<NcTableColumnProps[]>(() => [
@@ -47,6 +64,13 @@ const columns = computed<NcTableColumnProps[]>(() => [
     title: t('general.name'),
     minWidth: 200,
     dataIndex: 'title',
+    showOrderBy: true,
+  },
+  {
+    key: 'table',
+    title: t('objects.table'),
+    minWidth: 140,
+    dataIndex: 'source_id',
     showOrderBy: true,
   },
   {
@@ -78,10 +102,17 @@ const columns = computed<NcTableColumnProps[]>(() => [
 const filteredTemplates = computed(() => {
   let result = [...templates.value]
 
+  // Apply table filter
+  if (selectedTableFilter.value) {
+    result = result.filter((t) => t.source_id === selectedTableFilter.value)
+  }
+
   // Apply search filter
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.trim().toLowerCase()
-    result = result.filter((t) => t.title?.toLowerCase().includes(query))
+    result = result.filter(
+      (t) => t.title?.toLowerCase().includes(query) || getTableName(t.source_id).toLowerCase().includes(query),
+    )
   }
 
   // Apply sort from NcTable orderBy
@@ -90,8 +121,8 @@ const filteredTemplates = computed(() => {
     const sortKey = sortKeys[0] as keyof TemplateType
     const sortDir = orderBy.value[sortKeys[0]]
     result.sort((a, b) => {
-      let aVal: any = a[sortKey] ?? ''
-      let bVal: any = b[sortKey] ?? ''
+      let aVal: any = sortKey === 'source_id' ? getTableName(a.source_id) : (a[sortKey] ?? '')
+      let bVal: any = sortKey === 'source_id' ? getTableName(b.source_id) : (b[sortKey] ?? '')
 
       if (typeof aVal === 'number' && typeof bVal === 'number') {
         return sortDir === 'asc' ? aVal - bVal : bVal - aVal
@@ -118,8 +149,8 @@ const paginatedTemplates = computed(() => {
   return filteredTemplates.value.slice(start, start + PAGE_SIZE)
 })
 
-// Reset to page 1 when search or sort changes
-watch([searchQuery, orderBy], () => {
+// Reset to page 1 when search, sort, or table filter changes
+watch([searchQuery, orderBy, selectedTableFilter], () => {
   currentPage.value = 1
 })
 
@@ -137,10 +168,14 @@ const nextTemplateNumber = computed(() => {
 
 // --- API ---
 const loadTemplates = async () => {
-  if (!base.value?.id || !meta.value?.id) return
+  if (!base.value?.id) return
   isLoading.value = true
   try {
-    const response = await $api.recordTemplates.recordTemplateList(base.value.id, meta.value.id)
+    const response = await ($api as any).request({
+      path: `/api/v2/meta/bases/${base.value.id}/record-templates/all`,
+      method: 'GET',
+      format: 'json',
+    })
     templates.value = (response as any)?.list || []
   } catch (e: any) {
     console.error(e)
@@ -174,9 +209,10 @@ const saveTemplate = async (rowData: Record<string, any>, editingTmpl: TemplateT
   // Extract template name from the special _templateName field
   const title = rowData._templateName?.trim() || `Record Template #${nextTemplateNumber.value}`
 
-  // Enforce unique template name (client-side check)
+  // Enforce unique template name per table (client-side check)
   const duplicate = templates.value.find(
-    (t) => t.title?.trim().toLowerCase() === title.toLowerCase() && t.id !== editingTmpl?.id,
+    (t) =>
+      t.title?.trim().toLowerCase() === title.toLowerCase() && t.id !== editingTmpl?.id && t.source_id === tableId,
   )
   if (duplicate) {
     message.toast(`A template with the name "${title}" already exists`)
@@ -233,15 +269,28 @@ const openManager = () => {
   showManager.value = true
 }
 
-const openTemplateForm = (editingTmpl: TemplateType | null = null) => {
+const openTemplateForm = async (editingTmpl: TemplateType | null = null) => {
   const { fields: existingFields, ltarState } = editingTmpl
     ? parseRecordTemplateData(editingTmpl)
     : { fields: {}, ltarState: {} }
   const templateName = editingTmpl?.title || `Record Template #${nextTemplateNumber.value}`
 
-  // Collect existing template names for duplicate validation (exclude current template when editing)
+  // Resolve the table meta for this template (may be a different table than the current one)
+  let tableMeta: TableType | undefined
+  if (editingTmpl?.source_id && editingTmpl.source_id !== meta.value?.id) {
+    try {
+      tableMeta = (await getMeta(base.value!.id!, editingTmpl.source_id)) as TableType
+    } catch {
+      message.toast('Failed to load table metadata for this template')
+      return
+    }
+  }
+  tableMeta = tableMeta || (meta.value as TableType)
+
+  // Collect existing template names for duplicate validation per table (exclude current template when editing)
+  const templateTableId = editingTmpl?.source_id || tableMeta.id
   const existingTemplateNames = templates.value
-    .filter((t) => t.id !== editingTmpl?.id)
+    .filter((t) => t.id !== editingTmpl?.id && t.source_id === templateTableId)
     .map((t) => t.title || '')
 
   openExpandedForm({
@@ -251,7 +300,7 @@ const openTemplateForm = (editingTmpl: TemplateType | null = null) => {
       oldRow: {},
       rowMeta: { new: true, ltarState: Object.keys(ltarState).length ? ltarState : undefined },
     },
-    meta: meta.value as TableType,
+    meta: tableMeta,
     state: Object.keys(ltarState).length ? ltarState : undefined,
     useMetaFields: true,
     skipReload: true,
@@ -286,20 +335,30 @@ const onDeleteConfirm = async () => {
 }
 
 const handleUseTemplate = async (tmpl: TemplateType) => {
-  if (!tmpl.id || !base.value?.id || !meta.value?.id) return
+  if (!tmpl.id || !base.value?.id) return
+  const tableId = tmpl.source_id || meta.value?.id
+  if (!tableId) return
   try {
+    // Resolve the table meta for this template
+    let tableMeta: TableType | undefined
+    if (tmpl.source_id && tmpl.source_id !== meta.value?.id) {
+      tableMeta = (await getMeta(base.value.id!, tmpl.source_id)) as TableType
+    }
+    tableMeta = tableMeta || (meta.value as TableType)
+
     const { fields, ltarState } = parseRecordTemplateData(tmpl)
 
     // Resolve any blueprint records — create real records in linked tables first
     const resolvedLtarState = await resolveBlueprintsInLtarState(
       ltarState,
-      (meta.value.columns || []) as ColumnType[],
+      (tableMeta.columns || []) as ColumnType[],
       $api,
       base.value.id,
+      getMeta,
     )
 
     // Create record via standard row creation API (handles LTAR/Links natively)
-    await $api.dbTableRow.create('noco', base.value.id, meta.value.id, {
+    await $api.dbTableRow.create('noco', base.value.id, tableId, {
       ...fields,
       ...resolvedLtarState,
     })
@@ -378,7 +437,7 @@ const customRow = (record: Record<string, any>) => ({
           </NcButton>
         </div>
 
-        <!-- Search -->
+        <!-- Search & Table Filter -->
         <div class="flex items-center gap-3">
           <a-input
             v-model:value="searchQuery"
@@ -391,6 +450,42 @@ const customRow = (record: Record<string, any>) => ({
               <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-nc-content-gray-muted" />
             </template>
           </a-input>
+          <NcDropdown>
+            <NcButton size="small" type="secondary">
+              <div class="flex items-center gap-1.5">
+                <GeneralIcon icon="table" class="h-4 w-4" />
+                <span class="text-sm">{{ selectedTableFilter ? getTableName(selectedTableFilter) : 'All Tables' }}</span>
+                <GeneralIcon icon="arrowDown" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+              </div>
+            </NcButton>
+            <template #overlay>
+              <NcMenu variant="small" class="!max-h-72 overflow-auto nc-scrollbar-thin">
+                <NcMenuItem @click="selectedTableFilter = ''">
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="table" class="h-4 w-4 text-nc-content-gray-muted" />
+                    <span>All Tables</span>
+                    <GeneralIcon v-if="!selectedTableFilter" icon="check" class="h-4 w-4 ml-auto text-primary" />
+                  </div>
+                </NcMenuItem>
+                <NcDivider />
+                <NcMenuItem
+                  v-for="table in tablesWithTemplates"
+                  :key="table.id"
+                  @click="selectedTableFilter = table.id"
+                >
+                  <div class="flex items-center gap-2">
+                    <GeneralIcon icon="table" class="h-4 w-4 text-nc-content-gray-muted" />
+                    <span class="truncate">{{ table.title }}</span>
+                    <GeneralIcon
+                      v-if="selectedTableFilter === table.id"
+                      icon="check"
+                      class="h-4 w-4 ml-auto text-primary"
+                    />
+                  </div>
+                </NcMenuItem>
+              </NcMenu>
+            </template>
+          </NcDropdown>
         </div>
 
         <!-- Table -->
@@ -416,6 +511,12 @@ const customRow = (record: Record<string, any>) => ({
                 {{ tmpl.title }}
               </NcTooltip>
             </div>
+
+            <!-- Table -->
+            <NcTooltip v-if="column.key === 'table'" placement="bottom" show-on-truncate-only class="truncate">
+              <template #title>{{ getTableName(tmpl.source_id) }}</template>
+              {{ getTableName(tmpl.source_id) }}
+            </NcTooltip>
 
             <!-- Date Added -->
             <NcTooltip v-if="column.key === 'created_at'" placement="bottom" show-on-truncate-only class="truncate">

@@ -28,6 +28,25 @@ export class RecordTemplatesController {
   ) {}
 
   @Get([
+    '/api/v1/db/meta/bases/:baseId/record-templates',
+    '/api/v2/meta/bases/:baseId/record-templates/all',
+  ])
+  @Acl('recordTemplateList')
+  async listAll(
+    @TenantContext() context: NcContext,
+    @Req() req: NcRequest,
+    @Param('baseId') baseId: string,
+  ) {
+    return new PagedResponseImpl(
+      await this.recordTemplatesService.list({
+        context,
+        baseId,
+        req,
+      }),
+    );
+  }
+
+  @Get([
     '/api/v1/db/meta/bases/:baseId/tables/:sourceId/record-templates',
     '/api/v2/meta/bases/:baseId/tables/:sourceId/record-templates',
   ])

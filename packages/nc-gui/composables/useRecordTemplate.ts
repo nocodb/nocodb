@@ -57,7 +57,12 @@ export async function resolveBlueprintsInLtarState(
   columns: ColumnType[],
   api: any,
   baseId: string,
+  getMeta?: (baseId: string, tableId: string) => Promise<any>,
+  depth: number = 0,
 ): Promise<Record<string, any>> {
+  // Guard against infinite recursion (max 3 levels deep)
+  if (depth > 3) return {}
+
   const resolvedState: Record<string, any> = {}
 
   for (const [colTitle, linkedData] of Object.entries(ltarState)) {
@@ -81,9 +86,8 @@ export async function resolveBlueprintsInLtarState(
       const resolvedItems = []
       for (const item of linkedData) {
         if (item?._isBlueprint) {
-          const { _isBlueprint, ...recordData } = item
           try {
-            const created = await api.dbTableRow.create('noco', baseId, relatedTableId, recordData)
+            const created = await resolveSingleBlueprint(item, relatedTableId, api, baseId, getMeta, depth)
             resolvedItems.push(created)
           } catch (e: any) {
             console.error(`Failed to create blueprint record in table ${relatedTableId}:`, e)
@@ -95,9 +99,8 @@ export async function resolveBlueprintsInLtarState(
       resolvedState[colTitle] = resolvedItems
     } else if (linkedData?._isBlueprint) {
       // BT or OO — single linked record
-      const { _isBlueprint, ...recordData } = linkedData
       try {
-        const created = await api.dbTableRow.create('noco', baseId, relatedTableId, recordData)
+        const created = await resolveSingleBlueprint(linkedData, relatedTableId, api, baseId, getMeta, depth)
         resolvedState[colTitle] = created
       } catch (e: any) {
         console.error(`Failed to create blueprint record in table ${relatedTableId}:`, e)
@@ -108,4 +111,37 @@ export async function resolveBlueprintsInLtarState(
   }
 
   return resolvedState
+}
+
+/**
+ * Resolve a single blueprint record: if it has nested _ltarState, recursively resolve those first,
+ * then create the record with resolved nested links.
+ */
+async function resolveSingleBlueprint(
+  blueprint: Record<string, any>,
+  relatedTableId: string,
+  api: any,
+  baseId: string,
+  getMeta?: (baseId: string, tableId: string) => Promise<any>,
+  depth: number = 0,
+): Promise<any> {
+  const { _isBlueprint, _ltarState, ...recordData } = blueprint
+
+  // If this blueprint has nested blueprints, resolve them first
+  if (_ltarState && Object.keys(_ltarState).length && getMeta) {
+    const relatedMeta = await getMeta(baseId, relatedTableId)
+    const relatedColumns = relatedMeta?.columns || []
+    const resolvedNestedState = await resolveBlueprintsInLtarState(
+      _ltarState,
+      relatedColumns,
+      api,
+      baseId,
+      getMeta,
+      depth + 1,
+    )
+    // Merge resolved nested links into the record data
+    Object.assign(recordData, resolvedNestedState)
+  }
+
+  return await api.dbTableRow.create('noco', baseId, relatedTableId, recordData)
 }

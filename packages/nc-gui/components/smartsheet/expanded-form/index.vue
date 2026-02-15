@@ -355,10 +355,15 @@ const save = async () => {
     if (props.blueprintMode) {
       isUnsavedFormExist.value = false
       isExpanded.value = false
-      emits('createdRecord', {
+      const blueprintData: Record<string, any> = {
         ..._row.value.row,
         _isBlueprint: true,
-      })
+      }
+      // Include nested ltarState so sub-blueprints (e.g., Tasks → Sub-tasks) are preserved
+      if (rowState.value && Object.keys(rowState.value).length) {
+        blueprintData._ltarState = rowState.value
+      }
+      emits('createdRecord', blueprintData)
       isSaving.value = false
       return
     }

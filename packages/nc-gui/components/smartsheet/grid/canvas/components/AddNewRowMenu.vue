@@ -25,10 +25,13 @@ const { t } = useI18n()
 
 const { templates: allTemplates, selectedTemplate, setSelectedTemplate } = useRecordTemplate()
 
-// Filter to only enabled templates for this menu
-const templates = computed(() => allTemplates.value.filter((t: any) => t.enabled !== false))
+// Filter to only enabled templates for the current table
+const templates = computed(() =>
+  allTemplates.value.filter((t: any) => t.enabled !== false && t.source_id === meta.value?.id),
+)
 
 const { $api } = useNuxtApp()
+const { getMeta } = useMetas()
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
@@ -43,6 +46,7 @@ const handleUseTemplate = async (tmpl: any) => {
       (meta.value.columns || []) as ColumnType[],
       $api,
       base.value.id,
+      getMeta,
     )
 
     // Create record via standard row creation API (handles LTAR/Links natively)

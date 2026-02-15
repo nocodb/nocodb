@@ -765,6 +765,7 @@ async function onSelectedTemplateClick() {
       (meta.value.columns || []) as ColumnType[],
       $api,
       base.value.id,
+      getMeta,
     )
 
     await $api.dbTableRow.create('noco', base.value.id, meta.value.id, {

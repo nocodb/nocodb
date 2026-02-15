@@ -63,22 +63,24 @@ export default class RecordTemplate {
       true,
     );
 
-    await NocoCache.appendToList(
-      context,
-      CacheScope.RECORD_TEMPLATE,
-      [template.base_id, template.source_id],
-      `${CacheScope.RECORD_TEMPLATE}:${result.id}`,
-    );
-
-    // Also update the base-level 'all' list cache so listAll returns fresh data
-    await NocoCache.appendToList(
-      context,
-      CacheScope.RECORD_TEMPLATE,
-      [template.base_id, 'all'],
-      `${CacheScope.RECORD_TEMPLATE}:${result.id}`,
-    );
-
-    return this.get(context, result.id, ncMeta);
+    // get() sets the individual item in cache, then append to list caches
+    return this.get(context, result.id, ncMeta).then(async (record) => {
+      const key = `${CacheScope.RECORD_TEMPLATE}:${result.id}`;
+      await NocoCache.appendToList(
+        context,
+        CacheScope.RECORD_TEMPLATE,
+        [template.base_id, template.source_id],
+        key,
+      );
+      // Also update the base-level 'all' list cache so listAll returns fresh data
+      await NocoCache.appendToList(
+        context,
+        CacheScope.RECORD_TEMPLATE,
+        [template.base_id, 'all'],
+        key,
+      );
+      return record;
+    });
   }
 
   public static async get(
@@ -198,10 +200,11 @@ export default class RecordTemplate {
       id,
     );
 
-    // Clear item cache so next get refreshes
-    await NocoCache.del(
+    // Clear item cache and remove from parent list caches so they're refreshed
+    await NocoCache.deepDel(
       context,
       `${CacheScope.RECORD_TEMPLATE}:${id}`,
+      CacheDelDirection.CHILD_TO_PARENT,
     );
 
     return this.get(context, id, ncMeta);
@@ -254,9 +257,11 @@ export default class RecordTemplate {
       id,
     );
 
-    await NocoCache.del(
+    // Clear item + parent list caches so they're refreshed with new count
+    await NocoCache.deepDel(
       context,
       `${CacheScope.RECORD_TEMPLATE}:${id}`,
+      CacheDelDirection.CHILD_TO_PARENT,
     );
 
     return this.get(context, id, ncMeta);

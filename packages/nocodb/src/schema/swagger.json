@@ -21256,7 +21256,8 @@
                 "properties": {
                   "title": {"type": "string"},
                   "description": {"type": "string"},
-                  "template_data": {"type": "object"}
+                  "template_data": {"type": "object"},
+                  "enabled": {"type": "boolean"}
                 }
               }
             }
@@ -21292,7 +21293,7 @@
     "/api/v2/meta/bases/{baseId}/tables/{sourceId}/record-templates/{templateId}/create-from": {
       "post": {
         "summary": "Create Record From Template",
-        "operationId": "record-template-use",
+        "operationId": "record-template-create-from",
         "responses": {
           "200": {
             "description": "OK"
@@ -21310,6 +21311,32 @@
         {
           "schema": {"type": "string"},
           "name": "sourceId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {"type": "string"},
+          "name": "templateId",
+          "in": "path",
+          "required": true
+        }
+      ]
+    },
+    "/api/v2/meta/bases/{baseId}/record-templates/{templateId}/use": {
+      "post": {
+        "summary": "Increment Template Usage Count",
+        "operationId": "record-template-use",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "tags": ["Record Templates"]
+      },
+      "parameters": [
+        {
+          "schema": {"type": "string"},
+          "name": "baseId",
           "in": "path",
           "required": true
         },

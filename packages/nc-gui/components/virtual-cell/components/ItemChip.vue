@@ -25,6 +25,8 @@ const { relatedTableMeta, externalBaseUserRoles, row: parentRow } = useLTARStore
 
 const injectedColumn = inject(ColumnInj, ref())
 
+const parentTableMeta = inject(MetaInj, ref())
+
 const { isUIAllowed } = useRoles()
 
 provide(IsUnderLTARInj, ref(true))
@@ -66,6 +68,7 @@ function openBlueprintEditor() {
     loadRow: false,
     useMetaFields: true,
     blueprintMode: true,
+    blueprintParentTableId: parentTableMeta.value?.id,
     newRecordSubmitBtnText: 'Save Blueprint',
     newRecordHeader: `Edit ${relatedTableMeta.value?.title} (Blueprint)`,
     createdRecord: (record: Record<string, any>) => {

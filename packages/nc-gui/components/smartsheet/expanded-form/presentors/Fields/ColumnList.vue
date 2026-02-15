@@ -19,6 +19,8 @@ const meta = inject(MetaInj, ref())
 
 const isTemplateMode = inject(IsTemplateModeInj, ref(false))
 
+const blueprintParentTableId = inject(BlueprintParentTableIdInj, ref())
+
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
@@ -28,6 +30,12 @@ const { getMeta } = useMetas()
 const { open: openExpandedFormDetached } = useExpandedFormDetached()
 
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
+
+const isParentLtarColumn = (col: ColumnType): boolean => {
+  if (!blueprintParentTableId.value || !isLinksOrLTAR(col)) return false
+  const colOptions = col.colOptions as LinkToAnotherRecordType
+  return colOptions?.fk_related_model_id === blueprintParentTableId.value
+}
 
 const addBlueprintForColumn = async (col: ColumnType) => {
   const colOptions = col.colOptions as LinkToAnotherRecordType
@@ -46,6 +54,7 @@ const addBlueprintForColumn = async (col: ColumnType) => {
       loadRow: false,
       useMetaFields: true,
       blueprintMode: true,
+      blueprintParentTableId: meta.value?.id,
       newRecordSubmitBtnText: 'Save Blueprint',
       newRecordHeader: `New ${relatedMeta.title} (Blueprint)`,
       createdRecord: (record: Record<string, any>) => {
@@ -157,10 +166,12 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
           'lg:max-w-[calc(100%_-_188px)]': !props.forceVerticalMode,
         }"
         :placement="isMobileMode ? 'top' : 'right'"
-        :disabled="!showReadonlyColumnTooltip(col)"
+        :disabled="!showReadonlyColumnTooltip(col) && !isParentLtarColumn(col)"
         :arrow="false"
       >
-        <template #title>{{ $t('msg.info.fieldReadonly') }}</template>
+        <template #title>{{
+          isParentLtarColumn(col) ? 'This field will be auto-linked to the parent record' : $t('msg.info.fieldReadonly')
+        }}</template>
         <PermissionsTooltip
           v-if="col.title"
           class="w-full"
@@ -179,7 +190,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
               :class="{
                 'w-full': props.forceVerticalMode,
                 '!select-text nc-system-field !bg-nc-bg-gray-extralight !text-nc-content-inverted-primary-disabled':
-                  showReadonlyColumnTooltip(col),
+                  showReadonlyColumnTooltip(col) || isParentLtarColumn(col),
                 '!select-text nc-readonly-div-data-cell': readOnly || !isAllowed || isSyncedColumn(col),
               }"
             >
@@ -187,7 +198,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
                 v-if="isVirtualCol(col)"
                 v-model="_row.row[col.title]"
                 :column="col"
-                :read-only="readOnly || !isAllowed || isSyncedColumn(col)"
+                :read-only="readOnly || !isAllowed || isSyncedColumn(col) || isParentLtarColumn(col)"
                 :row="_row"
                 :is-allowed="isAllowed"
               />
@@ -224,7 +235,7 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
 
     <!-- Add Blueprint button below LTAR fields in template mode -->
     <div
-      v-if="isTemplateMode && isLinksOrLTAR(col) && !readOnly"
+      v-if="isTemplateMode && isLinksOrLTAR(col) && !readOnly && !isParentLtarColumn(col)"
       class="flex items-center"
       :class="{
         'flex-row <lg:pl-0': !props.forceVerticalMode,
@@ -235,15 +246,20 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
         v-if="!props.forceVerticalMode"
         class="flex-none w-45 <lg:hidden sm:mx-2"
       />
-      <NcTooltip placement="bottom">
-        <template #title>Define a new record that will be created and linked each time this template is used</template>
-        <NcButton type="secondary" size="xs" class="!mt-1" @click.stop="addBlueprintForColumn(col)">
+      <div class="flex items-center gap-2">
+        <NcButton type="secondary" size="small" class="!mt-1" @click.stop="addBlueprintForColumn(col)">
           <div class="flex items-center gap-1">
             <GeneralIcon icon="plus" class="h-3.5 w-3.5" />
             <span>Add {{ getRelatedTableName(col) }} Template</span>
           </div>
         </NcButton>
-      </NcTooltip>
+        <NcTooltip placement="bottom" class="flex items-center !mt-1">
+          <template #title>
+            A new {{ getRelatedTableName(col) }} record will be created and linked each time this template is used
+          </template>
+          <GeneralIcon icon="info" class="h-3.5 w-3.5 text-nc-content-gray-subtle" />
+        </NcTooltip>
+      </div>
     </div>
   </div>
 </template>

@@ -152,6 +152,8 @@ export const IsOrgBillingInj: InjectionKey<Ref<boolean>> = Symbol('is-org-billin
 
 export const IsTemplateModeInj: InjectionKey<Ref<boolean>> = Symbol('is-template-mode-injection')
 
+export const BlueprintParentTableIdInj: InjectionKey<Ref<string | undefined>> = Symbol('blueprint-parent-table-id-injection')
+
 export const WorkflowVariableInj: InjectionKey<{
   selectedNodeId: Ref<string | null>
   getAvailableVariablesFlat: (nodeId: string) => any[]

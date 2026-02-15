@@ -20,6 +20,7 @@ export interface UseExpandedFormDetachedProps {
   'newRecordHeader'?: string
   'existingTemplateNames'?: string[]
   'editingTemplateId'?: string
+  'blueprintParentTableId'?: string
   'createdRecord'?: (row: Row['row']) => void
 }
 

@@ -26,6 +26,7 @@ interface Props {
   blueprintMode?: boolean
   existingTemplateNames?: string[]
   editingTemplateId?: string
+  blueprintParentTableId?: string
   expandForm?: (row: Row) => void
   maintainDefaultViewOrder?: boolean
   allowNullFieldIds?: string[]
@@ -115,6 +116,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 provide(MetaInj, activeMeta)
 
 provide(IsTemplateModeInj, computed(() => !!props.templateMode || !!props.blueprintMode))
+
+provide(BlueprintParentTableIdInj, computed(() => props.blueprintParentTableId))
 
 // override cell event hook to avoid unexpected behavior at form fields
 // issue happens when opening expanded form from cell (LTAR/Links)

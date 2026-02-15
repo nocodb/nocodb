@@ -256,6 +256,7 @@ const onCreatedRecord = (record: any) => {
   if (isBlueprintMode.value) {
     const blueprint = { ...record, _isBlueprint: true }
     addLTARRef(blueprint, injectedColumn?.value as ColumnType)
+    loadChildrenList(false, rowState.value)
     isBlueprintMode.value = false
     isNewRecord.value = false
     vModel.value = false

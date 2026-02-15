@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
+import { parseRecordTemplateData, resolveBlueprintsInLtarState } from '../../../composables/useRecordTemplate'
 import type { NcTableColumnProps } from '../../../lib/types'
 
 interface TemplateType {
@@ -159,13 +160,6 @@ watch(showManager, (val) => {
 })
 
 // --- Helpers ---
-const parseTemplateData = (tmpl: TemplateType): { fields: Record<string, any>; ltarState: Record<string, any> } => {
-  const data = typeof tmpl.template_data === 'string' ? JSON.parse(tmpl.template_data) : tmpl.template_data || {}
-  return {
-    fields: data.fields || {},
-    ltarState: data.ltarState || {},
-  }
-}
 
 const saveTemplate = async (rowData: Record<string, any>, editingTmpl: TemplateType | null) => {
   const tableId = rowData._tableId || meta.value?.id
@@ -227,7 +221,7 @@ const openManager = () => {
 
 const openTemplateForm = (editingTmpl: TemplateType | null = null) => {
   const { fields: existingFields, ltarState } = editingTmpl
-    ? parseTemplateData(editingTmpl)
+    ? parseRecordTemplateData(editingTmpl)
     : { fields: {}, ltarState: {} }
   const templateName = editingTmpl?.title || `Record Template #${nextTemplateNumber.value}`
 
@@ -271,70 +265,18 @@ const onDeleteConfirm = async () => {
   }
 }
 
-const resolveBlueprintsInLtarState = async (ltarState: Record<string, any>): Promise<Record<string, any>> => {
-  if (!base.value?.id || !meta.value?.columns) return ltarState
-
-  const resolvedState: Record<string, any> = {}
-
-  for (const [colTitle, linkedData] of Object.entries(ltarState)) {
-    // Find the LTAR column by title to get the related table ID
-    const column = meta.value.columns.find((c: ColumnType) => c.title === colTitle)
-    if (!column) {
-      resolvedState[colTitle] = linkedData
-      continue
-    }
-
-    const colOptions = column.colOptions as LinkToAnotherRecordType
-    const relatedTableId = colOptions?.fk_related_model_id
-
-    if (!relatedTableId) {
-      resolvedState[colTitle] = linkedData
-      continue
-    }
-
-    if (Array.isArray(linkedData)) {
-      // HM or MM — array of linked records
-      const resolvedItems = []
-      for (const item of linkedData) {
-        if (item?._isBlueprint) {
-          // Create a real record in the linked table from blueprint data
-          const { _isBlueprint, ...recordData } = item
-          try {
-            const created = await $api.dbTableRow.create('noco', base.value.id, relatedTableId, recordData)
-            resolvedItems.push(created)
-          } catch (e: any) {
-            console.error(`Failed to create blueprint record in table ${relatedTableId}:`, e)
-            // Skip failed blueprints but continue with others
-          }
-        } else {
-          resolvedItems.push(item)
-        }
-      }
-      resolvedState[colTitle] = resolvedItems
-    } else if (linkedData?._isBlueprint) {
-      // BT or OO — single linked record
-      const { _isBlueprint, ...recordData } = linkedData
-      try {
-        const created = await $api.dbTableRow.create('noco', base.value.id, relatedTableId, recordData)
-        resolvedState[colTitle] = created
-      } catch (e: any) {
-        console.error(`Failed to create blueprint record in table ${relatedTableId}:`, e)
-      }
-    } else {
-      resolvedState[colTitle] = linkedData
-    }
-  }
-
-  return resolvedState
-}
-
 const handleUseTemplate = async (tmpl: TemplateType) => {
   if (!tmpl.id || !base.value?.id || !meta.value?.id) return
   try {
-    const { fields, ltarState } = parseTemplateData(tmpl)
+    const { fields, ltarState } = parseRecordTemplateData(tmpl)
 
     // Resolve any blueprint records — create real records in linked tables first
-    const resolvedLtarState = await resolveBlueprintsInLtarState(ltarState)
+    const resolvedLtarState = await resolveBlueprintsInLtarState(
+      ltarState,
+      (meta.value.columns || []) as ColumnType[],
+      $api,
+      base.value.id,
+    )
 
     // Create record via standard row creation API (handles LTAR/Links natively)
     await $api.dbTableRow.create('noco', base.value.id, meta.value.id, {

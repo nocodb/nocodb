@@ -174,62 +174,12 @@ export class RecordTemplatesService {
   }
 
   /**
-   * Validates template data structure
-   * Ensures nested records don't exceed 3-table depth limit
+   * Validates template data structure.
+   * Template data format: { fields: Record<string, any>, ltarState?: Record<string, any> }
    */
-  private validateTemplateData(
-    templateData: Record<string, any>,
-    depth: number = 1,
-  ) {
-    if (depth > 3) {
-      NcError.badRequest(
-        'Template depth exceeds maximum limit of 3 related tables',
-      );
-    }
-
-    if (!templateData) {
-      NcError.badRequest('Template data is required');
-    }
-
-    // Validate linked_records structure if present
-    if (templateData.linked_records) {
-      for (const [fieldId, config] of Object.entries(
-        templateData.linked_records,
-      )) {
-        if (typeof config !== 'object' || !config) {
-          NcError.badRequest(
-            `Invalid linked record config for field ${fieldId}`,
-          );
-        }
-
-        const linkedConfig = config as any;
-
-        // Validate mode
-        if (!['existing', 'create_new'].includes(linkedConfig.mode)) {
-          NcError.badRequest(
-            `Invalid mode for linked field ${fieldId}. Must be 'existing' or 'create_new'`,
-          );
-        }
-
-        // If create_new mode, validate nested configs
-        if (
-          linkedConfig.mode === 'create_new' &&
-          linkedConfig.create_configs
-        ) {
-          if (!Array.isArray(linkedConfig.create_configs)) {
-            NcError.badRequest(
-              `create_configs for field ${fieldId} must be an array`,
-            );
-          }
-
-          // Recursively validate nested template data
-          for (const nestedConfig of linkedConfig.create_configs) {
-            if (nestedConfig.template_data) {
-              this.validateTemplateData(nestedConfig.template_data, depth + 1);
-            }
-          }
-        }
-      }
+  private validateTemplateData(templateData: Record<string, any>) {
+    if (!templateData || typeof templateData !== 'object') {
+      NcError.badRequest('Template data is required and must be an object');
     }
   }
 

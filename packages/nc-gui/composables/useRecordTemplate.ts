@@ -2,6 +2,9 @@ import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 
 const showRecordTemplateManager = ref(false)
 
+// Shared reactive template list — mutated by the manager, read by menus
+const templates = ref<any[]>([])
+
 export function useRecordTemplate() {
   const openManager = () => {
     showRecordTemplateManager.value = true
@@ -9,6 +12,7 @@ export function useRecordTemplate() {
 
   return {
     showRecordTemplateManager,
+    templates,
     openManager,
   }
 }

@@ -23,23 +23,14 @@ const { base } = storeToRefs(useBase())
 const { meta } = useSmartsheetStoreOrThrow()
 const { t } = useI18n()
 
-const templates = ref<any[]>([])
+const { templates: allTemplates } = useRecordTemplate()
+
+// Filter to only enabled templates for this menu
+const templates = computed(() => allTemplates.value.filter((t: any) => t.enabled !== false))
 
 const { $api } = useNuxtApp()
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
-
-// Load templates on mount - wrapped in try/catch since API may not be available
-onMounted(async () => {
-  try {
-    if (base.value?.id && meta.value?.id && $api.recordTemplates?.recordTemplateList) {
-      const response = await $api.recordTemplates.recordTemplateList(base.value.id, meta.value.id)
-      templates.value = ((response as any)?.list || []).filter((t: any) => t.enabled !== false)
-    }
-  } catch (e) {
-    // silently ignore - templates may not be available
-  }
-})
 
 const handleUseTemplate = async (tmpl: any) => {
   if (!base.value?.id || !meta.value?.id || !tmpl?.id) return

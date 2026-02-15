@@ -25,10 +25,8 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 const { open: openExpandedForm } = useExpandedFormDetached()
 
 // --- State ---
-const { showRecordTemplateManager: showManager } = useRecordTemplate()
+const { showRecordTemplateManager: showManager, templates } = useRecordTemplate()
 const showDeleteConfirm = ref(false)
-
-const templates = ref<TemplateType[]>([])
 const isLoading = ref(false)
 const templateToDelete = ref<TemplateType | null>(null)
 const searchQuery = ref('')
@@ -152,7 +150,12 @@ const loadTemplates = async () => {
   }
 }
 
-// Watch for external opens (e.g. from AddNewRowMenu dropdown)
+// Load templates on mount so the shared list is available to AddNewRowMenu
+onMounted(() => {
+  loadTemplates()
+})
+
+// Reload from API only if list is empty (e.g. edge case recovery)
 watch(showManager, (val) => {
   if (val && !templates.value.length) {
     loadTemplates()
@@ -216,7 +219,6 @@ const saveTemplate = async (rowData: Record<string, any>, editingTmpl: TemplateT
 // --- Handlers ---
 const openManager = () => {
   showManager.value = true
-  loadTemplates()
 }
 
 const openTemplateForm = (editingTmpl: TemplateType | null = null) => {
@@ -291,8 +293,12 @@ const handleUseTemplate = async (tmpl: TemplateType) => {
       // Usage count increment is non-critical
     }
 
+    // Update usage count locally
+    templates.value = templates.value.map((t) =>
+      t.id === tmpl.id ? { ...t, usage_count: (t.usage_count || 0) + 1 } : t,
+    )
+
     message.toast('Record created from template')
-    showManager.value = false
     reloadViewDataHook?.trigger()
   } catch (e: any) {
     console.error(e)
@@ -406,28 +412,37 @@ const customRow = (record: Record<string, any>) => ({
 
             <!-- Actions -->
             <div v-if="column.key === 'action'" class="flex items-center justify-end" @click.stop>
-              <NcDropdown placement="bottomRight">
-                <NcButton size="small" type="secondary">
-                  <GeneralIcon icon="threeDotVertical" />
-                </NcButton>
-                <template #overlay>
-                  <NcMenu variant="small">
-                    <NcMenuItem @click="handleUseTemplate(tmpl)">
-                      <GeneralIcon class="text-current opacity-80" icon="plus" />
-                      <span>{{ $t('activity.useTemplate') }}</span>
-                    </NcMenuItem>
-                    <NcMenuItem @click="openTemplateForm(tmpl)">
-                      <GeneralIcon class="text-current opacity-80" icon="edit" />
-                      <span>{{ $t('general.edit') }}</span>
-                    </NcMenuItem>
-                    <NcDivider />
-                    <NcMenuItem class="!text-red-500" @click="handleDeleteClick(tmpl)">
-                      <GeneralIcon icon="delete" />
-                      {{ $t('general.delete') }}
-                    </NcMenuItem>
-                  </NcMenu>
-                </template>
-              </NcDropdown>
+              <div class="nc-template-action-btns flex">
+                <NcTooltip>
+                  <template #title>{{ $t('activity.useTemplate') }}</template>
+                  <NcButton
+                    size="small"
+                    type="secondary"
+                    class="!rounded-r-none !border-r-0"
+                    @click="handleUseTemplate(tmpl)"
+                  >
+                    <GeneralIcon icon="plus" />
+                  </NcButton>
+                </NcTooltip>
+                <NcDropdown placement="bottomRight">
+                  <NcButton size="small" type="secondary" class="!rounded-l-none">
+                    <GeneralIcon icon="threeDotVertical" />
+                  </NcButton>
+                  <template #overlay>
+                    <NcMenu variant="small">
+                      <NcMenuItem @click="openTemplateForm(tmpl)">
+                        <GeneralIcon class="text-current opacity-80" icon="edit" />
+                        <span>{{ $t('general.edit') }}</span>
+                      </NcMenuItem>
+                      <NcDivider />
+                      <NcMenuItem class="!text-red-500" @click="handleDeleteClick(tmpl)">
+                        <GeneralIcon icon="delete" />
+                        {{ $t('general.delete') }}
+                      </NcMenuItem>
+                    </NcMenu>
+                  </template>
+                </NcDropdown>
+              </div>
             </div>
           </template>
 

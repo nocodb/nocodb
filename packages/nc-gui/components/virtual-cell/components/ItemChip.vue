@@ -21,7 +21,9 @@ const emit = defineEmits(['unlink'])
 
 const { item, value, column, readonly: readonlyProp } = toRefs(props)
 
-const { relatedTableMeta, externalBaseUserRoles } = useLTARStoreOrThrow()!
+const { relatedTableMeta, externalBaseUserRoles, row: parentRow } = useLTARStoreOrThrow()!
+
+const injectedColumn = inject(ColumnInj, ref())
 
 const { isUIAllowed } = useRoles()
 
@@ -43,14 +45,57 @@ const reloadTrigger = inject(ReloadRowDataHookInj, createEventHook())
 
 const reloadViewDataTrigger = inject(ReloadViewDataHookInj, createEventHook())
 
+const isBlueprint = computed(() => !!item.value?._isBlueprint)
+
 const isClickDisabled = computed(() => {
   return (!active.value && !isExpandedForm.value) || isPublic.value || isForm.value || readonlyProp.value
 })
 
 const { open } = useExpandedFormDetached()
 
+function openBlueprintEditor() {
+  if (isClickDisabled.value) return
+
+  // Clone the blueprint data (exclude internal flags for the form)
+  const { _isBlueprint, ...blueprintData } = item.value
+
+  open({
+    isOpen: true,
+    row: { row: { ...blueprintData }, oldRow: {}, rowMeta: { new: true } },
+    meta: relatedTableMeta.value,
+    loadRow: false,
+    useMetaFields: true,
+    blueprintMode: true,
+    newRecordSubmitBtnText: 'Save Blueprint',
+    newRecordHeader: `Edit ${relatedTableMeta.value?.title} (Blueprint)`,
+    createdRecord: (record: Record<string, any>) => {
+      const updatedBlueprint = { ...record, _isBlueprint: true }
+      const colTitle = injectedColumn.value?.title
+      if (!colTitle || !parentRow.value?.rowMeta?.ltarState) return
+
+      const ltarState = parentRow.value.rowMeta.ltarState
+      if (Array.isArray(ltarState[colTitle])) {
+        // Find and replace the old blueprint in the array
+        const idx = ltarState[colTitle].indexOf(item.value)
+        if (idx !== -1) {
+          ltarState[colTitle].splice(idx, 1, updatedBlueprint)
+        }
+      } else {
+        // BT/OO — single value, just replace
+        ltarState[colTitle] = updatedBlueprint
+      }
+    },
+  })
+}
+
 function openExpandedForm() {
   if (isClickDisabled.value) return
+
+  // Blueprint records open in blueprint editor instead
+  if (isBlueprint.value) {
+    openBlueprintEditor()
+    return
+  }
 
   const rowId = extractPkFromRow(item.value, relatedTableMeta.value.columns as ColumnType[])
 
@@ -113,7 +158,9 @@ export default {
               :class="{
                 'px-1 rounded-full flex-1': !isAttachment(column),
                 'border-nc-border-gray-medium rounded border-1 blue-chip':
-                  border && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
+                  !isBlueprint && border && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
+                'rounded border-1 border-dashed blueprint-chip':
+                  isBlueprint && border && ![UITypes.Attachment, UITypes.MultiSelect, UITypes.SingleSelect].includes(column.uidt),
               }"
             >
               <LazySmartsheetCell
@@ -216,6 +263,18 @@ export default {
     &,
     & * {
       @apply !text-nc-content-brand !bg-nc-bg-brand dark:!bg-nc-bg-gray-light;
+    }
+
+    :deep(.clamped-text) {
+      @apply !block text-ellipsis;
+    }
+  }
+
+  .blueprint-chip {
+    @apply !bg-nc-bg-gray-extralight !border-nc-border-gray-medium px-2 py-[3px] rounded-lg;
+    &,
+    & * {
+      @apply !text-nc-content-gray-muted !bg-nc-bg-gray-extralight;
     }
 
     :deep(.clamped-text) {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type ColumnType, PermissionEntity, PermissionKey, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
+import { type ColumnType, type LinkToAnotherRecordType, type TableType, PermissionEntity, PermissionKey, isLinksOrLTAR, isVirtualCol } from 'nocodb-sdk'
 
 const props = defineProps<{
   fields: ColumnType[]
@@ -17,11 +17,68 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const meta = inject(MetaInj, ref())
 
+const isTemplateMode = inject(IsTemplateModeInj, ref(false))
+
 const { isUIAllowed } = useRoles()
 
 const { isMobileMode } = useGlobal()
 
+const { getMeta } = useMetas()
+
+const { open: openExpandedFormDetached } = useExpandedFormDetached()
+
 const readOnly = computed(() => !isUIAllowed('dataEdit') || isPublic.value || isSqlView.value)
+
+const addBlueprintForColumn = async (col: ColumnType) => {
+  const colOptions = col.colOptions as LinkToAnotherRecordType
+  const relatedTableId = colOptions?.fk_related_model_id
+  const baseId = meta.value?.base_id
+  if (!relatedTableId || !baseId) return
+
+  try {
+    const relatedMeta = (await getMeta(baseId, relatedTableId)) as TableType
+    if (!relatedMeta) return
+
+    openExpandedFormDetached({
+      isOpen: true,
+      row: { row: {}, oldRow: {}, rowMeta: { new: true } },
+      meta: relatedMeta,
+      loadRow: false,
+      useMetaFields: true,
+      blueprintMode: true,
+      newRecordSubmitBtnText: 'Save Blueprint',
+      newRecordHeader: `New ${relatedMeta.title} (Blueprint)`,
+      createdRecord: (record: Record<string, any>) => {
+        const blueprint = { ...record, _isBlueprint: true }
+        // Ensure ltarState structure exists
+        if (!_row.value.rowMeta) _row.value.rowMeta = {}
+        if (!_row.value.rowMeta.ltarState) _row.value.rowMeta.ltarState = {}
+
+        if (isHm(col) || isMm(col)) {
+          if (!_row.value.rowMeta.ltarState[col.title!]) {
+            _row.value.rowMeta.ltarState[col.title!] = []
+          }
+          _row.value.rowMeta.ltarState[col.title!].push(blueprint)
+        } else {
+          // BT or OO — single linked record
+          _row.value.rowMeta.ltarState[col.title!] = blueprint
+        }
+      },
+    })
+  } catch (e) {
+    console.error('Failed to open blueprint form:', e)
+  }
+}
+
+const getRelatedTableName = (col: ColumnType): string => {
+  const colOptions = col.colOptions as LinkToAnotherRecordType
+  const relatedTableId = colOptions?.fk_related_model_id
+  const baseId = meta.value?.base_id
+  if (!relatedTableId || !baseId) return 'Sub Record'
+  const { getMetaByKey } = useMetas()
+  const relatedMeta = getMetaByKey(baseId, relatedTableId)
+  return relatedMeta?.title || 'Sub Record'
+}
 
 const showCol = (col: ColumnType) => {
   return props.showColCallback?.(col) || !isVirtualCol(col) || !isNew.value || isLinksOrLTAR(col)
@@ -163,6 +220,30 @@ const isSyncedColumn = (column: ColumnType) => meta.value?.synced && column?.rea
           icon="reload"
         />
       </div>
+    </div>
+
+    <!-- Add Blueprint button below LTAR fields in template mode -->
+    <div
+      v-if="isTemplateMode && isLinksOrLTAR(col) && !readOnly"
+      class="flex items-center"
+      :class="{
+        'flex-row <lg:pl-0': !props.forceVerticalMode,
+        'pl-0': props.forceVerticalMode,
+      }"
+    >
+      <div
+        v-if="!props.forceVerticalMode"
+        class="flex-none w-45 <lg:hidden sm:mx-2"
+      />
+      <NcTooltip placement="bottom">
+        <template #title>Define a new record that will be created and linked each time this template is used</template>
+        <NcButton type="secondary" size="xs" class="!mt-1" @click.stop="addBlueprintForColumn(col)">
+          <div class="flex items-center gap-1">
+            <GeneralIcon icon="plus" class="h-3.5 w-3.5" />
+            <span>Add {{ getRelatedTableName(col) }} Template</span>
+          </div>
+        </NcButton>
+      </NcTooltip>
     </div>
   </div>
 </template>

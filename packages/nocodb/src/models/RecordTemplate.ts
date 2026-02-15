@@ -70,6 +70,14 @@ export default class RecordTemplate {
       `${CacheScope.RECORD_TEMPLATE}:${result.id}`,
     );
 
+    // Also update the base-level 'all' list cache so listAll returns fresh data
+    await NocoCache.appendToList(
+      context,
+      CacheScope.RECORD_TEMPLATE,
+      [template.base_id, 'all'],
+      `${CacheScope.RECORD_TEMPLATE}:${result.id}`,
+    );
+
     return this.get(context, result.id, ncMeta);
   }
 

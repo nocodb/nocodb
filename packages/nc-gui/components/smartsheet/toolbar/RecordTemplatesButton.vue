@@ -33,6 +33,37 @@ const getTableName = (sourceId?: string) => {
   return tables.find((t) => t.id === sourceId)?.title || ''
 }
 
+/**
+ * Count blueprint items (sub-records that will be newly created) in an ltarState object.
+ * Only counts items with _isBlueprint flag, recursively through nested _ltarState.
+ */
+const countBlueprints = (ltarState: Record<string, any>): number => {
+  let count = 0
+  for (const linkedData of Object.values(ltarState)) {
+    if (Array.isArray(linkedData)) {
+      for (const item of linkedData) {
+        if (item?._isBlueprint) {
+          count++
+          if (item._ltarState && typeof item._ltarState === 'object') {
+            count += countBlueprints(item._ltarState)
+          }
+        }
+      }
+    } else if (linkedData?._isBlueprint) {
+      count++
+      if (linkedData._ltarState && typeof linkedData._ltarState === 'object') {
+        count += countBlueprints(linkedData._ltarState)
+      }
+    }
+  }
+  return count
+}
+
+const getSubRecordCount = (tmpl: TemplateType): number => {
+  const { ltarState } = parseRecordTemplateData(tmpl)
+  return countBlueprints(ltarState)
+}
+
 // --- State ---
 const { showRecordTemplateManager: showManager, templates } = useRecordTemplate()
 const showDeleteConfirm = ref(false)
@@ -72,6 +103,14 @@ const columns = computed<NcTableColumnProps[]>(() => [
     minWidth: 140,
     dataIndex: 'source_id',
     showOrderBy: true,
+  },
+  {
+    key: 'sub_records',
+    title: 'Sub Records',
+    width: 120,
+    dataIndex: 'sub_records',
+    showOrderBy: true,
+    headerCellClassName: 'whitespace-nowrap',
   },
   {
     key: 'created_at',
@@ -121,8 +160,18 @@ const filteredTemplates = computed(() => {
     const sortKey = sortKeys[0] as keyof TemplateType
     const sortDir = orderBy.value[sortKeys[0]]
     result.sort((a, b) => {
-      let aVal: any = sortKey === 'source_id' ? getTableName(a.source_id) : (a[sortKey] ?? '')
-      let bVal: any = sortKey === 'source_id' ? getTableName(b.source_id) : (b[sortKey] ?? '')
+      let aVal: any =
+        sortKey === 'source_id'
+          ? getTableName(a.source_id)
+          : sortKey === ('sub_records' as any)
+            ? getSubRecordCount(a)
+            : (a[sortKey] ?? '')
+      let bVal: any =
+        sortKey === 'source_id'
+          ? getTableName(b.source_id)
+          : sortKey === ('sub_records' as any)
+            ? getSubRecordCount(b)
+            : (b[sortKey] ?? '')
 
       if (typeof aVal === 'number' && typeof bVal === 'number') {
         return sortDir === 'asc' ? aVal - bVal : bVal - aVal
@@ -190,13 +239,11 @@ onMounted(() => {
   loadTemplates()
 })
 
-// Reload from API only if list is empty; reset sort to Name ascending on every open
+// Always reload from API when manager opens to get fresh data; reset sort to Name ascending
 watch(showManager, (val) => {
   if (val) {
     orderBy.value = { title: 'asc' }
-    if (!templates.value.length) {
-      loadTemplates()
-    }
+    loadTemplates()
   }
 })
 
@@ -517,6 +564,11 @@ const customRow = (record: Record<string, any>) => ({
               <template #title>{{ getTableName(tmpl.source_id) }}</template>
               {{ getTableName(tmpl.source_id) }}
             </NcTooltip>
+
+            <!-- Sub Records -->
+            <span v-if="column.key === 'sub_records'" class="text-nc-content-gray-subtle2">
+              {{ getSubRecordCount(tmpl) || '-' }}
+            </span>
 
             <!-- Date Added -->
             <NcTooltip v-if="column.key === 'created_at'" placement="bottom" show-on-truncate-only class="truncate">

@@ -121,10 +121,14 @@ test.describe('User roles', () => {
 
     await dashboard.leftSidebar.verifyBaseListOpen(true);
 
+    await dashboard.leftSidebar.openBaseListModal();
+
     if (roleDb[roleIdx].role === 'Organization Level Creator') {
       await expect(dashboard.leftSidebar.btn_newProject).toBeVisible();
     } else {
       await expect(dashboard.leftSidebar.btn_newProject).toHaveCount(0);
     }
+
+    await dashboard.leftSidebar.closeBaseListModal();
   }
 });

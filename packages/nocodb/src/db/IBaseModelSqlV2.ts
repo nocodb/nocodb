@@ -361,8 +361,12 @@ export interface IBaseModelSqlV2 {
     alias?: string;
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
+    linksAsLtar?: boolean;
   }): Promise<void>;
-  getProto(param?: { apiVersion?: NcApiVersion }): Promise<
+  getProto(param?: {
+    apiVersion?: NcApiVersion;
+    linksAsLtar?: boolean;
+  }): Promise<
     {
       __proto__?: {
         __columnAliases?: {

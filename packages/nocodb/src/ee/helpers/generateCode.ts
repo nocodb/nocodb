@@ -1391,7 +1391,10 @@ Object.freeze(UITypes);
             } else return (data?.map(d => new Collaborator({ id: d.id, email: d.email, name: d.display_name ?? '' })) ?? []);
           }
           case 'Links': {
-            if (['hm', 'mm'].includes(field?.options?.relation_type)) return data
+            if (['hm', 'mm'].includes(field?.options?.relation_type)) {
+              const relatedTable = base.getTable(field?.options?.related_table_id)
+              return new LazyRecordQueryResult(data || [], relatedTable, this.#table, field, this.id)
+            }
             if (['bt', 'oo'].includes(field?.options?.relation_type)) {
               if(!data) return null;
               const relatedTable = base.getTable(field?.options?.related_table_id)
@@ -1400,13 +1403,13 @@ Object.freeze(UITypes);
           }
           case 'LinkToAnotherRecord': {
             const relatedTable = base.getTable(field?.options?.related_table_id)
-            
+
             if (['hm', 'mm'].includes(field?.options?.relation_type)) {
               return new LazyRecordQueryResult(data || [], relatedTable, this.#table, field, this.id)
             }
             if (['bt', 'oo'].includes(field?.options?.relation_type)) {
               if(!data) return null;
-              
+
               return (new NocoDBRecord(data, relatedTable))
             }
           }
@@ -1478,7 +1481,12 @@ Object.freeze(UITypes);
         }
         case 'Links': {
           if (['hm', 'mm'].includes(field?.options?.relation_type)) {
-            return value === 1 ? \`\${value} \${field?.options?.singular}\` : \`\${value} \${field?.options?.plural}\`
+            if (value instanceof LazyRecordQueryResult || value instanceof RecordQueryResult) {
+              const count = value.records.length;
+              const hasMore = value.hasMoreRecords ? '+' : '';
+              return \`\${count}\${hasMore} linked record\${count !== 1 ? 's' : ''}\`;
+            }
+            return value?.map?.((v) => v.name || v.id).join(', ') || '';
           } else if (['bt', 'oo'].includes(field?.options?.relation_type)) {
             return value?.name || value?.id
           }

@@ -137,7 +137,10 @@ import {
 } from '~/utils';
 import { MetaTable } from '~/utils/globals';
 import { chunkArray } from '~/utils/tsUtils';
-import { QUERY_STRING_FIELD_ID_ON_RESULT } from '~/constants';
+import {
+  QUERY_STRING_FIELD_ID_ON_RESULT,
+  QUERY_STRING_LINKS_AS_LTAR,
+} from '~/constants';
 import NocoSocket from '~/socket/NocoSocket';
 import { prepareMetaUpdateQuery } from '~/helpers/metaColumnHelpers';
 import { supportsThumbnails } from '~/utils/attachmentUtils';
@@ -279,10 +282,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         query?.[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
     });
 
+    const linksAsLtar =
+      apiVersion === NcApiVersion.V3 &&
+      query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+
     await this.selectObject({
       ...(dependencyFields ?? {}),
       qb,
       validateFormula,
+      linksAsLtar,
     });
 
     qb.where(_wherePk(this.model.primaryKeys, id));
@@ -312,7 +320,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }
 
     if (data) {
-      const proto = await this.getProto();
+      const proto = await this.getProto({ linksAsLtar });
       data.__proto__ = proto;
     }
 
@@ -476,6 +484,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       pks?: string;
       customConditions?: Filter[];
       apiVersion?: NcApiVersion;
+      linksAsLtar?: boolean;
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
@@ -502,12 +511,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const qb = this.dbDriver(this.tnPath);
 
+    const linksAsLtar = !!args.linksAsLtar;
+
     await this.selectObject({
       qb,
       fieldsSet: args.fieldsSet,
       viewId: this.viewId,
       validateFormula,
       columns,
+      linksAsLtar,
     });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
@@ -646,7 +658,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         applyPaginate(qb, { ...rest, limit: limitOverride });
       }
     }
-    const proto = await this.getProto();
+    const proto = await this.getProto({ linksAsLtar });
 
     let data;
     try {
@@ -1569,8 +1581,10 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
   async getProto({
     apiVersion = NcApiVersion.V2,
+    linksAsLtar = false,
   }: {
     apiVersion?: NcApiVersion;
+    linksAsLtar?: boolean;
   } = {}) {
     if (this._proto) {
       return this._proto as ResolverObj;
@@ -1593,7 +1607,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 colId: colOptions.fk_relation_column_id,
               });
               const relColTitle =
-                relCol.uidt === UITypes.Links
+                relCol.uidt === UITypes.Links && !linksAsLtar
                   ? `_nc_lk_${relCol.title}`
                   : relCol.title;
               proto.__columnAliases[column.title] = {
@@ -1654,7 +1668,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                 const self: BaseModelSqlv2 = this;
 
                 proto[
-                  column.uidt === UITypes.Links
+                  column.uidt === UITypes.Links && !linksAsLtar
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args): Promise<any> {
@@ -1699,7 +1713,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
                 const self: BaseModelSqlv2 = this;
                 proto[
-                  column.uidt === UITypes.Links
+                  column.uidt === UITypes.Links && !linksAsLtar
                     ? `_nc_lk_${column.title}`
                     : column.title
                 ] = async function (args): Promise<any> {
@@ -1923,7 +1937,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                   const self: BaseModelSqlv2 = this;
 
                   proto[
-                    column.uidt === UITypes.Links
+                    column.uidt === UITypes.Links && !linksAsLtar
                       ? `_nc_lk_${column.title}`
                       : column.title
                   ] = async function (args): Promise<any> {
@@ -1978,6 +1992,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     alias?: string;
     validateFormula?: boolean;
     pkAndPvOnly?: boolean;
+    linksAsLtar?: boolean;
   }): Promise<void> {
     return await selectObject(this, logger)(params);
   }

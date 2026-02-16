@@ -38,7 +38,7 @@ const interceptMap: {
   column_name: string;
   type: 'in' | 'eq';
   sessionValue?: string;
-  value?: string;
+  value?: string | string[];
 }[] = [
   {
     table_name: 'pg_namespace',
@@ -76,7 +76,410 @@ const interceptMap: {
     type: 'eq',
     sessionValue: 'pgUser',
   },
+  // pg_stat views — schema-level filtering to prevent cross-tenant enumeration
+  {
+    table_name: 'pg_stat_user_tables',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stat_all_tables',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stat_xact_user_tables',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stat_xact_all_tables',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_statio_user_tables',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_statio_all_tables',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stat_user_indexes',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stat_all_indexes',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_statio_user_indexes',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_statio_all_indexes',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_statio_user_sequences',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_statio_all_sequences',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_indexes',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_sequences',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  // pg_stat_activity — only show own connections
+  {
+    table_name: 'pg_stat_activity',
+    column_name: 'usename',
+    type: 'eq',
+    sessionValue: 'pgUser',
+  },
+  // pg_settings — whitelist safe settings only (clients need these for protocol/encoding)
+  {
+    table_name: 'pg_settings',
+    column_name: 'name',
+    type: 'in',
+    value: [
+      'server_version',
+      'server_encoding',
+      'client_encoding',
+      'standard_conforming_strings',
+      'DateStyle',
+      'TimeZone',
+      'IntervalStyle',
+      'integer_datetimes',
+      'application_name',
+      'default_transaction_read_only',
+      'is_superuser',
+      'session_authorization',
+      'lc_messages',
+      'lc_monetary',
+      'lc_numeric',
+      'lc_time',
+      'bytea_output',
+      'xmloption',
+      'statement_timeout',
+      'idle_in_transaction_session_timeout',
+      'search_path',
+    ],
+  },
 ];
+
+// Blocked query patterns — these statements are never allowed through the proxy
+const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
+  {
+    pattern: /\bALTER\s+(ROLE|USER)\b/i,
+    message: 'ALTER ROLE/USER is not permitted',
+  },
+  {
+    pattern: /\bDO\s+\$/i,
+    message: 'Anonymous code blocks are not permitted',
+  },
+  { pattern: /\bLISTEN\b/i, message: 'LISTEN is not permitted' },
+  { pattern: /\bNOTIFY\b/i, message: 'NOTIFY is not permitted' },
+  {
+    pattern: /\bCREATE\s+TEMP(ORARY)?\b/i,
+    message: 'Creating temporary objects is not permitted',
+  },
+  {
+    pattern: /\bpg_sleep\s*\(/i,
+    message: 'pg_sleep is not permitted',
+  },
+  {
+    pattern: /\bpg_advisory_(un)?lock/i,
+    message: 'Advisory locks are not permitted',
+  },
+  // Block OID-to-name type casts that bypass schema filtering
+  {
+    pattern: /::regclass\b/i,
+    message: 'Type cast to regclass is not permitted',
+  },
+  {
+    pattern: /::regnamespace\b/i,
+    message: 'Type cast to regnamespace is not permitted',
+  },
+  // Block dangerous catalog functions that leak cross-tenant metadata
+  {
+    pattern: /\bpg_relation_filepath\s*\(/i,
+    message: 'pg_relation_filepath is not permitted',
+  },
+  {
+    pattern: /\bpg_identify_object\s*\(/i,
+    message: 'pg_identify_object is not permitted',
+  },
+  {
+    pattern: /\bpg_get_indexdef\s*\(/i,
+    message: 'pg_get_indexdef is not permitted',
+  },
+  {
+    pattern: /\bpg_get_constraintdef\s*\(/i,
+    message: 'pg_get_constraintdef is not permitted',
+  },
+  {
+    pattern: /\bpg_get_viewdef\s*\(/i,
+    message: 'pg_get_viewdef is not permitted',
+  },
+  {
+    pattern: /\bpg_get_functiondef\s*\(/i,
+    message: 'pg_get_functiondef is not permitted',
+  },
+  {
+    pattern: /\bpg_get_triggerdef\s*\(/i,
+    message: 'pg_get_triggerdef is not permitted',
+  },
+  {
+    pattern: /\bhas_schema_privilege\s*\(/i,
+    message: 'has_schema_privilege is not permitted',
+  },
+  {
+    pattern: /\bhas_table_privilege\s*\(/i,
+    message: 'has_table_privilege is not permitted',
+  },
+  // Block catalog tables that leak cross-tenant dependency/object info
+  {
+    pattern: /\bpg_depend\b/i,
+    message: 'Access to pg_depend is not permitted',
+  },
+  {
+    pattern: /\bpg_shdepend\b/i,
+    message: 'Access to pg_shdepend is not permitted',
+  },
+];
+
+class QueryBlockedError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'QueryBlockedError';
+  }
+}
+
+/**
+ * Build a PostgreSQL wire protocol ErrorResponse + ReadyForQuery.
+ */
+function buildPgErrorResponse(message: string): Buffer {
+  const severity = Buffer.from('SERROR\0', 'utf8');
+  const severityV = Buffer.from('VERROR\0', 'utf8');
+  const code = Buffer.from('C42501\0', 'utf8'); // insufficient_privilege
+  const msg = Buffer.from(`M${message}\0`, 'utf8');
+  const terminator = Buffer.from('\0', 'utf8');
+
+  const fieldsBody = Buffer.concat([
+    severity,
+    severityV,
+    code,
+    msg,
+    terminator,
+  ]);
+
+  const errorHeader = Buffer.alloc(5);
+  errorHeader.writeUInt8(0x45, 0); // 'E'
+  errorHeader.writeUInt32BE(4 + fieldsBody.length, 1);
+
+  const readyForQuery = Buffer.alloc(6);
+  readyForQuery.writeUInt8(0x5a, 0); // 'Z'
+  readyForQuery.writeUInt32BE(5, 1);
+  readyForQuery.writeUInt8(0x49, 5); // 'I' (idle)
+
+  return Buffer.concat([errorHeader, fieldsBody, readyForQuery]);
+}
+
+/**
+ * Catalog tables that require namespace OID-based filtering.
+ * These tables don't have a text schema column — they use OID references
+ * to pg_namespace, so we inject a subquery filter.
+ */
+const catalogNamespaceFilters: {
+  table_name: string;
+  column_name: string;
+  /** If 'nested', the column references pg_class.oid instead of pg_namespace.oid directly */
+  mode: 'direct' | 'nested';
+}[] = [
+  // pg_class.relnamespace → pg_namespace.oid
+  { table_name: 'pg_class', column_name: 'relnamespace', mode: 'direct' },
+  // pg_type.typnamespace → pg_namespace.oid
+  { table_name: 'pg_type', column_name: 'typnamespace', mode: 'direct' },
+  // pg_attribute.attrelid → pg_class.oid (nested: pg_class → pg_namespace)
+  { table_name: 'pg_attribute', column_name: 'attrelid', mode: 'nested' },
+  // pg_index.indrelid → pg_class.oid (nested)
+  { table_name: 'pg_index', column_name: 'indrelid', mode: 'nested' },
+  // pg_constraint.conrelid → pg_class.oid (nested)
+  { table_name: 'pg_constraint', column_name: 'conrelid', mode: 'nested' },
+  // pg_attrdef.adrelid → pg_class.oid (nested) — pg_get_expr() leaks schema names via default expressions
+  { table_name: 'pg_attrdef', column_name: 'adrelid', mode: 'nested' },
+  // pg_trigger.tgrelid → pg_class.oid (nested)
+  { table_name: 'pg_trigger', column_name: 'tgrelid', mode: 'nested' },
+  // pg_rewrite.ev_class → pg_class.oid (nested)
+  { table_name: 'pg_rewrite', column_name: 'ev_class', mode: 'nested' },
+];
+
+/**
+ * Build a subquery AST node for filtering by namespace OID.
+ * Generates: <alias>.<column> IN (SELECT oid FROM pg_namespace WHERE nspname IN (...schemas))
+ * The inner SELECT is marked with _ncGenerated to prevent the recursive walker from
+ * applying additional interceptMap rules (which would double-filter pg_namespace).
+ */
+function buildNamespaceOidSubquery(
+  alias: string,
+  column: string,
+  schemas: string[],
+) {
+  const allSchemas = [
+    ...schemas,
+    'pg_catalog',
+    'information_schema',
+    'pg_toast',
+    'public',
+  ];
+
+  return {
+    type: 'binary_expr',
+    operator: 'IN',
+    left: {
+      type: 'column_ref',
+      table: alias,
+      column: { expr: { type: 'default', value: column } },
+    },
+    right: {
+      type: 'expr_list',
+      value: [
+        {
+          ast: {
+            _ncGenerated: true,
+            type: 'select',
+            options: null,
+            distinct: { type: null },
+            columns: [
+              {
+                type: 'expr',
+                expr: {
+                  type: 'column_ref',
+                  table: null,
+                  column: { expr: { type: 'default', value: 'oid' } },
+                },
+                as: null,
+              },
+            ],
+            into: { position: null },
+            from: [{ db: null, table: 'pg_namespace', as: null }],
+            where: {
+              type: 'binary_expr',
+              operator: 'IN',
+              left: {
+                type: 'column_ref',
+                table: null,
+                column: { expr: { type: 'default', value: 'nspname' } },
+              },
+              right: {
+                type: 'expr_list',
+                value: allSchemas.map((s) => ({
+                  type: 'single_quote_string',
+                  value: s,
+                })),
+              },
+            },
+            groupby: null,
+            having: null,
+            orderby: null,
+            limit: { seperator: '', value: [] },
+            window: null,
+          },
+        },
+      ],
+    },
+  };
+}
+
+/**
+ * Build a nested subquery AST for filtering via pg_class.
+ * Generates: <alias>.<column> IN (SELECT oid FROM pg_class WHERE relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN (...)))
+ */
+function buildNestedClassSubquery(
+  alias: string,
+  column: string,
+  schemas: string[],
+) {
+  const namespaceSubquery = buildNamespaceOidSubquery(
+    null,
+    'relnamespace',
+    schemas,
+  );
+
+  return {
+    type: 'binary_expr',
+    operator: 'IN',
+    left: {
+      type: 'column_ref',
+      table: alias,
+      column: { expr: { type: 'default', value: column } },
+    },
+    right: {
+      type: 'expr_list',
+      value: [
+        {
+          ast: {
+            _ncGenerated: true,
+            type: 'select',
+            options: null,
+            distinct: { type: null },
+            columns: [
+              {
+                type: 'expr',
+                expr: {
+                  type: 'column_ref',
+                  table: null,
+                  column: { expr: { type: 'default', value: 'oid' } },
+                },
+                as: null,
+              },
+            ],
+            into: { position: null },
+            from: [{ db: null, table: 'pg_class', as: null }],
+            where: namespaceSubquery,
+            groupby: null,
+            having: null,
+            orderby: null,
+            limit: { seperator: '', value: [] },
+            window: null,
+          },
+        },
+      ],
+    },
+  };
+}
 
 class DataReflectionSession {
   private closed = false;
@@ -227,6 +630,10 @@ export default class DataReflection extends DataReflectionCE {
 
           session.pgSocket?.write(data);
         } catch (error) {
+          if (error instanceof QueryBlockedError) {
+            clientSocket.write(buildPgErrorResponse(error.message));
+            return;
+          }
           logger.error(`Error processing client data: ${error.message}.`);
           const session = clientSessions.get(clientId);
           if (!session) {
@@ -651,6 +1058,27 @@ async function handleStartupMessage(
         // Use the underlying DB name from the actual Postgres connection
         parts[i + 1] = dataConfig.database;
 
+        // Inject session-level timeout limits via startup options
+        const timeoutOpts =
+          '-c statement_timeout=60000 -c idle_in_transaction_session_timeout=60000';
+        let optionsInjected = false;
+        for (let j = 0; j < parts.length; j += 2) {
+          if (parts[j] === 'options') {
+            parts[j + 1] = `${parts[j + 1]} ${timeoutOpts}`;
+            optionsInjected = true;
+            break;
+          }
+        }
+        if (!optionsInjected) {
+          // Insert before the trailing empty string
+          const lastIdx = parts.length - 1;
+          if (parts[lastIdx] === '') {
+            parts.splice(lastIdx, 0, 'options', timeoutOpts);
+          } else {
+            parts.push('options', timeoutOpts, '');
+          }
+        }
+
         // Rebuild startup message for backend
         const newBody = parts
           .map((part) => Buffer.concat([Buffer.from(part), Buffer.from([0])]))
@@ -725,6 +1153,128 @@ async function handleStartupMessage(
   }
 }
 
+// Settings allowed through SHOW and pg_settings (same whitelist for consistency)
+const allowedShowSettings = new Set([
+  'server_version',
+  'server_encoding',
+  'client_encoding',
+  'standard_conforming_strings',
+  'datestyle',
+  'timezone',
+  'intervalstyle',
+  'integer_datetimes',
+  'application_name',
+  'default_transaction_read_only',
+  'is_superuser',
+  'session_authorization',
+  'lc_messages',
+  'lc_monetary',
+  'lc_numeric',
+  'lc_time',
+  'bytea_output',
+  'xmloption',
+  'statement_timeout',
+  'idle_in_transaction_session_timeout',
+  'search_path',
+  'transaction_isolation',
+  'transaction_read_only',
+]);
+
+/**
+ * Recursively walk the AST and apply intercept rules to all SELECT statements,
+ * including those inside subqueries, CTEs, and WHERE clauses.
+ */
+function applyInterceptRulesRecursive(
+  node: any,
+  session: DataReflectionSession,
+  visited = new WeakSet(),
+): boolean {
+  if (!node || typeof node !== 'object' || visited.has(node)) return false;
+  visited.add(node);
+
+  // Skip nodes generated by our own subquery builders (prevents double-filtering)
+  if (node._ncGenerated) return false;
+
+  let modified = false;
+
+  // Apply intercept rules to SELECT statements with FROM clauses
+  if (node.type === 'select' && node.from && Array.isArray(node.from)) {
+    // 1. Text-column based intercept rules (schemaname, nspname, etc.)
+    for (const target of interceptMap) {
+      const targetFrom = node.from.find(
+        (f: any) => f.table === target.table_name,
+      );
+      if (!targetFrom) continue;
+
+      const alias = targetFrom.as || targetFrom.table;
+      const additionalClause = generateWhereClause(
+        alias,
+        target.column_name,
+        target.type,
+        target.value ? target.value : session[target.sessionValue],
+      );
+
+      if (node.where) {
+        node.where = {
+          type: 'binary_expr',
+          operator: 'AND',
+          left: node.where,
+          right: additionalClause,
+        };
+      } else {
+        node.where = additionalClause;
+      }
+      modified = true;
+    }
+
+    // 2. OID-based namespace filters for catalog tables (pg_class, pg_type, pg_attribute, etc.)
+    for (const filter of catalogNamespaceFilters) {
+      const targetFrom = node.from.find(
+        (f: any) => f.table === filter.table_name,
+      );
+      if (!targetFrom) continue;
+
+      const alias = targetFrom.as || targetFrom.table;
+      const schemas = session.availableSchemas || [];
+
+      const additionalClause =
+        filter.mode === 'direct'
+          ? buildNamespaceOidSubquery(alias, filter.column_name, schemas)
+          : buildNestedClassSubquery(alias, filter.column_name, schemas);
+
+      if (node.where) {
+        node.where = {
+          type: 'binary_expr',
+          operator: 'AND',
+          left: node.where,
+          right: additionalClause,
+        };
+      } else {
+        node.where = additionalClause;
+      }
+      modified = true;
+    }
+  }
+
+  // Recurse into all child nodes to find nested SELECTs
+  for (const key of Object.keys(node)) {
+    const child = node[key];
+    if (Array.isArray(child)) {
+      for (const item of child) {
+        if (typeof item === 'object' && item !== null) {
+          if (applyInterceptRulesRecursive(item, session, visited))
+            modified = true;
+        }
+      }
+    } else if (typeof child === 'object' && child !== null) {
+      if (applyInterceptRulesRecursive(child, session, visited))
+        modified = true;
+    }
+  }
+
+  return modified;
+}
+
 /**
  * Attempt to parse and intercept the query.
  * If it matches our interception rules inject a WHERE clause to restrict the query.
@@ -738,13 +1288,43 @@ async function interceptQueryIfNeeded(
   // Extract the query text from the buffer
   // Byte 0: Message type (0x51 for 'Q')
   // Bytes 1-4: Message length
-  const queryText = data.subarray(5).toString('utf8').replace(/\0/g, '');
+  let queryText = data.subarray(5).toString('utf8').replace(/\0/g, '');
+
+  // Check for blocked patterns before parsing
+  for (const { pattern, message } of blockedQueryPatterns) {
+    if (pattern.test(queryText)) {
+      throw new QueryBlockedError(message);
+    }
+  }
+
+  // Block SHOW for sensitive settings (SHOW bypasses the AST-based interceptor)
+  const showMatch = queryText.match(/^\s*SHOW\s+(ALL|[\w]+)\s*;?\s*$/i);
+  if (showMatch) {
+    const setting = showMatch[1].toLowerCase();
+    if (!allowedShowSettings.has(setting)) {
+      throw new QueryBlockedError(`SHOW ${showMatch[1]} is not permitted`);
+    }
+  }
+
+  // Rewrite current_database() and current_catalog to return the workspace ID
+  let forceModified = false;
+  const rewritten = queryText
+    .replace(/\bcurrent_database\s*\(\s*\)/gi, `'${session.fk_workspace_id}'`)
+    .replace(/\bcurrent_catalog\b/gi, `'${session.fk_workspace_id}'`);
+  if (rewritten !== queryText) {
+    queryText = rewritten;
+    forceModified = true;
+  }
 
   let ast;
   try {
     ast = parser.astify(queryText, { database: 'postgresql' });
   } catch (e) {
     logger.error('Failed to parse query:', queryText);
+    // If we already rewrote current_database(), serialize the text directly
+    if (forceModified) {
+      return serialize.query(queryText);
+    }
     return undefined;
   }
 
@@ -752,40 +1332,12 @@ async function interceptQueryIfNeeded(
   let modified = false;
 
   for (const statement of astArray) {
-    if (statement.type !== 'select') continue;
-    // Check if the FROM clause includes a table that we need to intercept
-    if (!statement.from || !Array.isArray(statement.from)) continue;
-
-    for (const target of interceptMap) {
-      const targetFrom = statement.from.find(
-        (f: any) => f.table === target.table_name,
-      );
-      if (!targetFrom) continue;
-
-      const alias = targetFrom.as || targetFrom.table;
-      const additionalClause = generateWhereClause(
-        alias,
-        target.column_name,
-        target.type,
-        target.value ? target.value : session[target.sessionValue],
-      );
-
-      // Inject the additional WHERE clause
-      if (statement.where) {
-        statement.where = {
-          type: 'binary_expr',
-          operator: 'AND',
-          left: statement.where,
-          right: additionalClause,
-        };
-      } else {
-        statement.where = additionalClause;
-      }
+    if (applyInterceptRulesRecursive(statement, session)) {
       modified = true;
     }
   }
 
-  if (!modified) {
+  if (!modified && !forceModified) {
     return undefined;
   }
 

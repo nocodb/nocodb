@@ -244,6 +244,11 @@ export class TreeViewPage extends BasePage {
 
     const tableId = await this.get().locator(`.nc-base-tree-tbl-${searchTitle}`).getAttribute('data-table-id');
 
+    // Wait for newly create table navigation and auto scroll
+    await this.rootPage.waitForTimeout(1000);
+
+    await this.rootPage.waitForLoadState('networkidle');
+
     return tableId;
   }
 

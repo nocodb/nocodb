@@ -57,6 +57,8 @@ export class ProjectViewPage extends BasePage {
   async openOverview() {
     if (await this.get().isVisible()) return;
 
+    await this.sidebar_overview_btn.scrollIntoViewIfNeeded();
+
     await this.sidebar_overview_btn.click();
 
     await this.get().waitFor({ state: 'visible' });

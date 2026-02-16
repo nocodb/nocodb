@@ -11,16 +11,19 @@ import {
   Req,
   UseFilters,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { NcContext } from '~/interface/config';
 import { ScimUsersService } from '~/ee/services/scim/scim-users.service';
 import { ScimAuthGuard } from '~/ee/guards/scim-auth.guard';
 import { ScimExceptionFilter } from '~/ee/filters/scim-exception/scim-exception.filter';
+import { ScimContentTypeInterceptor } from '~/ee/interceptors/scim-content-type/scim-content-type.interceptor';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 
 @Controller()
 @UseGuards(ScimAuthGuard)
 @UseFilters(ScimExceptionFilter)
+@UseInterceptors(ScimContentTypeInterceptor)
 export class ScimUsersController {
   constructor(private readonly scimUsersService: ScimUsersService) {}
 

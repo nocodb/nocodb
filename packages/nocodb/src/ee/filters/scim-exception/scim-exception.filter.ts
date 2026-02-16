@@ -1,6 +1,13 @@
 import { Catch, Logger } from '@nestjs/common';
 import type { ArgumentsHost, ExceptionFilter } from '@nestjs/common';
 import type { Response } from 'express';
+import {
+  BadRequest,
+  Forbidden,
+  NotFound,
+  Unauthorized,
+  UnprocessableEntity,
+} from '~/helpers/catchError';
 
 /**
  * SCIM 2.0 compliant error response filter (RFC 7644 §3.12).
@@ -11,13 +18,29 @@ import type { Response } from 'express';
 export class ScimExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(ScimExceptionFilter.name);
 
+  private resolveStatus(exception: any): number {
+    // NestJS HttpException (e.g. from guards)
+    if (typeof exception?.getStatus === 'function') {
+      return exception.getStatus();
+    }
+
+    // NcBaseError subclasses (no getStatus method)
+    if (exception instanceof BadRequest) return 400;
+    if (exception instanceof Unauthorized) return 401;
+    if (exception instanceof Forbidden) return 403;
+    if (exception instanceof NotFound) return 404;
+    if (exception instanceof UnprocessableEntity) return 422;
+
+    // Fallback: check .status property or default to 500
+    return exception?.status || 500;
+  }
+
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    const status = exception?.getStatus?.() || exception?.status || 500;
-    const message =
-      exception?.message || 'An unexpected error occurred';
+    const status = this.resolveStatus(exception);
+    const message = exception?.message || 'An unexpected error occurred';
 
     if (status >= 500) {
       this.logger.error(message, exception?.stack);

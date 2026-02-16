@@ -184,7 +184,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="nc-cell-field flex items-center gap-2 py-1 w-full relative">
+  <div class="nc-cell-field flex items-center gap-2 w-full h-full relative">
     <!-- Color Display -->
     <div
       class="flex items-center gap-2 flex-1"

@@ -163,7 +163,7 @@ const [useProvideWsBaseListActions, useWsBaseListActions] = useInjectionState((c
 export { useProvideWsBaseListActions, useWsBaseListActions }
 
 export function useWsBaseListActionsOrThrow() {
-  const baseActions = useWsBaseListActions()
-  if (baseActions == null) throw new Error('Please call `useProvideWsBaseListActions` on the appropriate parent component')
-  return baseActions
+  const wsBaseListActions = useWsBaseListActions()
+  if (wsBaseListActions == null) throw new Error('Please call `useProvideWsBaseListActions` on the appropriate parent component')
+  return wsBaseListActions
 }

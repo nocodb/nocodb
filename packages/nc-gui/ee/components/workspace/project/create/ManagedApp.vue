@@ -24,6 +24,8 @@ const { t } = useI18n()
 
 const { navigateToProject } = useGlobal()
 
+const wsBaseListActions = useWsBaseListActions()
+
 const initialSanboxFormState = ref<Record<string, any>>({
   title: '',
   description: '',
@@ -92,6 +94,10 @@ const createManagedApp = async (formState: Record<string, any>) => {
     } else if (base.value?.id && base.value.id === formState.baseId) {
       baseStore.loadManagedApp()
       baseStore.loadCurrentVersion()
+    }
+
+    if (wsBaseListActions) {
+      wsBaseListActions.closeModal()
     }
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))

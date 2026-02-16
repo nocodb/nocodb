@@ -14,8 +14,6 @@ const emit = defineEmits(['update:modelValue'])
 
 const { defaultBaseCreateMode, workspaceId } = toRefs(props)
 
-const isWsBaseListModal = inject(IsWsBaseListModalInj, ref(false))
-
 const router = useRouter()
 const route = router.currentRoute
 
@@ -42,6 +40,8 @@ const { isSharedBase } = storeToRefs(useBase())
 const { refreshCommandPalette } = useCommandPalette()
 
 const { navigateToProject } = useGlobal()
+
+const wsBaseListActions = useWsBaseListActions()
 
 const { blockPrivateBases, showUpgradeToUsePrivateBases, isOnPrem } = useEeConfig()
 
@@ -102,13 +102,13 @@ const createProject = async () => {
       ...(!blockPrivateBases.value ? { default_role: formState.value.default_role } : {}),
     })
 
-    if (!isWsBaseListModal.value) {
-      navigateToProject({
-        baseId: base.id!,
-        workspaceId: activeWorkspaceId.value!,
-      })
-    } else {
-      loadProjects()
+    navigateToProject({
+      baseId: base.id!,
+      workspaceId: activeWorkspaceId.value!,
+    })
+
+    if (wsBaseListActions) {
+      wsBaseListActions.closeModal()
     }
 
     refreshCommandPalette()

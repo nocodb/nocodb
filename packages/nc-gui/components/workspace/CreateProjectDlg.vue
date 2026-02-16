@@ -12,8 +12,6 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const isWsBaseListModal = inject(IsWsBaseListModalInj, ref(false))
-
 const { t } = useI18n()
 
 const basesStore = useBases()
@@ -23,6 +21,8 @@ const { createProject: _createProject } = basesStore
 const { navigateToProject } = useGlobal()
 
 const { refreshCommandPalette } = useCommandPalette()
+
+const wsBaseListActions = useWsBaseListActions()
 
 const nameValidationRules = [
   {
@@ -57,11 +57,13 @@ const createProject = async () => {
       meta: formState.value.meta,
     })
 
-    if (!isWsBaseListModal.value) {
-      navigateToProject({
-        baseId: base.id!,
-        workspaceId: 'nc',
-      })
+    navigateToProject({
+      baseId: base.id!,
+      workspaceId: 'nc',
+    })
+
+    if (wsBaseListActions) {
+      wsBaseListActions.closeModal()
     }
 
     dialogShow.value = false

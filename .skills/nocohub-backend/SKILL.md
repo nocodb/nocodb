@@ -312,7 +312,7 @@ export class MyService extends MyServiceCE {
 
 5. **Create migration** for the new table
 
-6. **Add SDK types** in `packages/nocodb-sdk/src/lib/Api.ts` (auto-generated from swagger)
+6. **Add SDK types** in `packages/nocodb-sdk` (Do not manually modify Api.ts. It is aauto-generated from swagger located in `packages/nocodb/src/schema/swagger.json`)
 
 ## Key Conventions
 

@@ -641,6 +641,7 @@ Object.freeze(UITypes);
             {
               ...this.#options,
               page,
+              linksAsLtar: 'true',
               ...(this.#view ? { viewId: this.#view.id } : {})
             }
           );
@@ -1072,6 +1073,7 @@ Object.freeze(UITypes);
       try {
         const data = await api.dbDataTableRowRead(this.#table.base.id, this.#table.id, recordId, {
           viewId: this.id,
+          linksAsLtar: 'true',
           ...(fields?.length && { fields: fieldsToSelect })
         })
         
@@ -1121,15 +1123,15 @@ Object.freeze(UITypes);
         ...(sortArray.length && { sort: sortArray }),
       };
       try {
-        const data = await api.dbDataTableRowList(this.#table.base.id, this.#table.id, requestOptions)
-        
+        const data = await api.dbDataTableRowList(this.#table.base.id, this.#table.id, { ...requestOptions, linksAsLtar: 'true' })
+
         return new RecordQueryResult(data, this.#table, this, requestOptions);
       } catch (e) {
         return null
-      }       
+      }
     }
   }
-  
+
   class Table {
     #base;
     #all_fields
@@ -1204,9 +1206,10 @@ Object.freeze(UITypes);
       
       try {
         const data = await api.dbDataTableRowRead(this.base.id, this.id, recordId, {
+          linksAsLtar: 'true',
           ...(fields?.length && { fields: fieldsToSelect })
         })
-        
+
         return new NocoDBRecord(data, this);
       } catch (e) {
         throw new Error(\`Failed to read record \${recordId} in table \${this.name}\`)
@@ -1252,8 +1255,7 @@ Object.freeze(UITypes);
       };
       
       try {
-        const data = await api.dbDataTableRowList(this.#base.id, this.id, requestOptions)
-        
+        const data = await api.dbDataTableRowList(this.#base.id, this.id, { ...requestOptions, linksAsLtar: 'true' })
         return new RecordQueryResult(data, this, null, requestOptions);
       } catch (e) {
         throw new Error(\`Failed to read records in table \${this.name}\`)

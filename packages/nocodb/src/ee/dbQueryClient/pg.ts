@@ -1113,8 +1113,35 @@ export class PGDBQueryClient
           }
         }
         break;
-      case UITypes.Rollup:
       case UITypes.Links:
+        if (params?.linksAsLtar === 'true' && apiVersion === NcApiVersion.V3) {
+          column.uidt = UITypes.LinkToAnotherRecord;
+          try {
+            return await this.extractColumn({
+              column,
+              qb,
+              rootAlias,
+              knex,
+              params,
+              isLookup,
+              getAlias,
+              baseModel,
+              ast,
+              throwErrorIfInvalidParams,
+              validateFormula,
+              columns,
+              apiVersion,
+              model,
+              aliasToColumn,
+              columnIdToUidt,
+              baseUsers,
+            });
+          } finally {
+            column.uidt = UITypes.Links;
+          }
+        }
+      // eslint-disable-next-line no-fallthrough -- falls through to Rollup when linksAsLtar is not set
+      case UITypes.Rollup:
         qb.select(
           knex.raw(
             `(${(

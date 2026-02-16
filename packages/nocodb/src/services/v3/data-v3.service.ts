@@ -30,6 +30,7 @@ import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import {
   MAX_NESTING_DEPTH,
   QUERY_STRING_FIELD_ID_ON_RESULT,
+  QUERY_STRING_LINKS_AS_LTAR,
   V3_DATA_PAYLOAD_LIMIT,
 } from '~/constants';
 import { processConcurrently, reuseOrSave } from '~/utils';
@@ -129,6 +130,7 @@ export class DataV3Service {
     skipSubstitutingColumnIds?: boolean;
     reuse?: ReusableParams;
     depth?: number;
+    linksAsLtar?: boolean;
   }): Promise<DataRecord> {
     const {
       context,
@@ -141,6 +143,7 @@ export class DataV3Service {
       skipSubstitutingColumnIds,
       reuse = {},
       depth = 0,
+      linksAsLtar = false,
     } = param;
 
     const getPrimaryKey = (column: Column) => {
@@ -188,7 +191,10 @@ export class DataV3Service {
       // Handle LTAR fields if columns are provided
       if (columns) {
         const column = columns.find((col) => col.title === key);
-        if (column?.uidt === UITypes.LinkToAnotherRecord) {
+        if (
+          column?.uidt === UITypes.LinkToAnotherRecord ||
+          (column?.uidt === UITypes.Links && linksAsLtar)
+        ) {
           if (Array.isArray(value)) {
             // Check depth limit to prevent unbounded recursion
             if (depth >= MAX_NESTING_DEPTH) {
@@ -302,6 +308,7 @@ export class DataV3Service {
     skipSubstitutingColumnIds?: boolean;
     reuse?: ReusableParams;
     depth?: number;
+    linksAsLtar?: boolean;
   }): Promise<DataRecord[]> {
     const { records } = param;
 
@@ -444,6 +451,8 @@ export class DataV3Service {
       queryParams: param.query,
     });
 
+    const linksAsLtar = param.query[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+
     // Transform records with LTAR handling
     const transformedRecords = await this.transformRecordsToV3Format({
       context: context,
@@ -457,6 +466,7 @@ export class DataV3Service {
         param.query[QUERY_STRING_FIELD_ID_ON_RESULT] === 'true',
       reuse: {}, // Create reuse cache for this data list operation
       depth: 0, // Start at depth 0 for main records
+      linksAsLtar,
     });
 
     if (!pagination) {

@@ -587,18 +587,34 @@ export function useInfiniteData(args: {
         ids,
       })
 
+      const idToRowMap = new Map<string, Row>()
       formattedData.forEach((row) => {
-        const cachedRow = Array.from(dataCache.cachedRows.value.values()).find(
-          (cachedRow) => cachedRow.rowMeta.rowIndex === row.rowMeta.rowIndex,
-        )
-        if (!cachedRow) return
-
         const id = extractPkFromRow(row.row, meta.value?.columns as ColumnType[])
-        const count = aggCommentCount?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
-        cachedRow.rowMeta.commentCount = +count
+        if (id) {
+          idToRowMap.set(String(id), row)
+        }
       })
 
-      // Trigger re-render canvas to update the comment count
+      aggCommentCount?.forEach((commentData: Record<string, any>) => {
+        const rowId = String(commentData.row_id)
+        const count = +commentData.count || 0
+
+        const formattedRow = idToRowMap.get(rowId)
+        if (formattedRow) {
+          formattedRow.rowMeta.commentCount = count
+        }
+
+        const cachedRow = Array.from(dataCache.cachedRows.value.values()).find(
+          (cachedRow) => {
+            const cachedId = extractPkFromRow(cachedRow.row, meta.value?.columns as ColumnType[])
+            return cachedId && String(cachedId) === rowId
+          },
+        )
+        if (cachedRow) {
+          cachedRow.rowMeta.commentCount = count
+        }
+      })
+
       eventBus.emit(SmartsheetStoreEvents.TRIGGER_RE_RENDER)
     } catch (e) {
       console.error('Failed to load aggregate comment count:', e)
@@ -675,7 +691,7 @@ export function useInfiniteData(args: {
       const data = formatData(response.list, response.pageInfo, params, path, getEvaluatedRowMetaRowColorInfo)
 
       if (!disableSmartsheet) {
-        loadAggCommentsCount(data, path)
+        await loadAggCommentsCount(data, path)
       }
 
       return data

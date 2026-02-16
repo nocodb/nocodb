@@ -19,10 +19,21 @@ export function useViewRowColorRender() {
     }
   }
 
+  const getEvaluatedCellColorInfo = (_row: any, _columnId: string) => {
+    return {
+      is_set_as_background: false,
+      cellBgColor: null as string | null,
+      cellBorderColor: null as string | null,
+      cellHoverColor: null as string | null,
+      cellLeftBorderColor: null as string | null,
+    }
+  }
+
   return {
     rowColorInfo: activeViewRowColorInfo,
     evaluateRowColor,
     isRowColouringEnabled,
     getEvaluatedRowMetaRowColorInfo,
+    getEvaluatedCellColorInfo,
   }
 }

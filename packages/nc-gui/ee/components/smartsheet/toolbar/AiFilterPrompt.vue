@@ -26,6 +26,8 @@ const emit = defineEmits<{
   ]
 }>()
 
+const { $e } = useNuxtApp()
+
 const { predictFilters, aiIntegrationAvailable, isAiFeaturesEnabled } = useNocoAi()
 
 const meta = inject(MetaInj, ref())
@@ -54,6 +56,9 @@ const handleSubmit = async () => {
 
   isLoading.value = true
 
+  // Telemetry: track that the user submitted an AI filter prompt
+  $e('a:filter:ai:predict', { action: 'submit' })
+
   try {
     // Call the backend AI predictFilters operation via useNocoAi composable.
     // Returns { action, filters } where action is 'add', 'replace', or 'clear'.
@@ -69,12 +74,25 @@ const handleSubmit = async () => {
     // For 'replace', emit even if filters are empty — caller needs to clear existing filters first.
     // For 'add', only emit if there are actual filters to append.
     if (result.action === 'clear' || result.action === 'replace' || result.filters?.length) {
+      // Telemetry: track successful AI filter application with action type and filter count
+      $e('a:filter:ai:apply', {
+        action: result.action,
+        filterCount: result.filters?.length || 0,
+      })
+
       emit('applyFilters', result)
       prompt.value = ''
     } else {
+      // Telemetry: AI returned no usable filters for the given description
+      $e('a:filter:ai:empty-result')
       message.info('No matching filters could be generated for that description.')
     }
   } catch (e: any) {
+    // Telemetry: track AI filter prediction failure
+    $e('a:filter:ai:error')
+    // Note: API-level errors (e.g. AI integration not found, rate limits) are already
+    // shown to the user as toast messages by useNocoAi's callAiSchemaApi (skipMsgToast=false).
+    // This catch handles unexpected errors only — logged for debugging.
     console.error('AI filter prediction failed:', e)
   } finally {
     isLoading.value = false

@@ -225,9 +225,11 @@ watch(
 const clearAllFilters = async () => {
   if (!filterComp.value?.filters?.length) return
 
-  // Delete in reverse order so indices remain valid as filters are removed
-  for (let i = filterComp.value.filters.length - 1; i >= 0; i--) {
-    await filterComp.value.deleteFilter(filterComp.value.filters[i], i)
+  // Snapshot the current filters to avoid issues if the reactive array mutates during iteration.
+  // Delete in reverse order so indices remain valid as filters are removed.
+  const filtersSnapshot = [...filterComp.value.filters]
+  for (let i = filtersSnapshot.length - 1; i >= 0; i--) {
+    await filterComp.value.deleteFilter(filtersSnapshot[i], i)
   }
 }
 

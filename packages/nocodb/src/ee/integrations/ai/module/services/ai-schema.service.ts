@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import {
   extractRolesObj,
   IntegrationCategoryType,
@@ -63,6 +63,8 @@ export class AiSchemaService {
     private kanbansService: KanbansService,
     private dataTableService: DataTableService,
   ) {}
+
+  private readonly logger = new Logger(AiSchemaService.name);
 
   async predictSchema(
     context: NcContext,
@@ -705,11 +707,8 @@ export class AiSchemaService {
     await integration.storeInsert(context, params.req?.user?.id, usage);
 
     // Log raw AI response for debugging filter generation issues
-    console.log(
-      '[predictFilters] AI response — action:',
-      data.action,
-      'filters:',
-      JSON.stringify(data.filters, null, 2),
+    this.logger.debug(
+      `[predictFilters] AI response — action: ${data.action}, filters: ${JSON.stringify(data.filters)}`,
     );
 
     // Validate that all AI-referenced column names exist in the table.
@@ -717,7 +716,7 @@ export class AiSchemaService {
     const validFilters = (data.filters || []).filter((filter) => {
       const exists = columns.some((col) => col.title === filter.column);
       if (!exists) {
-        console.warn(
+        this.logger.warn(
           `[predictFilters] Dropping filter — column "${filter.column}" not found in table schema`,
         );
       }

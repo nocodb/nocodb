@@ -442,6 +442,14 @@ const scrollDownIfNeeded = () => {
   }
 }
 
+/**
+ * Add a filter to the list.
+ * @param filter - Optional draft filter with pre-populated fields (e.g. from copy or AI).
+ * @param isCopyFilter - When true, skips `selectFilterField()` which resets comparison_op
+ *   to the column's default and clears value to null. Set to true for programmatic filter
+ *   creation where the draft already contains the correct operator, value, and logical_op
+ *   (e.g. AI-generated filters, copy-paste filters).
+ */
 const addFilter = async (filter?: Partial<FilterType>, isCopyFilter = false) => {
   await _addFilter(false, filter)
 

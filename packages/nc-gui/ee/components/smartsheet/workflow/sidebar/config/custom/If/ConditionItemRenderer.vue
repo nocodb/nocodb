@@ -68,8 +68,6 @@ const getWorkflowNodeComparisonOps = (dataType?: WorkflowNodeFilterDataType) => 
   const commonOps = [
     { label: 'is blank', value: WorkflowNodeComparisonOp.BLANK },
     { label: 'is not blank', value: WorkflowNodeComparisonOp.NOT_BLANK },
-    { label: 'is null', value: WorkflowNodeComparisonOp.NULL },
-    { label: 'is not null', value: WorkflowNodeComparisonOp.NOT_NULL },
   ]
 
   if (!dataType) return commonOps
@@ -81,8 +79,6 @@ const getWorkflowNodeComparisonOps = (dataType?: WorkflowNodeFilterDataType) => 
         { label: 'is not equal', value: WorkflowNodeComparisonOp.NEQ },
         { label: 'is like', value: WorkflowNodeComparisonOp.LIKE },
         { label: 'is not like', value: WorkflowNodeComparisonOp.NLIKE },
-        { label: 'is empty', value: WorkflowNodeComparisonOp.EMPTY },
-        { label: 'is not empty', value: WorkflowNodeComparisonOp.NOT_EMPTY },
         ...commonOps,
       ]
     case WorkflowNodeFilterDataType.NUMBER:
@@ -169,10 +165,6 @@ const getSubOps = (comparisonOp: WorkflowNodeComparisonOp) => {
 
 const showValueInput = (condition: WorkflowNodeFilterCondition) => {
   const noValueOps = [
-    WorkflowNodeComparisonOp.EMPTY,
-    WorkflowNodeComparisonOp.NOT_EMPTY,
-    WorkflowNodeComparisonOp.NULL,
-    WorkflowNodeComparisonOp.NOT_NULL,
     WorkflowNodeComparisonOp.BLANK,
     WorkflowNodeComparisonOp.NOT_BLANK,
     WorkflowNodeComparisonOp.CHECKED,

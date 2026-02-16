@@ -18,10 +18,6 @@ export interface IfNodeConfig extends WorkflowNodeConfig {
 
 export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
   private static readonly OPERATIONS_WITHOUT_VALUE = new Set([
-    NocoSDK.WorkflowNodeComparisonOp.EMPTY,
-    NocoSDK.WorkflowNodeComparisonOp.NOT_EMPTY,
-    NocoSDK.WorkflowNodeComparisonOp.NULL,
-    NocoSDK.WorkflowNodeComparisonOp.NOT_NULL,
     NocoSDK.WorkflowNodeComparisonOp.BLANK,
     NocoSDK.WorkflowNodeComparisonOp.NOT_BLANK,
     NocoSDK.WorkflowNodeComparisonOp.CHECKED,
@@ -80,9 +76,8 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
         });
       }
       if (
-        (this.operationRequiresValue(condition.comparison_op) &&
-          condition.value === undefined) ||
-        condition.value === ''
+        this.operationRequiresValue(condition.comparison_op) &&
+        (condition.value === undefined || condition.value === '')
       ) {
         errors.push({
           path: `${path}.value`,
@@ -325,17 +320,6 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     return undefined;
   }
 
-  // Helper to check NULL operations (shared across all types)
-  private checkNullOp(
-    fieldValue: any,
-    op: NocoSDK.WorkflowNodeComparisonOp,
-  ): boolean | null {
-    if (op === NocoSDK.WorkflowNodeComparisonOp.NULL) return fieldValue == null;
-    if (op === NocoSDK.WorkflowNodeComparisonOp.NOT_NULL)
-      return fieldValue != null;
-    return null;
-  }
-
   // Helper to check BLANK operations (shared across all types)
   private checkBlankOp(
     fieldValue: any,
@@ -362,9 +346,6 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     const str2 = NocoSDK.ncIsNullOrUndefined(value) ? '' : String(value);
 
     // Check common operations
-    const nullResult = this.checkNullOp(fieldValue, op);
-    if (nullResult !== null) return nullResult;
-
     const blankResult = this.checkBlankOp(
       fieldValue,
       op,
@@ -381,10 +362,6 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
         return str1.toLowerCase().includes(str2.toLowerCase());
       case NocoSDK.WorkflowNodeComparisonOp.NLIKE:
         return !str1.toLowerCase().includes(str2.toLowerCase());
-      case NocoSDK.WorkflowNodeComparisonOp.EMPTY:
-        return str1.trim() === '';
-      case NocoSDK.WorkflowNodeComparisonOp.NOT_EMPTY:
-        return str1.trim() !== '';
       default:
         throw new Error(`Unsupported text operation: ${op}`);
     }
@@ -399,16 +376,10 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     const num2 = parseFloat(value);
 
     if (isNaN(num1)) {
-      return (
-        op === NocoSDK.WorkflowNodeComparisonOp.NULL ||
-        op === NocoSDK.WorkflowNodeComparisonOp.BLANK
-      );
+      return op === NocoSDK.WorkflowNodeComparisonOp.BLANK;
     }
 
     // Check common operations
-    const nullResult = this.checkNullOp(fieldValue, op);
-    if (nullResult !== null) return nullResult;
-
     const blankResult = this.checkBlankOp(fieldValue, op, (val) =>
       isNaN(parseFloat(val)),
     );
@@ -440,16 +411,10 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
   ): boolean {
     const date1 = new Date(fieldValue);
     if (isNaN(date1.getTime())) {
-      return (
-        op === NocoSDK.WorkflowNodeComparisonOp.NULL ||
-        op === NocoSDK.WorkflowNodeComparisonOp.BLANK
-      );
+      return op === NocoSDK.WorkflowNodeComparisonOp.BLANK;
     }
 
     // Check common operations
-    const nullResult = this.checkNullOp(fieldValue, op);
-    if (nullResult !== null) return nullResult;
-
     const blankResult = this.checkBlankOp(fieldValue, op, (val) =>
       isNaN(new Date(val).getTime()),
     );
@@ -549,9 +514,6 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
       const json2 = typeof value === 'string' ? JSON.parse(value) : value;
 
       // Check common operations
-      const nullResult = this.checkNullOp(fieldValue, op);
-      if (nullResult !== null) return nullResult;
-
       const blankResult = this.checkBlankOp(
         fieldValue,
         op,

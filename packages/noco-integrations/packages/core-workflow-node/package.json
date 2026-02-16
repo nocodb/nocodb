@@ -6,7 +6,10 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "dev": "tsc -w"
+    "dev": "tsc -w",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@noco-integrations/core": "workspace:*",
@@ -16,6 +19,8 @@
   },
   "devDependencies": {
     "@types/node": "^20.17.46",
-    "typescript": "^5.8.3"
+    "@vitest/coverage-v8": "^4.0.18",
+    "typescript": "^5.8.3",
+    "vitest": "^4.0.18"
   }
 }

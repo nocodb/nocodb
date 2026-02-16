@@ -48,4 +48,6 @@ jobs:
         run: pnpm bootstrap
       - name: run unit tests
         working-directory: ./packages/nocodb
+        env:
+          NODE_OPTIONS: "--max_old_space_size=8192"
         run: pnpm run test

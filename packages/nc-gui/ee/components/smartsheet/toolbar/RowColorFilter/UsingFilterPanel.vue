@@ -254,22 +254,36 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                     </template>
                     <NcSelect
                       :value="rowColorConfig.type || 'row'"
-                      class="!w-20"
+                      class="!w-24"
                       size="small"
                       :disabled="readOnlyFilter"
+                      :dropdown-match-select-width="false"
+                      option-label-prop="label"
                       @change="updateColor(i, 'type', $event)"
                     >
                       <template #suffixIcon>
                         <GeneralIcon icon="arrowDown" class="text-gray-700" />
                       </template>
-                      <a-select-option value="row">{{ $t('objects.row') }}</a-select-option>
-                      <a-select-option value="cell">{{ $t('objects.cell') }}</a-select-option>
+                      <a-select-option value="row" :label="$t('objects.row')">
+                        <div class="flex flex-col">
+                          <span>{{ $t('objects.row') }}</span>
+                          <span class="text-xs text-nc-content-gray-subtle">{{ $t('objects.coloring.rowColorDescription') }}</span>
+                        </div>
+                      </a-select-option>
+                      <a-select-option value="cell" :label="$t('objects.cell')">
+                        <div class="flex flex-col">
+                          <span>{{ $t('objects.cell') }}</span>
+                          <span class="text-xs text-nc-content-gray-subtle">{{ $t('objects.coloring.cellColorDescription') }}</span>
+                        </div>
+                      </a-select-option>
                     </NcSelect>
                     <NcSelect
                       v-if="rowColorConfig.type === 'cell'"
                       :value="rowColorConfig.fk_target_column_id || ''"
                       class="!w-32"
                       size="small"
+                      show-search
+                      :filter-option="(input, option) => option.label?.toLowerCase().includes(input.toLowerCase())"
                       :placeholder="$t('objects.field')"
                       :disabled="readOnlyFilter"
                       @change="updateColor(i, 'fk_target_column_id', $event)"
@@ -277,7 +291,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       <template #suffixIcon>
                         <GeneralIcon icon="arrowDown" class="text-gray-700" />
                       </template>
-                      <a-select-option v-for="column in columns" :key="column.id" :value="column.id">
+                      <a-select-option v-for="column in columns" :key="column.id" :value="column.id" :label="column.title">
                         <div class="w-full flex gap-2 items-center">
                           <SmartsheetHeaderIcon :column="column" class="!mx-0" />
                           <NcTooltip class="flex-1 truncate" show-on-truncate-only>

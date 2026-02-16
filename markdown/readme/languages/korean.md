@@ -18,7 +18,7 @@ MySQL, PostgreSQL, SQL Server, SQLite, MariaDB를 스마트 스프레드시트�
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://discord.gg/c7GEYrvFtT"><b>Discord</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
     <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
@@ -67,9 +67,9 @@ docker run -d \
 
 # 커뮤니티 가입
 
-<a href="https://discord.gg/5RgZmkW">
+<a href="https://discord.gg/c7GEYrvFtT">
     <img 
-    src="https://invidget.switchblade.xyz/5RgZmkW" 
+    src="https://invidget.switchblade.xyz/c7GEYrvFtT" 
     alt="NocoDB 디스코드 들어오기"
     >
 </a>

@@ -163,7 +163,7 @@ Please raise an issue in our github by using following link :
 https://github.com/nocodb/nocodb/issues/new?labels=Type%3A%20Bug&template=bug_report.md
 
 Or contact us in our Discord community by following link :
-https://discord.gg/5RgZmkW ( message @o1lab, @pranavxc or @wingkwong )`,
+https://discord.gg/c7GEYrvFtT ( message @o1lab, @pranavxc or @wingkwong )`,
     { title: errorTitle, padding: 1, borderColor: 'yellow' },
   );
 }

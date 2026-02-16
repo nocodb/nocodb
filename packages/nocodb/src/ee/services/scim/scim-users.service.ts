@@ -480,7 +480,14 @@ export class ScimUsersService {
     for (const key of Object.keys(patchData)) {
       if (key.startsWith(enterprisePrefix)) {
         const field = key.substring(enterprisePrefix.length);
-        meta[ENTERPRISE_EXTENSION][field] = patchData[key];
+        // RFC 7643: 'manager' is a complex attribute with sub-attributes
+        // (value, $ref, displayName). When patched via path, the value
+        // is typically just the ID string — wrap it as {value: string}.
+        if (field === 'manager' && typeof patchData[key] === 'string') {
+          meta[ENTERPRISE_EXTENSION][field] = { value: patchData[key] };
+        } else {
+          meta[ENTERPRISE_EXTENSION][field] = patchData[key];
+        }
       }
     }
   }

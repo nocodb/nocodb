@@ -42,7 +42,7 @@
     "@vue-flow/core": "^1.47.0",
     "acorn-loose": "^8.4.0",
     "acorn-walk": "^8.3.4",
-    "axios": "^1.9.0",
+    "axios": "^1.13.5",
     "chevrotain": "^10.5.0",
     "dayjs": "^1.11.19",
     "fast-deep-equal": "^3.1.3",

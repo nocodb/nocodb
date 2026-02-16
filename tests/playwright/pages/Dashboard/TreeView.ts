@@ -76,10 +76,6 @@ export class TreeViewPage extends BasePage {
     // Ensure the base is active/open in the sidebar (opens from modal if needed)
     await this.dashboard.sidebar.baseNode.verifyActiveProject({ baseTitle: title, open: true });
 
-    // Click on the base node to expand it (show tables)
-    const nodes = this.get().locator(`[data-testid="nc-sidebar-base-${title.toLowerCase()}"]`);
-    await nodes.waitFor();
-    await nodes.click();
     return;
   }
 

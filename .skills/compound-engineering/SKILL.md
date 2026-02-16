@@ -101,10 +101,10 @@ cd packages/nocodb
 
 1. Create model `src/models/Bookmark.ts`
 2. Create service `src/services/bookmark.service.ts`
-3. Create controller `src/controllers/bookmark.controller.ts`
-4. Create migration `src/meta/migrations/v2/nc_XXX_bookmark.ts`
-5. Register in `src/modules/noco.module.ts`
-6. Update swagger schema
+3. Register operations in internal controllers (`operationScopes.ts` + `UiPost.operations.ts`)
+4. Create migration `src/meta/migrations/v0/nc_XXX_bookmark.ts`
+5. Register service in `src/modules/noco.module.ts`
+6. Update swagger schema + rebuild SDK
 
 See [nocohub-backend skill](../nocohub-backend/SKILL.md) for detailed patterns.
 
@@ -270,18 +270,18 @@ nc-gui/
 
 1. **SDK**: Add field to interface in `Api.ts`
 2. **Backend**:
-   - Add field to model class
-   - Create migration to add column
-   - Update service methods
+    - Add field to model class
+    - Create migration to add column
+    - Update service methods
 3. **Frontend**:
-   - Update composables/stores that use the type
-   - Update UI components
+    - Update composables/stores that use the type
+    - Update UI components
 
 ### Adding a New API Endpoint
 
-1. **SDK**: Add method to API client
-2. **Backend**: Create controller route + service method
-3. **Frontend**: Call via `useApi()` composable
+1. **SDK**: Add swagger schema + rebuild SDK
+2. **Backend**: Register in internal controllers (`operationScopes.ts` + `UiPost/UiGet.operations.ts`) + create service
+3. **Frontend**: Call via `$api.internal.postOperation()` or `useApi()` composable
 
 ### Renaming a Field/Endpoint
 

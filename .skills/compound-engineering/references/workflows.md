@@ -32,10 +32,12 @@ Use this checklist for any feature spanning multiple packages:
 
 - [ ] Create model in `src/models/`
 - [ ] Create service in `src/services/`
-- [ ] Create controller in `src/controllers/`
-- [ ] Create migration in `src/meta/migrations/v2/`
-- [ ] Register in `noco.module.ts`
-- [ ] Add ACL permissions
+- [ ] Register operations in internal controllers (`operationScopes.ts` + `UiPost/UiGet.operations.ts`)
+- [ ] Add ACL permissions in BOTH `src/utils/acl.ts` and `src/ee/utils/acl.ts` (operation name = ACL key)
+- [ ] Create migration in `src/meta/migrations/v0/`
+- [ ] Register service in `noco.module.ts`
+- [ ] Update MetaTable/CacheScope in BOTH CE and EE `globals.ts`
+- [ ] Update nanoid prefixes in BOTH CE and EE `meta.service.ts`
 - [ ] Update swagger schema
 - [ ] Write unit tests
 
@@ -109,22 +111,25 @@ When adding a new table or column:
 
 1. **Create migration** (backend)
    ```typescript
-   // packages/nocodb/src/meta/migrations/v2/nc_XXX_add_widgets.ts
+   // packages/nocodb/src/meta/migrations/v0/nc_XXX_add_widgets.ts
    const up = async (knex: Knex) => {
      await knex.schema.createTable(MetaTable.WIDGETS, (table) => {
-       table.string('id', 20).primary();
+       table.string('id', 20);
+       table.string('base_id', 20);
        table.string('title', 255).notNullable();
        table.text('config');
-       table.string('fk_dashboard_id', 20).notNullable();
+       table.string('fk_dashboard_id', 20);
+       table.string('fk_workspace_id', 20);
        table.timestamps(true, true);
 
-       table.foreign('fk_dashboard_id')
-         .references('id')
-         .inTable(MetaTable.DASHBOARDS)
-         .onDelete('CASCADE');
+       table.primary(['base_id', 'id']);
      });
    };
    ```
+   > **Note:** NocoDB does NOT use foreign key constraints. Primary keys and scoping depend on entity scope:
+   > - **Base scope**: composite PK `['base_id', 'id']` + `fk_workspace_id`
+   > - **Workspace scope**: just `id` PK + `fk_workspace_id`, no `base_id`
+   > - **Org scope**: just `id` PK, no `fk_workspace_id` or `base_id`
 
 2. **Add MetaTable enum** (backend)
    ```typescript

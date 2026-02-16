@@ -6,71 +6,71 @@ Complete Vue 3 component patterns for NocoDB frontend development.
 
 ```vue
 <script lang="ts" setup>
-import type { TableType, ViewType } from 'nocodb-sdk'
-import type { ComputedRef, Ref } from 'vue'
+  import type { TableType, ViewType } from 'nocodb-sdk'
+  import type { ComputedRef, Ref } from 'vue'
 
-// Props with TypeScript interface
-const props = withDefaults(
-  defineProps<{
-    modelValue: string
-    table: TableType
-    disabled?: boolean
-    size?: 'small' | 'medium' | 'large'
-  }>(),
-  {
-    disabled: false,
-    size: 'medium',
+  // Props with TypeScript interface
+  const props = withDefaults(
+    defineProps<{
+      modelValue: string
+      table: TableType
+      disabled?: boolean
+      size?: 'small' | 'medium' | 'large'
+    }>(),
+    {
+      disabled: false,
+      size: 'medium',
+    }
+  )
+
+  // Typed emits
+  const emit = defineEmits<{
+    'update:modelValue': [value: string]
+    'change': [value: string, oldValue: string]
+    'submit': []
+  }>()
+
+  // Composables (auto-imported)
+  const { t } = useI18n()
+  const { api, isLoading } = useApi()
+  const { isUIAllowed } = useRoles()
+
+  // Refs
+  const inputRef = ref<HTMLInputElement>()
+  const localValue = ref(props.modelValue)
+
+  // Computed
+  const isValid = computed(() => localValue.value.length > 0)
+  const canEdit = computed(() => !props.disabled && isUIAllowed('dataEdit'))
+
+  // Methods
+  const handleSubmit = async () => {
+    if (!isValid.value) return
+
+    try {
+      await api.dbTableRow.update(props.table.id!, rowId, { field: localValue.value })
+      emit('submit')
+      message.success(t('msg.success.updated'))
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
   }
-)
 
-// Typed emits
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  'change': [value: string, oldValue: string]
-  'submit': []
-}>()
+  // Watchers
+  watch(() => props.modelValue, (newVal) => {
+    localValue.value = newVal
+  })
 
-// Composables (auto-imported)
-const { t } = useI18n()
-const { api, isLoading } = useApi()
-const { isUIAllowed } = useRoles()
+  // Lifecycle
+  onMounted(() => {
+    inputRef.value?.focus()
+  })
 
-// Refs
-const inputRef = ref<HTMLInputElement>()
-const localValue = ref(props.modelValue)
-
-// Computed
-const isValid = computed(() => localValue.value.length > 0)
-const canEdit = computed(() => !props.disabled && isUIAllowed('dataEdit'))
-
-// Methods
-const handleSubmit = async () => {
-  if (!isValid.value) return
-
-  try {
-    await api.dbTableRow.update(props.table.id!, rowId, { field: localValue.value })
-    emit('submit')
-    message.success(t('msg.success.updated'))
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-// Watchers
-watch(() => props.modelValue, (newVal) => {
-  localValue.value = newVal
-})
-
-// Lifecycle
-onMounted(() => {
-  inputRef.value?.focus()
-})
-
-// Expose for parent access (optional)
-defineExpose({
-  focus: () => inputRef.value?.focus(),
-  validate: () => isValid.value,
-})
+  // Expose for parent access (optional)
+  defineExpose({
+    focus: () => inputRef.value?.focus(),
+    validate: () => isValid.value,
+  })
 </script>
 
 <template>
@@ -95,13 +95,13 @@ defineExpose({
 </template>
 
 <style lang="scss" scoped>
-.nc-my-component {
-  @apply flex items-center gap-2;
+  .nc-my-component {
+    @apply flex items-center gap-2;
 
-  &.is-disabled {
-    @apply opacity-50 pointer-events-none;
+    &.is-disabled {
+      @apply opacity-50 pointer-events-none;
+    }
   }
-}
 </style>
 ```
 
@@ -111,16 +111,16 @@ defineExpose({
 
 ```vue
 <script lang="ts" setup>
-const props = defineProps<{
-  modelValue: string
-}>()
+  const props = defineProps<{
+    modelValue: string
+  }>()
 
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
+  const emit = defineEmits<{
+    'update:modelValue': [value: string]
+  }>()
 
-// Using useVModel from VueUse
-const localValue = useVModel(props, 'modelValue', emit)
+  // Using useVModel from VueUse
+  const localValue = useVModel(props, 'modelValue', emit)
 </script>
 
 <template>
@@ -132,18 +132,18 @@ const localValue = useVModel(props, 'modelValue', emit)
 
 ```vue
 <script lang="ts" setup>
-const props = defineProps<{
-  visible: boolean
-  title: string
-}>()
+  const props = defineProps<{
+    visible: boolean
+    title: string
+  }>()
 
-const emit = defineEmits<{
-  'update:visible': [value: boolean]
-  'update:title': [value: string]
-}>()
+  const emit = defineEmits<{
+    'update:visible': [value: boolean]
+    'update:title': [value: string]
+  }>()
 
-const isVisible = useVModel(props, 'visible', emit)
-const localTitle = useVModel(props, 'title', emit)
+  const isVisible = useVModel(props, 'visible', emit)
+  const localTitle = useVModel(props, 'title', emit)
 </script>
 
 <template>
@@ -159,20 +159,20 @@ const localTitle = useVModel(props, 'title', emit)
 
 ```vue
 <script lang="ts" setup>
-import type { BaseType } from 'nocodb-sdk'
+  import type { BaseType } from 'nocodb-sdk'
 
-const props = defineProps<{
-  base: BaseType
-  baseRole: string
-}>()
+  const props = defineProps<{
+    base: BaseType
+    baseRole: string
+  }>()
 
-// Convert props to refs for reactivity
-const baseRef = toRef(props, 'base')
-const baseRoleRef = toRef(props, 'baseRole')
+  // Convert props to refs for reactivity
+  const baseRef = toRef(props, 'base')
+  const baseRoleRef = toRef(props, 'baseRole')
 
-// Provide to descendants
-provide(ProjectInj, baseRef)
-provide(ProjectRoleInj, baseRoleRef)
+  // Provide to descendants
+  provide(ProjectInj, baseRef)
+  provide(ProjectRoleInj, baseRoleRef)
 </script>
 
 <template>
@@ -184,12 +184,12 @@ provide(ProjectRoleInj, baseRoleRef)
 
 ```vue
 <script lang="ts" setup>
-// Inject with default value
-const base = inject(ProjectInj, ref({}))
-const baseRole = inject(ProjectRoleInj, ref(''))
+  // Inject with default value
+  const base = inject(ProjectInj, ref({}))
+  const baseRole = inject(ProjectRoleInj, ref(''))
 
-// With type assertion
-const base = inject(ProjectInj)!
+  // With type assertion
+  const base = inject(ProjectInj)!
 </script>
 ```
 
@@ -211,12 +211,12 @@ export const ViewInj: InjectionKey<Ref<ViewType>> = Symbol('view-injection')
 
 ```vue
 <script lang="ts" setup>
-const items = ref([{ id: 1, name: 'Item 1' }])
-const selectedId = ref<number | null>(null)
+  const items = ref([{ id: 1, name: 'Item 1' }])
+  const selectedId = ref<number | null>(null)
 
-const selectItem = (id: number) => {
-  selectedId.value = id
-}
+  const selectItem = (id: number) => {
+    selectedId.value = id
+  }
 </script>
 
 <template>
@@ -264,47 +264,47 @@ const selectItem = (id: number) => {
 
 ```vue
 <script lang="ts" setup>
-const props = defineProps<{
-  visible: boolean
-  tableId: string
-}>()
+  const props = defineProps<{
+    visible: boolean
+    tableId: string
+  }>()
 
-const emit = defineEmits<{
-  'update:visible': [value: boolean]
-  'success': [data: any]
-}>()
+  const emit = defineEmits<{
+    'update:visible': [value: boolean]
+    'success': [data: any]
+  }>()
 
-const { t } = useI18n()
-const { api } = useApi()
+  const { t } = useI18n()
+  const { api } = useApi()
 
-const isVisible = useVModel(props, 'visible', emit)
-const formState = ref({ name: '', description: '' })
-const isSubmitting = ref(false)
+  const isVisible = useVModel(props, 'visible', emit)
+  const formState = ref({ name: '', description: '' })
+  const isSubmitting = ref(false)
 
-const handleSubmit = async () => {
-  isSubmitting.value = true
-  try {
-    const result = await api.dbTable.update(props.tableId, formState.value)
-    emit('success', result)
+  const handleSubmit = async () => {
+    isSubmitting.value = true
+    try {
+      const result = await api.dbTable.update(props.tableId, formState.value)
+      emit('success', result)
+      isVisible.value = false
+      message.success(t('msg.success.updated'))
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isSubmitting.value = false
+    }
+  }
+
+  const handleCancel = () => {
     isVisible.value = false
-    message.success(t('msg.success.updated'))
-  } catch (e: any) {
-    message.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isSubmitting.value = false
   }
-}
 
-const handleCancel = () => {
-  isVisible.value = false
-}
-
-// Reset form when dialog opens
-watch(isVisible, (visible) => {
-  if (visible) {
-    formState.value = { name: '', description: '' }
-  }
-})
+  // Reset form when dialog opens
+  watch(isVisible, (visible) => {
+    if (visible) {
+      formState.value = { name: '', description: '' }
+    }
+  })
 </script>
 
 <template>
@@ -336,14 +336,14 @@ watch(isVisible, (visible) => {
 
 ```vue
 <script lang="ts" setup>
-// Async setup - component will suspend
-const { api } = useApi()
-const route = useRoute()
+  // Async setup - component will suspend
+  const { api } = useApi()
+  const route = useRoute()
 
-const tableId = computed(() => route.params.tableId as string)
+  const tableId = computed(() => route.params.tableId as string)
 
-// Top-level await in setup
-const tableData = await api.dbTable.read(tableId.value)
+  // Top-level await in setup
+  const tableData = await api.dbTable.read(tableId.value)
 </script>
 
 <template>
@@ -414,20 +414,20 @@ Parent usage:
 </template>
 
 <style>
-.list-enter-active,
-.list-leave-active {
-  transition: all 0.3s ease;
-}
+  .list-enter-active,
+  .list-leave-active {
+    transition: all 0.3s ease;
+  }
 
-.list-enter-from,
-.list-leave-to {
-  opacity: 0;
-  transform: translateX(-30px);
-}
+  .list-enter-from,
+  .list-leave-to {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
 
-.list-move {
-  transition: transform 0.3s ease;
-}
+  .list-move {
+    transition: transform 0.3s ease;
+  }
 </style>
 ```
 
@@ -515,6 +515,71 @@ watch(count, (newVal, oldVal) => {
 
 // Use watch with immediate for initial run
 watch(source, callback, { immediate: true })
+```
+
+## Smartsheet Toolbar Patterns
+
+### Toolbar Button Component
+
+All toolbar dropdowns follow the same structure: `NcDropdown` > `NcTooltip` > `NcButton`.
+
+```vue
+<script lang="ts" setup>
+const isLocked = inject(IsLockedInj, ref(false))
+const isToolbarIconMode = inject(IsToolbarIconMode, computed(() => false))
+const { isMobileMode } = useGlobal()
+const { eventBus, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+
+const open = ref(false)
+</script>
+
+<template>
+  <NcDropdown v-model:visible="open" :trigger="['click']" overlay-class-name="nc-toolbar-dropdown">
+    <NcTooltip :disabled="!isMobileMode && !isToolbarIconMode">
+      <template #title>{{ $t('toolbar.myFeature') }}</template>
+      <NcButton
+        class="nc-toolbar-btn !border-0 !h-7"
+        size="small"
+        type="secondary"
+        :show-as-disabled="isLocked || !isViewOperationsAllowed"
+      >
+        <div class="flex items-center gap-1">
+          <GeneralIcon icon="myIcon" class="h-4 w-4" />
+          <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-small1 font-medium">
+            {{ $t('toolbar.myFeature') }}
+          </span>
+          <span v-if="badgeCount" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">
+            {{ badgeCount }}
+          </span>
+        </div>
+      </NcButton>
+    </NcTooltip>
+    <template #overlay>
+      <!-- Dropdown content -->
+    </template>
+  </NcDropdown>
+</template>
+```
+
+### SmartsheetStoreEvents for Cross-Component Communication
+
+Toolbar components communicate via `eventBus` from `useSmartsheetStoreOrThrow()`:
+
+```typescript
+// Emitting (e.g., after configuration changes)
+eventBus.emit(SmartsheetStoreEvents.FIELD_RELOAD)
+eventBus.emit(SmartsheetStoreEvents.SORT_RELOAD)
+eventBus.emit(SmartsheetStoreEvents.FILTER_RELOAD)
+
+// Listening (in toolbar menu component)
+const eventBusHandler = async (event: SmartsheetStoreEvents, payload?: any) => {
+  if (event === SmartsheetStoreEvents.FIELD_RELOAD) {
+    await loadViewColumns()
+    payload?.callback?.()
+  }
+}
+eventBus.on(eventBusHandler)
+onBeforeUnmount(() => eventBus.off(eventBusHandler))
 ```
 
 ## Common Component Props Interface

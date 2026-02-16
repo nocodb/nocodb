@@ -42,6 +42,10 @@ Database tables for NocoDB metadata storage.
 | KANBAN_VIEW_COLUMNS | nc_kanban_view_columns_v2 |
 | CALENDAR_VIEW | nc_calendar_view_v2 |
 | CALENDAR_VIEW_COLUMNS | nc_calendar_view_columns_v2 |
+| CALENDAR_VIEW_RANGE | nc_calendar_view_range_v2 |
+| LIST_VIEW | nc_list_view_v2 |
+| LIST_VIEW_COLUMNS | nc_list_view_columns_v2 |
+| LIST_VIEW_LEVELS | nc_list_view_levels_v2 |
 | MAP_VIEW | nc_map_view_v2 |
 | MAP_VIEW_COLUMNS | nc_map_view_columns_v2 |
 
@@ -105,12 +109,31 @@ CacheScope.WIDGET       // 'widget'
 `${CacheScope.API_TOKEN}:${token}`   // 'apiToken:xxx'
 ```
 
+### CacheDelDirection Enum
+
+Used as the third argument to `NocoCache.deepDel()`:
+
+```typescript
+export enum CacheDelDirection {
+  PARENT_TO_CHILD = 'PARENT_TO_CHILD',  // Delete list + all children
+  CHILD_TO_PARENT = 'CHILD_TO_PARENT',  // Delete child + remove from parent lists
+}
+```
+
+> **Common mistake:** Passing `CacheScope.*` instead of `CacheDelDirection.*` as the third arg to `deepDel`. They're different enums — `CacheScope` values are strings like `'listViewLevel'`, while `CacheDelDirection` values are `'PARENT_TO_CHILD'` or `'CHILD_TO_PARENT'`. Using the wrong enum causes cache corruption.
+
+---
+
 ## Adding New Tables
 
-1. Add to `MetaTable` enum in `src/utils/globals.ts`
-2. Add to `CacheScope` if caching is needed
-3. Create migration file in `src/meta/migrations/v2/`
-4. Update `XcMigrationSourcev2.ts`
+> **CRITICAL:** You must update BOTH CE and EE globals files. EE globals completely override CE — they don't inherit.
+
+1. Add to `MetaTable` enum in **BOTH** `src/utils/globals.ts` and `src/ee/utils/globals.ts`
+2. Add to `CacheScope` in **BOTH** CE and EE `globals.ts`
+3. Add nanoid prefixes in **BOTH** `src/meta/meta.service.ts` and `src/ee/meta/meta.service.ts`
+4. Update EE `BaseRelatedMetaTables` and `orderedMetaTables` arrays
+5. Create migration file in `src/meta/migrations/v0/`
+6. Register in `XcMigrationSourcev0.ts`
 
 ## RootScopes
 

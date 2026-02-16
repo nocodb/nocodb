@@ -229,6 +229,7 @@ export class ExpandedFormPage extends BasePage {
     // expect(await this.btn_moreActions.count()).toBe(1);
     if (await this.btn_moreActions.isVisible()) {
       // In large screen, the more actions button will be hidden as copy record url button will be visible inline (outside)
+      await this.btn_moreActions.waitFor();
       await this.btn_moreActions.click();
     }
 

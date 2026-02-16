@@ -22,15 +22,11 @@ export class SidebarProjectNodeObject extends BasePage {
   }
 
   async clickOptions({ baseTitle }: { baseTitle: string }) {
-    await this.get({
-      baseTitle,
-    }).hover();
+    await this.sidebar.baseNode.verifyActiveProject({ baseTitle, open: true });
 
     await this.get({
       baseTitle,
-    })
-      .getByTestId(`nc-sidebar-context-menu`)
-      .click();
+    }).click();
   }
 
   async verifyTableAddBtn({ baseTitle, visible }: { baseTitle: string; visible: boolean }) {

@@ -424,7 +424,6 @@ export class TreeViewPage extends BasePage {
       // createNewButton (.nc-home-create-new-btn) is visible only for owner & creator
       // context menu is visible for all roles
       await expect(this.createNewButton).toHaveCount(count);
-      await expect(pjtNode.locator('[data-testid="nc-sidebar-context-menu"]')).toHaveCount(1);
 
       await this.openProject({ title: param.baseTitle, context });
 

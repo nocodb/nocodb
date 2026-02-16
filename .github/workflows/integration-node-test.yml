@@ -1,0 +1,134 @@
+name: "Integration Node Tests"
+on:
+  push:
+    branches: [develop]
+    paths:
+      - "packages/noco-integrations/**"
+      - ".github/workflows/integration-node-test.yml"
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review, labeled]
+    branches: [develop]
+    paths:
+      - "packages/noco-integrations/**"
+      - ".github/workflows/integration-node-test.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration-node-test:
+    runs-on: [self-hosted, v4, generic]
+    timeout-minutes: 10
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.pull_request.labels.*.name, 'trigger-CI') ||
+      contains(github.event.pull_request.labels.*.name, 'test:integrations') ||
+      !github.event.pull_request.draft
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 1
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 22.12.0
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Get pnpm store directory
+        shell: bash
+        timeout-minutes: 1
+        run: |
+          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+      - name: remove use-node-version line from .npmrc
+        run: sed -i '/^use-node-version/d' .npmrc
+      - name: Install dependencies
+        run: pnpm bootstrap
+
+      - name: Run tests with coverage
+        id: test
+        working-directory: ./packages/noco-integrations/packages/core-workflow-node
+        continue-on-error: true
+        run: |
+          set +e
+          npx vitest run --coverage --reporter=verbose 2>&1 | tee raw-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+          # Strip ANSI escape codes for parsing
+          sed 's/\x1b\[[0-9;]*m//g' raw-output.txt > test-output.txt
+
+      - name: Build PR comment
+        if: github.event_name == 'pull_request'
+        working-directory: ./packages/noco-integrations/packages/core-workflow-node
+        shell: bash
+        run: |
+          EXIT_CODE=${{ steps.test.outputs.exit_code }}
+
+          # Extract coverage table (separator-to-separator block with pipe chars)
+          COVERAGE=$(awk '/^-+\|.*-+/{found=1} found{print}' test-output.txt | head -20)
+
+          # Extract summary lines
+          SUMMARY_FILES=$(grep -E '^\s*Test Files\s' test-output.txt | tail -1 | xargs)
+          SUMMARY_TESTS=$(grep -E '^\s*Tests\s' test-output.txt | tail -1 | xargs)
+          SUMMARY_DURATION=$(grep -E '^\s*Duration\s' test-output.txt | tail -1 | xargs)
+
+          # Write comment body to file
+          {
+            if [ "$EXIT_CODE" -eq 0 ]; then
+              echo '## ✅ Integration Node Tests Passed'
+            else
+              echo '## ❌ Integration Node Tests Failed'
+            fi
+
+            echo ''
+            echo '### Coverage'
+            echo ''
+            echo '```'
+            echo "$COVERAGE"
+            echo '```'
+
+            if [ "$EXIT_CODE" -ne 0 ]; then
+              echo ''
+              echo '### Failed Tests'
+              echo ''
+              echo '```'
+              grep -E '(×|FAIL )' test-output.txt | head -30 || true
+              echo '```'
+            fi
+
+            echo ''
+            echo "<sub>${SUMMARY_FILES} | ${SUMMARY_TESTS} | ${SUMMARY_DURATION}</sub>"
+          } > comment-body.md
+
+      - name: Find existing comment
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "Integration Node Tests"
+
+      - name: Create or update comment
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          edit-mode: replace
+          body-path: ./packages/noco-integrations/packages/core-workflow-node/comment-body.md
+
+      - name: Fail if tests failed
+        if: steps.test.outputs.exit_code != '0'
+        run: exit 1

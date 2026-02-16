@@ -12,6 +12,7 @@ const column = inject(ColumnInj, ref())
 const readOnly = inject(ReadonlyInj, ref(false))
 const editEnabled = inject(EditModeInj, ref(false))
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
+const isEditColumn = inject(EditColumnInj, ref(false))
 
 const colourMeta = computed(() => {
   const meta = column.value?.meta ? parseProp(column.value.meta) : {}
@@ -55,6 +56,7 @@ const vModel = computed({
 const isOpen = ref(false)
 const tempColor = ref<string | null>(null)
 const showClearButton = ref(false)
+const pickerKey = ref(0)
 
 const sizeClass = computed(() => {
   switch (colourMeta.value.swatchSize) {
@@ -77,6 +79,7 @@ const showHex = computed(() => colourMeta.value.displayFormat !== 'swatch_only')
 
 const openColorPicker = () => {
   if (!readOnly.value) {
+    pickerKey.value++
     tempColor.value = vModel.value
     isOpen.value = true
     showClearButton.value = false
@@ -86,7 +89,12 @@ const openColorPicker = () => {
 const onClick = (e: Event) => {
   e.stopPropagation()
   if (!readOnly.value && props.modelValue) {
-    showClearButton.value = true
+    // In edit column context (default value), open the picker directly
+    if (isEditColumn.value) {
+      openColorPicker()
+    } else {
+      showClearButton.value = true
+    }
   }
 }
 
@@ -139,11 +147,11 @@ const onKeyDown = (e: KeyboardEvent) => {
   }
 }
 
-// Auto-open color picker when cell becomes editable (only in grid view, not in expanded form)
+// Auto-open color picker when cell becomes editable (only in grid view, not in expanded form or edit column)
 watch(
   editEnabled,
   (enabled) => {
-    if (enabled && !readOnly.value && !isOpen.value && !isExpandedFormOpen.value) {
+    if (enabled && !readOnly.value && !isOpen.value && !isExpandedFormOpen.value && !isEditColumn.value) {
       nextTick(() => {
         openColorPicker()
       })
@@ -213,7 +221,7 @@ onUnmounted(() => {
       wrap-class-name="nc-colour-picker-modal !z-1060"
     >
       <div v-if="isOpen" class="px-2 pt-2 pb-0" @click.stop @mousedown.stop>
-        <GeneralAdvanceColorPicker :model-value="tempColor || vModel" :is-open="isOpen" @input="onColorChange" />
+        <GeneralAdvanceColorPicker :key="pickerKey" :model-value="tempColor || vModel" :is-open="isOpen" @input="onColorChange" />
       </div>
       <template #footer>
         <div class="flex items-center gap-2 pt-3" @click.stop @mousedown.stop>

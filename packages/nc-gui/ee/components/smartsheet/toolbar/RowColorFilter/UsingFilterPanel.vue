@@ -221,7 +221,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
             >
               <template #root-header>
                 <div class="flex justify-between w-full pb-2">
-                  <div class="flex-grow">
+                  <div class="flex items-center gap-2">
                     <template v-if="!readOnlyFilter">
                       <GeneralAdvanceColorPickerDropdown v-model="rowColorConfig.color" @change="updateColor(i, 'color', $event)">
                         <NcButton
@@ -252,6 +252,43 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       >
                       </NcButton>
                     </template>
+                    <NcSelect
+                      :value="rowColorConfig.type || 'row'"
+                      class="!w-20"
+                      size="small"
+                      :disabled="readOnlyFilter"
+                      @change="updateColor(i, 'type', $event)"
+                    >
+                      <template #suffixIcon>
+                        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                      </template>
+                      <a-select-option value="row">{{ $t('objects.row') }}</a-select-option>
+                      <a-select-option value="cell">{{ $t('objects.cell') }}</a-select-option>
+                    </NcSelect>
+                    <NcSelect
+                      v-if="rowColorConfig.type === 'cell'"
+                      :value="rowColorConfig.fk_target_column_id || ''"
+                      class="!w-32"
+                      size="small"
+                      :placeholder="$t('objects.field')"
+                      :disabled="readOnlyFilter"
+                      @change="updateColor(i, 'fk_target_column_id', $event)"
+                    >
+                      <template #suffixIcon>
+                        <GeneralIcon icon="arrowDown" class="text-gray-700" />
+                      </template>
+                      <a-select-option v-for="column in columns" :key="column.id" :value="column.id">
+                        <div class="w-full flex gap-2 items-center">
+                          <SmartsheetHeaderIcon :column="column" class="!mx-0" />
+                          <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                            <template #title>
+                              {{ column.title }}
+                            </template>
+                            {{ column.title }}
+                          </NcTooltip>
+                        </div>
+                      </a-select-option>
+                    </NcSelect>
                   </div>
                   <div class="flex items-center justify-end">
                     <NcButton
@@ -299,44 +336,6 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                     >
                       {{ $t('labels.backgroundColour') }}
                     </NcSwitch>
-                  </div>
-                  <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
-                    <NcSelect
-                      :value="rowColorConfig.type || 'row'"
-                      class="!w-20"
-                      size="small"
-                      @change="updateColor(i, 'type', $event)"
-                    >
-                      <template #suffixIcon>
-                        <GeneralIcon icon="arrowDown" class="text-gray-700" />
-                      </template>
-                      <a-select-option value="row">{{ $t('general.row') }}</a-select-option>
-                      <a-select-option value="cell">{{ $t('objects.cell') }}</a-select-option>
-                    </NcSelect>
-                  </div>
-                  <div v-if="rowColorConfig.type === 'cell'" class="flex items-center cursor-pointer select-none text-nc-content-gray">
-                    <NcSelect
-                      :value="rowColorConfig.fk_target_column_id || ''"
-                      class="!w-32"
-                      size="small"
-                      :placeholder="$t('objects.field')"
-                      @change="updateColor(i, 'fk_target_column_id', $event)"
-                    >
-                      <template #suffixIcon>
-                        <GeneralIcon icon="arrowDown" class="text-gray-700" />
-                      </template>
-                      <a-select-option v-for="column in columns" :key="column.id" :value="column.id">
-                        <div class="w-full flex gap-2 items-center">
-                          <SmartsheetHeaderIcon :column="column" class="!mx-0" />
-                          <NcTooltip class="flex-1 truncate" show-on-truncate-only>
-                            <template #title>
-                              {{ column.title }}
-                            </template>
-                            {{ column.title }}
-                          </NcTooltip>
-                        </div>
-                      </a-select-option>
-                    </NcSelect>
                   </div>
                 </div>
               </template>

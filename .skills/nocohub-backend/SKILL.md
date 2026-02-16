@@ -55,37 +55,50 @@ export class MyService extends MyServiceCE {
 
 ### Workflow 1: Add New API Endpoint (CE)
 
+> **IMPORTANT: Use Internal Controllers, NOT direct controllers.**
+> All new API endpoints should use the **internal controller pattern** with `operationScopes.ts` + `UiPost.operations.ts` / `UiGet.operations.ts`. Do NOT create direct controller files (e.g., `{feature}.controller.ts`) — these are legacy patterns. The internal controller dispatches operations through a centralized routing system.
+
 1. **Determine the feature scope**
-   - CE feature → Files in `src/controllers/`, `src/services/`, `src/models/`
-   - EE feature → Files in `src/ee/controllers/`, `src/ee/services/`, etc.
+    - CE feature → Files in `src/services/`, `src/models/`, and internal controller modules
+    - EE feature → Files in `src/ee/services/`, `src/ee/models/`, etc.
 
-2. **Create the controller** (`src/controllers/{feature}.controller.ts`)
+2. **Register operations in internal controllers**
+
+   a. **Add operation scopes** (`src/controllers/internal/operationScopes.ts`)
    ```typescript
-   import { Controller, Get, Post, UseGuards, Req, Body, Param } from '@nestjs/common';
-   import { GlobalGuard } from '~/guards/global/global.guard';
-   import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
-   import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
-   import { NcRequest } from '~/interface/config';
-   import { {Feature}Service } from '~/services/{feature}.service';
-
-   @Controller()
-   @UseGuards(MetaApiLimiterGuard, GlobalGuard)
-   export class {Feature}Controller {
-     constructor(private readonly {feature}Service: {Feature}Service) {}
-
-     @Get(['/api/v1/db/meta/{resource}', '/api/v2/meta/{resource}'])
-     @Acl('{feature}List')
-     async list(@Req() req: NcRequest) {
-       return await this.{feature}Service.list({ userId: req['user'].id, req });
-     }
-
-     @Post(['/api/v1/db/meta/{resource}', '/api/v2/meta/{resource}'])
-     @HttpCode(200)
-     @Acl('{feature}Create')
-     async create(@Req() req: NcRequest, @Body() body) {
-       return await this.{feature}Service.create({ body, userId: req['user'].id, req });
-     }
+   export const OPERATION_SCOPES = {
+     // ... existing operations
+     {feature}Get: 'base',
+     {feature}Create: 'base',
+     {feature}Update: 'base',
    }
+   ```
+
+   b. **Add GET operations** (`src/controllers/internal/modules/UiGet.operations.ts`)
+    - Import your service
+    - Add to constructor injection
+    - Add operation names to `operations` array
+    - Add handler cases to `handle()` switch statement
+   ```typescript
+   case '{feature}Get':
+     return await this.{feature}Service.get(context, {
+       {feature}Id: req.query.{feature}Id as string,
+     });
+   ```
+
+   c. **Add POST operations** (`src/controllers/internal/modules/UiPost.operations.ts`)
+    - Import your service
+    - Add to constructor injection
+    - Add operation names to `operations` array
+    - Add handler cases to `handle()` switch statement
+   ```typescript
+   case '{feature}Create':
+     return await this.{feature}Service.create(context, {
+       body: payload,
+       tableId: req.query.tableId,
+       user: req.user,
+       req,
+     });
    ```
 
 3. **Create the service** (`src/services/{feature}.service.ts`)
@@ -185,11 +198,14 @@ export class MyService extends MyServiceCE {
    });
    ```
 
-6. **Register in noco.module.ts** (`src/modules/noco.module.ts`)
-   - Add controller to `controllers` array
-   - Add service to `providers` array
+6. **Add ACL permissions** in **BOTH** CE and EE:
+    - CE: `src/utils/acl.ts` — add operation names with role permissions
+    - EE: `src/ee/utils/acl.ts` — mirror the same entries
+    - The operation name (e.g., `{feature}Create`) IS the ACL key
 
-7. **Add ACL permissions** in the middleware configuration
+7. **Register service in noco.module.ts** (`src/modules/noco.module.ts`)
+    - Add service to `providers` array
+    - Note: Do NOT add controllers — internal controllers handle routing automatically
 
 ### Workflow 2: Add EE-Only Feature
 
@@ -215,17 +231,20 @@ export class MyService extends MyServiceCE {
 2. **Create EE controller if needed** (`src/ee/controllers/{feature}.controller.ts`)
 
 3. **Register in EE module** (`src/ee/modules/noco.module.ts`)
-   - Import from EE path, not CE path
-   - Module system will use EE version when built with EE flag
+    - Import from EE path, not CE path
+    - Module system will use EE version when built with EE flag
 
 ### Workflow 3: Database Migration
 
+> **IMPORTANT: Always add migrations in `v0/` directory.**
+> The `v1/`, `v2/`, and `v3/` migration directories are deprecated. All new migrations go in `v0/` and are registered in `XcMigrationSourcev0.ts`.
+
 1. **Determine next migration number**
    ```bash
-   ls packages/nocodb/src/meta/migrations/v2/ | grep -E '^nc_[0-9]+' | sort | tail -1
+   ls packages/nocodb/src/meta/migrations/v0/ | grep -E '^nc_[0-9]+' | sort | tail -1
    ```
 
-2. **Create migration file** (`src/meta/migrations/v2/nc_{XXX}_{description}.ts`)
+2. **Create migration file** (`src/meta/migrations/v0/nc_{XXX}_{description}.ts`)
    ```typescript
    import type { Knex } from 'knex';
    import { MetaTable } from '~/utils/globals';
@@ -247,17 +266,28 @@ export class MyService extends MyServiceCE {
    export { up, down };
    ```
 
-3. **Register migration in XcMigrationSourcev2.ts**
-   - Add import for new migration
-   - Add to migrations array
+3. **Register migration in XcMigrationSourcev0.ts**
+    - Add import for new migration
+    - Add to migrations array in `getMigrations()`
+    - Add case to `getMigration()` switch statement
 
 4. **Update MetaTable enum** in `src/utils/globals.ts` if adding new table
 
+5. **Primary keys and scoping depend on entity scope:**
+    - **Base scope** (views, columns, sorts, filters): composite PK `['base_id', 'id']` or `['base_id', 'fk_view_id']` + include `fk_workspace_id`
+    - **Workspace scope** (e.g., workspace-level settings): just `id` PK + include `fk_workspace_id`, no `base_id`
+    - **Org scope** (e.g., users, API tokens): just `id` PK, no `fk_workspace_id` or `base_id`
+
 ### Workflow 4: Add New Model/Entity
+
+> **CRITICAL: Always update BOTH CE and EE globals and meta.service files.**
+> The EE `globals.ts` and `meta.service.ts` are **separate overrides** that do not inherit from CE. If you add a new MetaTable/CacheScope in CE, you MUST also add it in the EE versions or the enum values will resolve to `undefined` at runtime.
 
 1. **Define the model** in `src/models/{Feature}.ts`
 
-2. **Add to MetaTable enum** (`src/utils/globals.ts`)
+2. **Add to MetaTable enum** in **BOTH** locations:
+
+   a. **CE** (`src/utils/globals.ts`)
    ```typescript
    export enum MetaTable {
      // ... existing tables
@@ -265,17 +295,24 @@ export class MyService extends MyServiceCE {
    }
    ```
 
-3. **Add CacheScope** if caching needed (`src/utils/globals.ts`)
+   b. **EE** (`src/ee/utils/globals.ts`) — **MUST mirror CE entries**
    ```typescript
-   export enum CacheScope {
-     // ... existing scopes
-     {FEATURE} = '{feature}',
+   export enum MetaTable {
+     // ... existing tables (this overrides CE enum entirely)
+     {FEATURE}S = 'nc_{feature}s',
    }
    ```
+   Also update `BaseRelatedMetaTables` and `orderedMetaTables` arrays in EE globals.
 
-4. **Create migration** for the new table
+3. **Add CacheScope** in **BOTH** CE and EE `globals.ts`
 
-5. **Add SDK types** in `packages/nocodb-sdk/src/lib/Api.ts` (auto-generated from swagger)
+4. **Add nanoid prefixes** in **BOTH** meta.service files:
+    - CE: `src/meta/meta.service.ts` → `genNanoid()` prefixMap
+    - EE: `src/ee/meta/meta.service.ts` → `genNanoid()` prefixMap
+
+5. **Create migration** for the new table
+
+6. **Add SDK types** in `packages/nocodb-sdk/src/lib/Api.ts` (auto-generated from swagger)
 
 ## Key Conventions
 
@@ -372,4 +409,5 @@ The script generates files and prints next steps for manual registration.
 
 - **Patterns & Templates**: See [references/patterns.md](references/patterns.md) for complete code examples
 - **MetaTable Reference**: See [references/meta-tables.md](references/meta-tables.md) for database table enums
+- **View Creation Guide**: See [references/view-creation.md](references/view-creation.md) for adding a new view type (meta layer)
 - **Sync Exclusions**: See `scripts/sync/exclude-list.txt` for CE/EE sync rules

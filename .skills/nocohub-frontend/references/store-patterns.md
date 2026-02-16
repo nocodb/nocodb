@@ -675,29 +675,29 @@ if (import.meta.hot) {
 
 ```vue
 <script lang="ts" setup>
-import { storeToRefs } from 'pinia'
+  import { storeToRefs } from 'pinia'
 
-// Access store
-const store = useMyFeatureStore()
+  // Access store
+  const store = useMyFeatureStore()
 
-// Extract reactive refs (preserves reactivity)
-const { items, selectedItem, isLoading } = storeToRefs(store)
+  // Extract reactive refs (preserves reactivity)
+  const { items, selectedItem, isLoading } = storeToRefs(store)
 
-// Actions can be destructured directly (they're functions, not reactive)
-const { createItem, updateItem, deleteItem } = store
+  // Actions can be destructured directly (they're functions, not reactive)
+  const { createItem, updateItem, deleteItem } = store
 
-// Or access everything via store instance
-const handleCreate = async () => {
-  await store.createItem(baseId, { title: 'New Item' })
-}
-
-// Watch store state
-watch(
-  () => store.selectedId,
-  (newId) => {
-    console.log('Selection changed:', newId)
+  // Or access everything via store instance
+  const handleCreate = async () => {
+    await store.createItem(baseId, { title: 'New Item' })
   }
-)
+
+  // Watch store state
+  watch(
+    () => store.selectedId,
+    (newId) => {
+      console.log('Selection changed:', newId)
+    }
+  )
 </script>
 
 <template>

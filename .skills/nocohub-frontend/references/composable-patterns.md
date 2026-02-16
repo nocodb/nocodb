@@ -203,11 +203,11 @@ export function useSmartsheetStoreOrThrow() {
 ```vue
 <!-- Parent component - Provider -->
 <script lang="ts" setup>
-const view = inject(ViewInj)
-const meta = inject(TableInj)
+  const view = inject(ViewInj)
+  const meta = inject(TableInj)
 
-// Provide store to all descendants
-useProvideSmartsheetStore(view, meta)
+  // Provide store to all descendants
+  useProvideSmartsheetStore(view, meta)
 </script>
 
 <template>
@@ -219,7 +219,7 @@ useProvideSmartsheetStore(view, meta)
 ```vue
 <!-- Child component - Consumer -->
 <script lang="ts" setup>
-const { rows, isLoading, pagination, changePage } = useSmartsheetStoreOrThrow()
+  const { rows, isLoading, pagination, changePage } = useSmartsheetStoreOrThrow()
 </script>
 
 <template>
@@ -370,11 +370,11 @@ export function useApi(options: { useGlobalInstance?: boolean } = {}) {
   const api = useGlobalInstance
     ? (useNuxtApp().$api as Api<any>)
     : new ApiClass({
-        baseURL: '/api/v1',
-        headers: {
-          'xc-auth': token.value || '',
-        },
-      })
+      baseURL: '/api/v1',
+      headers: {
+        'xc-auth': token.value || '',
+      },
+    })
 
   // Wrapper for API calls with loading state
   const exec = async <T>(
@@ -694,6 +694,22 @@ export function useForm<T extends Record<string, any>>(
   }
 }
 ```
+
+## Pattern 10: useViewFilters / useViewSorts Timing
+
+**Key gotcha**: `addFilterGroup` in `useViewFilters` calls `saveOrUpdate` **immediately inside** the composable. If you need to set extra properties on the filter before it's saved (e.g., a scoping FK), pass them via the `draftFilter` parameter — don't set them after the call.
+
+```typescript
+// BAD: Property set AFTER composable already saved
+await _addFilterGroup()
+filter.fk_extra_id = someId  // Too late
+
+// GOOD: Pass via draftFilter so it's included in the placeholder
+const draftFilter = { ...filter, fk_extra_id: someId }
+await _addFilterGroup(draftFilter)
+```
+
+Sorts don't have this problem — `saveOrUpdate` is called by the caller, not inside the composable.
 
 ## EE Composable Extension Pattern
 

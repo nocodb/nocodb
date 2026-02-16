@@ -41,6 +41,8 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const activeView = inject(ActiveViewInj, ref())
 
+const { $e } = useNuxtApp()
+
 const { isUIAllowed } = useRoles()
 
 const { isUserViewOwner } = useViewsStore()
@@ -101,6 +103,15 @@ const updateColor = (index: number, field: string, value: string) => {
     showUpgradeToUseCellColoring()
     return
   }
+
+  if (field === 'type') {
+    $e('c:row-color:type-change', { type: value })
+  } else if (field === 'fk_target_column_id') {
+    $e('c:row-color:cell:field-select')
+  } else if (field === 'is_set_as_background') {
+    $e('c:row-color:background-toggle', { enabled: value })
+  }
+
   if (field === 'color') {
     updateColorPendingPayload.value = {
       index,

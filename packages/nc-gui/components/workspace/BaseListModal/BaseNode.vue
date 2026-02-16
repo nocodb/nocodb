@@ -14,6 +14,8 @@ const { onRename, onToggleStarred, onDuplicate, onOpenErd, onOpenSettings, onDel
 const { isUIAllowed } = useRoles()
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
+const { activeProjectId } = storeToRefs(useBases())
+
 // Local state
 const isMenuOpen = ref(false)
 const editMode = ref(false)
@@ -108,7 +110,7 @@ const onMenuClick = (e: Event) => {
   <div
     :tabindex="0"
     class="nc-base-node group relative flex items-center gap-3 p-3 rounded-xl cursor-pointer border-1 transition-all border-nc-border-gray-medium hover:border-nc-border-gray-dark hover:shadow-sm"
-    :class="{ 'is-marked': isMarked, 'is-editing': editMode }"
+    :class="{ 'is-marked': isMarked, 'is-editing': editMode, 'is-selected': activeProjectId === base.id }"
     :data-id="base.id"
     :data-testid="`nc-base-list-modal-base-title-${base.title}`"
     @click="handleSelect"
@@ -241,7 +243,9 @@ const onMenuClick = (e: Event) => {
 
   &:hover,
   &:focus-within {
-    @apply bg-nc-bg-gray-light dark:bg-nc-bg-gray-medium;
+    &:not(.is-selected) {
+      @apply bg-nc-bg-gray-light dark:bg-nc-bg-gray-medium;
+    }
 
     .nc-base-node-menu-wrapper {
       @apply w-6 !flex;
@@ -262,6 +266,10 @@ const onMenuClick = (e: Event) => {
 
   &.is-editing {
     @apply cursor-default;
+  }
+
+  &.is-selected {
+    @apply border-nc-border-brand/30 hover:border-nc-border-brand/40 bg-brand-500/5 dark:bg-brand-500/10;
   }
 }
 

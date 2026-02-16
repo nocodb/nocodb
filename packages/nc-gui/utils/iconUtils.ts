@@ -193,6 +193,7 @@ import NcCellAttachment from '~icons/nc-icons/cell-attachment'
 import NcCellButton from '~icons/nc-icons/cell-button'
 import NcCellAiButton from '~icons/nc-icons/cell-ai-button'
 import NcCellAi from '~icons/nc-icons/cell-ai'
+import NcCellColour from '~icons/nc-icons/cell-colour'
 
 import NcCircleCheck from '~icons/nc-icons/circle-check'
 import OnetoOneIcon from '~icons/nc-icons/onetoone'
@@ -998,6 +999,7 @@ export const iconMap = {
   'cellPhone': NcCellPhone,
   'cellQrCode': NcCellQrCode,
   'cellRating': NcCellRating,
+  'cellColour': NcCellColour,
   'cellRollup': h(NcCellRollup, { stroke: 'transparent' }),
   'cellSingleSelect': NcCellSingleSelect,
   'cellText': NcCellText,

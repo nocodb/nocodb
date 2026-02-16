@@ -9,15 +9,18 @@ import {
   Put,
   Query,
   Req,
+  UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import { NcContext } from '~/interface/config';
 import { ScimUsersService } from '~/ee/services/scim/scim-users.service';
 import { ScimAuthGuard } from '~/ee/guards/scim-auth.guard';
+import { ScimExceptionFilter } from '~/ee/filters/scim-exception/scim-exception.filter';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 
 @Controller()
 @UseGuards(ScimAuthGuard)
+@UseFilters(ScimExceptionFilter)
 export class ScimUsersController {
   constructor(private readonly scimUsersService: ScimUsersService) {}
 

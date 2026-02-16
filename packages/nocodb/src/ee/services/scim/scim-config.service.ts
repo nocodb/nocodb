@@ -1,4 +1,4 @@
-import { randomBytes } from 'crypto';
+import { randomBytes, timingSafeEqual } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
@@ -138,7 +138,9 @@ export class ScimConfigService {
       return false;
     }
 
-    return config.provisioning_token === token;
+    const a = Buffer.from(config.provisioning_token);
+    const b = Buffer.from(token);
+    return a.length === b.length && timingSafeEqual(a, b);
   }
 
   private generateProvisioningToken(): string {

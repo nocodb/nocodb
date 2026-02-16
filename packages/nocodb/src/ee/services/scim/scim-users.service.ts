@@ -141,14 +141,51 @@ export class ScimUsersService {
       });
     }
 
-    // Check if workspace user already exists
-    const existingWsUser = await WorkspaceUser.get(workspaceId, user.id);
+    // Check if workspace user already exists (include deleted for reactivation)
+    const allWsUsers = await WorkspaceUser.userList({
+      fk_workspace_id: workspaceId,
+      include_deleted: true,
+    });
+
+    const existingWsUser = allWsUsers.find(
+      (wu) => wu.fk_user_id === user.id,
+    );
 
     if (existingWsUser && !existingWsUser.deleted) {
       NcError.badRequest('User already exists in workspace');
     }
 
-    // Create or restore workspace user with SCIM data
+    // Reactivate soft-deleted user
+    if (existingWsUser?.deleted) {
+      const updateData = {
+        deleted: false,
+        deleted_at: null,
+        roles: existingWsUser.roles || WorkspaceUserRoles.VIEWER,
+        scim_external_id: scimUser.externalId || scimUser.id,
+        scim_managed: true,
+        scim_user_name: scimUser.userName,
+        scim_meta: {
+          name: scimUser.name,
+          displayName: scimUser.displayName,
+          active: true,
+        },
+      };
+
+      await WorkspaceUser.update(
+        workspaceId,
+        existingWsUser.fk_user_id,
+        updateData,
+      );
+
+      const reactivatedUser = await WorkspaceUser.get(
+        workspaceId,
+        existingWsUser.fk_user_id,
+      );
+
+      return this.toScimUser(reactivatedUser, workspaceId);
+    }
+
+    // Create new workspace user with SCIM data
     const workspaceUser = await WorkspaceUser.insert({
       fk_workspace_id: workspaceId,
       fk_user_id: user.id,

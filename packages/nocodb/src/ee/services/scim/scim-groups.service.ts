@@ -433,11 +433,23 @@ export class ScimGroupsService {
       fk_workspace_id: workspaceId,
     });
 
+    // Get existing assignments to avoid duplicates
+    const existingAssignments = await PrincipalAssignment.list(context, {
+      resource_type: ResourceType.TEAM,
+      resource_id: teamId,
+    });
+
+    const existingUserIds = new Set(
+      existingAssignments
+        .filter((a) => a.principal_type === PrincipalType.USER)
+        .map((a) => a.principal_ref_id),
+    );
+
     for (const member of members) {
       const wu = workspaceUsers.find(
         (wu) => wu.scim_external_id === member.value,
       );
-      if (wu) {
+      if (wu && !existingUserIds.has(wu.fk_user_id)) {
         await PrincipalAssignment.insert(context, {
           resource_type: ResourceType.TEAM,
           resource_id: teamId,

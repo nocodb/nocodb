@@ -493,6 +493,7 @@ export default class WorkspaceUser {
 
       workspaceUsers = workspaceUsers.map((workspaceUser) => {
         workspaceUser.meta = parseMetaProp(workspaceUser);
+        workspaceUser.scim_meta = parseMetaProp(workspaceUser, 'scim_meta');
         return workspaceUser;
       });
 

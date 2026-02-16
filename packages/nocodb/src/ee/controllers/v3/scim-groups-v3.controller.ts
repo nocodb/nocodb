@@ -7,15 +7,18 @@ import {
   Patch,
   Post,
   Query,
+  UseFilters,
   UseGuards,
 } from '@nestjs/common';
 import { NcContext } from '~/interface/config';
 import { ScimGroupsService } from '~/ee/services/scim/scim-groups.service';
 import { ScimAuthGuard } from '~/ee/guards/scim-auth.guard';
+import { ScimExceptionFilter } from '~/ee/filters/scim-exception/scim-exception.filter';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 
 @Controller()
 @UseGuards(ScimAuthGuard)
+@UseFilters(ScimExceptionFilter)
 export class ScimGroupsController {
   constructor(private readonly scimGroupsService: ScimGroupsService) {}
 

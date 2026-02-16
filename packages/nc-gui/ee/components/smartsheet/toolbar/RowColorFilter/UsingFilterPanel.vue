@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ClientType, RowColoringInfoFilter, RowColoringInfoFilterRow } from 'nocodb-sdk'
-import { PlanFeatureTypes, PlanTitles, ViewLockType } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, ViewLockType, ViewTypes } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
 import Draggable from 'vuedraggable'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
@@ -52,6 +52,8 @@ const isPersonalViewOwner = computed(
 )
 
 const hasPermission = computed(() => isUIAllowed('rowColourUpdate') || isPersonalViewOwner.value)
+
+const isCalendarView = computed(() => activeView.value?.type === ViewTypes.CALENDAR)
 
 const { blockCellColoring, showUpgradeToUseCellColoring } = useEeConfig()
 
@@ -270,6 +272,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       </NcButton>
                     </template>
                     <NcSelect
+                      v-if="!isCalendarView"
                       :value="rowColorConfig.type || 'row'"
                       class="!w-24"
                       size="small"
@@ -305,7 +308,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       </a-select-option>
                     </NcSelect>
                     <NcSelect
-                      v-if="rowColorConfig.type === 'cell'"
+                      v-if="!isCalendarView && rowColorConfig.type === 'cell'"
                       :value="rowColorConfig.fk_target_column_id || ''"
                       class="nc-cell-color-field-select !w-32"
                       size="small"

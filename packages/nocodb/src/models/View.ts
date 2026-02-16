@@ -2843,5 +2843,6 @@ export interface ViewMetaRowColoring {
   rowColoringInfo: {
     fk_column_id: string;
     is_set_as_background: boolean;
+    type?: 'row' | 'cell';
   };
 }

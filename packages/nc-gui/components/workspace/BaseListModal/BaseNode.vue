@@ -12,7 +12,6 @@ const { onRename, onToggleStarred, onDuplicate, onOpenErd, onOpenSettings, onDel
   useWsBaseListActionsOrThrow()
 
 const { isUIAllowed } = useRoles()
-const { $e } = useNuxtApp()
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 // Local state
@@ -117,11 +116,11 @@ const onMenuClick = (e: Event) => {
   >
     <!-- Project Icon with Color Picker -->
     <GeneralBaseIconColorPicker
+      :key="`${base.id}_${iconColor}`"
       :managed-app="{
         managed_app_master: base.managed_app_master,
         managed_app_id: base.managed_app_id,
       }"
-      :key="`${base.id}_${iconColor}`"
       :type="base?.type"
       :model-value="iconColor"
       size="small"

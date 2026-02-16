@@ -90,7 +90,7 @@ const onCreateWorkspace = () => {
               {{ option.ncItemExtra }}
             </span>
           </template>
-          <template #listFooter v-if="canCreateWorkspace && !isMobileMode">
+          <template v-if="canCreateWorkspace && !isMobileMode" #listFooter>
             <NcDivider class="!my-0" />
             <div class="p-2">
               <NcButton type="text" size="small" class="w-full !justify-start" @click="onCreateWorkspace">

@@ -31,7 +31,7 @@ const activeWorkspaceId = computed(() => {
 })
 
 const basesStore = useBases()
-const { createProject: _createProject, loadProjects } = basesStore
+const { createProject: _createProject } = basesStore
 
 const { baseCreateMode } = storeToRefs(basesStore)
 

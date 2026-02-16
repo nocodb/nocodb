@@ -12,8 +12,6 @@ const { isDark } = useTheme()
 
 const { navigateToTable } = useTablesStore()
 
-const { $e } = useNuxtApp()
-
 const isBaseListModalOpen = ref(false)
 
 const createDlg = ref(false)

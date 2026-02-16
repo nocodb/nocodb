@@ -11,8 +11,6 @@ const emit = defineEmits<{
   select: [workspaceId: string]
 }>()
 
-const { activeWorkspaceId } = storeToRefs(useWorkspace())
-
 const { switchWorkspace } = useWsBaseListActionsOrThrow()
 
 const onSelect = () => {
@@ -23,8 +21,8 @@ const onSelect = () => {
 <template>
   <div
     :tabindex="0"
+    class="nc-workspace-node group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer my-0.5 border-1 border-transparent"
     :class="[
-      'nc-workspace-node group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer my-0.5 border-1 border-transparent',
       isSelected
         ? 'nc-selected-workspace-node is-selected !border-nc-border-brand/30'
         : 'hover:(bg-nc-bg-gray-light !border-nc-border-gray-medium)',

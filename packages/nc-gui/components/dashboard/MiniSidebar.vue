@@ -31,23 +31,6 @@ const { setActiveCmdView } = useCommand()
 
 const { isChatWootEnabled } = useProvideChatwoot()
 
-const isProjectListOrHomePageOpen = computed(() => {
-  return (
-    route.value.name?.startsWith('index-typeOrId-baseId-') ||
-    route.value.name === 'index' ||
-    route.value.name === 'index-typeOrId'
-  )
-})
-
-const isProjectPageOpen = computed(() => {
-  return (
-    (route.value.name?.startsWith('index-typeOrId-baseId-') ||
-      route.value.name === 'index' ||
-      route.value.name === 'index-typeOrId') &&
-    showProjectList.value
-  )
-})
-
 const navigateToProjectPage = () => {
   if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
     showProjectList.value = !showProjectList.value

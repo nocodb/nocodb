@@ -56,65 +56,35 @@ const vModel = computed({
 
 const isOpen = ref(false)
 const tempColor = ref<string | null>(null)
-const showClearButton = ref(false)
 const pickerKey = ref(0)
-
-const sizeClass = computed(() => {
-  switch (colourMeta.value.swatchSize) {
-    case 'small':
-      return 'w-4 h-4'
-    case 'large':
-      return 'w-6 h-6'
-    default:
-      return 'w-5 h-5'
-  }
-})
 
 const shapeClass = computed(() => {
   return colourMeta.value.swatchStyle === 'square' ? 'rounded-sm' : 'rounded-full'
 })
-
-const showSwatch = computed(() => colourMeta.value.displayFormat !== 'hex_only')
-
-const showHex = computed(() => colourMeta.value.displayFormat !== 'swatch_only')
 
 const openColorPicker = () => {
   if (!readOnly.value) {
     pickerKey.value++
     tempColor.value = vModel.value
     isOpen.value = true
-    showClearButton.value = false
   }
 }
 
-const onClick = (e: Event) => {
-  e.stopPropagation()
-  if (!readOnly.value && props.modelValue) {
-    // In expanded form, edit column, or form context, open the picker directly on click
-    if (isExpandedFormOpen.value || isEditColumn.value || isForm.value) {
-      openColorPicker()
-    } else {
-      showClearButton.value = true
-    }
+const isValidHex = computed(() => {
+  return props.modelValue && /^#[0-9A-Fa-f]{6}$/i.test(props.modelValue)
+})
+
+const onTextInput = (e: Event) => {
+  const val = (e.target as HTMLInputElement).value.trim()
+  if (!val) {
+    emit('update:modelValue', null)
+    return
   }
-}
-
-const clearValue = (e: Event) => {
-  e.stopPropagation()
-  emit('update:modelValue', null)
-  showClearButton.value = false
-}
-
-const openPicker = () => {
-  if (!readOnly.value) {
-    tempColor.value = vModel.value
-    isOpen.value = true
-    showClearButton.value = false
+  // Accept with or without # prefix
+  const hexMatch = val.match(/^#?([0-9A-Fa-f]{6})$/)
+  if (hexMatch) {
+    emit('update:modelValue', `#${hexMatch[1].toUpperCase()}`)
   }
-}
-
-const hideClearButton = () => {
-  showClearButton.value = false
 }
 
 const onColorChange = (color: string) => {
@@ -173,44 +143,39 @@ watch(isOpen, (open) => {
   }
 })
 
-onMounted(() => {
-  document.addEventListener('click', hideClearButton)
-})
-
 onUnmounted(() => {
   document.removeEventListener('keydown', onKeyDown)
-  document.removeEventListener('click', hideClearButton)
 })
 </script>
 
 <template>
-  <div class="nc-cell-field flex items-center gap-2 w-full h-full relative">
-    <!-- Color Display -->
+  <div class="nc-cell-field flex items-center gap-1 w-full h-full relative">
+    <!-- Colour swatch button to open picker -->
     <div
-      class="flex items-center gap-2 flex-1"
-      :class="{ 'cursor-pointer': !readOnly, 'pointer-events-none': readOnly }"
-      @click="props.modelValue ? onClick($event) : openPicker()"
+      class="flex-shrink-0 w-5 h-5 cursor-pointer flex items-center justify-center"
+      :class="{ 'pointer-events-none opacity-50': readOnly }"
+      @click.stop="openColorPicker"
     >
       <div
-        v-if="showSwatch"
-        :class="[sizeClass, shapeClass]"
+        v-if="isValidHex"
+        :class="shapeClass"
         :style="{ backgroundColor: vModel, border: '1px solid #d0d5dd' }"
-        class="flex-shrink-0"
+        class="w-4 h-4"
       />
-
-      <span v-if="showHex" class="text-sm font-mono truncate">
-        {{ vModel }}
-      </span>
+      <component :is="iconMap.palette" v-else class="w-4 h-4 text-nc-content-gray-muted" />
     </div>
 
-    <!-- Clear Button (X) -->
-    <div
-      v-if="showClearButton && props.modelValue && !readOnly"
-      class="flex items-center justify-center w-5 h-5 rounded cursor-pointer text-nc-content-gray-muted hover:text-nc-content-gray hover:bg-gray-100"
-      @click="clearValue"
-    >
-      <component :is="iconMap.close" class="w-3 h-3" />
-    </div>
+    <!-- Editable text input for manual hex entry -->
+    <input
+      :value="props.modelValue || ''"
+      :disabled="readOnly"
+      type="text"
+      placeholder="#FFFFFF"
+      class="flex-1 h-full border-none outline-none bg-transparent text-sm font-mono nc-cell-field"
+      @input="onTextInput"
+      @keydown.stop
+      @mousedown.stop
+    />
 
     <!-- Color Picker Modal -->
     <a-modal

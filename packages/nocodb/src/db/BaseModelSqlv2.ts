@@ -5301,10 +5301,21 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
       idToAliasMap[col.id] = col.title;
 
+      // For Links columns, only treat as LTAR when linksAsLtar produced
+      // nested object data (not a count number). Check the actual data to decide.
+      let isLinksAsLtar = false;
+      if (col.uidt === UITypes.Links) {
+        const sampleRow = data.find((d) => d[col.id] != null);
+        const sampleVal = sampleRow?.[col.id];
+        isLinksAsLtar =
+          Array.isArray(sampleVal) ||
+          (sampleVal && typeof sampleVal === 'object');
+      }
+
       const isLtarColumn = [
         UITypes.LinkToAnotherRecord,
         UITypes.Lookup,
-      ].includes(col.uidt);
+      ].includes(col.uidt) || isLinksAsLtar;
       if (isLtarColumn) {
         if (col.uidt === UITypes.Lookup) {
           const nestedCol = await this.getNestedColumn(col);

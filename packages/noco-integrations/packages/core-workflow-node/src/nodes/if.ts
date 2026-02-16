@@ -22,6 +22,11 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     NocoSDK.WorkflowNodeComparisonOp.NOT_BLANK,
     NocoSDK.WorkflowNodeComparisonOp.CHECKED,
     NocoSDK.WorkflowNodeComparisonOp.NOT_CHECKED,
+    // Deprecated — kept for backward compatibility with existing workflows
+    NocoSDK.WorkflowNodeComparisonOp.EMPTY,
+    NocoSDK.WorkflowNodeComparisonOp.NOT_EMPTY,
+    NocoSDK.WorkflowNodeComparisonOp.NULL,
+    NocoSDK.WorkflowNodeComparisonOp.NOT_NULL,
   ]);
 
   private static readonly MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -320,16 +325,25 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     return undefined;
   }
 
-  // Helper to check BLANK operations (shared across all types)
+  // Helper to check BLANK/NULL/EMPTY operations (shared across all types)
+  // EMPTY and NULL are deprecated aliases for BLANK; NOT_EMPTY and NOT_NULL for NOT_BLANK
   private checkBlankOp(
     fieldValue: any,
     op: NocoSDK.WorkflowNodeComparisonOp,
     isEmpty: (val: any) => boolean,
   ): boolean | null {
-    if (op === NocoSDK.WorkflowNodeComparisonOp.BLANK) {
+    if (
+      op === NocoSDK.WorkflowNodeComparisonOp.BLANK ||
+      op === NocoSDK.WorkflowNodeComparisonOp.EMPTY ||
+      op === NocoSDK.WorkflowNodeComparisonOp.NULL
+    ) {
       return fieldValue == null || isEmpty(fieldValue);
     }
-    if (op === NocoSDK.WorkflowNodeComparisonOp.NOT_BLANK) {
+    if (
+      op === NocoSDK.WorkflowNodeComparisonOp.NOT_BLANK ||
+      op === NocoSDK.WorkflowNodeComparisonOp.NOT_EMPTY ||
+      op === NocoSDK.WorkflowNodeComparisonOp.NOT_NULL
+    ) {
       return fieldValue != null && !isEmpty(fieldValue);
     }
     return null;
@@ -376,10 +390,14 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
     const num2 = parseFloat(value);
 
     if (isNaN(num1)) {
-      return op === NocoSDK.WorkflowNodeComparisonOp.BLANK;
+      return (
+        op === NocoSDK.WorkflowNodeComparisonOp.BLANK ||
+        op === NocoSDK.WorkflowNodeComparisonOp.EMPTY ||
+        op === NocoSDK.WorkflowNodeComparisonOp.NULL
+      );
     }
 
-    // Check common operations
+    // Check common operations (includes deprecated EMPTY/NULL/NOT_EMPTY/NOT_NULL)
     const blankResult = this.checkBlankOp(fieldValue, op, (val) =>
       isNaN(parseFloat(val)),
     );
@@ -411,7 +429,11 @@ export class IfNode extends WorkflowNodeIntegration<IfNodeConfig> {
   ): boolean {
     const date1 = new Date(fieldValue);
     if (isNaN(date1.getTime())) {
-      return op === NocoSDK.WorkflowNodeComparisonOp.BLANK;
+      return (
+        op === NocoSDK.WorkflowNodeComparisonOp.BLANK ||
+        op === NocoSDK.WorkflowNodeComparisonOp.EMPTY ||
+        op === NocoSDK.WorkflowNodeComparisonOp.NULL
+      );
     }
 
     // Check common operations

@@ -63,76 +63,102 @@ const isWorkflowNodeConditionGroup = (item: WorkflowNodeConditionItem): item is 
 
 const isGroup = computed(() => isWorkflowNodeConditionGroup(props.item))
 
+// Deprecated ops — only shown in dropdown if the condition already uses one
+const deprecatedOpsMap: Record<string, { label: string; value: WorkflowNodeComparisonOp }> = {
+  [WorkflowNodeComparisonOp.EMPTY]: { label: 'is empty (deprecated)', value: WorkflowNodeComparisonOp.EMPTY },
+  [WorkflowNodeComparisonOp.NOT_EMPTY]: { label: 'is not empty (deprecated)', value: WorkflowNodeComparisonOp.NOT_EMPTY },
+  [WorkflowNodeComparisonOp.NULL]: { label: 'is null (deprecated)', value: WorkflowNodeComparisonOp.NULL },
+  [WorkflowNodeComparisonOp.NOT_NULL]: { label: 'is not null (deprecated)', value: WorkflowNodeComparisonOp.NOT_NULL },
+}
+
 // Type-aware comparison operations
-const getWorkflowNodeComparisonOps = (dataType?: WorkflowNodeFilterDataType) => {
+const getWorkflowNodeComparisonOps = (dataType?: WorkflowNodeFilterDataType, currentOp?: WorkflowNodeComparisonOp) => {
   const commonOps = [
     { label: 'is blank', value: WorkflowNodeComparisonOp.BLANK },
     { label: 'is not blank', value: WorkflowNodeComparisonOp.NOT_BLANK },
   ]
 
-  if (!dataType) return commonOps
+  let ops: { label: string; value: WorkflowNodeComparisonOp }[]
 
-  switch (dataType) {
-    case WorkflowNodeFilterDataType.TEXT:
-      return [
-        { label: 'is equal', value: WorkflowNodeComparisonOp.EQ },
-        { label: 'is not equal', value: WorkflowNodeComparisonOp.NEQ },
-        { label: 'is like', value: WorkflowNodeComparisonOp.LIKE },
-        { label: 'is not like', value: WorkflowNodeComparisonOp.NLIKE },
-        ...commonOps,
-      ]
-    case WorkflowNodeFilterDataType.NUMBER:
-      return [
-        { label: '=', value: WorkflowNodeComparisonOp.EQ },
-        { label: '!=', value: WorkflowNodeComparisonOp.NEQ },
-        { label: '>', value: WorkflowNodeComparisonOp.GT },
-        { label: '<', value: WorkflowNodeComparisonOp.LT },
-        { label: '>=', value: WorkflowNodeComparisonOp.GTE },
-        { label: '<=', value: WorkflowNodeComparisonOp.LTE },
-        ...commonOps,
-      ]
-    case WorkflowNodeFilterDataType.DATE:
-    case WorkflowNodeFilterDataType.DATETIME:
-      return [
-        { label: 'is', value: WorkflowNodeComparisonOp.EQ },
-        { label: 'is not', value: WorkflowNodeComparisonOp.NEQ },
-        { label: 'is after', value: WorkflowNodeComparisonOp.GT },
-        { label: 'is before', value: WorkflowNodeComparisonOp.LT },
-        { label: 'is on or after', value: WorkflowNodeComparisonOp.GTE },
-        { label: 'is on or before', value: WorkflowNodeComparisonOp.LTE },
-        { label: 'is within', value: WorkflowNodeComparisonOp.IS_WITHIN },
-        ...commonOps,
-      ]
-    case WorkflowNodeFilterDataType.BOOLEAN:
-      return [
-        { label: 'is checked', value: WorkflowNodeComparisonOp.CHECKED },
-        { label: 'is not checked', value: WorkflowNodeComparisonOp.NOT_CHECKED },
-      ]
-    case WorkflowNodeFilterDataType.SELECT:
-      return [
-        { label: 'is', value: WorkflowNodeComparisonOp.EQ },
-        { label: 'is not', value: WorkflowNodeComparisonOp.NEQ },
-        { label: 'contains any of', value: WorkflowNodeComparisonOp.ANY_OF },
-        { label: 'does not contain any of', value: WorkflowNodeComparisonOp.NOT_ANY_OF },
-        ...commonOps,
-      ]
-    case WorkflowNodeFilterDataType.MULTI_SELECT:
-      return [
-        { label: 'contains all of', value: WorkflowNodeComparisonOp.ALL_OF },
-        { label: 'contains any of', value: WorkflowNodeComparisonOp.ANY_OF },
-        { label: 'does not contain all of', value: WorkflowNodeComparisonOp.NOT_ALL_OF },
-        { label: 'does not contain any of', value: WorkflowNodeComparisonOp.NOT_ANY_OF },
-        ...commonOps,
-      ]
-    case WorkflowNodeFilterDataType.JSON:
-      return [
-        { label: 'is equal', value: WorkflowNodeComparisonOp.EQ },
-        { label: 'is not equal', value: WorkflowNodeComparisonOp.NEQ },
-        ...commonOps,
-      ]
-    default:
-      return commonOps
+  if (!dataType) {
+    ops = commonOps
+  } else {
+    switch (dataType) {
+      case WorkflowNodeFilterDataType.TEXT:
+        ops = [
+          { label: 'is equal', value: WorkflowNodeComparisonOp.EQ },
+          { label: 'is not equal', value: WorkflowNodeComparisonOp.NEQ },
+          { label: 'is like', value: WorkflowNodeComparisonOp.LIKE },
+          { label: 'is not like', value: WorkflowNodeComparisonOp.NLIKE },
+          ...commonOps,
+        ]
+        break
+      case WorkflowNodeFilterDataType.NUMBER:
+        ops = [
+          { label: '=', value: WorkflowNodeComparisonOp.EQ },
+          { label: '!=', value: WorkflowNodeComparisonOp.NEQ },
+          { label: '>', value: WorkflowNodeComparisonOp.GT },
+          { label: '<', value: WorkflowNodeComparisonOp.LT },
+          { label: '>=', value: WorkflowNodeComparisonOp.GTE },
+          { label: '<=', value: WorkflowNodeComparisonOp.LTE },
+          ...commonOps,
+        ]
+        break
+      case WorkflowNodeFilterDataType.DATE:
+      case WorkflowNodeFilterDataType.DATETIME:
+        ops = [
+          { label: 'is', value: WorkflowNodeComparisonOp.EQ },
+          { label: 'is not', value: WorkflowNodeComparisonOp.NEQ },
+          { label: 'is after', value: WorkflowNodeComparisonOp.GT },
+          { label: 'is before', value: WorkflowNodeComparisonOp.LT },
+          { label: 'is on or after', value: WorkflowNodeComparisonOp.GTE },
+          { label: 'is on or before', value: WorkflowNodeComparisonOp.LTE },
+          { label: 'is within', value: WorkflowNodeComparisonOp.IS_WITHIN },
+          ...commonOps,
+        ]
+        break
+      case WorkflowNodeFilterDataType.BOOLEAN:
+        ops = [
+          { label: 'is checked', value: WorkflowNodeComparisonOp.CHECKED },
+          { label: 'is not checked', value: WorkflowNodeComparisonOp.NOT_CHECKED },
+        ]
+        break
+      case WorkflowNodeFilterDataType.SELECT:
+        ops = [
+          { label: 'is', value: WorkflowNodeComparisonOp.EQ },
+          { label: 'is not', value: WorkflowNodeComparisonOp.NEQ },
+          { label: 'contains any of', value: WorkflowNodeComparisonOp.ANY_OF },
+          { label: 'does not contain any of', value: WorkflowNodeComparisonOp.NOT_ANY_OF },
+          ...commonOps,
+        ]
+        break
+      case WorkflowNodeFilterDataType.MULTI_SELECT:
+        ops = [
+          { label: 'contains all of', value: WorkflowNodeComparisonOp.ALL_OF },
+          { label: 'contains any of', value: WorkflowNodeComparisonOp.ANY_OF },
+          { label: 'does not contain all of', value: WorkflowNodeComparisonOp.NOT_ALL_OF },
+          { label: 'does not contain any of', value: WorkflowNodeComparisonOp.NOT_ANY_OF },
+          ...commonOps,
+        ]
+        break
+      case WorkflowNodeFilterDataType.JSON:
+        ops = [
+          { label: 'is equal', value: WorkflowNodeComparisonOp.EQ },
+          { label: 'is not equal', value: WorkflowNodeComparisonOp.NEQ },
+          ...commonOps,
+        ]
+        break
+      default:
+        ops = commonOps
+    }
   }
+
+  // If the condition already uses a deprecated op, include it so the dropdown shows the current value
+  if (currentOp && currentOp in deprecatedOpsMap && !ops.some((o) => o.value === currentOp)) {
+    ops.push(deprecatedOpsMap[currentOp])
+  }
+
+  return ops
 }
 
 // Sub-operations for date comparisons
@@ -169,6 +195,11 @@ const showValueInput = (condition: WorkflowNodeFilterCondition) => {
     WorkflowNodeComparisonOp.NOT_BLANK,
     WorkflowNodeComparisonOp.CHECKED,
     WorkflowNodeComparisonOp.NOT_CHECKED,
+    // Deprecated ops — not shown in dropdown but must be handled for existing workflows
+    WorkflowNodeComparisonOp.EMPTY,
+    WorkflowNodeComparisonOp.NOT_EMPTY,
+    WorkflowNodeComparisonOp.NULL,
+    WorkflowNodeComparisonOp.NOT_NULL,
   ]
 
   if (noValueOps.includes(condition.comparison_op)) {
@@ -357,7 +388,7 @@ const logicalOps = [
         @update:value="onWorkflowNodeComparisonOpChange"
       >
         <a-select-option
-          v-for="op in getWorkflowNodeComparisonOps((item as WorkflowNodeFilterCondition).dataType)"
+          v-for="op in getWorkflowNodeComparisonOps((item as WorkflowNodeFilterCondition).dataType, (item as WorkflowNodeFilterCondition).comparison_op)"
           :key="op.value"
           :value="op.value"
         >

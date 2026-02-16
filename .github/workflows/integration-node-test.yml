@@ -56,6 +56,88 @@ jobs:
         run: sed -i '/^use-node-version/d' .npmrc
       - name: Install dependencies
         run: pnpm bootstrap
-      - name: Run integration node tests
-        working-directory: ./packages/noco-integrations
-        run: pnpm test
+
+      - name: Run tests with coverage
+        id: test
+        working-directory: ./packages/noco-integrations/packages/core-workflow-node
+        continue-on-error: true
+        run: |
+          set +e
+          OUTPUT=$(npx vitest run --coverage --reporter=verbose 2>&1)
+          EXIT_CODE=$?
+          echo "$OUTPUT"
+          echo "$OUTPUT" > test-output.txt
+          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
+          exit 0
+
+      - name: Build PR comment
+        if: github.event_name == 'pull_request'
+        id: comment
+        working-directory: ./packages/noco-integrations/packages/core-workflow-node
+        shell: bash
+        run: |
+          OUTPUT=$(cat test-output.txt)
+          EXIT_CODE=${{ steps.test.outputs.exit_code }}
+
+          # Extract coverage table
+          COVERAGE=$(echo "$OUTPUT" | sed -n '/^-.*|.*Stmts/,/^-.*|.*---/p')
+
+          # Build comment body
+          {
+            echo 'body<<COMMENT_EOF'
+
+            if [ "$EXIT_CODE" -eq 0 ]; then
+              echo '## ✅ Integration Node Tests Passed'
+            else
+              echo '## ❌ Integration Node Tests Failed'
+            fi
+
+            echo ''
+            echo '### Coverage'
+            echo ''
+            echo '```'
+            echo "$COVERAGE"
+            echo '```'
+
+            if [ "$EXIT_CODE" -ne 0 ]; then
+              echo ''
+              echo '### Failed Tests'
+              echo ''
+              echo '```'
+              # Extract failed test names (lines with × or FAIL)
+              echo "$OUTPUT" | grep -E '(×|FAIL )' | head -30
+              echo '```'
+            fi
+
+            # Summary line from vitest output
+            SUMMARY_TESTS=$(echo "$OUTPUT" | grep -E '^\s*Tests\s' | tail -1 | sed 's/\x1b\[[0-9;]*m//g' | xargs)
+            SUMMARY_FILES=$(echo "$OUTPUT" | grep -E '^\s*Test Files\s' | tail -1 | sed 's/\x1b\[[0-9;]*m//g' | xargs)
+            SUMMARY_DURATION=$(echo "$OUTPUT" | grep -E '^\s*Duration\s' | tail -1 | sed 's/\x1b\[[0-9;]*m//g' | xargs)
+
+            echo ''
+            echo "<sub>${SUMMARY_FILES} | ${SUMMARY_TESTS} | ${SUMMARY_DURATION}</sub>"
+
+            echo 'COMMENT_EOF'
+          } >> $GITHUB_OUTPUT
+
+      - name: Find existing comment
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "Integration Node Tests"
+
+      - name: Create or update comment
+        if: github.event_name == 'pull_request'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          edit-mode: replace
+          body: ${{ steps.comment.outputs.body }}
+
+      - name: Fail if tests failed
+        if: steps.test.outputs.exit_code != '0'
+        run: exit 1

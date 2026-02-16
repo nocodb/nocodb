@@ -63,29 +63,28 @@ jobs:
         continue-on-error: true
         run: |
           set +e
-          OUTPUT=$(npx vitest run --coverage --reporter=verbose 2>&1)
-          EXIT_CODE=$?
-          echo "$OUTPUT"
-          echo "$OUTPUT" > test-output.txt
-          echo "exit_code=$EXIT_CODE" >> $GITHUB_OUTPUT
-          exit 0
+          npx vitest run --coverage --reporter=verbose 2>&1 | tee raw-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+          # Strip ANSI escape codes for parsing
+          sed 's/\x1b\[[0-9;]*m//g' raw-output.txt > test-output.txt
 
       - name: Build PR comment
         if: github.event_name == 'pull_request'
-        id: comment
         working-directory: ./packages/noco-integrations/packages/core-workflow-node
         shell: bash
         run: |
-          OUTPUT=$(cat test-output.txt)
           EXIT_CODE=${{ steps.test.outputs.exit_code }}
 
-          # Extract coverage table
-          COVERAGE=$(echo "$OUTPUT" | sed -n '/^-.*|.*Stmts/,/^-.*|.*---/p')
+          # Extract coverage table (clean output, no ANSI)
+          COVERAGE=$(sed -n '/^-.*|.*Stmts/,/^-.*|.*---/p' test-output.txt)
 
-          # Build comment body
+          # Extract summary lines
+          SUMMARY_FILES=$(grep -E '^\s*Test Files\s' test-output.txt | tail -1 | xargs)
+          SUMMARY_TESTS=$(grep -E '^\s*Tests\s' test-output.txt | tail -1 | xargs)
+          SUMMARY_DURATION=$(grep -E '^\s*Duration\s' test-output.txt | tail -1 | xargs)
+
+          # Write comment body to file
           {
-            echo 'body<<COMMENT_EOF'
-
             if [ "$EXIT_CODE" -eq 0 ]; then
               echo '## ✅ Integration Node Tests Passed'
             else
@@ -104,21 +103,13 @@ jobs:
               echo '### Failed Tests'
               echo ''
               echo '```'
-              # Extract failed test names (lines with × or FAIL)
-              echo "$OUTPUT" | grep -E '(×|FAIL )' | head -30
+              grep -E '(×|FAIL )' test-output.txt | head -30 || true
               echo '```'
             fi
 
-            # Summary line from vitest output
-            SUMMARY_TESTS=$(echo "$OUTPUT" | grep -E '^\s*Tests\s' | tail -1 | sed 's/\x1b\[[0-9;]*m//g' | xargs)
-            SUMMARY_FILES=$(echo "$OUTPUT" | grep -E '^\s*Test Files\s' | tail -1 | sed 's/\x1b\[[0-9;]*m//g' | xargs)
-            SUMMARY_DURATION=$(echo "$OUTPUT" | grep -E '^\s*Duration\s' | tail -1 | sed 's/\x1b\[[0-9;]*m//g' | xargs)
-
             echo ''
             echo "<sub>${SUMMARY_FILES} | ${SUMMARY_TESTS} | ${SUMMARY_DURATION}</sub>"
-
-            echo 'COMMENT_EOF'
-          } >> $GITHUB_OUTPUT
+          } > comment-body.md
 
       - name: Find existing comment
         if: github.event_name == 'pull_request'
@@ -136,7 +127,7 @@ jobs:
           issue-number: ${{ github.event.pull_request.number }}
           comment-id: ${{ steps.find-comment.outputs.comment-id }}
           edit-mode: replace
-          body: ${{ steps.comment.outputs.body }}
+          body-path: ./packages/noco-integrations/packages/core-workflow-node/comment-body.md
 
       - name: Fail if tests failed
         if: steps.test.outputs.exit_code != '0'

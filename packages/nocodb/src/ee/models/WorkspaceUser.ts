@@ -17,7 +17,7 @@ import NocoCache from '~/cache/NocoCache';
 import Base from '~/models/Base';
 import { cleanCommandPaletteCacheForUser } from '~/helpers/commandPaletteHelpers';
 import { PresignedUrl } from '~/models';
-import { parseMetaProp } from '~/utils/modelUtils';
+import { parseMetaProp, stringifyMetaProp } from '~/utils/modelUtils';
 import { checkIfWorkspaceSSOAvail } from '~/helpers/paymentHelpers';
 import { clearWorkspaceUserCountCache } from '~/helpers/cacheHelpers';
 import { NcError } from '~/helpers/ncError';
@@ -94,6 +94,11 @@ export default class WorkspaceUser {
         'scim_user_name',
         'scim_meta',
       ]);
+
+      // Stringify scim_meta (TEXT column) before insert
+      if ('scim_meta' in insertObj) {
+        insertObj.scim_meta = stringifyMetaProp(insertObj, 'scim_meta', null);
+      }
 
       await ncMetaTrans.metaInsert2(
         RootScopes.WORKSPACE,
@@ -619,6 +624,11 @@ export default class WorkspaceUser {
       'scim_user_name',
       'scim_meta',
     ]);
+
+    // Stringify scim_meta (TEXT column) before update
+    if ('scim_meta' in updateObj) {
+      updateObj.scim_meta = stringifyMetaProp(updateObj, 'scim_meta', null);
+    }
 
     await ncMeta.metaUpdate(
       RootScopes.WORKSPACE,

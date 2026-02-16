@@ -2,6 +2,7 @@ import { customAlphabet } from 'nanoid';
 import {
   AppEvents,
   getAvailableRollupForUiType,
+  isLinksOrLTAR,
   isLinkV2,
   isMMOrMMLike,
   RelationTypes,
@@ -793,19 +794,13 @@ export const getTargetTableRelColumn = async (
     _targetTable ||
     (await Model.get(refContext, colOptions.fk_related_model_id));
 
-  return await targetTable
-    .getColumns(refContext)
-    .then((columns) =>
-      columns.find(
-        (col: Column<LinkToAnotherRecordColumn>) =>
-          col.uidt === UITypes.LinkToAnotherRecord &&
-          col.colOptions?.fk_related_model_id === relationColumn.fk_model_id &&
-          col &&
-          col.colOptions?.fk_child_column_id ===
-            colOptions.fk_parent_column_id &&
-          col.colOptions?.fk_parent_column_id ===
-            colOptions.fk_child_column_id &&
-          col.colOptions?.fk_mm_model_id === colOptions.fk_mm_model_id,
-      ),
-    );
+  const targetColumns = await targetTable.getColumns(refContext);
+  return targetColumns.find(
+    (col: Column<LinkToAnotherRecordColumn>) =>
+      isLinksOrLTAR(col) &&
+      col.colOptions?.fk_related_model_id === relationColumn.fk_model_id &&
+      col.colOptions?.fk_child_column_id === colOptions.fk_parent_column_id &&
+      col.colOptions?.fk_parent_column_id === colOptions.fk_child_column_id &&
+      col.colOptions?.fk_mm_model_id === colOptions.fk_mm_model_id,
+  );
 };

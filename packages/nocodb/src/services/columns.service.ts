@@ -10,7 +10,6 @@ import {
   isCreatedOrLastModifiedByCol,
   isCreatedOrLastModifiedTimeCol,
   isLinksOrLTAR,
-  isLTARType,
   isMMOrMMLike,
   isServiceUser,
   isSystemColumn,
@@ -69,7 +68,6 @@ import {
   generateFkName,
   getMMColumnNames,
   getRevType,
-  getTargetTableRelColumn,
   sanitizeColumnName,
   validateLookupPayload,
   validatePayload,
@@ -4996,6 +4994,7 @@ export class ColumnsService implements IColumnsService {
         await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel1Args);
         await sqlMgr.sqlOpPlus(param.source, 'relationCreate', rel2Args);
       }
+
       const parentCol = (await assocModel.getColumns(context))?.find(
         (c) => c.column_name === columnName,
       );

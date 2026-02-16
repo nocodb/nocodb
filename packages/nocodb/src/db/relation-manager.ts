@@ -1,3 +1,4 @@
+import { Logger } from '@nestjs/common';
 import {
   AuditOperationSubTypes,
   isLinksOrLTAR,
@@ -18,7 +19,8 @@ import {
   getCompositePkValue,
   getOppositeRelationType,
 } from '~/helpers/dbHelpers';
-import { getTargetTableRelColumn } from '~/helpers';
+
+const logger = new Logger('RelationManager');
 
 interface AuditUpdateLog {
   pkValue?: Record<string, any>;
@@ -79,11 +81,11 @@ export class RelationManager {
   ) {
     const isBelongsTo =
       colOptions.type === RelationTypes.BELONGS_TO || relationColumn.meta?.bt;
-    return (
+    const reversed =
       isLinkV2(relationColumn) ||
       isBelongsTo ||
-      colOptions.type === RelationTypes.MANY_TO_MANY
-    );
+      colOptions.type === RelationTypes.MANY_TO_MANY;
+    return reversed;
   }
 
   static async getRelationManager(
@@ -178,7 +180,12 @@ export class RelationManager {
     );
   }
 
-  async getLinkV2RelatedRow() {
+  /**
+   * Get related rows through the junction table for v2 links.
+   * Returns only PK columns from the parent table (not SELECT *).
+   * F4 fix: select only primary keys instead of all columns.
+   */
+  async getLinkV2RelatedRowPks() {
     const {
       childTable,
       childBaseModel,
@@ -188,6 +195,7 @@ export class RelationManager {
       parentBaseModel,
       parentTn,
       parentColumn,
+      parentTable,
       relationColOptions,
       mmContext,
     } = this.relationContext;
@@ -203,11 +211,15 @@ export class RelationManager {
 
     const vTn = assocBaseModel.getTnPath(vTable);
 
-    // Get related records from parent table through junction table
+    // F4: Select only PK columns instead of parentTn.*
+    const pkColumns = parentTable.primaryKeys.map(
+      (pk) => `${parentTn}.${pk.column_name}`,
+    );
+
     return await parentBaseModel.execAndParse(
       parentBaseModel
         .dbDriver(parentTn)
-        .select(`${parentTn}.*`)
+        .select(...pkColumns)
         .join(
           vTn,
           `${vTn}.${vParentCol.column_name}`,
@@ -251,6 +263,284 @@ export class RelationManager {
     );
   }
 
+  /**
+   * Resolve junction table metadata shared across v2 operations.
+   * F5 fix: resolve once, reuse across operations instead of per-row.
+   */
+  private async resolveJunctionMeta() {
+    const {
+      relationColOptions: colOptions,
+      baseModel,
+      mmContext,
+    } = this.relationContext;
+
+    const vChildCol = await colOptions.getMMChildColumn(mmContext);
+    const vParentCol = await colOptions.getMMParentColumn(mmContext);
+    const vTable = await colOptions.getMMModel(baseModel.context);
+
+    const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
+      model: vTable,
+      dbDriver: baseModel.dbDriver,
+    });
+
+    const vTn = assocBaseModel.getTnPath(vTable);
+
+    return { vChildCol, vParentCol, vTable, assocBaseModel, vTn };
+  }
+
+  /**
+   * Batch delete junction rows by a filter column value (using a subquery).
+   * Returns the FK pairs that were deleted for audit log generation.
+   *
+   * F3 fix: single SELECT + single DELETE instead of N removeChild calls.
+   */
+  private async batchDeleteJunctionRows(
+    trx: Knex.Transaction,
+    params: {
+      vTn: string | Knex.Raw;
+      vChildCol: Column;
+      vParentCol: Column;
+      filterColName: string;
+      filterSubquery: Knex.QueryBuilder;
+    },
+  ): Promise<Array<{ childFk: any; parentFk: any }>> {
+    const { vTn, vChildCol, vParentCol, filterColName, filterSubquery } =
+      params;
+
+    // 1. SELECT existing junction rows (just FK columns)
+    const existingRows = await trx(vTn)
+      .select(vChildCol.column_name, vParentCol.column_name)
+      .where(filterColName, filterSubquery);
+
+    if (existingRows.length === 0) {
+      return [];
+    }
+
+    // 2. Batch DELETE all matching junction rows
+    await trx(vTn).where(filterColName, filterSubquery).delete();
+
+    return existingRows.map((row) => ({
+      childFk: row[vChildCol.column_name],
+      parentFk: row[vParentCol.column_name],
+    }));
+  }
+
+  /**
+   * Generate unlink audit log entries for removed junction rows.
+   * Produces the same audit entries that individual removeChild calls would.
+   */
+  private generateUnlinkAuditLogs(
+    removedPairs: Array<{ childFk: any; parentFk: any }>,
+    relationType: RelationTypes,
+    parentTableId: string,
+    childTableId: string,
+  ) {
+    for (const pair of removedPairs) {
+      this.auditUpdateObj.push({
+        rowId: pair.parentFk,
+        refRowId: pair.childFk,
+        opSubType: AuditOperationSubTypes.UNLINK_RECORD,
+        type: relationType,
+        direction: 'parent_child',
+      });
+
+      if (parentTableId !== childTableId) {
+        this.auditUpdateObj.push({
+          rowId: pair.childFk,
+          refRowId: pair.parentFk,
+          opSubType: AuditOperationSubTypes.UNLINK_RECORD,
+          type: getOppositeRelationType(relationType),
+          direction: 'child_parent',
+        });
+      }
+    }
+  }
+
+  /**
+   * Enforce v2 cardinality constraints and insert the new link atomically.
+   * F1/F2 fix: wraps everything in a single DB transaction.
+   * F3/F5 fix: batch delete instead of per-row removeChild.
+   * F10 fix: no dummy childId needed.
+   * F14 fix: single broadcast after all operations.
+   */
+  private async enforceV2CardinalityAndInsert(params: {
+    vChildCol: Column;
+    vParentCol: Column;
+    vTn: string | Knex.Raw;
+    assocBaseModel: IBaseModelSqlV2;
+    column: Column;
+    req: any;
+    refTableLinkColumnId: string;
+  }) {
+    const {
+      relationColOptions: colOptions,
+      baseModel,
+      parentBaseModel,
+      parentColumn,
+      parentTable,
+      parentTn,
+      childBaseModel,
+      childColumn,
+      childTable,
+      childTn,
+      childId,
+      parentId,
+      relationColumn,
+    } = this.relationContext;
+
+    const { vChildCol, vParentCol, vTn, column, req, refTableLinkColumnId } =
+      params;
+
+    const allAffectedParentIds: any[] = [];
+    const allAffectedChildIds: any[] = [];
+
+    // F1/F2: Wrap cardinality enforcement + insert in a single transaction
+    const trx = await baseModel.dbDriver.transaction();
+    try {
+      // ManyToOne / OneToOne: this child can only link to one parent
+      // → remove all existing junction rows for this child
+      if (['mo', 'oo'].includes(colOptions.type)) {
+        const childFkSubquery = childBaseModel
+          .dbDriver(childTn)
+          .select(childColumn.column_name)
+          .where(_wherePk(childTable.primaryKeys, childId))
+          .first();
+
+        const removedPairs = await this.batchDeleteJunctionRows(trx, {
+          vTn,
+          vChildCol,
+          vParentCol,
+          filterColName: vChildCol.column_name,
+          filterSubquery: childFkSubquery,
+        });
+
+        this.generateUnlinkAuditLogs(
+          removedPairs,
+          colOptions.type as RelationTypes,
+          parentTable.id,
+          childTable.id,
+        );
+
+        for (const pair of removedPairs) {
+          allAffectedParentIds.push(pair.parentFk);
+        }
+
+        if (removedPairs.length > 1) {
+          logger.warn(
+            `V2 cardinality enforcement removed ${removedPairs.length} junction rows ` +
+              `(expected 0-1) for child ${childId} on column ${relationColumn.id}`,
+          );
+        }
+      }
+
+      // OneToMany / OneToOne: this parent can only be linked to by one child
+      // → remove all existing junction rows for this parent
+      if (['om', 'oo'].includes(colOptions.type)) {
+        const parentFkSubquery = parentBaseModel
+          .dbDriver(parentTn)
+          .select(parentColumn.column_name)
+          .where(_wherePk(parentTable.primaryKeys, parentId))
+          .first();
+
+        const removedPairs = await this.batchDeleteJunctionRows(trx, {
+          vTn,
+          vChildCol,
+          vParentCol,
+          filterColName: vParentCol.column_name,
+          filterSubquery: parentFkSubquery,
+        });
+
+        // F6: use the reverse column's relation type for audit logs
+        const reverseRelationType = colOptions.type as RelationTypes;
+        this.generateUnlinkAuditLogs(
+          removedPairs,
+          reverseRelationType,
+          parentTable.id,
+          childTable.id,
+        );
+
+        for (const pair of removedPairs) {
+          allAffectedChildIds.push(pair.childFk);
+        }
+
+        if (removedPairs.length > 1) {
+          logger.warn(
+            `V2 cardinality enforcement removed ${removedPairs.length} junction rows ` +
+              `(expected 0-1) for parent ${parentId} on column ${relationColumn.id}`,
+          );
+        }
+      }
+
+      // Insert the new junction row within the same transaction
+      if (baseModel.isSnowflake || baseModel.isDatabricks) {
+        const parentPK = parentBaseModel
+          .dbDriver(parentTn)
+          .select(parentColumn.column_name)
+          .where(_wherePk(parentTable.primaryKeys, parentId))
+          .first();
+
+        const childPK = childBaseModel
+          .dbDriver(childTn)
+          .select(childColumn.column_name)
+          .where(_wherePk(childTable.primaryKeys, childId))
+          .first();
+
+        await trx.raw(
+          `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
+          [vTn, vParentCol.column_name, vChildCol.column_name],
+        );
+      } else {
+        await trx(vTn).insert({
+          [vParentCol.column_name]: baseModel
+            .dbDriver(parentTn)
+            .select(parentColumn.column_name)
+            .where(_wherePk(parentTable.primaryKeys, parentId))
+            .first(),
+          [vChildCol.column_name]: baseModel
+            .dbDriver(childTn)
+            .select(childColumn.column_name)
+            .where(_wherePk(childTable.primaryKeys, childId))
+            .first(),
+        });
+      }
+
+      await trx.commit();
+    } catch (e) {
+      await trx.rollback();
+      throw e;
+    }
+
+    // F14: Single batch of updateLastModified and broadcast after transaction
+    await parentBaseModel.updateLastModified({
+      baseModel: parentBaseModel,
+      model: parentTable,
+      rowIds: [parentId],
+      cookie: req,
+      updatedColIds: [refTableLinkColumnId],
+    });
+
+    await childBaseModel.updateLastModified({
+      baseModel: childBaseModel,
+      model: childTable,
+      rowIds: [childId],
+      cookie: req,
+      updatedColIds: [column.id],
+    });
+
+    // Broadcast once for all affected rows
+    const parentBroadcastIds = [
+      parentId,
+      ...allAffectedParentIds.filter((id) => id !== parentId),
+    ];
+    const childBroadcastIds = [
+      childId,
+      ...allAffectedChildIds.filter((id) => id !== childId),
+    ];
+
+    await parentBaseModel.broadcastLinkUpdates(parentBroadcastIds);
+    await childBaseModel.broadcastLinkUpdates(childBroadcastIds);
+  }
+
   async addChild(params: {
     onlyUpdateAuditLogs?: boolean;
     prevData?: Record<string, any>;
@@ -270,7 +560,6 @@ export class RelationManager {
 
       childId,
       parentId,
-      mmContext,
       relationColumn,
     } = this.relationContext;
 
@@ -294,6 +583,7 @@ export class RelationManager {
       return await this.handleOnlyUpdateAudit(params);
     }
 
+    // F12: Create webhook handler before any mutations (captures pre-state)
     const webhookHandler = await RelationUpdateWebhookHandler.beginUpdate(
       {
         childBaseModel,
@@ -314,146 +604,82 @@ export class RelationManager {
     switch (relationType) {
       case RelationTypes.MANY_TO_MANY:
         {
-          const vChildCol = await colOptions.getMMChildColumn(mmContext);
-          const vParentCol = await colOptions.getMMParentColumn(mmContext);
-          const vTable = await colOptions.getMMModel(baseModel.context);
+          const { vChildCol, vParentCol, assocBaseModel, vTn } =
+            await this.resolveJunctionMeta();
 
-          const assocBaseModel = await Model.getBaseModelSQL(mmContext, {
-            model: vTable,
-            dbDriver: baseModel.dbDriver,
-          });
-
-          const vTn = assocBaseModel.getTnPath(vTable);
-          // if relation type is Many to One / One to One, then remove the existing link
-          if (
-            [RelationTypes.MANY_TO_ONE, RelationTypes.ONE_TO_ONE].includes(
-              colOptions.type as RelationTypes,
-            )
-          ) {
-            // Get existing children linked to this parent
-            const existingChildren = await this.getLinkV2RelatedRow();
-
-            // Remove each existing child with proper audit logging
-            for (const child of existingChildren) {
-              // Create a new relation manager with the correct IDs for this relationship
-              const relationManager = await RelationManager.getRelationManager(
-                baseModel,
-                this.relationContext.relationColumn.id,
-                {
-                  // in case of LinkToAnotherRecordV2, childId is the rowId
-                  rowId: childId,
-                  childId: getCompositePkValue(parentTable.primaryKeys, child),
-                },
-              );
-              await relationManager.removeChild({ req });
-              // merge audit logs
-              this.auditUpdateObj.push(...relationManager.auditUpdateObj);
-            }
-          }
-
-          // if relation type is One to Many / One to One, then remove any existing parent link
-          if (
-            [RelationTypes.ONE_TO_MANY, RelationTypes.ONE_TO_ONE].includes(
-              colOptions.type as RelationTypes,
-            )
-          ) {
-            const targetRelationColumn = await getTargetTableRelColumn(
-              childBaseModel.context,
-              relationColumn,
-              parentTable,
-            );
-            const targetRelationManager =
-              await RelationManager.getRelationManager(
-                parentBaseModel,
-                targetRelationColumn.id,
-                {
-                  // in case of LinkToAnotherRecordV2, childId is the rowId
-                  rowId: parentId,
-                  // provide a dummy value
-                  childId: '',
-                },
-              );
-
-            // Get existing children linked to this parent
-            const existingChildren =
-              await targetRelationManager.getLinkV2RelatedRow();
-
-            // Remove each existing child with proper audit logging
-            for (const child of existingChildren) {
-              // Create a new relation manager with the correct IDs for this relationship
-              const relationManager = await RelationManager.getRelationManager(
-                parentBaseModel,
-                targetRelationColumn.id,
-                {
-                  rowId: parentId,
-                  childId: getCompositePkValue(childTable.primaryKeys, child),
-                },
-              );
-              await relationManager.removeChild({ req });
-              // merge audit logs
-              this.auditUpdateObj.push(...relationManager.auditUpdateObj);
-            }
-          }
-
-          if (baseModel.isSnowflake || baseModel.isDatabricks) {
-            const parentPK = parentBaseModel
-              .dbDriver(parentTn)
-              .select(parentColumn.column_name)
-              .where(_wherePk(parentTable.primaryKeys, parentId))
-              .first();
-
-            const childPK = childBaseModel
-              .dbDriver(childTn)
-              .select(childColumn.column_name)
-              .where(_wherePk(childTable.primaryKeys, childId))
-              .first();
-
-            await baseModel.execAndParse(
-              baseModel.dbDriver.raw(
-                `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
-                [vTn, vParentCol.column_name, vChildCol.column_name],
-              ) as any,
-              null,
-              { raw: true },
-            );
+          // V2 constrained relations (MO, OM, OO): enforce cardinality in a transaction
+          if (isMMLike && colOptions.type !== RelationTypes.MANY_TO_MANY) {
+            await this.enforceV2CardinalityAndInsert({
+              vChildCol,
+              vParentCol,
+              vTn,
+              assocBaseModel,
+              column,
+              req,
+              refTableLinkColumnId,
+            });
           } else {
-            await assocBaseModel.execAndParse(
-              baseModel.dbDriver(vTn).insert({
-                [vParentCol.column_name]: baseModel
-                  .dbDriver(parentTn)
-                  .select(parentColumn.column_name)
-                  .where(_wherePk(parentTable.primaryKeys, parentId))
-                  .first(),
-                [vChildCol.column_name]: baseModel
-                  .dbDriver(childTn)
-                  .select(childColumn.column_name)
-                  .where(_wherePk(childTable.primaryKeys, childId))
-                  .first(),
-              }),
-              null,
-              { raw: true },
-            );
+            // Standard MM: just insert, no cardinality enforcement needed
+            if (baseModel.isSnowflake || baseModel.isDatabricks) {
+              const parentPK = parentBaseModel
+                .dbDriver(parentTn)
+                .select(parentColumn.column_name)
+                .where(_wherePk(parentTable.primaryKeys, parentId))
+                .first();
+
+              const childPK = childBaseModel
+                .dbDriver(childTn)
+                .select(childColumn.column_name)
+                .where(_wherePk(childTable.primaryKeys, childId))
+                .first();
+
+              await baseModel.execAndParse(
+                baseModel.dbDriver.raw(
+                  `INSERT INTO ?? (??, ??) SELECT (${parentPK.toQuery()}), (${childPK.toQuery()})`,
+                  [vTn, vParentCol.column_name, vChildCol.column_name],
+                ) as any,
+                null,
+                { raw: true },
+              );
+            } else {
+              await assocBaseModel.execAndParse(
+                baseModel.dbDriver(vTn).insert({
+                  [vParentCol.column_name]: baseModel
+                    .dbDriver(parentTn)
+                    .select(parentColumn.column_name)
+                    .where(_wherePk(parentTable.primaryKeys, parentId))
+                    .first(),
+                  [vChildCol.column_name]: baseModel
+                    .dbDriver(childTn)
+                    .select(childColumn.column_name)
+                    .where(_wherePk(childTable.primaryKeys, childId))
+                    .first(),
+                }),
+                null,
+                { raw: true },
+              );
+            }
+
+            await parentBaseModel.updateLastModified({
+              baseModel: parentBaseModel,
+              model: parentTable,
+              rowIds: [parentId],
+              cookie: req,
+              updatedColIds: [refTableLinkColumnId],
+            });
+
+            await parentBaseModel.broadcastLinkUpdates([parentId]);
+
+            await childBaseModel.updateLastModified({
+              baseModel: childBaseModel,
+              model: childTable,
+              rowIds: [childId],
+              cookie: req,
+              updatedColIds: [column.id],
+            });
+
+            await childBaseModel.broadcastLinkUpdates([childId]);
           }
-
-          await parentBaseModel.updateLastModified({
-            baseModel: parentBaseModel,
-            model: parentTable,
-            rowIds: [parentId],
-            cookie: req,
-            updatedColIds: [refTableLinkColumnId],
-          });
-
-          await parentBaseModel.broadcastLinkUpdates([parentId]);
-
-          await childBaseModel.updateLastModified({
-            baseModel: childBaseModel,
-            model: childTable,
-            rowIds: [childId],
-            cookie: req,
-            updatedColIds: [column.id],
-          });
-
-          await childBaseModel.broadcastLinkUpdates([childId]);
         }
         break;
       case RelationTypes.HAS_MANY:

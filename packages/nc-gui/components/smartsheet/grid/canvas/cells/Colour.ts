@@ -1,5 +1,15 @@
-import { ColumnHelper, UITypes } from 'nocodb-sdk'
+import { ColumnHelper, UITypes, isValidHexColour } from 'nocodb-sdk'
 import { renderTag } from '../utils/canvas'
+
+/** Pixel sizes for the colour swatch at each configured size. */
+const SWATCH_SIZE: Record<string, number> = {
+  small: 16,
+  medium: 20,
+  large: 24,
+}
+
+/** Border radius for square swatches (circles use half the swatch size). */
+const SQUARE_BORDER_RADIUS = 3
 
 export const ColourCellRenderer: CellRenderer = {
   render(ctx: CanvasRenderingContext2D, props: CellRendererOptions) {
@@ -38,7 +48,7 @@ export const ColourCellRenderer: CellRenderer = {
 
     // Parse and validate the color value
     const colorValue = value ? String(value).trim() : null
-    const isValidColor = colorValue && /^#[0-9A-Fa-f]{6}$/.test(colorValue)
+    const isValidColor = isValidHexColour(colorValue)
     const displayColor = isValidColor ? colorValue : columnMeta.defaultColor || '#FFFFFF'
 
     // Don't render anything if no value
@@ -47,13 +57,8 @@ export const ColourCellRenderer: CellRenderer = {
     }
 
     // Calculate swatch size based on configuration
-    const swatchSizeMap: Record<string, number> = {
-      small: 16,
-      medium: 20,
-      large: 24,
-    }
-    const swatchSize = swatchSizeMap[columnMeta.swatchSize] || 20
-    const borderRadius = columnMeta.swatchStyle === 'circle' ? swatchSize / 2 : 3
+    const swatchSize = SWATCH_SIZE[columnMeta.swatchSize] || SWATCH_SIZE.medium
+    const borderRadius = columnMeta.swatchStyle === 'circle' ? swatchSize / 2 : SQUARE_BORDER_RADIUS
 
     // Calculate positions
     const swatchX = x + padding

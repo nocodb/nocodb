@@ -2,6 +2,7 @@ import { SilentTypeConversionError } from '~/lib/error';
 import AbstractColumnHelper, {
   SerializerOrParserFnProps,
 } from '../column.interface';
+import { normalizeHexColour } from '../utils/colour';
 
 export class ColourHelper extends AbstractColumnHelper {
   columnDefaultMeta = {
@@ -11,20 +12,23 @@ export class ColourHelper extends AbstractColumnHelper {
     swatchSize: 'medium', // 'small' | 'medium' | 'large'
   };
 
+  /**
+   * Serialise a user-supplied value for storage.
+   *
+   * During bulk paste or search-query serialisation, invalid values are
+   * silently dropped (returns `null`).  In all other contexts an invalid
+   * value throws a {@link SilentTypeConversionError} so the caller can
+   * surface an appropriate message.
+   */
   serializeValue(
     value: any,
     params: SerializerOrParserFnProps['params']
   ): string | null {
     if (!value) return null;
 
-    const stringValue = String(value).trim();
-    if (!stringValue) return null;
+    const normalized = normalizeHexColour(value);
 
-    // Validate hex color format
-    const hexPattern = /^#?([0-9A-Fa-f]{6})$/;
-    const match = stringValue.match(hexPattern);
-
-    if (!match) {
+    if (!normalized) {
       if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
       } else {
@@ -32,33 +36,19 @@ export class ColourHelper extends AbstractColumnHelper {
       }
     }
 
-    // Normalize to #RRGGBB format
-    return `#${match[1].toUpperCase()}`;
+    return normalized;
   }
 
+  /** Parse a stored value for display. Returns `null` for invalid values. */
   parseValue(value: any): string | null {
-    if (!value) return null;
-
-    const stringValue = String(value).trim();
-    if (!stringValue) return null;
-
-    // Validate hex color format
-    const hexPattern = /^#?([0-9A-Fa-f]{6})$/;
-    const match = stringValue.match(hexPattern);
-
-    if (!match) return null;
-
-    // Normalize to #RRGGBB format
-    return `#${match[1].toUpperCase()}`;
+    return normalizeHexColour(value);
   }
 
+  /** Return a plain-text representation suitable for export / clipboard. */
   parsePlainCellValue(
     value: any,
     _params: SerializerOrParserFnProps['params']
   ): string {
-    if (!value) return '';
-
-    const parsed = this.parseValue(value);
-    return parsed || '';
+    return normalizeHexColour(value) || '';
   }
 }

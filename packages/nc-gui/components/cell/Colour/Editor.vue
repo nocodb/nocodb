@@ -29,49 +29,36 @@ const colourMeta = computed(() => {
 const vModel = computed({
   get: () => {
     const value = props.modelValue || colourMeta.value.defaultColor || '#FFFFFF'
-    // Normalize to hex format
-    if (value && typeof value === 'string' && value.startsWith('#') && value.length === 7) {
-      return value.toUpperCase()
-    }
-    if (value && typeof value === 'string' && /^[0-9A-Fa-f]{6}$/.test(value)) {
-      return `#${value.toUpperCase()}`
-    }
-    return '#FFFFFF'
+    return normalizeHexColour(value) || '#FFFFFF'
   },
   set: (val) => {
     if (!val) {
       emit('update:modelValue', null)
       return
     }
-
-    const colorStr = String(val).trim()
-
-    // Accept 6 or 8 digit hex (strip alpha channel if present)
-    const hexMatch = colorStr.match(/^#?([0-9A-Fa-f]{6})([0-9A-Fa-f]{2})?$/)
-    if (hexMatch) {
-      emit('update:modelValue', `#${hexMatch[1].toUpperCase()}`)
+    // Accept 6 or 8 digit hex (strip alpha channel if present via the picker)
+    const normalized = normalizeHexColourWithAlpha(val)
+    if (normalized) {
+      emit('update:modelValue', normalized)
     }
   },
 })
-
-const isOpen = ref(false)
-const tempColor = ref<string | null>(null)
-const pickerKey = ref(0)
 
 const shapeClass = computed(() => {
   return colourMeta.value.swatchStyle === 'square' ? 'rounded-sm' : 'rounded-full'
 })
 
-const openColorPicker = () => {
-  if (!readOnly.value) {
-    pickerKey.value++
-    tempColor.value = vModel.value
-    isOpen.value = true
-  }
-}
+const isValidHex = computed(() => isValidHexColour(props.modelValue))
 
-const isValidHex = computed(() => {
-  return props.modelValue && /^#[0-9A-Fa-f]{6}$/i.test(props.modelValue)
+// --- Colour picker (shared composable) ---
+const { isOpen, tempColor, pickerKey, openColorPicker, onColorChange, save, close } = useColourPicker({
+  onSave: (colour) => {
+    vModel.value = colour
+  },
+  onClose: () => {
+    editEnabled.value = false
+  },
+  disabled: readOnly,
 })
 
 const onTextInput = (e: Event) => {
@@ -80,41 +67,9 @@ const onTextInput = (e: Event) => {
     emit('update:modelValue', null)
     return
   }
-  // Accept with or without # prefix
-  const hexMatch = val.match(/^#?([0-9A-Fa-f]{6})$/)
-  if (hexMatch) {
-    emit('update:modelValue', `#${hexMatch[1].toUpperCase()}`)
-  }
-}
-
-const onColorChange = (color: string) => {
-  tempColor.value = color
-}
-
-const onSave = () => {
-  if (tempColor.value) {
-    vModel.value = tempColor.value
-  }
-  isOpen.value = false
-  editEnabled.value = false
-}
-
-const onClose = () => {
-  isOpen.value = false
-  editEnabled.value = false
-}
-
-const onKeyDown = (e: KeyboardEvent) => {
-  if (!isOpen.value) return
-
-  if (e.key === 'Enter') {
-    e.preventDefault()
-    e.stopPropagation()
-    onSave()
-  } else if (e.key === 'Escape') {
-    e.preventDefault()
-    e.stopPropagation()
-    onClose()
+  const normalized = normalizeHexColour(val)
+  if (normalized) {
+    emit('update:modelValue', normalized)
   }
 }
 
@@ -124,27 +79,18 @@ watch(
   (enabled) => {
     if (enabled && !readOnly.value && !isOpen.value && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
       nextTick(() => {
-        openColorPicker()
+        openColorPicker(vModel.value)
       })
     }
   },
   { immediate: true },
 )
 
-// Sync editEnabled with modal open state and manage keyboard listener
+// Sync editEnabled with modal open state
 watch(isOpen, (open) => {
-  if (open) {
-    if (!editEnabled.value) {
-      editEnabled.value = true
-    }
-    document.addEventListener('keydown', onKeyDown)
-  } else {
-    document.removeEventListener('keydown', onKeyDown)
+  if (open && !editEnabled.value) {
+    editEnabled.value = true
   }
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', onKeyDown)
 })
 </script>
 
@@ -154,7 +100,7 @@ onUnmounted(() => {
     <div
       class="flex-shrink-0 w-5 h-5 cursor-pointer flex items-center justify-center"
       :class="{ 'pointer-events-none opacity-50': readOnly }"
-      @click.stop="openColorPicker"
+      @click.stop="openColorPicker(vModel)"
     >
       <div
         v-if="isValidHex"
@@ -191,9 +137,9 @@ onUnmounted(() => {
       </div>
       <template #footer>
         <div class="flex items-center gap-2 pt-3" @click.stop @mousedown.stop>
-          <NcButton type="secondary" size="small" @click="onClose"> {{ $t('general.cancel') }} </NcButton>
+          <NcButton type="secondary" size="small" @click="close"> {{ $t('general.cancel') }} </NcButton>
           <div class="flex-1" />
-          <NcButton type="primary" size="small" @click="onSave"> {{ $t('general.save') }} </NcButton>
+          <NcButton type="primary" size="small" @click="save"> {{ $t('general.save') }} </NcButton>
         </div>
       </template>
     </a-modal>

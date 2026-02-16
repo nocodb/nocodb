@@ -27,72 +27,26 @@ const vModel = computed({
   },
 })
 
-const isOpen = ref(false)
-const tempColor = ref<string | null>(null)
-const pickerKey = ref(0)
-
 const shapeClass = computed(() => {
   return colourMeta.value.swatchStyle === 'square' ? 'rounded-sm' : 'rounded-full'
 })
 
-const isValidHex = computed(() => {
-  return vModel.value && /^#[0-9A-Fa-f]{6}$/i.test(vModel.value)
+const isValidHex = computed(() => isValidHexColour(vModel.value))
+
+// --- Colour picker (shared composable) ---
+const disabledRef = computed(() => !!props.disabled)
+
+const { isOpen, tempColor, pickerKey, openColorPicker, onColorChange, save, close } = useColourPicker({
+  onSave: (colour) => {
+    vModel.value = colour
+  },
+  disabled: disabledRef,
 })
-
-const openColorPicker = () => {
-  if (props.disabled) return
-  pickerKey.value++
-  tempColor.value = isValidHex.value ? vModel.value : '#FFFFFF'
-  isOpen.value = true
-}
-
-const onColorChange = (color: string) => {
-  tempColor.value = color
-}
-
-const onSave = () => {
-  if (tempColor.value) {
-    const hexMatch = tempColor.value.match(/^#?([0-9A-Fa-f]{6})([0-9A-Fa-f]{2})?$/)
-    if (hexMatch) {
-      vModel.value = `#${hexMatch[1].toUpperCase()}`
-    }
-  }
-  isOpen.value = false
-}
-
-const onClose = () => {
-  isOpen.value = false
-}
-
-const onKeyDown = (e: KeyboardEvent) => {
-  if (!isOpen.value) return
-  if (e.key === 'Enter') {
-    e.preventDefault()
-    e.stopPropagation()
-    onSave()
-  } else if (e.key === 'Escape') {
-    e.preventDefault()
-    e.stopPropagation()
-    onClose()
-  }
-}
 
 const onTextInput = (e: Event) => {
   const val = (e.target as HTMLInputElement).value.trim()
   vModel.value = val || null
 }
-
-watch(isOpen, (open) => {
-  if (open) {
-    document.addEventListener('keydown', onKeyDown)
-  } else {
-    document.removeEventListener('keydown', onKeyDown)
-  }
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', onKeyDown)
-})
 </script>
 
 <template>
@@ -101,7 +55,7 @@ onUnmounted(() => {
     <div
       class="flex-shrink-0 w-5 h-5 cursor-pointer flex items-center justify-center"
       :class="{ 'pointer-events-none opacity-50': disabled }"
-      @click.stop="openColorPicker"
+      @click.stop="openColorPicker(isValidHex ? vModel : '#FFFFFF')"
     >
       <div
         v-if="isValidHex"
@@ -138,9 +92,9 @@ onUnmounted(() => {
       </div>
       <template #footer>
         <div class="flex items-center gap-2 pt-3" @click.stop @mousedown.stop>
-          <NcButton type="secondary" size="small" @click="onClose"> {{ $t('general.cancel') }} </NcButton>
+          <NcButton type="secondary" size="small" @click="close"> {{ $t('general.cancel') }} </NcButton>
           <div class="flex-1" />
-          <NcButton type="primary" size="small" @click="onSave"> {{ $t('general.save') }} </NcButton>
+          <NcButton type="primary" size="small" @click="save"> {{ $t('general.save') }} </NcButton>
         </div>
       </template>
     </a-modal>

@@ -21,13 +21,7 @@ const colourMeta = computed(() => {
 
 const displayValue = computed(() => {
   const value = props.modelValue || colourMeta.value.defaultColor
-  if (!value) return null
-
-  // Normalize to hex format
-  if (value.startsWith('#') && value.length === 7) {
-    return value.toUpperCase()
-  }
-  return '#FFFFFF'
+  return normalizeHexColour(value) || '#FFFFFF'
 })
 
 const sizeClass = computed(() => {

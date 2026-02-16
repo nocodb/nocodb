@@ -75,8 +75,8 @@ jobs:
         run: |
           EXIT_CODE=${{ steps.test.outputs.exit_code }}
 
-          # Extract coverage table (clean output, no ANSI)
-          COVERAGE=$(sed -n '/^-.*|.*Stmts/,/^-.*|.*---/p' test-output.txt)
+          # Extract coverage table (separator-to-separator block with pipe chars)
+          COVERAGE=$(awk '/^-+\|.*-+/{found=1} found{print}' test-output.txt | head -20)
 
           # Extract summary lines
           SUMMARY_FILES=$(grep -E '^\s*Test Files\s' test-output.txt | tail -1 | xargs)

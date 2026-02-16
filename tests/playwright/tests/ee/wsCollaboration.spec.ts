@@ -73,11 +73,16 @@ test.describe('Collaborators', () => {
     await dashboard.leftSidebar.verifyBaseListOpen(true);
 
     if (user.role.toLowerCase() === 'creator') {
+      await dashboard.leftSidebar.openBaseListModal();
       await expect(dashboard.leftSidebar.btn_newProject).toBeVisible();
+      await dashboard.leftSidebar.closeBaseListModal();
+
       await dashboard.leftSidebar.clickTeamAndSettings();
       await workspacePage.verifyAccess(user.role.toLowerCase());
     } else {
+      await dashboard.leftSidebar.openBaseListModal();
       await expect(dashboard.leftSidebar.btn_newProject).toBeVisible({ visible: false });
+      await dashboard.leftSidebar.closeBaseListModal();
     }
 
     // Needs license key; hence disabled

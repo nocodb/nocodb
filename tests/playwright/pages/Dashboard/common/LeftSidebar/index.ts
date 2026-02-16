@@ -187,7 +187,7 @@ export class LeftSidebarPage extends BasePage {
     await newWorkspaceBtn.click();
 
     // Fill in the workspace creation dialog
-    const inputModal = this.rootPage.locator('div.ant-modal.active');
+    const inputModal = this.rootPage.locator('div.ant-modal.active').last();
     await inputModal.waitFor();
     await inputModal.locator('input').clear();
     await inputModal.locator('input').fill(title);

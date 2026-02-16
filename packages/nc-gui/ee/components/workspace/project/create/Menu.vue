@@ -28,7 +28,7 @@ const { navigateToTemplates } = workspaceStore
 
 const { isTemplatesFeatureEnabled } = storeToRefs(workspaceStore)
 
-const baseActions = useWsBaseListActions()
+const wsBaseListActions = useWsBaseListActions()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
 
@@ -39,8 +39,8 @@ const onClickOption = (mode: NcBaseCreateMode) => {
     vVisible.value = false
     navigateToTemplates(workspaceId.value)
 
-    if (baseActions) {
-      baseActions.closeModal()
+    if (wsBaseListActions) {
+      wsBaseListActions.closeModal()
     }
 
     return

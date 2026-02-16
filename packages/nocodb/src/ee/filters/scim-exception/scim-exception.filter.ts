@@ -19,7 +19,7 @@ export class ScimExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(ScimExceptionFilter.name);
 
   private resolveStatus(exception: any): number {
-    // NestJS HttpException (e.g. from guards)
+    // NestJS HttpException (e.g. from guards or 409 Conflict)
     if (typeof exception?.getStatus === 'function') {
       return exception.getStatus();
     }
@@ -40,6 +40,26 @@ export class ScimExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     const status = this.resolveStatus(exception);
+
+    // If this is an HttpException with a SCIM-formatted body,
+    // pass it through directly (e.g. 409 Conflict from services)
+    if (typeof exception?.getResponse === 'function') {
+      const exceptionResponse = exception.getResponse();
+      if (
+        typeof exceptionResponse === 'object' &&
+        exceptionResponse?.schemas
+      ) {
+        if (status >= 500) {
+          this.logger.error(exceptionResponse.detail, exception?.stack);
+        }
+        response
+          .status(status)
+          .header('Content-Type', 'application/scim+json')
+          .json(exceptionResponse);
+        return;
+      }
+    }
+
     const message = exception?.message || 'An unexpected error occurred';
 
     if (status >= 500) {

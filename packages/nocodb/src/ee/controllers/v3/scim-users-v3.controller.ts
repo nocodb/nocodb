@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -56,6 +57,7 @@ export class ScimUsersController {
   }
 
   @Post('/api/v3/meta/workspaces/:workspaceId/scim/v2/Users')
+  @HttpCode(201)
   async createUser(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
@@ -98,6 +100,7 @@ export class ScimUsersController {
   }
 
   @Delete('/api/v3/meta/workspaces/:workspaceId/scim/v2/Users/:userId')
+  @HttpCode(204)
   async deleteUser(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,

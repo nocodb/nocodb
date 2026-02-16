@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -30,10 +31,12 @@ export class ScimGroupsController {
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('groupId') groupId: string,
+    @Query('excludedAttributes') excludedAttributes?: string,
   ) {
     return this.scimGroupsService.getGroup(context, {
       workspaceId,
       scimId: groupId,
+      excludedAttributes,
     });
   }
 
@@ -44,16 +47,19 @@ export class ScimGroupsController {
     @Query('filter') filter?: string,
     @Query('startIndex') startIndex?: string,
     @Query('count') count?: string,
+    @Query('excludedAttributes') excludedAttributes?: string,
   ) {
     return this.scimGroupsService.listGroups(context, {
       workspaceId,
       filter,
       startIndex: startIndex ? parseInt(startIndex, 10) : 1,
       count: count ? parseInt(count, 10) : 100,
+      excludedAttributes,
     });
   }
 
   @Post('/api/v3/meta/workspaces/:workspaceId/scim/v2/Groups')
+  @HttpCode(201)
   async createGroup(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
@@ -80,6 +86,7 @@ export class ScimGroupsController {
   }
 
   @Delete('/api/v3/meta/workspaces/:workspaceId/scim/v2/Groups/:groupId')
+  @HttpCode(204)
   async deleteGroup(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,

@@ -1,33 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, Injectable, Logger } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { User, Workspace, WorkspaceUser } from '~/ee/models';
 
-interface ScimUserResource {
-  schemas: string[];
-  id: string;
-  externalId?: string;
-  userName: string;
-  name?: {
-    formatted?: string;
-    familyName?: string;
-    givenName?: string;
-  };
-  displayName?: string;
-  emails: Array<{
-    value: string;
-    type?: string;
-    primary?: boolean;
-  }>;
-  active: boolean;
-  meta?: {
-    resourceType: string;
-    created?: string;
-    lastModified?: string;
-    location?: string;
-  };
-}
+// Enterprise extension schema URI
+const ENTERPRISE_EXTENSION =
+  'urn:ietf:params:scim:schemas:extension:enterprise:2.0:User';
 
 @Injectable()
 export class ScimUsersService {
@@ -36,22 +16,22 @@ export class ScimUsersService {
   constructor() {}
 
   /**
-   * Get a single user by SCIM external ID
+   * Get a single user by SCIM ID
    */
   async getUser(
     context: NcContext,
     param: { workspaceId: string; scimId: string },
   ) {
-    // Find workspace user by SCIM external ID
     const workspaceUsers = await WorkspaceUser.userList({
       fk_workspace_id: param.workspaceId,
+      include_deleted: true,
     });
 
     const workspaceUser = workspaceUsers.find(
       (wu) => wu.scim_external_id === param.scimId,
     );
 
-    if (!workspaceUser || workspaceUser.deleted) {
+    if (!workspaceUser) {
       NcError.notFound('User not found');
     }
 
@@ -71,17 +51,17 @@ export class ScimUsersService {
     },
   ) {
     const startIndex = param.startIndex || 1;
-    const count = Math.min(param.count || 100, 100); // Max 100 per page
+    const count = Math.min(param.count || 100, 100);
 
     let workspaceUsers = await WorkspaceUser.userList({
       fk_workspace_id: param.workspaceId,
-      include_deleted: false,
+      include_deleted: true,
     });
 
     // Filter SCIM-managed users only
     workspaceUsers = workspaceUsers.filter((wu) => wu.scim_managed);
 
-    // Apply SCIM filter if provided (basic support for userName eq filter)
+    // Apply SCIM filter if provided
     if (param.filter) {
       workspaceUsers = this.applyFilter(workspaceUsers, param.filter);
     }
@@ -137,7 +117,7 @@ export class ScimUsersService {
       user = await User.insert({
         email: primaryEmail,
         display_name: scimUser.displayName || scimUser.name?.formatted,
-        roles: 'user', // Default role
+        roles: 'user',
       });
     }
 
@@ -152,8 +132,23 @@ export class ScimUsersService {
     );
 
     if (existingWsUser && !existingWsUser.deleted) {
-      NcError.badRequest('User already exists in workspace');
+      // RFC 7644 §3.3: Return 409 Conflict for duplicate resources
+      throw new HttpException(
+        {
+          schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
+          detail: 'User already exists in workspace',
+          status: '409',
+        },
+        409,
+      );
     }
+
+    // Generate a server-side SCIM ID (RFC 7643 §3.1: id is server-assigned)
+    const scimId =
+      existingWsUser?.scim_external_id || uuidv4();
+
+    // Build comprehensive scim_meta to round-trip all attributes
+    const scimMeta = this.buildScimMeta(scimUser);
 
     // Reactivate soft-deleted user
     if (existingWsUser?.deleted) {
@@ -161,14 +156,10 @@ export class ScimUsersService {
         deleted: false,
         deleted_at: null,
         roles: existingWsUser.roles || WorkspaceUserRoles.VIEWER,
-        scim_external_id: scimUser.externalId || scimUser.id,
+        scim_external_id: scimId,
         scim_managed: true,
         scim_user_name: scimUser.userName,
-        scim_meta: {
-          name: scimUser.name,
-          displayName: scimUser.displayName,
-          active: true,
-        },
+        scim_meta: scimMeta,
       };
 
       await WorkspaceUser.update(
@@ -189,18 +180,18 @@ export class ScimUsersService {
     const workspaceUser = await WorkspaceUser.insert({
       fk_workspace_id: workspaceId,
       fk_user_id: user.id,
-      roles: WorkspaceUserRoles.VIEWER, // Default SCIM role
-      scim_external_id: scimUser.externalId || scimUser.id,
+      roles: WorkspaceUserRoles.VIEWER,
+      scim_external_id: scimId,
       scim_managed: true,
       scim_user_name: scimUser.userName,
-      scim_meta: {
-        name: scimUser.name,
-        displayName: scimUser.displayName,
-        active: scimUser.active !== false,
-      },
+      scim_meta: scimMeta,
     });
 
-    return this.toScimUser(workspaceUser, workspaceId);
+    // WorkspaceUser.insert may not return the SCIM fields,
+    // so fetch fresh from DB
+    const freshUser = await WorkspaceUser.get(workspaceId, user.id);
+
+    return this.toScimUser(freshUser || workspaceUser, workspaceId);
   }
 
   /**
@@ -248,6 +239,16 @@ export class ScimUsersService {
             // Bulk operation: { op: "Replace", value: { displayName: "...", active: false } }
             Object.assign(flatUser, op.value);
           }
+        } else if (op.op?.toLowerCase() === 'add') {
+          if (op.path) {
+            flatUser[op.path] = op.value;
+          } else if (typeof op.value === 'object') {
+            Object.assign(flatUser, op.value);
+          }
+        } else if (op.op?.toLowerCase() === 'remove') {
+          if (op.path) {
+            flatUser[op.path] = null;
+          }
         }
       }
       return this.updateUser(context, {
@@ -293,20 +294,24 @@ export class ScimUsersService {
     const updateData: any = {
       scim_meta: {
         ...existingMeta,
-        active: scimUser.active !== undefined ? scimUser.active !== false : existingMeta.active,
       },
     };
+
+    // Update active status in meta
+    if (scimUser.active !== undefined) {
+      updateData.scim_meta.active = scimUser.active !== false;
+    }
 
     if (scimUser.userName !== undefined) {
       updateData.scim_user_name = scimUser.userName;
     }
 
-    if (scimUser.name !== undefined) {
-      updateData.scim_meta.name = scimUser.name;
-    }
-
-    if (scimUser.displayName !== undefined) {
-      updateData.scim_meta.displayName = scimUser.displayName;
+    // For PUT (full replacement), rebuild all meta from the incoming SCIM user
+    if (!param.isPatch) {
+      updateData.scim_meta = this.buildScimMeta(scimUser);
+    } else {
+      // For PATCH, merge individual fields into existing meta
+      this.mergeScimMetaFromPatch(updateData.scim_meta, scimUser);
     }
 
     // Handle active status (deactivation)
@@ -368,61 +373,242 @@ export class ScimUsersService {
     }
 
     await WorkspaceUser.softDelete(param.workspaceId, workspaceUser.fk_user_id);
-
-    return { status: 'deleted' };
   }
 
   /**
-   * Convert WorkspaceUser to SCIM User format
+   * Build comprehensive scim_meta from incoming SCIM user data.
+   * Stores ALL SCIM attributes for round-tripping.
+   */
+  private buildScimMeta(scimUser: any): Record<string, any> {
+    const meta: Record<string, any> = {
+      active: scimUser.active !== false,
+    };
+
+    // Core attributes
+    if (scimUser.externalId !== undefined) meta.externalId = scimUser.externalId;
+    if (scimUser.name !== undefined) meta.name = scimUser.name;
+    if (scimUser.displayName !== undefined) meta.displayName = scimUser.displayName;
+    if (scimUser.title !== undefined) meta.title = scimUser.title;
+    if (scimUser.preferredLanguage !== undefined) meta.preferredLanguage = scimUser.preferredLanguage;
+    if (scimUser.locale !== undefined) meta.locale = scimUser.locale;
+    if (scimUser.timezone !== undefined) meta.timezone = scimUser.timezone;
+    if (scimUser.userType !== undefined) meta.userType = scimUser.userType;
+    if (scimUser.nickName !== undefined) meta.nickName = scimUser.nickName;
+    if (scimUser.profileUrl !== undefined) meta.profileUrl = scimUser.profileUrl;
+
+    // Multi-valued attributes
+    if (scimUser.emails !== undefined) meta.emails = scimUser.emails;
+    if (scimUser.phoneNumbers !== undefined) meta.phoneNumbers = scimUser.phoneNumbers;
+    if (scimUser.addresses !== undefined) meta.addresses = scimUser.addresses;
+    if (scimUser.roles !== undefined) meta.roles = scimUser.roles;
+
+    // Enterprise extension
+    if (scimUser[ENTERPRISE_EXTENSION] !== undefined) {
+      meta[ENTERPRISE_EXTENSION] = scimUser[ENTERPRISE_EXTENSION];
+    }
+
+    return meta;
+  }
+
+  /**
+   * Merge PATCH operation fields into existing scim_meta.
+   * Handles both flat dotted paths (name.givenName) and
+   * full enterprise extension URN paths.
+   */
+  private mergeScimMetaFromPatch(meta: any, patchData: any) {
+    // Simple top-level fields
+    const simpleFields = [
+      'displayName', 'title', 'preferredLanguage', 'locale',
+      'timezone', 'userType', 'nickName', 'profileUrl',
+    ];
+
+    for (const field of simpleFields) {
+      if (patchData[field] !== undefined) {
+        meta[field] = patchData[field];
+      }
+    }
+
+    // Handle dotted name paths (name.givenName, name.familyName, etc.)
+    if (!meta.name) meta.name = {};
+    const nameFields = [
+      'givenName', 'familyName', 'formatted', 'middleName',
+      'honorificPrefix', 'honorificSuffix',
+    ];
+    for (const field of nameFields) {
+      const dottedKey = `name.${field}`;
+      if (patchData[dottedKey] !== undefined) {
+        meta.name[field] = patchData[dottedKey];
+      }
+    }
+    if (patchData.name !== undefined && typeof patchData.name === 'object') {
+      meta.name = { ...meta.name, ...patchData.name };
+    }
+
+    // Handle emails patched via path like emails[type eq "work"].value
+    if (patchData['emails[type eq "work"].value'] !== undefined) {
+      if (!meta.emails) meta.emails = [{ type: 'work', primary: true }];
+      const workEmail = meta.emails.find((e: any) => e.type === 'work') || meta.emails[0];
+      if (workEmail) workEmail.value = patchData['emails[type eq "work"].value'];
+    }
+    if (patchData['emails[type eq "work"].primary'] !== undefined) {
+      if (!meta.emails) meta.emails = [{ type: 'work' }];
+      const workEmail = meta.emails.find((e: any) => e.type === 'work') || meta.emails[0];
+      if (workEmail) workEmail.primary = patchData['emails[type eq "work"].primary'];
+    }
+
+    // Handle addresses patched via path
+    this.mergeMultiValuedPatch(meta, 'addresses', 'work', patchData, [
+      'formatted', 'streetAddress', 'locality', 'region',
+      'postalCode', 'primary', 'country',
+    ]);
+
+    // Handle phoneNumbers patched via path
+    for (const phoneType of ['work', 'mobile', 'fax']) {
+      this.mergeMultiValuedPatch(meta, 'phoneNumbers', phoneType, patchData, [
+        'value', 'primary',
+      ]);
+    }
+
+    // Handle roles patched via path like roles[primary eq "True"].value
+    this.mergeMultiValuedPatch(meta, 'roles', null, patchData, [
+      'display', 'value', 'type',
+    ], 'primary', 'True');
+
+    // Handle enterprise extension paths
+    const enterprisePrefix = `${ENTERPRISE_EXTENSION}:`;
+    if (!meta[ENTERPRISE_EXTENSION]) meta[ENTERPRISE_EXTENSION] = {};
+    for (const key of Object.keys(patchData)) {
+      if (key.startsWith(enterprisePrefix)) {
+        const field = key.substring(enterprisePrefix.length);
+        meta[ENTERPRISE_EXTENSION][field] = patchData[key];
+      }
+    }
+  }
+
+  /**
+   * Helper: merge multi-valued attribute patches from path-based operations
+   */
+  private mergeMultiValuedPatch(
+    meta: any,
+    attrName: string,
+    typeValue: string | null,
+    patchData: any,
+    fields: string[],
+    filterField = 'type',
+    filterValue?: string,
+  ) {
+    const fVal = filterValue || typeValue;
+    if (!fVal) return;
+
+    for (const field of fields) {
+      const pathKey = `${attrName}[${filterField} eq "${fVal}"].${field}`;
+      if (patchData[pathKey] !== undefined) {
+        if (!meta[attrName]) meta[attrName] = [];
+        let item = meta[attrName].find((a: any) => a[filterField] === fVal);
+        if (!item) {
+          item = { [filterField]: fVal };
+          meta[attrName].push(item);
+        }
+        item[field] = patchData[pathKey];
+      }
+    }
+  }
+
+  /**
+   * Convert WorkspaceUser to SCIM User format with full attribute round-tripping
    */
   private async toScimUser(
     workspaceUser: any,
     workspaceId: string,
-  ): Promise<ScimUserResource> {
-    const scimMeta = workspaceUser.scim_meta || {};
+  ): Promise<any> {
+    // Parse scim_meta if it's a JSON string (WorkspaceUser.get() doesn't auto-parse)
+    let rawMeta = workspaceUser.scim_meta;
+    if (typeof rawMeta === 'string') {
+      try {
+        rawMeta = JSON.parse(rawMeta);
+      } catch {
+        rawMeta = {};
+      }
+    }
+    const scimMeta = rawMeta || {};
 
-    return {
-      schemas: ['urn:ietf:params:scim:schemas:core:2.0:User'],
+    // Build schemas array
+    const schemas: string[] = [
+      'urn:ietf:params:scim:schemas:core:2.0:User',
+    ];
+    if (scimMeta[ENTERPRISE_EXTENSION]) {
+      schemas.push(ENTERPRISE_EXTENSION);
+    }
+
+    const result: any = {
+      schemas,
       id: workspaceUser.scim_external_id,
-      externalId: workspaceUser.scim_external_id,
+      externalId: scimMeta.externalId || null,
       userName: workspaceUser.scim_user_name || workspaceUser.email,
       name: scimMeta.name || {
         formatted: workspaceUser.display_name,
       },
       displayName: scimMeta.displayName || workspaceUser.display_name,
-      emails: [
+      emails: scimMeta.emails || [
         {
           value: workspaceUser.email,
           type: 'work',
           primary: true,
         },
       ],
-      active: !workspaceUser.deleted,
+      active: !workspaceUser.deleted && scimMeta.active !== false,
       meta: {
         resourceType: 'User',
         location: `/scim/v2/Users/${workspaceUser.scim_external_id}`,
       },
     };
+
+    // Add optional top-level attributes from scim_meta
+    const optionalFields = [
+      'title', 'preferredLanguage', 'locale', 'timezone',
+      'userType', 'nickName', 'profileUrl',
+    ];
+    for (const field of optionalFields) {
+      if (scimMeta[field] !== undefined && scimMeta[field] !== null) {
+        result[field] = scimMeta[field];
+      }
+    }
+
+    // Add multi-valued optional attributes
+    if (scimMeta.phoneNumbers) result.phoneNumbers = scimMeta.phoneNumbers;
+    if (scimMeta.addresses) result.addresses = scimMeta.addresses;
+    if (scimMeta.roles) result.roles = scimMeta.roles;
+
+    // Add enterprise extension
+    if (scimMeta[ENTERPRISE_EXTENSION]) {
+      result[ENTERPRISE_EXTENSION] = scimMeta[ENTERPRISE_EXTENSION];
+    }
+
+    return result;
   }
 
   /**
-   * Apply basic SCIM filter (simplified implementation)
+   * Apply SCIM filter with case-insensitive comparison (RFC 7644 §3.4.2.2)
    */
   private applyFilter(users: any[], filter: string): any[] {
     // Support basic filter: userName eq "email@example.com"
     const userNameMatch = filter.match(/userName\s+eq\s+"([^"]+)"/i);
     if (userNameMatch) {
-      const userName = userNameMatch[1];
+      const userName = userNameMatch[1].toLowerCase();
       return users.filter(
-        (u) => u.scim_user_name === userName || u.email === userName,
+        (u) =>
+          (u.scim_user_name || '').toLowerCase() === userName ||
+          (u.email || '').toLowerCase() === userName,
       );
     }
 
     // Support: externalId eq "id"
     const externalIdMatch = filter.match(/externalId\s+eq\s+"([^"]+)"/i);
     if (externalIdMatch) {
-      const externalId = externalIdMatch[1];
-      return users.filter((u) => u.scim_external_id === externalId);
+      const externalId = externalIdMatch[1].toLowerCase();
+      return users.filter(
+        (u) => (u.scim_external_id || '').toLowerCase() === externalId,
+      );
     }
 
     return users;

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Team, WorkspaceUser } from '~/ee/models';
@@ -33,7 +33,11 @@ export class ScimGroupsService {
    */
   async getGroup(
     context: NcContext,
-    param: { workspaceId: string; scimId: string },
+    param: {
+      workspaceId: string;
+      scimId: string;
+      excludedAttributes?: string;
+    },
   ) {
     const teams = await Team.list(context, {
       fk_workspace_id: param.workspaceId,
@@ -45,7 +49,8 @@ export class ScimGroupsService {
       NcError.notFound('Group not found');
     }
 
-    return this.toScimGroup(context, team, param.workspaceId);
+    const excludeMembers = this.shouldExcludeMembers(param.excludedAttributes);
+    return this.toScimGroup(context, team, param.workspaceId, excludeMembers);
   }
 
   /**
@@ -58,6 +63,7 @@ export class ScimGroupsService {
       filter?: string;
       startIndex?: number;
       count?: number;
+      excludedAttributes?: string;
     },
   ) {
     const startIndex = param.startIndex || 1;
@@ -80,9 +86,10 @@ export class ScimGroupsService {
     // Apply pagination
     const paginatedTeams = teams.slice(startIndex - 1, startIndex - 1 + count);
 
+    const excludeMembers = this.shouldExcludeMembers(param.excludedAttributes);
     const resources = await Promise.all(
       paginatedTeams.map((t) =>
-        this.toScimGroup(context, t, param.workspaceId),
+        this.toScimGroup(context, t, param.workspaceId, excludeMembers),
       ),
     );
 
@@ -142,7 +149,15 @@ export class ScimGroupsService {
         return this.toScimGroup(context, existingTeam, workspaceId);
       }
 
-      NcError.badRequest('Group with this name already exists');
+      // RFC 7644 §3.3: Return 409 Conflict for duplicate resources
+      throw new HttpException(
+        {
+          schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
+          detail: 'Group with this name already exists',
+          status: '409',
+        },
+        409,
+      );
     }
 
     // Create new team
@@ -243,8 +258,6 @@ export class ScimGroupsService {
     }
 
     await Team.softDelete(context, team.id);
-
-    return { status: 'deleted' };
   }
 
   /**
@@ -254,26 +267,42 @@ export class ScimGroupsService {
     context: NcContext,
     team: any,
     workspaceId: string,
+    excludeMembers = false,
   ): Promise<ScimGroupResource> {
-    // Get team members
-    const members = await this.getTeamMembers(context, team.id, workspaceId);
-
-    return {
+    const result: ScimGroupResource = {
       schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
       id: team.scim_external_id,
       externalId: team.scim_external_id,
       displayName: team.scim_display_name || team.title,
-      members: members.map((member) => ({
-        value: member.scim_external_id,
-        $ref: `/scim/v2/Users/${member.scim_external_id}`,
-        type: 'User',
-        display: member.display_name || member.email,
-      })),
       meta: {
         resourceType: 'Group',
         location: `/scim/v2/Groups/${team.scim_external_id}`,
       },
     };
+
+    if (!excludeMembers) {
+      // Get team members
+      const members = await this.getTeamMembers(context, team.id, workspaceId);
+      result.members = members.map((member) => ({
+        value: member.scim_external_id,
+        $ref: `/scim/v2/Users/${member.scim_external_id}`,
+        type: 'User',
+        display: member.display_name || member.email,
+      }));
+    }
+
+    return result;
+  }
+
+  /**
+   * Check if 'members' should be excluded from the response
+   */
+  private shouldExcludeMembers(excludedAttributes?: string): boolean {
+    if (!excludedAttributes) return false;
+    return excludedAttributes
+      .split(',')
+      .map((a) => a.trim().toLowerCase())
+      .includes('members');
   }
 
   /**
@@ -380,6 +409,16 @@ export class ScimGroupsService {
       if (op.path === 'members' || op.path?.startsWith('members[')) {
         if (opName === 'add') {
           await this.addTeamMembers(context, team.id, workspaceId, op.value);
+        } else if (opName === 'replace') {
+          // Replace members entirely
+          if (Array.isArray(op.value)) {
+            await this.updateTeamMembers(
+              context,
+              team.id,
+              workspaceId,
+              op.value,
+            );
+          }
         } else if (opName === 'remove') {
           if (op.path?.startsWith('members[')) {
             // Parse filter: members[value eq "userId"]
@@ -401,18 +440,30 @@ export class ScimGroupsService {
           }
         }
       }
-      // Handle Replace operations on group attributes (no specific path)
-      else if (
-        opName === 'replace' &&
-        !op.path &&
-        op.value &&
-        typeof op.value === 'object'
-      ) {
+      // Handle Replace operations on group attributes
+      else if (opName === 'replace') {
         const updateData: any = {};
-        if (op.value.displayName) {
-          updateData.title = op.value.displayName;
-          updateData.scim_display_name = op.value.displayName;
+
+        if (op.path) {
+          // Path-targeted replace: { op: "replace", path: "displayName", value: "..." }
+          if (op.path === 'displayName' && op.value) {
+            updateData.title = op.value;
+            updateData.scim_display_name = op.value;
+          }
+          if (op.path === 'externalId' && op.value) {
+            updateData.scim_external_id = op.value;
+          }
+        } else if (op.value && typeof op.value === 'object') {
+          // Bulk replace: { op: "replace", value: { displayName: "...", externalId: "..." } }
+          if (op.value.displayName) {
+            updateData.title = op.value.displayName;
+            updateData.scim_display_name = op.value.displayName;
+          }
+          if (op.value.externalId) {
+            updateData.scim_external_id = op.value.externalId;
+          }
         }
+
         if (Object.keys(updateData).length > 0) {
           await Team.update(context, team.id, updateData);
         }
@@ -491,23 +542,27 @@ export class ScimGroupsService {
   }
 
   /**
-   * Apply basic SCIM filter
+   * Apply SCIM filter with case-insensitive comparison (RFC 7644 §3.4.2.2)
    */
   private applyFilter(teams: any[], filter: string): any[] {
     // Support: displayName eq "Team Name"
     const displayNameMatch = filter.match(/displayName\s+eq\s+"([^"]+)"/i);
     if (displayNameMatch) {
-      const displayName = displayNameMatch[1];
+      const displayName = displayNameMatch[1].toLowerCase();
       return teams.filter(
-        (t) => t.scim_display_name === displayName || t.title === displayName,
+        (t) =>
+          (t.scim_display_name || '').toLowerCase() === displayName ||
+          (t.title || '').toLowerCase() === displayName,
       );
     }
 
     // Support: externalId eq "id"
     const externalIdMatch = filter.match(/externalId\s+eq\s+"([^"]+)"/i);
     if (externalIdMatch) {
-      const externalId = externalIdMatch[1];
-      return teams.filter((t) => t.scim_external_id === externalId);
+      const externalId = externalIdMatch[1].toLowerCase();
+      return teams.filter(
+        (t) => (t.scim_external_id || '').toLowerCase() === externalId,
+      );
     }
 
     return teams;

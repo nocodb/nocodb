@@ -201,6 +201,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_PINNED_FILTER)
   })
 
+  const blockCellColoring = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_CELL_COLOUR)
+  })
+
   const blockCalendarRange = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_CALENDAR_RANGE)
   })
@@ -1082,6 +1086,22 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseCellColoring = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockCellColoring.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseCellColoring'),
+      content: t('upgrade.upgradeToUseCellColoringSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      newPlanTitle: PlanTitles.BUSINESS,
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_CELL_COLOUR,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseTableAndFieldPermissions = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockTableAndFieldPermissions.value) return
 
@@ -1426,6 +1446,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseToggleFilter,
     blockPinnedFilter,
     showUpgradeToUsePinnedFilter,
+    blockCellColoring,
+    showUpgradeToUseCellColoring,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
     isUnderLoyaltyCutoffDate,

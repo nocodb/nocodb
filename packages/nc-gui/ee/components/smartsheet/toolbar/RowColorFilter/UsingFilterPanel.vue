@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ClientType, RowColoringInfoFilter, RowColoringInfoFilterRow } from 'nocodb-sdk'
-import { ViewLockType } from 'nocodb-sdk'
+import { PlanFeatureTypes, PlanTitles, ViewLockType } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
 import Draggable from 'vuedraggable'
 import { clearRowColouringCache } from '../../../../../components/smartsheet/grid/canvas/utils/canvas'
@@ -51,6 +51,8 @@ const isPersonalViewOwner = computed(
 
 const hasPermission = computed(() => isUIAllowed('rowColourUpdate') || isPersonalViewOwner.value)
 
+const { blockCellColoring, showUpgradeToUseCellColoring } = useEeConfig()
+
 const readOnlyFilter = computed(() => props.isLockedView || props.disabled)
 
 const wrapperDomRef = ref<HTMLElement>()
@@ -95,6 +97,10 @@ const removeColor = (index: number) => {
 const updateColorPendingPayload = ref({})
 const debouncedUpdateColor = useDebounceFn(() => props.handler.conditionUpdate(updateColorPendingPayload.value), 200)
 const updateColor = (index: number, field: string, value: string) => {
+  if (field === 'type' && value === 'cell' && blockCellColoring.value) {
+    showUpgradeToUseCellColoring()
+    return
+  }
   if (field === 'color') {
     updateColorPendingPayload.value = {
       index,
@@ -272,7 +278,17 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       </a-select-option>
                       <a-select-option value="cell" :label="$t('objects.cell')">
                         <div class="flex flex-col">
-                          <span>{{ $t('objects.cell') }}</span>
+                          <div class="flex items-center gap-2">
+                            <span>{{ $t('objects.cell') }}</span>
+                            <LazyPaymentUpgradeBadge
+                              v-if="blockCellColoring"
+                              :plan-title="PlanTitles.BUSINESS"
+                              :feature="PlanFeatureTypes.FEATURE_CELL_COLOUR"
+                              :title="$t('upgrade.upgradeToUseCellColoring')"
+                              :content="$t('upgrade.upgradeToUseCellColoringSubtitle', { plan: PlanTitles.BUSINESS })"
+                              size="xs"
+                            />
+                          </div>
                           <span class="text-xs text-nc-content-gray-subtle">{{ $t('objects.coloring.cellColorDescription') }}</span>
                         </div>
                       </a-select-option>
@@ -280,12 +296,13 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                     <NcSelect
                       v-if="rowColorConfig.type === 'cell'"
                       :value="rowColorConfig.fk_target_column_id || ''"
-                      class="!w-32"
+                      class="nc-cell-color-field-select !w-32"
                       size="small"
                       show-search
                       :filter-option="(input, option) => option.label?.toLowerCase().includes(input.toLowerCase())"
                       :placeholder="$t('objects.field')"
                       :disabled="readOnlyFilter"
+                      dropdown-class-name="nc-cell-color-field-dropdown"
                       @change="updateColor(i, 'fk_target_column_id', $event)"
                     >
                       <template #suffixIcon>
@@ -378,3 +395,26 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.nc-cell-color-field-select.nc-select.ant-select-sm {
+  .ant-select-selection-search {
+    @apply !flex !items-center;
+  }
+  .ant-select-selection-search-input {
+    @apply !text-[13px] !h-full;
+  }
+  .ant-select-selection-item {
+    @apply !text-[13px];
+  }
+  .ant-select-selection-placeholder {
+    @apply !text-[13px];
+  }
+}
+
+.nc-cell-color-field-dropdown {
+  .ant-select-item {
+    @apply !text-[13px];
+  }
+}
+</style>

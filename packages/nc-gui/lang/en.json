@@ -174,6 +174,8 @@
     "upgradeToUseToggleFilterSubtitle": "Upgrade to the {plan} plan to enable or disable individual filters without removing them, giving you more control over your views.",
     "upgradeToUsePinnedFilter": "Upgrade to pin filters to toolbar",
     "upgradeToUsePinnedFilterSubtitle": "Upgrade to the {plan} plan to pin frequently used filters to the toolbar for quick, one-click access.",
+    "upgradeToUseCellColoring": "Upgrade to use cell colouring",
+    "upgradeToUseCellColoringSubtitle": "Upgrade to the {plan} plan to colour specific fields based on conditions, making it easier to highlight important data.",
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
@@ -702,7 +704,9 @@
       "usingSingleSelectFieldTooltip": "There is no single select field. Add to configure colouring using single select field.",
       "usingConditions": "Using Conditions",
       "usingConditionsDescription": "Colour records/cells based on conditions",
-      "colourRecordsByField": "Colour records by field"
+      "colourRecordsByField": "Colour records by field",
+      "rowColorDescription": "Apply colour to the record",
+      "cellColorDescription": "Apply colour to a specific field"
     },
     "permissions": {
       "addNewRecordTooltipTitle": "Create record restricted",

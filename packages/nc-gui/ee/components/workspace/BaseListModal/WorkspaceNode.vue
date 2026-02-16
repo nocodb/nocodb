@@ -22,11 +22,7 @@ const onSelect = () => {
   <div
     :tabindex="0"
     class="nc-workspace-node group flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer my-0.5 border-1 border-transparent"
-    :class="[
-      isSelected
-        ? 'nc-selected-workspace-node is-selected !border-nc-border-brand/30'
-        : 'hover:(bg-nc-bg-gray-light !border-nc-border-gray-medium)',
-    ]"
+    :class="[isSelected ? 'nc-selected-workspace-node is-selected' : 'hover:(bg-nc-bg-gray-light !border-nc-border-gray-medium)']"
     @click="onSelect"
     @keydown.enter.stop="onSelect"
   >
@@ -80,11 +76,7 @@ const onSelect = () => {
   @apply outline-none;
 
   &.is-selected {
-    background-color: rgba(51, 102, 255, 0.08);
-
-    :global(.dark) & {
-      background-color: rgba(51, 102, 255, 0.1);
-    }
+    @apply border-nc-border-brand/30 hover:border-nc-border-brand/40 bg-brand-500/8 dark:bg-brand-500/10;
   }
 
   &:focus-visible {

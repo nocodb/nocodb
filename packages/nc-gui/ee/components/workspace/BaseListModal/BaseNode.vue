@@ -12,7 +12,6 @@ const { onRename, onToggleStarred, onDuplicate, onOpenErd, onOpenSettings, onDel
   useWsBaseListActionsOrThrow()
 
 const { isUIAllowed } = useRoles()
-const { $e } = useNuxtApp()
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
 // Local state

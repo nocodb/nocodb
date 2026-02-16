@@ -15,10 +15,6 @@ const { activeWorkspaceId } = storeToRefs(useWorkspace())
 
 const { switchWorkspace } = useWsBaseListActionsOrThrow()
 
-const isActiveWorkspace = computed(() => {
-  return activeWorkspaceId.value === props.workspace?.id
-})
-
 const onSelect = () => {
   emit('select', props.workspace.id!)
 }
@@ -39,7 +35,10 @@ const onSelect = () => {
     <GeneralWorkspaceIcon :workspace="workspace" size="medium" class="flex-none" />
     <div class="flex flex-col flex-1 min-w-0">
       <div class="flex items-center gap-1">
-        <NcTooltip show-on-truncate-only class="nc-workspace-node-title min-w-0 text-sm font-medium text-nc-content-gray-extreme truncate capitalize">
+        <NcTooltip
+          show-on-truncate-only
+          class="nc-workspace-node-title min-w-0 text-sm font-medium text-nc-content-gray-extreme truncate capitalize"
+        >
           <template #title>
             {{ workspace.title }}
           </template>

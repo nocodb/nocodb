@@ -156,26 +156,17 @@ export class SidebarProjectNodeObject extends BasePage {
   async verifyActiveProject({ baseTitle, open = false }: { baseTitle: string; open?: boolean }) {
     if (!(await this.sidebar.dashboard.leftSidebar.isMiniSidebarVisible())) return true;
 
-    const baseMiniSidebarItem = await this.sidebar.dashboard.leftSidebar.getMiniSidebarActionLocator({ type: 'base' });
-
-    const isActive = (await baseMiniSidebarItem.locator('.nc-mini-sidebar-btn').getAttribute('class')).includes(
-      'active-base'
-    );
-
-    // If base sidebar is not visible click base minisidebar icon
-    if (!isActive) {
-      await baseMiniSidebarItem.click();
-    }
-
     const ncProjectHeader = this.sidebar.get().locator('.nc-project-header');
 
-    await ncProjectHeader.waitFor();
+    // Check if active project is same as baseTitle then return true
+    if ((await ncProjectHeader.count()) > 0) {
+      await ncProjectHeader.waitFor();
 
-    const isActiveProject =
-      (await ncProjectHeader.getAttribute('data-testid')) === `nc-sidebar-base-title-${baseTitle}`;
+      const isActiveProject =
+        (await ncProjectHeader.getAttribute('data-testid')) === `nc-sidebar-base-title-${baseTitle}`;
 
-    // If active project is same as baseTitle then return true
-    if (isActiveProject) return true;
+      if (isActiveProject) return true;
+    }
 
     if (!open) return false;
 

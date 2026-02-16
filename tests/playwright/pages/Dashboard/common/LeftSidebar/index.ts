@@ -58,11 +58,6 @@ export class LeftSidebarPage extends BasePage {
     return this.dashboard.get().locator('.nc-sidebar');
   }
 
-  async isNewSidebar() {
-    // will be new sidebar always from now
-    return 1;
-  }
-
   /**
    * In shared base/view minisidebar will be hidden
    */
@@ -76,8 +71,6 @@ export class LeftSidebarPage extends BasePage {
    * @returns boolean indicating if modal is open
    */
   async verifyBaseListOpen(open: boolean = false) {
-    if (!(await this.isNewSidebar())) return true;
-
     const isModalOpen = await this.modal_baseList.isVisible();
 
     if (!isModalOpen && open) {
@@ -162,19 +155,11 @@ export class LeftSidebarPage extends BasePage {
   async clickHome() {}
 
   async getWorkspaceName() {
-    if (await this.isNewSidebar()) {
-      return await this.get().locator('.nc-sidebar-header').getAttribute('data-workspace-title');
-    } else {
-      return await this.btn_workspace.getAttribute('data-workspace-title');
-    }
+    return await this.get().locator('.nc-sidebar-header').getAttribute('data-workspace-title');
   }
 
   async verifyWorkspaceName({ title }: { title: string }) {
-    if (await this.isNewSidebar()) {
-      return expect(await this.getWorkspaceName()).toContain(title);
-    } else {
-      return await expect(this.btn_workspace.locator('.nc-workspace-title')).toHaveText(title);
-    }
+    return expect(await this.getWorkspaceName()).toContain(title);
   }
 
   async createWorkspace({ title }: { title: string }) {
@@ -264,10 +249,6 @@ export class LeftSidebarPage extends BasePage {
   }
 
   async getMiniSidebarActionLocator({ type }: { type: MiniSidebarActionType }): Promise<Locator | undefined> {
-    if (!(await this.isNewSidebar())) {
-      return undefined;
-    }
-
     await this.miniSidebar.waitFor();
 
     const locators = {
@@ -293,7 +274,7 @@ export class LeftSidebarPage extends BasePage {
     type: MiniSidebarActionType;
     fallback?: () => Promise<void>;
   }): Promise<boolean | void> {
-    if (!(await this.isNewSidebar()) || !(await this.isMiniSidebarVisible())) {
+    if (!(await this.isMiniSidebarVisible())) {
       if (fallback) {
         await fallback();
       }

@@ -375,10 +375,9 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- SCIM Provisioning Section -->
-      <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-4">
+        <!-- SCIM Provisioning Section -->
+        <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-4">
         <div class="flex font-bold justify-between text-base items-center" data-rec="true">
           <span>SCIM Provisioning</span>
           <NcButton
@@ -463,6 +462,7 @@ onMounted(async () => {
 
         <div v-if="isScimLoading && !scimConfig" class="flex items-center justify-center py-8">
           <a-spin />
+        </div>
         </div>
       </div>
 

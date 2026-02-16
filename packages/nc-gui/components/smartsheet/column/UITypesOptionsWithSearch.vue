@@ -12,7 +12,7 @@ const { options } = toRefs(props)
 
 const { isMetaReadOnly } = useRoles()
 
-const { showUpgradeToUseAiPromptField, showUpgradeToUseAiButtonField } = useEeConfig()
+const { showUpgradeToUseAiPromptField, showUpgradeToUseAiButtonField, showUpgradeToUseColourField } = useEeConfig()
 
 const searchQuery = ref('')
 
@@ -50,6 +50,10 @@ const onClick = (uidt: UITypes) => {
   }
 
   if (uidt === AIButton && showUpgradeToUseAiButtonField()) {
+    return
+  }
+
+  if (uidt === UITypes.Colour && showUpgradeToUseColourField()) {
     return
   }
 

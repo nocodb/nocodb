@@ -235,6 +235,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_AI_BUTTON_FIELD)
   })
 
+  const blockColourField = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_COLOUR_FIELD)
+  })
+
   const blockTeamsManagement = computed(() => {
     // Teams api allow only in paid plan, so better to mark it as block so that we don't call the api
     if (!isPaymentEnabled.value && !isOnPrem.value) return true
@@ -1187,6 +1191,21 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseColourField = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockColourField.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseColourField'),
+      content: t('upgrade.upgradeToUseColourFieldSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_COLOUR_FIELD,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseTeams = ({
     callback,
     successCallback,
@@ -1346,6 +1365,8 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToDuplicateTableToOtherBase,
     blockAiButtonField,
     showUpgradeToUseAiButtonField,
+    blockColourField,
+    showUpgradeToUseColourField,
     blockTeamsManagement,
     showUpgradeToUseTeams,
     blockAddNewTeamToWs,

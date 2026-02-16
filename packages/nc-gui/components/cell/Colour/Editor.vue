@@ -193,8 +193,8 @@ onUnmounted(() => {
       <div
         v-if="showSwatch"
         :class="[sizeClass, shapeClass]"
-        :style="{ backgroundColor: vModel, borderColor: '#d1d5db' }"
-        class="border flex-shrink-0"
+        :style="{ backgroundColor: vModel, border: '1px solid #d0d5dd' }"
+        class="flex-shrink-0"
       />
 
       <span v-if="showHex" class="text-sm font-mono truncate">

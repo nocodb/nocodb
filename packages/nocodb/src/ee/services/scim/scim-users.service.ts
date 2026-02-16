@@ -550,7 +550,9 @@ export class ScimUsersService {
     const result: any = {
       schemas,
       id: workspaceUser.scim_external_id,
-      externalId: scimMeta.externalId || null,
+      // externalId is optional (RFC 7643 §3.1); omit rather than null to
+      // satisfy the schema constraint that it must be a string when present
+      ...(scimMeta.externalId ? { externalId: scimMeta.externalId } : {}),
       userName: workspaceUser.scim_user_name || workspaceUser.email,
       name: scimMeta.name || {
         formatted: workspaceUser.display_name,

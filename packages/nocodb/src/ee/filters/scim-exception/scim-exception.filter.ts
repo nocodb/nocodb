@@ -31,8 +31,9 @@ export class ScimExceptionFilter implements ExceptionFilter {
     if (exception instanceof NotFound) return 404;
     if (exception instanceof UnprocessableEntity) return 422;
 
-    // Fallback: check .status property or default to 500
-    return exception?.status || 500;
+    // NcBaseErrorv2 (from NcError.*() methods) stores HTTP status in .code
+    // Fallback: check .status, .code property, or default to 500
+    return exception?.status || exception?.code || 500;
   }
 
   catch(exception: any, host: ArgumentsHost) {

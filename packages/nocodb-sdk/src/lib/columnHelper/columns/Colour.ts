@@ -16,14 +16,14 @@ export class ColourHelper extends AbstractColumnHelper {
     params: SerializerOrParserFnProps['params']
   ): string | null {
     if (!value) return null;
-    
+
     const stringValue = String(value).trim();
     if (!stringValue) return null;
 
     // Validate hex color format
     const hexPattern = /^#?([0-9A-Fa-f]{6})$/;
     const match = stringValue.match(hexPattern);
-    
+
     if (!match) {
       if (params.isMultipleCellPaste || params.serializeSearchQuery) {
         return null;
@@ -38,14 +38,14 @@ export class ColourHelper extends AbstractColumnHelper {
 
   parseValue(value: any): string | null {
     if (!value) return null;
-    
+
     const stringValue = String(value).trim();
     if (!stringValue) return null;
 
     // Validate hex color format
     const hexPattern = /^#?([0-9A-Fa-f]{6})$/;
     const match = stringValue.match(hexPattern);
-    
+
     if (!match) return null;
 
     // Normalize to #RRGGBB format
@@ -57,7 +57,7 @@ export class ColourHelper extends AbstractColumnHelper {
     _params: SerializerOrParserFnProps['params']
   ): string {
     if (!value) return '';
-    
+
     const parsed = this.parseValue(value);
     return parsed || '';
   }

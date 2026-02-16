@@ -311,7 +311,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                         <GeneralIcon icon="arrowDown" class="text-gray-700" />
                       </template>
                       <a-select-option value="row">{{ $t('general.row') }}</a-select-option>
-                      <a-select-option value="cell">{{ $t('general.cell') }}</a-select-option>
+                      <a-select-option value="cell">{{ $t('objects.cell') }}</a-select-option>
                     </NcSelect>
                   </div>
                   <div v-if="rowColorConfig.type === 'cell'" class="flex items-center cursor-pointer select-none text-nc-content-gray">

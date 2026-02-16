@@ -73,6 +73,18 @@ export class AiSchemaController {
         type,
         req: req,
       });
+    } else if (operation === 'predictFilters') {
+      // AI Filter Prediction: convert a natural-language description into
+      // structured filter conditions for the given table/view.
+      const { tableId, viewId, description } = body.input;
+
+      return await this.aiSchemaService.predictFilters(context, {
+        baseId: context.base_id,
+        tableId,
+        viewId,
+        description,
+        req: req,
+      });
     } else if (operation === 'createViews') {
       const { views, sourceId } = body.input;
 

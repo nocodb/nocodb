@@ -831,6 +831,7 @@
     "confirmSnapshotRestore": "Confirm Snapshot Restore",
     "urlFilters": "URL Filters",
     "viewFilters": "View Filters",
+    "aiFilterPlaceholder": "Describe what you want to see",
     "creatingScript": "Creating Script",
     "creatingDashboard": "Creating Dashboard",
     "creatingWorkflow": "Creating Workflow",

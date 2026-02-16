@@ -929,7 +929,10 @@ export function useViewFilters(
 
     filters.value.push(
       (draftFilter?.fk_column_id
-        ? { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order', 'logical_op']) }
+        // Strip only 'order' from the draft so it gets a fresh order from placeholderFilter.
+        // Preserve 'logical_op' from the draft when provided (e.g. AI-generated filters may use 'or'),
+        // otherwise normalizeFilterNode falls back to placeholderFilter's default.
+        ? { ...placeholderFilter(), ...normalizeFilterNode(draftFilter, ['order']) }
         : placeholderFilter()) as ColumnFilterType,
     )
     if (!undo && !(isForm.value && !isWebhook)) {

@@ -152,7 +152,9 @@ const newRowState = computed(() => {
 
     if (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) {
       return (
-        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id && colOpt.fk_child_column_id === colOpt1.fk_parent_column_id
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id &&
+        colOpt.fk_child_column_id === colOpt1.fk_parent_column_id &&
+        colOpt.fk_mm_model_id === colOpt1.fk_mm_model_id
       )
     } else {
       return (

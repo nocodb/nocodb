@@ -338,7 +338,10 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
   class: `${selected[recordIndex] ? 'selected' : ''} last:!border-b-0 !cursor-default`,
 })
 
+const isScimManaged = (record: any) => !!record?.scim_managed
+
 const isDeleteOrUpdateAllowed = (user) => {
+  if (isScimManaged(user)) return false
   return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
 }
 
@@ -607,6 +610,21 @@ watch(inviteDlg, (newVal) => {
                       <GeneralIcon icon="ncCrown" class="flex-none mb-0.5" />
                     </NcBadge>
                   </NcTooltip>
+                  <NcTooltip
+                    v-if="isScimManaged(record)"
+                    :title="$t('labels.scimManagedUserTooltip')"
+                    class="flex items-center"
+                    :tooltip-style="{ width: '230px' }"
+                    :overlay-inner-style="{ width: '230px' }"
+                  >
+                    <NcBadge
+                      :border="false"
+                      color="blue"
+                      class="text-nc-content-blue-dark dark:!bg-nc-bg-blue-light text-[10px] leading-[14px] !h-[18px] font-semibold"
+                    >
+                      {{ $t('labels.scimManaged') }}
+                    </NcBadge>
+                  </NcTooltip>
                 </div>
                 <NcTooltip class="truncate max-w-full text-xs text-nc-content-gray-subtle2" show-on-truncate-only>
                   <template #title>
@@ -628,7 +646,10 @@ watch(inviteDlg, (newVal) => {
                 />
               </template>
               <template v-else>
-                <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
+                <NcTooltip v-if="isScimManaged(record)" :title="$t('labels.scimManagedUserTooltip')" :tooltip-style="{ width: '230px' }" :overlay-inner-style="{ width: '230px' }">
+                  <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
+                </NcTooltip>
+                <RolesBadge v-else :border="false" :role="record.roles" class="cursor-default" />
               </template>
             </div>
             <div v-if="column.key === 'created_at'">
@@ -677,9 +698,9 @@ watch(inviteDlg, (newVal) => {
                         <NcDivider />
                       </template>
 
-                      <NcTooltip :disabled="!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER">
+                      <NcTooltip :disabled="(!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER) && !isScimManaged(record)">
                         <template #title>
-                          {{ $t('tooltip.leaveWorkspace') }}
+                          {{ isScimManaged(record) ? $t('labels.scimManagedUserTooltip') : $t('tooltip.leaveWorkspace') }}
                         </template>
                         <NcMenuItem
                           :disabled="!isDeleteOrUpdateAllowed(record) || (record.isTeam && !isOwnerOrCreator)"

@@ -22,11 +22,19 @@ export class WorkspaceMembersV3Service {
 
   constructor(protected workspaceUsersService: WorkspaceUsersService) {
     this.builder = builderGenerator({
-      allowed: ['email', 'fk_user_id', 'created_at', 'updated_at', 'roles'],
+      allowed: [
+        'email',
+        'fk_user_id',
+        'created_at',
+        'updated_at',
+        'roles',
+        'scim_managed',
+      ],
       mappings: {
         email: 'email',
         fk_user_id: 'user_id',
         roles: 'workspace_role',
+        scim_managed: 'scim_managed',
       },
       transformFn(data) {
         return data;

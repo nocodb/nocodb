@@ -1415,6 +1415,8 @@
     "provisioningToken": "Bearer Token",
     "enableScim": "Enable SCIM",
     "disableScim": "Disable SCIM",
+    "scimManaged": "Managed via SCIM",
+    "scimManagedUserTooltip": "This user is managed by your identity provider via SCIM. Changes must be made from your IdP.",
     "regenerate": "Regenerate",
     "addDomain": "Add Domain",
     "domain": "Domain",

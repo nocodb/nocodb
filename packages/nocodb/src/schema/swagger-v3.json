@@ -7103,7 +7103,8 @@
               "gallery",
               "kanban",
               "calendar",
-              "form"
+              "form",
+              "map"
             ],
             "description": "Type of the view."
           }
@@ -7172,7 +7173,8 @@
                     "gallery",
                     "kanban",
                     "calendar",
-                    "form"
+                    "form",
+                    "map"
                   ],
                   "description": "Type of the view."
                 },
@@ -7233,7 +7235,8 @@
               "grid",
               "gallery",
               "kanban",
-              "calendar"
+              "calendar",
+              "map"
             ],
             "description": "Type of the view. \n\nNote: Form view via API is not supported currently"
           },
@@ -7484,6 +7487,15 @@
           }
         }
       },
+      "ViewOptionsMap": {
+        "type": "object",
+        "properties": {
+          "fk_geo_data_col_id": {
+            "type": "string",
+            "description": "Foreign Key to GeoData Column to be used for the map view."
+          }
+        }
+      },
       "ViewOptionsForm": {
         "type": "object",
         "properties": {
@@ -7682,6 +7694,38 @@
                 "required": [
                   "options"
                 ]
+              },
+              {
+                "type": "object",
+                "title": "map",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "map"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsMap"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
               }
             ],
             "discriminator": {
@@ -7782,6 +7826,32 @@
                 "properties": {
                   "options": {
                     "$ref": "#/components/schemas/ViewOptionsCalendar"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "title": "map",
+                "properties": {
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsMap"
                   },
                   "sorts": {
                     "type": "array",
@@ -7987,6 +8057,38 @@
                 "required": [
                   "options"
                 ]
+              },
+              {
+                "type": "object",
+                "title": "map",
+                "properties": {
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "map"
+                    ]
+                  },
+                  "options": {
+                    "$ref": "#/components/schemas/ViewOptionsMap"
+                  },
+                  "sorts": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/SortCreate"
+                    },
+                    "description": "List of sorts to be applied to the view."
+                  },
+                  "filters": {
+                    "$ref": "#/components/schemas/FilterCreateUpdate"
+                  },
+                  "fields": {
+                    "$ref": "#/components/schemas/ViewFields"
+                  },
+                  "row_coloring": {
+                    "$ref": "#/components/schemas/ViewRowColour",
+                    "description": "Row colour configuration for the the view."
+                  }
+                }
               }
             ],
             "discriminator": {

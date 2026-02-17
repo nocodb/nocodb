@@ -21,6 +21,7 @@ import { ScimExceptionFilter } from '~/ee/filters/scim-exception/scim-exception.
 import { ScimContentTypeInterceptor } from '~/ee/interceptors/scim-content-type/scim-content-type.interceptor';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { checkForFeature } from '~/ee/helpers/paymentHelpers';
+import { isCloud } from '~/utils';
 
 @Controller()
 @UseGuards(ScimAuthGuard)
@@ -30,7 +31,9 @@ export class ScimGroupsController {
   constructor(private readonly scimGroupsService: ScimGroupsService) {}
 
   private async checkScimFeature(context: NcContext) {
-    await checkForFeature(context, PlanFeatureTypes.FEATURE_SCIM);
+    if (isCloud) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_SCIM);
+    }
   }
 
   @Get('/api/v3/meta/workspaces/:workspaceId/scim/v2/Groups/:groupId')

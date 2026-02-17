@@ -17,6 +17,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { checkForFeature } from '~/ee/helpers/paymentHelpers';
+import { isCloud } from '~/utils';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -24,7 +25,9 @@ export class ScimConfigController {
   constructor(private readonly scimConfigService: ScimConfigService) {}
 
   private async checkScimFeature(context: NcContext) {
-    await checkForFeature(context, PlanFeatureTypes.FEATURE_SCIM);
+    if (isCloud) {
+      await checkForFeature(context, PlanFeatureTypes.FEATURE_SCIM);
+    }
   }
 
   @Get('/api/v3/meta/workspaces/:workspaceId/scim/config')

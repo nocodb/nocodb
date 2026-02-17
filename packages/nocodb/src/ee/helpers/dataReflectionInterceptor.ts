@@ -424,6 +424,9 @@ export const allowedShowSettings = new Set([
 export const allowedNonParseablePatterns: RegExp[] = [
   /^\s*EXPLAIN\b/i,
   /^\s*RESET\s+\w+/i,
+  // SET with comma-separated values or SET TRANSACTION are not parsed by node-sql-parser.
+  // Dangerous SET variants (statement_timeout, etc.) are already caught by blockedQueryPatterns.
+  /^\s*SET\b/i,
 ];
 
 /**
@@ -657,9 +660,15 @@ export function applyInterceptRulesRecursive(
 }
 
 /**
- * Strip SQL comments for security pattern matching.
- * Removes -- line comments and /* block comments (including nested) while
- * preserving content inside string literals ('...' and $$...$$).
+ * Normalize SQL for security pattern matching.
+ * Strips comments (block + line, including nested) and neutralizes string
+ * literal contents so that blocked-keyword patterns cannot false-positive
+ * on values like `'This is a copy'` matching `\bCOPY\b`.
+ *
+ * String literals are replaced with empty delimiters:
+ *   'some COPY text'  →  ''
+ *   $$GRANT stuff$$   →  $$$$
+ *
  * Only used for blocked-pattern matching — the original text is used for parsing.
  */
 export function stripSqlComments(sql: string): string {
@@ -667,36 +676,33 @@ export function stripSqlComments(sql: string): string {
   let i = 0;
 
   while (i < sql.length) {
-    // Single-quoted string literal — preserve as-is
+    // Single-quoted string literal — neutralize content, keep delimiters
     if (sql[i] === "'") {
-      result += sql[i++];
+      result += "''"; // emit empty string literal
+      i++; // skip opening quote
       while (i < sql.length) {
         if (sql[i] === "'" && sql[i + 1] === "'") {
-          result += "''";
-          i += 2;
+          i += 2; // skip escaped quote
         } else if (sql[i] === "'") {
-          result += sql[i++];
+          i++; // skip closing quote
           break;
         } else {
-          result += sql[i++];
+          i++; // skip content
         }
       }
     }
-    // Dollar-quoted string literal — preserve as-is
+    // Dollar-quoted string literal — neutralize content, keep tags
     else if (sql[i] === '$') {
       const tagMatch = sql.slice(i).match(/^\$([A-Za-z_][\w]*)?\$/);
       if (tagMatch) {
         const tag = tagMatch[0]; // e.g. $$ or $tag$
-        result += tag;
+        result += tag + tag; // emit empty dollar-quoted string
         i += tag.length;
         const endIdx = sql.indexOf(tag, i);
         if (endIdx !== -1) {
-          result += sql.slice(i, endIdx + tag.length);
-          i = endIdx + tag.length;
+          i = endIdx + tag.length; // skip past content + closing tag
         } else {
-          // Unterminated — include the rest
-          result += sql.slice(i);
-          i = sql.length;
+          i = sql.length; // unterminated — skip rest
         }
       } else {
         result += sql[i++];
@@ -773,11 +779,16 @@ export async function interceptQueryIfNeeded(
     return;
   }
 
-  // Rewrite current_database() and current_catalog to return the workspace ID
+  // Rewrite session-level identifiers to return the session values.
+  // current_database()/current_catalog → workspace ID
+  // current_user/session_user → DB user (these are SQL keywords without parens
+  // that many parsers cannot handle as column expressions)
   let forceModified = false;
   const rewritten = queryText
     .replace(/\bcurrent_database\s*\(\s*\)/gi, `'${session.fk_workspace_id}'`)
-    .replace(/\bcurrent_catalog\b/gi, `'${session.fk_workspace_id}'`);
+    .replace(/\bcurrent_catalog\b/gi, `'${session.fk_workspace_id}'`)
+    .replace(/\bsession_user\b/gi, `'${session.pgUser}'`)
+    .replace(/\bcurrent_user\b/gi, `'${session.pgUser}'`);
   if (rewritten !== queryText) {
     queryText = rewritten;
     forceModified = true;

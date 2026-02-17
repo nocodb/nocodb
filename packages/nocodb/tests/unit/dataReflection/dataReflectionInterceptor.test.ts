@@ -1104,6 +1104,66 @@ function interceptQueryIfNeededTests() {
     expect(result).to.be.undefined;
   });
 
+  it('rewrites current_user to session pgUser', async () => {
+    const session = makeSession({ pgUser: 'nc_test_user' });
+    const buf = buildQueryBuffer('SELECT current_user');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql).to.include('nc_test_user');
+  });
+
+  it('rewrites session_user to session pgUser', async () => {
+    const session = makeSession({ pgUser: 'nc_test_user' });
+    const buf = buildQueryBuffer('SELECT session_user');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql).to.include('nc_test_user');
+  });
+
+  it('rewrites current_user and session_user together', async () => {
+    const session = makeSession({ pgUser: 'nc_usr' });
+    const buf = buildQueryBuffer('SELECT current_user, session_user');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql).to.not.include('current_user');
+    expect(sql).to.not.include('session_user');
+    expect(sql).to.include('nc_usr');
+  });
+
+  it('allows SET search_path as non-parseable', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SET search_path TO myschema, public');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.undefined;
+  });
+
+  it('allows SET TRANSACTION READ ONLY as non-parseable', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SET TRANSACTION READ ONLY');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.undefined;
+  });
+
+  it('does not false-positive on COPY inside string literal', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer(
+      "SELECT 'This is a copy of the data' AS label",
+    );
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    // Should not throw — 'copy' is inside a string literal
+    expect(result).to.be.undefined;
+  });
+
+  it('does not false-positive on GRANT inside string literal', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer("SELECT 'GRANT me access' AS msg");
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.undefined;
+  });
+
   it('blocks pg_sleep with comment bypass (pg_sleep/**/())', async () => {
     const session = makeSession();
     const buf = buildQueryBuffer('SELECT pg_sleep/*comment*/(5)');
@@ -1207,30 +1267,38 @@ function stripSqlCommentsTests() {
     expect(result).to.equal('SELECT   1');
   });
 
-  it('preserves content inside single-quoted strings', () => {
-    const sql = "SELECT '/* not a comment */' FROM t";
-    expect(stripSqlComments(sql)).to.equal(sql);
+  it('neutralizes single-quoted string contents', () => {
+    const result = stripSqlComments("SELECT 'This is a COPY' FROM t");
+    expect(result).to.equal("SELECT '' FROM t");
+    expect(result).to.not.include('COPY');
   });
 
-  it('preserves content inside dollar-quoted strings', () => {
-    const sql = 'SELECT $$/* not a comment */$$';
-    expect(stripSqlComments(sql)).to.equal(sql);
+  it('neutralizes dollar-quoted string contents', () => {
+    const result = stripSqlComments('SELECT $$GRANT ALL$$ FROM t');
+    expect(result).to.equal('SELECT $$$$ FROM t');
+    expect(result).to.not.include('GRANT');
   });
 
-  it('preserves escaped single quotes', () => {
-    const sql = "SELECT 'it''s -- not a comment' FROM t";
-    expect(stripSqlComments(sql)).to.equal(sql);
+  it('neutralizes escaped single quotes', () => {
+    const result = stripSqlComments("SELECT 'it''s a COPY' FROM t");
+    expect(result).to.equal("SELECT '' FROM t");
+    expect(result).to.not.include('COPY');
   });
 
   it('handles mixed strings and comments', () => {
     const sql = "SELECT 'safe' /* remove this */ FROM t -- also remove";
     const result = stripSqlComments(sql);
-    expect(result).to.include("'safe'");
+    expect(result).to.include("''");
     expect(result).to.not.include('remove this');
     expect(result).to.not.include('also remove');
   });
 
-  it('returns input unchanged when no comments', () => {
+  it('neutralizes comment-like syntax inside strings', () => {
+    const result = stripSqlComments("SELECT '/* not a comment */' FROM t");
+    expect(result).to.equal("SELECT '' FROM t");
+  });
+
+  it('returns input unchanged when no comments or strings', () => {
     const sql = 'SELECT * FROM pg_namespace';
     expect(stripSqlComments(sql)).to.equal(sql);
   });
@@ -1293,8 +1361,8 @@ function constantsTests() {
     expect(blockedQueryPatterns.length).to.equal(36);
   });
 
-  it('allowedNonParseablePatterns has 2 patterns', () => {
-    expect(allowedNonParseablePatterns.length).to.equal(2);
+  it('allowedNonParseablePatterns has 3 patterns', () => {
+    expect(allowedNonParseablePatterns.length).to.equal(3);
   });
 
   it('catalogNamespaceFilters has 8 entries', () => {

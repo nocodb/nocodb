@@ -330,9 +330,9 @@ export class ScimUsersService {
       updateData,
     );
 
-    // After deactivation, WorkspaceUser.get() filters out deleted users,
-    // so we construct a merged object from the existing data + updates.
-    if (updateData.deleted) {
+    // WorkspaceUser.get() filters out deleted users, so for deactivated
+    // users (either just now OR previously) we construct a merged response.
+    if (updateData.deleted || workspaceUser.deleted) {
       const mergedUser = {
         ...workspaceUser,
         ...updateData,
@@ -507,13 +507,25 @@ export class ScimUsersService {
     const fVal = filterValue || typeValue;
     if (!fVal) return;
 
+    // Convert filter value to proper type for storage (e.g. "True" → true
+    // for 'primary' which SCIM defines as boolean, not string)
+    const storedFVal =
+      filterField === 'primary'
+        ? typeof fVal === 'string'
+          ? fVal.toLowerCase() === 'true'
+          : fVal
+        : fVal;
+
     for (const field of fields) {
       const pathKey = `${attrName}[${filterField} eq "${fVal}"].${field}`;
       if (patchData[pathKey] !== undefined) {
         if (!meta[attrName]) meta[attrName] = [];
-        let item = meta[attrName].find((a: any) => a[filterField] === fVal);
+        let item = meta[attrName].find(
+          (a: any) =>
+            a[filterField] === storedFVal || a[filterField] === fVal,
+        );
         if (!item) {
-          item = { [filterField]: fVal };
+          item = { [filterField]: storedFVal };
           meta[attrName].push(item);
         }
         item[field] = patchData[pathKey];

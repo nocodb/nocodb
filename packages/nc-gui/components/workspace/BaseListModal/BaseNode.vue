@@ -24,12 +24,12 @@ const inputRef = useTemplateRef('inputRef')
 
 // Computed
 const iconColor = computed(() => parseProp(props.base.meta).iconColor)
-const baseRole = computed(() => props.base.project_role)
+const baseRole = computed(() => props.base.project_role || props.base.workspace_role)
 
 const isOptionVisible = computed(() => ({
-  baseRename: isUIAllowed('baseRename'),
+  baseRename: isUIAllowed('baseRename', { roles: baseRole.value }),
   baseDuplicate: isUIAllowed('baseDuplicate', { roles: baseRole.value }),
-  baseMiscSettings: isUIAllowed('baseMiscSettings'),
+  baseMiscSettings: isUIAllowed('baseMiscSettings', { roles: baseRole.value }),
   baseDelete: isUIAllowed('baseDelete', { roles: baseRole.value }),
 }))
 

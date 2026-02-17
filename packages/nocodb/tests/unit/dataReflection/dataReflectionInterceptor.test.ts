@@ -4,6 +4,7 @@ import { Parser } from 'node-sql-parser';
 import { serialize } from 'pg-protocol';
 import type { InterceptSession } from '~/helpers/dataReflectionInterceptor';
 import {
+  allowedNonParseablePatterns,
   allowedShowSettings,
   applyInterceptRulesRecursive,
   blockedQueryPatterns,
@@ -149,6 +150,158 @@ function blockedQueryTests() {
     expect(match2).to.not.be.undefined;
   });
 
+  it('blocks pg_try_advisory_lock', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SELECT pg_try_advisory_lock(1)'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks pg_advisory_xact_lock', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SELECT pg_advisory_xact_lock(1)'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks COPY TO STDOUT', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('COPY (SELECT * FROM pg_namespace) TO STDOUT'),
+    );
+    expect(match).to.not.be.undefined;
+    expect(match.message).to.include('COPY');
+  });
+
+  it('blocks COPY FROM', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test("COPY foo FROM '/tmp/evil.csv'"),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks GRANT', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('GRANT ALL ON SCHEMA public TO evil'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks REVOKE', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('REVOKE ALL ON SCHEMA public FROM evil'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks lo_create', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SELECT lo_create(0)'),
+    );
+    expect(match).to.not.be.undefined;
+    expect(match.message).to.include('Large object');
+  });
+
+  it('blocks lo_put', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test("SELECT lo_put(123, 0, E'\\x48')"),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks lo_import and lo_export', () => {
+    expect(
+      blockedQueryPatterns.find((p) =>
+        p.pattern.test("SELECT lo_import('/etc/passwd')"),
+      ),
+    ).to.not.be.undefined;
+    expect(
+      blockedQueryPatterns.find((p) =>
+        p.pattern.test("SELECT lo_export(1, '/tmp/evil')"),
+      ),
+    ).to.not.be.undefined;
+  });
+
+  it('blocks pg_notify function', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test("SELECT pg_notify('channel', 'payload')"),
+    );
+    expect(match).to.not.be.undefined;
+    expect(match.message).to.include('pg_notify');
+  });
+
+  it('blocks VACUUM', () => {
+    const match = blockedQueryPatterns.find((p) => p.pattern.test('VACUUM'));
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks CLUSTER', () => {
+    const match = blockedQueryPatterns.find((p) => p.pattern.test('CLUSTER'));
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks DISCARD', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('DISCARD ALL'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks UNLISTEN', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('UNLISTEN *'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks inet_server_addr', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SELECT inet_server_addr()'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks inet_server_port', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SELECT inet_server_port()'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks SET statement_timeout', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SET statement_timeout = 0'),
+    );
+    expect(match).to.not.be.undefined;
+    expect(match.message).to.include('timeout');
+  });
+
+  it('blocks SET LOCAL statement_timeout', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SET LOCAL statement_timeout = 0'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks SET idle_in_transaction_session_timeout', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SET idle_in_transaction_session_timeout = 0'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks RESET ALL', () => {
+    const match = blockedQueryPatterns.find((p) => p.pattern.test('RESET ALL'));
+    expect(match).to.not.be.undefined;
+    expect(match.message).to.include('timeout');
+  });
+
+  it('blocks RESET statement_timeout', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('RESET statement_timeout'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
   it('does not block safe SELECT queries', () => {
     const safeSql = 'SELECT * FROM users WHERE id = 1';
     const match = blockedQueryPatterns.find((p) => p.pattern.test(safeSql));
@@ -157,6 +310,18 @@ function blockedQueryTests() {
 
   it('does not block safe INSERT queries', () => {
     const safeSql = "INSERT INTO user_table (name) VALUES ('Alice')";
+    const match = blockedQueryPatterns.find((p) => p.pattern.test(safeSql));
+    expect(match).to.be.undefined;
+  });
+
+  it('does not block SET for non-timeout settings', () => {
+    const safeSql = 'SET search_path TO myschema';
+    const match = blockedQueryPatterns.find((p) => p.pattern.test(safeSql));
+    expect(match).to.be.undefined;
+  });
+
+  it('does not block RESET for non-timeout settings', () => {
+    const safeSql = 'RESET search_path';
     const match = blockedQueryPatterns.find((p) => p.pattern.test(safeSql));
     expect(match).to.be.undefined;
   });
@@ -630,25 +795,111 @@ function interceptQueryIfNeededTests() {
     expect(result).to.be.undefined;
   });
 
-  it('returns undefined for unparseable query', async () => {
+  it('blocks unparseable queries', async () => {
     const session = makeSession();
     const buf = buildQueryBuffer('THIS IS NOT SQL AT ALL ~~~');
     let parseErrorCalled = false;
-    const result = await interceptQueryIfNeeded(buf, session, parser, () => {
-      parseErrorCalled = true;
-    });
-    expect(result).to.be.undefined;
+    try {
+      await interceptQueryIfNeeded(buf, session, parser, () => {
+        parseErrorCalled = true;
+      });
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('not supported');
+    }
     expect(parseErrorCalled).to.be.true;
   });
 
-  it('returns Buffer for unparseable query with current_database rewrite', async () => {
+  it('blocks unparseable query even with current_database rewrite', async () => {
     const session = makeSession({ fk_workspace_id: 'ws_fallback' });
-    // A query that uses current_database() but also has unparseable syntax
     const buf = buildQueryBuffer('SOME WEIRD current_database() STUFF ~~~');
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+    }
+  });
+
+  it('allows EXPLAIN through as non-parseable safe pattern', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('EXPLAIN SELECT 1');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.undefined;
+  });
+
+  it('allows EXPLAIN ANALYZE through', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('EXPLAIN ANALYZE SELECT * FROM pg_tables');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.undefined;
+  });
+
+  it('allows EXPLAIN with current_database rewrite', async () => {
+    const session = makeSession({ fk_workspace_id: 'ws_explain' });
+    const buf = buildQueryBuffer('EXPLAIN SELECT current_database()');
     const result = await interceptQueryIfNeeded(buf, session, parser);
     expect(result).to.be.instanceOf(Buffer);
     const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
-    expect(sql).to.include('ws_fallback');
+    expect(sql).to.include('ws_explain');
+  });
+
+  it('allows RESET for safe settings', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('RESET search_path');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.undefined;
+  });
+
+  it('blocks RESET ALL via regex', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('RESET ALL');
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('timeout');
+    }
+  });
+
+  it('blocks COPY via regex before parse', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer(
+      'COPY (SELECT nspname FROM pg_namespace) TO STDOUT',
+    );
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('COPY');
+    }
+  });
+
+  it('blocks SET statement_timeout', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SET statement_timeout = 0');
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('timeout');
+    }
+  });
+
+  it('blocks lo_create', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SELECT lo_create(0)');
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('Large object');
+    }
   });
 
   it('output starts with 0x51 (Query message type)', async () => {
@@ -764,8 +1015,12 @@ function constantsTests() {
     expect(interceptMap.length).to.equal(22);
   });
 
-  it('blockedQueryPatterns has 20 patterns', () => {
-    expect(blockedQueryPatterns.length).to.equal(20);
+  it('blockedQueryPatterns has 32 patterns', () => {
+    expect(blockedQueryPatterns.length).to.equal(32);
+  });
+
+  it('allowedNonParseablePatterns has 2 patterns', () => {
+    expect(allowedNonParseablePatterns.length).to.equal(2);
   });
 
   it('catalogNamespaceFilters has 8 entries', () => {

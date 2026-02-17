@@ -201,7 +201,7 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
     message: 'pg_sleep is not permitted',
   },
   {
-    pattern: /\bpg_advisory_(un)?lock/i,
+    pattern: /\bpg_(try_)?advisory/i,
     message: 'Advisory locks are not permitted',
   },
   // Block OID-to-name type casts that bypass schema filtering
@@ -258,6 +258,43 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
   {
     pattern: /\bpg_shdepend\b/i,
     message: 'Access to pg_shdepend is not permitted',
+  },
+  // Block COPY — bypasses AST-based interceptor entirely (critical tenant isolation bypass)
+  { pattern: /\bCOPY\b/i, message: 'COPY is not permitted' },
+  // Block privilege manipulation
+  { pattern: /\bGRANT\b/i, message: 'GRANT is not permitted' },
+  { pattern: /\bREVOKE\b/i, message: 'REVOKE is not permitted' },
+  // Block large object operations (storage abuse, covert data channel)
+  {
+    pattern:
+      /\blo_(create|import|export|put|get|open|write|close|unlink)\s*\(/i,
+    message: 'Large object operations are not permitted',
+  },
+  // Block pg_notify() function (NOTIFY command already blocked, but function form bypasses)
+  {
+    pattern: /\bpg_notify\s*\(/i,
+    message: 'pg_notify is not permitted',
+  },
+  // Block maintenance commands
+  { pattern: /\bVACUUM\b/i, message: 'VACUUM is not permitted' },
+  { pattern: /\bCLUSTER\b/i, message: 'CLUSTER is not permitted' },
+  { pattern: /\bDISCARD\b/i, message: 'DISCARD is not permitted' },
+  { pattern: /\bUNLISTEN\b/i, message: 'UNLISTEN is not permitted' },
+  // Block infrastructure discovery functions
+  {
+    pattern: /\binet_server_(addr|port)\s*\(/i,
+    message: 'Server network information functions are not permitted',
+  },
+  // Block timeout override — prevents disabling DoS protections
+  {
+    pattern:
+      /\bSET\s+(LOCAL\s+)?(statement_timeout|idle_in_transaction_session_timeout)\b/i,
+    message: 'Modifying timeout settings is not permitted',
+  },
+  {
+    pattern:
+      /\bRESET\s+(ALL|statement_timeout|idle_in_transaction_session_timeout)\b/i,
+    message: 'Resetting timeout settings is not permitted',
   },
 ];
 
@@ -353,6 +390,17 @@ export const allowedShowSettings = new Set([
   'transaction_isolation',
   'transaction_read_only',
 ]);
+
+/**
+ * Patterns for commands that are safe to pass through even though the parser
+ * cannot handle them.  Checked only when AST parsing fails.
+ * Dangerous non-parseable commands (COPY, VACUUM, etc.) are caught by
+ * blockedQueryPatterns before parsing is attempted.
+ */
+export const allowedNonParseablePatterns: RegExp[] = [
+  /^\s*EXPLAIN\b/i,
+  /^\s*RESET\s+\w+/i,
+];
 
 /**
  * Build a subquery AST node for filtering by namespace OID.
@@ -614,6 +662,8 @@ export async function interceptQueryIfNeeded(
     if (!allowedShowSettings.has(setting)) {
       throw new QueryBlockedError(`SHOW ${showMatch[1]} is not permitted`);
     }
+    // Allowed SHOW — pass through without modification
+    return;
   }
 
   // Rewrite current_database() and current_catalog to return the workspace ID
@@ -633,11 +683,18 @@ export async function interceptQueryIfNeeded(
     if (onParseError) {
       onParseError(queryText);
     }
-    // If we already rewrote current_database(), serialize the text directly
-    if (forceModified) {
-      return serialize.query(queryText);
+    // Check if the query matches a known safe non-parseable pattern
+    for (const pattern of allowedNonParseablePatterns) {
+      if (pattern.test(queryText)) {
+        // If we already rewrote current_database(), serialize the rewritten text
+        if (forceModified) {
+          return serialize.query(queryText);
+        }
+        return;
+      }
     }
-    return undefined;
+    // Block unparseable queries — if we can't verify it's safe, don't allow it
+    throw new QueryBlockedError('Query syntax is not supported');
   }
 
   const astArray = Array.isArray(ast) ? ast : [ast];
@@ -650,7 +707,7 @@ export async function interceptQueryIfNeeded(
   }
 
   if (!modified && !forceModified) {
-    return undefined;
+    return;
   }
 
   // Convert the AST back to SQL

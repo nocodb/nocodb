@@ -1,8 +1,5 @@
-import { SetMetadata, UseInterceptors } from '@nestjs/common';
-import {
-  LICENSE_FEATURE_KEY,
-  LicenseInterceptor,
-} from '~/interceptors/license/license.interceptor';
+import { SetMetadata, UseGuards } from '@nestjs/common';
+import { LICENSE_FEATURE_KEY, LicenseGuard } from '~/guards/license.guard';
 
 /**
  * @License decorator for EE-only controller methods.
@@ -28,5 +25,5 @@ export const License =
   (feature?: string) =>
   (target: any, key?: string, descriptor?: PropertyDescriptor) => {
     SetMetadata(LICENSE_FEATURE_KEY, feature)(target, key, descriptor);
-    UseInterceptors(LicenseInterceptor)(target, key, descriptor);
+    UseGuards(LicenseGuard)(target, key, descriptor);
   };

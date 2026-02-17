@@ -1,25 +1,15 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import type { Observable } from 'rxjs';
-import type {
-  CallHandler,
-  ExecutionContext,
-  NestInterceptor,
-} from '@nestjs/common';
+import type { CanActivate, ExecutionContext } from '@nestjs/common';
 import NocoLicense from '~/NocoLicense';
 
 export const LICENSE_FEATURE_KEY = 'license_feature';
 
 @Injectable()
-export class LicenseInterceptor implements NestInterceptor {
-  private readonly logger = new Logger(LicenseInterceptor.name);
-
+export class LicenseGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
-  async intercept(
-    context: ExecutionContext,
-    next: CallHandler,
-  ): Promise<Observable<any>> {
+  canActivate(context: ExecutionContext): boolean {
     // If license is explicitly suspended/revoked, block EE endpoints
     if (NocoLicense.shouldBlockAccess()) {
       throw new HttpException(
@@ -33,7 +23,7 @@ export class LicenseInterceptor implements NestInterceptor {
 
     // If EE features are active (licensed), allow the request
     if (NocoLicense.isEE) {
-      return next.handle();
+      return true;
     }
 
     const feature = this.reflector.get<string>(

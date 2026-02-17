@@ -31,6 +31,10 @@ export class SortsService {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
     const sort = await Sort.get(context, param.sortId, ncMeta);
 
     if (!sort) {
@@ -94,6 +98,10 @@ export class SortsService {
     },
     ncMeta = Noco.ncMeta,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const sort = await Sort.get(context, param.sortId, ncMeta);
@@ -165,6 +173,9 @@ export class SortsService {
     },
     ncMeta?: MetaService,
   ) {
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
     validatePayload('swagger.json#/components/schemas/SortReq', param.sort);
 
     const view = await View.get(context, param.viewId, ncMeta);

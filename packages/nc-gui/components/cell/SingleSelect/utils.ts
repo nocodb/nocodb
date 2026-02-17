@@ -1,8 +1,14 @@
 import type { ColumnType, SelectOptionType } from 'nocodb-sdk'
 
-export type LocalSelectOptionType = SelectOptionType & { value?: string }
+export type LocalSelectOptionType = SelectOptionType & { value?: string; bgColor?: string; textColor?: string }
 
-export const getOptions = (column: ColumnType, isEditColumn: boolean, isForm: boolean): LocalSelectOptionType[] => {
+export const getOptions = (
+  column: ColumnType,
+  isEditColumn: boolean,
+  isForm: boolean,
+  isDark: boolean,
+  getColor: GetColorType,
+): LocalSelectOptionType[] => {
   if (column && column?.colOptions) {
     const opts = column.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
@@ -41,10 +47,17 @@ export const getOptions = (column: ColumnType, isEditColumn: boolean, isForm: bo
           ...o,
           value: o.title,
           order: o.id && limitOptionsById[o.id] ? limitOptionsById[o.id]?.order : order++,
+          bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark }),
+          textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor }),
         }))
         .sort((a, b) => a.order - b.order)
     } else {
-      return opts.map((o: any) => ({ ...o, value: o.title }))
+      return opts.map((o: any) => ({
+        ...o,
+        value: o.title,
+        bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark }),
+        textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark, getColor }),
+      }))
     }
   }
   return []

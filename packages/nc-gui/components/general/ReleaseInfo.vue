@@ -49,7 +49,7 @@ onMounted(async () => await fetchReleaseInfo())
       </NcButton>
 
       <template #overlay>
-        <div class="mt-1 bg-white shadow-lg !border">
+        <div class="mt-1 bg-nc-bg-default shadow-lg !border">
           <nuxt-link
             no-prefetch
             no-rel

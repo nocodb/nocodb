@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import type { NcContext, NcRequest } from '~/interface/config';
 import type { Base, Source } from '~/models';
+import { NcError } from '~/helpers/ncError';
 import { ExportService } from '~/modules/jobs/jobs/export-import/export.service';
 
 @Injectable()
@@ -26,8 +27,12 @@ export class MigrateService {
     instanceUrl: string;
     req: NcRequest;
   }) {
-    if (!base || !source) {
-      throw new Error(`Base or source not found!`);
+    if (!base) {
+      NcError.get(context).baseNotFound('Base not found!');
+    }
+
+    if (!source) {
+      NcError.get(context).sourceNotFound('Source not found!');
     }
 
     const models = (await source.getModels(context)).filter(
@@ -41,7 +46,7 @@ export class MigrateService {
       });
 
     if (!exportedModels) {
-      throw new Error(`Export failed for source '${source.id}'`);
+      NcError.get(context).baseError('Export failed for source ' + source.id);
     }
 
     const exportedUsers = await this.exportService.serializeUsers(context, {

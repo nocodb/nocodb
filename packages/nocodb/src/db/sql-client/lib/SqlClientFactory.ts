@@ -1,5 +1,6 @@
 import fs from 'fs';
 import { promisify } from 'util';
+import { NcError } from '~/helpers/ncError';
 import MySqlClient from '~/db/sql-client/lib/mysql/MysqlClient';
 import OracleClient from '~/db/sql-client/lib/oracle/OracleClient';
 import SqliteClient from '~/db/sql-client/lib/sqlite/SqliteClient';
@@ -32,7 +33,9 @@ export class SqlClientFactory {
       return new PgClient(connectionConfig);
     }
 
-    throw new Error('Database not supported');
+    NcError.notImplemented(
+      `Database ${connectionConfig?.meta?.dbtype || ''} is not supported`,
+    );
   }
 }
 

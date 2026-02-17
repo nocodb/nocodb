@@ -2,6 +2,7 @@ import {
   extractRolesObj,
   IconType,
   ncIsObject,
+  ProjectRoles,
   type UserType,
 } from 'nocodb-sdk';
 import type { MetaType } from 'nocodb-sdk';
@@ -92,12 +93,13 @@ export default class User implements UserType {
       prepareForDb(insertObj),
     );
 
-    await NocoCache.del(CacheScope.INSTANCE_META);
+    await NocoCache.del('root', CacheScope.INSTANCE_META);
 
     // clear all base user related cache for instance
     const bases = await Base.list(null, ncMeta);
     for (const base of bases) {
       await NocoCache.deepDel(
+        { workspace_id: base.fk_workspace_id, base_id: base.id },
         `${CacheScope.BASE_USER}:${base.id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
@@ -142,7 +144,7 @@ export default class User implements UserType {
     const existingUser = await this.get(id, ncMeta);
 
     // delete the email-based cache to avoid unexpected behaviour since we can update email as well
-    await NocoCache.del(`${CacheScope.USER}:${existingUser.email}`);
+    await NocoCache.del('root', `${CacheScope.USER}:${existingUser.email}`);
 
     await ncMeta.metaUpdate(
       RootScopes.ROOT,
@@ -163,6 +165,7 @@ export default class User implements UserType {
     let user =
       email &&
       (await NocoCache.get(
+        'root',
         `${CacheScope.USER}:${email}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -180,7 +183,7 @@ export default class User implements UserType {
         user.meta = parseMetaProp(user);
       }
 
-      await NocoCache.set(`${CacheScope.USER}:${email}`, user);
+      await NocoCache.set('root', `${CacheScope.USER}:${email}`, user);
     }
 
     if (user?.is_deleted) {
@@ -220,6 +223,7 @@ export default class User implements UserType {
     let user =
       userId &&
       (await NocoCache.get(
+        'root',
         `${CacheScope.USER}:${userId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -235,7 +239,7 @@ export default class User implements UserType {
         user.meta = parseMetaProp(user);
       }
 
-      await NocoCache.set(`${CacheScope.USER}:${userId}`, user);
+      await NocoCache.set('root', `${CacheScope.USER}:${userId}`, user);
     }
 
     if (user?.is_deleted) {
@@ -368,7 +372,13 @@ export default class User implements UserType {
             const roles = baseUser?.roles;
             // + (user.roles ? `,${user.roles}` : '');
             if (roles) {
-              resolve(extractRolesObj(roles));
+              // If role is INHERIT (can be 'inherit' string), treat it as null to fall back to workspace roles
+              // Since INHERIT at base level means inherit from workspace level
+              if (roles === ProjectRoles.INHERIT) {
+                resolve(null);
+              } else {
+                resolve(extractRolesObj(roles));
+              }
             } else {
               resolve(null);
             }
@@ -399,14 +409,15 @@ export default class User implements UserType {
 
     for (const base of bases) {
       await NocoCache.deepDel(
+        { workspace_id: base.fk_workspace_id, base_id: base.id },
         `${CacheScope.BASE_USER}:${base.id}:list`,
         CacheDelDirection.PARENT_TO_CHILD,
       );
     }
 
     // clear all user related cache
-    await NocoCache.del(`${CacheScope.USER}:${userId}`);
-    await NocoCache.del(`${CacheScope.USER}:${user.email}`);
+    await NocoCache.del('root', `${CacheScope.USER}:${userId}`);
+    await NocoCache.del('root', `${CacheScope.USER}:${user.email}`);
   }
 
   public static async signUserImage(

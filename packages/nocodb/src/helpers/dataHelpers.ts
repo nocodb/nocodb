@@ -6,6 +6,7 @@ import type Column from '~/models/Column';
 import { NcError } from '~/helpers/catchError';
 import { Model, View } from '~/models';
 import Base from '~/models/Base';
+import { V1_V2_DATA_PAYLOAD_LIMIT } from '~/constants';
 
 export interface PathParams {
   baseName: string;
@@ -84,11 +85,11 @@ export async function serializeCellValue(
         .filter((attachment) => attachment)
         .map(
           (attachment) =>
-            `${attachment.title || 'Attachment'}(${encodeURI(
+            `${attachment.title || 'Attachment'}(${
               attachment.signedPath
-                ? `${siteUrl}/${attachment.signedPath}`
-                : attachment.signedUrl,
-            )})`,
+                ? encodeURI(`${siteUrl}/${attachment.signedPath}`)
+                : attachment.signedUrl
+            })`,
         )
         .join(', ');
     }
@@ -179,3 +180,16 @@ export async function getColumnByIdOrName(
 
   return column;
 }
+
+export const validateV1V2DataPayloadLimit = (
+  context: NcContext,
+  param: { body: any },
+) => {
+  if (
+    context.is_api_token &&
+    Array.isArray(param.body) &&
+    param.body.length > V1_V2_DATA_PAYLOAD_LIMIT
+  ) {
+    NcError.get(context).maxPayloadLimitExceeded(V1_V2_DATA_PAYLOAD_LIMIT);
+  }
+};

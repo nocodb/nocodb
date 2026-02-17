@@ -48,12 +48,14 @@ export default class LookupColumn implements LookupType {
     return this.read(context, data.fk_column_id, ncMeta).then(
       async (lookupColumn) => {
         await NocoCache.appendToList(
+          context,
           CacheScope.COL_LOOKUP,
           [data.fk_lookup_column_id],
           `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
         );
 
         await NocoCache.appendToList(
+          context,
           CacheScope.COL_LOOKUP,
           [data.fk_relation_column_id],
           `${CacheScope.COL_LOOKUP}:${data.fk_column_id}`,
@@ -72,6 +74,7 @@ export default class LookupColumn implements LookupType {
     let colData =
       columnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.COL_LOOKUP}:${columnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -82,7 +85,11 @@ export default class LookupColumn implements LookupType {
         MetaTable.COL_LOOKUP,
         { fk_column_id: columnId },
       );
-      await NocoCache.set(`${CacheScope.COL_LOOKUP}:${columnId}`, colData);
+      await NocoCache.set(
+        context,
+        `${CacheScope.COL_LOOKUP}:${columnId}`,
+        colData,
+      );
     }
     return colData ? new LookupColumn(colData) : null;
   }

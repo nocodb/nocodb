@@ -30,9 +30,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const vModel = useVModel(props, 'view', emits) as WritableComputedRef<
-  ViewType & { alias?: string; is_default: boolean; created_by?: string }
->
+const vModel = useVModel(props, 'view', emits) as WritableComputedRef<ViewType & { alias?: string; created_by?: string }>
 
 const { $e } = useNuxtApp()
 
@@ -281,15 +279,15 @@ const viewModeInfo = computed(() => {
 watch(isDropdownOpen, async () => {
   if (!isDropdownOpen.value) return
 
-  injectedTable.value = (await getMeta(table.value.id!)) as any
+  injectedTable.value = (await getMeta(table.value.base_id!, table.value.id!)) as any
 })
 </script>
 
 <template>
-  <a-menu-item
+  <div
     class="nc-sidebar-node !min-h-7 !max-h-7 !my-0.5 select-none group text-nc-content-gray-subtle !flex !items-center hover:(!bg-nc-bg-gray-medium !text-nc-content-gray-subtle) cursor-pointer"
     :class="{
-      '!pl-7.5 !xs:(pl-7.5)': isDefaultBaseLocal,
+      '!pl-7.5 !xs:(pl-6.5)': isDefaultBaseLocal,
       '!pl-14': !isDefaultBaseLocal,
     }"
     :data-testid="`view-sidebar-view-${vModel.alias || vModel.title}`"
@@ -299,6 +297,7 @@ watch(isDropdownOpen, async () => {
       :tooltip-style="{ width: '240px', zIndex: '1049' }"
       :overlay-inner-style="{ width: '240px' }"
       :mouse-enter-delay="0.5"
+      class="w-full"
       trigger="hover"
       placement="right"
       :disabled="isEditing || isDropdownOpen || !showViewNodeTooltip || isMobileMode"
@@ -306,13 +305,17 @@ watch(isDropdownOpen, async () => {
       <template #title>
         <div class="flex flex-col gap-3">
           <div>
-            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.viewName') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
+              {{ $t('labels.viewName') }}
+            </div>
             <div class="text-small leading-[18px]">{{ vModel.alias || vModel.title }}</div>
             <div class="mt-1 text-xs whitespace-pre-wrap break-words">{{ vModel.description }}</div>
           </div>
 
           <div v-if="vModel?.created_by && idUserMap[vModel?.created_by]">
-            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.createdBy') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
+              {{ $t('labels.createdBy') }}
+            </div>
             <div class="text-xs">
               {{
                 idUserMap[vModel?.created_by]?.id === user?.id
@@ -322,7 +325,9 @@ watch(isDropdownOpen, async () => {
             </div>
           </div>
           <div>
-            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover uppercase mb-1">{{ $t('labels.viewMode') }}</div>
+            <div class="text-[10px] leading-[14px] text-nc-content-brand-hover dark:text-nc-content-gray-muted uppercase mb-1">
+              {{ $t('labels.viewMode') }}
+            </div>
             <div class="text-xs flex items-start gap-2">
               {{ viewModeInfo }}
             </div>
@@ -338,7 +343,7 @@ watch(isDropdownOpen, async () => {
           @mouseleave="showViewNodeTooltip = true"
         >
           <LazyGeneralEmojiPicker
-            class="nc-table-icon"
+            class="nc-view-icon-parent"
             :emoji="props.view?.meta?.icon"
             size="small"
             :clearable="true"
@@ -404,8 +409,8 @@ watch(isDropdownOpen, async () => {
           </div>
 
           <component
-            v-else
             :is="viewLockIcons[vModel.lock_type].icon"
+            v-else
             class="ml-1 flex-none w-3.5 h-3.5"
             :class="{
               'text-nc-brand-400': vModel?.lock_type === ViewLockType.Personal && isViewOwner,
@@ -464,5 +469,5 @@ watch(isDropdownOpen, async () => {
         </template>
       </div>
     </NcTooltip>
-  </a-menu-item>
+  </div>
 </template>

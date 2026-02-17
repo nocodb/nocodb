@@ -55,6 +55,10 @@ export class KanbansService {
       param.kanban,
     );
 
+    if (context.schema_locked) {
+      NcError.get(context).schemaLocked();
+    }
+
     const model = await Model.get(context, param.tableId, ncMeta);
 
     let fk_cover_image_col_id =
@@ -126,6 +130,7 @@ export class KanbansService {
 
     const view = await View.get(context, id, ncMeta);
     await NocoCache.appendToList(
+      context,
       CacheScope.VIEW,
       [view.fk_model_id],
       `${CacheScope.VIEW}:${id}`,
@@ -189,7 +194,7 @@ export class KanbansService {
     const view = await View.get(context, param.kanbanViewId, ncMeta);
 
     if (!view) {
-      NcError.viewNotFound(param.kanbanViewId);
+      NcError.get(context).viewNotFound(param.kanbanViewId);
     }
 
     const viewWebhookManager =
@@ -287,7 +292,7 @@ export class KanbansService {
     }
 
     // Update groupingFieldColumn in view meta
-    const viewMeta = parseProp(view) || {};
+    const viewMeta = parseProp(view?.meta) || {};
     await View.update(context, view.id, {
       ...view,
       meta: {

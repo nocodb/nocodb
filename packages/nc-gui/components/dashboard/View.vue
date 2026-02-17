@@ -9,8 +9,6 @@ const { setLeftSidebarSize } = useGlobal()
 
 const configStore = useConfigStore()
 
-const { handleSidebarOpenOnMobileForNonViews } = configStore
-
 const { isMobileMode } = storeToRefs(configStore)
 
 const slots = useSlots()
@@ -177,10 +175,6 @@ watch(sidebarState, () => {
       sidebarState.value = 'hiddenEnd'
     }, animationDuration)
   }
-})
-
-onMounted(() => {
-  handleSidebarOpenOnMobileForNonViews()
 })
 
 function onResize(widthPercent: any) {

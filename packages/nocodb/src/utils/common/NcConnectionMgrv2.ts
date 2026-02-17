@@ -9,7 +9,7 @@ import { XKnex } from '~/db/CustomKnex';
 import Noco from '~/Noco';
 
 export default class NcConnectionMgrv2 {
-  private static logger = new Logger('NcConnectionMgrv2');
+  protected static logger = new Logger('NcConnectionMgrv2');
 
   protected static connectionRefs: {
     [baseId: string]: {

@@ -3,7 +3,19 @@ import { defaultOffscreen2DContext, isBoxHovered, renderMultiLineText, renderTag
 
 export const PhoneNumberCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { value, x, y, width, height, pv, padding, textColor = '#4a5268', selected, setCursor } = props
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      pv,
+      padding,
+      textColor = themeV4Colors.gray['600'],
+      getColor,
+      selected,
+      setCursor,
+    } = props
 
     const text = value?.toString() ?? ''
 
@@ -25,7 +37,7 @@ export const PhoneNumberCellRenderer: CellRenderer = {
         text,
         maxWidth: width - padding * 2,
         fontFamily: `${pv ? 600 : 500} 13px Inter`,
-        fillStyle: (isValid && selected) || pv ? '#3366FF' : textColor,
+        fillStyle: (isValid && selected) || pv ? getColor(themeV4Colors.brand['500']) : getColor(textColor),
         height,
         underline: isValid,
       })

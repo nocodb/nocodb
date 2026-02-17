@@ -15,7 +15,7 @@
   "bugs": {
     "url": "https://github.com/nocodb/nocodb/issues"
   },
-  "license": "AGPL-3.0-or-later",
+  "license": "Sustainable Use License",
   "main": "index.js",
   "engines": {
     "node": ">=18"

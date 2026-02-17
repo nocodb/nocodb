@@ -94,7 +94,7 @@ export class CommentsService {
     const comment = await Comment.get(context, param.commentId);
 
     if (comment.created_by !== param.user.id || comment.is_deleted) {
-      NcError.unauthorized('Unauthorized access');
+      NcError.get(context).unauthorized('Unauthorized access');
     }
 
     const res = await Comment.delete(context, param.commentId);
@@ -169,7 +169,7 @@ export class CommentsService {
     const comment = await Comment.get(context, param.commentId);
 
     if (comment.created_by !== param.user.id || comment.is_deleted) {
-      NcError.unauthorized('Unauthorized access');
+      NcError.get(context).unauthorized('Unauthorized access');
     }
 
     const res = await Comment.update(context, param.commentId, {

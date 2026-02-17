@@ -66,6 +66,9 @@ const isMergeableObject = (val: any) => {
   );
 };
 
+// Keys that can lead to prototype pollution
+const RESERVED_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
 /**
  * Deep merge two objects
  * @param target target object to merge
@@ -80,6 +83,10 @@ export const deepMerge = (target: any, ...sources: any[]) => {
 
   if (isMergeableObject(target) && isMergeableObject(source)) {
     Object.keys(source).forEach((key) => {
+      if (RESERVED_KEYS.has(key)) {
+        return;
+      }
+
       if (isMergeableObject(source[key])) {
         // if source[key] is array then define target[key] as array else object
         if (!target[key]) target[key] = Array.isArray(source[key]) ? [] : {};
@@ -153,6 +160,11 @@ export function batchUpdate(
       if (col !== pk) allColumns.add(col);
     });
   });
+
+  // return null if no fields updated
+  if (allColumns.size === 0) {
+    return null;
+  }
 
   const columns = Array.from(allColumns);
 

@@ -65,6 +65,12 @@ export default async function init(forceReset = false, roles = 'editor') {
       });
 
     extra.fk_workspace_id = ws.body.id;
+  } else {
+    const appInfo = await request(server)
+      .get('/api/v1/meta/nocodb/info')
+      .set('xc-auth', token)
+      .expect(200);
+    extra.fk_workspace_id = appInfo.body.ncDefaultWorkspaceId;
   }
 
   const xc_token = (

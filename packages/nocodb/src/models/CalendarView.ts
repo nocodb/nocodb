@@ -36,6 +36,7 @@ export default class CalendarView implements CalendarType {
     let view =
       viewId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.CALENDAR_VIEW}:${viewId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -59,7 +60,11 @@ export default class CalendarView implements CalendarType {
       if (view && calendarRange) {
         view.calendar_range = calendarRange.ranges;
       }
-      await NocoCache.set(`${CacheScope.CALENDAR_VIEW}:${viewId}`, view);
+      await NocoCache.set(
+        context,
+        `${CacheScope.CALENDAR_VIEW}:${viewId}`,
+        view,
+      );
     }
 
     return view && new CalendarView(view);
@@ -106,7 +111,7 @@ export default class CalendarView implements CalendarType {
         },
       );
       // if calendar range is updated, delete cache
-      await NocoCache.del(`${CacheScope.CALENDAR_VIEW}:${calendarId}`);
+      await NocoCache.del(context, `${CacheScope.CALENDAR_VIEW}:${calendarId}`);
       await CalendarRange.bulkInsert(
         context,
         body.calendar_range.map((range) => {
@@ -132,6 +137,7 @@ export default class CalendarView implements CalendarType {
 
     // update cache
     await NocoCache.update(
+      context,
       `${CacheScope.CALENDAR_VIEW}:${calendarId}`,
       prepareForResponse(updateObj),
     );

@@ -157,7 +157,8 @@ export class ColumnPageObject extends BasePage {
         await this.get().locator('.nc-button-type-select').click();
         await this.rootPage.locator('.ant-select-item').locator(`text="${buttonType}"`).click();
 
-        await this.get().locator('.nc-button-webhook-select').click();
+        if (buttonType === 'Run Webhook') await this.get().locator(`.nc-button-webhook-select`).click();
+        else if (buttonType === 'Run Script') await this.get().locator(`.nc-button-script-select`).click();
 
         await this.rootPage.waitForSelector('.nc-list-with-search', {
           state: 'visible',
@@ -483,8 +484,8 @@ export class ColumnPageObject extends BasePage {
 
     await this.waitForResponse({
       uiAction: async () => await this.rootPage.locator('li[role="menuitem"]:has-text("Hide Field"):visible').click(),
-      requestUrlPathToMatch: '/api/v1/db/meta/views',
-      httpMethodsToMatch: ['PATCH'],
+      requestUrlPathToMatch: 'operation=viewColumnUpdate',
+      httpMethodsToMatch: ['POST'],
     });
 
     await expect(this.grid.get().locator(`th[data-title="${title}"]`)).toHaveCount(0);
@@ -579,7 +580,7 @@ export class ColumnPageObject extends BasePage {
     await this.waitForResponse({
       uiAction: menuOption,
       httpMethodsToMatch: ['POST'],
-      requestUrlPathToMatch: `/sorts`,
+      requestUrlPathToMatch: `operation=sort`,
     });
 
     await this.grid.toolbar.parent.dashboard.waitForLoaderToDisappear();

@@ -18,12 +18,14 @@ const props = withDefaults(
     showNocodbIcon?: boolean
   }>(),
   {
-    iconBgColor: '#F4F4F5',
+    iconBgColor: 'var(--nc-bg-gray-light)',
     showNocodbIcon: false,
   },
 )
 
 const { workspace } = toRefs(props)
+
+const { getColor } = useTheme()
 
 const { getPossibleAttachmentSrc } = useAttachment()
 
@@ -111,8 +113,8 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
         v-else-if="workspaceIcon.icon && workspaceIcon.iconType === IconType.EMOJI"
         class="flex items-center justify-center"
         :class="{
-          'text-white': isColorDark(workspaceColor),
-          'text-black opacity-80': !isColorDark(workspaceColor),
+          'text-white': isColorDark(getColor(workspaceColor)),
+          'text-black opacity-80': !isColorDark(getColor(workspaceColor)),
           'text-sm': size === 'small' || size === 'account-sidebar' || isMiniSidebarSize,
           'text-base': size === 'medium',
           'text-2xl': size === 'large',
@@ -141,8 +143,8 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
         :icon="workspaceIcon.icon"
         class="flex-none"
         :class="{
-          'text-white': isColorDark(workspaceColor),
-          'text-black opacity-80': !isColorDark(workspaceColor),
+          'text-white': isColorDark(getColor(workspaceColor)),
+          'text-black opacity-80': !isColorDark(getColor(workspaceColor)),
           'w-3 h-3': size === 'small',
           'w-4 h-4': size === 'medium' || isMiniSidebarSize,
           'w-6 h-6': size === 'large',
@@ -157,13 +159,13 @@ const isMiniSidebarSize = computed(() => size.value === 'mini-sidebar')
           v-else
           class="font-semibold"
           :class="{
-            'text-white': isColorDark(workspaceColor),
-            'text-black': !isColorDark(workspaceColor),
+            'text-white': isColorDark(getColor(workspaceColor)),
+            'text-black': !isColorDark(getColor(workspaceColor)),
             'text-[8px]': size === 'small',
             'text-sm': size === 'account-sidebar' || isMiniSidebarSize,
           }"
         >
-          {{ workspace?.title?.slice(0, size === 'account-sidebar' || isMiniSidebarSize ? 1 : 2) }}
+          {{ getSafeInitials(workspace?.title, size === 'account-sidebar' || isMiniSidebarSize ? 1 : 2, true) }}
         </div>
       </template>
     </template>

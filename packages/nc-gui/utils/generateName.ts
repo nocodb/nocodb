@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid'
+
 export const generateUniqueName = async () => {
   const { adjectives, animals, starWars, uniqueNamesGenerator } = await import('unique-names-generator')
 
@@ -54,5 +56,27 @@ export const generateRandomNumber = () => {
 }
 
 export const generateRandomUUID = () => {
-  return window.crypto.randomUUID()
+  // if window.crypto.randomUUID available & function, use it
+  // otherwise use uuid package
+  if (window?.crypto && typeof window.crypto.randomUUID === 'function') {
+    return window.crypto.randomUUID()
+  }
+
+  // Fallback for SSR or older browsers - use a simple UUID v4 implementation
+  // This avoids async import issues while maintaining compatibility
+  return uuidv4()
+}
+
+export const generateUniqueRandomUUID = (list: Record<string, any>[] = [], keys: string[] = ['id']) => {
+  let id: string
+
+  do {
+    id = generateRandomUUID()
+  } while (
+    list.some((item) => {
+      return keys.some((key) => item[key] === id)
+    })
+  )
+
+  return id
 }

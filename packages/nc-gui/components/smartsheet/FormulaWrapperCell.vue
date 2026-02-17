@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
 import { defaultOffscreen2DContext } from './grid/canvas/utils/canvas'
 
 interface Props {
@@ -39,6 +40,10 @@ const showAsLongText = computed(() => {
   )
 })
 
+const referencedColumnUidt = computed(() => {
+  return column.value.colOptions?.parsed_tree?.referencedColumn?.uidt
+})
+
 provide(ReadonlyInj, ref(true))
 provide(EditModeInj, ref(false))
 
@@ -70,6 +75,8 @@ provide(ColumnInj, column)
     <CellUrl v-else-if="isURL(column)" :model-value="cellValue" />
     <CellPhoneNumber v-else-if="isPhoneNumber(column)" :model-value="cellValue" />
     <LazyCellTextArea v-else-if="isTextArea(column) && showAsLongText" :model-value="cellValue" />
+    <LazyCellAttachment v-else-if="[UITypes.Attachment].includes(referencedColumnUidt)" :model-value="cellValue" />
+    <LazyCellUserReadonly v-else-if="[UITypes.User].includes(referencedColumnUidt)" :model-value="cellValue" />
     <CellText v-else :model-value="cellValue" />
   </div>
 </template>
@@ -98,7 +105,7 @@ provide(ColumnInj, column)
   }
 
   &.nc-display-value-cell {
-    @apply !text-brand-500 !font-semibold;
+    @apply !text-nc-content-brand !font-semibold;
 
     :deep(.nc-cell-field) {
       @apply !font-semibold;

@@ -4,6 +4,7 @@ import { stringToViewTypeMap } from 'nocodb-sdk'
 interface Props {
   dialogShow: boolean
   aiMode: boolean | null
+  baseCreateMode: NcBaseCreateMode | null
   workspaceId?: string
   isCreateNewActionMenu?: boolean
   initialValue?: {
@@ -14,7 +15,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {})
 
-const emit = defineEmits(['update:dialogShow', 'update:aiMode', 'navigateToProject'])
+const emit = defineEmits(['update:dialogShow', 'update:aiMode', 'update:baseCreateMode', 'navigateToProject'])
 
 enum SchemaPreviewTabs {
   TABLES_AND_VIEWS = 'TABLES_AND_VIEWS',
@@ -26,6 +27,8 @@ const loadingMessages = ['Suggesting tables', 'Suggesting fields', 'Suggesting l
 const dialogShow = useVModel(props, 'dialogShow', emit)
 
 const aiMode = useVModel(props, 'aiMode', emit)
+
+const baseCreateMode = useVModel(props, 'baseCreateMode', emit)
 
 const { workspaceId } = toRefs(props)
 
@@ -311,6 +314,7 @@ const handleMouseLeaveTag = () => {
 
 const resetToDefault = () => {
   aiMode.value = null
+  baseCreateMode.value = null
   aiStep.value = AI_STEP.PROMPT
   oldAiFormState.value = null
   aiFormState.value = defaultAiFormState
@@ -359,7 +363,7 @@ onMounted(() => {
 <template>
   <div class="h-full">
     <div class="flex items-center gap-2.5 px-4 py-2 border-b-1 border-nc-border-purple-light">
-      <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
+      <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark dark:text-nc-content-purple-medium">
         <GeneralIcon icon="ncAutoAwesome" class="flex-none h-5 w-5 !text-current" />
         <div class="text-base leading-8 font-bold">{{ $t('title.nocoAiBaseBuilder') }}</div>
       </div>
@@ -376,7 +380,9 @@ onMounted(() => {
       >
         <!-- create base config panel -->
         <div class="flex-1 p-6 flex flex-col gap-6">
-          <div class="text-sm font-bold text-nc-content-purple-dark">Tell us more about your usecase</div>
+          <div class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">
+            Tell us more about your usecase
+          </div>
           <div class="flex flex-wrap gap-3 max-h-[188px] nc-scrollbar-thin pt-1">
             <!-- Predefined tags -->
 
@@ -544,10 +550,15 @@ onMounted(() => {
         <!-- create base preview panel -->
 
         <template v-if="aiStep === AI_STEP.LOADING || aiStep === AI_STEP.PROMPT">
-          <div v-if="aiStep === AI_STEP.LOADING" class="text-sm font-bold text-nc-content-purple-dark">
+          <div
+            v-if="aiStep === AI_STEP.LOADING"
+            class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium"
+          >
             {{ $t('title.generatingBaseTailoredToYourRequirement') }}
           </div>
-          <div v-else class="text-sm font-bold text-nc-content-purple-dark">{{ $t('labels.preview') }}</div>
+          <div v-else class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">
+            {{ $t('labels.preview') }}
+          </div>
 
           <template v-if="aiStep === AI_STEP.LOADING">
             <div
@@ -590,11 +601,12 @@ onMounted(() => {
           </div>
         </template>
         <template v-if="aiStep === AI_STEP.MODIFY">
-          <div class="text-sm font-bold text-nc-content-purple-dark">{{ $t('title.hereYourCrmBase') }}</div>
+          <div class="text-sm font-bold text-nc-content-purple-dark dark:text-nc-content-purple-medium">
+            {{ $t('title.hereYourCrmBase') }}
+          </div>
 
           <template v-if="predictedSchema?.tables">
             <AiWizardCard
-              v-if="aiMode"
               v-model:active-tab="activePreviewTab"
               :tabs="previewTabs"
               class="!rounded-xl flex-1 flex flex-col min-w-[320px]"
@@ -614,7 +626,9 @@ onMounted(() => {
                         class="w-full flex items-center px-4 py-2"
                         @click="handleUpdatePreviewExpansionPanel(table.title, !viewsGrouped[table.title]?.length)"
                       >
-                        <div class="flex-1 flex items-center gap-3 text-nc-content-purple-dark">
+                        <div
+                          class="flex-1 flex items-center gap-3 text-nc-content-purple-dark dark:text-nc-content-purple-medium"
+                        >
                           <NcCheckbox :checked="!table.excluded" theme="ai" @click.stop="onExcludeTable(table)" />
 
                           <GeneralIcon icon="table" class="flex-none !h-4 opacity-85" />
@@ -703,7 +717,7 @@ onMounted(() => {
   @apply !border-0 bg-transparent overflow-hidden;
 
   .ant-collapse-item {
-    @apply border-b-purple-100 last:(border-b-0 !rounded-b-lg overflow-hidden);
+    @apply border-b-nc-border-purple-light last:(border-b-0 !rounded-b-lg overflow-hidden);
 
     .ant-collapse-content {
       @apply border-0;

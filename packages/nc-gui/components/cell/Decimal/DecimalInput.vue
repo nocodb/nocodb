@@ -44,24 +44,32 @@ const pasteText = (target: HTMLInputElement, value: string) => {
     target.setSelectionRange(newCursorIndex, newCursorIndex)
   }
 }
-const refreshVModel = () => {
-  if (inputRef.value && (vModel.value || vModel.value === 0)) {
+
+const getFormattedModelValue = (format = true) => {
+  if (vModel.value || vModel.value === 0) {
     if (typeof vModel.value === 'number') {
-      if (props.precision) {
-        inputRef.value.value = vModel.value.toFixed(props.precision) ?? ''
+      if (props.precision && format) {
+        return vModel.value.toFixed(props.precision) ?? ''
       } else {
-        inputRef.value.value = vModel.value.toString()
+        return vModel.value.toString()
       }
     } else if (typeof vModel.value === 'string') {
       const numberValue = Number(vModel.value)
       if (!ncIsNaN(numberValue)) {
-        if (props.precision) {
-          inputRef.value.value = numberValue.toFixed(props.precision) ?? ''
+        if (props.precision && format) {
+          return numberValue.toFixed(props.precision) ?? ''
         } else {
-          inputRef.value.value = numberValue.toString()
+          return numberValue.toString()
         }
       }
     }
+  }
+
+  return ''
+}
+const refreshVModel = (format = true) => {
+  if (inputRef.value && (vModel.value || vModel.value === 0)) {
+    inputRef.value.value = getFormattedModelValue(format)
   }
 }
 const saveValue = (targetValue: string) => {
@@ -173,11 +181,24 @@ const onInputBlur = (e: FocusEvent) => {
   }
 }
 
+const onInputFocus = () => {
+  refreshVModel(false)
+}
+
 const registerEvents = (input: HTMLInputElement) => {
   input.addEventListener('keydown', onInputKeyDown)
   input.addEventListener('keyup', onInputKeyUp)
   input.addEventListener('paste', onInputPaste)
   input.addEventListener('blur', onInputBlur)
+  input.addEventListener('focus', onInputFocus)
+}
+
+const removeEvents = (input: HTMLInputElement) => {
+  input.removeEventListener('keydown', onInputKeyDown)
+  input.removeEventListener('keyup', onInputKeyUp)
+  input.removeEventListener('paste', onInputPaste)
+  input.removeEventListener('blur', onInputBlur)
+  input.removeEventListener('focus', onInputFocus)
 }
 
 const onBeforeInput = (e: InputEvent) => {
@@ -200,13 +221,35 @@ onMounted(() => {
     })
   }
 })
+
+onBeforeUnmount(() => {
+  if (inputRef.value) {
+    removeEvents(inputRef.value as HTMLInputElement)
+  }
+})
+
+watch(vModel, (newValue) => {
+  if (
+    !inputRef.value ||
+    newValue ||
+    inputRef.value.value === getFormattedModelValue() ||
+    inputRef.value.value === (newValue?.toString() || '')
+  ) {
+    return
+  }
+
+  // Clear input value if vModel is null and input value is not empty and not a dot or minus
+  if (!newValue && inputRef.value.value && !['.', '-'].includes(inputRef.value.value)) {
+    inputRef.value.value = ''
+  }
+})
 </script>
 
 <template>
   <!-- eslint-disable vue/use-v-on-exact -->
   <input
     ref="input-ref"
-    class="nc-cell-field outline-none rounded-md"
+    class="nc-cell-field outline-none rounded-md w-full"
     :placeholder="placeholder"
     style="letter-spacing: 0.06rem; height: 24px !important"
     :style="inputStyle"

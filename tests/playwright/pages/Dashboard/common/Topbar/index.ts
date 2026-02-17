@@ -80,7 +80,7 @@ export class TopbarPage extends BasePage {
     if (waitForResponse) {
       await this.waitForResponse({
         uiAction: async () => await this.btn_details.click(),
-        requestUrlPathToMatch: 'api/v1/db/meta/tables/',
+        requestUrlPathToMatch: 'columnsHash',
         httpMethodsToMatch: ['GET'],
         responseJsonMatcher: json => json['hash'],
       });
@@ -129,7 +129,12 @@ export class TopbarPage extends BasePage {
 
     // verify downloaded content against expected content
     const expectedData = fs.readFileSync(`./fixtures/${verificationFile}`, 'utf8').replace(/\r/g, '').split('\n');
-    const file = fs.readFileSync('./output/at.txt', 'utf8').replace(/\r/g, '').split('\n');
+    let fileStr = fs.readFileSync('./output/at.txt', 'utf8').replace(/\r/g, '');
+    // remove BOM
+    if (fileStr.startsWith('\ufeff')) {
+      fileStr = fileStr.replace('\ufeff', '');
+    }
+    const file = fileStr.split('\n');
     expect(file).toEqual(expectedData);
   }
 

@@ -14,7 +14,9 @@ const grantAccessToSchema = async (knex, schema, username) => {
   const query = `
   GRANT USAGE ON SCHEMA :schema: TO :username:;
   GRANT SELECT ON ALL TABLES IN SCHEMA :schema: TO :username:;
+  GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA :schema: TO :username:;
   ALTER DEFAULT PRIVILEGES IN SCHEMA :schema: GRANT SELECT ON TABLES TO :username:;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA :schema: GRANT USAGE, SELECT ON SEQUENCES TO :username:;
   `;
 
   const preparedQuery = knex.raw(query, { schema, username }).toQuery();
@@ -26,7 +28,9 @@ const revokeAccessToSchema = async (knex, schema, username) => {
   const query = `
   REVOKE ALL ON SCHEMA :schema: FROM :username:;
   REVOKE ALL PRIVILEGES ON ALL TABLES IN SCHEMA :schema: FROM :username:;
+  REVOKE ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA :schema: FROM :username:;
   ALTER DEFAULT PRIVILEGES IN SCHEMA :schema: REVOKE ALL ON TABLES FROM :username:;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA :schema: REVOKE ALL ON SEQUENCES FROM :username:;
   `;
 
   const preparedQuery = knex.raw(query, { schema, username }).toQuery();

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents, ClientType } from 'nocodb-sdk';
 import { IntegrationsType } from 'nocodb-sdk';
 import type { IntegrationReqType } from 'nocodb-sdk';
@@ -19,6 +19,7 @@ import { generateUniqueName } from '~/helpers/exportImportHelpers';
 
 @Injectable()
 export class IntegrationsService {
+  protected logger = new Logger(IntegrationsService.name);
   constructor(
     protected readonly appHooksService: AppHooksService,
     protected readonly sourcesService: SourcesService,
@@ -31,7 +32,7 @@ export class IntegrationsService {
     const integration = await Integration.get(context, param.integrationId);
 
     if (!integration) {
-      NcError.integrationNotFound(param.integrationId);
+      NcError.get(context).integrationNotFound(param.integrationId);
     }
 
     integration.config = await integration.getConnectionConfig();
@@ -120,7 +121,7 @@ export class IntegrationsService {
       );
 
       if (!integration) {
-        NcError.integrationNotFound(param.integrationId);
+        NcError.get(context).integrationNotFound(param.integrationId);
       }
 
       // get linked sources
@@ -154,7 +155,7 @@ export class IntegrationsService {
           }),
         );
 
-        NcError.integrationLinkedWithMultiple(bases, sources);
+        NcError.get(context).integrationLinkedWithMultiple(bases, sources);
       }
 
       await integration.delete(ncMeta);
@@ -172,7 +173,8 @@ export class IntegrationsService {
     } catch (e) {
       await ncMeta.rollback(e);
       if (e instanceof NcError || e instanceof NcBaseError) throw e;
-      NcError.badRequest(e);
+      this.logger.error('Error deleting integeration', e);
+      NcError.get(context).internalServerError('Error deleting integeration');
     }
 
     return true;
@@ -185,7 +187,7 @@ export class IntegrationsService {
     try {
       const integration = await Integration.get(context, param.integrationId);
       if (!integration) {
-        NcError.integrationNotFound(param.integrationId);
+        NcError.get(context).integrationNotFound(param.integrationId);
       }
 
       const ncMeta = await Noco.ncMeta.startTransaction();
@@ -231,10 +233,13 @@ export class IntegrationsService {
       } catch (e) {
         await ncMeta.rollback(e);
         if (e instanceof NcError || e instanceof NcBaseError) throw e;
-        NcError.badRequest(e);
+        this.logger.error('Error  deleting integeration', e);
+        NcError.get(context).internalServerError('Error deleting integeration');
       }
     } catch (e) {
-      NcError.badRequest(e);
+      if (e instanceof NcError || e instanceof NcBaseError) throw e;
+      this.logger.error('Error  deleting integeration', e);
+      NcError.get(context).internalServerError('Error deleting integeration');
     }
 
     return true;
@@ -262,7 +267,9 @@ export class IntegrationsService {
       );
 
       if (!integrationBody?.id) {
-        NcError.integrationNotFound(param.integration.copy_from_id);
+        NcError.get(context).integrationNotFound(
+          param.integration.copy_from_id,
+        );
       }
 
       integrationBody.config = await integrationBody.getConnectionConfig();
@@ -292,7 +299,9 @@ export class IntegrationsService {
             (integrationBody.config?.connection?.filename ||
               integrationBody.config?.connection?.connection?.filename)
           ) {
-            NcError.badRequest('Integration with same file already exists');
+            NcError.get(context).badRequest(
+              'Integration with same file already exists',
+            );
           }
         }
       }
@@ -319,6 +328,7 @@ export class IntegrationsService {
     const integration = await Integration.createIntegration({
       ...integrationBody,
       ...(param.integration.copy_from_id ? { title: uniqueTitle } : {}),
+      workspaceId: context.workspace_id,
       created_by: param.req.user.id,
     });
 
@@ -408,9 +418,16 @@ export class IntegrationsService {
       const source = new Source(sourceObj);
 
       // update the cache with the new config(encrypted)
-      await NocoCache.update(`${CacheScope.SOURCE}:${source.id}`, {
-        integration_config: integration.config,
-      });
+      await NocoCache.update(
+        {
+          workspace_id: source.fk_workspace_id,
+          base_id: source.base_id,
+        },
+        `${CacheScope.SOURCE}:${source.id}`,
+        {
+          integration_config: integration.config,
+        },
+      );
 
       // delete the connection ref
       await NcConnectionMgrv2.deleteAwait(source);
@@ -438,7 +455,7 @@ export class IntegrationsService {
     const wrapper = integration.getIntegrationWrapper();
 
     if (!integrationMeta || !wrapper) {
-      NcError.badRequest('Invalid integration');
+      NcError.get(context).badRequest('Invalid integration');
     }
 
     if (
@@ -446,9 +463,9 @@ export class IntegrationsService {
       !(params.endpoint in wrapper) ||
       typeof wrapper[params.endpoint] !== 'function'
     ) {
-      NcError.genericNotFound('Endpoint', params.endpoint);
+      NcError.get(context).genericNotFound('Endpoint', params.endpoint);
     }
 
-    return wrapper[params.endpoint](context, params.payload);
+    return wrapper[params.endpoint](params.payload);
   }
 }

@@ -16,7 +16,7 @@ const showSidebarBtn = computed(() => !(isMobileMode.value && !activeViewTitleOr
 
 <template>
   <div
-    class="flex items-center nc-sidebar-header w-full border-b-1 border-gray-200 group md:(px-2 py-1.2) xs:(px-1 py-1)"
+    class="flex items-center nc-sidebar-header w-full border-b-1 border-nc-border-gray-medium group md:(px-2 py-1.2) xs:(px-1 py-1)"
     :data-workspace-title="activeWorkspace?.title"
     style="height: var(--topbar-height)"
   >

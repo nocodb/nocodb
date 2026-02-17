@@ -239,7 +239,7 @@ const count = computed(() => paginationData.value.totalRows)
           <span> {{ $t('msg.info.map.limitNumber') }} </span>
         </template>
 
-        <div v-if="count > 900" class="nc-warning-info flex min-w-32px h-32px items-center gap-1 px-2 bg-white">
+        <div v-if="count > 900" class="nc-warning-info flex min-w-32px h-32px items-center gap-1 px-2 bg-nc-bg-default">
           <div>{{ count }} {{ $t('objects.records') }}</div>
           <component :is="iconMap.markerAlert" />
         </div>

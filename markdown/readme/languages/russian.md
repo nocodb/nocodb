@@ -18,7 +18,7 @@
 
 <p align="center">
     <a href="http://www.nocodb.com"><b>Website</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
+    <a href="https://discord.gg/c7GEYrvFtT"><b>Discord</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
     <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
@@ -29,7 +29,7 @@
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 <p align="center">
-  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - Free & Self-hostable Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </p>
 
 # Быстрый старт
@@ -67,10 +67,10 @@ docker run -d \
 
 # Присоединяйтесь к нашему сообществу
 
-<a href="https://discord.gg/5RgZmkW">
+<a href="https://discord.gg/c7GEYrvFtT">
     <img 
     src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" 
-    alt="Join NocoDB : Free & Open Source Airtable Alternative"
+    alt="Join NocoDB : Free & Self-hostable Airtable alternative"
     >
 </a>
 <br>
@@ -160,7 +160,7 @@ git clone https://github.com/nocodb/nocodb
 cd nocodb
 cd docker-compose
 cd pg
-docker-compose up -d
+docker compose up -d
 ```
 
 ## Переменные среды

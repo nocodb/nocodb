@@ -1,5 +1,5 @@
 import 'mocha';
-import { isEE } from 'playwright/setup/db';
+import { isEE } from '../../../utils/helpers';
 import request from 'supertest';
 import init from '../../../init';
 import { createUser } from '../../../factory/user';

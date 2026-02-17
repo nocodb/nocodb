@@ -1,4 +1,5 @@
 import { ViewTypes } from 'nocodb-sdk';
+import type { SourcesMap } from '~/services/api-docs/types';
 import type {
   Base,
   FormViewColumn,
@@ -10,6 +11,7 @@ import type {
 } from '~/models';
 import type { NcContext } from '~/interface/config';
 import Noco from '~/Noco';
+import { swaggerGetSourcePrefix } from '~/helpers/dbHelpers';
 
 export interface SwaggerView {
   view: View;
@@ -19,6 +21,7 @@ export interface SwaggerView {
 export interface SwaggerGenerationContext {
   context: NcContext;
   base: Base;
+  sourcesMap: SourcesMap;
   models: Model[];
   ncMeta?: any;
 }
@@ -37,25 +40,17 @@ export interface SwaggerGenerationResult {
  */
 export async function prepareSwaggerGenerationData({
   context,
-  base,
   models,
+  sourcesMap,
   ncMeta = Noco.ncMeta,
 }: SwaggerGenerationContext): Promise<SwaggerGenerationResult> {
-  // Fetch sources once for the entire base to avoid repeated queries
-  const sources = await base.getSources(false, ncMeta);
-  const sourcesMap = new Map<string, Source>(
-    sources.map((source) => [source.id, source]),
-  );
-
   // Pre-construct table names for all models to avoid repeated construction and handle duplicates
   const tableNamesMap = new Map<string, string>();
   const usedTableNames = new Set<string>();
 
   for (const model of models) {
     const source = sourcesMap.get(model.source_id);
-    const sourcePrefix = source?.isMeta()
-      ? ''
-      : `${source?.alias || 'Source'}_`;
+    const sourcePrefix = swaggerGetSourcePrefix(source);
     const tableName = `${sourcePrefix}${model.title}`;
 
     // Handle duplicate table names by adding a number suffix
@@ -102,8 +97,12 @@ export async function generateSwagger<TSwaggerColumn, TSwaggerView>(
   swaggerBase: any,
   getSwaggerColumnMetas: (
     context: NcContext,
-    columns: any[],
-    base: Base,
+    param: {
+      columns: any[];
+      model: Model;
+      base: Base;
+      sourcesMap: SourcesMap;
+    },
     ncMeta?: any,
   ) => Promise<TSwaggerColumn[]>,
   getPaths: (
@@ -132,7 +131,13 @@ export async function generateSwagger<TSwaggerColumn, TSwaggerView>(
   ) => Promise<any>,
   transformViews?: (swaggerViews: SwaggerView[]) => TSwaggerView[],
 ) {
-  const { context, base, models, ncMeta = Noco.ncMeta } = generationContext;
+  const {
+    context,
+    base,
+    models,
+    sourcesMap,
+    ncMeta = Noco.ncMeta,
+  } = generationContext;
 
   // base swagger object
   const swaggerObj = {
@@ -145,8 +150,9 @@ export async function generateSwagger<TSwaggerColumn, TSwaggerView>(
   };
 
   // Prepare common data structures
-  const { sourcesMap, tableNamesMap, swaggerViews } =
-    await prepareSwaggerGenerationData(generationContext);
+  const { tableNamesMap, swaggerViews } = await prepareSwaggerGenerationData(
+    generationContext,
+  );
 
   // iterate and populate swagger schema and path for models and views
   for (const model of models) {
@@ -154,8 +160,12 @@ export async function generateSwagger<TSwaggerColumn, TSwaggerView>(
 
     const columns = await getSwaggerColumnMetas(
       context,
-      await model.getColumns(context, ncMeta),
-      base,
+      {
+        columns: await model.getColumns(context, ncMeta),
+        model,
+        sourcesMap,
+        base,
+      },
       ncMeta,
     );
 

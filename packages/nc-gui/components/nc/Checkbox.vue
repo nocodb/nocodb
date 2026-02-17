@@ -4,12 +4,14 @@ interface Props {
   size?: 'small' | 'default' | 'large'
   disabled?: boolean
   theme?: 'default' | 'ai'
+  readonly?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: 'default',
   disabled: false,
   theme: 'default',
+  readonly: false,
 })
 
 const emit = defineEmits(['change', 'update:checked'])
@@ -27,6 +29,7 @@ const onChange = (e: Event) => {
     class="nc-checkbox"
     :class="`theme-${props.theme}`"
     :disabled="props.disabled"
+    :readonly="props.readonly"
     @change="onChange"
   >
     <slot />
@@ -41,7 +44,7 @@ const onChange = (e: Event) => {
     .ant-checkbox-input:focus + .ant-checkbox-inner,
     &.ant-checkbox-wrapper:hover .ant-checkbox-inner,
     .ant-checkbox:hover .ant-checkbox-inner {
-      @apply border-purple-500;
+      @apply border-purple-400;
     }
 
     & > .ant-checkbox-checked {
@@ -50,9 +53,13 @@ const onChange = (e: Event) => {
       }
     }
   }
+
+  input[readonly] {
+    @apply cursor-not-allowed;
+  }
 }
 .nc-checkbox > .ant-checkbox {
-  @apply flex !border-0 !p-0 !h-4 !w-4 !rounded !-mt-1.5 mr-0.75 shadow-sm shadow-gray-100;
+  @apply flex !border-0 !p-0 !h-4 !w-4 !rounded !-mt-1.5 mr-0.75 shadow-sm shadow-nc-bg-gray-light;
 }
 .nc-checkbox > .ant-checkbox > .ant-checkbox-input {
   @apply !p-0 !h-4 !w-4 !border-0;

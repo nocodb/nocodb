@@ -168,6 +168,7 @@ export const AILongTextCellRenderer: CellRenderer = {
       setCursor,
       selected,
       readonly,
+      getColor,
     } = props
 
     const horizontalPadding = 12
@@ -206,7 +207,7 @@ export const AILongTextCellRenderer: CellRenderer = {
       y,
       text: value?.value || '',
       maxWidth: width - padding * 2,
-      fillStyle: '#4a5268',
+      fillStyle: getColor(themeV4Colors.gray['600']),
       height,
     })
 

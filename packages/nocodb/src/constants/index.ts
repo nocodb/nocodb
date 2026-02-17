@@ -16,7 +16,7 @@ if (!NC_REFRESH_TOKEN_EXP_IN_DAYS || NC_REFRESH_TOKEN_EXP_IN_DAYS <= 0) {
   throw new Error('NC_REFRESH_TOKEN_EXP_IN_DAYS must be a positive number');
 }
 
-export const NC_MAX_TEXT_LENGTH = 100000;
+export const NC_MAX_TEXT_LENGTH = +process.env['NC_MAX_TEXT_LENGTH'] || 100000;
 
 export const NC_EMAIL_ASSETS_BASE_URL = 'https://cdn.nocodb.com/emails/v2';
 
@@ -30,7 +30,10 @@ export const S3_PATCH_KEYS = [
   ...(Object.values(PublicAttachmentScope) as string[]),
 ];
 
-export const V3_INSERT_LIMIT = 10;
+export const V1_V2_DATA_PAYLOAD_LIMIT =
+  +process.env['NC_DATA_PAYLOAD_LIMIT'] || 100;
+export const V3_DATA_PAYLOAD_LIMIT =
+  +process.env['NC_DATA_PAYLOAD_LIMIT'] || 10;
 export const V3_META_REQUEST_LIMIT = 10;
 export const MAX_NESTING_DEPTH = 3;
 export const MAX_CONCURRENT_TRANSFORMS = 50;
@@ -39,3 +42,8 @@ export const NC_ATTACHMENT_URL_MAX_REDIRECT = 3;
 export const EMIT_EVENT = {
   HANDLE_ATTACHMENT_URL_UPLOAD: '__nc_handleAttachmentUrlUpload',
 };
+
+export const CONTEXT_INFO_EXTRACT_COLUMN_ALIAS = 'extractColumnAlias';
+export const CONTEXT_INFO_IS_CACHE_EXTRACT_COLUMN = 'isCacheExtractColumn';
+
+export const META_COL_NAME = 'nc_row_meta';

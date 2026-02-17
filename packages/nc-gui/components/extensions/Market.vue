@@ -81,14 +81,14 @@ onMounted(() => {
 <template>
   <NcModal v-model:visible="vModel" :footer="null" size="lg" wrap-class-name="nc-modal-extension-market">
     <div class="h-full">
-      <div class="nc-extension-market-header flex items-center gap-3 px-4 py-3 border-b-1 border-gray-200">
+      <div class="nc-extension-market-header flex items-center gap-3 px-4 py-3 border-b-1 border-nc-border-gray-medium">
         <div
           class="flex items-center gap-3 flex-none"
           :style="{
             width: 'calc(\(100% - 358px - 24px\) / 2)',
           }"
         >
-          <GeneralIcon icon="ncPuzzleSolid" class="h-6 w-6 flex-none text-gray-700" />
+          <GeneralIcon icon="ncPuzzleSolid" class="h-6 w-6 flex-none text-nc-content-gray-subtle" />
           <div class="flex-1 font-semibold text-xl">Marketplace</div>
         </div>
         <div class="flex bg-nc-bg-gray-medium rounded-lg p-1">
@@ -96,7 +96,7 @@ onMounted(() => {
             <NcTooltip
               v-for="(tab, idx) of tabs"
               :key="idx"
-              :disabled="tab.tabKey === 'extensions'"
+              :disabled="!tab.isDisabled"
               class="nc-extension-market-header-tab-item"
               :class="{
                 'selected ': activeTab === tab.tabKey,
@@ -106,7 +106,7 @@ onMounted(() => {
               <div
                 class="px-3 py-1 flex items-center gap-2 text-xs rounded-md select-none"
                 :class="{
-                  'bg-white text-nc-content-gray-emphasis': activeTab === tab.tabKey,
+                  'bg-nc-bg-default text-nc-content-gray-emphasis': activeTab === tab.tabKey,
                   'text-nc-content-gray-subtle2': activeTab !== tab.tabKey,
                   'cursor-not-allowed opacity-60': tab.isDisabled,
                   'cursor-pointer': !tab.isDisabled,
@@ -135,12 +135,15 @@ onMounted(() => {
               allow-clear
             >
               <template #prefix>
-                <GeneralIcon icon="search" class="mr-2 h-4 w-4 text-gray-500 group-hover:text-black" />
+                <GeneralIcon
+                  icon="search"
+                  class="mr-2 h-4 w-4 text-nc-content-gray-muted group-hover:text-nc-content-gray-extreme"
+                />
               </template>
             </a-input>
           </div>
           <NcButton size="small" type="text" @click="vModel = false">
-            <GeneralIcon icon="close" class="text-gray-600" />
+            <GeneralIcon icon="close" class="text-nc-content-gray-subtle2" />
           </NcButton>
         </div>
       </div>
@@ -164,12 +167,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.nc-market-extension-item {
-  &:hover {
-    box-shadow: 0px 4px 8px -2px rgba(0, 0, 0, 0.08), 0px 2px 4px -2px rgba(0, 0, 0, 0.04);
-  }
-}
-
 .tab {
   @apply flex flex-row items-center gap-x-2;
 }

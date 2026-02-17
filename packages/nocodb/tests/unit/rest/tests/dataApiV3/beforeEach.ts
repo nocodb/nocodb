@@ -59,11 +59,26 @@ export const beforeEachTextBased = async (testContext: ITestContext) => {
   }[] = [];
   for (let i = 0; i < 400; i++) {
     const row = {
-      SingleLineText: rowMixedValue(columns[6], i),
-      MultiLineText: rowMixedValue(columns[7], i),
-      Email: rowMixedValue(columns[8], i),
-      Phone: rowMixedValue(columns[9], i),
-      Url: rowMixedValue(columns[10], i),
+      SingleLineText: rowMixedValue(
+        columns.find((c) => c.title === 'SingleLineText'),
+        i,
+      ),
+      MultiLineText: rowMixedValue(
+        columns.find((c) => c.title === 'MultiLineText'),
+        i,
+      ),
+      Email: rowMixedValue(
+        columns.find((c) => c.title === 'Email'),
+        i,
+      ),
+      Phone: rowMixedValue(
+        columns.find((c) => c.title === 'Phone'),
+        i,
+      ),
+      Url: rowMixedValue(
+        columns.find((c) => c.title === 'Url'),
+        i,
+      ),
     };
     rowAttributes.push(row);
   }
@@ -110,13 +125,34 @@ export const beforeEachNumberBased = async (testContext: ITestContext) => {
   }[] = [];
   for (let i = 0; i < 400; i++) {
     const row = {
-      Number: rowMixedValue(columns[6], i),
-      Decimal: rowMixedValue(columns[7], i),
-      Currency: rowMixedValue(columns[8], i),
-      Percent: rowMixedValue(columns[9], i),
-      Duration: rowMixedValue(columns[10], i),
-      Rating: rowMixedValue(columns[11], i),
-      Year: rowMixedValue(columns[12], i),
+      Number: rowMixedValue(
+        columns.find((c) => c.title === 'Number'),
+        i,
+      ),
+      Decimal: rowMixedValue(
+        columns.find((c) => c.title === 'Decimal'),
+        i,
+      ),
+      Currency: rowMixedValue(
+        columns.find((c) => c.title === 'Currency'),
+        i,
+      ),
+      Percent: rowMixedValue(
+        columns.find((c) => c.title === 'Percent'),
+        i,
+      ),
+      Duration: rowMixedValue(
+        columns.find((c) => c.title === 'Duration'),
+        i,
+      ),
+      Rating: rowMixedValue(
+        columns.find((c) => c.title === 'Rating'),
+        i,
+      ),
+      Year: rowMixedValue(
+        columns.find((c) => c.title === 'Year'),
+        i,
+      ),
     };
     rowAttributes.push(row);
   }
@@ -157,8 +193,15 @@ export const beforeEachSelectBased = async (testContext: ITestContext) => {
   }[] = [];
   for (let i = 0; i < 400; i++) {
     const row = {
-      SingleSelect: rowMixedValue(columns[6], i),
-      MultiSelect: rowMixedValue(columns[7], i, true),
+      SingleSelect: rowMixedValue(
+        columns.find((c) => c.title === 'SingleSelect'),
+        i,
+      ),
+      MultiSelect: rowMixedValue(
+        columns.find((c) => c.title === 'MultiSelect'),
+        i,
+        true,
+      ),
     };
     rowAttributes.push(row);
   }
@@ -201,8 +244,14 @@ export const beforeEachDateBased = async (testContext: ITestContext) => {
   }[] = [];
   for (let i = 0; i < 800; i++) {
     const row = {
-      Date: rowMixedValue(columns[6], i),
-      DateTime: rowMixedValue(columns[7], i),
+      Date: rowMixedValue(
+        columns.find((c) => c.title === 'Date'),
+        i,
+      ),
+      DateTime: rowMixedValue(
+        columns.find((c) => c.title === 'DateTime'),
+        i,
+      ),
     };
     rowAttributes.push(row);
   }

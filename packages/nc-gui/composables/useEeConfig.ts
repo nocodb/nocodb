@@ -21,6 +21,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const activePlanTitle = computed(() => undefined)
 
+  const isHigherActivePlan = computed(() => false)
+
   const activeSubscription = computed(() => undefined)
 
   const isLoyaltyDiscountAvailable = computed(() => false)
@@ -75,6 +77,16 @@ export const useEeConfig = createSharedComposable(() => {
   const blockAiPromptField = computed(() => true)
 
   const blockAiButtonField = computed(() => true)
+
+  const blockTeamsManagement = computed(() => true)
+
+  const blockAddNewTeamToWs = computed(() => true)
+
+  const blockCardFieldHeaderVisibility = computed(() => true)
+
+  const blockSync = computed(() => true)
+
+  const blockUnique = computed(() => true)
 
   const calculatePrice = (..._args: any[]) => {}
 
@@ -140,6 +152,14 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseAiButtonField = (..._args: any[]) => {}
 
+  const showUpgradeToUseTeams = (..._args: any[]) => {}
+
+  const showUpgradeToAddMoreTeams = (..._args: any[]) => {}
+
+  const showUpgradeToUseSync = (..._args: any[]) => {}
+
+  const showUpgradeToUseUnique = (..._args: any[]) => {}
+
   return {
     calculatePrice,
     getLimit,
@@ -204,5 +224,15 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseAiPromptField,
     blockAiButtonField,
     showUpgradeToUseAiButtonField,
+    blockTeamsManagement,
+    showUpgradeToUseTeams,
+    blockAddNewTeamToWs,
+    showUpgradeToAddMoreTeams,
+    isHigherActivePlan,
+    blockCardFieldHeaderVisibility,
+    blockSync,
+    blockUnique,
+    showUpgradeToUseSync,
+    showUpgradeToUseUnique,
   }
 })

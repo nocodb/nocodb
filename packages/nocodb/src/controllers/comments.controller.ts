@@ -84,7 +84,7 @@ export class CommentsController {
   }
 
   @Get(['/api/v1/db/meta/comments/count', '/api/v2/meta/comments/count'])
-  @Acl('commentsCount')
+  @Acl('commentCount')
   async commentsCount(
     @TenantContext() context: NcContext,
     @Query('fk_model_id') fk_model_id: string,

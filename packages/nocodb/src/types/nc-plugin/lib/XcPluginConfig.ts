@@ -8,6 +8,10 @@ export default interface XcPluginConfig {
   title: string;
   recoveryTitle?: string;
   logo?: string;
+  /**
+   * @type {IconMapKey} from nc-gui/utils/iconUtils
+   */
+  icon?: string;
   tags?: string;
   description?: string;
   version: string;

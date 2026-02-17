@@ -102,7 +102,7 @@ const virtualCellClassName = computed(() => {
 <style lang="scss" scoped>
 .nc-virtual-cell {
   &.nc-display-value-cell {
-    @apply !text-brand-500;
+    @apply !text-nc-content-brand;
   }
 }
 </style>

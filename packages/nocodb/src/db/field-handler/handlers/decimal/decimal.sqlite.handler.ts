@@ -12,4 +12,5 @@ export class DecimalSqliteHandler extends GenericSqliteFieldHandler {
 
   override filterBlank = this.decimalGeneralHandler.filterBlank;
   override filterNotblank = this.decimalGeneralHandler.filterNotblank;
+  override filterNeq = this.decimalGeneralHandler.filterNeq;
 }

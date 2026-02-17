@@ -21,10 +21,15 @@ const relationColumnOptions = computed<LinkToAnotherRecordType | null>(() => {
   return null
 })
 
-const relatedTableMeta = computed(
-  () =>
-    relationColumnOptions.value?.fk_related_model_id && metas.value?.[relationColumnOptions.value?.fk_related_model_id as string],
-)
+const relatedTableMeta = computed(() => {
+  if (!relationColumnOptions.value?.fk_related_model_id) return null
+  // Use fk_related_base_id for cross-base relationships
+  const relatedBaseId = relationColumnOptions.value.fk_related_base_id || meta.value?.base_id
+  const metaKey = relatedBaseId
+    ? `${relatedBaseId}:${relationColumnOptions.value.fk_related_model_id}`
+    : relationColumnOptions.value.fk_related_model_id
+  return metas.value?.[metaKey] || metas.value?.[relationColumnOptions.value.fk_related_model_id as string]
+})
 
 const colOptions = computed(() => column.value?.colOptions)
 

@@ -146,6 +146,7 @@ export class ToolbarPage extends BasePage {
 
   async clickGroupBy() {
     const menuOpen = await this.groupBy.get().isVisible();
+    await this.get().locator(`button.nc-group-by-menu-btn`).waitFor({ state: 'visible' });
     await this.get().locator(`button.nc-group-by-menu-btn`).click();
 
     // Wait for the menu to close
@@ -177,7 +178,7 @@ export class ToolbarPage extends BasePage {
         // Since on opening filter menu, api is called to fetch filter options, and will rerender the menu
         await this.waitForResponse({
           uiAction: clickFilterAction,
-          requestUrlPathToMatch: '/api/v1/',
+          requestUrlPathToMatch: 'filterList',
           httpMethodsToMatch: ['GET'],
         });
       } else {

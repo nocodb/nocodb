@@ -18,7 +18,7 @@ const { formState, addOrUpdate } = useProvideColumnCreateStore(meta, column, und
 const { getMeta } = useMetas()
 
 const reloadMetaAndData = async () => {
-  await getMeta(meta.value?.id as string, true)
+  await getMeta(meta.value?.base_id, meta.value?.id as string, true)
 }
 
 async function onSubmit(

@@ -45,7 +45,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
         <div class="h-full flex">
           <!-- Side tabs -->
 
-          <div class="h-full bg-white nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
+          <div class="h-full bg-nc-bg-gray-sidebar nc-user-sidebar overflow-y-auto nc-scrollbar-thin min-w-[312px]">
             <NcMenu
               v-model:open-keys="openKeys"
               v-model:selected-keys="selectedKeys"
@@ -59,7 +59,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                   v-e="['c:navbar:home']"
                   type="text"
                   size="small"
-                  class="transition-all duration-200 mx-2 cursor-pointer transform hover:bg-gray-100 nc-noco-brand-icon"
+                  class="transition-all duration-200 mx-2 cursor-pointer transform hover:bg-nc-bg-gray-light nc-noco-brand-icon"
                   data-testid="nc-noco-brand-icon"
                   @click="navigateTo('/')"
                 >
@@ -94,7 +94,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                         {{ $t('activity.pending') }}
                       </span>
                     </template>
-                    <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-4 h-4 nc-pending" />
+                    <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-4 h-4 nc-pending" />
                   </NcTooltip>
                 </div>
               </NcMenuItem>
@@ -138,7 +138,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 <div class="flex items-center space-x-2">
                   <GeneralIcon icon="mcp" class="h-4 w-4 flex-none" />
 
-                  <div class="select-none">{{ $t('labels.modelContextProtocol') }}</div>
+                  <div class="select-none">{{ $t('title.mcpServer') }}</div>
                 </div>
               </NcMenuItem>
               <NcMenuItem
@@ -155,18 +155,18 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 
                   <div class="select-none text-sm">{{ $t('title.appStore') }}</div>
                   <span class="flex-grow" />
-                  <NcToolti>
+                  <NcTooltip>
                     <template #title>
                       <span>
                         App store will soon be removed. Email & Storage plugins are now available in Accounts/Setup page. Rest of
                         the plugins here will be moved to integrations.
                       </span>
                     </template>
-                    <GeneralIcon icon="ncAlertCircle" class="text-orange-500 w-4 h-4 nc-pending" />
-                  </NcToolti>
+                    <GeneralIcon icon="ncAlertCircle" class="text-nc-content-orange-medium w-4 h-4 nc-pending" />
+                  </NcTooltip>
                 </div>
               </NcMenuItem>
-              <a-sub-menu key="users" class="!bg-white !my-0">
+              <a-sub-menu key="users" class="!bg-nc-bg-gray-sidebar !my-0">
                 <template #icon>
                   <GeneralIcon icon="ncUsers" class="!h- !w-4" />
                 </template>
@@ -232,7 +232,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                 <template #title>{{ $t('labels.community.communityTranslated') }}</template>
 
                 <div class="flex items-center">
-                  <GeneralLanguage button class="cursor-pointer text-2xl hover:text-gray-800" />
+                  <GeneralLanguage button class="cursor-pointer text-2xl hover:text-nc-content-gray" />
                 </div>
               </NcTooltip>
 
@@ -242,7 +242,7 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
                     <component
                       :is="iconMap.threeDotVertical"
                       data-testid="nc-menu-accounts"
-                      class="md:text-lg cursor-pointer hover:text-gray-800 nc-menu-accounts"
+                      class="md:text-lg cursor-pointer hover:text-nc-content-gray nc-menu-accounts"
                       @click.prevent
                     />
                   </NcButton>
@@ -288,20 +288,18 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 }
 
 :deep(.ant-menu-submenu-arrow) {
-  @apply !text-gray-400;
+  @apply !text-nc-content-gray-disabled;
 }
 
 :deep(.ant-menu-submenu-selected .ant-menu-submenu-arrow) {
   @apply !text-inherit;
 }
 .tabs-menu {
+  @apply bg-nc-bg-gray-sidebar;
+
   :deep(.item) {
     @apply select-none mx-2 !px-3 !text-sm !rounded-md !mb-1 text-nc-content-gray-subtle !hover:(bg-nc-bg-gray-medium text-nc-content-gray-subtle) font-medium;
     width: calc(100% - 1rem);
-  }
-
-  :deep(.active) {
-    @apply !bg-nc-bg-brand !text-nc-content-brand-disabled !hover:(bg-nc-bg-brand text-nc-content-brand-disabled ) font-semibold;
   }
 }
 
@@ -315,10 +313,18 @@ const isPending = computed(() => !emailConfigured.value || !storageConfigured.va
 }
 
 :deep(.ant-menu) {
-  @apply !pt-0 !rounded-none !border-gray-200;
+  @apply !pt-0 !rounded-none !border-nc-border-gray-medium;
 }
 
 .nc-account-dropdown-item {
-  @apply flex flex-row px-4 items-center py-2 gap-x-2 hover:bg-gray-100 cursor-pointer;
+  @apply flex flex-row px-4 items-center py-2 gap-x-2 hover:bg-nc-bg-gray-light cursor-pointer;
+}
+</style>
+
+<style lang="scss">
+.nc-user-sidebar {
+  .tabs-menu .active {
+    @apply !bg-nc-bg-brand !text-nc-content-brand-disabled !hover:(bg-nc-bg-brand text-nc-content-brand-disabled) dark:(!bg-nc-bg-gray-medium !hover:bg-nc-bg-gray-medium) font-semibold;
+  }
 }
 </style>

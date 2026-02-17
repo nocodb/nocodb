@@ -207,6 +207,7 @@ import NcSettings from '~icons/nc-icons/settings'
 import NcHelp from '~icons/nc-icons/help'
 import NcAlertTriangle from '~icons/nc-icons/alert-triangle'
 import NcAudit from '~icons/nc-icons/audit'
+import NcAuditNew from '~icons/nc-icons-v2/audit-new'
 import NcMessageCircle from '~icons/nc-icons/message-circle'
 import NcKey from '~icons/nc-icons/key'
 
@@ -301,6 +302,7 @@ import NcPosthog from '~icons/nc-icons/posthog'
 import NcNocodbPg from '~icons/nc-icons/nocodb-pg'
 import NcStopCircle from '~icons/nc-icons/stop-circle'
 import NcEnter from '~icons/nc-icons/enter'
+import NcAmazonAws from '~icons/nc-icons/amazon_aws'
 
 // Buttons Icons V2
 
@@ -569,6 +571,7 @@ import NcChartDonut from '~icons/nc-icons-v2/chart-donut.svg'
 import NcChartBar from '~icons/nc-icons-v2/chart-bar.svg'
 import NcChartLine from '~icons/nc-icons-v2/chart-line.svg'
 import NcChartPie from '~icons/nc-icons-v2/chart-pie.svg'
+import NcGaugeWidget from '~icons/nc-icons-v2/gauge-widget.svg'
 
 import NcSlash1 from '~icons/nc-icons/slash1'
 
@@ -643,6 +646,13 @@ import NcErd from '~icons/nc-icons/erd'
 import NcInsertBefore from '~icons/nc-icons/insert-before'
 import NcInsertAfter from '~icons/nc-icons/insert-after'
 import NcWebhook from '~icons/nc-icons-v2/webhook'
+
+import NcFormResponse from '~icons/nc-icons-v2/new-form-responce'
+import NcRecordCreate from '~icons/nc-icons-v2/record-create'
+import NcRecordUpdate from '~icons/nc-icons-v2/record-update'
+import NcRecordDelete from '~icons/nc-icons-v2/record-delete'
+import NcRecordEntersView from '~icons/nc-icons-v2/record-enters-view'
+import NcIfElse from '~icons/nc-icons-v2/if-else'
 
 import NcLogoAsanaColored from '~icons/nc-icons-v2/asana-colored.svg'
 import NcLogoAsana from '~icons/nc-icons-v2/asana.svg'
@@ -776,6 +786,7 @@ import NcHeadphone from '~icons/nc-icons-v2/headphone'
 import NcPaintRoller from '~icons/nc-icons-v2/paint-roller.svg'
 import NcConditions from '~icons/nc-icons-v2/conditions.svg'
 import NcSun from '~icons/nc-icons-v2/sun.svg'
+import NcSunMoon from '~icons/nc-icons-v2/sun-moon.svg'
 
 import MdiNcCheckBold from '~icons/nc-icons/mdi-check-bold'
 import MdiNcCropSquare from '~icons/nc-icons/mdi-crop-square'
@@ -799,6 +810,8 @@ import NcMultiCircle from '~icons/nc-icons-v2/multi-circle'
 import NcChatwoot from '~icons/nc-icons-v2/chatwoot'
 import NcGraduationCap from '~icons/nc-icons-v2/graduation-cap'
 import NcSupportAgent from '~icons/nc-icons-v2/support-agent'
+import NcBuilding from '~icons/nc-icons-v2/building'
+import NcExtUrlPreviewEmptyState from '~icons/nc-icons/extension-url-preview-empty-state'
 
 // keep it for reference
 // todo: remove it after all icons are migrated
@@ -1215,6 +1228,7 @@ export const iconMap = {
   'role_editor': Editor,
   'role_commenter': Commentor,
   'role_viewer': Viewer,
+  'role_inherit': NcLayers,
   'role_super': SuperAdmin,
   'role_no_access': NoAccess,
   'commentHere': NcCommentHere,
@@ -1320,6 +1334,7 @@ export const iconMap = {
   'greenhouse': NcGreenhouse,
   'lever': h(NcLever, { stroke: 'transparent' }),
   'bitBucket': NcBitBucket,
+  'bambooHR': NcLogoBambooHrColored,
   'quickbooks': NcQuickbooks,
   'intercom': NcIntercom,
   'dropbox': NcDropbox,
@@ -1379,6 +1394,7 @@ export const iconMap = {
   'ncSmartphone': NcSmartphoneIcon,
   'ncMoreHorizontal': NcMoreHorizontalIcon,
   'ncSliders': NcSlidersIcon,
+  'sliders': NcSlidersIcon,
   'ncArrowUpLeft': NcArrowUpLeftIcon,
   'ncChevronDown': NcChevronDownIcon,
   'ncHexagon': NcHexagonIcon,
@@ -1612,6 +1628,7 @@ export const iconMap = {
   'ncScript': NcScript,
   'youtube': NcYoutube2Icon,
   'ncEnter': NcEnter,
+  'NcAmazonAws': h(NcAmazonAws, { stroke: 'transparent' }),
   'ncAutoAwesome': h(NcAutoAwesome, { stroke: 'transparent' }),
   'ncPlusAi': h(NcPlusAi, { stroke: 'transparent' }),
   'ncPlusMultiple': NcPlusMultiple,
@@ -1655,6 +1672,7 @@ export const iconMap = {
   'ncLogoChromeColored': h(NcLogoChromeColored, { stroke: 'transparent' }),
   'ncLogoClaudeAiColored': h(NcLogoClaudeAiColored, { stroke: 'transparent' }),
   'ncLogoClaudeAi': h(NcLogoClaudeAi, { stroke: 'transparent' }),
+  'ncLogoDiscord': h(NcLogoDiscord, { stroke: 'transparent' }),
   'ncLogoDiscordColored': h(NcLogoDiscordColored, { stroke: 'transparent' }),
   'ncLogoDropboxColored': h(NcLogoDropboxColored, { stroke: 'transparent' }),
   'ncLogoDropbox': h(NcLogoDropbox, { stroke: 'transparent' }),
@@ -1802,9 +1820,20 @@ export const iconMap = {
   'ncChartLine': h(NcChartLine, { stroke: 'transparent' }),
   'ncChartDonut': h(NcChartDonut, { stroke: 'transparent' }),
   'ncChartPie': h(NcChartPie, { stroke: 'transparent' }),
+  'ncGaugeWidget': h(NcGaugeWidget, { stroke: 'transparent' }),
   'ncSun': NcSun,
+  'ncSunMoon': NcSunMoon,
   'ncGraduationCap': NcGraduationCap,
   'ncSupportAgent': h(NcSupportAgent, { stroke: 'transparent' }),
+  'ncBuilding': NcBuilding,
+  'ncRecordCreate': NcRecordCreate,
+  'ncRecordUpdate': NcRecordUpdate,
+  'ncRecordDelete': NcRecordDelete,
+  'ncRecordFind': NcAuditNew,
+  'ncFormResponse': NcFormResponse,
+  'ncIfElse': NcIfElse,
+  'ncRecordEntersView': NcRecordEntersView,
+  'ncExtUrlPreviewEmptyState': h(NcExtUrlPreviewEmptyState, { stroke: 'transparent' }),
 }
 
 export const getMdiIcon = (type: string): any => {
@@ -4576,6 +4605,10 @@ export const searchableMap = {
     icon: NcSun,
     keywords: ['sun', 'sunny', 'weather', 'light', 'day', 'morning', 'summer', 'warm', 'warmth'],
   },
+  ncSunMoon: {
+    icon: NcSunMoon,
+    keywords: ['sun', 'moon', 'dark', 'light', 'theme', 'auto theme', 'system theme', 'appearance'],
+  },
   ncGraduationCap: {
     icon: NcGraduationCap,
     keywords: ['graduation', 'cap', 'school', 'education', 'academic'],
@@ -4583,6 +4616,10 @@ export const searchableMap = {
   ncSupportAgent: {
     icon: h(NcSupportAgent, { stroke: 'transparent' }),
     keywords: ['support', 'agent', 'help', 'customer', 'service'],
+  },
+  ncBuilding: {
+    icon: NcBuilding,
+    keywords: ['building', 'office', 'building-outline'],
   },
 }
 

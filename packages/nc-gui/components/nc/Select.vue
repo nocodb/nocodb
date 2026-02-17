@@ -22,7 +22,7 @@ const props = withDefaults(
   },
 )
 
-const emits = defineEmits(['update:value', 'change'])
+const emits = defineEmits(['update:value', 'change', 'search'])
 
 const placeholder = computed(() => props.placeholder)
 
@@ -40,6 +40,10 @@ const vModel = useVModel(props, 'value', emits)
 
 const onChange = (value: string) => {
   emits('change', value)
+}
+
+const onSearch = (value: string) => {
+  emits('search', value)
 }
 </script>
 
@@ -59,10 +63,11 @@ const onChange = (value: string) => {
     :max-tag-count="maxTagCount"
     class="nc-select nc-select-shadow"
     @change="onChange as any"
+    @search="onSearch"
   >
     <template #suffixIcon>
       <GeneralLoader v-if="loading" />
-      <GeneralIcon v-else class="text-gray-800 nc-select-expand-btn" :icon="suffixIcon" />
+      <GeneralIcon v-else class="text-nc-content-gray nc-select-expand-btn" :icon="suffixIcon" />
     </template>
 
     <template v-if="$slots.dropdownRender" #dropdownRender="{ menuNode }">

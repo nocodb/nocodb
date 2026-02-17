@@ -14,15 +14,23 @@ const { integrations } = useProvideIntegrationViewStore()
 
 const basesStore = useBases()
 
-const { openedProject, activeProjectId, basesUser, bases } = storeToRefs(basesStore)
+const { openedProject, activeProjectId, basesUser, bases, basesTeams } = storeToRefs(basesStore)
 const { activeTable } = storeToRefs(useTablesStore())
-const { activeWorkspace } = storeToRefs(useWorkspace())
+const { activeWorkspace, isTeamsEnabled } = storeToRefs(useWorkspace())
+
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
 const { isSharedBase, isPrivateBase } = storeToRefs(useBase())
 
 const { $e, $api } = useNuxtApp()
 
-const { blockTableAndFieldPermissions, showUpgradeToUseTableAndFieldPermissions } = useEeConfig()
+const {
+  blockTableAndFieldPermissions,
+  showUpgradeToUseTableAndFieldPermissions,
+  blockSync,
+  showUpgradeToUseSync,
+  isWsAuditEnabled,
+} = useEeConfig()
 
 const currentBase = computedAsync(async () => {
   let base
@@ -53,18 +61,37 @@ const baseSettingsState = ref('')
 
 const userCount = computed(() => {
   // if private base and don't have owner permission then return
-  if (base.value?.default_role && !baseRoles.value[ProjectRoles.OWNER]) {
+  if (base.value?.default_role && !baseRoles.value?.[ProjectRoles.OWNER]) {
     return
   }
 
-  return activeProjectId.value ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length : 0
+  if (activeProjectId.value) {
+    const teamsCount = !isAdminPanel.value && isTeamsEnabled.value ? basesTeams.value.get(activeProjectId.value)?.length ?? 0 : 0
+    const usersCount = activeProjectId.value
+      ? basesUser.value.get(activeProjectId.value)?.filter((user) => !user?.deleted)?.length ?? 0
+      : 0
+
+    return teamsCount + usersCount
+  }
+
+  return 0
 })
 
-const { isTableAndFieldPermissionsEnabled } = usePermissions()
-
-const { isFeatureEnabled } = useBetaFeatureToggle()
-
 const isOverviewTabVisible = computed(() => isUIAllowed('projectOverviewTab'))
+
+const isAuditsTabVisible = computed(() => isEeUI && !isAdminPanel.value && isWsAuditEnabled.value && isUIAllowed('baseAuditList'))
+
+const isWorkflowsTabVisible = computed(
+  () => isEeUI && isFeatureEnabled(FEATURE_FLAG.WORKFLOWS_TAB) && isUIAllowed('workflowCreateOrEdit') && !isMobileMode.value,
+)
+
+// Get actual workflow count
+const workflowStore = useWorkflowStore()
+const { activeBaseWorkflows } = storeToRefs(workflowStore)
+
+const workflowCount = computed(() => {
+  return activeBaseWorkflows.value?.length ?? 0
+})
 
 const projectPageTab = computed({
   get() {
@@ -72,6 +99,18 @@ const projectPageTab = computed({
   },
   set(value) {
     if (value === 'permissions' && showUpgradeToUseTableAndFieldPermissions()) {
+      return
+    }
+
+    if (value === 'syncs' && showUpgradeToUseSync()) {
+      return
+    }
+
+    if (value === 'audits' && !isAuditsTabVisible.value) {
+      return
+    }
+
+    if (value === 'workflows' && !isWorkflowsTabVisible.value) {
       return
     }
 
@@ -92,7 +131,9 @@ watch(
      * We are waiting for base role load and their might be the case that,
      * on navigating to different page this watch get called which will overwrite projectPageTab value and navigateToProjectPage fn get called
      */
-    if (route.value.params.viewId) return
+    if (['viewId', 'workflowId', 'scriptId', 'dashboardId'].some((key) => route.value.params[key])) {
+      return
+    }
 
     // In mobile mode we only show collaborator tab
     if (isMobileMode.value && newVal !== 'collaborator') {
@@ -101,21 +142,20 @@ watch(
     }
 
     if (newVal && newVal !== oldVal) {
-      if (newVal === 'syncs') {
+      if (isEeUI && newVal === 'syncs' && !blockSync.value) {
         projectPageTab.value = 'syncs'
       } else if (newVal === 'data-source') {
         projectPageTab.value = 'data-source'
       } else if (newVal === 'overview' && isOverviewTabVisible.value) {
         projectPageTab.value = 'overview'
-      } else if (
-        newVal === 'permissions' &&
-        !blockTableAndFieldPermissions.value &&
-        isEeUI &&
-        isTableAndFieldPermissionsEnabled.value
-      ) {
+      } else if (newVal === 'permissions' && !blockTableAndFieldPermissions.value && isEeUI) {
         projectPageTab.value = 'permissions'
       } else if (newVal === 'base-settings') {
         projectPageTab.value = 'base-settings'
+      } else if (newVal === 'audits' && isAuditsTabVisible.value) {
+        projectPageTab.value = 'audits'
+      } else if (newVal === 'workflows' && isWorkflowsTabVisible.value) {
+        projectPageTab.value = 'workflows'
       } else {
         projectPageTab.value = 'collaborator'
       }
@@ -190,6 +230,10 @@ onMounted(() => {
           <GeneralProjectIcon
             :color="parseProp(currentBase?.meta).iconColor"
             :type="currentBase?.type"
+            :managed-app="{
+              managed_app_master: currentBase?.managed_app_master,
+              managed_app_id: currentBase?.managed_app_id,
+            }"
             class="h-6 w-6 md:(h-4 w-4) flex-none"
           />
           <NcTooltip
@@ -205,7 +249,7 @@ onMounted(() => {
             v-if="isPrivateBase"
             size="xs"
             class="!text-bodySm !bg-nc-bg-gray-medium !text-nc-content-gray-subtle2"
-            color="grey"
+            color="gray"
             :border="false"
           >
             <GeneralIcon icon="ncLock" class="w-3.5 h-3.5 mr-1" />
@@ -213,7 +257,10 @@ onMounted(() => {
           </NcBadge>
         </div>
       </div>
-      <LazyGeneralShareProject v-if="!showEmptySkeleton && !isMobileMode" />
+      <div v-if="!showEmptySkeleton && !isMobileMode" class="flex items-center gap-2">
+        <SmartsheetTopbarManagedAppStatus />
+        <LazyGeneralShareProject />
+      </div>
     </div>
     <div
       v-if="!showEmptySkeleton"
@@ -222,7 +269,7 @@ onMounted(() => {
         height: 'calc(100% - var(--topbar-height))',
       }"
     >
-      <a-tabs v-model:active-key="projectPageTab" class="w-full">
+      <NcTabs v-model:active-key="projectPageTab" class="w-full">
         <template #leftExtra>
           <div class="w-3"></div>
         </template>
@@ -261,10 +308,26 @@ onMounted(() => {
           </template>
           <ProjectAccessSettings :base-id="currentBase?.id" />
         </a-tab-pane>
-        <a-tab-pane
-          v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && isTableAndFieldPermissionsEnabled && !isMobileMode"
-          key="permissions"
-        >
+        <a-tab-pane v-if="isWorkflowsTabVisible && base.id" key="workflows">
+          <template #tab>
+            <div class="tab-title" data-testid="proj-view-tab__workflows">
+              <GeneralIcon icon="ncAutomation" />
+              <div>{{ $t('objects.workflows') }}</div>
+              <div
+                v-if="workflowCount"
+                class="tab-info"
+                :class="{
+                  'bg-primary-selected': projectPageTab === 'workflows',
+                  'bg-nc-bg-gray-extralight': projectPageTab !== 'workflows',
+                }"
+              >
+                {{ workflowCount }}
+              </div>
+            </div>
+          </template>
+          <ProjectWorkflowsList :base-id="base.id" />
+        </a-tab-pane>
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="permissions">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__permissions">
               <GeneralIcon icon="ncLock" />
@@ -292,17 +355,24 @@ onMounted(() => {
           </template>
           <DashboardSettingsDataSources v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
         </a-tab-pane>
-        <a-tab-pane
-          v-if="isFeatureEnabled(FEATURE_FLAG.SYNC) && isUIAllowed('sourceCreate') && base.id && !isMobileMode"
-          key="syncs"
-        >
+        <a-tab-pane v-if="isEeUI && isUIAllowed('sourceCreate') && base.id && !isMobileMode" key="syncs">
           <template #tab>
             <div class="tab-title" data-testid="proj-view-tab__syncs">
               <GeneralIcon icon="ncZap" />
               <div>Syncs</div>
             </div>
           </template>
-          <DashboardSettingsSyncs v-model:state="baseSettingsState" :base-id="base.id" class="max-h-full" />
+          <ProjectSync v-if="!blockSync" :base-id="base.id" class="max-h-full" />
+        </a-tab-pane>
+        <a-tab-pane v-if="isAuditsTabVisible" key="audits" class="w-full">
+          <template #tab>
+            <div class="tab-title" data-testid="nc-workspace-settings-tab-audits">
+              <GeneralIcon icon="audit" class="h-4 w-4" />
+              {{ $t('title.audits') }}
+            </div>
+          </template>
+          <WorkspaceAudits v-if="currentBase?.id && projectPageTab === 'audits'" :base-id="currentBase?.id" />
+          <div v-else>&nbsp;</div>
         </a-tab-pane>
         <a-tab-pane v-if="!isSharedBase && !isMobileMode" key="base-settings">
           <template #tab>
@@ -313,7 +383,7 @@ onMounted(() => {
           </template>
           <DashboardSettingsBase :base-id="base.id!" class="max-h-full" />
         </a-tab-pane>
-      </a-tabs>
+      </NcTabs>
     </div>
   </div>
 </template>
@@ -336,12 +406,6 @@ onMounted(() => {
   &:not(:has(.nc-project-overview-tab-content.ant-tabs-tabpane-active)) {
     @apply nc-content-max-w;
   }
-}
-:deep(.ant-tabs-tab .tab-title) {
-  @apply text-nc-content-gray-muted;
-}
-:deep(.ant-tabs-tab-active .tab-title) {
-  @apply text-primary;
 }
 
 .tab-info {

@@ -4,6 +4,7 @@ import type { PutObjectCommandInput, S3ClientConfig } from '@aws-sdk/client-s3';
 import type { IStorageAdapterV2 } from '~/types/nc-plugin';
 import GenericS3 from '~/plugins/GenericS3/GenericS3';
 import { S3_PATCH_KEYS } from '~/constants';
+import { NcError } from '~/helpers/catchError';
 
 interface BackblazeObjectStorageInput {
   bucket: string;
@@ -69,8 +70,7 @@ export default class Backblaze extends GenericS3 implements IStorageAdapterV2 {
         return `https://${this.input.bucket}.s3.${this.input.region}.backblazeb2.com/${uploadParams.Key}`;
       }
     } catch (error) {
-      console.error('Error uploading file', error);
-      throw error;
+      NcError._.storageFileCreateError(error.message);
     }
   }
 

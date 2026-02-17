@@ -3,33 +3,33 @@ import rfdc from 'rfdc'
 const deepClone = rfdc()
 const FEATURES = [
   {
+    id: 'managed_apps',
+    title: 'Managed Apps',
+    description: 'Allow users to create replicable managed app environments',
+    enabled: false,
+    isEngineering: true,
+    isAdvanced: true,
+  },
+  {
+    id: 'bases_v3',
+    title: 'Bases V3',
+    description: 'Experience the next generation of NocoDB with Bases V3 with and enhanced performance and optimizations.',
+    enabled: false,
+    version: 1,
+  },
+  {
+    id: 'advanced_nodes',
+    title: 'Enabled advanced nodes',
+    description: 'Enabled advanced nodes like scripts, external trigger node, etc.',
+    enabled: false,
+    isEngineering: true,
+    version: 1,
+  },
+  {
     id: 'infinite_scrolling',
     title: 'Infinite scrolling',
     description: 'Effortlessly browse large datasets with infinite scrolling.',
     enabled: true,
-    version: 1,
-  },
-  {
-    id: 'canvas_grid_view',
-    title: 'Improved Grid View',
-    description: 'High-performance grid view with enhanced scrolling and rendering capabilities.',
-    enabled: !ncIsPlaywright(),
-    version: 1,
-  },
-  {
-    id: 'dark_mode',
-    title: 'Dark Mode',
-    isEngineering: true,
-    description: 'Keep your eyes healthy with dark mode.',
-    enabled: false,
-    version: 1,
-    isEE: true,
-  },
-  {
-    id: 'canvas_group_grid_view',
-    title: 'Improved Group By',
-    description: 'New and Improved groupby in grid view with enhanced scrolling and rendering capabilities.',
-    enabled: !ncIsPlaywright(),
     version: 1,
   },
   {
@@ -40,15 +40,6 @@ const FEATURES = [
     version: 1,
   },
   {
-    id: 'ai_features',
-    title: 'AI features',
-    description: 'Unlock AI features to enhance your NocoDB experience.',
-    enabled: true,
-    version: 3,
-    isEE: true,
-    isOnPrem: false,
-  },
-  {
     id: 'ai_beta_features',
     title: 'AI beta features',
     description: 'Unlock AI beta features to enhance your NocoDB experience.',
@@ -56,14 +47,13 @@ const FEATURES = [
     version: 2,
     isEngineering: true,
     isEE: true,
-    isOnPrem: false,
   },
   {
     id: 'integrations',
     title: 'Integrations',
     description: 'Enable dynamic integrations.',
-    enabled: false,
-    version: 1,
+    enabled: true,
+    version: 2,
     isEngineering: true,
   },
   {
@@ -84,9 +74,9 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'sync',
-    title: 'Sync',
-    description: 'Enable sync feature.',
+    id: 'sync_beta_feature',
+    title: 'Advanced Sync Features',
+    description: 'Enable sync beta features like custom sync, multi source sync, etc.',
     enabled: false,
     version: 1,
     isEngineering: true,
@@ -110,10 +100,10 @@ const FEATURES = [
   },
   {
     id: 'extensions',
-    title: 'Extensions',
+    title: 'Extensions beta features',
     description: 'Extensions allows you to add new features or functionalities to the NocoDB platform.',
     enabled: ncIsPlaywright(),
-    version: 3,
+    version: 4,
     isEngineering: true,
   },
   {
@@ -141,14 +131,6 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'table_and_field_permissions',
-    title: 'Table and Field Permissions',
-    description: 'Allows user to manage table and field permissions.',
-    enabled: true,
-    version: 2,
-    isEE: true,
-  },
-  {
     id: 'view_actions',
     title: 'View Actions',
     description: 'Execute scripts and webhooks to all records in a view.',
@@ -158,11 +140,55 @@ const FEATURES = [
     isEE: true,
   },
   {
-    id: 'copy_view_config_from_another_view',
-    title: 'Copy View Config From Another View',
-    description: 'Copy view config from another view.',
+    id: 'show_everyones_personal_views',
+    title: "Show Everyone's Personal Views",
+    description: 'With this feature we can avoid showing other users personal views in left sidebar',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'templates',
+    title: 'Templates',
+    description: 'Enable templates feature to browse and use templates.',
     enabled: true,
+    version: 2,
+    isEngineering: false,
+    isEE: true,
+  },
+  {
+    id: 'gauge_widget',
+    title: 'Gauge Widget',
+    description: 'A visual indicator that displays real-time values, limits, and performance levels at a glance.',
+    isEngineering: true,
+    enabled: false,
+    version: 1,
+  },
+  {
+    id: 'kanban_opt',
+    title: 'Optimized Kanban View',
+    description: 'Optimized Kanban view with optimised API for better performance.',
+    enabled: false,
     version: 3,
+    isEE: true,
+  },
+  {
+    id: 'ai_fill_handle',
+    title: 'AI Fill Handle',
+    description: 'Use AI to fill data in cells based on existing data patterns.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
+    isEE: true,
+  },
+  {
+    id: 'workflows_tab',
+    title: 'Workflows tab',
+    description: 'Enable workflows tab in base overview to manage workflows.',
+    enabled: false,
+    version: 1,
+    isEngineering: true,
     isEE: true,
   },
 ] as const
@@ -196,6 +222,8 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
   const { $e } = useNuxtApp()
 
   const isEngineeringModeOn = ref(false)
+
+  const isAdvancedModeOn = ref(false)
 
   const isExperimentalFeatureModalOpen = ref(false)
 
@@ -279,6 +307,7 @@ export const useBetaFeatureToggle = createSharedComposable(() => {
     toggleFeature,
     isFeatureEnabled,
     isEngineeringModeOn,
+    isAdvancedModeOn,
     isExperimentalFeatureModalOpen,
     initializeFeatures,
   }

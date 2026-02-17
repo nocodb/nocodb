@@ -235,7 +235,7 @@ const onValueChange = async () => {
             "
             @click.stop
           >
-            <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+            <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
             <a-select-option
               v-for="(option, opId) in [...(dateFieldOptions ?? [])].filter((r) => {
                 if (id === 0) return true
@@ -321,7 +321,7 @@ const onValueChange = async () => {
                       @change="saveCalendarRanges"
                       @click.stop
                     >
-                      <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-gray-700" /></template>
+                      <template #suffixIcon><GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" /></template>
 
                       <a-select-option
                         v-for="(option, opId) in filterEndDateOptions(dateFieldOptions, range.fk_from_column_id)"
@@ -356,8 +356,8 @@ const onValueChange = async () => {
         </div>
 
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
-          <GeneralIcon icon="warning" class="text-sm mt-0.5 text-orange-500" />
-          <span class="text-sm text-gray-500"> Date field is required! </span>
+          <GeneralIcon icon="warning" class="text-sm mt-0.5 text-nc-content-orange-medium" />
+          <span class="text-sm text-nc-content-gray-muted"> Date field is required! </span>
         </div>
 
         <div>
@@ -369,7 +369,7 @@ const onValueChange = async () => {
         </div>
 
         <!--
-        <div class="text-[13px] text-gray-500 py-2">Records in this view will be based on the specified date field.</div>
+        <div class="text-[13px] text-nc-content-gray-muted py-2">Records in this view will be based on the specified date field.</div>
 -->
         <GeneralLockedViewFooter v-if="isLocked" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
       </div>

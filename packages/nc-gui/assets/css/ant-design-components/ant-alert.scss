@@ -1,0 +1,66 @@
+[theme='dark'] {
+  // Ant alerts
+  .ant-alert {
+    color: #ffffffa6;
+  }
+
+  .ant-alert-success {
+    background-color: #162312;
+    border: 1px solid #274916;
+  }
+
+  .ant-alert-success .ant-alert-icon {
+    color: #49aa19;
+  }
+
+  .ant-alert-info {
+    background-color: #111b26;
+    border: 1px solid #153450;
+  }
+
+  .ant-alert-info .ant-alert-icon {
+    color: rgba(var(--rgb-color-brand-500), 1);
+  }
+
+  .ant-alert-warning {
+    background-color: #2b2111;
+    border: 1px solid #594214;
+  }
+
+  .ant-alert-warning .ant-alert-icon {
+    color: #d89614;
+  }
+
+  .ant-alert-error {
+    background-color: #2a1215;
+    border: 1px solid #58181c;
+  }
+
+  .ant-alert-error .ant-alert-icon {
+    color: #a61d24;
+  }
+
+  .ant-alert-close-icon .anticon-close {
+    color: #ffffff73;
+  }
+
+  .ant-alert-close-icon .anticon-close:hover {
+    color: #ffffffbf;
+  }
+
+  .ant-alert-close-text {
+    color: #ffffff73;
+  }
+
+  .ant-alert-close-text:hover {
+    color: #ffffffbf;
+  }
+
+  .ant-alert-with-description .ant-alert-message {
+    color: #ffffffd9;
+  }
+
+  .ant-alert-message {
+    color: #ffffffd9;
+  }
+}

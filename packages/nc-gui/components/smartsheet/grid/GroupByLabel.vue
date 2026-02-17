@@ -17,7 +17,7 @@ provide(IsGroupByLabelInj, ref(true))
       <LazySmartsheetVirtualCell
         v-if="isVirtualCol(column)"
         :model-value="modelValue"
-        class="!text-gray-600"
+        class="!text-nc-content-gray-subtle2"
         :column="column"
         :read-only="true"
       />
@@ -25,7 +25,7 @@ provide(IsGroupByLabelInj, ref(true))
       <LazySmartsheetCell
         v-else
         :model-value="modelValue"
-        class="!text-gray-600"
+        class="!text-nc-content-gray-subtle2"
         :column="column"
         :edit-enabled="false"
         :read-only="true"

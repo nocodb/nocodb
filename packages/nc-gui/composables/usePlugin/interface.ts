@@ -21,7 +21,7 @@ export interface ExtensionManifest {
     href: string
   }[]
   config: {
-    modalSize?: 'xs' | 'sm' | 'md' | 'lg'
+    modalSize?: 'xs' | 'sm' | 'md' | 'lg' | 'fullscreen' | 'extensionFullscreen'
     contentMinHeight?: string
   }
   order: number

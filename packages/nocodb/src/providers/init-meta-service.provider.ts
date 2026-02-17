@@ -1,7 +1,8 @@
 import { NcDebug } from 'nc-gui/utils/debug';
 import type { FactoryProvider } from '@nestjs/common';
 import type { IEventEmitter } from '~/modules/event-emitter/event-emitter.interface';
-import { T } from '~/utils';
+import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
+import { isEE, T } from '~/utils';
 import { populatePluginsForCloud } from '~/utils/cloud/populateCloudPlugins';
 import { MetaService } from '~/meta/meta.service';
 import Noco from '~/Noco';
@@ -77,13 +78,26 @@ export const InitMetaServiceProvider: FactoryProvider = {
       }
     } else {
       // if bases are present then it is an old version missing the config
-      const isOld = (await metaService.baseList())?.length;
+      const isOld = (await metaService.legacyProjectList())?.length;
       if (isOld) {
         throw new Error(
           `You are trying to upgrade from an old version of NocoDB. Please upgrade to 0.207.3 first and then you can upgrade to the latest version.`,
         );
       }
     }
+
+    const v0TableExists = await metaService.knexConnection.schema.hasTable(
+      'xc_knex_migrationsv0',
+    );
+    const v2TableExists = await metaService.knexConnection.schema.hasTable(
+      'xc_knex_migrationsv2',
+    );
+    const v3TableExists = await metaService.knexConnection.schema.hasTable(
+      'xc_knex_migrationsv3',
+    );
+
+    Noco.firstEeLoad =
+      isEE && !v0TableExists && v2TableExists && !v3TableExists;
 
     await metaService.init();
 
@@ -153,6 +167,8 @@ export const InitMetaServiceProvider: FactoryProvider = {
     // encrypt datasource if secret is set
     await initDataSourceEncryption(metaService);
     NcDebug.log('Datasource encryption initialized');
+
+    await verifyDefaultWorkspace();
 
     return metaService;
   },

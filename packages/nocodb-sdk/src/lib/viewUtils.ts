@@ -1,6 +1,7 @@
-import { ViewSettingOverrideOptions } from './enums';
+import { ViewLockType, ViewSettingOverrideOptions } from './enums';
 import { ViewTypes } from './globals';
 import { ncIsUndefined } from './is';
+import { ViewType } from '~/lib/Api';
 
 /**
  * Interface representing a copy view config option with its metadata.
@@ -236,4 +237,73 @@ export const getViewSettingOverrideOptionsByViewType = (
     Object.values(ViewSettingOverrideOptions),
     viewType
   );
+};
+
+/**
+ * Finds the first non-personal view from an array of views based on optional filters.
+ *
+ * @param views - Array of views to search through
+ * @param options - Filter options
+ * @param options.excludeViewType - View type(s) to exclude from the search (single type or array)
+ * @param options.includeViewType - View type(s) to include in the search (single type or array)
+ * @returns The first non-personal view matching the criteria, or undefined if none found
+ *
+ * @example
+ * // Find first non-personal view
+ * const view = getFirstNonPersonalView(views, {});
+ *
+ * @example
+ * // Find first non-personal grid view
+ * const gridView = getFirstNonPersonalView(views, {
+ *   includeViewType: ViewTypes.GRID
+ * });
+ *
+ * @example
+ * // Find first non-personal view excluding gallery and kanban
+ * const view = getFirstNonPersonalView(views, {
+ *   excludeViewType: [ViewTypes.GALLERY, ViewTypes.KANBAN]
+ * });
+ */
+export const getFirstNonPersonalView = (
+  views: Array<ViewType>,
+  {
+    excludeViewType,
+    includeViewType,
+  }: {
+    excludeViewType?: ViewTypes | Array<ViewTypes>;
+    includeViewType?: ViewTypes | Array<ViewTypes>;
+  } = {}
+): ViewType | undefined => {
+  if (!views?.length) return undefined;
+
+  return views
+    .sort((a, b) => a.order - b.order)
+    .find((view) => {
+      // Skip personal views
+      if (view.lock_type === ViewLockType.Personal) {
+        return false;
+      }
+
+      // Exclude specified view types
+      if (excludeViewType) {
+        const excludeTypes: Array<ViewTypes> = Array.isArray(excludeViewType)
+          ? excludeViewType
+          : [excludeViewType];
+        if (excludeTypes.includes(view.type)) {
+          return false;
+        }
+      }
+
+      // Include only specified view types
+      if (includeViewType) {
+        const includeTypes: Array<ViewTypes> = Array.isArray(includeViewType)
+          ? includeViewType
+          : [includeViewType];
+        if (!includeTypes.includes(view.type)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
 };

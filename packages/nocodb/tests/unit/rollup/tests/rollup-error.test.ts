@@ -73,7 +73,7 @@ function rollupErrorTests() {
       },
     });
     expect(updateRes.status).to.eq(400);
-    expect(updateRes.body.error).to.eq('FORMULA_CIRCULAR_REF_ERROR');
+    expect(updateRes.body.error).to.eq('ERR_CIRCULAR_REF_IN_FORMULA');
   });
 }
 

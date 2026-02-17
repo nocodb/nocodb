@@ -34,7 +34,7 @@ export const IsAllowedInj: InjectionKey<Ref<boolean>> = Symbol('is-allowed-injec
 export const RawReadonlyInj: InjectionKey<Ref<boolean>> = Symbol('raw-readonly-injection')
 export const RowHeightInj: InjectionKey<Ref<1 | 2 | 4 | 6 | undefined>> = Symbol('row-height-injection')
 export const ScrollParentInj: InjectionKey<Ref<HTMLElement | undefined>> = Symbol('scroll-parent-injection')
-
+export const isWorkflowInj: InjectionKey<Ref<boolean>> = Symbol('is-workflow-injection')
 /** when shouldShowLoading bool is passed, it indicates if a loading spinner should be visible while reloading */
 export const ReloadViewDataHookInj: InjectionKey<
   EventHook<{
@@ -98,8 +98,9 @@ export const TreeViewInj: InjectionKey<{
     disableTitleDiffCheck?: boolean,
   ) => void
   openViewDescriptionDialog: (view: ViewType) => void
-  openAutomationDescriptionDialog?: (automation: any) => void
+  openScriptDescriptionDialog?: (script: any) => void
   openDashboardDescriptionDialog?: (dashboard: any) => void
+  openWorkflowDescriptionDialog?: (workflow: any) => void
   openTableDescriptionDialog: (table: TableType) => void
   contextMenuTarget: { type?: 'base' | 'table' | 'main' | 'layout'; value?: any }
   tableRenameId: Ref<string>
@@ -148,3 +149,9 @@ export const ExtensionConfigInj: InjectionKey<Ref<ExtensionConfigInjType> | Comp
   Symbol('extension-config-injection')
 
 export const IsOrgBillingInj: InjectionKey<Ref<boolean>> = Symbol('is-org-billing-injection')
+
+export const WorkflowVariableInj: InjectionKey<{
+  selectedNodeId: Ref<string | null>
+  getAvailableVariablesFlat: (nodeId: string) => any[]
+  getAvailableVariables: (nodeId: string) => Array<{ nodeId: string; nodeTitle: string; variables: any[] }>
+}> = Symbol('workflow-variable-injection')

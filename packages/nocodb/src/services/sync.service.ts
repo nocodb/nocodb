@@ -54,7 +54,7 @@ export class SyncService {
     const syncSource = await SyncSource.get(context, param.syncId);
 
     if (!syncSource) {
-      NcError.badRequest('Sync source not found');
+      NcError.get(context).badRequest('Sync source not found');
     }
 
     const res = await SyncSource.delete(context, param.syncId);
@@ -78,7 +78,7 @@ export class SyncService {
     const syncSource = await SyncSource.get(context, param.syncId);
 
     if (!syncSource) {
-      NcError.badRequest('Sync source not found');
+      NcError.get(context).badRequest('Sync source not found');
     }
 
     const res = await SyncSource.update(

@@ -1,4 +1,5 @@
 import { UITypes } from 'nocodb-sdk';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 import type { Knex } from 'knex';
 import type {
   BarcodeColumn,
@@ -7,7 +8,6 @@ import type {
   RollupColumn,
 } from '~/models';
 import type { NcContext } from '~/interface/config';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import { Column } from '~/models';
 import generateLookupSelectQuery from '~/db/generateLookupSelectQuery';
 import genRollupSelectv2 from '~/db/genRollupSelectv2';
@@ -27,7 +27,7 @@ export async function getColumnNameQuery({
   column,
   context,
 }: {
-  baseModelSqlv2: BaseModelSqlv2;
+  baseModelSqlv2: IBaseModelSqlV2;
   column: Column;
   context: NcContext;
 }): Promise<{

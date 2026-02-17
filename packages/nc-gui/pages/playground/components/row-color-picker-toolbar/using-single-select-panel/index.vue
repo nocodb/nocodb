@@ -12,7 +12,7 @@ const columns = computed(() => [
 </script>
 
 <template>
-  <div class="bg-gray-100">
+  <div class="bg-nc-bg-gray-light">
     <a-card>
       <h4>Simple</h4>
       <div class="flex gap-2">

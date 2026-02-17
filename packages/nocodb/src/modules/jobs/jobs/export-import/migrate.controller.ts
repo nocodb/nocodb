@@ -17,6 +17,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { NcContext, NcRequest } from '~/interface/config';
+import { NcError } from '~/helpers/ncError';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, GlobalGuard)
@@ -42,13 +43,13 @@ export class MigrateController {
     const base = await Base.get(context, baseId);
 
     if (!base) {
-      throw new Error(`Base not found for id '${baseId}'`);
+      NcError.get(context).baseNotFound(baseId);
     }
 
     const source = (await base.getSources())[0];
 
     if (!source) {
-      throw new Error(`Source not found!`);
+      NcError.get(context).noSourcesFound();
     }
 
     const url = new URL(body.migrationUrl);
@@ -59,7 +60,7 @@ export class MigrateController {
     const secret = url.searchParams.get('secret');
 
     if (!instanceUrl || !secret) {
-      throw new Error(`Invalid migration url`);
+      NcError.get(context).badRequest('Invalid migration url');
     }
 
     return await this.migrateService.migrateBase({

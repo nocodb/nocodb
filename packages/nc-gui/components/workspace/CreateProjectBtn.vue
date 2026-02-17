@@ -12,6 +12,8 @@ const { isUIAllowed } = useRoles()
 
 const { orgRoles, workspaceRoles } = useRoles()
 
+const { baseCreateMode } = storeToRefs(useBases())
+
 const baseStore = useBase()
 const { isSharedBase } = storeToRefs(baseStore)
 
@@ -22,6 +24,10 @@ const baseCreateDlg = ref(false)
 
 const size = computed(() => props.size || 'small')
 const centered = computed(() => props.centered ?? true)
+
+onMounted(() => {
+  baseCreateMode.value = NcBaseCreateMode.FROM_SCRATCH
+})
 </script>
 
 <template>
@@ -36,11 +42,7 @@ const centered = computed(() => props.centered ?? true)
   >
     <slot>
       <div class="flex items-center gap-2 w-full">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <rect width="16" height="16" rx="8" fill="#D6E0FF" />
-          <path d="M8 4V12" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="M4 8H12" stroke="currentColor" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round" />
-        </svg>
+        <GeneralIcon icon="ncPlusCircleSolid" />
 
         <div class="flex flex-1">{{ $t('title.createBase') }}</div>
 
@@ -49,7 +51,7 @@ const centered = computed(() => props.centered ?? true)
         </div>
       </div>
     </slot>
-    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
+    <WorkspaceCreateProjectDlg v-model="baseCreateDlg" :default-base-create-mode="baseCreateMode" />
   </NcButton>
 </template>
 

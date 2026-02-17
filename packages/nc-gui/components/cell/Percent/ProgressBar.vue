@@ -2,9 +2,12 @@
 interface Props {
   percentage: number
   isShowNumber?: boolean
+  precision?: number
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  precision: 2,
+})
 
 const cPercentage = computed(() => Math.max(0, Math.min(100, props.percentage)))
 
@@ -27,31 +30,40 @@ const slotHasChildren = (name?: string) => {
     <div class="progress-bar-input" :class="slotHasChildren() ? 'has-child' : ''">
       <slot></slot>
     </div>
-    <div class="w-full progress-bar flex" style="align-self: stretch; border-radius: 9999px; overflow: hidden; height: 100%">
-      <div style="align-self: stretch; background-color: #3366ff" :style="{ width: `${cPercentage}%` }"></div>
-      <div style="align-self: stretch; background-color: #e5e5e5" :style="{ width: `${100 - cPercentage}%` }"></div>
-      <template v-if="isShowNumber">
-        <div style="position: absolute" :style="{ 'margin-left': `${labelMarginLeft}%` }">
-          <span
-            style="mix-blend-mode: difference; color: #ffffff"
-            :style="{
-              'margin-left': `${-Math.min(cPercentage, 50)}%`,
-            }"
-          >
-            {{ `${percentage}%` }}
-          </span>
-        </div>
-        <div style="position: absolute" :style="{ 'margin-left': `${labelMarginLeft}%` }">
-          <span
-            style="mix-blend-mode: overlay; color: #ffffff"
-            :style="{
-              'margin-left': `${-Math.min(cPercentage, 50)}%`,
-            }"
-          >
-            {{ `${percentage}%` }}
-          </span>
-        </div>
-      </template>
+    <div class="progress-bar flex items-center gap-2 w-full h-full">
+      <div class="flex-1 flex rounded-full overflow-hidden h-full self-stretch">
+        <div class="bg-nc-brand-500" style="align-self: stretch" :style="{ width: `${cPercentage}%` }"></div>
+        <div
+          class="bg-[#e5e5e5] dark:bg-nc-bg-brand-inverted"
+          style="align-self: stretch"
+          :style="{ width: `${100 - cPercentage}%` }"
+        ></div>
+        <template v-if="isShowNumber">
+          <div class="absolute transform top-1/2 -translate-y-1/2" :style="{ 'margin-left': `${labelMarginLeft}%` }">
+            <span
+              style="mix-blend-mode: difference; color: #ffffff"
+              :style="{
+                'margin-left': `${-Math.min(cPercentage, 50)}%`,
+              }"
+            >
+              {{ `${formatPercentage(percentage, precision)}` }}
+            </span>
+          </div>
+          <div class="absolute transform top-1/2 -translate-y-1/2" :style="{ 'margin-left': `${labelMarginLeft}%` }">
+            <span
+              style="mix-blend-mode: overlay; color: #ffffff"
+              :style="{
+                'margin-left': `${-Math.min(cPercentage, 50)}%`,
+              }"
+            >
+              {{ `${formatPercentage(percentage, precision)}` }}
+            </span>
+          </div>
+        </template>
+      </div>
+      <div v-if="!isShowNumber" class="text-captionSm text-nc-content-gray-muted">
+        {{ `${formatPercentage(percentage, precision)}` }}
+      </div>
     </div>
   </div>
 </template>

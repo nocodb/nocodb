@@ -2,7 +2,7 @@ import { UITypes } from 'nocodb-sdk';
 import { v4 as uuidv4 } from 'uuid';
 import type { DriverClient } from '~/utils/nc-config';
 import type { BoolType, SourceType } from 'nocodb-sdk';
-import type { NcContext } from '~/interface/config';
+import { NcContext } from '~/interface/config';
 import { Base, Model, SyncSource } from '~/models';
 import NocoCache from '~/cache/NocoCache';
 import {
@@ -31,6 +31,7 @@ import {
   isEncryptionRequired,
   partialExtract,
 } from '~/utils';
+import { NcCache } from '~/decorators/nc-cache.decorator';
 
 export default class Source implements SourceType {
   id?: string;
@@ -121,6 +122,7 @@ export default class Source implements SourceType {
     const returnBase = await this.get(context, id, false, ncMeta);
 
     await NocoCache.appendToList(
+      context,
       CacheScope.SOURCE,
       [source.baseId],
       `${CacheScope.SOURCE}:${id}`,
@@ -215,6 +217,7 @@ export default class Source implements SourceType {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.SOURCE}:${sourceId}`,
       prepareForResponse(updateObj),
     );
@@ -237,7 +240,7 @@ export default class Source implements SourceType {
     args: { baseId: string; includeDeleted?: boolean },
     ncMeta = Noco.ncMeta,
   ): Promise<Source[]> {
-    const cachedList = await NocoCache.getList(CacheScope.SOURCE, [
+    const cachedList = await NocoCache.getList(context, CacheScope.SOURCE, [
       args.baseId,
     ]);
     let { list: sourceDataList } = cachedList;
@@ -267,7 +270,12 @@ export default class Source implements SourceType {
         source.meta = parseMetaProp(source, 'meta');
       }
 
-      await NocoCache.setList(CacheScope.SOURCE, [args.baseId], sourceDataList);
+      await NocoCache.setList(
+        context,
+        CacheScope.SOURCE,
+        [args.baseId],
+        sourceDataList,
+      );
     }
 
     sourceDataList.sort(
@@ -279,6 +287,9 @@ export default class Source implements SourceType {
     });
   }
 
+  @NcCache({
+    key: (args) => args[1],
+  })
   static async get(
     context: NcContext,
     id: string,
@@ -288,6 +299,7 @@ export default class Source implements SourceType {
     let sourceData =
       id &&
       (await NocoCache.get(
+        context,
         `${CacheScope.SOURCE}:${id}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -314,7 +326,7 @@ export default class Source implements SourceType {
         sourceData.meta = parseMetaProp(sourceData, 'meta');
       }
 
-      await NocoCache.set(`${CacheScope.SOURCE}:${id}`, sourceData);
+      await NocoCache.set(context, `${CacheScope.SOURCE}:${id}`, sourceData);
     }
     return this.castType(sourceData);
   }
@@ -339,6 +351,7 @@ export default class Source implements SourceType {
 
     return config;
   }
+
   public getConfig(skipIntegrationConfig = false): any {
     if (this.is_meta) {
       const metaConfig = Noco.getConfig()?.meta?.db;
@@ -476,6 +489,7 @@ export default class Source implements SourceType {
         },
       );
       await NocoCache.deepDel(
+        context,
         `${relCol.cacheScopeName}:${relCol.col.id}`,
         CacheDelDirection.CHILD_TO_PARENT,
       );
@@ -505,6 +519,7 @@ export default class Source implements SourceType {
     );
 
     await NocoCache.deepDel(
+      context,
       `${CacheScope.SOURCE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -530,6 +545,7 @@ export default class Source implements SourceType {
     await Source.update(context, this.id, { deleted: true }, ncMeta);
 
     await NocoCache.deepDel(
+      context,
       `${CacheScope.SOURCE}:${this.id}`,
       CacheDelDirection.CHILD_TO_PARENT,
     );
@@ -559,7 +575,7 @@ export default class Source implements SourceType {
         this.id,
       );
 
-      await NocoCache.update(`${CacheScope.SOURCE}:${this.id}`, {
+      await NocoCache.update(context, `${CacheScope.SOURCE}:${this.id}`, {
         erd_uuid: this.erd_uuid,
       });
     }
@@ -581,7 +597,7 @@ export default class Source implements SourceType {
         this.id,
       );
 
-      await NocoCache.update(`${CacheScope.SOURCE}:${this.id}`, {
+      await NocoCache.update(context, `${CacheScope.SOURCE}:${this.id}`, {
         erd_uuid: this.erd_uuid,
       });
     }

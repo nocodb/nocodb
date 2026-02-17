@@ -42,9 +42,9 @@ defineProps<Props>()
 
 <style lang="scss" scoped>
 .nc-onboarding-option {
-  @apply bg-white flex items-center gap-2.5 px-3 py-2 overflow-hidden border-1 border-nc-border-gray-medium rounded-lg cursor-pointer select-none transition-all duration-250;
+  @apply bg-nc-bg-default flex items-center gap-2.5 px-3 py-2 overflow-hidden border-1 border-nc-border-gray-medium rounded-lg cursor-pointer select-none transition-all duration-250;
 
-  box-shadow: 0 0 4px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: 0 0 4px 0 rgba(var(--rgb-base), 0.08);
 
   &:hover:not(.nc-selected) {
     @apply bg-nc-bg-gray-extralight;

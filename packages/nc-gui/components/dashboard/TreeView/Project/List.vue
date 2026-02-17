@@ -170,11 +170,19 @@ async function handleTableRename(
   updateTitle(title)
 
   try {
-    await $api.dbTable.update(table.id as string, {
-      base_id: table.base_id,
-      table_name: title,
-      title,
-    })
+    await $api.internal.postOperation(
+      table.fk_workspace_id!,
+      table.base_id!,
+      {
+        operation: 'tableUpdate',
+        tableId: table.id as string,
+      },
+      {
+        base_id: table.base_id,
+        table_name: title,
+        title,
+      },
+    )
 
     await loadProjectTables(table.base_id!, true)
 
@@ -209,7 +217,10 @@ async function handleTableRename(
     })
 
     // update metas
-    const newMeta = await $api.dbTable.read(table.id as string)
+    const newMeta = await $api.internal.getOperation(activeWorkspaceId.value!, activeProjectId.value!, {
+      operation: 'tableGet',
+      tableId: table.id as string,
+    })
     await setMeta(newMeta)
     refreshCommandPalette()
 
@@ -458,7 +469,7 @@ watch(isProjectsLoaded, () => {
                 v-model:is-open="isCreateProjectOpen"
                 modal
                 type="text"
-                class="nc-sidebar-create-base-btn nc-project-home-section-item !text-nc-content-brand !hover:(text-nc-content-brand-disabled bg-none) !xs:hidden w-full"
+                class="nc-sidebar-create-base-btn nc-sidebar-item-dark nc-project-home-section-item !text-nc-content-brand !hover:(text-nc-content-brand-disabled bg-none) !xs:hidden w-full"
                 data-testid="nc-sidebar-create-base-btn"
               >
               </WorkspaceCreateProjectBtn>
@@ -569,7 +580,7 @@ watch(isProjectsLoaded, () => {
   @apply pointer-events-none;
 }
 .ghost {
-  @apply bg-primary-selected;
+  @apply bg-primary-selected dark:bg-nc-bg-gray-medium;
 }
 
 :deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default) {

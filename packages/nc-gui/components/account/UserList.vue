@@ -246,7 +246,7 @@ const userRoleOptions = [
               @change="loadUsers()"
             >
               <template #prefix>
-                <PhMagnifyingGlassBold class="!h-3.5 text-gray-500" />
+                <PhMagnifyingGlassBold class="!h-3.5 text-nc-content-gray-muted" />
               </template>
             </a-input>
             <div class="flex gap-3 items-center justify-center">
@@ -310,7 +310,7 @@ const userRoleOptions = [
                           {{ $t(option.title) }}
                         </NcTooltip>
 
-                        <div class="nc-select-hide-item text-gray-500 text-xs whitespace-normal" data-rec="true">
+                        <div class="nc-select-hide-item text-nc-content-gray-muted text-xs whitespace-normal" data-rec="true">
                           {{ $t(option.subtitle) }}
                         </div>
                       </div>
@@ -332,7 +332,7 @@ const userRoleOptions = [
                 <NcDropdown :trigger="['click']" placement="bottomRight">
                   <NcButton size="xsmall" type="ghost">
                     <MdiDotsVertical
-                      class="text-gray-600 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-gray-500 bg-gray-100)"
+                      class="text-nc-content-gray-subtle2 h-5.5 w-5.5 rounded outline-0 p-0.5 nc-workspace-menu transform transition-transform !text-gray-400 cursor-pointer hover:(!text-nc-content-inverted-secondary-disabled bg-nc-bg-gray-light)"
                     />
                   </NcButton>
 
@@ -353,15 +353,15 @@ const userRoleOptions = [
 
                         <!-- Resend invite Email -->
                         <NcMenuItem @click="resendInvite(el)">
-                          <component :is="iconMap.email" class="flex text-gray-600" />
+                          <component :is="iconMap.email" class="flex text-nc-content-gray-subtle2" />
                           <div data-rec="true">{{ $t('activity.resendInvite') }}</div>
                         </NcMenuItem>
                         <NcMenuItem @click="copyInviteUrl(el)">
-                          <component :is="iconMap.copy" class="flex text-gray-600" />
+                          <component :is="iconMap.copy" class="flex text-nc-content-gray-subtle2" />
                           <div data-rec="true">{{ $t('activity.copyInviteURL') }}</div>
                         </NcMenuItem>
                         <NcMenuItem @click="copyPasswordResetUrl(el)">
-                          <component :is="iconMap.copy" class="flex text-gray-600" />
+                          <component :is="iconMap.copy" class="flex text-nc-content-gray-subtle2" />
                           <div>{{ $t('activity.copyPasswordResetURL') }}</div>
                         </NcMenuItem>
                         <template v-if="el.id !== loggedInUser?.id">
@@ -382,10 +382,10 @@ const userRoleOptions = [
                 v-if="pagination.total === 1 && sortedUsers.length === 1"
                 class="w-full pt-12 pb-4 px-2 flex flex-col items-center gap-6 text-center"
               >
-                <div class="text-2xl text-gray-800 font-bold">
+                <div class="text-2xl text-nc-content-gray font-bold">
                   {{ $t('placeholder.inviteYourTeam') }}
                 </div>
-                <div class="text-sm text-gray-700">
+                <div class="text-sm text-nc-content-gray-subtle">
                   {{ $t('placeholder.inviteYourTeamLabel') }}
                 </div>
                 <img src="~assets/img/placeholder/invite-team.png" class="!w-[30rem] flex-none" />
@@ -407,7 +407,9 @@ const userRoleOptions = [
           <GeneralDeleteModal v-model:visible="isOpen" entity-name="User" :on-delete="() => deleteUser()">
             <template #entity-preview>
               <span>
-                <div class="flex flex-row items-center py-2.25 px-2.5 bg-gray-50 rounded-lg text-gray-700 mb-4">
+                <div
+                  class="flex flex-row items-center py-2.25 px-2.5 bg-nc-bg-gray-extralight rounded-lg text-nc-content-gray-subtle mb-4"
+                >
                   <GeneralIcon icon="account" class="nc-view-icon"></GeneralIcon>
                   <div
                     class="text-ellipsis overflow-hidden select-none w-full pl-1.75"

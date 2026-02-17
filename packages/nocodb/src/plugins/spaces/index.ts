@@ -6,8 +6,8 @@ const config: XcPluginConfig = {
   builder: SpacesPlugin,
   id: 'spaces',
   title: 'Spaces',
-  version: '0.0.2',
-  logo: 'plugins/spaces.png',
+  version: '0.0.3',
+  logo: 'plugins/spaces.svg',
   description:
     'Store & deliver vast amounts of content with a simple architecture.',
   price: 'Free',

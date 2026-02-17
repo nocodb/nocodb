@@ -19,7 +19,7 @@ const isShowColoringButton = ref(false)
             <!-- Group By -->
             <span v-if="!isMobileMode && !isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">Coloring</span>
           </div>
-          <!-- <span v-if="groupedByColumnIds?.length" class="bg-brand-50 text-brand-500 nc-toolbar-btn-chip">{{
+          <!-- <span v-if="groupedByColumnIds?.length" class="bg-nc-bg-brand text-nc-content-brand nc-toolbar-btn-chip">{{
             groupedByColumnIds.length
           }}</span> -->
         </div>

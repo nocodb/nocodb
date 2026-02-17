@@ -9,8 +9,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
 
   const activeDashboard = computed(() => null)
 
-  const isDashboardEnabled = computed(() => false)
-
   const loadDashboards = async (..._params: any) => []
 
   const loadDashboard = async (..._params: any) => null
@@ -32,7 +30,6 @@ export const useDashboardStore = defineStore('dashboard', () => {
     dashboards,
     activeDashboard,
     isEditingDashboard,
-    isDashboardEnabled,
 
     // Getters
     activeBaseDashboards,

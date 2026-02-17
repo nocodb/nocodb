@@ -3,7 +3,10 @@ const { api } = useApi()
 
 const { t } = useI18n()
 
-const settings = ref<{ invite_only_signup?: boolean }>({ invite_only_signup: false })
+const settings = ref<{ invite_only_signup?: boolean; restrict_workspace_creation?: boolean }>({
+  invite_only_signup: false,
+  restrict_workspace_creation: false,
+})
 
 const loadSettings = async () => {
   try {
@@ -21,6 +24,15 @@ const saveSettings = async () => {
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
+}
+
+const onRestrictWorkspaceCreationChange = () => {
+  // When restricting workspace creation, also enable invite-only signup
+  // because users without workspace access won't be able to use the app
+  if (settings.value.restrict_workspace_creation) {
+    settings.value.invite_only_signup = true
+  }
+  saveSettings()
 }
 
 loadSettings()
@@ -47,11 +59,26 @@ loadSettings()
               v-e="['c:account:enable-signup']"
               class="nc-checkbox nc-invite-only-signup-checkbox !mt-6"
               name="virtual"
+              :disabled="settings.restrict_workspace_creation"
               @change="saveSettings"
             />
           </a-form-item>
-          <span data-rec="true">
+          <span data-rec="true" :class="{ 'text-gray-400': settings.restrict_workspace_creation }">
             {{ $t('labels.inviteOnlySignup') }}
+          </span>
+        </div>
+        <div class="flex items-center gap-2">
+          <a-form-item>
+            <a-checkbox
+              v-model:checked="settings.restrict_workspace_creation"
+              v-e="['c:account:restrict-workspace-creation']"
+              class="nc-checkbox nc-restrict-workspace-creation-checkbox !mt-6"
+              name="virtual"
+              @change="onRestrictWorkspaceCreationChange"
+            />
+          </a-form-item>
+          <span data-rec="true">
+            {{ $t('labels.restrictWorkspaceCreation') }}
           </span>
         </div>
       </div>

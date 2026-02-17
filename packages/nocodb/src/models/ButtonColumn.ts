@@ -94,6 +94,7 @@ export default class ButtonColumn {
     let column =
       columnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.COL_BUTTON}:${columnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -108,7 +109,11 @@ export default class ButtonColumn {
         if (column.type === ButtonActionsType.Url) {
           column.parsed_tree = parseMetaProp(column, 'parsed_tree', null);
         }
-        await NocoCache.set(`${CacheScope.COL_BUTTON}:${columnId}`, column);
+        await NocoCache.set(
+          context,
+          `${CacheScope.COL_BUTTON}:${columnId}`,
+          column,
+        );
       }
     }
 
@@ -178,7 +183,11 @@ export default class ButtonColumn {
       },
     );
 
-    await NocoCache.update(`${CacheScope.COL_BUTTON}:${columnId}`, updateObj);
+    await NocoCache.update(
+      context,
+      `${CacheScope.COL_BUTTON}:${columnId}`,
+      updateObj,
+    );
   }
 
   public getParsedTree() {

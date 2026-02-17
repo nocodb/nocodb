@@ -143,7 +143,7 @@ const pageSizeOptions = [
       </component>
     </div>
 
-    <div v-if="!isMobileMode" class="nc-pagination-selector-wrapper text-gray-500">
+    <div v-if="!isMobileMode" class="nc-pagination-selector-wrapper text-nc-content-gray-muted">
       <NcDropdown placement="top" overlay-class-name="!shadow-none">
         <div class="flex items-center gap-2">
           <NcButton class="nc-select-page" :type="variant === 'default' ? 'text' : 'secondary'" :size="btnSize">
@@ -157,7 +157,7 @@ const pageSizeOptions = [
               <span class="nc-current-page">
                 {{ current }}
               </span>
-              <GeneralIcon icon="arrowDown" class="text-gray-800 mt-0.5 nc-select-expand-btn" />
+              <GeneralIcon icon="arrowDown" class="text-nc-content-gray mt-0.5 nc-select-expand-btn" />
             </div>
           </NcButton>
           <div v-if="variant === 'v2'" class="text-small1 font-500 text-nc-content-gray-subtle">/{{ pagesList.length }}</div>
@@ -168,7 +168,7 @@ const pageSizeOptions = [
             <NcSubMenu
               v-if="showSizeChanger"
               :key="`${localPageSize}page`"
-              class="bg-gray-100 z-20 top-0 !sticky"
+              class="bg-nc-bg-gray-light z-20 top-0 !sticky"
               variant="small"
             >
               <template #title>
@@ -179,7 +179,7 @@ const pageSizeOptions = [
                 <span
                   class="text-[13px]"
                   :class="{
-                    '!text-brand-500': option.value === localPageSize,
+                    '!text-nc-content-brand': option.value === localPageSize,
                   }"
                 >
                   {{ option.value }} / page
@@ -208,9 +208,9 @@ const pageSizeOptions = [
                 >
                   <div
                     :class="{
-                      'text-brand-500': item.value === current,
+                      'text-nc-content-brand': item.value === current,
                     }"
-                    class="flex text-[13px] !w-full text-gray-800 items-center justify-between"
+                    class="flex text-[13px] !w-full text-nc-content-gray items-center justify-between"
                   >
                     {{ item.label }}
                   </div>
@@ -257,7 +257,7 @@ const pageSizeOptions = [
       </component>
     </div>
 
-    <div v-if="showSizeChanger && !isMobileMode" class="text-gray-500"></div>
+    <div v-if="showSizeChanger && !isMobileMode" class="text-nc-content-gray-muted"></div>
   </div>
 </template>
 
@@ -272,7 +272,7 @@ const pageSizeOptions = [
 
 :deep(.nc-button:not(:disabled)) {
   .nc-pagination-icon {
-    @apply !text-gray-500;
+    @apply !text-nc-content-gray-muted;
   }
 }
 

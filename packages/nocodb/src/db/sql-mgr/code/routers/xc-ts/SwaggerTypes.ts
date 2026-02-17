@@ -1,46 +1,68 @@
+const setNullableSwaggerType = ({
+  field,
+  type,
+  openApiVersion,
+}: {
+  field: any;
+  type: string;
+  openApiVersion: '3.1' | '3.0';
+}) => {
+  if (openApiVersion === '3.0') {
+    field.type = type;
+    field.nullable = true;
+  } else {
+    field.type = [type, 'null'];
+  }
+};
+
 class SwaggerTypes {
-  static setSwaggerType(column, field, dbType = 'mysql') {
+  static setSwaggerType(
+    openApiVersion: '3.1' | '3.0',
+    column,
+    field,
+    dbType = 'mysql',
+  ) {
     switch (dbType) {
       case 'mysql':
       case 'mysql2':
       case 'mariadb':
-        SwaggerTypes.setSwaggerTypeForMysql(column, field);
+        SwaggerTypes.setSwaggerTypeForMysql(openApiVersion, column, field);
         break;
       case 'pg':
-        SwaggerTypes.setSwaggerTypeForPg(column, field);
+        SwaggerTypes.setSwaggerTypeForPg(openApiVersion, column, field);
         break;
       case 'sqlite3':
-        SwaggerTypes.setSwaggerTypeForSqlite(column, field);
+        SwaggerTypes.setSwaggerTypeForSqlite(openApiVersion, column, field);
         break;
     }
   }
 
-  static setSwaggerTypeForMysql(column, field) {
+  static setSwaggerTypeForMysql(openApiVersion: '3.1' | '3.0', column, field) {
     switch (column.dt) {
       case 'int':
       case 'tinyint':
       case 'smallint':
       case 'mediumint':
       case 'bigint':
-        field.type = 'integer';
+        setNullableSwaggerType({ field, openApiVersion, type: 'integer' });
         break;
       case 'float':
       case 'decimal':
       case 'real':
-        field.type = 'number';
+        setNullableSwaggerType({ field, openApiVersion, type: 'number' });
         break;
       case 'double':
-        field.type = 'number';
+        setNullableSwaggerType({ field, openApiVersion, type: 'number' });
         field.format = 'double';
         break;
       case 'bit':
-        field.type = 'integer';
+        setNullableSwaggerType({ field, openApiVersion, type: 'integer' });
         break;
       case 'boolean':
-        field.type = 'boolean';
+        setNullableSwaggerType({ field, openApiVersion, type: 'boolean' });
         break;
       case 'serial':
-        field.type = 'string';
+        setNullableSwaggerType({ field, openApiVersion, type: 'string' });
         break;
       case 'date':
       case 'datetime':
@@ -68,25 +90,25 @@ class SwaggerTypes {
       case 'multipoint':
       case 'multilinestring':
       case 'multipolygon':
-        field.type = 'string';
+        setNullableSwaggerType({ field, openApiVersion, type: 'string' });
         break;
       case 'binary':
-        field.type = 'string';
+        setNullableSwaggerType({ field, openApiVersion, type: 'string' });
         field.format = 'binary';
         break;
       case 'json':
-        field.type = 'object';
+        setNullableSwaggerType({ field, openApiVersion, type: 'object' });
         break;
       default:
-        field.type = 'string';
+        setNullableSwaggerType({ field, openApiVersion, type: 'string' });
         break;
     }
   }
 
-  static setSwaggerTypeForPg(column, field) {
+  static setSwaggerTypeForPg(openApiVersion: '3.1' | '3.0', column, field) {
     switch (column.dt) {
       case 'decimal':
-        field.type = 'number';
+        setNullableSwaggerType({ field, openApiVersion, type: 'number' });
         break;
       case 'int':
       case 'integer':
@@ -102,7 +124,7 @@ class SwaggerTypes {
       case 'serial8':
       case 'smallint':
       case 'smallserial':
-        field.type = 'integer';
+        setNullableSwaggerType({ field, openApiVersion, type: 'integer' });
         break;
       case 'char':
       case 'character':
@@ -119,15 +141,15 @@ class SwaggerTypes {
       case 'timetz':
       case 'time with time zone':
       case 'daterange':
-        field.type = 'string';
+        setNullableSwaggerType({ field, openApiVersion, type: 'string' });
         break;
 
       case 'bool':
       case 'boolean':
-        field.type = 'boolean';
+        setNullableSwaggerType({ field, openApiVersion, type: 'boolean' });
         break;
       case 'double precision':
-        field.type = 'number';
+        setNullableSwaggerType({ field, openApiVersion, type: 'number' });
         field.format = 'double';
         break;
 
@@ -137,18 +159,18 @@ class SwaggerTypes {
       case 'float8':
       case 'real':
       case 'numeric':
-        field.type = 'number';
+        setNullableSwaggerType({ field, openApiVersion, type: 'number' });
         field.format = 'float';
         break;
 
       case 'uuid':
-        field.type = 'string';
+        setNullableSwaggerType({ field, openApiVersion, type: 'string' });
         field.format = 'uuid';
         break;
 
       case 'json':
       case 'jsonb':
-        field.type = 'object';
+        setNullableSwaggerType({ field, openApiVersion, type: 'object' });
         break;
       case 'gtsvector':
       case 'index_am_handler':
@@ -207,15 +229,15 @@ class SwaggerTypes {
       case 'void':
       case 'xid':
       case 'xml':
-        field.type = 'string';
+        setNullableSwaggerType({ field, openApiVersion, type: 'string' });
         break;
       default:
-        field.type = 'string';
+        setNullableSwaggerType({ field, openApiVersion, type: 'string' });
         break;
     }
   }
 
-  static setSwaggerTypeForSqlite(column, field) {
+  static setSwaggerTypeForSqlite(openApiVersion: '3.1' | '3.0', column, field) {
     switch (column.dt) {
       case 'int':
       case 'integer':
@@ -225,21 +247,21 @@ class SwaggerTypes {
       case 'bigint':
       case 'int2':
       case 'int8':
-        field.type = 'integer';
+        setNullableSwaggerType({ field, openApiVersion, type: 'integer' });
         break;
       case 'character':
       case 'numeric':
       case 'real':
       case 'float':
-        field.type = 'number';
+        setNullableSwaggerType({ field, openApiVersion, type: 'number' });
         break;
       case 'double':
       case 'double precision':
-        field.type = 'number';
+        setNullableSwaggerType({ field, openApiVersion, type: 'number' });
         field.format = 'double';
         break;
       case 'boolean':
-        field.type = 'boolean';
+        setNullableSwaggerType({ field, openApiVersion, type: 'boolean' });
         break;
       case 'date':
       case 'datetime':
@@ -248,10 +270,10 @@ class SwaggerTypes {
       case 'blob sub_type text':
       case 'varchar':
       case 'timestamp':
-        field.type = 'string';
+        setNullableSwaggerType({ field, openApiVersion, type: 'string' });
         break;
       default:
-        field.type = 'string';
+        setNullableSwaggerType({ field, openApiVersion, type: 'string' });
         break;
     }
   }

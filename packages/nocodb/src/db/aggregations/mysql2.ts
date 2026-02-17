@@ -9,8 +9,8 @@ import {
   UITypes,
 } from 'nocodb-sdk';
 import type { Column } from '~/models';
-import type { BaseModelSqlv2 } from '~/db/BaseModelSqlv2';
 import type { Knex } from 'knex';
+import type { IBaseModelSqlV2 } from '~/db/IBaseModelSqlV2';
 
 export function genMysql2AggregatedQuery({
   column,
@@ -22,7 +22,7 @@ export function genMysql2AggregatedQuery({
   alias,
 }: {
   column: Column;
-  baseModelSqlv2: BaseModelSqlv2;
+  baseModelSqlv2: IBaseModelSqlV2;
   aggregation: string;
   column_query: string | Knex.QueryBuilder;
   parsedFormulaType?: FormulaDataTypes;

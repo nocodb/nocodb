@@ -3,7 +3,7 @@ import { getAbstractType, renderSingleLineText } from '../utils/canvas'
 
 export const NullCellRenderer: CellRenderer = {
   render: (ctx, props) => {
-    const { column, sqlUis, x, y, width, height, padding, textColor = '#d5d5d9' } = props
+    const { column, sqlUis, x, y, width, height, padding, textColor = themeV4Colors.gray['300'], getColor } = props
 
     const isNumericField =
       isNumericFieldType(column, getAbstractType(column, sqlUis)) ||
@@ -16,7 +16,7 @@ export const NullCellRenderer: CellRenderer = {
       text: 'NULL',
       maxWidth: width - padding * 2,
       fontFamily: `500 13px Inter`,
-      fillStyle: textColor,
+      fillStyle: getColor(textColor),
       height,
     })
 

@@ -33,6 +33,7 @@ export default class CalendarViewColumn {
     let viewColumn =
       calendarViewColumnId &&
       (await NocoCache.get(
+        context,
         `${CacheScope.CALENDAR_VIEW_COLUMN}:${calendarViewColumnId}`,
         CacheGetType.TYPE_OBJECT,
       ));
@@ -50,6 +51,7 @@ export default class CalendarViewColumn {
             : viewColumn.meta;
 
         await NocoCache.set(
+          context,
           `${CacheScope.CALENDAR_VIEW_COLUMN}:${calendarViewColumnId}`,
           viewColumn,
         );
@@ -106,6 +108,7 @@ export default class CalendarViewColumn {
 
     return this.get(context, id, ncMeta).then(async (viewColumn) => {
       await NocoCache.appendToList(
+        context,
         CacheScope.CALENDAR_VIEW_COLUMN,
         [column.fk_view_id],
         `${CacheScope.CALENDAR_VIEW_COLUMN}:${id}`,
@@ -120,6 +123,7 @@ export default class CalendarViewColumn {
     ncMeta = Noco.ncMeta,
   ): Promise<CalendarViewColumn[]> {
     const cachedList = await NocoCache.getList(
+      context,
       CacheScope.CALENDAR_VIEW_COLUMN,
       [viewId],
     );
@@ -145,6 +149,7 @@ export default class CalendarViewColumn {
       }
 
       await NocoCache.setList(
+        context,
         CacheScope.CALENDAR_VIEW_COLUMN,
         [viewId],
         viewColumns,
@@ -182,6 +187,7 @@ export default class CalendarViewColumn {
     );
 
     await NocoCache.update(
+      context,
       `${CacheScope.CALENDAR_VIEW_COLUMN}:${columnId}`,
       updateObj,
     );

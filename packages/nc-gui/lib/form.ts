@@ -14,7 +14,8 @@ export class FormFilters {
   value: any
   isSharedForm: boolean
   isMysql?: (sourceId?: string) => boolean
-  getMeta?: (tableIdOrTitle: string) => Promise<TableType | null>
+  getMeta?: (baseId: string, tableIdOrTitle: string) => Promise<TableType | null>
+  baseId?: string
 
   constructor({
     data = [],
@@ -25,6 +26,7 @@ export class FormFilters {
     isMysql = undefined,
     isSharedForm = false,
     getMeta = undefined,
+    baseId = undefined,
   }: {
     data?: FilterType[]
     nestedGroupedFilters?: Record<string, FilterType[]>
@@ -33,7 +35,8 @@ export class FormFilters {
     formState?: Record<string, any>
     isMysql?: (sourceId?: string) => boolean
     isSharedForm?: boolean
-    getMeta?: (tableIdOrTitle: string) => Promise<TableType | null>
+    getMeta?: (baseId: string, tableIdOrTitle: string) => Promise<TableType | null>
+    baseId?: string
   } = {}) {
     this.allViewFilters = data
     this.groupedFilters = {}
@@ -44,6 +47,7 @@ export class FormFilters {
     this.isSharedForm = isSharedForm
     this.isMysql = isMysql
     this.getMeta = getMeta
+    this.baseId = baseId
   }
 
   setFilters(filters: FilterType[]) {
@@ -114,9 +118,9 @@ export class FormFilters {
   async getOoOrBtColVal(column: FormViewColumn) {
     const fk_related_model_id = (column?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id
 
-    if (!fk_related_model_id || typeof this.getMeta !== 'function') return null
+    if (!fk_related_model_id || typeof this.getMeta !== 'function' || !this.baseId) return null
 
-    const relatedTableMeta = await this.getMeta(fk_related_model_id)
+    const relatedTableMeta = await this.getMeta(this.baseId, fk_related_model_id)
 
     if (!relatedTableMeta || !Array.isArray(relatedTableMeta?.columns)) return null
 

@@ -46,7 +46,7 @@ const geoDataMappingFieldColumnId = computed({
 
 const geoDataFieldOptions = computed<SelectProps['options']>(() => {
   return fields.value
-    ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id].uidt === UITypes.GeoData)
+    ?.filter((el) => el.fk_column_id && metaColumnById.value[el.fk_column_id]?.uidt === UITypes.GeoData)
     .map((field) => {
       return {
         value: field.fk_column_id,

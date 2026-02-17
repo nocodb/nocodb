@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
-import { type GeoLocationType, TypeConversionError, convertGeoNumberToString, latLongToJoinedString } from 'nocodb-sdk'
+import { type GeoLocationType, convertGeoNumberToString, latLongToJoinedString } from 'nocodb-sdk'
 import { useDebounceFn } from '@vueuse/core'
 
 interface Props {
@@ -131,6 +131,10 @@ const searchInputRef = ref<HTMLInputElement>()
 
 const NOMINATIM_API = 'https://nominatim.openstreetmap.org/search'
 
+let searchAbortController: AbortController | null = null
+let searchBlurTimer: ReturnType<typeof setTimeout> | null = null
+let copyTooltipTimer: ReturnType<typeof setTimeout> | null = null
+
 const performSearch = useDebounceFn(async () => {
   const query = searchQuery.value.trim()
   if (query.length < 3) {
@@ -138,6 +142,10 @@ const performSearch = useDebounceFn(async () => {
     showSearchResults.value = false
     return
   }
+
+  // Abort any in-flight request
+  searchAbortController?.abort()
+  searchAbortController = new AbortController()
 
   isSearching.value = true
   try {
@@ -152,6 +160,7 @@ const performSearch = useDebounceFn(async () => {
       headers: {
         'Accept-Language': navigator.language || 'en',
       },
+      signal: searchAbortController.signal,
     })
 
     if (!response.ok) throw new Error('Geocoding request failed')
@@ -159,7 +168,8 @@ const performSearch = useDebounceFn(async () => {
     const data: NominatimResult[] = await response.json()
     searchResults.value = data
     showSearchResults.value = data.length > 0
-  } catch (err) {
+  } catch (err: unknown) {
+    if (err instanceof DOMException && err.name === 'AbortError') return
     console.error('Geocoding error:', err)
     searchResults.value = []
     showSearchResults.value = false
@@ -200,7 +210,8 @@ function onSearchKeydown(e: KeyboardEvent) {
 
 function onSearchBlur() {
   // Delay hiding to allow click on result
-  setTimeout(() => {
+  if (searchBlurTimer) clearTimeout(searchBlurTimer)
+  searchBlurTimer = setTimeout(() => {
     showSearchResults.value = false
   }, 200)
 }
@@ -227,12 +238,10 @@ const syncMapFromInputs = useDebounceFn(() => {
   mapInstanceRef.value.setView([lat, lng], Math.max(mapInstanceRef.value.getZoom(), LOCATION_ZOOM))
 }, 500)
 
-const identifier = computed(() => {
-  return {
-    latitude: Math.random().toString(36).substring(2, 15),
-    longitude: Math.random().toString(36).substring(2, 15),
-  }
-})
+const identifier = {
+  latitude: `nc-geo-lat-${Math.random().toString(36).substring(2, 10)}`,
+  longitude: `nc-geo-lng-${Math.random().toString(36).substring(2, 10)}`,
+}
 
 const isLocationSet = computed(() => {
   return !!vModel.value
@@ -286,14 +295,16 @@ const onClickSetCurrentLocation = () => {
 
 const openInGoogleMaps = () => {
   const [latitude, longitude] = (vModel.value || '').split(';')
-  const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`
+  if (!latitude || !longitude) return
+  const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(latitude)},${encodeURIComponent(longitude)}`
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const openInOSM = () => {
   const [latitude, longitude] = (vModel.value || '').split(';')
-  const url = `https://www.openstreetmap.org/?mlat=${latitude}&mlon=${longitude}#map=15/${latitude}/${longitude}`
-  window.open(url, '_blank', "'noopener,noreferrer'")
+  if (!latitude || !longitude) return
+  const url = `https://www.openstreetmap.org/?mlat=${encodeURIComponent(latitude)}&mlon=${encodeURIComponent(longitude)}#map=15/${latitude}/${longitude}`
+  window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 const handleClose = (e: MouseEvent) => {
@@ -338,7 +349,7 @@ function parseGeoString(raw: string): string | null {
 }
 
 const handlePaste = (e: ClipboardEvent) => {
-  if ([identifier.value.latitude, identifier.value.longitude].includes(e.target?.id)) {
+  if ([identifier.latitude, identifier.longitude].includes(e.target?.id)) {
     return
   }
   const clipboardData = e.clipboardData?.getData('text/plain') || ''
@@ -370,12 +381,13 @@ const isEditColumn = inject(EditColumnInj, ref(false))
 const isForm = inject(IsFormInj, ref(false))
 
 const handleBlur = (e: Event) => {
-  const originalValue = (e.target as any).value as string
+  const target = e.target as HTMLInputElement
+  const originalValue = target.value
   const value = convertGeoNumberToString(Number(originalValue))
   if (value !== originalValue) {
-    if ((e.target as any)!.id === identifier.value.latitude) {
+    if (target.id === identifier.latitude) {
       formState.latitude = value
-    } else if ((e.target as any)!.id === identifier.value.longitude) {
+    } else if (target.id === identifier.longitude) {
       formState.longitude = value
     }
   }
@@ -391,7 +403,7 @@ onMounted(() => {
 
 watch(
   () => vModel,
-  (oldValue, newValue) => {
+  (newValue) => {
     if (newValue.value) {
       formState.latitude = newValue.value?.split(';')[0]
       formState.longitude = newValue.value?.split(';')[1]
@@ -410,7 +422,8 @@ const copyCoordinates = (e: Event) => {
   if (text && text !== 'Set location') {
     navigator.clipboard.writeText(text).then(() => {
       isCopied.value = true
-      setTimeout(() => {
+      if (copyTooltipTimer) clearTimeout(copyTooltipTimer)
+      copyTooltipTimer = setTimeout(() => {
         isCopied.value = false
       }, 2000)
     })
@@ -470,6 +483,9 @@ watch(
 // --- Cleanup on unmount ---
 onBeforeUnmount(() => {
   destroyMap()
+  searchAbortController?.abort()
+  if (searchBlurTimer) clearTimeout(searchBlurTimer)
+  if (copyTooltipTimer) clearTimeout(copyTooltipTimer)
 })
 </script>
 

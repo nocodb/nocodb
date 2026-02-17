@@ -2,7 +2,7 @@
 import 'leaflet/dist/leaflet.css'
 import L, { LatLng } from 'leaflet'
 import 'leaflet.markercluster'
-import { ViewTypes } from 'nocodb-sdk'
+import { ViewTypes, latLongToJoinedString } from 'nocodb-sdk'
 
 const route = useRoute()
 
@@ -117,8 +117,10 @@ const buildTooltipContent = (row: Row, lat: number, long: number): string => {
       }
 
       // Escape HTML to prevent XSS
-      const escaped = displayValue.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      const label = (f.title ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      const escapeHtml = (str: string) =>
+        str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+      const escaped = escapeHtml(displayValue)
+      const label = escapeHtml(f.title ?? '')
 
       return `<div class="nc-map-tooltip-row"><span class="nc-map-tooltip-label">${label}</span><span class="nc-map-tooltip-value">${escaped}</span></div>`
     })
@@ -130,7 +132,7 @@ const buildTooltipContent = (row: Row, lat: number, long: number): string => {
 
 const addMarker = (lat: number, long: number, row: Row) => {
   if (markersClusterGroupRef.value == null) {
-    throw new Error('Marker cluster is null')
+    return
   }
   const tooltipHtml = buildTooltipContent(row, lat, long)
   const newMarker = L.marker([lat, long], {
@@ -258,6 +260,9 @@ watch([formattedData, mapMetaData, markersClusterGroupRef], () => {
       return
     }
     const [lat, long] = primaryGeoDataValue.split(';').map(parseFloat)
+    if (isNaN(lat) || isNaN(long) || lat < -90 || lat > 90 || long < -180 || long > 180) {
+      return
+    }
     addMarker(lat, long, row)
   })
 

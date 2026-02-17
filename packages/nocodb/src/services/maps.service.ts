@@ -89,6 +89,8 @@ export class MapsService {
       NcError.get(context).viewNotFound(param.mapViewId);
     }
 
+    const oldMapView = await MapView.get(context, param.mapViewId);
+
     await MapView.update(context, param.mapViewId, param.map);
 
     let owner = param.req.user;
@@ -99,6 +101,8 @@ export class MapsService {
 
     this.appHooksService.emit(AppEvents.MAP_UPDATE, {
       view: { ...view, ...param.map },
+      mapView: param.map,
+      oldMapView,
       oldView: view,
       req: param.req,
       context,

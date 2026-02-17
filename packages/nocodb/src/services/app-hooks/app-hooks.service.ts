@@ -24,6 +24,7 @@ import type {
   IntegrationUpdateEvent,
   KanbanViewUpdateEvent,
   ListViewUpdateEvent,
+  MapViewUpdateEvent,
   MetaDiffEvent,
   OrgUserInviteEvent,
   PluginEvent,
@@ -363,6 +364,7 @@ export class AppHooksService {
       | GalleryViewUpdateEvent
       | KanbanViewUpdateEvent
       | CalendarViewUpdateEvent
+      | MapViewUpdateEvent
       | FormViewUpdateEvent
       | ListViewUpdateEvent,
   ): void;
@@ -417,6 +419,7 @@ export class AppHooksService {
       | GalleryViewUpdateEvent
       | KanbanViewUpdateEvent
       | CalendarViewUpdateEvent
+      | MapViewUpdateEvent
       | FormViewUpdateEvent
       | ListViewUpdateEvent,
   ): void;

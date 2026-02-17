@@ -353,7 +353,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       >
                         <div class="w-full flex gap-2 items-center">
                           <SmartsheetHeaderIcon :column="column" class="!mx-0" color="text-nc-content-gray-muted" />
-                          <NcTooltip class="flex min-w-0 flex-1 truncate text-nc-content-gray-subtle" show-on-truncate-only>
+                          <NcTooltip class="flex min-w-0 flex-1 truncate" show-on-truncate-only>
                             <template #title>
                               {{ column.title }}
                             </template>
@@ -445,21 +445,6 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 </template>
 
 <style lang="scss">
-.nc-cell-color-field-select.nc-select.ant-select-sm {
-  .ant-select-selection-search {
-    @apply !flex !items-center;
-  }
-  .ant-select-selection-search-input {
-    @apply !text-[13px] !h-full;
-  }
-  .ant-select-selection-item {
-    @apply !text-[13px];
-  }
-  .ant-select-selection-placeholder {
-    @apply !text-[13px];
-  }
-}
-
 .nc-cell-color-field-dropdown {
   .ant-select-item {
     @apply !text-[13px];

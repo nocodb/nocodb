@@ -455,6 +455,149 @@ function scimUsersTests() {
     }
   });
 
+  it('List users sorted by userName (sortBy)', async () => {
+    // Create users with specific userNames that have a known sort order
+    const userA = makeScimUserPayload({
+      userName: `aaa-sort-${Date.now()}@example.com`,
+      emails: [
+        { primary: true, value: `aaa-sort-${Date.now()}@example.com`, type: 'work' },
+      ],
+    });
+    const userZ = makeScimUserPayload({
+      userName: `zzz-sort-${Date.now()}@example.com`,
+      emails: [
+        { primary: true, value: `zzz-sort-${Date.now()}@example.com`, type: 'work' },
+      ],
+    });
+
+    await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(userZ)
+      .expect(201);
+
+    await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(userA)
+      .expect(201);
+
+    // List with sortBy=userName (ascending by default)
+    const response = await request(context.app)
+      .get(`${SCIM_USERS_PREFIX()}?sortBy=userName`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    const userNames = response.body.Resources.map((u: any) => u.userName);
+    // Verify ascending order
+    for (let i = 1; i < userNames.length; i++) {
+      expect(
+        userNames[i - 1].toLowerCase() <= userNames[i].toLowerCase(),
+        `Expected ${userNames[i - 1]} <= ${userNames[i]}`,
+      ).to.be.true;
+    }
+  });
+
+  it('List users sorted descending (sortOrder=descending)', async () => {
+    await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeScimUserPayload())
+      .expect(201);
+
+    await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeScimUserPayload())
+      .expect(201);
+
+    const response = await request(context.app)
+      .get(
+        `${SCIM_USERS_PREFIX()}?sortBy=userName&sortOrder=descending`,
+      )
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    const userNames = response.body.Resources.map((u: any) => u.userName);
+    for (let i = 1; i < userNames.length; i++) {
+      expect(
+        userNames[i - 1].toLowerCase() >= userNames[i].toLowerCase(),
+        `Expected ${userNames[i - 1]} >= ${userNames[i]}`,
+      ).to.be.true;
+    }
+  });
+
+  // ── Meta Timestamps ───────────────────────────────────────────
+
+  it('User response includes meta.created and meta.lastModified', async () => {
+    const payload = makeScimUserPayload();
+    const createRes = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(payload)
+      .expect(201);
+
+    const userId = createRes.body.id;
+
+    const response = await request(context.app)
+      .get(`${SCIM_USERS_PREFIX()}/${userId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    expect(response.body.meta).to.have.property('created');
+    expect(response.body.meta).to.have.property('lastModified');
+    // Timestamps should be valid ISO 8601
+    expect(new Date(response.body.meta.created).toISOString()).to.be.a(
+      'string',
+    );
+    expect(new Date(response.body.meta.lastModified).toISOString()).to.be.a(
+      'string',
+    );
+  });
+
+  it('User list Resources include meta timestamps', async () => {
+    await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeScimUserPayload())
+      .expect(201);
+
+    const response = await request(context.app)
+      .get(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    for (const resource of response.body.Resources) {
+      expect(resource.meta).to.have.property('created');
+      expect(resource.meta).to.have.property('lastModified');
+    }
+  });
+
+  // ── DELETE Idempotency ────────────────────────────────────────
+
+  it('DELETE same user twice returns 204 both times (idempotent)', async () => {
+    const payload = makeScimUserPayload();
+    const createRes = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(payload)
+      .expect(201);
+
+    const userId = createRes.body.id;
+
+    // First delete
+    const res1 = await request(context.app)
+      .delete(`${SCIM_USERS_PREFIX()}/${userId}`)
+      .set('Authorization', `Bearer ${scimToken}`);
+    expect(res1.status).to.be.oneOf([200, 204]);
+
+    // Second delete — should still succeed (idempotent)
+    const res2 = await request(context.app)
+      .delete(`${SCIM_USERS_PREFIX()}/${userId}`)
+      .set('Authorization', `Bearer ${scimToken}`);
+    expect(res2.status).to.be.oneOf([200, 204]);
+  });
+
   it('List users with pagination (startIndex and count)', async () => {
     // Create 3 users
     for (let i = 0; i < 3; i++) {
@@ -790,7 +933,7 @@ function scimGroupsTests() {
     }
   });
 
-  it('Reject group creation without displayName', async () => {
+  it('Reject group creation without displayName with SCIM error format', async () => {
     const payload = makeScimGroupPayload({ displayName: undefined });
     delete payload.displayName;
 
@@ -800,6 +943,18 @@ function scimGroupsTests() {
       .send(payload);
 
     expect(response.status).to.be.oneOf([400, 422]);
+
+    // Verify SCIM error response format (RFC 7644 §3.12)
+    expect(response.body).to.have.property('schemas');
+    expect(response.body.schemas).to.include(
+      'urn:ietf:params:scim:api:messages:2.0:Error',
+    );
+    expect(response.body).to.have.property('detail');
+    expect(response.body).to.have.property('status');
+    // scimType is optional but we now include it
+    if (response.body.scimType) {
+      expect(response.body.scimType).to.equal('invalidValue');
+    }
   });
 
   // ── Get Group ───────────────────────────────────────────────────
@@ -893,6 +1048,60 @@ function scimGroupsTests() {
         payload.displayName,
       );
     }
+  });
+
+  it('List groups sorted by displayName (sortBy)', async () => {
+    const ts = Date.now();
+    await request(context.app)
+      .post(SCIM_GROUPS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeScimGroupPayload({ displayName: `Zebra Team ${ts}` }))
+      .expect(201);
+
+    await request(context.app)
+      .post(SCIM_GROUPS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeScimGroupPayload({ displayName: `Alpha Team ${ts}` }))
+      .expect(201);
+
+    const response = await request(context.app)
+      .get(`${SCIM_GROUPS_PREFIX()}?sortBy=displayName`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    const names = response.body.Resources.map(
+      (g: any) => g.displayName,
+    );
+    for (let i = 1; i < names.length; i++) {
+      expect(
+        names[i - 1].toLowerCase() <= names[i].toLowerCase(),
+        `Expected ${names[i - 1]} <= ${names[i]}`,
+      ).to.be.true;
+    }
+  });
+
+  // ── Meta Timestamps ───────────────────────────────────────────
+
+  it('Group response includes meta.created and meta.lastModified', async () => {
+    const payload = makeScimGroupPayload();
+    const createRes = await request(context.app)
+      .post(SCIM_GROUPS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(payload)
+      .expect(201);
+
+    const groupId = createRes.body.id;
+
+    const response = await request(context.app)
+      .get(`${SCIM_GROUPS_PREFIX()}/${groupId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    expect(response.body.meta).to.have.property('created');
+    expect(response.body.meta).to.have.property('lastModified');
+    expect(new Date(response.body.meta.created).toISOString()).to.be.a(
+      'string',
+    );
   });
 
   it('List groups with pagination', async () => {
@@ -1048,6 +1257,146 @@ function scimGroupsTests() {
     const members = getRes.body.members || [];
     const memberIds = members.map((m: any) => m.value);
     expect(memberIds).to.not.include(userId);
+  });
+
+  // ── Replace Group (PUT) ────────────────────────────────────────
+
+  it('Replace group via PUT', async () => {
+    // Create user for membership
+    const userPayload = makeScimUserPayload();
+    const userRes = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(userPayload)
+      .expect(201);
+
+    const userId = userRes.body.id;
+
+    // Create group
+    const groupPayload = makeScimGroupPayload();
+    const groupRes = await request(context.app)
+      .post(SCIM_GROUPS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(groupPayload)
+      .expect(201);
+
+    const groupId = groupRes.body.id;
+
+    // PUT replace with new displayName and members
+    const replacePayload = {
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+      displayName: 'Replaced Group Name',
+      members: [{ value: userId }],
+    };
+
+    const response = await request(context.app)
+      .put(`${SCIM_GROUPS_PREFIX()}/${groupId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(replacePayload)
+      .expect(200);
+
+    expect(response.body).to.have.property('id', groupId);
+    expect(response.body).to.have.property(
+      'displayName',
+      'Replaced Group Name',
+    );
+    expect(response.body.members).to.be.an('array');
+    const memberIds = response.body.members.map((m: any) => m.value);
+    expect(memberIds).to.include(userId);
+  });
+
+  // ── Deactivated User in Group ─────────────────────────────────
+
+  it('Add deactivated user to group via PATCH', async () => {
+    // Create user
+    const userPayload = makeScimUserPayload();
+    const userRes = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(userPayload)
+      .expect(201);
+
+    const userId = userRes.body.id;
+
+    // Deactivate user
+    await request(context.app)
+      .patch(`${SCIM_USERS_PREFIX()}/${userId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send({
+        schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+        Operations: [{ op: 'Replace', path: 'active', value: 'False' }],
+      })
+      .expect(200);
+
+    // Create group
+    const groupPayload = makeScimGroupPayload();
+    const groupRes = await request(context.app)
+      .post(SCIM_GROUPS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(groupPayload)
+      .expect(201);
+
+    const groupId = groupRes.body.id;
+
+    // Add deactivated user to group
+    const patchBody = {
+      schemas: ['urn:ietf:params:scim:api:messages:2.0:PatchOp'],
+      Operations: [
+        {
+          op: 'Add',
+          path: 'members',
+          value: [{ value: userId }],
+        },
+      ],
+    };
+
+    await request(context.app)
+      .patch(`${SCIM_GROUPS_PREFIX()}/${groupId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(patchBody)
+      .expect(200);
+
+    // Verify member is present even though deactivated
+    const getRes = await request(context.app)
+      .get(`${SCIM_GROUPS_PREFIX()}/${groupId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    const members = getRes.body.members || [];
+    const memberIds = members.map((m: any) => m.value);
+    expect(memberIds).to.include(userId);
+  });
+
+  it('Create group with deactivated user as initial member', async () => {
+    // Create and deactivate user
+    const userPayload = makeScimUserPayload();
+    const userRes = await request(context.app)
+      .post(SCIM_USERS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(userPayload)
+      .expect(201);
+
+    const userId = userRes.body.id;
+
+    await request(context.app)
+      .delete(`${SCIM_USERS_PREFIX()}/${userId}`)
+      .set('Authorization', `Bearer ${scimToken}`);
+
+    // Create group with deactivated user as member
+    const groupPayload = makeScimGroupPayload({
+      members: [{ value: userId }],
+    });
+
+    const response = await request(context.app)
+      .post(SCIM_GROUPS_PREFIX())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(groupPayload)
+      .expect(201);
+
+    // Member should be present despite being deactivated
+    const members = response.body.members || [];
+    const memberIds = members.map((m: any) => m.value);
+    expect(memberIds).to.include(userId);
   });
 
   // ── Delete Group ────────────────────────────────────────────────

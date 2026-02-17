@@ -924,6 +924,183 @@ function protocolComplianceTests() {
     expect(res.body.totalResults).to.be.at.least(3);
   });
 
+  // ── §3.4.2.3 Sorting ─────────────────────────────────────────
+
+  it('GET /Users?sortBy=userName returns sorted results (RFC 7644 §3.4.2.3)', async () => {
+    const ts = Date.now();
+    await request(ctx.app)
+      .post(USERS())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeUser({ userName: `zzz-${ts}@test.example`, emails: [{ primary: true, value: `zzz-${ts}@test.example`, type: 'work' }] }))
+      .expect(201);
+
+    await request(ctx.app)
+      .post(USERS())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeUser({ userName: `aaa-${ts}@test.example`, emails: [{ primary: true, value: `aaa-${ts}@test.example`, type: 'work' }] }))
+      .expect(201);
+
+    const res = await request(ctx.app)
+      .get(`${USERS()}?sortBy=userName`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    const names = res.body.Resources.map((u: any) => u.userName);
+    for (let i = 1; i < names.length; i++) {
+      expect(
+        names[i - 1].toLowerCase() <= names[i].toLowerCase(),
+        `Sort order violated: ${names[i - 1]} > ${names[i]}`,
+      ).to.be.true;
+    }
+  });
+
+  it('GET /Groups?sortBy=displayName returns sorted results (RFC 7644 §3.4.2.3)', async () => {
+    const ts = Date.now();
+    await request(ctx.app)
+      .post(GROUPS())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeGroup({ displayName: `Zebra ${ts}` }))
+      .expect(201);
+
+    await request(ctx.app)
+      .post(GROUPS())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeGroup({ displayName: `Alpha ${ts}` }))
+      .expect(201);
+
+    const res = await request(ctx.app)
+      .get(`${GROUPS()}?sortBy=displayName`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    const names = res.body.Resources.map((g: any) => g.displayName);
+    for (let i = 1; i < names.length; i++) {
+      expect(
+        names[i - 1].toLowerCase() <= names[i].toLowerCase(),
+        `Sort order violated: ${names[i - 1]} > ${names[i]}`,
+      ).to.be.true;
+    }
+  });
+
+  // ── §3.1 meta.created / meta.lastModified ──────────────────────
+
+  it('User response includes meta.created and meta.lastModified (RFC 7643 §3.1)', async () => {
+    const createRes = await request(ctx.app)
+      .post(USERS())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeUser())
+      .expect(201);
+
+    const res = await request(ctx.app)
+      .get(`${USERS()}/${createRes.body.id}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    expect(res.body.meta).to.have.property('created');
+    expect(res.body.meta).to.have.property('lastModified');
+    // Should be valid ISO 8601 timestamps
+    const created = new Date(res.body.meta.created);
+    const lastModified = new Date(res.body.meta.lastModified);
+    expect(created.getTime()).to.not.be.NaN;
+    expect(lastModified.getTime()).to.not.be.NaN;
+    expect(lastModified.getTime()).to.be.at.least(created.getTime());
+  });
+
+  it('Group response includes meta.created and meta.lastModified', async () => {
+    const createRes = await request(ctx.app)
+      .post(GROUPS())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeGroup())
+      .expect(201);
+
+    const res = await request(ctx.app)
+      .get(`${GROUPS()}/${createRes.body.id}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .expect(200);
+
+    expect(res.body.meta).to.have.property('created');
+    expect(res.body.meta).to.have.property('lastModified');
+  });
+
+  // ── §3.6 DELETE idempotency ─────────────────────────────────────
+
+  it('DELETE /Users/:id is idempotent — second delete returns 204 (RFC 7644 §3.6)', async () => {
+    const createRes = await request(ctx.app)
+      .post(USERS())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeUser())
+      .expect(201);
+
+    const id = createRes.body.id;
+
+    const res1 = await request(ctx.app)
+      .delete(`${USERS()}/${id}`)
+      .set('Authorization', `Bearer ${scimToken}`);
+    expect(res1.status).to.be.oneOf([200, 204]);
+
+    const res2 = await request(ctx.app)
+      .delete(`${USERS()}/${id}`)
+      .set('Authorization', `Bearer ${scimToken}`);
+    expect(res2.status).to.be.oneOf([200, 204]);
+  });
+
+  // ── §3.5.1 PUT full replacement ─────────────────────────────────
+
+  it('PUT /Groups/:id replaces the resource (RFC 7644 §3.5.1)', async () => {
+    const userRes = await request(ctx.app)
+      .post(USERS())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeUser())
+      .expect(201);
+
+    const userId = userRes.body.id;
+
+    const groupRes = await request(ctx.app)
+      .post(GROUPS())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(makeGroup())
+      .expect(201);
+
+    const groupId = groupRes.body.id;
+
+    const replacePayload = {
+      schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+      displayName: 'Fully Replaced Group',
+      members: [{ value: userId }],
+    };
+
+    const res = await request(ctx.app)
+      .put(`${GROUPS()}/${groupId}`)
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send(replacePayload)
+      .expect(200);
+
+    expect(res.body.id).to.equal(groupId);
+    expect(res.body.displayName).to.equal('Fully Replaced Group');
+    expect(res.body.members).to.be.an('array');
+    const memberIds = res.body.members.map((m: any) => m.value);
+    expect(memberIds).to.include(userId);
+  });
+
+  // ── §3.12 SCIM Error Response Format ────────────────────────────
+
+  it('POST /Groups without displayName returns SCIM error format (RFC 7644 §3.12)', async () => {
+    const res = await request(ctx.app)
+      .post(GROUPS())
+      .set('Authorization', `Bearer ${scimToken}`)
+      .send({
+        schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
+      });
+
+    expect(res.status).to.be.oneOf([400, 422]);
+    expect(res.body).to.have.property('schemas');
+    expect(res.body.schemas).to.include(
+      'urn:ietf:params:scim:api:messages:2.0:Error',
+    );
+    expect(res.body).to.have.property('detail');
+    expect(res.body).to.have.property('status');
+  });
+
   // ── §3.3 Resource ID immutability ──────────────────────────────
 
   it('User id remains stable across GET calls (RFC 7643 §3.1)', async () => {

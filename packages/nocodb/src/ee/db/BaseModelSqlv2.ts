@@ -3759,14 +3759,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (result.type === 'deny_all') {
-        // Return a filter that matches nothing (WHERE pk IS NULL — always false for NOT NULL primary keys)
-        return [
-          new Filter({
-            comparison_op: 'null',
-            fk_column_id: this.model.primaryKey?.id,
-            is_group: false,
-          }),
-        ];
+        return this.getDenyAllFilter();
       }
 
       // Load and resolve filter trees for matched policies
@@ -3865,17 +3858,40 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     } catch (e) {
       // If RLS resolution fails, deny access (fail closed)
       new Logger('BaseModelSqlv2').error('RLS resolution error:', e);
+      return this.getDenyAllFilter();
+    }
+  }
+
+  /**
+   * Returns a filter that matches zero rows (WHERE pk IS NULL).
+   * Used for deny_all default policy and fail-closed error handling.
+   */
+  private async getDenyAllFilter(): Promise<Filter[]> {
+    // Ensure columns are loaded so primaryKey is available
+    await this.model.getColumns(this.context);
+    const pkCol = this.model.primaryKey;
+    if (pkCol?.id) {
       return [
         new Filter({
-          fk_column_id: '_deny_all_',
-          comparison_op: 'eq',
-          comparison_sub_op: null,
-          value: '_rls_deny_',
+          comparison_op: 'null',
+          fk_column_id: pkCol.id,
           is_group: false,
-          logical_op: 'and',
         }),
       ];
     }
+    // Fallback: use first column with an impossible condition
+    const firstCol = this.model.columns?.[0];
+    if (firstCol?.id) {
+      return [
+        new Filter({
+          comparison_op: 'eq',
+          fk_column_id: firstCol.id,
+          value: '__nc_rls_deny_all__',
+          is_group: false,
+        }),
+      ];
+    }
+    return [];
   }
 }
 

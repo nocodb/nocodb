@@ -35,7 +35,9 @@ const isTab = computed(() => {
   return width.value > 1200
 })
 
+/** EE only: Check if any filters are pinned to the toolbar */
 const hasPinnedFilters = computed(() => {
+  if (!isEeUI) return false
   return allFilters.value.some((f) => f.id && !f.is_group && parseProp(f.meta)?.pinned === true)
 })
 

@@ -43,6 +43,7 @@ const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
 )
 
 const filtersLength = ref(0)
+const enabledFiltersLength = ref(0)
 // If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
 const isRestrictedEditor = computed(() => isLocked.value || !canSyncFilter.value)
 
@@ -72,6 +73,7 @@ watch(
         loadAllFilters: true,
       })
       filtersLength.value = nonDeletedFilters.value.length || 0
+      enabledFiltersLength.value = nonDeletedFilters.value.filter((f) => f.enabled !== false && f.enabled !== 0).length
     }
   },
   { immediate: true },
@@ -147,6 +149,18 @@ const combinedFilterLength = computed(() => {
   return filtersLength.value
 })
 
+/** Display format: "enabled/total" when some filters are disabled, otherwise just "total" */
+const filterCountDisplay = computed(() => {
+  const total = combinedFilterLength.value
+  if (!total) return ''
+
+  const enabled = enabledFiltersLength.value
+  if (enabled < total) {
+    return `${enabled}/${total}`
+  }
+  return `${total}`
+})
+
 const isCurrentUserFilterPresent = ref(false)
 
 const checkForCurrentUserFilter = (currentFilters: FilterType[] = []) => {
@@ -204,10 +218,27 @@ if (isEeUI) {
 }
 
 watch(
-  () => nonDeletedFilters.value.length,
+  nonDeletedFilters,
   () => {
     filtersLength.value = nonDeletedFilters.value.length || 0
+    enabledFiltersLength.value = nonDeletedFilters.value.filter((f) => f.enabled !== false && f.enabled !== 0).length
   },
+  { deep: true },
+)
+
+// Watch allFilters (populated by ColumnFilter.vue via AllFiltersInj) to keep
+// enabled count in sync when individual filters are toggled on/off.
+// Count root-level items only — filter groups count as 1.
+watch(
+  allFilters,
+  () => {
+    const rootFilters = (allFilters.value as Record<string, FilterType[]>)['root']
+    if (rootFilters?.length) {
+      filtersLength.value = rootFilters.length
+      enabledFiltersLength.value = rootFilters.filter((f) => f.enabled !== false && f.enabled !== 0).length
+    }
+  },
+  { deep: true },
 )
 
 // ----- EE: AI Filter Prediction -----
@@ -348,7 +379,7 @@ const handleAiFilters = async (payload: {
                 [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
               }"
             >
-              {{ combinedFilterLength }}
+              {{ filterCountDisplay }}
               <span v-if="isCurrentUserFilterPresent" class="ml-1 pb-0.6">{{ '@' }}</span>
             </span>
           </NcTooltip>

@@ -182,7 +182,7 @@ const onEnabledChange = (val: boolean | Event) => {
       class="flex rounded-lg p-2 min-w-full w-min border-1"
       :class="[
         `nc-filter-nested-level-${nestedLevel}`,
-        { 'nc-filter-disabled-row': !effectiveEnabled },
+        { 'nc-filter-disabled-row': isEeUI && !effectiveEnabled },
       ]"
     >
       <SmartsheetToolbarFilterGroup
@@ -215,6 +215,7 @@ const onEnabledChange = (val: boolean | Event) => {
       >
         <template #nestedRowStart>
           <NcCheckbox
+            v-if="isEeUI"
             :checked="isFilterEnabled"
             size="default"
             :disabled="isDisabled || parentEnabled === false"

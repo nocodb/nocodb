@@ -2843,7 +2843,5 @@ export interface ViewMetaRowColoring {
   rowColoringInfo: {
     fk_column_id: string;
     is_set_as_background: boolean;
-    /** @see COLORING_TYPE in nocodb-sdk */
-    type?: 'row' | 'cell';
   };
 }

@@ -343,7 +343,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       @change="updateColor(i, 'fk_target_column_id', $event)"
                     >
                       <a-select-option
-                        v-for="column in columns.filter((c) => !c.pv)"
+                        v-for="column in columns"
                         :key="column.id"
                         :value="column.id"
                         :label="column.title"

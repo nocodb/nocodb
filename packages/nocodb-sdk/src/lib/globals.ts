@@ -307,7 +307,7 @@ export type RowColoringInfoFilterRow = {
   is_set_as_background: boolean;
   nc_order: number;
   color: string;
-  type: string;
+  type?: string;
   fk_target_column_id?: string;
   conditions: FilterType[];
   nestedConditions: FilterType[];
@@ -319,7 +319,6 @@ export type RowColoringInfoSelect = {
   options: { title: string; color: string }[];
   selectColumn: ColumnType;
   is_set_as_background: boolean;
-  type: string;
 };
 export type RowColoringInfoFilter = {
   mode: ROW_COLORING_MODE.FILTER;

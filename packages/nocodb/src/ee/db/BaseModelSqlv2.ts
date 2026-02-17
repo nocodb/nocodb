@@ -759,6 +759,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         .update(updateObj)
         .where(await this._wherePk(id, true));
 
+      const rlsConditions = await this.getRlsConditions();
+      if (rlsConditions.length) {
+        await conditionV2(
+          this,
+          [new Filter({ children: rlsConditions, is_group: true })],
+          query,
+        );
+      }
+
       try {
         await this.execAndParse(query, null, { raw: true });
       } catch (e: any) {
@@ -1623,7 +1632,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         queries.push(q(this.dbDriver).toQuery());
       }
 
-      queries.push(this.dbDriver(this.tnPath).del().where(where).toQuery());
+      const delQb = this.dbDriver(this.tnPath).del().where(where);
+
+      const rlsConditions = await this.getRlsConditions();
+      if (rlsConditions.length) {
+        await conditionV2(
+          this,
+          [new Filter({ children: rlsConditions, is_group: true })],
+          delQb,
+        );
+      }
+
+      queries.push(delQb.toQuery());
 
       let responses;
 
@@ -2716,6 +2736,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
       profiler.log('prepareNocoData done');
 
+      const rlsConditions = await this.getRlsConditions();
+      const rlsFilterGroup = rlsConditions.length
+        ? [new Filter({ children: rlsConditions, is_group: true })]
+        : [];
+
       if (
         this.model.primaryKeys.length === 1 &&
         (this.isPg || this.isMySQL || this.isSqlite)
@@ -2728,21 +2753,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         );
 
         if (batchQb) {
-          queries.push(
-            batchUpdate(
-              this.dbDriver,
-              this.tnPath,
-              toBeUpdated.map((o) => o.d),
-              this.model.primaryKey.column_name,
-            ).toQuery(),
-          );
+          if (rlsFilterGroup.length) {
+            await conditionV2(this, rlsFilterGroup, batchQb);
+          }
+          queries.push(batchQb.toQuery());
         }
       } else {
-        queries.push(
-          ...toBeUpdated.map((o) =>
-            this.dbDriver(this.tnPath).update(o.d).where(o.wherePk).toQuery(),
-          ),
-        );
+        for (const o of toBeUpdated) {
+          const qb = this.dbDriver(this.tnPath).update(o.d).where(o.wherePk);
+          if (rlsFilterGroup.length) {
+            await conditionV2(this, rlsFilterGroup, qb);
+          }
+          queries.push(qb.toQuery());
+        }
       }
 
       if ((this.dbDriver as any).isExternal) {
@@ -3141,8 +3164,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
       }
 
+      const rlsConditions = await this.getRlsConditions();
+      const rlsFilterGroup = rlsConditions.length
+        ? [new Filter({ children: rlsConditions, is_group: true })]
+        : [];
+
       for (const d of res) {
-        queries.push(this.dbDriver(this.tnPath).del().where(d).toQuery());
+        const qb = this.dbDriver(this.tnPath).del().where(d);
+        if (rlsFilterGroup.length) {
+          await conditionV2(this, rlsFilterGroup, qb);
+        }
+        queries.push(qb.toQuery());
       }
 
       if ((this.dbDriver as any).isExternal) {

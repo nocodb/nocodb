@@ -204,14 +204,16 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
     pattern: /\bpg_(try_)?advisory/i,
     message: 'Advisory locks are not permitted',
   },
-  // Block OID-to-name type casts that bypass schema filtering
+  // Block OID-to-name type casts that bypass schema filtering (all ::reg* variants)
   {
-    pattern: /::regclass\b/i,
-    message: 'Type cast to regclass is not permitted',
+    pattern: /::reg(class|namespace|role|type|proc|oper|config|dictionary)\b/i,
+    message: 'Type cast to reg* types is not permitted',
   },
+  // Block CAST(... AS reg*) syntax — bypasses the :: form check above
   {
-    pattern: /::regnamespace\b/i,
-    message: 'Type cast to regnamespace is not permitted',
+    pattern:
+      /\bAS\s+reg(class|namespace|role|type|proc|oper|config|dictionary)\b/i,
+    message: 'CAST to reg* types is not permitted',
   },
   // Block dangerous catalog functions that leak cross-tenant metadata
   {
@@ -242,13 +244,10 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
     pattern: /\bpg_get_triggerdef\s*\(/i,
     message: 'pg_get_triggerdef is not permitted',
   },
+  // Block all has_*_privilege() function variants (schema, table, database, column, etc.)
   {
-    pattern: /\bhas_schema_privilege\s*\(/i,
-    message: 'has_schema_privilege is not permitted',
-  },
-  {
-    pattern: /\bhas_table_privilege\s*\(/i,
-    message: 'has_table_privilege is not permitted',
+    pattern: /\bhas_\w+_privilege\s*\(/i,
+    message: 'Privilege checking functions are not permitted',
   },
   // Block catalog tables that leak cross-tenant dependency/object info
   {
@@ -295,6 +294,31 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
     pattern:
       /\bRESET\s+(ALL|statement_timeout|idle_in_transaction_session_timeout)\b/i,
     message: 'Resetting timeout settings is not permitted',
+  },
+  // Block XML mapping functions — execute arbitrary inner SQL, bypassing all AST filtering (critical tenant isolation bypass)
+  {
+    pattern: /\b(query|table|cursor|schema|database)_to_xml\w*\s*\(/i,
+    message: 'XML mapping functions are not permitted',
+  },
+  // Block set_config() — can change session settings like search_path
+  {
+    pattern: /\bset_config\s*\(/i,
+    message: 'set_config is not permitted',
+  },
+  // Block current_setting() — leaks infrastructure configuration (listen_addresses, etc.)
+  {
+    pattern: /\bcurrent_setting\s*\(/i,
+    message: 'current_setting is not permitted',
+  },
+  // Block EXPLAIN ANALYZE — actually executes the inner query without AST interception
+  {
+    pattern: /\bEXPLAIN\b[^;]*\bANALY[ZS]E\b/i,
+    message: 'EXPLAIN ANALYZE is not permitted',
+  },
+  // Block pg_cancel_backend / pg_terminate_backend — can kill other connections
+  {
+    pattern: /\bpg_(cancel|terminate)_backend\s*\(/i,
+    message: 'Backend termination functions are not permitted',
   },
 ];
 
@@ -633,6 +657,86 @@ export function applyInterceptRulesRecursive(
 }
 
 /**
+ * Strip SQL comments for security pattern matching.
+ * Removes -- line comments and /* block comments (including nested) while
+ * preserving content inside string literals ('...' and $$...$$).
+ * Only used for blocked-pattern matching — the original text is used for parsing.
+ */
+export function stripSqlComments(sql: string): string {
+  let result = '';
+  let i = 0;
+
+  while (i < sql.length) {
+    // Single-quoted string literal — preserve as-is
+    if (sql[i] === "'") {
+      result += sql[i++];
+      while (i < sql.length) {
+        if (sql[i] === "'" && sql[i + 1] === "'") {
+          result += "''";
+          i += 2;
+        } else if (sql[i] === "'") {
+          result += sql[i++];
+          break;
+        } else {
+          result += sql[i++];
+        }
+      }
+    }
+    // Dollar-quoted string literal — preserve as-is
+    else if (sql[i] === '$') {
+      const tagMatch = sql.slice(i).match(/^\$([A-Za-z_][\w]*)?\$/);
+      if (tagMatch) {
+        const tag = tagMatch[0]; // e.g. $$ or $tag$
+        result += tag;
+        i += tag.length;
+        const endIdx = sql.indexOf(tag, i);
+        if (endIdx !== -1) {
+          result += sql.slice(i, endIdx + tag.length);
+          i = endIdx + tag.length;
+        } else {
+          // Unterminated — include the rest
+          result += sql.slice(i);
+          i = sql.length;
+        }
+      } else {
+        result += sql[i++];
+      }
+    }
+    // Block comment (handles nesting)
+    else if (sql[i] === '/' && sql[i + 1] === '*') {
+      let depth = 1;
+      i += 2;
+      while (i < sql.length && depth > 0) {
+        if (sql[i] === '/' && sql[i + 1] === '*') {
+          depth++;
+          i += 2;
+        } else if (sql[i] === '*' && sql[i + 1] === '/') {
+          depth--;
+          i += 2;
+        } else {
+          i++;
+        }
+      }
+      result += ' ';
+    }
+    // Line comment
+    else if (sql[i] === '-' && sql[i + 1] === '-') {
+      i += 2;
+      while (i < sql.length && sql[i] !== '\n') {
+        i++;
+      }
+      result += ' ';
+    }
+    // Normal character
+    else {
+      result += sql[i++];
+    }
+  }
+
+  return result;
+}
+
+/**
  * Attempt to parse and intercept the query.
  * If it matches our interception rules inject a WHERE clause to restrict the query.
  * Return modified query buffer if successful (undefined otherwise).
@@ -648,9 +752,12 @@ export async function interceptQueryIfNeeded(
   // Bytes 1-4: Message length
   let queryText = data.subarray(5).toString('utf8').replace(/\0/g, '');
 
-  // Check for blocked patterns before parsing
+  // Strip SQL comments to prevent regex bypass (e.g. pg_sleep/**/())
+  const normalizedQueryText = stripSqlComments(queryText);
+
+  // Check for blocked patterns before parsing (use comment-stripped text)
   for (const { pattern, message } of blockedQueryPatterns) {
-    if (pattern.test(queryText)) {
+    if (pattern.test(normalizedQueryText)) {
       throw new QueryBlockedError(message);
     }
   }

@@ -17,6 +17,7 @@ import {
   parseNullDelimitedBuffer,
   QueryBlockedError,
   rewriteSASLMechanisms,
+  stripSqlComments,
 } from '~/helpers/dataReflectionInterceptor';
 
 /** Helper: build a PG wire protocol Query message from SQL text */
@@ -120,6 +121,35 @@ function blockedQueryTests() {
     expect(match).to.not.be.undefined;
   });
 
+  it('blocks ::regrole cast', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test("SELECT 'postgres'::regrole"),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks ::regtype cast', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test("SELECT 'integer'::regtype"),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks CAST(... AS regclass)', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SELECT CAST(1259 AS regclass)'),
+    );
+    expect(match).to.not.be.undefined;
+    expect(match.message).to.include('reg*');
+  });
+
+  it('blocks CAST(... AS regrole)', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SELECT CAST(10 AS regrole)'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
   it('blocks dangerous catalog functions', () => {
     const funcs = [
       'pg_relation_filepath(123)',
@@ -129,13 +159,30 @@ function blockedQueryTests() {
       'pg_get_viewdef(123)',
       'pg_get_functiondef(123)',
       'pg_get_triggerdef(123)',
-      "has_schema_privilege(1, 'USAGE')",
-      "has_table_privilege(1, 'SELECT')",
     ];
     for (const fn of funcs) {
       const sql = `SELECT ${fn}`;
       const match = blockedQueryPatterns.find((p) => p.pattern.test(sql));
       expect(match, `Expected ${fn} to be blocked`).to.not.be.undefined;
+    }
+  });
+
+  it('blocks all has_*_privilege variants', () => {
+    const variants = [
+      "has_schema_privilege(1, 'USAGE')",
+      "has_table_privilege(1, 'SELECT')",
+      "has_database_privilege('mydb', 'CONNECT')",
+      "has_column_privilege(1, 1, 'SELECT')",
+      "has_function_privilege(1, 'EXECUTE')",
+      "has_sequence_privilege(1, 'USAGE')",
+      "has_type_privilege(1, 'USAGE')",
+      "has_any_column_privilege(1, 'SELECT')",
+    ];
+    for (const fn of variants) {
+      const sql = `SELECT ${fn}`;
+      const match = blockedQueryPatterns.find((p) => p.pattern.test(sql));
+      expect(match, `Expected ${fn} to be blocked`).to.not.be.undefined;
+      expect(match.message).to.include('Privilege');
     }
   });
 
@@ -263,6 +310,97 @@ function blockedQueryTests() {
   it('blocks inet_server_port', () => {
     const match = blockedQueryPatterns.find((p) =>
       p.pattern.test('SELECT inet_server_port()'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks query_to_xml', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test(
+        "SELECT query_to_xml('SELECT * FROM pg_namespace', true, false, '')",
+      ),
+    );
+    expect(match).to.not.be.undefined;
+    expect(match.message).to.include('XML');
+  });
+
+  it('blocks table_to_xml', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test("SELECT table_to_xml('pg_roles', true, false, '')"),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks database_to_xmlschema', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test("SELECT database_to_xmlschema(true, false, '')"),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks schema_to_xml', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test("SELECT schema_to_xml('public', true, false, '')"),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks set_config', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test("SELECT set_config('search_path', 'evil_schema', false)"),
+    );
+    expect(match).to.not.be.undefined;
+    expect(match.message).to.include('set_config');
+  });
+
+  it('blocks current_setting', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test("SELECT current_setting('listen_addresses')"),
+    );
+    expect(match).to.not.be.undefined;
+    expect(match.message).to.include('current_setting');
+  });
+
+  it('blocks EXPLAIN ANALYZE', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('EXPLAIN ANALYZE SELECT * FROM pg_tables'),
+    );
+    expect(match).to.not.be.undefined;
+    expect(match.message).to.include('EXPLAIN ANALYZE');
+  });
+
+  it('blocks EXPLAIN (ANALYZE) with parenthesized options', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('EXPLAIN (ANALYZE, COSTS) SELECT * FROM pg_tables'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('blocks EXPLAIN ANALYSE (British spelling)', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('EXPLAIN ANALYSE SELECT 1'),
+    );
+    expect(match).to.not.be.undefined;
+  });
+
+  it('does not block plain EXPLAIN', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('EXPLAIN SELECT 1'),
+    );
+    expect(match).to.be.undefined;
+  });
+
+  it('blocks pg_cancel_backend', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SELECT pg_cancel_backend(12345)'),
+    );
+    expect(match).to.not.be.undefined;
+    expect(match.message).to.include('termination');
+  });
+
+  it('blocks pg_terminate_backend', () => {
+    const match = blockedQueryPatterns.find((p) =>
+      p.pattern.test('SELECT pg_terminate_backend(12345)'),
     );
     expect(match).to.not.be.undefined;
   });
@@ -829,11 +967,16 @@ function interceptQueryIfNeededTests() {
     expect(result).to.be.undefined;
   });
 
-  it('allows EXPLAIN ANALYZE through', async () => {
+  it('blocks EXPLAIN ANALYZE via regex', async () => {
     const session = makeSession();
     const buf = buildQueryBuffer('EXPLAIN ANALYZE SELECT * FROM pg_tables');
-    const result = await interceptQueryIfNeeded(buf, session, parser);
-    expect(result).to.be.undefined;
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('EXPLAIN ANALYZE');
+    }
   });
 
   it('allows EXPLAIN with current_database rewrite', async () => {
@@ -960,6 +1103,137 @@ function interceptQueryIfNeededTests() {
     const result = await interceptQueryIfNeeded(buf, session, parser);
     expect(result).to.be.undefined;
   });
+
+  it('blocks pg_sleep with comment bypass (pg_sleep/**/())', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SELECT pg_sleep/*comment*/(5)');
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('pg_sleep');
+    }
+  });
+
+  it('blocks query_to_xml', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer(
+      "SELECT query_to_xml('SELECT * FROM pg_namespace', true, false, '')",
+    );
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('XML');
+    }
+  });
+
+  it('blocks set_config function', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer(
+      "SELECT set_config('search_path', 'evil', false)",
+    );
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('set_config');
+    }
+  });
+
+  it('blocks current_setting function', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer("SELECT current_setting('listen_addresses')");
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('current_setting');
+    }
+  });
+
+  it('blocks CAST(oid AS regclass)', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SELECT CAST(1259 AS regclass)');
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('reg*');
+    }
+  });
+
+  it('blocks pg_terminate_backend', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SELECT pg_terminate_backend(12345)');
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('termination');
+    }
+  });
+}
+
+function stripSqlCommentsTests() {
+  it('strips block comments', () => {
+    expect(stripSqlComments('SELECT /* comment */ 1')).to.equal('SELECT   1');
+  });
+
+  it('strips line comments', () => {
+    expect(stripSqlComments('SELECT 1 -- comment')).to.equal('SELECT 1  ');
+  });
+
+  it('strips comment between function name and parens', () => {
+    const result = stripSqlComments('pg_sleep/*bypass*/(5)');
+    expect(result).to.equal('pg_sleep (5)');
+  });
+
+  it('strips multiple block comments', () => {
+    const result = stripSqlComments('SELECT /* a */ 1 /* b */ + 2');
+    expect(result).to.equal('SELECT   1   + 2');
+  });
+
+  it('handles nested block comments', () => {
+    const result = stripSqlComments(
+      'SELECT /* outer /* inner */ still outer */ 1',
+    );
+    expect(result).to.equal('SELECT   1');
+  });
+
+  it('preserves content inside single-quoted strings', () => {
+    const sql = "SELECT '/* not a comment */' FROM t";
+    expect(stripSqlComments(sql)).to.equal(sql);
+  });
+
+  it('preserves content inside dollar-quoted strings', () => {
+    const sql = 'SELECT $$/* not a comment */$$';
+    expect(stripSqlComments(sql)).to.equal(sql);
+  });
+
+  it('preserves escaped single quotes', () => {
+    const sql = "SELECT 'it''s -- not a comment' FROM t";
+    expect(stripSqlComments(sql)).to.equal(sql);
+  });
+
+  it('handles mixed strings and comments', () => {
+    const sql = "SELECT 'safe' /* remove this */ FROM t -- also remove";
+    const result = stripSqlComments(sql);
+    expect(result).to.include("'safe'");
+    expect(result).to.not.include('remove this');
+    expect(result).to.not.include('also remove');
+  });
+
+  it('returns input unchanged when no comments', () => {
+    const sql = 'SELECT * FROM pg_namespace';
+    expect(stripSqlComments(sql)).to.equal(sql);
+  });
 }
 
 function rewriteSASLMechanismsTests() {
@@ -1015,8 +1289,8 @@ function constantsTests() {
     expect(interceptMap.length).to.equal(22);
   });
 
-  it('blockedQueryPatterns has 32 patterns', () => {
-    expect(blockedQueryPatterns.length).to.equal(32);
+  it('blockedQueryPatterns has 36 patterns', () => {
+    expect(blockedQueryPatterns.length).to.equal(36);
   });
 
   it('allowedNonParseablePatterns has 2 patterns', () => {
@@ -1044,6 +1318,7 @@ function dataReflectionInterceptorTests() {
   describe('buildNestedClassSubquery', buildNestedClassSubqueryTests);
   describe('applyInterceptRulesRecursive', applyInterceptRulesRecursiveTests);
   describe('interceptQueryIfNeeded', interceptQueryIfNeededTests);
+  describe('stripSqlComments', stripSqlCommentsTests);
   describe('rewriteSASLMechanisms', rewriteSASLMechanismsTests);
   describe('constants', constantsTests);
 }

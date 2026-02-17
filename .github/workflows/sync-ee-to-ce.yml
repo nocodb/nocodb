@@ -7,20 +7,20 @@ on:
 jobs:
   sync-ee-to-ce:
     if: ${{ github.event.label.name == 'trigger-oss-sync' || (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'trigger-oss-sync')) }}
-    runs-on: [self-hosted, v4, generic]
+    runs-on: ubicloud-standard-2
     steps:
       - name: Setup Node
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: 22.12.0
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           path: nocohub
           fetch-depth: 0
       - name: Checkout OSS
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: 'nocodb/nocodb'
           path: nocodb

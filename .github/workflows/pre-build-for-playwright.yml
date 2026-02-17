@@ -5,36 +5,24 @@ on:
 
 jobs:
   build-ui:
-    runs-on: [self-hosted, v4, prebuild]
+    runs-on: ubicloud-standard-8
     timeout-minutes: 40
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22.12.0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
-
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          node-version: 22.12.0
+          cache: 'pnpm'
 
       - name: Set CI env
         run: export CI=true
@@ -51,21 +39,26 @@ jobs:
       - name: Build UI
         working-directory: ./packages/nc-gui
         run: |
-          export NODE_OPTIONS="--max_old_space_size=16384"
+          export NODE_OPTIONS="--max-old-space-size=8192"
           export NUXT_PUBLIC_ENV=CI
           pnpm run build:ee
 
-      - name: Upload UI build
+      - name: Create build archive
         working-directory: ./packages/nc-gui
         run: |
           FILE="$(echo ${GITHUB_REPOSITORY} | sed "s,/,-,g")-${GITHUB_RUN_ID}.zip"
           zip -r ${FILE} ee/.output || echo "UI build directory does not exists" >&2
+          echo "ARCHIVE_NAME=${FILE}" >> $GITHUB_ENV
 
-          path="gh-artifacts/ui-builds/"
-          target_dir="/mnt/${path}"
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.ARTIFACTS_S3_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ARTIFACTS_S3_SECRET_KEY }}
+          aws-region: us-east-2
 
-          # rm file if exists
-          rm -f ${target_dir}${FILE}
-
-          cp ${FILE} ${target_dir}
-          echo "${path}${FILE}"
+      - name: Upload UI build to S3
+        working-directory: ./packages/nc-gui
+        run: |
+          aws s3 cp ${ARCHIVE_NAME} s3://nocohub-ci-artifacts/ui-builds/${ARCHIVE_NAME}
+          echo "s3://nocohub-ci-artifacts/ui-builds/${ARCHIVE_NAME}"

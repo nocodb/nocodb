@@ -178,7 +178,7 @@ export default class DataReflection extends DataReflectionCE {
               data,
               session,
               parser,
-              (q) => logger.error('Failed to parse query:', q),
+              (q) => logger.error(`Failed to parse query: ${q}`),
             );
 
             // If we modified the query write that; otherwise fallback to the original data

@@ -7,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UseFilters,
   UseGuards,
@@ -67,6 +68,20 @@ export class ScimGroupsController {
   ) {
     return this.scimGroupsService.createGroup(context, {
       workspaceId,
+      scimGroup,
+    });
+  }
+
+  @Put('/api/v3/meta/workspaces/:workspaceId/scim/v2/Groups/:groupId')
+  async replaceGroup(
+    @TenantContext() context: NcContext,
+    @Param('workspaceId') workspaceId: string,
+    @Param('groupId') groupId: string,
+    @Body() scimGroup: any,
+  ) {
+    return this.scimGroupsService.replaceGroup(context, {
+      workspaceId,
+      scimId: groupId,
       scimGroup,
     });
   }

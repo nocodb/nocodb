@@ -360,8 +360,10 @@ export class ScimUsersService {
     context: NcContext,
     param: { workspaceId: string; scimId: string },
   ) {
+    // Include deleted users so DELETE is idempotent per RFC 7644
     const workspaceUsers = await WorkspaceUser.userList({
       fk_workspace_id: param.workspaceId,
+      include_deleted: true,
     });
 
     const workspaceUser = workspaceUsers.find(
@@ -370,6 +372,11 @@ export class ScimUsersService {
 
     if (!workspaceUser) {
       NcError.notFound('User not found');
+    }
+
+    // Already deactivated — no-op (idempotent)
+    if (workspaceUser.deleted) {
+      return;
     }
 
     await WorkspaceUser.softDelete(param.workspaceId, workspaceUser.fk_user_id);

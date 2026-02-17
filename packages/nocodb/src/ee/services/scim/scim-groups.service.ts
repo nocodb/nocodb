@@ -243,6 +243,55 @@ export class ScimGroupsService {
   }
 
   /**
+   * Replace group (PUT - full replacement per RFC 7644 §3.5.1)
+   */
+  async replaceGroup(
+    context: NcContext,
+    param: {
+      workspaceId: string;
+      scimId: string;
+      scimGroup: any;
+    },
+  ) {
+    const { workspaceId, scimId, scimGroup } = param;
+
+    const teams = await Team.list(context, {
+      fk_workspace_id: workspaceId,
+    });
+
+    const team = teams.find((t) => t.scim_external_id === scimId);
+
+    if (!team) {
+      NcError.notFound('Group not found');
+    }
+
+    // Full replacement — update all group attributes
+    const updateData: any = {};
+    if (scimGroup.displayName) {
+      updateData.title = scimGroup.displayName;
+      updateData.scim_display_name = scimGroup.displayName;
+    }
+    if (scimGroup.externalId) {
+      updateData.scim_external_id = scimGroup.externalId;
+    }
+
+    if (Object.keys(updateData).length > 0) {
+      await Team.update(context, team.id, updateData);
+    }
+
+    // Full replacement of members — replace entirely with provided list
+    await this.updateTeamMembers(
+      context,
+      team.id,
+      workspaceId,
+      scimGroup.members || [],
+    );
+
+    const updatedTeam = await Team.get(context, team.id);
+    return this.toScimGroup(context, updatedTeam, workspaceId);
+  }
+
+  /**
    * Delete group (soft delete)
    */
   async deleteGroup(

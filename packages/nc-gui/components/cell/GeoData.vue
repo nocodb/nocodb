@@ -541,7 +541,7 @@ onBeforeUnmount(() => {
           '!py-1': !isForm,
           'pt-1': isForm && !isPublic,
         }"
-        class="nc-cell-field h-full w-full flex items-center focus-visible:!outline-none focus:!outline-none"
+        class="nc-cell-field h-full w-full flex items-center focus-visible:!outline-none focus:!outline-none whitespace-nowrap truncate"
       >
         <!-- Expanded form: selectable text with copy + edit buttons -->
         <template v-if="isExpandedForm">

@@ -7,6 +7,7 @@ import NocoSocket from '~/ee/socket/NocoSocket';
 import Filter from '~/models/Filter';
 import { NcError } from '~/helpers/ncError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
+import { View } from '~/models';
 
 @Injectable()
 export class RlsService {
@@ -104,6 +105,10 @@ export class RlsService {
       }
     }
 
+    // Invalidate caches: RLS model cache + single query cache
+    await RlsPolicy.clearModelCache(context, body.fk_model_id);
+    await View.clearSingleQueryCache(context, body.fk_model_id);
+
     this.appHooksService.emit(AppEvents.RLS_POLICY_CREATE, {
       context,
       userId,
@@ -150,6 +155,10 @@ export class RlsService {
       order: body.order,
     });
 
+    // Invalidate caches: RLS model cache + single query cache
+    await RlsPolicy.clearModelCache(context, policy.fk_model_id);
+    await View.clearSingleQueryCache(context, policy.fk_model_id);
+
     this.appHooksService.emit(AppEvents.RLS_POLICY_UPDATE, {
       context,
       userId,
@@ -187,6 +196,10 @@ export class RlsService {
 
     // Delete the policy (also deletes subjects)
     await RlsPolicy.delete(context, policyId);
+
+    // Invalidate caches: RLS model cache + single query cache
+    await RlsPolicy.clearModelCache(context, policy.fk_model_id);
+    await View.clearSingleQueryCache(context, policy.fk_model_id);
 
     this.appHooksService.emit(AppEvents.RLS_POLICY_DELETE, {
       context,
@@ -226,8 +239,9 @@ export class RlsService {
 
     await RlsPolicy.setSubjects(context, policyId, subjects);
 
-    // Invalidate model cache since policy subjects changed
+    // Invalidate caches: RLS model cache + single query cache
     await RlsPolicy.clearModelCache(context, policy.fk_model_id);
+    await View.clearSingleQueryCache(context, policy.fk_model_id);
 
     // Re-subscribe all sockets for this table so RLS rooms are updated
     NocoSocket.resubscribeTableRls(context, policy.fk_model_id).catch((e) => {

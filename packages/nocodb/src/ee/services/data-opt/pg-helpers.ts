@@ -165,7 +165,15 @@ export async function singleQueryGroupedList(
     });
   }
 
+  // Resolve RLS (Row-Level Security) conditions
+  const rlsConditions = await baseModel.getRlsConditions();
+  const rlsFilterGroup = rlsConditions.length
+    ? [new Filter({ children: rlsConditions, is_group: true })]
+    : [];
+
   const aggrConditionObj = [
+    // RLS filters — always first, always applied
+    ...rlsFilterGroup,
     ...(ctx.view && !ctx.ignoreViewFilterAndSort
       ? [
           new Filter({

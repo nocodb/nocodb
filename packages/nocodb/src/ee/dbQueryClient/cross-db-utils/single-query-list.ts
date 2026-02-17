@@ -30,6 +30,7 @@ import { getAliasGenerator, ROOT_ALIAS } from '~/utils';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { CacheGetType, CacheScope } from '~/utils/globals';
 import { isTransientError } from '~/helpers/db-error/utils';
+import { RlsSubscriptionRegistry } from '~/socket/RlsSubscriptionRegistry';
 
 const debugSingleQueryList = debug('nc:db:query:singleQueryList');
 
@@ -83,13 +84,22 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     const linksAsLtar =
       ctx.apiVersion === NcApiVersion.V3 && ctx.params?.linksAsLtar === 'true';
 
-    const cacheKeySuffix = linksAsLtar ? ':ltar' : '';
+    // Resolve RLS conditions early — include policy hash in cache key
+    // so users with the same RLS filters share a cache entry
+    const rlsConditions = await baseModel.getRlsConditions();
+    let rlsCacheSegment = '';
+    if (rlsConditions.length) {
+      const hash = RlsSubscriptionRegistry.computeAccessHash(rlsConditions);
+      rlsCacheSegment = `:rls:${hash}`;
+    }
+
+    const cacheKeySuffix = (linksAsLtar ? ':ltar' : '') + rlsCacheSegment;
     const cacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
     }:queries${cacheKeySuffix}`;
     const countCacheKey = `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:${
       ctx.view?.id ?? 'default'
-    }:count`;
+    }:count${cacheKeySuffix}`;
 
     if (!skipCache) {
       const cachedQuery = await NocoCache.get(
@@ -220,7 +230,14 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       skipCache = true;
     }
 
+    // RLS conditions already resolved above (before cache check)
+    const rlsFilterGroup = rlsConditions.length
+      ? [new Filter({ children: rlsConditions, is_group: true })]
+      : [];
+
     const aggrConditionObj = [
+      // RLS filters — always first, always applied
+      ...rlsFilterGroup,
       ...(ctx.view && !ctx.ignoreViewFilterAndSort
         ? [
             new Filter({
@@ -420,6 +437,16 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
     if (!skipCache) {
       // cache query for later use after successful execution
       await NocoCache.set(context, cacheKey, dataQuery);
+
+      // Track RLS-specific keys so clearSingleQueryCache can delete them
+      // Uses Redis SET (sadd) — appends without duplicates
+      if (rlsCacheSegment) {
+        await NocoCache.set(
+          context,
+          `${CacheScope.SINGLE_QUERY}:${ctx.model.id}:rls_keys`,
+          [cacheKey, countCacheKey],
+        );
+      }
     }
 
     profiler.end();

@@ -120,7 +120,6 @@ export class DatasService extends DatasServiceCE {
         disableOptimization: param.disableOptimization,
       })
     ) {
-      // Resolve RLS conditions for the optimized query path
       baseModel =
         baseModel ||
         (await Model.getBaseModelSQL(context, {
@@ -129,10 +128,6 @@ export class DatasService extends DatasServiceCE {
           dbDriver: await NcConnectionMgrv2.get(source),
           source,
         }));
-      const rlsConditions = await baseModel.getRlsConditions();
-      if (rlsConditions.length) {
-        customConditions = [...customConditions, ...rlsConditions];
-      }
 
       responseData = await this.dataOptService.list(context, {
         model,
@@ -199,9 +194,6 @@ export class DatasService extends DatasServiceCE {
         disableOptimization: param.disableOptimization,
       })
     ) {
-      // Resolve RLS conditions for the optimized read path
-      const rlsConditions = await baseModel.getRlsConditions();
-
       row = await this.dataOptService.read(context, {
         model,
         view,
@@ -209,7 +201,6 @@ export class DatasService extends DatasServiceCE {
         source,
         id: param.rowId,
         throwErrorIfInvalidParams: true,
-        customConditions: rlsConditions.length ? rlsConditions : undefined,
       });
     } else {
       row = await baseModel.readByPk(param.rowId, false, param.query, {

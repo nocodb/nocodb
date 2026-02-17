@@ -3675,10 +3675,8 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     try {
       const source = await Source.get(this.context, this.model.source_id);
 
-      // Resolve RLS conditions for the optimized grouped list path
-      const rlsConditions = await this.getRlsConditions();
-
       // Use singleQueryGroupedList which handles nested columns/rollups in SQL
+      // RLS conditions are resolved internally by singleQueryGroupedList
       return await singleQueryGroupedList(this.context, {
         model: this.model,
         view: this.viewId
@@ -3697,7 +3695,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         },
         groupColumnId: args.groupColumnId,
         ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,
-        customConditions: rlsConditions.length ? rlsConditions : undefined,
         baseModel: this,
       });
     } catch (e) {

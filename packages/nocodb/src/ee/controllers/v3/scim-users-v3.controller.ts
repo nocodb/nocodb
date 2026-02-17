@@ -14,12 +14,14 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { NcContext } from '~/interface/config';
 import { ScimUsersService } from '~/ee/services/scim/scim-users.service';
 import { ScimAuthGuard } from '~/ee/guards/scim-auth.guard';
 import { ScimExceptionFilter } from '~/ee/filters/scim-exception/scim-exception.filter';
 import { ScimContentTypeInterceptor } from '~/ee/interceptors/scim-content-type/scim-content-type.interceptor';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 
 @Controller()
 @UseGuards(ScimAuthGuard)
@@ -28,12 +30,17 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 export class ScimUsersController {
   constructor(private readonly scimUsersService: ScimUsersService) {}
 
+  private async checkScimFeature(context: NcContext) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_SCIM);
+  }
+
   @Get('/api/v3/meta/workspaces/:workspaceId/scim/v2/Users/:userId')
   async getUser(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
   ) {
+    await this.checkScimFeature(context);
     return this.scimUsersService.getUser(context, {
       workspaceId,
       scimId: userId,
@@ -50,6 +57,7 @@ export class ScimUsersController {
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: string,
   ) {
+    await this.checkScimFeature(context);
     return this.scimUsersService.listUsers(context, {
       workspaceId,
       filter,
@@ -68,6 +76,7 @@ export class ScimUsersController {
     @Body() scimUser: any,
     @Req() req: any,
   ) {
+    await this.checkScimFeature(context);
     return this.scimUsersService.createUser(context, {
       workspaceId,
       scimUser,
@@ -82,6 +91,7 @@ export class ScimUsersController {
     @Param('userId') userId: string,
     @Body() scimUser: any,
   ) {
+    await this.checkScimFeature(context);
     return this.scimUsersService.replaceUser(context, {
       workspaceId,
       scimId: userId,
@@ -96,6 +106,7 @@ export class ScimUsersController {
     @Param('userId') userId: string,
     @Body() scimUser: any,
   ) {
+    await this.checkScimFeature(context);
     return this.scimUsersService.patchUser(context, {
       workspaceId,
       scimId: userId,
@@ -110,6 +121,7 @@ export class ScimUsersController {
     @Param('workspaceId') workspaceId: string,
     @Param('userId') userId: string,
   ) {
+    await this.checkScimFeature(context);
     return this.scimUsersService.deactivateUser(context, {
       workspaceId,
       scimId: userId,

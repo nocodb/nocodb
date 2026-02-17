@@ -13,12 +13,14 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import { NcContext } from '~/interface/config';
 import { ScimGroupsService } from '~/ee/services/scim/scim-groups.service';
 import { ScimAuthGuard } from '~/ee/guards/scim-auth.guard';
 import { ScimExceptionFilter } from '~/ee/filters/scim-exception/scim-exception.filter';
 import { ScimContentTypeInterceptor } from '~/ee/interceptors/scim-content-type/scim-content-type.interceptor';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 
 @Controller()
 @UseGuards(ScimAuthGuard)
@@ -27,6 +29,10 @@ import { TenantContext } from '~/decorators/tenant-context.decorator';
 export class ScimGroupsController {
   constructor(private readonly scimGroupsService: ScimGroupsService) {}
 
+  private async checkScimFeature(context: NcContext) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_SCIM);
+  }
+
   @Get('/api/v3/meta/workspaces/:workspaceId/scim/v2/Groups/:groupId')
   async getGroup(
     @TenantContext() context: NcContext,
@@ -34,6 +40,7 @@ export class ScimGroupsController {
     @Param('groupId') groupId: string,
     @Query('excludedAttributes') excludedAttributes?: string,
   ) {
+    await this.checkScimFeature(context);
     return this.scimGroupsService.getGroup(context, {
       workspaceId,
       scimId: groupId,
@@ -52,6 +59,7 @@ export class ScimGroupsController {
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: string,
   ) {
+    await this.checkScimFeature(context);
     return this.scimGroupsService.listGroups(context, {
       workspaceId,
       filter,
@@ -70,6 +78,7 @@ export class ScimGroupsController {
     @Param('workspaceId') workspaceId: string,
     @Body() scimGroup: any,
   ) {
+    await this.checkScimFeature(context);
     return this.scimGroupsService.createGroup(context, {
       workspaceId,
       scimGroup,
@@ -83,6 +92,7 @@ export class ScimGroupsController {
     @Param('groupId') groupId: string,
     @Body() scimGroup: any,
   ) {
+    await this.checkScimFeature(context);
     return this.scimGroupsService.replaceGroup(context, {
       workspaceId,
       scimId: groupId,
@@ -97,6 +107,7 @@ export class ScimGroupsController {
     @Param('groupId') groupId: string,
     @Body() scimGroup: any,
   ) {
+    await this.checkScimFeature(context);
     return this.scimGroupsService.updateGroup(context, {
       workspaceId,
       scimId: groupId,
@@ -111,6 +122,7 @@ export class ScimGroupsController {
     @Param('workspaceId') workspaceId: string,
     @Param('groupId') groupId: string,
   ) {
+    await this.checkScimFeature(context);
     return this.scimGroupsService.deleteGroup(context, {
       workspaceId,
       scimId: groupId,

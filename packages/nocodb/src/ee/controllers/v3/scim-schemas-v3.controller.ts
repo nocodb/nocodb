@@ -1,8 +1,12 @@
 import { Controller, Get, Param, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
+import { PlanFeatureTypes } from 'nocodb-sdk';
+import { NcContext } from '~/interface/config';
 import { ScimSchemasService } from '~/ee/services/scim/scim-schemas.service';
 import { ScimAuthGuard } from '~/ee/guards/scim-auth.guard';
 import { ScimExceptionFilter } from '~/ee/filters/scim-exception/scim-exception.filter';
 import { ScimContentTypeInterceptor } from '~/ee/interceptors/scim-content-type/scim-content-type.interceptor';
+import { TenantContext } from '~/decorators/tenant-context.decorator';
+import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 
 @Controller()
 @UseGuards(ScimAuthGuard)
@@ -12,7 +16,11 @@ export class ScimSchemasController {
   constructor(private readonly scimSchemasService: ScimSchemasService) {}
 
   @Get('/api/v3/meta/workspaces/:workspaceId/scim/v2/Schemas')
-  async getSchemas(@Param('workspaceId') workspaceId: string) {
+  async getSchemas(
+    @TenantContext() context: NcContext,
+    @Param('workspaceId') workspaceId: string,
+  ) {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_SCIM);
     return this.scimSchemasService.getSchemas();
   }
 }

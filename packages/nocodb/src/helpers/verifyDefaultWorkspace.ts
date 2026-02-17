@@ -6,14 +6,13 @@ import {
   RootScopes,
 } from '~/utils/globals';
 import Noco from '~/Noco';
-import { isEE } from '~/utils';
 
 export const verifyDefaultWorkspace = async (
   user?: User,
   ncMeta = Noco.ncMeta,
 ) => {
-  // if ee do not need to handle this
-  if (isEE) {
+  // skip for cloud/licensed EE — they handle workspaces via EE service
+  if (Noco.isEE()) {
     return;
   }
 
@@ -99,8 +98,8 @@ export const verifyDefaultWorkspace = async (
 };
 
 export const verifyDefaultWsOwner = async (ncMeta = Noco.ncMeta) => {
-  // if ee do not need to handle this
-  if (isEE) {
+  // skip for cloud/licensed EE — they handle workspaces via EE service
+  if (Noco.isEE()) {
     return;
   }
 
@@ -143,7 +142,7 @@ export const verifyDefaultWsOwner = async (ncMeta = Noco.ncMeta) => {
   // however if user has workspace role but not owner, we update
   else if (workspaceUser.roles !== WorkspaceUserRoles.OWNER) {
     await ncMeta
-      .knexConnection(MetaTable.WORKSPACE)
+      .knexConnection(MetaTable.WORKSPACE_USER)
       .where('fk_workspace_id', Noco.ncDefaultWorkspaceId)
       .andWhere('fk_user_id', user.id)
       .update({

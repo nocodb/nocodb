@@ -3,6 +3,7 @@ import NocoEE from 'src/ee/Noco';
 import type { Express } from 'express';
 import type http from 'http';
 import { NC_LICENSE_KEY } from '~/constants';
+import { verifyDefaultWorkspace } from '~/helpers/verifyDefaultWorkspace';
 import NocoLicense from '~/NocoLicense';
 import { Store } from '~/models';
 import { LICENSE_ENV_VARS } from '~/utils/license/constants';
@@ -28,6 +29,8 @@ export default class Noco extends NocoEE {
       );
     } else {
       this.ee = false;
+      // ensure default workspace exists when running without license
+      await verifyDefaultWorkspace();
       logger.log('No license key found — running in CE mode');
     }
 
@@ -47,6 +50,8 @@ export default class Noco extends NocoEE {
       if (!licenseKey) {
         NocoLicense.reset();
         this.ee = false;
+        // ensure default workspace exists when running without license
+        await verifyDefaultWorkspace();
         logger.log('License key removed — switched to CE mode');
         return false;
       }
@@ -56,6 +61,11 @@ export default class Noco extends NocoEE {
       await NocoLicense.init();
 
       this.ee = NocoLicense.isEE;
+
+      if (!NocoLicense.isEE) {
+        // license invalid/expired — ensure default workspace for CE mode
+        await verifyDefaultWorkspace();
+      }
 
       logger.log(
         NocoLicense.isEE
@@ -67,6 +77,7 @@ export default class Noco extends NocoEE {
     } catch (e) {
       logger.error(`Failed to load EE state: ${e.message}`);
       this.ee = false;
+      await verifyDefaultWorkspace();
       return false;
     }
   }

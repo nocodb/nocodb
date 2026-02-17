@@ -12,7 +12,7 @@
  * and an AI integration is configured in the workspace.
  */
 const emit = defineEmits<{
-  'applyFilters': [
+  applyFilters: [
     payload: {
       action: 'add' | 'replace' | 'clear'
       filters: {

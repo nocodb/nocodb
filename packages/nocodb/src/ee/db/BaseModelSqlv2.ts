@@ -57,6 +57,7 @@ import {
   extractColsMetaForAudit,
   extractExcludedColumnNames,
   generateAuditV1Payload,
+  nocoExecute,
   populateUpdatePayloadDiff,
   remapWithAlias,
 } from '~/utils';
@@ -96,6 +97,7 @@ import { chunkArray } from '~/utils/tsUtils';
 import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mysql-helpers';
 import { Profiler } from '~/helpers/profiler';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
+import getAst from '~/helpers/getAst'
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -2215,6 +2217,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         ignoreViewFilterAndSort: true,
       };
 
+      const { ast } = await getAst(this.context, {
+        model: this.model,
+        query: args.args || {},
+      });
+
       if (['mysql', 'mysql2'].includes(source.type)) {
         chunkData = await mysqlSingleQueryList(this.context, {
           ...ctx,
@@ -2244,6 +2251,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             ignoreViewFilterAndSort: true,
           },
         );
+        chunkData = await nocoExecute(ast, chunkData, {}, args.args || {});
       }
 
       data.push(...chunkData);

@@ -245,6 +245,7 @@ export class DataV3Service {
                   record: nestedRecord,
                   primaryKey: relatedPrimaryKey,
                   primaryKeys: relatedPrimaryKeys,
+                  columns: relatedModelInfo.model.columns,
                   reuse,
                   depth: depth + 1,
                 });
@@ -270,6 +271,7 @@ export class DataV3Service {
               record: value,
               primaryKey: relatedPrimaryKey,
               primaryKeys: relatedPrimaryKeys,
+              columns: relatedModelInfo.model.columns,
               reuse,
               depth: depth + 1,
             });

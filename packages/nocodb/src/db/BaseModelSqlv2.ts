@@ -484,7 +484,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       pks?: string;
       customConditions?: Filter[];
       apiVersion?: NcApiVersion;
-      linksAsLtar?: boolean;
+      linksAsLtar?: boolean | string;
     } = {},
     options: {
       ignoreViewFilterAndSort?: boolean;
@@ -511,7 +511,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
 
     const qb = this.dbDriver(this.tnPath);
 
-    const linksAsLtar = !!args.linksAsLtar;
+    const linksAsLtar =
+      args.linksAsLtar === true || args.linksAsLtar === 'true';
 
     await this.selectObject({
       qb,
@@ -1282,6 +1283,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       ids: any[];
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
@@ -1297,6 +1299,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       parentId: any;
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
     selectAllRecords = false,
@@ -1324,6 +1327,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       id: any;
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldSet?: Set<string> } = {},
   ) {
@@ -1343,6 +1347,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       parentIds: any[];
       apiVersion?: NcApiVersion;
       nested?: boolean;
+      linksAsLtar?: boolean;
     },
     args: { limit?; offset?; fieldsSet?: Set<string> } = {},
   ) {
@@ -1641,6 +1646,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                           colId: column.id,
                           ids,
                           apiVersion,
+                          linksAsLtar,
                         },
                         (listLoader as any).args,
                       );
@@ -1655,6 +1661,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                             id: ids[0],
                             apiVersion,
                             nested: true,
+                            linksAsLtar,
                           },
                           (listLoader as any).args,
                         ),
@@ -1687,6 +1694,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                           colId: column.id,
                           apiVersion,
                           nested: true,
+                          linksAsLtar,
                         },
                         (listLoader as any).args,
                       );
@@ -1700,6 +1708,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
                             colId: column.id,
                             apiVersion,
                             nested: true,
+                            linksAsLtar,
                           },
                           (listLoader as any).args,
                         ),
@@ -2846,12 +2855,20 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   }) {
     const { pks, chunkSize = 1000 } = args;
 
+    const linksAsLtar =
+      args.args?.linksAsLtar === true || args.args?.linksAsLtar === 'true';
+
     const data = [];
 
     const chunkedPks = chunkArray(pks, chunkSize);
 
+    const { ast } = await getAst(this.context, {
+      model: this.model,
+      query: args.args || {},
+    });
+
     for (const chunk of chunkedPks) {
-      const chunkData = await this.list(
+      let chunkData = await this.list(
         {
           pks: chunk.join(','),
           apiVersion: args.apiVersion,
@@ -2862,7 +2879,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           ignoreViewFilterAndSort: true,
         },
       );
-
+      chunkData = await nocoExecute(ast, chunkData, {}, args.args || {});
       data.push(...chunkData);
     }
 

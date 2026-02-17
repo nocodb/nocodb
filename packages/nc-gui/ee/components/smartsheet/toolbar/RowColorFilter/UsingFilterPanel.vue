@@ -281,8 +281,7 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                     <NcSelect
                       v-if="!isCalendarView"
                       :value="rowColorConfig.type || 'row'"
-                      class="!w-24"
-                      size="small"
+                      class="!w-24 nc-row-color-type-select"
                       :disabled="readOnlyFilter"
                       :dropdown-match-select-width="false"
                       option-label-prop="label"
@@ -334,12 +333,11 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                     </NcSelect>
                     <NcSelect
                       v-if="!isCalendarView && rowColorConfig.type === 'cell'"
-                      :value="rowColorConfig.fk_target_column_id || ''"
-                      class="nc-cell-color-field-select !w-32"
-                      size="small"
+                      :value="rowColorConfig.fk_target_column_id ?? undefined"
+                      class="nc-cell-color-field-select !w-38"
                       show-search
-                      :filter-option="(input, option) => option.label?.toLowerCase().includes(input.toLowerCase())"
-                      :placeholder="$t('objects.field')"
+                      :filter-option="(input, option) => antSelectFilterOption(input, option, ['label'])"
+                      :placeholder="`-${$t('placeholder.selectField')}-`"
                       :disabled="readOnlyFilter"
                       dropdown-class-name="nc-cell-color-field-dropdown"
                       @change="updateColor(i, 'fk_target_column_id', $event)"
@@ -351,8 +349,8 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                         :label="column.title"
                         class="flex items-center"
                       >
-                        <div class="w-full flex gap-2 items-center">
-                          <SmartsheetHeaderIcon :column="column" class="!mx-0" color="text-nc-content-gray-muted" />
+                        <div class="w-full flex gap-1.5 items-center">
+                          <SmartsheetHeaderIcon :column="column" class="!mx-0 !h-3.5 !w-3.5" color="text-nc-content-gray-muted" />
                           <NcTooltip class="flex min-w-0 flex-1 truncate" show-on-truncate-only>
                             <template #title>
                               {{ column.title }}
@@ -448,6 +446,22 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
 .nc-cell-color-field-dropdown {
   .ant-select-item {
     @apply !text-[13px];
+  }
+}
+
+.nc-row-color-type-select,
+.nc-cell-color-field-select {
+  .ant-select-selector,
+  .ant-select-selection-search {
+    @apply flex items-center;
+  }
+
+  .ant-select-selector {
+    @apply !rounded-lg !text-body;
+
+    input {
+      @apply !text-body;
+    }
   }
 }
 </style>

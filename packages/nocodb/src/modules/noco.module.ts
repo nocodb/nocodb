@@ -122,12 +122,14 @@ import { ScimUsersService } from '~/ee/services/scim/scim-users.service';
 import { ScimGroupsService } from '~/ee/services/scim/scim-groups.service';
 import { ScimSchemasService } from '~/ee/services/scim/scim-schemas.service';
 import { ScimServiceProviderConfigService } from '~/ee/services/scim/scim-service-provider-config.service';
+import { ScimResourceTypesService } from '~/ee/services/scim/scim-resource-types.service';
 import { ScimBearerStrategy } from '~/ee/strategies/scim-bearer.strategy';
 import { ScimConfigController } from '~/ee/controllers/v3/scim-config-v3.controller';
 import { ScimUsersController } from '~/ee/controllers/v3/scim-users-v3.controller';
 import { ScimGroupsController } from '~/ee/controllers/v3/scim-groups-v3.controller';
 import { ScimSchemasController } from '~/ee/controllers/v3/scim-schemas-v3.controller';
 import { ScimServiceProviderConfigController } from '~/ee/controllers/v3/scim-service-provider-config-v3.controller';
+import { ScimResourceTypesController } from '~/ee/controllers/v3/scim-resource-types-v3.controller';
 
 /* Datas */
 import { BulkDataAliasController } from '~/controllers/bulk-data-alias.controller';
@@ -263,6 +265,7 @@ export const nocoModuleMetadata = {
           ScimGroupsController,
           ScimSchemasController,
           ScimServiceProviderConfigController,
+          ScimResourceTypesController,
 
           /* Datas */
           DataTableController,
@@ -357,6 +360,7 @@ export const nocoModuleMetadata = {
     ScimGroupsService,
     ScimSchemasService,
     ScimServiceProviderConfigService,
+    ScimResourceTypesService,
     ScimBearerStrategy,
 
     /* Datas */

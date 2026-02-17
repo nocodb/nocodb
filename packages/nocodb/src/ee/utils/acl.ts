@@ -415,6 +415,16 @@ const permissionScopes = {
     'recordTemplateUpdate',
     'recordTemplateDelete',
     'recordTemplateUse',
+
+    // RLS (Row-Level Security) — owner only
+    'rlsPolicyList',
+    'rlsPolicyGet',
+    'rlsPolicyCreate',
+    'rlsPolicyUpdate',
+    'rlsPolicyDelete',
+    'rlsPolicySetSubjects',
+    'rlsPolicyFilterList',
+    'rlsPolicyFilterCreate',
   ],
 };
 
@@ -758,6 +768,14 @@ const rolePermissions:
       createBase: true,
       manageSnapshots: true,
       baseAuditList: true,
+      rlsPolicyList: true,
+      rlsPolicyGet: true,
+      rlsPolicyCreate: true,
+      rlsPolicyUpdate: true,
+      rlsPolicyDelete: true,
+      rlsPolicySetSubjects: true,
+      rlsPolicyFilterList: true,
+      rlsPolicyFilterCreate: true,
     },
   },
   [ProjectRoles.OWNER]: {

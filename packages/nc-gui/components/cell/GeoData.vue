@@ -87,9 +87,11 @@ function initMap() {
   const map = L.map(mapContainerRef.value, {
     center,
     zoom,
-    zoomControl: true,
+    zoomControl: false,
     attributionControl: true,
   })
+
+  L.control.zoom({ position: 'bottomleft' }).addTo(map)
 
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
@@ -506,7 +508,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div tabindex="0" class="focus-visible:outline-none" @paste="handlePaste" @keydown="handleKeyDown">
-    <NcDropdown v-model:visible="isExpanded" :disabled="readonly" overlay-class-name="!min-w-[28rem]">
+    <NcDropdown v-model:visible="isExpanded" :disabled="readonly" overlay-class-name="nc-geodata-overlay-dropdown">
       <div
         v-if="!isLocationSet"
         :class="{
@@ -578,144 +580,173 @@ onBeforeUnmount(() => {
         </template>
       </div>
       <template #overlay>
-        <div class="flex rounded-md nc-geodata-picker-overlay py-3" @click.stop @paste="handlePaste">
-          <a-form layout="vertical" :model="formState" class="flex flex-col" @finish="handleFinish">
-            <a-row class="flex gap-3 px-3">
-              <a-form-item
-                :label="$t('labels.latitude')"
-                :validate-status="isLatitudeInvalid ? 'error' : ''"
-                :help="isLatitudeInvalid ? t('msg.error.latitudeRange') : ''"
-              >
-                <a-input
-                  :id="identifier.latitude"
-                  v-model:value="formState.latitude"
-                  data-testid="nc-geo-data-latitude"
-                  type="number"
-                  step="0.0000000001"
-                  class="nc-input-shadow !w-50"
-                  :min="-90"
-                  :disabled="readonly"
-                  required
-                  :max="90"
-                  @blur="handleBlur"
-                  @keydown.stop
-                  @selectstart.capture.stop
-                  @mousedown.stop
-                />
-              </a-form-item>
-
-              <a-form-item
-                :label="$t('labels.longitude')"
-                :validate-status="isLongitudeInvalid ? 'error' : ''"
-                :help="isLongitudeInvalid ? t('msg.error.longitudeRange') : ''"
-              >
-                <a-input
-                  :id="identifier.longitude"
-                  v-model:value="formState.longitude"
-                  class="nc-input-shadow !w-50"
-                  data-testid="nc-geo-data-longitude"
-                  type="number"
-                  step="0.0000000001"
-                  required
-                  :min="-180"
-                  :disabled="readonly"
-                  :max="180"
-                  @blur="handleBlur"
-                  @keydown.stop
-                  @selectstart.capture.stop
-                  @mousedown.stop
-                />
-              </a-form-item>
-            </a-row>
-
-            <!-- Location search bar -->
-            <div v-if="!readonly" class="nc-geodata-search-wrapper px-3 mb-2">
-              <div class="nc-geodata-search-container">
-                <div class="nc-geodata-search-input-row">
-                  <GeneralIcon icon="search" class="nc-geodata-search-icon" />
-                  <input
-                    ref="searchInputRef"
-                    v-model="searchQuery"
-                    data-testid="nc-geo-data-search"
-                    type="text"
-                    class="nc-geodata-search-input"
-                    :placeholder="$t('labels.searchForPlace')"
-                    role="combobox"
-                    :aria-expanded="showSearchResults"
-                    aria-autocomplete="list"
-                    aria-controls="nc-geo-search-results"
-                    @keydown="onSearchKeydown"
-                    @blur="onSearchBlur"
+        <div class="nc-geodata-picker-overlay" @click.stop @paste="handlePaste">
+          <a-form :model="formState" class="nc-geodata-form" @finish="handleFinish">
+            <!-- Modal content area -->
+            <div class="nc-geodata-content">
+              <!-- Coordinates section -->
+              <div class="nc-geodata-section-label">{{ $t('labels.coordinates') }}</div>
+              <div class="nc-geodata-coordinates-grid">
+                <div class="nc-geodata-input-group">
+                  <label :for="identifier.latitude" class="nc-geodata-input-label">{{ $t('labels.latitude') }}</label>
+                  <a-input
+                    :id="identifier.latitude"
+                    v-model:value="formState.latitude"
+                    data-testid="nc-geo-data-latitude"
+                    type="number"
+                    step="0.0000000001"
+                    class="nc-geodata-input-field"
+                    :placeholder="t('labels.enterLatitude')"
+                    :min="-90"
+                    :disabled="readonly"
+                    required
+                    :max="90"
+                    :status="isLatitudeInvalid ? 'error' : ''"
+                    @blur="handleBlur"
                     @keydown.stop
+                    @selectstart.capture.stop
                     @mousedown.stop
                   />
-                  <GeneralIcon
-                    v-if="isSearching"
-                    icon="loading"
-                    class="nc-geodata-search-spinner animate-spin"
-                  />
+                  <span v-if="isLatitudeInvalid" class="nc-geodata-error-text">{{ t('msg.error.latitudeRange') }}</span>
                 </div>
-                <div v-if="showSearchResults" id="nc-geo-search-results" role="listbox" class="nc-geodata-search-results">
-                  <div
-                    v-for="result in searchResults"
-                    :key="result.place_id"
-                    role="option"
-                    class="nc-geodata-search-result-item"
-                    @mousedown.prevent="selectSearchResult(result)"
-                  >
-                    <GeneralIcon icon="ncMapPin" class="nc-geodata-result-icon" />
-                    <span class="nc-geodata-result-text">{{ result.display_name }}</span>
+
+                <div class="nc-geodata-input-group">
+                  <label :for="identifier.longitude" class="nc-geodata-input-label">{{ $t('labels.longitude') }}</label>
+                  <a-input
+                    :id="identifier.longitude"
+                    v-model:value="formState.longitude"
+                    data-testid="nc-geo-data-longitude"
+                    type="number"
+                    step="0.0000000001"
+                    class="nc-geodata-input-field"
+                    :placeholder="t('labels.enterLongitude')"
+                    required
+                    :min="-180"
+                    :disabled="readonly"
+                    :max="180"
+                    :status="isLongitudeInvalid ? 'error' : ''"
+                    @blur="handleBlur"
+                    @keydown.stop
+                    @selectstart.capture.stop
+                    @mousedown.stop
+                  />
+                  <span v-if="isLongitudeInvalid" class="nc-geodata-error-text">{{ t('msg.error.longitudeRange') }}</span>
+                </div>
+              </div>
+
+              <!-- Map with integrated search & controls -->
+              <div class="nc-geodata-map-wrapper">
+                <div
+                  ref="mapContainerRef"
+                  data-testid="nc-geo-data-map-picker"
+                  class="nc-geodata-map-picker"
+                  role="application"
+                  :aria-label="$t('labels.mapPicker')"
+                />
+
+                <!-- Search overlay on map -->
+                <div v-if="!readonly" class="nc-geodata-map-search">
+                  <div class="nc-geodata-search-input-row">
+                    <GeneralIcon icon="search" class="nc-geodata-search-icon" />
+                    <input
+                      ref="searchInputRef"
+                      v-model="searchQuery"
+                      data-testid="nc-geo-data-search"
+                      type="text"
+                      class="nc-geodata-search-input"
+                      :placeholder="$t('labels.searchForPlace')"
+                      role="combobox"
+                      :aria-expanded="showSearchResults"
+                      aria-autocomplete="list"
+                      aria-controls="nc-geo-search-results"
+                      @keydown="onSearchKeydown"
+                      @blur="onSearchBlur"
+                      @keydown.stop
+                      @mousedown.stop
+                    />
+                    <GeneralIcon
+                      v-if="isSearching"
+                      icon="loading"
+                      class="nc-geodata-search-spinner animate-spin"
+                    />
+                  </div>
+                  <div v-if="showSearchResults" id="nc-geo-search-results" role="listbox" class="nc-geodata-search-results">
+                    <div
+                      v-for="result in searchResults"
+                      :key="result.place_id"
+                      role="option"
+                      class="nc-geodata-search-result-item"
+                      @mousedown.prevent="selectSearchResult(result)"
+                    >
+                      <GeneralIcon icon="ncMapPin" class="nc-geodata-result-icon" />
+                      <span class="nc-geodata-result-text">{{ result.display_name }}</span>
+                    </div>
                   </div>
                 </div>
+
+                <!-- Current location button -->
+                <div v-if="!readonly" class="nc-geodata-locate-wrapper">
+                  <NcTooltip placement="bottom">
+                    <template #title>{{ $t('labels.currentLocation') }}</template>
+                    <button
+                      class="nc-geodata-locate-btn"
+                      :class="{ 'nc-geodata-locate-btn--loading': isLoading }"
+                      :disabled="isLoading"
+                      :aria-label="$t('labels.currentLocation')"
+                      type="button"
+                      @click.stop.prevent="onClickSetCurrentLocation"
+                    >
+                      <GeneralIcon v-if="!isLoading" icon="currentLocation" class="h-4 w-4" />
+                      <GeneralIcon v-else icon="loading" class="h-4 w-4 animate-spin" />
+                    </button>
+                  </NcTooltip>
+                </div>
+              </div>
+
+              <!-- Info hint -->
+              <div v-if="!readonly" class="nc-geodata-info-hint">
+                <GeneralIcon icon="info" class="h-3.5 w-3.5 flex-shrink-0" />
+                <span>{{ $t('labels.clickMapToSetLocation') }}</span>
               </div>
             </div>
 
-            <!-- Interactive map picker -->
-            <div
-              ref="mapContainerRef"
-              data-testid="nc-geo-data-map-picker"
-              class="nc-geodata-map-picker"
-              role="application"
-              :aria-label="$t('labels.mapPicker')"
-            />
+            <!-- Footer -->
+            <div class="nc-geodata-footer">
+              <div class="nc-geodata-footer-left">
+                <template v-if="vModel">
+                  <NcTooltip>
+                    <template #title>
+                      <div class="flex items-center gap-1">
+                        {{ $t('activity.map.googleMaps') }}
+                        <GeneralIcon icon="ncExternalLink" class="h-3 w-3" />
+                      </div>
+                    </template>
+                    <NcButton type="secondary" size="small" class="!px-2" @click="openInGoogleMaps">
+                      <GeneralIcon icon="ncLogoGoogleMapColored" class="h-4 w-4" />
+                    </NcButton>
+                  </NcTooltip>
 
-            <NcDivider />
-
-            <div class="flex px-3 mt-2 flex-col gap-2">
-              <div class="flex">
-                <div class="flex gap-2">
-                  <NcButton size="small" type="secondary" :loading="isLoading" :disabled="isLoading" @click="onClickSetCurrentLocation">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon v-if="!isLoading" icon="currentLocation" class="h-4 w-4" />
-                      {{ $t('labels.currentLocation') }}
-                    </div>
-                  </NcButton>
-                </div>
-                <div class="flex-1" />
-                <div v-if="vModel" class="flex gap-2">
-                  <NcButton type="secondary" size="small" @click="openInGoogleMaps">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon icon="ncLogoGoogleMapColored" />
-                      {{ $t('activity.map.googleMaps') }}
-                    </div>
-                  </NcButton>
-
-                  <NcButton type="secondary" size="small" @click="openInOSM">
-                    <div class="flex items-center gap-2">
-                      <GeneralIcon class="w-4 h-4" icon="ncLogoOpenStreetMapColored" />
-                      {{ $t('activity.map.osm') }}
-                    </div>
-                  </NcButton>
-                </div>
+                  <NcTooltip>
+                    <template #title>
+                      <div class="flex items-center gap-1">
+                        {{ $t('activity.map.osm') }}
+                        <GeneralIcon icon="ncExternalLink" class="h-3 w-3" />
+                      </div>
+                    </template>
+                    <NcButton type="secondary" size="small" class="!px-2" @click="openInOSM">
+                      <GeneralIcon icon="ncLogoOpenStreetMapColored" class="h-4 w-4" />
+                    </NcButton>
+                  </NcTooltip>
+                </template>
               </div>
 
-              <div class="flex gap-3 justify-end">
+              <div class="nc-geodata-footer-right">
                 <NcButton type="secondary" size="small" @click="clear">
                   {{ $t('general.cancel') }}
                 </NcButton>
 
                 <NcButton html-type="submit" size="small" data-testid="nc-geo-data-save">
-                  {{ $t('general.submit') }}
+                  {{ $t('general.save') }}
                 </NcButton>
               </div>
             </div>
@@ -727,21 +758,6 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped lang="scss">
-input[type='number']:focus {
-  @apply ring-transparent shadow-selected;
-}
-input[type='number'] {
-  @apply !border-1 !pr-1 rounded-lg;
-}
-
-.ant-form-item {
-  margin-bottom: 1rem;
-}
-
-:deep(.ant-form-item-label > label) {
-  @apply !text-small !leading-[18px] mb-2 text-nc-content-gray flex;
-}
-
 /* Selectable coordinate text in expanded form */
 .nc-geodata-selectable-text {
   user-select: text;
@@ -754,11 +770,7 @@ input[type='number'] {
 }
 
 .nc-geodata-action-icons {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-left: 8px;
-  flex-shrink: 0;
+  @apply flex items-center gap-2 ml-2 flex-shrink-0;
 }
 
 .nc-geodata-action-icon {
@@ -770,23 +782,70 @@ input[type='number'] {
   }
 }
 
-/* Location search bar */
-.nc-geodata-search-wrapper {
-  position: relative;
+/* Overlay modal structure */
+.nc-geodata-picker-overlay {
+  @apply bg-nc-bg-default rounded-xl overflow-hidden flex flex-col;
+  width: 540px;
+  max-width: 95vw;
+  max-height: 85vh;
 }
 
-.nc-geodata-search-container {
-  position: relative;
+.nc-geodata-form {
+  @apply flex flex-col h-full;
+}
+
+.nc-geodata-content {
+  @apply flex flex-col gap-4 px-5 py-4 overflow-y-auto;
+  flex: 1;
+}
+
+.nc-geodata-section-label {
+  @apply text-nc-content-gray-subtle text-xs font-semibold uppercase tracking-wide mb-1;
+}
+
+/* Two-column coordinates grid */
+.nc-geodata-coordinates-grid {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.nc-geodata-input-group {
+  @apply flex flex-col gap-1.5;
+}
+
+.nc-geodata-input-label {
+  @apply text-nc-content-gray text-small font-medium;
+}
+
+.nc-geodata-input-field {
+  @apply !rounded-lg;
+}
+
+:deep(.nc-geodata-input-field input) {
+  @apply !text-sm;
+}
+
+.nc-geodata-error-text {
+  @apply text-nc-content-red-dark text-xs;
+}
+
+/* Search overlay on map */
+.nc-geodata-map-search {
+  @apply absolute;
+  top: 12px;
+  left: 12px;
+  right: 56px; /* leave room for the locate button + gap */
+  z-index: 1000;
 }
 
 .nc-geodata-search-input-row {
-  @apply flex items-center border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-default;
-  padding: 0 10px;
+  @apply flex items-center rounded-lg bg-nc-bg-default;
+  padding: 0 12px;
   height: 36px;
-  transition: border-color 0.2s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 0.2s;
 
   &:focus-within {
-    @apply border-nc-border-brand shadow-selected;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
   }
 }
 
@@ -809,10 +868,11 @@ input[type='number'] {
 }
 
 .nc-geodata-search-results {
-  @apply absolute top-full left-0 right-0 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg shadow-lg z-10;
+  @apply bg-nc-bg-default rounded-lg;
   margin-top: 4px;
-  max-height: 200px;
+  max-height: 180px;
   overflow-y: auto;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .nc-geodata-search-result-item {
@@ -849,18 +909,54 @@ input[type='number'] {
   -webkit-box-orient: vertical;
 }
 
+/* Map wrapper (relative container for overlay controls) */
+.nc-geodata-map-wrapper {
+  @apply relative;
+}
+
 /* Interactive map picker */
 .nc-geodata-map-picker {
-  @apply border-1 border-nc-border-gray-medium rounded-lg overflow-hidden;
-  height: 250px;
-  width: calc(100% - 24px);
-  margin: 0 12px 8px 12px;
+  @apply border-1 border-nc-border-gray-medium rounded-xl overflow-hidden;
+  height: 300px;
   z-index: 0;
+}
+
+/* Wrapper positions the locate button absolutely on the map */
+.nc-geodata-locate-wrapper {
+  @apply absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+}
+
+/* Current-location icon button on map — aligned with search bar */
+.nc-geodata-locate-btn {
+  @apply flex items-center justify-center bg-nc-bg-default rounded-lg cursor-pointer border-none;
+  width: 36px;
+  height: 36px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+  transition: background 0.15s;
+  color: var(--nc-content-gray-subtle);
+
+  &:hover:not(:disabled) {
+    @apply bg-nc-bg-gray-light border-nc-border-gray-dark;
+    color: var(--nc-content-gray);
+  }
+
+  &:disabled {
+    @apply cursor-wait opacity-70;
+  }
+
+  &--loading {
+    color: var(--nc-content-brand);
+  }
 }
 
 :deep(.nc-geodata-map-picker .leaflet-control-zoom) {
   border: none;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 
   a {
     text-decoration: none !important;
@@ -869,5 +965,34 @@ input[type='number'] {
 
 :deep(.nc-geodata-map-picker .leaflet-control-attribution) {
   @apply text-[10px] bg-nc-bg-default/80;
+}
+
+/* Info hint below map */
+.nc-geodata-info-hint {
+  @apply flex items-center gap-1.5 text-nc-content-gray-muted text-xs -mt-2;
+}
+
+/* Footer */
+.nc-geodata-footer {
+  @apply flex items-center justify-between gap-3 px-5 py-3 border-t-1 border-nc-border-gray-medium bg-nc-bg-gray-extralight;
+}
+
+.nc-geodata-footer-left {
+  @apply flex gap-2;
+}
+
+.nc-geodata-footer-right {
+  @apply flex gap-2;
+}
+</style>
+
+<style lang="scss">
+.nc-geodata-overlay-dropdown {
+  min-width: 540px !important;
+  max-width: 95vw !important;
+
+  .ant-dropdown-content {
+    @apply !p-0;
+  }
 }
 </style>

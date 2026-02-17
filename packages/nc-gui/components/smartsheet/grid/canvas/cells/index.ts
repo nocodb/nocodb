@@ -75,7 +75,7 @@ export function useGridCellHandler(params: {
 
   const { isColumnSortedOrFiltered, appearanceConfig: filteredOrSortedAppearanceConfig } = useColumnFilteredOrSorted()
 
-  const { isRowColouringEnabled, getEvaluatedCellColorInfo } = useViewRowColorRender()
+  const { isRowColouringEnabled, isCellColouringEnabled, getEvaluatedCellColorInfo } = useViewRowColorRender()
 
   const { getColor, isDark } = useTheme()
 
@@ -223,7 +223,7 @@ export function useGridCellHandler(params: {
         })
       } else if (!rowMeta?.isValidationFailed && isRootCell) {
         // First check for cell-specific coloring
-        const cellColorInfo = isRowColouringEnabled.value ? getEvaluatedCellColorInfo(row, column.id) : null
+        const cellColorInfo = isCellColouringEnabled.value ? getEvaluatedCellColorInfo(row, column.id) : null
 
         let backgroundColorToRender: string | null = null
         let hoverColorToRender: string | null = null

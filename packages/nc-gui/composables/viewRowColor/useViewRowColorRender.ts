@@ -5,6 +5,10 @@ export function useViewRowColorRender() {
     return activeViewRowColorInfo.value && !!activeViewRowColorInfo.value?.mode
   })
 
+  const isCellColouringEnabled = computed(() => {
+    return isRowColouringEnabled.value
+  })
+
   const evaluateRowColor = (_row: any) => {
     return null
   }
@@ -51,6 +55,7 @@ export function useViewRowColorRender() {
     rowColorInfo: activeViewRowColorInfo,
     evaluateRowColor,
     isRowColouringEnabled,
+    isCellColouringEnabled,
     getEvaluatedRowMetaRowColorInfo,
     getEvaluatedCellColorInfo,
     getCellColorStyle,

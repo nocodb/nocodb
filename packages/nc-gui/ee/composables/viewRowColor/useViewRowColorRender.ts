@@ -6,7 +6,7 @@ export function useViewRowColorRender() {
 
   const { getBaseType } = useBase()
 
-  const { blockRowColoring } = useEeConfig()
+  const { blockRowColoring, blockCellColoring } = useEeConfig()
 
   const { user } = useGlobal()
 
@@ -18,6 +18,10 @@ export function useViewRowColorRender() {
 
   const isRowColouringEnabled = computed(() => {
     return !blockRowColoring.value && activeViewRowColorInfo.value && !!activeViewRowColorInfo.value?.mode
+  })
+
+  const isCellColouringEnabled = computed(() => {
+    return !blockCellColoring.value && isRowColouringEnabled.value
   })
 
   /**
@@ -188,20 +192,28 @@ export function useViewRowColorRender() {
   }
 
   const getCellColorStyle = (row: any, columnId: string) => {
-    if (!isRowColouringEnabled.value || !columnId) return {}
+    if (!isCellColouringEnabled.value || !columnId) return {}
+
     const cellColorInfo = getEvaluatedCellColorInfo(row, columnId)
+
     if (!cellColorInfo) return {}
+
     const style: Record<string, string> = {}
+
     if (cellColorInfo.cellBgColor) {
       style.backgroundColor = cellColorInfo.cellBgColor
     }
+
     return style
   }
 
   const getCellLeftBorderStyle = (row: any, columnId: string) => {
-    if (!isRowColouringEnabled.value || !columnId) return null
+    if (!isCellColouringEnabled.value || !columnId) return null
+
     const cellColorInfo = getEvaluatedCellColorInfo(row, columnId)
+
     if (!cellColorInfo || cellColorInfo.is_set_as_background || !cellColorInfo.cellLeftBorderColor) return null
+
     return { backgroundColor: cellColorInfo.cellLeftBorderColor }
   }
 
@@ -209,6 +221,7 @@ export function useViewRowColorRender() {
     rowColorInfo: activeViewRowColorInfo,
     evaluateRowColor,
     isRowColouringEnabled,
+    isCellColouringEnabled,
     getEvaluatedRowMetaRowColorInfo,
     getEvaluatedCellColorInfo,
     getCellColorStyle,

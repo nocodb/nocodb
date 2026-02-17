@@ -203,13 +203,12 @@ jobs:
             echo "playwright reports directory does not exist" | aws s3 cp - s3://nocohub-ci-artifacts/${s3_path}/playwright-report/index.html
           fi
 
-          # Upload backend logs if they exist
-          if [ -f "./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log" ]; then
-            aws s3 cp ./packages/nocodb/${{ inputs.db }}_${{ inputs.shard }}_test_backend.log s3://nocohub-ci-artifacts/${s3_path}/
-          else
-            echo "backend logs file does not exist" | aws s3 cp - s3://nocohub-ci-artifacts/${s3_path}/index.html
+          # Upload backend logs if they exist (as text/plain so they render in browser)
+          LOG_FILE="${{ inputs.db }}_${{ inputs.shard }}_test_backend.log"
+          if [ -f "./packages/nocodb/${LOG_FILE}" ]; then
+            aws s3 cp ./packages/nocodb/${LOG_FILE} s3://nocohub-ci-artifacts/${s3_path}/${LOG_FILE} --content-type "text/plain; charset=utf-8"
           fi
 
-          SUMMARY="[Artifacts](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/)
+          SUMMARY="[backend-logs](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/${LOG_FILE})
           [playwright-report](https://nocohub-ci-artifacts.s3.us-east-2.amazonaws.com/${s3_path}/playwright-report/index.html)"
           echo "$SUMMARY" >> $GITHUB_STEP_SUMMARY

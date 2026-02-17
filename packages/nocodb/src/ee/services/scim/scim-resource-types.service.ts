@@ -11,7 +11,7 @@ export class ScimResourceTypesService {
    * Describes the types of resources available (User, Group)
    */
   async getResourceTypes() {
-    return [
+    const resources = [
       {
         schemas: ['urn:ietf:params:scim:schemas:core:2.0:ResourceType'],
         id: 'User',
@@ -44,5 +44,11 @@ export class ScimResourceTypesService {
         },
       },
     ];
+
+    return {
+      schemas: ['urn:ietf:params:scim:api:messages:2.0:ListResponse'],
+      totalResults: resources.length,
+      Resources: resources,
+    };
   }
 }

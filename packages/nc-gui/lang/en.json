@@ -1650,6 +1650,9 @@
     "qrCodeValueTooLong": "Too many characters for a QR code",
     "barcodeValueTooLong": "Too many characters for a barcode",
     "currentLocation": "Set to current location",
+    "setLocation": "Set location",
+    "searchForPlace": "Search for a place...",
+    "mapPicker": "Interactive map for selecting location",
     "lng": "Lng",
     "lat": "Lat",
     "aggregateFunction": "Aggregate function",
@@ -2854,6 +2857,8 @@
       "workspaceTeamRoleUpdateNotice": "Changing a team’s workspace role will also update its access to bases where it doesn’t have an explicit role."
     },
     "error": {
+      "latitudeRange": "Latitude must be between -90 and 90",
+      "longitudeRange": "Longitude must be between -180 and 180",
       "passwordChangeFailed": "Failed to change password",
       "invalidPasswordFormat": "Invalid password format",
       "tooManyAttempts": "Too many attempts. Please try again later",

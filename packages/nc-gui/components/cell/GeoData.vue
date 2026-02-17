@@ -249,9 +249,11 @@ const isLocationSet = computed(() => {
 
 const [latitude, longitude] = (vModel.value || '').split(';')
 
+const { t } = useI18n()
+
 const latLongStr = computed(() => {
   const [latitude, longitude] = (vModel.value || '').split(';')
-  return latitude && longitude ? `${latitude}; ${longitude}` : 'Set location'
+  return latitude && longitude ? `${latitude}; ${longitude}` : t('labels.setLocation')
 })
 
 const formState = reactive({
@@ -259,7 +261,20 @@ const formState = reactive({
   longitude,
 })
 
+const isLatitudeInvalid = computed(() => {
+  if (!formState.latitude) return false
+  const lat = parseFloat(formState.latitude)
+  return isNaN(lat) || lat < -90 || lat > 90
+})
+
+const isLongitudeInvalid = computed(() => {
+  if (!formState.longitude) return false
+  const lng = parseFloat(formState.longitude)
+  return isNaN(lng) || lng < -180 || lng > 180
+})
+
 const handleFinish = () => {
+  if (isLatitudeInvalid.value || isLongitudeInvalid.value) return
   vModel.value = latLongToJoinedString(parseFloat(formState.latitude), parseFloat(formState.longitude))
   isExpanded.value = false
 }
@@ -419,7 +434,7 @@ const isCopied = ref(false)
 const copyCoordinates = (e: Event) => {
   e.stopPropagation()
   const text = latLongStr.value
-  if (text && text !== 'Set location') {
+  if (text && text !== t('labels.setLocation')) {
     navigator.clipboard.writeText(text).then(() => {
       isCopied.value = true
       if (copyTooltipTimer) clearTimeout(copyTooltipTimer)
@@ -531,20 +546,28 @@ onBeforeUnmount(() => {
           <span class="nc-geodata-selectable-text" @click.stop>{{ latLongStr }}</span>
           <div class="nc-geodata-action-icons" @click.stop>
             <NcTooltip>
-              <template #title>{{ isCopied ? 'Copied!' : 'Copy coordinates' }}</template>
+              <template #title>{{ isCopied ? $t('general.copied') : $t('general.copy') }}</template>
               <GeneralIcon
                 :icon="isCopied ? 'check' : 'copy'"
                 class="nc-geodata-action-icon"
-                :class="{ 'text-green-600': isCopied }"
+                :class="{ '!text-green-600': isCopied }"
+                :aria-label="isCopied ? $t('general.copied') : $t('general.copy')"
+                role="button"
+                tabindex="0"
                 @click="copyCoordinates"
+                @keydown.enter="copyCoordinates"
               />
             </NcTooltip>
             <NcTooltip v-if="!readonly">
-              <template #title>Edit location</template>
+              <template #title>{{ $t('general.edit') }}</template>
               <GeneralIcon
                 icon="ncEdit"
                 class="nc-geodata-action-icon"
+                :aria-label="$t('general.edit')"
+                role="button"
+                tabindex="0"
                 @click="openEditor"
+                @keydown.enter="openEditor"
               />
             </NcTooltip>
           </div>
@@ -558,7 +581,11 @@ onBeforeUnmount(() => {
         <div class="flex rounded-md nc-geodata-picker-overlay py-3" @click.stop @paste="handlePaste">
           <a-form layout="vertical" :model="formState" class="flex flex-col" @finish="handleFinish">
             <a-row class="flex gap-3 px-3">
-              <a-form-item :label="$t('labels.latitude')">
+              <a-form-item
+                :label="$t('labels.latitude')"
+                :validate-status="isLatitudeInvalid ? 'error' : ''"
+                :help="isLatitudeInvalid ? t('msg.error.latitudeRange') : ''"
+              >
                 <a-input
                   :id="identifier.latitude"
                   v-model:value="formState.latitude"
@@ -577,7 +604,11 @@ onBeforeUnmount(() => {
                 />
               </a-form-item>
 
-              <a-form-item :label="$t('labels.longitude')">
+              <a-form-item
+                :label="$t('labels.longitude')"
+                :validate-status="isLongitudeInvalid ? 'error' : ''"
+                :help="isLongitudeInvalid ? t('msg.error.longitudeRange') : ''"
+              >
                 <a-input
                   :id="identifier.longitude"
                   v-model:value="formState.longitude"
@@ -608,7 +639,11 @@ onBeforeUnmount(() => {
                     data-testid="nc-geo-data-search"
                     type="text"
                     class="nc-geodata-search-input"
-                    placeholder="Search for a place..."
+                    :placeholder="$t('labels.searchForPlace')"
+                    role="combobox"
+                    :aria-expanded="showSearchResults"
+                    aria-autocomplete="list"
+                    aria-controls="nc-geo-search-results"
                     @keydown="onSearchKeydown"
                     @blur="onSearchBlur"
                     @keydown.stop
@@ -620,10 +655,11 @@ onBeforeUnmount(() => {
                     class="nc-geodata-search-spinner animate-spin"
                   />
                 </div>
-                <div v-if="showSearchResults" class="nc-geodata-search-results">
+                <div v-if="showSearchResults" id="nc-geo-search-results" role="listbox" class="nc-geodata-search-results">
                   <div
                     v-for="result in searchResults"
                     :key="result.place_id"
+                    role="option"
                     class="nc-geodata-search-result-item"
                     @mousedown.prevent="selectSearchResult(result)"
                   >
@@ -639,6 +675,8 @@ onBeforeUnmount(() => {
               ref="mapContainerRef"
               data-testid="nc-geo-data-map-picker"
               class="nc-geodata-map-picker"
+              role="application"
+              :aria-label="$t('labels.mapPicker')"
             />
 
             <NcDivider />
@@ -646,9 +684,9 @@ onBeforeUnmount(() => {
             <div class="flex px-3 mt-2 flex-col gap-2">
               <div class="flex">
                 <div class="flex gap-2">
-                  <NcButton size="small" type="secondary" @click="onClickSetCurrentLocation">
+                  <NcButton size="small" type="secondary" :loading="isLoading" :disabled="isLoading" @click="onClickSetCurrentLocation">
                     <div class="flex items-center gap-2">
-                      <GeneralIcon icon="currentLocation" />
+                      <GeneralIcon v-if="!isLoading" icon="currentLocation" class="h-4 w-4" />
                       {{ $t('labels.currentLocation') }}
                     </div>
                   </NcButton>
@@ -724,14 +762,11 @@ input[type='number'] {
 }
 
 .nc-geodata-action-icon {
-  width: 16px;
-  height: 16px;
-  color: #9ca3af;
-  cursor: pointer;
+  @apply w-4 h-4 text-nc-content-gray-muted cursor-pointer;
   transition: color 0.15s;
 
   &:hover {
-    color: #374151;
+    @apply text-nc-content-gray;
   }
 }
 
@@ -745,75 +780,47 @@ input[type='number'] {
 }
 
 .nc-geodata-search-input-row {
-  display: flex;
-  align-items: center;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  @apply flex items-center border-1 border-nc-border-gray-medium rounded-lg bg-nc-bg-default;
   padding: 0 10px;
   height: 36px;
-  background: #fff;
   transition: border-color 0.2s;
 
   &:focus-within {
-    border-color: #3366ff;
-    box-shadow: 0 0 0 2px rgba(51, 102, 255, 0.1);
+    @apply border-nc-border-brand shadow-selected;
   }
 }
 
 .nc-geodata-search-icon {
-  color: #9ca3af;
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
+  @apply text-nc-content-gray-muted w-4 h-4 flex-shrink-0;
 }
 
 .nc-geodata-search-spinner {
-  color: #9ca3af;
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
+  @apply text-nc-content-gray-muted w-3.5 h-3.5 flex-shrink-0;
 }
 
 .nc-geodata-search-input {
-  flex: 1;
-  border: none;
-  outline: none;
+  @apply flex-1 border-none outline-none text-nc-content-gray bg-transparent min-w-0;
   font-size: 13px;
   padding: 0 8px;
-  background: transparent;
-  color: #333;
-  min-width: 0;
 
   &::placeholder {
-    color: #9ca3af;
+    @apply text-nc-content-gray-muted;
   }
 }
 
 .nc-geodata-search-results {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
+  @apply absolute top-full left-0 right-0 bg-nc-bg-default border-1 border-nc-border-gray-medium rounded-lg shadow-lg z-10;
   margin-top: 4px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 10;
   max-height: 200px;
   overflow-y: auto;
 }
 
 .nc-geodata-search-result-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 8px 12px;
-  cursor: pointer;
+  @apply flex items-start gap-2 px-3 py-2 cursor-pointer;
   transition: background 0.15s;
 
   &:hover {
-    background: #f3f4f6;
+    @apply bg-nc-bg-gray-light;
   }
 
   &:first-child {
@@ -830,17 +837,11 @@ input[type='number'] {
 }
 
 .nc-geodata-result-icon {
-  color: #6b7280;
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  margin-top: 2px;
+  @apply text-nc-content-gray-muted w-3.5 h-3.5 flex-shrink-0 mt-0.5;
 }
 
 .nc-geodata-result-text {
-  font-size: 12px;
-  color: #374151;
-  line-height: 1.4;
+  @apply text-nc-content-gray text-xs leading-[1.4];
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
@@ -850,12 +851,10 @@ input[type='number'] {
 
 /* Interactive map picker */
 .nc-geodata-map-picker {
+  @apply border-1 border-nc-border-gray-medium rounded-lg overflow-hidden;
   height: 250px;
   width: calc(100% - 24px);
   margin: 0 12px 8px 12px;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid #e5e7eb;
   z-index: 0;
 }
 
@@ -869,7 +868,6 @@ input[type='number'] {
 }
 
 :deep(.nc-geodata-map-picker .leaflet-control-attribution) {
-  font-size: 10px;
-  background: rgba(255, 255, 255, 0.8);
+  @apply text-[10px] bg-nc-bg-default/80;
 }
 </style>

@@ -188,7 +188,7 @@ onMounted(async () => {
     iconCreateFunction(cluster: { getChildCount: () => number }) {
       return L.divIcon({
         html: `${cluster.getChildCount()}`,
-        className: 'bg-pink rounded-full flex items-center justify-center geo-map-marker-cluster',
+        className: 'geo-map-marker-cluster',
         iconSize: new L.Point(40, 40),
       })
     },
@@ -292,7 +292,7 @@ const count = computed(() => paginationData.value.totalRows)
   </a-modal>
 
   <div class="flex flex-col h-full w-full no-underline" data-testid="nc-map-wrapper">
-    <div id="mapContainer" ref="mapContainerRef" class="w-full nc-h-screen">
+    <div id="mapContainer" ref="mapContainerRef" role="application" aria-label="Map view" class="w-full nc-h-screen">
       <a-tooltip placement="bottom" class="h-2 w-auto max-w-fit-content absolute top-3 right-3 p-2 z-500 cursor-default">
         <template #title>
           <span v-if="count > 1000"> {{ $t('msg.info.map.overLimit') }} </span>
@@ -300,9 +300,9 @@ const count = computed(() => paginationData.value.totalRows)
           <span> {{ $t('msg.info.map.limitNumber') }} </span>
         </template>
 
-        <div v-if="count > 900" class="nc-warning-info flex min-w-32px h-32px items-center gap-1 px-2 bg-nc-bg-default">
+        <div v-if="count > 900" role="alert" class="nc-warning-info flex min-w-32px h-32px items-center gap-1 px-2 bg-nc-bg-default rounded-md">
           <div>{{ count }} {{ $t('objects.records') }}</div>
-          <component :is="iconMap.markerAlert" />
+          <component :is="iconMap.markerAlert" aria-hidden="true" />
         </div>
       </a-tooltip>
     </div>
@@ -334,11 +334,7 @@ const count = computed(() => paginationData.value.totalRows)
 
 <style scoped lang="scss">
 :global(.geo-map-marker-cluster) {
-  background-color: pink;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @apply bg-primary text-white font-semibold text-xs rounded-full flex items-center justify-center;
 }
 </style>
 
@@ -357,7 +353,8 @@ const count = computed(() => paginationData.value.totalRows)
   padding: 0 !important;
   border-radius: 8px !important;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-  border: 1px solid #e5e7eb !important;
+  border: 1px solid var(--nc-border-gray-medium, #e5e7eb) !important;
+  background: var(--nc-bg-default, #fff) !important;
   max-width: 280px;
 }
 
@@ -375,13 +372,13 @@ const count = computed(() => paginationData.value.totalRows)
 }
 
 .nc-map-tooltip-row + .nc-map-tooltip-row {
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--nc-bg-gray-light, #f3f4f6);
   margin-top: 2px;
   padding-top: 4px;
 }
 
 .nc-map-tooltip-label {
-  color: #6b7280;
+  color: var(--nc-content-gray-muted, #6b7280);
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
@@ -393,12 +390,12 @@ const count = computed(() => paginationData.value.totalRows)
 }
 
 .nc-map-tooltip-value {
-  color: #1f2937;
+  color: var(--nc-content-gray, #1f2937);
   word-break: break-word;
 }
 
 .nc-map-tooltip-coords {
-  color: #6b7280;
+  color: var(--nc-content-gray-muted, #6b7280);
   font-family: monospace;
   font-size: 11px;
 }

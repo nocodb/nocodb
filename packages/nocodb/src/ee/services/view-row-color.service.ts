@@ -78,7 +78,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         options: (selectOptions as any).options,
         mode: ROW_COLORING_MODE.SELECT,
         is_set_as_background: meta?.rowColoringInfo?.is_set_as_background,
-        type: meta?.rowColoringInfo?.type || 'row',
+        type: 'row', // Select mode only supports row coloring
         fk_column_id: meta?.rowColoringInfo?.fk_column_id,
         selectColumn,
         fk_model_id: model.id,
@@ -164,9 +164,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       );
 
       if (!params.fk_target_column_id) {
-        NcError.get(params.context).requiredFieldMissing(
-          'fk_target_column_id',
-        );
+        NcError.get(params.context).requiredFieldMissing('fk_target_column_id');
       }
     }
 
@@ -315,9 +313,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
       );
 
       if (!params.fk_target_column_id) {
-        NcError.get(params.context).requiredFieldMissing(
-          'fk_target_column_id',
-        );
+        NcError.get(params.context).requiredFieldMissing('fk_target_column_id');
       }
     }
 

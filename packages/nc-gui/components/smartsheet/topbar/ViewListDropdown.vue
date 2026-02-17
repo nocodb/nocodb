@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { type TableType, type ViewType, PlanFeatureTypes, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { isMobileMode } = useGlobal()
 
@@ -20,6 +20,8 @@ const { navigateToView, onOpenViewCreateModal } = viewsStore
 const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { blockMapView, showUpgradeToUseMapView } = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 
@@ -259,11 +261,12 @@ async function onOpenModal({
                 <a-menu-item
                   v-if="isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
                   data-testid="topbar-view-create-map"
-                  @click="onOpenModal({ type: ViewTypes.MAP })"
+                  @click="blockMapView ? showUpgradeToUseMapView() : onOpenModal({ type: ViewTypes.MAP })"
                 >
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}
+                    <EePaymentUpgradeBadge v-if="blockMapView" :feature="PlanFeatureTypes.FEATURE_MAP_VIEW" class="ml-auto" />
                   </div>
                 </a-menu-item>
 

@@ -215,7 +215,9 @@
     "upgradeToUseRecordTemplates": "Upgrade to use record templates",
     "upgradeToUseRecordTemplatesSubtitle": "Upgrade to the {plan} plan to create and use record templates.",
     "upgradeToUseRls": "Upgrade to use Row-Level Security",
-    "upgradeToUseRlsSubtitle": "Upgrade to the {plan} plan to define row-level security policies that control which rows users can access."
+    "upgradeToUseRlsSubtitle": "Upgrade to the {plan} plan to define row-level security policies that control which rows users can access.",
+    "upgradeToUseMapView": "Upgrade to use Map View",
+    "upgradeToUseMapViewSubtitle": "Upgrade to the {plan} plan to visualize your geo data on an interactive map."
   },
   "general": {
     "none": "None",

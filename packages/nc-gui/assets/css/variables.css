@@ -435,10 +435,11 @@
   --color-view-icon-form: #7d26cd;
   --color-view-icon-calendar: #b33771;
   --color-view-icon-gallery: #fc3ac6;
-  --color-view-icon-map: blue;
+  --color-view-icon-map: #1EA47E;
   --color-view-icon-kanban: #ff9052;
   --color-view-icon-list: #27d665;
-  --color-view-icon-view: blue;
+  --color-view-icon-outline: #27d665;
+  --color-view-icon-view: #1EA47E;
 }
 
 /* Refrence tokens - Dark test */
@@ -854,10 +855,11 @@
   --color-view-icon-form: #a35bff;
   --color-view-icon-calendar: #ff5a9d;
   --color-view-icon-gallery: #ff66da;
-  --color-view-icon-map: #6ab5ff;
+  --color-view-icon-map: #36CFAA;
   --color-view-icon-kanban: #ffad70;
   --color-view-icon-list: #27d665;
-  --color-view-icon-view: #6ab5ff;
+  --color-view-icon-outline: #27d665;
+  --color-view-icon-view: #36CFAA;
 }
 
 /* System tokens */

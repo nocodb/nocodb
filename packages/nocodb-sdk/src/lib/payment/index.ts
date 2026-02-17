@@ -84,6 +84,7 @@ export enum PlanFeatureTypes {
   FEATURE_RECORD_TEMPLATES = 'feature_record_templates',
   FEATURE_RLS = 'feature_rls',
   FEATURE_VIEW_SECTIONS = 'feature_view_sections',
+  FEATURE_MAP_VIEW = 'feature_map_view',
 }
 
 export enum PlanTitles {
@@ -316,6 +317,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: 'to use record templates.',
   [PlanFeatureTypes.FEATURE_RLS]: 'to use row-level security.',
   [PlanFeatureTypes.FEATURE_VIEW_SECTIONS]: 'to organize views into sections.',
+  [PlanFeatureTypes.FEATURE_MAP_VIEW]: 'to use map view.',
 };
 
 export const getUpgradeMessage = (

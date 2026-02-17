@@ -28,9 +28,15 @@ useViewRowColorProvider({ shared: true })
   <div class="nc-container h-full mt-1.5 px-12">
     <div class="flex flex-col h-full flex-1 min-w-0">
       <LazySmartsheetToolbar show-full-screen-toggle />
-      <div class="h-full flex-1 min-w-0 min-h-0 bg-nc-bg-gray-extralight">
+      <div class="nc-shared-map-container">
         <LazySmartsheetMap />
       </div>
     </div>
   </div>
 </template>
+
+<style scoped lang="scss">
+.nc-shared-map-container {
+  @apply h-full flex-1 min-w-0 min-h-0 bg-nc-bg-gray-extralight rounded-xl overflow-hidden mb-3;
+}
+</style>

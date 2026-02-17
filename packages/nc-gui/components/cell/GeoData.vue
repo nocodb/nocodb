@@ -40,6 +40,9 @@ const DEFAULT_CENTER: [number, number] = [20, 0]
 const DEFAULT_ZOOM = 2
 const LOCATION_ZOOM = 15
 
+const OSM_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+const OSM_ATTRIBUTION = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+
 function syncToFormState(lat: number, lng: number) {
   isUpdatingFromMap.value = true
   formState.latitude = convertGeoNumberToString(lat)
@@ -93,10 +96,7 @@ function initMap() {
 
   L.control.zoom({ position: 'bottomleft' }).addTo(map)
 
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map)
+  L.tileLayer(OSM_TILE_URL, { maxZoom: 19, attribution: OSM_ATTRIBUTION }).addTo(map)
 
   if (validCoords) {
     const marker = L.marker(center, { draggable: !readonly.value }).addTo(map)
@@ -507,7 +507,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div tabindex="0" class="focus-visible:outline-none" @paste="handlePaste" @keydown="handleKeyDown">
+  <div tabindex="0" class="focus:outline-none focus-visible:outline-none" @paste="handlePaste" @keydown="handleKeyDown">
     <NcDropdown v-model:visible="isExpanded" :disabled="readonly" overlay-class-name="nc-geodata-overlay-dropdown">
       <div
         v-if="!isLocationSet"
@@ -921,6 +921,13 @@ onBeforeUnmount(() => {
   z-index: 0;
 }
 
+/* Dark mode: invert OSM tiles via CSS filter to preserve detail */
+:deep(.nc-geodata-map-picker .leaflet-tile-pane) {
+  html.dark & {
+    filter: invert(1) hue-rotate(180deg) brightness(0.95) contrast(0.9);
+  }
+}
+
 /* Wrapper positions the locate button absolutely on the map */
 .nc-geodata-locate-wrapper {
   @apply absolute;
@@ -959,12 +966,22 @@ onBeforeUnmount(() => {
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
 
   a {
+    @apply bg-nc-bg-default text-nc-content-gray;
     text-decoration: none !important;
+    border-bottom-color: var(--nc-border-gray-medium, #e5e7eb) !important;
+
+    &:hover {
+      @apply bg-nc-bg-gray-light;
+    }
   }
 }
 
 :deep(.nc-geodata-map-picker .leaflet-control-attribution) {
-  @apply text-[10px] bg-nc-bg-default/80;
+  @apply text-[10px] bg-nc-bg-default/80 text-nc-content-gray-muted;
+
+  a {
+    @apply text-nc-content-gray-muted;
+  }
 }
 
 /* Info hint below map */

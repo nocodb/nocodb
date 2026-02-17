@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type TableType, viewTypeAlias } from 'nocodb-sdk'
+import { type TableType, PlanFeatureTypes, viewTypeAlias } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 
 const props = defineProps<{
@@ -23,6 +23,8 @@ const { isListViewEnabled } = storeToRefs(viewsStore)
 const { isAiFeaturesEnabled } = useNocoAi()
 
 const { isFeatureEnabled } = useBetaFeatureToggle()
+
+const { blockMapView, showUpgradeToUseMapView } = useEeConfig()
 
 const table = inject(SidebarTableInj)!
 const base = inject(ProjectInj)!
@@ -222,7 +224,7 @@ function onCreateSection() {
         <NcMenuItem
           v-if="isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
           data-testid="sidebar-view-create-map"
-          @click="onOpenModal({ type: ViewTypes.MAP })"
+          @click="blockMapView ? showUpgradeToUseMapView() : onOpenModal({ type: ViewTypes.MAP })"
         >
           <div class="item">
             <div class="item-inner">
@@ -230,8 +232,13 @@ function onCreateSection() {
               <div>{{ $t('objects.viewType.map') }}</div>
             </div>
 
-            <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
-            <GeneralIcon v-else class="plus" icon="plus" />
+            <template v-if="blockMapView">
+              <EePaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_MAP_VIEW" />
+            </template>
+            <template v-else>
+              <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
+              <GeneralIcon v-else class="plus" icon="plus" />
+            </template>
           </div>
         </NcMenuItem>
 

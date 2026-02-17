@@ -60,7 +60,7 @@ onMounted(async () => {
       }
       tableMeta.value = meta
     } catch (e) {
-      console.error('Failed to load table columns:', e)
+      // silently handle — columns will remain empty
     }
 
     // Load base users and teams for subject selectors

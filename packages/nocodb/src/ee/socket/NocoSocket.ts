@@ -5,15 +5,24 @@ import {
   hasMinimumRoleAccess,
   type PayloadForEvent,
   ProjectRoles,
+  validateRowFilters,
   WorkspaceRolesToProjectRoles,
   WorkspaceUserRoles,
 } from 'nocodb-sdk';
 import { sendConnectionError, sendWelcomeMessage } from './genericEvents';
+import { RlsSubscriptionRegistry } from './RlsSubscriptionRegistry';
+import type { ColumnType, FilterType } from 'nocodb-sdk';
 import type { Server } from 'socket.io';
 import type { NcContext, NcSocket } from '~/interface/config';
 import type { Prettify } from '~/types/utils';
 import { verifyJwt } from '~/services/users/helpers';
-import { BaseUser, User, WorkspaceUser } from '~/models';
+import { BaseUser, Model, User, WorkspaceUser } from '~/models';
+import Filter from '~/models/Filter';
+import RlsPolicy from '~/ee/models/RlsPolicy';
+import {
+  resolveRlsDynamicValues,
+  type RlsUserContext,
+} from '~/ee/utils/rls-resolver';
 import Noco from '~/Noco';
 import { getProjectRolePower } from '~/utils/roleHelper';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
@@ -104,13 +113,169 @@ export default class NocoSocket {
         return;
       }
 
-      // Use native Socket.IO rooms
+      // RLS-aware subscription for DATA_EVENT
+      if (
+        eventType === EventType.DATA_EVENT &&
+        eventHelper.length >= 4 &&
+        baseId
+      ) {
+        const tableId = eventHelper[3];
+        if (tableId) {
+          const rlsRoom = await this.resolveRlsRoom(
+            socket,
+            event,
+            { workspace_id: workspaceId, base_id: baseId },
+            tableId,
+            userWithRole,
+          );
+          if (rlsRoom !== null) {
+            // rlsRoom handled joining — skip default join
+            return;
+          }
+          // rlsRoom === null means no RLS — fall through to default
+        }
+      }
+
+      // Use native Socket.IO rooms (default — no RLS)
       socket.join(event);
       this.logger.debug(`Socket ${socket.id} joined room ${event}`);
     } catch (error) {
       this.logger.error(`Error subscribing to event ${event}:`, error);
       sendConnectionError(socket, error, 'SUBSCRIBE_ERROR');
     }
+  }
+
+  /**
+   * Resolve RLS room for a DATA_EVENT subscription.
+   * Returns the RLS room name if RLS is active, or null if no RLS (fall through to default).
+   */
+  private static async resolveRlsRoom(
+    socket: NcSocket,
+    originalEvent: string,
+    context: { workspace_id: string; base_id: string },
+    tableId: string,
+    userWithRole: any,
+  ): Promise<string | null> {
+    const ncContext: NcContext = {
+      workspace_id: context.workspace_id,
+      base_id: context.base_id,
+    };
+
+    const hasRls = await RlsPolicy.hasEnabledPolicies(ncContext, tableId);
+    if (!hasRls) {
+      return null; // No RLS — use default room
+    }
+
+    const user = socket.user;
+
+    // Build RLS user context
+    let baseRoles = '';
+    if (userWithRole.base_roles) {
+      const roles =
+        typeof userWithRole.base_roles === 'string'
+          ? JSON.parse(userWithRole.base_roles)
+          : userWithRole.base_roles;
+      baseRoles = Object.keys(roles)
+        .filter((r) => roles[r])
+        .join(',');
+    }
+
+    const rlsUser: RlsUserContext = {
+      id: user.id,
+      email: user.email,
+      roles: baseRoles,
+    };
+
+    // Resolve which policies match this user (by subject)
+    const allPolicies = await RlsPolicy.listByModel(ncContext, tableId);
+    const enabledPolicies = allPolicies.filter((p) => p.enabled);
+    const defaultPolicy = enabledPolicies.find((p) => p.is_default);
+    const scopedPolicies = enabledPolicies.filter((p) => !p.is_default);
+
+    // Check which scoped policies match the user
+    const matchedPolicyIds: string[] = [];
+    for (const policy of scopedPolicies) {
+      if (policy.subjects?.length) {
+        for (const subject of policy.subjects) {
+          if (subject.type === 'role' && baseRoles.includes(subject.id)) {
+            matchedPolicyIds.push(policy.id);
+            break;
+          }
+          if (subject.type === 'user' && user.id === subject.id) {
+            matchedPolicyIds.push(policy.id);
+            break;
+          }
+          if (subject.type === 'team') {
+            // TODO: team matching via PrincipalAssignment if needed
+            matchedPolicyIds.push(policy.id);
+            break;
+          }
+        }
+      }
+    }
+
+    // Determine which policy IDs to load filters from
+    let policyIdsForFilters: string[];
+
+    if (matchedPolicyIds.length > 0) {
+      policyIdsForFilters = matchedPolicyIds;
+    } else if (defaultPolicy) {
+      if (defaultPolicy.default_behavior === 'deny_all') {
+        // User sees nothing — don't join any room
+        this.logger.debug(
+          `Socket ${socket.id} denied (RLS deny_all) for table ${tableId}`,
+        );
+        return '__denied__'; // Non-null to prevent default room join
+      }
+      if (defaultPolicy.default_behavior === 'condition') {
+        policyIdsForFilters = [defaultPolicy.id];
+      } else {
+        // show_all — no filter restrictions
+        policyIdsForFilters = [];
+      }
+    } else {
+      // No matching scoped policies, no default → see all
+      policyIdsForFilters = [];
+    }
+
+    // Load and resolve filters
+    const resolvedFilters: FilterType[] = [];
+    for (const policyId of policyIdsForFilters) {
+      const filters = await Filter.rootFilterListByRlsPolicy(ncContext, {
+        rlsPolicyId: policyId,
+      });
+      if (filters?.length) {
+        const resolved = resolveRlsDynamicValues(filters, rlsUser);
+        resolvedFilters.push(...resolved);
+      }
+    }
+
+    // Load table columns for filter evaluation at broadcast time
+    const model = await Model.getWithInfo(ncContext, { id: tableId });
+    const columns: ColumnType[] = model?.columns || [];
+
+    // Compute access hash
+    const accessHash =
+      RlsSubscriptionRegistry.computeAccessHash(resolvedFilters);
+
+    // Register in registry
+    RlsSubscriptionRegistry.register(
+      socket.id,
+      tableId,
+      accessHash,
+      resolvedFilters,
+      columns,
+    );
+
+    // Join the RLS room (using original event key as prefix for proper namespacing)
+    const rlsRoom = `${originalEvent}:rls:${accessHash}`;
+    socket.join(rlsRoom);
+
+    this.logger.debug(
+      `Socket ${socket.id} joined RLS room ${rlsRoom} (hash: ${accessHash}, ${resolvedFilters.length} filters)`,
+    );
+
+    return rlsRoom;
   }
 
   public static broadcastEvent<T extends EventType>(
@@ -251,6 +416,139 @@ export default class NocoSocket {
     }
   }
 
+  /**
+   * RLS-aware data event broadcast.
+   * If the table has active RLS subscriptions, evaluates the row against each
+   * access group's filters and only emits to matching rooms.
+   * If no RLS, falls through to the standard broadcastEvent.
+   */
+  public static broadcastDataEvent(
+    context: NcContext,
+    params: {
+      payload: {
+        id: string;
+        action: 'add' | 'update' | 'delete' | 'reorder';
+        payload: Record<string, any> | null;
+        before?: string;
+      };
+      tableId: string;
+    },
+    socketId?: string,
+  ) {
+    try {
+      const { payload, tableId } = params;
+      const eventKey = `${EventType.DATA_EVENT}:${context.workspace_id}:${context.base_id}:${tableId}`;
+
+      const finalPayload = {
+        ...payload,
+        event: EventType.DATA_EVENT,
+        timestamp: Date.now(),
+        socketId,
+      };
+
+      if (!this.ioServer) {
+        this.logger.warn(`No server instance available for event: ${eventKey}`);
+        return;
+      }
+
+      const groups = RlsSubscriptionRegistry.getGroups(tableId);
+
+      if (!groups || groups.size === 0) {
+        // No RLS subscriptions — broadcast to standard room
+        this.ioServer.to(eventKey).emit(eventKey, finalPayload);
+        return;
+      }
+
+      // For delete events, broadcast to ALL RLS rooms (removing a row from
+      // everyone's view is safe — no data content is leaked)
+      if (payload.action === 'delete') {
+        // Emit to standard room (for non-RLS subscribers)
+        this.ioServer.to(eventKey).emit(eventKey, finalPayload);
+        // Emit to each RLS room
+        for (const [hash] of groups) {
+          const rlsRoom = `${eventKey}:rls:${hash}`;
+          this.ioServer.to(rlsRoom).emit(eventKey, finalPayload);
+        }
+        return;
+      }
+
+      // For add/update/reorder — evaluate row against each access group's filters
+      const rowData = payload.payload;
+
+      // Also emit to standard room for subscribers without RLS
+      this.ioServer.to(eventKey).emit(eventKey, finalPayload);
+
+      for (const [hash, group] of groups) {
+        const rlsRoom = `${eventKey}:rls:${hash}`;
+
+        // "all" hash means no filters — user sees everything
+        if (hash === 'all') {
+          this.ioServer.to(rlsRoom).emit(eventKey, finalPayload);
+          continue;
+        }
+
+        // Evaluate if this row passes the group's filters
+        if (
+          rowData &&
+          group.resolvedFilters.length > 0 &&
+          group.columns.length > 0
+        ) {
+          const passes = validateRowFilters({
+            filters: group.resolvedFilters,
+            data: rowData,
+            columns: group.columns,
+            client: 'pg', // TODO: derive from source
+            metas: {},
+          });
+
+          if (passes) {
+            this.ioServer.to(rlsRoom).emit(eventKey, finalPayload);
+          }
+        } else if (!group.resolvedFilters.length) {
+          // No filters = see everything
+          this.ioServer.to(rlsRoom).emit(eventKey, finalPayload);
+        }
+      }
+    } catch (error) {
+      this.logger.error('Error in broadcastDataEvent');
+      this.logger.error(error);
+    }
+  }
+
+  /**
+   * Force re-subscribe all sockets for a table when RLS policies change.
+   * Called from RlsService on policy create/update/delete.
+   */
+  public static async resubscribeTableRls(
+    context: NcContext,
+    tableId: string,
+  ): Promise<void> {
+    const eventKey = `${EventType.DATA_EVENT}:${context.workspace_id}:${context.base_id}:${tableId}`;
+
+    // Get affected sockets before invalidating
+    const affectedSocketIds = RlsSubscriptionRegistry.invalidateTable(tableId);
+
+    for (const socketId of affectedSocketIds) {
+      const socket = this.clients.get(socketId);
+      if (!socket) continue;
+
+      // Leave old RLS rooms for this table
+      for (const room of socket.rooms) {
+        if (room.startsWith(`${eventKey}:rls:`)) {
+          socket.leave(room);
+        }
+      }
+
+      // Re-run subscribe to get new rooms
+      // The socket originally subscribed to the base eventKey
+      await this.subscribeEvent(socket, eventKey);
+    }
+
+    this.logger.debug(
+      `Re-subscribed ${affectedSocketIds.length} sockets for table ${tableId}`,
+    );
+  }
+
   private static setupClientEventHandlers(socket: NcSocket) {
     socket.on('event:subscribe', (event: string) => {
       this.subscribeEvent(socket, event);
@@ -269,11 +567,15 @@ export default class NocoSocket {
       sendConnectionError(socket, error, 'SOCKET_ERROR');
     });
 
-    // Handle connection errors
+    // Handle disconnect — clean up RLS registry
     socket.on('disconnect', (reason: string) => {
       this.logger.debug(`Client ${socket.id} disconnected: ${reason}`);
+
+      // Clean up RLS subscription registry
+      RlsSubscriptionRegistry.unregisterSocket(socket.id);
+      this.clients.delete(socket.id);
+
       if (reason === 'io server disconnect') {
-        // Server initiated disconnect
         sendConnectionError(
           socket,
           new Error('Server initiated disconnect'),

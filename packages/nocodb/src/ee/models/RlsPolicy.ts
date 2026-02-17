@@ -517,6 +517,18 @@ export default class RlsPolicy {
     );
   }
 
+  /**
+   * Check if a table has any enabled RLS policies (cached via listByModel).
+   */
+  public static async hasEnabledPolicies(
+    context: NcContext,
+    modelId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<boolean> {
+    const policies = await this.listByModel(context, modelId, ncMeta);
+    return policies.some((p) => p.enabled);
+  }
+
   public static async getDefaultPolicy(
     context: NcContext,
     modelId: string,

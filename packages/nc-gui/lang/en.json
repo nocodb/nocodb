@@ -2953,7 +2953,10 @@
       "syncTitleAlreadyExists": "Sync title already exists",
       "failedToDuplicateSharedBase": "Failed to duplicate shared base",
       "failedToCopyTemplate": "Failed to copy template",
-      "failedToLoadTemplateDetails": "Failed to load template details"
+      "failedToLoadTemplateDetails": "Failed to load template details",
+      "rlsPolicyCreateFailed": "Failed to create row-level security policy",
+      "rlsPolicyDeleteFailed": "Failed to delete row-level security policy",
+      "rlsPolicyUpdateFailed": "Failed to update row-level security policy"
     },
     "toast": {
       "exportMetadata": "Base metadata exported successfully",

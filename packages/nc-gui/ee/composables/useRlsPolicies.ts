@@ -1,5 +1,4 @@
-import type { RlsDefaultBehavior, RlsPolicySubjectType, RlsPolicyType } from 'nocodb-sdk'
-import type { BaseType } from 'nocodb-sdk'
+import type { BaseType, RlsDefaultBehavior, RlsPolicySubjectType, RlsPolicyType } from 'nocodb-sdk'
 
 export interface RlsPolicyState {
   policies: RlsPolicyType[]
@@ -25,7 +24,6 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
       })
       policies.value = (result as any)?.list ?? result ?? []
     } catch (e: any) {
-      console.error('Failed to load RLS policies:', e)
       policies.value = []
     } finally {
       isLoading.value = false
@@ -51,9 +49,6 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
       )
       await loadPolicies()
       return result
-    } catch (e: any) {
-      console.error('Failed to create RLS policy:', e)
-      throw e
     } finally {
       isSaving.value = false
     }
@@ -78,9 +73,6 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
       )
       await loadPolicies()
       return result
-    } catch (e: any) {
-      console.error('Failed to update RLS policy:', e)
-      throw e
     } finally {
       isSaving.value = false
     }
@@ -91,16 +83,8 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
 
     isSaving.value = true
     try {
-      await $api.internal.postOperation(
-        base.value.fk_workspace_id,
-        base.value.id,
-        { operation: 'rlsPolicyDelete' },
-        { policyId },
-      )
+      await $api.internal.postOperation(base.value.fk_workspace_id, base.value.id, { operation: 'rlsPolicyDelete' }, { policyId })
       await loadPolicies()
-    } catch (e: any) {
-      console.error('Failed to delete RLS policy:', e)
-      throw e
     } finally {
       isSaving.value = false
     }
@@ -119,9 +103,6 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
       )
       await loadPolicies()
       return result
-    } catch (e: any) {
-      console.error('Failed to set RLS subjects:', e)
-      throw e
     } finally {
       isSaving.value = false
     }

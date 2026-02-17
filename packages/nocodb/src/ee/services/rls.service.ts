@@ -3,6 +3,7 @@ import { AppEvents } from 'nocodb-sdk';
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import RlsPolicy from '~/ee/models/RlsPolicy';
+import NocoSocket from '~/ee/socket/NocoSocket';
 import Filter from '~/models/Filter';
 import { NcError } from '~/helpers/ncError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
@@ -112,6 +113,11 @@ export class RlsService {
       tableId: body.fk_model_id,
     });
 
+    // Re-subscribe all sockets for this table so RLS rooms are updated
+    NocoSocket.resubscribeTableRls(context, body.fk_model_id).catch((e) => {
+      this.logger.error('Failed to resubscribe sockets after policy create', e);
+    });
+
     return this.getPolicy(context, { policyId: policy.id });
   }
 
@@ -152,6 +158,11 @@ export class RlsService {
       policyTitle: body.title || policy.title || '',
     });
 
+    // Re-subscribe all sockets for this table so RLS rooms are updated
+    NocoSocket.resubscribeTableRls(context, policy.fk_model_id).catch((e) => {
+      this.logger.error('Failed to resubscribe sockets after policy update', e);
+    });
+
     return this.getPolicy(context, { policyId: body.id });
   }
 
@@ -185,6 +196,11 @@ export class RlsService {
       tableId: policy.fk_model_id,
     });
 
+    // Re-subscribe all sockets for this table so RLS rooms are updated
+    NocoSocket.resubscribeTableRls(context, policy.fk_model_id).catch((e) => {
+      this.logger.error('Failed to resubscribe sockets after policy delete', e);
+    });
+
     return { success: true };
   }
 
@@ -212,6 +228,14 @@ export class RlsService {
 
     // Invalidate model cache since policy subjects changed
     await RlsPolicy.clearModelCache(context, policy.fk_model_id);
+
+    // Re-subscribe all sockets for this table so RLS rooms are updated
+    NocoSocket.resubscribeTableRls(context, policy.fk_model_id).catch((e) => {
+      this.logger.error(
+        'Failed to resubscribe sockets after subjects change',
+        e,
+      );
+    });
 
     return this.getPolicy(context, { policyId });
   }

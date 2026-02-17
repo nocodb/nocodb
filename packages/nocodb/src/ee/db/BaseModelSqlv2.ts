@@ -3,7 +3,6 @@ import {
   AuditV1OperationTypes,
   convertDurationToSeconds,
   enumColors,
-  EventType,
   isAIPromptCol,
   isAttachment,
   isCreatedOrLastModifiedByCol,
@@ -22,6 +21,7 @@ import {
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
+import { Logger } from '@nestjs/common';
 import BigNumber from 'bignumber.js';
 import { BaseModelSqlv2 as BaseModelSqlv2CE } from 'src/db/BaseModelSqlv2';
 import dayjs from 'dayjs';
@@ -1062,16 +1062,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       response = await this.dbDriver.raw(query);
     }
 
-    NocoSocket.broadcastEvent(this.context, {
-      event: EventType.DATA_EVENT,
-      payload: {
-        id: rowId,
-        action: 'reorder',
-        payload: row,
-        before: beforeRowId,
+    NocoSocket.broadcastDataEvent(
+      this.context,
+      {
+        payload: {
+          id: rowId,
+          action: 'reorder',
+          payload: row,
+          before: beforeRowId,
+        },
+        tableId: this.model.id,
       },
-      scopes: [this.model.id],
-    });
+      this.context.socket_id,
+    );
 
     return response;
   }
@@ -1280,17 +1283,16 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     await this.handleHooks('after.insert', null, data, req);
     const id = this.extractPksValues(data);
 
-    NocoSocket.broadcastEvent(
+    NocoSocket.broadcastDataEvent(
       this.context,
       {
-        event: EventType.DATA_EVENT,
         payload: {
           id,
           action: 'add',
           payload: data,
           before: req?.query?.before,
         },
-        scopes: [this.model.id],
+        tableId: this.model.id,
       },
       this.context.socket_id,
     );
@@ -1334,16 +1336,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     for (const d of data) {
       const id = this.extractPksValues(d);
-      NocoSocket.broadcastEvent(
+      NocoSocket.broadcastDataEvent(
         this.context,
         {
-          event: EventType.DATA_EVENT,
           payload: {
             id,
             action: 'add',
             payload: d,
           },
-          scopes: [this.model.id],
+          tableId: this.model.id,
         },
         this.context.socket_id,
       );
@@ -1419,16 +1420,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
   public async afterDelete(data: any, _trx: any, req): Promise<void> {
     const id = this.extractPksValues(data);
 
-    NocoSocket.broadcastEvent(
+    NocoSocket.broadcastDataEvent(
       this.context,
       {
-        event: EventType.DATA_EVENT,
         payload: {
           id,
           action: 'delete',
           payload: null,
         },
-        scopes: [this.model.id],
+        tableId: this.model.id,
       },
       this.context.socket_id,
     );
@@ -1470,16 +1470,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     for (const d of data) {
       const id = this.extractPksValues(d);
-      NocoSocket.broadcastEvent(
+      NocoSocket.broadcastDataEvent(
         this.context,
         {
-          event: EventType.DATA_EVENT,
           payload: {
             id,
             action: 'delete',
             payload: null,
           },
-          scopes: [this.model.id],
+          tableId: this.model.id,
         },
         this.context.socket_id,
       );
@@ -3226,16 +3225,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       Object.assign(data, newData);
     }
 
-    NocoSocket.broadcastEvent(
+    NocoSocket.broadcastDataEvent(
       this.context,
       {
-        event: EventType.DATA_EVENT,
         payload: {
           id,
           action: 'update',
           payload: newData,
         },
-        scopes: [this.model.id],
+        tableId: this.model.id,
       },
       this.context.socket_id,
     );
@@ -3311,16 +3309,15 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
     if (newData && newData.length > 0) {
       for (const data of newData) {
-        NocoSocket.broadcastEvent(
+        NocoSocket.broadcastDataEvent(
           this.context,
           {
-            event: EventType.DATA_EVENT,
             payload: {
               id: this.extractPksValues(data),
               action: 'update',
               payload: data,
             },
-            scopes: [this.model.id],
+            tableId: this.model.id,
           },
           this.context.socket_id,
         );
@@ -3850,9 +3847,14 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       // If multiple policies, wrap in OR group
       if (policyIdsToLoad.length > 1) {
+        // Set logical_op on children so conditionV2 joins them with OR
+        const orChildren = allFilters.map((f, idx) => {
+          if (idx === 0) return f;
+          return new Filter({ ...f, logical_op: 'or' });
+        });
         return [
           new Filter({
-            children: allFilters,
+            children: orChildren,
             is_group: true,
             logical_op: 'or',
           }),
@@ -3861,9 +3863,18 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
 
       return allFilters;
     } catch (e) {
-      // If RLS resolution fails, don't block the query — log and return empty
-      console.error('RLS resolution error:', e);
-      return [];
+      // If RLS resolution fails, deny access (fail closed)
+      new Logger('BaseModelSqlv2').error('RLS resolution error:', e);
+      return [
+        new Filter({
+          fk_column_id: '_deny_all_',
+          comparison_op: 'eq',
+          comparison_sub_op: null,
+          value: '_rls_deny_',
+          is_group: false,
+          logical_op: 'and',
+        }),
+      ];
     }
   }
 }

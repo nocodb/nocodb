@@ -17,7 +17,7 @@ const basesStore = useBases()
 
 const { createProject: _createProject } = basesStore
 
-const { bases, basesList, activeProjectId } = storeToRefs(basesStore)
+const { bases, basesList, activeProjectId, isProjectsLoaded } = storeToRefs(basesStore)
 
 const baseStore = useBase()
 
@@ -382,9 +382,17 @@ useEventListener(document, 'contextmenu', handleContext, true)
 
       <WorkspaceCreateProjectDlg v-model="baseCreateDlg" />
     </template>
-    <DashboardTreeViewProjectListSkeleton v-else />
+    <div v-else-if="isProjectsLoaded && !basesList.length" class="nc-treeview-empty-state">
+      <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" :description="$t('activity.noBasesFound')" class="!mb-1" />
 
-    <!-- Todo: @rameshmane7218 Empty base list state UI -->
+      <WorkspaceCreateProjectBtn type="primary">
+        <div class="flex items-center gap-1.5">
+          <GeneralIcon icon="plus" />
+          {{ $t('title.newProj') }}
+        </div>
+      </WorkspaceCreateProjectBtn>
+    </div>
+    <DashboardTreeViewProjectListSkeleton v-else />
   </div>
 </template>
 
@@ -398,6 +406,10 @@ useEventListener(document, 'contextmenu', handleContext, true)
 }
 .ghost {
   @apply bg-primary-selected dark:bg-nc-bg-gray-medium;
+}
+
+.nc-treeview-empty-state {
+  @apply w-full h-full flex flex-col items-center justify-center p-6 text-nc-content-gray-muted;
 }
 
 :deep(.nc-sidebar-create-base-btn.nc-button.ant-btn-text.theme-default) {

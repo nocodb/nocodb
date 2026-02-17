@@ -21,7 +21,7 @@ const {
   isTemplatesFeatureEnabled,
 } = workspaceStore
 
-const { basesList, showProjectList } = storeToRefs(useBases())
+const { basesList } = storeToRefs(useBases())
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -33,8 +33,6 @@ const { isChatWootEnabled } = useProvideChatwoot()
 
 const navigateToProjectPage = () => {
   if (route.value.name?.startsWith('index-typeOrId-baseId-')) {
-    showProjectList.value = !showProjectList.value
-
     return
   }
 

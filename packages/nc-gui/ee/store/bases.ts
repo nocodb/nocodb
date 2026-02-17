@@ -56,8 +56,6 @@ export const useBases = defineStore('basesStore', () => {
     return route.value.params.baseId as string | undefined
   })
 
-  const showProjectList = ref<boolean>(route.value.params.typeOrId === 'base' ? false : !route.value.params.baseId)
-
   const baseHomeSearchQuery = ref<string>('')
 
   const openedProject = computed(() => (activeProjectId.value ? bases.value.get(activeProjectId.value) : undefined))
@@ -533,46 +531,6 @@ export const useBases = defineStore('basesStore', () => {
     },
   )
 
-  /**
-   * Will have to show base home page sidebar if any base/table/view/script is active
-   */
-  watch(
-    [
-      () => route.value.params.baseId,
-      () => route.value.params.viewId,
-      () => route.value.params.viewTitle,
-      () => route.value.params.scriptId,
-    ],
-    ([newBaseId, newTableId, newViewId, newScriptId], [oldBaseId, oldTableId, oldViewId, oldScriptId]) => {
-      if (!activeProjectId.value) {
-        showProjectList.value = true
-        return
-      }
-
-      const shouldShowProjectList = !(
-        (newBaseId && newBaseId !== oldBaseId) ||
-        newTableId !== oldTableId ||
-        newViewId !== oldViewId ||
-        newScriptId !== oldScriptId
-      )
-
-      if (showProjectList.value === shouldShowProjectList) return
-
-      showProjectList.value = shouldShowProjectList
-    },
-  )
-
-  watch([() => basesList.value.length, () => isProjectsLoaded.value], ([baseListLength, newIsProjectsLoaded]) => {
-    /**
-     * Use case:
-     * If project list is empty and showProjectList is false,
-     * then we have to show project list else it will stuck in loading state (blank sidebar state)
-     */
-    if (baseListLength || !newIsProjectsLoaded || showProjectList.value) return
-
-    showProjectList.value = true
-  })
-
   watch(activeProjectId, () => {
     ncLastVisitedBase().set(activeProjectId.value)
   })
@@ -800,7 +758,6 @@ export const useBases = defineStore('basesStore', () => {
     basesUser,
     clearBasesUser,
     isDataSourceLimitReached,
-    showProjectList,
     baseHomeSearchQuery,
     getBaseRoles,
     baseRoles,

@@ -48,6 +48,8 @@ export class ScimUsersService {
       filter?: string;
       startIndex?: number;
       count?: number;
+      sortBy?: string;
+      sortOrder?: string;
     },
   ) {
     const startIndex = param.startIndex || 1;
@@ -64,6 +66,17 @@ export class ScimUsersService {
     // Apply SCIM filter if provided
     if (param.filter) {
       workspaceUsers = this.applyFilter(workspaceUsers, param.filter);
+    }
+
+    // Apply sorting per RFC 7644 §3.4.2.3
+    if (param.sortBy) {
+      const ascending =
+        !param.sortOrder || param.sortOrder.toLowerCase() === 'ascending';
+      workspaceUsers = this.applySortUsers(
+        workspaceUsers,
+        param.sortBy,
+        ascending,
+      );
     }
 
     const totalResults = workspaceUsers.length;
@@ -573,10 +586,13 @@ export class ScimUsersService {
       // satisfy the schema constraint that it must be a string when present
       ...(scimMeta.externalId ? { externalId: scimMeta.externalId } : {}),
       userName: workspaceUser.scim_user_name || workspaceUser.email,
-      name: scimMeta.name || {
-        formatted: workspaceUser.display_name,
-      },
-      displayName: scimMeta.displayName || workspaceUser.display_name,
+      name: scimMeta.name || (workspaceUser.display_name
+        ? { formatted: workspaceUser.display_name }
+        : {}),
+      displayName: scimMeta.displayName ||
+        workspaceUser.display_name ||
+        workspaceUser.scim_user_name ||
+        workspaceUser.email,
       emails: scimMeta.emails || [
         {
           value: workspaceUser.email,
@@ -588,6 +604,14 @@ export class ScimUsersService {
       meta: {
         resourceType: 'User',
         location: `/scim/v2/Users/${workspaceUser.scim_external_id}`,
+        ...(workspaceUser.created_at
+          ? { created: new Date(workspaceUser.created_at).toISOString() }
+          : {}),
+        ...(workspaceUser.updated_at
+          ? { lastModified: new Date(workspaceUser.updated_at).toISOString() }
+          : workspaceUser.created_at
+            ? { lastModified: new Date(workspaceUser.created_at).toISOString() }
+            : {}),
       },
     };
 
@@ -654,5 +678,43 @@ export class ScimUsersService {
     }
 
     return users;
+  }
+
+  /**
+   * Sort users by SCIM attribute per RFC 7644 §3.4.2.3
+   */
+  private applySortUsers(
+    users: any[],
+    sortBy: string,
+    ascending: boolean,
+  ): any[] {
+    const getSortValue = (user: any): string => {
+      const scimMeta =
+        typeof user.scim_meta === 'string'
+          ? JSON.parse(user.scim_meta || '{}')
+          : user.scim_meta || {};
+
+      switch (sortBy) {
+        case 'userName':
+          return (user.scim_user_name || user.email || '').toLowerCase();
+        case 'displayName':
+          return (scimMeta.displayName || user.display_name || '').toLowerCase();
+        case 'name.familyName':
+          return (scimMeta.name?.familyName || '').toLowerCase();
+        case 'name.givenName':
+          return (scimMeta.name?.givenName || '').toLowerCase();
+        case 'externalId':
+          return (user.scim_external_id || '').toLowerCase();
+        default:
+          return (user.scim_user_name || user.email || '').toLowerCase();
+      }
+    };
+
+    return [...users].sort((a, b) => {
+      const valA = getSortValue(a);
+      const valB = getSortValue(b);
+      const cmp = valA.localeCompare(valB);
+      return ascending ? cmp : -cmp;
+    });
   }
 }

@@ -65,6 +65,8 @@ export class ScimGroupsService {
       startIndex?: number;
       count?: number;
       excludedAttributes?: string;
+      sortBy?: string;
+      sortOrder?: string;
     },
   ) {
     const startIndex = param.startIndex || 1;
@@ -80,6 +82,13 @@ export class ScimGroupsService {
     // Apply SCIM filter if provided
     if (param.filter) {
       teams = this.applyFilter(teams, param.filter);
+    }
+
+    // Apply sorting per RFC 7644 §3.4.2.3
+    if (param.sortBy) {
+      const ascending =
+        !param.sortOrder || param.sortOrder.toLowerCase() === 'ascending';
+      teams = this.applySortGroups(teams, param.sortBy, ascending);
     }
 
     const totalResults = teams.length;
@@ -116,7 +125,15 @@ export class ScimGroupsService {
     const { scimGroup, workspaceId } = param;
 
     if (!scimGroup.displayName) {
-      NcError.badRequest('displayName is required');
+      throw new HttpException(
+        {
+          schemas: ['urn:ietf:params:scim:api:messages:2.0:Error'],
+          scimType: 'invalidValue',
+          detail: 'displayName is required',
+          status: '400',
+        },
+        400,
+      );
     }
 
     // Check if team with same name already exists
@@ -148,7 +165,13 @@ export class ScimGroupsService {
           );
         }
 
-        return this.toScimGroup(context, existingTeam, workspaceId);
+        // Re-fetch to get updated fields including timestamps
+        const freshExisting = await Team.get(context, existingTeam.id);
+        return this.toScimGroup(
+          context,
+          freshExisting || existingTeam,
+          workspaceId,
+        );
       }
 
       // RFC 7644 §3.3: Return 409 Conflict for duplicate resources
@@ -181,7 +204,9 @@ export class ScimGroupsService {
       );
     }
 
-    return this.toScimGroup(context, team, workspaceId);
+    // Re-fetch to get all fields including timestamps
+    const freshTeam = await Team.get(context, team.id);
+    return this.toScimGroup(context, freshTeam || team, workspaceId);
   }
 
   /**
@@ -328,6 +353,14 @@ export class ScimGroupsService {
       meta: {
         resourceType: 'Group',
         location: `/scim/v2/Groups/${team.scim_external_id}`,
+        ...(team.created_at
+          ? { created: new Date(team.created_at).toISOString() }
+          : {}),
+        ...(team.updated_at
+          ? { lastModified: new Date(team.updated_at).toISOString() }
+          : team.created_at
+            ? { lastModified: new Date(team.created_at).toISOString() }
+            : {}),
       },
     };
 
@@ -374,9 +407,11 @@ export class ScimGroupsService {
       .filter((a) => a.principal_type === PrincipalType.USER)
       .map((a) => a.principal_ref_id);
 
-    // Get workspace users
+    // Get workspace users (include deleted — group membership is independent
+    // of user activation status per SCIM spec)
     const workspaceUsers = await WorkspaceUser.userList({
       fk_workspace_id: workspaceId,
+      include_deleted: true,
     });
 
     // Filter to team members who are SCIM-managed
@@ -401,9 +436,11 @@ export class ScimGroupsService {
       workspaceId,
     );
 
-    // Map SCIM member IDs to workspace users
+    // Map SCIM member IDs to workspace users (include deleted — membership
+    // is independent of user activation status)
     const workspaceUsers = await WorkspaceUser.userList({
       fk_workspace_id: workspaceId,
+      include_deleted: true,
     });
 
     const targetMembers = scimMembers
@@ -533,6 +570,7 @@ export class ScimGroupsService {
   ) {
     const workspaceUsers = await WorkspaceUser.userList({
       fk_workspace_id: workspaceId,
+      include_deleted: true,
     });
 
     // Get existing assignments to avoid duplicates
@@ -574,6 +612,7 @@ export class ScimGroupsService {
   ) {
     const workspaceUsers = await WorkspaceUser.userList({
       fk_workspace_id: workspaceId,
+      include_deleted: true,
     });
 
     for (const member of members) {
@@ -590,6 +629,41 @@ export class ScimGroupsService {
         );
       }
     }
+  }
+
+  /**
+   * Sort groups by SCIM attribute per RFC 7644 §3.4.2.3
+   */
+  private applySortGroups(
+    teams: any[],
+    sortBy: string,
+    ascending: boolean,
+  ): any[] {
+    const getSortValue = (team: any): string => {
+      switch (sortBy) {
+        case 'displayName':
+          return (
+            team.scim_display_name ||
+            team.title ||
+            ''
+          ).toLowerCase();
+        case 'externalId':
+          return (team.scim_external_id || '').toLowerCase();
+        default:
+          return (
+            team.scim_display_name ||
+            team.title ||
+            ''
+          ).toLowerCase();
+      }
+    };
+
+    return [...teams].sort((a, b) => {
+      const valA = getSortValue(a);
+      const valB = getSortValue(b);
+      const cmp = valA.localeCompare(valB);
+      return ascending ? cmp : -cmp;
+    });
   }
 
   /**

@@ -47,12 +47,16 @@ export class ScimUsersController {
     @Query('filter') filter?: string,
     @Query('startIndex') startIndex?: string,
     @Query('count') count?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
   ) {
     return this.scimUsersService.listUsers(context, {
       workspaceId,
       filter,
       startIndex: startIndex ? parseInt(startIndex, 10) : 1,
       count: count ? parseInt(count, 10) : 100,
+      sortBy,
+      sortOrder,
     });
   }
 

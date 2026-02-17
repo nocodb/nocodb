@@ -49,6 +49,8 @@ export class ScimGroupsController {
     @Query('startIndex') startIndex?: string,
     @Query('count') count?: string,
     @Query('excludedAttributes') excludedAttributes?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
   ) {
     return this.scimGroupsService.listGroups(context, {
       workspaceId,
@@ -56,6 +58,8 @@ export class ScimGroupsController {
       startIndex: startIndex ? parseInt(startIndex, 10) : 1,
       count: count ? parseInt(count, 10) : 100,
       excludedAttributes,
+      sortBy,
+      sortOrder,
     });
   }
 

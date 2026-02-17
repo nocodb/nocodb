@@ -598,7 +598,21 @@ export class ScimUsersService {
     // Add multi-valued optional attributes
     if (scimMeta.phoneNumbers) result.phoneNumbers = scimMeta.phoneNumbers;
     if (scimMeta.addresses) result.addresses = scimMeta.addresses;
-    if (scimMeta.roles) result.roles = scimMeta.roles;
+    if (scimMeta.roles) {
+      // Sanitize boolean fields: SCIM path filters store "True"/"False"
+      // as strings, but the schema requires native booleans
+      result.roles = scimMeta.roles.map((r: any) => ({
+        ...r,
+        ...(r.primary !== undefined
+          ? {
+              primary:
+                typeof r.primary === 'string'
+                  ? r.primary.toLowerCase() === 'true'
+                  : r.primary,
+            }
+          : {}),
+      }));
+    }
 
     // Add enterprise extension
     if (scimMeta[ENTERPRISE_EXTENSION]) {

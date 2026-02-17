@@ -1,4 +1,5 @@
 import { HttpException, Injectable } from '@nestjs/common';
+import { v4 as uuidv4 } from 'uuid';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import { Team, WorkspaceUser } from '~/ee/models';
@@ -131,7 +132,8 @@ export class ScimGroupsService {
       // If team exists but not SCIM-managed, convert it to SCIM-managed
       if (!existingTeam.scim_managed) {
         await Team.update(context, existingTeam.id, {
-          scim_external_id: scimGroup.externalId || scimGroup.id,
+          scim_external_id:
+            scimGroup.externalId || scimGroup.id || uuidv4(),
           scim_managed: true,
           scim_display_name: scimGroup.displayName,
         });
@@ -164,7 +166,7 @@ export class ScimGroupsService {
     const team = await Team.insert(context, {
       title: scimGroup.displayName,
       fk_workspace_id: workspaceId,
-      scim_external_id: scimGroup.externalId || scimGroup.id,
+      scim_external_id: scimGroup.externalId || scimGroup.id || uuidv4(),
       scim_managed: true,
       scim_display_name: scimGroup.displayName,
     });

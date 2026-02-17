@@ -686,6 +686,55 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
     }
 
     if (action === 'delete') {
+      // Handle cell-type row color conditions that target this column (fk_target_column_id)
+      const cellColorConditions = await ncMeta.metaList2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.ROW_COLOR_CONDITIONS,
+        {
+          condition: {
+            fk_target_column_id: existingColumn.id,
+            type: 'cell',
+          },
+        },
+      );
+
+      if (cellColorConditions?.length > 0) {
+        for (const condition of cellColorConditions) {
+          // Delete the cell-type condition (this will cascade delete filters)
+          commitHandlers.push(() =>
+            this.deleteRowColoringCondition({
+              context,
+              fk_view_id: condition.fk_view_id,
+              fk_row_coloring_conditions_id: condition.id,
+              ncMeta,
+            }),
+          );
+
+          // Check if this was the last condition in the view
+          const allConditionsInView = await RowColorCondition.getByViewId(
+            context,
+            condition.fk_view_id,
+          );
+
+          const remainingConditions = allConditionsInView.filter(
+            (c) => c.id !== condition.id,
+          );
+
+          if (remainingConditions.length === 0) {
+            // If no other conditions remain, remove row coloring mode entirely
+            commitHandlers.push(() =>
+              this.removeRowColorInfo({
+                context,
+                fk_view_id: condition.fk_view_id,
+                ncMeta,
+              }),
+            );
+          }
+        }
+      }
+
+      // Handle row color conditions that use this column in filters (fk_column_id)
       const inConditions = await ncMeta.metaList2(
         context.workspace_id,
         context.base_id,
@@ -726,16 +775,17 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
                 flt.fk_row_color_condition_id === affectedRowColorConditionId,
             )
           ) {
-            commitHandlers.push(() =>
-              this.deleteRowColoringCondition({
-                context,
-                fk_row_coloring_conditions_id: affectedRowColorConditionId,
-                ncMeta,
-              }),
-            );
             const rowColorCondition = await RowColorCondition.getById(
               context,
               affectedRowColorConditionId,
+            );
+            commitHandlers.push(() =>
+              this.deleteRowColoringCondition({
+                context,
+                fk_view_id: rowColorCondition.fk_view_id,
+                fk_row_coloring_conditions_id: affectedRowColorConditionId,
+                ncMeta,
+              }),
             );
             const rowColoringConditionsFromView =
               await RowColorCondition.getByViewId(

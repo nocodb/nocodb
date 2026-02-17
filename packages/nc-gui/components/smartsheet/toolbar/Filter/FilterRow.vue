@@ -361,9 +361,9 @@ const onCopy = () => {
   })
 }
 
-const isFilterEnabled = computed(() => vModel.value.enabled !== false)
+const isFilterEnabled = computed(() => vModel.value.enabled !== false && vModel.value.enabled !== 0)
 
-const effectiveEnabled = computed(() => (props.parentEnabled !== false) && isFilterEnabled.value)
+const effectiveEnabled = computed(() => (props.parentEnabled !== false && props.parentEnabled !== 0) && isFilterEnabled.value)
 
 const onEnabledChange = (val: boolean | Event) => {
   const newValue = typeof val === 'boolean' ? val : (val?.target as HTMLInputElement)?.checked

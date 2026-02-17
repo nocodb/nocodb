@@ -41,7 +41,7 @@ export class ApiTokensV3Service {
       user: param.cookie.user,
       req: param.cookie,
     });
-    if (!result.list.some((ws) => !!ws.fk_org_id)) {
+    if (!result.list.some((ws: any) => !!ws.fk_org_id)) {
       NcError.get({ api_version: NcApiVersion.V3 }).forbidden(
         `Accessing api token api require enterprise plan`,
       );

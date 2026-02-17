@@ -84,25 +84,22 @@ const hasPermission = computed(() => !isLocked.value && (isUIAllowed('rowColourU
       </a-form-item>
     </div>
 
-    <div class="flex flex-col gap-2">
-      <div class="flex items-center gap-2 justify-between">
-        <NcButton type="text" size="small" :disabled="!hasPermission" @click="emits('remove')">
-          {{ $t('labels.removeColouring') }}
-        </NcButton>
+    <div class="flex items-center gap-2 justify-between">
+      <NcButton type="text" size="small" :disabled="!hasPermission" @click="emits('remove')">
+        {{ $t('labels.removeColouring') }}
+      </NcButton>
 
-        <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
-          <NcSwitch
-            v-model:checked="vModel.is_set_as_background"
-            placement="right"
-            :loading="props.isLoadingFilter"
-            :disabled="!hasPermission"
-            @change="emits('change')"
-          >
-            {{ $t('labels.backgroundColour') }}
-          </NcSwitch>
-        </div>
+      <div class="flex items-center cursor-pointer select-none text-nc-content-gray">
+        <NcSwitch
+          v-model:checked="vModel.is_set_as_background"
+          placement="right"
+          :loading="props.isLoadingFilter"
+          :disabled="!hasPermission"
+          @change="emits('change')"
+        >
+          {{ $t('labels.backgroundColour') }}
+        </NcSwitch>
       </div>
-      
     </div>
   </div>
 </template>

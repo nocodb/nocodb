@@ -322,7 +322,12 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       <template #suffixIcon>
                         <GeneralIcon icon="arrowDown" class="text-gray-700" />
                       </template>
-                      <a-select-option v-for="column in columns" :key="column.id" :value="column.id" :label="column.title">
+                      <a-select-option
+                        v-for="column in columns.filter((c) => !c.pv)"
+                        :key="column.id"
+                        :value="column.id"
+                        :label="column.title"
+                      >
                         <div class="w-full flex gap-2 items-center">
                           <SmartsheetHeaderIcon :column="column" class="!mx-0" />
                           <NcTooltip class="flex-1 truncate" show-on-truncate-only>

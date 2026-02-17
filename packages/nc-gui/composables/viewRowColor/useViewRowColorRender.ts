@@ -29,11 +29,31 @@ export function useViewRowColorRender() {
     }
   }
 
+  const getCellColorStyle = (row: any, columnId: string) => {
+    if (!isRowColouringEnabled.value || !columnId) return {}
+    const cellColorInfo = getEvaluatedCellColorInfo(row, columnId)
+    if (!cellColorInfo) return {}
+    const style: Record<string, string> = {}
+    if (cellColorInfo.cellBgColor) {
+      style.backgroundColor = cellColorInfo.cellBgColor
+    }
+    return style
+  }
+
+  const getCellLeftBorderStyle = (row: any, columnId: string) => {
+    if (!isRowColouringEnabled.value || !columnId) return null
+    const cellColorInfo = getEvaluatedCellColorInfo(row, columnId)
+    if (!cellColorInfo || cellColorInfo.is_set_as_background || !cellColorInfo.cellLeftBorderColor) return null
+    return { backgroundColor: cellColorInfo.cellLeftBorderColor }
+  }
+
   return {
     rowColorInfo: activeViewRowColorInfo,
     evaluateRowColor,
     isRowColouringEnabled,
     getEvaluatedRowMetaRowColorInfo,
     getEvaluatedCellColorInfo,
+    getCellColorStyle,
+    getCellLeftBorderStyle,
   }
 }

@@ -124,26 +124,14 @@ const isRequiredGroupingFieldColumn = computed(() => {
   return !!groupingFieldColumn.value?.rqd
 })
 
-const { isRowColouringEnabled, getEvaluatedCellColorInfo } = useViewRowColorRender()
+const {
+  isRowColouringEnabled,
+  getCellColorStyle: _getCellColorStyle,
+  getCellLeftBorderStyle: _getCellLeftBorderStyle,
+} = useViewRowColorRender()
 
-const getCellColorStyle = (record: Row, columnId: string) => {
-  if (!isRowColouringEnabled.value || !columnId) return {}
-  const cellColorInfo = getEvaluatedCellColorInfo(record.row, columnId)
-  if (!cellColorInfo) return {}
-  const style: Record<string, string> = {}
-  if (cellColorInfo.cellBgColor) {
-    style.backgroundColor = cellColorInfo.cellBgColor
-    style.borderRadius = '8px'
-  }
-  return style
-}
-
-const getCellLeftBorderStyle = (record: Row, columnId: string) => {
-  if (!isRowColouringEnabled.value || !columnId) return null
-  const cellColorInfo = getEvaluatedCellColorInfo(record.row, columnId)
-  if (!cellColorInfo || cellColorInfo.is_set_as_background || !cellColorInfo.cellLeftBorderColor) return null
-  return { backgroundColor: cellColorInfo.cellLeftBorderColor }
-}
+const getCellColorStyle = (record: Row, columnId: string) => _getCellColorStyle(record.row, columnId)
+const getCellLeftBorderStyle = (record: Row, columnId: string) => _getCellLeftBorderStyle(record.row, columnId)
 
 const kanbanContainerRef = ref()
 

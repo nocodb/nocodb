@@ -162,6 +162,12 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         PlanFeatureTypes.FEATURE_CELL_COLOUR,
         ncMeta,
       );
+
+      if (!params.fk_target_column_id) {
+        NcError.get(params.context).requiredFieldMissing(
+          'fk_target_column_id',
+        );
+      }
     }
 
     let view: View;
@@ -307,6 +313,12 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         PlanFeatureTypes.FEATURE_CELL_COLOUR,
         ncMeta,
       );
+
+      if (!params.fk_target_column_id) {
+        NcError.get(params.context).requiredFieldMissing(
+          'fk_target_column_id',
+        );
+      }
     }
 
     let view: View;

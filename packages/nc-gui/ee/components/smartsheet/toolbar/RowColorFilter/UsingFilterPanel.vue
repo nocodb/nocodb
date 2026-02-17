@@ -15,7 +15,14 @@ interface Props {
   isLoadingFilter?: boolean
   handler: {
     conditionAdd: () => void
-    conditionUpdate: (params: { index: number; color: string; is_set_as_background: boolean; nc_order?: number; type?: string; fk_target_column_id?: string }) => void
+    conditionUpdate: (params: {
+      index: number
+      color: string
+      is_set_as_background: boolean
+      nc_order?: number
+      type?: string
+      fk_target_column_id?: string
+    }) => void
     conditionDelete: (index: number) => void
     conditionCopy: (index: number) => void
     allConditionDeleted: () => void
@@ -281,29 +288,47 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       option-label-prop="label"
                       @change="updateColor(i, 'type', $event)"
                     >
-                      <template #suffixIcon>
-                        <GeneralIcon icon="arrowDown" class="text-gray-700" />
-                      </template>
                       <a-select-option value="row" :label="$t('objects.row')">
-                        <div class="flex flex-col">
-                          <span>{{ $t('objects.row') }}</span>
-                          <span class="text-xs text-nc-content-gray-subtle">{{ $t('objects.coloring.rowColorDescription') }}</span>
+                        <div class="flex flex-col gap-0.5">
+                          <div class="w-full flex items-center justify-between">
+                            {{ $t('objects.row') }}
+                            <GeneralIcon
+                              v-if="rowColorConfig.type === 'row'"
+                              id="nc-selected-item-icon"
+                              icon="check"
+                              class="w-4 h-4 text-nc-content-brand"
+                            />
+                          </div>
+                          <span class="text-xs text-nc-content-gray-subtle2">{{
+                            $t('objects.coloring.rowColorDescription')
+                          }}</span>
                         </div>
                       </a-select-option>
                       <a-select-option value="cell" :label="$t('objects.cell')">
                         <div class="flex flex-col">
-                          <div class="flex items-center gap-2">
-                            <span>{{ $t('objects.cell') }}</span>
-                            <LazyPaymentUpgradeBadge
-                              v-if="blockCellColoring"
-                              :plan-title="PlanTitles.BUSINESS"
-                              :feature="PlanFeatureTypes.FEATURE_CELL_COLOUR"
-                              :title="$t('upgrade.upgradeToUseCellColoring')"
-                              :content="$t('upgrade.upgradeToUseCellColoringSubtitle', { plan: PlanTitles.BUSINESS })"
-                              size="xs"
+                          <div class="flex items-center gap-2 justify-between">
+                            <div class="flex items-center gap-2">
+                              {{ $t('objects.cell') }}
+
+                              <LazyPaymentUpgradeBadge
+                                v-if="blockCellColoring"
+                                :plan-title="PlanTitles.BUSINESS"
+                                :feature="PlanFeatureTypes.FEATURE_CELL_COLOUR"
+                                :title="$t('upgrade.upgradeToUseCellColoring')"
+                                :content="$t('upgrade.upgradeToUseCellColoringSubtitle', { plan: PlanTitles.BUSINESS })"
+                                size="xs"
+                              />
+                            </div>
+                            <GeneralIcon
+                              v-if="rowColorConfig.type === 'cell'"
+                              id="nc-selected-item-icon"
+                              icon="check"
+                              class="w-4 h-4 text-nc-content-brand"
                             />
                           </div>
-                          <span class="text-xs text-nc-content-gray-subtle">{{ $t('objects.coloring.cellColorDescription') }}</span>
+                          <span class="text-xs text-nc-content-gray-subtle2">{{
+                            $t('objects.coloring.cellColorDescription')
+                          }}</span>
                         </div>
                       </a-select-option>
                     </NcSelect>
@@ -319,23 +344,27 @@ const onMove = async (event: { moved: { newIndex: number; oldIndex: number; elem
                       dropdown-class-name="nc-cell-color-field-dropdown"
                       @change="updateColor(i, 'fk_target_column_id', $event)"
                     >
-                      <template #suffixIcon>
-                        <GeneralIcon icon="arrowDown" class="text-gray-700" />
-                      </template>
                       <a-select-option
                         v-for="column in columns.filter((c) => !c.pv)"
                         :key="column.id"
                         :value="column.id"
                         :label="column.title"
+                        class="flex items-center"
                       >
                         <div class="w-full flex gap-2 items-center">
-                          <SmartsheetHeaderIcon :column="column" class="!mx-0" />
-                          <NcTooltip class="flex-1 truncate" show-on-truncate-only>
+                          <SmartsheetHeaderIcon :column="column" class="!mx-0" color="text-nc-content-gray-muted" />
+                          <NcTooltip class="flex min-w-0 flex-1 truncate text-nc-content-gray-subtle" show-on-truncate-only>
                             <template #title>
                               {{ column.title }}
                             </template>
                             {{ column.title }}
                           </NcTooltip>
+                          <GeneralIcon
+                            v-if="rowColorConfig.fk_target_column_id === column.id"
+                            id="nc-selected-item-icon"
+                            icon="check"
+                            class="w-4 h-4 text-nc-content-brand"
+                          />
                         </div>
                       </a-select-option>
                     </NcSelect>

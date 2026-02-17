@@ -30,34 +30,20 @@ on:
 
 jobs:
   cloud-docker-build:
-    runs-on: [self-hosted, docker-build]
+    runs-on: ubicloud-standard-4
     env:
       working-directory: ./packages/nocodb
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-2
     steps:
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 22.12.0
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - name: Get pnpm store directory
-        shell: bash
-        timeout-minutes: 1
-        run: |
-          echo "STORE_PATH=/root/setup-pnpm/node_modules/.bin/store/v3" >> $GITHUB_ENV
-
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Checkout2
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: nocodb/ee-private
           token: ${{ secrets.GH_TOKEN_PRIVATE_REPO }}
@@ -69,13 +55,16 @@ jobs:
           rm -rf ./ee-private/.git
           rsync -rvzhP ./ee-private/packages/nocodb/ ./packages/nocodb/
 
-      - uses: actions/cache@v4
-        name: Setup pnpm cache
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
         with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+          cache: 'pnpm'
       - name: remove use-node-version line from .npmrc
         run: sed -i '/^use-node-version/d' .npmrc
       - name: install dependencies
@@ -114,7 +103,7 @@ jobs:
           NUXT_NC_CONFIG_ENDPOINT: ${{ secrets.NUXT_NC_CONFIG_ENDPOINT }}
           NUXT_CHATWOOT_WEBSITE_TOKEN: ${{ secrets.NUXT_CHATWOOT_WEBSITE_TOKEN }}
         run: |
-          export NODE_OPTIONS="--max_old_space_size=16384"
+          export NODE_OPTIONS="--max-old-space-size=8192"
           # generate static build of nc-gui
           cd packages/nc-gui &&
           pnpm run generate:ee &&

@@ -6,13 +6,15 @@ on:
 
 jobs:
   restart-staging:
-    runs-on: [self-hosted, docker-build]
+    runs-on: ubicloud-standard-2
     env:
       working-directory: ./packages/nocodb
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-2
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
       - name: restart staging
         run: |
           ./scripts/release/staging.sh

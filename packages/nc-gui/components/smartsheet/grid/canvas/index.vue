@@ -36,7 +36,6 @@ import { calculateGroupRowTop, comparePath, findGroupByPath, generateGroupPath, 
 import { CanvasElement, ElementTypes } from './utils/CanvasElement'
 import AddNewRowMenu from './components/AddNewRowMenu.vue'
 import GroupContextMenu from './components/GroupHeaderMenu.vue'
-import { createRecordFromTemplate } from '../../../../composables/useRecordTemplate'
 import type { Row } from '#imports'
 
 const props = defineProps<{

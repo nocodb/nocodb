@@ -1,19 +1,3 @@
-import { IsBoolean, IsObject, IsOptional, IsString } from 'class-validator';
-
-export class UpdateRecordTemplateDto {
-  @IsString()
-  @IsOptional()
-  title?: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @IsObject()
-  @IsOptional()
-  template_data?: Record<string, any>;
-
-  @IsBoolean()
-  @IsOptional()
-  enabled?: boolean;
-}
+// DEPRECATED: Record Templates is an EE-only feature.
+// The actual implementation lives in src/ee/services/record-templates/dto/update-record-template.dto.ts
+export {};

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { createRecordFromTemplate } from '../../../../../composables/useRecordTemplate'
 
 const props = withDefaults(
   defineProps<{

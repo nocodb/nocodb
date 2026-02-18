@@ -20,6 +20,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (event: 'expandRecord', row: RowType): void
   (event: 'newRecord', date: dayjs.Dayjs): void
+  (event: 'navigateTo', date: dayjs.Dayjs): void
 }>()
 
 const { t } = useI18n()
@@ -547,6 +548,102 @@ const todayPosition = computed(() => {
   return offset * colWidth.value + colWidth.value / 2
 })
 
+// Per-bar navigation: get the start/end date for a clipped record
+const getRecordStartDate = (row: RowType) => {
+  const range = props.timelineRange[0]
+  if (!range) return null
+  return parseDate(row, range.fk_from_col)
+}
+
+const getRecordEndDate = (row: RowType) => {
+  const range = props.timelineRange[0]
+  if (!range) return null
+  const startDate = parseDate(row, range.fk_from_col)
+  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
+  return endDate || startDate
+}
+
+const navigateToRecordStart = (row: RowType) => {
+  const startDate = getRecordStartDate(row)
+  if (startDate) emit('navigateTo', startDate)
+}
+
+const navigateToRecordEnd = (row: RowType) => {
+  const endDate = getRecordEndDate(row)
+  if (endDate) emit('navigateTo', endDate)
+}
+
+// Grid-level navigation: for fully off-screen records (no bars visible at all)
+const hasFullyOffScreenBefore = computed(() => {
+  const firstVisibleDate = props.visibleDates[0]
+  if (!firstVisibleDate) return false
+  const range = props.timelineRange[0]
+  if (!range) return false
+
+  return props.records.some((row) => {
+    const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : parseDate(row, range.fk_from_col)
+    const effectiveEnd = endDate || parseDate(row, range.fk_from_col)
+    return effectiveEnd && effectiveEnd.isBefore(firstVisibleDate, 'day')
+  })
+})
+
+const hasFullyOffScreenAfter = computed(() => {
+  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
+  if (!lastVisibleDate) return false
+  const range = props.timelineRange[0]
+  if (!range) return false
+
+  return props.records.some((row) => {
+    const startDate = parseDate(row, range.fk_from_col)
+    return startDate && startDate.isAfter(lastVisibleDate, 'day')
+  })
+})
+
+// Only show Grid-level arrows when there are fully off-screen records AND no visible swimlanes
+// (when bars are visible, per-bar arrows handle navigation instead)
+const hasRecordsBefore = computed(() => hasFullyOffScreenBefore.value && !swimlanes.value.length)
+const hasRecordsAfter = computed(() => hasFullyOffScreenAfter.value && !swimlanes.value.length)
+
+const navigateToPrev = () => {
+  const firstVisibleDate = props.visibleDates[0]
+  if (!firstVisibleDate) return
+  const range = props.timelineRange[0]
+  if (!range) return
+
+  let closestDate: dayjs.Dayjs | null = null
+  for (const row of props.records) {
+    const startDate = parseDate(row, range.fk_from_col)
+    if (!startDate) continue
+    const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
+    const effectiveEnd = endDate || startDate
+    if (effectiveEnd.isBefore(firstVisibleDate, 'day')) {
+      if (!closestDate || startDate.isAfter(closestDate, 'day')) {
+        closestDate = startDate
+      }
+    }
+  }
+  if (closestDate) emit('navigateTo', closestDate)
+}
+
+const navigateToNext = () => {
+  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
+  if (!lastVisibleDate) return
+  const range = props.timelineRange[0]
+  if (!range) return
+
+  let closestDate: dayjs.Dayjs | null = null
+  for (const row of props.records) {
+    const startDate = parseDate(row, range.fk_from_col)
+    if (!startDate) continue
+    if (startDate.isAfter(lastVisibleDate, 'day')) {
+      if (!closestDate || startDate.isBefore(closestDate, 'day')) {
+        closestDate = startDate
+      }
+    }
+  }
+  if (closestDate) emit('navigateTo', closestDate)
+}
+
 // #12: Handle double-click on empty grid area to create a new record
 const onGridDblClick = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit')) return
@@ -611,7 +708,7 @@ const onBodyScroll = (event: Event) => {
 </script>
 
 <template>
-  <div class="flex flex-col h-full overflow-hidden">
+  <div class="relative flex flex-col h-full overflow-hidden" :style="{ minHeight: (hasRecordsBefore || hasRecordsAfter) && !swimlanes.length ? `${ROW_HEIGHT}px` : undefined }">
     <!-- Date column headers (hidden when parent provides a shared header) -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
       <div
@@ -660,7 +757,7 @@ const onBodyScroll = (event: Event) => {
     <!-- Scrollable grid body (#4: both axes scroll) -->
     <div
       ref="bodyScrollRef"
-      class="flex-1 min-h-0 overflow-auto"
+      :class="hideHeader ? 'flex-1 min-h-0 overflow-hidden' : 'flex-1 min-h-0 overflow-auto'"
       @scroll="onBodyScroll"
     >
       <div
@@ -763,7 +860,15 @@ const onBodyScroll = (event: Event) => {
                   <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
-                <span class="truncate pl-2.5 pr-2 inline-flex items-center">
+                <span
+                  class="truncate inline-flex items-center"
+                  :class="{
+                    'pl-7': !isStartVisible(record),
+                    'pl-2.5': isStartVisible(record),
+                    'pr-7': !isEndVisible(record),
+                    'pr-2': isEndVisible(record),
+                  }"
+                >
                   <template v-for="field in fields" :key="field.id">
                     <LazySmartsheetPlainCell
                       v-if="!isRowEmpty(record, field!)"
@@ -777,6 +882,20 @@ const onBodyScroll = (event: Event) => {
                   </template>
                 </span>
 
+                <!-- Per-bar left nav arrow — when start is clipped -->
+                <div
+                  v-if="!isStartVisible(record)"
+                  class="nc-timeline-nav-arrow absolute left-0 top-0 h-full z-20 flex items-center"
+                  @click.stop="navigateToRecordStart(record)"
+                  @mousedown.stop
+                >
+                  <div
+                    class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors ml-0.5"
+                  >
+                    <GeneralIcon icon="arrowLeft" class="text-nc-content-gray-muted w-3 h-3" />
+                  </div>
+                </div>
+
                 <!-- Right resize handle (end date) — only when end date column exists -->
                 <div
                   v-if="canResize && timelineRange[0]?.fk_to_col"
@@ -785,12 +904,53 @@ const onBodyScroll = (event: Event) => {
                 >
                   <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
+
+                <!-- Per-bar right nav arrow — when end is clipped -->
+                <div
+                  v-if="!isEndVisible(record)"
+                  class="nc-timeline-nav-arrow absolute right-0 top-0 h-full z-20 flex items-center"
+                  @click.stop="navigateToRecordEnd(record)"
+                  @mousedown.stop
+                >
+                  <div
+                    class="flex items-center justify-center w-5 h-5 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors mr-0.5"
+                  >
+                    <GeneralIcon icon="arrowRight" class="text-nc-content-gray-muted w-3 h-3" />
+                  </div>
+                </div>
               </div>
             </NcTooltip>
           </div>
 
           <!-- #9: Empty state grid filler — using i18n -->
         </div>
+      </div>
+    </div>
+
+    <!-- Grid-level nav arrows — only for fully off-screen records (no bars visible) -->
+    <div
+      v-if="hasRecordsBefore"
+      class="absolute left-1 inset-y-0 z-10 flex items-center pointer-events-none"
+    >
+      <div
+        class="nc-timeline-nav-btn flex items-center justify-center w-6 h-6 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors pointer-events-auto"
+        data-testid="nc-timeline-nav-prev"
+        @click.stop="navigateToPrev"
+      >
+        <GeneralIcon icon="arrowLeft" class="text-nc-content-gray-muted w-3.5 h-3.5" />
+      </div>
+    </div>
+
+    <div
+      v-if="hasRecordsAfter"
+      class="absolute right-1 inset-y-0 z-10 flex items-center pointer-events-none"
+    >
+      <div
+        class="nc-timeline-nav-btn flex items-center justify-center w-6 h-6 rounded-full bg-nc-bg-default border border-nc-border-gray-medium shadow-sm cursor-pointer hover:bg-nc-bg-gray-extralight transition-colors pointer-events-auto"
+        data-testid="nc-timeline-nav-next"
+        @click.stop="navigateToNext"
+      >
+        <GeneralIcon icon="arrowRight" class="text-nc-content-gray-muted w-3.5 h-3.5" />
       </div>
     </div>
   </div>

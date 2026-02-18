@@ -471,6 +471,7 @@ const recordCountLabel = computed(() => {
             :group-wrapper-change-page="groupWrapperChangePage"
             :max-depth="groupBy.length"
             @expand-record="expandRecord"
+            @navigate-to="goToDate"
           />
         </div>
 
@@ -484,6 +485,7 @@ const recordCountLabel = computed(() => {
           :zoom-level="zoomLevel"
           @expand-record="expandRecord"
           @new-record="onNewRecord"
+          @navigate-to="goToDate"
         />
       </template>
       <!-- #9: Empty state — using i18n -->

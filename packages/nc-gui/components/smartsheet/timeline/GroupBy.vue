@@ -33,6 +33,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: 'expandRecord', row: RowType, state?: Record<string, any>): void
+  (event: 'navigateTo', date: dayjs.Dayjs): void
 }>()
 
 const { isDark, getColor } = useTheme()
@@ -234,6 +235,7 @@ onMounted(async () => {
               :zoom-level="zoomLevel"
               :hide-header="true"
               @expand-record="(row: RowType, state?: Record<string, any>) => emit('expandRecord', row, state)"
+              @navigate-to="(date: dayjs.Dayjs) => emit('navigateTo', date)"
             />
 
             <!-- Nested group: recurse -->
@@ -250,6 +252,7 @@ onMounted(async () => {
               :depth="_depth + 1"
               :max-depth="maxDepth"
               @expand-record="(row: RowType, state?: Record<string, any>) => emit('expandRecord', row, state)"
+              @navigate-to="(date: dayjs.Dayjs) => emit('navigateTo', date)"
             />
 
             <!-- Loading state -->

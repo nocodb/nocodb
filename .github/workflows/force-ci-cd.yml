@@ -8,5 +8,6 @@ jobs:
   trigger-ci-cd:
     if: ${{ contains(github.event.pull_request.labels.*.name, 'force-trigger-CI') }}
     uses: ./.github/workflows/ci-cd.yml
+    secrets: inherit
     with:
       force: true

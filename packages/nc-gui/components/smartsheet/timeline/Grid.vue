@@ -30,6 +30,27 @@ const {
   formattedData: storeFormattedData,
 } = useTimelineViewStoreOrThrow()
 
+// Visible fields from the Fields menu (injected by parent Smartsheet/shared-view)
+const fields = inject(FieldsInj, ref())
+
+// View column configs (for bold/italic/underline styles)
+const { fields: viewFields } = useViewColumnsOrThrow()
+
+// Build a lookup: columnId → { bold, italic, underline }
+const fieldStyles = computed(() => {
+  return (viewFields.value ?? []).reduce(
+    (acc, field) => {
+      acc[field.fk_column_id!] = {
+        bold: !!field.bold,
+        italic: !!field.italic,
+        underline: !!field.underline,
+      }
+      return acc
+    },
+    {} as Record<string, { bold?: boolean; italic?: boolean; underline?: boolean }>,
+  )
+})
+
 const today = dayjs()
 
 const ROW_HEIGHT = 36
@@ -441,7 +462,19 @@ const todayPosition = computed(() => {
                   <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
-                <span class="truncate px-2">{{ getRowTitle(record) }}</span>
+                <span class="truncate px-2 inline-flex items-center">
+                  <template v-for="field in fields" :key="field.id">
+                    <LazySmartsheetPlainCell
+                      v-if="!isRowEmpty(record, field!)"
+                      v-model="record.row[field!.title!]"
+                      class="text-xs"
+                      :bold="fieldStyles[field.id]?.bold"
+                      :column="field"
+                      :italic="fieldStyles[field.id]?.italic"
+                      :underline="fieldStyles[field.id]?.underline"
+                    />
+                  </template>
+                </span>
 
                 <!-- Right resize handle (end date) — only when end date column exists -->
                 <div

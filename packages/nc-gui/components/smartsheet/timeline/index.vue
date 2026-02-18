@@ -213,6 +213,9 @@ watch([currentDate, zoomLevel, timelineRange], () => {
           </a-select-option>
         </a-select>
 
+        <!-- Fields -->
+        <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
+
         <!-- Filter -->
         <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
 

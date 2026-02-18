@@ -154,7 +154,13 @@ const filterCountDisplay = computed(() => {
   const total = combinedFilterLength.value
   if (!total) return ''
 
-  const enabled = enabledFiltersLength.value
+  // For restricted editors, enabledFiltersLength tracks persisted (creator) filters only.
+  // Also count enabled local/temp filters so the badge reflects the full picture.
+  let enabled = enabledFiltersLength.value
+  if (isRestrictedEditor.value) {
+    enabled += (localFilters.value || []).filter((f) => f.enabled !== false && f.enabled !== 0).length
+  }
+
   if (enabled < total) {
     return `${enabled}/${total}`
   }
@@ -229,9 +235,13 @@ watch(
 // Watch allFilters (populated by ColumnFilter.vue via AllFiltersInj) to keep
 // enabled count in sync when individual filters are toggled on/off.
 // Count root-level items only — filter groups count as 1.
+// Skip for restricted editors: they have two ColumnFilter instances (read-only + temp)
+// that both write to allFilters['root'], corrupting the count.
 watch(
   allFilters,
   () => {
+    if (isRestrictedEditor.value) return
+
     const rootFilters = (allFilters.value as Record<string, FilterType[]>)['root']
     if (rootFilters?.length) {
       filtersLength.value = rootFilters.length

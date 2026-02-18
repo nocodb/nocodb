@@ -89,8 +89,8 @@ const openColorPicker = () => {
 const onClick = (e: Event) => {
   e.stopPropagation()
   if (!readOnly.value && props.modelValue) {
-    // In edit column context (default value), open the picker directly
-    if (isEditColumn.value) {
+    // In expanded form or edit column context, open the picker directly on click
+    if (isExpandedFormOpen.value || isEditColumn.value) {
       openColorPicker()
     } else {
       showClearButton.value = true

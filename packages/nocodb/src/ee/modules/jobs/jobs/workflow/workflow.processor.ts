@@ -10,7 +10,6 @@ import {
   type ExecuteWorkflowJobData,
   JobTypes,
   type ResumeWorkflowJobData,
-  type TestWorkflowNodeJobData,
 } from '~/interface/Jobs';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import Workflow from '~/models/Workflow';

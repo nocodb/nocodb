@@ -240,8 +240,13 @@ const getAst = async (
     // TODO: also get from col.id
     const nestedFields =
       query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
+    const linksAsLtar = query?.linksAsLtar === 'true';
+
     if (nestedFields && nestedFields !== '*') {
-      if (col.uidt === UITypes.LinkToAnotherRecord) {
+      if (
+        col.uidt === UITypes.LinkToAnotherRecord ||
+        (col.uidt === UITypes.Links && linksAsLtar)
+      ) {
         const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
           context,
         );
@@ -280,7 +285,10 @@ const getAst = async (
           Array.isArray(nestedFields) ? nestedFields : nestedFields.split(',')
         ).reduce((o, f) => ({ ...o, [f]: 1 }), {});
       }
-    } else if (col.uidt === UITypes.LinkToAnotherRecord) {
+    } else if (
+      col.uidt === UITypes.LinkToAnotherRecord ||
+      (col.uidt === UITypes.Links && linksAsLtar)
+    ) {
       const colOpt = await col.getColOptions<LinkToAnotherRecordColumn>(
         context,
       );
@@ -515,6 +523,7 @@ export type RequestQuery = {
   nested?: {
     [field: string]: RequestQuery;
   };
+  linksAsLtar?: string;
 };
 
 export interface DependantFields {

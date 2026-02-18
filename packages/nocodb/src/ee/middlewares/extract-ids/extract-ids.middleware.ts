@@ -20,6 +20,14 @@ import {
 } from 'nocodb-sdk';
 import { map } from 'rxjs';
 import RowColorCondition from 'src/models/RowColorCondition';
+import {
+  checkIsPersonalViewOwner,
+  editorPersonalViewOnlyPermissions,
+  markPersonalViewIfNeeded,
+  personalViewOwnerAllowedPermissions,
+  personalViewOwnerOnlyOps,
+  VIEW_KEY,
+} from 'src/middlewares/extract-ids/extract-ids.helpers';
 import type { Observable } from 'rxjs';
 import type {
   CallHandler,
@@ -58,14 +66,6 @@ import { NcError } from '~/helpers/catchError';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { JwtStrategy } from '~/strategies/jwt.strategy';
 import { beforeAclValidationHook } from '~/middlewares/extract-ids/extract-ids.helpers';
-import {
-  checkIsPersonalViewOwner,
-  editorPersonalViewOnlyPermissions,
-  markPersonalViewIfNeeded,
-  personalViewOwnerAllowedPermissions,
-  personalViewOwnerOnlyOps,
-  VIEW_KEY,
-} from 'src/middlewares/extract-ids/extract-ids.helpers';
 import { RootScopes } from '~/utils/globals';
 import SSOClient from '~/models/SSOClient';
 import {

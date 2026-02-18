@@ -1155,7 +1155,7 @@ export class ExportService {
   ) {
     context = { ...context, cache: true };
 
-    const { dataStream, handledMmList } = param;
+    const { dataStream } = param;
 
     const { model, view } = await getViewAndModelByAliasOrId(context, {
       baseName: param.baseId,

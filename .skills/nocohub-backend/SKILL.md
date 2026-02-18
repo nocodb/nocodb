@@ -410,4 +410,5 @@ The script generates files and prints next steps for manual registration.
 - **Patterns & Templates**: See [references/patterns.md](references/patterns.md) for complete code examples
 - **MetaTable Reference**: See [references/meta-tables.md](references/meta-tables.md) for database table enums
 - **View Creation Guide**: See [references/view-creation.md](references/view-creation.md) for adding a new view type (meta layer)
+- **Unit Testing Guide**: See [references/unit-testing.md](references/unit-testing.md) for test architecture, writing tests, running tests
 - **Sync Exclusions**: See `scripts/sync/exclude-list.txt` for CE/EE sync rules

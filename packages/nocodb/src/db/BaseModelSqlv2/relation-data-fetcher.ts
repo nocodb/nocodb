@@ -51,11 +51,13 @@ export const relationDataFetcher = (param: {
         ids: _ids,
         apiVersion,
         nested = false,
+        linksAsLtar = false,
       }: {
         colId: string;
         ids: any[];
         apiVersion?: NcApiVersion;
         nested?: boolean;
+        linksAsLtar?: boolean;
       },
       args: { limit?; offset?; fieldsSet?: Set<string> } = {},
     ) {
@@ -104,6 +106,7 @@ export const relationDataFetcher = (param: {
           extractPkAndPv: true,
           fieldsSet: args.fieldsSet,
           pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
+          linksAsLtar,
         });
         const view = relationColOpts.fk_target_view_id
           ? await View.get(refContext, relationColOpts.fk_target_view_id)
@@ -176,11 +179,13 @@ export const relationDataFetcher = (param: {
         parentId,
         apiVersion,
         nested = false,
+        linksAsLtar = false,
       }: {
         colId: string;
         parentId: any;
         apiVersion?: NcApiVersion;
         nested?: boolean;
+        linksAsLtar?: boolean;
       },
       args: { limit?; offset?; fieldsSet?: Set<string> } = {},
       selectAllRecords = false,
@@ -253,6 +258,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        linksAsLtar,
       });
 
       await refTable.getViews(refContext);
@@ -377,11 +383,13 @@ export const relationDataFetcher = (param: {
         colId,
         id,
         apiVersion,
+        linksAsLtar = false,
       }: {
         colId: string;
         id: any;
         apiVersion?: NcApiVersion;
         nested?: boolean;
+        linksAsLtar?: boolean;
       },
       args: { limit?; offset?; fieldSet?: Set<string> } = {},
     ) {
@@ -450,6 +458,7 @@ export const relationDataFetcher = (param: {
           qb,
           fieldsSet: args.fieldSet,
           pkAndPvOnly: relationColOpts.isCrossBaseLink() || hasLimitedAccess,
+          linksAsLtar,
         });
 
         await childBaseModel.applySortAndFilter({
@@ -564,11 +573,13 @@ export const relationDataFetcher = (param: {
         parentIds: _parentIds,
         apiVersion,
         nested = false,
+        linksAsLtar = false,
       }: {
         colId: string;
         parentIds: any[];
         apiVersion?: NcApiVersion;
         nested?: boolean;
+        linksAsLtar?: boolean;
       },
       args: { limit?; offset?; fieldsSet?: Set<string> } = {},
     ) {
@@ -639,6 +650,7 @@ export const relationDataFetcher = (param: {
         qb,
         fieldsSet: args.fieldsSet,
         pkAndPvOnly: relColOptions.isCrossBaseLink() || hasLimitedAccess,
+        linksAsLtar,
       });
 
       const view = relColOptions.fk_target_view_id

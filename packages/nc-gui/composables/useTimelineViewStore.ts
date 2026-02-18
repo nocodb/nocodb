@@ -82,23 +82,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const isTimelineDataLoading = ref<boolean>(false)
 
-    // #6: Hide weekends toggle (persisted in view meta)
-    const hideWeekends = computed({
-      get: () => !!viewMetaProperties.value?.hide_weekend,
-      set: async (val: boolean) => {
-        if (!viewMeta.value?.id || isPublic.value) return
-        try {
-          const newMeta = { ...viewMetaProperties.value, hide_weekend: val }
-          await $api.dbView.update(viewMeta.value.id, {
-            meta: newMeta,
-          } as any)
-          // Reactivity flows through viewMeta → viewMetaProperties → hideWeekends
-        } catch (e: any) {
-          message.error(await extractSdkResponseErrorMsg(e))
-        }
-      },
-    })
-
     const searchQuery = reactive({
       value: '',
       field: '',
@@ -157,9 +140,9 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         .filter(Boolean)
     })
 
-    // #6: Compute visible dates based on zoom level, respecting hide weekends
+    // Compute visible dates based on zoom level
     const visibleDates = computed<dayjs.Dayjs[]>(() => {
-      let dates: dayjs.Dayjs[] = []
+      const dates: dayjs.Dayjs[] = []
       if (zoomLevel.value === 'month') {
         const startOfMonth = currentDate.value.startOf('month')
         const daysInMonth = currentDate.value.daysInMonth()
@@ -167,7 +150,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           dates.push(startOfMonth.add(i, 'day'))
         }
       } else if (zoomLevel.value === 'day') {
-        // Day view: show a single day (useful for hourly granularity later)
         dates.push(currentDate.value.startOf('day'))
       } else {
         // week view
@@ -175,11 +157,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         for (let i = 0; i < 7; i++) {
           dates.push(startOfWeek.add(i, 'day'))
         }
-      }
-
-      // #6: Filter out weekends if hide_weekend is enabled
-      if (hideWeekends.value) {
-        dates = dates.filter((d) => d.day() !== 0 && d.day() !== 6)
       }
 
       return dates
@@ -397,7 +374,6 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       visibleDates,
       dateRangeLabel,
       isPublic,
-      hideWeekends,
       totalRecordCount,
       recordsWithoutDates,
 

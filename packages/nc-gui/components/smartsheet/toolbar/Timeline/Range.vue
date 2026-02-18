@@ -12,7 +12,7 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { timelineRange, loadTimelineData, timelineMetaData, hideWeekends } = useTimelineViewStoreOrThrow()
+const { timelineRange, loadTimelineData, timelineMetaData } = useTimelineViewStoreOrThrow()
 
 const { $api } = useNuxtApp()
 
@@ -79,10 +79,6 @@ const onFromChange = () => {
   saveRange()
 }
 
-// #6: Hide weekends toggle
-const onToggleWeekends = (val: boolean) => {
-  hideWeekends.value = val
-}
 </script>
 
 <template>
@@ -221,19 +217,6 @@ const onToggleWeekends = (val: boolean) => {
               </div>
             </template>
           </div>
-        </div>
-
-        <!-- #6: Hide weekends toggle -->
-        <div class="flex items-center justify-between">
-          <span class="text-nc-content-gray text-sm">
-            {{ $t('activity.showWeekends') }}
-          </span>
-          <NcSwitch
-            :checked="!hideWeekends"
-            :disabled="isLocked"
-            data-testid="nc-timeline-show-weekends"
-            @update:checked="onToggleWeekends(!$event)"
-          />
         </div>
 
         <!-- #9: i18n warning message -->

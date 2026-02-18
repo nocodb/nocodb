@@ -312,31 +312,58 @@ const getUserValueUser = (filter: FilterType) => {
   return userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0]) || null
 }
 
-// ============ Pill Overflow (show limited chips + "+N") ============
+// ============ Pill Display: Single Value + Overflow Count ============
 
 /**
- * Maximum number of value chips shown inside a single pill.
- * When a multi-value filter has more selections, the excess is
- * collapsed into a "+N" badge to keep all pinned filters visible.
+ * For the pill trigger, show only the first selected value and a "+N" overflow count.
+ * This keeps the toolbar compact regardless of how many values are selected.
  */
-const MAX_VISIBLE_CHIPS = 2
 
-const getVisibleSelectOptions = (filter: FilterType) => {
-  return getSelectedSelectOptions(filter).slice(0, MAX_VISIBLE_CHIPS)
+/** First selected option title for select-type filters */
+const getPrimarySelectDisplay = (filter: FilterType): string | null => {
+  if (!filter.value) return null
+  const values = String(filter.value).split(',').filter(Boolean)
+  return values.length > 0 ? values[0] : null
 }
 
-const getOverflowSelectCount = (filter: FilterType) => {
-  const total = getSelectedSelectOptions(filter).length
-  return total > MAX_VISIBLE_CHIPS ? total - MAX_VISIBLE_CHIPS : 0
+/** Full option object for the first selected value (for colour rendering) */
+const getPrimarySelectOption = (filter: FilterType) => {
+  const title = getPrimarySelectDisplay(filter)
+  if (!title) return null
+  return getSelectOptions(filter).find((o: any) => o.title === title) || null
 }
 
-const getVisibleUsers = (filter: FilterType) => {
-  return getSelectedUsers(filter).slice(0, MAX_VISIBLE_CHIPS)
+/** Number of additional selected values beyond the first (for "+N" suffix) */
+const getSelectOverflowCount = (filter: FilterType): number => {
+  if (!filter.value) return 0
+  const values = String(filter.value).split(',').filter(Boolean)
+  return values.length > 1 ? values.length - 1 : 0
 }
 
-const getOverflowUserCount = (filter: FilterType) => {
-  const total = getSelectedUsers(filter).length
-  return total > MAX_VISIBLE_CHIPS ? total - MAX_VISIBLE_CHIPS : 0
+/** Display name for the first selected user */
+const getPrimaryUserDisplay = (filter: FilterType): string | null => {
+  if (!filter.value) return null
+  const values = String(filter.value).split(',').filter(Boolean)
+  if (values.length === 0) return null
+  if (values[0] === CURRENT_USER_TOKEN) return '@me'
+  const user = userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0])
+  return getUserDisplayName(user) || values[0]
+}
+
+/** User object for the first selected user (for avatar rendering) */
+const getPrimaryUser = (filter: FilterType) => {
+  if (!filter.value) return null
+  const values = String(filter.value).split(',').filter(Boolean)
+  if (values.length === 0) return null
+  if (values[0] === CURRENT_USER_TOKEN) return { ...ME_USER_OBJECT }
+  return userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0]) || null
+}
+
+/** Number of additional selected users beyond the first */
+const getUserOverflowCount = (filter: FilterType): number => {
+  if (!filter.value) return 0
+  const values = String(filter.value).split(',').filter(Boolean)
+  return values.length > 1 ? values.length - 1 : 0
 }
 
 // ============ Dropdown State ============
@@ -534,131 +561,89 @@ const unpinFilter = async (filter: FilterType) => {
         >
           <!-- ====== PILL TRIGGER ====== -->
           <div
-            class="nc-pinned-filter-pill nc-toolbar-btn flex items-center gap-0.5 !h-7 py-0.5 pl-1.5 pr-1.5 rounded-lg cursor-pointer select-none overflow-hidden"
+            class="nc-pinned-filter-pill nc-toolbar-btn flex items-center !h-7 rounded-lg cursor-pointer select-none overflow-hidden"
             :class="{
-              'bg-nc-bg-gray-extralight !text-nc-content-gray': openFilterId === filter.id,
               'opacity-60': !isEffectivelyEnabled(filter),
               'cursor-not-allowed opacity-70': isLocked,
+              'bg-nc-bg-gray-extralight !text-nc-content-gray': openFilterId === filter.id,
             }"
             @click="!isLocked && toggleDropdown(filter.id)"
           >
-            <!-- ── Select type value chips ── -->
-            <template v-if="isSelectType(filter) && (isMultiValueOp(filter) ? getSelectedSelectOptions(filter).length : getSelectValueDisplay(filter))">
-              <!-- Multi-value: show up to MAX_VISIBLE_CHIPS chips + overflow badge -->
-              <template v-if="isMultiValueOp(filter)">
+            <!-- Pin icon + field name (unified label block) -->
+            <div class="flex items-center gap-1 px-1.5 h-full flex-none">
+              <GeneralIcon icon="ncPin" class="h-3 w-3 text-nc-content-gray-subtle2 flex-none" />
+              <span class="text-[11px] font-semibold text-nc-content-gray-subtle2 whitespace-nowrap">
+                {{ getColumn(filter)?.title }}
+              </span>
+            </div>
+
+            <!-- Value section -->
+            <div class="flex items-center gap-1 pl-0.5 pr-1.5">
+
+              <!-- ── Select type: single value pill + N ── -->
+              <template v-if="isSelectType(filter) && getPrimarySelectDisplay(filter)">
                 <a-tag
-                  v-for="opt in getVisibleSelectOptions(filter)"
-                  :key="opt.title"
+                  v-if="getPrimarySelectOption(filter)"
                   class="nc-pinned-select-tag max-w-28"
                   :class="{ 'nc-negated-tag': isNegatedOp(filter) }"
-                  :color="opt.bgColor"
+                  :color="getPrimarySelectOption(filter).bgColor"
                 >
-                  <span class="flex items-center gap-0.5">
-                    <span :style="{ color: opt.textColor }" class="text-[11px] leading-tight truncate">
-                      {{ opt.title }}
-                    </span>
-                    <GeneralIcon
-                      icon="close"
-                      :style="{ color: opt.textColor }"
-                      class="h-3 w-3 cursor-pointer opacity-70 hover:opacity-100 flex-none"
-                      @click.stop="removeSelectValue(filter, opt.title)"
-                    />
-                  </span>
-                </a-tag>
-                <span
-                  v-if="getOverflowSelectCount(filter)"
-                  class="text-[11px] text-nc-content-gray-subtle2 font-medium whitespace-nowrap flex-none"
-                >
-                  +{{ getOverflowSelectCount(filter) }}
-                </span>
-              </template>
-              <!-- Single-value: single coloured chip -->
-              <template v-else>
-                <a-tag
-                  v-if="getSelectValueOption(filter)"
-                  class="nc-pinned-select-tag max-w-28"
-                  :class="{ 'nc-negated-tag': isNegatedOp(filter) }"
-                  :color="getSelectValueOption(filter).bgColor"
-                >
-                  <span :style="{ color: getSelectValueOption(filter).textColor }" class="text-[11px] leading-tight truncate">
-                    {{ getSelectValueDisplay(filter) }}
+                  <span :style="{ color: getPrimarySelectOption(filter).textColor }" class="text-[11px] leading-tight truncate">
+                    {{ getPrimarySelectDisplay(filter) }}
                   </span>
                 </a-tag>
                 <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
-                  {{ getSelectValueDisplay(filter) }}
+                  {{ getPrimarySelectDisplay(filter) }}
+                </span>
+                <span
+                  v-if="getSelectOverflowCount(filter)"
+                  class="text-[11px] text-nc-content-gray-subtle2 font-medium whitespace-nowrap flex-none"
+                >
+                  +{{ getSelectOverflowCount(filter) }}
                 </span>
               </template>
-            </template>
 
-            <!-- ── User type value chips ── -->
-            <template v-else-if="isUserType(filter) && (isMultiValueOp(filter) ? getSelectedUsers(filter).length : getUserValueDisplay(filter))">
-              <!-- Multi-value: show up to MAX_VISIBLE_CHIPS user chips + overflow badge -->
-              <template v-if="isMultiValueOp(filter)">
+              <!-- ── User type: single value pill + N ── -->
+              <template v-else-if="isUserType(filter) && getPrimaryUserDisplay(filter)">
                 <a-tag
-                  v-for="user in getVisibleUsers(filter)"
-                  :key="user.id"
+                  v-if="getPrimaryUser(filter)"
                   class="nc-pinned-user-tag max-w-32"
                   :class="{ 'nc-negated-tag': isNegatedOp(filter) }"
                   :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
                 >
                   <span class="flex items-center gap-0.5">
                     <GeneralUserIcon
-                      :user="user"
+                      :user="getPrimaryUser(filter)"
                       size="small"
                       class="!text-[0.45rem]"
                     />
                     <span class="text-[11px] text-nc-content-gray truncate leading-tight">
-                      {{ getUserDisplayName(user) }}
-                    </span>
-                    <GeneralIcon
-                      icon="close"
-                      class="h-3 w-3 text-nc-content-gray-subtle2 cursor-pointer opacity-70 hover:opacity-100 flex-none"
-                      @click.stop="removeUserValue(filter, user.id)"
-                    />
-                  </span>
-                </a-tag>
-                <span
-                  v-if="getOverflowUserCount(filter)"
-                  class="text-[11px] text-nc-content-gray-subtle2 font-medium whitespace-nowrap flex-none"
-                >
-                  +{{ getOverflowUserCount(filter) }}
-                </span>
-              </template>
-              <!-- Single-value: single user chip with avatar -->
-              <template v-else>
-                <a-tag
-                  v-if="getUserValueUser(filter)"
-                  class="nc-pinned-user-tag max-w-32"
-                  :class="{ 'nc-negated-tag': isNegatedOp(filter) }"
-                  :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
-                >
-                  <span class="flex items-center gap-0.5">
-                    <GeneralUserIcon
-                      :user="getUserValueUser(filter)"
-                      size="small"
-                      class="!text-[0.45rem]"
-                    />
-                    <span class="text-[11px] text-nc-content-gray truncate leading-tight">
-                      {{ getUserValueDisplay(filter) }}
+                      {{ getPrimaryUserDisplay(filter) }}
                     </span>
                   </span>
                 </a-tag>
                 <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
-                  {{ getUserValueDisplay(filter) }}
+                  {{ getPrimaryUserDisplay(filter) }}
+                </span>
+                <span
+                  v-if="getUserOverflowCount(filter)"
+                  class="text-[11px] text-nc-content-gray-subtle2 font-medium whitespace-nowrap flex-none"
+                >
+                  +{{ getUserOverflowCount(filter) }}
                 </span>
               </template>
-            </template>
 
-            <!-- ── Fallback: show field name when no value is selected ── -->
-            <span v-else class="text-xs text-nc-content-gray-subtle whitespace-nowrap">
-              {{ getColumn(filter)?.title }}
-            </span>
+              <!-- ── Fallback: show "no value" when nothing is selected ── -->
+              <span v-else class="text-xs text-nc-content-gray-subtle whitespace-nowrap italic">
+                {{ t('general.none') }}
+              </span>
 
-            <!-- Chevron indicator -->
-            <GeneralIcon
-              :icon="openFilterId === filter.id ? 'arrowUp' : 'arrowDown'"
-              class="h-3.5 w-3.5 text-nc-content-gray-subtle2 flex-none"
-            />
+              <!-- Chevron indicator -->
+              <GeneralIcon
+                :icon="openFilterId === filter.id ? 'arrowUp' : 'arrowDown'"
+                class="h-3.5 w-3.5 text-nc-content-gray-subtle2 flex-none"
+              />
+            </div>
           </div>
 
           <!-- ====== DROPDOWN PANEL ====== -->

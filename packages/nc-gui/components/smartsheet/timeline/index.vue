@@ -12,6 +12,12 @@ const isPublic = inject(IsPublicInj, ref(false))
 
 const { t } = useI18n()
 
+const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
+
+// When the left sidebar is open, show toolbar buttons as icon-only with tooltips
+const isToolbarIconMode = computed(() => isLeftSidebarOpen.value)
+
+provide(IsToolbarIconMode, isToolbarIconMode)
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))

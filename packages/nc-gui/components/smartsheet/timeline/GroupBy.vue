@@ -37,58 +37,64 @@ const emit = defineEmits<{
 
 const { isDark, getColor } = useTheme()
 
+const GROUP_SIDEBAR_WIDTH = 200
+
 const _depth = props.depth ?? 0
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-const _activeGroupKeys = ref<string[] | string>()
+// Expanded groups tracker — all groups expanded by default (like Airtable)
+const expandedGroups = ref<Set<string>>(new Set())
 
-const activeGroups = computed<string[]>(() => {
-  if (!_activeGroupKeys.value) return []
-  if (Array.isArray(_activeGroupKeys.value)) {
-    return _activeGroupKeys.value.map((k) => k.replace('group-panel-', ''))
+const isExpanded = (key: string) => expandedGroups.value.has(key)
+
+const toggleGroup = async (grp: any) => {
+  const key = String(grp.key)
+  if (expandedGroups.value.has(key)) {
+    expandedGroups.value.delete(key)
   } else {
-    return [_activeGroupKeys.value.replace('group-panel-', '')]
-  }
-})
-
-const oldActiveGroups = ref<string[]>([])
-
-const _loadGroupData = async (group: Group, force?: boolean, params?: any) => {
-  await props.loadGroupData(group, force, params)
-}
-
-const findAndLoadSubGroup = async (key: any) => {
-  key = Array.isArray(key) ? key : [key]
-  if (key.length > 0 && props.group.children) {
-    if (!oldActiveGroups.value.includes(key[key.length - 1])) {
-      await until(() => props.group.children?.length > 0).toBeTruthy({
-        timeout: 10000,
-      })
-
-      const k = key[key.length - 1].replace('group-panel-', '')
-      const grp = props.group.children.find((g) => `${g.key}` === k)
-      if (grp) {
-        if (grp.nested) {
-          if (!grp.children?.[0]?.children?.length) {
-            props.loadGroups({}, grp, {
-              triggerChildOnly: true,
-            })
-          }
-        } else {
-          if (!grp.rows?.length) _loadGroupData(grp)
-        }
+    expandedGroups.value.add(key)
+    // Load data on expand if not yet loaded
+    if (grp.nested) {
+      if (!grp.children?.[0]?.children?.length) {
+        await props.loadGroups({}, grp, { triggerChildOnly: true })
+      }
+    } else {
+      if (!grp.rows?.length) {
+        await props.loadGroupData(grp)
       }
     }
   }
-  oldActiveGroups.value = key
 }
+
+// Auto-expand all groups and load data when children become available
+watch(
+  () => props.group?.children,
+  (children) => {
+    if (!children) return
+    for (const grp of children) {
+      const key = String(grp.key)
+      if (!expandedGroups.value.has(key)) {
+        expandedGroups.value.add(key)
+        // Load data for leaf groups
+        if (!grp.nested && !grp.rows?.length) {
+          props.loadGroupData(grp)
+        }
+        // Load sub-groups for nested groups
+        if (grp.nested && !grp.children?.length) {
+          props.loadGroups({}, grp, { triggerChildOnly: true })
+        }
+      }
+    }
+  },
+  { immediate: true },
+)
 
 const reloadViewDataHandler = () => {
   if (props.group.nested) {
     props.loadGroups({}, props.group)
   } else {
-    _loadGroupData(props.group, true)
+    props.loadGroupData(props.group, true)
   }
 }
 
@@ -106,223 +112,141 @@ onMounted(async () => {
     await props.loadGroups({}, props.group)
   }
 })
-
-const expandGroup = async (key: string) => {
-  if (Array.isArray(_activeGroupKeys.value)) {
-    _activeGroupKeys.value.push(`group-panel-${key}`)
-  } else {
-    _activeGroupKeys.value = [`group-panel-${key}`]
-  }
-  await findAndLoadSubGroup(`group-panel-${key}`)
-}
-
-const collapseGroup = (key: string) => {
-  if (Array.isArray(_activeGroupKeys.value)) {
-    _activeGroupKeys.value = _activeGroupKeys.value.filter((k) => k !== `group-panel-${key}`)
-  } else {
-    _activeGroupKeys.value = []
-  }
-}
-
-const bgColor = computed(() => {
-  if (props.maxDepth === 3) {
-    switch (_depth) {
-      case 2:
-        return getColor(themeV4Colors.gray['50'])
-      case 1:
-        return getColor(themeV4Colors.gray['100'])
-      default:
-        return getColor('#F1F1F1', themeV4Colors.gray['200'])
-    }
-  }
-
-  if (props.maxDepth === 2) {
-    switch (_depth) {
-      case 1:
-        return getColor(themeV4Colors.gray['50'])
-      default:
-        return getColor(themeV4Colors.gray['100'])
-    }
-  }
-
-  if (props.maxDepth === 1) {
-    return getColor(themeV4Colors.gray['50'])
-  }
-
-  return getColor(themeV4Colors.gray['50'])
-})
 </script>
 
 <template>
-  <div
-    class="h-full overflow-y-auto"
-    :style="`${!group.root && group.nested ? 'padding-left: 8px; padding-right: 8px;' : ''}`"
-  >
-    <div :class="{ 'pl-2 pr-2': group.root === true }">
-      <a-collapse
-        v-model:active-key="_activeGroupKeys"
-        class="nc-timeline-group-wrapper !rounded-lg"
-        :bordered="false"
-        @change="findAndLoadSubGroup"
-      >
-        <a-collapse-panel
-          v-for="grp of group?.children ?? []"
-          :key="`group-panel-${grp.key}`"
-          class="!border-1 border-nc-border-gray-dark nc-timeline-group rounded-[8px] mb-2"
-          :style="`background: ${bgColor};`"
-          :show-arrow="false"
+  <div class="h-full overflow-y-auto">
+    <!-- CSS Grid layout: left sidebar (group labels) + right timeline area -->
+    <div
+      class="nc-timeline-group-grid"
+      :style="{ display: 'grid', gridTemplateColumns: `${GROUP_SIDEBAR_WIDTH}px 1fr` }"
+    >
+      <template v-for="grp of group?.children ?? []" :key="grp.key">
+        <!-- Left cell: group label -->
+        <div
+          class="nc-timeline-group-label border-b border-r border-gray-200 px-3 py-2 bg-white cursor-pointer select-none hover:bg-gray-50/80 transition-colors"
+          @click="toggleGroup(grp)"
         >
-          <template #header>
-            <div
-              :class="{
-                '!rounded-b-none': activeGroups.includes(grp.key.toString()),
-                '!border-b-1': _depth === (maxDepth ?? 1) - 1 && activeGroups.includes(grp.key.toString()),
-              }"
-              class="flex !sticky w-full items-center rounded-b-lg select-none transition-all !rounded-t-[8px] !h-10"
-            >
-              <div
-                :class="{
-                  '!rounded-bl-[8px]': !activeGroups.includes(grp.key.toString()),
-                }"
-                :style="`background: ${bgColor};`"
-                class="flex z-10 justify-between !h-9.8 !rounded-tl-[8px] group pr-2 overflow-clip items-center w-full"
-              >
-                <div class="flex items-center">
-                  <NcButton class="!border-0 !shadow-none !bg-transparent !hover:bg-transparent" type="secondary" size="small">
-                    <GeneralIcon
-                      icon="chevronDown"
-                      class="transition-all"
-                      :style="`${
-                        activeGroups.includes(grp.key.toString()) ? 'transform: rotate(360deg)' : 'transform: rotate(270deg)'
-                      }`"
-                    />
-                  </NcButton>
+          <div class="flex items-start gap-1.5">
+            <GeneralIcon
+              icon="chevronDown"
+              class="flex-shrink-0 mt-0.5 text-gray-400 transition-transform"
+              :class="{ '-rotate-90': !isExpanded(String(grp.key)) }"
+            />
 
-                  <div class="flex">
-                    <template v-if="grp.column.uidt === 'MultiSelect'">
-                      <a-tag
-                        v-for="[tagIndex, tag] of Object.entries(grp.key.split(','))"
-                        :key="`panel-tag-${grp.column.id}-${tag}`"
-                        class="!py-0 !px-[12px] !rounded-[12px]"
-                        :color="
-                          getSelectTypeFieldOptionBgColor({
-                            isDark,
-                            color: grp.color?.split(',')[+tagIndex] || '#ccc',
-                          })
-                        "
-                      >
-                        <span
-                          class="nc-group-value"
-                          :style="{
-                            'color': getSelectTypeFieldOptionTextColor({
-                              isDark,
-                              color: grp.color?.split(',')[+tagIndex] || '#ccc',
-                              getColor,
-                            }),
-                            'font-size': '14px',
-                            'font-weight': 500,
-                          }"
-                        >
-                          {{ tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag }}
-                        </span>
-                      </a-tag>
-                    </template>
-                    <div
-                      v-else-if="!(grp.key in GROUP_BY_VARS.VAR_TITLES) && shouldRenderCell(grp.column)"
-                      class="flex min-w-[100px] flex-wrap"
-                    >
-                      <template v-for="(val, ind) of parseKey(grp)" :key="ind">
-                        <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
-                        <span v-else class="text-nc-content-gray-disabled">No mapped value</span>
-                      </template>
-                    </div>
-                    <a-tag
-                      v-else
-                      :key="`panel-tag-${grp.column.id}-${grp.key}`"
-                      class="!py-0 !px-[12px]"
-                      :class="`${grp.column.uidt === 'SingleSelect' ? '!rounded-[12px]' : '!rounded-[6px]'}`"
-                      :color="
-                        getSelectTypeFieldOptionBgColor({
+            <div class="flex flex-col min-w-0 gap-1">
+              <!-- Group value rendering -->
+              <template v-if="grp.column?.uidt === 'MultiSelect'">
+                <div class="flex flex-wrap gap-1">
+                  <a-tag
+                    v-for="[tagIndex, tag] of Object.entries(grp.key.split(','))"
+                    :key="`tag-${grp.column.id}-${tag}`"
+                    class="!py-0 !px-[10px] !rounded-full !m-0"
+                    :color="
+                      getSelectTypeFieldOptionBgColor({
+                        isDark,
+                        color: grp.color?.split(',')[+tagIndex] || '#ccc',
+                      })
+                    "
+                  >
+                    <span
+                      :style="{
+                        color: getSelectTypeFieldOptionTextColor({
                           isDark,
-                          color: grp.color || '#ccc',
-                        })
-                      "
+                          color: grp.color?.split(',')[+tagIndex] || '#ccc',
+                          getColor,
+                        }),
+                        fontSize: '12px',
+                        fontWeight: 500,
+                      }"
                     >
-                      <span
-                        class="nc-group-value font-semibold text-[13px]"
-                        :style="{
-                          color: getSelectTypeFieldOptionTextColor({
-                            isDark,
-                            color: grp.color || '#ccc',
-                            getColor,
-                          }),
-                        }"
-                      >
-                        <template v-if="grp.key in GROUP_BY_VARS.VAR_TITLES">{{ GROUP_BY_VARS.VAR_TITLES[grp.key] }}</template>
-                        <template v-else>
-                          {{ parseKey(grp)?.join(', ') }}
-                        </template>
-                      </span>
-                    </a-tag>
-                  </div>
+                      {{ tag in GROUP_BY_VARS.VAR_TITLES ? GROUP_BY_VARS.VAR_TITLES[tag] : tag }}
+                    </span>
+                  </a-tag>
                 </div>
+              </template>
 
-                <div class="flex items-center">
-                  <div class="text-xs text-nc-content-gray-muted nc-group-row-count group-hover:hidden">
-                    <span>{{ $t('datatype.Count') }}</span>
-                    <span class="text-nc-content-gray-subtle ml-2">{{ grp.count }}</span>
-                  </div>
-
-                  <NcDropdown class="!hidden !group-hover:block">
-                    <NcButton size="small" type="text" @click.stop>
-                      <GeneralIcon icon="threeDotVertical" />
-                    </NcButton>
-
-                    <template #overlay>
-                      <NcMenu variant="small">
-                        <NcMenuItem v-if="activeGroups.includes(grp.key.toString())" @click="collapseGroup(grp.key)">
-                          <GeneralIcon icon="minimize" />
-                          Collapse group
-                        </NcMenuItem>
-                        <NcMenuItem v-else @click="expandGroup(grp.key)">
-                          <GeneralIcon icon="maximize" />
-                          Expand group
-                        </NcMenuItem>
-                      </NcMenu>
-                    </template>
-                  </NcDropdown>
-                </div>
+              <div
+                v-else-if="!(grp.key in GROUP_BY_VARS.VAR_TITLES) && shouldRenderCell(grp.column)"
+                class="flex min-w-0 flex-wrap"
+              >
+                <template v-for="(val, ind) of parseKey(grp)" :key="ind">
+                  <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
+                  <span v-else class="text-gray-400 text-sm">No mapped value</span>
+                </template>
               </div>
+
+              <a-tag
+                v-else
+                class="!py-0 !px-[10px] !m-0"
+                :class="grp.column?.uidt === 'SingleSelect' ? '!rounded-full' : '!rounded-md'"
+                :color="
+                  getSelectTypeFieldOptionBgColor({
+                    isDark,
+                    color: grp.color || '#ccc',
+                  })
+                "
+              >
+                <span
+                  class="font-semibold text-[12px]"
+                  :style="{
+                    color: getSelectTypeFieldOptionTextColor({
+                      isDark,
+                      color: grp.color || '#ccc',
+                      getColor,
+                    }),
+                  }"
+                >
+                  <template v-if="grp.key in GROUP_BY_VARS.VAR_TITLES">{{ GROUP_BY_VARS.VAR_TITLES[grp.key] }}</template>
+                  <template v-else>{{ parseKey(grp)?.join(', ') }}</template>
+                </span>
+              </a-tag>
+
+              <!-- Record count -->
+              <span class="text-[11px] text-gray-400 leading-tight">
+                {{ grp.count }} record{{ grp.count !== 1 ? 's' : '' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right cell: timeline content -->
+        <div class="border-b border-gray-200" :class="{ 'min-h-[40px]': !isExpanded(String(grp.key)) }">
+          <template v-if="isExpanded(String(grp.key))">
+            <!-- Leaf group: render timeline grid -->
+            <SmartsheetTimelineGrid
+              v-if="!grp.nested && grp.rows"
+              :records="grp.rows"
+              :visible-dates="visibleDates"
+              :timeline-range="timelineRange"
+              :zoom-level="zoomLevel"
+              :hide-header="true"
+              @expand-record="(row: RowType, state?: Record<string, any>) => emit('expandRecord', row, state)"
+            />
+
+            <!-- Nested group: recurse -->
+            <GroupBy
+              v-else-if="grp.nested"
+              :group="grp"
+              :visible-dates="visibleDates"
+              :timeline-range="timelineRange"
+              :zoom-level="zoomLevel"
+              :load-groups="loadGroups"
+              :load-group-data="loadGroupData"
+              :load-group-page="loadGroupPage"
+              :group-wrapper-change-page="groupWrapperChangePage"
+              :depth="_depth + 1"
+              :max-depth="maxDepth"
+              @expand-record="(row: RowType, state?: Record<string, any>) => emit('expandRecord', row, state)"
+            />
+
+            <!-- Loading state -->
+            <div v-else class="flex items-center justify-center py-4 text-gray-400">
+              <GeneralLoader size="medium" />
             </div>
           </template>
-
-          <!-- Leaf group: render timeline grid with this group's rows -->
-          <SmartsheetTimelineGrid
-            v-if="!grp.nested && grp.rows"
-            :records="grp.rows"
-            :visible-dates="visibleDates"
-            :timeline-range="timelineRange"
-            :zoom-level="zoomLevel"
-            @expand-record="(row: RowType, state?: Record<string, any>) => emit('expandRecord', row, state)"
-          />
-
-          <!-- Nested group: recurse -->
-          <GroupBy
-            v-else
-            :group="grp"
-            :visible-dates="visibleDates"
-            :timeline-range="timelineRange"
-            :zoom-level="zoomLevel"
-            :load-groups="loadGroups"
-            :load-group-data="loadGroupData"
-            :load-group-page="loadGroupPage"
-            :group-wrapper-change-page="groupWrapperChangePage"
-            :depth="_depth + 1"
-            :max-depth="maxDepth"
-            @expand-record="(row: RowType, state?: Record<string, any>) => emit('expandRecord', row, state)"
-          />
-        </a-collapse-panel>
-      </a-collapse>
+        </div>
+      </template>
     </div>
 
     <!-- Pagination for root group -->
@@ -340,26 +264,7 @@ const bgColor = computed(() => {
 </template>
 
 <style scoped lang="scss">
-:deep(.ant-collapse-content > .ant-collapse-content-box) {
-  padding: 0px !important;
-  border-radius: 0 0 8px 8px !important;
-}
-:deep(.ant-collapse) {
-  @apply !border-nc-border-gray-dark !bg-transparent;
-}
-
-:deep(.ant-collapse-item) {
-  @apply !border-nc-border-gray-dark;
-}
-
-:deep(.ant-collapse-header) {
-  @apply !p-0 !border-nc-border-gray-dark !rounded-lg;
-}
-:deep(.ant-collapse-item-active > .ant-collapse-header) {
-  border-radius: 8px 8px 0 0 !important;
-}
-
-:deep(.ant-collapse-borderless > .ant-collapse-item:last-child) {
-  border-radius: 8px !important;
+.nc-timeline-group-label {
+  align-self: stretch;
 }
 </style>

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import dayjs from 'dayjs'
 import type { Row as RowType } from '#imports'
 
 const meta = inject(MetaInj, ref())
@@ -118,6 +119,31 @@ watch([currentDate, zoomLevel, timelineRange], () => {
 watch(isGroupBy, () => {
   reloadData()
 })
+
+// --- Shared date header for grouped layout ---
+const GROUP_HEADER_HEIGHT = 56
+const GROUP_SIDEBAR_WIDTH = 200
+const groupHeaderRef = ref<HTMLElement | null>(null)
+const { width: groupHeaderWidth } = useElementSize(groupHeaderRef)
+
+const groupColWidth = computed(() => {
+  if (!groupHeaderWidth.value || !visibleDates.value.length) return 120
+  return groupHeaderWidth.value / visibleDates.value.length
+})
+
+// Label for the "Grouped by" sidebar header
+const groupByFieldLabel = computed(() => {
+  if (!groupBy.value?.length) return ''
+  if (groupBy.value.length > 1) return `${groupBy.value.length} fields`
+  const colId = (groupBy.value[0] as any)?.fk_column_id
+  if (!colId) return ''
+  const col = meta.value?.columns?.find((c: any) => c.id === colId)
+  return col?.title || ''
+})
+
+const today = dayjs()
+const isToday = (date: dayjs.Dayjs) => date.isSame(today, 'day')
+const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
 </script>
 
 <template>
@@ -256,21 +282,67 @@ watch(isGroupBy, () => {
           <GeneralLoader size="xlarge" />
         </div>
 
-        <!-- Grouped layout -->
-        <SmartsheetTimelineGroupBy
-          v-else-if="isGroupBy"
-          class="flex-1 min-h-0"
-          :group="rootGroup"
-          :visible-dates="visibleDates"
-          :timeline-range="timelineRange"
-          :zoom-level="zoomLevel"
-          :load-groups="loadGroups"
-          :load-group-data="loadGroupData"
-          :load-group-page="loadGroupPage"
-          :group-wrapper-change-page="groupWrapperChangePage"
-          :max-depth="groupBy.length"
-          @expand-record="expandRecord"
-        />
+        <!-- Grouped layout: fixed header (sidebar + dates) + scrollable groups -->
+        <div v-else-if="isGroupBy" class="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <!-- Fixed header row: left sidebar header + date columns -->
+          <div class="flex flex-shrink-0 border-b border-gray-200">
+            <!-- Left sidebar header: "Grouped by <field>" -->
+            <div
+              class="flex-shrink-0 border-r border-gray-200 bg-white px-3 flex flex-col justify-center"
+              :style="{ width: `${GROUP_SIDEBAR_WIDTH}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
+            >
+              <span class="text-[10px] text-gray-400 font-medium uppercase leading-tight">Grouped by</span>
+              <span class="text-xs text-gray-700 font-semibold truncate">{{ groupByFieldLabel }}</span>
+            </div>
+
+            <!-- Date columns header -->
+            <div ref="groupHeaderRef" class="flex-1 overflow-hidden">
+              <div class="flex bg-white w-full">
+                <div
+                  v-for="(date, idx) in visibleDates"
+                  :key="idx"
+                  class="flex-shrink-0 border-r border-gray-100 flex flex-col items-center justify-center"
+                  :class="{
+                    'bg-blue-50': isToday(date),
+                    'bg-gray-50': isWeekend(date) && !isToday(date),
+                  }"
+                  :style="{ width: `${groupColWidth}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
+                >
+                  <span class="text-[10px] font-medium text-gray-400 uppercase">
+                    {{ date.format('ddd') }}
+                  </span>
+                  <span
+                    class="text-sm font-semibold"
+                    :class="{
+                      'text-blue-600': isToday(date),
+                      'text-gray-600': !isToday(date),
+                    }"
+                  >
+                    {{ date.format('D') }}
+                  </span>
+                  <span v-if="zoomLevel === 'week'" class="text-[10px] text-gray-400">
+                    {{ date.format('MMM') }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scrollable groups area -->
+          <SmartsheetTimelineGroupBy
+            class="flex-1 min-h-0"
+            :group="rootGroup"
+            :visible-dates="visibleDates"
+            :timeline-range="timelineRange"
+            :zoom-level="zoomLevel"
+            :load-groups="loadGroups"
+            :load-group-data="loadGroupData"
+            :load-group-page="loadGroupPage"
+            :group-wrapper-change-page="groupWrapperChangePage"
+            :max-depth="groupBy.length"
+            @expand-record="expandRecord"
+          />
+        </div>
 
         <!-- Flat layout (no group-by) -->
         <SmartsheetTimelineGrid

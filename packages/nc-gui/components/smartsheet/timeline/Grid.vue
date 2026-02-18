@@ -14,6 +14,7 @@ const props = defineProps<{
     is_readonly: boolean
   }>
   zoomLevel: 'week' | 'month'
+  hideHeader?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -381,8 +382,8 @@ const todayPosition = computed(() => {
 
 <template>
   <div class="flex flex-col h-full overflow-hidden">
-    <!-- Date column headers -->
-    <div ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
+    <!-- Date column headers (hidden when parent provides a shared header) -->
+    <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
       <div class="flex bg-white border-b border-gray-200 w-full">
         <div
           v-for="(date, idx) in visibleDates"
@@ -412,6 +413,8 @@ const todayPosition = computed(() => {
         </div>
       </div>
     </div>
+    <!-- When header is hidden, still need a ref element to measure container width -->
+    <div v-else ref="gridContainerRef" class="w-full h-0" />
 
     <!-- Scrollable grid body -->
     <div class="flex-1 min-h-0 overflow-y-auto">

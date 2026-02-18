@@ -42,6 +42,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
       extractOnlyPrimaries?: boolean;
       extractOrderColumn?: boolean;
       customConditions?: Filter[];
+      ignoreRls?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     client.validateClientType(ctx.source.type);
@@ -72,7 +73,9 @@ export const singleQueryRead = (client: DBQueryClient) => {
 
     // Resolve RLS conditions early — include policy hash in cache key
     // so users with the same RLS filters share a cache entry
-    const rlsConditions = await baseModel.getRlsConditions();
+    const rlsConditions = ctx.ignoreRls
+      ? []
+      : await baseModel.getRlsConditions();
     let rlsCacheSegment = '';
     if (rlsConditions.length) {
       const hash = RlsSubscriptionRegistry.computeAccessHash(rlsConditions);

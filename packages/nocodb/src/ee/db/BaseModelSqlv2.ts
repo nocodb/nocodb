@@ -223,6 +223,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       extractOnlyPrimaries = false,
       apiVersion,
       extractOrderColumn = false,
+      ignoreRls = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -230,6 +231,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       extractOnlyPrimaries?: boolean;
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
+      ignoreRls?: boolean;
     } = {},
     disableOptimization = false,
   ): Promise<any> {
@@ -259,6 +261,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         apiVersion: apiVersion ?? this.context.api_version,
         extractOnlyPrimaries,
         extractOrderColumn,
+        ignoreRls,
       });
 
       // Ensure we return null instead of undefined for consistency with CE version
@@ -273,6 +276,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       extractOnlyPrimaries,
       apiVersion,
       extractOrderColumn,
+      ignoreRls,
     });
   }
 
@@ -556,12 +560,13 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               view: null,
               source,
               getHiddenColumn: true,
+              ignoreRls: true,
             })
           : this.readByPk(
               rowId,
               false,
               {},
-              { ignoreView: true, getHiddenColumn: true },
+              { ignoreView: true, getHiddenColumn: true, ignoreRls: true },
             ));
       } else if (
         !response ||
@@ -604,7 +609,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             this.extractCompositePK({ rowId: id, insertObj, ai, ag }),
             false,
             {},
-            { ignoreView: true, getHiddenColumn: true },
+            { ignoreView: true, getHiddenColumn: true, ignoreRls: true },
           );
         } else {
           response = data;
@@ -627,13 +632,24 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               params: {},
               source,
               getHiddenColumn: true,
+              ignoreRls: true,
             })
           : await this.readByPk(
               rowId,
               false,
               {},
-              { ignoreView: true, getHiddenColumn: true },
+              { ignoreView: true, getHiddenColumn: true, ignoreRls: true },
             );
+      }
+
+      // Check if the inserted row is visible under the user's RLS policy
+      const rlsConditions = await this.getRlsConditions();
+      if (rlsConditions.length && response) {
+        const row = Array.isArray(response) ? response[0] : response;
+        if (row) {
+          const isVisible = await this.exist(this.extractPksValues(row, true));
+          if (!isVisible) row.__nc_rls_hidden = true;
+        }
       }
 
       await this.afterInsert({
@@ -669,6 +685,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     source: Source;
     disableOptimization?: boolean;
     view?: View;
+    ignoreRls?: boolean;
   }): Promise<any> {
     return (await canUseOptimisedQuery(this.context, {
       source: param.source,
@@ -696,6 +713,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           params: {},
           source: param.source,
           getHiddenColumn: true,
+          ignoreRls: param.ignoreRls,
         })
       : super.readRecord(param);
   }
@@ -1292,13 +1310,17 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     await this.handleHooks('after.insert', null, data, req);
     const id = this.extractPksValues(data);
 
+    // Strip __nc_rls_hidden from broadcast — other clients have different
+    // RLS policies and the flag would be incorrect for them
+    const { __nc_rls_hidden: _, ...broadcastPayload } = data || {};
+
     NocoSocket.broadcastDataEvent(
       this.context,
       {
         payload: {
           id,
           action: 'add',
-          payload: data,
+          payload: broadcastPayload,
           before: req?.query?.before,
         },
         tableId: this.model.id,
@@ -2180,7 +2202,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         }
 
         if (isSingleRecordInsertion) {
-          const insertData = await this.readByPk(responses[0]);
+          const insertData = await this.readByPk(
+            responses[0],
+            false,
+            {},
+            { ignoreRls: true },
+          );
           await this.afterInsert({
             data: insertData,
             trx: this.dbDriver,
@@ -2191,6 +2218,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         } else {
           const insertResponses = await this.chunkList({
             pks: responses.map((d) => this.extractPksValues(d)),
+            ignoreRls: true,
           });
           profiler.log('chunkList done');
 
@@ -2223,6 +2251,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     chunkSize?: number;
     apiVersion?: NcApiVersion;
     args?: Record<string, any>;
+    ignoreRls?: boolean;
   }) {
     const { pks, chunkSize = 1000 } = args;
 
@@ -2249,6 +2278,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         },
         limitOverride: chunk.length,
         ignoreViewFilterAndSort: true,
+        ignoreRls: args.ignoreRls,
       };
 
       if (['mysql', 'mysql2'].includes(source.type)) {
@@ -2278,6 +2308,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
           {
             limitOverride: chunk.length,
             ignoreViewFilterAndSort: true,
+            ignoreRls: args.ignoreRls,
           },
         );
         chunkData = await nocoExecute(ast, chunkData, {}, args.args || {});

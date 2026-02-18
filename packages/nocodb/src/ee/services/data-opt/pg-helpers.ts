@@ -38,6 +38,7 @@ export async function singleQueryRead(
     extractOnlyPrimaries?: boolean;
     extractOrderColumn?: boolean;
     customConditions?: Filter[];
+    ignoreRls?: boolean;
   },
 ): Promise<PagedResponseImpl<Record<string, any>>> {
   const dbQuery = DBQueryClient.get(ClientType.PG);
@@ -63,6 +64,7 @@ export async function singleQueryList(
     skipPaginateWrapper?: boolean;
     skipSortBasedOnOrderCol?: boolean;
     ignoreViewFilterAndSort?: boolean;
+    ignoreRls?: boolean;
   },
 ): Promise<
   PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>

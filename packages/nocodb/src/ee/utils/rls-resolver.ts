@@ -180,12 +180,14 @@ export function resolveRlsDynamicValues(
 }
 
 /**
+ * TODO: Discuss behavior with team and decide if we want this
+ * 
  * Extract auto-fill defaults from matching RLS policies for insert operations.
  * Only extracts from equality conditions with dynamic values.
  *
  * Example: If policy says `Assigned To eq {currentUser.id}`, returns
  * `{ cl_assigned_to: 'user123' }` so the insert auto-fills the field.
- */
+ *
 export function getRlsAutoDefaults(
   filters: any[],
   user: RlsUserContext,
@@ -221,3 +223,4 @@ export function getRlsAutoDefaults(
 
   return defaults;
 }
+*/

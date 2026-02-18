@@ -2569,6 +2569,28 @@ const headerFilteredOrSortedClass = (colId: string) => {
                         </NcTooltip>
                       </div>
                     </div>
+                    <div
+                      v-if="row.rowMeta?.isRlsHidden"
+                      :style="{
+                        top: `${(index + 1 + placeholderStartRows.length) * rowHeight - 6}px`,
+                        zIndex: 100000,
+                      }"
+                      class="absolute transform z-30 left-0 w-full flex"
+                    >
+                      <div
+                        class="sticky left-0 flex items-center gap-2 transform bg-nc-yellow-500 px-2 py-1 rounded-br-md font-semibold text-xs text-nc-content-gray"
+                      >
+                        Row hidden
+
+                        <NcTooltip>
+                          <template #title>
+                            This record will be hidden as it does not match your access permissions.
+                          </template>
+
+                          <GeneralIcon icon="info" class="w-4 h-4 text-nc-content-gray" />
+                        </NcTooltip>
+                      </div>
+                    </div>
                     <tr
                       class="nc-grid-row transition-all duration-500 opacity-100 !xs:h-10"
                       :style="{
@@ -2586,7 +2608,7 @@ const headerFilteredOrSortedClass = (colId: string) => {
                           activeCell.row === row.rowMeta.rowIndex || selectedRange._start?.row === row.rowMeta.rowIndex,
                         'mouse-down': isGridCellMouseDown || isFillMode,
                         'selected-row': row.rowMeta.selected || vSelectedAllRecords,
-                        'invalid-row': row.rowMeta?.isValidationFailed || row.rowMeta?.isRowOrderUpdated,
+                        'invalid-row': row.rowMeta?.isValidationFailed || row.rowMeta?.isRowOrderUpdated || row.rowMeta?.isRlsHidden,
                         'is-dragging': row.rowMeta?.rowIndex === draggingRecord?.rowMeta?.rowIndex,
                       }"
                     >

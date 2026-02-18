@@ -880,7 +880,7 @@ export function useInfiniteData(args: {
     const sortedEntries = Array.from(dataCache.cachedRows.value.entries()).sort(([indexA], [indexB]) => indexA - indexB)
 
     const invalidIndexes = sortedEntries
-      .filter(([_, row]) => row.rowMeta.isValidationFailed || row.rowMeta.isGroupChanged)
+      .filter(([_, row]) => row.rowMeta.isValidationFailed || row.rowMeta.isGroupChanged || row.rowMeta.isRlsHidden)
       .map(([index]) => index)
 
     if (invalidIndexes.length === 0) return
@@ -1535,6 +1535,7 @@ export function useInfiniteData(args: {
           rowIndex: insertIndex,
           new: false,
           saving: false,
+          isRlsHidden: !!insertedData?.__nc_rls_hidden,
           ...getEvaluatedRowMetaRowColorInfo({ ...insertedData, ...currentRow.row }),
         },
       })

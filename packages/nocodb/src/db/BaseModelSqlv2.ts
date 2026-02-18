@@ -256,6 +256,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOnlyPrimaries = false,
       apiVersion,
       extractOrderColumn = false,
+      ignoreRls = false,
     }: {
       ignoreView?: boolean;
       getHiddenColumn?: boolean;
@@ -263,6 +264,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       extractOnlyPrimaries?: boolean;
       apiVersion?: NcApiVersion;
       extractOrderColumn?: boolean;
+      ignoreRls?: boolean;
     } = {},
   ): Promise<any> {
     const qb = this.dbDriver(this.tnPath);
@@ -296,7 +298,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     qb.where(_wherePk(this.model.primaryKeys, id));
 
     // Apply RLS conditions to readByPk
-    const rlsConditionsReadByPk = await this.getRlsConditions();
+    const rlsConditionsReadByPk = ignoreRls
+      ? []
+      : await this.getRlsConditions();
     if (rlsConditionsReadByPk.length) {
       await conditionV2(
         this,
@@ -523,6 +527,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       limitOverride?: number;
       skipSubstitutingColumnIds?: boolean;
       skipSortBasedOnOrderCol?: boolean;
+      ignoreRls?: boolean;
     } = {},
   ): Promise<any> {
     const {
@@ -532,6 +537,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwErrorIfInvalidParams = false,
       limitOverride,
       skipSortBasedOnOrderCol = false,
+      ignoreRls: ignoreRlsOpt = false,
     } = options;
 
     const columns = await this.model.getColumns(this.context);
@@ -573,7 +579,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwErrorIfInvalidParams,
     );
     // Resolve RLS (Row-Level Security) conditions
-    const rlsConditions = await this.getRlsConditions();
+    const rlsConditions = ignoreRlsOpt ? [] : await this.getRlsConditions();
     const rlsFilterGroup = rlsConditions.length
       ? [new Filter({ children: rlsConditions, is_group: true })]
       : [];
@@ -2483,6 +2489,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     source: Source;
     disableOptimization?: boolean;
     view?: View;
+    ignoreRls?: boolean;
   }): Promise<any> {
     return this.readByPk(
       params.idOrRecord,
@@ -2491,6 +2498,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       {
         ignoreView: params.ignoreView,
         getHiddenColumn: params.getHiddenColumn,
+        ignoreRls: params.ignoreRls,
       },
     );
   }
@@ -2576,6 +2584,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           getHiddenColumn: true,
           validateFormula: false,
           source,
+          ignoreRls: true,
         });
       } else if (
         !response ||
@@ -2662,7 +2671,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           ignoreView: true,
           getHiddenColumn: true,
           source,
+          ignoreRls: true,
         });
+      }
+
+      // Check if the inserted row is visible under the user's RLS policy
+      const rlsConditions = await this.getRlsConditions();
+      if (rlsConditions.length && response) {
+        const isVisible = await this.exist(
+          this.extractPksValues(response, true),
+        );
+        if (!isVisible) response.__nc_rls_hidden = true;
       }
 
       await this.afterInsert({

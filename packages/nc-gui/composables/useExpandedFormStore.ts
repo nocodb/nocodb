@@ -497,6 +497,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const loadRow = async (rowId?: string, onlyVirtual = false, onlyNewColumns = false) => {
       if (row?.value?.rowMeta?.new || isPublic.value || !meta.value?.id) return
 
+      // Row is hidden by RLS policy — skip read to avoid 404
+      if (row?.value?.row?.__nc_rls_hidden) return
+
       const recordId = rowId ?? extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
 
       if (!recordId) return

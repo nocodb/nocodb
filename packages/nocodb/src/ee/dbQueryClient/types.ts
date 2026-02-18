@@ -86,6 +86,7 @@ export interface DBQueryClient extends DBQueryClientCE {
       skipPaginateWrapper?: boolean;
       skipSortBasedOnOrderCol?: boolean;
       ignoreViewFilterAndSort?: boolean;
+      ignoreRls?: boolean;
     },
   ): Promise<
     PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
@@ -106,6 +107,7 @@ export interface DBQueryClient extends DBQueryClientCE {
       extractOnlyPrimaries?: boolean;
       extractOrderColumn?: boolean;
       customConditions?: Filter[];
+      ignoreRls?: boolean;
     },
   ): Promise<PagedResponseImpl<Record<string, any>>>;
 }

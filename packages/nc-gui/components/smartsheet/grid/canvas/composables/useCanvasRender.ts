@@ -1832,7 +1832,7 @@ export function useCanvasRender({
           ctx.fill()
         }
 
-        if (row?.rowMeta.isValidationFailed || row?.rowMeta.isRowOrderUpdated) {
+        if (row?.rowMeta.isValidationFailed || row?.rowMeta.isRowOrderUpdated || row?.rowMeta.isRlsHidden) {
           warningRow = { row, yOffset }
         }
 
@@ -1920,7 +1920,11 @@ export function useCanvasRender({
 
       roundedRect(ctx, 0, warningRow.yOffset + rowHeight.value, 90, 25, { bottomRight: 6 }, { backgroundColor: orange })
       renderSingleLineText(ctx, {
-        text: warningRow.row.rowMeta.isValidationFailed ? 'Row filtered' : 'Row moved',
+        text: warningRow.row.rowMeta.isValidationFailed
+          ? 'Row filtered'
+          : warningRow.row.rowMeta.isRlsHidden
+            ? 'Row hidden'
+            : 'Row moved',
         x: 10,
         y: warningRow.yOffset + rowHeight.value,
         py: 7,
@@ -2585,7 +2589,12 @@ export function useCanvasRender({
       ctx.lineTo(adjustedWidth + indent, yOffset + rowHeight.value)
       ctx.stroke()
 
-      if (row?.rowMeta.isValidationFailed || row?.rowMeta.isRowOrderUpdated || row?.rowMeta.isGroupChanged) {
+      if (
+        row?.rowMeta.isValidationFailed ||
+        row?.rowMeta.isRowOrderUpdated ||
+        row?.rowMeta.isGroupChanged ||
+        row?.rowMeta.isRlsHidden
+      ) {
         warningRow = { row, yOffset }
       }
 
@@ -2723,7 +2732,11 @@ export function useCanvasRender({
 
       roundedRect(ctx, gXOffset, warningRow.yOffset + rowHeight.value, 90, 25, { bottomRight: 6 }, { backgroundColor: orange })
       renderSingleLineText(ctx, {
-        text: warningRow.row.rowMeta.isValidationFailed ? 'Row filtered' : 'Row moved',
+        text: warningRow.row.rowMeta.isValidationFailed
+          ? 'Row filtered'
+          : warningRow.row.rowMeta.isRlsHidden
+            ? 'Row hidden'
+            : 'Row moved',
         x: 10 + gXOffset,
         y: warningRow.yOffset + rowHeight.value,
         py: 7,

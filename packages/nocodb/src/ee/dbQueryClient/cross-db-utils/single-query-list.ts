@@ -54,6 +54,7 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
       skipPaginateWrapper?: boolean;
       skipSortBasedOnOrderCol?: boolean;
       ignoreViewFilterAndSort?: boolean;
+      ignoreRls?: boolean;
     },
   ): Promise<
     PagedResponseImpl<Record<string, any>> | Array<Record<string, any>>
@@ -86,7 +87,9 @@ export const singleQueryList = (client: DBQueryClient, logger: Logger) => {
 
     // Resolve RLS conditions early — include policy hash in cache key
     // so users with the same RLS filters share a cache entry
-    const rlsConditions = await baseModel.getRlsConditions();
+    const rlsConditions = ctx.ignoreRls
+      ? []
+      : await baseModel.getRlsConditions();
     let rlsCacheSegment = '';
     if (rlsConditions.length) {
       const hash = RlsSubscriptionRegistry.computeAccessHash(rlsConditions);

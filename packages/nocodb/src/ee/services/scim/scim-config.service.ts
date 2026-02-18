@@ -1,8 +1,11 @@
-import { randomBytes, timingSafeEqual } from 'crypto';
+import { randomBytes } from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
+import * as bcrypt from 'bcryptjs';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
 import ScimConfig from '~/ee/models/ScimConfig';
+
+const BCRYPT_ROUNDS = 10;
 
 @Injectable()
 export class ScimConfigService {
@@ -39,8 +42,9 @@ export class ScimConfigService {
       NcError.badRequest('SCIM is already configured for this workspace');
     }
 
-    // Generate secure provisioning token
+    // Generate secure provisioning token and hash before storage
     const provisioningToken = this.generateProvisioningToken();
+    const hashedToken = await bcrypt.hash(provisioningToken, BCRYPT_ROUNDS);
 
     // Build SCIM base URL
     const baseUrl = `${param.siteUrl}/api/v3/meta/workspaces/${param.workspaceId}/scim/v2`;
@@ -48,7 +52,7 @@ export class ScimConfigService {
     const config = await ScimConfig.insert(context, {
       fk_workspace_id: param.workspaceId,
       enabled: false, // Start disabled until user activates
-      provisioning_token: provisioningToken,
+      provisioning_token: hashedToken,
       base_url: baseUrl,
       role_mapping: {}, // Default empty role mapping
     });
@@ -57,7 +61,7 @@ export class ScimConfigService {
       id: config.id,
       enabled: config.enabled,
       base_url: config.base_url,
-      provisioning_token: provisioningToken, // Return token on creation
+      provisioning_token: provisioningToken, // Return plaintext only on creation
       role_mapping: config.role_mapping,
     };
   }
@@ -70,13 +74,14 @@ export class ScimConfigService {
     }
 
     const newToken = this.generateProvisioningToken();
+    const hashedToken = await bcrypt.hash(newToken, BCRYPT_ROUNDS);
 
     await ScimConfig.update(context, workspaceId, {
-      provisioning_token: newToken,
+      provisioning_token: hashedToken,
     });
 
     return {
-      provisioning_token: newToken,
+      provisioning_token: newToken, // Return plaintext only once
     };
   }
 
@@ -138,9 +143,9 @@ export class ScimConfigService {
       return false;
     }
 
-    const a = Buffer.from(config.provisioning_token);
-    const b = Buffer.from(token);
-    return a.length === b.length && timingSafeEqual(a, b);
+    // Compare incoming token against stored bcrypt hash
+    // bcrypt.compare is inherently timing-safe
+    return bcrypt.compare(token, config.provisioning_token);
   }
 
   private generateProvisioningToken(): string {

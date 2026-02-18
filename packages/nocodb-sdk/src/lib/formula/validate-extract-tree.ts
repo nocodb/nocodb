@@ -496,7 +496,44 @@ function handleBinaryExpressionForDateAndTime(params: {
   }
   return res;
 }
-async function checkForCircularFormulaRef(
+/**
+ * Detects circular references in formula column dependencies using Kahn's algorithm for cycle detection.
+ *
+ * This function analyzes a formula column and its references to other columns (Formula, Lookup, LinkToAnotherRecord)
+ * to ensure there are no circular dependencies that would make evaluation impossible. It handles:
+ * - Direct formula-to-formula references within the same table
+ * - Cross-table references via Lookup columns
+ * - Primary value references via LinkToAnotherRecord columns
+ * - Cross-base relationships where related tables exist in different bases
+ *
+ * The algorithm builds a directed graph where:
+ * - Vertices are formula column IDs
+ * - Edges represent dependencies (A → B means A references B)
+ *
+ * Then performs Kahn's algorithm (topological sort) to detect cycles:
+ * 1. Calculate in-degree (number of incoming edges) for each vertex
+ * 2. Start with vertices that have in-degree 0 (no dependencies)
+ * 3. Remove vertices and their edges iteratively
+ * 4. If all vertices are visited, no cycle exists; otherwise, a cycle is present
+ *
+ * @param formulaCol - The formula column being validated
+ * @param parsedTree - The parsed abstract syntax tree of the formula
+ * @param columns - All columns in the table (context for dependency resolution)
+ * @param getMeta - Function to retrieve related table metadata by model ID
+ *
+ * @throws {FormulaError} Throws FormulaError with type CIRCULAR_REFERENCE if a circular dependency is detected
+ *
+ * @example
+ * // Formula A references Formula B, Formula B references Formula A
+ * await checkForCircularFormulaRef(formulaColA, parsedTree, columns, getMeta);
+ * // Throws: FormulaError { type: 'CIRCULAR_REFERENCE', message: 'Circular reference detected' }
+ *
+ * @example
+ * // Valid formula chain: Formula A → Text Column B
+ * await checkForCircularFormulaRef(formulaColA, parsedTree, columns, getMeta);
+ * // Passes without error
+ */
+export async function checkForCircularFormulaRef(
   formulaCol: UnifiedMetaType.IColumn,
   parsedTree: ParsedFormulaNode,
   columns: UnifiedMetaType.IColumn[],
@@ -528,6 +565,21 @@ async function checkForCircularFormulaRef(
     return res;
   }, Promise.resolve([]));
 
+  /**
+   * Recursively processes a formula column in a related table to find all formula dependencies.
+   *
+   * This internal helper function is called when a Lookup column points to a Formula column
+   * in a related table. It extracts all column references from that formula and recursively
+   * processes any Formula, Lookup, or LTAR columns it references.
+   *
+   * @param col - The formula column in the related table to process
+   * @param columns - All columns in the related table (context)
+   *
+   * @returns Array of column IDs that the formula column depends on (in the original table context)
+   *
+   * @private
+   * @internal
+   */
   async function processLookupFormula(
     col: UnifiedMetaType.IColumn,
     columns: UnifiedMetaType.IColumn[]
@@ -560,7 +612,33 @@ async function checkForCircularFormulaRef(
     return neighbours;
   }
 
-  // Function to process lookup columns recursively
+  /**
+   * Processes a Lookup or LinkToAnotherRecord column to find formula dependencies in related tables.
+   *
+   * This internal helper function handles two scenarios:
+   *
+   * 1. **Lookup Column**: Follows the lookup chain to find the target column in the related table
+   *    - Resolves the relation column (LTAR) referenced by the lookup
+   *    - Finds the target column in the related table
+   *    - If target is Formula/Lookup/LTAR, recursively processes it
+   *
+   * 2. **LinkToAnotherRecord Column**: Finds the primary value column in the related table
+   *    - Identifies the related table from LTAR options
+   *    - Locates the primary value column (pv: true)
+   *    - If primary value is Formula/Lookup/LTAR, recursively processes it
+   *
+   * **Cross-Base Relationship Handling:**
+   * When an LTAR column has `fk_related_base_id`, this function ensures the correct base context
+   * is used when fetching the related table metadata (lines 587-592). This is critical for
+   * multi-base scenarios where tables in different bases reference each other.
+   *
+   * @param lookupOrLTARCol - The Lookup or LTAR column to process
+   *
+   * @returns Array of column IDs (in the original table) that this column depends on
+   *
+   * @private
+   * @internal
+   */
   async function processLookupOrLTARColumn(
     lookupOrLTARCol: UnifiedMetaType.IColumn & {
       colOptions?: LookupType | LinkToAnotherRecordType;
@@ -584,18 +662,40 @@ async function checkForCircularFormulaRef(
     }
 
     if (ltarColumn) {
-      const relatedTableMeta = await getMeta(
-        unifiedMeta.getContextFromObject({
-          ...ltarColumn,
-          base_id:
-            (ltarColumn.colOptions as LinkToAnotherRecordType)
-              .fk_related_base_id ?? ltarColumn.base_id,
-        }),
+      // Get the correct context for the LTAR column, using fk_related_base_id if present.
+      // This ensures cross-base relationships are handled correctly, as the related table
+      // may exist in a different base than the current column's table.
+      const ltarColumnContext = unifiedMeta.getContextFromObject({
+        ...ltarColumn,
+        base_id:
+          (ltarColumn.colOptions as LinkToAnotherRecordType)
+            .fk_related_base_id ?? ltarColumn.base_id,
+      });
+
+      // Fetch the LTAR column options, which contain the fk_related_model_id
+      const ltarColOptions =
+        await unifiedMeta.getColOptions<UnifiedMetaType.ILinkToAnotherRecordColumn>(
+          ltarColumnContext,
+          { column: ltarColumn }
+        );
+
+      // Retrieve the related table metadata using the LTAR options
+      const relatedTableMeta = await unifiedMeta.getLTARRelatedTable(
+        ltarColumnContext,
         {
-          id: (ltarColumn.colOptions as LinkToAnotherRecordType)
-            .fk_related_model_id,
+          colOptions: ltarColOptions,
+          getMeta,
         }
       );
+
+      // If related table is not found, skip processing (graceful handling)
+      if (!relatedTableMeta) {
+        return neighbours;
+      }
+
+      // Find the lookup target column in the related table's columns.
+      // For Lookup: finds the column matching fk_lookup_column_id
+      // For LTAR: finds the primary value column (pv: true)
       const lookupTarget = (
         await unifiedMeta.getColumns(
           unifiedMeta.getContextFromObject(relatedTableMeta),
@@ -605,8 +705,11 @@ async function checkForCircularFormulaRef(
         )
       ).find(lookupFilterFn);
 
+      // If the lookup target exists, check if it's a Formula, Lookup, or LTAR column
+      // that needs recursive processing to detect circular references
       if (lookupTarget) {
         if (lookupTarget.uidt === UITypes.Formula) {
+          // Recursively process the formula in the related table
           neighbours.push(
             ...(await processLookupFormula(
               lookupTarget,
@@ -617,6 +720,7 @@ async function checkForCircularFormulaRef(
           lookupTarget.uidt === UITypes.Lookup ||
           lookupTarget.uidt === UITypes.LinkToAnotherRecord
         ) {
+          // Recursively process the Lookup/LTAR in the related table
           neighbours.push(...(await processLookupOrLTARColumn(lookupTarget)));
         }
       }
@@ -640,51 +744,59 @@ async function checkForCircularFormulaRef(
   }
   const vertices = formulaPaths.length;
   if (vertices > 0) {
-    // perform kahn's algo for cycle detection
-    const adj = new Map();
-    const inDegrees = new Map();
-    // init adjacency list & indegree
+    // === KAHN'S ALGORITHM FOR CYCLE DETECTION ===
+    // Kahn's algorithm performs a topological sort on a directed graph.
+    // If the graph contains a cycle, not all vertices will be visited.
 
+    const adj = new Map(); // adjacency list: vertex -> Set of neighbors
+    const inDegrees = new Map(); // in-degree: vertex -> count of incoming edges
+
+    // Step 1: Build adjacency list and calculate in-degrees
     for (const [_, v] of Object.entries(formulaPaths)) {
-      const src = Object.keys(v)[0];
-      const neighbours = v[src];
+      const src = Object.keys(v)[0]; // source vertex (column ID)
+      const neighbours = v[src]; // dependent vertices (column IDs this formula references)
       inDegrees.set(src, inDegrees.get(src) || 0);
       for (const neighbour of neighbours) {
         adj.set(src, (adj.get(src) || new Set()).add(neighbour));
         inDegrees.set(neighbour, (inDegrees.get(neighbour) || 0) + 1);
       }
     }
+
     const queue: string[] = [];
-    // put all vertices with in-degree = 0 (i.e. no incoming edges) to queue
+
+    // Step 2: Initialize queue with vertices having in-degree 0
+    // These are vertices with no incoming edges (no other columns depend on them)
     inDegrees.forEach((inDegree, col) => {
       if (inDegree === 0) {
-        // in-degree = 0 means we start traversing from this node
         queue.push(col);
       }
     });
-    // init count of visited vertices
-    let visited = 0;
-    // BFS
+
+    // Step 3: BFS traversal, removing vertices and edges
+    let visited = 0; // count of vertices with outgoing edges that were processed
+
     while (queue.length !== 0) {
-      // remove a vertex from the queue
-      const src = queue.shift();
-      // if this node has neighbours, increase visited by 1
+      const src = queue.shift(); // remove a vertex from the queue
       const neighbours = adj.get(src) || new Set();
+
+      // Only count vertices that have outgoing edges (dependencies)
       if (neighbours.size > 0) {
         visited += 1;
       }
-      // iterate each neighbouring nodes
+
+      // Step 4: Decrease in-degree of all neighbors
       neighbours.forEach((neighbour: string) => {
-        // decrease in-degree of its neighbours by 1
         inDegrees.set(neighbour, inDegrees.get(neighbour) - 1);
-        // if in-degree becomes 0
+
+        // If in-degree becomes 0, add to queue for processing
         if (inDegrees.get(neighbour) === 0) {
-          // then put the neighboring node to the queue
           queue.push(neighbour);
         }
       });
     }
-    // vertices not same as visited = cycle found
+
+    // Step 5: Check if all vertices with edges were visited
+    // If visited count != vertices count, there's a cycle
     if (vertices !== visited) {
       throw new FormulaError(
         FormulaErrorType.CIRCULAR_REFERENCE,

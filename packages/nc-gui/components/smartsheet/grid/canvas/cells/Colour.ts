@@ -15,8 +15,6 @@ export const ColourCellRenderer: CellRenderer = {
       tag = {},
       setCursor,
       mousePosition,
-      selected,
-      isRowHovered,
       getColor,
       isUnderLookup,
     } = props
@@ -41,15 +39,15 @@ export const ColourCellRenderer: CellRenderer = {
     // Parse and validate the color value
     const colorValue = value ? String(value).trim() : null
     const isValidColor = colorValue && /^#[0-9A-Fa-f]{6}$/.test(colorValue)
-    const displayColor = isValidColor ? colorValue : columnMeta.defaultColor || '#3366FF'
+    const displayColor = isValidColor ? colorValue : columnMeta.defaultColor || '#FFFFFF'
 
-    // Don't render anything if no value - even on hover/select for empty cells
+    // Don't render anything if no value
     if (!colorValue) {
       return
     }
 
     // Calculate swatch size based on configuration
-    const swatchSizeMap = {
+    const swatchSizeMap: Record<string, number> = {
       small: 16,
       medium: 20,
       large: 24,
@@ -63,14 +61,14 @@ export const ColourCellRenderer: CellRenderer = {
     const hexTextX = swatchX + swatchSize + 8
     const hexTextY = y + height / 2
 
-    // Set cursor to pointer when hovering over the cell (for editing)
+    // Set cursor to pointer when hovering over the cell
     if (mousePosition && !readonly) {
-      const isHovered = 
-        mousePosition.x >= x && 
-        mousePosition.x <= x + width && 
-        mousePosition.y >= y && 
+      const isHovered =
+        mousePosition.x >= x &&
+        mousePosition.x <= x + width &&
+        mousePosition.y >= y &&
         mousePosition.y <= y + height
-      
+
       if (isHovered) {
         setCursor('pointer')
       }
@@ -78,15 +76,16 @@ export const ColourCellRenderer: CellRenderer = {
 
     if (renderAsTag) {
       let tagWidth = swatchSize + tagPaddingX * 2
-      
+
       // Add space for hex code if display format includes it
       if (colorValue && (columnMeta.displayFormat === 'swatch_hex' || columnMeta.displayFormat === 'hex_only')) {
         const hexText = colorValue.toUpperCase()
         ctx.font = '12px Inter'
         const hexTextWidth = ctx.measureText(hexText).width
-        tagWidth = columnMeta.displayFormat === 'hex_only' 
-          ? hexTextWidth + tagPaddingX * 2 
-          : swatchSize + 8 + hexTextWidth + tagPaddingX * 2
+        tagWidth =
+          columnMeta.displayFormat === 'hex_only'
+            ? hexTextWidth + tagPaddingX * 2
+            : swatchSize + 8 + hexTextWidth + tagPaddingX * 2
       }
 
       const initialY = y + height / 2 - tagHeight / 2
@@ -117,7 +116,6 @@ export const ColourCellRenderer: CellRenderer = {
           }
           ctx.fill()
 
-          // Add border to swatch
           ctx.strokeStyle = getColor('#d0d5dd', themeV4Colors.gray['300'])
           ctx.lineWidth = 1
           ctx.stroke()
@@ -126,7 +124,6 @@ export const ColourCellRenderer: CellRenderer = {
         }
 
         if (columnMeta.displayFormat !== 'swatch_only' && colorValue) {
-          // Render hex code text
           ctx.font = '12px Inter'
           ctx.fillStyle = getColor(themeV4Colors.gray['600'])
           ctx.textBaseline = 'middle'
@@ -140,12 +137,11 @@ export const ColourCellRenderer: CellRenderer = {
         y: y + tagHeight + tagSpacing,
       }
     } else {
-      // Regular cell rendering - only render if there's a color value
+      // Regular cell rendering
       if (colorValue) {
         let contentX = swatchX
 
         if (columnMeta.displayFormat !== 'hex_only') {
-          // Render color swatch
           ctx.fillStyle = displayColor
           ctx.beginPath()
           if (columnMeta.swatchStyle === 'circle') {
@@ -155,7 +151,6 @@ export const ColourCellRenderer: CellRenderer = {
           }
           ctx.fill()
 
-          // Add border to swatch
           ctx.strokeStyle = getColor('#d0d5dd', themeV4Colors.gray['300'])
           ctx.lineWidth = 1
           ctx.stroke()
@@ -164,7 +159,6 @@ export const ColourCellRenderer: CellRenderer = {
         }
 
         if (columnMeta.displayFormat !== 'swatch_only' && colorValue) {
-          // Render hex code text
           ctx.font = '12px Inter'
           ctx.fillStyle = getColor(themeV4Colors.gray['600'])
           ctx.textBaseline = 'middle'
@@ -176,7 +170,17 @@ export const ColourCellRenderer: CellRenderer = {
   },
 
   async handleClick({ row, column, makeCellEditable, selected, readonly, formula }) {
-    if (!row || !column || readonly || formula || column.readonly || column.columnObj?.readonly || !column.isCellEditable || column.isSyncedColumn || !selected) {
+    if (
+      !row ||
+      !column ||
+      readonly ||
+      formula ||
+      column.readonly ||
+      column.columnObj?.readonly ||
+      !column.isCellEditable ||
+      column.isSyncedColumn ||
+      !selected
+    ) {
       return false
     }
 
@@ -186,7 +190,8 @@ export const ColourCellRenderer: CellRenderer = {
 
   async handleKeyDown(ctx) {
     const { e, row, column, readonly, makeCellEditable } = ctx
-    if (column.readonly || readonly || column.columnObj?.readonly || !column.isCellEditable || column.isSyncedColumn) return false
+    if (column.readonly || readonly || column.columnObj?.readonly || !column.isCellEditable || column.isSyncedColumn)
+      return false
 
     // Open color picker on Enter
     if (e.key === 'Enter') {

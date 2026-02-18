@@ -14,7 +14,7 @@ const colourMeta = computed(() => {
     displayFormat: meta?.displayFormat || 'swatch_hex',
     swatchStyle: meta?.swatchStyle || 'circle',
     swatchSize: meta?.swatchSize || 'medium',
-    defaultColor: meta?.defaultColor || '#ffffff',
+    defaultColor: meta?.defaultColor || '#FFFFFF',
     ...meta,
   }
 })
@@ -22,19 +22,22 @@ const colourMeta = computed(() => {
 const displayValue = computed(() => {
   const value = props.modelValue || colourMeta.value.defaultColor
   if (!value) return null
-  
+
   // Normalize to hex format
   if (value.startsWith('#') && value.length === 7) {
     return value.toUpperCase()
   }
-  return '#FFFFFF' // fallback
+  return '#FFFFFF'
 })
 
 const sizeClass = computed(() => {
   switch (colourMeta.value.swatchSize) {
-    case 'small': return 'w-4 h-4'
-    case 'large': return 'w-6 h-6'
-    default: return 'w-5 h-5' // medium
+    case 'small':
+      return 'w-4 h-4'
+    case 'large':
+      return 'w-6 h-6'
+    default:
+      return 'w-5 h-5'
   }
 })
 
@@ -62,17 +65,17 @@ const showHex = computed(() => {
     <div
       v-if="showSwatch && displayValue"
       :class="[sizeClass, shapeClass]"
-      :style="{ backgroundColor: displayValue, borderColor: displayValue === '#FFFFFF' ? '#d1d5db' : '#d1d5db' }"
+      :style="{ backgroundColor: displayValue, borderColor: '#d1d5db' }"
       class="border flex-shrink-0"
     />
-    
+
     <span
       v-if="showHex && displayValue"
       class="text-sm font-mono truncate"
       :style="{
         'display': '-webkit-box',
         'max-width': '100%',
-        '-webkit-line-clamp': rowHeight === 6 ? 5 : rowHeightTruncateLines(rowHeight, true),
+        '-webkit-line-clamp': rowHeight ? rowHeightTruncateLines(rowHeight, true) : undefined,
         '-webkit-box-orient': 'vertical',
         'overflow': 'hidden',
       }"

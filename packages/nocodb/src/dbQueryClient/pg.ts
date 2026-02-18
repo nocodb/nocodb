@@ -1,12 +1,13 @@
 import { ClientType } from 'nocodb-sdk';
 import type { DBQueryClient } from '~/dbQueryClient/types';
 import { GenericDBQueryClient } from '~/dbQueryClient/generic';
+import { NcError } from '~/helpers/catchError';
 
 /**
  * Validates PostgreSQL identifier against SQL injection patterns
  * Convenience function that uses PGDBQueryClient instance
  * @param identifier - The identifier to validate (schema, table, column name)
- * @throws {Error} if identifier contains dangerous characters
+ * @throws {NcError} if identifier contains dangerous characters
  */
 export function validatePgIdentifier(identifier: string): void {
   const pgClient = new PGDBQueryClient();
@@ -43,7 +44,7 @@ export class PGDBQueryClient
   /**
    * Validates PostgreSQL identifier against SQL injection patterns
    * @param identifier - The identifier to validate (schema, table, column name)
-   * @throws {Error} if identifier contains dangerous characters
+   * @throws {NcError} if identifier contains dangerous characters
    */
   validateIdentifier(identifier: string): void {
     // PostgreSQL identifier rules:
@@ -53,29 +54,33 @@ export class PGDBQueryClient
     // - No quotes, semicolons, or SQL keywords
 
     if (!identifier || typeof identifier !== 'string') {
-      throw new Error('Identifier must be a non-empty string');
+      NcError._.invalidRequestBody('Identifier must be a non-empty string');
     }
 
     if (identifier.length > 63) {
-      throw new Error('PostgreSQL identifier exceeds 63 character limit');
+      NcError._.invalidRequestBody(
+        'PostgreSQL identifier exceeds 63 character limit',
+      );
     }
 
     // Check for dangerous characters
     const dangerousPattern = /[;"'`\\-]|--|\*|\/\*|\*\/|xp_|sp_|exec|execute/i;
     if (dangerousPattern.test(identifier)) {
-      throw new Error(
+      NcError._.invalidRequestBody(
         `Invalid identifier: contains dangerous characters or SQL keywords`,
       );
     }
 
     // Must start with letter or underscore
     if (!/^[a-zA-Z_]/.test(identifier)) {
-      throw new Error('Identifier must start with letter or underscore');
+      NcError._.invalidRequestBody(
+        'Identifier must start with letter or underscore',
+      );
     }
 
     // Only alphanumeric and underscores allowed
     if (!/^[a-zA-Z0-9_]+$/.test(identifier)) {
-      throw new Error('Identifier contains invalid characters');
+      NcError._.invalidRequestBody('Identifier contains invalid characters');
     }
   }
 

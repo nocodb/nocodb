@@ -20,6 +20,15 @@ const log = new Debug('PGClient');
 
 class PGClient extends KnexClient {
   constructor(connectionConfig) {
+    // Validate searchPath to prevent SQL injection
+    if (
+      connectionConfig?.searchPath &&
+      Array.isArray(connectionConfig.searchPath)
+    ) {
+      for (const schema of connectionConfig.searchPath) {
+        validatePgIdentifier(schema);
+      }
+    }
     super(connectionConfig);
     // this.sqlClient = null;
     this.queries = queries;

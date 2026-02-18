@@ -59,3 +59,7 @@ export function isToday(date: dayjs.Dayjs): boolean {
 export function isWeekend(date: dayjs.Dayjs): boolean {
   return date.day() === 0 || date.day() === 6
 }
+
+/** Shared layout constants for timeline views */
+export const TIMELINE_GROUP_SIDEBAR_WIDTH = 200
+export const TIMELINE_GROUP_HEADER_HEIGHT = 56

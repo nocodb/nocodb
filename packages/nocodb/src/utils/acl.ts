@@ -105,6 +105,7 @@ const permissionScopes = {
     'galleryViewGet',
     'kanbanViewGet',
     'timelineViewGet',
+    'timelineViewCreate',
     'gridViewUpdate',
     'formViewUpdate',
     'formColumnUpdate',

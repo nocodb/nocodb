@@ -69,8 +69,8 @@ const saveRange = async () => {
     } as any)
 
     await loadTimelineData()
-  } catch (e) {
-    console.error('Error saving timeline range:', e)
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

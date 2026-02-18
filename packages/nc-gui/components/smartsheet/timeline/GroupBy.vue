@@ -37,7 +37,7 @@ const emit = defineEmits<{
 
 const { isDark, getColor } = useTheme()
 
-const GROUP_SIDEBAR_WIDTH = 200
+const GROUP_SIDEBAR_WIDTH = TIMELINE_GROUP_SIDEBAR_WIDTH
 
 const _depth = props.depth ?? 0
 

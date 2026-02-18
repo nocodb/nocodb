@@ -1,4 +1,4 @@
-import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, RowColoringInfo, SortType, ViewType } from 'nocodb-sdk'
+import type { CalendarType, FilterType, GalleryType, KanbanType, MapType, RowColoringInfo, SortType, TimelineType, ViewType } from 'nocodb-sdk'
 import {
   ProjectRoles,
   ViewSettingOverrideOptions,
@@ -598,7 +598,7 @@ export const useViewsStore = defineStore('viewsStore', () => {
           return {
             ...baseProps,
             timeline_range:
-              (sourceView.view as CalendarType)?.timeline_range?.map((range) => ({
+              (sourceView.view as TimelineType)?.timeline_range?.map((range) => ({
                 fk_from_column_id: range.fk_from_column_id as string,
                 fk_to_column_id: range.fk_to_column_id as string,
               })) || [],

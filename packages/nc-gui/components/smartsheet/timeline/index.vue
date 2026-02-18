@@ -121,8 +121,8 @@ watch(isGroupBy, () => {
 })
 
 // --- Shared date header for grouped layout ---
-const GROUP_HEADER_HEIGHT = 56
-const GROUP_SIDEBAR_WIDTH = 200
+const GROUP_SIDEBAR_WIDTH = TIMELINE_GROUP_SIDEBAR_WIDTH
+const GROUP_HEADER_HEIGHT = TIMELINE_GROUP_HEADER_HEIGHT
 const groupHeaderRef = ref<HTMLElement | null>(null)
 const { width: groupHeaderWidth } = useElementSize(groupHeaderRef)
 
@@ -135,9 +135,9 @@ const groupColWidth = computed(() => {
 const groupByFieldLabel = computed(() => {
   if (!groupBy.value?.length) return ''
   if (groupBy.value.length > 1) return `${groupBy.value.length} fields`
-  const colId = (groupBy.value[0] as any)?.fk_column_id
+  const colId = groupBy.value[0]?.fk_column_id
   if (!colId) return ''
-  const col = meta.value?.columns?.find((c: any) => c.id === colId)
+  const col = meta.value?.columns?.find((c) => c.id === colId)
   return col?.title || ''
 })
 

@@ -444,6 +444,7 @@ export default class View implements ViewType {
           );
 
           await CalendarRange.bulkInsert(context, calendarRange, ncMeta);
+          break;
         }
         case ViewTypes.TIMELINE: {
           const obj = extractProps(view, ['timeline_range']);
@@ -464,6 +465,7 @@ export default class View implements ViewType {
           );
 
           await TimelineRange.bulkInsert(context, timelineRange, ncMeta);
+          break;
         }
       }
 

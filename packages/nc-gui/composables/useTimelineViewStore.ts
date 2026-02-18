@@ -31,7 +31,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
-    const isPublic = ref(shared)
+    const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
     // Timeline state
     const zoomLevel = ref<'week' | 'month'>('month')
@@ -289,6 +289,10 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     }
 
     eventBus.on(smartsheetEventHandler)
+
+    onBeforeUnmount(() => {
+      eventBus.off(smartsheetEventHandler)
+    })
 
     return {
       // State

@@ -15,7 +15,6 @@ import * as nc_014_sandboxes from './v0/nc_014_sandboxes';
 import * as nc_015_managed_apps from './v0/nc_015_managed_apps';
 import * as nc_016_automation_error_notifications from './v0/nc_016_automation_error_notifications';
 import * as nc_017_add_canonical_email_to_users from './v0/nc_017_add_canonical_email_to_users';
-import * as nc_017_timeline_view from './v0/nc_017_timeline_view';
 import * as nc_099_timeline_view from './v0/nc_099_timeline_view';
 import * as nc_100_timeline_view_fix from './v0/nc_100_timeline_view_fix';
 import * as nc_101_timeline_group_by from './v0/nc_101_timeline_group_by';
@@ -45,7 +44,6 @@ export default class XcMigrationSourcev0 {
       'nc_015_managed_apps',
       'nc_016_automation_error_notifications',
       'nc_017_add_canonical_email_to_users',
-      'nc_017_timeline_view',
       'nc_099_timeline_view',
       'nc_100_timeline_view_fix',
       'nc_101_timeline_group_by',
@@ -92,8 +90,6 @@ export default class XcMigrationSourcev0 {
         return nc_016_automation_error_notifications;
       case 'nc_017_add_canonical_email_to_users':
         return nc_017_add_canonical_email_to_users;
-      case 'nc_017_timeline_view':
-        return nc_017_timeline_view;
       case 'nc_099_timeline_view':
         return nc_099_timeline_view;
       case 'nc_100_timeline_view_fix':

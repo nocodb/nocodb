@@ -54,7 +54,7 @@ const fieldStyles = computed(() => {
 
 // Extract row color styles (from Colour toolbar config)
 const getRowColorStyle = (record: RowType) => {
-  return extractRowBackgroundColorStyle(record as any)
+  return extractRowBackgroundColorStyle(record)
 }
 
 const today = dayjs()
@@ -188,6 +188,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('mousemove', onResize)
   document.removeEventListener('mouseup', onResizeEnd)
   if (resizeCooldownTimer) clearTimeout(resizeCooldownTimer)
+  useDebouncedRowUpdate.cancel()
 })
 
 // --- Helpers ---
@@ -363,8 +364,8 @@ const todayPosition = computed(() => {
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
       <div class="flex bg-nc-bg-default border-b border-nc-border-gray-medium w-full">
         <div
-          v-for="(date, idx) in visibleDates"
-          :key="idx"
+          v-for="date in visibleDates"
+          :key="date.format('YYYY-MM-DD')"
           class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
           :class="{
             'bg-nc-bg-brand': isToday(date),
@@ -400,10 +401,10 @@ const todayPosition = computed(() => {
           <!-- Grid lines (vertical) -->
           <div class="absolute inset-0 pointer-events-none">
             <div
-              v-for="(date, idx) in visibleDates"
-              :key="'line-' + idx"
+              v-for="(date, dateIdx) in visibleDates"
+              :key="'line-' + date.format('YYYY-MM-DD')"
               class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
-              :style="{ left: `${(idx + 1) * colWidth}px` }"
+              :style="{ left: `${(dateIdx + 1) * colWidth}px` }"
             />
           </div>
 
@@ -416,12 +417,12 @@ const todayPosition = computed(() => {
 
           <!-- Weekend background -->
           <div
-            v-for="(date, idx) in visibleDates"
-            :key="'bg-' + idx"
+            v-for="(date, dateIdx) in visibleDates"
+            :key="'bg-' + date.format('YYYY-MM-DD')"
             class="absolute top-0 bottom-0"
             :class="{ 'bg-nc-bg-gray-extralight': isWeekend(date) }"
             :style="{
-              left: `${idx * colWidth}px`,
+              left: `${dateIdx * colWidth}px`,
               width: `${colWidth}px`,
               height: `${Math.max(swimlanes.length * ROW_HEIGHT, 400)}px`,
             }"
@@ -461,7 +462,10 @@ const todayPosition = computed(() => {
                   height: `${ROW_HEIGHT - 8}px`,
                   ...getRowColorStyle(record).rowBgColor,
                 }"
-                @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
+                role="button"
+              tabindex="0"
+              @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
+              @keydown.enter="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
               >
                 <!-- Left border color accent -->
                 <div

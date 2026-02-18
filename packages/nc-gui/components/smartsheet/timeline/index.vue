@@ -246,7 +246,7 @@ const recordCountLabel = computed(() => {
                 :class="{
                   'max-w-38 truncate': zoomLevel === 'week',
                 }"
-                class="font-bold text-[13px] text-center text-nc-content-gray"
+                class="font-medium text-[13px] text-center text-nc-content-gray"
                 data-testid="nc-timeline-active-date"
               >
                 {{ dateRangeLabel }}
@@ -294,7 +294,7 @@ const recordCountLabel = computed(() => {
           data-testid="nc-timeline-today-btn"
           @click="goToToday"
         >
-          <span class="text-nc-content-gray-subtle font-bold !text-[13px]">
+          <span class="text-nc-content-gray-subtle font-medium !text-[13px]">
             {{ $t('labels.today') }}
           </span>
         </NcButton>

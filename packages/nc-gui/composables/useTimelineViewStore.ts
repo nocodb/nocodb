@@ -27,6 +27,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const { sharedView, fetchSharedViewData } = useSharedView()
 
+    const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+
     const isPublic = ref(shared)
 
     // Timeline state
@@ -145,10 +147,11 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id as string, {
               where: where?.value ?? '',
               limit: 400,
+              ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value]) }),
             })
           : await fetchSharedViewData({
-              sortsArr: [],
-              filtersArr: [],
+              sortsArr: sorts.value,
+              filtersArr: [...nestedFilters.value],
               where: where?.value ?? '',
               limit: 400,
             })

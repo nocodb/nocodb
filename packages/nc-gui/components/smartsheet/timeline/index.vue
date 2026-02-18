@@ -213,6 +213,9 @@ watch([currentDate, zoomLevel, timelineRange], () => {
           </a-select-option>
         </a-select>
 
+        <!-- Filter -->
+        <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
+
         <!-- Timeline Settings -->
         <SmartsheetToolbarTimelineRange />
       </div>

@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { normalizeHexColour } from 'nocodb-sdk'
+
 interface Props {
   modelValue: string | null | undefined
 }

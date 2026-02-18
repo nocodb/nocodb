@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { isValidHexColour, normalizeHexColourWithAlpha } from 'nocodb-sdk'
 import { iconMap } from '~/utils/iconUtils'
 
 interface Props {
@@ -83,9 +84,9 @@ const onTextInput = (e: Event) => {
       :visible="isOpen"
       :closable="false"
       :keyboard="false"
-      :mask-closable="false"
       :width="400"
       wrap-class-name="nc-colour-picker-modal !z-1060"
+      @cancel="close"
     >
       <div v-if="isOpen" class="px-2 pt-2 pb-0" @click.stop @mousedown.stop>
         <GeneralAdvanceColorPicker :key="pickerKey" :model-value="tempColor" :is-open="isOpen" @input="onColorChange" />

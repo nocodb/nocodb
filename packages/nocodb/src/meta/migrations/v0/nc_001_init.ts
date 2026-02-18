@@ -1270,26 +1270,6 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.VIEW_SECTIONS, (table) => {
-    table.string('id', 20).notNullable();
-
-    table.string('fk_workspace_id', 20);
-    table.string('base_id', 20);
-    table.string('source_id', 20);
-
-    table.string('fk_model_id', 20).notNullable();
-    table.string('title', 255).notNullable();
-    table.float('order');
-    table.text('meta');
-
-    table.string('created_by', 20);
-    table.string('updated_by', 20);
-
-    table.timestamps(true, true);
-
-    table.primary(['base_id', 'id']);
-  });
-
   await knex.schema.createTable(MetaTable.VIEWS, (table) => {
     table.string('id', 20).notNullable();
     table.string('source_id', 20);
@@ -1313,7 +1293,6 @@ const up = async (knex: Knex) => {
     table.string('expanded_record_mode', 255);
     table.string('fk_custom_url_id', 20);
     table.string('row_coloring_mode', 10);
-    table.string('fk_view_section_id', 20);
     table.timestamps(true, true);
     table.primary(['base_id', 'id']);
   });
@@ -1462,15 +1441,6 @@ const up = async (knex: Knex) => {
     table.index(['base_id', 'fk_workspace_id'], 'nc_widgets_context');
     table.index('fk_dashboard_id', 'nc_widgets_dashboard_idx');
     table.index(['id'], 'nc_widgets_v2_oldpk_idx');
-  });
-
-  await knex.schema.alterTable(MetaTable.VIEW_SECTIONS, (table) => {
-    table.index(
-      ['base_id', 'fk_workspace_id'],
-      'nc_view_sections_context',
-    );
-    table.index('fk_model_id', 'nc_view_sections_model_idx');
-    table.index(['id'], 'nc_view_sections_v2_oldpk_idx');
   });
 
   await knex.schema.alterTable(MetaTable.PERMISSIONS, (table) => {
@@ -2168,7 +2138,6 @@ const down = async (knex: Knex) => {
   await knex.schema.dropTableIfExists(MetaTable.WORKSPACE_USER);
   await knex.schema.dropTableIfExists(MetaTable.WORKSPACE);
   await knex.schema.dropTableIfExists(MetaTable.NOTIFICATION);
-  await knex.schema.dropTableIfExists(MetaTable.VIEW_SECTIONS);
   await knex.schema.dropTableIfExists(MetaTable.VIEWS);
   await knex.schema.dropTableIfExists(MetaTable.USERS);
   await knex.schema.dropTableIfExists(MetaTable.USER_REFRESH_TOKENS);

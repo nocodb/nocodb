@@ -817,7 +817,7 @@ const unique = computed({
       data-testid="add-or-edit-column"
       class="flex flex-col gap-4 h-full"
     >
-          <template v-if="!isEdit && !props.fromTableExplorer && (aiAutoSuggestMode || !formState.uidt)">
+      <template v-if="!isEdit && !props.fromTableExplorer && (aiAutoSuggestMode || !formState.uidt)">
         <div
           class="flex flex-col gap-4"
           :class="{

@@ -3551,7 +3551,8 @@ export class ColumnsService implements IColumnsService {
       case UITypes.QrCode:
       case UITypes.Barcode:
       case UITypes.Button:
-      case UITypes.UUID:
+        // PR review fix #3: UUID removed from this group — it has a physical DB column
+        // and must go through the default path (sqlOpPlus + tableUpdate) to drop it.
         await Column.delete2(
           context,
           {

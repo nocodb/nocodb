@@ -1,25 +1,13 @@
 <script lang="ts" setup>
+// PR review fix #10: Editor delegates to Readonly since UUID is always read-only
 interface Props {
   modelValue?: string | null
 }
 
 defineProps<Props>()
-
-// UUID is read-only, so the editor is the same as readonly
-const rowHeight = inject(RowHeightInj, ref(undefined))
 </script>
 
 <template>
-  <LazyCellClampedText
-    class="nc-cell-field nc-uuid-cell"
-    :value="modelValue"
-    :lines="rowHeight"
-    :style="{ 'word-break': 'break-word', 'font-family': 'monospace' }"
-  />
+  <!-- UUID is read-only; editor renders the same as readonly -->
+  <CellUUIDReadonly :model-value="modelValue" />
 </template>
-
-<style scoped>
-.nc-uuid-cell {
-  font-family: monospace;
-}
-</style>

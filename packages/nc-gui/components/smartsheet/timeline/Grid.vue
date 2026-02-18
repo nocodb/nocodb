@@ -505,6 +505,30 @@ const isWeekend = (date: dayjs.Dayjs) => {
   return date.day() === 0 || date.day() === 6
 }
 
+// Check if record's start date is visible (not clamped to before the viewport)
+const isStartVisible = (row: RowType) => {
+  const range = props.timelineRange[0]
+  if (!range) return false
+  const startDate = parseDate(row, range.fk_from_col)
+  if (!startDate) return false
+  const firstVisibleDate = props.visibleDates[0]
+  if (!firstVisibleDate) return false
+  return !startDate.isBefore(firstVisibleDate, 'day')
+}
+
+// Check if record's end date is visible (not clamped to after the viewport)
+const isEndVisible = (row: RowType) => {
+  const range = props.timelineRange[0]
+  if (!range) return false
+  const startDate = parseDate(row, range.fk_from_col)
+  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
+  const effectiveEnd = endDate || startDate
+  if (!effectiveEnd) return false
+  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
+  if (!lastVisibleDate) return false
+  return !effectiveEnd.isAfter(lastVisibleDate, 'day')
+}
+
 // Today indicator position
 const todayPosition = computed(() => {
   const firstDate = props.visibleDates[0]
@@ -687,7 +711,7 @@ const onBodyScroll = (event: Event) => {
                 <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
               </template>
               <div
-                class="nc-timeline-bar rounded-md border-1 flex items-center text-xs font-medium transition-shadow select-none group w-full relative overflow-hidden"
+                class="nc-timeline-bar border-1 flex items-center text-xs font-medium transition-shadow select-none group w-full relative overflow-hidden"
                 :class="{
                   'cursor-pointer hover:shadow-md': !isInteracting,
                   'cursor-grabbing': dragInProgress && dragRecord === record,
@@ -695,6 +719,8 @@ const onBodyScroll = (event: Event) => {
                   'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
                   'z-100 shadow-lg': isInteracting && interactionRecord === record,
                   'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray': !getRowColorStyle(record).rowBgColor?.backgroundColor,
+                  'rounded-l-md': isStartVisible(record),
+                  'rounded-r-md': isEndVisible(record),
                 }"
                 :style="{
                   height: `${ROW_HEIGHT - 8}px`,
@@ -710,8 +736,9 @@ const onBodyScroll = (event: Event) => {
                 @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
                 @mousedown.stop="onDragStart($event, record)"
               >
-                <!-- #17: Left border color accent (offset to not collide with resize handle) -->
+                <!-- #17: Left border color accent — only when the record's start is in the visible range -->
                 <div
+                  v-if="isStartVisible(record)"
                   class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md pointer-events-none"
                   :style="getRowColorStyle(record).rowLeftBorderColor?.backgroundColor
                     ? getRowColorStyle(record).rowLeftBorderColor

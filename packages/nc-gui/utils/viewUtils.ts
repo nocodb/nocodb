@@ -13,7 +13,7 @@ export const viewIcons: Record<number | string, { icon: any; color: string; dark
   [ViewTypes.GALLERY]: { icon: iconMap.gallery, color: 'var(--color-view-icon-gallery)' },
   [ViewTypes.MAP]: { icon: iconMap.map, color: 'var(--color-view-icon-map)' },
   [ViewTypes.KANBAN]: { icon: iconMap.kanban, color: 'var(--color-view-icon-kanban)' },
-  [ViewTypes.TIMELINE]: { icon: iconMap.calendar, color: 'var(--color-view-icon-calendar)' },
+  [ViewTypes.TIMELINE]: { icon: iconMap.timeline, color: 'var(--color-view-icon-timeline)' },
   view: { icon: iconMap.view, color: 'var(--color-view-icon-view)' },
 }
 

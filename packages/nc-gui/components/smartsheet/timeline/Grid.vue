@@ -28,6 +28,8 @@ const meta = inject(MetaInj, ref())
 
 const { isUIAllowed } = useRoles()
 
+const { $e } = useNuxtApp()
+
 const {
   updateRowProperty,
   updateFormat,
@@ -211,6 +213,7 @@ const onResize = (event: MouseEvent) => {
 }
 
 const onResizeEnd = () => {
+  $e('c:timeline:resize-record')
   resizeInProgress.value = false
   resizeDirection.value = undefined
   resizeRecord.value = null
@@ -312,6 +315,7 @@ const onDrag = (event: MouseEvent) => {
 }
 
 const onDragEnd = () => {
+  $e('c:timeline:drag-record')
   dragInProgress.value = false
   dragRecord.value = null
   isDragReady.value = false

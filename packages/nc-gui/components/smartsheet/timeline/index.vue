@@ -8,6 +8,8 @@ const view = inject(ActiveViewInj, ref())
 
 const { isMobileMode } = useGlobal()
 
+const { $e } = useNuxtApp()
+
 const isPublic = inject(IsPublicInj, ref(false))
 
 const { t } = useI18n()
@@ -84,6 +86,8 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
 
   expandedFormRowState.value = state
 
+  $e('a:timeline:expand-record')
+
   if (rowId && !isPublic.value) {
     router.push({
       query: {
@@ -101,6 +105,8 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
 const onNewRecord = (date: dayjs.Dayjs) => {
   const range = timelineRange.value?.[0]
   if (!range?.fk_from_col?.title) return
+
+  $e('c:timeline:new-record', { zoomLevel: zoomLevel.value })
 
   const dateFormat = 'YYYY-MM-DD'
   const state: Record<string, any> = {
@@ -189,6 +195,7 @@ watch(currentDate, (val) => {
 const onDatePickerSelect = (date: dayjs.Dayjs) => {
   goToDate(date)
   datePickerVisible.value = false
+  $e('c:timeline:date-picker', { zoomLevel: zoomLevel.value })
 }
 
 // #3: Record count badge text
@@ -278,6 +285,7 @@ const recordCountLabel = computed(() => {
 
         <!-- Today Button -->
         <NcButton
+          v-e="['c:timeline:today-btn']"
           class="nc-timeline-prev-next-btn !h-7"
           size="small"
           type="secondary"
@@ -294,6 +302,7 @@ const recordCountLabel = computed(() => {
           <NcTooltip hide-on-click>
             <template #title>{{ $t('labels.previous') }}</template>
             <NcButton
+              v-e="['c:timeline:navigate', { direction: 'prev' }]"
               class="!w-7 !h-7 !rounded-lg nc-timeline-prev-next-btn !hover:(text-nc-content-gray-subtle)"
               inner-class="flex items-center justify-center"
               data-testid="nc-timeline-prev-btn"
@@ -307,6 +316,7 @@ const recordCountLabel = computed(() => {
           <NcTooltip hide-on-click>
             <template #title>{{ $t('labels.next') }}</template>
             <NcButton
+              v-e="['c:timeline:navigate', { direction: 'next' }]"
               class="!w-7 !h-7 !rounded-lg nc-timeline-prev-next-btn !hover:(text-nc-content-gray-subtle)"
               inner-class="flex items-center justify-center"
               data-testid="nc-timeline-next-btn"
@@ -340,6 +350,7 @@ const recordCountLabel = computed(() => {
 
         <!-- #20: Zoom Mode Selector (day, week, month) -->
         <a-select
+          v-e="['c:timeline:change-zoom-level']"
           :value="zoomLevel"
           class="nc-select-shadow nc-timeline-mode-select !w-21 !rounded-lg"
           dropdown-class-name="!rounded-lg !min-w-25"

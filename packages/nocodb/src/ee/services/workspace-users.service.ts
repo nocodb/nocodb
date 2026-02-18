@@ -134,13 +134,6 @@ export class WorkspaceUsersService {
 
     if (!workspaceUser) NcError.userNotFound(param.userId);
 
-    // Block role changes for SCIM-managed users — IdP is the source of truth
-    if (workspaceUser.scim_managed) {
-      NcError.badRequest(
-        'This user is managed via SCIM. Role changes must be made from your identity provider.',
-      );
-    }
-
     const isOrgOwner = extractRolesObj(
       (param.req.user as any).org_roles as any,
     )?.[CloudOrgUserRoles.OWNER];

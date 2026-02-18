@@ -340,7 +340,11 @@ const customRow = (_record: Record<string, any>, recordIndex: number) => ({
 
 const isScimManaged = (record: any) => !!record?.scim_managed
 
-const isDeleteOrUpdateAllowed = (user) => {
+const isRoleUpdateAllowed = (user) => {
+  return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
+}
+
+const isDeleteAllowed = (user) => {
   if (isScimManaged(user)) return false
   return !(isOnlyOneOwner.value && user.roles === WorkspaceUserRoles.OWNER)
 }
@@ -636,7 +640,7 @@ watch(inviteDlg, (newVal) => {
             </div>
             <div v-if="column.key === 'role'">
               <template
-                v-if="isDeleteOrUpdateAllowed(record) && isOwnerOrCreator && getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles as WorkspaceUserRoles)"
+                v-if="isRoleUpdateAllowed(record) && isOwnerOrCreator && getTeamCompatibleAccessibleRoles(accessibleRoles, record).includes(record.roles as WorkspaceUserRoles)"
               >
                 <RolesSelectorV2
                   :on-role-change="(role) => showRoleChangeConfirmationModal(record, role as WorkspaceUserRoles)"
@@ -646,10 +650,7 @@ watch(inviteDlg, (newVal) => {
                 />
               </template>
               <template v-else>
-                <NcTooltip v-if="isScimManaged(record)" :title="$t('labels.scimManagedUserTooltip')" :tooltip-style="{ width: '230px' }" :overlay-inner-style="{ width: '230px' }">
-                  <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
-                </NcTooltip>
-                <RolesBadge v-else :border="false" :role="record.roles" class="cursor-default" />
+                <RolesBadge :border="false" :role="record.roles" class="cursor-default" />
               </template>
             </div>
             <div v-if="column.key === 'created_at'">
@@ -700,10 +701,10 @@ watch(inviteDlg, (newVal) => {
 
                       <NcTooltip :disabled="(!isOnlyOneOwner || record.roles !== WorkspaceUserRoles.OWNER) && !isScimManaged(record)">
                         <template #title>
-                          {{ isScimManaged(record) ? $t('labels.scimManagedUserTooltip') : $t('tooltip.leaveWorkspace') }}
+                          {{ isScimManaged(record) ? $t('labels.scimManagedRemovalTooltip') : $t('tooltip.leaveWorkspace') }}
                         </template>
                         <NcMenuItem
-                          :disabled="!isDeleteOrUpdateAllowed(record) || (record.isTeam && !isOwnerOrCreator)"
+                          :disabled="!isDeleteAllowed(record) || (record.isTeam && !isOwnerOrCreator)"
                           danger
                           @click="removeCollaborator(record.id, currentWorkspace?.id, record)"
                         >

@@ -11,6 +11,7 @@ const { iconMap } = useIcons()
 const column = inject(ColumnInj, ref())
 const readOnly = inject(ReadonlyInj, ref(false))
 const editEnabled = inject(EditModeInj, ref(false))
+const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 
 const colourMeta = computed(() => {
   try {
@@ -180,11 +181,11 @@ onBeforeUnmount(() => {
   document.removeEventListener('click', hideClearButton)
 })
 
-// Auto-open color picker when cell becomes editable
+// Auto-open color picker when cell becomes editable (only in grid view, not in expanded form)
 watch(
   editEnabled,
   (enabled) => {
-    if (enabled && !readOnly.value && !isOpen.value) {
+    if (enabled && !readOnly.value && !isOpen.value && !isExpandedFormOpen.value) {
       nextTick(() => {
         openColorPicker()
       })

@@ -534,13 +534,11 @@ const todayPosition = computed(() => {
   width: 4px;
   height: 14px;
   background-color: var(--nc-content-gray-muted);
-  opacity: 0.5;
-  transition: opacity 0.15s ease, background-color 0.15s ease;
+  transition: background-color 0.15s ease;
 }
 
 /* Darken the grip on direct handle hover for extra feedback */
 .nc-timeline-resize-handle:hover .nc-timeline-resize-grip {
-  opacity: 1 !important;
   background-color: var(--nc-content-gray);
 }
 

@@ -341,21 +341,6 @@ const isWeekend = (date: dayjs.Dayjs) => {
   return date.day() === 0 || date.day() === 6
 }
 
-// Color palette for bars
-const barColors = [
-  { bg: '#DBEAFE', border: '#3B82F6', text: '#1E40AF' },
-  { bg: '#DCFCE7', border: '#22C55E', text: '#166534' },
-  { bg: '#FEF3C7', border: '#F59E0B', text: '#92400E' },
-  { bg: '#FCE7F3', border: '#EC4899', text: '#9D174D' },
-  { bg: '#E0E7FF', border: '#6366F1', text: '#3730A3' },
-  { bg: '#FED7AA', border: '#F97316', text: '#9A3412' },
-  { bg: '#CCFBF1', border: '#14B8A6', text: '#115E59' },
-  { bg: '#F3E8FF', border: '#A855F7', text: '#6B21A8' },
-]
-
-const getBarColor = (index: number) => {
-  return barColors[index % barColors.length]
-}
 
 // Today indicator position
 const todayPosition = computed(() => {
@@ -464,17 +449,15 @@ const todayPosition = computed(() => {
                 <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
               </template>
               <div
-                class="rounded-md flex items-center text-xs font-medium shadow-sm transition-shadow select-none group w-full"
+                class="nc-timeline-bar rounded-md border-1 border-nc-border-gray-dark flex items-center text-xs font-medium transition-shadow select-none group w-full bg-nc-bg-default text-nc-content-gray"
                 :class="{
-                  'cursor-pointer hover:shadow-md hover:brightness-95': !resizeInProgress,
+                  'cursor-pointer hover:shadow-md': !resizeInProgress,
                   'pointer-events-none opacity-30': resizeInProgress && resizeRecord !== record,
                   'z-20 shadow-md': resizeInProgress && resizeRecord === record,
                 }"
                 :style="{
                   height: `${ROW_HEIGHT - 8}px`,
-                  backgroundColor: getBarColor(colorIndex).bg,
-                  borderLeft: `3px solid ${getBarColor(colorIndex).border}`,
-                  color: getBarColor(colorIndex).text,
+                  borderLeft: '3px solid var(--color-gray-900, #101015)',
                 }"
                 @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
               >
@@ -555,5 +538,14 @@ const todayPosition = computed(() => {
 /* Slightly round inward edge for right handle */
 .nc-timeline-resize-handle--right {
   border-radius: 0 4px 4px 0;
+}
+
+/* Neutral bar shadow matching calendar RecordCard */
+.nc-timeline-bar {
+  box-shadow: 0px 2px 4px -2px rgba(0, 0, 0, 0.06), 0px 4px 4px -2px rgba(0, 0, 0, 0.02);
+}
+
+.nc-timeline-bar:hover {
+  box-shadow: 0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06);
 }
 </style>

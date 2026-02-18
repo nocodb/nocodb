@@ -88,6 +88,7 @@ import * as nc_097_unify_schema from '~/meta/migrations/v2/nc_097_unify_schema';
 import * as nc_098_default_workspace from '~/meta/migrations/v2/nc_098_default_workspace';
 import * as nc_099_timeline_view from '~/meta/migrations/v2/nc_099_timeline_view';
 import * as nc_100_timeline_view_fix from '~/meta/migrations/v2/nc_100_timeline_view_fix';
+import * as nc_101_timeline_group_by from '~/meta/migrations/v2/nc_101_timeline_group_by';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -185,6 +186,7 @@ export default class XcMigrationSourcev2 {
       'nc_098_default_workspace',
       'nc_099_timeline_view',
       'nc_100_timeline_view_fix',
+      'nc_101_timeline_group_by',
     ]);
   }
 
@@ -370,6 +372,8 @@ export default class XcMigrationSourcev2 {
         return nc_099_timeline_view;
       case 'nc_100_timeline_view_fix':
         return nc_100_timeline_view_fix;
+      case 'nc_101_timeline_group_by':
+        return nc_101_timeline_group_by;
     }
   }
 }

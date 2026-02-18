@@ -33,6 +33,17 @@ const {
   currentDate,
 } = useTimelineViewStoreOrThrow()
 
+// Group-by support (provided by parent Smartsheet.vue via useProvideViewGroupBy)
+const {
+  isGroupBy,
+  rootGroup,
+  groupBy,
+  loadGroups,
+  loadGroupData,
+  loadGroupPage,
+  groupWrapperChangePage,
+} = useViewGroupByOrThrow()
+
 const router = useRouter()
 const route = useRoute()
 
@@ -74,12 +85,20 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
   }
 }
 
+const reloadData = async () => {
+  if (isGroupBy.value) {
+    await loadGroups({}, rootGroup.value)
+  } else {
+    await loadTimelineData()
+  }
+}
+
 onMounted(async () => {
-  await loadTimelineData()
+  await reloadData()
 })
 
 const reloadViewDataListener = async () => {
-  await loadTimelineData()
+  await reloadData()
 }
 
 reloadViewDataHook?.on(reloadViewDataListener)
@@ -92,7 +111,12 @@ onBeforeUnmount(() => {
 // timelineRange is critical: it may be empty on mount (view data loads async)
 // and gets populated later when activeView.view.timeline_range arrives
 watch([currentDate, zoomLevel, timelineRange], () => {
-  loadTimelineData()
+  reloadData()
+})
+
+// When group-by is toggled on/off, reload with appropriate strategy
+watch(isGroupBy, () => {
+  reloadData()
 })
 </script>
 
@@ -216,6 +240,9 @@ watch([currentDate, zoomLevel, timelineRange], () => {
         <!-- Fields -->
         <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
 
+        <!-- Group By -->
+        <SmartsheetToolbarGroupByMenu v-if="!isPublic" />
+
         <!-- Filter -->
         <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
 
@@ -228,6 +255,24 @@ watch([currentDate, zoomLevel, timelineRange], () => {
         <div v-if="isTimelineDataLoading" class="flex-1 flex w-full items-center justify-center min-h-0">
           <GeneralLoader size="xlarge" />
         </div>
+
+        <!-- Grouped layout -->
+        <SmartsheetTimelineGroupBy
+          v-else-if="isGroupBy"
+          class="flex-1 min-h-0"
+          :group="rootGroup"
+          :visible-dates="visibleDates"
+          :timeline-range="timelineRange"
+          :zoom-level="zoomLevel"
+          :load-groups="loadGroups"
+          :load-group-data="loadGroupData"
+          :load-group-page="loadGroupPage"
+          :group-wrapper-change-page="groupWrapperChangePage"
+          :max-depth="groupBy.length"
+          @expand-record="expandRecord"
+        />
+
+        <!-- Flat layout (no group-by) -->
         <SmartsheetTimelineGrid
           v-else
           class="flex-1 min-h-0"

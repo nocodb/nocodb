@@ -19,6 +19,10 @@ export default class TimelineViewColumn {
   bold?: BoolType;
   italic?: BoolType;
   order?: number;
+  group_by?: BoolType;
+  group_by_order?: number;
+  group_by_sort?: string;
+  aggregation?: string;
   meta?: MetaType;
 
   constructor(data: TimelineViewColumn) {
@@ -75,6 +79,10 @@ export default class TimelineViewColumn {
       'underline',
       'bold',
       'italic',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
+      'aggregation',
     ]);
 
     insertObj.order = await ncMeta.metaGetNextOrder(
@@ -175,6 +183,10 @@ export default class TimelineViewColumn {
       'underline',
       'bold',
       'italic',
+      'group_by',
+      'group_by_order',
+      'group_by_sort',
+      'aggregation',
     ]);
 
     // update meta

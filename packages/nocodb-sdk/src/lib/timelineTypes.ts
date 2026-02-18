@@ -27,6 +27,10 @@ export interface TimelineColumnType {
   italic?: BoolType;
   underline?: BoolType;
   order?: number;
+  group_by?: BoolType;
+  group_by_order?: number;
+  group_by_sort?: StringOrNullType;
+  aggregation?: StringOrNullType;
 }
 
 /**

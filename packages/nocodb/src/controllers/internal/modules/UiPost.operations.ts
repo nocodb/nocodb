@@ -23,6 +23,7 @@ import { GalleriesService } from '~/services/galleries.service';
 import { KanbansService } from '~/services/kanbans.service';
 import { MapsService } from '~/services/maps.service';
 import { CalendarsService } from '~/services/calendars.service';
+import { TimelineColumnsService } from '~/services/timeline-columns.service';
 import { TimelinesService } from '~/services/timelines.service';
 import { CommentsService } from '~/services/comments.service';
 import { BulkDataAliasService } from '~/services/bulk-data-alias.service';
@@ -55,6 +56,7 @@ export class UiPostOperations
     protected kanbansService: KanbansService,
     protected mapsService: MapsService,
     protected calendarsService: CalendarsService,
+    protected timelineColumnsService: TimelineColumnsService,
     protected timelinesService: TimelinesService,
     protected commentsService: CommentsService,
     protected bulkDataAliasService: BulkDataAliasService,
@@ -81,6 +83,7 @@ export class UiPostOperations
     'viewColumnUpdate' as const,
     'viewColumnCreate' as const,
     'gridColumnUpdate' as const,
+    'timelineColumnUpdate' as const,
     'viewRowColorConditionAdd' as const,
     'viewRowColorConditionUpdate' as const,
     'viewRowColorConditionDelete' as const,
@@ -260,6 +263,12 @@ export class UiPostOperations
         return await this.gridColumnsService.gridColumnUpdate(context, {
           gridViewColumnId: req.query.gridViewColumnId,
           grid: payload,
+          req,
+        });
+      case 'timelineColumnUpdate':
+        return await this.timelineColumnsService.timelineColumnUpdate(context, {
+          timelineViewColumnId: req.query.timelineViewColumnId,
+          timeline: payload,
           req,
         });
       case 'viewColumnCreate':

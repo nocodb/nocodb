@@ -177,6 +177,10 @@ const up = async (knex: Knex) => {
     table.boolean('underline');
     table.boolean('italic');
     table.float('order');
+    table.boolean('group_by');
+    table.float('group_by_order');
+    table.string('group_by_sort', 4);
+    table.string('aggregation', 20);
     table.string('fk_workspace_id', 20);
     table.timestamps(true, true);
     table.primary(['base_id', 'id']);

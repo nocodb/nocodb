@@ -56,6 +56,7 @@ export const OPERATION_SCOPES = {
   hideAllColumns: 'base',
   viewColumnUpdate: 'base',
   gridColumnUpdate: 'base',
+  timelineColumnUpdate: 'base',
   viewColumnCreate: 'base',
   viewRowColorConditionAdd: 'base',
   viewRowColorConditionUpdate: 'base',

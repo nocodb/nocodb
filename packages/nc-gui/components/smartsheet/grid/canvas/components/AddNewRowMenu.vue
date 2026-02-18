@@ -90,6 +90,7 @@ const handleUseTemplate = async (tmpl: any) => {
       <NcMenuItem
         v-for="tmpl in templates"
         :key="tmpl.id"
+        v-e="['c:record-templates:use']"
         class="nc-template-menu-item"
         @click="setSelectedTemplate(tmpl.id); handleUseTemplate(tmpl)"
       >

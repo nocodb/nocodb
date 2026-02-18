@@ -319,4 +319,26 @@ export interface SandboxMergeEvent extends NcBaseEvent {
   masterBaseId: string;
 }
 
+// Record Template Events
+export interface RecordTemplateCreateEvent extends NcBaseEvent {
+  template: { id?: string; title?: string; source_id?: string };
+}
+
+export interface RecordTemplateUpdateEvent extends NcBaseEvent {
+  template: { id?: string; title?: string; source_id?: string };
+}
+
+export interface RecordTemplateDeleteEvent extends NcBaseEvent {
+  template: { id?: string; title?: string; source_id?: string };
+}
+
+export interface RecordTemplateUseEvent extends NcBaseEvent {
+  template: {
+    id?: string;
+    title?: string;
+    source_id?: string;
+    usage_count?: number;
+  };
+}
+
 export * from 'src/services/app-hooks/interfaces';

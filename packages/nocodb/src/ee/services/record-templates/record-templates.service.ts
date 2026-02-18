@@ -83,7 +83,7 @@ export class RecordTemplatesService {
       context: param.context,
       template,
       req: param.req,
-    } as any);
+    });
 
     return template;
   }
@@ -134,7 +134,7 @@ export class RecordTemplatesService {
       context: param.context,
       template,
       req: param.req,
-    } as any);
+    });
 
     return template;
   }
@@ -159,7 +159,7 @@ export class RecordTemplatesService {
       context: param.context,
       template,
       req: param.req,
-    } as any);
+    });
 
     return { success: true };
   }
@@ -188,7 +188,7 @@ export class RecordTemplatesService {
       context: param.context,
       template: updatedTemplate,
       req: param.req,
-    } as any);
+    });
 
     return updatedTemplate;
   }

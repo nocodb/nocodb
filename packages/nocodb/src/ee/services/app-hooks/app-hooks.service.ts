@@ -36,6 +36,10 @@ import type {
   SandboxDeleteEvent,
   SandboxDiscardEvent,
   SandboxMergeEvent,
+  RecordTemplateCreateEvent,
+  RecordTemplateUpdateEvent,
+  RecordTemplateDeleteEvent,
+  RecordTemplateUseEvent,
 } from './interfaces';
 import type { AppEvents } from 'nocodb-sdk';
 
@@ -729,12 +733,20 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.SANDBOX_MERGE, data: SandboxMergeEvent): void;
 
   emit(
-    event:
-      | AppEvents.RECORD_TEMPLATE_CREATE
-      | AppEvents.RECORD_TEMPLATE_UPDATE
-      | AppEvents.RECORD_TEMPLATE_DELETE
-      | AppEvents.RECORD_TEMPLATE_USE,
-    data: any,
+    event: AppEvents.RECORD_TEMPLATE_CREATE,
+    data: RecordTemplateCreateEvent,
+  ): void;
+  emit(
+    event: AppEvents.RECORD_TEMPLATE_UPDATE,
+    data: RecordTemplateUpdateEvent,
+  ): void;
+  emit(
+    event: AppEvents.RECORD_TEMPLATE_DELETE,
+    data: RecordTemplateDeleteEvent,
+  ): void;
+  emit(
+    event: AppEvents.RECORD_TEMPLATE_USE,
+    data: RecordTemplateUseEvent,
   ): void;
 
   emit(event, data): void {

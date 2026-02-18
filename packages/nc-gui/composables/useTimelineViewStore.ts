@@ -27,7 +27,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const { sharedView, fetchSharedViewData } = useSharedView()
 
-    const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
+    const { sorts, nestedFilters, eventBus } = useSmartsheetStoreOrThrow()
 
     const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
 
@@ -149,6 +149,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           ? await $api.dbViewRow.list('noco', base.value.id!, meta.value!.id!, viewMeta.value!.id as string, {
               where: where?.value ?? '',
               limit: 400,
+              include_row_color: true,
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value]) }),
             })
           : await fetchSharedViewData({
@@ -274,6 +275,20 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
+
+    // Re-evaluate row colors when colour config changes (e.g. Background colour toggle)
+    const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
+      if (![SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
+        return
+      }
+
+      formattedData.value = formattedData.value.map((row) => {
+        Object.assign(row.rowMeta, getEvaluatedRowMetaRowColorInfo(row.row))
+        return row
+      })
+    }
+
+    eventBus.on(smartsheetEventHandler)
 
     return {
       // State

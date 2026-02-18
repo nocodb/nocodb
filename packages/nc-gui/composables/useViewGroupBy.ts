@@ -439,6 +439,7 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
           ? await api.dbViewRow.list('noco', base.value.id, view.value.fk_model_id, view.value.id, {
               ...query,
               ...params,
+              include_row_color: true,
               ...(isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(sorts.value) }),
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(nestedFilters.value) }),
             } as any)

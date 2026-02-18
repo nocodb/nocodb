@@ -454,24 +454,25 @@ const todayPosition = computed(() => {
                 <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
               </template>
               <div
-                class="nc-timeline-bar rounded-md border-1 border-nc-border-gray-dark flex items-center text-xs font-medium transition-shadow select-none group w-full bg-nc-bg-default text-nc-content-gray"
+                class="nc-timeline-bar rounded-md border-1 flex items-center text-xs font-medium transition-shadow select-none group w-full relative overflow-hidden"
                 :class="{
                   'cursor-pointer hover:shadow-md': !resizeInProgress,
                   'pointer-events-none opacity-30': resizeInProgress && resizeRecord !== record,
                   'z-20 shadow-md': resizeInProgress && resizeRecord === record,
+                  'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray': !getRowColorStyle(record).rowBgColor?.backgroundColor,
                 }"
                 :style="{
                   height: `${ROW_HEIGHT - 8}px`,
-                  borderLeft: '3px solid var(--color-gray-900, #101015)',
                   ...getRowColorStyle(record).rowBgColor,
                 }"
                 @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
               >
-                <!-- Left border color accent (from Colour config) -->
+                <!-- Left border color accent -->
                 <div
-                  v-if="getRowColorStyle(record).rowLeftBorderColor?.backgroundColor"
-                  class="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-md"
-                  :style="getRowColorStyle(record).rowLeftBorderColor"
+                  class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md"
+                  :style="getRowColorStyle(record).rowLeftBorderColor?.backgroundColor
+                    ? getRowColorStyle(record).rowLeftBorderColor
+                    : { backgroundColor: 'var(--color-gray-900, #101015)' }"
                 />
                 <!-- Left resize handle (start date) -->
                 <div
@@ -482,7 +483,7 @@ const todayPosition = computed(() => {
                   <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
-                <span class="truncate px-2 inline-flex items-center">
+                <span class="truncate pl-2.5 pr-2 inline-flex items-center">
                   <template v-for="field in fields" :key="field.id">
                     <LazySmartsheetPlainCell
                       v-if="!isRowEmpty(record, field!)"

@@ -681,7 +681,8 @@ const onBodyScroll = (event: Event) => {
           <!-- Today indicator line -->
           <div
             v-if="todayPosition !== null"
-            class="absolute top-0 bottom-0 w-0.5 bg-nc-content-brand"
+            class="absolute top-0 bottom-0 bg-nc-content-brand"
+            style="width: 1px"
             :style="{ left: `${todayPosition}px` }"
           />
         </div>

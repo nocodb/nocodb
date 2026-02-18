@@ -86,6 +86,7 @@ import * as nc_094_add_meta_to_filter_exp_v2 from '~/meta/migrations/v2/nc_094_a
 import * as nc_096_deprecate_unused from '~/meta/migrations/v2/nc_096_deprecate_unused';
 import * as nc_097_unify_schema from '~/meta/migrations/v2/nc_097_unify_schema';
 import * as nc_098_default_workspace from '~/meta/migrations/v2/nc_098_default_workspace';
+
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
   // Must return a Promise containing a list of migrations.

@@ -793,28 +793,6 @@ const up = async (knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.RECORD_TEMPLATES, (table) => {
-    table.string('id', 20).primary().notNullable();
-
-    table.string('base_id', 20).notNullable();
-    table.foreign('base_id').references(`${MetaTableOldV2.BASES}.id`);
-
-    table.string('source_id', 20).notNullable();
-    table.foreign('source_id').references(`${MetaTable.SOURCES}.id`);
-
-    table.string('title', 255).notNullable();
-    table.text('description');
-    table.text('template_data', 'longtext').notNullable();
-    table.integer('usage_count').defaultTo(0);
-    table.string('created_by', 20);
-
-    table.timestamps(true, true);
-
-    table.index(['base_id']);
-    table.index(['source_id']);
-    table.index(['created_by']);
-  });
-
   // await knex('nc_plugins').insert([
   //   googleAuth,
   //   ses,

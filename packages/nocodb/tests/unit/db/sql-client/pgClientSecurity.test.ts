@@ -202,8 +202,8 @@ describe('PgClient SQL Injection Protection', () => {
           throw new Error('Expected validation error but none was thrown');
         } catch (error: any) {
           expect(error.message).to.match(
-          /Invalid identifier: contains dangerous characters/,
-        );
+            /Invalid identifier: contains dangerous characters/,
+          );
         }
       }
     });

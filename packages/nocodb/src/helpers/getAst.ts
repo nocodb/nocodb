@@ -523,6 +523,7 @@ export type RequestQuery = {
   nested?: {
     [field: string]: RequestQuery;
   };
+  linksAsLtar?: string;
 };
 
 export interface DependantFields {

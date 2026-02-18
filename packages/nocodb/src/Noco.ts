@@ -27,7 +27,6 @@ import { getRedisURL } from '~/helpers/redisHelpers';
 import { RedisIoAdapter } from '~/gateways/RedisIoAdapter';
 import { DEFAULT_APP_SETTINGS } from '~/interface/AppSettings';
 import { NC_APP_SETTINGS } from '~/constants';
-// dummy
 
 dotenv.config();
 declare const module: any;

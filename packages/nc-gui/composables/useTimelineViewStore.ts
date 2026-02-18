@@ -228,6 +228,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
               where: where?.value ?? '',
               limit: 400,
               include_row_color: true,
+              getHiddenColumns: true,
               ...(isUIAllowed('filterSync') ? {} : { filterArrJson: stringifyFilterOrSortArr([...nestedFilters.value]) }),
             })
           : await fetchSharedViewData({

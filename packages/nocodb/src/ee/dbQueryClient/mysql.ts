@@ -1009,7 +1009,7 @@ export class MySqlDBQueryClient
         break;
       case UITypes.Links:
         if (
-          (params?.linksAsLtar === 'true' || params?.linksAsLtar) &&
+          (params?.linksAsLtar === 'true') &&
           apiVersion === NcApiVersion.V3
         ) {
           try {

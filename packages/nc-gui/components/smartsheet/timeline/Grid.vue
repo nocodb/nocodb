@@ -721,7 +721,7 @@ const onBodyScroll = (event: Event) => {
                 <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
               </template>
               <div
-                class="nc-timeline-bar border-1 flex items-center text-xs font-medium transition-shadow select-none group w-full relative overflow-hidden"
+                class="nc-timeline-bar border-1 flex items-center text-xs font-normal transition-shadow select-none group w-full relative overflow-hidden"
                 :class="{
                   'cursor-pointer hover:shadow-md': !isInteracting,
                   'cursor-grabbing': dragInProgress && dragRecord === record,

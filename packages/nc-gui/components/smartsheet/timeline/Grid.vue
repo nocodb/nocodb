@@ -88,13 +88,15 @@ const HEADER_HEIGHT = 56
 const gridContainerRef = ref<HTMLElement | null>(null)
 const { width: containerWidth } = useElementSize(gridContainerRef)
 
-// #4: Column width — enforce minimum width and allow horizontal scroll for month view
-const MIN_COL_WIDTH = 48
+// #4: Column width — for month view, always fit all days in the container;
+// for day/week views, enforce a minimum so columns aren't excessively wide
+const MIN_COL_WIDTH_DAY_WEEK = 48
 const colWidth = computed(() => {
   if (!containerWidth.value || !props.visibleDates.length) return 120
   const naturalWidth = containerWidth.value / props.visibleDates.length
-  // In month view (28-31 cols), enforce minimum width to keep bars readable
-  return Math.max(naturalWidth, MIN_COL_WIDTH)
+  // Month view: always fit all days without horizontal scroll
+  if (props.zoomLevel === 'month') return naturalWidth
+  return Math.max(naturalWidth, MIN_COL_WIDTH_DAY_WEEK)
 })
 
 // Total grid width — may exceed container for horizontal scroll
@@ -598,7 +600,7 @@ const onBodyScroll = (event: Event) => {
             :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
           >
             <span class="text-[10px] font-medium text-nc-content-gray-muted uppercase">
-              {{ date.format('ddd') }}
+              {{ colWidth < 40 ? date.format('dd').charAt(0) : date.format('ddd') }}
             </span>
             <span
               class="text-sm font-semibold"

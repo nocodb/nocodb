@@ -424,7 +424,7 @@ const recordCountLabel = computed(() => {
                   :style="{ width: `${groupColWidth}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
                 >
                   <span class="text-[10px] font-medium text-nc-content-gray-muted uppercase">
-                    {{ date.format('ddd') }}
+                    {{ groupColWidth < 40 ? date.format('dd').charAt(0) : date.format('ddd') }}
                   </span>
                   <span
                     class="text-sm font-semibold"

@@ -82,7 +82,7 @@ onMounted(() => {
 })
 
 const ROW_HEIGHT = 36
-const HEADER_HEIGHT = 56
+const HEADER_HEIGHT = 32
 
 // Measure the grid container to compute dynamic column widths
 const gridContainerRef = ref<HTMLElement | null>(null)
@@ -599,20 +599,23 @@ const onBodyScroll = (event: Event) => {
             }"
             :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
           >
-            <span class="text-[10px] font-medium text-nc-content-gray-muted uppercase">
-              {{ colWidth < 40 ? date.format('dd').charAt(0) : date.format('ddd') }}
-            </span>
             <span
-              class="text-sm font-semibold"
+              class="text-[10px] font-normal leading-tight"
               :class="{
                 'text-nc-content-brand': isToday(date),
-                'text-nc-content-gray': !isToday(date),
+                'text-nc-content-gray-muted': !isToday(date),
+              }"
+            >
+              {{ date.format('dd').charAt(0) }}
+            </span>
+            <span
+              class="text-[11px] font-normal leading-tight"
+              :class="{
+                'text-nc-content-brand': isToday(date),
+                'text-nc-content-gray-muted': !isToday(date),
               }"
             >
               {{ date.format('D') }}
-            </span>
-            <span v-if="zoomLevel === 'week'" class="text-[10px] text-nc-content-gray-muted">
-              {{ date.format('MMM') }}
             </span>
           </div>
         </div>

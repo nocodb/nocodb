@@ -62,4 +62,4 @@ export function isWeekend(date: dayjs.Dayjs): boolean {
 
 /** Shared layout constants for timeline views */
 export const TIMELINE_GROUP_SIDEBAR_WIDTH = 200
-export const TIMELINE_GROUP_HEADER_HEIGHT = 56
+export const TIMELINE_GROUP_HEADER_HEIGHT = 32

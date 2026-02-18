@@ -403,11 +403,10 @@ const recordCountLabel = computed(() => {
           <div class="flex flex-shrink-0 border-b border-nc-border-gray-medium">
             <!-- Left sidebar header: "Grouped by <field>" -->
             <div
-              class="flex-shrink-0 border-r border-nc-border-gray-medium bg-nc-bg-default px-3 flex flex-col justify-center"
+              class="flex-shrink-0 border-r border-nc-border-gray-medium bg-nc-bg-default px-3 flex items-center"
               :style="{ width: `${GROUP_SIDEBAR_WIDTH}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
             >
-              <span class="text-[10px] text-nc-content-gray-muted font-medium uppercase leading-tight">Grouped by</span>
-              <span class="text-xs text-nc-content-gray font-semibold truncate">{{ groupByFieldLabel }}</span>
+              <span class="text-[11px] text-nc-content-gray-muted font-normal truncate">{{ groupByFieldLabel }}</span>
             </div>
 
             <!-- #10: Date columns header — using date string keys -->
@@ -423,20 +422,23 @@ const recordCountLabel = computed(() => {
                   }"
                   :style="{ width: `${groupColWidth}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
                 >
-                  <span class="text-[10px] font-medium text-nc-content-gray-muted uppercase">
-                    {{ groupColWidth < 40 ? date.format('dd').charAt(0) : date.format('ddd') }}
-                  </span>
                   <span
-                    class="text-sm font-semibold"
+                    class="text-[10px] font-normal leading-tight"
                     :class="{
                       'text-nc-content-brand': isToday(date),
-                      'text-nc-content-gray': !isToday(date),
+                      'text-nc-content-gray-muted': !isToday(date),
+                    }"
+                  >
+                    {{ date.format('dd').charAt(0) }}
+                  </span>
+                  <span
+                    class="text-[11px] font-normal leading-tight"
+                    :class="{
+                      'text-nc-content-brand': isToday(date),
+                      'text-nc-content-gray-muted': !isToday(date),
                     }"
                   >
                     {{ date.format('D') }}
-                  </span>
-                  <span v-if="zoomLevel === 'week'" class="text-[10px] text-nc-content-gray-muted">
-                    {{ date.format('MMM') }}
                   </span>
                 </div>
               </div>

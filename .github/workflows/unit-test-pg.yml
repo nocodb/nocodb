@@ -25,7 +25,7 @@ on:
 
 jobs:
   unit-tests-pg:
-    runs-on: ubicloud-standard-4
+    runs-on: ubicloud-standard-2
     timeout-minutes: 40
     services:
       postgres:

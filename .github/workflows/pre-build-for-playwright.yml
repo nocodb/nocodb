@@ -5,7 +5,7 @@ on:
 
 jobs:
   build-ui:
-    runs-on: ubicloud-standard-4
+    runs-on: ubicloud-standard-2
     timeout-minutes: 40
     steps:
       - name: Checkout

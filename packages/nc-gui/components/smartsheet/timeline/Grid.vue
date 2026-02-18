@@ -143,6 +143,7 @@ const onResizeStart = (direction: 'left' | 'right', event: MouseEvent, record: R
   resizeInProgress.value = true
   resizeDirection.value = direction
   resizeRecord.value = record
+  hoverColIndex.value = null
 
   document.addEventListener('mousemove', onResize)
   document.addEventListener('mouseup', onResizeEnd)
@@ -254,6 +255,7 @@ const onDragStart = (event: MouseEvent, record: RowType) => {
     isDragReady.value = true
     dragInProgress.value = true
     dragRecord.value = record
+    hoverColIndex.value = null
     dragStartDayIndex.value = startDayIdx
 
     document.addEventListener('mousemove', onDrag)
@@ -705,6 +707,52 @@ const onBodyScroll = (event: Event) => {
     headerScrollRef.value.scrollLeft = target.scrollLeft
   }
 }
+
+// --- Hover date hairline ---
+const hoverColIndex = ref<number | null>(null)
+
+const onGridMouseMove = (event: MouseEvent) => {
+  if (resizeInProgress.value || dragInProgress.value) return
+  const target = bodyScrollRef.value || gridBodyRef.value
+  if (!target) return
+  const rect = target.getBoundingClientRect()
+  const scrollLeft = bodyScrollRef.value?.scrollLeft ?? 0
+  const x = event.clientX - rect.left + scrollLeft
+  const idx = Math.floor(x / colWidth.value)
+  if (idx >= 0 && idx < props.visibleDates.length) {
+    hoverColIndex.value = idx
+  } else {
+    hoverColIndex.value = null
+  }
+}
+
+const onHeaderMouseMove = (event: MouseEvent) => {
+  const target = headerScrollRef.value
+  if (!target) return
+  const rect = target.getBoundingClientRect()
+  const scrollLeft = target.scrollLeft
+  const x = event.clientX - rect.left + scrollLeft
+  const idx = Math.floor(x / colWidth.value)
+  if (idx >= 0 && idx < props.visibleDates.length) {
+    hoverColIndex.value = idx
+  } else {
+    hoverColIndex.value = null
+  }
+}
+
+const onGridMouseLeave = () => {
+  hoverColIndex.value = null
+}
+
+const hoverDate = computed(() => {
+  if (hoverColIndex.value === null) return null
+  return props.visibleDates[hoverColIndex.value] ?? null
+})
+
+const hoverLineLeft = computed(() => {
+  if (hoverColIndex.value === null) return 0
+  return hoverColIndex.value * colWidth.value + colWidth.value / 2
+})
 </script>
 
 <template>
@@ -714,18 +762,21 @@ const onBodyScroll = (event: Event) => {
       <div
         ref="headerScrollRef"
         class="overflow-x-hidden"
+        @mousemove="onHeaderMouseMove"
+        @mouseleave="onGridMouseLeave"
       >
         <div
           class="flex bg-nc-bg-default border-b border-nc-border-gray-medium"
           :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%' }"
         >
           <div
-            v-for="date in visibleDates"
+            v-for="(date, dateIdx) in visibleDates"
             :key="date.format('YYYY-MM-DD')"
-            class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
+            class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center transition-colors duration-100"
             :class="{
               'bg-nc-bg-brand': isToday(date),
-              'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date),
+              'nc-timeline-header-hover': hoverColIndex === dateIdx && !isToday(date),
+              'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date) && hoverColIndex !== dateIdx,
             }"
             :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
           >
@@ -733,16 +784,18 @@ const onBodyScroll = (event: Event) => {
               class="text-[10px] font-normal leading-tight"
               :class="{
                 'text-nc-content-brand': isToday(date),
-                'text-nc-content-gray-muted': !isToday(date),
+                'text-nc-content-gray-subtle': hoverColIndex === dateIdx && !isToday(date),
+                'text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
               }"
             >
               {{ zoomLevel === 'month' ? date.format('dd').charAt(0) : zoomLevel === 'week' ? date.format('ddd') : date.format('dddd') }}
             </span>
             <span
-              class="text-[11px] font-normal leading-tight"
+              class="text-[11px] leading-tight"
               :class="{
                 'text-nc-content-brand': isToday(date),
-                'text-nc-content-gray-muted': !isToday(date),
+                'font-semibold text-nc-content-gray-emphasis': hoverColIndex === dateIdx && !isToday(date),
+                'font-normal text-nc-content-gray-muted': hoverColIndex !== dateIdx && !isToday(date),
               }"
             >
               {{ date.format('D') }}
@@ -759,6 +812,8 @@ const onBodyScroll = (event: Event) => {
       ref="bodyScrollRef"
       :class="hideHeader ? 'flex-1 min-h-0 overflow-hidden' : 'flex-1 min-h-0 overflow-auto'"
       @scroll="onBodyScroll"
+      @mousemove="onGridMouseMove"
+      @mouseleave="onGridMouseLeave"
     >
       <div
         class="relative"
@@ -790,6 +845,12 @@ const onBodyScroll = (event: Event) => {
             class="absolute top-0 bottom-0 bg-nc-content-brand"
             style="width: 1px"
             :style="{ left: `${todayPosition}px` }"
+          />
+          <!-- Hover date hairline -->
+          <div
+            v-if="hoverColIndex !== null"
+            class="absolute top-0 bottom-0 nc-timeline-hover-hairline"
+            :style="{ left: `${hoverLineLeft}px` }"
           />
         </div>
 
@@ -992,5 +1053,18 @@ const onBodyScroll = (event: Event) => {
 
 .nc-timeline-bar:hover {
   box-shadow: 0px 12px 16px -4px rgba(0, 0, 0, 0.10), 0px 4px 6px -2px rgba(0, 0, 0, 0.06);
+}
+
+/* Hover date hairline — thin vertical line following mouse column */
+.nc-timeline-hover-hairline {
+  width: 1px;
+  background-color: var(--nc-border-gray-medium);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Header cell highlight on hover */
+.nc-timeline-header-hover {
+  background-color: var(--nc-bg-gray-light);
 }
 </style>

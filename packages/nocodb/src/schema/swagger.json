@@ -20958,15 +20958,6 @@
           "schema": {
             "type": "string"
           },
-          "name": "templateId",
-          "in": "query",
-          "description": "Template ID",
-          "required": false
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
           "name": "sharedBaseUuid",
           "in": "query",
           "description": "Shared Base UUID",
@@ -21150,15 +21141,6 @@
           "name": "teamId",
           "in": "query",
           "description": "Team ID",
-          "required": false
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "templateId",
-          "in": "query",
-          "description": "Template ID",
           "required": false
         }
       ]

@@ -106,7 +106,7 @@ const clearFilter = () => {
           </NcList>
         </template>
       </NcListDropdown>
-      <WorkspaceCreateProjectBtn :workspace-id="selectedWorkspaceId ?? undefined" type="primary">
+      <WorkspaceCreateProjectBtn :workspace-id="selectedWorkspaceId ?? undefined" type="primary" placement="bottomRight">
         <div class="flex items-center gap-1.5">
           <GeneralIcon icon="plus" />
           {{ $t('title.newProj') }}

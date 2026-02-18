@@ -67,6 +67,15 @@ export class LookupHelper extends AbstractColumnHelper {
         .join(', ');
     }
 
+    // when childColumn not found (external base or nested links, simply return the value
+    if (!childColumn) {
+      if (typeof value === 'string') {
+        return value;
+      } else {
+        return value?.toString() ?? '';
+      }
+    }
+
     return ColumnHelper.parseValue(value, { ...params, col: childColumn! });
   }
 

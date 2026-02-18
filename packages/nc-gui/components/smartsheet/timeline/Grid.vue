@@ -55,7 +55,6 @@ const today = dayjs()
 
 const ROW_HEIGHT = 36
 const HEADER_HEIGHT = 56
-const SIDEBAR_WIDTH = 200
 
 // Measure the grid container to compute dynamic column widths
 const gridContainerRef = ref<HTMLElement | null>(null)
@@ -200,14 +199,6 @@ onBeforeUnmount(() => {
 
 // --- Helpers ---
 
-// Get primary display value for a row
-const getRowTitle = (row: RowType) => {
-  if (!meta.value?.columns) return 'Untitled'
-  const primaryCol = meta.value.columns.find((col) => col.pv)
-  if (!primaryCol) return 'Untitled'
-  return row.row?.[primaryCol.title!] || 'Untitled'
-}
-
 // Parse date from row for a given column
 const parseDate = (row: RowType, col: ColumnType | undefined | null) => {
   if (!col?.title) return null
@@ -315,73 +306,41 @@ const todayPosition = computed(() => {
 
 <template>
   <div class="flex flex-col h-full overflow-hidden">
-    <!-- Fixed header row: sidebar header + date column headers -->
-    <div class="flex flex-shrink-0">
-      <!-- Sidebar header -->
-      <div
-        class="flex-shrink-0 border-r border-gray-200 bg-gray-50 px-3 flex items-center text-xs font-semibold text-gray-500 uppercase tracking-wide border-b"
-        :style="{ width: `${SIDEBAR_WIDTH}px`, height: `${HEADER_HEIGHT}px` }"
-      >
-        Records
-      </div>
-      <!-- Date headers -->
-      <div ref="gridContainerRef" class="flex-1 overflow-hidden">
-        <div class="flex bg-white border-b border-gray-200 w-full">
-          <div
-            v-for="(date, idx) in visibleDates"
-            :key="idx"
-            class="flex-shrink-0 border-r border-gray-100 flex flex-col items-center justify-center"
+    <!-- Date column headers -->
+    <div ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
+      <div class="flex bg-white border-b border-gray-200 w-full">
+        <div
+          v-for="(date, idx) in visibleDates"
+          :key="idx"
+          class="flex-shrink-0 border-r border-gray-100 flex flex-col items-center justify-center"
+          :class="{
+            'bg-blue-50': isToday(date),
+            'bg-gray-50': isWeekend(date) && !isToday(date),
+          }"
+          :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
+        >
+          <span class="text-[10px] font-medium text-gray-400 uppercase">
+            {{ date.format('ddd') }}
+          </span>
+          <span
+            class="text-sm font-semibold"
             :class="{
-              'bg-blue-50': isToday(date),
-              'bg-gray-50': isWeekend(date) && !isToday(date),
+              'text-blue-600': isToday(date),
+              'text-gray-600': !isToday(date),
             }"
-            :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
           >
-            <span class="text-[10px] font-medium text-gray-400 uppercase">
-              {{ date.format('ddd') }}
-            </span>
-            <span
-              class="text-sm font-semibold"
-              :class="{
-                'text-blue-600': isToday(date),
-                'text-gray-600': !isToday(date),
-              }"
-            >
-              {{ date.format('D') }}
-            </span>
-            <span v-if="zoomLevel === 'week'" class="text-[10px] text-gray-400">
-              {{ date.format('MMM') }}
-            </span>
-          </div>
+            {{ date.format('D') }}
+          </span>
+          <span v-if="zoomLevel === 'week'" class="text-[10px] text-gray-400">
+            {{ date.format('MMM') }}
+          </span>
         </div>
       </div>
     </div>
 
-    <!-- Scrollable body row: sidebar record names + grid bars (scroll together) -->
-    <div class="flex flex-1 min-h-0 overflow-y-auto">
-      <!-- Left sidebar: record names -->
-      <div
-        class="flex-shrink-0 border-r border-gray-200 bg-gray-50"
-        :style="{ width: `${SIDEBAR_WIDTH}px` }"
-      >
-        <!-- Record labels -->
-        <div
-          v-for="(record, idx) in records"
-          :key="idx"
-          class="px-3 border-b border-gray-100 flex items-center text-sm text-gray-700 truncate cursor-pointer hover:bg-gray-100"
-          :style="{ height: `${ROW_HEIGHT}px` }"
-          @click="emit('expandRecord', record)"
-        >
-          <span class="truncate">{{ getRowTitle(record) }}</span>
-        </div>
-        <!-- Empty state -->
-        <div v-if="!records.length" class="px-3 py-8 text-center text-xs text-gray-400">
-          No records to display
-        </div>
-      </div>
-
-      <!-- Right area: timeline grid body -->
-      <div class="flex-1 overflow-hidden relative">
+    <!-- Scrollable grid body -->
+    <div class="flex-1 min-h-0 overflow-y-auto">
+      <div class="overflow-hidden relative">
         <div ref="gridBodyRef" class="relative w-full">
           <!-- Grid lines (vertical) -->
           <div class="absolute inset-0 pointer-events-none">

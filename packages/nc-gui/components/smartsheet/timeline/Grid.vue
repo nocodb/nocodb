@@ -402,11 +402,7 @@ const todayPosition = computed(() => {
             <div
               v-for="(date, idx) in visibleDates"
               :key="'line-' + idx"
-              class="absolute top-0 bottom-0 border-r"
-              :class="{
-                'border-nc-border-gray-light': !isToday(date),
-                'border-nc-border-brand': isToday(date),
-              }"
+              class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
               :style="{ left: `${(idx + 1) * colWidth}px` }"
             />
           </div>

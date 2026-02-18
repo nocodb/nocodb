@@ -231,6 +231,26 @@ const canResize = computed(() => {
   return isUIAllowed('dataEdit') && !props.timelineRange[0]?.is_readonly
 })
 
+// Build tooltip text for a record bar: "MMM D → MMM D  |  N days"
+const getBarTooltip = (row: RowType) => {
+  const range = props.timelineRange[0]
+  if (!range) return ''
+
+  const startDate = parseDate(row, range.fk_from_col)
+  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
+
+  if (!startDate) return ''
+
+  const effectiveEnd = endDate || startDate
+  const days = effectiveEnd.diff(startDate, 'day') + 1
+
+  if (days <= 1) {
+    return startDate.format('MMM D, YYYY')
+  }
+
+  return `${startDate.format('MMM D')} → ${effectiveEnd.format('MMM D')}  |  ${days} days`
+}
+
 // Determine if a date is today
 const isToday = (date: dayjs.Dayjs) => {
   return date.isSame(today, 'day')
@@ -381,43 +401,52 @@ const todayPosition = computed(() => {
           <div class="absolute inset-0 hover:bg-blue-50/30 transition-colors" />
 
           <!-- Bar with resize handles -->
-          <div
+          <NcTooltip
             v-if="getBarStyle(record)"
-            class="absolute top-1 rounded-md flex items-center text-xs font-medium shadow-sm transition-shadow select-none group"
-            :class="{
-              'cursor-pointer hover:shadow-md hover:brightness-95': !resizeInProgress,
-              'pointer-events-none opacity-30': resizeInProgress && resizeRecord !== record,
-              'z-20 shadow-md': resizeInProgress && resizeRecord === record,
-            }"
-            :style="{
-              ...getBarStyle(record),
-              height: `${ROW_HEIGHT - 8}px`,
-              backgroundColor: getBarColor(rowIdx).bg,
-              borderLeft: `3px solid ${getBarColor(rowIdx).border}`,
-              color: getBarColor(rowIdx).text,
-            }"
-            @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
+            :disabled="resizeInProgress"
+            placement="top"
+            class="absolute top-1"
+            :style="getBarStyle(record)"
           >
-            <!-- Left resize handle (start date) -->
+            <template #title>
+              <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
+            </template>
             <div
-              v-if="canResize"
-              class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-              @mousedown.stop="onResizeStart('left', $event, record)"
+              class="rounded-md flex items-center text-xs font-medium shadow-sm transition-shadow select-none group w-full"
+              :class="{
+                'cursor-pointer hover:shadow-md hover:brightness-95': !resizeInProgress,
+                'pointer-events-none opacity-30': resizeInProgress && resizeRecord !== record,
+                'z-20 shadow-md': resizeInProgress && resizeRecord === record,
+              }"
+              :style="{
+                height: `${ROW_HEIGHT - 8}px`,
+                backgroundColor: getBarColor(rowIdx).bg,
+                borderLeft: `3px solid ${getBarColor(rowIdx).border}`,
+                color: getBarColor(rowIdx).text,
+              }"
+              @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
             >
-              <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
+              <!-- Left resize handle (start date) -->
+              <div
+                v-if="canResize"
+                class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
+                @mousedown.stop="onResizeStart('left', $event, record)"
+              >
+                <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
 
-            <span class="truncate px-2">{{ getRowTitle(record) }}</span>
+              <span class="truncate px-2">{{ getRowTitle(record) }}</span>
 
-            <!-- Right resize handle (end date) — only when end date column exists -->
-            <div
-              v-if="canResize && timelineRange[0]?.fk_to_col"
-              class="nc-timeline-resize-handle nc-timeline-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-              @mousedown.stop="onResizeStart('right', $event, record)"
-            >
-              <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              <!-- Right resize handle (end date) — only when end date column exists -->
+              <div
+                v-if="canResize && timelineRange[0]?.fk_to_col"
+                class="nc-timeline-resize-handle nc-timeline-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
+                @mousedown.stop="onResizeStart('right', $event, record)"
+              >
+                <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
             </div>
-          </div>
+          </NcTooltip>
         </div>
 
         <!-- Empty state grid filler -->

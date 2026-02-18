@@ -125,12 +125,9 @@ const onResize = (event: MouseEvent) => {
   const isDateOnly = fromCol.uidt === UITypes.Date
   const dateFormat = isDateOnly ? 'YYYY-MM-DD' : updateFormat.value
 
-  // Build updated row
-  const newRow: RowType = {
-    ...resizeRecord.value,
-    row: { ...resizeRecord.value.row },
-  }
-
+  // Mutate the record's row data in-place so the change propagates
+  // to both flat (storeFormattedData) and grouped (grp.rows) views,
+  // since they share the same object reference.
   let updateProperty: string[] = []
 
   if (resizeDirection.value === 'right' && toCol?.title) {
@@ -140,7 +137,7 @@ const onResize = (event: MouseEvent) => {
     if (newEndDate.isBefore(ogStartDate, 'day')) {
       newEndDate = ogStartDate.clone().endOf('day')
     }
-    newRow.row[toCol.title] = isDateOnly
+    resizeRecord.value.row[toCol.title] = isDateOnly
       ? newEndDate.format('YYYY-MM-DD')
       : newEndDate.format(dateFormat)
     updateProperty = [toCol.title]
@@ -152,7 +149,7 @@ const onResize = (event: MouseEvent) => {
     if (newStartDate.isAfter(effectiveEnd, 'day')) {
       newStartDate = effectiveEnd.clone()
     }
-    newRow.row[fromCol.title] = isDateOnly
+    resizeRecord.value.row[fromCol.title] = isDateOnly
       ? newStartDate.format('YYYY-MM-DD')
       : newStartDate.format(dateFormat)
     updateProperty = [fromCol.title]
@@ -160,18 +157,8 @@ const onResize = (event: MouseEvent) => {
     return
   }
 
-  // Update store data immediately for visual feedback
-  const pk = extractPkFromRow(resizeRecord.value.row, meta.value?.columns as ColumnType[])
-  storeFormattedData.value = storeFormattedData.value.map((r) => {
-    const rPk = extractPkFromRow(r.row, meta.value?.columns as ColumnType[])
-    return rPk === pk ? newRow : r
-  })
-
-  // Keep resize record reference updated
-  resizeRecord.value = newRow
-
   // Debounced API update
-  useDebouncedRowUpdate(newRow, updateProperty, false)
+  useDebouncedRowUpdate(resizeRecord.value, updateProperty, false)
 }
 
 const onResizeEnd = () => {

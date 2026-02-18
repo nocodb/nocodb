@@ -135,6 +135,10 @@ const uiTypes: UiTypesType[] = [
     icon: iconMap.cellRating,
   },
   {
+    name: UITypes.Colour,
+    icon: iconMap.palette,
+  },
+  {
     name: UITypes.Formula,
     icon: iconMap.cellFormula,
     virtual: 1,

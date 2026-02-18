@@ -4,6 +4,7 @@ import { UITypes } from 'nocodb-sdk'
 import { computed, reactive, ref, watch, type ComputedRef, type Ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { Row } from '~/lib/types'
+import { NOCO } from '~/lib/constants'
 
 const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
   (
@@ -14,9 +15,15 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
   ) => {
     const { isUIAllowed } = useRoles()
 
+    const { t } = useI18n()
+
+    const { addUndo, clone, defineViewScope } = useUndoRedo()
+
     const { $api } = useNuxtApp()
 
-    const { base } = storeToRefs(useBase())
+    const baseStore = useBase()
+    const { isMysql } = baseStore
+    const { base } = storeToRefs(baseStore)
 
     const { sharedView } = useSharedView()
 
@@ -184,6 +191,82 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       zoomLevel.value = level
     }
 
+    // Date format for updates (matching calendar store pattern)
+    const updateFormat = computed(() => {
+      return isMysql(meta.value?.source_id) ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+    })
+
+    // Find a row in formattedData by primary key
+    const findRowInState = (rowData: Record<string, any>) => {
+      const pk = extractPkFromRow(rowData, meta.value?.columns as ColumnType[])
+      return formattedData.value.find(
+        (r) => extractPkFromRow(r.row, meta.value?.columns as ColumnType[]) === pk,
+      )
+    }
+
+    // Update a row property (used for drag-to-resize)
+    // Follows the same pattern as useCalendarViewStore.updateRowProperty
+    async function updateRowProperty(toUpdate: Row, property: string[], undo = false) {
+      try {
+        const id = extractPkFromRow(toUpdate.row, meta?.value?.columns as ColumnType[])
+
+        const updateObj = property.reduce(
+          (acc: Record<string, string>, curr) => {
+            acc[curr] = toUpdate.row[curr]
+            return acc
+          },
+          {},
+        )
+
+        const updatedRowData = await $api.dbViewRow.update(
+          NOCO,
+          base?.value.id as string,
+          meta.value?.id as string,
+          viewMeta?.value?.id as string,
+          encodeURIComponent(id),
+          updateObj,
+        )
+
+        if (!undo) {
+          addUndo({
+            redo: {
+              fn: async (toUpdate: Row, property: string[]) => {
+                const updatedRow = await updateRowProperty(toUpdate, property, true)
+                const row = findRowInState(toUpdate.row)
+                if (row) {
+                  Object.assign(row.row, updatedRow)
+                }
+                Object.assign(row?.oldRow, updatedRow)
+              },
+              args: [clone(toUpdate), property],
+            },
+            undo: {
+              fn: async (toUpdate: Row, property: string[]) => {
+                const updatedData = await updateRowProperty(
+                  { row: toUpdate.oldRow, oldRow: toUpdate.row, rowMeta: toUpdate.rowMeta },
+                  property,
+                  true,
+                )
+                const row = findRowInState(toUpdate.row)
+                if (row) {
+                  Object.assign(row.row, updatedData)
+                }
+                Object.assign(row!.oldRow, updatedData)
+              },
+              args: [clone(toUpdate), property],
+            },
+            scope: defineViewScope({ view: viewMeta.value as ViewType }),
+          })
+          Object.assign(toUpdate.row, updatedRowData)
+          Object.assign(toUpdate.oldRow, updatedRowData)
+        }
+
+        return updatedRowData
+      } catch (e: any) {
+        message.error(`${t('msg.error.rowUpdateFailed')}: ${await extractSdkResponseErrorMsg(e)}`)
+      }
+    }
+
     return {
       // State
       zoomLevel,
@@ -199,12 +282,15 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       dateRangeLabel,
       isPublic,
 
+      updateFormat,
+
       // Methods
       loadTimelineData,
       navigateNext,
       navigatePrev,
       goToToday,
       setZoomLevel,
+      updateRowProperty,
     }
   },
   'timeline-view-store',

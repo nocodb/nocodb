@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import dayjs from 'dayjs'
 import type { ColumnType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import type { Row as RowType } from '#imports'
 
 const props = defineProps<{
@@ -21,6 +22,14 @@ const emit = defineEmits<{
 
 const meta = inject(MetaInj, ref())
 
+const { isUIAllowed } = useRoles()
+
+const {
+  updateRowProperty,
+  updateFormat,
+  formattedData: storeFormattedData,
+} = useTimelineViewStoreOrThrow()
+
 const today = dayjs()
 
 // Column width based on zoom
@@ -31,6 +40,139 @@ const colWidth = computed(() => {
 const ROW_HEIGHT = 36
 const HEADER_HEIGHT = 56
 const SIDEBAR_WIDTH = 200
+
+// --- Resize state ---
+const resizeInProgress = ref(false)
+const resizeDirection = ref<'left' | 'right'>()
+const resizeRecord = ref<RowType | null>(null)
+const gridBodyRef = ref<HTMLElement | null>(null)
+
+// Flag to suppress the click that fires right after mouseup ends a resize
+const justFinishedResize = ref(false)
+let resizeCooldownTimer: ReturnType<typeof setTimeout> | null = null
+
+// Debounced row update (500ms, matching calendar)
+const useDebouncedRowUpdate = useDebounceFn((row: RowType, updateProperty: string[], undo: boolean) => {
+  updateRowProperty(row, updateProperty, undo)
+}, 500)
+
+// --- Resize event handlers ---
+
+const onResizeStart = (direction: 'left' | 'right', event: MouseEvent, record: RowType) => {
+  if (!isUIAllowed('dataEdit')) return
+  if (record.rowMeta?.range?.is_readonly) return
+
+  resizeInProgress.value = true
+  resizeDirection.value = direction
+  resizeRecord.value = record
+
+  document.addEventListener('mousemove', onResize)
+  document.addEventListener('mouseup', onResizeEnd)
+}
+
+const onResize = (event: MouseEvent) => {
+  if (!resizeRecord.value || !gridBodyRef.value) return
+
+  const range = props.timelineRange[0]
+  if (!range) return
+
+  const fromCol = range.fk_from_col
+  const toCol = range.fk_to_col
+
+  // Calculate which day the mouse is over
+  const { left } = gridBodyRef.value.getBoundingClientRect()
+  const scrollLeft = gridBodyRef.value.parentElement?.scrollLeft ?? 0
+  const relativeX = event.clientX - left + scrollLeft
+  const dayIndex = Math.floor(relativeX / colWidth.value)
+  const clampedDayIndex = Math.max(0, Math.min(dayIndex, props.visibleDates.length - 1))
+  const newDate = props.visibleDates[clampedDayIndex]
+
+  if (!newDate) return
+
+  // Get current dates from the record
+  const ogStartDate = parseDate(resizeRecord.value, fromCol)
+  const ogEndDate = toCol ? parseDate(resizeRecord.value, toCol) : ogStartDate
+
+  if (!ogStartDate) return
+
+  // Determine date format based on column type
+  const isDateOnly = fromCol.uidt === UITypes.Date
+  const dateFormat = isDateOnly ? 'YYYY-MM-DD' : updateFormat.value
+
+  // Build updated row
+  const newRow: RowType = {
+    ...resizeRecord.value,
+    row: { ...resizeRecord.value.row },
+  }
+
+  let updateProperty: string[] = []
+
+  if (resizeDirection.value === 'right' && toCol?.title) {
+    // Resizing end date
+    let newEndDate = newDate.endOf('day')
+    // Clamp: end date must not be before start date
+    if (newEndDate.isBefore(ogStartDate, 'day')) {
+      newEndDate = ogStartDate.clone().endOf('day')
+    }
+    newRow.row[toCol.title] = isDateOnly
+      ? newEndDate.format('YYYY-MM-DD')
+      : newEndDate.format(dateFormat)
+    updateProperty = [toCol.title]
+  } else if (resizeDirection.value === 'left' && fromCol?.title) {
+    // Resizing start date
+    let newStartDate = newDate
+    const effectiveEnd = ogEndDate || ogStartDate
+    // Clamp: start date must not be after end date
+    if (newStartDate.isAfter(effectiveEnd, 'day')) {
+      newStartDate = effectiveEnd.clone()
+    }
+    newRow.row[fromCol.title] = isDateOnly
+      ? newStartDate.format('YYYY-MM-DD')
+      : newStartDate.format(dateFormat)
+    updateProperty = [fromCol.title]
+  } else {
+    return
+  }
+
+  // Update store data immediately for visual feedback
+  const pk = extractPkFromRow(resizeRecord.value.row, meta.value?.columns as ColumnType[])
+  storeFormattedData.value = storeFormattedData.value.map((r) => {
+    const rPk = extractPkFromRow(r.row, meta.value?.columns as ColumnType[])
+    return rPk === pk ? newRow : r
+  })
+
+  // Keep resize record reference updated
+  resizeRecord.value = newRow
+
+  // Debounced API update
+  useDebouncedRowUpdate(newRow, updateProperty, false)
+}
+
+const onResizeEnd = () => {
+  resizeInProgress.value = false
+  resizeDirection.value = undefined
+  resizeRecord.value = null
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', onResizeEnd)
+
+  // Suppress the click event that follows mouseup on the same element.
+  // mouseup → click fires synchronously in the same frame, so we set a
+  // short cooldown that outlasts the click dispatch.
+  justFinishedResize.value = true
+  if (resizeCooldownTimer) clearTimeout(resizeCooldownTimer)
+  resizeCooldownTimer = setTimeout(() => {
+    justFinishedResize.value = false
+  }, 50)
+}
+
+// Clean up listeners and timers on unmount
+onBeforeUnmount(() => {
+  document.removeEventListener('mousemove', onResize)
+  document.removeEventListener('mouseup', onResizeEnd)
+  if (resizeCooldownTimer) clearTimeout(resizeCooldownTimer)
+})
+
+// --- Helpers ---
 
 // Get primary display value for a row
 const getRowTitle = (row: RowType) => {
@@ -83,6 +225,11 @@ const getBarStyle = (row: RowType) => {
     width: `${Math.max(duration * colWidth.value - 4, 20)}px`,
   }
 }
+
+// Check if editing is allowed and range is not readonly
+const canResize = computed(() => {
+  return isUIAllowed('dataEdit') && !props.timelineRange[0]?.is_readonly
+})
 
 // Determine if a date is today
 const isToday = (date: dayjs.Dayjs) => {
@@ -188,7 +335,7 @@ const todayPosition = computed(() => {
       </div>
 
       <!-- Grid body with bars -->
-      <div class="relative" :style="{ width: `${gridWidth}px` }">
+      <div ref="gridBodyRef" class="relative" :style="{ width: `${gridWidth}px` }">
         <!-- Grid lines (vertical) -->
         <div class="absolute inset-0 pointer-events-none">
           <div
@@ -233,10 +380,15 @@ const todayPosition = computed(() => {
           <!-- Hover background -->
           <div class="absolute inset-0 hover:bg-blue-50/30 transition-colors" />
 
-          <!-- Bar -->
+          <!-- Bar with resize handles -->
           <div
             v-if="getBarStyle(record)"
-            class="absolute top-1 rounded-md cursor-pointer flex items-center px-2 text-xs font-medium shadow-sm transition-all hover:shadow-md hover:brightness-95 select-none"
+            class="absolute top-1 rounded-md flex items-center text-xs font-medium shadow-sm transition-shadow select-none group"
+            :class="{
+              'cursor-pointer hover:shadow-md hover:brightness-95': !resizeInProgress,
+              'pointer-events-none opacity-30': resizeInProgress && resizeRecord !== record,
+              'z-20 shadow-md': resizeInProgress && resizeRecord === record,
+            }"
             :style="{
               ...getBarStyle(record),
               height: `${ROW_HEIGHT - 8}px`,
@@ -244,9 +396,27 @@ const todayPosition = computed(() => {
               borderLeft: `3px solid ${getBarColor(rowIdx).border}`,
               color: getBarColor(rowIdx).text,
             }"
-            @click="emit('expandRecord', record)"
+            @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
           >
-            <span class="truncate">{{ getRowTitle(record) }}</span>
+            <!-- Left resize handle (start date) -->
+            <div
+              v-if="canResize"
+              class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
+              @mousedown.stop="onResizeStart('left', $event, record)"
+            >
+              <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+
+            <span class="truncate px-2">{{ getRowTitle(record) }}</span>
+
+            <!-- Right resize handle (end date) — only when end date column exists -->
+            <div
+              v-if="canResize && timelineRange[0]?.fk_to_col"
+              class="nc-timeline-resize-handle nc-timeline-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
+              @mousedown.stop="onResizeStart('right', $event, record)"
+            >
+              <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
           </div>
         </div>
 
@@ -262,3 +432,34 @@ const todayPosition = computed(() => {
     </div>
   </div>
 </template>
+
+<style lang="scss" scoped>
+/* Resize handle — cursor + hit area */
+.nc-timeline-resize-handle {
+  cursor: ew-resize !important;
+}
+
+/* Resize handle grip indicator — visible pill that appears on bar hover */
+.nc-timeline-resize-grip {
+  width: 4px;
+  height: 14px;
+  background-color: rgba(0, 0, 0, 0.35);
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+/* Darken the grip on direct handle hover for extra feedback */
+.nc-timeline-resize-handle:hover .nc-timeline-resize-grip {
+  opacity: 1 !important;
+  background-color: rgba(0, 0, 0, 0.55);
+}
+
+/* Slightly round inward edge for left handle */
+.nc-timeline-resize-handle--left {
+  border-radius: 4px 0 0 4px;
+}
+
+/* Slightly round inward edge for right handle */
+.nc-timeline-resize-handle--right {
+  border-radius: 0 4px 4px 0;
+}
+</style>

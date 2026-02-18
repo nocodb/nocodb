@@ -108,40 +108,112 @@ watch([currentDate, zoomLevel, timelineRange], () => {
     </div>
   </template>
   <template v-else>
-    <div class="flex flex-col h-full w-full bg-white" data-testid="nc-timeline-wrapper">
-      <!-- Toolbar row -->
-      <div class="flex items-center gap-2 px-3 py-2 border-b border-gray-200 bg-gray-50">
-        <button
-          class="px-2 py-1 text-xs font-medium rounded border border-gray-300 hover:bg-gray-100"
-          :class="{ 'bg-blue-50 border-blue-300 text-blue-700': zoomLevel === 'week' }"
-          @click="setZoomLevel('week')"
+    <div class="flex flex-col h-full w-full bg-nc-bg-default" data-testid="nc-timeline-wrapper">
+      <!-- Toolbar -->
+      <div
+        class="nc-timeline-toolbar flex items-center gap-1 px-3 border-b border-nc-border-gray-medium bg-nc-bg-default min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)]"
+      >
+        <!-- Date Header -->
+        <NcButton
+          :class="{
+            'w-29': zoomLevel === 'month',
+            'w-38': zoomLevel === 'week',
+          }"
+          class="nc-timeline-prev-next-btn !h-7"
+          full-width
+          size="small"
+          type="secondary"
         >
-          Week
-        </button>
-        <button
-          class="px-2 py-1 text-xs font-medium rounded border border-gray-300 hover:bg-gray-100"
-          :class="{ 'bg-blue-50 border-blue-300 text-blue-700': zoomLevel === 'month' }"
-          @click="setZoomLevel('month')"
+          <div class="flex w-full px-1 items-center justify-between">
+            <span
+              :class="{
+                'max-w-38 truncate': zoomLevel === 'week',
+              }"
+              class="font-bold text-[13px] text-center text-nc-content-gray"
+              data-testid="nc-timeline-active-date"
+            >
+              {{ dateRangeLabel }}
+            </span>
+          </div>
+        </NcButton>
+
+        <!-- Today Button -->
+        <NcButton
+          class="nc-timeline-prev-next-btn !h-7"
+          size="small"
+          type="secondary"
+          data-testid="nc-timeline-today-btn"
+          @click="goToToday"
         >
-          Month
-        </button>
+          <span class="text-nc-content-gray-subtle font-bold !text-[13px]">
+            {{ $t('labels.today') }}
+          </span>
+        </NcButton>
 
-        <div class="mx-2 h-4 w-px bg-gray-300" />
-
-        <button class="px-2 py-1 text-xs rounded border border-gray-300 hover:bg-gray-100" @click="navigatePrev">
-          ←
-        </button>
-        <button class="px-3 py-1 text-xs font-medium rounded border border-gray-300 hover:bg-gray-100" @click="goToToday">
-          Today
-        </button>
-        <button class="px-2 py-1 text-xs rounded border border-gray-300 hover:bg-gray-100" @click="navigateNext">
-          →
-        </button>
-
-        <span class="ml-2 text-sm font-semibold text-gray-700">{{ dateRangeLabel }}</span>
+        <!-- Prev/Next Navigation -->
+        <div class="flex items-center gap-2">
+          <NcTooltip hide-on-click>
+            <template #title>{{ $t('labels.previous') }}</template>
+            <NcButton
+              class="!w-7 !h-7 !rounded-lg nc-timeline-prev-next-btn !hover:(text-nc-content-gray-subtle)"
+              inner-class="flex items-center justify-center"
+              data-testid="nc-timeline-prev-btn"
+              size="xs"
+              type="text"
+              @click="navigatePrev"
+            >
+              <GeneralIcon icon="ncChevronLeft" class="h-4 !-ml-0.5 w-4" />
+            </NcButton>
+          </NcTooltip>
+          <NcTooltip hide-on-click>
+            <template #title>{{ $t('labels.next') }}</template>
+            <NcButton
+              class="!w-7 !h-7 !rounded-lg nc-timeline-prev-next-btn !hover:(text-nc-content-gray-subtle)"
+              inner-class="flex items-center justify-center"
+              data-testid="nc-timeline-next-btn"
+              size="xs"
+              type="text"
+              @click="navigateNext"
+            >
+              <GeneralIcon icon="ncChevronRight" class="h-4 !-ml-0.2 w-4" />
+            </NcButton>
+          </NcTooltip>
+        </div>
 
         <div class="flex-1" />
 
+        <!-- Zoom Mode Selector -->
+        <a-select
+          :value="zoomLevel"
+          class="nc-select-shadow nc-timeline-mode-select !w-21 !rounded-lg"
+          dropdown-class-name="!rounded-lg !min-w-25"
+          size="small"
+          data-testid="nc-timeline-view-mode"
+          @change="setZoomLevel"
+          @click.stop
+        >
+          <template #suffixIcon>
+            <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+          </template>
+          <a-select-option v-for="option in ['week', 'month']" :key="option" :value="option">
+            <div class="w-full flex gap-2 items-center justify-between" :title="$t(`objects.${option}`)">
+              <div class="flex items-center gap-1">
+                <NcTooltip class="flex-1 capitalize mt-0.5 truncate" show-on-truncate-only>
+                  <template #title>{{ $t(`objects.${option}`) }}</template>
+                  <template #default>{{ $t(`objects.${option}`) }}</template>
+                </NcTooltip>
+              </div>
+              <GeneralIcon
+                v-if="option === zoomLevel"
+                id="nc-selected-item-icon"
+                icon="check"
+                class="flex-none text-primary w-4 h-4"
+              />
+            </div>
+          </a-select-option>
+        </a-select>
+
+        <!-- Timeline Settings -->
         <SmartsheetToolbarTimelineRange />
       </div>
 
@@ -197,3 +269,15 @@ watch([currentDate, zoomLevel, timelineRange], () => {
     />
   </template>
 </template>
+
+<style lang="scss" scoped>
+.nc-timeline-prev-next-btn {
+  @apply !hover:bg-nc-bg-gray-medium;
+}
+
+.nc-timeline-mode-select {
+  :deep(.ant-select-selector) {
+    @apply !h-7 !px-3;
+  }
+}
+</style>

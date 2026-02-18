@@ -27,6 +27,8 @@ const expandedFormDlg = ref(false)
 const expandedFormRow = ref<RowType>()
 const expandedFormRowState = ref<Record<string, any>>()
 
+const colorRenderTrigger = ref(0)
+
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(true))
 provide(IsGridInj, ref(false))
@@ -256,8 +258,27 @@ const {
   getCellLeftBorderStyle: _getCellLeftBorderStyle,
 } = useViewRowColorRender()
 
-const getCellColorStyle = (record: Row, columnId: string) => _getCellColorStyle(record.row, columnId)
-const getCellLeftBorderStyle = (record: Row, columnId: string) => _getCellLeftBorderStyle(record.row, columnId)
+const getCellColorStyle = (record: Row, columnId: string) => {
+  // Include colorRenderTrigger to force re-evaluation when row coloring changes
+  colorRenderTrigger.value
+  return _getCellColorStyle(record.row, columnId)
+}
+
+const getCellLeftBorderStyle = (record: Row, columnId: string) => {
+  // Include colorRenderTrigger to force re-evaluation when row coloring changes
+  colorRenderTrigger.value
+  return _getCellLeftBorderStyle(record.row, columnId)
+}
+
+const getCellColorClass = (record: Row, columnId: string) => {
+  const bgStyle = getCellColorStyle(record, columnId)
+  return bgStyle?.backgroundColor ? 'has-cell-bg-color' : ''
+}
+
+const getCellColorBgVar = (record: Row, columnId: string) => {
+  const bgStyle = getCellColorStyle(record, columnId)
+  return bgStyle?.backgroundColor ? { '--cell-bg-color': bgStyle.backgroundColor } : {}
+}
 
 const updateVisibleRows = async () => {
   const { start, end } = rowSlice
@@ -393,6 +414,9 @@ reloadViewDataHook?.on(reloadViewDataListener)
 const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
+  } else if ([SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
+    // Trigger view update when row coloring changes by incrementing the render trigger
+    colorRenderTrigger.value++
   }
 }
 
@@ -567,8 +591,9 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                     >
                       <div
                         v-if="displayField"
-                        class="flex gap-2 rounded-lg"
-                        :style="getCellColorStyle(record, displayField.id)"
+                        class="flex gap-2 rounded-lg w-full z-10 relative"
+                        :class="getCellColorClass(record, displayField.id)"
+                        :style="getCellColorBgVar(record, displayField.id)"
                       >
                         <div
                           v-if="getCellLeftBorderStyle(record, displayField.id)"
@@ -576,7 +601,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                           :style="getCellLeftBorderStyle(record, displayField.id)"
                         ></div>
                         <h2
-                          class="nc-card-display-value-wrapper flex-1"
+                          class="nc-card-display-value-wrapper flex-1 min-w-0"
                           :class="{
                             '!children:pointer-events-auto': resetPointerEvent(record, displayField),
                           }"
@@ -643,11 +668,12 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             />
                           </template>
                           <div
-                            class="flex gap-2 rounded-lg w-full"
+                            class="flex gap-2 rounded-lg w-full z-10 relative"
                             :class="{
                               'pointer-events-none': !resetPointerEvent(record, col),
+                              [getCellColorClass(record, col.id)]: true,
                             }"
-                            :style="getCellColorStyle(record, col.id)"
+                            :style="getCellColorBgVar(record, col.id)"
                           >
                             <div
                               v-if="getCellLeftBorderStyle(record, col.id)"
@@ -758,6 +784,14 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
 .nc-gallery-container,
 .nc-gallery-container-skeleton {
   @apply auto-rows-[1fr] grid-cols-[repeat(auto-fit,minmax(250px,1fr))];
+}
+
+.has-cell-bg-color {
+  &::before {
+    content: '';
+    @apply absolute inset-0 -left-1 rounded-lg -z-1;
+    background-color: var(--cell-bg-color);
+  }
 }
 
 :deep(.slick-dots li button) {

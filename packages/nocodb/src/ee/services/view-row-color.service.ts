@@ -127,7 +127,7 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
           color: rowColorCondition.color,
           nc_order: rowColorCondition.nc_order,
           is_set_as_background: rowColorCondition.is_set_as_background,
-          type: rowColorCondition.type || 'row',
+          type: rowColorCondition.type ?? 'row',
           fk_target_column_id: rowColorCondition.fk_target_column_id,
           conditions: filters,
           nestedConditions: nestedFilters,
@@ -356,8 +356,8 @@ export class ViewRowColorService extends ViewRowColorServiceCE {
         color: params.color,
         nc_order: params.nc_order,
         is_set_as_background: params.is_set_as_background,
-        ...(params.type && { type: params.type }),
-        ...(params.fk_target_column_id && {
+        ...(params.type !== undefined && { type: params.type }),
+        ...(params.fk_target_column_id !== undefined && {
           fk_target_column_id: params.fk_target_column_id,
         }),
       },

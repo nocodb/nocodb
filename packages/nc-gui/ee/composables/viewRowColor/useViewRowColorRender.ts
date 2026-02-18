@@ -70,16 +70,18 @@ export function useViewRowColorRender() {
         return null
       }
 
-      for (const eachCondition of filterRowColorInfo.conditions) {
-        // For cell-type coloring, check if this condition applies to the specified column
-        if (eachCondition.type === 'cell' && columnId && eachCondition.fk_target_column_id !== columnId) {
-          continue
-        }
-        // For row-type coloring when checking a specific column, skip cell-specific conditions
-        if (!columnId && eachCondition.type === 'cell') {
-          continue
-        }
+      // When evaluating a specific cell, prioritize cell-type conditions over row-type
+      const conditionsToCheck = columnId
+        ? [
+            // First check cell-type conditions for this column
+            ...filterRowColorInfo.conditions.filter((c) => c.type === 'cell' && c.fk_target_column_id === columnId),
+            // Then check row-type conditions
+            ...filterRowColorInfo.conditions.filter((c) => c.type !== 'cell'),
+          ]
+        : // For row evaluation, only check row-type conditions
+          filterRowColorInfo.conditions.filter((c) => c.type !== 'cell')
 
+      for (const eachCondition of conditionsToCheck) {
         const isFilterValid = validateRowFilters(
           eachCondition.conditions,
           row,

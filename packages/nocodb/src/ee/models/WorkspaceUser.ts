@@ -784,4 +784,174 @@ export default class WorkspaceUser {
     );
     return new WorkspaceUser(workspaceUser);
   }
+
+  /**
+   * Direct DB lookup by SCIM external ID using the indexed column.
+   * Avoids loading all workspace users into memory.
+   */
+  static async getByScimExternalId(
+    workspaceId: string,
+    scimExternalId: string,
+    {
+      include_deleted = false,
+    }: {
+      include_deleted?: boolean;
+    } = {},
+    ncMeta = Noco.ncMeta,
+  ): Promise<any | null> {
+    const queryBuilder = ncMeta
+      .knex(MetaTable.USERS)
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.meta`,
+        `${MetaTable.WORKSPACE_USER}.*`,
+      )
+      .innerJoin(MetaTable.WORKSPACE_USER, function () {
+        this.on(
+          `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+          '=',
+          `${MetaTable.USERS}.id`,
+        ).andOn(
+          `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+          '=',
+          ncMeta.knex.raw('?', [workspaceId]),
+        );
+      })
+      .where(`${MetaTable.WORKSPACE_USER}.scim_external_id`, scimExternalId);
+
+    if (!include_deleted) {
+      queryBuilder.where(function () {
+        this.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
+          `${MetaTable.WORKSPACE_USER}.deleted`,
+        );
+      });
+    }
+
+    const row = await queryBuilder.first();
+
+    if (!row) return null;
+
+    row.meta = parseMetaProp(row);
+    row.scim_meta = parseMetaProp(row, 'scim_meta');
+
+    return row;
+  }
+
+  /**
+   * SQL-level paginated list for SCIM endpoints.
+   * Filters scim_managed=true at the DB level with LIMIT/OFFSET.
+   * Returns { list, totalResults } for SCIM ListResponse.
+   */
+  static async scimList(
+    {
+      fk_workspace_id,
+      include_deleted = false,
+      offset = 0,
+      limit = 100,
+      filterUserName,
+      filterExternalId,
+      sortBy,
+      sortAscending = true,
+    }: {
+      fk_workspace_id: string;
+      include_deleted?: boolean;
+      offset?: number;
+      limit?: number;
+      filterUserName?: string;
+      filterExternalId?: string;
+      sortBy?: string;
+      sortAscending?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ list: any[]; totalResults: number }> {
+    const baseQuery = () => {
+      const qb = ncMeta
+        .knex(MetaTable.USERS)
+        .innerJoin(MetaTable.WORKSPACE_USER, function () {
+          this.on(
+            `${MetaTable.WORKSPACE_USER}.fk_user_id`,
+            '=',
+            `${MetaTable.USERS}.id`,
+          ).andOn(
+            `${MetaTable.WORKSPACE_USER}.fk_workspace_id`,
+            '=',
+            ncMeta.knex.raw('?', [fk_workspace_id]),
+          );
+        })
+        .where(`${MetaTable.WORKSPACE_USER}.scim_managed`, true);
+
+      if (!include_deleted) {
+        qb.where(function () {
+          this.where(`${MetaTable.WORKSPACE_USER}.deleted`, false).orWhereNull(
+            `${MetaTable.WORKSPACE_USER}.deleted`,
+          );
+        });
+      }
+
+      if (filterUserName) {
+        qb.where(function () {
+          this.whereRaw(
+            `LOWER(${MetaTable.WORKSPACE_USER}.scim_user_name) = ?`,
+            [filterUserName.toLowerCase()],
+          ).orWhereRaw(`LOWER(${MetaTable.USERS}.email) = ?`, [
+            filterUserName.toLowerCase(),
+          ]);
+        });
+      }
+
+      if (filterExternalId) {
+        qb.whereRaw(
+          `LOWER(${MetaTable.WORKSPACE_USER}.scim_external_id) = ?`,
+          [filterExternalId.toLowerCase()],
+        );
+      }
+
+      return qb;
+    };
+
+    // Count query
+    const countResult = await baseQuery().count('* as count').first();
+    const totalResults = Number(countResult?.count || 0);
+
+    // Data query with pagination and sorting
+    const dataQuery = baseQuery()
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.display_name`,
+        `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.USERS}.meta`,
+        `${MetaTable.WORKSPACE_USER}.*`,
+      )
+      .offset(offset)
+      .limit(limit);
+
+    // Apply sorting
+    if (sortBy) {
+      const sortCol =
+        sortBy === 'userName'
+          ? `${MetaTable.WORKSPACE_USER}.scim_user_name`
+          : sortBy === 'displayName'
+            ? `${MetaTable.USERS}.display_name`
+            : sortBy === 'externalId'
+              ? `${MetaTable.WORKSPACE_USER}.scim_external_id`
+              : `${MetaTable.WORKSPACE_USER}.scim_user_name`;
+      dataQuery.orderBy(sortCol, sortAscending ? 'asc' : 'desc');
+    } else {
+      dataQuery.orderBy(`${MetaTable.WORKSPACE_USER}.created_at`, 'asc');
+    }
+
+    const rows = await dataQuery;
+
+    const list = rows.map((row) => {
+      row.meta = parseMetaProp(row);
+      row.scim_meta = parseMetaProp(row, 'scim_meta');
+      return row;
+    });
+
+    return { list, totalResults };
+  }
 }

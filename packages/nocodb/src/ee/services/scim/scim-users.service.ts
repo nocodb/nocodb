@@ -22,13 +22,10 @@ export class ScimUsersService {
     context: NcContext,
     param: { workspaceId: string; scimId: string },
   ) {
-    const workspaceUsers = await WorkspaceUser.userList({
-      fk_workspace_id: param.workspaceId,
-      include_deleted: true,
-    });
-
-    const workspaceUser = workspaceUsers.find(
-      (wu) => wu.scim_external_id === param.scimId,
+    const workspaceUser = await WorkspaceUser.getByScimExternalId(
+      param.workspaceId,
+      param.scimId,
+      { include_deleted: true },
     );
 
     if (!workspaceUser) {
@@ -54,38 +51,32 @@ export class ScimUsersService {
   ) {
     const startIndex = param.startIndex || 1;
     const count = Math.min(param.count || 100, 100);
+    const ascending =
+      !param.sortOrder || param.sortOrder.toLowerCase() === 'ascending';
 
-    let workspaceUsers = await WorkspaceUser.userList({
-      fk_workspace_id: param.workspaceId,
-      include_deleted: true,
-    });
-
-    // Filter SCIM-managed users only
-    workspaceUsers = workspaceUsers.filter((wu) => wu.scim_managed);
-
-    // Apply SCIM filter if provided
+    // Parse SCIM filter into DB-level params
+    let filterUserName: string | undefined;
+    let filterExternalId: string | undefined;
     if (param.filter) {
-      workspaceUsers = this.applyFilter(workspaceUsers, param.filter);
+      const userNameMatch = param.filter.match(/userName\s+eq\s+"([^"]+)"/i);
+      if (userNameMatch) filterUserName = userNameMatch[1];
+
+      const externalIdMatch = param.filter.match(/externalId\s+eq\s+"([^"]+)"/i);
+      if (externalIdMatch) filterExternalId = externalIdMatch[1];
     }
 
-    // Apply sorting per RFC 7644 §3.4.2.3
-    if (param.sortBy) {
-      const ascending =
-        !param.sortOrder || param.sortOrder.toLowerCase() === 'ascending';
-      workspaceUsers = this.applySortUsers(
-        workspaceUsers,
-        param.sortBy,
-        ascending,
-      );
-    }
-
-    const totalResults = workspaceUsers.length;
-
-    // Apply pagination
-    const paginatedUsers = workspaceUsers.slice(
-      startIndex - 1,
-      startIndex - 1 + count,
-    );
+    // SQL-level filtering, sorting, and pagination
+    const { list: paginatedUsers, totalResults } =
+      await WorkspaceUser.scimList({
+        fk_workspace_id: param.workspaceId,
+        include_deleted: true,
+        offset: startIndex - 1,
+        limit: count,
+        filterUserName,
+        filterExternalId,
+        sortBy: param.sortBy,
+        sortAscending: ascending,
+      });
 
     const resources = await Promise.all(
       paginatedUsers.map((wu) => this.toScimUser(wu, param.workspaceId)),
@@ -288,14 +279,11 @@ export class ScimUsersService {
   ) {
     const { workspaceId, scimId, scimUser } = param;
 
-    // Find workspace user (include deleted so we can reactivate them)
-    const workspaceUsers = await WorkspaceUser.userList({
-      fk_workspace_id: workspaceId,
-      include_deleted: true,
-    });
-
-    const workspaceUser = workspaceUsers.find(
-      (wu) => wu.scim_external_id === scimId,
+    // Direct indexed lookup (include deleted so we can reactivate them)
+    const workspaceUser = await WorkspaceUser.getByScimExternalId(
+      workspaceId,
+      scimId,
+      { include_deleted: true },
     );
 
     if (!workspaceUser) {
@@ -373,18 +361,16 @@ export class ScimUsersService {
     context: NcContext,
     param: { workspaceId: string; scimId: string },
   ) {
-    // Include deleted users so DELETE is idempotent per RFC 7644
-    const workspaceUsers = await WorkspaceUser.userList({
-      fk_workspace_id: param.workspaceId,
-      include_deleted: true,
-    });
-
-    const workspaceUser = workspaceUsers.find(
-      (wu) => wu.scim_external_id === param.scimId,
+    // Direct indexed lookup (include deleted for idempotency per RFC 7644)
+    const workspaceUser = await WorkspaceUser.getByScimExternalId(
+      param.workspaceId,
+      param.scimId,
+      { include_deleted: true },
     );
 
+    // RFC 7644 §3.6: DELETE should be idempotent — return 204 even if not found
     if (!workspaceUser) {
-      NcError.notFound('User not found');
+      return;
     }
 
     // Already deactivated — no-op (idempotent)

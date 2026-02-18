@@ -40,13 +40,13 @@ export class ScimGroupsService {
       excludedAttributes?: string;
     },
   ) {
-    const teams = await Team.list(context, {
-      fk_workspace_id: param.workspaceId,
-    });
+    const team = await Team.getByScimExternalId(
+      context,
+      param.workspaceId,
+      param.scimId,
+    );
 
-    const team = teams.find((t) => t.scim_external_id === param.scimId);
-
-    if (!team || team.deleted) {
+    if (!team) {
       NcError.notFound('Group not found');
     }
 
@@ -71,30 +71,33 @@ export class ScimGroupsService {
   ) {
     const startIndex = param.startIndex || 1;
     const count = Math.min(param.count || 100, 100);
+    const ascending =
+      !param.sortOrder || param.sortOrder.toLowerCase() === 'ascending';
 
-    let teams = await Team.list(context, {
-      fk_workspace_id: param.workspaceId,
-    });
-
-    // Filter SCIM-managed teams only
-    teams = teams.filter((t) => t.scim_managed && !t.deleted);
-
-    // Apply SCIM filter if provided
+    // Parse SCIM filter into DB-level params
+    let filterDisplayName: string | undefined;
+    let filterExternalId: string | undefined;
     if (param.filter) {
-      teams = this.applyFilter(teams, param.filter);
+      const displayNameMatch = param.filter.match(/displayName\s+eq\s+"([^"]+)"/i);
+      if (displayNameMatch) filterDisplayName = displayNameMatch[1];
+
+      const externalIdMatch = param.filter.match(/externalId\s+eq\s+"([^"]+)"/i);
+      if (externalIdMatch) filterExternalId = externalIdMatch[1];
     }
 
-    // Apply sorting per RFC 7644 §3.4.2.3
-    if (param.sortBy) {
-      const ascending =
-        !param.sortOrder || param.sortOrder.toLowerCase() === 'ascending';
-      teams = this.applySortGroups(teams, param.sortBy, ascending);
-    }
-
-    const totalResults = teams.length;
-
-    // Apply pagination
-    const paginatedTeams = teams.slice(startIndex - 1, startIndex - 1 + count);
+    // SQL-level filtering, sorting, and pagination
+    const { list: paginatedTeams, totalResults } = await Team.scimList(
+      context,
+      {
+        fk_workspace_id: param.workspaceId,
+        offset: startIndex - 1,
+        limit: count,
+        filterDisplayName,
+        filterExternalId,
+        sortBy: param.sortBy,
+        sortAscending: ascending,
+      },
+    );
 
     const excludeMembers = this.shouldExcludeMembers(param.excludedAttributes);
     const resources = await Promise.all(
@@ -149,8 +152,7 @@ export class ScimGroupsService {
       // If team exists but not SCIM-managed, convert it to SCIM-managed
       if (!existingTeam.scim_managed) {
         await Team.update(context, existingTeam.id, {
-          scim_external_id:
-            scimGroup.externalId || scimGroup.id || uuidv4(),
+          scim_external_id: uuidv4(), // Server-assigned SCIM id (immutable)
           scim_managed: true,
           scim_display_name: scimGroup.displayName,
         });
@@ -185,11 +187,11 @@ export class ScimGroupsService {
       );
     }
 
-    // Create new team
+    // Create new team — scim_external_id is server-assigned (immutable per RFC 7643)
     const team = await Team.insert(context, {
       title: scimGroup.displayName,
       fk_workspace_id: workspaceId,
-      scim_external_id: scimGroup.externalId || scimGroup.id || uuidv4(),
+      scim_external_id: uuidv4(),
       scim_managed: true,
       scim_display_name: scimGroup.displayName,
     });
@@ -222,38 +224,13 @@ export class ScimGroupsService {
   ) {
     const { workspaceId, scimId, scimGroup } = param;
 
-    const teams = await Team.list(context, {
-      fk_workspace_id: workspaceId,
-    });
-
-    const team = teams.find((t) => t.scim_external_id === scimId);
+    const team = await Team.getByScimExternalId(context, workspaceId, scimId);
 
     if (!team) {
       NcError.notFound('Group not found');
     }
 
-    // Update team properties if provided
-    const updateData: any = {};
-    if (scimGroup.displayName && scimGroup.displayName !== team.title) {
-      updateData.title = scimGroup.displayName;
-      updateData.scim_display_name = scimGroup.displayName;
-    }
-
-    if (Object.keys(updateData).length > 0) {
-      await Team.update(context, team.id, updateData);
-    }
-
-    // Handle membership updates
-    if (scimGroup.members !== undefined) {
-      await this.updateTeamMembers(
-        context,
-        team.id,
-        workspaceId,
-        scimGroup.members || [],
-      );
-    }
-
-    // Handle SCIM PATCH operations
+    // SCIM PatchOp format — Operations array is the canonical path
     if (scimGroup.Operations) {
       await this.applyPatchOperations(
         context,
@@ -261,6 +238,27 @@ export class ScimGroupsService {
         workspaceId,
         scimGroup.Operations,
       );
+    } else {
+      // Fallback: handle direct attribute updates (non-standard but some IdPs use it)
+      const updateData: any = {};
+      if (scimGroup.displayName && scimGroup.displayName !== team.title) {
+        updateData.title = scimGroup.displayName;
+        updateData.scim_display_name = scimGroup.displayName;
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        await Team.update(context, team.id, updateData);
+      }
+
+      // Handle direct membership updates
+      if (scimGroup.members !== undefined) {
+        await this.updateTeamMembers(
+          context,
+          team.id,
+          workspaceId,
+          scimGroup.members || [],
+        );
+      }
     }
 
     const updatedTeam = await Team.get(context, team.id);
@@ -280,11 +278,7 @@ export class ScimGroupsService {
   ) {
     const { workspaceId, scimId, scimGroup } = param;
 
-    const teams = await Team.list(context, {
-      fk_workspace_id: workspaceId,
-    });
-
-    const team = teams.find((t) => t.scim_external_id === scimId);
+    const team = await Team.getByScimExternalId(context, workspaceId, scimId);
 
     if (!team) {
       NcError.notFound('Group not found');
@@ -323,14 +317,15 @@ export class ScimGroupsService {
     context: NcContext,
     param: { workspaceId: string; scimId: string },
   ) {
-    const teams = await Team.list(context, {
-      fk_workspace_id: param.workspaceId,
-    });
+    const team = await Team.getByScimExternalId(
+      context,
+      param.workspaceId,
+      param.scimId,
+    );
 
-    const team = teams.find((t) => t.scim_external_id === param.scimId);
-
+    // RFC 7644 §3.6: DELETE should be idempotent — return 204 even if not found
     if (!team) {
-      NcError.notFound('Group not found');
+      return;
     }
 
     await Team.softDelete(context, team.id);
@@ -347,8 +342,8 @@ export class ScimGroupsService {
   ): Promise<ScimGroupResource> {
     const result: ScimGroupResource = {
       schemas: ['urn:ietf:params:scim:schemas:core:2.0:Group'],
-      id: team.scim_external_id,
-      externalId: team.scim_external_id,
+      id: team.scim_external_id, // Server-assigned immutable ID
+      // externalId is client-assigned (from IdP) — only include if present
       displayName: team.scim_display_name || team.title,
       meta: {
         resourceType: 'Group',

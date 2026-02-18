@@ -447,4 +447,115 @@ export default class Team {
       );
     }
   }
+
+  /**
+   * Direct DB lookup by SCIM external ID using the indexed column.
+   * Avoids loading all teams into memory for SCIM operations.
+   */
+  public static async getByScimExternalId(
+    context: NcContext,
+    workspaceId: string,
+    scimExternalId: string,
+    ncMeta = Noco.ncMeta,
+  ): Promise<Team | null> {
+    const teams = await ncMeta.metaList2(
+      RootScopes.ROOT,
+      RootScopes.ROOT,
+      MetaTable.TEAMS,
+      {
+        condition: {
+          fk_workspace_id: workspaceId,
+          scim_external_id: scimExternalId,
+        },
+        xcCondition: {
+          _or: [
+            { deleted: { eq: false } },
+            { deleted: { eq: null } },
+          ],
+        },
+      },
+    );
+
+    if (!teams.length) return null;
+
+    return this.castType(teams[0]);
+  }
+
+  /**
+   * SQL-level paginated list for SCIM endpoints.
+   * Filters scim_managed=true at the DB level with LIMIT/OFFSET.
+   */
+  public static async scimList(
+    context: NcContext,
+    {
+      fk_workspace_id,
+      offset = 0,
+      limit = 100,
+      filterDisplayName,
+      filterExternalId,
+      sortBy,
+      sortAscending = true,
+    }: {
+      fk_workspace_id: string;
+      offset?: number;
+      limit?: number;
+      filterDisplayName?: string;
+      filterExternalId?: string;
+      sortBy?: string;
+      sortAscending?: boolean;
+    },
+    ncMeta = Noco.ncMeta,
+  ): Promise<{ list: Team[]; totalResults: number }> {
+    const baseQuery = () => {
+      const qb = ncMeta
+        .knex(MetaTable.TEAMS)
+        .where('fk_workspace_id', fk_workspace_id)
+        .where('scim_managed', true)
+        .where(function () {
+          this.where('deleted', false).orWhereNull('deleted');
+        });
+
+      if (filterDisplayName) {
+        qb.where(function () {
+          this.whereRaw('LOWER(scim_display_name) = ?', [
+            filterDisplayName.toLowerCase(),
+          ]).orWhereRaw('LOWER(title) = ?', [
+            filterDisplayName.toLowerCase(),
+          ]);
+        });
+      }
+
+      if (filterExternalId) {
+        qb.whereRaw('LOWER(scim_external_id) = ?', [
+          filterExternalId.toLowerCase(),
+        ]);
+      }
+
+      return qb;
+    };
+
+    // Count query
+    const countResult = await baseQuery().count('* as count').first();
+    const totalResults = Number(countResult?.count || 0);
+
+    // Data query with pagination and sorting
+    const dataQuery = baseQuery().select('*').offset(offset).limit(limit);
+
+    if (sortBy) {
+      const sortCol =
+        sortBy === 'displayName'
+          ? 'scim_display_name'
+          : sortBy === 'externalId'
+            ? 'scim_external_id'
+            : 'scim_display_name';
+      dataQuery.orderBy(sortCol, sortAscending ? 'asc' : 'desc');
+    } else {
+      dataQuery.orderBy('created_at', 'asc');
+    }
+
+    const rows = await dataQuery;
+    const list = rows.map((row) => this.castType(row));
+
+    return { list, totalResults };
+  }
 }

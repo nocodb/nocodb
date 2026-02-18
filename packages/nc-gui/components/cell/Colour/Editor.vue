@@ -13,6 +13,7 @@ const readOnly = inject(ReadonlyInj, ref(false))
 const editEnabled = inject(EditModeInj, ref(false))
 const isExpandedFormOpen = inject(IsExpandedFormOpenInj, ref(false))
 const isEditColumn = inject(EditColumnInj, ref(false))
+const isForm = inject(IsFormInj, ref(false))
 
 const colourMeta = computed(() => {
   const meta = column.value?.meta ? parseProp(column.value.meta) : {}
@@ -89,8 +90,8 @@ const openColorPicker = () => {
 const onClick = (e: Event) => {
   e.stopPropagation()
   if (!readOnly.value && props.modelValue) {
-    // In expanded form or edit column context, open the picker directly on click
-    if (isExpandedFormOpen.value || isEditColumn.value) {
+    // In expanded form, edit column, or form context, open the picker directly on click
+    if (isExpandedFormOpen.value || isEditColumn.value || isForm.value) {
       openColorPicker()
     } else {
       showClearButton.value = true
@@ -151,7 +152,7 @@ const onKeyDown = (e: KeyboardEvent) => {
 watch(
   editEnabled,
   (enabled) => {
-    if (enabled && !readOnly.value && !isOpen.value && !isExpandedFormOpen.value && !isEditColumn.value) {
+    if (enabled && !readOnly.value && !isOpen.value && !isExpandedFormOpen.value && !isEditColumn.value && !isForm.value) {
       nextTick(() => {
         openColorPicker()
       })

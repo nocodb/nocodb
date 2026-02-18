@@ -9,10 +9,13 @@ const { getFeature, handleUpgradePlan } = useEeConfig()
 const { appInfo } = useGlobal()
 
 const isScimAvail = computed(() => {
-  if (isEeUI && appInfo.value?.isCloud && getFeature(PlanFeatureTypes.FEATURE_SCIM)) {
-    return true
+  if (!isEeUI) return false
+  // On cloud: requires SCIM feature in the plan
+  // On-prem EE: always available (no plan gating)
+  if (appInfo.value?.isCloud) {
+    return !!getFeature(PlanFeatureTypes.FEATURE_SCIM)
   }
-  return false
+  return true
 })
 
 // SCIM composable
@@ -104,7 +107,6 @@ watch(
 
 watch(isCopied.value, (v) => {
   if (v.signIn) {
-    console.log('copied')
     setTimeout(() => {
       isCopied.value.signIn = false
     }, 2000)

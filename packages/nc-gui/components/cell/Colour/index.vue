@@ -1,12 +1,12 @@
 <script setup lang="ts">
+import { iconMap } from '~/utils/iconUtils'
+
 interface Props {
   modelValue: string | null | undefined
 }
 
 const { modelValue } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
-
-const { iconMap } = useIcons()
 
 const column = inject(ColumnInj, ref())
 const readOnly = inject(ReadonlyInj, ref(false))

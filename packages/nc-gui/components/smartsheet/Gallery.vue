@@ -259,15 +259,25 @@ const {
 } = useViewRowColorRender()
 
 const getCellColorStyle = (record: Row, columnId: string) => {
-  // Include colorRenderTrigger to force re-evaluation when row coloring changes
-  colorRenderTrigger.value
-  return _getCellColorStyle(record.row, columnId)
+  // Access pre-computed cell colors from rowMeta (optimized - no function calls)
+  colorRenderTrigger.value // Force re-evaluation when colors change
+  const cellColorInfo = record.rowMeta?.cellColors?.[columnId]
+  if (!cellColorInfo) return {}
+
+  const style: Record<string, string> = {}
+  if (cellColorInfo.cellBgColor) {
+    style.backgroundColor = cellColorInfo.cellBgColor
+  }
+  return style
 }
 
 const getCellLeftBorderStyle = (record: Row, columnId: string) => {
-  // Include colorRenderTrigger to force re-evaluation when row coloring changes
-  colorRenderTrigger.value
-  return _getCellLeftBorderStyle(record.row, columnId)
+  // Access pre-computed cell colors from rowMeta (optimized - no function calls)
+  colorRenderTrigger.value // Force re-evaluation when colors change
+  const cellColorInfo = record.rowMeta?.cellColors?.[columnId]
+  if (!cellColorInfo || cellColorInfo.is_set_as_background || !cellColorInfo.cellLeftBorderColor) return null
+
+  return { backgroundColor: cellColorInfo.cellLeftBorderColor }
 }
 
 const getCellColorClass = (record: Row, columnId: string) => {
@@ -591,7 +601,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                     >
                       <div
                         v-if="displayField"
-                        class="flex gap-2 rounded-lg w-full z-10 relative"
+                        class="flex gap-2 rounded-lg w-full z-1 relative"
                         :class="getCellColorClass(record, displayField.id)"
                         :style="getCellColorBgVar(record, displayField.id)"
                       >
@@ -668,7 +678,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                             />
                           </template>
                           <div
-                            class="flex gap-2 rounded-lg w-full z-10 relative"
+                            class="flex gap-2 rounded-lg w-full z-1 relative"
                             :class="{
                               'pointer-events-none': !resetPointerEvent(record, col),
                               [getCellColorClass(record, col.id)]: true,
@@ -728,7 +738,7 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
         </div>
       </div>
     </NcDropdown>
-    <div class="sticky bottom-4 w-[fit-content]">
+    <div class="sticky bottom-4 w-[fit-content] z-10">
       <PermissionsTooltip
         v-if="isUIAllowed('dataInsert') && !isSyncedTable"
         :entity="PermissionEntity.TABLE"

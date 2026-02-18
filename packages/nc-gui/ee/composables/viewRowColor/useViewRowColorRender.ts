@@ -151,6 +151,7 @@ export function useViewRowColorRender() {
       rowLeftBorderColor: null,
       rowHoverColor: null,
       rowBorderColor: null,
+      cellColors: {},
     }
 
     if (!row || !isRowColouringEnabled.value) return result
@@ -159,12 +160,45 @@ export function useViewRowColorRender() {
 
     const cachedEvaluatedResult = getCachedEvaluatedResult(rowHash, row)
 
+    // Pre-compute cell colors for all columns
+    const cellColors: Record<string, any> = {}
+    if (isCellColouringEnabled.value && activeViewRowColorInfo.value.mode === ROW_COLORING_MODE.FILTER) {
+      const filterRowColorInfo = activeViewRowColorInfo.value
+
+      // Get all cell-type conditions
+      const cellConditions = filterRowColorInfo.conditions?.filter((c) => c.type === 'cell') || []
+
+      // For each cell condition, evaluate and store in map
+      for (const condition of cellConditions) {
+        if (!condition.fk_target_column_id) continue
+
+        const columnId = condition.fk_target_column_id
+
+        // Skip if we already have a color for this column (precedence: first match wins)
+        if (cellColors[columnId]) continue
+
+        // Evaluate the condition
+        const cellColorResult = getCachedEvaluatedResult(rowHash, row, columnId)
+
+        if (cellColorResult && cellColorResult.type === 'cell') {
+          cellColors[columnId] = {
+            is_set_as_background: cellColorResult.is_set_as_background ?? false,
+            cellBgColor: cellColorResult.is_set_as_background ? cellColorResult.color ?? null : null,
+            cellBorderColor: cellColorResult.is_set_as_background ? cellColorResult.borderColor ?? null : null,
+            cellHoverColor: cellColorResult.hoverColor ?? null,
+            cellLeftBorderColor: cellColorResult.rawColor ?? null,
+          }
+        }
+      }
+    }
+
     return {
       is_set_as_background: cachedEvaluatedResult?.is_set_as_background ?? false,
       rowBgColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.color ?? null : null,
       rowLeftBorderColor: cachedEvaluatedResult?.rawColor ?? null,
       rowHoverColor: cachedEvaluatedResult?.hoverColor ?? null,
       rowBorderColor: cachedEvaluatedResult?.is_set_as_background ? cachedEvaluatedResult?.borderColor ?? null : null,
+      cellColors,
     }
   }
 

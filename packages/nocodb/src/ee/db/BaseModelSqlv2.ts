@@ -1554,6 +1554,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         {},
         { ignoreView: true, getHiddenColumn: true },
       );
+
+      if (!data) {
+        NcError.get(this.context).recordNotFound(id);
+      }
+
       await this.beforeDelete(id, null, cookie);
 
       const execQueries: ((trx: CustomKnex) => Knex.QueryBuilder)[] = [];
@@ -2456,6 +2461,11 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (toUpdate.length > 0) {
+        const rlsConditions = await this.getRlsConditions();
+        const rlsFilterGroup = rlsConditions.length
+          ? [new Filter({ children: rlsConditions, is_group: true })]
+          : [];
+
         for (const d of toUpdate) {
           const pkValues = getCompositePkValue(
             this.model.primaryKeys,
@@ -2474,16 +2484,19 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
               }
             }
 
-            updateQueries.push(
-              this.dbDriver(this.tnPath)
-                .update(dWithoutPk)
-                .where(wherePk)
-                .toQuery(),
-            );
+            const qb = this.dbDriver(this.tnPath)
+              .update(dWithoutPk)
+              .where(wherePk);
+            if (rlsFilterGroup.length) {
+              await conditionV2(this, rlsFilterGroup, qb);
+            }
+            updateQueries.push(qb.toQuery());
           } else {
-            updateQueries.push(
-              this.dbDriver(this.tnPath).update(d).where(wherePk).toQuery(),
-            );
+            const qb = this.dbDriver(this.tnPath).update(d).where(wherePk);
+            if (rlsFilterGroup.length) {
+              await conditionV2(this, rlsFilterGroup, qb);
+            }
+            updateQueries.push(qb.toQuery());
           }
         }
       }

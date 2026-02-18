@@ -16,7 +16,8 @@ import type { Server } from 'socket.io';
 import type { NcContext, NcSocket } from '~/interface/config';
 import type { Prettify } from '~/types/utils';
 import { verifyJwt } from '~/services/users/helpers';
-import { BaseUser, Model, User, WorkspaceUser } from '~/models';
+import { BaseUser, Model, Source, User, WorkspaceUser } from '~/models';
+import { PrincipalAssignment } from '~/ee/models';
 import Filter from '~/models/Filter';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import {
@@ -24,6 +25,7 @@ import {
   type RlsUserContext,
 } from '~/ee/utils/rls-resolver';
 import Noco from '~/Noco';
+import { PrincipalType, ResourceType } from '~/utils/globals';
 import { getProjectRolePower } from '~/utils/roleHelper';
 import { getWorkspaceRolePower } from '~/utils/roleHelper';
 
@@ -206,9 +208,17 @@ export default class NocoSocket {
             break;
           }
           if (subject.type === 'team') {
-            // TODO: team matching via PrincipalAssignment if needed
-            matchedPolicyIds.push(policy.id);
-            break;
+            const assignment = await PrincipalAssignment.get(
+              ncContext,
+              ResourceType.TEAM,
+              subject.id,
+              PrincipalType.USER,
+              user.id,
+            );
+            if (assignment) {
+              matchedPolicyIds.push(policy.id);
+              break;
+            }
           }
         }
       }
@@ -250,9 +260,13 @@ export default class NocoSocket {
       }
     }
 
-    // Load table columns for filter evaluation at broadcast time
+    // Load table columns and source client type for filter evaluation at broadcast time
     const model = await Model.getWithInfo(ncContext, { id: tableId });
     const columns: ColumnType[] = model?.columns || [];
+    const source = model?.source_id
+      ? await Source.get(ncContext, model.source_id)
+      : null;
+    const client = source?.type || 'pg';
 
     // Compute access hash
     const accessHash =
@@ -265,6 +279,7 @@ export default class NocoSocket {
       accessHash,
       resolvedFilters,
       columns,
+      client,
     );
 
     // Join the RLS room (using original event key as prefix for proper namespacing)
@@ -497,7 +512,7 @@ export default class NocoSocket {
             filters: group.resolvedFilters,
             data: rowData,
             columns: group.columns,
-            client: 'pg', // TODO: derive from source
+            client: group.client,
             metas: {},
           });
 

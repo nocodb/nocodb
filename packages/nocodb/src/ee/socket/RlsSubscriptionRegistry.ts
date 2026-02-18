@@ -8,6 +8,8 @@ export interface RlsAccessGroup {
   resolvedFilters: FilterType[];
   /** Column metadata needed for in-memory row evaluation */
   columns: ColumnType[];
+  /** Database client type (e.g., 'pg', 'mysql2', 'sqlite3') for filter evaluation */
+  client: string;
   /** Number of sockets currently in this access group */
   refCount: number;
 }
@@ -48,6 +50,7 @@ export class RlsSubscriptionRegistry {
     accessHash: string,
     resolvedFilters: FilterType[],
     columns: ColumnType[],
+    client: string = 'pg',
   ): void {
     // Update groups
     let tableGroups = this.groups.get(tableId);
@@ -63,6 +66,7 @@ export class RlsSubscriptionRegistry {
       tableGroups.set(accessHash, {
         resolvedFilters,
         columns,
+        client,
         refCount: 1,
       });
     }

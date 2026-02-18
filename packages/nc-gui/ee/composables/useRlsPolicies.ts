@@ -3,7 +3,6 @@ import type { BaseType, RlsDefaultBehavior, RlsPolicySubjectType, RlsPolicyType 
 export interface RlsPolicyState {
   policies: RlsPolicyType[]
   isLoading: boolean
-  error: string | null
 }
 
 export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>) => {

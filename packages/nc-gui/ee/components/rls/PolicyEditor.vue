@@ -14,6 +14,8 @@ const emit = defineEmits<{
 const base = computed(() => props.base)
 const tableId = computed(() => props.tableId)
 
+const { t } = useI18n()
+
 const { updatePolicy, setSubjects, isSaving } = useRlsPolicies(base as Ref<BaseType>, tableId)
 
 const { getMeta } = useMetas()
@@ -122,10 +124,10 @@ const handleSave = async () => {
       await setSubjects(policy.value.id, subjects.value)
     }
 
-    message.success('Policy saved')
+    message.success(t('msg.success.rlsPolicySaved'))
     emit('close')
   } catch (e: any) {
-    message.error(e.message || 'Failed to save policy')
+    message.error(t('msg.error.rlsPolicyUpdateFailed'))
   }
 }
 

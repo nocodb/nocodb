@@ -2999,6 +2999,7 @@
       "mcpTokenUpdated": "MCP Token Updated",
       "mcpTokenCreated": "MCP Token Created",
       "licenseKeyUpdated": "License Key Updated",
+      "rlsPolicySaved": "Row-level security policy saved",
       "columnDuplicated": "Field duplicated successfully",
       "rowDuplicatedWithoutSavedYet": "Record duplicated (not saved)",
       "updatedUIACL": "Updated UI ACL for tables successfully",

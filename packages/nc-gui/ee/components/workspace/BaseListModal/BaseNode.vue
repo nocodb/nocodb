@@ -298,6 +298,10 @@ const onMenuClick = (e: Event) => {
 
   &.is-open {
     @apply w-6 !flex;
+
+    .nc-base-three-dot {
+      @apply !block;
+    }
   }
 }
 </style>

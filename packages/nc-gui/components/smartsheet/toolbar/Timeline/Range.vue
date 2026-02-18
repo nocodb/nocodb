@@ -12,7 +12,7 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { timelineRange, loadTimelineData, timelineMetaData } = useTimelineViewStoreOrThrow()
+const { timelineRange, loadTimelineData, timelineMetaData, viewMetaProperties } = useTimelineViewStoreOrThrow()
 
 const { $api } = useNuxtApp()
 
@@ -79,6 +79,24 @@ const onFromChange = () => {
   saveRange()
 }
 
+// Initial view setting
+const initialViewMode = computed({
+  get: () => viewMetaProperties.value?.initial_view ?? 'closest_record',
+  set: async (val: string) => {
+    if (!activeView.value?.id) return
+    try {
+      const newMeta = { ...viewMetaProperties.value, initial_view: val }
+      await $api.dbView.update(activeView.value.id, {
+        meta: newMeta,
+      } as any)
+      if (timelineMetaData.value) {
+        ;(timelineMetaData.value as any).meta = newMeta
+      }
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    }
+  },
+})
 </script>
 
 <template>
@@ -217,6 +235,48 @@ const onFromChange = () => {
               </div>
             </template>
           </div>
+        </div>
+
+        <!-- Initial view setting -->
+        <div class="flex flex-col w-full gap-2">
+          <span class="text-nc-content-gray">
+            {{ $t('labels.initialView') }}
+          </span>
+          <a-select
+            :value="initialViewMode"
+            class="nc-select-shadow w-full !rounded-lg"
+            dropdown-class-name="!rounded-lg"
+            :disabled="isLocked"
+            data-testid="nc-timeline-initial-view-select"
+            @change="(val: string) => (initialViewMode = val)"
+            @click.stop
+          >
+            <template #suffixIcon>
+              <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
+            </template>
+            <a-select-option value="closest_record">
+              <div class="w-full flex gap-2 items-center justify-between">
+                <span>{{ $t('labels.closestRecordToToday') }}</span>
+                <GeneralIcon
+                  v-if="initialViewMode === 'closest_record'"
+                  id="nc-selected-item-icon"
+                  icon="check"
+                  class="flex-none text-primary w-4 h-4"
+                />
+              </div>
+            </a-select-option>
+            <a-select-option value="today">
+              <div class="w-full flex gap-2 items-center justify-between">
+                <span>{{ $t('labels.today') }}</span>
+                <GeneralIcon
+                  v-if="initialViewMode === 'today'"
+                  id="nc-selected-item-icon"
+                  icon="check"
+                  class="flex-none text-primary w-4 h-4"
+                />
+              </div>
+            </a-select-option>
+          </a-select>
         </div>
 
         <!-- #9: i18n warning message -->

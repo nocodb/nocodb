@@ -10,6 +10,10 @@ import { NOCO } from '~/lib/constants'
 // Keyed by view ID so each timeline view remembers its own position.
 const _viewStateCache = new Map<string, { currentDate: string; zoomLevel: 'day' | 'week' | 'month' }>()
 
+// Track which views have already had their initial navigation performed,
+// so we don't re-navigate on every data reload.
+const _initializedViews = new Set<string>()
+
 const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
   (
     meta: Ref<TableType | undefined>,
@@ -230,6 +234,46 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       }
     }
 
+    // Navigate to the closest record on initial view load
+    const navigateToClosestRecord = () => {
+      const viewId = viewMeta.value?.id
+      if (!viewId) return
+
+      // Skip if already initialized or if cached state exists (user previously navigated)
+      if (_initializedViews.has(viewId) || _viewStateCache.has(viewId)) return
+      _initializedViews.add(viewId)
+
+      // Check the initial_view setting (default: 'closest_record')
+      const initialView = viewMetaProperties.value?.initial_view ?? 'closest_record'
+      if (initialView === 'today') return
+
+      // Find the record with a start date closest to today
+      const range = timelineRange.value?.[0]
+      if (!range?.fk_from_col?.title) return
+
+      const now = dayjs()
+      let closestDate: dayjs.Dayjs | null = null
+      let closestDiff = Infinity
+
+      for (const row of formattedData.value) {
+        const dateVal = row.row?.[range.fk_from_col.title!]
+        if (!dateVal) continue
+        const d = dayjs(dateVal)
+        if (!d.isValid()) continue
+
+        const diff = Math.abs(d.diff(now, 'day'))
+        if (diff < closestDiff) {
+          closestDiff = diff
+          closestDate = d
+        }
+      }
+
+      if (closestDate && !closestDate.isSame(now, 'month')) {
+        currentDate.value = closestDate
+        selectedDate.value = closestDate
+      }
+    }
+
     // Navigation
     const navigateNext = () => {
       if (zoomLevel.value === 'month') {
@@ -381,6 +425,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
       // Methods
       loadTimelineData,
+      navigateToClosestRecord,
       navigateNext,
       navigatePrev,
       goToToday,

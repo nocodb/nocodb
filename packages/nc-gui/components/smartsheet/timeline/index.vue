@@ -45,6 +45,7 @@ const {
   currentDate,
   totalRecordCount,
   recordsWithoutDates,
+  navigateToClosestRecord,
 } = useTimelineViewStoreOrThrow()
 
 // Group-by support (provided by parent Smartsheet.vue via useProvideViewGroupBy)
@@ -133,6 +134,7 @@ const reloadData = async () => {
 
 onMounted(async () => {
   await reloadData()
+  navigateToClosestRecord()
 })
 
 const reloadViewDataListener = async () => {

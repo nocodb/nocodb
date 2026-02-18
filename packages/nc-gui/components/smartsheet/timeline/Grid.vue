@@ -341,7 +341,7 @@ onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', handleVisibilityChange)
   if (resizeCooldownTimer) clearTimeout(resizeCooldownTimer)
   if (dragTimeout) clearTimeout(dragTimeout)
-  useDebouncedRowUpdate.cancel()
+  if (typeof useDebouncedRowUpdate.cancel === 'function') useDebouncedRowUpdate.cancel()
 })
 
 // --- Helpers ---
@@ -503,11 +503,6 @@ const isWeekend = (date: dayjs.Dayjs) => {
   return date.day() === 0 || date.day() === 6
 }
 
-// #22: Grid body height — ensures backgrounds extend beyond visible lanes
-const gridBodyHeight = computed(() => {
-  return `${Math.max(swimlanes.value.length * ROW_HEIGHT, 400)}px`
-})
-
 // Today indicator position
 const todayPosition = computed(() => {
   const firstDate = props.visibleDates[0]
@@ -632,40 +627,39 @@ const onBodyScroll = (event: Event) => {
     >
       <div
         class="relative"
-        :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%', minHeight: gridBodyHeight }"
+        :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%', minHeight: '100%' }"
       >
-        <div ref="gridBodyRef" class="relative w-full" @dblclick="onGridDblClick">
-          <!-- Grid lines (vertical) -->
-          <div class="absolute inset-0 pointer-events-none" :style="{ height: gridBodyHeight }">
-            <div
-              v-for="(date, dateIdx) in visibleDates"
-              :key="'line-' + date.format('YYYY-MM-DD')"
-              class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
-              :style="{ left: `${(dateIdx + 1) * colWidth}px` }"
-            />
-          </div>
-
-          <!-- Today indicator line -->
-          <div
-            v-if="todayPosition !== null"
-            class="absolute top-0 w-0.5 bg-nc-content-brand z-5"
-            :style="{ left: `${todayPosition}px`, height: gridBodyHeight }"
-          />
-
-          <!-- #22: Weekend background — uses full grid body height -->
+        <!-- Background layer: grid lines, weekend shading, today line — fills full height -->
+        <div class="absolute inset-0 pointer-events-none">
+          <!-- Weekend backgrounds -->
           <div
             v-for="(date, dateIdx) in visibleDates"
             :key="'bg-' + date.format('YYYY-MM-DD')"
-            class="absolute top-0"
+            class="absolute top-0 bottom-0"
             :class="{ 'bg-nc-bg-gray-extralight': isWeekend(date) }"
             :style="{
               left: `${dateIdx * colWidth}px`,
               width: `${colWidth}px`,
-              height: gridBodyHeight,
             }"
           />
+          <!-- Grid lines (vertical) -->
+          <div
+            v-for="(date, dateIdx) in visibleDates"
+            :key="'line-' + date.format('YYYY-MM-DD')"
+            class="absolute top-0 bottom-0 border-r border-nc-border-gray-light"
+            :style="{ left: `${(dateIdx + 1) * colWidth}px` }"
+          />
+          <!-- Today indicator line -->
+          <div
+            v-if="todayPosition !== null"
+            class="absolute top-0 bottom-0 w-0.5 bg-nc-content-brand"
+            :style="{ left: `${todayPosition}px` }"
+          />
+        </div>
 
-          <!-- Swimlane rows: each lane is a row containing non-overlapping bars -->
+        <!-- Content layer: bars and empty state — sits above backgrounds -->
+        <div ref="gridBodyRef" class="relative w-full" style="z-index: 1" @dblclick="onGridDblClick">
+          <!-- Swimlane rows -->
           <div
             v-for="(lane, laneIdx) in swimlanes"
             :key="laneIdx"

@@ -30,7 +30,7 @@ export class ScimServiceProviderConfigService {
         supported: false,
       },
       sort: {
-        supported: false,
+        supported: true,
       },
       etag: {
         supported: false,

@@ -36,7 +36,7 @@ stdenv.mkDerivation (finalAttrs: {
   };
 
   buildPhase = ''
-    export NODE_OPTIONS="--max_old_space_size=16384"
+    export NODE_OPTIONS="--max_old_space_size=8192"
     export NUXT_TELEMETRY_DISABLED=1
     export npm_config_nodedir=${nodePackages.nodejs}
 

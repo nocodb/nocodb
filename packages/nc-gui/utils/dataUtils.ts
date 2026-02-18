@@ -449,9 +449,9 @@ export const getLookupValue = (modelValue: string | null | number | Array<any>, 
   }
 
   // when childColumn not found (external base or nested links, simply return the modelValue
-  if (!childColumn){
-    if(typeof modelValue === 'string') {
-      return modelValue;
+  if (!childColumn) {
+    if (typeof modelValue === 'string') {
+      return modelValue
     } else {
       return modelValue?.toString() ?? ''
     }

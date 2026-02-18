@@ -25,7 +25,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     const { isMysql } = baseStore
     const { base } = storeToRefs(baseStore)
 
-    const { sharedView } = useSharedView()
+    const { sharedView, fetchSharedViewData } = useSharedView()
 
     const isPublic = ref(shared)
 
@@ -146,7 +146,9 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
               where: where?.value ?? '',
               limit: 400,
             })
-          : await $api.dbViewRow.list('noco', base.value?.id as string, meta.value?.id as string, viewMeta.value?.id as string, {
+          : await fetchSharedViewData({
+              sortsArr: [],
+              filtersArr: [],
               where: where?.value ?? '',
               limit: 400,
             })

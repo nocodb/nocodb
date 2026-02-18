@@ -308,6 +308,9 @@ function sharedViewUrl(withPrefill = true) {
     case ViewTypes.CALENDAR:
       viewType = 'calendar'
       break
+    case ViewTypes.TIMELINE:
+      viewType = 'timeline'
+      break
     default:
       viewType = 'view'
   }

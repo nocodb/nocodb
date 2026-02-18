@@ -51,7 +51,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.TIMELINE
     ) {
       NcError.get(context).notFound('Not found');
     }
@@ -131,7 +132,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.TIMELINE
     ) {
       NcError.notFound('Not found');
     }
@@ -733,7 +735,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.TIMELINE
     ) {
       NcError.notFound('Not found');
     }
@@ -816,7 +819,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.GRID &&
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
-      view.type !== ViewTypes.CALENDAR
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.TIMELINE
     ) {
       NcError.notFound('Not found');
     }
@@ -899,7 +903,8 @@ export class PublicDatasService {
       view.type !== ViewTypes.KANBAN &&
       view.type !== ViewTypes.GALLERY &&
       view.type !== ViewTypes.MAP &&
-      view.type !== ViewTypes.CALENDAR
+      view.type !== ViewTypes.CALENDAR &&
+      view.type !== ViewTypes.TIMELINE
     ) {
       NcError.notFound('Not found');
     }

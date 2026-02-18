@@ -235,6 +235,45 @@ const visibleRecords = computed(() => {
     })
 })
 
+// Swimlane packing: group non-overlapping records into lanes so bars sit side by side
+// Each lane is an array of { record, colorIndex } where colorIndex is the record's
+// position in the global visibleRecords list (for stable coloring).
+const swimlanes = computed<Array<Array<{ record: RowType; colorIndex: number }>>>(() => {
+  const range = props.timelineRange[0]
+  if (!range) return []
+
+  const lanes: Array<{ records: Array<{ record: RowType; colorIndex: number }>; lastEnd: dayjs.Dayjs }> = []
+
+  visibleRecords.value.forEach((record, idx) => {
+    const startDate = parseDate(record, range.fk_from_col)
+    const endDate = range.fk_to_col ? parseDate(record, range.fk_to_col) : startDate
+    if (!startDate) return
+
+    const effectiveEnd = endDate || startDate
+
+    // Find the first lane where this record fits (no overlap)
+    let placed = false
+    for (const lane of lanes) {
+      if (startDate.isAfter(lane.lastEnd, 'day')) {
+        lane.records.push({ record, colorIndex: idx })
+        lane.lastEnd = effectiveEnd
+        placed = true
+        break
+      }
+    }
+
+    // No existing lane fits — create a new one
+    if (!placed) {
+      lanes.push({
+        records: [{ record, colorIndex: idx }],
+        lastEnd: effectiveEnd,
+      })
+    }
+  })
+
+  return lanes.map((lane) => lane.records)
+})
+
 // Parse date from row for a given column
 const parseDate = (row: RowType, col: ColumnType | undefined | null) => {
   if (!col?.title) return null
@@ -408,23 +447,24 @@ const todayPosition = computed(() => {
             :style="{
               left: `${idx * colWidth}px`,
               width: `${colWidth}px`,
-              height: `${Math.max(visibleRecords.length * ROW_HEIGHT, 400)}px`,
+              height: `${Math.max(swimlanes.length * ROW_HEIGHT, 400)}px`,
             }"
           />
 
-          <!-- Row bands + bars -->
+          <!-- Swimlane rows: each lane is a row containing non-overlapping bars -->
           <div
-            v-for="(record, rowIdx) in visibleRecords"
-            :key="rowIdx"
+            v-for="(lane, laneIdx) in swimlanes"
+            :key="laneIdx"
             class="relative border-b border-gray-50"
             :style="{ height: `${ROW_HEIGHT}px` }"
           >
             <!-- Hover background -->
             <div class="absolute inset-0 hover:bg-blue-50/30 transition-colors" />
 
-            <!-- Bar with resize handles -->
+            <!-- Bars in this lane -->
             <NcTooltip
-              v-if="getBarStyle(record)"
+              v-for="{ record, colorIndex } in lane"
+              :key="colorIndex"
               :disabled="resizeInProgress"
               placement="top"
               class="absolute top-1"
@@ -442,9 +482,9 @@ const todayPosition = computed(() => {
                 }"
                 :style="{
                   height: `${ROW_HEIGHT - 8}px`,
-                  backgroundColor: getBarColor(rowIdx).bg,
-                  borderLeft: `3px solid ${getBarColor(rowIdx).border}`,
-                  color: getBarColor(rowIdx).text,
+                  backgroundColor: getBarColor(colorIndex).bg,
+                  borderLeft: `3px solid ${getBarColor(colorIndex).border}`,
+                  color: getBarColor(colorIndex).text,
                 }"
                 @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
               >
@@ -485,7 +525,7 @@ const todayPosition = computed(() => {
 
           <!-- Empty state grid filler -->
           <div
-            v-if="!visibleRecords.length"
+            v-if="!swimlanes.length"
             class="flex items-center justify-center text-gray-400 text-sm"
             :style="{ height: '200px' }"
           >

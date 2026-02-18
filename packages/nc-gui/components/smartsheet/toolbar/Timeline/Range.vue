@@ -226,7 +226,7 @@ const onToggleWeekends = (val: boolean) => {
         <!-- #6: Hide weekends toggle -->
         <div class="flex items-center justify-between">
           <span class="text-nc-content-gray text-sm">
-            {{ $t('activity.showWeekends') || 'Show weekends' }}
+            {{ $t('activity.showWeekends') }}
           </span>
           <NcSwitch
             :checked="!hideWeekends"
@@ -240,7 +240,7 @@ const onToggleWeekends = (val: boolean) => {
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
           <GeneralIcon icon="warning" class="text-sm mt-0.5 text-nc-content-orange-medium" />
           <span class="text-sm text-nc-content-gray-muted">
-            {{ $t('msg.dateFieldRequired') || 'Date field is required!' }}
+            {{ $t('msg.dateFieldRequired') }}
           </span>
         </div>
 

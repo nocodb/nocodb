@@ -477,8 +477,8 @@ const recordCountLabel = computed(() => {
       <template v-else>
         <div class="flex-1 flex w-full items-center justify-center text-nc-content-gray-muted min-h-0 flex-col gap-2">
           <GeneralIcon icon="warning" class="text-2xl text-nc-content-orange-medium" />
-          <span class="text-sm">{{ $t('activity.noRange') || 'No date range configured' }}</span>
-          <span class="text-xs text-nc-content-gray-subtle">{{ t('msg.configureTimelineRange') || 'Set up a date range in Settings to get started.' }}</span>
+          <span class="text-sm">{{ $t('activity.noTimelineRange') }}</span>
+          <span class="text-xs text-nc-content-gray-subtle">{{ $t('msg.configureTimelineRange') }}</span>
         </div>
       </template>
     </div>

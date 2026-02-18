@@ -178,6 +178,224 @@ export const interceptMap: {
       'search_path',
     ],
   },
+  // --- pg_catalog views with text schema columns (Step 3) ---
+  {
+    table_name: 'pg_stats',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stats_ext',
+    column_name: 'schema_name',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stats_ext_exprs',
+    column_name: 'schema_name',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_matviews',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_views',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_rules',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stat_user_functions',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stat_all_functions',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stat_xact_user_functions',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stat_sys_tables',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_stat_sys_indexes',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_statio_sys_tables',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_statio_sys_indexes',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'pg_statio_sys_sequences',
+    column_name: 'schemaname',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  // --- information_schema views (Step 3) ---
+  {
+    table_name: 'tables',
+    column_name: 'table_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'columns',
+    column_name: 'table_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'views',
+    column_name: 'table_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'routines',
+    column_name: 'routine_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'parameters',
+    column_name: 'specific_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'table_constraints',
+    column_name: 'constraint_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'key_column_usage',
+    column_name: 'constraint_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'referential_constraints',
+    column_name: 'constraint_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'check_constraints',
+    column_name: 'constraint_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'constraint_column_usage',
+    column_name: 'table_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'constraint_table_usage',
+    column_name: 'table_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'table_privileges',
+    column_name: 'table_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'column_privileges',
+    column_name: 'table_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'role_table_grants',
+    column_name: 'table_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'role_column_grants',
+    column_name: 'table_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'triggers',
+    column_name: 'trigger_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'sequences',
+    column_name: 'sequence_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'routine_privileges',
+    column_name: 'specific_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'usage_privileges',
+    column_name: 'object_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'view_column_usage',
+    column_name: 'table_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'view_table_usage',
+    column_name: 'table_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
+  {
+    table_name: 'domains',
+    column_name: 'domain_schema',
+    type: 'in',
+    sessionValue: 'availableSchemas',
+  },
 ];
 
 // Blocked query patterns — these statements are never allowed through the proxy
@@ -284,17 +502,6 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
     pattern: /\binet_server_(addr|port)\s*\(/i,
     message: 'Server network information functions are not permitted',
   },
-  // Block timeout override — prevents disabling DoS protections
-  {
-    pattern:
-      /\bSET\s+(LOCAL\s+)?(statement_timeout|idle_in_transaction_session_timeout)\b/i,
-    message: 'Modifying timeout settings is not permitted',
-  },
-  {
-    pattern:
-      /\bRESET\s+(ALL|statement_timeout|idle_in_transaction_session_timeout)\b/i,
-    message: 'Resetting timeout settings is not permitted',
-  },
   // Block XML mapping functions — execute arbitrary inner SQL, bypassing all AST filtering (critical tenant isolation bypass)
   {
     pattern: /\b(query|table|cursor|schema|database)_to_xml\w*\s*\(/i,
@@ -319,6 +526,104 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
   {
     pattern: /\bpg_(cancel|terminate)_backend\s*\(/i,
     message: 'Backend termination functions are not permitted',
+  },
+  // Block server-wide stat views — leak all database names, server stats, replication info
+  {
+    pattern:
+      /\bpg_stat_(database\w*|bgwriter|wal\w*|archiver|ssl|replication\w*|subscription\w*)\b/i,
+    message: 'Server-wide statistics views are not permitted',
+  },
+  // Block shared catalog tables — leak role membership, settings, shared descriptions
+  {
+    pattern: /\bpg_(auth_members|db_role_setting|shdescription)\b/i,
+    message: 'Access to shared catalog tables is not permitted',
+  },
+  // Block server-level catalog tables — leak installed extensions, languages, tablespaces
+  {
+    pattern: /\bpg_(extension|language|tablespace)\b/i,
+    message: 'Access to server-level catalog tables is not permitted',
+  },
+  // Block infrastructure timing functions — leak server uptime and config reload times
+  {
+    pattern: /\bpg_(postmaster_start_time|conf_load_time)\s*\(/i,
+    message: 'Server timing functions are not permitted',
+  },
+  // Block client network info functions — leak network topology
+  {
+    pattern: /\binet_client_(addr|port)\s*\(/i,
+    message: 'Client network information functions are not permitted',
+  },
+  // Block pg_backend_pid — leaks backend process IDs
+  {
+    pattern: /\bpg_backend_pid\s*\(/i,
+    message: 'pg_backend_pid is not permitted',
+  },
+  // Block pg_is_in_recovery — leaks HA topology (primary vs standby)
+  {
+    pattern: /\bpg_is_in_recovery\s*\(/i,
+    message: 'pg_is_in_recovery is not permitted',
+  },
+  // Block pg_relation_filenode — leaks physical storage layout
+  {
+    pattern: /\bpg_relation_filenode\s*\(/i,
+    message: 'pg_relation_filenode is not permitted',
+  },
+  // Block file system functions — arbitrary file read/listing on the server
+  {
+    pattern:
+      /\bpg_(ls_dir|read_file|read_binary_file|stat_file|ls_logdir|ls_waldir|ls_tmpdir|ls_archive_statusdir)\s*\(/i,
+    message: 'File system functions are not permitted',
+  },
+  // Block pg_authid — contains password hashes (defense-in-depth)
+  {
+    pattern: /\bpg_authid\b/i,
+    message: 'Access to pg_authid is not permitted',
+  },
+  // Block pg_subscription — may contain replication connection strings
+  {
+    pattern: /\bpg_subscription\b/i,
+    message: 'Access to pg_subscription is not permitted',
+  },
+  // Block direct large object table access (pg_largeobject and pg_largeobject_metadata)
+  {
+    pattern: /\bpg_largeobject(_metadata)?\b/i,
+    message: 'Access to pg_largeobject is not permitted',
+  },
+  // Block foreign data wrappers — leak external server connection info
+  {
+    pattern: /\bpg_(foreign_server|foreign_data_wrapper|user_mapping)\b/i,
+    message: 'Access to foreign data wrapper catalogs is not permitted',
+  },
+  // Block server-wide object catalogs
+  {
+    pattern: /\bpg_(event_trigger|seclabel|shseclabel|init_privs)\b/i,
+    message: 'Access to server-wide object catalogs is not permitted',
+  },
+  // Block OID resolution functions — leak cross-tenant object names
+  {
+    pattern:
+      /\bpg_(get_userbyid|describe_object|identify_object_as_address|filenode_relation)\s*\(/i,
+    message: 'OID resolution functions are not permitted',
+  },
+  // Block low-level stat functions — bypass view-level schema filtering
+  {
+    pattern: /\bpg_stat_get_\w+\s*\(/i,
+    message: 'Low-level statistics functions are not permitted',
+  },
+  // Block pg_stat_gssapi and pg_stat_progress views
+  {
+    pattern: /\bpg_stat_(gssapi|progress_\w+)\b/i,
+    message: 'Access to server-wide statistics views is not permitted',
+  },
+  // Block aclexplode — leaks role OIDs and privilege details
+  {
+    pattern: /\baclexplode\s*\(/i,
+    message: 'aclexplode is not permitted',
+  },
+  // Block server/tablespace size functions — leak infrastructure info
+  {
+    pattern: /\bpg_(database_size|tablespace_size)\s*\(/i,
+    message: 'Server size functions are not permitted',
   },
 ];
 
@@ -386,7 +691,45 @@ export const catalogNamespaceFilters: {
   { table_name: 'pg_trigger', column_name: 'tgrelid', mode: 'nested' },
   // pg_rewrite.ev_class → pg_class.oid (nested)
   { table_name: 'pg_rewrite', column_name: 'ev_class', mode: 'nested' },
+  // pg_proc.pronamespace → pg_namespace.oid (direct)
+  { table_name: 'pg_proc', column_name: 'pronamespace', mode: 'direct' },
+  // pg_statistic.starelid → pg_class.oid (nested)
+  { table_name: 'pg_statistic', column_name: 'starelid', mode: 'nested' },
+  // pg_statistic_ext.stxrelid → pg_class.oid (nested)
+  {
+    table_name: 'pg_statistic_ext',
+    column_name: 'stxrelid',
+    mode: 'nested',
+  },
+  // pg_policy.polrelid → pg_class.oid (nested)
+  { table_name: 'pg_policy', column_name: 'polrelid', mode: 'nested' },
+  // pg_default_acl.defaclnamespace → pg_namespace.oid (direct)
+  {
+    table_name: 'pg_default_acl',
+    column_name: 'defaclnamespace',
+    mode: 'direct',
+  },
+  // pg_sequence.seqrelid → pg_class.oid (nested)
+  { table_name: 'pg_sequence', column_name: 'seqrelid', mode: 'nested' },
 ];
+
+// Settings allowed through SET/RESET commands (whitelist approach)
+export const allowedSetSettings = new Set([
+  'datestyle',
+  'timezone',
+  'intervalstyle',
+  'client_encoding',
+  'bytea_output',
+  'application_name',
+  'extra_float_digits',
+  'lc_messages',
+  'lc_monetary',
+  'lc_numeric',
+  'lc_time',
+  'standard_conforming_strings',
+  'xmloption',
+  'search_path',
+]);
 
 // Settings allowed through SHOW and pg_settings (same whitelist for consistency)
 export const allowedShowSettings = new Set([
@@ -421,13 +764,7 @@ export const allowedShowSettings = new Set([
  * Dangerous non-parseable commands (COPY, VACUUM, etc.) are caught by
  * blockedQueryPatterns before parsing is attempted.
  */
-export const allowedNonParseablePatterns: RegExp[] = [
-  /^\s*EXPLAIN\b/i,
-  /^\s*RESET\s+\w+/i,
-  // SET with comma-separated values or SET TRANSACTION are not parsed by node-sql-parser.
-  // Dangerous SET variants (statement_timeout, etc.) are already caught by blockedQueryPatterns.
-  /^\s*SET\b/i,
-];
+export const allowedNonParseablePatterns: RegExp[] = [/^\s*EXPLAIN\b/i];
 
 /**
  * Build a subquery AST node for filtering by namespace OID.
@@ -777,6 +1114,43 @@ export async function interceptQueryIfNeeded(
     }
     // Allowed SHOW — pass through without modification
     return;
+  }
+
+  // Handle SET commands via whitelist (before AST parsing — parser can't handle all SET variants)
+  const setMatch = normalizedQueryText.match(
+    /^\s*SET\s+(?:LOCAL\s+)?(?:SESSION\s+)?(\w+)\s*(?:=|TO)\s*/i,
+  );
+  if (setMatch) {
+    const setting = setMatch[1].toLowerCase();
+    if (!allowedSetSettings.has(setting)) {
+      throw new QueryBlockedError(`SET ${setMatch[1]} is not permitted`);
+    }
+    return; // Allowed SET — pass through
+  }
+
+  // Handle SET TRANSACTION separately (no setting name, different syntax)
+  const setTxnMatch = normalizedQueryText.match(/^\s*SET\s+TRANSACTION\b(.*)/i);
+  if (setTxnMatch) {
+    const txnBody = setTxnMatch[1];
+    if (/\bREAD\s+WRITE\b/i.test(txnBody)) {
+      throw new QueryBlockedError(
+        'SET TRANSACTION READ WRITE is not permitted',
+      );
+    }
+    return; // Allow READ ONLY and isolation levels
+  }
+
+  // Handle RESET commands via same whitelist as SET
+  const resetMatch = normalizedQueryText.match(/^\s*RESET\s+(\w+)\s*;?\s*$/i);
+  if (resetMatch) {
+    const setting = resetMatch[1].toLowerCase();
+    if (setting === 'all') {
+      throw new QueryBlockedError('RESET ALL is not permitted');
+    }
+    if (!allowedSetSettings.has(setting)) {
+      throw new QueryBlockedError(`RESET ${resetMatch[1]} is not permitted`);
+    }
+    return; // Allowed RESET — pass through
   }
 
   // Rewrite session-level identifiers to return the session values.

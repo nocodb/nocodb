@@ -41,7 +41,7 @@ export const ColourCellRenderer: CellRenderer = {
     // Parse and validate the color value
     const colorValue = value ? String(value).trim() : null
     const isValidColor = colorValue && /^#[0-9A-Fa-f]{6}$/.test(colorValue)
-    const displayColor = isValidColor ? colorValue : columnMeta.color || '#3366FF'
+    const displayColor = isValidColor ? colorValue : columnMeta.defaultColor || '#3366FF'
 
     // Don't render anything if no value and not hovered/selected
     if (!colorValue && !isRowHovered && !selected && !renderAsTag) {

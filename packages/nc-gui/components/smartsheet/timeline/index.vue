@@ -534,7 +534,10 @@ const recordCountLabel = computed(() => {
 
 .nc-timeline-mode-select {
   :deep(.ant-select-selector) {
-    @apply !h-7 !px-3;
+    @apply !h-7 !px-3 !flex !items-center;
+  }
+  :deep(.ant-select-selection-item) {
+    @apply !text-[13px] !flex !items-center;
   }
 }
 </style>

@@ -43,20 +43,19 @@ const _depth = props.depth ?? 0
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
-// Expanded groups tracker — all groups expanded by default (like Airtable)
-const expandedGroups = ref<Set<string>>(new Set())
+// Expanded groups tracker — plain object for reliable Vue reactivity
+const expandedGroups = ref<Record<string, boolean>>({})
 // Track keys we've already processed so we don't re-expand manually collapsed groups
 const seenKeys = new Set<string>()
 
-const isExpanded = (key: string) => expandedGroups.value.has(key)
+const isExpanded = (key: string) => !!expandedGroups.value[key]
 
 const toggleGroup = async (grp: any) => {
   const key = String(grp.key)
-  const newSet = new Set(expandedGroups.value)
-  if (newSet.has(key)) {
-    newSet.delete(key)
+  if (expandedGroups.value[key]) {
+    expandedGroups.value = { ...expandedGroups.value, [key]: false }
   } else {
-    newSet.add(key)
+    expandedGroups.value = { ...expandedGroups.value, [key]: true }
     // Load data on expand if not yet loaded
     if (grp.nested) {
       if (!grp.children?.[0]?.children?.length) {
@@ -68,7 +67,6 @@ const toggleGroup = async (grp: any) => {
       }
     }
   }
-  expandedGroups.value = newSet
 }
 
 // Auto-expand all groups and load data when children become available
@@ -77,13 +75,13 @@ watch(
   (children) => {
     if (!children) return
     let changed = false
-    const newSet = new Set(expandedGroups.value)
+    const updates: Record<string, boolean> = {}
     for (const grp of children) {
       const key = String(grp.key)
       // Only auto-expand groups we haven't seen before
       if (!seenKeys.has(key)) {
         seenKeys.add(key)
-        newSet.add(key)
+        updates[key] = true
         changed = true
         // Load data for leaf groups
         if (!grp.nested && !grp.rows?.length) {
@@ -96,7 +94,7 @@ watch(
       }
     }
     if (changed) {
-      expandedGroups.value = newSet
+      expandedGroups.value = { ...expandedGroups.value, ...updates }
     }
   },
   { immediate: true },
@@ -139,17 +137,17 @@ onMounted(async () => {
           class="nc-timeline-group-label border-b border-r border-nc-border-gray-medium px-3 py-2 bg-nc-bg-default cursor-pointer select-none hover:bg-nc-bg-gray-extralight transition-colors"
           @click="toggleGroup(grp)"
         >
-          <div class="flex items-center gap-1.5">
+          <div class="flex items-center gap-1.5 w-full">
             <GeneralIcon
               icon="chevronDown"
               class="flex-shrink-0 text-nc-content-gray-muted transition-transform"
               :class="{ '-rotate-90': !isExpanded(String(grp.key)) }"
             />
 
-            <div class="flex flex-col min-w-0 gap-1">
+            <div class="flex items-center min-w-0 flex-1 gap-2">
               <!-- Group value rendering -->
               <template v-if="grp.column?.uidt === 'MultiSelect'">
-                <div class="flex flex-wrap gap-1">
+                <div class="flex flex-wrap gap-1 min-w-0">
                   <a-tag
                     v-for="[tagIndex, tag] of Object.entries(grp.key.split(','))"
                     :key="`tag-${grp.column.id}-${tag}`"
@@ -214,9 +212,9 @@ onMounted(async () => {
                 </span>
               </a-tag>
 
-              <!-- Record count -->
-              <span class="text-[11px] text-nc-content-gray-muted leading-tight">
-                {{ grp.count }} record{{ grp.count !== 1 ? 's' : '' }}
+              <!-- Record count — right-aligned -->
+              <span class="text-[11px] text-nc-content-gray-muted ml-auto flex-shrink-0">
+                {{ grp.count }}
               </span>
             </div>
           </div>

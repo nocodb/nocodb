@@ -5,9 +5,11 @@ import type {
   ViewSectionType,
   ViewSectionUpdateReqType,
 } from 'nocodb-sdk';
+import { PlanFeatureTypes } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Model, ViewSection } from '~/models';
 import { NcError } from '~/helpers/catchError';
+import { checkForFeature } from '~/helpers/paymentHelpers';
 import { AppHooksService } from '~/ee/services/app-hooks/app-hooks.service';
 
 @Injectable()
@@ -24,6 +26,8 @@ export class ViewSectionsService {
     body: ViewSectionCreateReqType,
     req: NcRequest,
   ): Promise<ViewSectionType> {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_VIEW_SECTIONS);
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -73,6 +77,8 @@ export class ViewSectionsService {
     body: ViewSectionUpdateReqType,
     req: NcRequest,
   ): Promise<ViewSectionType> {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_VIEW_SECTIONS);
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }
@@ -140,6 +146,8 @@ export class ViewSectionsService {
     sectionId: string,
     req: NcRequest,
   ): Promise<boolean> {
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_VIEW_SECTIONS);
+
     if (context.schema_locked) {
       NcError.get(context).schemaLocked();
     }

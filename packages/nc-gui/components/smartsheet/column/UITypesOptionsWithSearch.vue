@@ -12,7 +12,7 @@ const { options } = toRefs(props)
 
 const { isMetaReadOnly } = useRoles()
 
-const { showUpgradeToUseAiPromptField, showUpgradeToUseAiButtonField } = useEeConfig()
+const { showUpgradeToUseAiPromptField, showUpgradeToUseAiButtonField, showUpgradeToUseUuidField } = useEeConfig()
 
 const searchQuery = ref('')
 
@@ -50,6 +50,11 @@ const onClick = (uidt: UITypes) => {
   }
 
   if (uidt === AIButton && showUpgradeToUseAiButtonField()) {
+    return
+  }
+
+  // EE-only: gate UUID field type behind plan feature flag
+  if (uidt === UITypes.UUID && showUpgradeToUseUuidField()) {
     return
   }
 

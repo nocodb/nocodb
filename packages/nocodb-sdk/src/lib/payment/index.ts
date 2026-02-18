@@ -71,6 +71,8 @@ export enum PlanFeatureTypes {
   FEATURE_CARD_FIELD_HEADER_VISIBILITY = 'feature_card_field_header_visibility',
   FEATURE_SYNC = 'feature_sync',
   FEATURE_UNIQUE = 'feature_unique',
+  // EE-only UUID field type — gated by plan feature flag
+  FEATURE_UUID_FIELD = 'feature_uuid_field',
 }
 
 export enum PlanTitles {
@@ -289,6 +291,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to hide field headers in Gallery and Kanban views.',
   [PlanFeatureTypes.FEATURE_SYNC]: 'to use sync feature.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
+  [PlanFeatureTypes.FEATURE_UUID_FIELD]: 'to use UUID fields.',
 };
 
 export const getUpgradeMessage = (

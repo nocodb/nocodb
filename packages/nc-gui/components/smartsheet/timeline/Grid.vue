@@ -199,6 +199,42 @@ onBeforeUnmount(() => {
 
 // --- Helpers ---
 
+// Check if a record has a visible bar within the current date range
+const isRecordVisible = (row: RowType) => {
+  const range = props.timelineRange[0]
+  if (!range) return false
+
+  const startDate = parseDate(row, range.fk_from_col)
+  const endDate = range.fk_to_col ? parseDate(row, range.fk_to_col) : startDate
+
+  if (!startDate) return false
+
+  const effectiveEnd = endDate || startDate
+  const firstVisibleDate = props.visibleDates[0]
+  const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
+
+  if (!firstVisibleDate || !lastVisibleDate) return false
+
+  return !effectiveEnd.isBefore(firstVisibleDate, 'day') && !startDate.isAfter(lastVisibleDate, 'day')
+}
+
+// Filtered + sorted records: only visible bars, ordered by start date
+const visibleRecords = computed(() => {
+  const range = props.timelineRange[0]
+  if (!range) return []
+
+  return props.records
+    .filter((record) => isRecordVisible(record))
+    .sort((a, b) => {
+      const aStart = parseDate(a, range.fk_from_col)
+      const bStart = parseDate(b, range.fk_from_col)
+      if (!aStart && !bStart) return 0
+      if (!aStart) return 1
+      if (!bStart) return -1
+      return aStart.valueOf() - bStart.valueOf()
+    })
+})
+
 // Parse date from row for a given column
 const parseDate = (row: RowType, col: ColumnType | undefined | null) => {
   if (!col?.title) return null
@@ -372,13 +408,13 @@ const todayPosition = computed(() => {
             :style="{
               left: `${idx * colWidth}px`,
               width: `${colWidth}px`,
-              height: `${Math.max(records.length * ROW_HEIGHT, 400)}px`,
+              height: `${Math.max(visibleRecords.length * ROW_HEIGHT, 400)}px`,
             }"
           />
 
           <!-- Row bands + bars -->
           <div
-            v-for="(record, rowIdx) in records"
+            v-for="(record, rowIdx) in visibleRecords"
             :key="rowIdx"
             class="relative border-b border-gray-50"
             :style="{ height: `${ROW_HEIGHT}px` }"
@@ -449,7 +485,7 @@ const todayPosition = computed(() => {
 
           <!-- Empty state grid filler -->
           <div
-            v-if="!records.length"
+            v-if="!visibleRecords.length"
             class="flex items-center justify-center text-gray-400 text-sm"
             :style="{ height: '200px' }"
           >

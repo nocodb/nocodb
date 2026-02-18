@@ -104,6 +104,7 @@ const permissionScopes = {
     'baseUserMetaUpdate',
     'galleryViewGet',
     'kanbanViewGet',
+    'timelineViewGet',
     'gridViewUpdate',
     'formViewUpdate',
     'formColumnUpdate',
@@ -111,6 +112,7 @@ const permissionScopes = {
     'kanbanViewUpdate',
     'mapViewUpdate',
     'calendarViewUpdate',
+    'timelineViewUpdate',
     'calendarViewGet',
     'groupedDataList',
     'mmList',
@@ -250,6 +252,7 @@ const rolePermissions:
 
       galleryViewGet: true,
       kanbanViewGet: true,
+      timelineViewGet: true,
       groupedDataList: true,
       calendarViewGet: true,
 
@@ -682,6 +685,7 @@ const permissionDescriptions: Record<string, string> = {
   galleryViewGet: 'view gallery',
   kanbanViewGet: 'view Kanban board',
   calendarViewGet: 'view calendar',
+  timelineViewGet: 'view timeline',
   gridViewUpdate: 'update grid view',
   formViewUpdate: 'update form view',
   formColumnUpdate: 'update form columns',

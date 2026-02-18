@@ -9,7 +9,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { ViewCreateReqType } from 'nocodb-sdk';
+import { ViewCreateReqType, TimelineUpdateReqType } from 'nocodb-sdk';
 import { GlobalGuard } from '~/guards/global/global.guard';
 import { TimelinesService } from '~/services/timelines.service';
 import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
@@ -64,7 +64,7 @@ export class TimelinesController {
   async timelineViewUpdate(
     @TenantContext() context: NcContext,
     @Param('timelineViewId') timelineViewId: string,
-    @Body() body,
+    @Body() body: TimelineUpdateReqType,
     @Req() req: NcRequest,
   ) {
     return await this.timelinesService.timelineViewUpdate(context, {

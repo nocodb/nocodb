@@ -39,33 +39,37 @@ export default class TimelineRange implements TimelineRangeType {
 
     if (!ranges.length) return false;
 
-    const insertObj = ranges[0];
+    // Clear existing cache for this view before inserting
+    const fkViewId = ranges[0].fk_view_id;
+    if (fkViewId) {
+      await NocoCache.deepDel(
+        context,
+        `${CacheScope.TIMELINE_VIEW_RANGE}:${fkViewId}:list`,
+        CacheDelDirection.PARENT_TO_CHILD,
+      );
+    }
 
-    const insertData = await ncMeta.metaInsert2(
-      context.workspace_id,
-      context.base_id,
-      MetaTable.TIMELINE_VIEW_RANGE,
-      insertObj,
-    );
+    for (const insertObj of ranges) {
+      const insertData = await ncMeta.metaInsert2(
+        context.workspace_id,
+        context.base_id,
+        MetaTable.TIMELINE_VIEW_RANGE,
+        insertObj,
+      );
 
-    await NocoCache.deepDel(
-      context,
-      `${CacheScope.TIMELINE_VIEW_RANGE}:${insertData.fk_view_id}:list`,
-      CacheDelDirection.PARENT_TO_CHILD,
-    );
+      await NocoCache.set(
+        context,
+        `${CacheScope.TIMELINE_VIEW_RANGE}:${insertData.id}`,
+        insertData,
+      );
 
-    await NocoCache.set(
-      context,
-      `${CacheScope.TIMELINE_VIEW_RANGE}:${insertData.id}`,
-      insertData,
-    );
-
-    await NocoCache.appendToList(
-      context,
-      CacheScope.TIMELINE_VIEW_RANGE,
-      [insertData.fk_view_id],
-      `${CacheScope.TIMELINE_VIEW_RANGE}:${insertData.id}`,
-    );
+      await NocoCache.appendToList(
+        context,
+        CacheScope.TIMELINE_VIEW_RANGE,
+        [insertData.fk_view_id],
+        `${CacheScope.TIMELINE_VIEW_RANGE}:${insertData.id}`,
+      );
+    }
 
     return true;
   }

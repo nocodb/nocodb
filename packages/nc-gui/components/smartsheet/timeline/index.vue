@@ -179,6 +179,13 @@ const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
 
 // #7: Date picker dropdown
 const datePickerVisible = ref(false)
+const pageDate = ref(dayjs())
+
+// Keep pageDate in sync with currentDate when navigating
+watch(currentDate, (val) => {
+  pageDate.value = val
+})
+
 const onDatePickerSelect = (date: dayjs.Dayjs) => {
   goToDate(date)
   datePickerVisible.value = false
@@ -239,9 +246,10 @@ const recordCountLabel = computed(() => {
             </div>
           </NcButton>
           <template #overlay>
-            <div class="p-2" @click.stop>
+            <div v-if="datePickerVisible" class="w-[287px] pb-2" @click.stop>
               <NcDateWeekSelector
                 v-if="zoomLevel === 'week'"
+                v-model:page-date="pageDate"
                 :selected-date="currentDate"
                 is-week-picker
                 header="v2"
@@ -250,6 +258,7 @@ const recordCountLabel = computed(() => {
               />
               <NcDateWeekSelector
                 v-else-if="zoomLevel === 'day'"
+                v-model:page-date="pageDate"
                 :selected-date="currentDate"
                 header="v2"
                 size="medium"
@@ -257,6 +266,7 @@ const recordCountLabel = computed(() => {
               />
               <NcMonthYearSelector
                 v-else
+                v-model:page-date="pageDate"
                 :selected-date="currentDate"
                 header="v2"
                 size="medium"
@@ -376,6 +386,9 @@ const recordCountLabel = computed(() => {
 
         <!-- Timeline Settings (#5: using timeline icon instead of calendar) -->
         <SmartsheetToolbarTimelineRange />
+
+        <!-- Actions menu (three-dot) -->
+        <SmartsheetToolbarOpenedViewAction />
       </div>
 
       <!-- Timeline content -->

@@ -60,7 +60,7 @@ test.describe.serial('Test table', () => {
     const xcdb = await createXcdb(context);
     await dashboard.rootPage.waitForTimeout(650);
 
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     // wait for auto navigate to project completion
     await dashboard.rootPage.waitForTimeout(2000);
@@ -221,7 +221,7 @@ test.describe.serial('Test table', () => {
     }
 
     // refresh page
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     // wait for auto navigate to project completion
     await dashboard.rootPage.waitForTimeout(2000);

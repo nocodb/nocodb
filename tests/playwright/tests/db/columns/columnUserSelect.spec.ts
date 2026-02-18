@@ -80,7 +80,7 @@ test.describe('User single select', () => {
         Title: `Row 0`,
       },
     ]);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {
@@ -130,7 +130,7 @@ test.describe('User single select', () => {
     });
 
     // reload page
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await grid.column.verify({ title: 'UserField', isVisible: true });
 
@@ -326,7 +326,7 @@ test.describe('User single select - filter, sort & GroupBy', () => {
       { Id: 4, Title: `3` },
       { Id: 5, Title: `4` },
     ]);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     for (let i = 0; i <= 4; i++) {
       await grid.cell.userOption.select({ index: i, columnHeader: 'User', option: users[i], multiSelect: false });
@@ -583,7 +583,7 @@ test.describe('User multiple select', () => {
     }
 
     // reload page
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     counter = 1;
     for (let i = 0; i <= 4; i++) {

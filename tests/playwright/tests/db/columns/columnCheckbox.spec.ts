@@ -87,7 +87,7 @@ test.describe('Checkbox - cell, filter, sort', () => {
     }
 
     // page reload
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
   });
 
   test.afterEach(async () => {

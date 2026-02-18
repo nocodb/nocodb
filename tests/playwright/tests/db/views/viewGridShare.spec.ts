@@ -33,7 +33,7 @@ test.describe('Shared view', () => {
     await page.goto(sharedLink);
 
     // fix me! kludge@hub; page wasn't getting loaded from previous step
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     const sharedPage = new DashboardPage(page, context.base);
     await sharedPage.grid.groupPage.openGroup({ indexMap: [0] });
 
@@ -46,7 +46,7 @@ test.describe('Shared view', () => {
 
     // Goto dashboard and Create Filter and verify shared view
     await dashboard.goto();
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
@@ -62,7 +62,7 @@ test.describe('Shared view', () => {
     await page.waitForTimeout(2000);
 
     await page.goto(sharedLink);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     await sharedPage.grid.groupPage.openGroup({ indexMap: [0] });
     await sharedPage.grid.groupPage.validateFirstRow({
@@ -75,7 +75,7 @@ test.describe('Shared view', () => {
     // Goto dashboard and Update Group, Remove Filter and verify shared view
 
     await dashboard.goto();
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     await dashboard.treeView.openTable({ title: 'Film', baseTitle: context.base.title });
 
@@ -91,7 +91,7 @@ test.describe('Shared view', () => {
     await page.waitForTimeout(2000);
 
     await page.goto(sharedLink);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     await sharedPage.grid.groupPage.openGroup({ indexMap: [0] });
     await sharedPage.grid.groupPage.validateFirstRow({
@@ -102,7 +102,7 @@ test.describe('Shared view', () => {
     });
 
     await dashboard.goto();
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     // kludge: wait for 3 seconds to avoid flaky test
     await page.waitForTimeout(5000);
 
@@ -114,7 +114,7 @@ test.describe('Shared view', () => {
     await page.waitForTimeout(2000);
 
     await page.goto(sharedLink);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     // kludge: wait for 3 seconds to avoid flaky test
     await page.waitForTimeout(5000);
 
@@ -173,7 +173,7 @@ test.describe('Shared view', () => {
 
     await page.goto(sharedLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
     const sharedPage = new DashboardPage(page, context.base);
 
     const expectedColumns = [
@@ -281,7 +281,7 @@ test.describe('Shared view', () => {
     await dashboard.signOut();
 
     await page.goto(sharedLink);
-    await page.reload();
+    await page.reload({ waitUntil: 'networkidle' });
 
     // verify if password request modal exists
     const sharedPage2 = new DashboardPage(page, context.base);

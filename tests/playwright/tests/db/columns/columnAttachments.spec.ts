@@ -53,7 +53,7 @@ test.describe('Attachment column', () => {
     });
 
     // Kludge: tooltip somehow persists. fix me!
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
 
     await dashboard.viewSidebar.createFormView({
       title: 'Form 1',

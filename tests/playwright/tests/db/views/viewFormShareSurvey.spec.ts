@@ -41,7 +41,7 @@ test.describe('Share form', () => {
     await dashboard.rootPage.waitForTimeout(2000);
     await dashboard.rootPage.goto(surveyLink);
     // fix me! kludge@hub; page wasn't getting loaded from previous step
-    await dashboard.rootPage.reload();
+    await dashboard.rootPage.reload({ waitUntil: 'networkidle' });
     await dashboard.rootPage.waitForTimeout(2000);
 
     surveyForm = new SurveyFormPage(dashboard.rootPage);

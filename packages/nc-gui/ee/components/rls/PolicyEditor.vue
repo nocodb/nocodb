@@ -255,7 +255,7 @@ const showFilterSection = computed(() => {
       <!-- Policy Name -->
       <div class="flex flex-col gap-1">
         <label class="text-xs font-semibold text-nc-content-gray-subtle">Policy Name</label>
-        <a-input v-model:value="policyTitle" placeholder="Enter policy name" size="small" />
+        <a-input v-model:value="policyTitle" placeholder="Enter policy name" class="nc-input-sm nc-input-shadow" />
       </div>
 
       <!-- Enabled -->

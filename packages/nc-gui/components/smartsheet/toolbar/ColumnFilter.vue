@@ -640,6 +640,14 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
   await saveOrUpdate(filter, index)
 }
 
+const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
+  if (blockToggleFilter) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(filter, index)
+}
+
 const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
   const newEnabled = filter.enabled === false ? true : false
   $e('a:filter:toggle-enabled', { enabled: newEnabled, isGroup: !!filter.is_group })
@@ -1050,7 +1058,7 @@ defineExpose({
                       size="default"
                       :disabled="isLockedView || readOnly"
                       class="nc-filter-enabled-checkbox"
-                      @change="() => blockToggleFilter ? showUpgradeToUseToggleFilter() : onEnabledChange(filter, i)"
+                      @change="onToggleFilterChange(filter, i)"
                     />
                     <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{
                       $t('labels.where')
@@ -1134,7 +1142,7 @@ defineExpose({
               size="default"
               :disabled="isLockedView || readOnly"
               class="nc-filter-enabled-checkbox"
-              @change="() => blockToggleFilter ? showUpgradeToUseToggleFilter() : onEnabledChange(filter, i)"
+              @change="onToggleFilterChange(filter, i)"
             />
             <div
               class="flex flex-row gap-x-0 flex-1 nc-filter-wrapper"

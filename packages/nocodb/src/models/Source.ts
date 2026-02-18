@@ -31,6 +31,7 @@ import {
   isEncryptionRequired,
   partialExtract,
 } from '~/utils';
+import { DBQueryClient } from '~/dbQueryClient';
 import { NcCache } from '~/decorators/nc-cache.decorator';
 
 export default class Source implements SourceType {
@@ -396,6 +397,24 @@ export default class Source implements SourceType {
       !mergedConfig.searchPath?.length
     ) {
       mergedConfig = { ...mergedConfig, searchPath: undefined };
+    }
+
+    // Validate searchPath schemas to prevent SQL injection
+    if (mergedConfig.searchPath && mergedConfig.client) {
+      const searchPaths = Array.isArray(mergedConfig.searchPath)
+        ? mergedConfig.searchPath
+        : [mergedConfig.searchPath];
+
+      // Get the appropriate database client for validation
+      const dbQueryClient = DBQueryClient.get(mergedConfig.client);
+
+      for (const schema of searchPaths) {
+        try {
+          dbQueryClient.validateIdentifier(schema);
+        } catch (error) {
+          NcError.badRequest(`Invalid schema in searchPath: ${error.message}`);
+        }
+      }
     }
 
     return mergedConfig;

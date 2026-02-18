@@ -55,6 +55,38 @@ export abstract class GenericDBQueryClient implements DBQueryClient {
   abstract concat(fields: string[]): string;
   abstract simpleCast(field: string, asType: string): string;
 
+  /**
+   * Generic SQL identifier validation
+   * Database-specific implementations should override this for stricter rules
+   * @param identifier - The identifier to validate
+   * @throws {Error} if identifier contains dangerous characters
+   */
+  validateIdentifier(identifier: string): void {
+    if (!identifier || typeof identifier !== 'string') {
+      throw new Error('Identifier must be a non-empty string');
+    }
+
+    // Check for SQL injection patterns
+    const dangerousPattern =
+      /[;"'`]|--|\*|\/\*|\*\/|xp_|sp_|exec|execute|drop\s+table|drop\s+database/i;
+    if (dangerousPattern.test(identifier)) {
+      throw new Error(
+        `Invalid identifier: contains dangerous characters or SQL keywords`,
+      );
+    }
+  }
+
+  /**
+   * Generic identifier escaping
+   * Database-specific implementations should override this
+   * @param identifier - The identifier to escape
+   * @returns Escaped identifier
+   */
+  escapeIdentifier(identifier: string): string {
+    this.validateIdentifier(identifier);
+    return identifier;
+  }
+
   generateNestedRowSelectQuery(_param: any): Knex.Raw<any> {
     throw new Error('Not implemented');
   }

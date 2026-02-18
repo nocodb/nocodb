@@ -87,6 +87,7 @@ import formulaQueryBuilderv2 from '~/db/formulav2/formulaQueryBuilderv2';
 import { RelationManager } from '~/db/relation-manager';
 import sortV2 from '~/db/sortV2';
 import { customValidators } from '~/db/util/customValidators';
+import { validatePgIdentifier } from '~/dbQueryClient/pg';
 import { NcError, OptionsNotExistsError } from '~/helpers/catchError';
 import {
   _wherePk,
@@ -2306,6 +2307,9 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
   public getTnPath(tb: { table_name: string } | string, alias?: string) {
     const tn = typeof tb === 'string' ? tb : tb.table_name;
     if (this.isPg && this.schema) {
+      // Validate schema and table name to prevent SQL injection
+      validatePgIdentifier(this.schema);
+      validatePgIdentifier(tn);
       return `${this.schema}.${tn}${alias ? ` as ${alias}` : ``}`;
     } else if (this.isSnowflake) {
       return `${[

@@ -14,6 +14,7 @@ import {
 } from '~/db/sql-client/lib/pg/typeCast';
 import pgQueries from '~/db/sql-client/lib/pg/pg.queries';
 import deepClone from '~/helpers/deepClone';
+import { validatePgIdentifier } from '~/dbQueryClient/pg';
 
 const log = new Debug('PGClient');
 
@@ -2325,6 +2326,13 @@ class PGClient extends KnexClient {
     for (let i = 0; i < args.columns.length; i++) {
       const column = args.columns[i];
       if (column.au) {
+        // Validate all identifier components to prevent SQL injection
+        if (args.schema) {
+          validatePgIdentifier(args.schema);
+        }
+        validatePgIdentifier(args.tn);
+        validatePgIdentifier(column.cn);
+
         const triggerFnName = args.schema
           ? `xc_au_${args.schema}_${args.tn}_${column.cn}`
           : `xc_au_${args.tn}_${column.cn}`;
@@ -2384,6 +2392,13 @@ class PGClient extends KnexClient {
     for (let i = 0; i < args.columns.length; i++) {
       const column = args.columns[i];
       if (column.au && column.altered === 1) {
+        // Validate all identifier components to prevent SQL injection
+        if (args.schema) {
+          validatePgIdentifier(args.schema);
+        }
+        validatePgIdentifier(args.tn);
+        validatePgIdentifier(column.cn);
+
         const triggerFnName = args.schema
           ? `xc_au_${args.schema}_${args.tn}_${column.cn}`
           : `xc_au_${args.tn}_${column.cn}`;

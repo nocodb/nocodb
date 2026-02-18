@@ -37,6 +37,7 @@
     "integrations:build": "cd ./packages/noco-integrations/ && pnpm i && pnpm run build",
     "start:frontend": "pnpm --filter=nc-gui run dev",
     "start:backend": "pnpm --filter=nocodb run start",
+    "start:payment-dev": "bash ./scripts/setup-payment-dev.sh",
     "start:sql-executor": "pnpm --filter=nc-sql-executor run dev",
     "lint:staged:playwright": "cd ./tests/playwright; pnpm dlx lint-staged; cd -",
     "start:mysql": "docker-compose -f ./tests/playwright/scripts/docker-compose-mysql-playwright.yml up -d",

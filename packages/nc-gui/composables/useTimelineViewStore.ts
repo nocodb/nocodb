@@ -6,6 +6,10 @@ import { storeToRefs } from 'pinia'
 import type { Row } from '~/lib/types'
 import { NOCO } from '~/lib/constants'
 
+// Module-level cache to persist timeline navigation state across view switches.
+// Keyed by view ID so each timeline view remembers its own position.
+const _viewStateCache = new Map<string, { currentDate: string; zoomLevel: 'day' | 'week' | 'month' }>()
+
 const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
   (
     meta: Ref<TableType | undefined>,
@@ -40,6 +44,39 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     const currentDate = ref<dayjs.Dayjs>(dayjs())
 
     const selectedDate = ref<dayjs.Dayjs>(dayjs())
+
+    // Track the last timeline view ID we cached state for, so we can
+    // detect when the active view switches back to a timeline and restore.
+    let _lastCachedViewId: string | undefined
+
+    // Persist navigation state whenever currentDate or zoomLevel changes
+    watch([currentDate, zoomLevel], () => {
+      const viewId = viewMeta.value?.id
+      if (viewId) {
+        _viewStateCache.set(viewId, {
+          currentDate: currentDate.value.toISOString(),
+          zoomLevel: zoomLevel.value,
+        })
+        _lastCachedViewId = viewId
+      }
+    })
+
+    // When the active view changes (e.g., user switches back to timeline from grid),
+    // restore the cached navigation state for that view.
+    watch(
+      () => viewMeta.value?.id,
+      (newViewId) => {
+        if (!newViewId || newViewId === _lastCachedViewId) return
+        const cached = _viewStateCache.get(newViewId)
+        if (cached) {
+          currentDate.value = dayjs(cached.currentDate)
+          selectedDate.value = currentDate.value
+          zoomLevel.value = cached.zoomLevel
+          _lastCachedViewId = newViewId
+        }
+      },
+      { immediate: true },
+    )
 
     const formattedData = ref<Row[]>([])
 

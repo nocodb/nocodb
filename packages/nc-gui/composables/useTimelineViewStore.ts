@@ -29,6 +29,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
 
     const { sorts, nestedFilters } = useSmartsheetStoreOrThrow()
 
+    const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
+
     const isPublic = ref(shared)
 
     // Timeline state
@@ -160,6 +162,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           row,
           rowMeta: {
             range: timelineRange.value[0],
+            ...getEvaluatedRowMetaRowColorInfo(row),
           },
           oldRow: { ...row },
         }))

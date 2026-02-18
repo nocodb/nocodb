@@ -52,6 +52,11 @@ const fieldStyles = computed(() => {
   )
 })
 
+// Extract row color styles (from Colour toolbar config)
+const getRowColorStyle = (record: RowType) => {
+  return extractRowBackgroundColorStyle(record as any)
+}
+
 const today = dayjs()
 
 const ROW_HEIGHT = 36
@@ -458,9 +463,16 @@ const todayPosition = computed(() => {
                 :style="{
                   height: `${ROW_HEIGHT - 8}px`,
                   borderLeft: '3px solid var(--color-gray-900, #101015)',
+                  ...getRowColorStyle(record).rowBgColor,
                 }"
                 @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
               >
+                <!-- Left border color accent (from Colour config) -->
+                <div
+                  v-if="getRowColorStyle(record).rowLeftBorderColor?.backgroundColor"
+                  class="absolute left-0 top-0 bottom-0 w-[3px] rounded-l-md"
+                  :style="getRowColorStyle(record).rowLeftBorderColor"
+                />
                 <!-- Left resize handle (start date) -->
                 <div
                   v-if="canResize"

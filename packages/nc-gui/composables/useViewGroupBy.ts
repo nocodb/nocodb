@@ -37,6 +37,8 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
 
     const { gridViewCols } = useViewColumnsOrThrow()
 
+    const { getEvaluatedRowMetaRowColorInfo } = useViewRowColorRender()
+
     const { getMeta, getPartialMeta } = useMetas()
 
     const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
@@ -142,7 +144,9 @@ const [useProvideViewGroupBy, useViewGroupBy] = useInjectionState(
       list.map((row) => ({
         row: { ...row },
         oldRow: { ...row },
-        rowMeta: {},
+        rowMeta: {
+          ...getEvaluatedRowMetaRowColorInfo(row),
+        },
       }))
 
     const colors = ref(enumColor.light)

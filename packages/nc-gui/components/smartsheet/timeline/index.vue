@@ -269,6 +269,9 @@ const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
         <!-- Group By -->
         <SmartsheetToolbarGroupByMenu v-if="!isPublic" />
 
+        <!-- Colour -->
+        <SmartsheetToolbarRowColorFilterDropdown v-if="!isPublic" />
+
         <!-- Filter -->
         <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
 

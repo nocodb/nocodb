@@ -201,14 +201,14 @@ watch(isOpen, (open) => {
       :width="400"
       wrap-class-name="nc-colour-picker-modal"
     >
-      <div v-if="isOpen" class="p-2" @click.stop @mousedown.stop>
+      <div v-if="isOpen" class="px-2 pt-2 pb-0" @click.stop @mousedown.stop>
         <GeneralAdvanceColorPicker :model-value="tempColor || vModel" :is-open="isOpen" @input="onColorChange" />
       </div>
       <template #footer>
-        <div class="flex items-center gap-2" @click.stop @mousedown.stop>
-          <NcButton type="text" size="small" @click="onClose"> {{ $t('general.cancel') }} </NcButton>
+        <div class="flex items-center gap-2 pt-3" @click.stop @mousedown.stop>
+          <NcButton type="secondary" size="small" @click="onClose"> {{ $t('general.cancel') }} </NcButton>
           <div class="flex-1" />
-          <NcButton size="small" @click="onSave"> {{ $t('general.save') }} </NcButton>
+          <NcButton type="primary" size="small" @click="onSave"> {{ $t('general.save') }} </NcButton>
         </div>
       </template>
     </a-modal>

@@ -1,15 +1,14 @@
+// This migration has been moved to v0/nc_018_add_enabled_to_filter_exp_v2.ts
+// Keeping this file empty to avoid import errors from any cached references.
+// The actual migration is registered in XcMigrationSourcev0.
 import type { Knex } from 'knex';
 
-const up = async (knex: Knex) => {
-  await knex.schema.alterTable('nc_filter_exp_v2', (table) => {
-    table.boolean('enabled').defaultTo(true);
-  });
+const up = async (_knex: Knex) => {
+  // no-op: migration moved to v0
 };
 
-const down = async (knex: Knex) => {
-  await knex.schema.alterTable('nc_filter_exp_v2', (table) => {
-    table.dropColumn('enabled');
-  });
+const down = async (_knex: Knex) => {
+  // no-op: migration moved to v0
 };
 
 export { up, down };

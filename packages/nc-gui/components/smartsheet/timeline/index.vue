@@ -429,7 +429,7 @@ const recordCountLabel = computed(() => {
                       'text-nc-content-gray-muted': !isToday(date),
                     }"
                   >
-                    {{ date.format('dd').charAt(0) }}
+                    {{ zoomLevel === 'month' ? date.format('dd').charAt(0) : zoomLevel === 'week' ? date.format('ddd') : date.format('dddd') }}
                   </span>
                   <span
                     class="text-[11px] font-normal leading-tight"

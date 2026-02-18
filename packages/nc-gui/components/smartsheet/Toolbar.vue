@@ -5,7 +5,7 @@ defineProps<{
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isGrid, isGallery, isKanban, isMap, isCalendar, isForm, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+const { isGrid, isGallery, isKanban, isMap, isCalendar, isTimeline, isForm, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
 
@@ -26,7 +26,7 @@ const { width } = useElementSize(containerRef)
 const router = useRouter()
 
 const disableToolbar = computed(
-  () => router.currentRoute.value.query?.disableToolbar === 'true' || (isCalendar.value && isMobileMode.value) || isForm.value,
+  () => router.currentRoute.value.query?.disableToolbar === 'true' || (isCalendar.value && isMobileMode.value) || isTimeline.value || isForm.value,
 )
 
 const isTab = computed(() => {

@@ -17,6 +17,7 @@ export const MetaInj: InjectionKey<ComputedRef<TableType> | Ref<TableType>> = Sy
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem> | Ref<TabItem>> = Symbol('tab-meta-injection')
 export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
 export const IsCalendarInj: InjectionKey<Ref<boolean>> = Symbol('is-calendar-injection')
+export const IsTimelineInj: InjectionKey<Ref<boolean>> = Symbol('is-timeline-injection')
 export const IsSurveyFormInj: InjectionKey<Ref<boolean>> = Symbol('is-survey-form-injection')
 export const IsGridInj: InjectionKey<Ref<boolean>> = Symbol('is-grid-injection')
 export const IsGroupByInj: InjectionKey<Ref<boolean>> = Symbol('is-group-by-injection')

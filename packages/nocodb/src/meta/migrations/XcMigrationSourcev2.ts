@@ -86,6 +86,8 @@ import * as nc_094_add_meta_to_filter_exp_v2 from '~/meta/migrations/v2/nc_094_a
 import * as nc_096_deprecate_unused from '~/meta/migrations/v2/nc_096_deprecate_unused';
 import * as nc_097_unify_schema from '~/meta/migrations/v2/nc_097_unify_schema';
 import * as nc_098_default_workspace from '~/meta/migrations/v2/nc_098_default_workspace';
+import * as nc_099_timeline_view from '~/meta/migrations/v2/nc_099_timeline_view';
+import * as nc_100_timeline_view_fix from '~/meta/migrations/v2/nc_100_timeline_view_fix';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -181,6 +183,8 @@ export default class XcMigrationSourcev2 {
       'nc_096_deprecate_unused',
       'nc_097_unify_schema',
       'nc_098_default_workspace',
+      'nc_099_timeline_view',
+      'nc_100_timeline_view_fix',
     ]);
   }
 
@@ -362,6 +366,10 @@ export default class XcMigrationSourcev2 {
         return nc_097_unify_schema;
       case 'nc_098_default_workspace':
         return nc_098_default_workspace;
+      case 'nc_099_timeline_view':
+        return nc_099_timeline_view;
+      case 'nc_100_timeline_view_fix':
+        return nc_100_timeline_view_fix;
     }
   }
 }

@@ -186,6 +186,17 @@ async function onOpenModal({
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
+        <NcMenuItem data-testid="sidebar-view-create-timeline" @click="onOpenModal({ type: ViewTypes.TIMELINE })">
+          <div class="item">
+            <div class="item-inner">
+              <GeneralViewIcon :meta="{ type: ViewTypes.TIMELINE }" class="!w-4 !h-4" />
+              <div>{{ $t('objects.viewType.timeline') }}</div>
+            </div>
+
+            <GeneralLoader v-if="toBeCreateType === ViewTypes.TIMELINE && isViewListLoading" />
+            <GeneralIcon v-else class="plus" icon="plus" />
+          </div>
+        </NcMenuItem>
         <template v-if="isAiFeaturesEnabled">
           <NcDivider />
           <NcTooltip :title="`Auto suggest views for ${table?.title || 'the current table'}`" placement="right">

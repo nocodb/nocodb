@@ -38,6 +38,7 @@ import { BaseUsersController } from '~/controllers/base-users.controller';
 import { BasesController } from '~/controllers/bases.controller';
 import { CachesController } from '~/controllers/caches.controller';
 import { CalendarsController } from '~/controllers/calendars.controller';
+import { TimelinesController } from '~/controllers/timelines.controller';
 import { ColumnsController } from '~/controllers/columns.controller';
 import { CommandPaletteController } from '~/controllers/command-palette.controller';
 import { CommentsController } from '~/controllers/comments.controller';
@@ -76,6 +77,7 @@ import { BaseUsersService } from '~/services/base-users/base-users.service';
 import { BasesService } from '~/services/bases.service';
 import { CachesService } from '~/services/caches.service';
 import { CalendarsService } from '~/services/calendars.service';
+import { TimelinesService } from '~/services/timelines.service';
 import { ColumnsService } from '~/services/columns.service';
 import { CommandPaletteService } from '~/services/command-palette.service';
 import { DuplicateDetectionService } from '~/services/duplicate-detection.service';
@@ -200,6 +202,7 @@ export const nocoModuleMetadata = {
           SourcesController,
           CachesController,
           CalendarsController,
+          TimelinesController,
           ColumnsController,
           CommentsController,
           FiltersController,
@@ -283,6 +286,7 @@ export const nocoModuleMetadata = {
     SourcesService,
     CachesService,
     CalendarsService,
+    TimelinesService,
     ColumnsService,
     DuplicateDetectionService,
     CommentsService,
@@ -390,6 +394,7 @@ export const nocoModuleMetadata = {
     ViewColumnsService,
     GridsService,
     CalendarsService,
+    TimelinesService,
     GridColumnsService,
     FormsService,
     FormColumnsService,

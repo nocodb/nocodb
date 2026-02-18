@@ -535,6 +535,7 @@
       "form": "Form",
       "kanban": "Kanban",
       "calendar": "Calendar",
+      "timeline": "Timeline",
       "map": "Map"
     },
     "user": "User",
@@ -2622,7 +2623,8 @@
         "form": "Add Form View",
         "kanban": "Add Kanban View",
         "map": "Add Map View",
-        "calendar": "Add Calendar View"
+        "calendar": "Add Calendar View",
+        "timeline": "Add Timeline View"
       },
       "tablesMetadataInSync": "Tables metadata is in Sync",
       "addMultipleUsers": "You can add multiple comma(,) separated emails",

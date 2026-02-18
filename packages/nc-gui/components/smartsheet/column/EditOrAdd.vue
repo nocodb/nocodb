@@ -115,6 +115,8 @@ const {
   showUpgradeToUseAiButtonField,
   blockAiButtonField,
   blockUnique,
+  blockColourField,
+  showUpgradeToUseColourField,
 } = useEeConfig()
 
 const { eventBus } = useSmartsheetStoreOrThrow()
@@ -163,6 +165,10 @@ const columnUidt = computed({
     }
 
     if (value === AIButton && showUpgradeToUseAiButtonField()) {
+      return
+    }
+
+    if (value === UITypes.Colour && showUpgradeToUseColourField()) {
       return
     }
 
@@ -229,6 +235,7 @@ const uiFilters = (t: UiTypesType) => {
   const showDeprecatedField = !t.deprecated || showDeprecated.value
 
   const showAiFields = [AIPrompt, AIButton].includes(t.name) ? isAiBetaFeaturesEnabled.value && !isEdit.value && isEeUI : true
+  const showColourField = t.name === UITypes.Colour ? isEeUI : true
   const isAllowToAddInFormView = isForm.value ? !isFormViewHiddenCol(t.name as UITypes) : true
 
   const showLTAR =
@@ -245,6 +252,7 @@ const uiFilters = (t: UiTypesType) => {
     showDeprecatedField &&
     isAllowToAddInFormView &&
     showAiFields &&
+    showColourField &&
     showLTAR &&
     formulaColumnTypeValid
   )
@@ -336,6 +344,8 @@ const onSelectType = (uidt: UITypes | typeof AIButton | typeof AIPrompt, fromSea
   let preload
 
   if ((uidt === AIPrompt && blockAiPromptField.value) || (uidt === AIButton && blockAiButtonField.value)) return
+
+  if (uidt === UITypes.Colour && blockColourField.value) return
 
   if (fromSearchList && !isEdit.value && aiAutoSuggestMode.value) {
     onInit()

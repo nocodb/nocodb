@@ -106,5 +106,5 @@ result
 migrate-colors.js
 antd.variable.css
 
-# Claude Commando - per-branch working memory (ephemeral, local only)
-.skills/branches/
+# Claude - per-branch working memory (ephemeral, local only)
+.claude/branches/

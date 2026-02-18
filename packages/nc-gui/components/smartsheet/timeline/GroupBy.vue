@@ -124,13 +124,13 @@ onMounted(async () => {
       <template v-for="grp of group?.children ?? []" :key="grp.key">
         <!-- Left cell: group label -->
         <div
-          class="nc-timeline-group-label border-b border-r border-gray-200 px-3 py-2 bg-white cursor-pointer select-none hover:bg-gray-50/80 transition-colors"
+          class="nc-timeline-group-label border-b border-r border-nc-border-gray-medium px-3 py-2 bg-nc-bg-default cursor-pointer select-none hover:bg-nc-bg-gray-extralight transition-colors"
           @click="toggleGroup(grp)"
         >
           <div class="flex items-start gap-1.5">
             <GeneralIcon
               icon="chevronDown"
-              class="flex-shrink-0 mt-0.5 text-gray-400 transition-transform"
+              class="flex-shrink-0 mt-0.5 text-nc-content-gray-muted transition-transform"
               :class="{ '-rotate-90': !isExpanded(String(grp.key)) }"
             />
 
@@ -172,7 +172,7 @@ onMounted(async () => {
               >
                 <template v-for="(val, ind) of parseKey(grp)" :key="ind">
                   <GroupByLabel v-if="val" :column="grp.column" :model-value="val" />
-                  <span v-else class="text-gray-400 text-sm">No mapped value</span>
+                  <span v-else class="text-nc-content-gray-muted text-sm">No mapped value</span>
                 </template>
               </div>
 
@@ -203,7 +203,7 @@ onMounted(async () => {
               </a-tag>
 
               <!-- Record count -->
-              <span class="text-[11px] text-gray-400 leading-tight">
+              <span class="text-[11px] text-nc-content-gray-muted leading-tight">
                 {{ grp.count }} record{{ grp.count !== 1 ? 's' : '' }}
               </span>
             </div>
@@ -211,7 +211,7 @@ onMounted(async () => {
         </div>
 
         <!-- Right cell: timeline content -->
-        <div class="border-b border-gray-200" :class="{ 'min-h-[40px]': !isExpanded(String(grp.key)) }">
+        <div class="border-b border-nc-border-gray-medium" :class="{ 'min-h-[40px]': !isExpanded(String(grp.key)) }">
           <template v-if="isExpanded(String(grp.key))">
             <!-- Leaf group: render timeline grid -->
             <SmartsheetTimelineGrid
@@ -241,7 +241,7 @@ onMounted(async () => {
             />
 
             <!-- Loading state -->
-            <div v-else class="flex items-center justify-center py-4 text-gray-400">
+            <div v-else class="flex items-center justify-center py-4 text-nc-content-gray-muted">
               <GeneralLoader size="medium" />
             </div>
           </template>

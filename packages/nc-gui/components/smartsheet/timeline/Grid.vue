@@ -361,30 +361,30 @@ const todayPosition = computed(() => {
   <div class="flex flex-col h-full overflow-hidden">
     <!-- Date column headers (hidden when parent provides a shared header) -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
-      <div class="flex bg-white border-b border-gray-200 w-full">
+      <div class="flex bg-nc-bg-default border-b border-nc-border-gray-medium w-full">
         <div
           v-for="(date, idx) in visibleDates"
           :key="idx"
-          class="flex-shrink-0 border-r border-gray-100 flex flex-col items-center justify-center"
+          class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
           :class="{
-            'bg-blue-50': isToday(date),
-            'bg-gray-50': isWeekend(date) && !isToday(date),
+            'bg-nc-bg-brand': isToday(date),
+            'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date),
           }"
           :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
         >
-          <span class="text-[10px] font-medium text-gray-400 uppercase">
+          <span class="text-[10px] font-medium text-nc-content-gray-muted uppercase">
             {{ date.format('ddd') }}
           </span>
           <span
             class="text-sm font-semibold"
             :class="{
-              'text-blue-600': isToday(date),
-              'text-gray-600': !isToday(date),
+              'text-nc-content-brand': isToday(date),
+              'text-nc-content-gray': !isToday(date),
             }"
           >
             {{ date.format('D') }}
           </span>
-          <span v-if="zoomLevel === 'week'" class="text-[10px] text-gray-400">
+          <span v-if="zoomLevel === 'week'" class="text-[10px] text-nc-content-gray-muted">
             {{ date.format('MMM') }}
           </span>
         </div>
@@ -404,8 +404,8 @@ const todayPosition = computed(() => {
               :key="'line-' + idx"
               class="absolute top-0 bottom-0 border-r"
               :class="{
-                'border-gray-100': !isToday(date),
-                'border-blue-200': isToday(date),
+                'border-nc-border-gray-light': !isToday(date),
+                'border-nc-border-brand': isToday(date),
               }"
               :style="{ left: `${(idx + 1) * colWidth}px` }"
             />
@@ -414,7 +414,7 @@ const todayPosition = computed(() => {
           <!-- Today indicator line -->
           <div
             v-if="todayPosition !== null"
-            class="absolute top-0 bottom-0 w-0.5 bg-blue-500 z-5"
+            class="absolute top-0 bottom-0 w-0.5 bg-nc-content-brand z-5"
             :style="{ left: `${todayPosition}px` }"
           />
 
@@ -423,7 +423,7 @@ const todayPosition = computed(() => {
             v-for="(date, idx) in visibleDates"
             :key="'bg-' + idx"
             class="absolute top-0 bottom-0"
-            :class="{ 'bg-gray-50/50': isWeekend(date) }"
+            :class="{ 'bg-nc-bg-gray-extralight': isWeekend(date) }"
             :style="{
               left: `${idx * colWidth}px`,
               width: `${colWidth}px`,
@@ -435,11 +435,11 @@ const todayPosition = computed(() => {
           <div
             v-for="(lane, laneIdx) in swimlanes"
             :key="laneIdx"
-            class="relative border-b border-gray-50"
+            class="relative border-b border-nc-border-gray-light"
             :style="{ height: `${ROW_HEIGHT}px` }"
           >
             <!-- Hover background -->
-            <div class="absolute inset-0 hover:bg-blue-50/30 transition-colors" />
+            <div class="absolute inset-0 hover:bg-nc-bg-gray-extralight transition-colors" />
 
             <!-- Bars in this lane -->
             <NcTooltip
@@ -512,7 +512,7 @@ const todayPosition = computed(() => {
           <!-- Empty state grid filler -->
           <div
             v-if="!swimlanes.length"
-            class="flex items-center justify-center text-gray-400 text-sm"
+            class="flex items-center justify-center text-nc-content-gray-muted text-sm"
             :style="{ height: '200px' }"
           >
             No records in this time period
@@ -533,14 +533,15 @@ const todayPosition = computed(() => {
 .nc-timeline-resize-grip {
   width: 4px;
   height: 14px;
-  background-color: rgba(0, 0, 0, 0.35);
+  background-color: var(--nc-content-gray-muted);
+  opacity: 0.5;
   transition: opacity 0.15s ease, background-color 0.15s ease;
 }
 
 /* Darken the grip on direct handle hover for extra feedback */
 .nc-timeline-resize-handle:hover .nc-timeline-resize-grip {
   opacity: 1 !important;
-  background-color: rgba(0, 0, 0, 0.55);
+  background-color: var(--nc-content-gray);
 }
 
 /* Slightly round inward edge for left handle */

@@ -288,42 +288,42 @@ const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
         <!-- Grouped layout: fixed header (sidebar + dates) + scrollable groups -->
         <div v-else-if="isGroupBy" class="flex-1 min-h-0 flex flex-col overflow-hidden">
           <!-- Fixed header row: left sidebar header + date columns -->
-          <div class="flex flex-shrink-0 border-b border-gray-200">
+          <div class="flex flex-shrink-0 border-b border-nc-border-gray-medium">
             <!-- Left sidebar header: "Grouped by <field>" -->
             <div
-              class="flex-shrink-0 border-r border-gray-200 bg-white px-3 flex flex-col justify-center"
+              class="flex-shrink-0 border-r border-nc-border-gray-medium bg-nc-bg-default px-3 flex flex-col justify-center"
               :style="{ width: `${GROUP_SIDEBAR_WIDTH}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
             >
-              <span class="text-[10px] text-gray-400 font-medium uppercase leading-tight">Grouped by</span>
-              <span class="text-xs text-gray-700 font-semibold truncate">{{ groupByFieldLabel }}</span>
+              <span class="text-[10px] text-nc-content-gray-muted font-medium uppercase leading-tight">Grouped by</span>
+              <span class="text-xs text-nc-content-gray font-semibold truncate">{{ groupByFieldLabel }}</span>
             </div>
 
             <!-- Date columns header -->
             <div ref="groupHeaderRef" class="flex-1 overflow-hidden">
-              <div class="flex bg-white w-full">
+              <div class="flex bg-nc-bg-default w-full">
                 <div
                   v-for="(date, idx) in visibleDates"
                   :key="idx"
-                  class="flex-shrink-0 border-r border-gray-100 flex flex-col items-center justify-center"
+                  class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
                   :class="{
-                    'bg-blue-50': isToday(date),
-                    'bg-gray-50': isWeekend(date) && !isToday(date),
+                    'bg-nc-bg-brand': isToday(date),
+                    'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date),
                   }"
                   :style="{ width: `${groupColWidth}px`, height: `${GROUP_HEADER_HEIGHT}px` }"
                 >
-                  <span class="text-[10px] font-medium text-gray-400 uppercase">
+                  <span class="text-[10px] font-medium text-nc-content-gray-muted uppercase">
                     {{ date.format('ddd') }}
                   </span>
                   <span
                     class="text-sm font-semibold"
                     :class="{
-                      'text-blue-600': isToday(date),
-                      'text-gray-600': !isToday(date),
+                      'text-nc-content-brand': isToday(date),
+                      'text-nc-content-gray': !isToday(date),
                     }"
                   >
                     {{ date.format('D') }}
                   </span>
-                  <span v-if="zoomLevel === 'week'" class="text-[10px] text-gray-400">
+                  <span v-if="zoomLevel === 'week'" class="text-[10px] text-nc-content-gray-muted">
                     {{ date.format('MMM') }}
                   </span>
                 </div>
@@ -359,7 +359,7 @@ const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
         />
       </template>
       <template v-else>
-        <div class="flex-1 flex w-full items-center justify-center text-gray-500 min-h-0">
+        <div class="flex-1 flex w-full items-center justify-center text-nc-content-gray-muted min-h-0">
           No date range configured. Please set up a date range in the toolbar.
         </div>
       </template>

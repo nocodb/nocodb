@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { isValidHexColour, normalizeHexColourWithAlpha } from 'nocodb-sdk'
+import { isValidHexColour, normalizeHexColour, normalizeHexColourWithAlpha } from 'nocodb-sdk'
 import { iconMap } from '~/utils/iconUtils'
 
 interface Props {
@@ -45,8 +45,15 @@ const { isOpen, tempColor, pickerKey, openColorPicker, onColorChange, save, clos
 })
 
 const onTextInput = (e: Event) => {
-  const val = (e.target as HTMLInputElement).value.trim()
-  vModel.value = val || null
+  const raw = (e.target as HTMLInputElement).value.trim()
+  if (!raw) {
+    vModel.value = null
+    return
+  }
+  // Normalise to #RRGGBB uppercase so filter matches stored values.
+  // Accepts input with or without '#' prefix (e.g. 'ff5733' → '#FF5733').
+  const normalized = normalizeHexColour(raw)
+  vModel.value = normalized ?? raw.toUpperCase()
 }
 </script>
 

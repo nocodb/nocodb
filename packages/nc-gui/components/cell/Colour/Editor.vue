@@ -118,7 +118,7 @@ watch(isOpen, (open) => {
       :disabled="readOnly"
       type="text"
       placeholder="#FFFFFF"
-      class="flex-1 h-full border-none outline-none bg-transparent text-sm font-mono nc-cell-field"
+      class="flex-1 h-full border-none !outline-none focus:outline-none focus:ring-0 bg-transparent text-sm font-mono nc-cell-field"
       @input="onTextInput"
       @keydown.stop
       @mousedown.stop

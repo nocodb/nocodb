@@ -12,6 +12,7 @@ const up = async (knex: Knex) => {
       table.text('description');
       table.text('template_data').notNullable();
       table.integer('usage_count').defaultTo(0);
+      table.boolean('enabled').defaultTo(true);
       table.string('created_by', 20);
       table.timestamps(true, true);
       table.primary(['base_id', 'id']);

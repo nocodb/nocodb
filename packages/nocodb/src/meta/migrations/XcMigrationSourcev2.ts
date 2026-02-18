@@ -86,9 +86,6 @@ import * as nc_094_add_meta_to_filter_exp_v2 from '~/meta/migrations/v2/nc_094_a
 import * as nc_096_deprecate_unused from '~/meta/migrations/v2/nc_096_deprecate_unused';
 import * as nc_097_unify_schema from '~/meta/migrations/v2/nc_097_unify_schema';
 import * as nc_098_default_workspace from '~/meta/migrations/v2/nc_098_default_workspace';
-import * as nc_099_record_templates from '~/meta/migrations/v2/nc_099_record_templates';
-import * as nc_100_record_templates_enabled from '~/meta/migrations/v2/nc_100_record_templates_enabled';
-
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
   // Must return a Promise containing a list of migrations.
@@ -183,8 +180,6 @@ export default class XcMigrationSourcev2 {
       'nc_096_deprecate_unused',
       'nc_097_unify_schema',
       'nc_098_default_workspace',
-      'nc_099_record_templates',
-      'nc_100_record_templates_enabled',
     ]);
   }
 
@@ -366,10 +361,6 @@ export default class XcMigrationSourcev2 {
         return nc_097_unify_schema;
       case 'nc_098_default_workspace':
         return nc_098_default_workspace;
-      case 'nc_099_record_templates':
-        return nc_099_record_templates;
-      case 'nc_100_record_templates_enabled':
-        return nc_100_record_templates_enabled;
     }
   }
 }

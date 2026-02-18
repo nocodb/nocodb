@@ -1,20 +1,16 @@
+/**
+ * DEPRECATED: The enabled column is now included in v0/nc_018_record_templates.
+ * All new migrations should be added to XcMigrationSourcev0.
+ * This file is kept only because the filesystem does not allow deletion.
+ */
 import type { Knex } from 'knex';
-import { MetaTable } from '~/utils/globals';
 
-const up = async (knex: Knex) => {
-  if (!(await knex.schema.hasColumn(MetaTable.RECORD_TEMPLATES, 'enabled'))) {
-    await knex.schema.alterTable(MetaTable.RECORD_TEMPLATES, (table) => {
-      table.boolean('enabled').defaultTo(true);
-    });
-  }
+const up = async (_knex: Knex) => {
+  // No-op: enabled column now created in v0/nc_018_record_templates
 };
 
-const down = async (knex: Knex) => {
-  if (await knex.schema.hasColumn(MetaTable.RECORD_TEMPLATES, 'enabled')) {
-    await knex.schema.alterTable(MetaTable.RECORD_TEMPLATES, (table) => {
-      table.dropColumn('enabled');
-    });
-  }
+const down = async (_knex: Knex) => {
+  // No-op
 };
 
 export { up, down };

@@ -26216,7 +26216,8 @@
               "LastModifiedBy",
               "AI",
               "Order",
-              "Meta"
+              "Meta",
+              "Color"
             ],
             "type": "string",
             "description": "UI Data Type"

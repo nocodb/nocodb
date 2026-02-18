@@ -444,6 +444,11 @@ const getBarStyle = (row: RowType) => {
 
   const effectiveEnd = endDate || startDate
 
+  // Skip records where end date is before start date
+  if (endDate && effectiveEnd.isBefore(startDate, 'day')) {
+    return null
+  }
+
   const firstVisibleDate = props.visibleDates[0]
   const lastVisibleDate = props.visibleDates[props.visibleDates.length - 1]
 

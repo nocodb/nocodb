@@ -22346,7 +22346,7 @@
               "AI",
               "Order",
               "Meta",
-              "Color"
+              "Colour"
             ],
             "type": "string"
           },
@@ -26218,7 +26218,7 @@
               "AI",
               "Order",
               "Meta",
-              "Color"
+              "Colour"
             ],
             "type": "string",
             "description": "UI Data Type"

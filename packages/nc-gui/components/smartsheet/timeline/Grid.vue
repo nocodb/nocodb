@@ -19,7 +19,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (event: 'expandRecord', row: RowType): void
-  (event: 'newRecord', date: dayjs.Dayjs): void
+  (event: 'newRecord', startDate: dayjs.Dayjs, endDate: dayjs.Dayjs): void
   (event: 'navigateTo', date: dayjs.Dayjs): void
 }>()
 
@@ -338,7 +338,7 @@ const onDragEnd = () => {
 }
 
 // Whether any interaction (resize or drag) is happening
-const isInteracting = computed(() => resizeInProgress.value || dragInProgress.value)
+const isInteracting = computed(() => resizeInProgress.value || dragInProgress.value || dragCreateActive.value)
 const interactionRecord = computed(() => resizeRecord.value || dragRecord.value)
 
 // Clean up listeners and timers on unmount
@@ -347,6 +347,8 @@ onBeforeUnmount(() => {
   document.removeEventListener('mouseup', onResizeEnd)
   document.removeEventListener('mousemove', onDrag)
   document.removeEventListener('mouseup', onDragEnd)
+  document.removeEventListener('mousemove', onDragCreateMove)
+  document.removeEventListener('mouseup', onDragCreateEnd)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
   if (resizeCooldownTimer) clearTimeout(resizeCooldownTimer)
   if (dragTimeout) clearTimeout(dragTimeout)
@@ -646,16 +648,84 @@ const navigateToNext = () => {
   if (closestDate) emit('navigateTo', closestDate)
 }
 
-// #12: Handle double-click on empty grid area to create a new record
-const onGridDblClick = (event: MouseEvent) => {
+// --- Drag-to-create: click and drag on empty grid to create a record with date range ---
+const dragCreateActive = ref(false)
+const dragCreateStartIdx = ref<number | null>(null)
+const dragCreateEndIdx = ref<number | null>(null)
+const dragCreateLaneIdx = ref<number | null>(null)
+
+const dragCreateRange = computed(() => {
+  if (dragCreateStartIdx.value === null || dragCreateEndIdx.value === null) return null
+  const minIdx = Math.min(dragCreateStartIdx.value, dragCreateEndIdx.value)
+  const maxIdx = Math.max(dragCreateStartIdx.value, dragCreateEndIdx.value)
+  return { minIdx, maxIdx }
+})
+
+// Compute the pixel-based style for the dotted rectangle overlay
+const dragCreateStyle = computed(() => {
+  const range = dragCreateRange.value
+  if (!range || dragCreateLaneIdx.value === null) return null
+  const left = range.minIdx * colWidth.value
+  const width = (range.maxIdx - range.minIdx + 1) * colWidth.value
+  const top = dragCreateLaneIdx.value * ROW_HEIGHT + 4 // 4px top inset (matches bar top-1 = 4px)
+  const height = ROW_HEIGHT - 8 // matches bar height
+  return { left: `${left}px`, width: `${width}px`, top: `${top}px`, height: `${height}px` }
+})
+
+const getLaneIndexFromEvent = (event: MouseEvent): number => {
+  if (!gridBodyRef.value) return 0
+  const { top } = gridBodyRef.value.getBoundingClientRect()
+  const relativeY = event.clientY - top
+  const laneIdx = Math.floor(relativeY / ROW_HEIGHT)
+  return Math.max(0, laneIdx)
+}
+
+const onGridBodyMouseDown = (event: MouseEvent) => {
   if (!isUIAllowed('dataEdit')) return
   if (!gridBodyRef.value) return
+  // Only left mouse button
+  if (event.button !== 0) return
+  // Don't start drag-to-create if clicking on a bar
+  const target = event.target as HTMLElement
+  if (target.closest('.nc-timeline-bar') || target.closest('.nc-timeline-resize-handle') || target.closest('.nc-timeline-nav-arrow') || target.closest('.nc-timeline-nav-btn')) return
 
   const dayIdx = getDayIndexFromEvent(event)
-  const date = props.visibleDates[dayIdx]
-  if (date) {
-    emit('newRecord', date)
+  const laneIdx = getLaneIndexFromEvent(event)
+  dragCreateActive.value = true
+  dragCreateStartIdx.value = dayIdx
+  dragCreateEndIdx.value = dayIdx
+  dragCreateLaneIdx.value = laneIdx
+
+  document.addEventListener('mousemove', onDragCreateMove)
+  document.addEventListener('mouseup', onDragCreateEnd)
+}
+
+const onDragCreateMove = (event: MouseEvent) => {
+  if (!dragCreateActive.value || !gridBodyRef.value) return
+  const dayIdx = getDayIndexFromEvent(event)
+  dragCreateEndIdx.value = dayIdx
+  // Lane stays locked to where the user initially clicked
+}
+
+const onDragCreateEnd = () => {
+  document.removeEventListener('mousemove', onDragCreateMove)
+  document.removeEventListener('mouseup', onDragCreateEnd)
+
+  if (!dragCreateActive.value) return
+
+  const range = dragCreateRange.value
+  if (range) {
+    const startDate = props.visibleDates[range.minIdx]
+    const endDate = props.visibleDates[range.maxIdx]
+    if (startDate && endDate) {
+      emit('newRecord', startDate, endDate)
+    }
   }
+
+  dragCreateActive.value = false
+  dragCreateStartIdx.value = null
+  dragCreateEndIdx.value = null
+  dragCreateLaneIdx.value = null
 }
 
 // #21: Keyboard navigation between bars
@@ -848,14 +918,14 @@ const hoverLineLeft = computed(() => {
           />
           <!-- Hover date hairline -->
           <div
-            v-if="hoverColIndex !== null"
+            v-if="hoverColIndex !== null && !dragCreateActive"
             class="absolute top-0 bottom-0 nc-timeline-hover-hairline"
             :style="{ left: `${hoverLineLeft}px` }"
           />
         </div>
 
         <!-- Content layer: bars and empty state — sits above backgrounds -->
-        <div ref="gridBodyRef" class="relative w-full" style="z-index: 1" @dblclick="onGridDblClick">
+        <div ref="gridBodyRef" class="relative w-full" style="z-index: 1" @mousedown="onGridBodyMouseDown">
           <!-- Swimlane rows -->
           <div
             v-for="(lane, laneIdx) in swimlanes"
@@ -983,6 +1053,13 @@ const hoverLineLeft = computed(() => {
             </NcTooltip>
           </div>
 
+          <!-- Drag-to-create dotted rectangle -->
+          <div
+            v-if="dragCreateActive && dragCreateStyle"
+            class="absolute nc-timeline-drag-create-rect pointer-events-none"
+            :style="dragCreateStyle"
+          />
+
           <!-- #9: Empty state grid filler — using i18n -->
         </div>
       </div>
@@ -1066,5 +1143,14 @@ const hoverLineLeft = computed(() => {
 /* Header cell highlight on hover */
 .nc-timeline-header-hover {
   background-color: var(--nc-bg-gray-light);
+}
+
+/* Drag-to-create dotted rectangle */
+.nc-timeline-drag-create-rect {
+  border: 1.5px dashed var(--nc-border-brand);
+  border-radius: 6px;
+  background-color: var(--nc-bg-brand);
+  opacity: 0.15;
+  z-index: 10;
 }
 </style>

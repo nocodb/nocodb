@@ -46,6 +46,7 @@ const {
   totalRecordCount,
   recordsWithoutDates,
   navigateToClosestRecord,
+  updateFormat,
 } = useTimelineViewStoreOrThrow()
 
 // Group-by support (provided by parent Smartsheet.vue via useProvideViewGroupBy)
@@ -102,25 +103,22 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
   }
 }
 
-// #12: Create a new record with a pre-filled date from double-click
-const onNewRecord = (date: dayjs.Dayjs) => {
+// #12: Create a new record with pre-filled start/end dates from drag-to-create
+const onNewRecord = (startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
   const range = timelineRange.value?.[0]
   if (!range?.fk_from_col?.title) return
 
   $e('c:timeline:new-record', { zoomLevel: zoomLevel.value })
 
-  const dateFormat = 'YYYY-MM-DD'
-  const state: Record<string, any> = {
-    [range.fk_from_col.title]: date.format(dateFormat),
+  const row: Record<string, any> = {
+    [range.fk_from_col.title]: startDate.format(updateFormat.value),
   }
-  // If end date column exists, set it to the same day
   if (range.fk_to_col?.title) {
-    state[range.fk_to_col.title] = date.format(dateFormat)
+    row[range.fk_to_col.title] = endDate.format(updateFormat.value)
   }
 
   expandRecord(
-    { row: {}, oldRow: {}, rowMeta: { new: true } },
-    state,
+    { row, oldRow: {}, rowMeta: { new: true } },
   )
 }
 

@@ -16,7 +16,7 @@ const props = defineProps<{
     id: string
     is_readonly: boolean
   }>
-  zoomLevel: 'week' | 'month'
+  zoomLevel: 'day' | 'week' | 'month'
   loadGroups: (
     params?: any,
     group?: Group,
@@ -122,9 +122,10 @@ onMounted(async () => {
       :style="{ display: 'grid', gridTemplateColumns: `${GROUP_SIDEBAR_WIDTH}px 1fr` }"
     >
       <template v-for="grp of group?.children ?? []" :key="grp.key">
-        <!-- Left cell: group label -->
+        <!-- #13: Left cell: group label — min-h matches right cell when collapsed -->
         <div
           class="nc-timeline-group-label border-b border-r border-nc-border-gray-medium px-3 py-2 bg-nc-bg-default cursor-pointer select-none hover:bg-nc-bg-gray-extralight transition-colors"
+          :class="{ 'min-h-[40px]': !isExpanded(String(grp.key)) }"
           @click="toggleGroup(grp)"
         >
           <div class="flex items-start gap-1.5">
@@ -210,9 +211,12 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- Right cell: timeline content -->
-        <div class="border-b border-nc-border-gray-medium" :class="{ 'min-h-[40px]': !isExpanded(String(grp.key)) }">
-          <template v-if="isExpanded(String(grp.key))">
+        <!-- #16: Right cell: timeline content — with expand/collapse transition -->
+        <div
+          class="border-b border-nc-border-gray-medium nc-timeline-group-content"
+          :class="{ 'min-h-[40px]': !isExpanded(String(grp.key)), 'is-expanded': isExpanded(String(grp.key)) }"
+        >
+          <div v-if="isExpanded(String(grp.key))" class="nc-timeline-group-content-inner">
             <!-- Leaf group: render timeline grid -->
             <SmartsheetTimelineGrid
               v-if="!grp.nested && grp.rows"
@@ -244,7 +248,7 @@ onMounted(async () => {
             <div v-else class="flex items-center justify-center py-4 text-nc-content-gray-muted">
               <GeneralLoader size="medium" />
             </div>
-          </template>
+          </div>
         </div>
       </template>
     </div>
@@ -266,5 +270,34 @@ onMounted(async () => {
 <style scoped lang="scss">
 .nc-timeline-group-label {
   align-self: stretch;
+}
+
+/* #16: Smooth expand/collapse animation */
+.nc-timeline-group-content {
+  overflow: hidden;
+  transition: max-height 0.2s ease;
+}
+
+.nc-timeline-group-content:not(.is-expanded) {
+  max-height: 40px;
+}
+
+.nc-timeline-group-content.is-expanded {
+  max-height: 2000px; /* large enough for any content */
+}
+
+.nc-timeline-group-content-inner {
+  animation: nc-group-fade-in 0.15s ease;
+}
+
+@keyframes nc-group-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 </style>

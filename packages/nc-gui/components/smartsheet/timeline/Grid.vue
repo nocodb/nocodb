@@ -13,13 +13,16 @@ const props = defineProps<{
     id: string
     is_readonly: boolean
   }>
-  zoomLevel: 'week' | 'month'
+  zoomLevel: 'day' | 'week' | 'month'
   hideHeader?: boolean
 }>()
 
 const emit = defineEmits<{
   (event: 'expandRecord', row: RowType): void
+  (event: 'newRecord', date: dayjs.Dayjs): void
 }>()
+
+const { t } = useI18n()
 
 const meta = inject(MetaInj, ref())
 
@@ -57,7 +60,26 @@ const getRowColorStyle = (record: RowType) => {
   return extractRowBackgroundColorStyle(record)
 }
 
-const today = dayjs()
+// #18: Reactive today — re-evaluates on visibility change so it stays current past midnight
+const today = ref(dayjs())
+
+const refreshToday = () => {
+  const now = dayjs()
+  if (!now.isSame(today.value, 'day')) {
+    today.value = now
+  }
+}
+
+// Re-check when the tab becomes visible again
+const handleVisibilityChange = () => {
+  if (document.visibilityState === 'visible') {
+    refreshToday()
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+})
 
 const ROW_HEIGHT = 36
 const HEADER_HEIGHT = 56
@@ -66,10 +88,23 @@ const HEADER_HEIGHT = 56
 const gridContainerRef = ref<HTMLElement | null>(null)
 const { width: containerWidth } = useElementSize(gridContainerRef)
 
-// Column width: fill available space evenly across all visible dates
+// #4: Column width — enforce minimum width and allow horizontal scroll for month view
+const MIN_COL_WIDTH = 48
 const colWidth = computed(() => {
   if (!containerWidth.value || !props.visibleDates.length) return 120
-  return containerWidth.value / props.visibleDates.length
+  const naturalWidth = containerWidth.value / props.visibleDates.length
+  // In month view (28-31 cols), enforce minimum width to keep bars readable
+  return Math.max(naturalWidth, MIN_COL_WIDTH)
+})
+
+// Total grid width — may exceed container for horizontal scroll
+const totalGridWidth = computed(() => {
+  return props.visibleDates.length * colWidth.value
+})
+
+// Whether horizontal scrolling is needed
+const needsHorizontalScroll = computed(() => {
+  return totalGridWidth.value > containerWidth.value
 })
 
 // --- Resize state ---
@@ -78,9 +113,16 @@ const resizeDirection = ref<'left' | 'right'>()
 const resizeRecord = ref<RowType | null>(null)
 const gridBodyRef = ref<HTMLElement | null>(null)
 
-// Flag to suppress the click that fires right after mouseup ends a resize
+// Flag to suppress the click that fires right after mouseup ends a resize/drag
 const justFinishedResize = ref(false)
 let resizeCooldownTimer: ReturnType<typeof setTimeout> | null = null
+
+// --- Drag-to-move state (#1) ---
+const dragInProgress = ref(false)
+const dragRecord = ref<RowType | null>(null)
+const dragStartDayIndex = ref<number>(0)
+let dragTimeout: ReturnType<typeof setTimeout> | null = null
+const isDragReady = ref(false) // becomes true after 200ms hold
 
 // Debounced row update (500ms, matching calendar)
 const useDebouncedRowUpdate = useDebounceFn((row: RowType, updateProperty: string[], undo: boolean) => {
@@ -183,11 +225,122 @@ const onResizeEnd = () => {
   }, 50)
 }
 
+// --- Drag-to-move event handlers (#1) ---
+
+const getDayIndexFromEvent = (event: MouseEvent): number => {
+  if (!gridBodyRef.value) return 0
+  const { left } = gridBodyRef.value.getBoundingClientRect()
+  const scrollLeft = gridBodyRef.value.parentElement?.scrollLeft ?? 0
+  const relativeX = event.clientX - left + scrollLeft
+  const dayIndex = Math.floor(relativeX / colWidth.value)
+  return Math.max(0, Math.min(dayIndex, props.visibleDates.length - 1))
+}
+
+const onDragStart = (event: MouseEvent, record: RowType) => {
+  if (!isUIAllowed('dataEdit')) return
+  if (record.rowMeta?.range?.is_readonly) return
+
+  // Use a short hold delay (200ms) to distinguish drag from click
+  const startDayIdx = getDayIndexFromEvent(event)
+  isDragReady.value = false
+
+  dragTimeout = setTimeout(() => {
+    isDragReady.value = true
+    dragInProgress.value = true
+    dragRecord.value = record
+    dragStartDayIndex.value = startDayIdx
+
+    document.addEventListener('mousemove', onDrag)
+    document.addEventListener('mouseup', onDragEnd)
+  }, 200)
+
+  // Listen for mouseup to cancel if released before hold threshold
+  const earlyRelease = () => {
+    if (dragTimeout) {
+      clearTimeout(dragTimeout)
+      dragTimeout = null
+    }
+    document.removeEventListener('mouseup', earlyRelease)
+  }
+  document.addEventListener('mouseup', earlyRelease)
+}
+
+const onDrag = (event: MouseEvent) => {
+  if (!dragRecord.value || !gridBodyRef.value) return
+
+  const range = props.timelineRange[0]
+  if (!range) return
+
+  const fromCol = range.fk_from_col
+  const toCol = range.fk_to_col
+
+  const currentDayIdx = getDayIndexFromEvent(event)
+  const dayDelta = currentDayIdx - dragStartDayIndex.value
+
+  if (dayDelta === 0) return
+
+  const ogStartDate = parseDate(dragRecord.value, fromCol)
+  const ogEndDate = toCol ? parseDate(dragRecord.value, toCol) : null
+
+  if (!ogStartDate) return
+
+  const isDateOnly = fromCol.uidt === UITypes.Date
+  const dateFormat = isDateOnly ? 'YYYY-MM-DD' : updateFormat.value
+
+  // Shift both start and end by the delta
+  const newStart = ogStartDate.add(dayDelta, 'day')
+  dragRecord.value.row[fromCol.title!] = isDateOnly
+    ? newStart.format('YYYY-MM-DD')
+    : newStart.format(dateFormat)
+
+  const updateProperty = [fromCol.title!]
+
+  if (toCol?.title && ogEndDate) {
+    const newEnd = ogEndDate.add(dayDelta, 'day')
+    dragRecord.value.row[toCol.title] = isDateOnly
+      ? newEnd.format('YYYY-MM-DD')
+      : newEnd.format(dateFormat)
+    updateProperty.push(toCol.title)
+  }
+
+  // Update the reference day index so delta is always relative
+  dragStartDayIndex.value = currentDayIdx
+
+  useDebouncedRowUpdate(dragRecord.value, updateProperty, false)
+}
+
+const onDragEnd = () => {
+  dragInProgress.value = false
+  dragRecord.value = null
+  isDragReady.value = false
+  if (dragTimeout) {
+    clearTimeout(dragTimeout)
+    dragTimeout = null
+  }
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', onDragEnd)
+
+  // Suppress click after drag
+  justFinishedResize.value = true
+  if (resizeCooldownTimer) clearTimeout(resizeCooldownTimer)
+  resizeCooldownTimer = setTimeout(() => {
+    justFinishedResize.value = false
+  }, 50)
+}
+
+// Whether any interaction (resize or drag) is happening
+const isInteracting = computed(() => resizeInProgress.value || dragInProgress.value)
+const interactionRecord = computed(() => resizeRecord.value || dragRecord.value)
+
 // Clean up listeners and timers on unmount
 onBeforeUnmount(() => {
   document.removeEventListener('mousemove', onResize)
   document.removeEventListener('mouseup', onResizeEnd)
+  document.removeEventListener('mousemove', onDrag)
+  document.removeEventListener('mouseup', onDragEnd)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
   if (resizeCooldownTimer) clearTimeout(resizeCooldownTimer)
+  if (dragTimeout) clearTimeout(dragTimeout)
   useDebouncedRowUpdate.cancel()
 })
 
@@ -317,7 +470,7 @@ const canResize = computed(() => {
   return isUIAllowed('dataEdit') && !props.timelineRange[0]?.is_readonly
 })
 
-// Build tooltip text for a record bar: "MMM D → MMM D  |  N days"
+// #11: Build tooltip text for a record bar — improved format with em-dash and year
 const getBarTooltip = (row: RowType) => {
   const range = props.timelineRange[0]
   if (!range) return ''
@@ -334,12 +487,15 @@ const getBarTooltip = (row: RowType) => {
     return startDate.format('MMM D, YYYY')
   }
 
-  return `${startDate.format('MMM D')} → ${effectiveEnd.format('MMM D')}  |  ${days} days`
+  // Show year on both sides if they differ, otherwise only on end
+  const sameYear = startDate.year() === effectiveEnd.year()
+  const startFmt = sameYear ? 'MMM D' : 'MMM D, YYYY'
+  return `${startDate.format(startFmt)} — ${effectiveEnd.format('MMM D, YYYY')}  ·  ${days} days`
 }
 
 // Determine if a date is today
 const isToday = (date: dayjs.Dayjs) => {
-  return date.isSame(today, 'day')
+  return date.isSame(today.value, 'day')
 }
 
 // Determine if a date is a weekend
@@ -347,59 +503,140 @@ const isWeekend = (date: dayjs.Dayjs) => {
   return date.day() === 0 || date.day() === 6
 }
 
+// #22: Grid body height — ensures backgrounds extend beyond visible lanes
+const gridBodyHeight = computed(() => {
+  return `${Math.max(swimlanes.value.length * ROW_HEIGHT, 400)}px`
+})
 
 // Today indicator position
 const todayPosition = computed(() => {
   const firstDate = props.visibleDates[0]
   if (!firstDate) return null
-  const offset = today.diff(firstDate, 'day')
+  const offset = today.value.diff(firstDate, 'day')
   if (offset < 0 || offset >= props.visibleDates.length) return null
   return offset * colWidth.value + colWidth.value / 2
 })
+
+// #12: Handle double-click on empty grid area to create a new record
+const onGridDblClick = (event: MouseEvent) => {
+  if (!isUIAllowed('dataEdit')) return
+  if (!gridBodyRef.value) return
+
+  const dayIdx = getDayIndexFromEvent(event)
+  const date = props.visibleDates[dayIdx]
+  if (date) {
+    emit('newRecord', date)
+  }
+}
+
+// #21: Keyboard navigation between bars
+const onBarKeydown = (event: KeyboardEvent, record: RowType, laneIdx: number, barIdx: number) => {
+  if (event.key === 'Enter') {
+    if (!isInteracting.value && !justFinishedResize.value) {
+      emit('expandRecord', record)
+    }
+    return
+  }
+
+  // Arrow key navigation: find next/prev bar
+  let targetLane = laneIdx
+  let targetBar = barIdx
+
+  if (event.key === 'ArrowDown' && laneIdx < swimlanes.value.length - 1) {
+    targetLane = laneIdx + 1
+    targetBar = Math.min(barIdx, swimlanes.value[targetLane].length - 1)
+  } else if (event.key === 'ArrowUp' && laneIdx > 0) {
+    targetLane = laneIdx - 1
+    targetBar = Math.min(barIdx, swimlanes.value[targetLane].length - 1)
+  } else if (event.key === 'ArrowRight') {
+    if (barIdx < swimlanes.value[laneIdx].length - 1) {
+      targetBar = barIdx + 1
+    }
+  } else if (event.key === 'ArrowLeft') {
+    if (barIdx > 0) {
+      targetBar = barIdx - 1
+    }
+  } else {
+    return
+  }
+
+  event.preventDefault()
+  // Focus the target bar
+  const targetEl = gridBodyRef.value?.querySelector(
+    `[data-lane="${targetLane}"][data-bar="${targetBar}"]`,
+  ) as HTMLElement | null
+  targetEl?.focus()
+}
+
+// Sync horizontal scroll between header and body
+const headerScrollRef = ref<HTMLElement | null>(null)
+const bodyScrollRef = ref<HTMLElement | null>(null)
+
+const onBodyScroll = (event: Event) => {
+  const target = event.target as HTMLElement
+  if (headerScrollRef.value) {
+    headerScrollRef.value.scrollLeft = target.scrollLeft
+  }
+}
 </script>
 
 <template>
   <div class="flex flex-col h-full overflow-hidden">
     <!-- Date column headers (hidden when parent provides a shared header) -->
     <div v-if="!hideHeader" ref="gridContainerRef" class="flex-shrink-0 overflow-hidden">
-      <div class="flex bg-nc-bg-default border-b border-nc-border-gray-medium w-full">
+      <div
+        ref="headerScrollRef"
+        class="overflow-x-hidden"
+      >
         <div
-          v-for="date in visibleDates"
-          :key="date.format('YYYY-MM-DD')"
-          class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
-          :class="{
-            'bg-nc-bg-brand': isToday(date),
-            'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date),
-          }"
-          :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
+          class="flex bg-nc-bg-default border-b border-nc-border-gray-medium"
+          :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%' }"
         >
-          <span class="text-[10px] font-medium text-nc-content-gray-muted uppercase">
-            {{ date.format('ddd') }}
-          </span>
-          <span
-            class="text-sm font-semibold"
+          <div
+            v-for="date in visibleDates"
+            :key="date.format('YYYY-MM-DD')"
+            class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
             :class="{
-              'text-nc-content-brand': isToday(date),
-              'text-nc-content-gray': !isToday(date),
+              'bg-nc-bg-brand': isToday(date),
+              'bg-nc-bg-gray-extralight': isWeekend(date) && !isToday(date),
             }"
+            :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
           >
-            {{ date.format('D') }}
-          </span>
-          <span v-if="zoomLevel === 'week'" class="text-[10px] text-nc-content-gray-muted">
-            {{ date.format('MMM') }}
-          </span>
+            <span class="text-[10px] font-medium text-nc-content-gray-muted uppercase">
+              {{ date.format('ddd') }}
+            </span>
+            <span
+              class="text-sm font-semibold"
+              :class="{
+                'text-nc-content-brand': isToday(date),
+                'text-nc-content-gray': !isToday(date),
+              }"
+            >
+              {{ date.format('D') }}
+            </span>
+            <span v-if="zoomLevel === 'week'" class="text-[10px] text-nc-content-gray-muted">
+              {{ date.format('MMM') }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
     <!-- When header is hidden, still need a ref element to measure container width -->
     <div v-else ref="gridContainerRef" class="w-full h-0" />
 
-    <!-- Scrollable grid body -->
-    <div class="flex-1 min-h-0 overflow-y-auto">
-      <div class="overflow-hidden relative">
-        <div ref="gridBodyRef" class="relative w-full">
+    <!-- Scrollable grid body (#4: both axes scroll) -->
+    <div
+      ref="bodyScrollRef"
+      class="flex-1 min-h-0 overflow-auto"
+      @scroll="onBodyScroll"
+    >
+      <div
+        class="relative"
+        :style="{ width: needsHorizontalScroll ? `${totalGridWidth}px` : '100%', minHeight: gridBodyHeight }"
+      >
+        <div ref="gridBodyRef" class="relative w-full" @dblclick="onGridDblClick">
           <!-- Grid lines (vertical) -->
-          <div class="absolute inset-0 pointer-events-none">
+          <div class="absolute inset-0 pointer-events-none" :style="{ height: gridBodyHeight }">
             <div
               v-for="(date, dateIdx) in visibleDates"
               :key="'line-' + date.format('YYYY-MM-DD')"
@@ -411,20 +648,20 @@ const todayPosition = computed(() => {
           <!-- Today indicator line -->
           <div
             v-if="todayPosition !== null"
-            class="absolute top-0 bottom-0 w-0.5 bg-nc-content-brand z-5"
-            :style="{ left: `${todayPosition}px` }"
+            class="absolute top-0 w-0.5 bg-nc-content-brand z-5"
+            :style="{ left: `${todayPosition}px`, height: gridBodyHeight }"
           />
 
-          <!-- Weekend background -->
+          <!-- #22: Weekend background — uses full grid body height -->
           <div
             v-for="(date, dateIdx) in visibleDates"
             :key="'bg-' + date.format('YYYY-MM-DD')"
-            class="absolute top-0 bottom-0"
+            class="absolute top-0"
             :class="{ 'bg-nc-bg-gray-extralight': isWeekend(date) }"
             :style="{
               left: `${dateIdx * colWidth}px`,
               width: `${colWidth}px`,
-              height: `${Math.max(swimlanes.length * ROW_HEIGHT, 400)}px`,
+              height: gridBodyHeight,
             }"
           />
 
@@ -440,9 +677,9 @@ const todayPosition = computed(() => {
 
             <!-- Bars in this lane -->
             <NcTooltip
-              v-for="{ record, colorIndex } in lane"
+              v-for="({ record, colorIndex }, barIdx) in lane"
               :key="colorIndex"
-              :disabled="resizeInProgress"
+              :disabled="isInteracting"
               placement="top"
               class="absolute top-1"
               :style="getBarStyle(record)"
@@ -453,28 +690,35 @@ const todayPosition = computed(() => {
               <div
                 class="nc-timeline-bar rounded-md border-1 flex items-center text-xs font-medium transition-shadow select-none group w-full relative overflow-hidden"
                 :class="{
-                  'cursor-pointer hover:shadow-md': !resizeInProgress,
-                  'pointer-events-none opacity-30': resizeInProgress && resizeRecord !== record,
-                  'z-20 shadow-md': resizeInProgress && resizeRecord === record,
+                  'cursor-pointer hover:shadow-md': !isInteracting,
+                  'cursor-grabbing': dragInProgress && dragRecord === record,
+                  'cursor-grab': !isInteracting && canResize,
+                  'pointer-events-none opacity-30': isInteracting && interactionRecord !== record,
+                  'z-100 shadow-lg': isInteracting && interactionRecord === record,
                   'bg-nc-bg-default border-nc-border-gray-dark text-nc-content-gray': !getRowColorStyle(record).rowBgColor?.backgroundColor,
                 }"
                 :style="{
                   height: `${ROW_HEIGHT - 8}px`,
                   ...getRowColorStyle(record).rowBgColor,
                 }"
+                :data-lane="laneIdx"
+                :data-bar="barIdx"
+                data-testid="nc-timeline-bar"
+                :data-unique-id="record.rowMeta?.id"
                 role="button"
-              tabindex="0"
-              @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
-              @keydown.enter="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
+                tabindex="0"
+                @click="!isInteracting && !justFinishedResize && emit('expandRecord', record)"
+                @keydown="onBarKeydown($event, record, laneIdx, barIdx)"
+                @mousedown.stop="onDragStart($event, record)"
               >
-                <!-- Left border color accent -->
+                <!-- #17: Left border color accent (offset to not collide with resize handle) -->
                 <div
-                  class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md"
+                  class="absolute left-0 top-0 bottom-0 w-1 rounded-l-md pointer-events-none"
                   :style="getRowColorStyle(record).rowLeftBorderColor?.backgroundColor
                     ? getRowColorStyle(record).rowLeftBorderColor
                     : { backgroundColor: 'var(--color-gray-900, #101015)' }"
                 />
-                <!-- Left resize handle (start date) -->
+                <!-- Left resize handle (start date) — offset past the accent -->
                 <div
                   v-if="canResize"
                   class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
@@ -509,13 +753,14 @@ const todayPosition = computed(() => {
             </NcTooltip>
           </div>
 
-          <!-- Empty state grid filler -->
+          <!-- #9: Empty state grid filler — using i18n -->
           <div
             v-if="!swimlanes.length"
             class="flex items-center justify-center text-nc-content-gray-muted text-sm"
             :style="{ height: '200px' }"
+            data-testid="nc-timeline-empty-state"
           >
-            No records in this time period
+            {{ t('msg.noRecordsFound') }}
           </div>
         </div>
       </div>

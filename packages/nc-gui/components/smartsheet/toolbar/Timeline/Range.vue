@@ -12,7 +12,7 @@ const isToolbarIconMode = inject(
   computed(() => false),
 )
 
-const { timelineRange, loadTimelineData, timelineMetaData } = useTimelineViewStoreOrThrow()
+const { timelineRange, loadTimelineData, timelineMetaData, hideWeekends } = useTimelineViewStoreOrThrow()
 
 const { $api } = useNuxtApp()
 
@@ -78,6 +78,11 @@ const onFromChange = () => {
   selectedToCol.value = null
   saveRange()
 }
+
+// #6: Hide weekends toggle
+const onToggleWeekends = (val: boolean) => {
+  hideWeekends.value = val
+}
 </script>
 
 <template>
@@ -102,7 +107,8 @@ const onFromChange = () => {
         :show-as-disabled="isLocked"
       >
         <div class="flex items-center gap-2">
-          <component :is="iconMap.calendar" class="h-4 w-4" />
+          <!-- #5: Use timeline icon instead of calendar icon -->
+          <component :is="iconMap.timeline" class="h-4 w-4" />
           <span v-if="!isToolbarIconMode" class="text-capitalize !text-[13px] font-medium">
             {{ $t('activity.settings') }}
           </span>
@@ -217,9 +223,25 @@ const onFromChange = () => {
           </div>
         </div>
 
+        <!-- #6: Hide weekends toggle -->
+        <div class="flex items-center justify-between">
+          <span class="text-nc-content-gray text-sm">
+            {{ $t('activity.showWeekends') || 'Show weekends' }}
+          </span>
+          <NcSwitch
+            :checked="!hideWeekends"
+            :disabled="isLocked"
+            data-testid="nc-timeline-show-weekends"
+            @update:checked="onToggleWeekends(!$event)"
+          />
+        </div>
+
+        <!-- #9: i18n warning message -->
         <div v-if="!isSetup" class="flex items-center gap-2 !mt-2">
           <GeneralIcon icon="warning" class="text-sm mt-0.5 text-nc-content-orange-medium" />
-          <span class="text-sm text-nc-content-gray-muted"> Date field is required! </span>
+          <span class="text-sm text-nc-content-gray-muted">
+            {{ $t('msg.dateFieldRequired') || 'Date field is required!' }}
+          </span>
         </div>
 
         <GeneralLockedViewFooter v-if="isLocked" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />

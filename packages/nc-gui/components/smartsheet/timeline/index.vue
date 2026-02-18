@@ -10,6 +10,8 @@ const { isMobileMode } = useGlobal()
 
 const isPublic = inject(IsPublicInj, ref(false))
 
+const { t } = useI18n()
+
 provide(IsFormInj, ref(false))
 provide(IsGalleryInj, ref(false))
 provide(IsGridInj, ref(false))
@@ -30,8 +32,11 @@ const {
   navigateNext,
   navigatePrev,
   goToToday,
+  goToDate,
   setZoomLevel,
   currentDate,
+  totalRecordCount,
+  recordsWithoutDates,
 } = useTimelineViewStoreOrThrow()
 
 // Group-by support (provided by parent Smartsheet.vue via useProvideViewGroupBy)
@@ -84,6 +89,26 @@ const expandRecord = (row: RowType, state?: Record<string, any>) => {
     expandedFormRow.value = row
     expandedFormDlg.value = true
   }
+}
+
+// #12: Create a new record with a pre-filled date from double-click
+const onNewRecord = (date: dayjs.Dayjs) => {
+  const range = timelineRange.value?.[0]
+  if (!range?.fk_from_col?.title) return
+
+  const dateFormat = 'YYYY-MM-DD'
+  const state: Record<string, any> = {
+    [range.fk_from_col.title]: date.format(dateFormat),
+  }
+  // If end date column exists, set it to the same day
+  if (range.fk_to_col?.title) {
+    state[range.fk_to_col.title] = date.format(dateFormat)
+  }
+
+  expandRecord(
+    { row: {}, oldRow: {}, rowMeta: { new: true } },
+    state,
+  )
 }
 
 const reloadData = async () => {
@@ -141,19 +166,37 @@ const groupByFieldLabel = computed(() => {
   return col?.title || ''
 })
 
-const today = dayjs()
-const isToday = (date: dayjs.Dayjs) => date.isSame(today, 'day')
+// #18: Reactive today
+const today = ref(dayjs())
+const isToday = (date: dayjs.Dayjs) => date.isSame(today.value, 'day')
 const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
+
+// #7: Date picker dropdown
+const datePickerVisible = ref(false)
+const onDatePickerSelect = (date: dayjs.Dayjs) => {
+  goToDate(date)
+  datePickerVisible.value = false
+}
+
+// #3: Record count badge text
+const recordCountLabel = computed(() => {
+  const total = totalRecordCount.value
+  const noDate = recordsWithoutDates.value
+  if (noDate > 0) {
+    return `${total} records · ${noDate} without dates`
+  }
+  return total > 0 ? `${total} records` : ''
+})
 </script>
 
 <template>
   <template v-if="isMobileMode">
     <div class="pl-6 pr-[120px] py-6 bg-nc-bg-default flex-col justify-start items-start gap-2.5 inline-flex">
       <div class="text-nc-content-gray-muted text-5xl font-semibold leading-16">
-        Available<br />in Desktop
+        {{ t('labels.availableInDesktop') || 'Available in Desktop' }}
       </div>
       <div class="text-nc-content-gray-muted text-base font-medium leading-normal">
-        Timeline view is not supported on mobile.
+        {{ t('msg.timelineViewNotSupportedOnMobile') || 'Timeline view is not supported on mobile.' }}
       </div>
     </div>
   </template>
@@ -163,29 +206,59 @@ const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
       <div
         class="nc-timeline-toolbar flex items-center gap-1 px-3 border-b border-nc-border-gray-medium bg-nc-bg-default min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)]"
       >
-        <!-- Date Header -->
-        <NcButton
-          :class="{
-            'w-29': zoomLevel === 'month',
-            'w-38': zoomLevel === 'week',
-          }"
-          class="nc-timeline-prev-next-btn !h-7"
-          full-width
-          size="small"
-          type="secondary"
-        >
-          <div class="flex w-full px-1 items-center justify-between">
-            <span
-              :class="{
-                'max-w-38 truncate': zoomLevel === 'week',
-              }"
-              class="font-bold text-[13px] text-center text-nc-content-gray"
-              data-testid="nc-timeline-active-date"
-            >
-              {{ dateRangeLabel }}
-            </span>
-          </div>
-        </NcButton>
+        <!-- #7: Date Header with picker dropdown -->
+        <NcDropdown v-model:visible="datePickerVisible" :trigger="['click']">
+          <NcButton
+            :class="{
+              'w-29': zoomLevel === 'month',
+              'w-38': zoomLevel === 'week',
+              'w-48': zoomLevel === 'day',
+            }"
+            class="nc-timeline-prev-next-btn !h-7"
+            full-width
+            size="small"
+            type="secondary"
+          >
+            <div class="flex w-full px-1 items-center justify-between">
+              <span
+                :class="{
+                  'max-w-38 truncate': zoomLevel === 'week',
+                }"
+                class="font-bold text-[13px] text-center text-nc-content-gray"
+                data-testid="nc-timeline-active-date"
+              >
+                {{ dateRangeLabel }}
+              </span>
+              <GeneralIcon icon="arrowDown" class="ml-1 text-nc-content-gray-subtle" />
+            </div>
+          </NcButton>
+          <template #overlay>
+            <div class="p-2" @click.stop>
+              <NcDateWeekSelector
+                v-if="zoomLevel === 'week'"
+                :selected-date="currentDate"
+                is-week-picker
+                header="v2"
+                size="medium"
+                @update:selected-date="onDatePickerSelect"
+              />
+              <NcDateWeekSelector
+                v-else-if="zoomLevel === 'day'"
+                :selected-date="currentDate"
+                header="v2"
+                size="medium"
+                @update:selected-date="onDatePickerSelect"
+              />
+              <NcMonthYearSelector
+                v-else
+                :selected-date="currentDate"
+                header="v2"
+                size="medium"
+                @update:selected-date="onDatePickerSelect"
+              />
+            </div>
+          </template>
+        </NcDropdown>
 
         <!-- Today Button -->
         <NcButton
@@ -230,9 +303,26 @@ const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
           </NcTooltip>
         </div>
 
+        <!-- #3 + #15: Record count badge -->
+        <NcTooltip v-if="recordCountLabel && !isGroupBy" class="ml-1">
+          <template #title>
+            <span v-if="recordsWithoutDates > 0">
+              {{ recordsWithoutDates }} record{{ recordsWithoutDates !== 1 ? 's' : '' }} missing date fields and not shown on timeline
+            </span>
+            <span v-else>Total records loaded (max 400)</span>
+          </template>
+          <span
+            class="text-[11px] text-nc-content-gray-muted font-medium px-1.5 py-0.5 rounded-md bg-nc-bg-gray-medium"
+            :class="{ 'text-nc-content-orange-medium bg-nc-bg-orange-light': recordsWithoutDates > 0 }"
+            data-testid="nc-timeline-record-count"
+          >
+            {{ recordCountLabel }}
+          </span>
+        </NcTooltip>
+
         <div class="flex-1" />
 
-        <!-- Zoom Mode Selector -->
+        <!-- #20: Zoom Mode Selector (day, week, month) -->
         <a-select
           :value="zoomLevel"
           class="nc-select-shadow nc-timeline-mode-select !w-21 !rounded-lg"
@@ -245,7 +335,7 @@ const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
           <template #suffixIcon>
             <GeneralIcon icon="arrowDown" class="text-nc-content-gray-subtle" />
           </template>
-          <a-select-option v-for="option in ['week', 'month']" :key="option" :value="option">
+          <a-select-option v-for="option in ['day', 'week', 'month']" :key="option" :value="option">
             <div class="w-full flex gap-2 items-center justify-between" :title="$t(`objects.${option}`)">
               <div class="flex items-center gap-1">
                 <NcTooltip class="flex-1 capitalize mt-0.5 truncate" show-on-truncate-only>
@@ -266,6 +356,9 @@ const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
         <!-- Fields -->
         <SmartsheetToolbarFieldsMenu v-if="!isPublic" :show-system-fields="false" />
 
+        <!-- #8: Sort -->
+        <LazySmartsheetToolbarSortListMenu v-if="!isPublic" />
+
         <!-- Group By -->
         <SmartsheetToolbarGroupByMenu v-if="!isPublic" />
 
@@ -275,7 +368,7 @@ const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
         <!-- Filter -->
         <SmartsheetToolbarColumnFilterMenu v-if="!isPublic" />
 
-        <!-- Timeline Settings -->
+        <!-- Timeline Settings (#5: using timeline icon instead of calendar) -->
         <SmartsheetToolbarTimelineRange />
       </div>
 
@@ -298,12 +391,12 @@ const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
               <span class="text-xs text-nc-content-gray font-semibold truncate">{{ groupByFieldLabel }}</span>
             </div>
 
-            <!-- Date columns header -->
+            <!-- #10: Date columns header — using date string keys -->
             <div ref="groupHeaderRef" class="flex-1 overflow-hidden">
               <div class="flex bg-nc-bg-default w-full">
                 <div
-                  v-for="(date, idx) in visibleDates"
-                  :key="idx"
+                  v-for="date in visibleDates"
+                  :key="date.format('YYYY-MM-DD')"
                   class="flex-shrink-0 border-r border-nc-border-gray-light flex flex-col items-center justify-center"
                   :class="{
                     'bg-nc-bg-brand': isToday(date),
@@ -356,11 +449,15 @@ const isWeekend = (date: dayjs.Dayjs) => date.day() === 0 || date.day() === 6
           :timeline-range="timelineRange"
           :zoom-level="zoomLevel"
           @expand-record="expandRecord"
+          @new-record="onNewRecord"
         />
       </template>
+      <!-- #9: Empty state — using i18n -->
       <template v-else>
-        <div class="flex-1 flex w-full items-center justify-center text-nc-content-gray-muted min-h-0">
-          No date range configured. Please set up a date range in the toolbar.
+        <div class="flex-1 flex w-full items-center justify-center text-nc-content-gray-muted min-h-0 flex-col gap-2">
+          <GeneralIcon icon="warning" class="text-2xl text-nc-content-orange-medium" />
+          <span class="text-sm">{{ $t('activity.noRange') || 'No date range configured' }}</span>
+          <span class="text-xs text-nc-content-gray-subtle">{{ t('msg.configureTimelineRange') || 'Set up a date range in Settings to get started.' }}</span>
         </div>
       </template>
     </div>

@@ -34,7 +34,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     const isPublic = shared ? ref(shared) : inject(IsPublicInj, ref(false))
 
     // Timeline state
-    const zoomLevel = ref<'week' | 'month'>('month')
+    // #20: Support day zoom level alongside week and month
+    const zoomLevel = ref<'day' | 'week' | 'month'>('month')
 
     const currentDate = ref<dayjs.Dayjs>(dayjs())
 
@@ -43,6 +44,23 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     const formattedData = ref<Row[]>([])
 
     const isTimelineDataLoading = ref<boolean>(false)
+
+    // #6: Hide weekends toggle (persisted in view meta)
+    const hideWeekends = computed({
+      get: () => !!viewMetaProperties.value?.hide_weekend,
+      set: async (val: boolean) => {
+        if (!viewMeta.value?.id || isPublic.value) return
+        try {
+          const newMeta = { ...viewMetaProperties.value, hide_weekend: val }
+          await $api.dbView.update(viewMeta.value.id, {
+            meta: newMeta,
+          } as any)
+          // Reactivity flows through viewMeta → viewMetaProperties → hideWeekends
+        } catch (e: any) {
+          message.error(await extractSdkResponseErrorMsg(e))
+        }
+      },
+    })
 
     const searchQuery = reactive({
       value: '',
@@ -102,15 +120,18 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         .filter(Boolean)
     })
 
-    // Compute visible dates based on zoom level
+    // #6: Compute visible dates based on zoom level, respecting hide weekends
     const visibleDates = computed<dayjs.Dayjs[]>(() => {
-      const dates: dayjs.Dayjs[] = []
+      let dates: dayjs.Dayjs[] = []
       if (zoomLevel.value === 'month') {
         const startOfMonth = currentDate.value.startOf('month')
         const daysInMonth = currentDate.value.daysInMonth()
         for (let i = 0; i < daysInMonth; i++) {
           dates.push(startOfMonth.add(i, 'day'))
         }
+      } else if (zoomLevel.value === 'day') {
+        // Day view: show a single day (useful for hourly granularity later)
+        dates.push(currentDate.value.startOf('day'))
       } else {
         // week view
         const startOfWeek = currentDate.value.startOf('week')
@@ -118,12 +139,20 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
           dates.push(startOfWeek.add(i, 'day'))
         }
       }
+
+      // #6: Filter out weekends if hide_weekend is enabled
+      if (hideWeekends.value) {
+        dates = dates.filter((d) => d.day() !== 0 && d.day() !== 6)
+      }
+
       return dates
     })
 
     const dateRangeLabel = computed(() => {
       if (zoomLevel.value === 'month') {
         return currentDate.value.format('MMMM YYYY')
+      } else if (zoomLevel.value === 'day') {
+        return currentDate.value.format('ddd, MMM D, YYYY')
       } else {
         const start = currentDate.value.startOf('week')
         const end = currentDate.value.endOf('week')
@@ -132,6 +161,18 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
         }
         return `${start.format('D MMM')} - ${end.format('D MMM YYYY')}`
       }
+    })
+
+    // #3 + #15: Record statistics for the info badge
+    const totalRecordCount = computed(() => formattedData.value.length)
+
+    const recordsWithoutDates = computed(() => {
+      if (!timelineRange.value?.length) return 0
+      const range = timelineRange.value[0]
+      return formattedData.value.filter((row) => {
+        const fromVal = row.row?.[range.fk_from_col?.title!]
+        return !fromVal || !dayjs(fromVal).isValid()
+      }).length
     })
 
     // Data loading
@@ -178,6 +219,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     const navigateNext = () => {
       if (zoomLevel.value === 'month') {
         currentDate.value = currentDate.value.add(1, 'month')
+      } else if (zoomLevel.value === 'day') {
+        currentDate.value = currentDate.value.add(1, 'day')
       } else {
         currentDate.value = currentDate.value.add(1, 'week')
       }
@@ -186,6 +229,8 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
     const navigatePrev = () => {
       if (zoomLevel.value === 'month') {
         currentDate.value = currentDate.value.subtract(1, 'month')
+      } else if (zoomLevel.value === 'day') {
+        currentDate.value = currentDate.value.subtract(1, 'day')
       } else {
         currentDate.value = currentDate.value.subtract(1, 'week')
       }
@@ -196,7 +241,13 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       selectedDate.value = dayjs()
     }
 
-    const setZoomLevel = (level: 'week' | 'month') => {
+    // #14: Navigate to a specific date (for date picker)
+    const goToDate = (date: dayjs.Dayjs) => {
+      currentDate.value = date
+      selectedDate.value = date
+    }
+
+    const setZoomLevel = (level: 'day' | 'week' | 'month') => {
       zoomLevel.value = level
     }
 
@@ -308,6 +359,9 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       visibleDates,
       dateRangeLabel,
       isPublic,
+      hideWeekends,
+      totalRecordCount,
+      recordsWithoutDates,
 
       updateFormat,
 
@@ -316,6 +370,7 @@ const [useProvideTimelineViewStore, useTimelineViewStore] = useInjectionState(
       navigateNext,
       navigatePrev,
       goToToday,
+      goToDate,
       setZoomLevel,
       updateRowProperty,
     }

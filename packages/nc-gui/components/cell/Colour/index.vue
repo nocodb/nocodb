@@ -6,6 +6,8 @@ interface Props {
 const { modelValue } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
+const { iconMap } = useIcons()
+
 const column = inject(ColumnInj, ref())
 const readOnly = inject(ReadonlyInj, ref(false))
 const editEnabled = inject(EditModeInj, ref(false))
@@ -136,14 +138,47 @@ const onClose = () => {
 }
 
 // Handle cell click to open color picker
-const onClick = () => {
-  console.log('onClick triggered, readOnly:', readOnly.value, 'isOpen before:', isOpen.value)
+// State for showing clear button
+const showClearButton = ref(false)
+
+const onClick = (e: Event) => {
+  e.stopPropagation()
+  console.log('onClick triggered, readOnly:', readOnly.value, 'modelValue:', modelValue)
+  if (!readOnly.value && modelValue) {
+    // Show clear button when clicking on a cell with value
+    showClearButton.value = true
+  }
+}
+
+// Clear the colour value
+const clearValue = (e: Event) => {
+  e.stopPropagation()
+  emit('update:modelValue', null)
+  showClearButton.value = false
+}
+
+// Open color picker
+const openPicker = () => {
   if (!readOnly.value) {
     tempColor.value = vModel.value
     isOpen.value = true
-    console.log('isOpen set to:', isOpen.value)
+    showClearButton.value = false
   }
 }
+
+// Hide clear button when clicking outside
+const hideClearButton = () => {
+  showClearButton.value = false
+}
+
+// Add event listener for clicking outside
+onMounted(() => {
+  document.addEventListener('click', hideClearButton)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('click', hideClearButton)
+})
 
 // Auto-open color picker when cell becomes editable
 watch(
@@ -170,12 +205,12 @@ watch(isOpen, (open) => {
 </script>
 
 <template>
-  <div class="nc-cell-field flex items-center gap-2 py-1 w-full relative">
+  <div class="nc-cell-field flex items-center gap-2 py-1 w-full relative" @click.stop>
     <!-- Color Display -->
     <div
-      class="flex items-center gap-2 w-full"
+      class="flex items-center gap-2 flex-1"
       :class="{ 'cursor-pointer': !readOnly, 'pointer-events-none': readOnly }"
-      @click="onClick"
+      @click="modelValue ? onClick : openPicker"
     >
       <div
         v-if="showSwatch"
@@ -186,11 +221,21 @@ watch(isOpen, (open) => {
 
       <span
         v-if="showHex"
-        class="text-sm font-mono truncate flex-1"
+        class="text-sm font-mono truncate"
       >
         {{ vModel }}
       </span>
     </div>
+
+    <!-- Clear Button (X) -->
+    <div
+      v-if="showClearButton && modelValue && !readOnly"
+      class="flex items-center justify-center w-5 h-5 rounded cursor-pointer text-nc-content-gray-muted hover:text-nc-content-gray hover:bg-gray-100"
+      @click="clearValue"
+    >
+      <component :is="iconMap.close" class="w-3 h-3" />
+    </div>
+    
 
     <!-- Color Picker Modal -->
     <a-modal

@@ -11,7 +11,13 @@ const emit = defineEmits<{
   select: [workspaceId: string]
 }>()
 
+const { activeWorkspaceId } = storeToRefs(useWorkspace())
+
 const { switchWorkspace } = useWsBaseListActionsOrThrow()
+
+const isActiveWorkspace = computed(() => {
+  return activeWorkspaceId.value === props.workspace?.id
+})
 
 const onSelect = () => {
   emit('select', props.workspace.id!)
@@ -63,9 +69,14 @@ const onSelect = () => {
       </template>
       <GeneralIcon icon="role_owner" class="flex-none w-3.5 h-3.5 text-nc-content-gray-muted" />
     </NcTooltip>
+
     <GeneralIcon
-      icon="arrowRight"
-      class="nc-workspace-node-navigate-icon text-nc-content-gray-muted flex-none h-4 w-4"
+      :icon="isActiveWorkspace ? 'ncCheck' : 'arrowRight'"
+      class="text-nc-content-gray-muted flex-none h-4 w-4"
+      :class="{
+        'text-nc-content-brand': isActiveWorkspace,
+        'nc-workspace-node-navigate-icon': !isActiveWorkspace,
+      }"
       @click.stop="switchWorkspace(workspace.id)"
     />
   </div>
@@ -76,7 +87,7 @@ const onSelect = () => {
   @apply outline-none;
 
   &.is-selected {
-    @apply border-nc-border-brand/30 hover:border-nc-border-brand/40 bg-brand-500/8 dark:bg-brand-500/10;
+    @apply bg-nc-bg-gray-light !border-nc-border-gray-medium;
   }
 
   &:focus-visible {

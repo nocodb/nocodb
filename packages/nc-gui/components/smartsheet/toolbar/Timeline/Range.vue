@@ -105,7 +105,7 @@ const initialViewMode = computed({
     v-model:visible="calendarRangeDropdown"
     :trigger="['click']"
     class="!xs:hidden"
-    overlay-class-name="overflow-hidden"
+    overlay-class-name="nc-toolbar-dropdown overflow-hidden"
   >
     <NcTooltip :disabled="!isToolbarIconMode" class="nc-timeline-btn">
       <template #title>
@@ -132,12 +132,17 @@ const initialViewMode = computed({
 
     <template #overlay>
       <div
+        :class="{
+          'nc-locked-view': isLocked,
+        }"
+      >
+      <div
         v-if="calendarRangeDropdown"
-        class="w-108 space-y-6 rounded-2xl p-6"
+        class="w-72 space-y-4 p-4"
         data-testid="nc-timeline-range-menu"
         @click.stop
       >
-        <div class="flex flex-col w-full gap-2 mb-2" data-testid="nc-timeline-range-option">
+        <div class="flex flex-col w-full gap-2" data-testid="nc-timeline-range-option">
           <span class="text-nc-content-gray">
             {{ $t('labels.organiseBy') }}
           </span>
@@ -287,7 +292,8 @@ const initialViewMode = computed({
           </span>
         </div>
 
-        <GeneralLockedViewFooter v-if="isLocked" class="!-mb-4 -mx-4" @on-open="calendarRangeDropdown = false" />
+      </div>
+      <GeneralLockedViewFooter v-if="isLocked" @on-open="calendarRangeDropdown = false" />
       </div>
     </template>
   </NcDropdown>

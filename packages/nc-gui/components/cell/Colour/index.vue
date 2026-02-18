@@ -71,6 +71,7 @@ const vModel = computed({
 })
 
 const isOpen = ref(false)
+const tempColor = ref<string | null>(null)
 
 const sizeClass = computed(() => {
   switch (colourMeta.value.swatchSize) {
@@ -109,18 +110,27 @@ const showHex = computed(() => {
 
 const openColorPicker = () => {
   if (!readOnly.value) {
+    tempColor.value = vModel.value
     isOpen.value = true
   }
 }
 
 const onColorChange = (color: string) => {
   console.log('Color changed to:', color)
-  vModel.value = color
-  // Don't close immediately - let user continue selecting
+  tempColor.value = color
+}
+
+const onSave = () => {
+  console.log('Saving color:', tempColor.value)
+  if (tempColor.value) {
+    vModel.value = tempColor.value
+  }
+  isOpen.value = false
+  editEnabled.value = false
 }
 
 const onClose = () => {
-  console.log('Closing color picker')
+  console.log('Closing color picker without saving')
   isOpen.value = false
   editEnabled.value = false
 }
@@ -129,17 +139,32 @@ const onClose = () => {
 const onClick = () => {
   console.log('onClick triggered, readOnly:', readOnly.value, 'isOpen before:', isOpen.value)
   if (!readOnly.value) {
+    tempColor.value = vModel.value
     isOpen.value = true
     console.log('isOpen set to:', isOpen.value)
   }
 }
 
 // Auto-open color picker when cell becomes editable
-watch(editEnabled, (enabled) => {
-  if (enabled && !readOnly.value && !isOpen.value) {
-    nextTick(() => {
-      openColorPicker()
-    })
+watch(
+  editEnabled,
+  (enabled) => {
+    if (enabled && !readOnly.value && !isOpen.value) {
+      nextTick(() => {
+        openColorPicker()
+      })
+    } else if (!enabled && isOpen.value) {
+      // Prevent closing modal if editEnabled becomes false while modal is open
+      console.log('editEnabled became false while modal is open - keeping modal open')
+    }
+  },
+  { immediate: true },
+)
+
+// Prevent editEnabled from being set to false while modal is open
+watch(isOpen, (open) => {
+  if (open && !editEnabled.value) {
+    editEnabled.value = true
   }
 })
 </script>
@@ -170,22 +195,22 @@ watch(editEnabled, (enabled) => {
     <!-- Color Picker Modal -->
     <a-modal
       :visible="isOpen"
-      :footer="null"
-      :closable="true"
-      :destroy-on-close="true"
+      :closable="false"
+      :keyboard="false"
+      :mask-closable="false"
       :width="400"
       wrap-class-name="nc-colour-picker-modal"
-      @update:visible="(val) => isOpen = val"
-      @cancel="onClose"
     >
-      <div v-if="isOpen" class="p-2">
-        <GeneralAdvanceColorPicker
-          :model-value="vModel"
-          :is-open="isOpen"
-          @input="onColorChange"
-          @close-modal="onClose"
-        />
+      <div v-if="isOpen" class="p-2" @click.stop @mousedown.stop>
+        <GeneralAdvanceColorPicker :model-value="tempColor || vModel" :is-open="isOpen" @input="onColorChange" />
       </div>
+      <template #footer>
+        <div class="flex items-center gap-2" @click.stop @mousedown.stop>
+          <NcButton type="text" size="small" @click="onClose"> {{ $t('general.cancel') }} </NcButton>
+          <div class="flex-1" />
+          <NcButton size="small" @click="onSave"> {{ $t('general.save') }} </NcButton>
+        </div>
+      </template>
     </a-modal>
   </div>
 </template>

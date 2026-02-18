@@ -2598,7 +2598,7 @@ onClickOutside(
       isExpandedCellInputExist() ||
       isLinkDropdownExist() ||
       isGeneralOverlayActive() ||
-      (element && hasAncestorWithClass(element, ['ant-select-dropdown', 'nc-dropdown']))
+      (element && hasAncestorWithClass(element, ['ant-select-dropdown', 'nc-dropdown', 'nc-colour-picker-modal']))
     ) {
       return
     }

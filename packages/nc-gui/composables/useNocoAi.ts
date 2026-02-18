@@ -334,13 +334,14 @@ export const useNocoAi = createSharedComposable(() => {
 
     return {
       action: (res?.action as 'add' | 'replace' | 'clear') || 'add',
-      filters: (res?.filters as {
-        column: string
-        comparison_op: string
-        comparison_sub_op: string | null
-        value: string | null
-        logical_op: string
-      }[]) || [],
+      filters:
+        (res?.filters as {
+          column: string
+          comparison_op: string
+          comparison_sub_op: string | null
+          value: string | null
+          logical_op: string
+        }[]) || [],
     }
   }
 

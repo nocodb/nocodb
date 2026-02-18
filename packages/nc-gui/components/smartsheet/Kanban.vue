@@ -130,11 +130,8 @@ const {
   getCellLeftBorderStyle: _getCellLeftBorderStyle,
 } = useViewRowColorRender()
 
-const colorRenderTrigger = ref(0)
-
 const getCellColorStyle = (record: Row, columnId: string) => {
   // Access pre-computed cell colors from rowMeta (optimized - no function calls)
-  colorRenderTrigger.value // Force re-evaluation when colors change
   const cellColorInfo = record.rowMeta?.cellColors?.[columnId]
   if (!cellColorInfo) return {}
 
@@ -147,7 +144,6 @@ const getCellColorStyle = (record: Row, columnId: string) => {
 
 const getCellLeftBorderStyle = (record: Row, columnId: string) => {
   // Access pre-computed cell colors from rowMeta (optimized - no function calls)
-  colorRenderTrigger.value // Force re-evaluation when colors change
   const cellColorInfo = record.rowMeta?.cellColors?.[columnId]
   if (!cellColorInfo || cellColorInfo.is_set_as_background || !cellColorInfo.cellLeftBorderColor) return null
 
@@ -177,9 +173,6 @@ reloadViewDataHook?.on(reloadViewDataListener)
 const smartsheetEventHandler = (event: SmartsheetStoreEvents) => {
   if (event === SmartsheetStoreEvents.DATA_RELOAD) {
     reloadViewDataHook?.trigger()
-  } else if ([SmartsheetStoreEvents.TRIGGER_RE_RENDER, SmartsheetStoreEvents.ON_ROW_COLOUR_INFO_UPDATE].includes(event)) {
-    // Trigger view update when row coloring changes by incrementing the render trigger
-    colorRenderTrigger.value++
   }
 }
 
@@ -1051,7 +1044,10 @@ const resetPointerEvent = (record: RowType, col: ColumnType) => {
                                               :style="getCellLeftBorderStyle(record, col.id)"
                                             ></div>
                                             <div class="flex flex-col w-full">
-                                              <div v-if="isActiveViewFieldHeaderVisible" class="flex flex-row w-full justify-start">
+                                              <div
+                                                v-if="isActiveViewFieldHeaderVisible"
+                                                class="flex flex-row w-full justify-start"
+                                              >
                                                 <div class="nc-card-col-header w-full !children:text-nc-content-gray-muted">
                                                   <LazySmartsheetHeaderVirtualCell
                                                     v-if="isVirtualCol(col)"

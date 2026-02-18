@@ -7,8 +7,8 @@ import {
   UITypes,
   type ViewType,
 } from 'nocodb-sdk'
-import type { FilterRowChangeEvent } from '#imports'
 import { clearRowColouringCache } from '../../../components/smartsheet/grid/canvas/utils/canvas'
+import type { FilterRowChangeEvent } from '#imports'
 
 export function useViewRowColorOption(params: {
   meta: Ref<TableType | undefined> | ComputedRef<TableType | undefined>

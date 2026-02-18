@@ -44,9 +44,7 @@ provide(AllFiltersInj, ref({}))
 provide(ReloadViewDataHookInj, createEventHook())
 
 // Subject selector state
-const newSubjectType = ref<'role' | 'user' | 'team'>('role')
-const newSubjectId = ref('')
-const subjectSearchText = ref('')
+const isSubjectDropdownOpen = ref(false)
 
 // Filter ref for add filter button
 const filterRef = ref()
@@ -75,20 +73,6 @@ onMounted(async () => {
 
 const baseUsers = computed(() => basesUser.value.get(props.base?.id || '') || [])
 const baseTeams = computed(() => basesTeams.value.get(props.base?.id || '') || [])
-
-const filteredUsers = computed(() => {
-  const search = subjectSearchText.value.toLowerCase()
-  if (!search) return baseUsers.value
-  return baseUsers.value.filter(
-    (u: any) => u.email?.toLowerCase().includes(search) || u.display_name?.toLowerCase().includes(search),
-  )
-})
-
-const filteredTeams = computed(() => {
-  const search = subjectSearchText.value.toLowerCase()
-  if (!search) return baseTeams.value
-  return baseTeams.value.filter((t: any) => t.team_title?.toLowerCase().includes(search))
-})
 
 const roleOptions = [
   { label: 'Viewer', value: 'viewer' },
@@ -131,25 +115,6 @@ const handleSave = async () => {
   }
 }
 
-const handleAddSubject = (type: 'role' | 'user' | 'team', id: string) => {
-  if (!id.trim()) return
-
-  const exists = subjects.value.some((s) => s.type === type && s.id === id)
-  if (exists) {
-    message.warning('Subject already added')
-    return
-  }
-
-  subjects.value.push({ type, id: id.trim() })
-  newSubjectId.value = ''
-  subjectSearchText.value = ''
-}
-
-const handleAddSubjectFromSelector = () => {
-  if (!newSubjectId.value.trim()) return
-  handleAddSubject(newSubjectType.value, newSubjectId.value)
-}
-
 const handleRemoveSubject = (index: number) => {
   subjects.value.splice(index, 1)
 }
@@ -173,6 +138,92 @@ const subjectTypeColors: Record<string, string> = {
   role: 'bg-nc-bg-blue-light text-nc-content-blue-dark border-nc-border-blue',
   user: 'bg-nc-bg-green-light text-nc-content-green-dark border-nc-border-green',
   team: 'bg-nc-bg-purple-light text-nc-content-purple-dark border-nc-border-purple',
+}
+
+const subjectTypeIcons: Record<string, string> = {
+  role: 'ncRole',
+  user: 'ncUser',
+  team: 'ncUsers',
+}
+
+const subjectGroupOrder = computed(() => {
+  const groups = ['Roles', 'Members']
+  if (isTeamsEnabled.value) groups.push('Teams')
+  return groups
+})
+
+// Build a unified list of all selectable subjects for NcList
+const subjectListOptions = computed<NcListItemType[]>(() => {
+  const options: NcListItemType[] = []
+
+  // Roles
+  for (const role of roleOptions) {
+    options.push({
+      value: `role:${role.value}`,
+      label: role.label,
+      subjectType: 'role',
+      subjectId: role.value,
+      roleValue: role.value,
+      ncGroupHeaderLabel: 'Roles',
+    })
+  }
+
+  // Users
+  for (const user of baseUsers.value) {
+    options.push({
+      ...(user as any),
+      value: `user:${(user as any).id}`,
+      label: (user as any).display_name || (user as any).email,
+      email: (user as any).email,
+      display_name: (user as any).display_name,
+      subjectType: 'user',
+      subjectId: (user as any).id,
+      ncGroupHeaderLabel: 'Members',
+    })
+  }
+
+  // Teams
+  if (isTeamsEnabled.value) {
+    for (const team of baseTeams.value) {
+      options.push({
+        ...(team as any),
+        value: `team:${(team as any).team_id}`,
+        label: (team as any).team_title,
+        title: (team as any).team_title,
+        subjectType: 'team',
+        subjectId: (team as any).team_id,
+        description: `${(team as any).members_count || 0} members`,
+        ncGroupHeaderLabel: 'Teams',
+      })
+    }
+  }
+
+  return options
+})
+
+// Derive selected IDs in the `type:id` format for NcList binding
+const selectedSubjectIds = computed(() => {
+  return subjects.value.map((s) => `${s.type}:${s.id}`)
+})
+
+const filterSubjectOption = (input: string, option: NcListItemType) => {
+  const search = input.toLowerCase()
+  if (option.label?.toLowerCase().includes(search)) return true
+  if (option.email?.toLowerCase().includes(search)) return true
+  if (option.display_name?.toLowerCase().includes(search)) return true
+  return false
+}
+
+const handleSubjectToggle = (option: NcListItemType) => {
+  const type = option.subjectType as 'role' | 'user' | 'team'
+  const id = option.subjectId as string
+
+  const existingIdx = subjects.value.findIndex((s) => s.type === type && s.id === id)
+  if (existingIdx >= 0) {
+    subjects.value.splice(existingIdx, 1)
+  } else {
+    subjects.value.push({ type, id })
+  }
 }
 
 const showFilterSection = computed(() => {
@@ -232,106 +283,88 @@ const showFilterSection = computed(() => {
         <label class="text-xs font-semibold text-nc-content-gray-subtle">Apply To (Subjects)</label>
         <p class="text-xs text-nc-content-gray-muted">Choose which roles, teams, or users this policy applies to.</p>
 
-        <!-- Add subject controls -->
-        <div class="flex items-center gap-2">
-          <NcSelect v-model:value="newSubjectType" size="small" class="w-24 flex-none" dropdown-class-name="!rounded-lg">
-            <a-select-option value="role">Role</a-select-option>
-            <a-select-option value="user">User</a-select-option>
-            <a-select-option v-if="isTeamsEnabled" value="team">Team</a-select-option>
-          </NcSelect>
-
-          <!-- Role selector -->
-          <NcSelect
-            v-if="newSubjectType === 'role'"
-            v-model:value="newSubjectId"
-            size="small"
-            class="flex-1"
-            placeholder="Select role"
-            dropdown-class-name="!rounded-lg"
-          >
-            <a-select-option
-              v-for="role in roleOptions"
-              :key="role.value"
-              :value="role.value"
-              :disabled="subjects.some((s) => s.type === 'role' && s.id === role.value)"
-            >
-              <span class="text-xs">{{ role.label }}</span>
-            </a-select-option>
-          </NcSelect>
-
-          <!-- User selector -->
-          <NcSelect
-            v-else-if="newSubjectType === 'user'"
-            v-model:value="newSubjectId"
-            size="small"
-            class="flex-1"
-            placeholder="Search users..."
-            show-search
-            :filter-option="false"
-            dropdown-class-name="!rounded-lg"
-            @search="(val: string) => (subjectSearchText = val)"
-          >
-            <a-select-option
-              v-for="user in filteredUsers"
-              :key="(user as any).id"
-              :value="(user as any).id"
-              :disabled="subjects.some((s) => s.type === 'user' && s.id === (user as any).id)"
-            >
-              <div class="flex items-center gap-2 text-xs">
-                <GeneralIcon icon="ncUser" class="w-3 h-3 flex-none text-nc-content-gray-muted" />
-                <span class="truncate">{{ (user as any).display_name || (user as any).email }}</span>
-                <span v-if="(user as any).display_name" class="text-nc-content-gray-muted truncate">{{
-                  (user as any).email
-                }}</span>
+        <NcListDropdown v-model:isOpen="isSubjectDropdownOpen" default-slot-wrapper-class="w-full !min-h-8 !h-auto">
+          <!-- Trigger: show selected subjects as colored chips -->
+          <div class="w-[calc(100%_-_24px)] flex items-center gap-1.5 flex-wrap">
+            <template v-if="subjects.length">
+              <div
+                v-for="subject in subjects"
+                :key="`${subject.type}-${subject.id}`"
+                class="flex items-center gap-1 pl-2 pr-1 py-0.5 rounded-lg border text-xs"
+                :class="subjectTypeColors[subject.type]"
+              >
+                <GeneralIcon :icon="(subjectTypeIcons[subject.type] as any)" class="w-3 h-3 flex-none" />
+                <span class="truncate max-w-32">{{ getSubjectDisplayLabel(subject) }}</span>
+                <NcButton
+                  type="text"
+                  size="xs"
+                  class="!h-4 !w-4 !min-w-0"
+                  @click.stop="handleRemoveSubject(subjects.indexOf(subject))"
+                >
+                  <GeneralIcon icon="close" class="w-2.5 h-2.5" />
+                </NcButton>
               </div>
-            </a-select-option>
-          </NcSelect>
-
-          <!-- Team selector -->
-          <NcSelect
-            v-else-if="newSubjectType === 'team'"
-            v-model:value="newSubjectId"
-            size="small"
-            class="flex-1"
-            placeholder="Search teams..."
-            show-search
-            :filter-option="false"
-            dropdown-class-name="!rounded-lg"
-            @search="(val: string) => (subjectSearchText = val)"
-          >
-            <a-select-option
-              v-for="team in filteredTeams"
-              :key="(team as any).team_id"
-              :value="(team as any).team_id"
-              :disabled="subjects.some((s) => s.type === 'team' && s.id === (team as any).team_id)"
-            >
-              <div class="flex items-center gap-2 text-xs">
-                <GeneralIcon icon="ncUsers" class="w-3 h-3 flex-none text-nc-content-gray-muted" />
-                <span class="truncate">{{ (team as any).team_title }}</span>
-              </div>
-            </a-select-option>
-          </NcSelect>
-
-          <NcButton type="secondary" size="xs" :disabled="!newSubjectId" @click="handleAddSubjectFromSelector">
-            <GeneralIcon icon="plus" class="w-4 h-4" />
-          </NcButton>
-        </div>
-
-        <!-- Existing subjects as chips -->
-        <div v-if="subjects.length" class="flex flex-wrap gap-1.5 mt-1">
-          <div
-            v-for="(subject, idx) in subjects"
-            :key="`${subject.type}-${subject.id}`"
-            class="flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full border text-xs"
-            :class="subjectTypeColors[subject.type]"
-          >
-            <span class="capitalize font-medium text-[10px]">{{ subject.type }}:</span>
-            <span>{{ getSubjectDisplayLabel(subject) }}</span>
-            <NcButton type="text" size="xs" class="!h-4 !w-4 !min-w-0" @click="handleRemoveSubject(idx)">
-              <GeneralIcon icon="close" class="w-2.5 h-2.5" />
-            </NcButton>
+            </template>
+            <span v-else class="text-nc-content-gray-muted text-sm"> Select roles, users, or teams... </span>
           </div>
-        </div>
+          <GeneralIcon
+            icon="chevronDown"
+            class="flex-none h-4 w-4 text-nc-content-gray-muted transition-transform"
+            :class="{ 'transform rotate-180': isSubjectDropdownOpen }"
+          />
+
+          <!-- Dropdown overlay -->
+          <template #overlay="{ onEsc }">
+            <NcList
+              class="!w-full"
+              v-model:open="isSubjectDropdownOpen"
+              :value="selectedSubjectIds"
+              :list="subjectListOptions"
+              :group-order="subjectGroupOrder"
+              option-value-key="value"
+              option-label-key="label"
+              :item-height="44"
+              is-multi-select
+              :close-on-select="false"
+              search-input-placeholder="Search roles, users, or teams..."
+              :filter-option="filterSubjectOption"
+              :show-selected-option="false"
+              empty-description="No matches found"
+              wrapper-class-name="!h-auto max-h-64"
+              @change="handleSubjectToggle($event)"
+              @escape="onEsc"
+            >
+              <template #listItemExtraLeft="{ isSelected }">
+                <NcCheckbox :checked="isSelected" />
+              </template>
+
+              <template #listItemContent="{ option }">
+                <!-- Role item -->
+                <div v-if="option.subjectType === 'role'" class="flex items-center gap-2">
+                  <RolesBadge :border="false" :role="option.roleValue" icon-only nc-badge-class="!px-1" />
+                  <span class="text-sm">{{ option.label }}</span>
+                </div>
+                <!-- User item -->
+                <NcUserInfo v-else-if="option.subjectType === 'user'" :user="(option as any)" class="w-full max-w-[calc(100%_-_24px)]" />
+                <!-- Team item -->
+                <GeneralTeamInfo v-else-if="option.subjectType === 'team'" :team="(option as any)" class="max-w-[calc(100%_-_24px)]" />
+              </template>
+
+              <template #listItemExtraRight="{ option }">
+                <RolesBadge
+                  v-if="option.subjectType === 'user' && option.roles"
+                  :border="false"
+                  :role="option.roles"
+                  icon-only
+                  nc-badge-class="!px-1"
+                  show-tooltip
+                />
+              </template>
+
+              <template #listItemSelectedIcon> </template>
+            </NcList>
+          </template>
+        </NcListDropdown>
       </div>
 
       <!-- Divider -->

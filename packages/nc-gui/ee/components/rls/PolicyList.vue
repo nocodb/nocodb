@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import type { RlsPolicyType } from 'nocodb-sdk'
-import type { BaseType } from 'nocodb-sdk'
+import type { BaseType, RlsPolicyType } from 'nocodb-sdk'
 
 const props = defineProps<{
   tableId: string
@@ -19,11 +18,20 @@ const { policies, isLoading, isSaving, loadPolicies, createPolicy, deletePolicy,
   tableId,
 )
 
+const basesStore = useBases()
+const { basesUser, basesTeams } = storeToRefs(basesStore)
+
+const baseUsers = computed(() => basesUser.value.get(props.base?.id || '') || [])
+const baseTeams = computed(() => basesTeams.value.get(props.base?.id || '') || [])
+
 const editingPolicyId = ref<string | null>(null)
 const showEditor = ref(false)
 
-onMounted(() => {
+onMounted(async () => {
   loadPolicies()
+  if (props.base?.id) {
+    await basesStore.getBaseUsers({ baseId: props.base.id })
+  }
 })
 
 const handleCreatePolicy = async () => {
@@ -95,15 +103,35 @@ const editingPolicy = computed(() =>
 const defaultPolicy = computed(() => policies.value.find((p) => p.is_default))
 const scopedPolicies = computed(() => policies.value.filter((p) => !p.is_default))
 
+const roleLabels: Record<string, string> = {
+  viewer: 'Viewer',
+  commenter: 'Commenter',
+  editor: 'Editor',
+  creator: 'Creator',
+}
+
 const getSubjectLabel = (policy: RlsPolicyType) => {
   if (!policy.subjects?.length) return 'No subjects'
-  return policy.subjects
+
+  const roles = policy.subjects.filter((s) => s.type === 'role').map((s) => roleLabels[s.id] || s.id)
+  const users = policy.subjects
+    .filter((s) => s.type === 'user')
     .map((s) => {
-      if (s.type === 'role') return `Role: ${s.id}`
-      if (s.type === 'team') return `Team: ${s.id}`
-      return `User: ${s.id}`
+      const user = baseUsers.value.find((u: any) => u.id === s.id)
+      return (user as any)?.display_name || (user as any)?.email || s.id
     })
-    .join(', ')
+  const teams = policy.subjects
+    .filter((s) => s.type === 'team')
+    .map((s) => {
+      const team = baseTeams.value.find((t: any) => t.team_id === s.id)
+      return (team as any)?.team_title || s.id
+    })
+
+  const parts: string[] = []
+  if (roles.length) parts.push(`Roles: ${roles.join(', ')}`)
+  if (users.length) parts.push(`Users: ${users.join(', ')}`)
+  if (teams.length) parts.push(`Teams: ${teams.join(', ')}`)
+  return parts.join(' · ')
 }
 </script>
 

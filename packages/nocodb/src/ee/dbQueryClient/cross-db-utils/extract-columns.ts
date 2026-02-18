@@ -71,9 +71,9 @@ export function extractColumns({
         qb,
         getAlias,
         params: {
-            ...params?.nested?.[firstFormula.title],
-            linksAsLtar: params?.linksAsLtar,
-          },
+          ...params?.nested?.[firstFormula.title],
+          linksAsLtar: params?.linksAsLtar,
+        },
         baseModel,
         ast: ast?.[firstFormula.title] ?? ast?.[firstFormula.id],
         throwErrorIfInvalidParams,

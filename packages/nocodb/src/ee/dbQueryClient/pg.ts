@@ -1114,11 +1114,16 @@ export class PGDBQueryClient
         }
         break;
       case UITypes.Links:
-        if (params?.linksAsLtar === 'true' && apiVersion === NcApiVersion.V3) {
-          column.uidt = UITypes.LinkToAnotherRecord;
+        if (
+          (params?.linksAsLtar === 'true' || params?.linksAsLtar) &&
+          apiVersion === NcApiVersion.V3
+        ) {
           try {
             return await this.extractColumn({
-              column,
+              column: new Column({
+                ...column,
+                uidt: UITypes.LinkToAnotherRecord,
+              }),
               qb,
               rootAlias,
               knex,
@@ -1137,7 +1142,7 @@ export class PGDBQueryClient
               baseUsers,
             });
           } finally {
-            column.uidt = UITypes.Links;
+            // No Op
           }
         }
       // eslint-disable-next-line no-fallthrough -- falls through to Rollup when linksAsLtar is not set

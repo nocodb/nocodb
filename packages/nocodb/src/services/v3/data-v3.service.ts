@@ -991,8 +991,7 @@ export class DataV3Service {
       const relatedModel = await colOptions.getRelatedTable(context);
       const relatedColumns = await relatedModel.getColumns(context);
 
-      const linksAsLtar =
-        param.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+      const linksAsLtar = param.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
       const transformedRecord = await this.transformRecordToV3Format({
         context: context,
@@ -1065,8 +1064,7 @@ export class DataV3Service {
     const nestedLimit =
       +param.query?.nestedLimit || BaseModelSqlv2.config.ltarV3Limit;
 
-    const linksAsLtar =
-      param.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+    const linksAsLtar = param.query?.[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
     const transformedRecords = await this.transformRecordsToV3Format({
       context: context,
@@ -1142,8 +1140,7 @@ export class DataV3Service {
       return primaryKey.title in obj || primaryKey.id in obj;
     };
 
-    const linksAsLtar =
-      param.query[QUERY_STRING_LINKS_AS_LTAR] === 'true';
+    const linksAsLtar = param.query[QUERY_STRING_LINKS_AS_LTAR] === 'true';
 
     return hasPrimaryKey(result)
       ? await this.transformRecordToV3Format({

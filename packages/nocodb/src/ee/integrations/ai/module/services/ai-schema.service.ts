@@ -609,7 +609,7 @@ export class AiSchemaService {
       logical_op: string;
     }[];
   }> {
-    const { baseId, tableId, description, req } = params;
+    const { baseId, tableId, description } = params;
 
     const base = await Base.get(context, baseId);
 
@@ -652,12 +652,9 @@ export class AiSchemaService {
       columns: columns.map((column) => ({
         title: column.title,
         type: column.uidt,
-        ...(column.colOptions?.options &&
-        column.colOptions?.options.length > 0
+        ...(column.colOptions?.options && column.colOptions?.options.length > 0
           ? {
-              options: column.colOptions.options.map(
-                (option) => option.title,
-              ),
+              options: column.colOptions.options.map((option) => option.title),
             }
           : {}),
       })),
@@ -708,7 +705,9 @@ export class AiSchemaService {
 
     // Log raw AI response for debugging filter generation issues
     this.logger.debug(
-      `[predictFilters] AI response — action: ${data.action}, filters: ${JSON.stringify(data.filters)}`,
+      `[predictFilters] AI response — action: ${
+        data.action
+      }, filters: ${JSON.stringify(data.filters)}`,
     );
 
     // Validate that all AI-referenced column names exist in the table.

@@ -23,6 +23,10 @@ export default class ViewSection {
     return null;
   }
 
+  public static async findByTitle(..._args) {
+    return null;
+  }
+
   static async deleteByModelId(..._args) {
     return true;
   }

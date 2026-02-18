@@ -122,6 +122,29 @@ const onNewRecord = (startDate: dayjs.Dayjs, endDate: dayjs.Dayjs) => {
   )
 }
 
+// Floating "+" button — create a new record with start date set to the median visible date
+const onFloatingNewRecord = () => {
+  const range = timelineRange.value?.[0]
+  if (!range?.fk_from_col?.title) return
+
+  $e('c:timeline:new-record-btn', { zoomLevel: zoomLevel.value })
+
+  const midIdx = Math.floor(visibleDates.value.length / 2)
+  const medianDate = visibleDates.value[midIdx] ?? visibleDates.value[0]
+  if (!medianDate) return
+
+  const row: Record<string, any> = {
+    [range.fk_from_col.title]: medianDate.format(updateFormat.value),
+  }
+  if (range.fk_to_col?.title) {
+    row[range.fk_to_col.title] = medianDate.format(updateFormat.value)
+  }
+
+  expandRecord(
+    { row, oldRow: {}, rowMeta: { new: true } },
+  )
+}
+
 const reloadData = async () => {
   if (isGroupBy.value) {
     await loadGroups({}, rootGroup.value)
@@ -221,7 +244,7 @@ const recordCountLabel = computed(() => {
     </div>
   </template>
   <template v-else>
-    <div class="flex flex-col h-full w-full bg-nc-bg-default" data-testid="nc-timeline-wrapper">
+    <div class="relative flex flex-col h-full w-full bg-nc-bg-default" data-testid="nc-timeline-wrapper">
       <!-- Toolbar -->
       <div
         class="nc-timeline-toolbar flex items-center gap-1 px-3 border-b border-nc-border-gray-medium bg-nc-bg-default min-h-[var(--toolbar-height)] max-h-[var(--toolbar-height)]"
@@ -494,6 +517,21 @@ const recordCountLabel = computed(() => {
           <span class="text-xs text-nc-content-gray-subtle">{{ $t('msg.configureTimelineRange') }}</span>
         </div>
       </template>
+
+      <!-- Floating new record button -->
+      <NcTooltip v-if="timelineRange?.length && !isPublic" class="!absolute bottom-3 left-3 z-20">
+        <template #title>{{ $t('activity.newRecord') }}</template>
+        <NcButton
+          v-e="['c:timeline:new-record-btn']"
+          class="!rounded-full !shadow-sm !w-8 !h-8 !min-w-0 !p-0"
+          type="secondary"
+          size="small"
+          data-testid="nc-timeline-new-record-btn"
+          @click="onFloatingNewRecord"
+        >
+          <GeneralIcon icon="plus" class="text-nc-content-gray-subtle w-4 h-4" />
+        </NcButton>
+      </NcTooltip>
     </div>
 
     <Suspense>

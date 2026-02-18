@@ -45,15 +45,18 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj, createEventHook())
 
 // Expanded groups tracker — all groups expanded by default (like Airtable)
 const expandedGroups = ref<Set<string>>(new Set())
+// Track keys we've already processed so we don't re-expand manually collapsed groups
+const seenKeys = new Set<string>()
 
 const isExpanded = (key: string) => expandedGroups.value.has(key)
 
 const toggleGroup = async (grp: any) => {
   const key = String(grp.key)
-  if (expandedGroups.value.has(key)) {
-    expandedGroups.value.delete(key)
+  const newSet = new Set(expandedGroups.value)
+  if (newSet.has(key)) {
+    newSet.delete(key)
   } else {
-    expandedGroups.value.add(key)
+    newSet.add(key)
     // Load data on expand if not yet loaded
     if (grp.nested) {
       if (!grp.children?.[0]?.children?.length) {
@@ -65,6 +68,7 @@ const toggleGroup = async (grp: any) => {
       }
     }
   }
+  expandedGroups.value = newSet
 }
 
 // Auto-expand all groups and load data when children become available
@@ -72,10 +76,15 @@ watch(
   () => props.group?.children,
   (children) => {
     if (!children) return
+    let changed = false
+    const newSet = new Set(expandedGroups.value)
     for (const grp of children) {
       const key = String(grp.key)
-      if (!expandedGroups.value.has(key)) {
-        expandedGroups.value.add(key)
+      // Only auto-expand groups we haven't seen before
+      if (!seenKeys.has(key)) {
+        seenKeys.add(key)
+        newSet.add(key)
+        changed = true
         // Load data for leaf groups
         if (!grp.nested && !grp.rows?.length) {
           props.loadGroupData(grp)
@@ -85,6 +94,9 @@ watch(
           props.loadGroups({}, grp, { triggerChildOnly: true })
         }
       }
+    }
+    if (changed) {
+      expandedGroups.value = newSet
     }
   },
   { immediate: true },
@@ -125,13 +137,12 @@ onMounted(async () => {
         <!-- #13: Left cell: group label — min-h matches right cell when collapsed -->
         <div
           class="nc-timeline-group-label border-b border-r border-nc-border-gray-medium px-3 py-2 bg-nc-bg-default cursor-pointer select-none hover:bg-nc-bg-gray-extralight transition-colors"
-          :class="{ 'min-h-[40px]': !isExpanded(String(grp.key)) }"
           @click="toggleGroup(grp)"
         >
-          <div class="flex items-start gap-1.5">
+          <div class="flex items-center gap-1.5">
             <GeneralIcon
               icon="chevronDown"
-              class="flex-shrink-0 mt-0.5 text-nc-content-gray-muted transition-transform"
+              class="flex-shrink-0 text-nc-content-gray-muted transition-transform"
               :class="{ '-rotate-90': !isExpanded(String(grp.key)) }"
             />
 
@@ -213,10 +224,9 @@ onMounted(async () => {
 
         <!-- #16: Right cell: timeline content — with expand/collapse transition -->
         <div
-          class="border-b border-nc-border-gray-medium nc-timeline-group-content"
-          :class="{ 'min-h-[40px]': !isExpanded(String(grp.key)), 'is-expanded': isExpanded(String(grp.key)) }"
+          class="border-b border-nc-border-gray-medium overflow-hidden"
         >
-          <div v-if="isExpanded(String(grp.key))" class="nc-timeline-group-content-inner">
+          <div v-if="isExpanded(String(grp.key))">
             <!-- Leaf group: render timeline grid -->
             <SmartsheetTimelineGrid
               v-if="!grp.nested && grp.rows"
@@ -270,34 +280,5 @@ onMounted(async () => {
 <style scoped lang="scss">
 .nc-timeline-group-label {
   align-self: stretch;
-}
-
-/* #16: Smooth expand/collapse animation */
-.nc-timeline-group-content {
-  overflow: hidden;
-  transition: max-height 0.2s ease;
-}
-
-.nc-timeline-group-content:not(.is-expanded) {
-  max-height: 40px;
-}
-
-.nc-timeline-group-content.is-expanded {
-  max-height: 2000px; /* large enough for any content */
-}
-
-.nc-timeline-group-content-inner {
-  animation: nc-group-fade-in 0.15s ease;
-}
-
-@keyframes nc-group-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 </style>

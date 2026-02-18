@@ -63,6 +63,8 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
 
+const { blockToggleFilter, showUpgradeToUseToggleFilter } = useEeConfig()
+
 const logicalOps = [
   { value: 'and', text: t('general.and') },
   { value: 'or', text: t('general.or') },
@@ -220,7 +222,7 @@ const onEnabledChange = (val: boolean | Event) => {
             size="default"
             :disabled="isDisabled || parentEnabled === false"
             class="nc-filter-enabled-checkbox"
-            @change="onEnabledChange"
+            @change="(val) => blockToggleFilter ? showUpgradeToUseToggleFilter() : onEnabledChange(val)"
           />
           <template v-if="index === 0">
             <span class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>

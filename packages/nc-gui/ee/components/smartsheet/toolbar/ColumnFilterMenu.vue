@@ -32,6 +32,8 @@ const {
 
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
 
+const { blockToggleFilter } = useEeConfig()
+
 // todo: avoid duplicate api call by keeping a filter store
 const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
   activeView!,
@@ -149,10 +151,14 @@ const combinedFilterLength = computed(() => {
   return filtersLength.value
 })
 
-/** Display format: "enabled/total" when some filters are disabled, otherwise just "total" */
+/** Display format: "enabled/total" when some filters are disabled, otherwise just "total".
+ *  When toggle filters are blocked (Free plan), always show just the total count. */
 const filterCountDisplay = computed(() => {
   const total = combinedFilterLength.value
   if (!total) return ''
+
+  // If toggle filter feature is blocked, just show the total count
+  if (blockToggleFilter.value) return `${total}`
 
   // For restricted editors, enabledFiltersLength tracks persisted (creator) filters only.
   // Also count enabled local/temp filters so the badge reflects the full picture.

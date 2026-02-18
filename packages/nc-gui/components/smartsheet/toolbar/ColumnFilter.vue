@@ -131,6 +131,8 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
+const { blockToggleFilter, showUpgradeToUseToggleFilter, blockPinnedFilter, showUpgradeToUsePinnedFilter } = useEeConfig()
+
 const {
   nestedFilters,
   isForm,
@@ -1048,7 +1050,7 @@ defineExpose({
                       size="default"
                       :disabled="isLockedView || readOnly"
                       class="nc-filter-enabled-checkbox"
-                      @change="onEnabledChange(filter, i)"
+                      @change="() => blockToggleFilter ? showUpgradeToUseToggleFilter() : onEnabledChange(filter, i)"
                     />
                     <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{
                       $t('labels.where')
@@ -1132,7 +1134,7 @@ defineExpose({
               size="default"
               :disabled="isLockedView || readOnly"
               class="nc-filter-enabled-checkbox"
-              @change="onEnabledChange(filter, i)"
+              @change="() => blockToggleFilter ? showUpgradeToUseToggleFilter() : onEnabledChange(filter, i)"
             />
             <div
               class="flex flex-row gap-x-0 flex-1 nc-filter-wrapper"
@@ -1461,12 +1463,18 @@ defineExpose({
                 size="small"
                 :disabled="!canPinFilter(filter) || isLockedView"
                 class="nc-filter-item-pin-btn self-center"
-                @click.stop="togglePinFilter(filter, i)"
+                @click.stop="blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, i)"
               >
                 <GeneralIcon
                   :icon="parseProp(filter.meta)?.pinned ? 'ncPinOff' : 'ncPin'"
                   class="h-3.5 w-3.5"
-                  :class="parseProp(filter.meta)?.pinned ? 'text-primary' : 'text-nc-content-gray-subtle2'"
+                  :class="
+                    (!canPinFilter(filter) && !parseProp(filter.meta)?.pinned) || isLockedView
+                      ? 'text-nc-content-gray-muted'
+                      : parseProp(filter.meta)?.pinned
+                        ? 'text-primary'
+                        : 'text-nc-content-gray-subtle2'
+                  "
                 />
               </NcButton>
             </NcTooltip>

@@ -58,6 +58,8 @@ const meta = inject(MetaInj, ref())
 // t is a standalone dependency, so not need to abstract it
 const { t } = useI18n()
 
+const { blockToggleFilter, showUpgradeToUseToggleFilter } = useEeConfig()
+
 const logicalOps = [
   { value: 'and', text: t('general.and') },
   { value: 'or', text: t('general.or') },
@@ -433,7 +435,7 @@ const onChangeToDynamic = async () => {
         size="default"
         :disabled="isDisabled || parentEnabled === false"
         class="nc-filter-enabled-checkbox"
-        @change="onEnabledChange"
+        @change="(val) => blockToggleFilter ? showUpgradeToUseToggleFilter() : onEnabledChange(val)"
       />
     </div>
     <!-- #endregion enabled checkbox -->

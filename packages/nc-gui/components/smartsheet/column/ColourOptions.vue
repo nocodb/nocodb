@@ -18,6 +18,7 @@ const picked = computed({
   },
 })
 
+// Ensure color picker never auto-opens 
 const isOpenColorPicker = ref(false)
 
 // set default value

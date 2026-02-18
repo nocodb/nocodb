@@ -790,14 +790,6 @@ const onBodyScroll = (event: Event) => {
           </div>
 
           <!-- #9: Empty state grid filler — using i18n -->
-          <div
-            v-if="!swimlanes.length"
-            class="flex items-center justify-center text-nc-content-gray-muted text-sm"
-            :style="{ height: '200px' }"
-            data-testid="nc-timeline-empty-state"
-          >
-            {{ t('msg.noRecordsFound') }}
-          </div>
         </div>
       </div>
     </div>

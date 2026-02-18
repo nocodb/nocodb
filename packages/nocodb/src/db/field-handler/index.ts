@@ -60,6 +60,7 @@ import { NumberSqliteHandler } from '~/db/field-handler/handlers/number/number.s
 import { RatingMysqlHandler } from '~/db/field-handler/handlers/rating/rating.mysql.handler';
 import { RatingPgHandler } from '~/db/field-handler/handlers/rating/rating.pg.handler';
 import { RatingSqliteHandler } from '~/db/field-handler/handlers/rating/rating.sqlite.handler';
+import { ColourGeneralHandler } from '~/db/field-handler/handlers/colour/colour.general.handler';
 import { PercentMysqlHandler } from '~/db/field-handler/handlers/percent/percent.mysql.handler';
 import { PercentPgHandler } from '~/db/field-handler/handlers/percent/percent.pg.handler';
 import { PercentSqliteHandler } from '~/db/field-handler/handlers/percent/percent.sqlite.handler';
@@ -168,6 +169,9 @@ const HANDLER_REGISTRY: Partial<
     [ClientType.PG]: RatingPgHandler,
     [ClientType.MYSQL]: RatingMysqlHandler,
     [ClientType.SQLITE]: RatingSqliteHandler,
+  },
+  [UITypes.Colour]: {
+    [CLIENT_DEFAULT]: ColourGeneralHandler,
   },
   [UITypes.Formula]: {
     [CLIENT_DEFAULT]: FormulaGeneralHandler,

@@ -22345,7 +22345,8 @@
               "LastModifiedBy",
               "AI",
               "Order",
-              "Meta"
+              "Meta",
+              "Colour"
             ],
             "type": "string"
           },
@@ -26216,7 +26217,8 @@
               "LastModifiedBy",
               "AI",
               "Order",
-              "Meta"
+              "Meta",
+              "Colour"
             ],
             "type": "string",
             "description": "UI Data Type"

@@ -277,6 +277,7 @@ export const comparisonOpList = (
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
       UITypes.Time,
+      UITypes.Colour,
       ...numericUITypes,
     ],
     semanticType: 'pattern_match',
@@ -300,6 +301,7 @@ export const comparisonOpList = (
       UITypes.CreatedTime,
       UITypes.LastModifiedTime,
       UITypes.Time,
+      UITypes.Colour,
       ...numericUITypes,
     ],
     semanticType: 'pattern_not_match',
@@ -824,6 +826,7 @@ export const getPlaceholderNewRow = (
             UITypes.Percent,
             UITypes.Rating,
             UITypes.Duration,
+            UITypes.Colour,
             UITypes.JSON,
 
             // User is using allOf and anyOf so we cannot include it here

@@ -26,6 +26,7 @@ import { JsonCellRenderer } from './Json'
 import { BarcodeCellRenderer } from './Barcode'
 import { QRCodeCellRenderer } from './QRCode'
 import { RatingCellRenderer } from './Rating'
+import { ColourCellRenderer } from './Colour'
 import { UserFieldCellRenderer } from './User'
 import { SingleSelectCellRenderer } from './SingleSelect'
 import { MultiSelectCellRenderer } from './MultiSelect'
@@ -123,6 +124,7 @@ export function useGridCellHandler(params: {
   cellTypesRegistry.set(UITypes.Barcode, BarcodeCellRenderer)
   cellTypesRegistry.set(UITypes.QrCode, QRCodeCellRenderer)
   cellTypesRegistry.set(UITypes.Rating, RatingCellRenderer)
+  cellTypesRegistry.set(UITypes.Colour, ColourCellRenderer)
   cellTypesRegistry.set(UITypes.User, UserFieldCellRenderer)
   cellTypesRegistry.set(UITypes.CreatedBy, UserFieldCellRenderer)
   cellTypesRegistry.set(UITypes.LastModifiedBy, UserFieldCellRenderer)

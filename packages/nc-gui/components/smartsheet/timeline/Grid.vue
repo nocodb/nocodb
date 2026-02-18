@@ -32,14 +32,19 @@ const {
 
 const today = dayjs()
 
-// Column width based on zoom
-const colWidth = computed(() => {
-  return props.zoomLevel === 'week' ? 120 : 40
-})
-
 const ROW_HEIGHT = 36
 const HEADER_HEIGHT = 56
 const SIDEBAR_WIDTH = 200
+
+// Measure the grid container to compute dynamic column widths
+const gridContainerRef = ref<HTMLElement | null>(null)
+const { width: containerWidth } = useElementSize(gridContainerRef)
+
+// Column width: fill available space evenly across all visible dates
+const colWidth = computed(() => {
+  if (!containerWidth.value || !props.visibleDates.length) return 120
+  return containerWidth.value / props.visibleDates.length
+})
 
 // --- Resize state ---
 const resizeInProgress = ref(false)
@@ -277,11 +282,6 @@ const getBarColor = (index: number) => {
   return barColors[index % barColors.length]
 }
 
-// Total grid width
-const gridWidth = computed(() => {
-  return props.visibleDates.length * colWidth.value
-})
-
 // Today indicator position
 const todayPosition = computed(() => {
   const firstDate = props.visibleDates[0]
@@ -293,169 +293,176 @@ const todayPosition = computed(() => {
 </script>
 
 <template>
-  <div class="flex h-full overflow-hidden">
-    <!-- Left sidebar: record names -->
-    <div
-      class="flex-shrink-0 border-r border-gray-200 bg-gray-50 overflow-y-auto"
-      :style="{ width: `${SIDEBAR_WIDTH}px` }"
-    >
+  <div class="flex flex-col h-full overflow-hidden">
+    <!-- Fixed header row: sidebar header + date column headers -->
+    <div class="flex flex-shrink-0">
       <!-- Sidebar header -->
       <div
-        class="sticky top-0 z-10 bg-gray-50 border-b border-gray-200 px-3 flex items-center text-xs font-semibold text-gray-500 uppercase tracking-wide"
-        :style="{ height: `${HEADER_HEIGHT}px` }"
+        class="flex-shrink-0 border-r border-gray-200 bg-gray-50 px-3 flex items-center text-xs font-semibold text-gray-500 uppercase tracking-wide border-b"
+        :style="{ width: `${SIDEBAR_WIDTH}px`, height: `${HEADER_HEIGHT}px` }"
       >
         Records
       </div>
-      <!-- Record labels -->
-      <div
-        v-for="(record, idx) in records"
-        :key="idx"
-        class="px-3 border-b border-gray-100 flex items-center text-sm text-gray-700 truncate cursor-pointer hover:bg-gray-100"
-        :style="{ height: `${ROW_HEIGHT}px` }"
-        @click="emit('expandRecord', record)"
-      >
-        <span class="truncate">{{ getRowTitle(record) }}</span>
-      </div>
-      <!-- Empty state -->
-      <div v-if="!records.length" class="px-3 py-8 text-center text-xs text-gray-400">
-        No records to display
+      <!-- Date headers -->
+      <div ref="gridContainerRef" class="flex-1 overflow-hidden">
+        <div class="flex bg-white border-b border-gray-200 w-full">
+          <div
+            v-for="(date, idx) in visibleDates"
+            :key="idx"
+            class="flex-shrink-0 border-r border-gray-100 flex flex-col items-center justify-center"
+            :class="{
+              'bg-blue-50': isToday(date),
+              'bg-gray-50': isWeekend(date) && !isToday(date),
+            }"
+            :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
+          >
+            <span class="text-[10px] font-medium text-gray-400 uppercase">
+              {{ date.format('ddd') }}
+            </span>
+            <span
+              class="text-sm font-semibold"
+              :class="{
+                'text-blue-600': isToday(date),
+                'text-gray-600': !isToday(date),
+              }"
+            >
+              {{ date.format('D') }}
+            </span>
+            <span v-if="zoomLevel === 'week'" class="text-[10px] text-gray-400">
+              {{ date.format('MMM') }}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Right area: timeline grid -->
-    <div class="flex-1 overflow-auto relative">
-      <!-- Date header -->
-      <div class="sticky top-0 z-10 flex bg-white border-b border-gray-200" :style="{ width: `${gridWidth}px` }">
+    <!-- Scrollable body row: sidebar record names + grid bars (scroll together) -->
+    <div class="flex flex-1 min-h-0 overflow-y-auto">
+      <!-- Left sidebar: record names -->
+      <div
+        class="flex-shrink-0 border-r border-gray-200 bg-gray-50"
+        :style="{ width: `${SIDEBAR_WIDTH}px` }"
+      >
+        <!-- Record labels -->
         <div
-          v-for="(date, idx) in visibleDates"
+          v-for="(record, idx) in records"
           :key="idx"
-          class="flex-shrink-0 border-r border-gray-100 flex flex-col items-center justify-center"
-          :class="{
-            'bg-blue-50': isToday(date),
-            'bg-gray-50': isWeekend(date) && !isToday(date),
-          }"
-          :style="{ width: `${colWidth}px`, height: `${HEADER_HEIGHT}px` }"
+          class="px-3 border-b border-gray-100 flex items-center text-sm text-gray-700 truncate cursor-pointer hover:bg-gray-100"
+          :style="{ height: `${ROW_HEIGHT}px` }"
+          @click="emit('expandRecord', record)"
         >
-          <span class="text-[10px] font-medium text-gray-400 uppercase">
-            {{ date.format('ddd') }}
-          </span>
-          <span
-            class="text-sm font-semibold"
-            :class="{
-              'text-blue-600': isToday(date),
-              'text-gray-600': !isToday(date),
-            }"
-          >
-            {{ date.format('D') }}
-          </span>
-          <span v-if="zoomLevel === 'week'" class="text-[10px] text-gray-400">
-            {{ date.format('MMM') }}
-          </span>
+          <span class="truncate">{{ getRowTitle(record) }}</span>
+        </div>
+        <!-- Empty state -->
+        <div v-if="!records.length" class="px-3 py-8 text-center text-xs text-gray-400">
+          No records to display
         </div>
       </div>
 
-      <!-- Grid body with bars -->
-      <div ref="gridBodyRef" class="relative" :style="{ width: `${gridWidth}px` }">
-        <!-- Grid lines (vertical) -->
-        <div class="absolute inset-0 pointer-events-none">
+      <!-- Right area: timeline grid body -->
+      <div class="flex-1 overflow-hidden relative">
+        <div ref="gridBodyRef" class="relative w-full">
+          <!-- Grid lines (vertical) -->
+          <div class="absolute inset-0 pointer-events-none">
+            <div
+              v-for="(date, idx) in visibleDates"
+              :key="'line-' + idx"
+              class="absolute top-0 bottom-0 border-r"
+              :class="{
+                'border-gray-100': !isToday(date),
+                'border-blue-200': isToday(date),
+              }"
+              :style="{ left: `${(idx + 1) * colWidth}px` }"
+            />
+          </div>
+
+          <!-- Today indicator line -->
+          <div
+            v-if="todayPosition !== null"
+            class="absolute top-0 bottom-0 w-0.5 bg-blue-500 z-5"
+            :style="{ left: `${todayPosition}px` }"
+          />
+
+          <!-- Weekend background -->
           <div
             v-for="(date, idx) in visibleDates"
-            :key="'line-' + idx"
-            class="absolute top-0 bottom-0 border-r"
-            :class="{
-              'border-gray-100': !isToday(date),
-              'border-blue-200': isToday(date),
+            :key="'bg-' + idx"
+            class="absolute top-0 bottom-0"
+            :class="{ 'bg-gray-50/50': isWeekend(date) }"
+            :style="{
+              left: `${idx * colWidth}px`,
+              width: `${colWidth}px`,
+              height: `${Math.max(records.length * ROW_HEIGHT, 400)}px`,
             }"
-            :style="{ left: `${(idx + 1) * colWidth}px` }"
           />
-        </div>
 
-        <!-- Today indicator line -->
-        <div
-          v-if="todayPosition !== null"
-          class="absolute top-0 bottom-0 w-0.5 bg-blue-500 z-5"
-          :style="{ left: `${todayPosition}px` }"
-        />
-
-        <!-- Weekend background -->
-        <div
-          v-for="(date, idx) in visibleDates"
-          :key="'bg-' + idx"
-          class="absolute top-0 bottom-0"
-          :class="{ 'bg-gray-50/50': isWeekend(date) }"
-          :style="{
-            left: `${idx * colWidth}px`,
-            width: `${colWidth}px`,
-            height: `${Math.max(records.length * ROW_HEIGHT, 400)}px`,
-          }"
-        />
-
-        <!-- Row bands + bars -->
-        <div
-          v-for="(record, rowIdx) in records"
-          :key="rowIdx"
-          class="relative border-b border-gray-50"
-          :style="{ height: `${ROW_HEIGHT}px` }"
-        >
-          <!-- Hover background -->
-          <div class="absolute inset-0 hover:bg-blue-50/30 transition-colors" />
-
-          <!-- Bar with resize handles -->
-          <NcTooltip
-            v-if="getBarStyle(record)"
-            :disabled="resizeInProgress"
-            placement="top"
-            class="absolute top-1"
-            :style="getBarStyle(record)"
+          <!-- Row bands + bars -->
+          <div
+            v-for="(record, rowIdx) in records"
+            :key="rowIdx"
+            class="relative border-b border-gray-50"
+            :style="{ height: `${ROW_HEIGHT}px` }"
           >
-            <template #title>
-              <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
-            </template>
-            <div
-              class="rounded-md flex items-center text-xs font-medium shadow-sm transition-shadow select-none group w-full"
-              :class="{
-                'cursor-pointer hover:shadow-md hover:brightness-95': !resizeInProgress,
-                'pointer-events-none opacity-30': resizeInProgress && resizeRecord !== record,
-                'z-20 shadow-md': resizeInProgress && resizeRecord === record,
-              }"
-              :style="{
-                height: `${ROW_HEIGHT - 8}px`,
-                backgroundColor: getBarColor(rowIdx).bg,
-                borderLeft: `3px solid ${getBarColor(rowIdx).border}`,
-                color: getBarColor(rowIdx).text,
-              }"
-              @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
+            <!-- Hover background -->
+            <div class="absolute inset-0 hover:bg-blue-50/30 transition-colors" />
+
+            <!-- Bar with resize handles -->
+            <NcTooltip
+              v-if="getBarStyle(record)"
+              :disabled="resizeInProgress"
+              placement="top"
+              class="absolute top-1"
+              :style="getBarStyle(record)"
             >
-              <!-- Left resize handle (start date) -->
+              <template #title>
+                <span class="text-xs font-semibold">{{ getBarTooltip(record) }}</span>
+              </template>
               <div
-                v-if="canResize"
-                class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-                @mousedown.stop="onResizeStart('left', $event, record)"
+                class="rounded-md flex items-center text-xs font-medium shadow-sm transition-shadow select-none group w-full"
+                :class="{
+                  'cursor-pointer hover:shadow-md hover:brightness-95': !resizeInProgress,
+                  'pointer-events-none opacity-30': resizeInProgress && resizeRecord !== record,
+                  'z-20 shadow-md': resizeInProgress && resizeRecord === record,
+                }"
+                :style="{
+                  height: `${ROW_HEIGHT - 8}px`,
+                  backgroundColor: getBarColor(rowIdx).bg,
+                  borderLeft: `3px solid ${getBarColor(rowIdx).border}`,
+                  color: getBarColor(rowIdx).text,
+                }"
+                @click="!resizeInProgress && !justFinishedResize && emit('expandRecord', record)"
               >
-                <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                <!-- Left resize handle (start date) -->
+                <div
+                  v-if="canResize"
+                  class="nc-timeline-resize-handle nc-timeline-resize-handle--left absolute left-0 top-0 w-3 h-full z-10 flex items-center justify-center"
+                  @mousedown.stop="onResizeStart('left', $event, record)"
+                >
+                  <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+
+                <span class="truncate px-2">{{ getRowTitle(record) }}</span>
+
+                <!-- Right resize handle (end date) — only when end date column exists -->
+                <div
+                  v-if="canResize && timelineRange[0]?.fk_to_col"
+                  class="nc-timeline-resize-handle nc-timeline-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
+                  @mousedown.stop="onResizeStart('right', $event, record)"
+                >
+                  <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
               </div>
+            </NcTooltip>
+          </div>
 
-              <span class="truncate px-2">{{ getRowTitle(record) }}</span>
-
-              <!-- Right resize handle (end date) — only when end date column exists -->
-              <div
-                v-if="canResize && timelineRange[0]?.fk_to_col"
-                class="nc-timeline-resize-handle nc-timeline-resize-handle--right absolute right-0 top-0 w-3 h-full z-10 flex items-center justify-center"
-                @mousedown.stop="onResizeStart('right', $event, record)"
-              >
-                <div class="nc-timeline-resize-grip rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-            </div>
-          </NcTooltip>
-        </div>
-
-        <!-- Empty state grid filler -->
-        <div
-          v-if="!records.length"
-          class="flex items-center justify-center text-gray-400 text-sm"
-          :style="{ height: '200px' }"
-        >
-          No records in this time period
+          <!-- Empty state grid filler -->
+          <div
+            v-if="!records.length"
+            class="flex items-center justify-center text-gray-400 text-sm"
+            :style="{ height: '200px' }"
+          >
+            No records in this time period
+          </div>
         </div>
       </div>
     </div>

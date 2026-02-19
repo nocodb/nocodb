@@ -51,6 +51,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 
 const { showRecordPlanLimitExceededModal } = useEeConfig()
 
+const { isFeatureEnabled } = useBetaFeatureToggle()
+
 // todo: temp
 const { baseTables } = storeToRefs(useTablesStore())
 const tables = computed(() => baseTables.value.get(base.value.id!) ?? [])
@@ -395,7 +397,10 @@ const enabledOptions = computed(() => {
     tablePermission:
       isEeUI && table.value?.type === 'table' && isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }),
     tableRowLevelSecurity:
-      isEeUI && table.value?.type === 'table' && isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }),
+      isEeUI &&
+      isFeatureEnabled(FEATURE_FLAG.ROW_LEVEL_SECURITY) &&
+      table.value?.type === 'table' &&
+      isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }),
     tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })

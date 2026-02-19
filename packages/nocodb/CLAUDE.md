@@ -186,6 +186,10 @@ When working on data operations (CRUD, filtering, sorting, RLS, etc.), changes m
 
 When modifying data operations, ensure changes are applied across all relevant layers — not just BaseModel.
 
+## Payment (EE only)
+
+Models: `Plan.ts` (meta = features+limits, `FreePlan` constant), `Subscription.ts` (`calculateWorkspaceSeatCount()`), `Workspace.ts` (adds `payment`, `stripe_customer_id`, `loyal`). Service: `src/ee/modules/payment/payment.service.ts` (Stripe checkout/subscriptions/webhooks/reseat/invoices). Controller: `/api/payment/` (ACL) + `/api/internal/payment/` (BasicAuth). Helpers: `paymentHelpers.ts` — `checkLimit()`, `checkForFeature()`, `checkSeatLimit()` — called from BaseModel, extract-ids middleware, job processors, view/filter models. ACL: `manageSubscription`, `paymentSeatCount` (owners only). Migrations: `nc_038`/`nc_039`/`nc_043`.
+
 ## Key Files
 
 - `src/db/BaseModelSqlv2.ts` — Core data access layer (~206KB, handles all CRUD)

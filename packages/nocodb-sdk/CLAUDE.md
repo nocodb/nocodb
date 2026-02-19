@@ -49,6 +49,10 @@ src/ee/                # EE-only types (sibling to lib/, excluded from CE build)
 - Adding API client methods → update swagger schema in backend, then regenerate SDK
 - ALWAYS rebuild SDK after changes: `pnpm run build:ee`
 
+## Payment Types
+
+`src/lib/payment/index.ts` — all payment enums/constants. `PlanTitles`, `PlanFeatureTypes` (~40 flags), `PlanLimitTypes` (~30 limits), `PlanPriceLookupKeys`, `PlanOrder`, `PlanMeta`, `LoyaltyPriceLookupKeyMap`, upgrade message maps. Lives in `src/lib/` (not `src/ee/`) — both builds need these. Also: `NON_SEAT_ROLES` in `globals.ts`.
+
 ## Anti-Patterns
 
 These are SDK-specific — see root CLAUDE.md for universal anti-patterns.

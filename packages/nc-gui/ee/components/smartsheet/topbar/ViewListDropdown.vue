@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { type TableType, type ViewType, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
+import { type TableType, type ViewType, PlanFeatureTypes, PlanTitles, ViewTypes, viewTypeAlias } from 'nocodb-sdk'
 
 const { isMobileMode } = useGlobal()
 
@@ -13,7 +13,7 @@ const { activeTable } = storeToRefs(useTablesStore())
 
 const viewsStore = useViewsStore()
 
-const { activeView, views, isListViewEnabled } = storeToRefs(viewsStore)
+const { activeView, views } = storeToRefs(viewsStore)
 
 const { navigateToView, onOpenViewCreateModal } = viewsStore
 
@@ -25,15 +25,13 @@ const { blockMapView, showUpgradeToUseMapView } = useEeConfig()
 
 const isOpen = ref<boolean>(false)
 
-const activeSource = computed(() => {
-  return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
-})
-
 const isSqlView = computed(() => (activeTable.value as TableType)?.type === 'view')
 
 const isSyncedTable = computed(() => (activeTable.value as TableType)?.synced)
 
-const isPgSource = computed(() => activeSource.value?.type === 'pg')
+const activeSource = computed(() => {
+  return base.value.sources?.find((s) => s.id === activeView.value?.source_id)
+})
 
 /**
  * Handles navigation to a selected view.
@@ -244,20 +242,6 @@ async function onOpenModal({
                     {{ $t('objects.viewType.calendar') }}
                   </div>
                 </a-menu-item>
-                <template v-if="isListViewEnabled">
-                  <NcTooltip :title="$t('tooltip.listViewOnlyPg')" :disabled="isPgSource" placement="right">
-                    <a-menu-item
-                      :disabled="!isPgSource"
-                      data-testid="topbar-view-create-list"
-                      @click="isPgSource && onOpenModal({ type: ViewTypes.LIST })"
-                    >
-                      <div class="nc-viewlist-submenu-popup-item" :class="{ 'opacity-50': !isPgSource }">
-                        <GeneralViewIcon :meta="{ type: ViewTypes.LIST }" />
-                        {{ $t('objects.viewType.list') }}
-                      </div>
-                    </a-menu-item>
-                  </NcTooltip>
-                </template>
                 <a-menu-item
                   v-if="isFeatureEnabled(FEATURE_FLAG.MAP_VIEW)"
                   data-testid="topbar-view-create-map"
@@ -266,6 +250,7 @@ async function onOpenModal({
                   <div class="nc-viewlist-submenu-popup-item">
                     <GeneralViewIcon :meta="{ type: ViewTypes.MAP }" />
                     {{ $t('objects.viewType.map') }}
+                    <EePaymentUpgradeBadge v-if="blockMapView" :feature="PlanFeatureTypes.FEATURE_MAP_VIEW" :plan-title="PlanTitles.BUSINESS" class="ml-auto" />
                   </div>
                 </a-menu-item>
 

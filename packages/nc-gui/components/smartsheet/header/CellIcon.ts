@@ -36,6 +36,8 @@ export const renderIcon = (column: ColumnType, abstractType: any) => {
     return iconMap.cellTime
   } else if (isRating(column)) {
     return iconMap.cellRating
+  } else if (isColour(column)) {
+    return iconMap.cellColour
   } else if (isAttachment(column)) {
     return iconMap.cellAttachment
   } else if (isDecimal(column)) {

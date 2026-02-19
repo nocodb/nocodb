@@ -22346,6 +22346,7 @@
               "AI",
               "Order",
               "Meta",
+              "Colour",
               "UUID"
             ],
             "type": "string"
@@ -26226,6 +26227,7 @@
               "AI",
               "Order",
               "Meta",
+              "Colour",
               "UUID"
             ],
             "type": "string",

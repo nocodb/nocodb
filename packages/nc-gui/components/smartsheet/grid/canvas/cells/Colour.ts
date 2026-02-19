@@ -1,0 +1,220 @@
+import { ColumnHelper, UITypes, isValidHexColour } from 'nocodb-sdk'
+import { renderTag } from '../utils/canvas'
+
+/** Pixel sizes for the colour swatch at each configured size. */
+const SWATCH_SIZE: Record<string, number> = {
+  small: 16,
+  medium: 20,
+  large: 24,
+}
+
+/** Border radius for square swatches (circles use half the swatch size). */
+const SQUARE_BORDER_RADIUS = 3
+
+export const ColourCellRenderer: CellRenderer = {
+  render(ctx: CanvasRenderingContext2D, props: CellRendererOptions) {
+    const {
+      value,
+      x,
+      y,
+      width,
+      height,
+      column,
+      padding = 10,
+      readonly,
+      tag = {},
+      setCursor,
+      mousePosition,
+      getColor,
+      isUnderLookup,
+    } = props
+
+    const {
+      renderAsTag,
+      tagPaddingX = 6,
+      tagHeight = 20,
+      tagRadius = 6,
+      tagBgColor = getColor('#f4f4f0', themeV4Colors.base.white),
+      tagSpacing = 4,
+      tagBorderColor,
+      tagBorderWidth,
+    } = tag
+
+    // Get column metadata with defaults
+    const columnMeta = {
+      ...ColumnHelper.getColumnDefaultMeta(UITypes.Colour),
+      ...parseProp(column?.meta),
+    }
+
+    // Parse and validate the color value
+    const colorValue = value ? String(value).trim() : null
+    const isValidColor = isValidHexColour(colorValue)
+    const displayColor = isValidColor ? colorValue : columnMeta.defaultColor || '#FFFFFF'
+
+    // Don't render anything if no value
+    if (!colorValue) {
+      return
+    }
+
+    // Calculate swatch size based on configuration
+    const swatchSize = SWATCH_SIZE[columnMeta.swatchSize] || SWATCH_SIZE.medium
+    const borderRadius = columnMeta.swatchStyle === 'circle' ? swatchSize / 2 : SQUARE_BORDER_RADIUS
+
+    // Calculate positions
+    const swatchX = x + padding
+    const swatchY = y + (height - swatchSize) / 2
+    const hexTextX = swatchX + swatchSize + 8
+    const hexTextY = y + height / 2
+
+    // Set cursor to pointer when hovering over the cell
+    if (mousePosition && !readonly) {
+      const isHovered =
+        mousePosition.x >= x &&
+        mousePosition.x <= x + width &&
+        mousePosition.y >= y &&
+        mousePosition.y <= y + height
+
+      if (isHovered) {
+        setCursor('pointer')
+      }
+    }
+
+    if (renderAsTag) {
+      let tagWidth = swatchSize + tagPaddingX * 2
+
+      // Add space for hex code if display format includes it
+      if (colorValue && (columnMeta.displayFormat === 'swatch_hex' || columnMeta.displayFormat === 'hex_only')) {
+        const hexText = colorValue.toUpperCase()
+        ctx.font = '12px Inter'
+        const hexTextWidth = ctx.measureText(hexText).width
+        tagWidth =
+          columnMeta.displayFormat === 'hex_only'
+            ? hexTextWidth + tagPaddingX * 2
+            : swatchSize + 8 + hexTextWidth + tagPaddingX * 2
+      }
+
+      const initialY = y + height / 2 - tagHeight / 2
+
+      renderTag(ctx, {
+        x: x + tagSpacing,
+        y: initialY,
+        width: tagWidth,
+        height: tagHeight,
+        radius: tagRadius,
+        fillStyle: tagBgColor,
+        borderColor: tagBorderColor,
+        borderWidth: tagBorderWidth,
+      })
+
+      // Render content inside tag
+      if (colorValue || isUnderLookup) {
+        let contentX = x + tagSpacing + tagPaddingX
+
+        if (columnMeta.displayFormat !== 'hex_only') {
+          // Render color swatch
+          ctx.fillStyle = displayColor
+          ctx.beginPath()
+          if (columnMeta.swatchStyle === 'circle') {
+            ctx.arc(contentX + swatchSize / 2, initialY + tagHeight / 2, swatchSize / 2, 0, 2 * Math.PI)
+          } else {
+            ctx.roundRect(contentX, initialY + (tagHeight - swatchSize) / 2, swatchSize, swatchSize, borderRadius)
+          }
+          ctx.fill()
+
+          ctx.strokeStyle = getColor('#d0d5dd', themeV4Colors.gray['300'])
+          ctx.lineWidth = 1
+          ctx.stroke()
+
+          contentX += swatchSize + 8
+        }
+
+        if (columnMeta.displayFormat !== 'swatch_only' && colorValue) {
+          ctx.font = '12px Inter'
+          ctx.fillStyle = getColor(themeV4Colors.gray['600'])
+          ctx.textBaseline = 'middle'
+          ctx.textAlign = 'left'
+          ctx.fillText(colorValue.toUpperCase(), contentX, initialY + tagHeight / 2)
+        }
+      }
+
+      return {
+        x: x + tagWidth + tagSpacing,
+        y: y + tagHeight + tagSpacing,
+      }
+    } else {
+      // Regular cell rendering
+      if (colorValue) {
+        let contentX = swatchX
+
+        if (columnMeta.displayFormat !== 'hex_only') {
+          ctx.fillStyle = displayColor
+          ctx.beginPath()
+          if (columnMeta.swatchStyle === 'circle') {
+            ctx.arc(contentX + swatchSize / 2, swatchY + swatchSize / 2, swatchSize / 2, 0, 2 * Math.PI)
+          } else {
+            ctx.roundRect(contentX, swatchY, swatchSize, swatchSize, borderRadius)
+          }
+          ctx.fill()
+
+          ctx.strokeStyle = getColor('#d0d5dd', themeV4Colors.gray['300'])
+          ctx.lineWidth = 1
+          ctx.stroke()
+
+          contentX = hexTextX
+        }
+
+        if (columnMeta.displayFormat !== 'swatch_only' && colorValue) {
+          ctx.font = '12px Inter'
+          ctx.fillStyle = getColor(themeV4Colors.gray['600'])
+          ctx.textBaseline = 'middle'
+          ctx.textAlign = 'left'
+          ctx.fillText(colorValue.toUpperCase(), contentX, hexTextY)
+        }
+      }
+    }
+  },
+
+  async handleClick({ row, column, makeCellEditable, selected, readonly, formula }) {
+    if (
+      !row ||
+      !column ||
+      readonly ||
+      formula ||
+      column.readonly ||
+      column.columnObj?.readonly ||
+      !column.isCellEditable ||
+      column.isSyncedColumn ||
+      !selected
+    ) {
+      return false
+    }
+
+    makeCellEditable(row, column)
+    return true
+  },
+
+  async handleKeyDown(ctx) {
+    const { e, row, column, readonly, makeCellEditable } = ctx
+    if (column.readonly || readonly || column.columnObj?.readonly || !column.isCellEditable || column.isSyncedColumn)
+      return false
+
+    // Open color picker on Enter
+    if (e.key === 'Enter') {
+      makeCellEditable(row, column)
+      return true
+    }
+
+    // Handle Delete/Backspace to clear the value
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      row.row[column.title] = null
+      try {
+        await ctx.updateOrSaveRow(row, column.title, undefined, undefined, undefined, ctx.path)
+      } catch (e: any) {
+        message.error(await extractSdkResponseErrorMsg(e))
+      }
+      return true
+    }
+
+    return false
+  },
+}

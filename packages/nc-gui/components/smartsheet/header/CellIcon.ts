@@ -4,6 +4,8 @@ import type { PropType } from '@vue/runtime-core'
 export const renderIcon = (column: ColumnType, abstractType: any) => {
   if (isPrimaryKey(column)) {
     return iconMap.cellSystemKey
+  } else if (isUUID(column)) {
+    return iconMap.cellUuid
   } else if (isSpecificDBType(column)) {
     return iconMap.cellDb
   } else if (isJSON(column)) {

@@ -60,7 +60,6 @@ import Up from '~icons/material-symbols/keyboard-arrow-up-rounded'
 import Down from '~icons/material-symbols/keyboard-arrow-down-rounded'
 import PhTriangleFill from '~icons/ph/triangle-fill'
 import LcSend from '~icons/lucide/send'
-import LcFingerprint from '~icons/lucide/fingerprint'
 import MdiPuzzle from '~icons/mdi/puzzle'
 import MaterialSymbolsArrowDropUp from '~icons/material-symbols/arrow-drop-up'
 import MaterialSymbolsArrowDropDown from '~icons/material-symbols/arrow-drop-down'
@@ -194,6 +193,7 @@ import NcCellAttachment from '~icons/nc-icons/cell-attachment'
 import NcCellButton from '~icons/nc-icons/cell-button'
 import NcCellAiButton from '~icons/nc-icons/cell-ai-button'
 import NcCellAi from '~icons/nc-icons/cell-ai'
+import NcCellUuid from '~icons/nc-icons/cell-uuid'
 
 import NcCircleCheck from '~icons/nc-icons/circle-check'
 import OnetoOneIcon from '~icons/nc-icons/onetoone'
@@ -1002,7 +1002,7 @@ export const iconMap = {
   'cellRollup': h(NcCellRollup, { stroke: 'transparent' }),
   'cellSingleSelect': NcCellSingleSelect,
   'cellText': NcCellText,
-  'cellUuid': LcFingerprint,
+  'cellUuid': NcCellUuid,
   'cellTime': NcCellTime,
   'cellUrl': NcCellUrl,
   'cellUser': NcCellUser,

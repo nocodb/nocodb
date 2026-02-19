@@ -13629,7 +13629,8 @@
               "User",
               "CreatedBy",
               "LastModifiedBy",
-              "Meta"
+              "Meta",
+              "UUID"
             ],
             "type": "string"
           },
@@ -16550,7 +16551,8 @@
           "GeoData",
           "Geometry",
           "JSON",
-          "SpecificDBType"
+          "SpecificDBType",
+          "UUID"
         ],
         "type": "string"
       },

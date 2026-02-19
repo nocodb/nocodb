@@ -171,6 +171,14 @@ export function useCopyPaste({
       return false
     }
 
+    // Skip pasting UUID columns (read-only, auto-generated)
+    if (col.uidt === UITypes.UUID) {
+      if (showInfo) {
+        message.toast(t('msg.info.computedFieldEditWarning'))
+      }
+      return false
+    }
+
     // skip pasting virtual columns (including LTAR columns for now) and system columns
     if (isVirtualCol(col) || isSystemColumn(col) || col?.readonly) {
       if (!avoidLtarRestrictions || !isLinksOrLTAR(col)) {

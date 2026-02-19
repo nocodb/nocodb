@@ -28,6 +28,8 @@ const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isViewActionsEnabled } = useActionPane()
 
+const { blockPinnedFilter } = useEeConfig()
+
 const containerRef = ref<HTMLElement>()
 
 const { width } = useElementSize(containerRef)
@@ -48,6 +50,7 @@ const isTab = computed(() => {
  *  Visible for personal view owners — they have full control over view config. */
 const hasPinnedFilters = computed(() => {
   if (!isEeUI) return false
+  if (blockPinnedFilter.value) return false
   if (isLocked.value || !canSyncFilter.value) return false
   return allFilters.value.some((f) => f.id && !f.is_group && parseProp(f.meta)?.pinned === true)
 })
@@ -132,7 +135,7 @@ provide(IsToolbarIconMode, isToolbarIconMode)
 
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
 
-        <SmartsheetToolbarPinnedFilters v-if="isEeUI && !isLocked && canSyncFilter && (isGrid || isGallery || isKanban || isMap)" />
+        <SmartsheetToolbarPinnedFilters v-if="isEeUI && !blockPinnedFilter && !isLocked && canSyncFilter && (isGrid || isGallery || isKanban || isMap)" />
 
         <div class="flex-1" />
       </template>

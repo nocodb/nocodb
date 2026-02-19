@@ -71,6 +71,8 @@ export enum PlanFeatureTypes {
   FEATURE_CARD_FIELD_HEADER_VISIBILITY = 'feature_card_field_header_visibility',
   FEATURE_SYNC = 'feature_sync',
   FEATURE_UNIQUE = 'feature_unique',
+  FEATURE_TOGGLE_FILTER = 'feature_toggle_filter',
+  FEATURE_PINNED_FILTER = 'feature_pinned_filter',
 }
 
 export enum PlanTitles {
@@ -289,6 +291,8 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
     'to hide field headers in Gallery and Kanban views.',
   [PlanFeatureTypes.FEATURE_SYNC]: 'to use sync feature.',
   [PlanFeatureTypes.FEATURE_UNIQUE]: 'to use unique constraint.',
+  [PlanFeatureTypes.FEATURE_TOGGLE_FILTER]: 'to enable or disable individual filters.',
+  [PlanFeatureTypes.FEATURE_PINNED_FILTER]: 'to pin filters to the toolbar.',
 };
 
 export const getUpgradeMessage = (

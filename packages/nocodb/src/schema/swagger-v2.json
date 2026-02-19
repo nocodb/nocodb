@@ -13630,7 +13630,7 @@
               "CreatedBy",
               "LastModifiedBy",
               "Meta",
-              "Colour"
+              "Colour",
               "UUID"
             ],
             "type": "string"

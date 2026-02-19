@@ -46,10 +46,7 @@ export class ScimExceptionFilter implements ExceptionFilter {
     // pass it through directly (e.g. 409 Conflict from services)
     if (typeof exception?.getResponse === 'function') {
       const exceptionResponse = exception.getResponse();
-      if (
-        typeof exceptionResponse === 'object' &&
-        exceptionResponse?.schemas
-      ) {
+      if (typeof exceptionResponse === 'object' && exceptionResponse?.schemas) {
         if (status >= 500) {
           this.logger.error(exceptionResponse.detail, exception?.stack);
         }

@@ -1,4 +1,10 @@
-import { Controller, Get, UseFilters, UseGuards, UseInterceptors } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  UseFilters,
+  UseGuards,
+  UseInterceptors,
+} from '@nestjs/common';
 import { ScimSchemasService } from '~/ee/services/scim/scim-schemas.service';
 import { ScimAuthGuard } from '~/ee/guards/scim-auth.guard';
 import { ScimExceptionFilter } from '~/ee/filters/scim-exception/scim-exception.filter';

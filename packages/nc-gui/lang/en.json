@@ -208,7 +208,9 @@
     "upgradeToUseSandbox": "Upgrade to use Sandboxes",
     "upgradeToUseSandboxSubtitle": "Sandboxes are available on the {plan} plan and above.",
     "upgradeToUseRecordTemplates": "Upgrade to use record templates",
-    "upgradeToUseRecordTemplatesSubtitle": "Upgrade to the {plan} plan to create and use record templates."
+    "upgradeToUseRecordTemplatesSubtitle": "Upgrade to the {plan} plan to create and use record templates.",
+    "upgradeToUseRls": "Upgrade to use Row-Level Security",
+    "upgradeToUseRlsSubtitle": "Upgrade to the {plan} plan to define row-level security policies that control which rows users can access."
   },
   "general": {
     "done": "Done",

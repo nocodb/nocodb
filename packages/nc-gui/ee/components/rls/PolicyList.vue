@@ -13,6 +13,8 @@ const { t } = useI18n()
 const base = computed(() => props.base)
 const tableId = computed(() => props.tableId)
 
+const { showUpgradeToUseRls } = useEeConfig()
+
 const { policies, isLoading, isSaving, loadPolicies, createPolicy, deletePolicy, togglePolicy } = useRlsPolicies(
   base as Ref<BaseType>,
   tableId,
@@ -35,6 +37,8 @@ onMounted(async () => {
 })
 
 const handleCreatePolicy = async () => {
+  if (showUpgradeToUseRls()) return
+
   try {
     const result = await createPolicy({
       fk_model_id: props.tableId,
@@ -46,11 +50,13 @@ const handleCreatePolicy = async () => {
     }
     $e('a:rls:policy-create')
   } catch (e: any) {
-    message.error(t('msg.error.rlsPolicyCreateFailed'))
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 const handleCreateDefaultPolicy = async () => {
+  if (showUpgradeToUseRls()) return
+
   try {
     await createPolicy({
       fk_model_id: props.tableId,
@@ -60,7 +66,7 @@ const handleCreateDefaultPolicy = async () => {
     })
     $e('a:rls:default-policy-create')
   } catch (e: any) {
-    message.error(e.message || t('msg.error.rlsPolicyCreateFailed'))
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

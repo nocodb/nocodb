@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { AppEvents } from 'nocodb-sdk';
+import { AppEvents, PlanFeatureTypes, PlanLimitTypes } from 'nocodb-sdk';
 import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import RlsPolicy from '~/ee/models/RlsPolicy';
@@ -8,6 +8,7 @@ import Filter from '~/models/Filter';
 import { NcError } from '~/helpers/ncError';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { View } from '~/models';
+import { checkForFeature, checkLimit } from '~/ee/helpers/paymentHelpers';
 
 @Injectable()
 export class RlsService {
@@ -62,6 +63,24 @@ export class RlsService {
     },
   ) {
     const { body, userId, req } = param;
+
+    // Check if RLS feature is available on the workspace plan
+    await checkForFeature(context, PlanFeatureTypes.FEATURE_RLS);
+
+    // Check per-table RLS policy limit
+    if (!body.is_default) {
+      const scopedCount = await RlsPolicy.countScopedPolicies(
+        context,
+        body.fk_model_id,
+      );
+
+      await checkLimit({
+        workspaceId: context.workspace_id,
+        type: PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE,
+        count: scopedCount,
+        delta: 1,
+      });
+    }
 
     // If creating a default policy, check if one already exists
     if (body.is_default) {

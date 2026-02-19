@@ -279,6 +279,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SYNC)
   })
 
+  const blockRls = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_RLS)
+  })
+
   const blockUnique = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_UNIQUE)
   })
@@ -1413,6 +1417,29 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseRls = ({
+    callback,
+    successCallback,
+  }: { callback?: (type: 'ok' | 'cancel') => void; successCallback?: () => void } = {}) => {
+    if (!blockRls.value) {
+      successCallback?.()
+
+      return
+    }
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseRls'),
+      content: t('upgrade.upgradeToUseRlsSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      limitOrFeature: PlanFeatureTypes.FEATURE_RLS,
+      requiredPlan: PlanTitles.BUSINESS,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     calculatePrice,
@@ -1498,10 +1525,12 @@ export const useEeConfig = createSharedComposable(() => {
     isHigherActivePlan,
     blockCardFieldHeaderVisibility,
     blockSync,
+    blockRls,
     blockUnique,
     blockUuidField,
     showUpgradeToUseUnique,
     showUpgradeToUseSync,
+    showUpgradeToUseRls,
     showUpgradeToUseUuidField,
     blockAddNewSandbox,
     showSandboxPlanLimitExceededModal,

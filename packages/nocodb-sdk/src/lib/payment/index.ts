@@ -29,6 +29,7 @@ export enum PlanLimitTypes {
   LIMIT_DASHBOARD_PER_WORKSPACE = 'limit_dashboard',
   LIMIT_TEAM_MANAGEMENT = 'limit_team_management',
   LIMIT_SANDBOX_PER_BASE = 'limit_sandbox',
+  LIMIT_RLS_POLICIES_PER_TABLE = 'limit_rls_policies_per_table',
 }
 
 export enum PlanFeatureTypes {
@@ -80,6 +81,7 @@ export enum PlanFeatureTypes {
   // EE-only UUID field type — gated by plan feature flag
   FEATURE_UUID_FIELD = 'feature_uuid_field',
   FEATURE_RECORD_TEMPLATES = 'feature_record_templates',
+  FEATURE_RLS = 'feature_rls',
 }
 
 export enum PlanTitles {
@@ -235,6 +237,8 @@ export const PlanLimitUpgradeMessages: Record<PlanLimitTypes, string> = {
   [PlanLimitTypes.LIMIT_DASHBOARD_PER_WORKSPACE]:
     'to add more dashboards in a workspace.',
   [PlanLimitTypes.LIMIT_TEAM_MANAGEMENT]: 'to add more teams in a workspace.',
+  [PlanLimitTypes.LIMIT_RLS_POLICIES_PER_TABLE]:
+    'to add more row-level security policies per table.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 'to run more workflows.',
   [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]:
     'to increase workflow logs retention.',
@@ -306,6 +310,7 @@ export const PlanFeatureUpgradeMessages: Record<PlanFeatureTypes, string> = {
   [PlanFeatureTypes.FEATURE_PINNED_FILTER]: 'to pin filters to the toolbar.',
   [PlanFeatureTypes.FEATURE_UUID_FIELD]: 'to use UUID fields.',
   [PlanFeatureTypes.FEATURE_RECORD_TEMPLATES]: 'to use record templates.',
+  [PlanFeatureTypes.FEATURE_RLS]: 'to use row-level security.',
 };
 
 export const getUpgradeMessage = (

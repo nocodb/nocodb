@@ -32,6 +32,8 @@ const {
 
 const { appearanceConfig: filteredOrSortedAppearanceConfig, userColumnIds } = useColumnFilteredOrSorted()
 
+const { blockToggleFilter } = useEeConfig()
+
 // todo: avoid duplicate api call by keeping a filter store
 const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
   activeView!,
@@ -43,6 +45,7 @@ const { nonDeletedFilters, loadFilters, canSyncFilter } = useViewFilters(
 )
 
 const filtersLength = ref(0)
+const enabledFiltersLength = ref(0)
 // If view is locked OR user lacks permission to sync filters (Editor), show restricted UI
 const isRestrictedEditor = computed(() => isLocked.value || !canSyncFilter.value)
 
@@ -72,6 +75,7 @@ watch(
         loadAllFilters: true,
       })
       filtersLength.value = nonDeletedFilters.value.length || 0
+      enabledFiltersLength.value = nonDeletedFilters.value.filter((f) => f.enabled !== false && f.enabled !== 0).length
     }
   },
   { immediate: true },
@@ -147,6 +151,28 @@ const combinedFilterLength = computed(() => {
   return filtersLength.value
 })
 
+/** Display format: "enabled/total" when some filters are disabled, otherwise just "total".
+ *  When toggle filters are blocked (Free plan), always show just the total count. */
+const filterCountDisplay = computed(() => {
+  const total = combinedFilterLength.value
+  if (!total) return ''
+
+  // If toggle filter feature is blocked, just show the total count
+  if (blockToggleFilter.value) return `${total}`
+
+  // For restricted editors, enabledFiltersLength tracks persisted (creator) filters only.
+  // Also count enabled local/temp filters so the badge reflects the full picture.
+  let enabled = enabledFiltersLength.value
+  if (isRestrictedEditor.value) {
+    enabled += (localFilters.value || []).filter((f) => f.enabled !== false && f.enabled !== 0).length
+  }
+
+  if (enabled < total) {
+    return `${enabled}/${total}`
+  }
+  return `${total}`
+})
+
 const isCurrentUserFilterPresent = ref(false)
 
 const checkForCurrentUserFilter = (currentFilters: FilterType[] = []) => {
@@ -204,10 +230,31 @@ if (isEeUI) {
 }
 
 watch(
-  () => nonDeletedFilters.value.length,
+  nonDeletedFilters,
   () => {
     filtersLength.value = nonDeletedFilters.value.length || 0
+    enabledFiltersLength.value = nonDeletedFilters.value.filter((f) => f.enabled !== false && f.enabled !== 0).length
   },
+  { deep: true },
+)
+
+// Watch allFilters (populated by ColumnFilter.vue via AllFiltersInj) to keep
+// enabled count in sync when individual filters are toggled on/off.
+// Count root-level items only — filter groups count as 1.
+// Skip for restricted editors: they have two ColumnFilter instances (read-only + temp)
+// that both write to allFilters['root'], corrupting the count.
+watch(
+  allFilters,
+  () => {
+    if (isRestrictedEditor.value) return
+
+    const rootFilters = (allFilters.value as Record<string, FilterType[]>)['root']
+    if (rootFilters?.length) {
+      filtersLength.value = rootFilters.length
+      enabledFiltersLength.value = rootFilters.filter((f) => f.enabled !== false && f.enabled !== 0).length
+    }
+  },
+  { deep: true },
 )
 
 // ----- EE: AI Filter Prediction -----
@@ -348,7 +395,7 @@ const handleAiFilters = async (payload: {
                 [filteredOrSortedAppearanceConfig.FILTERED.toolbarTextClass]: true,
               }"
             >
-              {{ combinedFilterLength }}
+              {{ filterCountDisplay }}
               <span v-if="isCurrentUserFilterPresent" class="ml-1 pb-0.6">{{ '@' }}</span>
             </span>
           </NcTooltip>

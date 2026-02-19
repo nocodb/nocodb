@@ -4784,6 +4784,20 @@
             "type": "number",
             "description": "The order of the filter",
             "example": 1
+          },
+          "enabled": {
+            "description": "Whether this filter is enabled. Disabled filters are skipped during evaluation.",
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "readOnly": true,

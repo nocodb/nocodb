@@ -15,6 +15,7 @@ import * as nc_014_sandboxes from './v0/nc_014_sandboxes';
 import * as nc_015_managed_apps from './v0/nc_015_managed_apps';
 import * as nc_016_automation_error_notifications from './v0/nc_016_automation_error_notifications';
 import * as nc_017_add_canonical_email_to_users from './v0/nc_017_add_canonical_email_to_users';
+import * as nc_018_add_enabled_to_filter_exp_v2 from './v0/nc_018_add_enabled_to_filter_exp_v2';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -41,6 +42,7 @@ export default class XcMigrationSourcev0 {
       'nc_015_managed_apps',
       'nc_016_automation_error_notifications',
       'nc_017_add_canonical_email_to_users',
+      'nc_018_add_enabled_to_filter_exp_v2',
     ]);
   }
 
@@ -84,6 +86,8 @@ export default class XcMigrationSourcev0 {
         return nc_016_automation_error_notifications;
       case 'nc_017_add_canonical_email_to_users':
         return nc_017_add_canonical_email_to_users;
+      case 'nc_018_add_enabled_to_filter_exp_v2':
+        return nc_018_add_enabled_to_filter_exp_v2;
     }
   }
 }

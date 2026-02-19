@@ -193,6 +193,14 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_ROW_COLOUR)
   })
 
+  const blockToggleFilter = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_TOGGLE_FILTER)
+  })
+
+  const blockPinnedFilter = computed(() => {
+    return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_PINNED_FILTER)
+  })
+
   const blockCalendarRange = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_CALENDAR_RANGE)
   })
@@ -1034,6 +1042,38 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showUpgradeToUseToggleFilter = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockToggleFilter.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseToggleFilter'),
+      content: t('upgrade.upgradeToUseToggleFilterSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      requiredPlan: PlanTitles.PLUS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_TOGGLE_FILTER,
+    })
+
+    return true
+  }
+
+  const showUpgradeToUsePinnedFilter = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockPinnedFilter.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUsePinnedFilter'),
+      content: t('upgrade.upgradeToUsePinnedFilterSubtitle', {
+        plan: PlanTitles.PLUS,
+      }),
+      callback,
+      requiredPlan: PlanTitles.PLUS,
+      limitOrFeature: PlanFeatureTypes.FEATURE_PINNED_FILTER,
+    })
+
+    return true
+  }
+
   const showUpgradeToUseTableAndFieldPermissions = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
     if (!blockTableAndFieldPermissions.value) return
 
@@ -1343,6 +1383,10 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCurrentUserFilter,
     blockRowColoring,
     showUpgradeToUseRowColoring,
+    blockToggleFilter,
+    showUpgradeToUseToggleFilter,
+    blockPinnedFilter,
+    showUpgradeToUsePinnedFilter,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
     isUnderLoyaltyCutoffDate,

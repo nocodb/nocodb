@@ -22828,6 +22828,10 @@
             "type": "number",
             "description": "The order of the filter",
             "example": 1
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this filter is enabled. Disabled filters are skipped during evaluation."
           }
         },
         "readOnly": true,
@@ -23139,6 +23143,10 @@
           },
           "value": {
             "description": "The filter value. Can be NULL for some operators."
+          },
+          "enabled": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Whether this filter is enabled. Disabled filters are skipped during evaluation."
           }
         },
         "readOnly": true

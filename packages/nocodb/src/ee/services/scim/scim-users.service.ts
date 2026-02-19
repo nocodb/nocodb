@@ -3,7 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { User, Workspace, WorkspaceUser } from '~/ee/models';
+import { parseMetaProp } from '~/utils/modelUtils';
+import { User, WorkspaceUser } from '~/ee/models';
 
 // Enterprise extension schema URI
 const ENTERPRISE_EXTENSION =
@@ -529,16 +530,7 @@ export class ScimUsersService {
     workspaceUser: any,
     workspaceId: string,
   ): Promise<any> {
-    // Parse scim_meta if it's a JSON string (WorkspaceUser.get() doesn't auto-parse)
-    let rawMeta = workspaceUser.scim_meta;
-    if (typeof rawMeta === 'string') {
-      try {
-        rawMeta = JSON.parse(rawMeta);
-      } catch {
-        rawMeta = {};
-      }
-    }
-    const scimMeta = rawMeta || {};
+    const scimMeta = parseMetaProp(workspaceUser, 'scim_meta') || {};
 
     // Build schemas array
     const schemas: string[] = [
@@ -658,14 +650,7 @@ export class ScimUsersService {
     ascending: boolean,
   ): any[] {
     const getSortValue = (user: any): string => {
-      let scimMeta = user.scim_meta || {};
-      if (typeof scimMeta === 'string') {
-        try {
-          scimMeta = JSON.parse(scimMeta);
-        } catch {
-          scimMeta = {};
-        }
-      }
+      const scimMeta = parseMetaProp(user, 'scim_meta') || {};
 
       switch (sortBy) {
         case 'userName':

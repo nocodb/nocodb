@@ -246,7 +246,7 @@ const mockGetMeta: UnifiedMetaType.IGetModel = jest.fn(
           {
             id: 'col7',
             title: 'Column7',
-            uidt: UITypes.SingleLineText,
+            uidt: UITypes.SingleLineText as any,
             dt: 'varchar',
             pv: true,
             base_id: 'base1',

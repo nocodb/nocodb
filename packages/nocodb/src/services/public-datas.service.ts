@@ -654,7 +654,7 @@ export class PublicDatasService {
     const { ast, dependencyFields } = await getAst(context, {
       query: param.query,
       model,
-      extractOnlyPrimaries: true,
+      extractOnlyPrimaries: !(param.query?.f || param.query?.fields),
     });
 
     const listArgs: DependantFields & {
@@ -666,16 +666,6 @@ export class PublicDatasService {
       if (listArgs.filterArrJson)
         listArgs.filterArr = JSON.parse(listArgs.filterArrJson) as Filter[];
     } catch (e) {}
-
-    if (view.type === ViewTypes.FORM && ncIsArray(param.query?.fields)) {
-      param.query.fields.forEach(listArgs.fieldsSet.add, listArgs.fieldsSet);
-
-      param.query.fields.forEach((f) => {
-        if (ast[f] === undefined) {
-          ast[f] = 1;
-        }
-      });
-    }
 
     let data = [];
 

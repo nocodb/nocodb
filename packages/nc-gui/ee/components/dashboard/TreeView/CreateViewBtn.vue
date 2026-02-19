@@ -99,8 +99,8 @@ function onCreateSection() {
   <NcDropdown v-model:visible="isOpen" :overlay-class-name="overlayClassName" destroy-popup-on-hide @click.stop="isOpen = true">
     <slot />
     <template #overlay>
-      <NcMenu class="max-w-48" variant="medium">
-        <NcMenuItem @click.stop="onOpenModal({ type: ViewTypes.GRID })">
+      <NcMenu variant="medium">
+        <NcMenuItem inner-class="w-full" @click.stop="onOpenModal({ type: ViewTypes.GRID })">
           <div class="item" data-testid="sidebar-view-create-grid">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GRID }" />
@@ -117,6 +117,7 @@ function onCreateSection() {
           :disabled="!source.is_data_readonly && !isSqlView && !isSyncedTable"
         >
           <NcMenuItem
+            inner-class="w-full"
             :disabled="!!source.is_data_readonly || isSqlView || isSyncedTable"
             @click="onOpenModal({ type: ViewTypes.FORM })"
           >
@@ -143,7 +144,7 @@ function onCreateSection() {
             </div>
           </NcMenuItem>
         </NcTooltip>
-        <NcMenuItem @click="onOpenModal({ type: ViewTypes.GALLERY })">
+        <NcMenuItem inner-class="w-full" @click="onOpenModal({ type: ViewTypes.GALLERY })">
           <div class="item" data-testid="sidebar-view-create-gallery">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.GALLERY }" />
@@ -154,7 +155,7 @@ function onCreateSection() {
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <NcMenuItem data-testid="sidebar-view-create-kanban" @click="onOpenModal({ type: ViewTypes.KANBAN })">
+        <NcMenuItem inner-class="w-full" data-testid="sidebar-view-create-kanban" @click="onOpenModal({ type: ViewTypes.KANBAN })">
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.KANBAN }" />
@@ -165,7 +166,7 @@ function onCreateSection() {
             <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
-        <NcMenuItem data-testid="sidebar-view-create-calendar" @click="onOpenModal({ type: ViewTypes.CALENDAR })">
+        <NcMenuItem inner-class="w-full" data-testid="sidebar-view-create-calendar" @click="onOpenModal({ type: ViewTypes.CALENDAR })">
           <div class="item">
             <div class="item-inner">
               <GeneralViewIcon :meta="{ type: ViewTypes.CALENDAR }" class="!w-4 !h-4" />
@@ -193,7 +194,7 @@ function onCreateSection() {
                     <div>{{ $t('objects.section') }}</div>
                   </div>
 
-                  <div class="flex items-center gap-1">
+                  <div class="flex items-center gap-2 flex-shrink-0">
                     <LazyPaymentUpgradeBadge
                       :feature="PlanFeatureTypes.FEATURE_VIEW_SECTIONS"
                       :plan-title="PlanTitles.BUSINESS"
@@ -215,7 +216,7 @@ function onCreateSection() {
         <template v-if="isAiFeaturesEnabled">
           <NcDivider />
           <NcTooltip :title="`Auto suggest views for ${table?.title || 'the current table'}`" placement="right">
-            <NcMenuItem data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
+            <NcMenuItem inner-class="w-full" data-testid="sidebar-view-create-ai" @click="onOpenModal({ type: 'AI' })">
               <div class="item">
                 <div class="item-inner">
                   <GeneralIcon icon="ncAutoAwesome" class="!w-4 !h-4 text-nc-fill-purple-dark" />
@@ -232,7 +233,7 @@ function onCreateSection() {
 
 <style lang="scss" scoped>
 .item {
-  @apply flex flex-row items-center w-36 justify-between;
+  @apply flex flex-row items-center w-full justify-between;
 }
 
 .item-inner {
@@ -246,7 +247,7 @@ function onCreateSection() {
 
 <style lang="scss">
 .nc-view-create-dropdown {
-  @apply !max-w-43 !min-w-43;
+  @apply !min-w-51;
 }
 
 .nc-view-create-dropdown-left-1 {

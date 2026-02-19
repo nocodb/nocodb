@@ -205,6 +205,7 @@
     "upgradeToAccessCardFieldHeaderVisibilitySubtitle": "Upgrade to the {plan} plan to hide field headers in Gallery and Kanban views.",
     "upgradeToUseViewSections": "Upgrade to use view sections",
     "upgradeToUseViewSectionsSubtitle": "Upgrade to the {plan} plan to organize views into sections.",
+    "upgradeToAccessViewSectionsSubtitle": "Upgrade to the {plan} plan to organize views into sections.",
     "upgradeToUseSync": "Upgrade to use sync",
     "upgradeToUseSyncSubtitle": "Upgrade to the {plan} plan to sync data with internal or external sources.",
     "upgradeToEnableUnique": "Upgrade to enable unique",

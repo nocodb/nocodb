@@ -2,13 +2,13 @@ import net from 'net';
 import tls from 'tls';
 import getPort from 'get-port';
 import { nanoid } from 'nanoid';
-import { serialize } from 'pg-protocol';
 import { Parser } from 'node-sql-parser';
 import { Logger } from '@nestjs/common';
 import DataReflectionCE from 'src/models/DataReflection';
 import { NcBaseError } from 'nocodb-sdk';
 import type { Socket } from 'net';
 import type { TLSSocket } from 'tls';
+import type { InterceptSession } from '~/helpers/dataReflectionInterceptor';
 import { NcError } from '~/helpers/ncError';
 import NcConnectionMgrv2 from '~/utils/common/NcConnectionMgrv2';
 import { Base, Workspace } from '~/models';
@@ -16,13 +16,19 @@ import Noco from '~/Noco';
 import {
   createDatabaseUser,
   dropDatabaseUser,
-  generateWhereClause,
   genPassword,
   genSuffix,
   grantAccessToSchema,
   NC_DATA_REFLECTION_SETTINGS,
   revokeAccessToSchema,
 } from '~/helpers/dataReflectionHelpers';
+import {
+  buildPgErrorResponse,
+  interceptQueryIfNeeded,
+  parseNullDelimitedBuffer,
+  QueryBlockedError,
+  rewriteSASLMechanisms,
+} from '~/helpers/dataReflectionInterceptor';
 
 const logger = new Logger('DataReflection');
 
@@ -32,53 +38,7 @@ const NC_DATA_REFLECTION_WINDOW_SIZE =
 const NC_DATA_REFLECTION_QUERY_LIMIT =
   +process.env.NC_DATA_REFLECTION_QUERY_LIMIT || 60;
 
-// Interception rules
-const interceptMap: {
-  table_name: string;
-  column_name: string;
-  type: 'in' | 'eq';
-  sessionValue?: string;
-  value?: string;
-}[] = [
-  {
-    table_name: 'pg_namespace',
-    column_name: 'nspname',
-    type: 'in',
-    sessionValue: 'availableSchemas',
-  },
-  {
-    table_name: 'schemata',
-    column_name: 'schema_name',
-    type: 'in',
-    sessionValue: 'availableSchemas',
-  },
-  {
-    table_name: 'pg_tables',
-    column_name: 'schemaname',
-    type: 'in',
-    sessionValue: 'availableSchemas',
-  },
-  {
-    table_name: 'pg_database',
-    column_name: 'datname',
-    type: 'eq',
-    sessionValue: 'fk_workspace_id',
-  },
-  {
-    table_name: 'pg_roles',
-    column_name: 'rolname',
-    type: 'eq',
-    sessionValue: 'pgUser',
-  },
-  {
-    table_name: 'pg_user',
-    column_name: 'usename',
-    type: 'eq',
-    sessionValue: 'pgUser',
-  },
-];
-
-class DataReflectionSession {
+class DataReflectionSession implements InterceptSession {
   private closed = false;
   private queryTimestamps: number[] = [];
   private totalQueryTime = 0;
@@ -218,6 +178,12 @@ export default class DataReflection extends DataReflectionCE {
               data,
               session,
               parser,
+              (q) =>
+                logger.error(
+                  `Failed to parse query: ${q.slice(0, 128)}${
+                    q.length > 128 ? '...' : ''
+                  }`,
+                ),
             );
 
             // If we modified the query write that; otherwise fallback to the original data
@@ -227,6 +193,10 @@ export default class DataReflection extends DataReflectionCE {
 
           session.pgSocket?.write(data);
         } catch (error) {
+          if (error instanceof QueryBlockedError) {
+            clientSocket.write(buildPgErrorResponse(error.message));
+            return;
+          }
           logger.error(`Error processing client data: ${error.message}.`);
           const session = clientSessions.get(clientId);
           if (!session) {
@@ -543,26 +513,6 @@ function createSecurePostgresConnection(
   });
 }
 
-function rewriteSASLMechanisms(buf: Buffer): Buffer {
-  const saslMechs = parseNullDelimitedBuffer(buf.subarray(9));
-  const filtered = saslMechs.filter((m) => m !== 'SCRAM-SHA-256-PLUS');
-
-  if (filtered.length === 0) {
-    NcError._.internalServerError('No valid SASL mechanisms after filtering');
-  }
-
-  const mechList = Buffer.concat(filtered.map((m) => Buffer.from(m + '\0')));
-
-  const totalLength = 4 + 4 + mechList.length; // 4 (length), 4 (auth type), N
-
-  const header = Buffer.alloc(9);
-  header.writeUInt8(0x52, 0); // 'R'
-  header.writeUInt32BE(totalLength, 1);
-  header.writeUInt32BE(10, 5); // AuthenticationSASL
-
-  return Buffer.concat([header, mechList]);
-}
-
 /**
  * Handle the startup message from the client and establish secure backend connection
  */
@@ -651,6 +601,61 @@ async function handleStartupMessage(
         // Use the underlying DB name from the actual Postgres connection
         parts[i + 1] = dataConfig.database;
 
+        // Sanitize and inject session-level timeout limits via startup options.
+        // Client-provided -c params are filtered to a whitelist of harmless GUCs
+        // to prevent bypassing the SET command whitelist via startup options.
+        const ALLOWED_STARTUP_GUCS = new Set([
+          'application_name',
+          'client_encoding',
+          'datestyle',
+          'timezone',
+          'intervalstyle',
+          'extra_float_digits',
+          'geqo',
+          'lc_messages',
+          'lc_monetary',
+          'lc_numeric',
+          'lc_time',
+        ]);
+
+        const timeoutOpts =
+          '-c statement_timeout=60000 -c idle_in_transaction_session_timeout=60000';
+
+        let optionsInjected = false;
+        for (let j = 0; j < parts.length; j += 2) {
+          if (parts[j] === 'options') {
+            // Parse client options, keep only whitelisted -c params and non -c flags
+            const clientOpts = parts[j + 1] as string;
+            const sanitized = clientOpts
+              .split(/(?=-c\s)/)
+              .map((s) => s.trim())
+              .filter((segment) => {
+                const match = segment.match(
+                  /^-c\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=/,
+                );
+                if (match) {
+                  return ALLOWED_STARTUP_GUCS.has(match[1].toLowerCase());
+                }
+                // Keep non -c flags (e.g. --search_path) — they're harmless
+                return !segment.startsWith('-c');
+              })
+              .join(' ');
+
+            parts[j + 1] = `${sanitized} ${timeoutOpts}`.trim();
+            optionsInjected = true;
+            break;
+          }
+        }
+        if (!optionsInjected) {
+          // Insert before the trailing empty string
+          const lastIdx = parts.length - 1;
+          if (parts[lastIdx] === '') {
+            parts.splice(lastIdx, 0, 'options', timeoutOpts);
+          } else {
+            parts.push('options', timeoutOpts, '');
+          }
+        }
+
         // Rebuild startup message for backend
         const newBody = parts
           .map((part) => Buffer.concat([Buffer.from(part), Buffer.from([0])]))
@@ -723,105 +728,4 @@ async function handleStartupMessage(
       }
     }
   }
-}
-
-/**
- * Attempt to parse and intercept the query.
- * If it matches our interception rules inject a WHERE clause to restrict the query.
- * Return modified query buffer if successful (undefined otherwise).
- */
-async function interceptQueryIfNeeded(
-  data: Buffer,
-  session: DataReflectionSession,
-  parser: Parser,
-): Promise<Buffer | undefined> {
-  // Extract the query text from the buffer
-  // Byte 0: Message type (0x51 for 'Q')
-  // Bytes 1-4: Message length
-  const queryText = data.subarray(5).toString('utf8').replace(/\0/g, '');
-
-  let ast;
-  try {
-    ast = parser.astify(queryText, { database: 'postgresql' });
-  } catch (e) {
-    logger.error('Failed to parse query:', queryText);
-    return undefined;
-  }
-
-  const astArray = Array.isArray(ast) ? ast : [ast];
-  let modified = false;
-
-  for (const statement of astArray) {
-    if (statement.type !== 'select') continue;
-    // Check if the FROM clause includes a table that we need to intercept
-    if (!statement.from || !Array.isArray(statement.from)) continue;
-
-    for (const target of interceptMap) {
-      const targetFrom = statement.from.find(
-        (f: any) => f.table === target.table_name,
-      );
-      if (!targetFrom) continue;
-
-      const alias = targetFrom.as || targetFrom.table;
-      const additionalClause = generateWhereClause(
-        alias,
-        target.column_name,
-        target.type,
-        target.value ? target.value : session[target.sessionValue],
-      );
-
-      // Inject the additional WHERE clause
-      if (statement.where) {
-        statement.where = {
-          type: 'binary_expr',
-          operator: 'AND',
-          left: statement.where,
-          right: additionalClause,
-        };
-      } else {
-        statement.where = additionalClause;
-      }
-      modified = true;
-    }
-  }
-
-  if (!modified) {
-    return undefined;
-  }
-
-  // Convert the AST back to SQL
-  const modifiedQuery = parser.sqlify(
-    astArray.length === 1 ? astArray[0] : astArray,
-    {
-      database: 'postgresql',
-    },
-  );
-
-  // Serialize the modified query into a PostgreSQL wire protocol query message
-  return serialize.query(modifiedQuery);
-}
-
-/**
- * Splits a buffer by null bytes into a list of strings.
- */
-function parseNullDelimitedBuffer(buf: Buffer): string[] {
-  const bytes = Array.from(buf);
-  const parts: string[] = [];
-  let temp: number[] = [];
-
-  for (const byte of bytes) {
-    if (byte === 0) {
-      parts.push(Buffer.from(temp).toString('utf8'));
-      temp = [];
-    } else {
-      temp.push(byte);
-    }
-  }
-
-  // If there's trailing non-null content (shouldn't happen in startup messages but just in case)
-  if (temp.length > 0) {
-    parts.push(Buffer.from(temp).toString('utf8'));
-  }
-
-  return parts;
 }

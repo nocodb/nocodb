@@ -12,6 +12,7 @@ import { linksTests } from './links/index.test';
 import { crossBaseLinkTests } from './crossBaseLink/index.spec';
 import { dbQueryClientTests } from './dbQueryClient/index.test';
 import { helperTests } from './helpersTest/index.test';
+import { dataReflectionTests } from './dataReflection/index.test';
 
 process.env.NODE_ENV = 'test';
 process.env.TEST = 'true';
@@ -27,6 +28,7 @@ dotenv.config({
   await TestDbMngr.init();
 
   helperTests();
+  dataReflectionTests();
   modelTests();
   formulaTests();
   dbQueryClientTests();

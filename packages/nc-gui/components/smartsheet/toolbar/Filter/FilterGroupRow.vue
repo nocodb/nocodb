@@ -153,7 +153,7 @@ const isFilterEnabled = computed(() => vModel.value.enabled !== false)
 const effectiveEnabled = computed(() => (props.parentEnabled !== false) && isFilterEnabled.value)
 
 const onToggleFilterChange = (val: boolean | Event) => {
-  if (blockToggleFilter) {
+  if (blockToggleFilter.value) {
     showUpgradeToUseToggleFilter()
     return
   }

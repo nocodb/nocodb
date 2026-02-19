@@ -641,7 +641,7 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
 }
 
 const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
-  if (blockToggleFilter) {
+  if (blockToggleFilter.value) {
     showUpgradeToUseToggleFilter()
     return
   }

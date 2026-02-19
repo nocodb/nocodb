@@ -692,6 +692,15 @@ const togglePinFilter = async (filter: ColumnFilterType, index: number) => {
   }
 }
 
+/** Tooltip text for the pin/unpin button — extracted from template for readability */
+const getPinTooltip = (filter: ColumnFilterType): string => {
+  if (!isPinnableType(filter)) return t('labels.pinNotSupported')
+  if (parseProp(filter.meta)?.pinned) return t('labels.unpinFromToolbar')
+  if (isFieldAlreadyPinned(filter)) return t('labels.fieldAlreadyPinned')
+  if (canPinFilter(filter)) return t('labels.pinToToolbar')
+  return t('labels.maxPinnedFilters', { count: MAX_PINNED_FILTERS })
+}
+
 function onMoveCallback(event: any) {
   // disable nested drag drop for now
   if (event.from !== event.to) {
@@ -1433,17 +1442,7 @@ defineExpose({
 
             <NcTooltip v-if="!filter.readOnly && !readOnly && isEeUI && !filter.is_group && !webHook && !link && !widget">
               <template #title>
-                {{
-                  !isPinnableType(filter)
-                    ? $t('labels.pinNotSupported')
-                    : parseProp(filter.meta)?.pinned
-                      ? $t('labels.unpinFromToolbar')
-                      : isFieldAlreadyPinned(filter)
-                        ? $t('labels.fieldAlreadyPinned')
-                        : canPinFilter(filter)
-                          ? $t('labels.pinToToolbar')
-                          : $t('labels.maxPinnedFilters', { count: MAX_PINNED_FILTERS })
-                }}
+                {{ getPinTooltip(filter) }}
               </template>
               <NcButton
                 v-e="['c:filter:pin']"

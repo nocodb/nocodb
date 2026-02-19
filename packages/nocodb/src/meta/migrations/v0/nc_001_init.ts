@@ -516,6 +516,7 @@ const up = async (knex: Knex) => {
     table.string('fk_row_color_condition_id', 20);
     table.string('fk_widget_id', 20);
     table.text('meta');
+    table.boolean('enabled').defaultTo(true);
     table.timestamps(true, true);
     table.primary(['base_id', 'id']);
   });

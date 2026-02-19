@@ -37,10 +37,7 @@ export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
       scimConfig.value = response
       tokenVisible.value = false // Mask token by default
     } catch (e: any) {
-      // SCIM not configured yet - 404 is expected
-      if (e?.status !== 404 && e?.statusCode !== 404) {
-        console.error('Failed to fetch SCIM config:', e)
-      }
+      // SCIM not configured yet - 404 is expected; ignore other errors silently
       scimConfig.value = null
     } finally {
       isLoading.value = false
@@ -58,9 +55,6 @@ export const useScim = (workspaceId: ComputedRef<string> | Ref<string>) => {
         headers: {
           'Content-Type': 'application/json',
           'xc-auth': $state.token.value as string,
-        },
-        body: {
-          siteUrl: window.location.origin,
         },
       })
       scimConfig.value = response

@@ -287,14 +287,12 @@ export class ScimGroupsService {
       NcError.notFound('Group not found');
     }
 
-    // Full replacement — update all group attributes
+    // Full replacement — update mutable group attributes
+    // Note: scim_external_id is server-assigned and immutable per RFC 7643 §3.1
     const updateData: any = {};
     if (scimGroup.displayName) {
       updateData.title = scimGroup.displayName;
       updateData.scim_display_name = scimGroup.displayName;
-    }
-    if (scimGroup.externalId) {
-      updateData.scim_external_id = scimGroup.externalId;
     }
 
     // Team.update returns the full updated record (via metaGet)
@@ -406,17 +404,14 @@ export class ScimGroupsService {
       .filter((a) => a.principal_type === PrincipalType.USER)
       .map((a) => a.principal_ref_id);
 
-    // Get workspace users (include deleted — group membership is independent
-    // of user activation status per SCIM spec)
-    const workspaceUsers = await WorkspaceUser.userList({
-      fk_workspace_id: workspaceId,
-      include_deleted: true,
-    });
-
-    // Filter to team members who are SCIM-managed
-    return workspaceUsers.filter(
-      (wu) => userIds.includes(wu.fk_user_id) && wu.scim_managed,
+    // Targeted lookup per member (avoids loading all workspace users)
+    const members = await Promise.all(
+      userIds.map((userId) => WorkspaceUser.get(workspaceId, userId)),
     );
+
+    // Filter to SCIM-managed members (get() returns null for deleted users,
+    // which is acceptable — group membership display doesn't need deactivated users)
+    return members.filter((wu) => wu && wu.scim_managed);
   }
 
   /**
@@ -435,19 +430,16 @@ export class ScimGroupsService {
       workspaceId,
     );
 
-    // Map SCIM member IDs to workspace users (include deleted — membership
-    // is independent of user activation status)
-    const workspaceUsers = await WorkspaceUser.userList({
-      fk_workspace_id: workspaceId,
-      include_deleted: true,
-    });
-
-    const targetMembers = scimMembers
-      .map((m) => {
-        const wu = workspaceUsers.find((wu) => wu.scim_external_id === m.value);
-        return wu;
-      })
-      .filter((wu) => wu); // Filter out not found
+    // Targeted lookup per member (uses indexed scim_external_id column)
+    const targetMembers = (
+      await Promise.all(
+        scimMembers.map((m) =>
+          WorkspaceUser.getByScimExternalId(workspaceId, m.value, {
+            include_deleted: true,
+          }),
+        ),
+      )
+    ).filter((wu) => wu); // Filter out not found
 
     // Remove members not in target list
     for (const member of currentMembers) {
@@ -538,18 +530,14 @@ export class ScimGroupsService {
             updateData.title = op.value;
             updateData.scim_display_name = op.value;
           }
-          if (op.path === 'externalId' && op.value) {
-            updateData.scim_external_id = op.value;
-          }
+          // Note: externalId (scim_external_id) is server-assigned and immutable per RFC 7643
         } else if (op.value && typeof op.value === 'object') {
-          // Bulk replace: { op: "replace", value: { displayName: "...", externalId: "..." } }
+          // Bulk replace: { op: "replace", value: { displayName: "..." } }
           if (op.value.displayName) {
             updateData.title = op.value.displayName;
             updateData.scim_display_name = op.value.displayName;
           }
-          if (op.value.externalId) {
-            updateData.scim_external_id = op.value.externalId;
-          }
+          // Note: externalId is server-assigned and immutable per RFC 7643
         }
 
         if (Object.keys(updateData).length > 0) {
@@ -570,11 +558,6 @@ export class ScimGroupsService {
     workspaceId: string,
     members: any[],
   ) {
-    const workspaceUsers = await WorkspaceUser.userList({
-      fk_workspace_id: workspaceId,
-      include_deleted: true,
-    });
-
     // Get existing assignments to avoid duplicates
     const existingAssignments = await PrincipalAssignment.list(context, {
       resource_type: ResourceType.TEAM,
@@ -587,9 +570,12 @@ export class ScimGroupsService {
         .map((a) => a.principal_ref_id),
     );
 
+    // Targeted lookup per member (uses indexed scim_external_id column)
     for (const member of members) {
-      const wu = workspaceUsers.find(
-        (wu) => wu.scim_external_id === member.value,
+      const wu = await WorkspaceUser.getByScimExternalId(
+        workspaceId,
+        member.value,
+        { include_deleted: true },
       );
       if (wu && !existingUserIds.has(wu.fk_user_id)) {
         await PrincipalAssignment.insert(context, {
@@ -612,14 +598,12 @@ export class ScimGroupsService {
     workspaceId: string,
     members: any[],
   ) {
-    const workspaceUsers = await WorkspaceUser.userList({
-      fk_workspace_id: workspaceId,
-      include_deleted: true,
-    });
-
+    // Targeted lookup per member (uses indexed scim_external_id column)
     for (const member of members) {
-      const wu = workspaceUsers.find(
-        (wu) => wu.scim_external_id === member.value,
+      const wu = await WorkspaceUser.getByScimExternalId(
+        workspaceId,
+        member.value,
+        { include_deleted: true },
       );
       if (wu) {
         await PrincipalAssignment.delete(
@@ -633,57 +617,4 @@ export class ScimGroupsService {
     }
   }
 
-  /**
-   * Sort groups by SCIM attribute per RFC 7644 §3.4.2.3
-   */
-  private applySortGroups(
-    teams: any[],
-    sortBy: string,
-    ascending: boolean,
-  ): any[] {
-    const getSortValue = (team: any): string => {
-      switch (sortBy) {
-        case 'displayName':
-          return (team.scim_display_name || team.title || '').toLowerCase();
-        case 'externalId':
-          return (team.scim_external_id || '').toLowerCase();
-        default:
-          return (team.scim_display_name || team.title || '').toLowerCase();
-      }
-    };
-
-    return [...teams].sort((a, b) => {
-      const valA = getSortValue(a);
-      const valB = getSortValue(b);
-      const cmp = valA.localeCompare(valB);
-      return ascending ? cmp : -cmp;
-    });
-  }
-
-  /**
-   * Apply SCIM filter with case-insensitive comparison (RFC 7644 §3.4.2.2)
-   */
-  private applyFilter(teams: any[], filter: string): any[] {
-    // Support: displayName eq "Team Name"
-    const displayNameMatch = filter.match(/displayName\s+eq\s+"([^"]+)"/i);
-    if (displayNameMatch) {
-      const displayName = displayNameMatch[1].toLowerCase();
-      return teams.filter(
-        (t) =>
-          (t.scim_display_name || '').toLowerCase() === displayName ||
-          (t.title || '').toLowerCase() === displayName,
-      );
-    }
-
-    // Support: externalId eq "id"
-    const externalIdMatch = filter.match(/externalId\s+eq\s+"([^"]+)"/i);
-    if (externalIdMatch) {
-      const externalId = externalIdMatch[1].toLowerCase();
-      return teams.filter(
-        (t) => (t.scim_external_id || '').toLowerCase() === externalId,
-      );
-    }
-
-    return teams;
-  }
 }

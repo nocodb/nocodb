@@ -903,10 +903,9 @@ export default class WorkspaceUser {
       }
 
       if (filterExternalId) {
-        qb.whereRaw(
-          `LOWER(${MetaTable.WORKSPACE_USER}.scim_external_id) = ?`,
-          [filterExternalId.toLowerCase()],
-        );
+        qb.whereRaw(`LOWER(${MetaTable.WORKSPACE_USER}.scim_external_id) = ?`, [
+          filterExternalId.toLowerCase(),
+        ]);
       }
 
       return qb;
@@ -935,10 +934,10 @@ export default class WorkspaceUser {
         sortBy === 'userName'
           ? `${MetaTable.WORKSPACE_USER}.scim_user_name`
           : sortBy === 'displayName'
-            ? `${MetaTable.USERS}.display_name`
-            : sortBy === 'externalId'
-              ? `${MetaTable.WORKSPACE_USER}.scim_external_id`
-              : `${MetaTable.WORKSPACE_USER}.scim_user_name`;
+          ? `${MetaTable.USERS}.display_name`
+          : sortBy === 'externalId'
+          ? `${MetaTable.WORKSPACE_USER}.scim_external_id`
+          : `${MetaTable.WORKSPACE_USER}.scim_user_name`;
       dataQuery.orderBy(sortCol, sortAscending ? 'asc' : 'desc');
     } else {
       dataQuery.orderBy(`${MetaTable.WORKSPACE_USER}.created_at`, 'asc');

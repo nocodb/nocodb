@@ -468,10 +468,7 @@ export default class Team {
           scim_external_id: scimExternalId,
         },
         xcCondition: {
-          _or: [
-            { deleted: { eq: false } },
-            { deleted: { eq: null } },
-          ],
+          _or: [{ deleted: { eq: false } }, { deleted: { eq: null } }],
         },
       },
     );
@@ -519,9 +516,7 @@ export default class Team {
         qb.where(function () {
           this.whereRaw('LOWER(scim_display_name) = ?', [
             filterDisplayName.toLowerCase(),
-          ]).orWhereRaw('LOWER(title) = ?', [
-            filterDisplayName.toLowerCase(),
-          ]);
+          ]).orWhereRaw('LOWER(title) = ?', [filterDisplayName.toLowerCase()]);
         });
       }
 
@@ -546,8 +541,8 @@ export default class Team {
         sortBy === 'displayName'
           ? 'scim_display_name'
           : sortBy === 'externalId'
-            ? 'scim_external_id'
-            : 'scim_display_name';
+          ? 'scim_external_id'
+          : 'scim_display_name';
       dataQuery.orderBy(sortCol, sortAscending ? 'asc' : 'desc');
     } else {
       dataQuery.orderBy('created_at', 'asc');

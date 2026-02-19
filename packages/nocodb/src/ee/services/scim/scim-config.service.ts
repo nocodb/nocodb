@@ -32,7 +32,6 @@ export class ScimConfigService {
     context: NcContext,
     param: {
       workspaceId: string;
-      siteUrl: string;
     },
   ) {
     // Check if config already exists
@@ -46,8 +45,11 @@ export class ScimConfigService {
     const provisioningToken = this.generateProvisioningToken();
     const hashedToken = await bcrypt.hash(provisioningToken, BCRYPT_ROUNDS);
 
-    // Build SCIM base URL
-    const baseUrl = `${param.siteUrl}/api/v3/meta/workspaces/${param.workspaceId}/scim/v2`;
+    // Build SCIM base URL from server config (not client-supplied to prevent SSRF)
+    const siteUrl =
+      process.env.NC_PUBLIC_URL ||
+      `http://localhost:${process.env.PORT || 8080}`;
+    const baseUrl = `${siteUrl}/api/v3/meta/workspaces/${param.workspaceId}/scim/v2`;
 
     const config = await ScimConfig.insert(context, {
       fk_workspace_id: param.workspaceId,

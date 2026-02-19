@@ -11,7 +11,6 @@ import {
   parseMetaProp,
   prepareForDb,
   prepareForResponse,
-  stringifyMetaProp,
 } from '~/utils/modelUtils';
 import NocoCache from '~/cache/NocoCache';
 
@@ -80,10 +79,7 @@ export default class ScimConfig implements ScimConfigType {
       'role_mapping',
     ]);
 
-    if ('role_mapping' in insertObj) {
-      insertObj.role_mapping = stringifyMetaProp(insertObj, 'role_mapping');
-    }
-
+    // prepareForDb handles stringification of role_mapping internally
     const { id } = await ncMeta.metaInsert2(
       RootScopes.WORKSPACE,
       RootScopes.WORKSPACE,

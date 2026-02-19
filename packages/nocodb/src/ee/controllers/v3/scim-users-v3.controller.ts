@@ -24,6 +24,7 @@ import { MetaApiLimiterGuard } from '~/guards/meta-api-limiter.guard';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 import { checkForFeature } from '~/ee/helpers/paymentHelpers';
 import { isCloud } from '~/utils';
+import { NcError } from '~/helpers/catchError';
 
 @Controller()
 @UseGuards(MetaApiLimiterGuard, ScimAuthGuard)
@@ -35,6 +36,12 @@ export class ScimUsersController {
   private async checkScimFeature(context: NcContext) {
     if (isCloud) {
       await checkForFeature(context, PlanFeatureTypes.FEATURE_SCIM);
+    }
+  }
+
+  private validateScimPayload(body: any) {
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      NcError.badRequest('Invalid SCIM payload: expected a JSON object');
     }
   }
 
@@ -81,6 +88,7 @@ export class ScimUsersController {
     @Req() req: any,
   ) {
     await this.checkScimFeature(context);
+    this.validateScimPayload(scimUser);
     return this.scimUsersService.createUser(context, {
       workspaceId,
       scimUser,
@@ -96,6 +104,7 @@ export class ScimUsersController {
     @Body() scimUser: any,
   ) {
     await this.checkScimFeature(context);
+    this.validateScimPayload(scimUser);
     return this.scimUsersService.replaceUser(context, {
       workspaceId,
       scimId: userId,
@@ -111,6 +120,7 @@ export class ScimUsersController {
     @Body() scimUser: any,
   ) {
     await this.checkScimFeature(context);
+    this.validateScimPayload(scimUser);
     return this.scimUsersService.patchUser(context, {
       workspaceId,
       scimId: userId,

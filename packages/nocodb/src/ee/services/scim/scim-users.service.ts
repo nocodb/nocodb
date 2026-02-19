@@ -3,7 +3,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { WorkspaceUserRoles } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
 import { NcError } from '~/helpers/catchError';
-import { parseMetaProp } from '~/utils/modelUtils';
 import { User, WorkspaceUser } from '~/ee/models';
 
 // Enterprise extension schema URI
@@ -62,13 +61,15 @@ export class ScimUsersService {
       const userNameMatch = param.filter.match(/userName\s+eq\s+"([^"]+)"/i);
       if (userNameMatch) filterUserName = userNameMatch[1];
 
-      const externalIdMatch = param.filter.match(/externalId\s+eq\s+"([^"]+)"/i);
+      const externalIdMatch = param.filter.match(
+        /externalId\s+eq\s+"([^"]+)"/i,
+      );
       if (externalIdMatch) filterExternalId = externalIdMatch[1];
     }
 
     // SQL-level filtering, sorting, and pagination
-    const { list: paginatedUsers, totalResults } =
-      await WorkspaceUser.scimList({
+    const { list: paginatedUsers, totalResults } = await WorkspaceUser.scimList(
+      {
         fk_workspace_id: param.workspaceId,
         include_deleted: true,
         offset: startIndex - 1,
@@ -77,7 +78,8 @@ export class ScimUsersService {
         filterExternalId,
         sortBy: param.sortBy,
         sortAscending: ascending,
-      });
+      },
+    );
 
     const resources = await Promise.all(
       paginatedUsers.map((wu) => this.toScimUser(wu, param.workspaceId)),
@@ -126,15 +128,19 @@ export class ScimUsersService {
       });
     }
 
-    // Check if workspace user already exists (include deleted for reactivation)
-    const allWsUsers = await WorkspaceUser.userList({
-      fk_workspace_id: workspaceId,
-      include_deleted: true,
-    });
-
-    const existingWsUser = allWsUsers.find(
-      (wu) => wu.fk_user_id === user.id,
-    );
+    // Targeted lookup (avoids loading all workspace users)
+    // First check non-deleted, then include deleted for reactivation
+    let existingWsUser = await WorkspaceUser.get(workspaceId, user.id);
+    if (!existingWsUser) {
+      // Check for soft-deleted user (get() filters deleted records)
+      const deletedUsers = await WorkspaceUser.userList({
+        fk_workspace_id: workspaceId,
+        include_deleted: true,
+      });
+      existingWsUser = deletedUsers.find(
+        (wu) => wu.fk_user_id === user.id && wu.deleted,
+      );
+    }
 
     if (existingWsUser && !existingWsUser.deleted) {
       // RFC 7644 §3.3: Return 409 Conflict for duplicate resources
@@ -148,9 +154,9 @@ export class ScimUsersService {
       );
     }
 
-    // Generate a server-side SCIM ID (RFC 7643 §3.1: id is server-assigned)
-    const scimId =
-      existingWsUser?.scim_external_id || uuidv4();
+    // Always generate a fresh SCIM ID (RFC 7643 §3.1: id is server-assigned)
+    // Even for reactivated users, a new ID avoids stale IdP references
+    const scimId = uuidv4();
 
     // Build comprehensive scim_meta to round-trip all attributes
     const scimMeta = this.buildScimMeta(scimUser);
@@ -332,10 +338,7 @@ export class ScimUsersService {
     }
 
     // Fallback for deactivated users (get() filters deleted records)
-    return this.toScimUser(
-      { ...workspaceUser, ...updateData },
-      workspaceId,
-    );
+    return this.toScimUser({ ...workspaceUser, ...updateData }, workspaceId);
   }
 
   /**
@@ -375,20 +378,25 @@ export class ScimUsersService {
     };
 
     // Core attributes
-    if (scimUser.externalId !== undefined) meta.externalId = scimUser.externalId;
+    if (scimUser.externalId !== undefined)
+      meta.externalId = scimUser.externalId;
     if (scimUser.name !== undefined) meta.name = scimUser.name;
-    if (scimUser.displayName !== undefined) meta.displayName = scimUser.displayName;
+    if (scimUser.displayName !== undefined)
+      meta.displayName = scimUser.displayName;
     if (scimUser.title !== undefined) meta.title = scimUser.title;
-    if (scimUser.preferredLanguage !== undefined) meta.preferredLanguage = scimUser.preferredLanguage;
+    if (scimUser.preferredLanguage !== undefined)
+      meta.preferredLanguage = scimUser.preferredLanguage;
     if (scimUser.locale !== undefined) meta.locale = scimUser.locale;
     if (scimUser.timezone !== undefined) meta.timezone = scimUser.timezone;
     if (scimUser.userType !== undefined) meta.userType = scimUser.userType;
     if (scimUser.nickName !== undefined) meta.nickName = scimUser.nickName;
-    if (scimUser.profileUrl !== undefined) meta.profileUrl = scimUser.profileUrl;
+    if (scimUser.profileUrl !== undefined)
+      meta.profileUrl = scimUser.profileUrl;
 
     // Multi-valued attributes
     if (scimUser.emails !== undefined) meta.emails = scimUser.emails;
-    if (scimUser.phoneNumbers !== undefined) meta.phoneNumbers = scimUser.phoneNumbers;
+    if (scimUser.phoneNumbers !== undefined)
+      meta.phoneNumbers = scimUser.phoneNumbers;
     if (scimUser.addresses !== undefined) meta.addresses = scimUser.addresses;
     if (scimUser.roles !== undefined) meta.roles = scimUser.roles;
 
@@ -408,8 +416,14 @@ export class ScimUsersService {
   private mergeScimMetaFromPatch(meta: any, patchData: any) {
     // Simple top-level fields
     const simpleFields = [
-      'displayName', 'title', 'preferredLanguage', 'locale',
-      'timezone', 'userType', 'nickName', 'profileUrl',
+      'displayName',
+      'title',
+      'preferredLanguage',
+      'locale',
+      'timezone',
+      'userType',
+      'nickName',
+      'profileUrl',
     ];
 
     for (const field of simpleFields) {
@@ -421,8 +435,12 @@ export class ScimUsersService {
     // Handle dotted name paths (name.givenName, name.familyName, etc.)
     if (!meta.name) meta.name = {};
     const nameFields = [
-      'givenName', 'familyName', 'formatted', 'middleName',
-      'honorificPrefix', 'honorificSuffix',
+      'givenName',
+      'familyName',
+      'formatted',
+      'middleName',
+      'honorificPrefix',
+      'honorificSuffix',
     ];
     for (const field of nameFields) {
       const dottedKey = `name.${field}`;
@@ -437,32 +455,48 @@ export class ScimUsersService {
     // Handle emails patched via path like emails[type eq "work"].value
     if (patchData['emails[type eq "work"].value'] !== undefined) {
       if (!meta.emails) meta.emails = [{ type: 'work', primary: true }];
-      const workEmail = meta.emails.find((e: any) => e.type === 'work') || meta.emails[0];
-      if (workEmail) workEmail.value = patchData['emails[type eq "work"].value'];
+      const workEmail =
+        meta.emails.find((e: any) => e.type === 'work') || meta.emails[0];
+      if (workEmail)
+        workEmail.value = patchData['emails[type eq "work"].value'];
     }
     if (patchData['emails[type eq "work"].primary'] !== undefined) {
       if (!meta.emails) meta.emails = [{ type: 'work' }];
-      const workEmail = meta.emails.find((e: any) => e.type === 'work') || meta.emails[0];
-      if (workEmail) workEmail.primary = patchData['emails[type eq "work"].primary'];
+      const workEmail =
+        meta.emails.find((e: any) => e.type === 'work') || meta.emails[0];
+      if (workEmail)
+        workEmail.primary = patchData['emails[type eq "work"].primary'];
     }
 
     // Handle addresses patched via path
     this.mergeMultiValuedPatch(meta, 'addresses', 'work', patchData, [
-      'formatted', 'streetAddress', 'locality', 'region',
-      'postalCode', 'primary', 'country',
+      'formatted',
+      'streetAddress',
+      'locality',
+      'region',
+      'postalCode',
+      'primary',
+      'country',
     ]);
 
     // Handle phoneNumbers patched via path
     for (const phoneType of ['work', 'mobile', 'fax']) {
       this.mergeMultiValuedPatch(meta, 'phoneNumbers', phoneType, patchData, [
-        'value', 'primary',
+        'value',
+        'primary',
       ]);
     }
 
     // Handle roles patched via path like roles[primary eq "True"].value
-    this.mergeMultiValuedPatch(meta, 'roles', null, patchData, [
-      'display', 'value', 'type',
-    ], 'primary', 'True');
+    this.mergeMultiValuedPatch(
+      meta,
+      'roles',
+      null,
+      patchData,
+      ['display', 'value', 'type'],
+      'primary',
+      'True',
+    );
 
     // Handle enterprise extension paths
     const enterprisePrefix = `${ENTERPRISE_EXTENSION}:`;
@@ -511,8 +545,7 @@ export class ScimUsersService {
       if (patchData[pathKey] !== undefined) {
         if (!meta[attrName]) meta[attrName] = [];
         let item = meta[attrName].find(
-          (a: any) =>
-            a[filterField] === storedFVal || a[filterField] === fVal,
+          (a: any) => a[filterField] === storedFVal || a[filterField] === fVal,
         );
         if (!item) {
           item = { [filterField]: storedFVal };
@@ -530,12 +563,19 @@ export class ScimUsersService {
     workspaceUser: any,
     workspaceId: string,
   ): Promise<any> {
-    const scimMeta = parseMetaProp(workspaceUser, 'scim_meta') || {};
+    // Parse scim_meta if it's a JSON string (WorkspaceUser.get() doesn't auto-parse)
+    let rawMeta = workspaceUser.scim_meta;
+    if (typeof rawMeta === 'string') {
+      try {
+        rawMeta = JSON.parse(rawMeta);
+      } catch {
+        rawMeta = {};
+      }
+    }
+    const scimMeta = rawMeta || {};
 
     // Build schemas array
-    const schemas: string[] = [
-      'urn:ietf:params:scim:schemas:core:2.0:User',
-    ];
+    const schemas: string[] = ['urn:ietf:params:scim:schemas:core:2.0:User'];
     if (scimMeta[ENTERPRISE_EXTENSION]) {
       schemas.push(ENTERPRISE_EXTENSION);
     }
@@ -547,10 +587,13 @@ export class ScimUsersService {
       // satisfy the schema constraint that it must be a string when present
       ...(scimMeta.externalId ? { externalId: scimMeta.externalId } : {}),
       userName: workspaceUser.scim_user_name || workspaceUser.email,
-      name: scimMeta.name || (workspaceUser.display_name
-        ? { formatted: workspaceUser.display_name }
-        : {}),
-      displayName: scimMeta.displayName ||
+      name:
+        scimMeta.name ||
+        (workspaceUser.display_name
+          ? { formatted: workspaceUser.display_name }
+          : {}),
+      displayName:
+        scimMeta.displayName ||
         workspaceUser.display_name ||
         workspaceUser.scim_user_name ||
         workspaceUser.email,
@@ -571,15 +614,20 @@ export class ScimUsersService {
         ...(workspaceUser.updated_at
           ? { lastModified: new Date(workspaceUser.updated_at).toISOString() }
           : workspaceUser.created_at
-            ? { lastModified: new Date(workspaceUser.created_at).toISOString() }
-            : {}),
+          ? { lastModified: new Date(workspaceUser.created_at).toISOString() }
+          : {}),
       },
     };
 
     // Add optional top-level attributes from scim_meta
     const optionalFields = [
-      'title', 'preferredLanguage', 'locale', 'timezone',
-      'userType', 'nickName', 'profileUrl',
+      'title',
+      'preferredLanguage',
+      'locale',
+      'timezone',
+      'userType',
+      'nickName',
+      'profileUrl',
     ];
     for (const field of optionalFields) {
       if (scimMeta[field] !== undefined && scimMeta[field] !== null) {
@@ -614,65 +662,4 @@ export class ScimUsersService {
     return result;
   }
 
-  /**
-   * Apply SCIM filter with case-insensitive comparison (RFC 7644 §3.4.2.2)
-   */
-  private applyFilter(users: any[], filter: string): any[] {
-    // Support basic filter: userName eq "email@example.com"
-    const userNameMatch = filter.match(/userName\s+eq\s+"([^"]+)"/i);
-    if (userNameMatch) {
-      const userName = userNameMatch[1].toLowerCase();
-      return users.filter(
-        (u) =>
-          (u.scim_user_name || '').toLowerCase() === userName ||
-          (u.email || '').toLowerCase() === userName,
-      );
-    }
-
-    // Support: externalId eq "id"
-    const externalIdMatch = filter.match(/externalId\s+eq\s+"([^"]+)"/i);
-    if (externalIdMatch) {
-      const externalId = externalIdMatch[1].toLowerCase();
-      return users.filter(
-        (u) => (u.scim_external_id || '').toLowerCase() === externalId,
-      );
-    }
-
-    return users;
-  }
-
-  /**
-   * Sort users by SCIM attribute per RFC 7644 §3.4.2.3
-   */
-  private applySortUsers(
-    users: any[],
-    sortBy: string,
-    ascending: boolean,
-  ): any[] {
-    const getSortValue = (user: any): string => {
-      const scimMeta = parseMetaProp(user, 'scim_meta') || {};
-
-      switch (sortBy) {
-        case 'userName':
-          return (user.scim_user_name || user.email || '').toLowerCase();
-        case 'displayName':
-          return (scimMeta.displayName || user.display_name || '').toLowerCase();
-        case 'name.familyName':
-          return (scimMeta.name?.familyName || '').toLowerCase();
-        case 'name.givenName':
-          return (scimMeta.name?.givenName || '').toLowerCase();
-        case 'externalId':
-          return (user.scim_external_id || '').toLowerCase();
-        default:
-          return (user.scim_user_name || user.email || '').toLowerCase();
-      }
-    };
-
-    return [...users].sort((a, b) => {
-      const valA = getSortValue(a);
-      const valB = getSortValue(b);
-      const cmp = valA.localeCompare(valB);
-      return ascending ? cmp : -cmp;
-    });
-  }
 }

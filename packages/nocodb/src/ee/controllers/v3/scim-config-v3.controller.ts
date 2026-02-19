@@ -50,12 +50,10 @@ export class ScimConfigController {
   async initializeConfig(
     @TenantContext() context: NcContext,
     @Param('workspaceId') workspaceId: string,
-    @Body() body: { siteUrl: string },
   ) {
     await this.checkScimFeature(context);
     return this.scimConfigService.initializeConfig(context, {
       workspaceId,
-      siteUrl: body.siteUrl,
     });
   }
 

@@ -288,6 +288,13 @@ const clear = () => {
   formState.longitude = longitude
 }
 
+const clearValue = () => {
+  vModel.value = null
+  formState.latitude = ''
+  formState.longitude = ''
+  isExpanded.value = false
+}
+
 const onClickSetCurrentLocation = () => {
   isLoading.value = true
   const onSuccess: PositionCallback = (position: GeolocationPosition) => {
@@ -519,7 +526,7 @@ onBeforeUnmount(() => {
         class="w-full flex justify-center max-w-64 mx-auto"
       >
         <NcButton
-          v-if="(activeCell && !readonly) || isForm"
+          v-if="(activeCell && !readonly) || isForm || isEditColumn"
           size="xsmall"
           type="secondary"
           data-testid="nc-geo-data-set-location-button"
@@ -741,6 +748,9 @@ onBeforeUnmount(() => {
               </div>
 
               <div class="nc-geodata-footer-right">
+                <NcButton v-if="isLocationSet" type="secondary" size="small" class="!text-red-500 !hover:bg-red-50" data-testid="nc-geo-data-clear" @click="clearValue">
+                  {{ $t('general.clear') }}
+                </NcButton>
                 <NcButton type="secondary" size="small" @click="clear">
                   {{ $t('general.cancel') }}
                 </NcButton>

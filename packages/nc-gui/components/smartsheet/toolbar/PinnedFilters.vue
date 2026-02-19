@@ -43,7 +43,7 @@ const isSelectType = (filter: FilterType) => {
 const isUserType = (filter: FilterType) => {
   const col = getColumn(filter)
   if (!col) return false
-  return col.uidt === UITypes.User
+  return [UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy].includes(col.uidt as UITypes)
 }
 
 const isMultiValueOp = (filter: FilterType) => {
@@ -54,6 +54,20 @@ const isNegatedOp = (filter: FilterType) => {
   return ['neq', 'not', 'isnot', 'nlike', 'nanyof', 'nallof', 'isnotnull', 'isnotblank', 'not_checked'].includes(
     filter.comparison_op || '',
   )
+}
+
+// ============ Effective Enabled State ============
+const isParentGroupDisabled = (filter: FilterType): boolean => {
+  if (!filter.fk_parent_id) return false
+  const parent = allFilters.value.find((f) => f.id === filter.fk_parent_id && f.is_group)
+  if (!parent) return false
+  if (parent.enabled === false) return true
+  return isParentGroupDisabled(parent)
+}
+
+const isEffectivelyEnabled = (filter: FilterType): boolean => {
+  if (filter.enabled === false) return false
+  return !isParentGroupDisabled(filter)
 }
 
 // ============ Select Options ============
@@ -306,7 +320,7 @@ const unpinFilter = async (filter: FilterType) => {
           class="nc-pinned-filter-pill nc-toolbar-btn flex items-center flex-wrap gap-0.5 !h-auto min-h-7 py-0.5 pl-1.5 pr-1.5 rounded-lg cursor-pointer select-none"
           :class="{
             'bg-nc-bg-gray-extralight !text-nc-content-gray': openFilterId === filter.id,
-            'opacity-60': filter.enabled === false,
+            'opacity-60': !isEffectivelyEnabled(filter),
           }"
           @click="toggleDropdown(filter.id)"
         >
@@ -430,17 +444,26 @@ const unpinFilter = async (filter: FilterType) => {
 
             <!-- Enable/Disable toggle -->
             <NcTooltip>
-              <template #title>{{ filter.enabled === false ? t('general.enable') : t('general.disable') }}</template>
+              <template #title>
+                {{
+                  isParentGroupDisabled(filter)
+                    ? t('labels.parentGroupDisabled')
+                    : filter.enabled === false
+                      ? t('general.enable')
+                      : t('general.disable')
+                }}
+              </template>
               <NcButton
                 type="text"
                 size="xxsmall"
                 class="!w-6 !h-6"
+                :disabled="isParentGroupDisabled(filter)"
                 @click.stop="toggleEnabled(filter)"
               >
                 <GeneralIcon
                   icon="ncPower"
                   class="h-3.5 w-3.5"
-                  :class="filter.enabled === false ? 'text-nc-content-gray-muted' : 'text-nc-content-gray-subtle2'"
+                  :class="!isEffectivelyEnabled(filter) ? 'text-nc-content-gray-muted' : 'text-nc-content-gray-subtle2'"
                 />
               </NcButton>
             </NcTooltip>
@@ -554,11 +577,11 @@ const unpinFilter = async (filter: FilterType) => {
           <!-- Footer: Disabled indicator + Clear value -->
           <div class="flex items-center justify-between px-3 py-2 border-t border-nc-border-gray-medium">
             <span
-              v-if="filter.enabled === false"
+              v-if="!isEffectivelyEnabled(filter)"
               class="text-xs text-nc-content-gray-muted flex items-center gap-1"
             >
               <span class="w-1.5 h-1.5 rounded-full bg-nc-content-gray-muted" />
-              Disabled
+              {{ isParentGroupDisabled(filter) ? 'Group disabled' : 'Disabled' }}
             </span>
             <div v-else />
             <span

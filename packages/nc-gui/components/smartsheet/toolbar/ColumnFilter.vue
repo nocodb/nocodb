@@ -655,7 +655,7 @@ const pinnedFilterCount = computed(() => {
   return visibleFilters.value.filter((f) => !f.is_group && parseProp(f.meta)?.pinned === true).length
 })
 
-const PINNABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User]
+const PINNABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy]
 
 const isPinnableType = (filter: ColumnFilterType): boolean => {
   const col = getColumn(filter)

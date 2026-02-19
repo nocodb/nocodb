@@ -533,14 +533,16 @@ export const comparisonOpList = (
     text: 'is blank',
     value: 'blank',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    // UUID excluded: auto-generated on insert, never blank
+    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup, UITypes.UUID],
     semanticType: 'blank_check',
   },
   {
     text: 'is not blank',
     value: 'notblank',
     ignoreVal: true,
-    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup],
+    // UUID excluded: auto-generated on insert, never blank
+    excludedTypes: [UITypes.Checkbox, UITypes.Links, UITypes.Rollup, UITypes.UUID],
     semanticType: 'not_blank_check',
   },
 ];

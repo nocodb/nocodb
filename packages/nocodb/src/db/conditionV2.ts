@@ -95,9 +95,12 @@ const parseConditionV2 = async (
     if (!(_filter instanceof Filter)) filter = new Filter(_filter as Filter);
     else filter = _filter;
   }
+  const supportToggle = await Filter.supportToggle(baseModelSqlv2.context);
   if (Array.isArray(_filter)) {
     // Filter out disabled filters before processing
-    const enabledFilters = _filter.filter((f) => f.enabled !== false && f.enabled !== 0);
+    const enabledFilters = supportToggle
+      ? _filter.filter((f) => f.enabled !== false && f.enabled !== 0)
+      : _filter;
 
     const qbs = await Promise.all(
       enabledFilters.map((child) =>
@@ -128,7 +131,7 @@ const parseConditionV2 = async (
     };
   } else if (filter.is_group) {
     // Skip disabled filter groups entirely (cascade disable)
-    if (filter.enabled === false || filter.enabled === 0) {
+    if (supportToggle && (filter.enabled === false || filter.enabled === 0)) {
       return { clause: () => {}, rootApply: () => {} };
     }
 
@@ -167,7 +170,7 @@ const parseConditionV2 = async (
     if (!filter.fk_column_id) return;
 
     // Skip disabled leaf filters
-    if (filter.enabled === false || filter.enabled === 0) {
+    if (supportToggle && (filter.enabled === false || filter.enabled === 0)) {
       return { clause: () => {}, rootApply: () => {} };
     }
 

@@ -284,6 +284,46 @@ watch(view, async (nextView) => {
 })
 
 const count = computed(() => paginationData.value.totalRows)
+
+const medianCoordinates = computed(() => {
+  const primaryGeoDataColumnTitle = geoDataFieldColumn.value?.title
+  if (!primaryGeoDataColumnTitle || !formattedData.value?.length) {
+    return null
+  }
+
+  const validCoords: { lat: number; lng: number }[] = []
+  formattedData.value.forEach((row) => {
+    const val = row.row[primaryGeoDataColumnTitle]
+    if (val == null) return
+    const [lat, lng] = val.split(';').map(parseFloat)
+    if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
+      validCoords.push({ lat, lng })
+    }
+  })
+
+  if (validCoords.length === 0) return null
+
+  const sortedLats = validCoords.map((c) => c.lat).sort((a, b) => a - b)
+  const sortedLngs = validCoords.map((c) => c.lng).sort((a, b) => a - b)
+
+  const median = (arr: number[]) => {
+    const mid = Math.floor(arr.length / 2)
+    return arr.length % 2 !== 0 ? arr[mid] : (arr[mid - 1] + arr[mid]) / 2
+  }
+
+  return { lat: median(sortedLats), lng: median(sortedLngs) }
+})
+
+const onAddRecordClick = async () => {
+  const newRow = await addEmptyRow()
+  if (geoDataFieldColumn.value?.title && medianCoordinates.value) {
+    newRow.row[geoDataFieldColumn.value.title] = latLongToJoinedString(
+      medianCoordinates.value.lat,
+      medianCoordinates.value.lng,
+    )
+  }
+  expandForm(newRow)
+}
 </script>
 
 <template>
@@ -305,6 +345,13 @@ const count = computed(() => paginationData.value.totalRows)
           <component :is="iconMap.markerAlert" aria-hidden="true" />
         </div>
       </a-tooltip>
+
+      <NcTooltip v-if="!isPublic" placement="right" class="absolute bottom-5 left-3 z-500">
+        <template #title> {{ $t('activity.addNewRecord') }} </template>
+        <NcButton type="secondary" size="small" data-testid="nc-map-add-record-btn" class="!rounded-full !w-10 !h-10 !shadow-lg" @click="onAddRecordClick">
+          <GeneralIcon icon="plus" />
+        </NcButton>
+      </NcTooltip>
     </div>
   </div>
   <Suspense v-if="!isPublic">

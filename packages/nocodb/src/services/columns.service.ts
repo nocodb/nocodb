@@ -2636,11 +2636,13 @@ export class ColumnsService implements IColumnsService {
     }
 
     // Check if default value is being set when unique constraint is enabled
+    // Exclude UUID fields which are allowed to have both unique constraint and auto-generation
     if (
       originalCdf !== null &&
       originalCdf !== undefined &&
       originalCdf !== '' &&
-      colBody.unique
+      colBody.unique &&
+      colBody.uidt !== UITypes.UUID
     ) {
       NcError.get(context).badRequest(
         'Default values are not allowed for unique fields. Please disable the unique constraint first.',

@@ -1478,7 +1478,8 @@ const unique = computed({
                 !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState))) &&
                 !isDatabricks(meta?.source_id) &&
                 formState.unique &&
-                !isAI(formState)
+                !isAI(formState) &&
+                !isUUID(formState)
               "
               title="Cannot set default value as Unique constraint is set. Please disable unique constraint to configure default value"
               placement="right"
@@ -1496,7 +1497,8 @@ const unique = computed({
                 !isAttachment(formState) &&
                 !(isMysql(meta?.source_id) && (isJSON(formState) || isTextArea(formState))) &&
                 !isDatabricks(meta?.source_id) &&
-                !isAI(formState)
+                !isAI(formState) &&
+                !isUUID(formState)
               "
               v-model:value="formState"
               v-model:is-visible-default-value-input="isVisibleDefaultValueInput"

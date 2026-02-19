@@ -487,7 +487,8 @@
     "teams": "Teams",
     "structure": "Structure",
     "retry": "Retry",
-    "attachImage": "Attach Image"
+    "attachImage": "Attach Image",
+    "none": "None"
   },
   "objects": {
     "script": "Script",

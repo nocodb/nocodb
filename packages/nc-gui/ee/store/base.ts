@@ -82,6 +82,30 @@ export const useBase = defineStore('baseStore', () => {
 
   const isManagedAppInstaller = computed(() => !!base.value?.managed_app_id && !base.value?.managed_app_master)
 
+  // Sandbox
+  const isSandbox = computed(() => !!base.value?.is_sandbox)
+  const isSandboxMaster = computed(() => !!base.value?.is_sandbox_master)
+
+  const sandboxInfo = ref<{ id: string; master_base_id: string; sandbox_base_id: string } | null>(null)
+  const sandboxList = ref<{ id: string; master_base_id: string; sandbox_base_id: string }[]>([])
+
+  const loadSandboxInfo = async () => {
+    if (!base.value?.id || !base.value?.fk_workspace_id) return
+
+    try {
+      // Fetch sandbox record using sandboxGet operation
+      const response = await api.internal.getOperation(base.value.fk_workspace_id, base.value.id, {
+        operation: 'sandboxGet',
+      })
+
+      if (response) {
+        sandboxInfo.value = response
+      }
+    } catch (_e) {
+      // Sandbox info not available
+    }
+  }
+
   // todo: refactor path param name and variable name
   const baseType = computed(() => route.value.params.typeOrId as string)
 
@@ -245,6 +269,10 @@ export const useBase = defineStore('baseStore', () => {
       .catch(() => {
         // ignore
       })
+
+    if (base.value?.is_sandbox) {
+      await loadSandboxInfo()
+    }
 
     // if (withTheme) setTheme(baseMeta.value?.theme)
 
@@ -448,6 +476,12 @@ export const useBase = defineStore('baseStore', () => {
     loadCurrentVersion,
     managedAppVersions,
     managedAppVersionsInfo,
+    // Sandbox
+    isSandbox,
+    isSandboxMaster,
+    sandboxInfo,
+    sandboxList,
+    loadSandboxInfo,
   }
 })
 

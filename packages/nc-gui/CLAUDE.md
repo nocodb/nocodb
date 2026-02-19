@@ -138,3 +138,4 @@ These are frontend-specific — see root CLAUDE.md for universal anti-patterns.
 | Duplicate SDK types in frontend code | Import from `'nocodb-sdk'` |
 | Skip CE placeholder for EE-only components | Create empty `<template><span /></template>` CE stub |
 | Expose EE-only data to non-owner UI | Audit what's visible in UI, not just API responses |
+| Use `activeBaseId.value` in realtime event callbacks to identify which base the event belongs to | Extract `base_id` from `event.payload` — user may have navigated away before the callback fires |

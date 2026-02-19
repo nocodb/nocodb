@@ -267,6 +267,10 @@ export const useEeConfig = createSharedComposable(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_CARD_FIELD_HEADER_VISIBILITY)
   })
 
+  const blockAddNewSandbox = computed(() => {
+    return isPaymentEnabled.value && getLimit(PlanLimitTypes.LIMIT_SANDBOX_PER_BASE) === 0
+  })
+
   const blockSync = computed(() => {
     return isPaymentEnabled.value && !getFeature(PlanFeatureTypes.FEATURE_SYNC)
   })
@@ -1353,6 +1357,22 @@ export const useEeConfig = createSharedComposable(() => {
     return true
   }
 
+  const showSandboxPlanLimitExceededModal = ({ callback }: { callback?: (type: 'ok' | 'cancel') => void } = {}) => {
+    if (!blockAddNewSandbox.value) return
+
+    handleUpgradePlan({
+      title: t('upgrade.upgradeToUseSandbox'),
+      content: t('upgrade.upgradeToUseSandboxSubtitle', {
+        plan: PlanTitles.BUSINESS,
+      }),
+      callback,
+      limitOrFeature: PlanLimitTypes.LIMIT_SANDBOX_PER_BASE,
+      requiredPlan: PlanTitles.BUSINESS,
+    })
+
+    return true
+  }
+
   return {
     isWsOwner,
     calculatePrice,
@@ -1441,5 +1461,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseUnique,
     showUpgradeToUseSync,
     showUpgradeToUseUuidField,
+    blockAddNewSandbox,
+    showSandboxPlanLimitExceededModal,
   }
 })

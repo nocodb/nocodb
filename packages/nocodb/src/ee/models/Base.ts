@@ -31,6 +31,7 @@ import {
   MCPToken,
   ModelStat,
   Permission,
+  Sandbox,
   Source,
   Workflow,
   Workspace,
@@ -172,7 +173,9 @@ export default class Base extends BaseCE {
   }
 
   public static async createProject(
-    base: Partial<BaseType> & { fk_workspace_id?: string },
+    base: Partial<BaseType> & {
+      fk_workspace_id?: string;
+    },
     ncMeta = Noco.ncMeta,
   ): Promise<BaseCE> {
     const insertObj = extractProps(base, [
@@ -194,6 +197,8 @@ export default class Base extends BaseCE {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
+      'is_sandbox_master',
+      'is_sandbox',
     ]);
 
     // define base type as database if missing
@@ -289,6 +294,8 @@ export default class Base extends BaseCE {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
+      'is_sandbox_master',
+      'is_sandbox',
     ]);
 
     if (+updateObj.version !== BaseVersion.V3) {
@@ -432,6 +439,46 @@ export default class Base extends BaseCE {
       NcError.baseNotFound(baseId);
     }
 
+    // --- SANDBOX LOGIC ---
+    // If this is a sandbox base, update master's is_sandbox_master flag and delete sandbox record
+    if (base.is_sandbox) {
+      const sandbox = await Sandbox.getBySandboxBaseId(base.id, ncMeta);
+
+      if (sandbox) {
+        // Delete sandbox record
+        await Sandbox.delete(sandbox.id, ncMeta);
+
+        const remainingSandboxes = await Sandbox.listByMasterBaseId(
+          sandbox.master_base_id,
+          ncMeta,
+        );
+        if (remainingSandboxes.length === 0) {
+          await Base.update(
+            { ...context, base_id: sandbox.master_base_id },
+            sandbox.master_base_id,
+            { is_sandbox_master: false },
+            ncMeta,
+          );
+        }
+      }
+    }
+
+    // If this is a master base with sandboxes, delete all sandbox bases first
+    if (base.is_sandbox_master) {
+      const sandboxes = await Sandbox.listByMasterBaseId(baseId, ncMeta);
+      for (const sandbox of sandboxes) {
+        // Delete sandbox record
+        await Sandbox.delete(sandbox.id, ncMeta);
+        // Delete sandbox base (recursively)
+        await Base.delete(
+          { ...context, base_id: sandbox.sandbox_base_id },
+          sandbox.sandbox_base_id,
+          ncMeta,
+        );
+      }
+    }
+
+    // --- NORMAL BASE DELETE LOGIC ---
     const users = await BaseUser.getUsersList(
       context,
       {
@@ -1040,6 +1087,7 @@ export default class Base extends BaseCE {
           if (base.managed_app_id) {
             promises.push(Base.populateManagedAppInfo(base));
           }
+
           return base;
         });
 
@@ -1099,6 +1147,7 @@ export default class Base extends BaseCE {
           if (base.managed_app_id) {
             promises.push(Base.populateManagedAppInfo(base));
           }
+
           return base;
         });
 

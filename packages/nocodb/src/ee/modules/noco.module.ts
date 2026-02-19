@@ -68,6 +68,9 @@ import { ScriptsV3Service } from '~/services/v3/scripts-v3.service';
 import { SnapshotController } from '~/controllers/snapshot.controller';
 import { SnapshotService } from '~/services/snapshot.service';
 
+/* Sandbox */
+import { SandboxesService } from '~/services/sandboxes.service';
+
 /* Scripts */
 import { ScriptsService } from '~/services/scripts.service';
 
@@ -129,6 +132,9 @@ export const nocoModuleEeMetadata = {
 
     /* Snapshot */
     SnapshotService,
+
+    /* Sandbox */
+    SandboxesService,
 
     /* Scripts */
     ScriptsService,

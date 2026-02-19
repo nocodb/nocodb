@@ -62,7 +62,6 @@ export interface MetaPayload<T = any> extends BaseSocketPayload {
     | 'source_update'
     | 'source_delete'
     | 'source_meta_sync'
-    | 'base_full_reload'
     | 'table_create'
     | 'table_update'
     | 'table_permission_update'
@@ -99,7 +98,8 @@ export interface UserEventPayload<T = any> extends BaseSocketPayload {
     | 'workspace_update'
     | 'workspace_user_add'
     | 'workspace_user_remove'
-    | 'workspace_user_update';
+    | 'workspace_user_update'
+    | 'base_meta_reload';
   payload: T;
   baseId?: string;
   workspaceId?: string;

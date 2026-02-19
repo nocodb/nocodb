@@ -20,7 +20,7 @@ export const useRealtime = createSharedComposable(() => {
   const basesStore = useBases()
   const { bases, basesUser } = storeToRefs(basesStore)
 
-  const { setMeta, getMeta, clearAllMeta } = useMetas()
+  const { setMeta, getMeta, removeMeta } = useMetas()
   const { tables: _tables, baseId: activeBaseId, base } = storeToRefs(useBase())
 
   const tableStore = useTablesStore()
@@ -98,7 +98,7 @@ export const useRealtime = createSharedComposable(() => {
       const baseId = payload.base_id
       if (baseId) {
         loadProjectTables(baseId, true).then(() => {
-          const tables = baseTables.value.get(activeBaseId.value)
+          const tables = baseTables.value.get(baseId)
           for (const table of tables || []) {
             if (table.id && table.source_id === payload.source_id) {
               getMeta(baseId, table.id, true)
@@ -109,47 +109,16 @@ export const useRealtime = createSharedComposable(() => {
           $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
         })
       }
-    } else if (event.action === 'base_full_reload') {
-      const { payload } = event
-      const baseId = payload.base_id
-      if (baseId && activeBaseId.value === baseId) {
-        // Clear all cached metadata first to ensure fresh data
-        clearAllMeta()
-        // Clear local caches
-        scriptStore.scripts.clear()
-        workflowStore.workflows.clear()
-        dashboardStore.dashboards.clear()
-
-        // Reload everything in the base
-        loadProjectTables(baseId, true).then(async () => {
-          // Reload all table metadata
-          const tables = baseTables.value.get(baseId)
-          for (const table of tables || []) {
-            if (table.id) {
-              getMeta(baseId, table.id, true)
-            }
-          }
-
-          // Reload scripts, workflows, and dashboards with force flag
-          await Promise.all([
-            scriptStore.loadScripts({ baseId, force: true }),
-            workflowStore.loadWorkflows({ baseId, force: true }),
-            dashboardStore.loadDashboards({ baseId, force: true }),
-          ])
-
-          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
-          $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
-
-          refreshCommandPalette()
-        })
-      }
     } else if (event.action === 'table_create') {
-      const tables = baseTables.value.get(activeBaseId.value)
+      const eventBaseId = event.payload.base_id
+      if (!eventBaseId || eventBaseId !== activeBaseId.value) return
+
+      const tables = baseTables.value.get(eventBaseId)
       if (!tables) {
-        loadProjectTables(activeBaseId.value, true)
+        loadProjectTables(eventBaseId, true)
       } else {
         tables.push(event.payload)
-        baseTables.value.set(activeBaseId.value, tables)
+        baseTables.value.set(eventBaseId, tables)
       }
       refreshCommandPalette()
     } else if (event.action === 'table_permission_update') {
@@ -157,7 +126,10 @@ export const useRealtime = createSharedComposable(() => {
       refreshCommandPalette()
     } else if (event.action === 'table_update') {
       const updatedTable = event.payload
-      const tables = baseTables.value.get(activeBaseId.value)
+      const eventBaseId = updatedTable.base_id
+      if (!eventBaseId || eventBaseId !== activeBaseId.value) return
+
+      const tables = baseTables.value.get(eventBaseId)
       if (tables) {
         const index = tables.findIndex((t) => t.id === updatedTable.id)
         if (index !== -1) {
@@ -166,17 +138,20 @@ export const useRealtime = createSharedComposable(() => {
 
         tables.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
 
-        baseTables.value.set(activeBaseId.value, tables)
+        baseTables.value.set(eventBaseId, tables)
       } else {
-        loadProjectTables(activeBaseId.value, true)
+        loadProjectTables(eventBaseId, true)
       }
       refreshCommandPalette()
     } else if (event.action === 'table_delete') {
+      const eventBaseId = event.payload.base_id
+      if (!eventBaseId || eventBaseId !== activeBaseId.value) return
+
       const deletedTableId = event.payload.id
-      const tables = baseTables.value.get(activeBaseId.value)
+      const tables = baseTables.value.get(eventBaseId)
       if (tables) {
         const updatedTables = tables.filter((t) => t.id !== deletedTableId)
-        baseTables.value.set(activeBaseId.value, updatedTables)
+        baseTables.value.set(eventBaseId, updatedTables)
         if (activeTableId.value === deletedTableId) {
           if (updatedTables.length > 0 && updatedTables[0]?.id) {
             navigateToTable({
@@ -189,7 +164,7 @@ export const useRealtime = createSharedComposable(() => {
           } else {
             ncNavigateTo({
               workspaceId: activeWorkspaceId.value,
-              baseId: activeBaseId.value,
+              baseId: eventBaseId,
               tableId: undefined,
             })
             showInfoModal({
@@ -199,11 +174,13 @@ export const useRealtime = createSharedComposable(() => {
           }
         }
       } else {
-        loadProjectTables(activeBaseId.value, true)
+        loadProjectTables(eventBaseId, true)
       }
       refreshCommandPalette()
     } else if (event.action === 'column_add' || event.action === 'column_update' || event.action === 'column_delete') {
       const { table, column, skipDataReload = false } = event.payload
+      if (!table.base_id || table.base_id !== activeBaseId.value) return
+
       setMeta(table)
       if (event.action === 'column_update' || (event.action === 'column_add' && (isVirtualCol(column) || !!column?.cdf))) {
         $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
@@ -707,6 +684,45 @@ export const useRealtime = createSharedComposable(() => {
             if (user) {
               baseUsers.splice(baseUsers.indexOf(user), 1)
             }
+          }
+        }
+      } else if (event.action === 'base_meta_reload') {
+        const baseId = event.payload?.base_id
+        if (baseId) {
+          // Clear cached metadata only for the affected base
+          const cachedTables = baseTables.value.get(baseId)
+          if (cachedTables) {
+            for (const table of cachedTables) {
+              if (table.id) {
+                removeMeta(baseId, table.id)
+              }
+            }
+          }
+          baseTables.value.delete(baseId)
+          scriptStore.scripts.delete(baseId)
+          workflowStore.workflows.delete(baseId)
+          dashboardStore.dashboards.delete(baseId)
+
+          // If this is the active base, reload immediately
+          if (activeBaseId.value === baseId) {
+            loadProjectTables(baseId, true).then(async () => {
+              const tables = baseTables.value.get(baseId)
+              for (const table of tables || []) {
+                if (table.id) {
+                  getMeta(baseId, table.id, true)
+                }
+              }
+
+              await Promise.all([
+                scriptStore.loadScripts({ baseId, force: true }),
+                workflowStore.loadWorkflows({ baseId, force: true }),
+                dashboardStore.loadDashboards({ baseId, force: true }),
+              ])
+
+              $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)
+              $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.DATA_RELOAD)
+              refreshCommandPalette()
+            })
           }
         }
       }

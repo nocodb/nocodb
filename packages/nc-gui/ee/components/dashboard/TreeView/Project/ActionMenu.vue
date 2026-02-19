@@ -22,6 +22,8 @@ interface Emits {
   (e: 'delete'): void
   (e: 'toggleStarred', id: string): void
   (e: 'convertToManagedApp'): void
+  (e: 'createSandbox'): void
+  (e: 'viewAllSandboxes'): void
 }
 
 const { dataReflectionState, dataReflectionText } = toRefs(props)
@@ -37,6 +39,10 @@ const { isFeatureEnabled } = useBetaFeatureToggle()
 const { isUIAllowed } = useRoles()
 
 const isOptionVisible = computed(() => {
+  const isSandboxMaster = !!base.value?.is_sandbox_master
+  const isSandboxBase = !!base.value?.is_sandbox
+  const isInstalledManagedApp = !!base.value?.managed_app_id && !base.value?.managed_app_master
+
   return {
     baseDuplicate: isUIAllowed('baseDuplicate', { roles: baseRole.value }),
     convertToManagedApp:
@@ -44,6 +50,13 @@ const isOptionVisible = computed(() => {
       !base.value?.managed_app_id &&
       isUIAllowed('baseMiscSettings') &&
       isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS),
+    createSandbox:
+      base.value?.version === BaseVersion.V3 &&
+      !isSandboxBase &&
+      !isInstalledManagedApp &&
+      isUIAllowed('baseMiscSettings') &&
+      isFeatureEnabled(FEATURE_FLAG.SANDBOX),
+    viewAllSandboxes: isSandboxMaster && !isSandboxBase && isFeatureEnabled(FEATURE_FLAG.SANDBOX),
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&
@@ -109,6 +122,22 @@ const isOptionVisible = computed(() => {
     >
       <GeneralIcon icon="ncBox" />
       Convert to managed app
+    </NcMenuItem>
+
+    <NcDivider v-if="isOptionVisible.createSandbox || isOptionVisible.viewAllSandboxes" />
+
+    <NcMenuItem v-if="isOptionVisible.createSandbox" data-testid="nc-sidebar-base-create-sandbox" @click="emits('createSandbox')">
+      <GeneralIcon icon="ncGitBranch" />
+      {{ $t('labels.createNewSandbox') }}
+    </NcMenuItem>
+
+    <NcMenuItem
+      v-if="isOptionVisible.viewAllSandboxes"
+      data-testid="nc-sidebar-base-view-all-sandboxes"
+      @click="emits('viewAllSandboxes')"
+    >
+      <GeneralIcon icon="ncList" />
+      {{ $t('labels.viewAllSandboxes') }}
     </NcMenuItem>
 
     <NcDivider />

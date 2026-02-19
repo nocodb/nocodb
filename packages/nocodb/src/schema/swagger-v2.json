@@ -18835,6 +18835,14 @@
           "fk_custom_url_id": {
             "$ref": "#/components/schemas/StringOrNull",
             "description": "ID of custom url"
+          },
+          "is_sandbox": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates if the base is a sandbox"
+          },
+          "is_sandbox_master": {
+            "$ref": "#/components/schemas/Bool",
+            "description": "Indicates if the base is a sandbox master"
           }
         },
         "x-stoplight": {

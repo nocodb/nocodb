@@ -75,6 +75,9 @@ const topbarBreadcrumbItemWidth = computed(() => {
         <!-- Managed App Status -->
         <LazySmartsheetTopbarManagedAppStatus v-if="!isSharedBase && !isMobileMode" />
 
+        <!-- Sandbox Status -->
+        <LazySmartsheetTopbarSandboxStatus v-if="!isSharedBase && !isMobileMode" />
+
         <NcButton
           v-if="
             (appInfo.isOnPrem || isEeUI || isFeatureEnabled(FEATURE_FLAG.EXTENSIONS)) &&

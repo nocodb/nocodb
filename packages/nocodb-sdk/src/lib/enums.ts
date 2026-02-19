@@ -255,6 +255,11 @@ export enum AppEvents {
   WORKFLOW_DELETE = 'workflow.delete',
   WORKFLOW_DUPLICATE = 'workflow.duplicate',
   WORKFLOW_EXECUTE = 'workflow.execute',
+
+  SANDBOX_CREATE = 'sandbox.create',
+  SANDBOX_DELETE = 'sandbox.delete',
+  SANDBOX_DISCARD = 'sandbox.discard',
+  SANDBOX_MERGE = 'sandbox.merge',
 }
 
 export enum ClickhouseTables {

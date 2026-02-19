@@ -418,6 +418,29 @@ const convertToManagedApp = () => {
   isConvertToManagedAppDlgOpen.value = true
 }
 
+/* Sandbox */
+const isSandboxCreateDlgOpen = ref(false)
+const isSandboxListDlgOpen = ref(false)
+
+const { showSandboxPlanLimitExceededModal } = useEeConfig()
+
+const openSandboxCreateDialog = () => {
+  if (showSandboxPlanLimitExceededModal()) return
+
+  isSandboxCreateDlgOpen.value = true
+}
+
+const openSandboxListDialog = () => {
+  isSandboxListDlgOpen.value = true
+}
+
+const handleCreateSandboxFromList = () => {
+  if (showSandboxPlanLimitExceededModal()) return
+
+  isSandboxListDlgOpen.value = false
+  isSandboxCreateDlgOpen.value = true
+}
+
 const getSource = (sourceId: string) => {
   return base.value.sources?.find((s) => s.id === sourceId)
 }
@@ -725,6 +748,8 @@ defineExpose({
                       @toggle-starred="toggleStarred($event)"
                       @duplicate-project="duplicateProject($event)"
                       @convert-to-managed-app="convertToManagedApp"
+                      @create-sandbox="openSandboxCreateDialog"
+                      @view-all-sandboxes="openSandboxListDialog"
                       @open-erd-view="openErdView($event)"
                       @on-data-reflection="onDataReflection"
                       @open-base-settings="openBaseSettings($event)"
@@ -792,6 +817,8 @@ defineExpose({
         @toggle-starred="toggleStarred($event)"
         @duplicate-project="duplicateProject($event)"
         @convert-to-managed-app="convertToManagedApp"
+        @create-sandbox="openSandboxCreateDialog"
+        @view-all-sandboxes="openSandboxListDialog"
         @open-erd-view="openErdView($event)"
         @on-data-reflection="onDataReflection"
         @open-base-settings="openBaseSettings($event)"
@@ -882,6 +909,15 @@ defineExpose({
       alert-description="Convert this base into a living application that can be published to the App Store. You'll be able to manage versions and push updates to all installations."
     />
   </DlgManagedApp>
+
+  <!-- Sandbox Modals -->
+  <DlgSandboxCreate v-if="base?.id" v-model="isSandboxCreateDlgOpen" :base="base" />
+  <DlgSandboxList
+    v-if="base?.id"
+    v-model="isSandboxListDlgOpen"
+    :base="base"
+    @create-sandbox="handleCreateSandboxFromList"
+  />
 </template>
 
 <style lang="scss" scoped>

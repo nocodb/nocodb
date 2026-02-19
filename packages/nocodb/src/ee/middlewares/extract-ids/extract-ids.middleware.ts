@@ -124,6 +124,11 @@ const getApiVersionFromUrl = (url: string) => {
   return undefined;
 };
 
+// Keep local for now, later if we need it elsewhere we can move to utils
+const isBaseLocked = (base: Base): boolean => {
+  return !!(base.managed_app_schema_locked || base.is_sandbox_master);
+};
+
 // todo: refactor name since we are using it as auth guard
 @Injectable()
 export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
@@ -530,8 +535,9 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     await this.additionalValidation({ req, res, next });
 
     if (req.ncBase) {
-      req.context.schema_locked = !!(req.ncBase as Base)
-        .managed_app_schema_locked;
+      const base = req.ncBase as Base;
+      // Schema is locked if managed app is locked OR sandbox master is active
+      req.context.schema_locked = isBaseLocked(base);
     }
 
     next();
@@ -1051,9 +1057,10 @@ export class ExtractIdsMiddleware implements NestMiddleware, CanActivate {
     ) {
       req.ncBase = await Base.get(context, req.ncBaseId);
       if (req.ncBase) {
-        req.ncWorkspaceId = (req.ncBase as Base).fk_workspace_id;
-        // Read computed schema_locked property
-        req.ncSchemaLocked = !!(req.ncBase as Base).managed_app_schema_locked;
+        const base = req.ncBase as Base;
+        req.ncWorkspaceId = base.fk_workspace_id;
+        // Read computed schema_locked property (managed app OR sandbox master)
+        req.ncSchemaLocked = isBaseLocked(base);
       } else {
         NcError.baseNotFound(req.ncBaseId);
       }

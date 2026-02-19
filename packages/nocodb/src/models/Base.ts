@@ -64,6 +64,10 @@ export default class Base implements BaseType {
   managed_app_published_at?: string; // When this version was published
   managed_app_schema_locked?: boolean; // Computed: whether schema modifications are allowed
 
+  // sandbox props
+  is_sandbox_master?: boolean; // Is this base a master base that has sandbox(es)?
+  is_sandbox?: boolean; // Is this base a sandbox base?
+
   constructor(base: Partial<Base>) {
     Object.assign(this, base);
   }
@@ -95,6 +99,8 @@ export default class Base implements BaseType {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
+      'is_sandbox_master',
+      'is_sandbox',
     ]);
 
     if (!insertObj.order) {
@@ -476,6 +482,8 @@ export default class Base implements BaseType {
       'managed_app_id',
       'managed_app_version_id',
       'auto_update',
+      'is_sandbox_master',
+      'is_sandbox',
     ]);
 
     // stringify meta

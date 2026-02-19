@@ -136,6 +136,18 @@ Entry types:
 | `resolved` | A blocker was cleared |
 | `scope-change` | Plan was updated — what changed and why |
 
+## Payment / Billing System
+
+Stripe per-seat SaaS billing. **EE-only** — CE has zero payment awareness. No `NC_STRIPE_SECRET_KEY` = legacy unlimited plan.
+
+- **Plans** → `PlanFeatureTypes` (boolean flags) + `PlanLimitTypes` (numeric limits) in `meta` field
+- **Subscriptions** → link workspace/org to plan with Stripe state
+- **`Workspace.payment`** → eagerly loaded on every fetch (plan + subscription)
+- **Feature gating** → backend: `checkLimit()`/`checkForFeature()` in `paymentHelpers.ts`; frontend: `useEeConfig` `block*` computeds
+- **Seat counting** → `NON_SEAT_ROLES` (viewer, commenter) are free. Reseat batched 10-min debounce for increases, immediate for decreases
+
+Key files: SDK `src/lib/payment/index.ts` · Backend `src/ee/models/Plan.ts`, `Subscription.ts` · `src/ee/modules/payment/payment.service.ts` · `src/ee/helpers/paymentHelpers.ts` · Frontend `ee/composables/useEeConfig.ts`, `usePayment.ts` · `ee/components/payment/`
+
 ## Design Decisions
 
 For significant architectural or design decisions (not small implementation details):

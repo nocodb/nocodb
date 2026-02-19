@@ -125,6 +125,10 @@ pnpm lint            # Lint + auto-fix
 - `ee/nuxt.config.ts` — Extends base config with `extends: ['../']`
 - Types from `nocodb-sdk` — always import from `'nocodb-sdk'`, never duplicate
 
+## Payment & Feature Gating (EE only)
+
+`useEeConfig` (global singleton) — reads `workspace.payment.plan.meta`, exposes `block*` computeds, `getLimit()`, `getFeature()`, upgrade nav helpers, limit-exceeded modals. `usePayment` (injection state) — checkout/cancel/invoices/seat count. `useStripe` — lazy Stripe.js loader. Components in `ee/components/payment/` (BillingPage, checkout, plan-usage, invoices, upgrade banners). Pages: `checkout/[planId]`, `pricing/`, `upgrade/`. Middleware: `04.payment.global.ts` (post-checkout redirects).
+
 ## Anti-Patterns
 
 These are frontend-specific — see root CLAUDE.md for universal anti-patterns.

@@ -2089,7 +2089,10 @@
     "resetPermissions": "Reset permissions",
     "confirmReset": "Confirm reset",
     "navigateToBilling": "Navigate to billing",
-    "goBackHome": "Go back home"
+    "goBackHome": "Go back home",
+    "pinToToolbar": "Pin to toolbar",
+    "unpinFromToolbar": "Unpin from toolbar",
+    "maxPinnedFilters": "Max {count} filters can be pinned"
   },
   "tooltip": {
     "notHaveAccess": "You don’t have access to this {context}",

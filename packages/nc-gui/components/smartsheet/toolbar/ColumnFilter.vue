@@ -483,6 +483,15 @@ const addFilterGroup = async (filter?: Partial<FilterType>) => {
 const copyFilter = (filter: Filter, isGroup = false) => {
   const filterToCopy = clone(filter)
 
+  // Strip pinned state from copied filter
+  if (filterToCopy.meta) {
+    const meta = parseProp(filterToCopy.meta)
+    if (meta?.pinned) {
+      delete meta.pinned
+      filterToCopy.meta = meta
+    }
+  }
+
   if (isGroup) {
     addFilterGroup(filterToCopy)
   } else {
@@ -595,6 +604,31 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
 
 const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
   filter.enabled = filter.enabled === false ? true : false
+  await saveOrUpdate(filter, index)
+  // Refresh allFilters so ColumnFilterMenu can reactively update the enabled count
+  allFilters.value[parentId?.value ?? 'root'] = [...nonDeletedFilters.value]
+}
+
+const MAX_PINNED_FILTERS = 3
+
+const pinnedFilterCount = computed(() => {
+  return visibleFilters.value.filter((f) => !f.is_group && parseProp(f.meta)?.pinned === true).length
+})
+
+const PINNABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User]
+
+const canPinFilter = (filter: ColumnFilterType): boolean => {
+  if (filter.is_group) return false
+  const col = getColumn(filter)
+  if (!col || !PINNABLE_TYPES.includes(col.uidt as UITypes)) return false
+  const meta = parseProp(filter.meta)
+  return meta?.pinned || pinnedFilterCount.value < MAX_PINNED_FILTERS
+}
+
+const togglePinFilter = async (filter: ColumnFilterType, index: number) => {
+  const meta = parseProp(filter.meta) || {}
+  meta.pinned = !meta.pinned
+  filter.meta = meta
   await saveOrUpdate(filter, index)
 }
 
@@ -1337,6 +1371,32 @@ defineExpose({
               <GeneralIcon icon="copy" />
             </NcButton>
 
+            <NcTooltip v-if="!filter.readOnly && !readOnly && isEeUI && !filter.is_group && !webHook && !link && !widget && PINNABLE_TYPES.includes(getColumn(filter)?.uidt)">
+              <template #title>
+                {{
+                  parseProp(filter.meta)?.pinned
+                    ? $t('labels.unpinFromToolbar')
+                    : canPinFilter(filter)
+                      ? $t('labels.pinToToolbar')
+                      : $t('labels.maxPinnedFilters', { count: MAX_PINNED_FILTERS })
+                }}
+              </template>
+              <NcButton
+                v-e="['c:filter:pin']"
+                type="text"
+                size="small"
+                :disabled="!canPinFilter(filter) || isLockedView"
+                class="nc-filter-item-pin-btn self-center"
+                @click.stop="togglePinFilter(filter, i)"
+              >
+                <GeneralIcon
+                  icon="ncMapPin"
+                  class="h-3.5 w-3.5"
+                  :class="parseProp(filter.meta)?.pinned ? 'text-primary' : 'text-nc-content-gray-subtle2'"
+                />
+              </NcButton>
+            </NcTooltip>
+
             <NcButton
               v-if="!filter.readOnly && !readOnly && isReorderEnabled"
               v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook }]"
@@ -1474,7 +1534,8 @@ defineExpose({
 <style scoped lang="scss">
 .nc-filter-item-remove-btn,
 .nc-filter-item-reorder-btn,
-.nc-filter-item-copy-btn {
+.nc-filter-item-copy-btn,
+.nc-filter-item-pin-btn {
   @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 

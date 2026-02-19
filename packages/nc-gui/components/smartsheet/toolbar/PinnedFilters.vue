@@ -1,0 +1,503 @@
+<script setup lang="ts">
+import { type ColumnType, type FilterType, UITypes } from 'nocodb-sdk'
+
+// ============ Data Sources ============
+const { allFilters, $api } = useSmartsheetStoreOrThrow()
+
+const meta = inject(MetaInj, ref())
+
+const activeView = inject(ActiveViewInj, ref())
+
+const reloadDataHook = inject(ReloadViewDataHookInj)!
+
+const reloadAggregate = inject(ReloadAggregateHookInj)
+
+const isLocked = inject(IsLockedInj, ref(false))
+
+const { base } = storeToRefs(useBase())
+
+const { basesUser } = storeToRefs(useBases())
+
+const { t } = useI18n()
+
+const { getColor, isDark } = useTheme()
+
+const columns = computed(() => meta.value?.columns || [])
+
+// ============ Pinned Filters ============
+const pinnedFilters = computed(() => {
+  return allFilters.value.filter((f) => f.id && !f.is_group && parseProp(f.meta)?.pinned === true)
+})
+
+// ============ Column Helpers ============
+const getColumn = (filter: FilterType): ColumnType | undefined => {
+  return columns.value.find((col: ColumnType) => col.id === filter.fk_column_id)
+}
+
+const isSelectType = (filter: FilterType) => {
+  const col = getColumn(filter)
+  if (!col) return false
+  return [UITypes.SingleSelect, UITypes.MultiSelect].includes(col.uidt as UITypes)
+}
+
+const isUserType = (filter: FilterType) => {
+  const col = getColumn(filter)
+  if (!col) return false
+  return col.uidt === UITypes.User
+}
+
+const isMultiValueOp = (filter: FilterType) => {
+  return ['anyof', 'nanyof'].includes(filter.comparison_op || '')
+}
+
+// ============ Select Options ============
+const getSelectOptions = (filter: FilterType) => {
+  const col = getColumn(filter)
+  if (!col?.colOptions) return []
+  return ((col.colOptions as any)?.options || [])
+    .filter((el: any) => el.title !== '')
+    .map((o: any) => ({
+      ...o,
+      value: o.title,
+      bgColor: getSelectTypeFieldOptionBgColor({ color: o.color, isDark: isDark.value }),
+      textColor: getSelectTypeFieldOptionTextColor({ color: o.color, isDark: isDark.value, getColor }),
+    }))
+    .sort((a: any, b: any) => (a.order ?? 0) - (b.order ?? 0))
+}
+
+// ============ User Options ============
+const baseUsers = computed(() => {
+  const baseId = (meta.value as any)?.base_id
+  if (!baseId) return []
+  return basesUser.value?.get(baseId) || []
+})
+
+const userOptions = computed(() => {
+  return baseUsers.value.map((user: any) => ({
+    id: user.id,
+    email: user.email,
+    display_name: user.display_name,
+    deleted: user.deleted,
+  }))
+})
+
+// ============ Comparison Op Label ============
+const getComparisonOpLabel = (filter: FilterType) => {
+  const col = getColumn(filter)
+  if (!col) return filter.comparison_op || ''
+  const op = comparisonOpList(col.uidt as UITypes, col?.meta?.date_format).find((o) => o.value === filter.comparison_op)
+  return op?.text || filter.comparison_op || ''
+}
+
+// ============ Value Display (for pill) ============
+const getSelectValueDisplay = (filter: FilterType) => {
+  if (!filter.value) return null
+  const values = String(filter.value).split(',').filter(Boolean)
+  if (values.length === 0) return null
+  if (values.length > 1) return `${values.length} selected`
+  return values[0]
+}
+
+const getSelectValueOption = (filter: FilterType) => {
+  if (!filter.value) return null
+  const options = getSelectOptions(filter)
+  const values = String(filter.value).split(',').filter(Boolean)
+  if (values.length !== 1) return null
+  return options.find((o: any) => o.title === values[0]) || null
+}
+
+const getUserValueDisplay = (filter: FilterType) => {
+  if (!filter.value) return null
+  const values = String(filter.value).split(',').filter(Boolean)
+  if (values.length === 0) return null
+  const firstUser = userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0])
+  if (values.length > 1) return `${values.length} selected`
+  return firstUser?.display_name || firstUser?.email || values[0]
+}
+
+const getUserValueUser = (filter: FilterType) => {
+  if (!filter.value) return null
+  const values = String(filter.value).split(',').filter(Boolean)
+  if (values.length !== 1) return null
+  return userOptions.value.find((u: any) => u.id === values[0] || u.email === values[0]) || null
+}
+
+// ============ Dropdown State ============
+const openFilterId = ref<string | null>(null)
+const searchQuery = ref('')
+
+const toggleDropdown = (filterId: string) => {
+  if (openFilterId.value === filterId) {
+    openFilterId.value = null
+  } else {
+    openFilterId.value = filterId
+  }
+  searchQuery.value = ''
+}
+
+const closeDropdown = () => {
+  openFilterId.value = null
+  searchQuery.value = ''
+}
+
+// ============ Filtered Options (Search) ============
+const getFilteredSelectOptions = (filter: FilterType) => {
+  const options = getSelectOptions(filter)
+  if (!searchQuery.value) return options
+  return options.filter((o: any) => o.title?.toLowerCase().includes(searchQuery.value.toLowerCase()))
+}
+
+const filteredUserOptions = computed(() => {
+  if (!searchQuery.value) return userOptions.value
+  const q = searchQuery.value.toLowerCase()
+  return userOptions.value.filter(
+    (u: any) => u.display_name?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q),
+  )
+})
+
+// ============ Selection Checking ============
+const isSelectOptionSelected = (filter: FilterType, option: any) => {
+  if (!filter.value) return false
+  const values = String(filter.value).split(',')
+  return values.includes(option.title)
+}
+
+const isUserOptionSelected = (filter: FilterType, user: any) => {
+  if (!filter.value) return false
+  const values = String(filter.value).split(',')
+  return values.includes(user.id) || values.includes(user.email)
+}
+
+// ============ API Save ============
+const apiBaseId = computed(() => activeView.value?.base_id || (meta.value as any)?.base_id)
+
+const apiWorkspaceId = computed(() => activeView.value?.fk_workspace_id || base.value?.fk_workspace_id)
+
+const saveFilter = useDebounceFn(async (filter: FilterType) => {
+  if (!filter.id || !apiWorkspaceId.value || !apiBaseId.value) return
+
+  try {
+    await $api.internal.postOperation(
+      apiWorkspaceId.value,
+      apiBaseId.value,
+      { operation: 'filterUpdate', filterId: filter.id },
+      { ...filter },
+    )
+    reloadDataHook.trigger({ shouldShowLoading: false, offset: 0 })
+    reloadAggregate?.trigger({ path: [] })
+  } catch (e) {
+    console.error('Failed to save pinned filter:', e)
+  }
+}, 500)
+
+// ============ Selection Actions ============
+const selectOption = async (filter: FilterType, option: any) => {
+  if (isMultiValueOp(filter)) {
+    const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
+    const idx = values.indexOf(option.title)
+    if (idx >= 0) values.splice(idx, 1)
+    else values.push(option.title)
+    filter.value = values.join(',') || null
+  } else {
+    filter.value = option.title
+    closeDropdown()
+  }
+  await saveFilter(filter)
+}
+
+const selectUser = async (filter: FilterType, user: any) => {
+  if (isMultiValueOp(filter)) {
+    const values = filter.value ? String(filter.value).split(',').filter(Boolean) : []
+    const idx = values.indexOf(user.id)
+    if (idx >= 0) values.splice(idx, 1)
+    else values.push(user.id)
+    filter.value = values.join(',') || null
+  } else {
+    filter.value = user.id
+    closeDropdown()
+  }
+  await saveFilter(filter)
+}
+
+const clearValue = async (filter: FilterType) => {
+  filter.value = null
+  await saveFilter(filter)
+}
+
+const toggleEnabled = async (filter: FilterType) => {
+  filter.enabled = filter.enabled === false ? true : false
+  await saveFilter(filter)
+}
+
+const unpinFilter = async (filter: FilterType) => {
+  const filterMeta = parseProp(filter.meta) || {}
+  filterMeta.pinned = false
+  filter.meta = filterMeta
+  await saveFilter(filter)
+  closeDropdown()
+}
+</script>
+
+<template>
+  <div v-if="pinnedFilters.length" class="nc-pinned-filters flex items-center gap-1.5">
+    <!-- Vertical separator -->
+    <div class="h-5 w-px bg-nc-border-gray-medium mx-0.5 flex-none" />
+
+    <NcDropdown
+      v-for="filter in pinnedFilters"
+      :key="filter.id"
+      :visible="openFilterId === filter.id"
+      placement="bottomLeft"
+      overlay-class-name="nc-pinned-filter-dropdown-overlay"
+      @update:visible="(val) => { if (!val) closeDropdown() }"
+    >
+      <!-- ====== PILL TRIGGER ====== -->
+      <div
+        class="nc-pinned-filter-pill flex items-center gap-1.5 h-8 py-1 pl-2.5 pr-1.5 rounded-lg border-1 cursor-pointer select-none"
+        :class="{
+          'border-primary bg-white shadow-sm': openFilterId === filter.id,
+          'border-nc-border-gray-medium bg-white hover:border-nc-border-gray-dark': openFilterId !== filter.id,
+          'opacity-60': filter.enabled === false,
+        }"
+        @click="toggleDropdown(filter.id)"
+      >
+        <!-- Field name -->
+        <span class="text-xs text-nc-content-gray-subtle whitespace-nowrap">
+          {{ getColumn(filter)?.title }}
+        </span>
+
+        <!-- Value display for select types -->
+        <template v-if="isSelectType(filter) && getSelectValueDisplay(filter)">
+          <span class="text-nc-content-gray-muted text-xs">·</span>
+          <a-tag
+            v-if="getSelectValueOption(filter)"
+            class="rounded-tag-sm max-w-28"
+            :color="getSelectValueOption(filter).bgColor"
+          >
+            <span :style="{ color: getSelectValueOption(filter).textColor }" class="text-[11px] leading-tight truncate">
+              {{ getSelectValueDisplay(filter) }}
+            </span>
+          </a-tag>
+          <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
+            {{ getSelectValueDisplay(filter) }}
+          </span>
+        </template>
+
+        <!-- Value display for user type -->
+        <template v-else-if="isUserType(filter) && getUserValueDisplay(filter)">
+          <span class="text-nc-content-gray-muted text-xs">·</span>
+          <a-tag
+            v-if="getUserValueUser(filter)"
+            class="rounded-tag-sm max-w-32 !pl-0"
+            :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
+          >
+            <span class="flex items-center gap-1">
+              <GeneralUserIcon
+                :user="getUserValueUser(filter)"
+                size="small"
+                class="!text-[0.45rem]"
+              />
+              <span class="text-[11px] text-nc-content-gray truncate leading-tight">
+                {{ getUserValueDisplay(filter) }}
+              </span>
+            </span>
+          </a-tag>
+          <span v-else class="text-xs font-medium text-nc-content-gray truncate max-w-24">
+            {{ getUserValueDisplay(filter) }}
+          </span>
+        </template>
+
+        <!-- Chevron -->
+        <GeneralIcon
+          :icon="openFilterId === filter.id ? 'chevronUpSmall' : 'chevronDownSmall'"
+          class="h-4 w-4 text-nc-content-gray-subtle2 flex-none"
+        />
+      </div>
+
+      <!-- ====== DROPDOWN PANEL ====== -->
+      <template #overlay>
+        <div class="nc-pinned-filter-panel bg-white rounded-lg w-64 overflow-hidden" @click.stop>
+          <!-- Header -->
+          <div class="flex items-center gap-1.5 px-3 py-2 border-b border-nc-border-gray-medium">
+            <span class="text-xs font-semibold text-nc-content-gray-subtle uppercase tracking-wide truncate">
+              {{ getColumn(filter)?.title }}
+            </span>
+            <span class="text-xs text-nc-content-gray-muted">·</span>
+            <span class="text-xs text-nc-content-gray-muted truncate">
+              {{ getComparisonOpLabel(filter) }}
+            </span>
+            <div class="flex-1" />
+
+            <!-- Enable/Disable toggle -->
+            <NcTooltip>
+              <template #title>{{ filter.enabled === false ? t('general.enable') : t('general.disable') }}</template>
+              <NcButton
+                type="text"
+                size="xxsmall"
+                class="!w-6 !h-6"
+                @click.stop="toggleEnabled(filter)"
+              >
+                <GeneralIcon
+                  icon="ncPower"
+                  class="h-3.5 w-3.5"
+                  :class="filter.enabled === false ? 'text-nc-content-gray-muted' : 'text-nc-content-gray-subtle2'"
+                />
+              </NcButton>
+            </NcTooltip>
+
+            <!-- Unpin / Close -->
+            <NcButton
+              type="text"
+              size="xxsmall"
+              class="!w-6 !h-6"
+              @click.stop="unpinFilter(filter)"
+            >
+              <GeneralIcon icon="close" class="h-3.5 w-3.5 text-nc-content-gray-subtle2" />
+            </NcButton>
+          </div>
+
+          <!-- Search input -->
+          <div class="px-3 py-2">
+            <a-input
+              v-model:value="searchQuery"
+              :placeholder="`${t('general.search')} ${getColumn(filter)?.title?.toLowerCase()}...`"
+              size="small"
+              class="!rounded-lg"
+              allow-clear
+              @click.stop
+            >
+              <template #prefix>
+                <GeneralIcon icon="search" class="h-3.5 w-3.5 text-nc-content-gray-muted" />
+              </template>
+            </a-input>
+          </div>
+
+          <!-- Options list for Select types -->
+          <div
+            v-if="isSelectType(filter)"
+            class="max-h-48 overflow-y-auto nc-scrollbar-thin"
+          >
+            <div
+              v-for="option in getFilteredSelectOptions(filter)"
+              :key="option.id || option.title"
+              class="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
+              :class="{ 'bg-nc-bg-gray-light': isSelectOptionSelected(filter, option) }"
+              @click.stop="selectOption(filter, option)"
+            >
+              <a-tag class="rounded-tag max-w-full" :color="option.bgColor">
+                <span :style="{ color: option.textColor }" class="text-small">
+                  <span class="text-ellipsis overflow-hidden" style="word-break: keep-all; white-space: nowrap; display: inline;">
+                    {{ option.title }}
+                  </span>
+                </span>
+              </a-tag>
+              <div class="flex-1" />
+              <GeneralIcon
+                v-if="isSelectOptionSelected(filter, option)"
+                icon="check"
+                class="h-4 w-4 text-primary flex-none"
+              />
+            </div>
+            <div
+              v-if="!getFilteredSelectOptions(filter).length"
+              class="px-3 py-3 text-xs text-nc-content-gray-muted text-center"
+            >
+              No options found
+            </div>
+          </div>
+
+          <!-- Options list for User type -->
+          <div
+            v-else-if="isUserType(filter)"
+            class="max-h-48 overflow-y-auto nc-scrollbar-thin"
+          >
+            <div
+              v-for="user in filteredUserOptions"
+              :key="user.id"
+              class="flex items-center gap-2 px-3 py-1.5 cursor-pointer hover:bg-nc-bg-gray-light transition-colors"
+              :class="{ 'bg-nc-bg-gray-light': isUserOptionSelected(filter, user) }"
+              @click.stop="selectUser(filter, user)"
+            >
+              <a-tag
+                class="rounded-tag max-w-full !pl-0"
+                :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
+              >
+                <span class="flex items-stretch gap-2">
+                  <div class="flex-none">
+                    <GeneralUserIcon
+                      :user="user"
+                      size="auto"
+                      :is-deleted="user.deleted"
+                      class="!text-[0.5rem] !h-[16.8px]"
+                    />
+                  </div>
+                  <span class="text-small text-nc-content-gray truncate">
+                    {{ user.display_name || user.email }}
+                  </span>
+                </span>
+              </a-tag>
+              <div class="flex-1" />
+              <GeneralIcon
+                v-if="isUserOptionSelected(filter, user)"
+                icon="check"
+                class="h-4 w-4 text-primary flex-none"
+              />
+            </div>
+            <div
+              v-if="!filteredUserOptions.length"
+              class="px-3 py-3 text-xs text-nc-content-gray-muted text-center"
+            >
+              No users found
+            </div>
+          </div>
+
+          <!-- Footer: Disabled indicator + Clear value -->
+          <div class="flex items-center justify-between px-3 py-2 border-t border-nc-border-gray-medium">
+            <span
+              v-if="filter.enabled === false"
+              class="text-xs text-nc-content-gray-muted flex items-center gap-1"
+            >
+              <span class="w-1.5 h-1.5 rounded-full bg-nc-content-gray-muted" />
+              Disabled
+            </span>
+            <div v-else />
+            <span
+              v-if="filter.value"
+              class="text-xs text-red-500 cursor-pointer hover:text-red-600"
+              @click.stop="clearValue(filter)"
+            >
+              Clear value
+            </span>
+          </div>
+        </div>
+      </template>
+    </NcDropdown>
+  </div>
+</template>
+
+<style lang="scss" scoped>
+.nc-pinned-filter-pill {
+  box-shadow: 0px 0px 4px 0px rgba(0, 0, 0, 0.04);
+  transition: all 0.15s ease;
+}
+
+.nc-pinned-filter-panel {
+  box-shadow: 0px 4px 16px -2px rgba(0, 0, 0, 0.1), 0px 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.rounded-tag {
+  @apply py-[1px] px-2 rounded-[12px];
+}
+
+.rounded-tag-sm {
+  @apply py-0 px-1.5 rounded-[10px];
+}
+
+:deep(.ant-tag) {
+  @apply "rounded-tag" my-0;
+}
+
+:deep(.nc-user-avatar) {
+  @apply min-h-4.2;
+}
+</style>

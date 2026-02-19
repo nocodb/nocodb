@@ -367,6 +367,14 @@ const isFilterEnabled = computed(() => vModel.value.enabled !== false && vModel.
 
 const effectiveEnabled = computed(() => (props.parentEnabled !== false && props.parentEnabled !== 0) && isFilterEnabled.value)
 
+const onToggleFilterChange = (val: boolean | Event) => {
+  if (blockToggleFilter) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(val)
+}
+
 const onEnabledChange = (val: boolean | Event) => {
   const newValue = typeof val === 'boolean' ? val : (val?.target as HTMLInputElement)?.checked
   const prevValue = vModel.value.enabled
@@ -435,7 +443,7 @@ const onChangeToDynamic = async () => {
         size="default"
         :disabled="isDisabled || parentEnabled === false"
         class="nc-filter-enabled-checkbox"
-        @change="(val) => blockToggleFilter ? showUpgradeToUseToggleFilter() : onEnabledChange(val)"
+        @change="onToggleFilterChange"
       />
     </div>
     <!-- #endregion enabled checkbox -->

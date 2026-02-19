@@ -152,6 +152,14 @@ const isFilterEnabled = computed(() => vModel.value.enabled !== false)
 
 const effectiveEnabled = computed(() => (props.parentEnabled !== false) && isFilterEnabled.value)
 
+const onToggleFilterChange = (val: boolean | Event) => {
+  if (blockToggleFilter) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(val)
+}
+
 const onEnabledChange = (val: boolean | Event) => {
   const newValue = typeof val === 'boolean' ? val : (val?.target as HTMLInputElement)?.checked
   const prevValue = vModel.value.enabled
@@ -222,7 +230,7 @@ const onEnabledChange = (val: boolean | Event) => {
             size="default"
             :disabled="isDisabled || parentEnabled === false"
             class="nc-filter-enabled-checkbox"
-            @change="(val) => blockToggleFilter ? showUpgradeToUseToggleFilter() : onEnabledChange(val)"
+            @change="onToggleFilterChange"
           />
           <template v-if="index === 0">
             <span class="flex items-center nc-filter-where-label ml-1">{{ $t('labels.where') }}</span>

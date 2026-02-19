@@ -180,6 +180,7 @@ const getTypeSpecificSemantic = (
       UITypes.Email,
       UITypes.PhoneNumber,
       UITypes.URL,
+      UITypes.UUID,
     ].includes(fieldUiType)
   ) {
     return `${baseSemantic}_text`;

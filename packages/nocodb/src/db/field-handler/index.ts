@@ -136,6 +136,9 @@ const HANDLER_REGISTRY: Partial<
   [UITypes.URL]: {
     [CLIENT_DEFAULT]: GenericFieldHandler,
   },
+  [UITypes.UUID]: {
+    [CLIENT_DEFAULT]: GenericFieldHandler,
+  },
   [UITypes.Number]: {
     [CLIENT_DEFAULT]: NumberGeneralHandler,
     [ClientType.PG]: NumberPgHandler,

@@ -131,12 +131,18 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
-const { nestedFilters, isForm, eventBus } =
+const {
+  nestedFilters,
+  isForm,
+  eventBus,
+  allFilters: smartsheetAllFilters,
+} =
   widget.value || workflow.value
     ? {
         nestedFilters: ref([]),
         isForm: ref(false),
         eventBus: null,
+        allFilters: ref([]),
       }
     : useSmartsheetStoreOrThrow()
 
@@ -607,6 +613,12 @@ const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
   await saveOrUpdate(filter, index)
   // Refresh allFilters so ColumnFilterMenu can reactively update the enabled count
   allFilters.value[parentId?.value ?? 'root'] = [...nonDeletedFilters.value]
+
+  // Sync enabled state to smartsheet store so PinnedFilters.vue reflects it
+  const storeFilter = smartsheetAllFilters.value.find((f) => f.id === filter.id)
+  if (storeFilter) {
+    storeFilter.enabled = filter.enabled
+  }
 }
 
 const MAX_PINNED_FILTERS = 3
@@ -634,6 +646,12 @@ const togglePinFilter = async (filter: ColumnFilterType, index: number) => {
   meta.pinned = !meta.pinned
   filter.meta = meta
   await saveOrUpdate(filter, index)
+
+  // Sync pin state to smartsheet store's allFilters so PinnedFilters.vue updates immediately
+  const storeFilter = smartsheetAllFilters.value.find((f) => f.id === filter.id)
+  if (storeFilter) {
+    storeFilter.meta = { ...meta }
+  }
 }
 
 function onMoveCallback(event: any) {

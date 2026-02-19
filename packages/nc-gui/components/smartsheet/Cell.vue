@@ -238,7 +238,10 @@ const showReadonlyField = computed(() => {
     }
 
     case 'checkbox':
-    case 'rating':
+    case 'rating': {
+      return readOnly.value
+    }
+
     case 'uuid': {
       return true // UUID is always read-only
     }

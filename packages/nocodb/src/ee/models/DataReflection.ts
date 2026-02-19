@@ -178,7 +178,12 @@ export default class DataReflection extends DataReflectionCE {
               data,
               session,
               parser,
-              (q) => logger.error(`Failed to parse query: ${q}`),
+              (q) =>
+                logger.error(
+                  `Failed to parse query: ${q.slice(0, 128)}${
+                    q.length > 128 ? '...' : ''
+                  }`,
+                ),
             );
 
             // If we modified the query write that; otherwise fallback to the original data
@@ -596,13 +601,47 @@ async function handleStartupMessage(
         // Use the underlying DB name from the actual Postgres connection
         parts[i + 1] = dataConfig.database;
 
-        // Inject session-level timeout limits via startup options
+        // Sanitize and inject session-level timeout limits via startup options.
+        // Client-provided -c params are filtered to a whitelist of harmless GUCs
+        // to prevent bypassing the SET command whitelist via startup options.
+        const ALLOWED_STARTUP_GUCS = new Set([
+          'application_name',
+          'client_encoding',
+          'datestyle',
+          'timezone',
+          'intervalstyle',
+          'extra_float_digits',
+          'geqo',
+          'lc_messages',
+          'lc_monetary',
+          'lc_numeric',
+          'lc_time',
+        ]);
+
         const timeoutOpts =
           '-c statement_timeout=60000 -c idle_in_transaction_session_timeout=60000';
+
         let optionsInjected = false;
         for (let j = 0; j < parts.length; j += 2) {
           if (parts[j] === 'options') {
-            parts[j + 1] = `${parts[j + 1]} ${timeoutOpts}`;
+            // Parse client options, keep only whitelisted -c params and non -c flags
+            const clientOpts = parts[j + 1] as string;
+            const sanitized = clientOpts
+              .split(/(?=-c\s)/)
+              .map((s) => s.trim())
+              .filter((segment) => {
+                const match = segment.match(
+                  /^-c\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*=/,
+                );
+                if (match) {
+                  return ALLOWED_STARTUP_GUCS.has(match[1].toLowerCase());
+                }
+                // Keep non -c flags (e.g. --search_path) — they're harmless
+                return !segment.startsWith('-c');
+              })
+              .join(' ');
+
+            parts[j + 1] = `${sanitized} ${timeoutOpts}`.trim();
             optionsInjected = true;
             break;
           }

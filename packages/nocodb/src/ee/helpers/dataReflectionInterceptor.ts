@@ -6,11 +6,26 @@ import { generateWhereClause } from '~/helpers/dataReflectionHelpers';
  * Minimal session interface for interceptor functions.
  * Decouples from the concrete DataReflectionSession class so the logic is testable in isolation.
  */
+export type SessionValueKey = 'fk_workspace_id' | 'availableSchemas' | 'pgUser';
+
 export interface InterceptSession {
   fk_workspace_id?: string;
   availableSchemas?: string[];
   pgUser?: string | null;
-  [key: string]: any;
+}
+
+function getSessionValue(
+  session: InterceptSession,
+  key: SessionValueKey,
+): string | string[] | undefined {
+  switch (key) {
+    case 'fk_workspace_id':
+      return session.fk_workspace_id;
+    case 'availableSchemas':
+      return session.availableSchemas;
+    case 'pgUser':
+      return session.pgUser ?? undefined;
+  }
 }
 
 // Interception rules
@@ -18,7 +33,7 @@ export const interceptMap: {
   table_name: string;
   column_name: string;
   type: 'in' | 'eq';
-  sessionValue?: string;
+  sessionValue?: SessionValueKey;
   value?: string | string[];
 }[] = [
   {
@@ -476,7 +491,11 @@ export const blockedQueryPatterns: { pattern: RegExp; message: string }[] = [
     pattern: /\bpg_shdepend\b/i,
     message: 'Access to pg_shdepend is not permitted',
   },
-  // Block COPY — bypasses AST-based interceptor entirely (critical tenant isolation bypass)
+  // Block COPY — bypasses AST-based interceptor entirely (critical tenant isolation bypass).
+  // These use broad \b matching intentionally (not start-anchored) to catch keywords inside
+  // PL/pgSQL DO blocks, dynamic SQL strings, and other non-top-level positions.
+  // False positives on identifiers named "copy"/"grant" etc. are acceptable — this is a
+  // read-only analytics proxy where users don't define their own schemas.
   { pattern: /\bCOPY\b/i, message: 'COPY is not permitted' },
   // Block privilege manipulation
   { pattern: /\bGRANT\b/i, message: 'GRANT is not permitted' },
@@ -932,7 +951,9 @@ export function applyInterceptRulesRecursive(
         alias,
         target.column_name,
         target.type,
-        target.value ? target.value : session[target.sessionValue],
+        target.value
+          ? target.value
+          : getSessionValue(session, target.sessionValue),
       );
 
       if (node.where) {
@@ -1106,7 +1127,9 @@ export async function interceptQueryIfNeeded(
   }
 
   // Block SHOW for sensitive settings (SHOW bypasses the AST-based interceptor)
-  const showMatch = queryText.match(/^\s*SHOW\s+(ALL|[\w]+)\s*;?\s*$/i);
+  const showMatch = normalizedQueryText.match(
+    /^\s*SHOW\s+(ALL|[\w]+)\s*;?\s*$/i,
+  );
   if (showMatch) {
     const setting = showMatch[1].toLowerCase();
     if (!allowedShowSettings.has(setting)) {

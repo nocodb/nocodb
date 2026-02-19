@@ -51,9 +51,11 @@ src/ee/                # EE-only types (sibling to lib/, excluded from CE build)
 
 ## Anti-Patterns
 
+These are SDK-specific — see root CLAUDE.md for universal anti-patterns.
+
 | Don't | Do Instead |
 |-------|-----------|
-| Skip rebuilding after adding enums/types | Always run `pnpm run build:ee` — backend/frontend will crash on missing exports |
 | Edit `Api.ts` manually | Modify swagger in backend, then `pnpm run build:ee` |
 | Add EE-only types to `src/lib/` | Add to `src/ee/lib/` — CE build must work without them |
 | Add shared EE/CE types to `src/ee/` | Add to `src/lib/` — types used by both must be in CE so CE build doesn't break |
+| Skip `pnpm run build:ee` after changes | Always rebuild — backend/frontend will crash on missing exports |

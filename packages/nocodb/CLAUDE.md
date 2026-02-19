@@ -98,6 +98,40 @@ ls src/meta/migrations/v0/ | grep -E '^nc_[0-9]+' | sort | tail -1
 
 Register in `XcMigrationSourcev0.ts`: add import, add to `getMigrations()`, add case to `getMigration()`.
 
+## Error Handling (NcError)
+
+All errors go through `NcError` (`src/helpers/ncError.ts`). Never `throw new Error()` or expose `error.message` to users.
+
+```typescript
+import { NcError } from '~/helpers/ncError';
+
+// With context (services, controllers, middleware) — version-aware (V1/V3)
+const ncError = NcError.get(context);
+ncError.dashboardNotFound(id);
+
+// Without context (models, static helpers) — V1 default
+NcError.integrationNotFound(id);
+NcError.badRequest('Key is required');
+```
+
+**Priority** — use the most specific method available:
+
+```
+1. Scoped       →  ncError.dashboardNotFound(id)        // best — typed error code
+2. Generic      →  ncError.genericNotFound('Widget', id) // no scoped method exists
+3. Domain       →  ncError.invalidRequestBody(msg)      // validation failures
+4. Fallback     →  ncError.badRequest(msg)              // last resort
+```
+
+Scoped methods exist for: `base`, `table`, `view`, `field`, `source`, `user`, `hook`, `integration`, `record`, `workspace`, `team`, `dashboard`, `widget`, `script`, `workflow`, `extension`. Use `genericNotFound(resource, id)` for new entities.
+
+**Rules:**
+- `NcError.get(context)` when context available, `NcError.static()` when not
+- Most specific method first — `ncError.tableNotFound(id)` not `ncError.notFound('Table not found')`
+- Never expose internals — `ncError.badRequest('Invalid input')` not `ncError.badRequest(error.message)`
+- Guard early — validate at the top of service methods
+- Log then throw — `this.logger.error(e.message, e.stack)` then `ncError.internalServerError('safe msg')`
+
 ## EE Extension Pattern
 
 ```typescript
@@ -128,19 +162,13 @@ beforeEach helpers: `textBased`, `numberBased`, `selectBased`, `dateBased`, `lin
 
 ### API Testing (Live Backend)
 
-When building or modifying API endpoints, validate by running the backend and testing APIs directly:
+After implementing or modifying API endpoints, delegate to the **`nc-api-verifier` agent**. It builds/updates a test script at `.claude/branches/{branch}/test.py` and runs it against the live backend.
 
-1. Start backend in EE mode: `cd packages/nocodb && pnpm run watch:run:pg:ee` (hot reload, ~5s)
-2. Wait for health: `curl -s http://localhost:8080/api/v1/health`
-3. Create test users as needed, authenticate as multiple roles (owner, editor, viewer)
-4. Build a single self-contained test script at `.claude/branches/{branch}/test.py` that:
-   - Authenticates as multiple roles
-   - Exercises all API operations (CRUD + edge cases + permission checks)
-   - Asserts expected vs actual with PASS/FAIL output
-5. Run after each code change — keep updating the same file to prevent regressions
-6. Do NOT mark an API task as complete until tests pass
-
-Always test in **EE mode** unless explicitly asked for CE testing.
+1. Ensure backend is running in EE mode: `cd packages/nocodb && pnpm run watch:run:pg:ee`
+2. Delegate to nc-api-verifier with a brief: which endpoints changed, which roles to test
+3. nc-api-verifier reads the API code, creates/updates test.py, runs it, reports PASS/FAIL
+4. Fix failures and re-delegate until all tests pass
+5. Do NOT mark an API task as complete until tests pass
 
 ## Data Operations Layer
 
@@ -167,12 +195,50 @@ When modifying data operations, ensure changes are applied across all relevant l
 - `src/middlewares/extract-ids/extract-ids.middleware.ts` — ACL + permission extraction
 - `src/meta/migrations/v0/` — All database migrations
 
+## Troubleshooting
+
+| Symptom | Likely Cause | Fix |
+|---------|-------------|-----|
+| Server won't start / crashes on boot | Missing SDK exports (enum added but SDK not rebuilt) | `cd packages/nocodb-sdk && pnpm run build:ee`, then restart |
+| `Cannot find module` for an EE service | Service not registered in `src/ee/modules/noco.module.ts` | Add to providers array |
+| `MetaTable.X is undefined` at runtime | Added to CE `globals.ts` but not EE `globals.ts` | Add to `src/ee/utils/globals.ts` — EE completely overrides CE |
+| API returns 403 unexpectedly | ACL not registered for the operation | Check BOTH `src/utils/acl.ts` AND `src/ee/utils/acl.ts` |
+| Cache returns stale data | `appendToList()` called before `get()` | Ensure `get()` runs first so parentKeys are populated |
+| Test IDs don't match after restart | Test script uses hardcoded IDs from a previous run | Re-fetch IDs at test start (authenticate fresh, query for entities) |
+| Context lost between sessions | Branch memory not updated | Check `.claude/branches/{branch}/log.md` — if empty, session end protocol was skipped |
+
+## Logging
+
+Use NestJS `Logger` from `@nestjs/common` — never `console.log`/`console.error`.
+
+```typescript
+import { Logger } from '@nestjs/common';
+
+protected logger = new Logger(MyService.name);
+```
+
+**`logger.error()` is NOT like `console.error()`** — the second parameter is a **stack trace string**, not a second message.
+
+```typescript
+// Correct
+this.logger.error(e.message, e.stack);           // message + stack trace
+this.logger.error('Error deleting base');         // message only
+
+// Wrong — second arg is treated as stack trace, not a message
+this.logger.error('Something failed', 'more info');     // 'more info' becomes stack
+this.logger.error('Error', error);                      // Error object as stack — pass error.stack instead
+this.logger.error('msg1', 'msg2');                      // msg2 is NOT a second message
+```
+
 ## Anti-Patterns
+
+These are backend-specific — see root CLAUDE.md for universal anti-patterns.
 
 | Don't | Do Instead |
 |-------|-----------|
 | Run backend in CE mode for EE features | Use `pnpm run watch:run:pg:ee` — CE mode uses SQLite and lacks workspace support |
-| Cast with `as unknown` to bypass type errors | Update the type definition (e.g., `InternalGETResponseType`) |
-| Create new abstractions when one already exists | Search for existing patterns first (e.g., don't create `NcLicenseState` when `NocoLicense` exists) |
 | Apply data operation changes only to BaseModel | Check all layers: BaseModel CE/EE, optimized paths, pg-helpers, mysql-helpers |
-| Forget to rebuild SDK after adding AppEvents | `cd packages/nocodb-sdk && pnpm run build:ee` — server will crash on missing enums |
+| Expose `error.message` to end users | Use `NcError.*` helpers — they sanitize messages |
+| Bypass BaseModel with direct DB queries | Use model layer for all data access |
+| `logger.error(msg, error)` | `logger.error(e.message, e.stack)` — second param is stack trace, not a message |
+| `throw new Error('...')` | `NcError.get(context).specificMethod()` — always use NcError |

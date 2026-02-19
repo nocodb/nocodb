@@ -2,6 +2,10 @@
 
 > This is `nocohub` (NocoDB Enterprise/Hub), NOT the open-source `nocodb` repo. All work is proprietary.
 
+## Session Start
+
+If on a non-`develop` branch and `.claude/branches/{branch}/index.md` exists, **read it FIRST** before doing anything else. It tells you what this branch is about, current progress, and what to read next.
+
 ## Repository Structure
 
 ```
@@ -20,7 +24,7 @@ nocohub/
 ├── scripts/                     # Build + SDK generation scripts
 ├── docker-compose/              # Docker configurations
 └── .claude/
-    └── skills/                  # Claude skills (automations, sync, commando)
+    └── skills/                  # Claude skills (automations, sync, nc-pr)
 ```
 
 ## Build Order
@@ -93,7 +97,7 @@ When building features that span SDK → Backend → Frontend:
 
 ## Branch Memory
 
-Claude maintains working memory in `.claude/branches/{branch}/` (gitignored) for every feature branch (not `develop`). This is maintained automatically — not just via `/commando`.
+Claude maintains working memory in `.claude/branches/{branch}/` (gitignored) for every feature branch (not `develop`). This is maintained automatically — not just via `/nc-pr`.
 
 ```
 .claude/branches/{branch}/
@@ -104,7 +108,33 @@ Claude maintains working memory in `.claude/branches/{branch}/` (gitignored) for
 └── test.py       # API test script (if applicable) — single self-contained file
 ```
 
-On every session start on a non-develop branch, read `index.md` to orient. On every session end, update `log.md` with what was done.
+### Maintenance Protocol
+
+On **every session**, regardless of whether `/nc-pr` was used:
+
+- **Session start**: Read `index.md` to orient. If it doesn't exist, offer to set up branch memory.
+- **After completing a task**: Check it off directly in `plan.md` (`- [ ]` → `- [x]`). One Edit call, no delegation.
+- **Session end**: Delegate to `nc-memory` agent — it writes the log entry, updates progress count in index.md, and catches any missed plan.md updates.
+
+### Log Entry Format
+
+Each entry in `log.md` uses this structure:
+
+```markdown
+## {YYYY-MM-DD HH:MM} — {Type}: {Title}
+{Details}
+```
+
+Entry types:
+
+| Type | When |
+|------|------|
+| `action` | Code written, file created, commit made |
+| `decision` | Non-obvious choice — include options considered + rationale |
+| `investigation` | Explored something — findings, even dead ends |
+| `blocker` | Something is stuck — what, why, possible unblocks |
+| `resolved` | A blocker was cleared |
+| `scope-change` | Plan was updated — what changed and why |
 
 ## Design Decisions
 
@@ -126,10 +156,10 @@ For significant architectural or design decisions (not small implementation deta
 
 | Don't | Do Instead |
 |-------|-----------|
-| Run backend in CE mode for EE features | Always use `pnpm run watch:run:pg:ee` unless explicitly asked for CE |
-| Forget to rebuild SDK after enum/type changes | `cd packages/nocodb-sdk && pnpm run build:ee` after any SDK change |
-| Cast with `as unknown` to work around type errors | Fix the type system properly (update the interface/type definition) |
+| Cast with `as unknown` or `as any` to work around type errors | Fix the type system properly (update the interface/type definition) |
 | Create new abstractions when similar ones exist | Search for existing patterns first, ask if unsure |
+| Use `console.log` / `console.error` in production code | Use `Logger` (backend) or remove (frontend) |
+| Add `TODO` without a linked issue | Include issue reference or remove before PR |
 
 ## File Naming
 

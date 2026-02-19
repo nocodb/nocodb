@@ -127,6 +127,8 @@ pnpm lint            # Lint + auto-fix
 
 ## Anti-Patterns
 
+These are frontend-specific — see root CLAUDE.md for universal anti-patterns.
+
 | Don't | Do Instead |
 |-------|-----------|
 | Duplicate SDK types in frontend code | Import from `'nocodb-sdk'` |

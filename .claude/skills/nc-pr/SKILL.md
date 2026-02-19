@@ -1,16 +1,16 @@
 ---
-name: commando
+name: nc-pr
 description: Start or resume a feature/bug/epic branch with PR lifecycle management
 ---
 
-# Commando — PR Lifecycle
+# nc-pr — PR Lifecycle
 
 Branch memory lives in `.claude/branches/{branch}/`. If it's not written there, it doesn't exist next session.
 
 ## Flow
 
 ```
-/commando
+/nc-pr
   → Phase 0: Dirty tree? → Stash / Commit / Abandon / Stay
   → Phase 1: git checkout develop && git pull
   → Phase 2: Branch — new / existing / help me name it
@@ -26,7 +26,7 @@ Run `git status --short`. If dirty, ask with `AskUserQuestion`:
 
 | Option | Action |
 |--------|--------|
-| Stash | `git stash push -m "commando-{timestamp}"` |
+| Stash | `git stash push -m "nc-pr-{timestamp}"` |
 | Commit | Quick commit on current branch, then switch |
 | Abandon | `git checkout -- .` — confirm twice |
 | Stay here | Skip Phase 1, set up on current branch |
@@ -75,32 +75,19 @@ Create 4 files using templates in [templates/](templates/):
 
 Task sizes: `[S]` < 30 min, `[M]` 30 min - 2 hrs, `[L]` 2+ hrs (consider splitting).
 
-### Log Entry Types
-
-Use these in the `Type` field of `log.md` entries:
-
-| Type | When |
-|------|------|
-| `action` | Code written, file created, commit made |
-| `decision` | Non-obvious choice — include options considered + rationale |
-| `investigation` | Explored something — findings, even dead ends |
-| `blocker` | Something is stuck — what, why, possible unblocks |
-| `resolved` | A blocker was cleared |
-| `scope-change` | Plan was updated — what changed and why |
-
 ## Phase 5b: API Walkthrough Phase (Backend Features)
 
 When the plan includes backend API work, add a verification phase to `plan.md`:
 
 ```markdown
 ### Phase V: API Verification
-- [ ] **V.1** [M] — Create test scenario list (systematic, covers all roles)
-- [ ] **V.2** [M] — Build test script (.claude/branches/{branch}/test.py) and run against live backend
-- [ ] **V.3** [S] — Fix failures, re-run until all pass
+- [ ] **V.1** [S] — Ensure backend running in EE mode
+- [ ] **V.2** [M] — Delegate to nc-api-verifier agent: build and run verification script
+- [ ] **V.3** [S] — Fix failures, re-delegate until all pass
 - [ ] **V.4** [S] — Log walkthrough results in log.md
 ```
 
-The test script should be a single self-contained Python file that authenticates as multiple roles (owner, editor, viewer), exercises all API operations, and asserts expected vs actual with PASS/FAIL output. Keep updating the same file throughout the PR to prevent regressions.
+The `nc-api-verifier` agent builds/updates `.claude/branches/{branch}/test.py` and runs it. Pass a brief describing which endpoints and roles to test.
 
 ## Phase 6: Launch
 
@@ -121,7 +108,7 @@ ls .claude/branches/{branch-name}/ 2>/dev/null
 4. Present: branch, progress (n/total), next task, last action
 5. Ask: "Pick up where we left off?"
 
-**No memory:** "This branch doesn't have commando memory. Want me to set it up?" → Run Phase 3-5.
+**No memory:** "This branch doesn't have branch memory. Want me to set it up?" → Run Phase 3-5.
 
 ## PR Creation
 
@@ -138,15 +125,6 @@ Package CLAUDE.md files auto-load when touching those packages. For specialized 
 - Automations: `.claude/skills/nocohub-automations/SKILL.md`
 - Sync: `.claude/skills/nocohub-sync/SKILL.md`
 
-## Branch Memory Maintenance
-
-Branch memory is not just for `/commando` — maintain it automatically on any feature branch:
-
-- **Session start**: Read `index.md` to orient (if it exists)
-- **Session end**: Update `log.md` with what was done
-- **Plan changes**: Keep `plan.md` in sync with reality — check off completed tasks, add new ones
-- **Never maintain for `develop` branch** — only feature/fix/chore branches
-
 ## Rules
 
 - Don't skip discovery
@@ -154,3 +132,5 @@ Branch memory is not just for `/commando` — maintain it automatically on any f
 - Don't commit branch memory (`.claude/branches/` is gitignored)
 - Don't assume context from previous conversations — if it's not in the 4 files, you don't know it
 - On resume, read index.md first — it tells you what else you need
+- After completing a task, check it off directly in plan.md — don't delegate for a single checkbox
+- At session end, delegate to `nc-memory` for log entry, progress count, and any missed updates

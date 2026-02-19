@@ -42,8 +42,9 @@ Existing modules: `UiGet/UiPost` (catch-all), `McpGet/McpPost`, `OAuthGet/OAuthP
 3. If new module: register in `src/controllers/internal/provider.ts` → `InternalApiModules` array
 4. Create service → `src/services/{feature}.service.ts`
 5. Create model → `src/models/{Feature}.ts`
-6. Register ACL → BOTH `src/utils/acl.ts` AND `src/ee/utils/acl.ts`
+6. Register ACL → BOTH `src/utils/acl.ts` AND `src/ee/utils/acl.ts` — every operation in `operationScopes` must have entries in `permissionScopes` AND `permissionDescriptions`
 7. Register service → `src/modules/noco.module.ts` providers array
+8. Add AppEvents + emit hooks (see [AppEvents / AppHooks](#appevents--apphooks) below)
 
 ## Adding a New Model/Entity
 
@@ -97,6 +98,33 @@ ls src/meta/migrations/v0/ | grep -E '^nc_[0-9]+' | sort | tail -1
 ```
 
 Register in `XcMigrationSourcev0.ts`: add import, add to `getMigrations()`, add case to `getMigration()`.
+
+Do NOT add idempotency guards (`hasTable`/`hasColumn`) — Knex tracks migration state, so they are unnecessary.
+
+## AppEvents / AppHooks
+
+Services emit typed events via `AppHooksService` for audit logging and side effects. When adding a new feature, you must wire up events across three files:
+
+1. **SDK enum** → add events to `AppEvents` in `packages/nocodb-sdk/src/lib/enums.ts`, then rebuild SDK
+2. **Event interfaces** → define typed payloads in `ee/services/app-hooks/interfaces.ts` extending `NcBaseEvent` (which requires `context: NcContext` and `req: NcRequest`)
+3. **AppHooksService overloads** → add both `on()` and `emit()` typed overloads in `ee/services/app-hooks/app-hooks.service.ts`
+4. **Service** → inject `AppHooksService` and call `this.appHooksService.emit(AppEvents.X, { context, req, ... })` after successful operations
+
+```typescript
+// Interface — always extends NcBaseEvent (provides context + req)
+export interface FeatureCreateEvent extends NcBaseEvent {
+  featureId: string;
+}
+
+// Emit — context is required, not optional
+this.appHooksService.emit(AppEvents.FEATURE_CREATE, {
+  context,        // NcContext — always include
+  req: param.req, // NcRequest — always include
+  featureId: feature.id,
+});
+```
+
+Common mistake: forgetting `context` in the emit payload — `NcBaseEvent` requires it and TypeScript will error.
 
 ## Error Handling (NcError)
 
@@ -246,3 +274,5 @@ These are backend-specific — see root CLAUDE.md for universal anti-patterns.
 | Bypass BaseModel with direct DB queries | Use model layer for all data access |
 | `logger.error(msg, error)` | `logger.error(e.message, e.stack)` — second param is stack trace, not a message |
 | `throw new Error('...')` | `NcError.get(context).specificMethod()` — always use NcError |
+| Add `AppEvents` enum without wiring overloads | Add event interface in `interfaces.ts`, `on()` + `emit()` overloads in `app-hooks.service.ts`, include `context` in payload |
+| Add operation to `operationScopes` but not ACL | Every operation needs entries in BOTH `permissionScopes` AND `permissionDescriptions` in `acl.ts` |

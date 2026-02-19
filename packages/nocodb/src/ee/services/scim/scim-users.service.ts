@@ -166,21 +166,18 @@ export class ScimUsersService {
         scim_meta: scimMeta,
       };
 
-      await WorkspaceUser.update(
+      // WorkspaceUser.update returns the full record (calls get() internally)
+      const reactivatedUser = await WorkspaceUser.update(
         workspaceId,
         existingWsUser.fk_user_id,
         updateData,
-      );
-
-      const reactivatedUser = await WorkspaceUser.get(
-        workspaceId,
-        existingWsUser.fk_user_id,
       );
 
       return this.toScimUser(reactivatedUser, workspaceId);
     }
 
     // Create new workspace user with SCIM data
+    // (WorkspaceUser.insert calls get() internally and returns the full record)
     const workspaceUser = await WorkspaceUser.insert({
       fk_workspace_id: workspaceId,
       fk_user_id: user.id,
@@ -191,11 +188,7 @@ export class ScimUsersService {
       scim_meta: scimMeta,
     });
 
-    // WorkspaceUser.insert may not return the SCIM fields,
-    // so fetch fresh from DB
-    const freshUser = await WorkspaceUser.get(workspaceId, user.id);
-
-    return this.toScimUser(freshUser || workspaceUser, workspaceId);
+    return this.toScimUser(workspaceUser, workspaceId);
   }
 
   /**
@@ -325,33 +318,23 @@ export class ScimUsersService {
       updateData.deleted_at = null;
     }
 
-    await WorkspaceUser.update(
+    // WorkspaceUser.update calls get() internally, but get() returns null
+    // for deleted users. For deactivation, construct the response manually.
+    const updatedUser = await WorkspaceUser.update(
       workspaceId,
       workspaceUser.fk_user_id,
       updateData,
     );
 
-    // WorkspaceUser.get() filters out deleted users, so for deactivated
-    // users (either just now OR previously) we construct a merged response.
-    if (updateData.deleted || workspaceUser.deleted) {
-      const mergedUser = {
-        ...workspaceUser,
-        ...updateData,
-        scim_meta:
-          typeof updateData.scim_meta === 'object'
-            ? updateData.scim_meta
-            : workspaceUser.scim_meta,
-      };
-      return this.toScimUser(mergedUser, workspaceId);
+    if (updatedUser) {
+      return this.toScimUser(updatedUser, workspaceId);
     }
 
-    // For non-deactivation updates, fetch the latest from DB
-    const updatedUser = await WorkspaceUser.get(
+    // Fallback for deactivated users (get() filters deleted records)
+    return this.toScimUser(
+      { ...workspaceUser, ...updateData },
       workspaceId,
-      workspaceUser.fk_user_id,
     );
-
-    return this.toScimUser(updatedUser, workspaceId);
   }
 
   /**
@@ -675,10 +658,14 @@ export class ScimUsersService {
     ascending: boolean,
   ): any[] {
     const getSortValue = (user: any): string => {
-      const scimMeta =
-        typeof user.scim_meta === 'string'
-          ? JSON.parse(user.scim_meta || '{}')
-          : user.scim_meta || {};
+      let scimMeta = user.scim_meta || {};
+      if (typeof scimMeta === 'string') {
+        try {
+          scimMeta = JSON.parse(scimMeta);
+        } catch {
+          scimMeta = {};
+        }
+      }
 
       switch (sortBy) {
         case 'userName':

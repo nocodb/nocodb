@@ -116,21 +116,6 @@ import { InternalController } from '~/controllers/internal.controller';
 import { ViewRowColorV3Service } from '~/services/v3/view-row-color-v3.service';
 import { DependencyService } from '~/services/dependency.service';
 
-/* SCIM */
-import { ScimConfigService } from '~/ee/services/scim/scim-config.service';
-import { ScimUsersService } from '~/ee/services/scim/scim-users.service';
-import { ScimGroupsService } from '~/ee/services/scim/scim-groups.service';
-import { ScimSchemasService } from '~/ee/services/scim/scim-schemas.service';
-import { ScimServiceProviderConfigService } from '~/ee/services/scim/scim-service-provider-config.service';
-import { ScimResourceTypesService } from '~/ee/services/scim/scim-resource-types.service';
-import { ScimBearerStrategy } from '~/ee/strategies/scim-bearer.strategy';
-import { ScimConfigController } from '~/ee/controllers/v3/scim-config-v3.controller';
-import { ScimUsersController } from '~/ee/controllers/v3/scim-users-v3.controller';
-import { ScimGroupsController } from '~/ee/controllers/v3/scim-groups-v3.controller';
-import { ScimSchemasController } from '~/ee/controllers/v3/scim-schemas-v3.controller';
-import { ScimServiceProviderConfigController } from '~/ee/controllers/v3/scim-service-provider-config-v3.controller';
-import { ScimResourceTypesController } from '~/ee/controllers/v3/scim-resource-types-v3.controller';
-
 /* Datas */
 import { BulkDataAliasController } from '~/controllers/bulk-data-alias.controller';
 import { CalendarDatasController } from '~/controllers/calendars-datas.controller';
@@ -259,14 +244,6 @@ export const nocoModuleMetadata = {
           SortsV3Controller,
           FiltersV3Controller,
 
-          /* SCIM V3 APIs */
-          ScimConfigController,
-          ScimUsersController,
-          ScimGroupsController,
-          ScimSchemasController,
-          ScimServiceProviderConfigController,
-          ScimResourceTypesController,
-
           /* Datas */
           DataTableController,
           DatasController,
@@ -353,15 +330,6 @@ export const nocoModuleMetadata = {
     ViewRowColorV3Service,
     ViewsV3Service,
     DependencyService,
-
-    /* SCIM Services */
-    ScimConfigService,
-    ScimUsersService,
-    ScimGroupsService,
-    ScimSchemasService,
-    ScimServiceProviderConfigService,
-    ScimResourceTypesService,
-    ScimBearerStrategy,
 
     /* Datas */
     DataTableService,

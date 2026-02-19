@@ -78,10 +78,14 @@ export class ScimGroupsService {
     let filterDisplayName: string | undefined;
     let filterExternalId: string | undefined;
     if (param.filter) {
-      const displayNameMatch = param.filter.match(/displayName\s+eq\s+"([^"]+)"/i);
+      const displayNameMatch = param.filter.match(
+        /displayName\s+eq\s+"([^"]+)"/i,
+      );
       if (displayNameMatch) filterDisplayName = displayNameMatch[1];
 
-      const externalIdMatch = param.filter.match(/externalId\s+eq\s+"([^"]+)"/i);
+      const externalIdMatch = param.filter.match(
+        /externalId\s+eq\s+"([^"]+)"/i,
+      );
       if (externalIdMatch) filterExternalId = externalIdMatch[1];
     }
 
@@ -151,7 +155,8 @@ export class ScimGroupsService {
     if (existingTeam) {
       // If team exists but not SCIM-managed, convert it to SCIM-managed
       if (!existingTeam.scim_managed) {
-        await Team.update(context, existingTeam.id, {
+        // Team.update returns the full updated record (via metaGet)
+        const updatedTeam = await Team.update(context, existingTeam.id, {
           scim_external_id: uuidv4(), // Server-assigned SCIM id (immutable)
           scim_managed: true,
           scim_display_name: scimGroup.displayName,
@@ -167,11 +172,9 @@ export class ScimGroupsService {
           );
         }
 
-        // Re-fetch to get updated fields including timestamps
-        const freshExisting = await Team.get(context, existingTeam.id);
         return this.toScimGroup(
           context,
-          freshExisting || existingTeam,
+          updatedTeam || existingTeam,
           workspaceId,
         );
       }
@@ -188,6 +191,7 @@ export class ScimGroupsService {
     }
 
     // Create new team — scim_external_id is server-assigned (immutable per RFC 7643)
+    // (Team.insert returns the full record via metaGet)
     const team = await Team.insert(context, {
       title: scimGroup.displayName,
       fk_workspace_id: workspaceId,
@@ -206,9 +210,7 @@ export class ScimGroupsService {
       );
     }
 
-    // Re-fetch to get all fields including timestamps
-    const freshTeam = await Team.get(context, team.id);
-    return this.toScimGroup(context, freshTeam || team, workspaceId);
+    return this.toScimGroup(context, team, workspaceId);
   }
 
   /**
@@ -232,36 +234,37 @@ export class ScimGroupsService {
 
     // SCIM PatchOp format — Operations array is the canonical path
     if (scimGroup.Operations) {
-      await this.applyPatchOperations(
+      const patchedTeam = await this.applyPatchOperations(
         context,
         team,
         workspaceId,
         scimGroup.Operations,
       );
-    } else {
-      // Fallback: handle direct attribute updates (non-standard but some IdPs use it)
-      const updateData: any = {};
-      if (scimGroup.displayName && scimGroup.displayName !== team.title) {
-        updateData.title = scimGroup.displayName;
-        updateData.scim_display_name = scimGroup.displayName;
-      }
-
-      if (Object.keys(updateData).length > 0) {
-        await Team.update(context, team.id, updateData);
-      }
-
-      // Handle direct membership updates
-      if (scimGroup.members !== undefined) {
-        await this.updateTeamMembers(
-          context,
-          team.id,
-          workspaceId,
-          scimGroup.members || [],
-        );
-      }
+      return this.toScimGroup(context, patchedTeam || team, workspaceId);
     }
 
-    const updatedTeam = await Team.get(context, team.id);
+    // Fallback: handle direct attribute updates (non-standard but some IdPs use it)
+    const updateData: any = {};
+    if (scimGroup.displayName && scimGroup.displayName !== team.title) {
+      updateData.title = scimGroup.displayName;
+      updateData.scim_display_name = scimGroup.displayName;
+    }
+
+    let updatedTeam = team;
+    if (Object.keys(updateData).length > 0) {
+      updatedTeam = (await Team.update(context, team.id, updateData)) || team;
+    }
+
+    // Handle direct membership updates
+    if (scimGroup.members !== undefined) {
+      await this.updateTeamMembers(
+        context,
+        team.id,
+        workspaceId,
+        scimGroup.members || [],
+      );
+    }
+
     return this.toScimGroup(context, updatedTeam, workspaceId);
   }
 
@@ -294,8 +297,10 @@ export class ScimGroupsService {
       updateData.scim_external_id = scimGroup.externalId;
     }
 
+    // Team.update returns the full updated record (via metaGet)
+    let updatedTeam = team;
     if (Object.keys(updateData).length > 0) {
-      await Team.update(context, team.id, updateData);
+      updatedTeam = (await Team.update(context, team.id, updateData)) || team;
     }
 
     // Full replacement of members — replace entirely with provided list
@@ -306,7 +311,6 @@ export class ScimGroupsService {
       scimGroup.members || [],
     );
 
-    const updatedTeam = await Team.get(context, team.id);
     return this.toScimGroup(context, updatedTeam, workspaceId);
   }
 
@@ -354,8 +358,8 @@ export class ScimGroupsService {
         ...(team.updated_at
           ? { lastModified: new Date(team.updated_at).toISOString() }
           : team.created_at
-            ? { lastModified: new Date(team.created_at).toISOString() }
-            : {}),
+          ? { lastModified: new Date(team.created_at).toISOString() }
+          : {}),
       },
     };
 
@@ -484,7 +488,8 @@ export class ScimGroupsService {
     team: any,
     workspaceId: string,
     operations: any[],
-  ) {
+  ): Promise<any> {
+    let latestTeam = team;
     for (const op of operations) {
       const opName = op.op?.toLowerCase();
 
@@ -548,10 +553,12 @@ export class ScimGroupsService {
         }
 
         if (Object.keys(updateData).length > 0) {
-          await Team.update(context, team.id, updateData);
+          latestTeam =
+            (await Team.update(context, team.id, updateData)) || latestTeam;
         }
       }
     }
+    return latestTeam;
   }
 
   /**
@@ -637,19 +644,11 @@ export class ScimGroupsService {
     const getSortValue = (team: any): string => {
       switch (sortBy) {
         case 'displayName':
-          return (
-            team.scim_display_name ||
-            team.title ||
-            ''
-          ).toLowerCase();
+          return (team.scim_display_name || team.title || '').toLowerCase();
         case 'externalId':
           return (team.scim_external_id || '').toLowerCase();
         default:
-          return (
-            team.scim_display_name ||
-            team.title ||
-            ''
-          ).toLowerCase();
+          return (team.scim_display_name || team.title || '').toLowerCase();
       }
     };
 

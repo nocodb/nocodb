@@ -276,3 +276,4 @@ These are backend-specific — see root CLAUDE.md for universal anti-patterns.
 | `throw new Error('...')` | `NcError.get(context).specificMethod()` — always use NcError |
 | Add `AppEvents` enum without wiring overloads | Add event interface in `interfaces.ts`, `on()` + `emit()` overloads in `app-hooks.service.ts`, include `context` in payload |
 | Add operation to `operationScopes` but not ACL | Every operation needs entries in BOTH `permissionScopes` AND `permissionDescriptions` in `acl.ts` |
+| Broadcast realtime base events without `base_id` in payload | Frontend relies on `payload.base_id` (table events) or `payload.table.base_id` (column events) to scope updates — missing it causes cross-base leaks |

@@ -139,7 +139,7 @@ const isKanban = inject(IsKanbanInj, ref(false))
 
 const readOnly = computed(() => props.readonly)
 
-const { isMysql, isDatabricks, isXcdbBase } = useBase()
+const { base, isMysql, isDatabricks, isXcdbBase } = useBase()
 
 const { canEnableUniqueConstraint, isUniqueConstraintSupportedType } = useUniqueConstraintHelpers()
 

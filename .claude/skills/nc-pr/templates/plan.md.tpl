@@ -13,9 +13,13 @@
 - [ ] **2.1** [M] — {description}  ← depends on 1.2
 - [ ] **2.2** [L] — {description}
 
-### Verify
+### Phase V: Verify
 - [ ] **V.1** [M] — {what to test}
 - [ ] **V.2** [S] — Self-review against checklist below
+{If backend API work, add:}
+- [ ] **V.3** [M] — Build API test script (.claude/branches/{branch}/test.py), run against live backend
+- [ ] **V.4** [S] — Fix failures, re-run until all pass
+- [ ] **V.5** [S] — Log walkthrough results in log.md
 
 ## Scope
 **In:** {what's included}

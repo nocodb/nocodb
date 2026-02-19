@@ -115,4 +115,10 @@ export const OPERATION_SCOPES = {
   rlsPolicySetSubjects: 'base',
   rlsPolicyFilterList: 'base',
   rlsPolicyFilterCreate: 'base',
+
+  // View Sections operations
+  viewSectionList: 'base',
+  viewSectionCreate: 'base',
+  viewSectionUpdate: 'base',
+  viewSectionDelete: 'base',
 } as const;

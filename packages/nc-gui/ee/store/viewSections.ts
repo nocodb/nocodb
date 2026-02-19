@@ -59,7 +59,8 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
 
     try {
       const response = await $api.instance.get(
-        `/api/v1/db/meta/tables/${effectiveTableId}/view-sections`,
+        `/api/v2/internal/${activeWorkspaceId.value}/${effectiveBaseId}`,
+        { params: { operation: 'viewSectionList', tableId: effectiveTableId } },
       )
 
       if (response.data?.list) {
@@ -87,7 +88,7 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
 
     try {
       const response = await $api.instance.post(
-        `/api/v1/db/meta/tables/${tableId}/view-sections`,
+        `/api/v2/internal/${activeWorkspaceId.value}/${activeTable.value.base_id}?operation=viewSectionCreate&tableId=${tableId}`,
         data,
       )
 
@@ -121,8 +122,8 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     if (!sectionId) return null
 
     try {
-      const response = await $api.instance.patch(
-        `/api/v1/db/meta/view-sections/${sectionId}`,
+      const response = await $api.instance.post(
+        `/api/v2/internal/${activeWorkspaceId.value}/${activeTable.value.base_id}?operation=viewSectionUpdate&sectionId=${sectionId}`,
         data,
       )
 
@@ -157,7 +158,9 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     if (!sectionId) return false
 
     try {
-      await $api.instance.delete(`/api/v1/db/meta/view-sections/${sectionId}`)
+      await $api.instance.post(
+        `/api/v2/internal/${activeWorkspaceId.value}/${activeTable.value.base_id}?operation=viewSectionDelete&sectionId=${sectionId}`,
+      )
 
       // Use reverse index for O(1) lookup
       const tableKey = sectionTableIndex.value.get(sectionId)
@@ -181,8 +184,8 @@ export const useViewSectionsStore = defineStore('viewSections', () => {
     if (!sectionId) return null
 
     try {
-      const response = await $api.instance.patch(
-        `/api/v1/db/meta/view-sections/${sectionId}`,
+      const response = await $api.instance.post(
+        `/api/v2/internal/${activeWorkspaceId.value}/${activeTable.value.base_id}?operation=viewSectionUpdate&sectionId=${sectionId}`,
         { order: newOrder },
       )
 

@@ -12,6 +12,8 @@ import { SandboxGetOperations } from '~/controllers/internal/modules/SandboxGet.
 import { SandboxPostOperations } from '~/controllers/internal/modules/SandboxPost.operations';
 import { RlsGetOperations } from '~/controllers/internal/modules/RlsGet.operations';
 import { RlsPostOperations } from '~/controllers/internal/modules/RlsPost.operations';
+import { ViewSectionGetOperations } from '~/controllers/internal/modules/ViewSectionGet.operations';
+import { ViewSectionPostOperations } from '~/controllers/internal/modules/ViewSectionPost.operations';
 import { INTERNAL_API_MODULE_PROVIDER_KEY } from '~/utils/internal-type';
 
 export const InternalApiModules = [
@@ -28,6 +30,8 @@ export const InternalApiModules = [
   SandboxPostOperations,
   RlsGetOperations,
   RlsPostOperations,
+  ViewSectionGetOperations,
+  ViewSectionPostOperations,
 ];
 
 export const InternalApiModuleProvider = {

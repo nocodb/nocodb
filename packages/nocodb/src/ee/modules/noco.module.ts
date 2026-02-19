@@ -97,7 +97,6 @@ import { ListDatasService } from '~/ee/services/list-datas.service';
 
 /* View Sections */
 import { ViewSectionsService } from '~/ee/services/view-sections.service';
-import { ViewSectionsController } from '~/ee/controllers/view-sections.controller';
 
 import { ActionsService } from '~/services/actions.service';
 
@@ -257,9 +256,6 @@ export const nocoModuleEeMetadata = {
 
     /* Record Templates */
     RecordTemplatesController,
-
-    /* View Sections */
-    ViewSectionsController,
 
     // NOTE: COMMENTED OUT FOR NOW - ONLY USED FOR TESTING PURPOSES
     // /* Workspace Teams V3 */

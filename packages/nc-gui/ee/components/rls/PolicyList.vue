@@ -89,6 +89,9 @@ const handleEditorClose = () => {
   loadPolicies()
 }
 
+const editingPolicy = computed(() =>
+  editingPolicyId.value ? policies.value.find((p) => p.id === editingPolicyId.value) : undefined,
+)
 const defaultPolicy = computed(() => policies.value.find((p) => p.is_default))
 const scopedPolicies = computed(() => policies.value.filter((p) => !p.is_default))
 
@@ -118,12 +121,20 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
           <div>{{ tableName }}</div>
         </div>
       </div>
-      <NcButton type="primary" size="small" :loading="isSaving" @click="handleCreatePolicy">
-        <div class="flex items-center gap-1">
-          <GeneralIcon icon="plus" />
-          Add Policy
-        </div>
-      </NcButton>
+      <div class="flex items-center gap-2">
+        <NcButton v-if="!defaultPolicy" type="text" size="xs" class="!text-nc-content-brand" @click="handleCreateDefaultPolicy">
+          <div class="flex items-center gap-1">
+            <GeneralIcon icon="plus" />
+            Add default policy
+          </div>
+        </NcButton>
+        <NcButton type="primary" size="small" :loading="isSaving" @click="handleCreatePolicy">
+          <div class="flex items-center gap-1">
+            <GeneralIcon icon="plus" />
+            Add Policy
+          </div>
+        </NcButton>
+      </div>
     </div>
 
     <!-- Loading -->
@@ -152,14 +163,16 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
       <div v-if="defaultPolicy" class="px-4 py-3 border-b border-nc-border-gray-medium bg-nc-bg-gray-light">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <a-switch
-              :checked="defaultPolicy.enabled"
-              size="small"
-              @update:checked="handleTogglePolicy(defaultPolicy)"
-            />
+            <a-switch :checked="defaultPolicy.enabled" size="small" @update:checked="handleTogglePolicy(defaultPolicy)" />
             <div class="text-sm font-medium">Default Policy</div>
             <div class="text-xs text-nc-content-gray-subtle px-2 py-0.5 bg-nc-bg-gray-medium rounded">
-              {{ defaultPolicy.default_behavior === 'show_all' ? 'Show All' : defaultPolicy.default_behavior === 'deny_all' ? 'Deny All' : 'Condition' }}
+              {{
+                defaultPolicy.default_behavior === 'show_all'
+                  ? 'Show All'
+                  : defaultPolicy.default_behavior === 'deny_all'
+                  ? 'Deny All'
+                  : 'Condition'
+              }}
             </div>
           </div>
           <div class="flex items-center gap-1">
@@ -171,17 +184,7 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
             </NcButton>
           </div>
         </div>
-        <div class="text-xs text-nc-content-gray-subtle mt-1">
-          Applied when no scoped policy matches the user.
-        </div>
-      </div>
-      <div v-else class="px-4 py-2 border-b border-nc-border-gray-medium">
-        <NcButton type="text" size="xs" class="!text-nc-content-brand" @click="handleCreateDefaultPolicy">
-          <div class="flex items-center gap-1">
-            <GeneralIcon icon="plus" />
-            Add default policy
-          </div>
-        </NcButton>
+        <div class="text-xs text-nc-content-gray-subtle mt-1">Applied when no scoped policy matches the user.</div>
       </div>
 
       <!-- Scoped Policies -->
@@ -190,7 +193,11 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
         <div v-if="!scopedPolicies.length" class="text-xs text-nc-content-gray-muted py-2">
           No scoped policies. Add a policy to restrict row access for specific roles, teams, or users.
         </div>
-        <div v-for="policy in scopedPolicies" :key="policy.id" class="flex items-center justify-between py-2 border-b border-nc-border-gray-light last:border-0">
+        <div
+          v-for="policy in scopedPolicies"
+          :key="policy.id"
+          class="flex items-center justify-between py-2 border-b border-nc-border-gray-light last:border-0"
+        >
           <div class="flex items-center gap-2 flex-1 min-w-0">
             <a-switch :checked="policy.enabled" size="small" @update:checked="handleTogglePolicy(policy)" />
             <div class="flex flex-col min-w-0">
@@ -217,8 +224,8 @@ const getSubjectLabel = (policy: RlsPolicyType) => {
 
     <!-- Editor overlay -->
     <RlsPolicyEditor
-      v-if="showEditor && editingPolicyId"
-      :policy-id="editingPolicyId"
+      v-if="showEditor && editingPolicy"
+      :policy="editingPolicy"
       :table-id="tableId"
       :base="base"
       @close="handleEditorClose"

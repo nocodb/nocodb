@@ -26,6 +26,7 @@ export async function singleQueryRead(
     apiVersion?: NcApiVersion;
     extractOnlyPrimaries?: boolean;
     extractOrderColumn?: boolean;
+    customConditions?: Filter[];
   },
 ): Promise<PagedResponseImpl<Record<string, any>>> {
   const dbQuery = DBQueryClient.get(ClientType.MYSQL);

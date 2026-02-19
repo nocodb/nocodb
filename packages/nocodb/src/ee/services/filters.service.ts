@@ -12,6 +12,7 @@ import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { validatePayload } from '~/helpers';
 import { NcError } from '~/helpers/catchError';
 import { Column, Filter, View } from '~/models';
+import RlsPolicy from '~/ee/models/RlsPolicy';
 import Noco from '~/Noco';
 import { MetaTable } from '~/utils/globals';
 import { getLimit, PlanLimitTypes } from '~/helpers/paymentHelpers';
@@ -155,6 +156,38 @@ export class FiltersService extends FiltersServiceCE {
       context,
     });
     return filter;
+  }
+
+  async rlsPolicyFilterCreate(
+    context: NcContext,
+    param: {
+      filter: FilterReqType;
+      rlsPolicyId: string;
+      user: UserType;
+      req: NcRequest;
+    },
+  ) {
+    const policy = await RlsPolicy.get(context, param.rlsPolicyId);
+
+    if (!policy) {
+      NcError.badRequest('RLS Policy not found');
+    }
+
+    const filter = await Filter.insert(context, {
+      ...param.filter,
+      fk_rls_policy_id: param.rlsPolicyId,
+    });
+
+    return filter;
+  }
+
+  async rlsPolicyFilterList(
+    context: NcContext,
+    param: { rlsPolicyId: string },
+  ) {
+    return Filter.rootFilterListByRlsPolicy(context, {
+      rlsPolicyId: param.rlsPolicyId,
+    });
   }
 
   async linkFilterList(context: NcContext, param: { columnId: any }) {

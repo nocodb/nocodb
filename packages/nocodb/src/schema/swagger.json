@@ -22790,6 +22790,10 @@
             "$ref": "#/components/schemas/StringOrNull",
             "description": "Foreign Key to Link Column"
           },
+          "fk_rls_policy_id": {
+            "$ref": "#/components/schemas/StringOrNull",
+            "description": "Foreign Key to RLS Policy"
+          },
           "id": {
             "$ref": "#/components/schemas/Id",
             "description": "Unique ID"

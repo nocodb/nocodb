@@ -40,6 +40,7 @@ export const singleQueryRead = (client: DBQueryClient) => {
       apiVersion?: NcApiVersion;
       extractOnlyPrimaries?: boolean;
       extractOrderColumn?: boolean;
+      customConditions?: Filter[];
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     client.validateClientType(ctx.source.type);
@@ -142,6 +143,14 @@ export const singleQueryRead = (client: DBQueryClient) => {
         ? [
             new Filter({
               children: viewFilters,
+              is_group: true,
+            }),
+          ]
+        : []),
+      ...(ctx.customConditions
+        ? [
+            new Filter({
+              children: ctx.customConditions,
               is_group: true,
             }),
           ]

@@ -136,6 +136,7 @@ const rolePermissions = {
       manageSnapshot: true,
       manageBaseType: true,
       baseAuditList: true,
+      rlsManage: true,
     },
   },
   [ProjectRoles.CREATOR]: {

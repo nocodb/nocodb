@@ -5,6 +5,7 @@ const up = async (knex: Knex) => {
   // Create nc_rls_policies table
   await knex.schema.createTable(MetaTable.RLS_POLICIES, (table) => {
     table.string('id', 20).notNullable();
+    table.string('fk_workspace_id', 20);
     table.string('base_id', 20).notNullable();
     table.string('source_id', 20);
     table.string('fk_model_id', 20).notNullable();

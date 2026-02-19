@@ -105,6 +105,7 @@ export interface DBQueryClient extends DBQueryClientCE {
       apiVersion?: NcApiVersion;
       extractOnlyPrimaries?: boolean;
       extractOrderColumn?: boolean;
+      customConditions?: Filter[];
     },
   ): Promise<PagedResponseImpl<Record<string, any>>>;
 }

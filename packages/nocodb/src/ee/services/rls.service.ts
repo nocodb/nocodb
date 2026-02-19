@@ -1,10 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { AppEvents } from 'nocodb-sdk';
-import type {
-  FilterType,
-  RlsDefaultBehavior,
-  RlsPolicySubjectType,
-} from 'nocodb-sdk';
+import type { RlsDefaultBehavior, RlsPolicySubjectType } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import RlsPolicy from '~/ee/models/RlsPolicy';
 import Filter from '~/models/Filter';
@@ -108,6 +104,7 @@ export class RlsService {
     }
 
     this.appHooksService.emit(AppEvents.RLS_POLICY_CREATE, {
+      context,
       userId,
       req,
       policyId: policy.id,
@@ -148,6 +145,7 @@ export class RlsService {
     });
 
     this.appHooksService.emit(AppEvents.RLS_POLICY_UPDATE, {
+      context,
       userId,
       req,
       policyId: body.id,
@@ -180,6 +178,7 @@ export class RlsService {
     await RlsPolicy.delete(context, policyId);
 
     this.appHooksService.emit(AppEvents.RLS_POLICY_DELETE, {
+      context,
       userId,
       req,
       policyId,
@@ -215,55 +214,5 @@ export class RlsService {
     await RlsPolicy.clearModelCache(context, policy.fk_model_id);
 
     return this.getPolicy(context, { policyId });
-  }
-
-  async createFilter(
-    context: NcContext,
-    param: {
-      body: Partial<FilterType> & { fk_rls_policy_id: string };
-      req: NcRequest;
-    },
-  ) {
-    const { body } = param;
-
-    const policy = await RlsPolicy.get(context, body.fk_rls_policy_id);
-
-    if (!policy) {
-      NcError.genericNotFound('RLS Policy', body.fk_rls_policy_id);
-    }
-
-    const filter = await Filter.insert(context, {
-      ...body,
-      base_id: context.base_id,
-    });
-
-    // Invalidate model cache
-    await RlsPolicy.clearModelCache(context, policy.fk_model_id);
-
-    return filter;
-  }
-
-  async updateFilter(
-    context: NcContext,
-    param: {
-      body: Partial<FilterType> & { id: string };
-      req: NcRequest;
-    },
-  ) {
-    const filter = await Filter.update(context, param.body.id, param.body);
-
-    return filter;
-  }
-
-  async deleteFilter(
-    context: NcContext,
-    param: {
-      filterId: string;
-      req: NcRequest;
-    },
-  ) {
-    await Filter.delete(context, param.filterId);
-
-    return { success: true };
   }
 }

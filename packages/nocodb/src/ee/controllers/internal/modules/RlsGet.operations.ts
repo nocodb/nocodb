@@ -6,16 +6,22 @@ import type {
   InternalGETResponseType,
 } from '~/utils/internal-type';
 import { RlsService } from '~/services/rls.service';
+import { FiltersService } from '~/services/filters.service';
+import { PagedResponseImpl } from '~/helpers/PagedResponse';
 
 @Injectable()
 export class RlsGetOperations
   implements InternalApiModule<InternalGETResponseType>
 {
-  constructor(private readonly rlsService: RlsService) {}
+  constructor(
+    private readonly rlsService: RlsService,
+    private readonly filtersService: FiltersService,
+  ) {}
 
   operations = [
     'rlsPolicyList',
     'rlsPolicyGet',
+    'rlsPolicyFilterList',
   ] as (keyof typeof OPERATION_SCOPES)[];
   httpMethod = 'GET' as const;
 
@@ -37,12 +43,19 @@ export class RlsGetOperations
           await this.rlsService.listPolicies(context, {
             tableId: req.query.tableId as string,
           })
-        ).list as InternalGETResponseType;
+        ).list;
 
       case 'rlsPolicyGet':
-        return (await this.rlsService.getPolicy(context, {
+        return await this.rlsService.getPolicy(context, {
           policyId: req.query.policyId as string,
-        })) as InternalGETResponseType;
+        });
+
+      case 'rlsPolicyFilterList':
+        return new PagedResponseImpl(
+          await this.filtersService.rlsPolicyFilterList(context, {
+            rlsPolicyId: req.query.rlsPolicyId as string,
+          }),
+        );
     }
   }
 }

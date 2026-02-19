@@ -6,21 +6,23 @@ import type {
   InternalPOSTResponseType,
 } from '~/utils/internal-type';
 import { RlsService } from '~/services/rls.service';
+import { FiltersService } from '~/services/filters.service';
 
 @Injectable()
 export class RlsPostOperations
   implements InternalApiModule<InternalPOSTResponseType>
 {
-  constructor(private readonly rlsService: RlsService) {}
+  constructor(
+    private readonly rlsService: RlsService,
+    private readonly filtersService: FiltersService,
+  ) {}
 
   operations = [
     'rlsPolicyCreate',
     'rlsPolicyUpdate',
     'rlsPolicyDelete',
     'rlsPolicySetSubjects',
-    'rlsFilterCreate',
-    'rlsFilterUpdate',
-    'rlsFilterDelete',
+    'rlsPolicyFilterCreate',
   ] as (keyof typeof OPERATION_SCOPES)[];
   httpMethod = 'POST' as const;
 
@@ -67,21 +69,11 @@ export class RlsPostOperations
           req,
         })) as any;
 
-      case 'rlsFilterCreate':
-        return (await this.rlsService.createFilter(context, {
-          body: payload,
-          req,
-        })) as any;
-
-      case 'rlsFilterUpdate':
-        return (await this.rlsService.updateFilter(context, {
-          body: payload,
-          req,
-        })) as any;
-
-      case 'rlsFilterDelete':
-        return (await this.rlsService.deleteFilter(context, {
-          filterId: payload.filterId,
+      case 'rlsPolicyFilterCreate':
+        return (await this.filtersService.rlsPolicyFilterCreate(context, {
+          filter: payload,
+          rlsPolicyId: payload.fk_rls_policy_id,
+          user: req.user,
           req,
         })) as any;
     }

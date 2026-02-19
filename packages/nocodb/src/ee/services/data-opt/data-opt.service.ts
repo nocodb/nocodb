@@ -89,6 +89,7 @@ export class DataOptService {
       throwErrorIfInvalidParams?: boolean;
       validateFormula?: boolean;
       apiVersion?: NcApiVersion;
+      customConditions?: Filter[];
     },
   ): Promise<PagedResponseImpl<Record<string, any>>> {
     try {

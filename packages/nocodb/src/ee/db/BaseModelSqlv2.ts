@@ -18,6 +18,7 @@ import {
   PermissionEntity,
   PermissionKey,
   PlanLimitTypes,
+  ProjectRoles,
   RelationTypes,
   UITypes,
 } from 'nocodb-sdk';
@@ -50,7 +51,7 @@ import type { LinkToAnotherRecordColumn } from '~/models';
 import type { NcContext } from '~/interface/config';
 import type { XcFilter } from '~/db/sql-data-mapper/lib/BaseModel';
 // import type { SelectOption } from '~/models';
-import { Source, View } from '~/models';
+import { PrincipalAssignment, RlsPolicy, Source, View } from '~/models';
 import { BaseModelDelete } from '~/db/BaseModelSqlv2/delete';
 import {
   batchUpdate,
@@ -78,7 +79,7 @@ import { sanitize } from '~/helpers/sqlSanitize';
 import { runExternal } from '~/helpers/muxHelpers';
 import { checkLimit, getLimit } from '~/helpers/paymentHelpers';
 import { extractMentions } from '~/utils/richTextHelper';
-import { MetaTable } from '~/utils/globals';
+import { MetaTable, PrincipalType, ResourceType } from '~/utils/globals';
 import {
   _wherePk,
   extractSortsObject,
@@ -98,6 +99,10 @@ import { singleQueryList as mysqlSingleQueryList } from '~/services/data-opt/mys
 import { Profiler } from '~/helpers/profiler';
 import { handleUniqueConstraintError } from '~/helpers/uniqueConstraintErrorHandler';
 import getAst from '~/helpers/getAst';
+import {
+  resolveRlsDynamicValues,
+  resolveRlsPolicies,
+} from '~/utils/rls-resolver';
 
 const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
 
@@ -3673,6 +3678,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     try {
       const source = await Source.get(this.context, this.model.source_id);
 
+      // Resolve RLS conditions for the optimized grouped list path
+      const rlsConditions = await this.getRlsConditions();
+
       // Use singleQueryGroupedList which handles nested columns/rollups in SQL
       return await singleQueryGroupedList(this.context, {
         model: this.model,
@@ -3692,6 +3700,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         },
         groupColumnId: args.groupColumnId,
         ignoreViewFilterAndSort: args.ignoreViewFilterAndSort,
+        customConditions: rlsConditions.length ? rlsConditions : undefined,
         baseModel: this,
       });
     } catch (e) {
@@ -3718,16 +3727,12 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         typeof user.base_roles === 'string'
           ? JSON.parse(user.base_roles)
           : user.base_roles;
-      if (roles?.['owner']) {
+      if (roles?.[ProjectRoles.OWNER]) {
         return [];
       }
     }
 
     try {
-      const { resolveRlsPolicies, resolveRlsDynamicValues } = await import(
-        '~/ee/utils/rls-resolver'
-      );
-
       // Build user context for RLS resolution
       let baseRoles = '';
       if (user.base_roles) {
@@ -3757,11 +3762,10 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       if (result.type === 'deny_all') {
-        // Return a filter that matches nothing (WHERE 1=0)
+        // Return a filter that matches nothing (WHERE pk IS NULL — always false for NOT NULL primary keys)
         return [
           new Filter({
-            comparison_op: 'eq',
-            value: '__nc_rls_deny_all__',
+            comparison_op: 'null',
             fk_column_id: this.model.primaryKey?.id,
             is_group: false,
           }),
@@ -3769,7 +3773,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       }
 
       // Load and resolve filter trees for matched policies
-      const RlsPolicy = (await import('~/ee/models/RlsPolicy')).default;
       const allPolicies = await RlsPolicy.listByModel(
         this.context,
         this.model.id,
@@ -3777,11 +3780,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       const enabledPolicies = allPolicies.filter((p) => p.enabled);
       const defaultPolicy = enabledPolicies.find((p) => p.is_default);
       const scopedPolicies = enabledPolicies.filter((p) => !p.is_default);
-
-      // Re-check which scoped policies match
-      const { default: PrincipalAssignment } = await import(
-        '~/ee/models/PrincipalAssignment'
-      );
 
       const matchedPolicyIds: string[] = [];
       for (const policy of scopedPolicies) {
@@ -3798,9 +3796,6 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
             }
             if (subject.type === 'team') {
               try {
-                const { ResourceType, PrincipalType } = await import(
-                  '~/utils/globals'
-                );
                 const assignment = await PrincipalAssignment.get(
                   this.context,
                   ResourceType.TEAM,

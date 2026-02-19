@@ -136,6 +136,8 @@ export class MetaService {
       [MetaTable.MANAGED_APP_DEPLOYMENT_LOGS]: 'madl',
       [MetaTable.SANDBOXES]: 'sb',
       [MetaTable.SCIM_CONFIG]: 'scfg',
+      [MetaTable.RLS_POLICIES]: 'rlp',
+      [MetaTable.RLS_POLICY_SUBJECTS]: 'rlps',
     };
 
     const prefix = prefixMap[target] || 'nc';

@@ -120,6 +120,20 @@ export class DatasService extends DatasServiceCE {
         disableOptimization: param.disableOptimization,
       })
     ) {
+      // Resolve RLS conditions for the optimized query path
+      baseModel =
+        baseModel ||
+        (await Model.getBaseModelSQL(context, {
+          id: model.id,
+          viewId: view?.id,
+          dbDriver: await NcConnectionMgrv2.get(source),
+          source,
+        }));
+      const rlsConditions = await baseModel.getRlsConditions();
+      if (rlsConditions.length) {
+        customConditions = [...customConditions, ...rlsConditions];
+      }
+
       responseData = await this.dataOptService.list(context, {
         model,
         view,
@@ -171,13 +185,23 @@ export class DatasService extends DatasServiceCE {
 
     const source = await Source.get(context, model.source_id);
 
+    const baseModel = await Model.getBaseModelSQL(context, {
+      id: model.id,
+      viewId: view?.id,
+      dbDriver: await NcConnectionMgrv2.get(source),
+      source,
+    });
+
     let row;
     if (
-      await await canUseOptimisedQuery(context, {
+      await canUseOptimisedQuery(context, {
         source,
         disableOptimization: param.disableOptimization,
       })
     ) {
+      // Resolve RLS conditions for the optimized read path
+      const rlsConditions = await baseModel.getRlsConditions();
+
       row = await this.dataOptService.read(context, {
         model,
         view,
@@ -185,14 +209,9 @@ export class DatasService extends DatasServiceCE {
         source,
         id: param.rowId,
         throwErrorIfInvalidParams: true,
+        customConditions: rlsConditions.length ? rlsConditions : undefined,
       });
     } else {
-      const baseModel = await Model.getBaseModelSQL(context, {
-        id: model.id,
-        viewId: view?.id,
-        dbDriver: await NcConnectionMgrv2.get(source),
-        source,
-      });
       row = await baseModel.readByPk(param.rowId, false, param.query, {
         getHiddenColumn: param.getHiddenColumn,
         throwErrorIfInvalidParams: true,

@@ -371,6 +371,7 @@ export function useViewFilters(
 
   const loadFilters = async ({
     hookId,
+    rlsPolicyId,
     isLink,
     widgetId,
     isWebhook,
@@ -378,6 +379,7 @@ export function useViewFilters(
     loadAllFilters,
   }: {
     hookId?: string
+    rlsPolicyId?: string
     widgetId?: string
     isWebhook?: boolean
     isWidget?: boolean
@@ -389,14 +391,33 @@ export function useViewFilters(
       await until(meta).toBeTruthy({ timeout: 5000 })
     }
 
-    if (!view.value?.id || !meta.value) return
-    if ((nestedMode.value && (isTemp.value || !canListFilterChildren.value)) || (isForm.value && !isWebhook) || isWorkflow) {
-      // ignore restoring if not root filter group
-      return
+    // RLS policy filters don't require a view
+    if (!rlsPolicyId) {
+      if (!view.value?.id || !meta.value) return
+      if ((nestedMode.value && (isTemp.value || !canListFilterChildren.value)) || (isForm.value && !isWebhook) || isWorkflow) {
+        // ignore restoring if not root filter group
+        return
+      }
     }
 
     try {
-      if (isWebhook || hookId) {
+      if (rlsPolicyId) {
+        if (parentId.value) {
+          filters.value = (
+            await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              operation: 'filterChildrenList',
+              filterId: parentId.value,
+            })
+          ).list as ColumnFilterType[]
+        } else if (!isNestedRoot) {
+          filters.value = (
+            await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
+              operation: 'rlsPolicyFilterList',
+              rlsPolicyId,
+            })
+          ).list as ColumnFilterType[]
+        }
+      } else if (isWebhook || hookId) {
         if (parentId.value) {
           filters.value = (
             await $api.internal.getOperation(apiWorkspaceId.value!, apiBaseId.value!, {
@@ -480,10 +501,12 @@ export function useViewFilters(
 
   const sync = async ({
     hookId,
+    rlsPolicyId,
     linkId,
     widgetId,
   }: {
     hookId?: string
+    rlsPolicyId?: string
     nested?: boolean
     linkId?: string
     widgetId?: string
@@ -549,6 +572,20 @@ export function useViewFilters(
                 ...filter,
                 children: undefined,
                 fk_parent_id: parentId.value,
+              } as FilterType,
+            )) as ColumnFilterType
+          } else if (rlsPolicyId) {
+            filters.value[+i] = (await $api.internal.postOperation(
+              apiWorkspaceId.value!,
+              apiBaseId.value!,
+              {
+                operation: 'rlsPolicyFilterCreate',
+              },
+              {
+                ...filter,
+                children: undefined,
+                fk_parent_id: parentId.value,
+                fk_rls_policy_id: rlsPolicyId,
               } as FilterType,
             )) as ColumnFilterType
           } else if (linkId || linkColId?.value) {

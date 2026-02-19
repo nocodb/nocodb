@@ -1,4 +1,4 @@
-import type { RlsDefaultBehavior, RlsPolicySubjectType, RlsPolicyType, FilterType } from 'nocodb-sdk'
+import type { RlsDefaultBehavior, RlsPolicySubjectType, RlsPolicyType } from 'nocodb-sdk'
 import type { BaseType } from 'nocodb-sdk'
 
 export interface RlsPolicyState {
@@ -38,7 +38,6 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
     is_default?: boolean
     default_behavior?: RlsDefaultBehavior
     subjects?: RlsPolicySubjectType[]
-    filters?: FilterType[]
   }) => {
     if (!base.value?.fk_workspace_id || !base.value?.id) return null
 
@@ -128,72 +127,6 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
     }
   }
 
-  const createFilter = async (body: {
-    fk_rls_policy_id: string
-    fk_column_id?: string
-    comparison_op?: string
-    comparison_sub_op?: string
-    value?: string
-    is_group?: boolean
-    logical_op?: string
-    fk_parent_id?: string
-  }) => {
-    if (!base.value?.fk_workspace_id || !base.value?.id) return null
-
-    try {
-      const result = await $api.internal.postOperation(
-        base.value.fk_workspace_id,
-        base.value.id,
-        { operation: 'rlsFilterCreate' },
-        body,
-      )
-      return result
-    } catch (e: any) {
-      console.error('Failed to create RLS filter:', e)
-      throw e
-    }
-  }
-
-  const updateFilter = async (body: {
-    id: string
-    fk_column_id?: string
-    comparison_op?: string
-    comparison_sub_op?: string
-    value?: string
-    logical_op?: string
-  }) => {
-    if (!base.value?.fk_workspace_id || !base.value?.id) return null
-
-    try {
-      const result = await $api.internal.postOperation(
-        base.value.fk_workspace_id,
-        base.value.id,
-        { operation: 'rlsFilterUpdate' },
-        body,
-      )
-      return result
-    } catch (e: any) {
-      console.error('Failed to update RLS filter:', e)
-      throw e
-    }
-  }
-
-  const deleteFilter = async (filterId: string) => {
-    if (!base.value?.fk_workspace_id || !base.value?.id) return
-
-    try {
-      await $api.internal.postOperation(
-        base.value.fk_workspace_id,
-        base.value.id,
-        { operation: 'rlsFilterDelete' },
-        { filterId },
-      )
-    } catch (e: any) {
-      console.error('Failed to delete RLS filter:', e)
-      throw e
-    }
-  }
-
   const togglePolicy = async (policy: RlsPolicyType) => {
     if (!policy.id) return
     await updatePolicy({
@@ -211,9 +144,6 @@ export const useRlsPolicies = (base: Ref<BaseType | null>, tableId: Ref<string>)
     updatePolicy,
     deletePolicy,
     setSubjects,
-    createFilter,
-    updateFilter,
-    deleteFilter,
     togglePolicy,
   }
 }

@@ -395,7 +395,7 @@ const enabledOptions = computed(() => {
     tablePermission:
       isEeUI && table.value?.type === 'table' && isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }),
     tableRowLevelSecurity:
-      isEeUI && table.value?.type === 'table' && isUIAllowed('tablePermission', { roles: baseRole?.value, source: source.value }),
+      isEeUI && table.value?.type === 'table' && isUIAllowed('rlsManage', { roles: baseRole?.value, source: source.value }),
     tableDelete: isUIAllowed('tableDelete', { roles: baseRole?.value, source: source.value }),
   }
 })

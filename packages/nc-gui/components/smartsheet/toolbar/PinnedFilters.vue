@@ -50,6 +50,12 @@ const isMultiValueOp = (filter: FilterType) => {
   return ['anyof', 'nanyof'].includes(filter.comparison_op || '')
 }
 
+const isNegatedOp = (filter: FilterType) => {
+  return ['neq', 'not', 'isnot', 'nlike', 'nanyof', 'nallof', 'isnotnull', 'isnotblank', 'not_checked'].includes(
+    filter.comparison_op || '',
+  )
+}
+
 // ============ Select Options ============
 const getSelectOptions = (filter: FilterType) => {
   const col = getColumn(filter)
@@ -285,6 +291,10 @@ const unpinFilter = async (filter: FilterType) => {
 
     <template v-for="(filter, idx) in pinnedFilters" :key="filter.id">
       <div v-if="idx > 0" class="h-5 w-px bg-nc-border-gray-medium flex-none" />
+    <NcTooltip :disabled="openFilterId === filter.id" placement="bottom">
+      <template #title>
+        {{ getColumn(filter)?.title }} {{ getComparisonOpLabel(filter) }}
+      </template>
     <NcDropdown
       :visible="openFilterId === filter.id"
       placement="bottomLeft"
@@ -292,10 +302,6 @@ const unpinFilter = async (filter: FilterType) => {
       @update:visible="(val) => { if (!val) closeDropdown() }"
     >
       <!-- ====== PILL TRIGGER ====== -->
-      <NcTooltip :disabled="openFilterId === filter.id" placement="bottom">
-        <template #title>
-          {{ getColumn(filter)?.title }} {{ getComparisonOpLabel(filter) }}
-        </template>
         <div
           class="nc-pinned-filter-pill nc-toolbar-btn flex items-center flex-wrap gap-0.5 !h-auto min-h-7 py-0.5 pl-1.5 pr-1.5 rounded-lg cursor-pointer select-none"
           :class="{
@@ -304,6 +310,7 @@ const unpinFilter = async (filter: FilterType) => {
           }"
           @click="toggleDropdown(filter.id)"
         >
+
           <!-- Value display for select types -->
           <template v-if="isSelectType(filter) && (isMultiValueOp(filter) ? getSelectedSelectOptions(filter).length : getSelectValueDisplay(filter))">
             <template v-if="isMultiValueOp(filter)">
@@ -311,6 +318,7 @@ const unpinFilter = async (filter: FilterType) => {
                 v-for="opt in getSelectedSelectOptions(filter)"
                 :key="opt.title"
                 class="nc-pinned-select-tag max-w-28"
+                :class="{ 'nc-negated-tag': isNegatedOp(filter) }"
                 :color="opt.bgColor"
               >
                 <span class="flex items-center gap-0.5">
@@ -330,6 +338,7 @@ const unpinFilter = async (filter: FilterType) => {
               <a-tag
                 v-if="getSelectValueOption(filter)"
                 class="nc-pinned-select-tag max-w-28"
+                :class="{ 'nc-negated-tag': isNegatedOp(filter) }"
                 :color="getSelectValueOption(filter).bgColor"
               >
                 <span :style="{ color: getSelectValueOption(filter).textColor }" class="text-[11px] leading-tight truncate">
@@ -349,6 +358,7 @@ const unpinFilter = async (filter: FilterType) => {
                 v-for="user in getSelectedUsers(filter)"
                 :key="user.id"
                 class="nc-pinned-user-tag max-w-32"
+                :class="{ 'nc-negated-tag': isNegatedOp(filter) }"
                 :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
               >
                 <span class="flex items-center gap-0.5">
@@ -372,6 +382,7 @@ const unpinFilter = async (filter: FilterType) => {
               <a-tag
                 v-if="getUserValueUser(filter)"
                 class="nc-pinned-user-tag max-w-32"
+                :class="{ 'nc-negated-tag': isNegatedOp(filter) }"
                 :color="getColor('var(--nc-bg-gray-medium)', 'var(--nc-bg-gray-light)')"
               >
                 <span class="flex items-center gap-0.5">
@@ -402,7 +413,6 @@ const unpinFilter = async (filter: FilterType) => {
             class="h-3.5 w-3.5 text-nc-content-gray-subtle2 flex-none"
           />
         </div>
-      </NcTooltip>
 
       <!-- ====== DROPDOWN PANEL ====== -->
       <template #overlay>
@@ -562,6 +572,7 @@ const unpinFilter = async (filter: FilterType) => {
         </div>
       </template>
     </NcDropdown>
+    </NcTooltip>
     </template>
 
     <!-- Trailing separator -->
@@ -592,6 +603,22 @@ const unpinFilter = async (filter: FilterType) => {
 
 .nc-pinned-user-tag {
   @apply py-0.5 pl-0 pr-1.5 rounded-[10px];
+}
+
+:deep(.nc-negated-tag) {
+  @apply relative overflow-hidden;
+
+  &::after {
+    content: '';
+    @apply absolute inset-0 pointer-events-none;
+    background: linear-gradient(
+      to top right,
+      transparent calc(50% - 0.5px),
+      rgb(107 114 128 / 0.55) calc(50% - 0.5px),
+      rgb(107 114 128 / 0.55) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    );
+  }
 }
 
 :deep(.ant-tag) {

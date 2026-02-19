@@ -333,6 +333,76 @@ function blockedQueryTests() {
   });
 }
 
+function functionRewriteTests() {
+  it('pg_get_userbyid returns nocodb (not real role name)', async function () {
+    const res = await client.query(
+      `SELECT pg_get_userbyid(c.relowner) AS owner
+       FROM pg_class c
+       LIMIT 1`,
+    );
+    expect(res.rows).to.have.lengthOf(1);
+    expect(res.rows[0].owner).to.equal('nocodb');
+  });
+
+  it('pg_get_indexdef returns empty string', async function () {
+    const res = await client.query(
+      `SELECT pg_get_indexdef(i.indexrelid) AS idx_def
+       FROM pg_index i
+       LIMIT 1`,
+    );
+    expect(res.rows).to.have.lengthOf(1);
+    expect(res.rows[0].idx_def).to.equal('');
+  });
+
+  it('pg_get_constraintdef returns empty string', async function () {
+    const res = await client.query(
+      `SELECT pg_get_constraintdef(c.oid) AS con_def
+       FROM pg_constraint c
+       LIMIT 1`,
+    );
+    if (res.rows.length > 0) {
+      expect(res.rows[0].con_def).to.equal('');
+    }
+  });
+
+  it('schema-qualified pg_catalog.pg_get_userbyid returns nocodb', async function () {
+    const res = await client.query(
+      `SELECT pg_catalog.pg_get_userbyid(c.relowner) AS owner
+       FROM pg_class c
+       LIMIT 1`,
+    );
+    expect(res.rows).to.have.lengthOf(1);
+    expect(res.rows[0].owner).to.equal('nocodb');
+  });
+
+  it('pg_get_ruledef is blocked', async function () {
+    try {
+      await client.query('SELECT pg_get_ruledef(1)');
+      expect.fail('Should have thrown');
+    } catch (err) {
+      expect(err.code).to.equal('42501');
+    }
+  });
+
+  it('double-quoted "pg_get_userbyid" is neutralized', async function () {
+    // Should be rewritten to 'nocodb'::text, not leak the real role name
+    const res = await client.query(
+      `SELECT "pg_get_userbyid"(c.relowner) AS owner
+       FROM pg_class c
+       LIMIT 1`,
+    );
+    expect(res.rows).to.have.lengthOf(1);
+    expect(res.rows[0].owner).to.equal('nocodb');
+  });
+
+  it('publication + publishable query returns empty result', async function () {
+    const res = await client.query(
+      "SELECT * FROM pg_publication p WHERE pg_relation_is_publishable('t')",
+    );
+    expect(res.rows).to.have.lengthOf(0);
+  });
+}
+
 function complexQueryTests() {
   it('subquery with pg_namespace join is filtered', async function () {
     const res = await client.query(`
@@ -384,6 +454,7 @@ function dataReflectionProxyTests() {
   describe('Catalog Filtering', catalogFilteringTests);
   describe('SHOW Commands', showCommandTests);
   describe('Blocked Queries', blockedQueryTests);
+  describe('Function Rewrites', functionRewriteTests);
   describe('Complex Queries', complexQueryTests);
 }
 

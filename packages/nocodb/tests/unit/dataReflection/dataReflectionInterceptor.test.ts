@@ -129,11 +129,11 @@ function blockedQueryTests() {
     expect(match).to.not.be.undefined;
   });
 
-  it('blocks ::regtype cast', () => {
+  it('does NOT block ::regtype cast (safe — resolves standard PG type names only)', () => {
     const match = blockedQueryPatterns.find((p) =>
       p.pattern.test("SELECT 'integer'::regtype"),
     );
-    expect(match).to.not.be.undefined;
+    expect(match).to.be.undefined;
   });
 
   it('blocks CAST(... AS regclass)', () => {
@@ -160,6 +160,7 @@ function blockedQueryTests() {
       'pg_get_viewdef(123)',
       'pg_get_functiondef(123)',
       'pg_get_triggerdef(123)',
+      'pg_get_ruledef(123)',
     ];
     for (const fn of funcs) {
       const sql = `SELECT ${fn}`;
@@ -1996,6 +1997,132 @@ function interceptQueryIfNeededTests() {
       expect(e.message).to.include('server-level');
     }
   });
+
+  // --- Function rewrite tests ---
+  it('rewrites pg_get_indexdef to empty string', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SELECT pg_get_indexdef(16384)');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql.toLowerCase()).to.include("''::text");
+    expect(sql.toLowerCase()).to.not.include('pg_get_indexdef');
+  });
+
+  it('rewrites pg_get_constraintdef to empty string', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SELECT pg_get_constraintdef(16384)');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql.toLowerCase()).to.include("''::text");
+    expect(sql.toLowerCase()).to.not.include('pg_get_constraintdef');
+  });
+
+  it('rewrites pg_get_userbyid to nocodb', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SELECT pg_get_userbyid(10)');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql.toLowerCase()).to.include("'nocodb'::text");
+    expect(sql.toLowerCase()).to.not.include('pg_get_userbyid');
+  });
+
+  it('rewrites pg_catalog.pg_get_userbyid (schema-qualified)', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer(
+      'SELECT pg_catalog.pg_get_userbyid(c.relowner) FROM pg_class c',
+    );
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql.toLowerCase()).to.include("'nocodb'::text");
+    expect(sql.toLowerCase()).to.not.include('pg_get_userbyid');
+  });
+
+  it('rewrites pg_get_indexdef with 3 args', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SELECT pg_get_indexdef(16384, 0, true)');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql.toLowerCase()).to.include("''::text");
+    expect(sql.toLowerCase()).to.not.include('pg_get_indexdef');
+  });
+
+  // --- Double-quoted identifier normalization tests ---
+  // Double-quoted function names get normalized to unquoted, then rewritten to safe literals
+  it('rewrites double-quoted "pg_get_userbyid"(10) to nocodb', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SELECT "pg_get_userbyid"(10)');
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql.toLowerCase()).to.include("'nocodb'::text");
+    expect(sql.toLowerCase()).to.not.include('pg_get_userbyid');
+  });
+
+  it('rewrites double-quoted "pg_catalog"."pg_get_indexdef"(16384)', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer(
+      'SELECT "pg_catalog"."pg_get_indexdef"(16384)',
+    );
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql.toLowerCase()).to.include("''::text");
+    expect(sql.toLowerCase()).to.not.include('pg_get_indexdef');
+  });
+
+  it('rewrites pg_catalog."pg_get_constraintdef"(16384)', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer(
+      'SELECT pg_catalog."pg_get_constraintdef"(16384)',
+    );
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql.toLowerCase()).to.include("''::text");
+    expect(sql.toLowerCase()).to.not.include('pg_get_constraintdef');
+  });
+
+  // --- Publication query replacement test ---
+  it('replaces publication + publishable query with empty result', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer(
+      "SELECT * FROM pg_publication p WHERE pg_relation_is_publishable('t')",
+    );
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    const sql = result.subarray(5).toString('utf8').replace(/\0/g, '');
+    expect(sql.toLowerCase()).to.include('where false');
+  });
+
+  // --- forceModified tracking test ---
+  it('returns Buffer for standalone rewritten query (forceModified)', async () => {
+    const session = makeSession();
+    // pg_get_userbyid(10) gets rewritten to 'nocodb'::text — should still return a Buffer
+    const buf = buildQueryBuffer(
+      "SELECT pg_get_userbyid(10) AS owner, 'hello'",
+    );
+    const result = await interceptQueryIfNeeded(buf, session, parser);
+    expect(result).to.be.instanceOf(Buffer);
+    // Verify the result is a valid query message
+    expect(result[0]).to.equal(0x51);
+  });
+
+  it('blocks pg_get_ruledef', async () => {
+    const session = makeSession();
+    const buf = buildQueryBuffer('SELECT pg_get_ruledef(16384)');
+    try {
+      await interceptQueryIfNeeded(buf, session, parser);
+      expect.fail('Expected QueryBlockedError');
+    } catch (e: any) {
+      expect(e).to.be.instanceOf(QueryBlockedError);
+      expect(e.message).to.include('pg_get_ruledef');
+    }
+  });
 }
 
 function stripSqlCommentsTests() {
@@ -2114,8 +2241,8 @@ function constantsTests() {
     expect(interceptMap.length).to.equal(58);
   });
 
-  it('blockedQueryPatterns has 53 patterns', () => {
-    expect(blockedQueryPatterns.length).to.equal(53);
+  it('blockedQueryPatterns has 55 patterns', () => {
+    expect(blockedQueryPatterns.length).to.equal(55);
   });
 
   it('allowedNonParseablePatterns has 1 pattern', () => {

@@ -1,11 +1,12 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { AppEvents, BaseVersion } from 'nocodb-sdk';
+import { AppEvents, BaseVersion, PlanLimitTypes } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Base, Sandbox } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BasesService } from '~/services/bases.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
 import { NcError } from '~/helpers/catchError';
+import { checkLimit } from '~/helpers/paymentHelpers';
 import Noco from '~/Noco';
 import {
   applyMeta,
@@ -127,6 +128,17 @@ export class SandboxesService {
         'Sandbox is only supported for V3 bases.',
       );
     }
+
+    // Check sandbox-per-base plan limit
+    const existingSandboxes = await Sandbox.listByMasterBaseId(baseId);
+    await checkLimit({
+      workspaceId: context.workspace_id,
+      type: PlanLimitTypes.LIMIT_SANDBOX_PER_BASE,
+      count: existingSandboxes.length,
+      message: ({ limit }) =>
+        `You have reached the limit of ${limit} sandbox(es) for this base.`,
+    });
+
     const baseSources = await base.getSources();
 
     // Use provided title or generate default

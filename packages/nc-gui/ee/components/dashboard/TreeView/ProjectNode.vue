@@ -422,7 +422,11 @@ const convertToManagedApp = () => {
 const isSandboxCreateDlgOpen = ref(false)
 const isSandboxListDlgOpen = ref(false)
 
+const { showSandboxPlanLimitExceededModal } = useEeConfig()
+
 const openSandboxCreateDialog = () => {
+  if (showSandboxPlanLimitExceededModal()) return
+
   isSandboxCreateDlgOpen.value = true
 }
 
@@ -431,6 +435,8 @@ const openSandboxListDialog = () => {
 }
 
 const handleCreateSandboxFromList = () => {
+  if (showSandboxPlanLimitExceededModal()) return
+
   isSandboxListDlgOpen.value = false
   isSandboxCreateDlgOpen.value = true
 }

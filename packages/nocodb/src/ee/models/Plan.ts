@@ -289,6 +289,7 @@ export const FreePlan = Plan.prepare({
     [PlanFeatureTypes.FEATURE_FORM_FIELD_ON_CONDITION]: true,
     [PlanLimitTypes.LIMIT_WORKFLOW_RUN]: 1000,
     [PlanLimitTypes.LIMIT_WORKFLOW_RETENTION]: 15,
+    [PlanLimitTypes.LIMIT_SANDBOX_PER_BASE]: 0,
     ...(process.env.NODE_ENV === 'test'
       ? {
           [PlanFeatureTypes.FEATURE_SSO]: true,

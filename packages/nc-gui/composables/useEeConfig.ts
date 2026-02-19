@@ -90,6 +90,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockCardFieldHeaderVisibility = computed(() => true)
 
+  const blockAddNewSandbox = computed(() => true)
+
   const blockSync = computed(() => true)
 
   const blockUnique = computed(() => true)
@@ -177,6 +179,8 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseUuidField = (..._args: any[]) => {}
 
+  const showSandboxPlanLimitExceededModal = (..._args: any[]) => {}
+
   return {
     calculatePrice,
     getLimit,
@@ -259,5 +263,7 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseSync,
     showUpgradeToUseUnique,
     showUpgradeToUseUuidField,
+    blockAddNewSandbox,
+    showSandboxPlanLimitExceededModal,
   }
 })

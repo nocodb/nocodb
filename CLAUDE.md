@@ -1,105 +1,142 @@
-# NocoDB Enterprise (NocoDB Hub) - Claude Instructions
+# NocoDB Enterprise (nocohub)
 
-> **IMPORTANT**: This repository is `nocohub` (NocoDB Enterprise/Hub). This is NOT the open-source `nocodb` repository. All work here is proprietary and should stay within this codebase.
-
-## Quick Start
-
-Before working on any task, read the relevant skill file(s) from `.skills/`:
-
-| Task Type | Read This First |
-|-----------|-----------------|
-| Backend (API, services, controllers) | `.skills/nocohub-backend/SKILL.md` |
-| Frontend (Vue, components, stores) | `.skills/nocohub-frontend/SKILL.md` |
-| Multi-package / End-to-end features | `.skills/compound-engineering/SKILL.md` |
-| Automations (nodes, workflows) | `.skills/nocohub-automations/SKILL.md` |
-| CE/EE sync patterns | `.skills/nocohub-sync/SKILL.md` |
-| **New PR / branch setup ("commando")** | **`.skills/commando/SKILL.md`** |
+> This is `nocohub` (NocoDB Enterprise/Hub), NOT the open-source `nocodb` repo. All work is proprietary.
 
 ## Repository Structure
 
 ```
 nocohub/
 ├── packages/
-│   ├── nocodb-sdk/          # TypeScript types + API client
-│   ├── nocodb/              # Backend (NestJS)
-│   ├── nc-gui/              # Frontend (Vue 3 / Nuxt 3)
-│   ├── noco-integrations/   # External integrations
-│   └── ...                  # Support packages
-├── .skills/                 # Claude skills (READ THESE!)
-│   ├── commando/            # PR lifecycle management (say "commando")
-│   ├── branches/            # Per-branch working memory (gitignored)
-│   ├── nocohub-backend/
-│   ├── nocohub-frontend/
-│   ├── compound-engineering/
-│   ├── nocohub-automations/
-│   └── nocohub-sync/
-└── tests/playwright/        # E2E tests
+│   ├── nocodb-sdk/              # TypeScript types + auto-generated API client
+│   ├── nocodb/                  # Backend (NestJS + Knex)
+│   ├── nc-gui/                  # Frontend (Vue 3 + Nuxt 3)
+│   ├── noco-integrations/       # 60+ SaaS integration packages
+│   ├── nc-integration-scaffolder/ # Integration scaffolding tool
+│   ├── nc-sql-executor/         # SQL execution engine
+│   ├── nc-secret-mgr/           # Secret management
+│   └── nc-knex-dialects/        # Custom Knex dialects
+├── tests/
+│   └── playwright/              # E2E tests (Playwright)
+├── scripts/                     # Build + SDK generation scripts
+├── docker-compose/              # Docker configurations
+└── .claude/
+    └── skills/                  # Claude skills (automations, sync, commando)
 ```
 
-## Key Rules
-
-### 1. Always Check Skills First
-
-The `.skills/` folder contains battle-tested patterns, workflows, and conventions. Don't reinvent - follow existing patterns.
-
-### 2. Build Order Matters
+## Build Order
 
 ```
-nocodb-sdk → nocodb (backend) → nc-gui (frontend)
+nocodb-sdk  →  nocodb (backend)  →  nc-gui (frontend)
+   types        NestJS API :8080     Vue 3/Nuxt 3 :3000
 ```
 
-After SDK changes: rebuild SDK before touching backend/frontend.
+Start with migration or SDK type changes when a feature needs them. If schema evolves during the PR, update the same migration file — **1 migration per PR max**.
 
-### 3. CE/EE Separation
+After SDK changes, rebuild SDK before backend or frontend: `cd packages/nocodb-sdk && pnpm run build:ee`
 
-- **EE code** lives in `ee/` subdirectories (mirrors CE structure)
-- **EE extends CE** - never the other way around
-- CE code must work without EE code present
-
-### 4. Type Safety
-
-- Define types in `nocodb-sdk` first
-- Import types from `'nocodb-sdk'` in both backend and frontend
-- Never use `any` without justification
-
-## Common Commands
+## Commands
 
 ```bash
 # Bootstrap
-pnpm run bootstrap        # Full EE setup
-pnpm run bootstrap:ce     # CE only
+pnpm run bootstrap          # Full EE setup (installs deps + builds SDK + builds integrations)
 
-# Development
-pnpm run start:backend    # Backend on :8080
-pnpm run start:frontend   # Frontend on :3000
-
-# Build SDK (after type changes)
+# SDK (always rebuild after type changes)
 cd packages/nocodb-sdk && pnpm run build:ee
+
+# Backend
+cd packages/nocodb && pnpm run watch:run:pg:ee     # EE dev with hot reload
+
+# Frontend
+cd packages/nc-gui && pnpm run dev:ee              # EE dev with hot reload
+
+# Tests
+cd packages/nocodb && pnpm test:unit               # Unit tests (Mocha + Chai, NOT Jest)
+cd packages/nocodb && pnpm test:unit:pg:ee          # PostgreSQL + EE
+cd tests/playwright && pnpm test                    # E2E (Playwright)
 ```
 
-## Skill Reference Files
+## CE/EE Separation
 
-Each skill has a `references/` folder with detailed documentation:
+EE code lives in `ee/` subdirectories that mirror CE structure. This applies across all packages.
 
-- `.skills/nocohub-backend/references/patterns.md` - Backend code patterns
-- `.skills/nocohub-backend/references/meta-tables.md` - Database schema reference
-- `.skills/nocohub-frontend/references/component-patterns.md` - Vue component patterns
-- `.skills/nocohub-frontend/references/composable-patterns.md` - Composable patterns
-- `.skills/nocohub-frontend/references/store-patterns.md` - Pinia store patterns
-- `.skills/compound-engineering/references/workflows.md` - Cross-package checklists
-- `.skills/compound-engineering/references/package-map.md` - Package dependencies
+- EE extends CE through class inheritance — never the other way
+- CE code must work standalone without EE code
+- Never import from `ee/` in CE code
+- Backend has three EE tiers: `ee/` (shared), `ee-cloud/` (cloud-specific), `ee-on-prem/` (on-prem-specific)
+
+CRITICAL: EE `globals.ts` completely overrides CE — it does NOT inherit. When adding MetaTable/CacheScope entries in CE, you MUST also add them in `src/ee/utils/globals.ts` or values resolve to `undefined` at runtime.
+
+## Type Safety Flow
+
+1. Define types in `nocodb-sdk` first (in `src/lib/` — do NOT manually edit `Api.ts`, it's auto-generated from swagger)
+2. Import types from `'nocodb-sdk'` in both backend and frontend
+3. Backend validates against swagger schemas: `validatePayload('swagger.json#/components/schemas/Name', body)`
+4. Never use `any` without justification
+
+To regenerate SDK from swagger: `cd packages/nocodb-sdk && pnpm run build:ee`
+
+## Import Aliases
+
+- Backend: `~/` → `src/` (tsconfig alias), `src/` used for CE imports in EE files
+- Frontend: `~/` or relative paths
+- SDK types: always import from `'nocodb-sdk'`
+- Do not use `~/ee/*` — `~/*` will automatically resolve based on edition
+
+## Cross-Package Feature Checklist
+
+When building features that span SDK → Backend → Frontend:
+
+1. **SDK**: Add types to `src/lib/`, add events to `enums.ts`, rebuild with `pnpm run build:ee`
+2. **Backend**: Create model + service, register in internal controllers + ACL + noco.module, create migration
+3. **Frontend**: Create composable/store, build components, import types from `nocodb-sdk`
+4. **Verify**: Run typechecks across all three packages
+
+## Branch Memory
+
+Claude maintains working memory in `.claude/branches/{branch}/` (gitignored) for every feature branch (not `develop`). This is maintained automatically — not just via `/commando`.
+
+```
+.claude/branches/{branch}/
+├── index.md      # 10-second orientation: current focus, progress count
+├── plan.md       # Phased task list with [S]/[M]/[L] sizing and checkboxes
+├── context.md    # Why this feature exists, key decisions, discovery answers
+├── log.md        # Reverse-chronological log of each session's work
+└── test.py       # API test script (if applicable) — single self-contained file
+```
+
+On every session start on a non-develop branch, read `index.md` to orient. On every session end, update `log.md` with what was done.
+
+## Design Decisions
+
+For significant architectural or design decisions (not small implementation details):
+
+1. Present 2-3 options with trade-offs before implementing
+2. Wait for user direction — the user acts as architect
+3. When the user points to existing code (e.g., "see commandPaletteHelpers.ts"), follow that pattern exactly
+4. Don't add unnecessary abstractions — always check for existing patterns first
 
 ## PR Guidelines
 
-1. **Update skills if you find outdated info** - Skills are living documentation
-2. **Follow existing patterns** - Consistency > cleverness
-3. **Test across packages** - Changes often have cross-package impact
-4. **Include types** - SDK types should match implementation
-
-## What NOT To Do
-
-- Don't commit directly to `main`
+- Follow existing patterns — consistency > cleverness
+- Test across packages — changes often have cross-package impact
+- Don't commit directly to `main` or `develop` without PR
 - Don't skip SDK rebuild after type changes
-- Don't import EE code from CE code
-- Don't add CE features to `ee/` directories
-- Don't confuse this repo with open-source `nocodb`
+
+## Anti-Patterns
+
+| Don't | Do Instead |
+|-------|-----------|
+| Run backend in CE mode for EE features | Always use `pnpm run watch:run:pg:ee` unless explicitly asked for CE |
+| Forget to rebuild SDK after enum/type changes | `cd packages/nocodb-sdk && pnpm run build:ee` after any SDK change |
+| Cast with `as unknown` to work around type errors | Fix the type system properly (update the interface/type definition) |
+| Create new abstractions when similar ones exist | Search for existing patterns first, ask if unsure |
+
+## File Naming
+
+- Backend operations module: `{Feature}Get.operations.ts` / `{Feature}Post.operations.ts`
+- Backend services: `{feature}.service.ts`
+- Backend models: `{Feature}.ts` (PascalCase)
+- Backend migrations: `nc_{number}_{description}.ts`
+- Frontend components: `{Feature}.vue` in appropriate `components/{category}/` directory
+- Frontend composables: `use{Feature}.ts`
+- Frontend stores: `{feature}.ts` in `store/`

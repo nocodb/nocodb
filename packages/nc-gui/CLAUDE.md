@@ -1,0 +1,134 @@
+# NocoDB Frontend (Vue 3 + Nuxt 3)
+
+## Architecture
+
+```
+packages/nc-gui/
+├── components/        # ~700 Vue components across ~32 directories
+│   ├── cell/          # Table cell renderers
+│   ├── dashboard/     # Dashboard UI
+│   ├── dlg/           # Dialogs/modals
+│   ├── general/       # Reusable components
+│   ├── nc/            # NocoDB design system (Button, Input, DatePicker...)
+│   ├── smartsheet/    # Table/view rendering
+│   ├── virtual-cell/  # Virtual column cells
+│   └── workspace/     # Workspace UI
+├── composables/       # ~94 composables
+├── store/             # ~22 Pinia stores
+├── pages/             # Nuxt route pages
+├── layouts/           # Page layouts
+├── plugins/           # ~20 Nuxt plugins
+├── lib/               # Shared utilities (acl, constants, enums, types)
+├── lang/              # i18n (40+ languages)
+└── ee/                # Enterprise Edition (mirrors CE structure)
+```
+
+Tech: Vue 3.5, Nuxt 3.17, Pinia, Ant Design Vue 3.x, WindiCSS
+
+## CE/EE Overlay System
+
+EE files in `ee/` override CE files with the same path. CE files serve as fallbacks.
+
+```
+components/Feature.vue          ← CE version (may be empty placeholder)
+ee/components/Feature.vue       ← EE override (full implementation)
+```
+
+For EE-only components, create an empty CE placeholder:
+```vue
+<!-- components/Feature.vue (CE) -->
+<template><span /></template>
+```
+
+Build with `pnpm dev:ee` / `pnpm build:ee` to activate EE overlays.
+
+## Composable Types
+
+| Pattern | When to Use | Example |
+|---------|-------------|---------|
+| Simple function | Stateless helpers | `export function useMyHelper() { ... }` |
+| `useInjectionState()` | Component tree state (parent provides, children consume) | `const [useProvide, useConsume] = useInjectionState(...)` |
+| `createGlobalState()` | App-wide singleton | `export const useGlobal = createGlobalState(() => { ... })` |
+
+Injection state composables export `useProvide{X}` and `use{X}` pairs (e.g., `useProvideSmartsheetStore` / `useSmartsheetStore`).
+
+## Key Composables
+
+| Composable | Purpose |
+|------------|---------|
+| `useApi()` | API client with loading state |
+| `useGlobal()` | App state (user, token, settings) — global singleton |
+| `useSmartsheetStore()` | Current smartsheet context (injection state) |
+| `useExpandedFormStore()` | Expanded form row context (injection state) |
+| `useViewData()` | View data loading and manipulation (injection state) |
+| `useI18n()` | Internationalization — `const { t } = useI18n()` (from vue-i18n) |
+| `useDialog()` | Dialog/modal management |
+| `useRoles()` | Permission checking |
+| `useUndoRedo()` | Undo/redo operations |
+| `useInjectionState()` | Create provider/consumer composable pairs |
+
+## Pinia Stores
+
+Use `defineStore` with composition API style. Always include HMR support:
+
+```typescript
+export const useMyStore = defineStore('myStore', () => { /* ... */ })
+
+if (import.meta.hot) {
+  import.meta.hot.accept(acceptHMRUpdate(useMyStore as any, import.meta.hot))
+}
+```
+
+## Styling
+
+- WindiCSS utilities via `@apply` in scoped `<style lang="scss">`
+- Component class prefix: `nc-` (e.g., `.nc-my-component`)
+- Ant Design Vue overrides via `:deep(.ant-*)` selectors
+- Dark mode: `@apply bg-white dark:bg-gray-900`
+
+## i18n
+
+```typescript
+const { t } = useI18n()
+t('labels.save')                          // Simple
+t('msg.success.created', { name })        // Interpolation
+```
+
+Translation files in `lang/`. English is the source of truth.
+
+## EE Composable Extension
+
+```typescript
+// ee/composables/useFeature.ts
+import { useFeature as useFeatureCE } from '~/composables/useFeature'
+
+export function useFeature(table) {
+  const ceFeature = useFeatureCE(table)
+  // Add EE-specific functionality
+  return { ...ceFeature, eeData, fetchEEData }
+}
+```
+
+## Commands
+
+```bash
+pnpm dev             # CE dev
+pnpm dev:ee          # EE dev (activates ee/ overlays)
+pnpm build           # CE production
+pnpm build:ee        # EE production
+pnpm lint            # Lint + auto-fix
+```
+
+## Key Config
+
+- `nuxt.config.ts` — SSR disabled (`ssr: false`), hash-based routing
+- `ee/nuxt.config.ts` — Extends base config with `extends: ['../']`
+- Types from `nocodb-sdk` — always import from `'nocodb-sdk'`, never duplicate
+
+## Anti-Patterns
+
+| Don't | Do Instead |
+|-------|-----------|
+| Duplicate SDK types in frontend code | Import from `'nocodb-sdk'` |
+| Skip CE placeholder for EE-only components | Create empty `<template><span /></template>` CE stub |
+| Expose EE-only data to non-owner UI | Audit what's visible in UI, not just API responses |

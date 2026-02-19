@@ -1,8 +1,6 @@
 ---
 name: commando
-description: Start or resume a feature/bug/epic branch with planning and cross-session memory.
-disable-model-invocation: true
-argument-hint: "[branch-name]"
+description: Start or resume a feature/bug/epic branch with PR lifecycle management
 ---
 
 # Commando — PR Lifecycle
@@ -90,6 +88,20 @@ Use these in the `Type` field of `log.md` entries:
 | `resolved` | A blocker was cleared |
 | `scope-change` | Plan was updated — what changed and why |
 
+## Phase 5b: API Walkthrough Phase (Backend Features)
+
+When the plan includes backend API work, add a verification phase to `plan.md`:
+
+```markdown
+### Phase V: API Verification
+- [ ] **V.1** [M] — Create test scenario list (systematic, covers all roles)
+- [ ] **V.2** [M] — Build test script (.claude/branches/{branch}/test.py) and run against live backend
+- [ ] **V.3** [S] — Fix failures, re-run until all pass
+- [ ] **V.4** [S] — Log walkthrough results in log.md
+```
+
+The test script should be a single self-contained Python file that authenticates as multiple roles (owner, editor, viewer), exercises all API operations, and asserts expected vs actual with PASS/FAIL output. Keep updating the same file throughout the PR to prevent regressions.
+
 ## Phase 6: Launch
 
 Summarize branch, type, scope, task count, memory path. Ask: "Ready to start Task 1, or review the plan first?"
@@ -125,6 +137,15 @@ When developer says "create PR":
 Package CLAUDE.md files auto-load when touching those packages. For specialized domains:
 - Automations: `.claude/skills/nocohub-automations/SKILL.md`
 - Sync: `.claude/skills/nocohub-sync/SKILL.md`
+
+## Branch Memory Maintenance
+
+Branch memory is not just for `/commando` — maintain it automatically on any feature branch:
+
+- **Session start**: Read `index.md` to orient (if it exists)
+- **Session end**: Update `log.md` with what was done
+- **Plan changes**: Keep `plan.md` in sync with reality — check off completed tasks, add new ones
+- **Never maintain for `develop` branch** — only feature/fix/chore branches
 
 ## Rules
 

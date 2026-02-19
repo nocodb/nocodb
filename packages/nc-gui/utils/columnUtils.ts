@@ -177,7 +177,7 @@ const uiTypes: UiTypesType[] = [
   },
   {
     name: UITypes.UUID,
-    icon: iconMap.cellText, // Using text icon for now
+    icon: iconMap.cellUuid,
   },
   {
     name: UITypes.User,

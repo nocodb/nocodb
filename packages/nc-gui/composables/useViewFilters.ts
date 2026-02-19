@@ -518,6 +518,22 @@ export function useViewFilters(
               fk_parent_id: parentId.value,
             },
           )
+
+          // Sync updated filter properties to the smartsheet store's allFilters
+          // so PinnedFilters and other consumers see changes immediately
+          if (!isLink && !isWebhook && !isWidget) {
+            const storeFilter = allFilters.value.find((f) => f.id === filter.id)
+            if (storeFilter) {
+              Object.assign(storeFilter, {
+                value: filter.value,
+                comparison_op: filter.comparison_op,
+                comparison_sub_op: filter.comparison_sub_op,
+                fk_column_id: filter.fk_column_id,
+                enabled: filter.enabled,
+                meta: filter.meta,
+              })
+            }
+          }
         } else if (filter.status === 'create') {
           // extract children value if found to restore
           const children = filters.value[+i]?.children
@@ -701,6 +717,22 @@ export function useViewFilters(
           webHook: !!isWebhook,
           workflow: !!isWorkflow,
         })
+
+        // Sync updated filter to the smartsheet store's allFilters
+        // so PinnedFilters and other consumers see changes immediately
+        if (!isLink && !isWebhook && !isWidget) {
+          const storeFilter = allFilters.value.find((f) => f.id === filter.id)
+          if (storeFilter) {
+            Object.assign(storeFilter, {
+              value: filter.value,
+              comparison_op: filter.comparison_op,
+              comparison_sub_op: filter.comparison_sub_op,
+              fk_column_id: filter.fk_column_id,
+              enabled: filter.enabled,
+              meta: filter.meta,
+            })
+          }
+        }
 
         if (undo) {
           filters.value = [...filters.value].sort((a, b) => ncArrSortCallback(a, b, { key: 'order' }))

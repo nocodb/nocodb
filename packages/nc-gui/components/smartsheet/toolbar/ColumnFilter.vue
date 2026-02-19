@@ -345,6 +345,34 @@ watch(
   },
 )
 
+// Watch the smartsheet store's allFilters for external changes (e.g. from PinnedFilters)
+// and sync them back to the local filters so the filter menu stays in sync
+watch(
+  smartsheetAllFilters,
+  (storeFilters) => {
+    if (!storeFilters?.length) return
+    for (const storeFilter of storeFilters) {
+      if (!storeFilter.id) continue
+      const localFilter = filters.value.find((f) => f.id === storeFilter.id)
+      if (!localFilter) continue
+
+      // Sync value, enabled, and meta if they differ
+      if (localFilter.value !== storeFilter.value) {
+        localFilter.value = storeFilter.value
+      }
+      if (localFilter.enabled !== storeFilter.enabled) {
+        localFilter.enabled = storeFilter.enabled
+      }
+      const localMeta = parseProp(localFilter.meta)
+      const storeMeta = parseProp(storeFilter.meta)
+      if (localMeta?.pinned !== storeMeta?.pinned) {
+        localFilter.meta = storeFilter.meta
+      }
+    }
+  },
+  { deep: true },
+)
+
 const filtersCount = computed(() => {
   return Object.values(allFilters.value).reduce((acc, filters) => {
     return acc + filters.filter((el) => !el.is_group).length

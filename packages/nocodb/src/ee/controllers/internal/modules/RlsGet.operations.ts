@@ -13,7 +13,10 @@ export class RlsGetOperations
 {
   constructor(private readonly rlsService: RlsService) {}
 
-  operations = ['rlsPolicyList', 'rlsPolicyGet'] as (keyof typeof OPERATION_SCOPES)[];
+  operations = [
+    'rlsPolicyList',
+    'rlsPolicyGet',
+  ] as (keyof typeof OPERATION_SCOPES)[];
   httpMethod = 'GET' as const;
 
   async handle(

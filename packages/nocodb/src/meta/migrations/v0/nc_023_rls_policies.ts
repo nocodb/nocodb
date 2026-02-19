@@ -21,8 +21,14 @@ const up = async (knex: Knex) => {
     table.primary(['base_id', 'id'], 'nc_rls_policies_pk');
 
     // Indexes
-    table.index(['fk_model_id', 'enabled'], 'nc_rls_policies_model_enabled_idx');
-    table.index(['fk_model_id', 'is_default'], 'nc_rls_policies_model_default_idx');
+    table.index(
+      ['fk_model_id', 'enabled'],
+      'nc_rls_policies_model_enabled_idx',
+    );
+    table.index(
+      ['fk_model_id', 'is_default'],
+      'nc_rls_policies_model_default_idx',
+    );
   });
 
   // Create nc_rls_policy_subjects table (mirrors nc_permission_subjects pattern)

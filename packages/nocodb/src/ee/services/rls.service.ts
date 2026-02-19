@@ -17,10 +17,7 @@ export class RlsService {
 
   constructor(protected readonly appHooksService: AppHooksService) {}
 
-  async listPolicies(
-    context: NcContext,
-    param: { tableId: string },
-  ) {
+  async listPolicies(context: NcContext, param: { tableId: string }) {
     const policies = await RlsPolicy.listByModel(context, param.tableId);
 
     // Load filters for each policy
@@ -36,10 +33,7 @@ export class RlsService {
     return { list: policiesWithFilters };
   }
 
-  async getPolicy(
-    context: NcContext,
-    param: { policyId: string },
-  ) {
+  async getPolicy(context: NcContext, param: { policyId: string }) {
     const policy = await RlsPolicy.get(context, param.policyId);
 
     if (!policy) {

@@ -779,11 +779,7 @@ export default class Filter implements FilterType {
     rlsPolicyId: string,
     ncMeta = Noco.ncMeta,
   ) {
-    const filter = await this.getFilterObject(
-      context,
-      { rlsPolicyId },
-      ncMeta,
-    );
+    const filter = await this.getFilterObject(context, { rlsPolicyId }, ncMeta);
 
     const deleteRecursively = async (filter) => {
       if (!filter) return;

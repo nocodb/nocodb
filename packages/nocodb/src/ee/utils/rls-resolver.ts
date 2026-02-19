@@ -25,8 +25,7 @@ const DYNAMIC_PLACEHOLDERS = {
   '{currentUser.id}': (user: RlsUserContext) => user.id,
   '{currentUser.email}': (user: RlsUserContext) => user.email || '',
   '{currentUser.roles}': (user: RlsUserContext) => user.roles || '',
-  '{currentUser.teams}': (user: RlsUserContext) =>
-    user.teams?.join(',') || '',
+  '{currentUser.teams}': (user: RlsUserContext) => user.teams?.join(',') || '',
 };
 
 /**
@@ -117,11 +116,7 @@ export async function resolveRlsPolicies(
 
   for (const policy of scopedPolicies) {
     if (policy.subjects && policy.subjects.length > 0) {
-      const matches = await userMatchesSubjects(
-        context,
-        user,
-        policy.subjects,
-      );
+      const matches = await userMatchesSubjects(context, user, policy.subjects);
       if (matches) {
         matchedPolicies.push(policy);
       }

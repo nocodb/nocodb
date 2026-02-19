@@ -3724,10 +3724,9 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
     }
 
     try {
-      const {
-        resolveRlsPolicies,
-        resolveRlsDynamicValues,
-      } = await import('~/ee/utils/rls-resolver');
+      const { resolveRlsPolicies, resolveRlsDynamicValues } = await import(
+        '~/ee/utils/rls-resolver'
+      );
 
       // Build user context for RLS resolution
       let baseRoles = '';
@@ -3846,9 +3845,7 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
         });
         if (filters?.length) {
           const resolvedFilters = resolveRlsDynamicValues(filters, rlsUser);
-          allFilters.push(
-            ...resolvedFilters.map((f) => new Filter(f)),
-          );
+          allFilters.push(...resolvedFilters.map((f) => new Filter(f)));
         }
       }
 

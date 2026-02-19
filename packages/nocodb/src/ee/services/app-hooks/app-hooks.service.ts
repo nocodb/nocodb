@@ -14,6 +14,9 @@ import type {
   RecordTemplateDeleteEvent,
   RecordTemplateUpdateEvent,
   RecordTemplateUseEvent,
+  RlsPolicyCreateEvent,
+  RlsPolicyDeleteEvent,
+  RlsPolicyUpdateEvent,
   SandboxCreateEvent,
   SandboxDeleteEvent,
   SandboxDiscardEvent,
@@ -40,13 +43,6 @@ import type {
   WorkspaceTeamInviteEvent,
   WorkspaceTeamUpdateEvent,
   WorkspaceUserInviteEvent,
-  SandboxCreateEvent,
-  SandboxDeleteEvent,
-  SandboxDiscardEvent,
-  SandboxMergeEvent,
-  RlsPolicyCreateEvent,
-  RlsPolicyUpdateEvent,
-  RlsPolicyDeleteEvent,
 } from './interfaces';
 import type { AppEvents } from 'nocodb-sdk';
 
@@ -738,6 +734,7 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.SANDBOX_DELETE, data: SandboxDeleteEvent): void;
   emit(event: AppEvents.SANDBOX_DISCARD, data: SandboxDiscardEvent): void;
   emit(event: AppEvents.SANDBOX_MERGE, data: SandboxMergeEvent): void;
+
   emit(event: AppEvents.RLS_POLICY_CREATE, data: RlsPolicyCreateEvent): void;
   emit(event: AppEvents.RLS_POLICY_UPDATE, data: RlsPolicyUpdateEvent): void;
   emit(event: AppEvents.RLS_POLICY_DELETE, data: RlsPolicyDeleteEvent): void;

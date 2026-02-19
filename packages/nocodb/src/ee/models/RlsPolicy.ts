@@ -156,11 +156,9 @@ export default class RlsPolicy {
     modelId: string,
     ncMeta = Noco.ncMeta,
   ): Promise<RlsPolicy[]> {
-    const cachedList = await NocoCache.getList(
-      context,
-      CacheScope.RLS_POLICY,
-      [modelId],
-    );
+    const cachedList = await NocoCache.getList(context, CacheScope.RLS_POLICY, [
+      modelId,
+    ]);
 
     const { list: policyList } = cachedList;
 
@@ -415,11 +413,9 @@ export default class RlsPolicy {
       );
     }
 
-    await NocoCache.update(
-      context,
-      `${CacheScope.RLS_POLICY}:${policyId}`,
-      { subjects },
-    );
+    await NocoCache.update(context, `${CacheScope.RLS_POLICY}:${policyId}`, {
+      subjects,
+    });
 
     return subjects;
   }
@@ -438,11 +434,9 @@ export default class RlsPolicy {
       },
     );
 
-    await NocoCache.update(
-      context,
-      `${CacheScope.RLS_POLICY}:${policyId}`,
-      { subjects: [] },
-    );
+    await NocoCache.update(context, `${CacheScope.RLS_POLICY}:${policyId}`, {
+      subjects: [],
+    });
 
     return res;
   }
@@ -515,10 +509,7 @@ export default class RlsPolicy {
     return affectedPolicyIds;
   }
 
-  public static async clearModelCache(
-    context: NcContext,
-    modelId: string,
-  ) {
+  public static async clearModelCache(context: NcContext, modelId: string) {
     await NocoCache.deepDel(
       context,
       `${CacheScope.RLS_POLICY}:${modelId}:list`,

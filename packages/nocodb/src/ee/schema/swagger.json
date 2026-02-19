@@ -6040,10 +6040,6 @@
           "attachment_mode_column_id": {
             "$ref": "#/components/schemas/Id",
             "description": "ID of column used for attachment mode"
-          },
-          "fk_view_section_id": {
-            "$ref": "#/components/schemas/StringOrNull",
-            "description": "Foreign Key to View Section (folder)"
           }
         }
       },
@@ -6436,138 +6432,7 @@
             "description": "Custom url path"
           }
         }
-      },
-      "ViewSection": {
-        "description": "Model for View Section",
-        "title": "View Section Model",
-        "type": "object",
-        "properties": {
-          "id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Unique ID"
-          },
-          "fk_workspace_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Workspace ID",
-            "readOnly": true
-          },
-          "base_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Base ID",
-            "readOnly": true
-          },
-          "source_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Source ID",
-            "readOnly": true
-          },
-          "fk_model_id": {
-            "$ref": "#/components/schemas/Id",
-            "description": "Foreign Key to Model (table)"
-          },
-          "title": {
-            "type": "string",
-            "maxLength": 255,
-            "description": "Section Title"
-          },
-          "order": {
-            "type": "number",
-            "description": "Display Order"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta",
-            "description": "Meta info"
-          },
-          "created_by": {
-            "$ref": "#/components/schemas/Id",
-            "description": "ID of user who created this section",
-            "readOnly": true
-          },
-          "updated_by": {
-            "$ref": "#/components/schemas/Id",
-            "description": "ID of user who last updated this section",
-            "readOnly": true
-          },
-          "created_at": {
-            "type": "string",
-            "description": "Created At timestamp",
-            "readOnly": true
-          },
-          "updated_at": {
-            "type": "string",
-            "description": "Updated At timestamp",
-            "readOnly": true
-          }
-        },
-        "required": [
-          "fk_model_id",
-          "title"
-        ]
-      },
-      "ViewSectionList": {
-        "description": "Model for View Section List",
-        "title": "View Section List Model",
-        "type": "object",
-        "properties": {
-          "list": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ViewSection"
-            }
-          }
-        },
-        "required": [
-          "list"
-        ]
-      },
-      "ViewSectionCreateReq": {
-        "description": "Model for View Section Create Request",
-        "title": "View Section Create Request Model",
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "maxLength": 255,
-            "minLength": 1,
-            "description": "Section Title"
-          },
-          "order": {
-            "type": "number",
-            "description": "Display Order",
-            "minimum": 0
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta",
-            "description": "Meta info"
-          }
-        },
-        "required": [
-          "title"
-        ]
-      },
-      "ViewSectionUpdateReq": {
-        "description": "Model for View Section Update Request",
-        "title": "View Section Update Request Model",
-        "type": "object",
-        "properties": {
-          "title": {
-            "type": "string",
-            "maxLength": 255,
-            "minLength": 1,
-            "description": "Section Title"
-          },
-          "order": {
-            "type": "number",
-            "description": "Display Order",
-            "minimum": 0
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta",
-            "description": "Meta info"
-          }
-        }
       }
     }
   }
 }
-

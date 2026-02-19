@@ -98,7 +98,7 @@ export const useRealtime = createSharedComposable(() => {
       const baseId = payload.base_id
       if (baseId) {
         loadProjectTables(baseId, true).then(() => {
-          const tables = baseTables.value.get(activeBaseId.value)
+          const tables = baseTables.value.get(baseId)
           for (const table of tables || []) {
             if (table.id && table.source_id === payload.source_id) {
               getMeta(baseId, table.id, true)
@@ -110,12 +110,15 @@ export const useRealtime = createSharedComposable(() => {
         })
       }
     } else if (event.action === 'table_create') {
-      const tables = baseTables.value.get(activeBaseId.value)
+      const eventBaseId = event.payload.base_id
+      if (!eventBaseId || eventBaseId !== activeBaseId.value) return
+
+      const tables = baseTables.value.get(eventBaseId)
       if (!tables) {
-        loadProjectTables(activeBaseId.value, true)
+        loadProjectTables(eventBaseId, true)
       } else {
         tables.push(event.payload)
-        baseTables.value.set(activeBaseId.value, tables)
+        baseTables.value.set(eventBaseId, tables)
       }
       refreshCommandPalette()
     } else if (event.action === 'table_permission_update') {
@@ -123,7 +126,10 @@ export const useRealtime = createSharedComposable(() => {
       refreshCommandPalette()
     } else if (event.action === 'table_update') {
       const updatedTable = event.payload
-      const tables = baseTables.value.get(activeBaseId.value)
+      const eventBaseId = updatedTable.base_id
+      if (!eventBaseId || eventBaseId !== activeBaseId.value) return
+
+      const tables = baseTables.value.get(eventBaseId)
       if (tables) {
         const index = tables.findIndex((t) => t.id === updatedTable.id)
         if (index !== -1) {
@@ -132,17 +138,20 @@ export const useRealtime = createSharedComposable(() => {
 
         tables.sort((a, b) => (a.order ?? Infinity) - (b.order ?? Infinity))
 
-        baseTables.value.set(activeBaseId.value, tables)
+        baseTables.value.set(eventBaseId, tables)
       } else {
-        loadProjectTables(activeBaseId.value, true)
+        loadProjectTables(eventBaseId, true)
       }
       refreshCommandPalette()
     } else if (event.action === 'table_delete') {
+      const eventBaseId = event.payload.base_id
+      if (!eventBaseId || eventBaseId !== activeBaseId.value) return
+
       const deletedTableId = event.payload.id
-      const tables = baseTables.value.get(activeBaseId.value)
+      const tables = baseTables.value.get(eventBaseId)
       if (tables) {
         const updatedTables = tables.filter((t) => t.id !== deletedTableId)
-        baseTables.value.set(activeBaseId.value, updatedTables)
+        baseTables.value.set(eventBaseId, updatedTables)
         if (activeTableId.value === deletedTableId) {
           if (updatedTables.length > 0 && updatedTables[0]?.id) {
             navigateToTable({
@@ -155,7 +164,7 @@ export const useRealtime = createSharedComposable(() => {
           } else {
             ncNavigateTo({
               workspaceId: activeWorkspaceId.value,
-              baseId: activeBaseId.value,
+              baseId: eventBaseId,
               tableId: undefined,
             })
             showInfoModal({
@@ -165,11 +174,13 @@ export const useRealtime = createSharedComposable(() => {
           }
         }
       } else {
-        loadProjectTables(activeBaseId.value, true)
+        loadProjectTables(eventBaseId, true)
       }
       refreshCommandPalette()
     } else if (event.action === 'column_add' || event.action === 'column_update' || event.action === 'column_delete') {
       const { table, column, skipDataReload = false } = event.payload
+      if (!table.base_id || table.base_id !== activeBaseId.value) return
+
       setMeta(table)
       if (event.action === 'column_update' || (event.action === 'column_add' && (isVirtualCol(column) || !!column?.cdf))) {
         $eventBus.smartsheetStoreEventBus.emit(SmartsheetStoreEvents.FIELD_UPDATE)

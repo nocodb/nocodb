@@ -1,15 +1,24 @@
 <script lang="ts" setup>
 import type { SSOClientType } from 'nocodb-sdk'
 import { PlanFeatureTypes } from 'nocodb-sdk'
+import { FEATURE_FLAG } from '~/composables/useBetaFeatureToggle'
 
 const { fetchProviders, providers, deleteProvider, updateProvider, addProvider, getPrePopulatedProvider, signInUrl } =
   useAuthentication(false, true)
 
 const { getFeature, handleUpgradePlan } = useEeConfig()
 const { appInfo } = useGlobal()
+const { isFeatureEnabled } = useBetaFeatureToggle()
 
-const isScimAvail = computed(() => {
+// Feature flag controls visibility of the entire SCIM section
+const isScimFeatureEnabled = computed(() => {
   if (!isEeUI) return false
+  return isFeatureEnabled(FEATURE_FLAG.SCIM)
+})
+
+// Plan check controls whether SCIM can be configured (vs showing upgrade prompt)
+const isScimAvail = computed(() => {
+  if (!isScimFeatureEnabled.value) return false
   // On cloud: requires SCIM feature in the plan
   // On-prem EE: always available (no plan gating)
   if (appInfo.value?.isCloud) {
@@ -389,8 +398,8 @@ onMounted(async () => {
           </div>
         </div>
 
-        <!-- SCIM Provisioning Section -->
-        <div class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-4">
+        <!-- SCIM Provisioning Section (behind feature flag, disabled by default) -->
+        <div v-if="isScimFeatureEnabled" class="flex flex-col border-1 rounded-2xl border-nc-border-gray-medium p-6 gap-y-4">
         <div class="flex font-bold justify-between text-base items-center" data-rec="true">
           <span>SCIM Provisioning</span>
           <template v-if="isScimAvail">

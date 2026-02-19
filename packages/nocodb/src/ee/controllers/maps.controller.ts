@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Req } from '@nestjs/common';
+import { Body, Controller, HttpCode, Param, Post, Req } from '@nestjs/common';
 import type { ViewCreateReqType } from 'nocodb-sdk';
 import { MapsController as MapsControllerCE } from 'src/controllers/maps.controller';
 import {
@@ -6,6 +6,7 @@ import {
   PlanFeatureTypes,
 } from '~/helpers/paymentHelpers';
 import { MapsService } from '~/services/maps.service';
+import { Acl } from '~/middlewares/extract-ids/extract-ids.middleware';
 import { NcContext, NcRequest } from '~/interface/config';
 import { TenantContext } from '~/decorators/tenant-context.decorator';
 
@@ -15,6 +16,12 @@ export class MapsController extends MapsControllerCE {
     super(mapsServiceEE);
   }
 
+  @Post([
+    '/api/v1/db/meta/tables/:tableId/maps',
+    '/api/v2/meta/tables/:tableId/maps',
+  ])
+  @HttpCode(200)
+  @Acl('mapViewCreate')
   async mapViewCreate(
     @TenantContext() context: NcContext,
     @Param('tableId') tableId: string,

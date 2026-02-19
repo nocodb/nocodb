@@ -2,6 +2,7 @@ import FilterCE from 'src/models/Filter';
 import { Logger } from '@nestjs/common';
 import type { FilterType } from 'nocodb-sdk';
 import type { NcContext } from '~/interface/config';
+import { getFeature, PlanFeatureTypes } from '~/ee/helpers/paymentHelpers';
 import RowColorCondition from '~/models/RowColorCondition';
 import Column from '~/models/Column';
 import Hook from '~/models/Hook';
@@ -26,6 +27,13 @@ export default class Filter extends FilterCE implements FilterType {
   fk_link_col_id?: string;
   fk_value_col_id?: string;
   fk_widget_id?: string;
+
+  static async supportToggle(context: NcContext) {
+    return getFeature(
+      PlanFeatureTypes.FEATURE_TOGGLE_FILTER,
+      context.workspace_id,
+    );
+  }
 
   public static castType(filter: Filter): Filter {
     return filter && new Filter(filter);

@@ -64,6 +64,10 @@ export default class Filter implements FilterType {
     return filter && new Filter(filter);
   }
 
+  static async supportToggle(_context: NcContext) {
+    return false;
+  }
+
   public async getModel(
     context: NcContext,
     ncMeta = Noco.ncMeta,

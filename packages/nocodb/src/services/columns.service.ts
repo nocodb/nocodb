@@ -690,11 +690,17 @@ export class ColumnsService implements IColumnsService {
     }
 
     // Check if default value is being set when unique constraint is enabled
+    // Exclude UUID fields which are allowed to have both unique constraint and auto-generation
+    // Also check the original column type to handle cases where uidt might not be sent in the update request
+    const isUUIDColumn =
+      (param.column.uidt || column.uidt) === UITypes.UUID ||
+      column.uidt === UITypes.UUID;
     if (
       'cdf' in param.column &&
       param.column.cdf !== null &&
       param.column.cdf !== undefined &&
-      param.column.cdf !== ''
+      param.column.cdf !== '' &&
+      !isUUIDColumn
     ) {
       const currentUnique =
         param.column.unique !== undefined ? param.column.unique : column.unique;
@@ -2636,11 +2642,13 @@ export class ColumnsService implements IColumnsService {
     }
 
     // Check if default value is being set when unique constraint is enabled
+    // Exclude UUID fields which are allowed to have both unique constraint and auto-generation
     if (
       originalCdf !== null &&
       originalCdf !== undefined &&
       originalCdf !== '' &&
-      colBody.unique
+      colBody.unique &&
+      colBody.uidt !== UITypes.UUID
     ) {
       NcError.get(context).badRequest(
         'Default values are not allowed for unique fields. Please disable the unique constraint first.',
@@ -2712,6 +2720,68 @@ export class ColumnsService implements IColumnsService {
           ...colBody,
           fk_model_id: table.id,
         });
+        break;
+      case UITypes.UUID:
+        {
+          // UUID is only supported for PostgreSQL databases
+          if (source.type !== 'pg') {
+            NcError.get(context).badRequest(
+              'UUID field type is supported only for PostgreSQL databases',
+            );
+          }
+
+          // Get column properties from UI type (sets dt='uuid', cdf='gen_random_uuid()')
+          colBody = await getColumnPropsFromUIDT(colBody, source);
+
+          // UUID fields must have unique constraint (per PRD requirement DR-2)
+          colBody.unique = true;
+
+          // Generate column ID upfront for unique constraint name
+          const columnId = await ncMeta.genNanoid(MetaTable.COLUMNS);
+          (colBody as any).base_id = context.base_id;
+          (colBody as any).fk_model_id = table.id;
+          (colBody as any).id = columnId;
+
+          // Generate unique constraint name and store in internal_meta
+          const internalMeta = this.storeUniqueConstraintNameInInternalMeta(
+            context,
+            {
+              base_id: context.base_id,
+              fk_model_id: table.id,
+              id: columnId,
+            },
+          );
+          colBody.internal_meta = internalMeta;
+
+          // Create the physical column in the database
+          const tableUpdateBody = {
+            ...table,
+            tn: table.table_name,
+            originalColumns: table.columns.map((c) => ({
+              ...c,
+              cn: c.column_name,
+            })),
+            columns: [
+              ...table.columns.map((c) => ({ ...c, cn: c.column_name })),
+              {
+                ...colBody,
+                cn: colBody.column_name,
+                altered: Altered.NEW_COLUMN,
+              },
+            ],
+          };
+
+          const sqlMgr = await reuseOrSave('sqlMgr', reuse, async () =>
+            ProjectMgrv2.getSqlMgr(context, { id: source.base_id }),
+          );
+          await sqlMgr.sqlOpPlus(source, 'tableUpdate', tableUpdateBody);
+
+          // Save the column metadata
+          savedColumn = await Column.insert(context, {
+            ...colBody,
+            fk_model_id: table.id,
+          });
+        }
         break;
       case UITypes.Formula:
         try {
@@ -3481,6 +3551,8 @@ export class ColumnsService implements IColumnsService {
       case UITypes.QrCode:
       case UITypes.Barcode:
       case UITypes.Button:
+        // PR review fix #3: UUID removed from this group — it has a physical DB column
+        // and must go through the default path (sqlOpPlus + tableUpdate) to drop it.
         await Column.delete2(
           context,
           {

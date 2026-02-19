@@ -88,6 +88,9 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockUnique = computed(() => true)
 
+  // UUID field is EE-only — always blocked in CE
+  const blockUuidField = computed(() => true)
+
   const calculatePrice = (..._args: any[]) => {}
 
   const getLimit = (..._args: any[]) => {}
@@ -159,6 +162,8 @@ export const useEeConfig = createSharedComposable(() => {
   const showUpgradeToUseSync = (..._args: any[]) => {}
 
   const showUpgradeToUseUnique = (..._args: any[]) => {}
+
+  const showUpgradeToUseUuidField = (..._args: any[]) => {}
 
   return {
     calculatePrice,
@@ -232,7 +237,9 @@ export const useEeConfig = createSharedComposable(() => {
     blockCardFieldHeaderVisibility,
     blockSync,
     blockUnique,
+    blockUuidField,
     showUpgradeToUseSync,
     showUpgradeToUseUnique,
+    showUpgradeToUseUuidField,
   }
 })

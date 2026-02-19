@@ -232,13 +232,8 @@ function onCreateSection() {
               <div>{{ $t('objects.viewType.map') }}</div>
             </div>
 
-            <template v-if="blockMapView">
-              <EePaymentUpgradeBadge :feature="PlanFeatureTypes.FEATURE_MAP_VIEW" />
-            </template>
-            <template v-else>
-              <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
-              <GeneralIcon v-else class="plus" icon="plus" />
-            </template>
+            <GeneralLoader v-if="toBeCreateType === ViewTypes.MAP && isViewListLoading" />
+            <GeneralIcon v-else class="plus" icon="plus" />
           </div>
         </NcMenuItem>
 

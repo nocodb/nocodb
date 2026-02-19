@@ -1,11 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import { BaseVersion } from 'nocodb-sdk';
+import { AppEvents, BaseVersion } from 'nocodb-sdk';
 import type { NcContext, NcRequest } from '~/interface/config';
 import { Base, Sandbox } from '~/models';
 import { AppHooksService } from '~/services/app-hooks/app-hooks.service';
 import { BasesService } from '~/services/bases.service';
 import { IJobsService } from '~/modules/jobs/jobs-service.interface';
-// import { JobTypes } from '~/interface/Jobs';
 import { NcError } from '~/helpers/catchError';
 import Noco from '~/Noco';
 import {
@@ -77,6 +76,13 @@ export class SandboxesService {
       await Base.delete(sandboxContext, sandbox.sandbox_base_id, ncMeta);
 
       await ncMeta.commit();
+
+      this.appHooksService.emit(AppEvents.SANDBOX_DELETE, {
+        context,
+        sandboxId: sandbox.id,
+        baseId: sandbox.sandbox_base_id,
+        req: _param.req,
+      });
 
       return true;
     } catch (e) {
@@ -175,6 +181,13 @@ export class SandboxesService {
           excludeWorkflows: false,
         },
         req,
+      });
+
+      this.appHooksService.emit(AppEvents.SANDBOX_CREATE, {
+        context,
+        sandboxId: sandbox.id,
+        baseId: sandboxBase.id,
+        req: param.req,
       });
 
       return {
@@ -283,6 +296,14 @@ export class SandboxesService {
     try {
       await applyMeta(sandboxContext, diff, ncMeta);
       await ncMeta.commit();
+
+      this.appHooksService.emit(AppEvents.SANDBOX_DISCARD, {
+        context,
+        sandboxId: sandbox.id,
+        baseId: sandbox.sandbox_base_id,
+        req: _param.req,
+      });
+
       return true;
     } catch (e) {
       await ncMeta.rollback();
@@ -371,6 +392,15 @@ export class SandboxesService {
     try {
       await applyMeta(masterContext, diff, ncMeta);
       await ncMeta.commit();
+
+      this.appHooksService.emit(AppEvents.SANDBOX_MERGE, {
+        context,
+        sandboxId: sandbox.id,
+        baseId: sandbox.sandbox_base_id,
+        masterBaseId: sandbox.master_base_id,
+        req: _param.req,
+      });
+
       return true;
     } catch (e) {
       await ncMeta.rollback();

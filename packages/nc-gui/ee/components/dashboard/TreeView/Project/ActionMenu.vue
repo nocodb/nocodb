@@ -124,7 +124,7 @@ const isOptionVisible = computed(() => {
 
     <NcMenuItem v-if="isOptionVisible.createSandbox" data-testid="nc-sidebar-base-create-sandbox" @click="emits('createSandbox')">
       <GeneralIcon icon="ncGitBranch" />
-      Create new sandbox
+      {{ $t('labels.createNewSandbox') }}
     </NcMenuItem>
 
     <NcMenuItem
@@ -133,7 +133,7 @@ const isOptionVisible = computed(() => {
       @click="emits('viewAllSandboxes')"
     >
       <GeneralIcon icon="ncList" />
-      View all sandboxes
+      {{ $t('labels.viewAllSandboxes') }}
     </NcMenuItem>
 
     <NcDivider />

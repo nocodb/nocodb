@@ -298,4 +298,25 @@ export interface BaseTeamDeleteEvent extends NcBaseEvent {
   role: string;
 }
 
+export interface SandboxCreateEvent extends NcBaseEvent {
+  sandboxId: string;
+  baseId: string;
+}
+
+export interface SandboxDeleteEvent extends NcBaseEvent {
+  sandboxId: string;
+  baseId: string;
+}
+
+export interface SandboxDiscardEvent extends NcBaseEvent {
+  sandboxId: string;
+  baseId: string;
+}
+
+export interface SandboxMergeEvent extends NcBaseEvent {
+  sandboxId: string;
+  baseId: string;
+  masterBaseId: string;
+}
+
 export * from 'src/services/app-hooks/interfaces';

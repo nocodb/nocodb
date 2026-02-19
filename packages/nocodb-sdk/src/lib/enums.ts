@@ -257,6 +257,7 @@ export enum AppEvents {
   WORKFLOW_EXECUTE = 'workflow.execute',
 
   SANDBOX_CREATE = 'sandbox.create',
+  SANDBOX_DELETE = 'sandbox.delete',
   SANDBOX_DISCARD = 'sandbox.discard',
   SANDBOX_MERGE = 'sandbox.merge',
 }

@@ -12,6 +12,8 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { $api } = useNuxtApp()
 
+const { t } = useI18n()
+
 const { user } = useGlobal()
 
 const { activeWorkspaceId } = storeToRefs(useWorkspace())
@@ -37,7 +39,7 @@ const loadSandboxes = async () => {
   try {
     const response = (await $api.internal.getOperation(activeWorkspaceId.value, props.base.id, {
       operation: 'sandboxList',
-    } as any)) as any[]
+    })) as any[]
 
     sandboxes.value = response || []
   } catch (e: any) {
@@ -70,7 +72,7 @@ const formatDate = (dateStr: string) => {
   const diffHours = Math.floor(diffMins / 60)
   const diffDays = Math.floor(diffHours / 24)
 
-  if (diffMins < 1) return 'Just now'
+  if (diffMins < 1) return t('labels.justNow')
   if (diffMins < 60) return `${diffMins}m ago`
   if (diffHours < 24) return `${diffHours}h ago`
   if (diffDays < 7) return `${diffDays}d ago`
@@ -84,11 +86,11 @@ const handleCreateSandbox = () => {
 }
 
 const getUserDisplay = (userId: string) => {
-  const user = baseUsers.value.find((u) => u.id === userId)
-  if (user) {
-    return user.display_name || user.email || 'Unknown User'
+  const matchedUser = baseUsers.value.find((u) => u.id === userId)
+  if (matchedUser) {
+    return matchedUser.display_name || matchedUser.email || t('labels.unknownUser')
   }
-  return 'Unknown User'
+  return t('labels.unknownUser')
 }
 
 const isDeleting = ref<string | null>(null)
@@ -101,7 +103,7 @@ const deleteSandbox = async (sandbox: any) => {
   try {
     await $api.internal.postOperation(activeWorkspaceId.value, sandbox.sandbox_base_id, {
       operation: 'sandboxDelete',
-    } as any)
+    })
 
     // Remove from local list
     sandboxes.value = sandboxes.value.filter((s) => s.id !== sandbox.id)
@@ -141,8 +143,8 @@ watch(
             <GeneralIcon icon="ncGitBranch" class="w-5 h-5 text-orange-600" />
           </div>
           <div>
-            <div class="text-base text-nc-content-gray-emphasis font-bold">All Sandboxes</div>
-            <div class="text-sm text-nc-content-gray-muted">Manage sandboxes for {{ base.title }}</div>
+            <div class="text-base text-nc-content-gray-emphasis font-bold">{{ t('labels.allSandboxes') }}</div>
+            <div class="text-sm text-nc-content-gray-muted">{{ t('labels.manageSandboxesFor', { title: base.title }) }}</div>
           </div>
         </div>
         <NcButton type="text" size="xsmall" class="!px-1" @click="dialogShow = false">
@@ -164,7 +166,7 @@ watch(
 
         <!-- Empty -->
         <div v-else-if="sandboxes.length === 0" class="text-center py-8 text-nc-content-gray-muted">
-          No sandboxes found. Create one to get started.
+          {{ t('labels.noSandboxesFound') }}
         </div>
 
         <!-- Sandbox List -->
@@ -184,19 +186,19 @@ watch(
             <div class="flex-1 min-w-0 flex flex-col gap-1">
               <!-- Title -->
               <div class="font-semibold text-sm text-nc-content-gray-emphasis truncate leading-5">
-                {{ getSandboxBase(sandbox)?.title || 'Sandbox' }}
+                {{ getSandboxBase(sandbox)?.title || t('labels.sandbox') }}
               </div>
 
               <!-- Description -->
               <div class="text-xs text-nc-content-gray-muted truncate leading-4">
-                {{ sandbox.meta?.description || 'No description provided.' }}
+                {{ sandbox.meta?.description || t('labels.noDescriptionProvided') }}
               </div>
 
               <!-- Metadata row -->
               <div class="flex items-center gap-3 text-xs text-nc-content-gray-subtle">
                 <div class="flex items-center gap-1.5">
                   <GeneralIcon icon="user" class="w-3.5 h-3.5" />
-                  <span v-if="sandbox.created_by === user.id">You</span>
+                  <span v-if="sandbox.created_by === user.id">{{ $t('general.you') }}</span>
                   <span v-else>
                     {{ getUserDisplay(sandbox.created_by) }}
                   </span>
@@ -218,7 +220,7 @@ watch(
                   <NcMenuItem class="!text-red-500 !hover:bg-red-50" @click.stop="deleteSandbox(sandbox)">
                     <GeneralLoader v-if="isDeleting === sandbox.id" size="small" />
                     <GeneralIcon v-else icon="delete" class="w-4 h-4" />
-                    <span>Delete Sandbox</span>
+                    <span>{{ t('labels.deleteSandbox') }}</span>
                   </NcMenuItem>
                 </NcMenu>
               </template>
@@ -231,7 +233,7 @@ watch(
       <div class="flex flex-row gap-x-2 justify-end mt-4">
         <NcButton type="primary" size="small" @click="handleCreateSandbox">
           <GeneralIcon icon="ncGitBranch" class="w-4 h-4 mr-1" />
-          Create Sandbox
+          {{ t('labels.createSandbox') }}
         </NcButton>
       </div>
     </div>

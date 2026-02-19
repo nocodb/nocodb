@@ -96,13 +96,13 @@ export const useBase = defineStore('baseStore', () => {
       // Fetch sandbox record using sandboxGet operation
       const response = await api.internal.getOperation(base.value.fk_workspace_id, base.value.id, {
         operation: 'sandboxGet',
-      } as any)
+      })
 
       if (response) {
         sandboxInfo.value = response
       }
-    } catch (e) {
-      console.error('Failed to load sandbox info:', e)
+    } catch (_e) {
+      // Sandbox info not available
     }
   }
 

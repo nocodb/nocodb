@@ -12,6 +12,8 @@ const dialogShow = useVModel(props, 'modelValue', emit)
 
 const { $api, $poller } = useNuxtApp()
 
+const { t } = useI18n()
+
 const basesStore = useBases()
 
 const { loadProjects } = basesStore
@@ -49,7 +51,7 @@ const createSandbox = async () => {
       props.base.id,
       {
         operation: 'sandboxCreate',
-      } as any,
+      },
       {
         title: title.value,
         description: description.value,
@@ -79,7 +81,7 @@ const createSandbox = async () => {
               refreshCommandPalette()
             } else if (data.status === JobStatus.FAILED) {
               status.value = 'error'
-              errorMessage.value = data?.data?.error?.message || 'Failed to create sandbox'
+              errorMessage.value = data?.data?.error?.message || t('labels.failedToCreateSandbox')
               refreshCommandPalette()
             }
           }
@@ -164,21 +166,21 @@ onKeyStroke('Enter', () => {
         <template v-if="['pending', 'loading'].includes(status)">
           <div class="flex items-center gap-2">
             <GeneralIcon icon="ncGitBranch" class="w-5 h-5 text-orange-600" />
-            <span>Create Sandbox</span>
+            <span>{{ t('labels.createSandbox') }}</span>
           </div>
         </template>
 
         <template v-else-if="status === 'success'">
           <div class="flex items-center gap-2">
             <GeneralIcon class="text-green-600 w-6 h-6" icon="checkFill" />
-            <div class="text-nc-content-gray-emphasis font-semibold">Sandbox Created</div>
+            <div class="text-nc-content-gray-emphasis font-semibold">{{ t('labels.sandboxCreated') }}</div>
           </div>
         </template>
 
         <template v-else-if="status === 'error'">
           <div class="flex items-center gap-2">
             <GeneralIcon icon="ncInfoSolid" class="flex-none !text-red-700 w-6 h-6" />
-            <div class="text-nc-content-gray-emphasis font-semibold">Failed to Create Sandbox</div>
+            <div class="text-nc-content-gray-emphasis font-semibold">{{ t('labels.failedToCreateSandbox') }}</div>
           </div>
         </template>
       </div>
@@ -188,17 +190,24 @@ onKeyStroke('Enter', () => {
         <div class="mt-5 flex flex-col gap-4">
           <!-- Title -->
           <div>
-            <label class="text-nc-content-gray font-medium text-sm mb-1 block">Title</label>
-            <a-input v-model:value="title" :disabled="isLoading" placeholder="Enter sandbox title" class="!rounded-lg" />
+            <label class="text-nc-content-gray font-medium text-sm mb-1 block">{{ t('labels.sandboxTitle') }}</label>
+            <a-input
+              v-model:value="title"
+              :disabled="isLoading"
+              :placeholder="t('labels.enterSandboxTitle')"
+              class="!rounded-lg"
+            />
           </div>
 
           <!-- Description -->
           <div>
-            <label class="text-nc-content-gray font-medium text-sm mb-1 block">Description (optional)</label>
+            <label class="text-nc-content-gray font-medium text-sm mb-1 block">{{
+              t('labels.sandboxDescriptionOptional')
+            }}</label>
             <a-textarea
               v-model:value="description"
               :disabled="isLoading"
-              placeholder="What are you working on in this sandbox?"
+              :placeholder="t('labels.sandboxDescriptionPlaceholder')"
               :rows="3"
               class="!rounded-lg"
             />
@@ -212,15 +221,15 @@ onKeyStroke('Enter', () => {
             @click="options.includeData = !options.includeData"
           >
             <NcSwitch :checked="options.includeData" :disabled="isLoading" />
-            Include records
+            {{ t('labels.includeRecords') }}
           </div>
         </div>
       </template>
 
       <template v-else-if="status === 'success'">
         <div class="text-nc-content-gray-emphasis my-5 font-medium">
-          Sandbox <span class="font-bold">"{{ title }}"</span> has been created successfully. <br /><br />
-          You can now make changes to this sandbox. When ready, publish your changes back to the master base.
+          {{ t('labels.sandboxCreatedSuccess', { title }) }} <br /><br />
+          {{ t('labels.sandboxCreatedInstructions') }}
         </div>
       </template>
 
@@ -234,7 +243,7 @@ onKeyStroke('Enter', () => {
     <!-- Footer -->
     <div class="flex flex-row gap-x-2 justify-end mt-5">
       <NcButton v-if="!isLoading" type="secondary" size="small" @click="dialogShow = false">
-        {{ status === 'success' ? 'Close' : $t('general.cancel') }}
+        {{ status === 'success' ? $t('general.close') : $t('general.cancel') }}
       </NcButton>
       <NcButton
         v-e="['a:sandbox:create']"
@@ -245,14 +254,14 @@ onKeyStroke('Enter', () => {
       >
         <template v-if="status === 'pending'">
           <GeneralIcon icon="ncGitBranch" class="w-4 h-4 mr-1" />
-          Create Sandbox
+          {{ t('labels.createSandbox') }}
         </template>
-        <template v-else-if="status === 'loading'"> Creating Sandbox... </template>
+        <template v-else-if="status === 'loading'"> {{ t('labels.creatingSandbox') }} </template>
         <template v-else-if="status === 'success'">
           <GeneralIcon icon="ncArrowRight" class="w-4 h-4 mr-1" />
-          Go to Sandbox
+          {{ t('labels.goToSandbox') }}
         </template>
-        <template v-else-if="status === 'error'"> Try Again </template>
+        <template v-else-if="status === 'error'"> {{ $t('general.tryAgain') }} </template>
       </NcButton>
     </div>
   </GeneralModal>

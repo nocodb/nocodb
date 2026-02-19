@@ -392,6 +392,7 @@ const permissionScopes = {
     'sandboxGet',
     'sandboxCreate',
     'sandboxDiscard',
+    'sandboxDelete',
     'sandboxMerge',
     'sandboxDiff',
 
@@ -1184,6 +1185,7 @@ const permissionDescriptions: Record<string, string> = {
   sandboxCreate: 'create a sandbox environment for the base',
   sandboxDiscard: 'discard an active sandbox environment',
   sandboxMerge: 'merge sandbox changes back to the master base',
+  sandboxDelete: 'delete a sandbox environment',
   sandboxDiff: 'view differences between sandbox and master base',
 
   viewRowColorInfo: 'view row colouring info',

@@ -32,6 +32,10 @@ import type {
   WorkspaceTeamInviteEvent,
   WorkspaceTeamUpdateEvent,
   WorkspaceUserInviteEvent,
+  SandboxCreateEvent,
+  SandboxDeleteEvent,
+  SandboxDiscardEvent,
+  SandboxMergeEvent,
 } from './interfaces';
 import type { AppEvents } from 'nocodb-sdk';
 
@@ -340,6 +344,23 @@ export class AppHooksService extends ApppHookServiceCE {
   on(
     event: AppEvents.WORKFLOW_EXECUTE,
     listener: (data: WorkflowExecuteEvent) => void,
+  ): () => void;
+
+  on(
+    event: AppEvents.SANDBOX_CREATE,
+    listener: (data: SandboxCreateEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.SANDBOX_DELETE,
+    listener: (data: SandboxDeleteEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.SANDBOX_DISCARD,
+    listener: (data: SandboxDiscardEvent) => void,
+  ): () => void;
+  on(
+    event: AppEvents.SANDBOX_MERGE,
+    listener: (data: SandboxMergeEvent) => void,
   ): () => void;
 
   on(
@@ -701,6 +722,11 @@ export class AppHooksService extends ApppHookServiceCE {
   emit(event: AppEvents.PROJECT_TEAM_INVITE, data: BaseTeamInviteEvent): void;
   emit(event: AppEvents.PROJECT_TEAM_UPDATE, data: BaseTeamUpdateEvent): void;
   emit(event: AppEvents.PROJECT_TEAM_DELETE, data: BaseTeamDeleteEvent): void;
+
+  emit(event: AppEvents.SANDBOX_CREATE, data: SandboxCreateEvent): void;
+  emit(event: AppEvents.SANDBOX_DELETE, data: SandboxDeleteEvent): void;
+  emit(event: AppEvents.SANDBOX_DISCARD, data: SandboxDiscardEvent): void;
+  emit(event: AppEvents.SANDBOX_MERGE, data: SandboxMergeEvent): void;
 
   emit(event, data): void {
     return super.emit(event, data);

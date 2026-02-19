@@ -1607,15 +1607,27 @@ defineExpose({
 }
 
 .nc-filter-disabled-row {
-  @apply opacity-40 pointer-events-none;
+  @apply opacity-40;
+
+  // keep action buttons (delete, copy, reorder) fully interactive
+  .nc-filter-item-remove-btn,
+  .nc-filter-item-copy-btn,
+  .nc-filter-item-reorder-btn {
+    @apply opacity-100 pointer-events-auto;
+  }
 }
 
-// group disabled state — dim the entire group container but keep checkbox interactive
+// group disabled state — dim the entire group container but keep action buttons and checkbox interactive
 .nc-filter-disabled-group {
   & > * {
-    @apply opacity-40 pointer-events-none;
+    @apply opacity-40;
   }
   :deep(.nc-filter-enabled-checkbox) {
+    @apply opacity-100 pointer-events-auto;
+  }
+  :deep(.nc-filter-item-remove-btn),
+  :deep(.nc-filter-item-copy-btn),
+  :deep(.nc-filter-item-reorder-btn) {
     @apply opacity-100 pointer-events-auto;
   }
 }

@@ -1462,6 +1462,9 @@ export function useCanvasTable({
         await Promise.all(
           metaIdsToFetch.map(async ([colId, tableId, relatedBaseId]) => {
             if (!tableId || !relatedBaseId) return
+            // Try fetching full table meta first. If it fails (e.g., user lacks permission
+            // to access the related table), fall back to partial meta which only fetches
+            // the linked column metadata needed to render the LTAR cell.
             try {
               await getMeta(relatedBaseId, tableId, false, false, true)
             } catch {}

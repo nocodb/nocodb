@@ -294,6 +294,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     });
 
     qb.where(_wherePk(this.model.primaryKeys, id));
+
+    // Apply RLS conditions to readByPk
+    const rlsConditionsReadByPk = await this.getRlsConditions();
+    if (rlsConditionsReadByPk.length) {
+      await conditionV2(
+        this,
+        [new Filter({ children: rlsConditionsReadByPk, is_group: true })],
+        qb,
+      );
+    }
+
     let data;
 
     try {
@@ -395,6 +406,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       return false;
     }
     qb.where(_wherePk(pks, id)).first();
+
+    // Apply RLS conditions to exist check
+    const rlsConditionsExist = await this.getRlsConditions();
+    if (rlsConditionsExist.length) {
+      await conditionV2(
+        this,
+        [new Filter({ children: rlsConditionsExist, is_group: true })],
+        qb,
+      );
+    }
+
     return !!(await this.execAndParse(qb, null, { raw: true, first: true }));
   }
 
@@ -423,9 +445,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       aliasColObjMap,
     );
 
+    // Resolve RLS conditions for findOne
+    const rlsConditionsFindOne = await this.getRlsConditions();
+    const rlsFilterGroupFindOne = rlsConditionsFindOne.length
+      ? [new Filter({ children: rlsConditionsFindOne, is_group: true })]
+      : [];
+
     await conditionV2(
       this,
       [
+        ...rlsFilterGroupFindOne,
         new Filter({
           children: args.filterArr || [],
           is_group: true,
@@ -543,11 +572,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       aliasColObjMap,
       throwErrorIfInvalidParams,
     );
+    // Resolve RLS (Row-Level Security) conditions
+    const rlsConditions = await this.getRlsConditions();
+    const rlsFilterGroup = rlsConditions.length
+      ? [new Filter({ children: rlsConditions, is_group: true })]
+      : [];
+
     // todo: replace with view id
     if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         this,
         [
+          // RLS filters — always first, always applied
+          ...rlsFilterGroup,
           ...(args.customConditions
             ? [
                 new Filter({
@@ -589,6 +626,8 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await conditionV2(
         this,
         [
+          // RLS filters — always first, always applied
+          ...rlsFilterGroup,
           ...(args.customConditions
             ? [
                 new Filter({
@@ -714,10 +753,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       throwErrorIfInvalidParams,
     );
 
+    // Resolve RLS conditions for count
+    const rlsConditionsCount = await this.getRlsConditions();
+    const rlsFilterGroupCount = rlsConditionsCount.length
+      ? [new Filter({ children: rlsConditionsCount, is_group: true })]
+      : [];
+
     if (!ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         this,
         [
+          ...rlsFilterGroupCount,
           ...(args.customConditions
             ? [
                 new Filter({
@@ -753,6 +799,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await conditionV2(
         this,
         [
+          ...rlsFilterGroupCount,
           ...(args.customConditions
             ? [
                 new Filter({
@@ -830,9 +877,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       where,
       aliasColObjMap,
     );
+    // Resolve RLS conditions for groupByAndAggregate
+    const rlsConditionsGBA = await this.getRlsConditions();
+    const rlsFilterGroupGBA = rlsConditionsGBA.length
+      ? [new Filter({ children: rlsConditionsGBA, is_group: true })]
+      : [];
+
     await conditionV2(
       this,
       [
+        ...rlsFilterGroupGBA,
         new Filter({
           children: filterObj,
           is_group: true,
@@ -864,6 +918,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }[],
     _view: View,
   ) {
+    // Prepend RLS conditions to filterArr for bulkGroupByCount
+    const rlsConditionsBGBC = await this.getRlsConditions();
+    if (rlsConditionsBGBC.length) {
+      args = {
+        ...args,
+        filterArr: [
+          new Filter({ children: rlsConditionsBGBC, is_group: true }),
+          ...(args.filterArr || []),
+        ],
+      };
+    }
     return await baseModelGroupBy(this, logger).bulkCount(
       args,
       bulkFilterList,
@@ -887,6 +952,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     }[],
     _view: View,
   ) {
+    // Prepend RLS conditions to filterArr for bulkGroupBy
+    const rlsConditionsBGB = await this.getRlsConditions();
+    if (rlsConditionsBGB.length) {
+      args = {
+        ...args,
+        filterArr: [
+          new Filter({ children: rlsConditionsBGB, is_group: true }),
+          ...(args.filterArr || []),
+        ],
+      };
+    }
     return await baseModelGroupBy(this, logger).bulkList(
       args,
       bulkFilterList,
@@ -999,6 +1075,12 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         });
       }
 
+      // Resolve RLS conditions for bulkAggregate
+      const rlsConditionsBulkAgg = await this.getRlsConditions();
+      const rlsFilterGroupBulkAgg = rlsConditionsBulkAgg.length
+        ? [new Filter({ children: rlsConditionsBulkAgg, is_group: true })]
+        : [];
+
       const selectors = [] as Array<Knex.Raw>;
       // Generate a knex raw query for each filter in the bulkFilterList
       for (const f of bulkFilterList) {
@@ -1016,6 +1098,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await conditionV2(
           this,
           [
+            ...rlsFilterGroupBulkAgg,
             ...(this.viewId
               ? [
                   new Filter({
@@ -1176,9 +1259,16 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         where,
         aliasColObjMap,
       );
+      // Resolve RLS conditions for aggregate
+      const rlsConditionsAgg = await this.getRlsConditions();
+      const rlsFilterGroupAgg = rlsConditionsAgg.length
+        ? [new Filter({ children: rlsConditionsAgg, is_group: true })]
+        : [];
+
       await conditionV2(
         this,
         [
+          ...rlsFilterGroupAgg,
           ...(this.viewId
             ? [
                 new Filter({
@@ -1262,6 +1352,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     sortArr?: Sort[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
+    // Prepend RLS conditions to filterArr for groupBy
+    const rlsConditionsGB = await this.getRlsConditions();
+    if (rlsConditionsGB.length) {
+      args = {
+        ...args,
+        filterArr: [
+          new Filter({ children: rlsConditionsGB, is_group: true }),
+          ...(args.filterArr || []),
+        ],
+      };
+    }
     return await baseModelGroupBy(this, logger).list(args);
   }
 
@@ -1273,6 +1374,17 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     filterArr?: Filter[];
     minCount?: number; // Minimum count for groups (e.g., 2 to get only duplicates)
   }) {
+    // Prepend RLS conditions to filterArr for groupByCount
+    const rlsConditionsGBC = await this.getRlsConditions();
+    if (rlsConditionsGBC.length) {
+      args = {
+        ...args,
+        filterArr: [
+          new Filter({ children: rlsConditionsGBC, is_group: true }),
+          ...(args.filterArr || []),
+        ],
+      };
+    }
     return await baseModelGroupBy(this, logger).count(args);
   }
 
@@ -3358,7 +3470,14 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
           true,
         );
 
+        // Resolve RLS conditions for bulkUpdateAll
+        const rlsConditionsBUA = await this.getRlsConditions();
+        const rlsFilterGroupBUA = rlsConditionsBUA.length
+          ? [new Filter({ children: rlsConditionsBUA, is_group: true })]
+          : [];
+
         const conditionObj = [
+          ...rlsFilterGroupBUA,
           new Filter({
             children: args.filterArr || [],
             is_group: true,
@@ -4889,11 +5008,18 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         where,
         aliasColObjMap,
       );
+      // Resolve RLS conditions for groupedList
+      const rlsConditionsGL = await this.getRlsConditions();
+      const rlsFilterGroupGL = rlsConditionsGL.length
+        ? [new Filter({ children: rlsConditionsGL, is_group: true })]
+        : [];
+
       // todo: replace with view id
       if (!args.ignoreViewFilterAndSort && this.viewId) {
         await conditionV2(
           this,
           [
+            ...rlsFilterGroupGL,
             new Filter({
               children:
                 (await Filter.rootFilterList(this.context, {
@@ -4925,6 +5051,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
         await conditionV2(
           this,
           [
+            ...rlsFilterGroupGL,
             new Filter({
               children: args.filterArr || [],
               is_group: true,
@@ -5051,12 +5178,19 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       args.where,
       aliasColObjMap,
     );
+    // Resolve RLS conditions for groupedListCount
+    const rlsConditionsGLC = await this.getRlsConditions();
+    const rlsFilterGroupGLC = rlsConditionsGLC.length
+      ? [new Filter({ children: rlsConditionsGLC, is_group: true })]
+      : [];
+
     // todo: replace with view id
 
     if (!args.ignoreViewFilterAndSort && this.viewId) {
       await conditionV2(
         this,
         [
+          ...rlsFilterGroupGLC,
           new Filter({
             children:
               (await Filter.rootFilterList(this.context, {
@@ -5081,6 +5215,7 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
       await conditionV2(
         this,
         [
+          ...rlsFilterGroupGLC,
           new Filter({
             children: args.filterArr || [],
             is_group: true,
@@ -7293,6 +7428,15 @@ class BaseModelSqlv2 implements IBaseModelSqlV2 {
     user: any;
     req: any;
   }) {}
+
+  /**
+   * Returns RLS (Row-Level Security) filter conditions for the current user.
+   * CE version: no-op, returns empty array (no RLS).
+   * EE version: resolves applicable policies and returns filter conditions.
+   */
+  public async getRlsConditions(): Promise<Filter[]> {
+    return [];
+  }
 }
 
 export { BaseModelSqlv2 };

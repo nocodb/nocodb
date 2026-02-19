@@ -3698,6 +3698,178 @@ class BaseModelSqlv2 extends BaseModelSqlv2CE {
       throw e;
     }
   }
+
+  /**
+   * EE override: Returns RLS filter conditions for the current user.
+   * Resolves applicable policies and returns filter conditions that
+   * get AND'd with all other filters in the query.
+   */
+  public override async getRlsConditions(): Promise<Filter[]> {
+    // Only apply RLS if user context is available
+    if (!this.context?.user?.id) {
+      return [];
+    }
+
+    const user = this.context.user;
+
+    // Base owners are exempt from RLS
+    if (user.base_roles) {
+      const roles =
+        typeof user.base_roles === 'string'
+          ? JSON.parse(user.base_roles)
+          : user.base_roles;
+      if (roles?.['owner']) {
+        return [];
+      }
+    }
+
+    try {
+      const {
+        resolveRlsPolicies,
+        resolveRlsDynamicValues,
+      } = await import('~/ee/utils/rls-resolver');
+
+      // Build user context for RLS resolution
+      const baseRoles = user.base_roles
+        ? typeof user.base_roles === 'string'
+          ? Object.keys(JSON.parse(user.base_roles))
+              .filter((r) => JSON.parse(user.base_roles as string)[r])
+              .join(',')
+          : Object.keys(user.base_roles)
+              .filter((r) => (user.base_roles as Record<string, boolean>)[r])
+              .join(',')
+        : '';
+
+      const rlsUser = {
+        id: user.id,
+        email: user.email,
+        roles: baseRoles,
+      };
+
+      const result = await resolveRlsPolicies(
+        this.context,
+        this.model.id,
+        rlsUser,
+      );
+
+      if (result.type === 'no_rls') {
+        return [];
+      }
+
+      if (result.type === 'deny_all') {
+        // Return a filter that matches nothing (WHERE 1=0)
+        return [
+          new Filter({
+            comparison_op: 'eq',
+            value: '__nc_rls_deny_all__',
+            fk_column_id: this.model.primaryKey?.id,
+            is_group: false,
+          }),
+        ];
+      }
+
+      // Load and resolve filter trees for matched policies
+      const RlsPolicy = (await import('~/ee/models/RlsPolicy')).default;
+      const allPolicies = await RlsPolicy.listByModel(
+        this.context,
+        this.model.id,
+      );
+      const enabledPolicies = allPolicies.filter((p) => p.enabled);
+      const defaultPolicy = enabledPolicies.find((p) => p.is_default);
+      const scopedPolicies = enabledPolicies.filter((p) => !p.is_default);
+
+      // Re-check which scoped policies match
+      const { default: PrincipalAssignment } = await import(
+        '~/ee/models/PrincipalAssignment'
+      );
+
+      const matchedPolicyIds: string[] = [];
+      for (const policy of scopedPolicies) {
+        if (policy.subjects?.length) {
+          let matched = false;
+          for (const subject of policy.subjects) {
+            if (subject.type === 'role' && baseRoles.includes(subject.id)) {
+              matched = true;
+              break;
+            }
+            if (subject.type === 'user' && user.id === subject.id) {
+              matched = true;
+              break;
+            }
+            if (subject.type === 'team') {
+              try {
+                const assignment = await PrincipalAssignment.get(
+                  this.context,
+                  'team',
+                  subject.id,
+                  'user',
+                  user.id,
+                );
+                if (assignment) {
+                  matched = true;
+                  break;
+                }
+              } catch {
+                // continue
+              }
+            }
+          }
+          if (matched) {
+            matchedPolicyIds.push(policy.id);
+          }
+        }
+      }
+
+      // Load filters for matched policies (or default policy)
+      let policyIdsToLoad: string[];
+
+      if (matchedPolicyIds.length > 0) {
+        policyIdsToLoad = matchedPolicyIds;
+      } else if (
+        defaultPolicy &&
+        defaultPolicy.default_behavior === 'condition'
+      ) {
+        policyIdsToLoad = [defaultPolicy.id];
+      } else {
+        return [];
+      }
+
+      // Load filter trees and OR them together
+      const allFilters: Filter[] = [];
+      for (const policyId of policyIdsToLoad) {
+        const filters = await Filter.rootFilterListByRlsPolicy(this.context, {
+          rlsPolicyId: policyId,
+        });
+        if (filters?.length) {
+          const resolvedFilters = resolveRlsDynamicValues(filters, rlsUser);
+          allFilters.push(
+            ...resolvedFilters.map((f) => new Filter(f)),
+          );
+        }
+      }
+
+      if (allFilters.length === 0) {
+        return [];
+      }
+
+      // If multiple policies, wrap in OR group
+      if (policyIdsToLoad.length > 1) {
+        return [
+          new Filter({
+            children: allFilters,
+            is_group: true,
+            logical_op: 'or',
+          }),
+        ];
+      }
+
+      return allFilters;
+    } catch (e) {
+      // If RLS resolution fails, don't block the query — log and return empty
+      console.error('RLS resolution error:', e);
+      return [];
+    }
+  }
 }
 
 export {

@@ -20,6 +20,7 @@ import * as nc_019_sandboxes from './v0/nc_019_sandboxes';
 import * as nc_020_add_cell_coloring_fields_to_row_color_conditions from './v0/nc_020_add_cell_coloring_fields_to_row_color_conditions';
 import * as nc_021_scim_support from './v0/nc_021_scim_support';
 import * as nc_022_record_templates from './v0/nc_022_record_templates';
+import * as nc_023_rls_policies from './v0/nc_023_rls_policies';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev0 {
@@ -51,6 +52,7 @@ export default class XcMigrationSourcev0 {
       'nc_020_add_cell_coloring_fields_to_row_color_conditions',
       'nc_021_scim_support',
       'nc_022_record_templates',
+      'nc_023_rls_policies',
     ]);
   }
 
@@ -104,6 +106,8 @@ export default class XcMigrationSourcev0 {
         return nc_021_scim_support;
       case 'nc_022_record_templates':
         return nc_022_record_templates;
+      case 'nc_023_rls_policies':
+        return nc_023_rls_policies;
     }
   }
 }

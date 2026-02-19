@@ -112,6 +112,8 @@ export enum MetaTable {
   SANDBOXES = 'nc_sandboxes_v2',
   SCIM_CONFIG = 'nc_scim_config',
   RECORD_TEMPLATES = 'nc_record_templates',
+  RLS_POLICIES = 'nc_rls_policies',
+  RLS_POLICY_SUBJECTS = 'nc_rls_policy_subjects',
 }
 
 export const BaseRelatedMetaTables = [
@@ -151,6 +153,8 @@ export const BaseRelatedMetaTables = [
   MetaTable.MODELS,
   MetaTable.PERMISSIONS,
   MetaTable.PERMISSION_SUBJECTS,
+  MetaTable.RLS_POLICIES,
+  MetaTable.RLS_POLICY_SUBJECTS,
   MetaTable.ROW_COLOR_CONDITIONS,
   MetaTable.SORT,
   MetaTable.SOURCES,
@@ -342,6 +346,7 @@ export enum CacheScope {
   SANDBOX = 'sandbox',
   SCIM_CONFIG = 'scimConfig',
   RECORD_TEMPLATE = 'recordTemplate',
+  RLS_POLICY = 'rlsPolicy',
 }
 
 export enum CacheGetType {
@@ -434,6 +439,7 @@ export enum FilterCacheScope {
   LINK_COL = 'linkCol',
   WIDGET = 'widget',
   PARENT = 'parent',
+  RLS_POLICY = 'rlsPolicy',
 }
 
 export const NC_STORE_DEFAULT_WORKSPACE_ID_KEY = 'NC_DEFAULT_WORKSPACE_ID';

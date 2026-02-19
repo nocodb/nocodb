@@ -104,4 +104,15 @@ export const OPERATION_SCOPES = {
   sandboxDelete: 'base',
   sandboxMerge: 'base',
   sandboxDiff: 'base',
+
+  // RLS (Row-Level Security) operations
+  rlsPolicyList: 'base',
+  rlsPolicyGet: 'base',
+  rlsPolicyCreate: 'base',
+  rlsPolicyUpdate: 'base',
+  rlsPolicyDelete: 'base',
+  rlsPolicySetSubjects: 'base',
+  rlsFilterCreate: 'base',
+  rlsFilterUpdate: 'base',
+  rlsFilterDelete: 'base',
 } as const;

@@ -75,9 +75,16 @@ export class BaseModelDelete {
       true,
     );
 
+    // Resolve RLS conditions for bulkDeleteAll
+    const rlsConditionsBDA = await this.baseModel.getRlsConditions();
+    const rlsFilterGroupBDA = rlsConditionsBDA.length
+      ? [new Filter({ children: rlsConditionsBDA, is_group: true })]
+      : [];
+
     await conditionV2(
       this.baseModel,
       [
+        ...rlsFilterGroupBDA,
         new Filter({
           children: args.filterArr || [],
           is_group: true,

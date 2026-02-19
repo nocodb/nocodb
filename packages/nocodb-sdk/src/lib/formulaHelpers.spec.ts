@@ -353,7 +353,7 @@ describe('Formula parsing and type validation', () => {
               id: 'id1',
               title: 'column1',
               uidt: supportedType as any,
-            },
+            } as any,
           ],
           clientOrSqlUi: 'mysql2',
           getMeta,

@@ -51,8 +51,12 @@ const isOptionVisible = computed(() => {
       isUIAllowed('baseMiscSettings') &&
       isFeatureEnabled(FEATURE_FLAG.MANAGED_APPS),
     createSandbox:
-      base.value?.version === BaseVersion.V3 && !isSandboxBase && !isInstalledManagedApp && isUIAllowed('baseMiscSettings'),
-    viewAllSandboxes: isSandboxMaster && !isSandboxBase,
+      base.value?.version === BaseVersion.V3 &&
+      !isSandboxBase &&
+      !isInstalledManagedApp &&
+      isUIAllowed('baseMiscSettings') &&
+      isFeatureEnabled(FEATURE_FLAG.SANDBOX),
+    viewAllSandboxes: isSandboxMaster && !isSandboxBase && isFeatureEnabled(FEATURE_FLAG.SANDBOX),
     dataReflection:
       isFeatureEnabled(FEATURE_FLAG.DATA_REFLECTION) &&
       isUIAllowed('createConnectionDetails') &&

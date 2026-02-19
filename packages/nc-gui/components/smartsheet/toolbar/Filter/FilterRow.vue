@@ -29,6 +29,7 @@ interface Props {
   isLoadingFilter?: boolean
   // total visible filter count at current nested level
   visibleFilterCount?: number
+  parentEnabled?: boolean
 }
 interface Emits {
   (event: 'update:modelValue', model: string): void
@@ -56,6 +57,8 @@ const meta = inject(MetaInj, ref())
 
 // t is a standalone dependency, so not need to abstract it
 const { t } = useI18n()
+
+const { blockToggleFilter, showUpgradeToUseToggleFilter } = useEeConfig()
 
 const logicalOps = [
   { value: 'and', text: t('general.and') },
@@ -360,6 +363,42 @@ const onCopy = () => {
   })
 }
 
+const isFilterEnabled = computed(() => vModel.value.enabled !== false && vModel.value.enabled !== 0)
+
+const effectiveEnabled = computed(() => (props.parentEnabled !== false && props.parentEnabled !== 0) && isFilterEnabled.value)
+
+const onToggleFilterChange = (val: boolean | Event) => {
+  if (blockToggleFilter.value) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(val)
+}
+
+const onEnabledChange = (val: boolean | Event) => {
+  const newValue = typeof val === 'boolean' ? val : (val?.target as HTMLInputElement)?.checked
+  const prevValue = vModel.value.enabled
+  vModel.value.enabled = newValue
+
+  if (props.handler?.rowChange) {
+    props.handler?.rowChange({
+      filter: vModel.value,
+      type: 'enabled',
+      prevValue,
+      value: newValue,
+      index: props.index,
+    })
+  } else {
+    emits('change', {
+      filter: { ...vModel.value },
+      type: 'enabled',
+      prevValue,
+      value: newValue,
+      index: props.index,
+    })
+  }
+}
+
 async function onResetDynamicField() {
   const prevValue = vModel.value.dynamic
   vModel.value.dynamic = false
@@ -391,12 +430,27 @@ const onChangeToDynamic = async () => {
 <template>
   <div
     class="flex flex-row gap-x-0 w-full nc-filter-wrapper bg-nc-bg-default"
-    :class="`nc-filter-wrapper-${vModel.fk_column_id}`"
+    :class="[
+      `nc-filter-wrapper-${vModel.fk_column_id}`,
+      { 'nc-filter-disabled-row': isEeUI && !effectiveEnabled },
+    ]"
     v-bind="containerProps"
   >
+    <!-- #region enabled checkbox (EE only) -->
+    <div v-if="isEeUI" class="flex items-center pl-2 pr-1">
+      <NcCheckbox
+        :checked="isFilterEnabled"
+        size="default"
+        :disabled="isDisabled || parentEnabled === false"
+        class="nc-filter-enabled-checkbox"
+        @change="onToggleFilterChange"
+      />
+    </div>
+    <!-- #endregion enabled checkbox -->
+
     <!-- #region logical op -->
     <template v-if="index === 0">
-      <div class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label" v-bind="logicalOpsProps">
+      <div class="flex items-center !min-w-18 !max-w-18 nc-filter-where-label" :class="isEeUI ? 'pl-1' : 'pl-3'" v-bind="logicalOpsProps">
         {{ $t('labels.where') }}
       </div>
     </template>
@@ -806,5 +860,15 @@ const onChangeToDynamic = async () => {
 
 .nc-btn-focus:focus {
   @apply !text-nc-content-brand !shadow-none;
+}
+
+.nc-filter-disabled-row {
+  & > *:not(.nc-filter-enabled-checkbox):not(:first-child) {
+    @apply opacity-40 pointer-events-none;
+  }
+}
+
+.nc-filter-enabled-checkbox {
+  @apply flex-shrink-0;
 }
 </style>

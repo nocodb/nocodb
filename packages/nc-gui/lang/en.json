@@ -170,6 +170,10 @@
     "upgradeToUseCurrentUserFilterSubtitle": "Upgrade to the {plan} plan to use filters that show data based on the current user.",
     "upgradeToUseRowColoring": "Upgrade to use row colouring",
     "upgradeToUseRowColoringSubtitle": "Upgrade to the {plan} plan to colour rows based on field values or conditions, making it easier to scan and prioritize your data.",
+    "upgradeToUseToggleFilter": "Upgrade to toggle individual filters",
+    "upgradeToUseToggleFilterSubtitle": "Upgrade to the {plan} plan to enable or disable individual filters without removing them, giving you more control over your views.",
+    "upgradeToUsePinnedFilter": "Upgrade to pin filters to toolbar",
+    "upgradeToUsePinnedFilterSubtitle": "Upgrade to the {plan} plan to pin frequently used filters to the toolbar for quick, one-click access.",
     "upgradeToUseTableAndFieldPermissions": "Upgrade to use table and field permissions",
     "upgradeToUseTableAndFieldPermissionsSubtitle": "Upgrade to the {plan} plan to use table and field permissions, making it easier to manage your data.",
     "upgradeToUseScripts": "Upgrade to use scripts",
@@ -483,7 +487,8 @@
     "teams": "Teams",
     "structure": "Structure",
     "retry": "Retry",
-    "attachImage": "Attach Image"
+    "attachImage": "Attach Image",
+    "none": "None"
   },
   "objects": {
     "script": "Script",
@@ -1062,6 +1067,12 @@
     "relevantDocumentation": "Relevant documentation"
   },
   "labels": {
+    "pinToToolbar": "Pin to toolbar",
+    "unpinFromToolbar": "Unpin from toolbar",
+    "maxPinnedFilters": "Max {count} filters can be pinned",
+    "pinNotSupported": "Pin is supported for Single Select, Multi Select, User, Created By, and Last Modified By fields only",
+    "parentGroupDisabled": "Parent filter group is disabled",
+    "fieldAlreadyPinned": "This field is already pinned by another filter",
     "appMarket": "App Market",
     "installs": "installs",
     "checkingDependencies": "Checking Dependencies",

@@ -57,6 +57,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const blockRowColoring = computed(() => true)
 
+  const blockToggleFilter = computed(() => true)
+
+  const blockPinnedFilter = computed(() => true)
+
   const blockTableAndFieldPermissions = computed(() => true)
 
   const blockPrivateBases = computed(() => true)
@@ -136,6 +140,10 @@ export const useEeConfig = createSharedComposable(() => {
 
   const showUpgradeToUseRowColoring = (..._args: any[]) => {}
 
+  const showUpgradeToUseToggleFilter = (..._args: any[]) => {}
+
+  const showUpgradeToUsePinnedFilter = (..._args: any[]) => {}
+
   const showUpgradeToUseTableAndFieldPermissions = (..._args: any[]) => {}
 
   const showUpgradeToUsePrivateBases = (..._args: any[]) => {}
@@ -206,6 +214,10 @@ export const useEeConfig = createSharedComposable(() => {
     showUpgradeToUseCurrentUserFilter,
     blockRowColoring,
     showUpgradeToUseRowColoring,
+    blockToggleFilter,
+    showUpgradeToUseToggleFilter,
+    blockPinnedFilter,
+    showUpgradeToUsePinnedFilter,
     blockTableAndFieldPermissions,
     showUpgradeToUseTableAndFieldPermissions,
     blockPrivateBases,

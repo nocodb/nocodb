@@ -516,6 +516,8 @@ import NcLinkedinIcon from '~icons/nc-icons-v2/linkedin.svg'
 import NcVideoIcon from '~icons/nc-icons-v2/video.svg'
 import NcActivityIcon from '~icons/nc-icons-v2/activity.svg'
 import NcMapPinIcon from '~icons/nc-icons-v2/map-pin.svg'
+import NcPinIcon from '~icons/nc-icons-v2/pin.svg'
+import NcPinOffIcon from '~icons/nc-icons-v2/pin-off.svg'
 import NcFilterIcon from '~icons/nc-icons-v2/filter.svg'
 import NcPhoneIncomingIcon from '~icons/nc-icons-v2/phone-incoming.svg'
 import NcItalicIcon from '~icons/nc-icons-v2/italic.svg'
@@ -1563,6 +1565,8 @@ export const iconMap = {
   'ncVideo': NcVideoIcon,
   'ncActivity': NcActivityIcon,
   'ncMapPin': NcMapPinIcon,
+  'ncPin': NcPinIcon,
+  'ncPinOff': NcPinOffIcon,
   'ncFilter': NcFilterIcon,
   'ncPhoneIncoming': NcPhoneIncomingIcon,
   'ncItalic': NcItalicIcon,
@@ -4033,6 +4037,14 @@ export const searchableMap = {
   ncMapPin: {
     icon: NcMapPinIcon,
     keywords: ['location', 'navigation', 'marker', 'geography', 'pinpoint'],
+  },
+  ncPin: {
+    icon: NcPinIcon,
+    keywords: ['pin', 'attach', 'stick', 'thumbtack', 'pushpin'],
+  },
+  ncPinOff: {
+    icon: NcPinOffIcon,
+    keywords: ['unpin', 'detach', 'remove pin', 'unstick'],
   },
   ncFilter: {
     icon: NcFilterIcon,

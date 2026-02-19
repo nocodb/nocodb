@@ -131,12 +131,20 @@ const isLockedView = computed(() => isLocked.value && isViewFilter.value)
 
 const { $e } = useNuxtApp()
 
-const { nestedFilters, isForm, eventBus } =
+const { blockToggleFilter, showUpgradeToUseToggleFilter, blockPinnedFilter, showUpgradeToUsePinnedFilter } = useEeConfig()
+
+const {
+  nestedFilters,
+  isForm,
+  eventBus,
+  allFilters: smartsheetAllFilters,
+} =
   widget.value || workflow.value
     ? {
         nestedFilters: ref([]),
         isForm: ref(false),
         eventBus: null,
+        allFilters: ref([]),
       }
     : useSmartsheetStoreOrThrow()
 
@@ -339,6 +347,36 @@ watch(
   },
 )
 
+// EE only: Watch the smartsheet store's allFilters for external changes (e.g. from PinnedFilters)
+// and sync them back to the local filters so the filter menu stays in sync
+if (isEeUI) {
+  watch(
+    smartsheetAllFilters,
+    (storeFilters) => {
+      if (!storeFilters?.length) return
+      for (const storeFilter of storeFilters) {
+        if (!storeFilter.id) continue
+        const localFilter = filters.value.find((f) => f.id === storeFilter.id)
+        if (!localFilter) continue
+
+        // Sync value, enabled, and meta if they differ
+        if (localFilter.value !== storeFilter.value) {
+          localFilter.value = storeFilter.value
+        }
+        if (localFilter.enabled !== storeFilter.enabled) {
+          localFilter.enabled = storeFilter.enabled
+        }
+        const localMeta = parseProp(localFilter.meta)
+        const storeMeta = parseProp(storeFilter.meta)
+        if (localMeta?.pinned !== storeMeta?.pinned) {
+          localFilter.meta = storeFilter.meta
+        }
+      }
+    },
+    { deep: true },
+  )
+}
+
 const filtersCount = computed(() => {
   return Object.values(allFilters.value).reduce((acc, filters) => {
     return acc + filters.filter((el) => !el.is_group).length
@@ -483,6 +521,15 @@ const addFilterGroup = async (filter?: Partial<FilterType>) => {
 const copyFilter = (filter: Filter, isGroup = false) => {
   const filterToCopy = clone(filter)
 
+  // EE only: Strip pinned state from copied filter (pinned filters are EE feature)
+  if (isEeUI && filterToCopy.meta) {
+    const meta = parseProp(filterToCopy.meta)
+    if (meta?.pinned) {
+      delete meta.pinned
+      filterToCopy.meta = meta
+    }
+  }
+
   if (isGroup) {
     addFilterGroup(filterToCopy)
   } else {
@@ -591,6 +638,86 @@ const onLogicalOpUpdate = async (filter: Filter, index: number) => {
     )
   }
   await saveOrUpdate(filter, index)
+}
+
+const onToggleFilterChange = (filter: ColumnFilterType, index: number) => {
+  if (blockToggleFilter.value) {
+    showUpgradeToUseToggleFilter()
+    return
+  }
+  onEnabledChange(filter, index)
+}
+
+const onEnabledChange = async (filter: ColumnFilterType, index: number) => {
+  const newEnabled = filter.enabled === false ? true : false
+  $e('a:filter:toggle-enabled', { enabled: newEnabled, isGroup: !!filter.is_group })
+  filter.enabled = newEnabled
+  await saveOrUpdate(filter, index)
+
+  if (isEeUI) {
+    // EE only: Refresh allFilters so ColumnFilterMenu can reactively update the enabled count
+    allFilters.value[parentId?.value ?? 'root'] = [...nonDeletedFilters.value]
+
+    // EE only: Sync enabled state to smartsheet store so PinnedFilters.vue reflects it
+    const storeFilter = smartsheetAllFilters.value.find((f) => f.id === filter.id)
+    if (storeFilter) {
+      storeFilter.enabled = filter.enabled
+    }
+  }
+}
+
+const MAX_PINNED_FILTERS = 3
+
+const pinnedFilterCount = computed(() => {
+  return visibleFilters.value.filter((f) => !f.is_group && parseProp(f.meta)?.pinned === true).length
+})
+
+const PINNABLE_TYPES = [UITypes.SingleSelect, UITypes.MultiSelect, UITypes.User, UITypes.CreatedBy, UITypes.LastModifiedBy]
+
+const isPinnableType = (filter: ColumnFilterType): boolean => {
+  const col = getColumn(filter)
+  return !!col && PINNABLE_TYPES.includes(col.uidt as UITypes)
+}
+
+const isFieldAlreadyPinned = (filter: ColumnFilterType): boolean => {
+  if (!filter.fk_column_id) return false
+  const isPinned = parseProp(filter.meta)?.pinned
+  if (isPinned) return false // this filter itself is the pinned one
+  return smartsheetAllFilters.value.some(
+    (f) => f.id !== filter.id && f.fk_column_id === filter.fk_column_id && !f.is_group && parseProp(f.meta)?.pinned === true,
+  )
+}
+
+const canPinFilter = (filter: ColumnFilterType): boolean => {
+  if (filter.is_group) return false
+  if (!isPinnableType(filter)) return false
+  if (isFieldAlreadyPinned(filter)) return false
+  const meta = parseProp(filter.meta)
+  return meta?.pinned || pinnedFilterCount.value < MAX_PINNED_FILTERS
+}
+
+const togglePinFilter = async (filter: ColumnFilterType, index: number) => {
+  const meta = parseProp(filter.meta) || {}
+  const newPinned = !meta.pinned
+  $e('a:filter:toggle-pin', { pinned: newPinned })
+  meta.pinned = newPinned
+  filter.meta = meta
+  await saveOrUpdate(filter, index)
+
+  // Sync pin state to smartsheet store's allFilters so PinnedFilters.vue updates immediately
+  const storeFilter = smartsheetAllFilters.value.find((f) => f.id === filter.id)
+  if (storeFilter) {
+    storeFilter.meta = { ...meta }
+  }
+}
+
+/** Tooltip text for the pin/unpin button — extracted from template for readability */
+const getPinTooltip = (filter: ColumnFilterType): string => {
+  if (!isPinnableType(filter)) return t('labels.pinNotSupported')
+  if (parseProp(filter.meta)?.pinned) return t('labels.unpinFromToolbar')
+  if (isFieldAlreadyPinned(filter)) return t('labels.fieldAlreadyPinned')
+  if (canPinFilter(filter)) return t('labels.pinToToolbar')
+  return t('labels.maxPinnedFilters', { count: MAX_PINNED_FILTERS })
 }
 
 function onMoveCallback(event: any) {
@@ -803,7 +930,7 @@ defineExpose({
     }"
   >
     <div v-if="nested" class="flex min-w-full w-min items-center gap-1 mb-2">
-      <div :class="[`nc-filter-logical-op-level-${nestedLevel}`]">
+      <div class="flex items-center gap-2" :class="[`nc-filter-logical-op-level-${nestedLevel}`]">
         <slot name="start"></slot>
       </div>
       <div class="flex-grow"></div>
@@ -890,7 +1017,10 @@ defineExpose({
       <template #item="{ element: filter, index: i }">
         <div v-if="filter.status !== 'delete'" :key="i" class="nc-column-filter-item min-w-full w-min max-w-full">
           <template v-if="filter.is_group">
-            <div class="flex flex-col min-w-full w-min max-w-full gap-y-2">
+            <div
+              class="flex flex-col min-w-full w-min max-w-full gap-y-2"
+              :class="{ 'nc-filter-disabled-group': isEeUI && filter.enabled === false }"
+            >
               <div
                 class="flex rounded-lg p-2 min-w-full w-min max-w-full border-1"
                 :class="[`nc-filter-nested-level-${nestedLevel}`]"
@@ -922,6 +1052,14 @@ defineExpose({
                   :is-temp-filters="isTempFilters"
                 >
                   <template #start>
+                    <NcCheckbox
+                      v-if="isEeUI"
+                      :checked="filter.enabled !== false"
+                      size="default"
+                      :disabled="isLockedView || readOnly"
+                      class="nc-filter-enabled-checkbox"
+                      @change="onToggleFilterChange(filter, i)"
+                    />
                     <span v-if="!visibleFilters.indexOf(filter)" class="flex items-center nc-filter-where-label ml-1">{{
                       $t('labels.where')
                     }}</span>
@@ -997,7 +1135,22 @@ defineExpose({
             </div>
           </template>
 
-          <div v-else class="flex flex-row gap-x-0 w-full nc-filter-wrapper" :class="`nc-filter-wrapper-${filter.fk_column_id}`">
+          <div v-else class="flex items-center gap-2 w-full">
+            <NcCheckbox
+              v-if="isEeUI"
+              :checked="filter.enabled !== false"
+              size="default"
+              :disabled="isLockedView || readOnly"
+              class="nc-filter-enabled-checkbox"
+              @change="onToggleFilterChange(filter, i)"
+            />
+            <div
+              class="flex flex-row gap-x-0 flex-1 nc-filter-wrapper"
+              :class="[
+                `nc-filter-wrapper-${filter.fk_column_id}`,
+                { 'nc-filter-disabled-row': isEeUI && filter.enabled === false },
+              ]"
+            >
             <div v-if="!visibleFilters.indexOf(filter)" class="flex items-center !min-w-18 !max-w-18 pl-3 nc-filter-where-label">
               {{ $t('labels.where') }}
             </div>
@@ -1308,6 +1461,32 @@ defineExpose({
               <GeneralIcon icon="copy" />
             </NcButton>
 
+            <NcTooltip v-if="!filter.readOnly && !readOnly && isEeUI && isViewFilter && !filter.is_group && !webHook && !link && !widget">
+              <template #title>
+                {{ getPinTooltip(filter) }}
+              </template>
+              <NcButton
+                v-e="['c:filter:pin']"
+                type="text"
+                size="small"
+                :disabled="!canPinFilter(filter) || isLockedView"
+                class="nc-filter-item-pin-btn self-center"
+                @click.stop="blockPinnedFilter ? showUpgradeToUsePinnedFilter() : togglePinFilter(filter, i)"
+              >
+                <GeneralIcon
+                  :icon="parseProp(filter.meta)?.pinned ? 'ncPinOff' : 'ncPin'"
+                  class="h-3.5 w-3.5"
+                  :class="
+                    (!canPinFilter(filter) && !parseProp(filter.meta)?.pinned) || isLockedView
+                      ? 'text-nc-content-gray-muted'
+                      : parseProp(filter.meta)?.pinned
+                        ? 'text-primary'
+                        : 'text-nc-content-gray-subtle2'
+                  "
+                />
+              </NcButton>
+            </NcTooltip>
+
             <NcButton
               v-if="!filter.readOnly && !readOnly && isReorderEnabled"
               v-e="['c:filter:reorder', { link: !!link, webHook: !!webHook }]"
@@ -1319,6 +1498,7 @@ defineExpose({
             >
               <GeneralIcon icon="drag" class="flex-none h-4 w-4" />
             </NcButton>
+          </div>
           </div>
         </div>
       </template>
@@ -1444,7 +1624,8 @@ defineExpose({
 <style scoped lang="scss">
 .nc-filter-item-remove-btn,
 .nc-filter-item-reorder-btn,
-.nc-filter-item-copy-btn {
+.nc-filter-item-copy-btn,
+.nc-filter-item-pin-btn {
   @apply text-nc-content-gray-subtle2 hover:text-nc-content-gray;
 }
 
@@ -1574,6 +1755,32 @@ defineExpose({
 
 .nc-btn-focus:focus {
   @apply !text-nc-content-brand !shadow-none;
+}
+
+.nc-filter-disabled-row {
+  @apply opacity-40;
+
+  // keep action buttons (delete, copy, reorder) fully interactive
+  .nc-filter-item-remove-btn,
+  .nc-filter-item-copy-btn,
+  .nc-filter-item-reorder-btn {
+    @apply opacity-100 pointer-events-auto;
+  }
+}
+
+// group disabled state — dim the entire group container but keep action buttons and checkbox interactive
+.nc-filter-disabled-group {
+  & > * {
+    @apply opacity-40;
+  }
+  :deep(.nc-filter-enabled-checkbox) {
+    @apply opacity-100 pointer-events-auto;
+  }
+  :deep(.nc-filter-item-remove-btn),
+  :deep(.nc-filter-item-copy-btn),
+  :deep(.nc-filter-item-reorder-btn) {
+    @apply opacity-100 pointer-events-auto;
+  }
 }
 </style>
 

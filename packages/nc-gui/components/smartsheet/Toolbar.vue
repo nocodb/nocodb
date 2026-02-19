@@ -5,9 +5,18 @@ defineProps<{
 
 const isPublic = inject(IsPublicInj, ref(false))
 
-const { isGrid, isGallery, isKanban, isMap, isCalendar, isForm, isViewOperationsAllowed } = useSmartsheetStoreOrThrow()
+const isLocked = inject(IsLockedInj, ref(false))
+
+const activeView = inject(ActiveViewInj, ref())
+
+const { isGrid, isGallery, isKanban, isMap, isCalendar, isForm, isViewOperationsAllowed, allFilters } =
+  useSmartsheetStoreOrThrow()
 
 const { isUIAllowed } = useRoles()
+
+const { hasPersonalViewPermission } = usePersonalViewPermissions(activeView)
+
+const canSyncFilter = hasPersonalViewPermission('filterSync')
 
 const { isSharedBase } = storeToRefs(useBase())
 
@@ -18,6 +27,8 @@ const { isLeftSidebarOpen } = storeToRefs(useSidebarStore())
 const { isViewsLoading } = storeToRefs(useViewsStore())
 
 const { isViewActionsEnabled } = useActionPane()
+
+const { blockPinnedFilter } = useEeConfig()
 
 const containerRef = ref<HTMLElement>()
 
@@ -34,8 +45,21 @@ const isTab = computed(() => {
   return width.value > 1200
 })
 
+/** EE only: Check if any filters are pinned to the toolbar.
+ *  Hidden for restricted editors in collaborative/locked views — they cannot modify filters.
+ *  Visible for personal view owners — they have full control over view config. */
+const hasPinnedFilters = computed(() => {
+  if (!isEeUI) return false
+  if (blockPinnedFilter.value) return false
+  if (isLocked.value || !canSyncFilter.value) return false
+  return allFilters.value.some((f) => f.id && !f.is_group && parseProp(f.meta)?.pinned === true)
+})
+
 const isToolbarIconMode = computed(() => {
   if (width.value < 768) {
+    return true
+  }
+  if (hasPinnedFilters.value) {
     return true
   }
   return false
@@ -110,6 +134,8 @@ provide(IsToolbarIconMode, isToolbarIconMode)
         </template>
 
         <!-- <LazySmartsheetToolbarQrScannerButton v-if="isMobileMode && (isGrid || isKanban || isGallery)" /> -->
+
+        <SmartsheetToolbarPinnedFilters v-if="isEeUI && !blockPinnedFilter && !isLocked && canSyncFilter && (isGrid || isGallery || isKanban || isMap)" />
 
         <div class="flex-1" />
       </template>
